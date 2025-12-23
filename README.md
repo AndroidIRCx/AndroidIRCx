@@ -7,12 +7,17 @@
 
 Modern IRC client for Android and iOS built with React Native, inspired by the classic AndroIRC client. This project aims to provide a full-featured, IRCv3-compliant IRC client with a clean and intuitive user interface.
 
-## 📥 Download
+### 📲 Download & Testing
 
-**How to Download**:
+**🧪 Join Testing Program**
 
-1. **From Official Website**: Go to [AndroidIRCx](https://androidircx.com) → Click download button
-   via Play store or Direct download
+- Google Play Testing:  
+  https://play.google.com/apps/testing/com.androidircx
+- Google Group (required for testing access):  
+  https://groups.google.com/g/androidircx/
+
+**🌐 Download APK (Official Website)**  
+https://androidircx.com/app-release.apk
 
 ## 📱 About
 
