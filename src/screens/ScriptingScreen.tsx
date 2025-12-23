@@ -3,6 +3,9 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Switch, TextInput, 
 import { scriptingService, ScriptConfig, ScriptLogEntry } from '../services/ScriptingService';
 import { adRewardService } from '../services/AdRewardService';
 import { useTheme } from '../hooks/useTheme';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-javascript';
 
 interface Props {
   visible: boolean;
@@ -204,7 +207,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose }) => {
     Alert.alert(result.ok ? 'Lint Passed' : 'Syntax Error', result.message);
   };
   
-  const highlightParts = (code: string) => {
+  const highlightPartsFallback = (code: string) => {
     const parts: { text: string; style: any }[] = [];
     const regex = /(\/\/.*$|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\b(function|const|let|var|return|if|else|for|while|switch|case|break|continue|new|class|extends|import|from|export|default|async|await|try|catch|throw)\b|\b\d+(\.\d+)?\b)/gm;
     let lastIndex = 0;
@@ -229,6 +232,47 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose }) => {
       parts.push({ text: code.slice(lastIndex), style: styles.codeText });
     }
     return parts;
+  };
+
+  const highlightParts = (code: string) => {
+    try {
+      const grammar = Prism.languages.javascript;
+      if (!grammar) return highlightPartsFallback(code);
+
+      const parts: { text: string; style: any }[] = [];
+      const tokenStyle = (type: string | undefined) => {
+        switch (type) {
+          case 'comment':
+            return styles.codeComment;
+          case 'string':
+            return styles.codeString;
+          case 'keyword':
+            return styles.codeKeyword;
+          case 'number':
+            return styles.codeNumber;
+          default:
+            return styles.codeText;
+        }
+      };
+      const pushToken = (token: any, inheritedStyle: any) => {
+        if (typeof token === 'string') {
+          if (token.length) parts.push({ text: token, style: inheritedStyle });
+          return;
+        }
+        if (Array.isArray(token)) {
+          token.forEach(t => pushToken(t, inheritedStyle));
+          return;
+        }
+        const nextStyle = tokenStyle(token.type) || inheritedStyle;
+        pushToken(token.content, nextStyle);
+      };
+
+      const tokens = Prism.tokenize(code, grammar);
+      pushToken(tokens, styles.codeText);
+      return parts;
+    } catch {
+      return highlightPartsFallback(code);
+    }
   };
 
   const highlightedCode = useMemo(
