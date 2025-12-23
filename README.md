@@ -14,7 +14,7 @@ Modern IRC client for Android and iOS built with React Native, inspired by the c
      target="_blank" rel="noopener noreferrer">
     <img src="https://cloud.dbase.in.rs/apps/files_sharing/publicpreview/D2dRyRHi5RRyb8S?file=/&fileId=1001141&x=1920&y=1080&a=true&etag=2e41b96e920c532604c12aa7b4c2918d"
          alt="AndroidIRCX screenshot 1"
-         width="48%" />
+      />
   </a>
 
 <a
@@ -23,7 +23,7 @@ target="_blank" rel="noopener noreferrer">
 <img
 src="https://cloud.dbase.in.rs/apps/files_sharing/publicpreview/4SCxyJfXZegfnCg?file=/&fileId=1001307&x=1920&y=1080&a=true&etag=123ba8b16edb14645957781cdc4f8538"
 alt="AndroidIRCX screenshot 2"
-width="48%" />
+ />
 </a>
 </p>
 
