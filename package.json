@@ -24,7 +24,7 @@
     "@transifex/native": "^7.1.5",
     "@transifex/react": "^7.1.5",
     "buffer": "^6.0.3",
-    "react": "19.1.1",
+    "react": "19.2.3",
     "react-native": "0.82.1",
     "react-native-battery-optimization-check": "^1.0.8",
     "react-native-bootsplash": "^6.3.11",
