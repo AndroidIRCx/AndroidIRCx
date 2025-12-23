@@ -1,0 +1,35 @@
+image: node:20
+
+stages:
+  - build
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - android/.gradle/
+    - android/build/
+
+before_script:
+  - npm install --legacy-peer-deps
+  - cd android
+  - chmod +x gradlew
+
+build_android:
+  stage: build
+  image: reactnativecommunity/react-native-android:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - cd ..
+    - npm install --legacy-peer-deps
+    - cd android
+    - rm -rf app/build app/.cxx || true
+    # 2️⃣ TurboModule / Fabric codegen (OBAVEZNO pre CMake)
+    - ./gradlew :app:generateCodegenArtifactsFromSchema --no-configuration-cache --stacktrace
+    # 3️⃣ Clean + external native clean + APK + AAB
+    - ./gradlew clean :app:externalNativeBuildCleanRelease bundleRelease --no-configuration-cache --stacktrace
+  artifacts:
+    when: on_success
+    paths:
+      - android/app/build/outputs/bundle/release/app-release.aab

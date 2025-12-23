@@ -1,0 +1,47 @@
+<svg class="size-16" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+    <filter id="textShadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="2"></feGaussianBlur>
+        <feOffset dx="1.5" dy="1.5" result="offsetblur"></feOffset>
+        <feComponentTransfer>
+        <feFuncA type="linear" slope="0.8"></feFuncA>
+        </feComponentTransfer>
+        <feColorMatrix type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 1 0"></feColorMatrix>
+        <feMerge>
+        <feMergeNode></feMergeNode>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+        </feMerge>
+    </filter>
+    </defs>
+    
+    <!-- Complete Server Rack - mIRC blue -->
+    <!-- Server base -->
+    <rect x="6" y="36" width="36" height="8" fill="#0066CC" opacity="0.4" rx="1"></rect>
+    <ellipse cx="24" cy="44" rx="18" ry="2" fill="#003399" opacity="0.5"></ellipse>
+    
+    <!-- Server body -->
+    <rect x="8" y="12" width="32" height="26" fill="#3399FF" opacity="0.3" rx="1"></rect>
+    <rect x="8" y="12" width="32" height="26" fill="none" stroke="#0066CC" stroke-width="1.5" rx="1"></rect>
+    
+    <!-- Server rack units (horizontal lines) -->
+    <line x1="10" y1="16" x2="38" y2="16" stroke="#0066CC" stroke-width="1" opacity="0.5"></line>
+    <line x1="10" y1="20" x2="38" y2="20" stroke="#0066CC" stroke-width="1" opacity="0.5"></line>
+    <line x1="10" y1="24" x2="38" y2="24" stroke="#0066CC" stroke-width="1" opacity="0.5"></line>
+    <line x1="10" y1="28" x2="38" y2="28" stroke="#0066CC" stroke-width="1" opacity="0.5"></line>
+    <line x1="10" y1="32" x2="38" y2="32" stroke="#0066CC" stroke-width="1" opacity="0.5"></line>
+    
+    <!-- Server side panels -->
+    <rect x="6" y="12" width="2" height="26" fill="#003399" opacity="0.6"></rect>
+    <rect x="40" y="12" width="2" height="26" fill="#003399" opacity="0.6"></rect>
+    
+    <!-- Server front panel details -->
+    <rect x="12" y="18" width="4" height="2" fill="#0066CC" opacity="0.6" rx="0.3"></rect>
+    <rect x="18" y="18" width="4" height="2" fill="#0066CC" opacity="0.6" rx="0.3"></rect>
+    <rect x="24" y="18" width="4" height="2" fill="#0066CC" opacity="0.6" rx="0.3"></rect>
+    <rect x="30" y="18" width="4" height="2" fill="#0066CC" opacity="0.6" rx="0.3"></rect>
+    
+    <!-- DBase text - bigger, thin white outline, visible gray shadow -->
+    <text x="24" y="42" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" filter="url(#textShadow)" stroke="#FFFFFF" stroke-width="0.3" fill="#0066CC">
+    <tspan font-weight="bold">DB</tspan><tspan fill="#CC0000">ase</tspan>
+    </text>
+</svg>

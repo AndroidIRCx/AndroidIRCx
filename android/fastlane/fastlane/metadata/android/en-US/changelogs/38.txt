@@ -1,0 +1,27 @@
+v1.3.0
+- Picture-in-Picture mode
+- Connection/Identity Profiles fixed
+- IRC Color formatting fixed for raw's and browse channels
+- Settings menu sorted
+- RAW categories extended
+- Bouncer detection fixed
+- ZNC and IRCop commands extended with aliases
+- Secure storage for sensitive data now can be encrypted with PIN or fingerprint
+- Oper command/raws fixed
+- Added close all chans/pvts at server tab context menu
+- Encryption module extended to:
+1. Key verification (recommended)
+  Fingerprint comparison (manual or QR)
+  Out-of-band verification (voice, another app, in-person)
+  2. Trust-on-first-use (TOFU)
+  Warn if a key suddenly changes
+ Lock keys after first acceptance
+ 3. Key pinning
+ Once accepted → key cannot silently change
+ Any replacement triggers a warning
+ 4. Offline / external key exchange
+ Share keys via:
+ QR code
+ File
+ NFC
+ - Added Transifex for future language updates

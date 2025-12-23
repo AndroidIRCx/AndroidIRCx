@@ -1,0 +1,5 @@
+v1.3.01
+- Auto-connect to favorites server fixed
+- Identify profiles when its more not showing correcly fixed
+- Settings bug from search fixed
+- Now userlist and tabs can be moved up/down/right/left

@@ -1,0 +1,1583 @@
+{
+  "1080": {
+    "string": ""
+  },
+  "App lock disabled": {
+    "string": ""
+  },
+  "Enable app lock first.": {
+    "string": ""
+  },
+  "DCC Transfer Complete": {
+    "string": ""
+  },
+  "{filename} received ({bytes} bytes).": {
+    "string": ""
+  },
+  "DCC Transfer Failed": {
+    "string": ""
+  },
+  "Transfer failed.": {
+    "string": ""
+  },
+  "No Network": {
+    "string": ""
+  },
+  "No network available. Please configure a network first.": {
+    "string": ""
+  },
+  "Cancel": {
+    "string": ""
+  },
+  "Configure": {
+    "string": ""
+  },
+  "No Server Configured": {
+    "string": ""
+  },
+  "No server configured for \"{networkName}\". Would you like to configure one?": {
+    "string": ""
+  },
+  "Error": {
+    "string": ""
+  },
+  "No server configured for \"{networkName}\"": {
+    "string": ""
+  },
+  "Connection failed": {
+    "string": ""
+  },
+  "{message}\n\nTried: {hostInfo}\nCheck host/port, SSL, and network reachability.": {
+    "string": ""
+  },
+  "Not Connected": {
+    "string": ""
+  },
+  "Please connect to a server first": {
+    "string": ""
+  },
+  "Exit Application": {
+    "string": ""
+  },
+  "Are you sure you want to exit? This will disconnect from the server.": {
+    "string": ""
+  },
+  "Exit": {
+    "string": ""
+  },
+  "Disconnected": {
+    "string": ""
+  },
+  "You can now close the app from the app switcher.": {
+    "string": ""
+  },
+  "Network Not Found": {
+    "string": ""
+  },
+  "Cannot find saved configuration for \"{networkId}\". Please configure it first.": {
+    "string": ""
+  },
+  "DCC Send Error": {
+    "string": ""
+  },
+  "Failed to send file": {
+    "string": ""
+  },
+  "panel-tabOrder": {
+    "string": ""
+  },
+  "panel-closeableTabs": {
+    "string": ""
+  },
+  "emulation-set-location": {
+    "string": ""
+  },
+  "emulation-set-timezone": {
+    "string": ""
+  },
+  "emulation-set-locale": {
+    "string": ""
+  },
+  "emulation-set-user-agent": {
+    "string": ""
+  },
+  "50%": {
+    "string": ""
+  },
+  "75%": {
+    "string": ""
+  },
+  "100%": {
+    "string": ""
+  },
+  "125%": {
+    "string": ""
+  },
+  "150%": {
+    "string": ""
+  },
+  "200%": {
+    "string": ""
+  },
+  "b": {
+    "string": ""
+  },
+  "Could not find TimelineController": {
+    "string": ""
+  },
+  "Could not load resourceModel": {
+    "string": ""
+  },
+  "(": {
+    "string": ""
+  },
+  "[": {
+    "string": ""
+  },
+  "{": {
+    "string": ""
+  },
+  "requeststarted": {
+    "string": ""
+  },
+  "requestfinished": {
+    "string": ""
+  },
+  "next": {
+    "string": ""
+  },
+  "throw": {
+    "string": ""
+  },
+  ",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted": {
+    "string": ""
+  },
+  "bind,cloak,else-if,else,for,html,if,model,on,once,pre,show,slot,text,memo": {
+    "string": ""
+  },
+  "html,body,base,head,link,meta,style,title,address,article,aside,footer,header,hgroup,h1,h2,h3,h4,h5,h6,nav,section,div,dd,dl,dt,figcaption,figure,picture,hr,img,li,main,ol,p,pre,ul,a,b,abbr,bdi,bdo,br,cite,code,data,dfn,em,i,kbd,mark,q,rp,rt,ruby,s,samp,small,span,strong,sub,sup,time,u,var,wbr,area,audio,map,track,video,embed,object,param,source,canvas,script,noscript,del,ins,caption,col,colgroup,table,thead,tbody,td,th,tr,button,datalist,fieldset,form,input,label,legend,meter,optgroup,option,output,progress,select,textarea,details,dialog,menu,summary,template,blockquote,iframe,tfoot": {
+    "string": ""
+  },
+  "svg,animate,animateMotion,animateTransform,circle,clipPath,color-profile,defs,desc,discard,ellipse,feBlend,feColorMatrix,feComponentTransfer,feComposite,feConvolveMatrix,feDiffuseLighting,feDisplacementMap,feDistantLight,feDropShadow,feFlood,feFuncA,feFuncB,feFuncG,feFuncR,feGaussianBlur,feImage,feMerge,feMergeNode,feMorphology,feOffset,fePointLight,feSpecularLighting,feSpotLight,feTile,feTurbulence,filter,foreignObject,g,hatch,hatchpath,image,line,linearGradient,marker,mask,mesh,meshgradient,meshpatch,meshrow,metadata,mpath,path,pattern,polygon,polyline,radialGradient,rect,set,solidcolor,stop,switch,symbol,text,textPath,title,tspan,unknown,use,view": {
+    "string": ""
+  },
+  "annotation,annotation-xml,maction,maligngroup,malignmark,math,menclose,merror,mfenced,mfrac,mfraction,mglyph,mi,mlabeledtr,mlongdiv,mmultiscripts,mn,mo,mover,mpadded,mphantom,mprescripts,mroot,mrow,ms,mscarries,mscarry,msgroup,msline,mspace,msqrt,msrow,mstack,mstyle,msub,msubsup,msup,mtable,mtd,mtext,mtr,munder,munderover,none,semantics": {
+    "string": ""
+  },
+  "area,base,br,col,embed,hr,img,input,link,meta,param,source,track,wbr": {
+    "string": ""
+  },
+  "passive,once,capture": {
+    "string": ""
+  },
+  "stop,prevent,self,ctrl,shift,alt,meta,exact,middle": {
+    "string": ""
+  },
+  "left,right": {
+    "string": ""
+  },
+  "onkeyup,onkeydown,onkeypress": {
+    "string": ""
+  },
+  "string": {
+    "string": ""
+  },
+  "number": {
+    "string": ""
+  },
+  "object": {
+    "string": ""
+  },
+  "@firebase/functions": {
+    "string": ""
+  },
+  "alternatives.any": {
+    "string": ""
+  },
+  "alternatives.types": {
+    "string": ""
+  },
+  "alternatives.match": {
+    "string": ""
+  },
+  "array.sort": {
+    "string": ""
+  },
+  "boolean.base": {
+    "string": ""
+  },
+  "object.assert": {
+    "string": ""
+  },
+  "string.isoDate": {
+    "string": ""
+  },
+  "string.normalize": {
+    "string": ""
+  },
+  "symbol.base": {
+    "string": ""
+  },
+  "atStart": {
+    "string": ""
+  },
+  "inList": {
+    "string": ""
+  },
+  "inLink": {
+    "string": ""
+  },
+  "inBlock": {
+    "string": ""
+  },
+  "SemVer": {
+    "string": ""
+  },
+  "SemVer.compare": {
+    "string": ""
+  },
+  "prerelease compare": {
+    "string": ""
+  },
+  ",; \t": {
+    "string": ""
+  },
+  ", ": {
+    "string": ""
+  },
+  " | ": {
+    "string": ""
+  },
+  "stylus": {
+    "string": ""
+  },
+  ",": {
+    "string": ""
+  },
+  "(?:[^{}']|'[^']*'|\\{(?:<SELF>)?\\})+": {
+    "string": ""
+  },
+  "@": {
+    "string": ""
+  },
+  "=": {
+    "string": ""
+  },
+  "\\+": {
+    "string": ""
+  },
+  "switch(d%s){": {
+    "string": ""
+  },
+  "default:": {
+    "string": ""
+  },
+  "break": {
+    "string": ""
+  },
+  "case%j:": {
+    "string": ""
+  },
+  "}": {
+    "string": ""
+  },
+  "if(typeof d%s!==\"object\")": {
+    "string": ""
+  },
+  "m%s=Number(d%s)": {
+    "string": ""
+  },
+  "m%s=d%s>>>0": {
+    "string": ""
+  },
+  "m%s=d%s|0": {
+    "string": ""
+  },
+  "if(util.Long)": {
+    "string": ""
+  },
+  "if(typeof d%s===\"string\")": {
+    "string": ""
+  },
+  "m%s=String(d%s)": {
+    "string": ""
+  },
+  "m%s=Boolean(d%s)": {
+    "string": ""
+  },
+  "d%s=o.enums===String?(types[%i].values[m%s]===undefined?m%s:types[%i].values[m%s]):m%s": {
+    "string": ""
+  },
+  "d%s=types[%i].toObject(m%s,o)": {
+    "string": ""
+  },
+  "d%s=o.json&&!isFinite(m%s)?String(m%s):m%s": {
+    "string": ""
+  },
+  "if(typeof m%s===\"number\")": {
+    "string": ""
+  },
+  "d%s=o.bytes===String?util.base64.encode(m%s,0,m%s.length):o.bytes===Array?Array.prototype.slice.call(m%s):m%s": {
+    "string": ""
+  },
+  "d%s=m%s": {
+    "string": ""
+  },
+  "types[%i].encode(%s,w.uint32(%i)).uint32(%i)": {
+    "string": ""
+  },
+  "types[%i].encode(%s,w.uint32(%i).fork()).ldelim()": {
+    "string": ""
+  },
+  "if(!util.key32Re.test(%s))": {
+    "string": ""
+  },
+  "if(!util.key64Re.test(%s))": {
+    "string": ""
+  },
+  "if(!util.key2Re.test(%s))": {
+    "string": ""
+  },
+  "switch(%s){": {
+    "string": ""
+  },
+  "case %i:": {
+    "string": ""
+  },
+  "if(!util.isInteger(%s))": {
+    "string": ""
+  },
+  "if(!util.isInteger(%s)&&!(%s&&util.isInteger(%s.low)&&util.isInteger(%s.high)))": {
+    "string": ""
+  },
+  "if(typeof %s!==\"number\")": {
+    "string": ""
+  },
+  "if(typeof %s!==\"boolean\")": {
+    "string": ""
+  },
+  "if(!util.isString(%s))": {
+    "string": ""
+  },
+  "if(!(%s&&typeof %s.length===\"number\"||util.isString(%s)))": {
+    "string": ""
+  },
+  "callee": {
+    "string": ""
+  },
+  "predicate": {
+    "string": ""
+  },
+  "argument": {
+    "string": ""
+  },
+  "id": {
+    "string": ""
+  },
+  "initializer": {
+    "string": ""
+  },
+  "init": {
+    "string": ""
+  },
+  "body": {
+    "string": ""
+  },
+  "parameterName": {
+    "string": ""
+  },
+  "typeArguments": {
+    "string": ""
+  },
+  "path": {
+    "string": ""
+  },
+  "hash": {
+    "string": ""
+  },
+  "css": {
+    "string": ""
+  },
+  "html": {
+    "string": ""
+  },
+  "svg": {
+    "string": ""
+  },
+  "markdown": {
+    "string": ""
+  },
+  "graphql": {
+    "string": ""
+  },
+  "label": {
+    "string": ""
+  },
+  "stackframe": {
+    "string": ""
+  },
+  "_process": {
+    "string": ""
+  },
+  "source-map/lib/source-map-consumer": {
+    "string": ""
+  },
+  "error-stack-parser": {
+    "string": ""
+  },
+  "stack-generator": {
+    "string": ""
+  },
+  "stacktrace-gps": {
+    "string": ""
+  },
+  "Download complete": {
+    "string": ""
+  },
+  "Saved to {path}": {
+    "string": ""
+  },
+  "Download failed": {
+    "string": ""
+  },
+  "Unable to download file": {
+    "string": ""
+  },
+  "...": {
+    "string": ""
+  },
+  "Download": {
+    "string": ""
+  },
+  "Networks & Servers": {
+    "string": ""
+  },
+  "IRC network configurations and server settings": {
+    "string": ""
+  },
+  "App Settings": {
+    "string": ""
+  },
+  "General app preferences and configurations": {
+    "string": ""
+  },
+  "Encryption Keys": {
+    "string": ""
+  },
+  "Channel encryption keys and DM bundles": {
+    "string": ""
+  },
+  "Identity & Connection Profiles": {
+    "string": ""
+  },
+  "User identity profiles and connection templates": {
+    "string": ""
+  },
+  "Channel Favorites": {
+    "string": ""
+  },
+  "Favorite channels and auto-join settings": {
+    "string": ""
+  },
+  "Channel Notes & Bookmarks": {
+    "string": ""
+  },
+  "Channel notes, bookmarks, and user aliases": {
+    "string": ""
+  },
+  "Highlights & Notifications": {
+    "string": ""
+  },
+  "Highlight words and notification preferences": {
+    "string": ""
+  },
+  "Open Tabs": {
+    "string": ""
+  },
+  "Currently open channel and query tabs": {
+    "string": ""
+  },
+  "Message History": {
+    "string": ""
+  },
+  "Saved message history for all tabs": {
+    "string": ""
+  },
+  "Activity Logs": {
+    "string": ""
+  },
+  "Channel activity logs and join/part history": {
+    "string": ""
+  },
+  "No Options Selected": {
+    "string": ""
+  },
+  "Please select at least one backup option": {
+    "string": ""
+  },
+  "Backup Ready": {
+    "string": ""
+  },
+  "Generated backup with {count} items:\n{names}": {
+    "string": ""
+  },
+  "Failed to generate backup": {
+    "string": ""
+  },
+  "Success": {
+    "string": ""
+  },
+  "Backup data copied to clipboard": {
+    "string": ""
+  },
+  "Failed to copy to clipboard": {
+    "string": ""
+  },
+  "Backup saved to:\n{path}": {
+    "string": ""
+  },
+  "OK": {
+    "string": ""
+  },
+  "Failed to save backup file": {
+    "string": ""
+  },
+  "Please paste backup data first": {
+    "string": ""
+  },
+  "Confirm Restore": {
+    "string": ""
+  },
+  "This will overwrite existing data. Are you sure?": {
+    "string": ""
+  },
+  "Restore": {
+    "string": ""
+  },
+  "Backup restored. Restart app to ensure all data reloads.": {
+    "string": ""
+  },
+  "Invalid backup data": {
+    "string": ""
+  },
+  "Failed to restore backup": {
+    "string": ""
+  },
+  "Backup & Restore": {
+    "string": ""
+  },
+  "Close": {
+    "string": ""
+  },
+  "Storage Statistics": {
+    "string": ""
+  },
+  "{count} items ~{size} KB": {
+    "string": ""
+  },
+  "Quick Presets": {
+    "string": ""
+  },
+  "All Data": {
+    "string": ""
+  },
+  "Settings Only": {
+    "string": ""
+  },
+  "Minimal": {
+    "string": ""
+  },
+  "Clear All": {
+    "string": ""
+  },
+  "Select Data to Backup ({count} selected)": {
+    "string": ""
+  },
+  "Generate Backup": {
+    "string": ""
+  },
+  "Restore from Backup": {
+    "string": ""
+  },
+  "Backup Data": {
+    "string": ""
+  },
+  "Copy this JSON to save your backup, or save it to a file.": {
+    "string": ""
+  },
+  "Paste your backup JSON here to restore your data.": {
+    "string": ""
+  },
+  "Backup JSON appears here...": {
+    "string": ""
+  },
+  "Copy to Clipboard": {
+    "string": ""
+  },
+  "Save to File": {
+    "string": ""
+  },
+  "Export Complete": {
+    "string": ""
+  },
+  "Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)": {
+    "string": ""
+  },
+  "Export Error": {
+    "string": ""
+  },
+  "Failed to export history": {
+    "string": ""
+  },
+  "Clear Message History": {
+    "string": ""
+  },
+  "Are you sure you want to clear all message history? This cannot be undone.": {
+    "string": ""
+  },
+  "Clear": {
+    "string": ""
+  },
+  "Message history cleared": {
+    "string": ""
+  },
+  "Settings backup generated (excludes logs and message history).": {
+    "string": ""
+  },
+  "Full backup generated (includes all data).": {
+    "string": ""
+  },
+  "Backup Error": {
+    "string": ""
+  },
+  "Failed to create backup": {
+    "string": ""
+  },
+  "Restore Complete": {
+    "string": ""
+  },
+  "Restore Error": {
+    "string": ""
+  },
+  "Use fingerprint/biometric to unlock": {
+    "string": ""
+  },
+  "Enter PIN to unlock": {
+    "string": ""
+  },
+  "PIN must be at least 4 digits.": {
+    "string": ""
+  },
+  "PINs do not match.": {
+    "string": ""
+  },
+  "Biometrics unavailable": {
+    "string": ""
+  },
+  "Enable a fingerprint/biometric on your device first.": {
+    "string": ""
+  },
+  "Unlock passwords": {
+    "string": ""
+  },
+  "Authentication failed": {
+    "string": ""
+  },
+  "Unable to unlock passwords.": {
+    "string": ""
+  },
+  "Biometric setup failed": {
+    "string": ""
+  },
+  "Unable to enable biometric lock for passwords.": {
+    "string": ""
+  },
+  "Enable a method": {
+    "string": ""
+  },
+  "Turn on biometric or PIN for App Lock first.": {
+    "string": ""
+  },
+  "Unable to enable biometric app lock.": {
+    "string": ""
+  },
+  "Appearance": {
+    "string": ""
+  },
+  "Theme": {
+    "string": ""
+  },
+  "Custom theme": {
+    "string": ""
+  },
+  "Dark mode (default)": {
+    "string": ""
+  },
+  "Light mode": {
+    "string": ""
+  },
+  "+ Create New Theme": {
+    "string": ""
+  },
+  "Edit {name}": {
+    "string": ""
+  },
+  "Delete {name}": {
+    "string": ""
+  },
+  "Delete Theme": {
+    "string": ""
+  },
+  "Are you sure you want to delete \"{name}\"?": {
+    "string": ""
+  },
+  "Delete": {
+    "string": ""
+  },
+  "Tab Position": {
+    "string": ""
+  },
+  "Tabs at {position}": {
+    "string": ""
+  },
+  "Select tab position:": {
+    "string": ""
+  },
+  "Top": {
+    "string": ""
+  },
+  "Bottom": {
+    "string": ""
+  },
+  "Left": {
+    "string": ""
+  },
+  "Right": {
+    "string": ""
+  },
+  "User List Position": {
+    "string": ""
+  },
+  "User list at {position}": {
+    "string": ""
+  },
+  "Select user list position:": {
+    "string": ""
+  },
+  "View Mode": {
+    "string": ""
+  },
+  "Current: {mode}": {
+    "string": ""
+  },
+  "Select view mode:": {
+    "string": ""
+  },
+  "Compact": {
+    "string": ""
+  },
+  "Comfortable": {
+    "string": ""
+  },
+  "Spacious": {
+    "string": ""
+  },
+  "Font Size": {
+    "string": ""
+  },
+  "Current: {size}": {
+    "string": ""
+  },
+  "Select font size:": {
+    "string": ""
+  },
+  "Small": {
+    "string": ""
+  },
+  "Medium": {
+    "string": ""
+  },
+  "Large": {
+    "string": ""
+  },
+  "Extra Large": {
+    "string": ""
+  },
+  "Raw Categories": {
+    "string": ""
+  },
+  "Choose which raw messages are shown": {
+    "string": ""
+  },
+  "Notice Routing": {
+    "string": ""
+  },
+  "Show notices in the active tab": {
+    "string": ""
+  },
+  "Show notices in a Notices tab": {
+    "string": ""
+  },
+  "Show notices in a private/query tab": {
+    "string": ""
+  },
+  "Show notices in the server tab": {
+    "string": ""
+  },
+  "Active window": {
+    "string": ""
+  },
+  "Server tab": {
+    "string": ""
+  },
+  "Notices tab": {
+    "string": ""
+  },
+  "Private/query tab": {
+    "string": ""
+  },
+  "Show Timestamps": {
+    "string": ""
+  },
+  "Display message timestamps": {
+    "string": ""
+  },
+  "Info": {
+    "string": ""
+  },
+  "Timestamp display setting coming soon": {
+    "string": ""
+  },
+  "Timestamp Display": {
+    "string": ""
+  },
+  "Show timestamps: {mode}": {
+    "string": ""
+  },
+  "Select when to show timestamps:": {
+    "string": ""
+  },
+  "Always": {
+    "string": ""
+  },
+  "Only for first message in a group": {
+    "string": ""
+  },
+  "Never": {
+    "string": ""
+  },
+  "Timestamp Format": {
+    "string": ""
+  },
+  "Format: {format}": {
+    "string": ""
+  },
+  "Select format:": {
+    "string": ""
+  },
+  "12-hour (AM/PM)": {
+    "string": ""
+  },
+  "24-hour": {
+    "string": ""
+  },
+  "Show Encryption Indicators": {
+    "string": ""
+  },
+  "Lock icons visible on tabs/messages": {
+    "string": ""
+  },
+  "Hide lock icons": {
+    "string": ""
+  },
+  "Messages": {
+    "string": ""
+  },
+  "Part Message": {
+    "string": ""
+  },
+  "Message to send when leaving a channel.": {
+    "string": ""
+  },
+  "Quit Message": {
+    "string": ""
+  },
+  "Message to send when disconnecting.": {
+    "string": ""
+  },
+  "Send Message on Query Close": {
+    "string": ""
+  },
+  "Send a message when you close a private message window.": {
+    "string": ""
+  },
+  "Query Close Message": {
+    "string": ""
+  },
+  "The message to send.": {
+    "string": ""
+  },
+  "Enter message...": {
+    "string": ""
+  },
+  "Notifications": {
+    "string": ""
+  },
+  "Enable Notifications": {
+    "string": ""
+  },
+  "Receive notifications for messages": {
+    "string": ""
+  },
+  "Notify on Mentions": {
+    "string": ""
+  },
+  "Get notified when someone mentions your nickname": {
+    "string": ""
+  },
+  "Notify on Private Messages": {
+    "string": ""
+  },
+  "Get notified for private messages": {
+    "string": ""
+  },
+  "Notify on All Messages": {
+    "string": ""
+  },
+  "Get notified for all channel messages": {
+    "string": ""
+  },
+  "Do Not Disturb": {
+    "string": ""
+  },
+  "Disable all notifications": {
+    "string": ""
+  },
+  "Per-Channel Settings": {
+    "string": ""
+  },
+  "Configure notifications for specific channels": {
+    "string": ""
+  },
+  "Highlighting": {
+    "string": ""
+  },
+  "Add Highlight Word": {
+    "string": ""
+  },
+  "Messages containing these words will be highlighted.": {
+    "string": ""
+  },
+  "Enter a word to highlight...": {
+    "string": ""
+  },
+  "Remove Highlight Word": {
+    "string": ""
+  },
+  "Are you sure you want to remove \"{word}\"?": {
+    "string": ""
+  },
+  "Remove": {
+    "string": ""
+  },
+  "Connection & Network": {
+    "string": ""
+  },
+  "Auto-Connect to Favorite Server": {
+    "string": ""
+  },
+  "When opening a network, prefer the server marked as favorite.": {
+    "string": ""
+  },
+  "Auto-Reconnect": {
+    "string": ""
+  },
+  "{attempts} attempts, {mode}": {
+    "string": ""
+  },
+  "rejoin channels": {
+    "string": ""
+  },
+  "no rejoin": {
+    "string": ""
+  },
+  "Automatically reconnect on disconnect": {
+    "string": ""
+  },
+  "Enable Auto-Reconnect": {
+    "string": ""
+  },
+  "Rejoin Channels After Reconnect": {
+    "string": ""
+  },
+  "Automatically rejoin channels you were in": {
+    "string": ""
+  },
+  "Smart Reconnection": {
+    "string": ""
+  },
+  "Avoid flood by spacing reconnection attempts": {
+    "string": ""
+  },
+  "Min Port": {
+    "string": ""
+  },
+  "Max Port": {
+    "string": ""
+  },
+  "No PIN is set.": {
+    "string": ""
+  },
+  "Incorrect PIN.": {
+    "string": ""
+  },
+  "Message Spacing": {
+    "string": ""
+  },
+  "Message Padding": {
+    "string": ""
+  },
+  "Navigation Bar Offset (Android)": {
+    "string": ""
+  },
+  "Sort Tabs Alphabetically": {
+    "string": ""
+  },
+  "Display & UI": {
+    "string": ""
+  },
+  "Show Raw Commands": {
+    "string": ""
+  },
+  "Display raw IRC protocol messages": {
+    "string": ""
+  },
+  "Hide Join Messages": {
+    "string": ""
+  },
+  "Do not show join events in channels.": {
+    "string": ""
+  },
+  "Hide Part Messages": {
+    "string": ""
+  },
+  "Do not show part/leave events in channels.": {
+    "string": ""
+  },
+  "Hide Quit Messages": {
+    "string": ""
+  },
+  "Do not show quit events in channels.": {
+    "string": ""
+  },
+  "Hide IRCService Listener Messages": {
+    "string": ""
+  },
+  "Suppress \"*** IRCService: Message listener registered...\" raw logs.": {
+    "string": ""
+  },
+  "Max Reconnection Attempts": {
+    "string": ""
+  },
+  "Initial Delay (ms)": {
+    "string": ""
+  },
+  "Max Delay (ms)": {
+    "string": ""
+  },
+  "Connection Quality": {
+    "string": ""
+  },
+  "Rate Limiting": {
+    "string": ""
+  },
+  "Enable Rate Limiting": {
+    "string": ""
+  },
+  "Messages Per Second": {
+    "string": ""
+  },
+  "Burst Limit": {
+    "string": ""
+  },
+  "Flood Protection": {
+    "string": ""
+  },
+  "Enable Flood Protection": {
+    "string": ""
+  },
+  "Max Messages Per Window": {
+    "string": ""
+  },
+  "Window Size (ms)": {
+    "string": ""
+  },
+  "Lag Monitoring": {
+    "string": ""
+  },
+  "Enable Lag Monitoring": {
+    "string": ""
+  },
+  "Lag Check Method": {
+    "string": ""
+  },
+  "Select the method to check for lag:": {
+    "string": ""
+  },
+  "Ping Interval (ms)": {
+    "string": ""
+  },
+  "Warning Threshold (ms)": {
+    "string": ""
+  },
+  "Connection Statistics": {
+    "string": ""
+  },
+  "Identity Profiles": {
+    "string": ""
+  },
+  "Global Proxy": {
+    "string": ""
+  },
+  "Enable Global Proxy": {
+    "string": ""
+  },
+  "Route all IRC connections through a proxy": {
+    "string": ""
+  },
+  "Proxy Type": {
+    "string": ""
+  },
+  "Select proxy protocol": {
+    "string": ""
+  },
+  "Proxy Host": {
+    "string": ""
+  },
+  "Proxy server hostname or IP": {
+    "string": ""
+  },
+  "proxy.example.com": {
+    "string": ""
+  },
+  "Proxy Port": {
+    "string": ""
+  },
+  "Proxy server port": {
+    "string": ""
+  },
+  "Proxy Username (optional)": {
+    "string": ""
+  },
+  "Leave blank if no authentication required": {
+    "string": ""
+  },
+  "username": {
+    "string": ""
+  },
+  "Proxy Password (optional)": {
+    "string": ""
+  },
+  "password": {
+    "string": ""
+  },
+  "Biometric Lock for Passwords": {
+    "string": ""
+  },
+  "PIN Lock for Passwords": {
+    "string": ""
+  },
+  "Security": {
+    "string": ""
+  },
+  "Allow QR Verification": {
+    "string": ""
+  },
+  "Allow File Key Exchange": {
+    "string": ""
+  },
+  "Allow NFC Key Exchange": {
+    "string": ""
+  },
+  "App Lock": {
+    "string": ""
+  },
+  "App Lock with Biometrics": {
+    "string": ""
+  },
+  "App Lock with PIN": {
+    "string": ""
+  },
+  "PIN unlock enabled": {
+    "string": ""
+  },
+  "Use a PIN to unlock": {
+    "string": ""
+  },
+  "Lock on Launch": {
+    "string": ""
+  },
+  "Locks when app is opened": {
+    "string": ""
+  },
+  "Does not lock on launch": {
+    "string": ""
+  },
+  "Lock on Background": {
+    "string": ""
+  },
+  "Locks after app is backgrounded": {
+    "string": ""
+  },
+  "Does not lock on background": {
+    "string": ""
+  },
+  "Lock Now": {
+    "string": ""
+  },
+  "Immediately lock the app": {
+    "string": ""
+  },
+  "Channels": {
+    "string": ""
+  },
+  "{count} favorite across networks": {
+    "string": ""
+  },
+  "{count} favorites across networks": {
+    "string": ""
+  },
+  "Manage favorite channels": {
+    "string": ""
+  },
+  "No favorites yet": {
+    "string": ""
+  },
+  "Network: {network}": {
+    "string": ""
+  },
+  "Auto-join": {
+    "string": ""
+  },
+  "Key set": {
+    "string": ""
+  },
+  "Move to {name}": {
+    "string": ""
+  },
+  "No other networks available": {
+    "string": ""
+  },
+  "Delete Favorite": {
+    "string": ""
+  },
+  "Remove {name} from {network}?": {
+    "string": ""
+  },
+  "Auto-Join Favorites on Connect": {
+    "string": ""
+  },
+  "Join favorited channels after connect/identify": {
+    "string": ""
+  },
+  "Auto-Rejoin on Kick": {
+    "string": ""
+  },
+  "Automatically rejoin channel if kicked": {
+    "string": ""
+  },
+  "Auto-Voice on Join": {
+    "string": ""
+  },
+  "Enable Auto-Voice": {
+    "string": ""
+  },
+  "For All Users": {
+    "string": ""
+  },
+  "For Operators/Halfops": {
+    "string": ""
+  },
+  "For IRC Ops (Admin/Netadmin)": {
+    "string": ""
+  },
+  "DCC Settings": {
+    "string": ""
+  },
+  "Users & Services": {
+    "string": ""
+  },
+  "Add Service Nickname": {
+    "string": ""
+  },
+  "Prevent sending \"close query\" messages to these nicks.": {
+    "string": ""
+  },
+  "Enter a service name (e.g., Q)": {
+    "string": ""
+  },
+  "Ignore List": {
+    "string": ""
+  },
+  "Manage ignored users": {
+    "string": ""
+  },
+  "Ignore list feature coming soon": {
+    "string": ""
+  },
+  "User Notes": {
+    "string": ""
+  },
+  "No notes saved": {
+    "string": ""
+  },
+  "User Aliases": {
+    "string": ""
+  },
+  "No aliases saved": {
+    "string": ""
+  },
+  "Commands": {
+    "string": ""
+  },
+  "Command History": {
+    "string": ""
+  },
+  "Clear All History": {
+    "string": ""
+  },
+  "Delete every command entry": {
+    "string": ""
+  },
+  "Clear Command History": {
+    "string": ""
+  },
+  "Are you sure you want to delete all command history?": {
+    "string": ""
+  },
+  "Command Aliases": {
+    "string": ""
+  },
+  "Alias Name (without /)": {
+    "string": ""
+  },
+  "e.g. j": {
+    "string": ""
+  },
+  "Alias Command": {
+    "string": ""
+  },
+  "Example: /join {channel}": {
+    "string": ""
+  },
+  "e.g. /join {channel}": {
+    "string": ""
+  },
+  "Add Alias": {
+    "string": ""
+  },
+  "Create or update alias": {
+    "string": ""
+  },
+  "Custom Commands": {
+    "string": ""
+  },
+  "Command Name (without /)": {
+    "string": ""
+  },
+  "e.g. greet": {
+    "string": ""
+  },
+  "Command Template": {
+    "string": ""
+  },
+  "Use {param1}, {channel}, {nick} placeholders": {
+    "string": ""
+  },
+  "e.g. /msg {channel} Hello {param1}": {
+    "string": ""
+  },
+  "Add Custom Command": {
+    "string": ""
+  },
+  "Save template with placeholders": {
+    "string": ""
+  },
+  "History Statistics": {
+    "string": ""
+  },
+  "View message history statistics": {
+    "string": ""
+  },
+  "Export History": {
+    "string": ""
+  },
+  "Export message history to file": {
+    "string": ""
+  },
+  "Export as JSON": {
+    "string": ""
+  },
+  "Export all messages in JSON format": {
+    "string": ""
+  },
+  "Export as TXT": {
+    "string": ""
+  },
+  "Export as plain text log": {
+    "string": ""
+  },
+  "Export as CSV": {
+    "string": ""
+  },
+  "Export as spreadsheet-compatible CSV": {
+    "string": ""
+  },
+  "Clear History": {
+    "string": ""
+  },
+  "Delete all stored message history": {
+    "string": ""
+  },
+  "This will permanently delete all stored messages. Continue?": {
+    "string": ""
+  },
+  "Storage Usage": {
+    "string": ""
+  },
+  "Backup or restore all app data": {
+    "string": ""
+  },
+  "IRC Bouncer": {
+    "string": ""
+  },
+  "Bouncer Status": {
+    "string": ""
+  },
+  "Bouncer Settings": {
+    "string": ""
+  },
+  "Enable Bouncer Support": {
+    "string": ""
+  },
+  "Bouncer Type": {
+    "string": ""
+  },
+  "Select bouncer type:": {
+    "string": ""
+  },
+  "Handle Playback Buffer": {
+    "string": ""
+  },
+  "Process playback messages from bouncer": {
+    "string": ""
+  },
+  "Mark Playback Messages": {
+    "string": ""
+  },
+  "Add [Playback] indicator to old messages": {
+    "string": ""
+  },
+  "Skip Old Playback": {
+    "string": ""
+  },
+  "Playback Timeout (ms)": {
+    "string": ""
+  },
+  "Playback Age Limit (hours)": {
+    "string": ""
+  },
+  "Request Playback (ZNC)": {
+    "string": ""
+  },
+  "Request playback buffer from ZNC": {
+    "string": ""
+  },
+  "Playback requested from ZNC": {
+    "string": ""
+  },
+  "Performance": {
+    "string": ""
+  },
+  "Message List Virtualization": {
+    "string": ""
+  },
+  "Use FlatList for better performance with large channels": {
+    "string": ""
+  },
+  "Lazy Load Old Messages": {
+    "string": ""
+  },
+  "Load old messages when scrolling up": {
+    "string": ""
+  },
+  "Render Optimization": {
+    "string": ""
+  },
+  "Use React.memo and useMemo for optimized rendering": {
+    "string": ""
+  },
+  "Automatic Message Cleanup": {
+    "string": ""
+  },
+  "Automatically remove old messages to save memory": {
+    "string": ""
+  },
+  "Message Limit Per Channel": {
+    "string": ""
+  },
+  "Max Visible Messages": {
+    "string": ""
+  },
+  "Message Load Chunk Size": {
+    "string": ""
+  },
+  "Lazy Load Images": {
+    "string": ""
+  },
+  "Only load images when they become visible": {
+    "string": ""
+  },
+  "Background & Battery": {
+    "string": ""
+  },
+  "Keep Connection Alive": {
+    "string": ""
+  },
+  "Maintain IRC connection in background": {
+    "string": ""
+  },
+  "Battery Optimization": {
+    "string": ""
+  },
+  "Open Battery Settings": {
+    "string": ""
+  },
+  "Configure battery optimization for this app": {
+    "string": ""
+  },
+  "Advanced": {
+    "string": ""
+  },
+  "Scripts": {
+    "string": ""
+  },
+  "Manage IRC scripts and automation": {
+    "string": ""
+  },
+  "Scripting Help": {
+    "string": ""
+  },
+  "Learn how to write and use scripts": {
+    "string": ""
+  },
+  "About": {
+    "string": ""
+  },
+  "About AndroidIRCX": {
+    "string": ""
+  },
+  "App information and credits": {
+    "string": ""
+  }
+}

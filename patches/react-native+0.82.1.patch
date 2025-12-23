@@ -1,0 +1,122 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt
+index 1e773ba..e4beed2 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/statusbar/StatusBarModule.kt
+@@ -11,6 +11,7 @@ import android.animation.ArgbEvaluator
+ import android.animation.ValueAnimator
+ import android.os.Build
+ import android.view.View
++import android.view.Window
+ import android.view.WindowInsetsController
+ import android.view.WindowManager
+ import com.facebook.common.logging.FLog
+@@ -32,12 +33,13 @@ import com.facebook.react.views.view.setStatusBarVisibility
+ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
+     NativeStatusBarManagerAndroidSpec(reactContext) {
+ 
+-  @Suppress("DEPRECATION")
+   override fun getTypedExportedConstants(): Map<String, Any> {
+     val currentActivity = reactApplicationContext.currentActivity
+     val statusBarColor =
+-        currentActivity?.window?.statusBarColor?.let { color ->
+-          String.format("#%06X", 0xFFFFFF and color)
++        currentActivity?.window?.let { window ->
++          getStatusBarColorCompat(window)?.let { color ->
++            String.format("#%06X", 0xFFFFFF and color)
++          }
+         } ?: "black"
+     return mapOf(
+         HEIGHT_KEY to PixelUtil.toDIPFromPixel(getStatusBarHeightPx(currentActivity).toFloat()),
+@@ -45,7 +47,6 @@ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
+     )
+   }
+ 
+-  @Suppress("DEPRECATION")
+   override fun setColor(colorDouble: Double, animated: Boolean) {
+     val color = colorDouble.toInt()
+     val activity = reactApplicationContext.getCurrentActivity()
+@@ -69,15 +70,17 @@ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
+             val window = activity.window ?: return
+             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+             if (animated) {
+-              val curColor = window.statusBarColor
++              val curColor = getStatusBarColorCompat(window) ?: color
+               val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), curColor, color)
+               colorAnimation.addUpdateListener { animator ->
+-                activity.window?.statusBarColor = (animator.animatedValue as Int)
++                activity.window?.let { currentWindow ->
++                  setStatusBarColorCompat(currentWindow, animator.animatedValue as Int)
++                }
+               }
+               colorAnimation.setDuration(300).startDelay = 0
+               colorAnimation.start()
+             } else {
+-              window.statusBarColor = color
++              setStatusBarColorCompat(window, color)
+             }
+           }
+         }
+@@ -169,3 +172,20 @@ internal class StatusBarModule(reactContext: ReactApplicationContext?) :
+     const val NAME: String = NativeStatusBarManagerAndroidSpec.NAME
+   }
+ }
++
++private fun getStatusBarColorCompat(window: Window): Int? {
++  return try {
++    val method = Window::class.java.getMethod("getStatusBarColor")
++    method.invoke(window) as? Int
++  } catch (e: Exception) {
++    null
++  }
++}
++
++private fun setStatusBarColorCompat(window: Window, color: Int) {
++  try {
++    val method = Window::class.java.getMethod("setStatusBarColor", Int::class.javaPrimitiveType)
++    method.invoke(window, color)
++  } catch (_: Exception) {
++  }
++}
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt
+index 0cff3bc..6023cc2 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt
+@@ -113,13 +113,15 @@ internal fun Window.enableEdgeToEdge() {
+     isNavigationBarContrastEnforced = true
+   }
+ 
+-  statusBarColor = Color.TRANSPARENT
+-  navigationBarColor =
++  setStatusBarColorCompat(this, Color.TRANSPARENT)
++  setNavigationBarColorCompat(
++      this,
+       when {
+         Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> Color.TRANSPARENT
+         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isDarkMode -> LightNavigationBarColor
+         else -> DarkNavigationBarColor
+-      }
++      },
++  )
+ 
+   WindowInsetsControllerCompat(this, decorView).run {
+     isAppearanceLightNavigationBars = !isDarkMode
+@@ -138,3 +140,19 @@ internal fun Window.enableEdgeToEdge() {
+ internal fun Window.disableEdgeToEdge() {
+   WindowCompat.setDecorFitsSystemWindows(this, true)
+ }
++
++private fun setStatusBarColorCompat(window: Window, color: Int) {
++  try {
++    val method = Window::class.java.getMethod("setStatusBarColor", Int::class.javaPrimitiveType)
++    method.invoke(window, color)
++  } catch (_: Exception) {
++  }
++}
++
++private fun setNavigationBarColorCompat(window: Window, color: Int) {
++  try {
++    val method = Window::class.java.getMethod("setNavigationBarColor", Int::class.javaPrimitiveType)
++    method.invoke(window, color)
++  } catch (_: Exception) {
++  }
++}

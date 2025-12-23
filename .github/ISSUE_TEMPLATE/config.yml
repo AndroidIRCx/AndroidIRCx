@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and Discussion
+    url: https://github.com/androidircx/androidircx/discussions
+    about: Ask questions and start discussions.
+  - name: Security Reports
+    url: https://github.com/androidircx/androidircx/security/advisories/new
+    about: Report security vulnerabilities privately.

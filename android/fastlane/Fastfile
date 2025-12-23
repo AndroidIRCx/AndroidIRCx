@@ -1,0 +1,41 @@
+default_platform(:android)
+
+platform :android do
+
+  ########################################
+  # Common helper
+  ########################################
+  def upload_closed(track:, version:, aab_path:)
+    upload_to_play_store(
+      track: track,
+      aab: aab_path,
+      release_status: "completed",
+      version_name: version
+          )
+  end
+
+  ########################################
+  # Closed testing – v1.3.x
+  ########################################
+  desc "Upload AAB to Closed testing v1.3.x"
+  lane :closed_v13 do
+    upload_closed(
+      track: "v1.3.x",
+      version: "1.3.0",
+      aab_path: "/mnt/d/AndroidProjects/androidircx/android/app/build/outputs/bundle/release/app-release.aab",
+    )
+  end
+
+  ########################################
+  # Alpha (default closed)
+  ########################################
+  desc "Upload AAB to Alpha track"
+  lane :alpha do
+    upload_to_play_store(
+      track: "alpha",
+      aab: "/mnt/d/AndroidProjects/androidircx/android/app/build/outputs/bundle/release/app-release.aab",
+      release_status: "completed"
+    )
+  end
+
+end

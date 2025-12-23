@@ -1,0 +1,1673 @@
+{
+  "1080": {
+    "string": ""
+  },
+  "App lock disabled": {
+    "string": "Закључавање апликације је онемогућено"
+  },
+  "Enable app lock first.": {
+    "string": "Прво омогућите закључавање апликације."
+  },
+  "DCC Transfer Complete": {
+    "string": "Пренос DCC-а је завршен"
+  },
+  "{filename} received ({bytes} bytes).": {
+    "string": "Примљено {filename} ( {bytes} бајтова)."
+  },
+  "DCC Transfer Failed": {
+    "string": "Пренос DCC-а није успео"
+  },
+  "Transfer failed.": {
+    "string": "Пренос није успео."
+  },
+  "No Network": {
+    "string": "Нема мреже"
+  },
+  "No network available. Please configure a network first.": {
+    "string": "Нема доступне мреже. Прво конфигуришите мрежу."
+  },
+  "Cancel": {
+    "string": "Откажи"
+  },
+  "Configure": {
+    "string": "Конфигуриши"
+  },
+  "No Server Configured": {
+    "string": "Није конфигурисан сервер"
+  },
+  "No server configured for \"{networkName}\". Would you like to configure one?": {
+    "string": "Није конфигурисан сервер за „ {networkName} “. Да ли желите да га конфигуришете?"
+  },
+  "Error": {
+    "string": "Грешка"
+  },
+  "No server configured for \"{networkName}\"": {
+    "string": "Није конфигурисан сервер за „ {networkName} “"
+  },
+  "Connection failed": {
+    "string": "Повезивање није успело"
+  },
+  "{message}\n\nTried: {hostInfo}\nCheck host/port, SSL, and network reachability.": {
+    "string": "{message}\n\n Пробано: {hostInfo}\n Проверите хост/порт, SSL и доступност мреже."
+  },
+  "Not Connected": {
+    "string": "Није повезано"
+  },
+  "Please connect to a server first": {
+    "string": "Прво се повежите са сервером"
+  },
+  "Exit Application": {
+    "string": "Излаз из апликације"
+  },
+  "Are you sure you want to exit? This will disconnect from the server.": {
+    "string": "Да ли сте сигурни да желите да изађете? Ово ће вас искључити са сервера."
+  },
+  "Exit": {
+    "string": "Излаз"
+  },
+  "Disconnected": {
+    "string": "Искључено"
+  },
+  "You can now close the app from the app switcher.": {
+    "string": "Сада можете да затворите апликацију из пребацивача апликација."
+  },
+  "Network Not Found": {
+    "string": "Мрежа није пронађена"
+  },
+  "Cannot find saved configuration for \"{networkId}\". Please configure it first.": {
+    "string": "Није могуће пронаћи сачувану конфигурацију за „ {networkId} “. Прво је конфигуришите."
+  },
+  "DCC Send Error": {
+    "string": "Грешка при слању DCC-а"
+  },
+  "Failed to send file": {
+    "string": "Слање датотеке није успело"
+  },
+  "panel-tabOrder": {
+    "string": "редослед-табова-панела"
+  },
+  "panel-closeableTabs": {
+    "string": "Картице које се могу затворити панелом"
+  },
+  "emulation-set-location": {
+    "string": "локација-сет-емулације"
+  },
+  "emulation-set-timezone": {
+    "string": "емулација-подешавање-временске-зоне"
+  },
+  "emulation-set-locale": {
+    "string": "емулација-сет-локале"
+  },
+  "emulation-set-user-agent": {
+    "string": "емулација-сет-кориснички-агент"
+  },
+  "50%": {
+    "string": "50%"
+  },
+  "75%": {
+    "string": "75%"
+  },
+  "100%": {
+    "string": "100%"
+  },
+  "125%": {
+    "string": "125%"
+  },
+  "150%": {
+    "string": "150%"
+  },
+  "200%": {
+    "string": "200%"
+  },
+  "b": {
+    "string": "б"
+  },
+  "Could not find TimelineController": {
+    "string": "Није могуће пронаћи контролер временске линије"
+  },
+  "Could not load resourceModel": {
+    "string": "Није могуће учитати модел ресурса"
+  },
+  "(": {
+    "string": "("
+  },
+  "[": {
+    "string": "["
+  },
+  "{": {
+    "string": "{"
+  },
+  "requeststarted": {
+    "string": "захтев је покренут"
+  },
+  "requestfinished": {
+    "string": "захтевзавршен"
+  },
+  "next": {
+    "string": "следећи"
+  },
+  "throw": {
+    "string": "бацити"
+  },
+  ",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted": {
+    "string": ",кључ,реф,реф_за,реф_кључ,наВчворПреМонтирања,наВчворМонтиран,наВчворПреАжурирања,наВчворУпдатед,наВчворПреРамонтирања,наВчворНемонтиран"
+  },
+  "bind,cloak,else-if,else,for,html,if,model,on,once,pre,show,slot,text,memo": {
+    "string": "повезивање, прикривање, иначе-ако, иначе, за, хтмл, ако, модел, укључено, једном, пре, прикажи, слот, текст, мемо"
+  },
+  "html,body,base,head,link,meta,style,title,address,article,aside,footer,header,hgroup,h1,h2,h3,h4,h5,h6,nav,section,div,dd,dl,dt,figcaption,figure,picture,hr,img,li,main,ol,p,pre,ul,a,b,abbr,bdi,bdo,br,cite,code,data,dfn,em,i,kbd,mark,q,rp,rt,ruby,s,samp,small,span,strong,sub,sup,time,u,var,wbr,area,audio,map,track,video,embed,object,param,source,canvas,script,noscript,del,ins,caption,col,colgroup,table,thead,tbody,td,th,tr,button,datalist,fieldset,form,input,label,legend,meter,optgroup,option,output,progress,select,textarea,details,dialog,menu,summary,template,blockquote,iframe,tfoot": {
+    "string": "html,тело,основа,заглавље,линк,мета,стил,наслов,адреса,чланак,поред,подножје,заглавље,hgroup,h1,h2,h3,h4,h5,h6,навигација,одељак,div,dd,dl,dt,наслов,слика,слика,hr,img,li,главни,ol,p,pre,ul,a,b,скраћеница,bdi,bdo,br,цитирање,код,подаци,dfn,em,i,kbd,марк,q,rp,rt,ruby,s,samp,мали,span,strong,sub,sup,време,u,var,wbr област, аудио, мапа, траг, видео, уградња, објекат, параметар, извор, платно, скрипта, без скрипте, делите, инс, натпис, колона, група колона, табела, заглавље, тело, тд, тх, тр, дугме, листа података, скуп поља, образац, унос, ознака, легенда, мерач, група опција, опција, излаз, напредак, изаберите, област текста, детаљи, дијалог, мени, резиме, шаблон, блок цитат, iframe, тфут"
+  },
+  "svg,animate,animateMotion,animateTransform,circle,clipPath,color-profile,defs,desc,discard,ellipse,feBlend,feColorMatrix,feComponentTransfer,feComposite,feConvolveMatrix,feDiffuseLighting,feDisplacementMap,feDistantLight,feDropShadow,feFlood,feFuncA,feFuncB,feFuncG,feFuncR,feGaussianBlur,feImage,feMerge,feMergeNode,feMorphology,feOffset,fePointLight,feSpecularLighting,feSpotLight,feTile,feTurbulence,filter,foreignObject,g,hatch,hatchpath,image,line,linearGradient,marker,mask,mesh,meshgradient,meshpatch,meshrow,metadata,mpath,path,pattern,polygon,polyline,radialGradient,rect,set,solidcolor,stop,switch,symbol,text,textPath,title,tspan,unknown,use,view": {
+    "string": "svg, анимирати, анимирати кретање, анимирати трансформацију, круг, путања клипа, профил боја, дефиниције, опис, одбацивање, елипса, feBlend, feColorMatrix, feComponentTransfer, feComposite, feConvolveMatrix, feDiffuseLighting, feDisplacementMap, feDistantLight, feDropShadow, feFlood, feFuncA, feFuncB, feFuncG, feFuncR, feGaussianBlur, feImage, feMerge, feMergeNode, feMorpholog y, feОфсет, feПоинтЛајт, feСпекуларноОсветљење, feРефлекторскоОсветљење, feПлочица, feТурбуленција, филтер, страниОбјекат, g, шрафирање, путања шрафирања, слика, линија, линеарниГрадиент, маркер, маска, мрежа, градијент мреже, закрпа мреже, мрежа, метаподаци, mpath, путања, шаблон, полигон, полилинија, радијалниГрадиент, правоугаоник, скуп, чврста боја, стоп, прекидач, симбол, текст, путања текста, наслов, распон, непознато, употреба, приказ"
+  },
+  "annotation,annotation-xml,maction,maligngroup,malignmark,math,menclose,merror,mfenced,mfrac,mfraction,mglyph,mi,mlabeledtr,mlongdiv,mmultiscripts,mn,mo,mover,mpadded,mphantom,mprescripts,mroot,mrow,ms,mscarries,mscarry,msgroup,msline,mspace,msqrt,msrow,mstack,mstyle,msub,msubsup,msup,mtable,mtd,mtext,mtr,munder,munderover,none,semantics": {
+    "string": "анотација, анотација-xml, акција, малигнгрупа, малигнмарк, математика, менклоуз, грешка, мфенцед, мфрац, мфракциони, мглиф, ми, млабеледтр, млондив, ммултискриптс, мн, мо, померач, мпаддед, мпхантом, мпрескриптс, мроот, мров, мс, мсцаррис, мсцарри, мсгроуп, мслинија, мспаце, мскрт, мсров, мстек, мстил, мсуб, мсубсуп, мсуп, мтабле, мтд, мтекст, мтр, мундер, мундеровер, ниједан, семантика"
+  },
+  "area,base,br,col,embed,hr,img,input,link,meta,param,source,track,wbr": {
+    "string": "област, база, бр, колона, уградња, сат, слика, унос, веза, метаподаци, параметар, извор, праћење, wbr"
+  },
+  "passive,once,capture": {
+    "string": "пасивно, једном, хватање"
+  },
+  "stop,prevent,self,ctrl,shift,alt,meta,exact,middle": {
+    "string": "заустави, спречи, самостално, контрола, шифт, алт, мета, тачно, средина"
+  },
+  "left,right": {
+    "string": "лево, десно"
+  },
+  "onkeyup,onkeydown,onkeypress": {
+    "string": "притиском на тастер, притиском на тастер"
+  },
+  "string": {
+    "string": "низ"
+  },
+  "number": {
+    "string": "број"
+  },
+  "object": {
+    "string": "објекат"
+  },
+  "@firebase/functions": {
+    "string": "@firebase/functions"
+  },
+  "alternatives.any": {
+    "string": "алтернативе.било које"
+  },
+  "alternatives.types": {
+    "string": "алтернативе.врсте"
+  },
+  "alternatives.match": {
+    "string": "алтернативе.подударање"
+  },
+  "array.sort": {
+    "string": "низ.сортирање"
+  },
+  "boolean.base": {
+    "string": "boolean.base"
+  },
+  "object.assert": {
+    "string": "објекат.тврдња"
+  },
+  "string.isoDate": {
+    "string": "string.isoDate"
+  },
+  "string.normalize": {
+    "string": "string.normalize"
+  },
+  "symbol.base": {
+    "string": "база симбола"
+  },
+  "atStart": {
+    "string": "на почетку"
+  },
+  "inList": {
+    "string": "inList"
+  },
+  "inLink": {
+    "string": "уграђени линк"
+  },
+  "inBlock": {
+    "string": "у блоку"
+  },
+  "SemVer": {
+    "string": "СемВер"
+  },
+  "SemVer.compare": {
+    "string": "SemVer.compare"
+  },
+  "prerelease compare": {
+    "string": "поређење пре објављивања"
+  },
+  ",; \t": {
+    "string": ",; \t"
+  },
+  ", ": {
+    "string": ", "
+  },
+  " | ": {
+    "string": " | "
+  },
+  "stylus": {
+    "string": "стилус"
+  },
+  ",": {
+    "string": ","
+  },
+  "(?:[^{}']|'[^']*'|\\{(?:<SELF>)?\\})+": {
+    "string": "(?:[^{}&#39;]|&#39;[^&#39;]*&#39;|\\{(?:<SELF> )?\\})+"
+  },
+  "@": {
+    "string": "@"
+  },
+  "=": {
+    "string": "="
+  },
+  "\\+": {
+    "string": "\\+"
+  },
+  "switch(d%s){": {
+    "string": "прекидач(д%с){"
+  },
+  "default:": {
+    "string": "подразумевано:"
+  },
+  "break": {
+    "string": "пауза"
+  },
+  "case%j:": {
+    "string": "случај%ј:"
+  },
+  "}": {
+    "string": "}"
+  },
+  "if(typeof d%s!==\"object\")": {
+    "string": "ако(тип_d%s!==&quot;објекат&quot;)"
+  },
+  "m%s=Number(d%s)": {
+    "string": "m%s=Број(d%s)"
+  },
+  "m%s=d%s>>>0": {
+    "string": "м%с=д%с&gt;&gt;&gt;0"
+  },
+  "m%s=d%s|0": {
+    "string": "m%s=d%s|0"
+  },
+  "if(util.Long)": {
+    "string": "ако(корисни.Лонг)"
+  },
+  "if(typeof d%s===\"string\")": {
+    "string": "ако(типизd%s===&quot;стринг&quot;)"
+  },
+  "m%s=String(d%s)": {
+    "string": "m%s=Низ(d%s)"
+  },
+  "m%s=Boolean(d%s)": {
+    "string": "m%s=Булово(d%s)"
+  },
+  "d%s=o.enums===String?(types[%i].values[m%s]===undefined?m%s:types[%i].values[m%s]):m%s": {
+    "string": "d%s=o.enums===String?(типови[%i].вредности[m%s]===недефинисано?m%s:типови[%i].вредности[m%s]):m%s"
+  },
+  "d%s=types[%i].toObject(m%s,o)": {
+    "string": "d%s=типови[%i].toObject(m%s,o)"
+  },
+  "d%s=o.json&&!isFinite(m%s)?String(m%s):m%s": {
+    "string": "d%s=o.json&amp;&amp;!isFinite(m%s)?String(m%s):m%s"
+  },
+  "if(typeof m%s===\"number\")": {
+    "string": "ако(тип м%с===&quot;број&quot;)"
+  },
+  "d%s=o.bytes===String?util.base64.encode(m%s,0,m%s.length):o.bytes===Array?Array.prototype.slice.call(m%s):m%s": {
+    "string": "д%с=о.бајтова===Стринг?util.base64.encode(м%с,0,м%с.ленгтх):о.бајтова===Низ?Array.prototype.slice.call(м%с):м%с"
+  },
+  "d%s=m%s": {
+    "string": "d%s=m%s"
+  },
+  "types[%i].encode(%s,w.uint32(%i)).uint32(%i)": {
+    "string": "типови[%i].енкод(%s,w.uint32(%i)).uint32(%i)"
+  },
+  "types[%i].encode(%s,w.uint32(%i).fork()).ldelim()": {
+    "string": "типови[%i].енкодирање(%s,w.uint32(%i).форк()).лделим()"
+  },
+  "if(!util.key32Re.test(%s))": {
+    "string": "ако(!util.key32Re.test(%s))"
+  },
+  "if(!util.key64Re.test(%s))": {
+    "string": "ако(!util.key64Re.test(%s))"
+  },
+  "if(!util.key2Re.test(%s))": {
+    "string": "ако(!util.key2Re.test(%s))"
+  },
+  "switch(%s){": {
+    "string": "прекидач(%s){"
+  },
+  "case %i:": {
+    "string": "случај %i:"
+  },
+  "if(!util.isInteger(%s))": {
+    "string": "ако(!util.isInteger(%s))"
+  },
+  "if(!util.isInteger(%s)&&!(%s&&util.isInteger(%s.low)&&util.isInteger(%s.high)))": {
+    "string": "ако(!util.isInteger(%s)&amp;&amp;!(%s&amp;&amp;util.isInteger(%s.low)&amp;&amp;util.isInteger(%s.high)))"
+  },
+  "if(typeof %s!==\"number\")": {
+    "string": "ако(тип %s!==&quot;број&quot;)"
+  },
+  "if(typeof %s!==\"boolean\")": {
+    "string": "ако(тип %s!==&quot;булеан&quot;)"
+  },
+  "if(!util.isString(%s))": {
+    "string": "ако(!util.isString(%s))"
+  },
+  "if(!(%s&&typeof %s.length===\"number\"||util.isString(%s)))": {
+    "string": "ако(!(%s&amp;&amp;тип %s.ленгтх===&quot;број&quot;||утил.исНинг(%s)))"
+  },
+  "callee": {
+    "string": "позван"
+  },
+  "predicate": {
+    "string": "предикат"
+  },
+  "argument": {
+    "string": "аргумент"
+  },
+  "id": {
+    "string": "ИД"
+  },
+  "initializer": {
+    "string": "иницијализатор"
+  },
+  "init": {
+    "string": "иницијализација"
+  },
+  "body": {
+    "string": "тело"
+  },
+  "parameterName": {
+    "string": "Назив параметра"
+  },
+  "typeArguments": {
+    "string": "typeArguments"
+  },
+  "path": {
+    "string": "путања"
+  },
+  "hash": {
+    "string": "хеш"
+  },
+  "css": {
+    "string": "css"
+  },
+  "html": {
+    "string": "хтмл"
+  },
+  "svg": {
+    "string": "SVG"
+  },
+  "markdown": {
+    "string": "снижена цена"
+  },
+  "graphql": {
+    "string": "graphql"
+  },
+  "label": {
+    "string": "етикета"
+  },
+  "stackframe": {
+    "string": "стекфрејм"
+  },
+  "_process": {
+    "string": "_процес"
+  },
+  "source-map/lib/source-map-consumer": {
+    "string": "мапа-извора/библиотека/потрошач-мапе-извора"
+  },
+  "error-stack-parser": {
+    "string": "парсер-стека-грешки"
+  },
+  "stack-generator": {
+    "string": "генератор стека"
+  },
+  "stacktrace-gps": {
+    "string": "stacktrace-gps"
+  },
+  "Download complete": {
+    "string": "Преузимање завршено"
+  },
+  "Saved to {path}": {
+    "string": "Сачувано у {path}"
+  },
+  "Download failed": {
+    "string": "Преузимање није успело"
+  },
+  "Unable to download file": {
+    "string": "Није могуће преузети датотеку"
+  },
+  "...": {
+    "string": "..."
+  },
+  "Download": {
+    "string": "Преузми"
+  },
+  "Networks & Servers": {
+    "string": "Мреже и сервери"
+  },
+  "IRC network configurations and server settings": {
+    "string": "Конфигурације IRC мреже и подешавања сервера"
+  },
+  "App Settings": {
+    "string": "Подешавања апликације"
+  },
+  "General app preferences and configurations": {
+    "string": "Опште поставке и конфигурације апликација"
+  },
+  "Encryption Keys": {
+    "string": "Кључеви за шифровање"
+  },
+  "Channel encryption keys and DM bundles": {
+    "string": "Кључеви за шифровање канала и DM пакети"
+  },
+  "Identity & Connection Profiles": {
+    "string": "Профили идентитета и повезивања"
+  },
+  "User identity profiles and connection templates": {
+    "string": "Профили корисничког идентитета и шаблони за повезивање"
+  },
+  "Channel Favorites": {
+    "string": "Омиљени канали"
+  },
+  "Favorite channels and auto-join settings": {
+    "string": "Омиљени канали и подешавања аутоматског придруживања"
+  },
+  "Channel Notes & Bookmarks": {
+    "string": "Белешке и обележивачи канала"
+  },
+  "Channel notes, bookmarks, and user aliases": {
+    "string": "Белешке о каналу, обележивачи и кориснички алијаси"
+  },
+  "Highlights & Notifications": {
+    "string": "Истакнуто и обавештења"
+  },
+  "Highlight words and notification preferences": {
+    "string": "Истакните речи и подешавања обавештења"
+  },
+  "Open Tabs": {
+    "string": "Отворене картице"
+  },
+  "Currently open channel and query tabs": {
+    "string": "Тренутно отворене картице канала и упита"
+  },
+  "Message History": {
+    "string": "Историја порука"
+  },
+  "Saved message history for all tabs": {
+    "string": "Сачувана историја порука за све картице"
+  },
+  "Activity Logs": {
+    "string": "Евиденције активности"
+  },
+  "Channel activity logs and join/part history": {
+    "string": "Дневници активности канала и историја придруживања/учешћа"
+  },
+  "No Options Selected": {
+    "string": "Није изабрана ниједна опција"
+  },
+  "Please select at least one backup option": {
+    "string": "Изаберите барем једну резервну опцију"
+  },
+  "Backup Ready": {
+    "string": "Резервна копија је спремна"
+  },
+  "Generated backup with {count} items:\n{names}": {
+    "string": "Генерисана резервна копија са ставкама {count} :\n {names}"
+  },
+  "Failed to generate backup": {
+    "string": "Није успело генерисање резервне копије"
+  },
+  "Success": {
+    "string": "Успех"
+  },
+  "Backup data copied to clipboard": {
+    "string": "Резервна копија података копирана у међуспремник"
+  },
+  "Failed to copy to clipboard": {
+    "string": "Копирање у међуспремник није успело"
+  },
+  "Backup saved to:\n{path}": {
+    "string": "Резервна копија је сачувана у:\n {path}"
+  },
+  "OK": {
+    "string": "У реду"
+  },
+  "Failed to save backup file": {
+    "string": "Чување резервне копије датотеке није успело"
+  },
+  "Please paste backup data first": {
+    "string": "Прво налепите резервне податке"
+  },
+  "Confirm Restore": {
+    "string": "Потврди враћање"
+  },
+  "This will overwrite existing data. Are you sure?": {
+    "string": "Ово ће пребрисати постојеће податке. Јеси ли сигуран/сигурна?"
+  },
+  "Restore": {
+    "string": "Врати"
+  },
+  "Backup restored. Restart app to ensure all data reloads.": {
+    "string": "Резервна копија је враћена. Поново покрените апликацију да бисте осигурали поновно учитавање свих података."
+  },
+  "Invalid backup data": {
+    "string": "Неважећи подаци резервне копије"
+  },
+  "Failed to restore backup": {
+    "string": "Враћање резервне копије није успело"
+  },
+  "Backup & Restore": {
+    "string": "Резервна копија и враћање"
+  },
+  "Close": {
+    "string": "Затвори"
+  },
+  "Storage Statistics": {
+    "string": "Статистика складиштења"
+  },
+  "{count} items ~{size} KB": {
+    "string": "{count} ставке ~ {size} KB"
+  },
+  "Quick Presets": {
+    "string": "Брза подешавања"
+  },
+  "All Data": {
+    "string": "Сви подаци"
+  },
+  "Settings Only": {
+    "string": "Само подешавања"
+  },
+  "Minimal": {
+    "string": "Минимално"
+  },
+  "Clear All": {
+    "string": "Обриши све"
+  },
+  "Select Data to Backup ({count} selected)": {
+    "string": "Изаберите податке за резервну копију (изабрано {count} )"
+  },
+  "Generate Backup": {
+    "string": "Генериши резервну копију"
+  },
+  "Restore from Backup": {
+    "string": "Врати из резервне копије"
+  },
+  "Backup Data": {
+    "string": "Резервна копија података"
+  },
+  "Copy this JSON to save your backup, or save it to a file.": {
+    "string": "Копирајте овај JSON да бисте сачували резервну копију или га сачувајте у датотеку."
+  },
+  "Paste your backup JSON here to restore your data.": {
+    "string": "Налепите резервну JSON датотеку овде да бисте вратили податке."
+  },
+  "Backup JSON appears here...": {
+    "string": "Резервна копија JSON-а се појављује овде..."
+  },
+  "Copy to Clipboard": {
+    "string": "Копирај у међуспремник"
+  },
+  "Save to File": {
+    "string": "Сачувај у датотеку"
+  },
+  "Export Complete": {
+    "string": "Извоз завршен"
+  },
+  "Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)": {
+    "string": "Извезени су знакови {count} у формату {format} .\n\n (У продукцији, ово би било сачувано у датотеци)"
+  },
+  "Export Error": {
+    "string": "Грешка при извозу"
+  },
+  "Failed to export history": {
+    "string": "Извоз историје није успео"
+  },
+  "Clear Message History": {
+    "string": "Обриши историју порука"
+  },
+  "Are you sure you want to clear all message history? This cannot be undone.": {
+    "string": "Да ли сте сигурни да желите да обришете сву историју порука? Ова радња се не може поништити."
+  },
+  "Clear": {
+    "string": "Јасно"
+  },
+  "Message history cleared": {
+    "string": "Историја порука је обрисана"
+  },
+  "Settings backup generated (excludes logs and message history).": {
+    "string": "Генерисана је резервна копија подешавања (не укључује логове и историју порука)."
+  },
+  "Full backup generated (includes all data).": {
+    "string": "Генерисана је потпуна резервна копија (укључује све податке)."
+  },
+  "Backup Error": {
+    "string": "Грешка при прављењу резервне копије"
+  },
+  "Failed to create backup": {
+    "string": "Није успело креирање резервне копије"
+  },
+  "Restore Complete": {
+    "string": "Враћање завршено"
+  },
+  "Restore Error": {
+    "string": "Грешка при враћању"
+  },
+  "Use fingerprint/biometric to unlock": {
+    "string": "Користите отисак прста/биометрију за откључавање"
+  },
+  "Enter PIN to unlock": {
+    "string": "Унесите ПИН за откључавање"
+  },
+  "PIN must be at least 4 digits.": {
+    "string": "PIN mora imati najmanje 4 cifre."
+  },
+  "PINs do not match.": {
+    "string": "PIN-ovi se ne podudaraju."
+  },
+  "Biometrics unavailable": {
+    "string": "Biometrija није доступна"
+  },
+  "Enable a fingerprint/biometric on your device first.": {
+    "string": "Omogući otisak prsta/biometriju na svom uređaju prvo."
+  },
+  "Unlock passwords": {
+    "string": "Откључај лозинке"
+  },
+  "Authentication failed": {
+    "string": "Autentikacija nije uspela"
+  },
+  "Unable to unlock passwords.": {
+    "string": "Nije moguće otključati lozinke."
+  },
+  "Biometric setup failed": {
+    "string": "Podešavanje biometrije nije uspelo"
+  },
+  "Unable to enable biometric lock for passwords.": {
+    "string": "Nije moguće omogućiti biometrijsku zaštitu za lozinke."
+  },
+  "Enable a method": {
+    "string": "Omogući metodu"
+  },
+  "Turn on biometric or PIN for App Lock first.": {
+    "string": "Uključi biometriju ili PIN za zaključavanje aplikacije prvo."
+  },
+  "Unable to enable biometric app lock.": {
+    "string": "Nije moguće omogućiti biometrijsko zaključavanje aplikacije."
+  },
+  "Appearance": {
+    "string": "Izgled"
+  },
+  "Theme": {
+    "string": "Tema"
+  },
+  "Custom theme": {
+    "string": "Prilagođena tema"
+  },
+  "Dark mode (default)": {
+    "string": "Tamni režim (podrazumevano)"
+  },
+  "Light mode": {
+    "string": "Svetli režim"
+  },
+  "+ Create New Theme": {
+    "string": "+ Kreiraj novu temu"
+  },
+  "Edit {name}": {
+    "string": "Izmeni {name}"
+  },
+  "Delete {name}": {
+    "string": "Obriši {name}"
+  },
+  "Delete Theme": {
+    "string": "Obriši temu"
+  },
+  "Are you sure you want to delete \"{name}\"?": {
+    "string": "Da li ste sigurni da želite da obrišete \"{name}\"?"
+  },
+  "Delete": {
+    "string": "Obriši"
+  },
+  "Tab Position": {
+    "string": "Pozicija kartice"
+  },
+  "Tabs at {position}": {
+    "string": "Kartice na {position}"
+  },
+  "Select tab position:": {
+    "string": "Izaberite poziciju kartice:"
+  },
+  "Top": {
+    "string": "Gore"
+  },
+  "Bottom": {
+    "string": "Dole"
+  },
+  "Left": {
+    "string": "Levo"
+  },
+  "Right": {
+    "string": "Desno"
+  },
+  "User List Position": {
+    "string": ""
+  },
+  "User list at {position}": {
+    "string": ""
+  },
+  "Select user list position:": {
+    "string": ""
+  },
+  "View Mode": {
+    "string": ""
+  },
+  "Current: {mode}": {
+    "string": ""
+  },
+  "Select view mode:": {
+    "string": ""
+  },
+  "Compact": {
+    "string": ""
+  },
+  "Comfortable": {
+    "string": ""
+  },
+  "Spacious": {
+    "string": ""
+  },
+  "Font Size": {
+    "string": ""
+  },
+  "Current: {size}": {
+    "string": ""
+  },
+  "Select font size:": {
+    "string": ""
+  },
+  "Small": {
+    "string": ""
+  },
+  "Medium": {
+    "string": ""
+  },
+  "Large": {
+    "string": ""
+  },
+  "Extra Large": {
+    "string": ""
+  },
+  "Raw Categories": {
+    "string": ""
+  },
+  "Choose which raw messages are shown": {
+    "string": ""
+  },
+  "Notice Routing": {
+    "string": ""
+  },
+  "Show notices in the active tab": {
+    "string": ""
+  },
+  "Show notices in a Notices tab": {
+    "string": ""
+  },
+  "Show notices in a private/query tab": {
+    "string": ""
+  },
+  "Show notices in the server tab": {
+    "string": ""
+  },
+  "Active window": {
+    "string": ""
+  },
+  "Server tab": {
+    "string": ""
+  },
+  "Notices tab": {
+    "string": ""
+  },
+  "Private/query tab": {
+    "string": ""
+  },
+  "Show Timestamps": {
+    "string": ""
+  },
+  "Display message timestamps": {
+    "string": ""
+  },
+  "Info": {
+    "string": ""
+  },
+  "Timestamp display setting coming soon": {
+    "string": ""
+  },
+  "Timestamp Display": {
+    "string": ""
+  },
+  "Show timestamps: {mode}": {
+    "string": ""
+  },
+  "Select when to show timestamps:": {
+    "string": ""
+  },
+  "Always": {
+    "string": ""
+  },
+  "Only for first message in a group": {
+    "string": ""
+  },
+  "Never": {
+    "string": ""
+  },
+  "Timestamp Format": {
+    "string": ""
+  },
+  "Format: {format}": {
+    "string": ""
+  },
+  "Select format:": {
+    "string": ""
+  },
+  "12-hour (AM/PM)": {
+    "string": ""
+  },
+  "24-hour": {
+    "string": ""
+  },
+  "Show Encryption Indicators": {
+    "string": ""
+  },
+  "Lock icons visible on tabs/messages": {
+    "string": ""
+  },
+  "Hide lock icons": {
+    "string": ""
+  },
+  "Messages": {
+    "string": ""
+  },
+  "Part Message": {
+    "string": ""
+  },
+  "Message to send when leaving a channel.": {
+    "string": ""
+  },
+  "Quit Message": {
+    "string": ""
+  },
+  "Message to send when disconnecting.": {
+    "string": ""
+  },
+  "Send Message on Query Close": {
+    "string": ""
+  },
+  "Send a message when you close a private message window.": {
+    "string": ""
+  },
+  "Query Close Message": {
+    "string": ""
+  },
+  "The message to send.": {
+    "string": ""
+  },
+  "Enter message...": {
+    "string": ""
+  },
+  "Notifications": {
+    "string": ""
+  },
+  "Enable Notifications": {
+    "string": ""
+  },
+  "Receive notifications for messages": {
+    "string": ""
+  },
+  "Notify on Mentions": {
+    "string": ""
+  },
+  "Get notified when someone mentions your nickname": {
+    "string": ""
+  },
+  "Notify on Private Messages": {
+    "string": ""
+  },
+  "Get notified for private messages": {
+    "string": ""
+  },
+  "Notify on All Messages": {
+    "string": ""
+  },
+  "Get notified for all channel messages": {
+    "string": ""
+  },
+  "Do Not Disturb": {
+    "string": ""
+  },
+  "Disable all notifications": {
+    "string": ""
+  },
+  "Per-Channel Settings": {
+    "string": ""
+  },
+  "Configure notifications for specific channels": {
+    "string": ""
+  },
+  "Highlighting": {
+    "string": ""
+  },
+  "Add Highlight Word": {
+    "string": ""
+  },
+  "Messages containing these words will be highlighted.": {
+    "string": ""
+  },
+  "Enter a word to highlight...": {
+    "string": ""
+  },
+  "Remove Highlight Word": {
+    "string": ""
+  },
+  "Are you sure you want to remove \"{word}\"?": {
+    "string": ""
+  },
+  "Remove": {
+    "string": ""
+  },
+  "Connection & Network": {
+    "string": ""
+  },
+  "Auto-Connect to Favorite Server": {
+    "string": ""
+  },
+  "When opening a network, prefer the server marked as favorite.": {
+    "string": ""
+  },
+  "Auto-Reconnect": {
+    "string": ""
+  },
+  "{attempts} attempts, {mode}": {
+    "string": ""
+  },
+  "rejoin channels": {
+    "string": ""
+  },
+  "no rejoin": {
+    "string": ""
+  },
+  "Automatically reconnect on disconnect": {
+    "string": ""
+  },
+  "Enable Auto-Reconnect": {
+    "string": ""
+  },
+  "Rejoin Channels After Reconnect": {
+    "string": ""
+  },
+  "Automatically rejoin channels you were in": {
+    "string": ""
+  },
+  "Smart Reconnection": {
+    "string": ""
+  },
+  "Avoid flood by spacing reconnection attempts": {
+    "string": ""
+  },
+  "Min Port": {
+    "string": ""
+  },
+  "Max Port": {
+    "string": ""
+  },
+  "No PIN is set.": {
+    "string": ""
+  },
+  "Incorrect PIN.": {
+    "string": ""
+  },
+  "Message Spacing": {
+    "string": ""
+  },
+  "Message Padding": {
+    "string": ""
+  },
+  "Navigation Bar Offset (Android)": {
+    "string": ""
+  },
+  "Sort Tabs Alphabetically": {
+    "string": ""
+  },
+  "Display & UI": {
+    "string": ""
+  },
+  "Show Raw Commands": {
+    "string": ""
+  },
+  "Display raw IRC protocol messages": {
+    "string": ""
+  },
+  "Hide Join Messages": {
+    "string": ""
+  },
+  "Do not show join events in channels.": {
+    "string": ""
+  },
+  "Hide Part Messages": {
+    "string": ""
+  },
+  "Do not show part/leave events in channels.": {
+    "string": ""
+  },
+  "Hide Quit Messages": {
+    "string": ""
+  },
+  "Do not show quit events in channels.": {
+    "string": ""
+  },
+  "Hide IRCService Listener Messages": {
+    "string": ""
+  },
+  "Suppress \"*** IRCService: Message listener registered...\" raw logs.": {
+    "string": ""
+  },
+  "Max Reconnection Attempts": {
+    "string": ""
+  },
+  "Initial Delay (ms)": {
+    "string": ""
+  },
+  "Max Delay (ms)": {
+    "string": ""
+  },
+  "Connection Quality": {
+    "string": ""
+  },
+  "Rate Limiting": {
+    "string": ""
+  },
+  "Enable Rate Limiting": {
+    "string": ""
+  },
+  "Messages Per Second": {
+    "string": ""
+  },
+  "Burst Limit": {
+    "string": ""
+  },
+  "Flood Protection": {
+    "string": ""
+  },
+  "Enable Flood Protection": {
+    "string": ""
+  },
+  "Max Messages Per Window": {
+    "string": ""
+  },
+  "Window Size (ms)": {
+    "string": ""
+  },
+  "Lag Monitoring": {
+    "string": ""
+  },
+  "Enable Lag Monitoring": {
+    "string": ""
+  },
+  "Lag Check Method": {
+    "string": ""
+  },
+  "Select the method to check for lag:": {
+    "string": ""
+  },
+  "Ping Interval (ms)": {
+    "string": ""
+  },
+  "Warning Threshold (ms)": {
+    "string": ""
+  },
+  "Connection Statistics": {
+    "string": ""
+  },
+  "Identity Profiles": {
+    "string": ""
+  },
+  "Global Proxy": {
+    "string": ""
+  },
+  "Enable Global Proxy": {
+    "string": ""
+  },
+  "Route all IRC connections through a proxy": {
+    "string": ""
+  },
+  "Proxy Type": {
+    "string": ""
+  },
+  "Select proxy protocol": {
+    "string": ""
+  },
+  "Proxy Host": {
+    "string": ""
+  },
+  "Proxy server hostname or IP": {
+    "string": ""
+  },
+  "proxy.example.com": {
+    "string": ""
+  },
+  "Proxy Port": {
+    "string": ""
+  },
+  "Proxy server port": {
+    "string": ""
+  },
+  "Proxy Username (optional)": {
+    "string": ""
+  },
+  "Leave blank if no authentication required": {
+    "string": ""
+  },
+  "username": {
+    "string": ""
+  },
+  "Proxy Password (optional)": {
+    "string": ""
+  },
+  "password": {
+    "string": ""
+  },
+  "Biometric Lock for Passwords": {
+    "string": ""
+  },
+  "PIN Lock for Passwords": {
+    "string": ""
+  },
+  "Security": {
+    "string": ""
+  },
+  "Allow QR Verification": {
+    "string": ""
+  },
+  "Allow File Key Exchange": {
+    "string": ""
+  },
+  "Allow NFC Key Exchange": {
+    "string": ""
+  },
+  "App Lock": {
+    "string": ""
+  },
+  "App Lock with Biometrics": {
+    "string": ""
+  },
+  "App Lock with PIN": {
+    "string": ""
+  },
+  "PIN unlock enabled": {
+    "string": ""
+  },
+  "Use a PIN to unlock": {
+    "string": ""
+  },
+  "Lock on Launch": {
+    "string": ""
+  },
+  "Locks when app is opened": {
+    "string": ""
+  },
+  "Does not lock on launch": {
+    "string": ""
+  },
+  "Lock on Background": {
+    "string": ""
+  },
+  "Locks after app is backgrounded": {
+    "string": ""
+  },
+  "Does not lock on background": {
+    "string": ""
+  },
+  "Lock Now": {
+    "string": ""
+  },
+  "Immediately lock the app": {
+    "string": ""
+  },
+  "Channels": {
+    "string": ""
+  },
+  "{count} favorite across networks": {
+    "string": ""
+  },
+  "{count} favorites across networks": {
+    "string": ""
+  },
+  "Manage favorite channels": {
+    "string": ""
+  },
+  "No favorites yet": {
+    "string": ""
+  },
+  "Network: {network}": {
+    "string": ""
+  },
+  "Auto-join": {
+    "string": ""
+  },
+  "Key set": {
+    "string": ""
+  },
+  "Move to {name}": {
+    "string": ""
+  },
+  "No other networks available": {
+    "string": ""
+  },
+  "Delete Favorite": {
+    "string": "Obriši omiljeno"
+  },
+  "Remove {name} from {network}?": {
+    "string": ""
+  },
+  "Auto-Join Favorites on Connect": {
+    "string": ""
+  },
+  "Join favorited channels after connect/identify": {
+    "string": ""
+  },
+  "Auto-Rejoin on Kick": {
+    "string": ""
+  },
+  "Automatically rejoin channel if kicked": {
+    "string": ""
+  },
+  "Auto-Voice on Join": {
+    "string": ""
+  },
+  "Enable Auto-Voice": {
+    "string": ""
+  },
+  "For All Users": {
+    "string": ""
+  },
+  "For Operators/Halfops": {
+    "string": ""
+  },
+  "For IRC Ops (Admin/Netadmin)": {
+    "string": ""
+  },
+  "DCC Settings": {
+    "string": ""
+  },
+  "Users & Services": {
+    "string": ""
+  },
+  "Add Service Nickname": {
+    "string": ""
+  },
+  "Prevent sending \"close query\" messages to these nicks.": {
+    "string": ""
+  },
+  "Enter a service name (e.g., Q)": {
+    "string": ""
+  },
+  "Ignore List": {
+    "string": ""
+  },
+  "Manage ignored users": {
+    "string": ""
+  },
+  "Ignore list feature coming soon": {
+    "string": ""
+  },
+  "User Notes": {
+    "string": ""
+  },
+  "No notes saved": {
+    "string": ""
+  },
+  "User Aliases": {
+    "string": ""
+  },
+  "No aliases saved": {
+    "string": ""
+  },
+  "Commands": {
+    "string": ""
+  },
+  "Command History": {
+    "string": ""
+  },
+  "Clear All History": {
+    "string": ""
+  },
+  "Delete every command entry": {
+    "string": "Izbriši svaki unos komande"
+  },
+  "Clear Command History": {
+    "string": ""
+  },
+  "Are you sure you want to delete all command history?": {
+    "string": "Da li ste sigurni da želite da obrišete celu istoriju komandi?"
+  },
+  "Command Aliases": {
+    "string": ""
+  },
+  "Alias Name (without /)": {
+    "string": ""
+  },
+  "e.g. j": {
+    "string": ""
+  },
+  "Alias Command": {
+    "string": ""
+  },
+  "Example: /join {channel}": {
+    "string": ""
+  },
+  "e.g. /join {channel}": {
+    "string": ""
+  },
+  "Add Alias": {
+    "string": ""
+  },
+  "Create or update alias": {
+    "string": ""
+  },
+  "Custom Commands": {
+    "string": ""
+  },
+  "Command Name (without /)": {
+    "string": ""
+  },
+  "e.g. greet": {
+    "string": ""
+  },
+  "Command Template": {
+    "string": ""
+  },
+  "Use {param1}, {channel}, {nick} placeholders": {
+    "string": ""
+  },
+  "e.g. /msg {channel} Hello {param1}": {
+    "string": ""
+  },
+  "Add Custom Command": {
+    "string": ""
+  },
+  "Save template with placeholders": {
+    "string": ""
+  },
+  "History Statistics": {
+    "string": ""
+  },
+  "View message history statistics": {
+    "string": ""
+  },
+  "Export History": {
+    "string": ""
+  },
+  "Export message history to file": {
+    "string": ""
+  },
+  "Export as JSON": {
+    "string": ""
+  },
+  "Export all messages in JSON format": {
+    "string": ""
+  },
+  "Export as TXT": {
+    "string": ""
+  },
+  "Export as plain text log": {
+    "string": ""
+  },
+  "Export as CSV": {
+    "string": ""
+  },
+  "Export as spreadsheet-compatible CSV": {
+    "string": ""
+  },
+  "Clear History": {
+    "string": ""
+  },
+  "Delete all stored message history": {
+    "string": "Izbriši svu sačuvanu istoriju poruka"
+  },
+  "This will permanently delete all stored messages. Continue?": {
+    "string": "Ovo će trajno obrisati sve sačuvane poruke. Nastaviti?"
+  },
+  "Storage Usage": {
+    "string": ""
+  },
+  "Backup or restore all app data": {
+    "string": ""
+  },
+  "IRC Bouncer": {
+    "string": ""
+  },
+  "Bouncer Status": {
+    "string": ""
+  },
+  "Bouncer Settings": {
+    "string": ""
+  },
+  "Enable Bouncer Support": {
+    "string": ""
+  },
+  "Bouncer Type": {
+    "string": ""
+  },
+  "Select bouncer type:": {
+    "string": ""
+  },
+  "Handle Playback Buffer": {
+    "string": ""
+  },
+  "Process playback messages from bouncer": {
+    "string": ""
+  },
+  "Mark Playback Messages": {
+    "string": ""
+  },
+  "Add [Playback] indicator to old messages": {
+    "string": ""
+  },
+  "Skip Old Playback": {
+    "string": ""
+  },
+  "Playback Timeout (ms)": {
+    "string": ""
+  },
+  "Playback Age Limit (hours)": {
+    "string": ""
+  },
+  "Request Playback (ZNC)": {
+    "string": ""
+  },
+  "Request playback buffer from ZNC": {
+    "string": ""
+  },
+  "Playback requested from ZNC": {
+    "string": ""
+  },
+  "Performance": {
+    "string": ""
+  },
+  "Message List Virtualization": {
+    "string": ""
+  },
+  "Use FlatList for better performance with large channels": {
+    "string": ""
+  },
+  "Lazy Load Old Messages": {
+    "string": ""
+  },
+  "Load old messages when scrolling up": {
+    "string": ""
+  },
+  "Render Optimization": {
+    "string": ""
+  },
+  "Use React.memo and useMemo for optimized rendering": {
+    "string": ""
+  },
+  "Automatic Message Cleanup": {
+    "string": ""
+  },
+  "Automatically remove old messages to save memory": {
+    "string": ""
+  },
+  "Message Limit Per Channel": {
+    "string": ""
+  },
+  "Max Visible Messages": {
+    "string": ""
+  },
+  "Message Load Chunk Size": {
+    "string": ""
+  },
+  "Lazy Load Images": {
+    "string": ""
+  },
+  "Only load images when they become visible": {
+    "string": ""
+  },
+  "Background & Battery": {
+    "string": ""
+  },
+  "Keep Connection Alive": {
+    "string": ""
+  },
+  "Maintain IRC connection in background": {
+    "string": ""
+  },
+  "Battery Optimization": {
+    "string": ""
+  },
+  "Open Battery Settings": {
+    "string": ""
+  },
+  "Configure battery optimization for this app": {
+    "string": ""
+  },
+  "Advanced": {
+    "string": ""
+  },
+  "Scripts": {
+    "string": ""
+  },
+  "Manage IRC scripts and automation": {
+    "string": ""
+  },
+  "Scripting Help": {
+    "string": ""
+  },
+  "Learn how to write and use scripts": {
+    "string": ""
+  },
+  "About": {
+    "string": ""
+  },
+  "About AndroidIRCX": {
+    "string": ""
+  },
+  "App information and credits": {
+    "string": ""
+  },
+  "Enter PIN": {
+    "string": ""
+  },
+  "Set PIN": {
+    "string": ""
+  },
+  "Confirm PIN": {
+    "string": ""
+  },
+  "Enter your PIN to unlock passwords.": {
+    "string": ""
+  },
+  "Create a 4+ digit PIN to protect passwords.": {
+    "string": ""
+  },
+  "Re-enter your PIN to confirm.": {
+    "string": ""
+  },
+  "Unlock": {
+    "string": ""
+  },
+  "Next": {
+    "string": ""
+  },
+  "Save": {
+    "string": ""
+  },
+  "Set App PIN": {
+    "string": ""
+  },
+  "Confirm App PIN": {
+    "string": ""
+  },
+  "Create a 4+ digit PIN to lock the app.": {
+    "string": ""
+  },
+  "Settings": {
+    "string": ""
+  },
+  "Done": {
+    "string": ""
+  },
+  "Search settings...": {
+    "string": ""
+  },
+  "Options": {
+    "string": ""
+  },
+  "PIN": {
+    "string": ""
+  },
+  "Backup / Restore": {
+    "string": ""
+  },
+  "Copy this JSON to back up. To restore, paste backup JSON and tap Restore.": {
+    "string": ""
+  },
+  "Backup JSON appears here": {
+    "string": ""
+  },
+  "Per-Channel Notifications": {
+    "string": ""
+  },
+  "Add a channel to override global notification settings.": {
+    "string": ""
+  },
+  "#channel": {
+    "string": ""
+  },
+  "Add": {
+    "string": ""
+  },
+  "All messages": {
+    "string": ""
+  },
+  "Mentions only": {
+    "string": ""
+  },
+  " • DND": {
+    "string": ""
+  },
+  "All": {
+    "string": ""
+  },
+  "Mentions": {
+    "string": ""
+  },
+  "No channel overrides set.": {
+    "string": ""
+  }
+}
