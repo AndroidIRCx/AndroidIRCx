@@ -1,18 +1,19 @@
 # IRC Client Setup
 
-## Instalacija
+## Installation
 
-Projekat koristi `react-native-tcp-socket` za TCP konekcije u React Native okruženju.
+This project uses `react-native-tcp-socket` for TCP connections in React Native.
 
 ### Android
 
-Za Android, `react-native-tcp-socket` se automatski linkuje. Proverite da je u `android/app/build.gradle` dozvoljen cleartext traffic ako koristite ne-TLS konekcije:
+On Android, `react-native-tcp-socket` is autolinked. Verify that cleartext traffic is allowed in
+`android/app/build.gradle` if you use non-TLS connections:
 
 ```gradle
 android {
     defaultConfig {
         ...
-        // Za development - uklonite u production
+        // For development only - remove in production
         usesCleartextTraffic true
     }
 }
@@ -20,7 +21,7 @@ android {
 
 ### iOS
 
-Za iOS, možda ćete morati da dodate dozvole u `Info.plist`:
+On iOS, you may need to add permissions in `Info.plist`:
 
 ```xml
 <key>NSAppTransportSecurity</key>
@@ -30,28 +31,31 @@ Za iOS, možda ćete morati da dodate dozvole u `Info.plist`:
 </dict>
 ```
 
-## TLS/SSL Podrška
+## TLS/SSL Support
 
-`react-native-tcp-socket` podržava TLS, ali za potpunu TLS podršku možda će biti potrebno dodatno podešavanje. Trenutna implementacija koristi osnovni TCP socket.
+`react-native-tcp-socket` supports TLS, but full TLS support may require additional setup. The
+current implementation uses a basic TCP socket.
 
-Za potpunu TLS podršku, razmotrite:
-1. Korišćenje native modula za TLS
-2. Korišćenje WebSocket proxy servera
-3. Implementaciju custom native modula
+For full TLS support, consider:
 
-## SASL Autentifikacija
+1. Using native TLS modules
+2. Using a WebSocket proxy server
+3. Implementing a custom native module
 
-SASL autentifikacija je implementirana osnovno. Za potpunu podršku, potrebno je implementirati:
-- SASL PLAIN mehanizam
-- SASL EXTERNAL mehanizam (za sertifikate)
+## SASL Authentication
+
+SASL authentication is implemented at a basic level. For full support, implement:
+
+- SASL PLAIN mechanism
+- SASL EXTERNAL mechanism (certs)
 - CAP negotiation
 
-## Korišćenje
+## Usage
 
 ```typescript
 import { ircService } from './src/services/IRCService';
 
-// Konekcija sa TLS
+// TLS connection
 await ircService.connect({
   host: 'irc.freenode.net',
   port: 6697,
@@ -65,15 +69,14 @@ await ircService.connect({
   },
 });
 
-// Slušanje poruka
+// Listen for messages
 ircService.onMessage((message) => {
   console.log('New message:', message);
 });
 
-// Pridruživanje kanalu
+// Join a channel
 ircService.joinChannel('#android');
 
-// Slanje poruke
+// Send a message
 ircService.sendMessage('#android', 'Hello!');
 ```
-

@@ -214,8 +214,7 @@ This client implements the IRC protocol according to:
 
 - [IRC Setup Guide](IRC_SETUP.md) - Detailed IRC connection setup
 - [Debug Notes](DEBUG_NOTES.md) - Troubleshooting guide
-- [CI/CD Setup Guide](.gitlab/ci-setup.md) - GitLab CI/CD pipeline configuration
-
+- [PROJECT](PROJECT.md) - Project explained
 ## 🔄 Development Status
 
 **Current Version**: 1.3.1 (Dignity)

@@ -1,7 +1,7 @@
 # Android IRC Client - Project Documentation
 
-**Last Updated:** 2025-12-22
-**Version:** 1.3.01
+**Last Updated:** 2025-12-23
+**Version:** 1.3.1
 **Status:** Active Development
 
 ---
@@ -19,6 +19,10 @@
 9. [Known Issues](#known-issues)
 10. [Recent Changes](#recent-changes)
 11. [File Structure](#file-structure)
+12. [Development Guidelines](#development-guidelines)
+13. [Patches (patch-package)](#patches-patch-package)
+14. [AI Project Guide](#ai-project-guide)
+15. [Quick Start for AI Assistants](#quick-start-for-ai-assistants)
 
 ---
 
@@ -578,9 +582,13 @@ The fix includes multiple layers of defense:
 
 ## Recent Changes
 
-### v1.3.01 (2025-12-22)
+### Unreleased (2025-12-23)
 
-- Auto-connect favorite servers on startup across multiple networks
+- Docs: translate markdown to English, add patch usage notes, and clarify AI onboarding
+
+### v1.3.1 (2025-12-23)
+
+- Auto-connect favorites servers on startup across multiple networks
 - Identity profile list now scrolls in Connection Profiles
 - Settings search no longer auto-opens submenus; submenu items remain clickable
 - Tabs can be positioned top/bottom/left/right (vertical tabs for side layouts)
@@ -732,6 +740,75 @@ D:\AndroidProjects\androidircx\
 - Functional components only
 - AsyncStorage for general persistence; secrets go to secure storage when available (falls back to
   AsyncStorage with warning)
+
+---
+
+## Patches (patch-package)
+
+This project uses `patch-package` to keep small vendor fixes in version control.
+
+### Where patches live
+
+- Patches are stored in `patches/` and are applied automatically by `yarn install` or
+  `npm install` via the `postinstall` script in `package.json`.
+
+### Current patched packages
+
+- `react-native` (0.82.1)
+- `react-native-libsodium` (1.5.0)
+- `react-native-document-picker` (9.3.1)
+
+### How to update or add a patch
+
+1. Edit the installed package in `node_modules/`.
+2. Run `npx patch-package <package-name>` to generate or update the patch file.
+3. Commit the updated patch in `patches/`.
+
+### When patches are used
+
+- During local development and CI after dependencies are installed (`postinstall`).
+- Required for native or JS fixes that are not yet published upstream.
+
+---
+
+## AI Project Guide
+
+This section is the agents-style briefing for any AI working on this repo.
+
+### Mission and scope
+
+- Build and maintain a React Native IRC client with multi-network support and end-to-end encryption.
+- Prioritize reliability, predictable state management, and safe persistence behavior.
+- Security changes must consider key pinning/verification and secure storage fallbacks.
+
+### Source of truth
+
+- `App.tsx` orchestrates UI state, services, and data flow.
+- Service layer in `src/services/` contains almost all business logic.
+- Protocol behavior and events live in `src/services/IRCService.ts`.
+- Multi-connection behavior lives in `src/services/ConnectionManager.ts`.
+
+### Invariants to preserve
+
+- Tabs are identified by `type::{networkId}::{name}` patterns and must always have valid
+  `networkId` values.
+- Secrets must not be stored in AsyncStorage unless secure storage is unavailable, and the UI must
+  warn when fallback happens.
+- Multiple connections to the same network must remain distinct (suffix naming like "DBase (2)").
+- Services communicate through EventEmitter patterns; avoid cross-service direct mutation.
+
+### High-risk areas
+
+- Connection lifecycle edge cases (reconnect, disconnect, network switching).
+- Tab persistence and cleanup; invalid tabs must not be persisted.
+- Encryption UX flows (TOFU warnings, key verification, and key bundle import/export).
+
+### Change checklist
+
+1. Update or add service logic first, then UI wiring in `App.tsx`.
+2. Check multi-network behavior (tabs, active connection, background events).
+3. Confirm persistence updates are safe and storage keys remain consistent.
+4. Update `PROJECT.md` and `README.md` when behavior or architecture changes.
 
 ---
 

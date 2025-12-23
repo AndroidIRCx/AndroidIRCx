@@ -1,25 +1,25 @@
 # Debug Notes - IRC Connection Issues
 
-## Ako aplikacija pada pri konekciji
+## If the app crashes on connect
 
-### 1. Rebuild aplikacije
+### 1. Rebuild the app
 
-Nakon instalacije `react-native-tcp-socket`, morate rebuild-ovati aplikaciju:
+After installing `react-native-tcp-socket`, rebuild the app:
 
 ```bash
-# Za Android
+# Android
 cd android
 ./gradlew clean
 cd ..
 npm run android
 
-# Ili direktno
+# Or directly
 npx react-native run-android
 ```
 
-### 2. Proverite logove
+### 2. Check logs
 
-Koristite `adb logcat` da vidite detaljne greške:
+Use `adb logcat` to see detailed errors:
 
 ```bash
 adb logcat | grep -i "irc\|tcp\|socket\|error"
@@ -27,60 +27,60 @@ adb logcat | grep -i "irc\|tcp\|socket\|error"
 adb logcat *:E ReactNative:V ReactNativeJS:V AndroidRuntime:E
 ```
 
-Ili u React Native debuggeru, otvorite Console da vidite `console.log` poruke.
+Or in the React Native debugger, open the Console to see `console.log` output.
 
-### 3. Proverite dozvole
+### 3. Check permissions
 
-U `android/app/src/main/AndroidManifest.xml` mora biti:
+In `android/app/src/main/AndroidManifest.xml` you must have:
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-### 4. TLS problemi
+### 4. TLS issues
 
-Ako se konekcija ne uspostavi sa TLS:
+If the connection does not establish with TLS:
 
-- Proverite da li server podržava TLS na portu 6697
-- Pokušajte sa `rejectUnauthorized: false` za testiranje
-- Proverite sertifikat servera
+- Check that the server supports TLS on port 6697
+- Try `rejectUnauthorized: false` for testing
+- Verify the server certificate
 
-### 5. Native modul linkovanje
+### 5. Native module linking
 
-`react-native-tcp-socket` se automatski linkuje u React Native 0.82+, ali ako imate problema:
+`react-native-tcp-socket` is autolinked in React Native 0.82+, but if you have issues:
 
 ```bash
-# Proverite da li je modul instaliran
+# Verify the module is installed
 npm list react-native-tcp-socket
 
-# Rebuild native modul
+# Rebuild the native module
 cd android && ./gradlew clean && cd ..
 npx react-native run-android
 ```
 
-### 6. Test konekcije
+### 6. Test connection
 
-Možete testirati konekciju sa:
+You can test the connection with:
 
 ```bash
-# Test TLS konekcije
+# Test TLS connection
 openssl s_client -connect irc.dbase.in.rs:6697
 ```
 
-### 7. Česte greške
+### 7. Common errors
 
-**"Module not found" ili "Cannot read property 'createConnection'":**
+**"Module not found" or "Cannot read property 'createConnection'":**
 
-- Rebuild aplikacije
-- Proverite da li je `react-native-tcp-socket` u `package.json`
+- Rebuild the app
+- Check that `react-native-tcp-socket` is in `package.json`
 
-**"Network request failed" ili "Connection refused":**
+**"Network request failed" or "Connection refused":**
 
-- Proverite internet konekciju
-- Proverite da li server radi
-- Proverite firewall
+- Check your internet connection
+- Check that the server is online
+- Check firewall rules
 
 **"TLS handshake failed":**
 
-- Proverite sertifikat servera
-- Pokušajte sa `tlsCheckValidity: false` za testiranje
+- Verify the server certificate
+- Try `tlsCheckValidity: false` for testing
