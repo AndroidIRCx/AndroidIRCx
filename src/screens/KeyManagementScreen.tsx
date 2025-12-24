@@ -49,6 +49,24 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
     }
   }, [visible]);
 
+  // Reset authentication state when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setAuthenticated(false);
+      setLoading(true);
+    }
+  }, [visible]);
+
+  // Cleanup temporary auth credentials when screen closes
+  useEffect(() => {
+    return () => {
+      // Clean up the temporary keymanagement credentials when component unmounts
+      biometricAuthService.disableLock('keymanagement').catch(err => {
+        console.warn('[KeyManagement] Failed to cleanup auth lock:', err);
+      });
+    };
+  }, []);
+
   const handleAuthentication = async () => {
     setLoading(true);
     try {
@@ -68,10 +86,18 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
         return;
       }
 
+      // First, ensure we have credentials stored for authentication
+      // This is required by react-native-keychain's getGenericPassword API
+      console.log('[KeyManagement] Enabling temporary lock for authentication...');
+      const lockEnabled = await biometricAuthService.enableLock('keymanagement');
+      if (!lockEnabled) {
+        console.warn('[KeyManagement] Failed to enable lock, but continuing anyway...');
+      }
+
       const result = await biometricAuthService.authenticate(
         'Access Encryption Keys',
         'Authenticate to view and manage your encryption keys',
-        'app' // Use the app's existing lock
+        'keymanagement' // Use dedicated scope for key management
       );
 
       console.log('[KeyManagement] Auth result:', result);
@@ -81,6 +107,7 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
         setAuthenticated(true);
         await loadKeys();
         console.log('[KeyManagement] Keys loaded successfully');
+        setLoading(false);
       } else {
         console.log('[KeyManagement] Auth failed:', result.error);
         setLoading(false);
@@ -98,10 +125,6 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
         error instanceof Error ? error.message : 'Failed to authenticate. Please try again.',
         [{ text: 'OK', onPress: onClose }]
       );
-    } finally {
-      if (authenticated) {
-        setLoading(false);
-      }
     }
   };
 

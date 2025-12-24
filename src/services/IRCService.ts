@@ -760,19 +760,22 @@ export class IRCService {
 
         // Handle old protocol for backward compatibility
         if (msgText.startsWith('!enc-key ')) {
-          encryptedDMService.handleIncomingBundle(fromNick, msgText.substring('!enc-key '.length));
+          const network = this.getNetworkName();
+          encryptedDMService.handleIncomingBundleForNetwork(network, fromNick, msgText.substring('!enc-key '.length));
           return;
         }
 
         // New negotiation protocol: key offer (requires acceptance)
         if (msgText.startsWith('!enc-offer ')) {
-          encryptedDMService.handleKeyOffer(fromNick, msgText.substring('!enc-offer '.length));
+          const network = this.getNetworkName();
+          encryptedDMService.handleKeyOfferForNetwork(network, fromNick, msgText.substring('!enc-offer '.length));
           return;
         }
 
         // Handle key acceptance (they accepted and sent their key)
         if (msgText.startsWith('!enc-accept ')) {
-          encryptedDMService.handleKeyAcceptance(fromNick, msgText.substring('!enc-accept '.length))
+          const network = this.getNetworkName();
+          encryptedDMService.handleKeyAcceptanceForNetwork(network, fromNick, msgText.substring('!enc-accept '.length))
             .then(result => {
               if (result.status === 'stored') {
                 this.addMessage({
@@ -890,8 +893,9 @@ export class IRCService {
             return;
           }
 
+          const network = this.getNetworkName();
           encryptedDMService
-            .decrypt(payload, fromNick)
+            .decryptForNetwork(payload, network, fromNick)
             .then(plaintext => {
               this.addMessage({
                 type: 'message',
@@ -3651,7 +3655,8 @@ export class IRCService {
           if (args.length >= 2) {
             const encTarget = args[0];
             const encPlaintext = args.slice(1).join(' ');
-            encryptedDMService.encrypt(encPlaintext, encTarget).then(payload => {
+            const network = this.getNetworkName();
+            encryptedDMService.encryptForNetwork(encPlaintext, network, encTarget).then(payload => {
               this.sendRaw(`PRIVMSG ${encTarget} :!enc-msg ${JSON.stringify(payload)}`);
               this.addMessage({ type: 'message', channel: encTarget, from: this.currentNick, text: `🔒 ${encPlaintext}`, timestamp: Date.now(), status: 'sent' });
             }).catch(e => {

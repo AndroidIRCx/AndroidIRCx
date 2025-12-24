@@ -172,6 +172,13 @@ const getModeColor = (modes?: string[], colors?: any): string => {
 
   const activeIrc = (network ? connectionManager.getConnection(network)?.ircService : null) || ircService;
 
+  // Always use network-aware storage. Get network from IRC service if not provided as prop.
+  const getNetworkForStorage = useCallback((): string => {
+    const result = network || activeIrc.getNetworkName() || 'default';
+    console.log('[UserList] getNetworkForStorage - network prop:', network, 'activeIrc.getNetworkName():', activeIrc.getNetworkName(), 'result:', result);
+    return result;
+  }, [network, activeIrc]);
+
   const handleExternalPayload = useCallback(async (raw: string) => {
     if (!selectedUser) {
       setActionMessage('Select a user first');
@@ -190,7 +197,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
       }
 
       if (payload.type === 'encdm-fingerprint') {
-        const currentFp = network ? await encryptedDMService.getBundleFingerprintForNetwork(network, targetNick) : await encryptedDMService.getBundleFingerprint(targetNick);
+        const storageNetwork = getNetworkForStorage();
+        const currentFp = await encryptedDMService.getBundleFingerprintForNetwork(storageNetwork, targetNick);
         if (!currentFp) {
           Alert.alert('No Key', `No DM key stored for ${targetNick}.`);
           return;
@@ -206,11 +214,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                 {
                   text: 'Mark Verified',
                   onPress: async () => {
-                    if (network) {
-                      await encryptedDMService.setVerifiedForNetwork(network, targetNick, true);
-                    } else {
-                      await encryptedDMService.setVerified(targetNick, true);
-                    }
+                    await encryptedDMService.setVerifiedForNetwork(storageNetwork, targetNick, true);
                     setActionMessage(`Key verified for ${targetNick}`);
                   },
                 },
@@ -222,7 +226,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
       }
 
       encryptedDMService.verifyBundle(payload.bundle);
-      const existingFp = network ? await encryptedDMService.getBundleFingerprintForNetwork(network, targetNick) : await encryptedDMService.getBundleFingerprint(targetNick);
+      const storageNetwork = getNetworkForStorage();
+      const existingFp = await encryptedDMService.getBundleFingerprintForNetwork(storageNetwork, targetNick);
       const newDisplay = encryptedDMService.formatFingerprintForDisplay(payload.fingerprint);
       const oldDisplay = existingFp
         ? encryptedDMService.formatFingerprintForDisplay(existingFp)
@@ -238,11 +243,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           {
             text: isChange ? 'Replace' : 'Accept',
             onPress: async () => {
-              if (network) {
-                await encryptedDMService.acceptExternalBundleForNetwork(network, targetNick, payload.bundle, isChange);
-              } else {
-                await encryptedDMService.acceptExternalBundle(targetNick, payload.bundle, isChange);
-              }
+              // Always use network-aware storage
+              await encryptedDMService.acceptExternalBundleForNetwork(storageNetwork, targetNick, payload.bundle, isChange);
               setActionMessage(`Key ${isChange ? 'replaced' : 'imported'} for ${targetNick}`);
 
               // Prompt to share key back for bidirectional encryption (offline only)
@@ -467,11 +469,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                 text: verifiedLabel,
                 onPress: async () => {
                   if (!status.verified) {
-                    if (network) {
-                      await encryptedDMService.setVerifiedForNetwork(network, selectedUser.nick, true);
-                    } else {
-                      await encryptedDMService.setVerified(selectedUser.nick, true);
-                    }
+                    const storageNetwork = getNetworkForStorage();
+                    await encryptedDMService.setVerifiedForNetwork(storageNetwork, selectedUser.nick, true);
                     setActionMessage(`Key marked verified for ${selectedUser.nick}`);
                   }
                 },

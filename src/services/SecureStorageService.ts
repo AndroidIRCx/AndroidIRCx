@@ -10,10 +10,28 @@ try {
 }
 
 const FALLBACK_PREFIX = '@AndroidIRCX:secure:';
+const KEY_INDEX = '@AndroidIRCX:keychain_index';
 
 class SecureStorageService {
   private isKeychainAvailable(): boolean {
     return Boolean(Keychain && Keychain.setInternetCredentials);
+  }
+
+  // Maintain an index of keys stored in Keychain (since Keychain can't list keys)
+  private async addToIndex(key: string): Promise<void> {
+    const indexJson = await AsyncStorage.getItem(KEY_INDEX);
+    const index = indexJson ? JSON.parse(indexJson) : [];
+    if (!index.includes(key)) {
+      index.push(key);
+      await AsyncStorage.setItem(KEY_INDEX, JSON.stringify(index));
+    }
+  }
+
+  private async removeFromIndex(key: string): Promise<void> {
+    const indexJson = await AsyncStorage.getItem(KEY_INDEX);
+    const index = indexJson ? JSON.parse(indexJson) : [];
+    const newIndex = index.filter((k: string) => k !== key);
+    await AsyncStorage.setItem(KEY_INDEX, JSON.stringify(newIndex));
   }
 
   async setSecret(key: string, value?: string | null): Promise<void> {
@@ -25,6 +43,8 @@ class SecureStorageService {
     if (this.isKeychainAvailable()) {
       // Use internet credentials to support multiple entries
       await Keychain.setInternetCredentials(key, 'androidircx', value);
+      // Add to index for listing
+      await this.addToIndex(key);
     } else {
       console.warn('SecureStorage: Keychain unavailable, falling back to AsyncStorage (less secure)');
       await AsyncStorage.setItem(`${FALLBACK_PREFIX}${key}`, value);
@@ -44,6 +64,8 @@ class SecureStorageService {
     if (this.isKeychainAvailable()) {
       try {
         await Keychain.resetInternetCredentials(key);
+        // Remove from index
+        await this.removeFromIndex(key);
       } catch (e) {
         // ignore
       }
@@ -53,12 +75,9 @@ class SecureStorageService {
 
   async getAllSecretKeys(): Promise<string[]> {
     if (this.isKeychainAvailable()) {
-      // Keychain doesn't provide a way to list all keys
-      // Fall back to AsyncStorage for listing
-      const keys = await AsyncStorage.getAllKeys();
-      return keys
-        .filter(key => key.startsWith(FALLBACK_PREFIX))
-        .map(key => key.substring(FALLBACK_PREFIX.length));
+      // Read keys from index (Keychain can't list keys)
+      const indexJson = await AsyncStorage.getItem(KEY_INDEX);
+      return indexJson ? JSON.parse(indexJson) : [];
     }
     const keys = await AsyncStorage.getAllKeys();
     return keys

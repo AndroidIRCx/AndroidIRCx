@@ -387,7 +387,8 @@ function AppContent() {
               return { ...tab, isEncrypted: hasKey, sendEncrypted: shouldSendEncrypted || (hasKey ? tab.sendEncrypted : false) };
             }
           } else if (tab.type === 'query') {
-            const hasBundle = await encryptedDMService.isEncrypted(tab.name);
+            const network = tab.networkId || '';
+            const hasBundle = await encryptedDMService.isEncryptedForNetwork(network, tab.name);
             const alwaysEncrypt = await channelEncryptionSettingsService.getAlwaysEncrypt(tab.name, tab.networkId);
 
             // Auto-enable sendEncrypted if "always encrypt" is on AND bundle exists
@@ -425,9 +426,10 @@ function AppContent() {
                 tab.name.toLowerCase() === channel.toLowerCase() &&
                 tab.networkId.toLowerCase() === network.toLowerCase()) {
               // Check if key/bundle exists
+              const tabNetwork = tab.networkId || '';
               const hasKey = tab.type === 'channel'
                 ? await channelEncryptionService.hasChannelKey(tab.name, tab.networkId)
-                : await encryptedDMService.isEncrypted(tab.name);
+                : await encryptedDMService.isEncryptedForNetwork(tabNetwork, tab.name);
 
               // Update sendEncrypted based on always encrypt setting and key existence
               const shouldSendEncrypted = value && hasKey;
@@ -1254,7 +1256,7 @@ function AppContent() {
         newTabIsEncrypted = await channelEncryptionService.hasChannelKey(message.channel, messageNetwork);
       } else if (targetTabType === 'query') {
         const qn = (message.from === currentNick ? message.channel || message.from || targetTabId : message.from || message.channel || targetTabId);
-        newTabIsEncrypted = await encryptedDMService.isEncrypted(qn);
+        newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(messageNetwork, qn);
       }
 
       let joinHasKey: boolean | null = null;
@@ -1517,7 +1519,8 @@ safeSetState(() => {
             text: isChange ? 'Keep Existing' : 'Reject',
             style: 'cancel',
             onPress: async () => {
-              await encryptedDMService.rejectKeyOffer(nick);
+              const network = activeIRCService.getNetworkName();
+              await encryptedDMService.rejectKeyOfferForNetwork(network, nick);
               activeIRCService.sendRaw(`PRIVMSG ${nick} :!enc-reject`);
             }
           },
@@ -1525,7 +1528,8 @@ safeSetState(() => {
             text: isChange ? 'Replace Key' : 'Accept',
             onPress: async () => {
               try {
-                const ourBundle = await encryptedDMService.acceptKeyOffer(nick, isChange);
+                const network = activeIRCService.getNetworkName();
+                const ourBundle = await encryptedDMService.acceptKeyOfferForNetwork(network, nick, isChange);
                 activeIRCService.sendRaw(`PRIVMSG ${nick} :!enc-accept ${JSON.stringify(ourBundle)}`);
                 activeIRCService.addMessage({
                   type: 'notice',
@@ -2171,7 +2175,8 @@ safeSetState(() => {
 
     // Connected: send normally, but try encrypted path for private targets when toggle is on
     if (isPrivateTarget && wantEncrypted && !commandToSend.startsWith('/')) {
-      const hasBundle = activeTab.isEncrypted || await encryptedDMService.isEncrypted(activeTab.name);
+      const network = activeTab.networkId || activeIRCService.getNetworkName();
+      const hasBundle = activeTab.isEncrypted || await encryptedDMService.isEncryptedForNetwork(network, activeTab.name);
       if (!hasBundle) {
         const errorMsg: IRCMessage = {
           id: `err-${Date.now()}-${Math.random()}`,
@@ -2191,7 +2196,8 @@ safeSetState(() => {
         return;
       }
       try {
-        const payload = await encryptedDMService.encrypt(commandToSend, activeTab.name);
+        const network = activeTab.networkId || activeIRCService.getNetworkName();
+        const payload = await encryptedDMService.encryptForNetwork(commandToSend, network, activeTab.name);
         activeIRCService.sendRaw(`PRIVMSG ${activeTab.name} :!enc-msg ${JSON.stringify(payload)}`);
         const sentMessage: IRCMessage = {
           id: `msg-${Date.now()}-${Math.random()}`,
@@ -2562,7 +2568,8 @@ safeSetState(() => {
     } else if (tab.type === 'query') {
       // Encryption options for DMs
       const alwaysEncryptEnabled = await channelEncryptionSettingsService.getAlwaysEncrypt(tab.name, tab.networkId);
-      const hasBundle = await encryptedDMService.isEncrypted(tab.name);
+      const network = tab.networkId || '';
+      const hasBundle = await encryptedDMService.isEncryptedForNetwork(network, tab.name);
 
       options.push({
         text: `Always Encrypt: ${alwaysEncryptEnabled ? 'ON' : 'OFF'}`,
@@ -2644,7 +2651,8 @@ safeSetState(() => {
         text: queryEncLabel,
         onPress: async () => {
           if (!tab.sendEncrypted) {
-            const hasBundle = await encryptedDMService.isEncrypted(tab.name);
+            const network = tab.networkId || '';
+            const hasBundle = await encryptedDMService.isEncryptedForNetwork(network, tab.name);
             if (!hasBundle) {
               const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
               svc.addMessage({
@@ -2937,7 +2945,8 @@ safeSetState(() => {
             setActiveTabId(queryTab.id);
           } else {
             // Create new query tab
-            const isEncrypted = await encryptedDMService.isEncrypted(user.nick);
+            const network = activeTab.networkId || '';
+            const isEncrypted = await encryptedDMService.isEncryptedForNetwork(network, user.nick);
             const newQueryTab: ChannelTab = {
               id: queryId,
               name: user.nick,

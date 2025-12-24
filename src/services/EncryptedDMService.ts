@@ -441,7 +441,13 @@ class EncryptedDMService {
   }
 
   async storeBundleForNetwork(network: string, nick: string, bundle: Bundle): Promise<void> {
-    await secureStorageService.setSecret(this.getBundleKeyV2(network, nick), JSON.stringify(bundle));
+    const bundleKey = this.getBundleKeyV2(network, nick);
+    const trustKey = this.getTrustKeyV2(network, nick);
+    console.log('[EncryptedDMService] storeBundleForNetwork - network:', network, 'nick:', nick);
+    console.log('[EncryptedDMService] Bundle key:', bundleKey);
+    console.log('[EncryptedDMService] Trust key:', trustKey);
+
+    await secureStorageService.setSecret(bundleKey, JSON.stringify(bundle));
     const fingerprint = await this.bundleFingerprint(bundle);
     const existingTrust = await this.getTrustRecordForNetwork(network, nick);
     const now = Date.now();
@@ -452,7 +458,8 @@ class EncryptedDMService {
       firstSeen: existingTrust?.firstSeen ?? now,
       lastSeen: now,
     };
-    await secureStorageService.setSecret(this.getTrustKeyV2(network, nick), JSON.stringify(trust));
+    await secureStorageService.setSecret(trustKey, JSON.stringify(trust));
+    console.log('[EncryptedDMService] Bundle and trust stored successfully');
     // Notify listeners
     this.bundleListeners.forEach(listener => listener(nick));
   }
@@ -513,6 +520,135 @@ class EncryptedDMService {
     if (record) return { fingerprint: record.fingerprint, verified: record.verified };
     const fp = await this.getBundleFingerprintForNetwork(network, nick);
     return { fingerprint: fp, verified: false };
+  }
+
+  // Network-aware online key exchange methods
+  async handleIncomingBundleForNetwork(network: string, fromNick: string, payload: string) {
+    try {
+      const bundle = JSON.parse(payload) as Bundle;
+      this.verifyBundle(bundle);
+      const compare = await this.compareBundleForNetwork(network, fromNick, bundle);
+      if (compare.status === 'changed') {
+        await secureStorageService.setSecret(
+          PENDING_PREFIX + network + ':' + fromNick.toLowerCase(),
+          JSON.stringify({
+            nick: fromNick,
+            network,
+            bundle,
+            timestamp: Date.now(),
+            reason: 'legacy',
+            existingFingerprint: compare.existingFingerprint,
+            newFingerprint: compare.newFingerprint,
+          } as PendingKeyRequest & { network: string })
+        );
+        this.keyRequestListeners.forEach(listener =>
+          listener(fromNick, bundle, {
+            reason: 'legacy',
+            existingFingerprint: compare.existingFingerprint,
+            newFingerprint: compare.newFingerprint,
+          })
+        );
+        return;
+      }
+      await this.storeBundleForNetwork(network, fromNick, bundle);
+      const waiter = this.waiters.get(fromNick.toLowerCase());
+      if (waiter) {
+        clearTimeout(waiter.timer);
+        waiter.resolve();
+        this.waiters.delete(fromNick.toLowerCase());
+      }
+    } catch (e) {
+      console.warn('EncryptedDMService: invalid bundle', e);
+    }
+  }
+
+  async handleKeyOfferForNetwork(network: string, fromNick: string, payload: string): Promise<boolean> {
+    try {
+      const bundle = JSON.parse(payload) as Bundle;
+      this.verifyBundle(bundle);
+      const compare = await this.compareBundleForNetwork(network, fromNick, bundle);
+      // Store as pending
+      await secureStorageService.setSecret(
+        PENDING_PREFIX + network + ':' + fromNick.toLowerCase(),
+        JSON.stringify({
+          nick: fromNick,
+          network,
+          bundle,
+          timestamp: Date.now(),
+          reason: compare.status === 'changed' ? 'change' : 'offer',
+          existingFingerprint: compare.existingFingerprint,
+          newFingerprint: compare.newFingerprint,
+        } as PendingKeyRequest & { network: string })
+      );
+      // Notify listeners (will show user prompt)
+      this.keyRequestListeners.forEach(listener =>
+        listener(fromNick, bundle, {
+          reason: compare.status === 'changed' ? 'change' : 'offer',
+          existingFingerprint: compare.existingFingerprint,
+          newFingerprint: compare.newFingerprint,
+        })
+      );
+      return true;
+    } catch (e) {
+      console.warn('EncryptedDMService: invalid key offer', e);
+      return false;
+    }
+  }
+
+  async acceptKeyOfferForNetwork(network: string, nick: string, allowReplace = false): Promise<Bundle> {
+    const pending = await secureStorageService.getSecret(PENDING_PREFIX + network + ':' + nick.toLowerCase());
+    if (!pending) throw new Error('no pending offer');
+
+    const request = JSON.parse(pending) as PendingKeyRequest;
+    const compare = await this.compareBundleForNetwork(network, nick, request.bundle);
+    if (compare.status === 'changed' && !allowReplace) {
+      throw new Error('key changed');
+    }
+    // Store their bundle with network
+    await this.storeBundleForNetwork(network, nick, request.bundle);
+    // Remove from pending
+    await secureStorageService.removeSecret(PENDING_PREFIX + network + ':' + nick.toLowerCase());
+    // Return our bundle to send back
+    return this.exportBundle();
+  }
+
+  async rejectKeyOfferForNetwork(network: string, nick: string): Promise<void> {
+    await secureStorageService.removeSecret(PENDING_PREFIX + network + ':' + nick.toLowerCase());
+  }
+
+  async handleKeyAcceptanceForNetwork(network: string, fromNick: string, payload: string): Promise<{ status: 'stored' | 'pending' | 'invalid' }> {
+    try {
+      const bundle = JSON.parse(payload) as Bundle;
+      this.verifyBundle(bundle);
+      const compare = await this.compareBundleForNetwork(network, fromNick, bundle);
+      if (compare.status === 'changed') {
+        await secureStorageService.setSecret(
+          PENDING_PREFIX + network + ':' + fromNick.toLowerCase(),
+          JSON.stringify({
+            nick: fromNick,
+            network,
+            bundle,
+            timestamp: Date.now(),
+            reason: 'change',
+            existingFingerprint: compare.existingFingerprint,
+            newFingerprint: compare.newFingerprint,
+          } as PendingKeyRequest & { network: string })
+        );
+        this.keyRequestListeners.forEach(listener =>
+          listener(fromNick, bundle, {
+            reason: 'change',
+            existingFingerprint: compare.existingFingerprint,
+            newFingerprint: compare.newFingerprint,
+          })
+        );
+        return { status: 'pending' };
+      }
+      await this.storeBundleForNetwork(network, fromNick, bundle);
+      return { status: 'stored' };
+    } catch (e) {
+      console.warn('EncryptedDMService: invalid acceptance', e);
+      return { status: 'invalid' };
+    }
   }
 
   // ====================================================================
@@ -617,6 +753,8 @@ class EncryptedDMService {
     lastSeen: number;
   }>> {
     const allSecrets = await secureStorageService.getAllSecretKeys();
+    console.log('[EncryptedDMService] listAllKeys - Total secrets:', allSecrets.length);
+    console.log('[EncryptedDMService] Bundle keys found:', allSecrets.filter(k => k.includes('encdm:bundle')));
     const keys: Array<{
       network: string;
       nick: string;
@@ -629,6 +767,7 @@ class EncryptedDMService {
     for (const secretKey of allSecrets) {
       // Match V2 bundle keys: "encdm:bundle:v2:NetworkName:nickname"
       if (secretKey.startsWith(BUNDLE_PREFIX_V2)) {
+        console.log('[EncryptedDMService] Found V2 bundle key:', secretKey);
         const parts = secretKey.substring(BUNDLE_PREFIX_V2.length).split(':');
         if (parts.length >= 2) {
           const network = parts[0];

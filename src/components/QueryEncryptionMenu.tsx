@@ -63,6 +63,13 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
 
   const activeIrc = (network ? connectionManager.getConnection(network)?.ircService : null) || ircService;
 
+  // Always use network-aware storage. Get network from IRC service if not provided as prop.
+  const getNetworkForStorage = useCallback((): string => {
+    const result = network || activeIrc.getNetworkName() || 'default';
+    console.log('[QueryEncryptionMenu] getNetworkForStorage - network prop:', network, 'activeIrc.getNetworkName():', activeIrc.getNetworkName(), 'result:', result);
+    return result;
+  }, [network, activeIrc]);
+
   useEffect(() => {
     if (!actionMessage) return;
     const timer = setTimeout(() => setActionMessage(''), 1500);
@@ -106,7 +113,8 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
       }
 
       if (payload.type === 'encdm-fingerprint') {
-        const currentFp = network ? await encryptedDMService.getBundleFingerprintForNetwork(network, nick) : await encryptedDMService.getBundleFingerprint(nick);
+        const storageNetwork = getNetworkForStorage();
+        const currentFp = await encryptedDMService.getBundleFingerprintForNetwork(storageNetwork, nick);
         if (!currentFp) {
           Alert.alert('No Key', `No DM key stored for ${nick}.`);
           return;
@@ -122,11 +130,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
                 {
                   text: 'Mark Verified',
                   onPress: async () => {
-                    if (network) {
-                      await encryptedDMService.setVerifiedForNetwork(network, nick, true);
-                    } else {
-                      await encryptedDMService.setVerified(nick, true);
-                    }
+                    await encryptedDMService.setVerifiedForNetwork(storageNetwork, nick, true);
                     setActionMessage(`Key verified for ${nick}`);
                   },
                 },
@@ -138,7 +142,8 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
       }
 
       encryptedDMService.verifyBundle(payload.bundle);
-      const existingFp = network ? await encryptedDMService.getBundleFingerprintForNetwork(network, nick) : await encryptedDMService.getBundleFingerprint(nick);
+      const storageNetwork = getNetworkForStorage();
+      const existingFp = await encryptedDMService.getBundleFingerprintForNetwork(storageNetwork, nick);
       const newDisplay = encryptedDMService.formatFingerprintForDisplay(payload.fingerprint);
       const oldDisplay = existingFp
         ? encryptedDMService.formatFingerprintForDisplay(existingFp)
@@ -154,11 +159,8 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
           {
             text: isChange ? 'Replace' : 'Accept',
             onPress: async () => {
-              if (network) {
-                await encryptedDMService.acceptExternalBundleForNetwork(network, nick, payload.bundle, isChange);
-              } else {
-                await encryptedDMService.acceptExternalBundle(nick, payload.bundle, isChange);
-              }
+              // Always use network-aware storage
+              await encryptedDMService.acceptExternalBundleForNetwork(storageNetwork, nick, payload.bundle, isChange);
               setActionMessage(`Key ${isChange ? 'replaced' : 'imported'} for ${nick}`);
 
               // Prompt to share key back for bidirectional encryption (offline only)
@@ -343,11 +345,8 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
                 text: verifiedLabel,
                 onPress: async () => {
                   if (!status.verified) {
-                    if (network) {
-                      await encryptedDMService.setVerifiedForNetwork(network, nick, true);
-                    } else {
-                      await encryptedDMService.setVerified(nick, true);
-                    }
+                    const storageNetwork = getNetworkForStorage();
+                    await encryptedDMService.setVerifiedForNetwork(storageNetwork, nick, true);
                     setActionMessage(`Key marked verified for ${nick}`);
                   }
                 },
