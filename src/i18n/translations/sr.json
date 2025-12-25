@@ -1786,5 +1786,38 @@
   },
   "Failed to save identity profile": {
     "string": ""
+  },
+  "Select Network": {
+    "string": ""
+  },
+  "Please select a network to migrate keys to": {
+    "string": ""
+  },
+  "Migration Complete": {
+    "string": ""
+  },
+  "No old keys found to migrate": {
+    "string": ""
+  },
+  "Migration Error": {
+    "string": ""
+  },
+  "Failed to migrate keys": {
+    "string": ""
+  },
+  "Authenticate to view passwords": {
+    "string": ""
+  },
+  "Manage Encryption Keys": {
+    "string": ""
+  },
+  "Migrate Old Keys": {
+    "string": ""
+  },
+  "Select the network to migrate your old nick-only encryption keys to:": {
+    "string": ""
+  },
+  "Migrate": {
+    "string": ""
   }
 }

@@ -2,6 +2,7 @@ import TcpSocket, { TLSSocket } from 'react-native-tcp-socket';
 import { encryptedDMService } from './EncryptedDMService';
 import { channelEncryptionService } from './ChannelEncryptionService';
 import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, ProxyConfig } from './SettingsService';
+import { ircForegroundService } from './IRCForegroundService';
 
 // All other service imports are removed to break circular dependencies.
 // The functionality will be restored by using an event-based approach.
@@ -144,7 +145,14 @@ export class IRCService {
   private capLSVersion: number = 300; // Default to 302 (multi-line) support
   private monitoredNicks: Set<string> = new Set();
   private manualDisconnect: boolean = false;
-  
+
+  // Auto-reconnect with exponential backoff
+  private autoReconnectEnabled: boolean = true;
+  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectAttempts: number = 0;
+  private readonly MAX_RECONNECT_DELAY = 300000; // 5 minutes max
+  private readonly INITIAL_RECONNECT_DELAY = 2000; // Start with 2 seconds
+
   // IRCv3 features
   private serverTime: boolean = false;
   private accountNotify: boolean = false;
@@ -350,13 +358,25 @@ export class IRCService {
             }
             if (this.isConnected) {
               this.addRawMessage('*** Connection closed by server', 'connection');
-              this.disconnect();
+              this.isConnected = false;
+              this.registered = false;
+              this.socket = null;
+              this.emitConnection(false);
+
+              // Trigger auto-reconnect with exponential backoff
+              this.scheduleReconnect();
             }
           });
         };
 
         const markConnected = (tls: boolean) => {
           this.isConnected = true;
+          // Reset reconnection counter on successful connection
+          this.reconnectAttempts = 0;
+          if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+          }
           this.emitConnection(true);
           this.addRawMessage(`*** Connected to ${config.host}:${config.port}${tls ? ' (TLS)' : ''}`, 'connection');
           if (tls) {
@@ -3463,9 +3483,16 @@ export class IRCService {
 
   public sendRaw(message: string): void {
     if (this.socket && this.isConnected) {
-      this.socket.write(message + '\r\n');
-      this.addWireMessage('out', message);
-      this.emit('send-raw', message);
+      try {
+        this.socket.write(message + '\r\n');
+        this.addWireMessage('out', message);
+        this.emit('send-raw', message);
+      } catch (error: any) {
+        // Socket may have been closed during write
+        this.logRaw(`IRCService: Unable to send message (socket closed): ${error?.message || error}`);
+        // Mark as disconnected to prevent further write attempts
+        this.isConnected = false;
+      }
     }
   }
 
@@ -3473,7 +3500,12 @@ export class IRCService {
     this.manualDisconnect = true;
     if (this.socket) {
       if (this.isConnected) {
-        this.sendRaw(`QUIT :${message || DEFAULT_QUIT_MESSAGE}`);
+        try {
+          this.sendRaw(`QUIT :${message || DEFAULT_QUIT_MESSAGE}`);
+        } catch (error: any) {
+          // sendRaw already handles errors, but catch here for extra safety
+          this.logRaw(`IRCService: Unable to send QUIT during disconnect: ${error?.message || error}`);
+        }
       }
       try {
         this.socket.destroy();
@@ -3490,6 +3522,85 @@ export class IRCService {
     this.channelUsers.clear();
     this.namesBuffer.clear();
     this.channelUsers.forEach((_, channel) => this.emit('clear-channel', channel));
+  }
+
+  /**
+   * Enable or disable automatic reconnection
+   */
+  setAutoReconnect(enabled: boolean): void {
+    this.autoReconnectEnabled = enabled;
+    if (!enabled && this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+      this.reconnectAttempts = 0;
+    }
+  }
+
+  /**
+   * Get current auto-reconnect status
+   */
+  isAutoReconnectEnabled(): boolean {
+    return this.autoReconnectEnabled;
+  }
+
+  /**
+   * Cancel any pending reconnection attempt
+   */
+  cancelReconnect(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+      this.reconnectAttempts = 0;
+      this.addRawMessage('*** Auto-reconnect cancelled', 'connection');
+    }
+  }
+
+  /**
+   * Schedule reconnection with exponential backoff
+   */
+  private scheduleReconnect(): void {
+    if (!this.autoReconnectEnabled || !this.config) {
+      return;
+    }
+
+    // Cancel any existing timer
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+    }
+
+    // Calculate delay with exponential backoff: delay = initial * 2^attempts
+    // Capped at MAX_RECONNECT_DELAY
+    const delay = Math.min(
+      this.INITIAL_RECONNECT_DELAY * Math.pow(2, this.reconnectAttempts),
+      this.MAX_RECONNECT_DELAY
+    );
+
+    this.reconnectAttempts++;
+    const seconds = Math.round(delay / 1000);
+    this.addRawMessage(
+      `*** Reconnecting in ${seconds} second${seconds !== 1 ? 's' : ''} (attempt ${this.reconnectAttempts})...`,
+      'connection'
+    );
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.addRawMessage('*** Attempting to reconnect...', 'connection');
+
+      // Attempt to reconnect using the saved config
+      this.connect(this.config!)
+        .then(() => {
+          // Reset reconnect counter on successful connection
+          this.reconnectAttempts = 0;
+          this.addRawMessage('*** Reconnected successfully', 'connection');
+        })
+        .catch((error: any) => {
+          this.addRawMessage(
+            `*** Reconnection failed: ${error?.message || error}`,
+            'connection'
+          );
+          // Will trigger another reconnect attempt via the error handler
+        });
+    }, delay);
   }
 
   joinChannel(channel: string, key?: string): void {
@@ -3874,6 +3985,22 @@ export class IRCService {
       return;
     }
     this.connectionListeners.forEach(cb => cb(connected));
+
+    // Start/stop foreground service for background operation (Android only)
+    if (connected) {
+      const networkName = this.getNetworkName();
+      ircForegroundService.start(
+        networkName,
+        'IRC Connected',
+        `Connected to ${networkName || 'IRC server'}`
+      ).catch(err => {
+        this.logRaw(`IRCService: Failed to start foreground service: ${err.message || err}`);
+      });
+    } else {
+      ircForegroundService.stop().catch(err => {
+        this.logRaw(`IRCService: Failed to stop foreground service: ${err.message || err}`);
+      });
+    }
   }
 }
 

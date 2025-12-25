@@ -869,6 +869,169 @@ class EncryptedDMService {
   }
 
   // ====================================================================
+  // Key Backup/Import Methods
+  // ====================================================================
+
+  async exportKeyBackup(password: string): Promise<string> {
+    await this.ensureReady();
+
+    // Get all V2 keys
+    const allSecrets = await secureStorageService.getAllSecretKeys();
+    const keyData: Array<{
+      network: string;
+      nick: string;
+      bundle: string;
+      trust: string;
+    }> = [];
+
+    for (const secretKey of allSecrets) {
+      if (secretKey.startsWith(BUNDLE_PREFIX_V2)) {
+        const parts = secretKey.substring(BUNDLE_PREFIX_V2.length).split(':');
+        if (parts.length >= 2) {
+          const network = parts[0];
+          const nick = parts.slice(1).join(':');
+
+          try {
+            const bundleData = await secureStorageService.getSecret(this.getBundleKeyV2(network, nick));
+            const trustData = await secureStorageService.getSecret(this.getTrustKeyV2(network, nick));
+
+            if (bundleData) {
+              keyData.push({
+                network,
+                nick,
+                bundle: bundleData,
+                trust: trustData || '',
+              });
+            }
+          } catch (e) {
+            console.warn(`Failed to export key for ${network}:${nick}`, e);
+          }
+        }
+      }
+    }
+
+    // Create backup structure
+    const backup = {
+      version: 1,
+      timestamp: Date.now(),
+      keys: keyData,
+    };
+
+    const backupJson = JSON.stringify(backup);
+
+    // Derive key from password using argon2id
+    const salt = sodium.randombytes_buf(sodium.crypto_pwhash_SALTBYTES);
+    const key = sodium.crypto_pwhash(
+      sodium.crypto_secretbox_KEYBYTES,
+      password,
+      salt,
+      sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
+      sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
+      sodium.crypto_pwhash_ALG_ARGON2ID13
+    );
+
+    // Encrypt backup
+    const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
+    const encrypted = sodium.crypto_secretbox_easy(
+      this.fromString(backupJson),
+      nonce,
+      key
+    );
+
+    // Combine salt + nonce + encrypted data
+    const combined = new Uint8Array(salt.length + nonce.length + encrypted.length);
+    combined.set(salt, 0);
+    combined.set(nonce, salt.length);
+    combined.set(encrypted, salt.length + nonce.length);
+
+    // Return as base64
+    return this.toB64(combined);
+  }
+
+  async importKeyBackup(encryptedBackup: string, password: string): Promise<number> {
+    await this.ensureReady();
+
+    try {
+      const combined = this.fromB64(encryptedBackup);
+
+      // Extract salt, nonce, and encrypted data
+      const saltBytes = sodium.crypto_pwhash_SALTBYTES;
+      const nonceBytes = sodium.crypto_secretbox_NONCEBYTES;
+
+      if (combined.length < saltBytes + nonceBytes) {
+        throw new Error('Invalid backup format');
+      }
+
+      const salt = combined.slice(0, saltBytes);
+      const nonce = combined.slice(saltBytes, saltBytes + nonceBytes);
+      const encrypted = combined.slice(saltBytes + nonceBytes);
+
+      // Derive key from password
+      const key = sodium.crypto_pwhash(
+        sodium.crypto_secretbox_KEYBYTES,
+        password,
+        salt,
+        sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
+        sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
+        sodium.crypto_pwhash_ALG_ARGON2ID13
+      );
+
+      // Decrypt backup
+      const decrypted = sodium.crypto_secretbox_open_easy(encrypted, nonce, key);
+      const backupJson = this.toString(decrypted);
+      const backup = JSON.parse(backupJson) as {
+        version: number;
+        timestamp: number;
+        keys: Array<{
+          network: string;
+          nick: string;
+          bundle: string;
+          trust: string;
+        }>;
+      };
+
+      if (backup.version !== 1) {
+        throw new Error('Unsupported backup version');
+      }
+
+      // Import all keys
+      let importedCount = 0;
+      for (const keyEntry of backup.keys) {
+        try {
+          const { network, nick, bundle, trust } = keyEntry;
+
+          // Store bundle
+          await secureStorageService.setSecret(
+            this.getBundleKeyV2(network, nick),
+            bundle
+          );
+
+          // Store trust record if exists
+          if (trust) {
+            await secureStorageService.setSecret(
+              this.getTrustKeyV2(network, nick),
+              trust
+            );
+          }
+
+          importedCount++;
+        } catch (e) {
+          console.warn(`Failed to import key for ${keyEntry.network}:${keyEntry.nick}`, e);
+        }
+      }
+
+      return importedCount;
+    } catch (e) {
+      console.error('Failed to import backup:', e);
+      throw new Error('Failed to decrypt backup. Check your password.');
+    }
+  }
+
+  // ====================================================================
+  // End Key Backup/Import Methods
+  // ====================================================================
+
+  // ====================================================================
   // End Key Management Methods
   // ====================================================================
 }

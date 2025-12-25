@@ -54,7 +54,7 @@ describe('IRCService command helpers', () => {
 
     offline.sendMessage('#chan', 'hello');
 
-    expect(queueSpy).toHaveBeenCalledWith('Not connected', '#chan', 'hello');
+    expect(queueSpy).toHaveBeenCalledWith('', '#chan', 'hello');
 
     const received: IRCMessage[] = [];
     offline.onMessage(msg => received.push(msg));

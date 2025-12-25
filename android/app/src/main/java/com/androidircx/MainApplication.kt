@@ -20,15 +20,18 @@ class MainApplication : Application(), ReactApplication {
   }
 
   override val reactHost: ReactHost by lazy {
-    val packages: List<ReactPackage> = try {
+      val packages: MutableList<ReactPackage> = try {
       // Try to get packages using PackageList with temporary ReactNativeHost
-      PackageList(tempReactNativeHost).getPackages()
+          PackageList(tempReactNativeHost).getPackages().toMutableList()
     } catch (e: Exception) {
       android.util.Log.e("MainApplication", "Failed to get packages from PackageList: ${e.message}", e)
       // Fallback: return empty list - autolinking via Gradle should handle packages
-      emptyList()
+          mutableListOf()
     }
-    
+
+      // Add our custom package for IRC foreground service
+      packages.add(IRCForegroundServicePackage())
+
     getDefaultReactHost(
       context = applicationContext,
       packageList = packages,

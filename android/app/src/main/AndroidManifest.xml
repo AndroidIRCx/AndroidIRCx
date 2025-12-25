@@ -43,5 +43,12 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
+
+      <!-- Foreground service for maintaining IRC connection in background -->
+      <service
+          android:name=".IRCForegroundService"
+          android:enabled="true"
+          android:exported="false"
+          android:foregroundServiceType="connectedDevice" />
   </application>
 </manifest>

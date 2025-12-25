@@ -175,6 +175,8 @@ jest.mock('react-native-libsodium', () => {
     ready: Promise.resolve(),
     to_base64: (bytes: Uint8Array) => Buffer.from(bytes).toString('base64'),
     from_base64: (b64: string) => Uint8Array.from(Buffer.from(b64, 'base64')),
+    to_hex: (bytes: Uint8Array) => Buffer.from(bytes).toString('hex'),
+    from_hex: (hex: string) => Uint8Array.from(Buffer.from(hex, 'hex')),
     crypto_sign_keypair: () => ({
       publicKey: makeBytes(32, 5),
       privateKey: makeBytes(64, 9),
@@ -191,5 +193,176 @@ jest.mock('react-native-libsodium', () => {
     crypto_aead_xchacha20poly1305_ietf_encrypt: (message: Uint8Array) => Uint8Array.from(message),
     crypto_aead_xchacha20poly1305_ietf_decrypt: (_secret: any, cipher: Uint8Array) =>
       Uint8Array.from(cipher),
+    crypto_pwhash_SALTBYTES: 16,
+    crypto_pwhash_OPSLIMIT_INTERACTIVE: 2,
+    crypto_pwhash_MEMLIMIT_INTERACTIVE: 67108864,
+    crypto_pwhash_ALG_ARGON2ID13: 2,
+    crypto_secretbox_KEYBYTES: 32,
+    crypto_secretbox_NONCEBYTES: 24,
+    crypto_pwhash: (keyLen: number) => makeBytes(keyLen, 31),
+    crypto_secretbox_easy: (message: Uint8Array) => Uint8Array.from(message),
+    crypto_secretbox_open_easy: (cipher: Uint8Array) => Uint8Array.from(cipher),
   };
 });
+
+jest.mock('react-native-keychain', () => {
+  const keychainStore = new Map<string, any>();
+  return {
+    setGenericPassword: jest.fn(async (username: string, password: string, options?: any) => {
+      const key = options?.service || 'default';
+      keychainStore.set(key, { username, password });
+      return true;
+    }),
+    getGenericPassword: jest.fn(async (options?: any) => {
+      const key = options?.service || 'default';
+      const data = keychainStore.get(key);
+      if (!data) return false;
+      return {
+        username: data.username,
+        password: data.password,
+        service: key,
+      };
+    }),
+    resetGenericPassword: jest.fn(async (options?: any) => {
+      const key = options?.service || 'default';
+      keychainStore.delete(key);
+      return true;
+    }),
+    setInternetCredentials: jest.fn(async (server: string, username: string, password: string) => {
+      keychainStore.set(`internet:${server}`, { username, password });
+      return true;
+    }),
+    getInternetCredentials: jest.fn(async (server: string) => {
+      const data = keychainStore.get(`internet:${server}`);
+      if (!data) return false;
+      return {
+        username: data.username,
+        password: data.password,
+        server,
+      };
+    }),
+    resetInternetCredentials: jest.fn(async (server: string) => {
+      keychainStore.delete(`internet:${server}`);
+      return true;
+    }),
+    getAllGenericPasswordServices: jest.fn(async () => {
+      const services: string[] = [];
+      keychainStore.forEach((_, key) => {
+        if (!key.startsWith('internet:')) {
+          services.push(key);
+        }
+      });
+      return services;
+    }),
+    getAllInternetPasswordServers: jest.fn(async () => {
+      const servers: string[] = [];
+      keychainStore.forEach((_, key) => {
+        if (key.startsWith('internet:')) {
+          servers.push(key.substring(9));
+        }
+      });
+      return servers;
+    }),
+    SECURITY_LEVEL: {
+      SECURE_SOFTWARE: 'SECURE_SOFTWARE',
+      SECURE_HARDWARE: 'SECURE_HARDWARE',
+    },
+    ACCESS_CONTROL: {},
+    AUTHENTICATION_TYPE: {},
+    BIOMETRY_TYPE: {},
+    __STORE: keychainStore,
+    __reset: () => {
+      keychainStore.clear();
+    },
+  };
+});
+
+jest.mock('react-native-qrcode-svg', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: jest.fn(() => React.createElement('View', null, 'QRCode')),
+  };
+});
+
+jest.mock('react-native-vision-camera', () => ({
+  Camera: jest.fn(() => null),
+  useCameraDevice: jest.fn(() => null),
+  useCameraPermission: jest.fn(() => ({
+    hasPermission: false,
+    requestPermission: jest.fn(),
+  })),
+  useCodeScanner: jest.fn(() => ({})),
+}));
+
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('react-native-nfc-manager', () => ({
+  __esModule: true,
+  default: {
+    start: jest.fn().mockResolvedValue(undefined),
+    registerTagEvent: jest.fn().mockResolvedValue(undefined),
+    unregisterTagEvent: jest.fn().mockResolvedValue(undefined),
+    isSupported: jest.fn().mockResolvedValue(true),
+  },
+  NfcTech: {},
+}));
+
+jest.mock('react-native-localize', () => ({
+  getLocales: jest.fn(() => [
+    { countryCode: 'US', languageTag: 'en-US', languageCode: 'en', isRTL: false },
+  ]),
+  getNumberFormatSettings: jest.fn(() => ({
+    decimalSeparator: '.',
+    groupingSeparator: ',',
+  })),
+  getCalendar: jest.fn(() => 'gregorian'),
+  getCountry: jest.fn(() => 'US'),
+  getCurrencies: jest.fn(() => ['USD']),
+  getTemperatureUnit: jest.fn(() => 'celsius'),
+  getTimeZone: jest.fn(() => 'America/New_York'),
+  uses24HourClock: jest.fn(() => false),
+  usesMetricSystem: jest.fn(() => false),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  findBestLanguageTag: jest.fn(() => ({ languageTag: 'en-US', isRTL: false })),
+}));
+
+jest.mock('react-native-config', () => ({
+  __esModule: true,
+  default: {
+    TRANSIFEX_NATIVE_TOKEN: '',
+    TRANSIFEX_CDS_HOST: 'https://cds.svc.transifex.net',
+  },
+}));
+
+jest.mock('react-native-document-picker', () => ({
+  __esModule: true,
+  default: {
+    pick: jest.fn().mockResolvedValue([]),
+    pickSingle: jest.fn().mockResolvedValue({}),
+    pickMultiple: jest.fn().mockResolvedValue([]),
+    pickDirectory: jest.fn().mockResolvedValue(null),
+    isCancel: jest.fn(() => false),
+  },
+  types: {
+    allFiles: '*/*',
+    images: 'image/*',
+    plainText: 'text/plain',
+    audio: 'audio/*',
+    pdf: 'application/pdf',
+    zip: 'application/zip',
+    csv: 'text/csv',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ppt: 'application/vnd.ms-powerpoint',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  },
+}));

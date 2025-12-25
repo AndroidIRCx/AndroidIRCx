@@ -41,6 +41,11 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
   const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [groupByNetwork, setGroupByNetwork] = useState(true);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [exportPassword, setExportPassword] = useState('');
+  const [importPassword, setImportPassword] = useState('');
+  const [importData, setImportData] = useState('');
 
   // Biometric Authentication
   useEffect(() => {
@@ -267,6 +272,60 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
     }
   };
 
+  const handleExportKeys = async () => {
+    if (!exportPassword || exportPassword.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const backup = await encryptedDMService.exportKeyBackup(exportPassword);
+
+      // Copy to clipboard
+      const { Clipboard } = await import('react-native');
+      await Clipboard.setString(backup);
+
+      setShowExportDialog(false);
+      setExportPassword('');
+      Alert.alert(
+        'Success',
+        `Exported ${keys.length} key(s). The encrypted backup has been copied to your clipboard. Save it to a secure location.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      Alert.alert('Error', `Failed to export keys: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImportKeys = async () => {
+    if (!importPassword || !importData) {
+      Alert.alert('Error', 'Please provide both backup data and password');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const count = await encryptedDMService.importKeyBackup(importData.trim(), importPassword);
+      await loadKeys();
+
+      setShowImportDialog(false);
+      setImportPassword('');
+      setImportData('');
+      Alert.alert(
+        'Success',
+        `Imported ${count} key(s) successfully.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      Alert.alert('Error', `Failed to import keys: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Render key item
   const renderKeyItem = ({ item }: { item: StoredKey }) => (
     <TouchableOpacity style={styles.keyItem} onPress={() => handleKeyPress(item)}>
@@ -367,6 +426,23 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
             {keys.length} key{keys.length !== 1 ? 's' : ''} • {' '}
             {keys.filter(k => k.verified).length} verified
           </Text>
+        </View>
+
+        {/* Action Toolbar */}
+        <View style={styles.toolbar}>
+          <TouchableOpacity
+            onPress={() => setShowExportDialog(true)}
+            style={styles.toolbarButton}
+            disabled={keys.length === 0}>
+            <Text style={[styles.toolbarButtonText, keys.length === 0 && styles.toolbarButtonDisabled]}>
+              Export All Keys
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setShowImportDialog(true)}
+            style={styles.toolbarButton}>
+            <Text style={styles.toolbarButtonText}>Import Keys</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Key List */}
@@ -562,6 +638,111 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
             </TouchableOpacity>
           </Modal>
         )}
+
+        {/* Export Dialog */}
+        <Modal
+          visible={showExportDialog}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowExportDialog(false)}>
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowExportDialog(false)}>
+            <View style={styles.dialogModal}>
+              <Text style={styles.dialogTitle}>Export All Keys</Text>
+              <Text style={styles.dialogSubtitle}>
+                Create an encrypted backup of all {keys.length} encryption key{keys.length !== 1 ? 's' : ''}.
+                {'\n'}Enter a strong password to protect the backup.
+              </Text>
+
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Backup password (min 6 characters)"
+                placeholderTextColor={colors.textSecondary}
+                value={exportPassword}
+                onChangeText={setExportPassword}
+                secureTextEntry
+                autoCapitalize="none"
+              />
+
+              <View style={styles.dialogButtons}>
+                <TouchableOpacity
+                  style={styles.dialogCancelButton}
+                  onPress={() => {
+                    setShowExportDialog(false);
+                    setExportPassword('');
+                  }}>
+                  <Text style={styles.dialogCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.dialogConfirmButton, (!exportPassword || exportPassword.length < 6) && styles.dialogButtonDisabled]}
+                  onPress={handleExportKeys}
+                  disabled={!exportPassword || exportPassword.length < 6}>
+                  <Text style={styles.dialogConfirmText}>Export</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Import Dialog */}
+        <Modal
+          visible={showImportDialog}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowImportDialog(false)}>
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowImportDialog(false)}>
+            <View style={styles.dialogModal}>
+              <Text style={styles.dialogTitle}>Import Keys</Text>
+              <Text style={styles.dialogSubtitle}>
+                Paste the encrypted backup data and enter the password used during export.
+              </Text>
+
+              <TextInput
+                style={styles.multilineInput}
+                placeholder="Paste backup data here..."
+                placeholderTextColor={colors.textSecondary}
+                value={importData}
+                onChangeText={setImportData}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Backup password"
+                placeholderTextColor={colors.textSecondary}
+                value={importPassword}
+                onChangeText={setImportPassword}
+                secureTextEntry
+                autoCapitalize="none"
+              />
+
+              <View style={styles.dialogButtons}>
+                <TouchableOpacity
+                  style={styles.dialogCancelButton}
+                  onPress={() => {
+                    setShowImportDialog(false);
+                    setImportPassword('');
+                    setImportData('');
+                  }}>
+                  <Text style={styles.dialogCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.dialogConfirmButton, (!importPassword || !importData) && styles.dialogButtonDisabled]}
+                  onPress={handleImportKeys}
+                  disabled={!importPassword || !importData}>
+                  <Text style={styles.dialogConfirmText}>Import</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </Modal>
   );
@@ -806,5 +987,72 @@ const createStyles = (colors: any) =>
       color: colors.textSecondary,
       textAlign: 'center',
       fontWeight: '600',
+    },
+    toolbar: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    toolbarButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      backgroundColor: colors.primary,
+      borderRadius: 8,
+      minWidth: 140,
+    },
+    toolbarButtonText: {
+      fontSize: 14,
+      color: '#FFFFFF',
+      textAlign: 'center',
+      fontWeight: '600',
+    },
+    toolbarButtonDisabled: {
+      opacity: 0.5,
+    },
+    passwordInput: {
+      backgroundColor: colors.inputBackground,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 14,
+      color: colors.text,
+      marginBottom: 12,
+    },
+    multilineInput: {
+      backgroundColor: colors.inputBackground,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 14,
+      color: colors.text,
+      marginBottom: 12,
+      minHeight: 100,
+    },
+    dialogButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 12,
+    },
+    dialogConfirmButton: {
+      flex: 1,
+      padding: 14,
+      backgroundColor: colors.primary,
+      borderRadius: 8,
+      marginLeft: 8,
+    },
+    dialogConfirmText: {
+      fontSize: 14,
+      color: '#FFFFFF',
+      textAlign: 'center',
+      fontWeight: '600',
+    },
+    dialogButtonDisabled: {
+      opacity: 0.5,
     },
   });

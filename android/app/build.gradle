@@ -123,8 +123,8 @@ android {
         applicationId = "com.androidircx"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
-        versionCode = 43
-        versionName = "1.4.1"
+        versionCode = 44
+        versionName = "1.4.2"
     }
     signingConfigs {
         debug {
