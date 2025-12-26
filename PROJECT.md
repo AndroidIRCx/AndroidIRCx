@@ -69,8 +69,9 @@ Additional verification / exchange options:
 
 **Tech Stack:**
 
-- React Native 0.82.1
-- TypeScript 5.8.3
+- React Native 0.83.1
+- React 19.2.3
+- TypeScript 5.9.3
 - Native modules for sockets, encryption (libsodium)
 - AsyncStorage for persistence
 - Firebase (Crashlytics, App Check)
@@ -582,6 +583,21 @@ The fix includes multiple layers of defense:
 
 ## Recent Changes
 
+### Unreleased (2025-12-26)
+
+- **Major dependency upgrade:**
+    - Upgraded React Native from 0.82.1 to 0.83.1
+    - Upgraded React from 19.1.1 to 19.2.3
+    - Upgraded TypeScript from 5.8.3 to 5.9.3
+    - Upgraded ESLint from 8.19.0 to 9.39.2
+    - Upgraded all other dependencies to latest versions
+- **Android 15 compatibility fixes:**
+    - Fixed edge-to-edge API deprecation: Updated React Native patch to skip deprecated
+      `Window.setStatusBarColor()` and `Window.setNavigationBarColor()` on Android 15+ (API 35+)
+    - Fixed foreground service crash on Android 15: Changed service type from `connectedDevice` to
+      `dataSync` and updated permission from `FOREGROUND_SERVICE_CONNECTIVITY` to
+      `FOREGROUND_SERVICE_DATA_SYNC` (fixes SecurityException crash when connecting to IRC server)
+
 ### Unreleased (2025-12-23)
 
 - Docs: translate markdown to English, add patch usage notes, and clarify AI onboarding
@@ -754,7 +770,7 @@ This project uses `patch-package` to keep small vendor fixes in version control.
 
 ### Current patched packages
 
-- `react-native` (0.82.1)
+- `react-native` (0.83.1) - Android 15 edge-to-edge API compatibility fix
 - `react-native-libsodium` (1.5.0)
 - `react-native-document-picker` (9.3.1)
 

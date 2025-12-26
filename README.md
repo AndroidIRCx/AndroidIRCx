@@ -10,9 +10,9 @@ Modern IRC client for Android and iOS built with React Native, inspired by the c
 ## 📸 Screenshots
 
 <p align="center">
-  <a href="https://cloud.dbase.in.rs/apps/files_sharing/publicpreview/D2dRyRHi5RRyb8S?file=/&fileId=1001141&x=1920&y=1080&a=true&etag=2e41b96e920c532604c12aa7b4c2918d"
+  <a href="https://cloud.dbase.in.rs/core/preview?fileId=1001705&x=1920&y=1080&a=true&etag=6dc8973fe555cd64a830cebb4bbda42e"
      target="_blank" rel="noopener noreferrer">
-    <img src="https://cloud.dbase.in.rs/apps/files_sharing/publicpreview/D2dRyRHi5RRyb8S?file=/&fileId=1001141&x=1920&y=1080&a=true&etag=2e41b96e920c532604c12aa7b4c2918d"
+    <img src="https://cloud.dbase.in.rs/core/preview?fileId=1001705&x=1920&y=1080&a=true&etag=6dc8973fe555cd64a830cebb4bbda42e"
          alt="AndroidIRCX screenshot 1"
       />
   </a>
@@ -42,7 +42,7 @@ https://androidircx.com/app-release.apk
 ## 📱 About
 
 AndroidIRCX is a cross-platform IRC (Internet Relay Chat) client that brings the classic IRC
-experience to mobile devices. Built with React Native 0.82, it supports multiple networks, secure
+experience to mobile devices. Built with React Native 0.83, it supports multiple networks, secure
 connections (SSL/TLS), end-to-end encryption for DMs and channels, and modern IRC features while
 maintaining full compatibility with IRCv3 standards.
 
@@ -134,8 +134,8 @@ maintaining full compatibility with IRCv3 standards.
 
 ## 🛠️ Technology Stack
 
-- **Framework**: React Native 0.82.1
-- **Language**: TypeScript 5.8.3
+- **Framework**: React Native 0.83.1
+- **Language**: TypeScript 5.9.3
 - **Networking**: react-native-tcp-socket 6.3.0
 - **Storage**: @react-native-async-storage/async-storage 2.2.0
 - **UI**: React Native components with custom styling
