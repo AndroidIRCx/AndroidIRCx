@@ -19,7 +19,7 @@ class PerformanceService {
     messageLoadChunk: 50,
     enableLazyLoading: true,
     messageLimit: 1000,
-    enableMessageCleanup: true,
+    enableMessageCleanup: false,
     cleanupThreshold: 1500,
     renderOptimization: true,
     imageLazyLoad: true,

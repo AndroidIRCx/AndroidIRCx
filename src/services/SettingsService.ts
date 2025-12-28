@@ -90,6 +90,7 @@ class SettingsService {
       servers: [defaultServer],
       defaultServerId: defaultServer.id,
       identityProfileId,
+      autoJoinChannels: ['#AndroidIRCX', '#DBase'],
     };
   }
 
@@ -444,6 +445,25 @@ class SettingsService {
       });
     }
     return hydrated;
+  }
+
+  // First run setup tracking
+  async isFirstRun(): Promise<boolean> {
+    try {
+      const value = await AsyncStorage.getItem('FIRST_RUN_COMPLETED');
+      return value !== 'true';
+    } catch (error) {
+      console.error('Error checking first run status:', error);
+      return true; // Assume first run on error
+    }
+  }
+
+  async setFirstRunCompleted(completed: boolean): Promise<void> {
+    try {
+      await AsyncStorage.setItem('FIRST_RUN_COMPLETED', completed ? 'true' : 'false');
+    } catch (error) {
+      console.error('Error setting first run status:', error);
+    }
   }
 }
 

@@ -28,17 +28,15 @@ alt="AndroidIRCX screenshot 2"
 </a>
 </p>
 
-### 📲 Download & Testing
+### 📲 Download
 
-**🧪 Join Testing Program**
+**🎉 AndroidIRCX is now publicly available!**
 
-- Google Play Testing:  
-  https://play.google.com/apps/testing/com.androidircx
-- Google Group (required for testing access):  
-  https://groups.google.com/g/androidircx/
+- **Google Play Store:**
+  https://play.google.com/store/apps/details?id=com.androidircx
 
-**🌐 Download APK (Official Website)**  
-https://androidircx.com/app-release.apk
+- **Direct APK Download (Official Website):**
+  https://androidircx.com/app-release.apk
 
 ## 📱 About
 

@@ -70,6 +70,7 @@ import { adRewardService } from './src/services/AdRewardService';
 import { NetworksListScreen } from './src/screens/NetworksListScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { IgnoreListScreen } from './src/screens/IgnoreListScreen';
+import { FirstRunSetupScreen } from './src/screens/FirstRunSetupScreen';
 import { WHOISDisplay } from './src/components/WHOISDisplay';
 import { encryptedDMService } from './src/services/EncryptedDMService';
 import { channelEncryptionService } from './src/services/ChannelEncryptionService';
@@ -228,6 +229,8 @@ function AppContent() {
   const [isConnected, setIsConnected] = useState(false);
   const [networkName, setNetworkName] = useState('default');
   const [selectedNetworkName, setSelectedNetworkName] = useState<string | null>(null);
+  const [showFirstRunSetup, setShowFirstRunSetup] = useState(false);
+  const [isCheckingFirstRun, setIsCheckingFirstRun] = useState(true);
   const [ping, setPing] = useState<number | undefined>(undefined);
   const [tabs, setTabs] = useState<ChannelTab[]>([]);
   const tabsRef = useRef(tabs);
@@ -924,8 +927,27 @@ function AppContent() {
     };
   }, []);
 
-  // Load default network name and initial tabs on mount
+  // Check for first run and show setup if needed
   useEffect(() => {
+    const checkFirstRun = async () => {
+      try {
+        const isFirstRun = await settingsService.isFirstRun();
+        setShowFirstRunSetup(isFirstRun);
+        setIsCheckingFirstRun(false);
+      } catch (error) {
+        console.error('Error checking first run:', error);
+        setIsCheckingFirstRun(false);
+      }
+    };
+    checkFirstRun();
+  }, []);
+
+  // Load default network name and initial tabs on mount (skip if first run)
+  useEffect(() => {
+    if (isCheckingFirstRun || showFirstRunSetup) {
+      return; // Don't load data if we're showing first run setup
+    }
+
     const loadInitialData = async () => {
       let initialNetworkName = 'default';
       try {
@@ -985,7 +1007,7 @@ function AppContent() {
       }
     };
     loadInitialData().finally(() => setInitialDataLoaded(true));
-  }, []);
+  }, [isCheckingFirstRun, showFirstRunSetup]);
 
   // Clean up invalid tabs from state
   useEffect(() => {
@@ -2003,6 +2025,20 @@ safeSetState(() => {
       }
     }
   }, []);
+
+  const handleFirstRunSetupComplete = useCallback(async (networkConfig: IRCNetworkConfig) => {
+    console.log('First run setup completed, connecting to:', networkConfig.name);
+    setShowFirstRunSetup(false);
+
+    // Reload networks (the setup saved it already)
+    const networks = await settingsService.loadNetworks();
+    const savedNetwork = networks.find(n => n.name === networkConfig.name);
+
+    if (savedNetwork) {
+      // Connect to the network
+      handleConnect(savedNetwork);
+    }
+  }, [handleConnect]);
 
   useEffect(() => {
     if (!autoConnectFavoriteServer) {
@@ -3188,6 +3224,26 @@ safeSetState(() => {
         tabType={activeTab?.type}
         tabName={activeTab?.name}
       />
+
+      {/* First Run Setup Modal */}
+      {showFirstRunSetup && (
+        <Modal
+          visible={showFirstRunSetup}
+          animationType="slide"
+          onRequestClose={() => {
+            // Allow dismissing after completion
+            setShowFirstRunSetup(false);
+          }}>
+          <FirstRunSetupScreen
+            onComplete={handleFirstRunSetupComplete}
+            onSkip={() => {
+              // User chose "Connect Later" - just close the modal
+              setShowFirstRunSetup(false);
+            }}
+          />
+        </Modal>
+      )}
+
       {showOptionsMenu && (
         <Modal
           visible={showOptionsMenu}

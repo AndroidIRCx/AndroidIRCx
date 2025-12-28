@@ -46,6 +46,7 @@ import { ScriptingScreen } from './ScriptingScreen';
 import { ScriptingHelpScreen } from './ScriptingHelpScreen';
 import { BackupScreen } from './BackupScreen';
 import { KeyManagementScreen } from './KeyManagementScreen';
+import { FirstRunSetupScreen } from './FirstRunSetupScreen';
 import { userManagementService, UserNote, UserAlias } from '../services/UserManagementService';
 import { RawMessageCategory, RAW_MESSAGE_CATEGORIES, getDefaultRawCategoryVisibility } from '../services/IRCService';
 import { applyTransifexLocale, useT } from '../i18n/transifex';
@@ -167,7 +168,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [globalProxyPassword, setGlobalProxyPassword] = useState('');
   const [globalProxyEnabled, setGlobalProxyEnabled] = useState(false);
   const [autoConnectFavoriteServer, setAutoConnectFavoriteServer] = useState(false);
-  const [tabSortAlphabetical, setTabSortAlphabetical] = useState(false);
+  const [showFirstRunSetup, setShowFirstRunSetup] = useState(false);
+  const [tabSortAlphabetical, setTabSortAlphabetical] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [autoJoinFavoritesEnabled, setAutoJoinFavoritesEnabled] = useState(true);
   const [showEncryptionIndicatorsSetting, setShowEncryptionIndicatorsSetting] = useState(showEncryptionIndicators);
@@ -245,8 +247,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [hideJoinMessages, setHideJoinMessages] = useState(false);
   const [hidePartMessages, setHidePartMessages] = useState(false);
   const [hideQuitMessages, setHideQuitMessages] = useState(false);
-  const [hideIrcServiceListenerMessages, setHideIrcServiceListenerMessages] = useState(false);
-  const [closePrivateMessage, setClosePrivateMessage] = useState(true);
+  const [hideIrcServiceListenerMessages, setHideIrcServiceListenerMessages] = useState(true);
+  const [closePrivateMessage, setClosePrivateMessage] = useState(false);
   const [closePrivateMessageText, setClosePrivateMessageText] = useState('Closing window');
   const [ircServices, setIrcServices] = useState<string[]>([]);
   const [newIrcService, setNewIrcService] = useState('');
@@ -393,10 +395,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setHidePartMessages(await settingsService.getSetting('hidePartMessages', false));
     setHideQuitMessages(await settingsService.getSetting('hideQuitMessages', false));
     setHideIrcServiceListenerMessages(
-      await settingsService.getSetting('hideIrcServiceListenerMessages', false)
+      await settingsService.getSetting('hideIrcServiceListenerMessages', true)
     );
     setShowEncryptionIndicatorsSetting(await settingsService.getSetting('showEncryptionIndicators', true));
-    setTabSortAlphabetical(await settingsService.getSetting('tabSortAlphabetical', false));
+    setTabSortAlphabetical(await settingsService.getSetting('tabSortAlphabetical', true));
     setAppLanguage(await settingsService.getSetting('appLanguage', 'system'));
     setAutoConnectFavoriteServer(await settingsService.getSetting('autoConnectFavoriteServer', false));
     const globalProxy = await settingsService.getSetting('globalProxy', { enabled: false } as any);
@@ -1701,6 +1703,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     {
       title: t('Connection & Network', { _tags: tags }),
       data: [
+        {
+          id: 'setup-wizard',
+          title: t('Setup Wizard', { _tags: tags }),
+          description: t('Quick setup for identity and network connection', { _tags: tags }),
+          type: 'button' as const,
+          onPress: () => {
+            setShowFirstRunSetup(true);
+          },
+        },
         {
           id: 'connection-auto-connect-favorite',
           title: t('Auto-Connect to Favorite Server', { _tags: tags }),
@@ -4020,6 +4031,23 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </View>
         </View>
       </Modal>
+
+      {/* First Run Setup Modal */}
+      {showFirstRunSetup && (
+        <Modal
+          visible={showFirstRunSetup}
+          animationType="slide"
+          onRequestClose={() => setShowFirstRunSetup(false)}>
+          <FirstRunSetupScreen
+            onComplete={async (networkConfig) => {
+              console.log('First run setup completed from settings');
+              setShowFirstRunSetup(false);
+              onClose(); // Close settings screen
+            }}
+            onSkip={() => setShowFirstRunSetup(false)}
+          />
+        </Modal>
+      )}
     </Modal>
   );
 };
