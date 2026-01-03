@@ -38,6 +38,10 @@ interface HeaderBarProps {
 
   onEncryptionPress?: () => void;
 
+  showKillSwitchButton?: boolean;
+
+  onKillSwitchPress?: () => void;
+
 }
 
 
@@ -69,6 +73,10 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   showEncryptionButton = false,
 
   onEncryptionPress,
+
+  showKillSwitchButton = false,
+
+  onKillSwitchPress,
 
 }) => {
   const t = useT();
@@ -123,6 +131,15 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
       </View>
 
       <View style={styles.rightSection}>
+
+        {showKillSwitchButton && onKillSwitchPress && (
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={onKillSwitchPress}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={styles.icon}>💀</Text>
+          </TouchableOpacity>
+        )}
 
         {showEncryptionButton && onEncryptionPress && (
           <TouchableOpacity

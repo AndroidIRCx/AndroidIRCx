@@ -70,11 +70,19 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
         const updatedNetworks = await settingsService.loadNetworks();
         networkToUse = updatedNetworks[0];
       } else {
-        // Always prefer "DBase" network as default, then first network with servers
-        networkToUse = networks.find(n => n.name === 'DBase' && n.servers && n.servers.length > 0) ||
-          networks.find(n => n.name === 'DBase') ||
-          networks.find(n => n.servers && n.servers.length > 0) ||
-          networks[0];
+        // Check if user configured a quick connect network
+        const quickConnectNetworkId = await settingsService.getSetting<string | null>('quickConnectNetworkId', null);
+        if (quickConnectNetworkId) {
+          networkToUse = networks.find(n => n.id === quickConnectNetworkId);
+        }
+        
+        // Fallback: prefer "DBase" network as default, then first network with servers
+        if (!networkToUse) {
+          networkToUse = networks.find(n => n.name === 'DBase' && n.servers && n.servers.length > 0) ||
+            networks.find(n => n.name === 'DBase') ||
+            networks.find(n => n.servers && n.servers.length > 0) ||
+            networks[0];
+        }
       }
     }
 

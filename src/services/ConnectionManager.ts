@@ -261,6 +261,16 @@ class ConnectionManager {
       this.disconnect(networkId, message);
     });
   }
+
+  /**
+   * Clear all connections and reset state (for kill switch)
+   */
+  public clearAll(): void {
+    console.log('ConnectionManager: Clearing all connections');
+    this.disconnectAll('Kill switch activated');
+    this.connections.clear();
+    this.activeConnectionId = null;
+  }
 }
 
 export const connectionManager = new ConnectionManager();

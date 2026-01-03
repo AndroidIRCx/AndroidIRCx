@@ -6,7 +6,7 @@ interface JoinChannelModalProps {
   onClose: () => void;
   channelName: string;
   onChangeChannelName: (name: string) => void;
-  onJoin: () => void;
+  onJoin: (channel: string) => void;
   onCancel: () => void;
   styles: any;
 }
@@ -36,7 +36,12 @@ export const JoinChannelModal: React.FC<JoinChannelModalProps> = ({
             onChangeText={onChangeChannelName}
             autoCapitalize="none"
             autoCorrect={false}
-            onSubmitEditing={onJoin}
+            onSubmitEditing={() => {
+              const trimmed = channelName.trim();
+              if (trimmed) {
+                onJoin(trimmed);
+              }
+            }}
           />
           <View style={styles.modalButtons}>
             <TouchableOpacity
@@ -46,7 +51,13 @@ export const JoinChannelModal: React.FC<JoinChannelModalProps> = ({
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalButton, styles.modalButtonJoin]}
-              onPress={onJoin}>
+              onPress={() => {
+                const trimmed = channelName.trim();
+                if (trimmed) {
+                  onJoin(trimmed);
+                }
+              }}
+              disabled={!channelName.trim()}>
               <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Join</Text>
             </TouchableOpacity>
           </View>

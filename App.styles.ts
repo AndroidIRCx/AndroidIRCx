@@ -103,6 +103,21 @@ export const createStyles = (colors: any) => StyleSheet.create({
     color: colors.buttonPrimaryText,
     fontWeight: '600',
   },
+  killSwitchButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    borderWidth: 2,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  killSwitchText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
   optionsMenu: {
     backgroundColor: colors.modalBackground,
     borderRadius: 8,

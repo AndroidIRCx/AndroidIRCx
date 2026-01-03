@@ -37,6 +37,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [favorite, setFavorite] = useState(false);
+  const [isDefaultServer, setIsDefaultServer] = useState(false);
 
   useEffect(() => {
     if (serverId && networkId) {
@@ -64,6 +65,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
         setRejectUnauthorized(server.rejectUnauthorized !== false);
         setPassword(server.password || '');
         setFavorite(Boolean(server.favorite));
+        setIsDefaultServer(network.defaultServerId === serverId);
       } else {
         setError(t('Server not found'));
       }
@@ -75,7 +77,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!hostname.trim()) {
       Alert.alert(t('Error'), t('Please enter a hostname'));
       return;
@@ -98,6 +100,11 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
       favorite,
       rejectUnauthorized: rejectUnauthorized !== false,
     };
+
+    // Update default server if needed
+    if (isDefaultServer) {
+      await settingsService.setDefaultServerForNetwork(networkId, server.id);
+    }
 
     onSave(server);
   };
@@ -240,6 +247,21 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
             </View>
             <Text style={styles.hint}>
               {t('Mark this server as the preferred choice for this network.')}
+            </Text>
+          </View>
+
+          <View style={styles.switchGroup}>
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>{t('Default Server')}</Text>
+              <Switch
+                value={isDefaultServer}
+                onValueChange={setIsDefaultServer}
+                trackColor={{ false: '#E0E0E0', true: '#81C784' }}
+                thumbColor={isDefaultServer ? '#4CAF50' : '#F5F5F5'}
+              />
+            </View>
+            <Text style={styles.hint}>
+              {t('Set as default server for "Tap to connect" header. This server will be used when tapping the network name in the header.')}
             </Text>
           </View>
         </View>

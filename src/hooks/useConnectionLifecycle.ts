@@ -387,6 +387,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
           latest.safeSetState(() => latest.setChannelUsers(new Map()));
           if (currentConnectionId) {
             userActivityService.clearNetwork(currentConnectionId);
+            scriptingService.handleDisconnect(currentConnectionId, 'Disconnected');
           }
         }
       });

@@ -58,6 +58,8 @@ interface AppLayoutProps {
   handleLockButtonPress: () => void;
   handleUserPress: (nick: string) => void;
   handleWHOISPress: (nick: string) => void;
+  showKillSwitchButton?: boolean;
+  onKillSwitchPress?: () => void;
 }
 
 export function AppLayout({
@@ -97,6 +99,8 @@ export function AppLayout({
   handleLockButtonPress,
   handleUserPress,
   handleWHOISPress,
+  showKillSwitchButton = false,
+  onKillSwitchPress,
 }: AppLayoutProps) {
   const renderUserList = (position: 'left' | 'right' | 'top' | 'bottom') => {
     if (!activeTab || activeTab.type !== 'channel' || !showUserList) {
@@ -130,6 +134,8 @@ export function AppLayout({
         onLockPress={handleLockButtonPress}
         showEncryptionButton={activeTab?.type === 'query'}
         onEncryptionPress={() => useUIStore.getState().setShowQueryEncryptionMenu(true)}
+        showKillSwitchButton={showKillSwitchButton}
+        onKillSwitchPress={onKillSwitchPress}
       />
       {layoutConfig.tabPosition === 'top' && (
         <ChannelTabs

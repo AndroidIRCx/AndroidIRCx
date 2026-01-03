@@ -3,6 +3,7 @@ import { encryptedDMService } from './EncryptedDMService';
 import { channelEncryptionService } from './ChannelEncryptionService';
 import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, ProxyConfig } from './SettingsService';
 import { ircForegroundService } from './IRCForegroundService';
+import { userManagementService } from './UserManagementService';
 import { tx } from '../i18n/transifex';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
@@ -934,6 +935,16 @@ export class IRCService {
           return;
         }
         
+        // Check if user is ignored (after CTCP handling, before regular message processing)
+        const network = this.getNetworkName();
+        const prefixParts = prefix.split('!');
+        const username = prefixParts[1]?.split('@')[0];
+        const hostname = prefixParts[1]?.split('@')[1];
+        if (userManagementService.isUserIgnored(fromNick, username, hostname, network)) {
+          // User is ignored, skip this message
+          return;
+        }
+        
         const channelIdentifier = isChannel ? target : fromNick;
 
         // Handle old protocol for backward compatibility
@@ -1135,6 +1146,17 @@ export class IRCService {
         const noticeTarget = params[0] || '';
         const noticeFrom = this.extractNick(prefix);
         const noticeText = params[1] || '';
+        
+        // Check if user is ignored (for user notices, not server notices)
+        const noticeNetwork = this.getNetworkName();
+        const noticePrefixParts = prefix.split('!');
+        const noticeUsername = noticePrefixParts[1]?.split('@')[0];
+        const noticeHostname = noticePrefixParts[1]?.split('@')[1];
+        // Only ignore user notices, not server notices (server notices don't have ! in prefix)
+        if (prefix.includes('!') && userManagementService.isUserIgnored(noticeFrom, noticeUsername, noticeHostname, noticeNetwork)) {
+          // User is ignored, skip this notice
+          return;
+        }
         
         const noticeCTCP = this.parseCTCP(noticeText);
         let displayText = noticeText;

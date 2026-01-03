@@ -13,6 +13,9 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { AdsConsentStatus } from 'react-native-google-mobile-ads';
 import { consentService } from '../services/ConsentService';
+import { adRewardService } from '../services/AdRewardService';
+import { inAppPurchaseService } from '../services/InAppPurchaseService';
+import { settingsService } from '../services/SettingsService';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 
@@ -39,13 +42,81 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
     canRequestAds: true,
     privacyOptionsRequired: false,
   });
+  const [showingAd, setShowingAd] = useState(false);
+  const [adReady, setAdReady] = useState(false);
+  const [adLoading, setAdLoading] = useState(false);
+  const [adCooldown, setAdCooldown] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [adUnitType, setAdUnitType] = useState<string>('Primary');
+  const [hasNoAds, setHasNoAds] = useState(false);
+  const [hasScriptingPro, setHasScriptingPro] = useState(false);
+  const [isSupporter, setIsSupporter] = useState(false);
+  const [showWatchAdButton, setShowWatchAdButton] = useState(true);
+  const [watchAdButtonEnabledForPremium, setWatchAdButtonEnabledForPremium] = useState(false);
 
-  // Load consent info on mount
+  // Load consent info and ad status on mount
   useEffect(() => {
     if (visible) {
       loadConsentInfo();
+      loadAdStatus();
+      loadPremiumStatus();
     }
   }, [visible]);
+
+  // Load watch ad settings when premium status changes
+  useEffect(() => {
+    if (!visible) return;
+    
+    const loadSettings = async () => {
+      const enabled = await settingsService.getSetting('watchAdButtonEnabledForPremium', false);
+      setWatchAdButtonEnabledForPremium(enabled);
+      
+      // Show button if: normal user OR (premium user AND enabled in settings)
+      const isPremium = hasNoAds || hasScriptingPro || isSupporter;
+      setShowWatchAdButton(!isPremium || enabled);
+    };
+    
+    loadSettings();
+    
+    // Listen for setting changes
+    const unsubscribe = settingsService.onSettingChange('watchAdButtonEnabledForPremium', (value) => {
+      setWatchAdButtonEnabledForPremium(Boolean(value));
+      const isPremiumNow = hasNoAds || hasScriptingPro || isSupporter;
+      setShowWatchAdButton(!isPremiumNow || Boolean(value));
+    });
+    
+    return unsubscribe;
+  }, [visible, hasNoAds, hasScriptingPro, isSupporter]);
+
+  // Update ad status periodically
+  useEffect(() => {
+    if (!visible) return;
+
+    const interval = setInterval(() => {
+      loadAdStatus();
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [visible]);
+
+  const loadAdStatus = () => {
+    const adStatus = adRewardService.getAdStatus();
+    setAdReady(adStatus.ready);
+    setAdLoading(adStatus.loading);
+    setAdCooldown(adStatus.cooldown);
+    setCooldownSeconds(adStatus.cooldownSeconds);
+    setAdUnitType(adStatus.adUnitType);
+  };
+
+  const loadPremiumStatus = () => {
+    const noAds = inAppPurchaseService.hasNoAds();
+    const scriptingPro = inAppPurchaseService.hasUnlimitedScripting();
+    const supporter = inAppPurchaseService.isSupporter();
+    setHasNoAds(noAds);
+    setHasScriptingPro(scriptingPro);
+    setIsSupporter(supporter);
+  };
+
 
   // Listen to consent status changes
   useEffect(() => {
@@ -175,6 +246,44 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
     });
   };
 
+  const handleWatchAd = async () => {
+    console.log('👆 Watch Ad button clicked');
+    console.log('Current state:', { adReady, adLoading, adCooldown, showingAd });
+
+    if (showingAd) return;
+
+    // If ad is ready, show it
+    if (adReady) {
+      console.log('✅ Ad is ready, showing ad...');
+      setShowingAd(true);
+      try {
+        const success = await adRewardService.showRewardedAd();
+        console.log('Show ad result:', success);
+        if (success) {
+          // Ad will call the reward callback automatically
+          Alert.alert(t('Thank You!'), t('You earned scripting time!'));
+        } else {
+          Alert.alert(t('Ad Failed'), t('Could not show the ad. Please try again.'));
+        }
+      } catch (error) {
+        console.error('Error showing ad:', error);
+        Alert.alert(t('Error'), error instanceof Error ? error.message : t('Failed to show ad'));
+      } finally {
+        setShowingAd(false);
+      }
+      return;
+    }
+
+    // If ad is not ready, try to load it
+    console.log('🔄 Ad not ready, attempting manual load...');
+    const result = await adRewardService.manualLoadAd();
+    console.log('Manual load result:', result);
+    Alert.alert(
+      result.success ? t('Loading Ad') : t('Cannot Load Ad'),
+      t(result.messageKey, result.messageParams as Record<string, any>)
+    );
+  };
+
   const getStatusColor = (status: AdsConsentStatus): string => {
     switch (status) {
       case AdsConsentStatus.OBTAINED:
@@ -295,6 +404,57 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
               </Text>
             </View>
           </View>
+
+          {/* Watch Ad Section - Show for normal users or premium users if enabled */}
+          {showWatchAdButton && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('Support & Rewards')}</Text>
+              
+              {(hasNoAds || hasScriptingPro || isSupporter) && (
+                <View style={styles.infoCard}>
+                  <Text style={styles.infoText}>
+                    {t('You have a premium plan. Watching ads helps support the project development.')}
+                  </Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={[styles.watchAdButton, showingAd && styles.watchAdButtonDisabled]}
+                onPress={handleWatchAd}
+                disabled={showingAd}
+              >
+                {showingAd ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <View style={styles.watchAdButtonContent}>
+                    <Icon name="play-circle" size={24} color="#fff" solid style={{ marginRight: 8 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.watchAdButtonText}>
+                        {adReady
+                          ? t('Watch Ad (+60 min Scripting & No-Ads)')
+                          : adCooldown
+                            ? t('Cooldown ({cooldownSeconds}s)').replace('{cooldownSeconds}', cooldownSeconds.toString())
+                            : adLoading
+                              ? t('Loading Ad...')
+                              : t('Request Ad')}
+                      </Text>
+                      {(hasNoAds || hasScriptingPro || isSupporter) && (
+                        <Text style={styles.watchAdButtonDescription}>
+                          {t('Support the project')}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {adUnitType === 'Fallback' && (
+                <Text style={styles.infoText}>
+                  {t('Using fallback ad unit')}
+                </Text>
+              )}
+            </View>
+          )}
 
           {/* Actions Section */}
           <View style={styles.section}>
@@ -524,5 +684,44 @@ const createStyles = (colors: any) =>
     buttonDescriptionSecondary: {
       color: colors.textSecondary,
       fontSize: 12,
+    },
+    watchAdButton: {
+      backgroundColor: '#4CAF50',
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 12,
+      alignItems: 'center',
+    },
+    watchAdButtonDisabled: {
+      backgroundColor: colors.border,
+      opacity: 0.6,
+    },
+    watchAdButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+    },
+    watchAdButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 4,
+    },
+    watchAdButtonDescription: {
+      color: 'rgba(255, 255, 255, 0.8)',
+      fontSize: 12,
+    },
+    infoCard: {
+      backgroundColor: colors.cardBackground || colors.surface,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 12,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.primary,
+    },
+    infoText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      lineHeight: 18,
     },
   });

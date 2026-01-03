@@ -57,6 +57,8 @@ interface AppModalsProps {
   safeAlert: (title: string, message?: string) => void;
   attemptBiometricUnlock: () => void;
   handleAppPinUnlock: (pin: string) => void;
+  onKillSwitchFromUnlock: () => void;
+  killSwitchEnabledOnLockScreen: boolean;
   styles: any;
   colors: any;
 }
@@ -85,6 +87,8 @@ export function AppModals({
   safeAlert,
   attemptBiometricUnlock,
   handleAppPinUnlock,
+  onKillSwitchFromUnlock,
+  killSwitchEnabledOnLockScreen,
   styles,
   colors,
 }: AppModalsProps) {
@@ -193,7 +197,11 @@ export function AppModals({
         onClose={() => useUIStore.getState().setShowChannelModal(false)}
         channelName={channelName}
         onChangeChannelName={setChannelName}
-        onJoin={handleJoinChannel}
+        onJoin={(channel) => {
+          handleJoinChannel(channel);
+          useUIStore.getState().setChannelName('');
+          useUIStore.getState().setShowChannelModal(false);
+        }}
         onCancel={() => {
           useUIStore.getState().setShowChannelModal(false);
           useUIStore.getState().setChannelName('');
@@ -357,6 +365,7 @@ export function AppModals({
         onClearPinError={() => setAppPinError('')}
         onBiometricUnlock={attemptBiometricUnlock}
         onPinUnlock={handleAppPinUnlock}
+        onKillSwitch={killSwitchEnabledOnLockScreen ? onKillSwitchFromUnlock : undefined}
         colors={colors}
         styles={styles}
       />

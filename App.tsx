@@ -97,6 +97,7 @@ import { useAutoConnectFavorite } from './src/hooks/useAutoConnectFavorite';
 import { useUserListActions } from './src/hooks/useUserListActions';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
 import { useLazyMessageHistory } from './src/hooks/useLazyMessageHistory';
+import { killSwitchService } from './src/services/KillSwitchService';
 import {
   serverTabId,
   channelTabId,
@@ -240,6 +241,89 @@ function AppContent() {
 
   // App lock management (PIN, biometric auth, auto-lock)
   const { attemptBiometricUnlock, handleAppPinUnlock } = useAppLock();
+  
+  // Kill switch and quick connect settings
+  const [killSwitchEnabledOnHeader, setKillSwitchEnabledOnHeader] = useState(false);
+  const [killSwitchEnabledOnLockScreen, setKillSwitchEnabledOnLockScreen] = useState(false);
+  
+  useEffect(() => {
+    const loadKillSwitchSettings = async () => {
+      const headerEnabled = await settingsService.getSetting('killSwitchEnabledOnHeader', false);
+      const lockScreenEnabled = await settingsService.getSetting('killSwitchEnabledOnLockScreen', false);
+      setKillSwitchEnabledOnHeader(headerEnabled);
+      setKillSwitchEnabledOnLockScreen(lockScreenEnabled);
+    };
+    loadKillSwitchSettings();
+    
+    const unsubscribe = settingsService.onSettingChange('killSwitchEnabledOnHeader', (value) => {
+      setKillSwitchEnabledOnHeader(Boolean(value));
+    });
+    const unsubscribe2 = settingsService.onSettingChange('killSwitchEnabledOnLockScreen', (value) => {
+      setKillSwitchEnabledOnLockScreen(Boolean(value));
+    });
+    
+    return () => {
+      unsubscribe();
+      unsubscribe2();
+    };
+  }, []);
+  
+  // Kill switch handler for header - checks if warnings enabled, then activates
+  const handleKillSwitchFromHeader = useCallback(async () => {
+    const showWarnings = await settingsService.getSetting('killSwitchShowWarnings', true);
+    await killSwitchService.confirmAndActivate(showWarnings);
+  }, []);
+  
+  // Kill switch handler for unlock screen - verifies PIN/biometric then triggers kill switch (no warnings)
+  const handleKillSwitchFromUnlock = useCallback(async () => {
+    const store = useUIStore.getState();
+    
+    // Verify authentication first
+    let verified = false;
+    
+    // If biometric is enabled, try biometric first
+    if (store.appLockUseBiometric) {
+      const bioResult = await attemptBiometricUnlock();
+      if (bioResult) {
+        verified = true;
+      }
+    }
+    
+    // If not verified yet and PIN is enabled, verify PIN
+    if (!verified && store.appLockUsePin) {
+      const storedPin = await secureStorageService.getSecret('@AndroidIRCX:app-lock-pin');
+      if (store.appPinEntry.trim() === storedPin) {
+        verified = true;
+        // Clear PIN entry after verification
+        store.setAppPinEntry('');
+        store.setAppPinError('');
+      } else {
+        // Wrong PIN
+        store.setAppPinError('Incorrect PIN. Kill switch requires valid authentication.');
+        return;
+      }
+    }
+    
+    if (!verified) {
+      safeAlert(t('Error'), t('Kill switch requires PIN or biometric authentication.'));
+      return;
+    }
+    
+    // Authentication verified, trigger kill switch directly (no warnings on lock screen)
+    const result = await killSwitchService.activateKillSwitch();
+    
+    // Close unlock modal
+    store.setAppUnlockModalVisible(false);
+    store.setAppLocked(false);
+    
+    // Show minimal result if there were errors
+    if (!result.success) {
+      Alert.alert(
+        t('Kill Switch Error'),
+        t('Some errors occurred:\n{errors}').replace('{errors}', result.errors.join('\n'))
+      );
+    }
+  }, [attemptBiometricUnlock, safeAlert, t]);
 
   // Banner ad lifecycle management (scripting time, ad-free time, show/hide cycle)
   useBannerAds();
@@ -600,6 +684,8 @@ function AppContent() {
         handleLockButtonPress={handleLockButtonPress}
         handleUserPress={handleUserPress}
         handleWHOISPress={handleWHOISPress}
+        showKillSwitchButton={killSwitchEnabledOnHeader}
+        onKillSwitchPress={handleKillSwitchFromHeader}
       />
       <AppModals
         activeTab={activeTab}
@@ -625,6 +711,8 @@ function AppContent() {
         safeAlert={safeAlert}
         attemptBiometricUnlock={attemptBiometricUnlock}
         handleAppPinUnlock={handleAppPinUnlock}
+        onKillSwitchFromUnlock={handleKillSwitchFromUnlock}
+        killSwitchEnabledOnLockScreen={killSwitchEnabledOnLockScreen}
         styles={styles}
         colors={colors}
       />

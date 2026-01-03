@@ -327,8 +327,24 @@ class SettingsService {
     const network = networks.find(n => n.id === networkId);
     if (network) {
       network.servers = network.servers.filter(s => s.id !== serverId);
+      // Clear defaultServerId if the deleted server was the default
+      if (network.defaultServerId === serverId) {
+        network.defaultServerId = network.servers[0]?.id || undefined;
+      }
       await this.persistServerSecret(networkId, { id: serverId } as any, true);
       await this.saveNetworks(networks);
+    }
+  }
+
+  async setDefaultServerForNetwork(networkId: string, serverId: string): Promise<void> {
+    const networks = await this.loadNetworks();
+    const network = networks.find(n => n.id === networkId);
+    if (network) {
+      const server = network.servers.find(s => s.id === serverId);
+      if (server) {
+        network.defaultServerId = serverId;
+        await this.saveNetworks(networks);
+      }
     }
   }
 

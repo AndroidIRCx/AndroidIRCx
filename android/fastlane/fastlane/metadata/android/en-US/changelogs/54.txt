@@ -1,0 +1,9 @@
+v1.5.3
+• Improved Settings screen organization and performance
+• Fixed user notes and aliases menus not opening
+• Fixed ignore list not filtering messages properly
+• Enhanced kill switch to close all channels/privates and exit app
+• Fixed theme and language switching issues
+• Fixed raw message categories submenu
+• Added missing icons to settings categories
+• Various bug fixes and stability improvements

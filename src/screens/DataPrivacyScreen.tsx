@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { dataPrivacyService } from '../services/DataPrivacyService';
+import { killSwitchService } from '../services/KillSwitchService';
 
 interface DataPrivacyScreenProps {
   visible: boolean;
@@ -361,6 +362,29 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
                 </>
               )}
             </TouchableOpacity>
+
+            {/* Kill Switch Button */}
+            <TouchableOpacity
+              style={[styles.actionButton, styles.actionButtonKillSwitch]}
+              onPress={() => killSwitchService.confirmAndActivate()}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Icon name="skull" size={28} color="#fff" solid style={styles.actionButtonIcon} />
+                  <View style={styles.actionButtonTextContainer}>
+                    <Text style={styles.actionButtonText}>
+                      {t('🚨 KILL SWITCH 🚨')}
+                    </Text>
+                    <Text style={styles.actionButtonDescription}>
+                      {t('EMERGENCY: Delete EVERYTHING including certs, logs, secure storage. Keyboard shortcut: Ctrl+Shift+K')}
+                    </Text>
+                  </View>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
 
           {/* Info Section */}
@@ -531,6 +555,11 @@ const createStyles = (colors: any) =>
       backgroundColor: 'transparent',
       borderWidth: 2,
       borderColor: colors.error || '#f44336',
+    },
+    actionButtonKillSwitch: {
+      backgroundColor: '#8B0000',
+      borderWidth: 2,
+      borderColor: '#FF0000',
     },
     actionButtonIcon: {
       marginRight: 16,
