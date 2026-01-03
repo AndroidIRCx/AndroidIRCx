@@ -1,7 +1,7 @@
 # Android IRC Client - Project Documentation
 
-**Last Updated:** 2026-01-03
-**Version:** 1.5.1 (User List Improvements)
+**Last Updated:** 2026-01-XX
+**Version:** 1.5.2 (Bug Fixes & Improvements)
 **Status:** Active Development - Refactoring Complete
 
 ---
@@ -1000,6 +1000,60 @@ that can be done later if needed.
 ---
 
 ## Recent Changes
+
+### v1.5.2 (2026-01-XX) - Bug Fixes & Improvements
+
+**Bug Fixes:**
+
+- ✅ **Fixed ads showing for premium users** - Users with no-ads/pro/supporter purchases no longer
+  see banner ads
+- ✅ **Fixed scripting time toggle for unlimited users** - Users with Pro/Supporter can now enable
+  scripting time (no-ads mode) without issues
+- ✅ **Fixed biometric unlock** - Improved error handling and retry mechanism for biometric
+  authentication
+- ✅ **Improved app lock** - Better error messages and retry functionality for both PIN and biometric
+  unlock
+- ✅ **Fixed notification permissions** - Android runtime permission handling for notifications (
+  POST_NOTIFICATIONS)
+- ✅ **Fixed server tab message clearing** - Server tab history now loads synchronously on connect,
+  preventing race conditions
+- ✅ **Fixed message history limits** - Message trimming now respects user-defined limits from
+  PerformanceService instead of hardcoded values
+- ✅ **Fixed default settings inconsistency** - Fixed `tabSortAlphabetical` default value
+  inconsistency between `useUISettings` and `SettingsScreen`
+
+**Improvements:**
+
+- ✅ **Enhanced ad display logic** - Banner ads now properly respect premium status and scripting
+  time
+- ✅ **Better error handling** - Improved error messages for biometric and PIN unlock failures
+- ✅ **Retry mechanism** - Users can now retry biometric unlock after failures
+- ✅ **Notification permission management** - Automatic permission checks and requests when enabling
+  notifications
+- ✅ **Message history loading** - Synchronous loading of server tab history prevents message loss on
+  connect
+- ✅ **Configurable message limits** - Message cleanup now uses PerformanceService configuration
+  instead of hardcoded limits
+
+**Technical Changes:**
+
+- Updated `useBannerAds` hook to check premium status before showing ads
+- Enhanced `AdRewardService` to support unlimited scripting users (sets dummy interval for
+  isTracking())
+- Improved `BiometricAuthService` error handling with better error messages
+- Updated `AppUnlockModal` to show errors for both PIN and biometric unlock
+- Fixed `useAppLock` hook to properly handle biometric availability checks
+- Added `NotificationService.checkPermission()` and `requestPermission()` methods for Android
+  runtime permissions
+- Modified `NotificationService.initialize()` to disable in-app notifications if system permission
+  is not granted
+- Updated `SettingsScreen` to check and request notification permissions when enabling notifications
+- Fixed `useConnectionHandler` to synchronously load server tab history before setting tabs
+- Fixed `useNetworkInitialization` to synchronously load server tab history on app startup
+- Updated `useTabManager` message batcher to use `performanceService.getConfig().messageLimit`
+  instead of hardcoded `slice(-200)`
+- Fixed `useUISettings` default value for `tabSortAlphabetical` from `false` to `true` to match
+  SettingsScreen
 
 ### v1.5.1 (2026-01-03) - User List Improvements
 

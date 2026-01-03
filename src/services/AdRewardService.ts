@@ -515,9 +515,15 @@ class AdRewardService {
   startUsageTracking() {
     if (this.usageInterval) return; // Already tracking
 
-    // If user has unlimited scripting, don't track usage
+    // If user has unlimited scripting, set a marker interval so isTracking() returns true
+    // but don't actually track usage (no countdown)
     if (inAppPurchaseService.hasUnlimitedScripting()) {
-      logger.info('ad-reward', 'User has unlimited scripting, skipping usage tracking');
+      logger.info('ad-reward', 'User has unlimited scripting, enabling no-ads mode without tracking');
+      // Set a dummy interval so isTracking() returns true
+      this.usageInterval = setInterval(() => {
+        // No-op: just keep the interval alive for isTracking() to return true
+      }, 1000);
+      this.notifyListeners();
       return;
     }
 

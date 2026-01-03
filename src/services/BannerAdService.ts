@@ -159,11 +159,12 @@ class BannerAdService {
   }
 
   /**
-   * Check if the banner should be showing based ONLY on scripting time tracking status
+   * Check if the banner should be showing based on premium status and scripting time tracking status
    * @param isScriptingTimeTracking - Whether scripting time is actively counting down (ON/tracking)
+   * @returns true if ads should be shown, false otherwise
    */
   shouldShowAds(isScriptingTimeTracking: boolean): boolean {
-    // Never show ads if user has purchased ad removal
+    // Never show ads if user has purchased ad removal (no ads, pro, supporter)
     if (inAppPurchaseService.hasNoAds()) {
       return false;
     }

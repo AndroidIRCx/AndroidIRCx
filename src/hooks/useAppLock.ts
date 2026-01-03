@@ -68,22 +68,58 @@ export function useAppLock() {
    */
   const attemptBiometricUnlock = useCallback(async () => {
     const store = useUIStore.getState();
-    if (!store.appLockUseBiometric) return false;
-
-    const result = await biometricAuthService.authenticate(
-      'Unlock AndroidIRCX',
-      'Authenticate to unlock the app',
-      'app'
-    );
-
-    if (result.success && isMountedRef.current) {
-      store.setAppLocked(false);
-      store.setAppUnlockModalVisible(false);
-      store.setAppPinEntry('');
-      store.setAppPinError('');
+    if (!store.appLockUseBiometric) {
+      // If biometric is not enabled, show PIN modal instead
+      store.setAppUnlockModalVisible(true);
+      return false;
     }
 
-    return result.success;
+    // Check if biometric is available
+    if (!biometricAuthService.isAvailable()) {
+      if (isMountedRef.current) {
+        store.setAppPinError('Biometric authentication is not available on this device.');
+      }
+      return false;
+    }
+
+    try {
+      const result = await biometricAuthService.authenticate(
+        'Unlock AndroidIRCX',
+        'Authenticate to unlock the app',
+        'app'
+      );
+
+      if (result.success && isMountedRef.current) {
+        store.setAppLocked(false);
+        store.setAppUnlockModalVisible(false);
+        store.setAppPinEntry('');
+        store.setAppPinError('');
+        return true;
+      } else {
+        // Authentication failed or was cancelled
+        // Don't hide the modal - allow user to retry
+        if (isMountedRef.current) {
+          // Show user-friendly error message
+          if (result.errorMessage) {
+            store.setAppPinError(result.errorMessage);
+          } else if (result.errorKey === 'Authentication cancelled or credentials not found') {
+            // User cancelled - don't show error, just allow retry
+            store.setAppPinError('');
+          } else {
+            store.setAppPinError('Biometric authentication failed. Please try again.');
+          }
+        }
+        return false;
+      }
+    } catch (error) {
+      // Handle unexpected errors
+      console.error('[useAppLock] Biometric unlock error:', error);
+      if (isMountedRef.current) {
+        const errorMsg = error instanceof Error ? error.message : 'Biometric authentication failed';
+        store.setAppPinError(errorMsg + ' Please try again.');
+      }
+      return false;
+    }
   }, []);
 
   /**
@@ -180,11 +216,20 @@ export function useAppLock() {
     return () => subscription.remove();
   }, [appLockEnabled, appLockOnBackground, appLockOnLaunch]);
 
-  // Effect: Auto-trigger biometric unlock when locked
+  // Effect: Auto-trigger biometric unlock when locked (only once when app becomes locked)
   useEffect(() => {
     if (!appLocked) return;
-    if (appLockUseBiometric) {
-      attemptBiometricUnlock();
+    if (!appLockUseBiometric) return;
+    
+    // Only auto-trigger if modal is visible (user hasn't manually interacted yet)
+    const store = useUIStore.getState();
+    if (store.appUnlockModalVisible) {
+      // Small delay to ensure modal is rendered before triggering biometric prompt
+      const timeoutId = setTimeout(() => {
+        attemptBiometricUnlock();
+      }, 300);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [appLocked, appLockUseBiometric, attemptBiometricUnlock]);
 

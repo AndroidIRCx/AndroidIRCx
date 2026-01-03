@@ -1,5 +1,6 @@
-v1.5.1 User List:
-- Grouped users by privilege (Owner, Admin, Operator, Half-Op, Voice)
-- Collapsible groups with clickable headers
-- Mode descriptions in channel settings
-- Improved user list organization
+v1.5.2 Bug Fixes:
+- Fixed ads for premium users
+- Fixed scripting toggle for unlimited
+- Fixed biometric unlock retry
+- Fixed notification permission check
+- Better app lock errors

@@ -46,6 +46,34 @@ class NotificationService {
   };
 
   /**
+   * Check if notification permission is granted
+   */
+  async checkPermission(): Promise<boolean> {
+    try {
+      const settings = await notifee.getNotificationSettings();
+      return settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
+    } catch (error) {
+      console.error('NotificationService: Error checking permission:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Request notification permission
+   */
+  async requestPermission(): Promise<boolean> {
+    try {
+      const settings = await notifee.requestPermission();
+      const granted = settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
+      console.log('NotificationService: Permission request result:', granted ? 'granted' : 'denied');
+      return granted;
+    } catch (error) {
+      console.error('NotificationService: Error requesting permission:', error);
+      return false;
+    }
+  }
+
+  /**
    * Initialize notification service
    */
   async initialize(): Promise<void> {
@@ -77,6 +105,18 @@ class NotificationService {
         importance: AndroidImportance.DEFAULT,
       });
       console.log('NotificationService: Default Android channel created:', channelId);
+
+      // If notifications are enabled, check permission
+      // If permission is not granted, automatically disable notifications
+      // This prevents silent failures where notifications are enabled but permission is denied
+      if (this.preferences.enabled) {
+        const hasPermission = await this.checkPermission();
+        if (!hasPermission) {
+          console.warn('NotificationService: Notifications enabled but permission not granted. Disabling notifications.');
+          this.preferences.enabled = false;
+          await this.savePreferences();
+        }
+      }
 
       console.log('NotificationService: Initialized with Notifee');
     } catch (error) {
@@ -222,6 +262,13 @@ class NotificationService {
     channel: string,
     network?: string
   ): Promise<void> {
+    // Check if permission is granted before showing notification
+    const hasPermission = await this.checkPermission();
+    if (!hasPermission) {
+      console.warn('NotificationService: Notification permission not granted, skipping notification');
+      return;
+    }
+
     const notificationId = `irc_notification_${++this.notificationIdCounter}_${Date.now()}`;
 
     try {

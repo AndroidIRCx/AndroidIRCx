@@ -359,6 +359,29 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     return unsubscribe;
   }, []);
 
+  // Check notification permission when settings screen opens
+  useEffect(() => {
+    if (!visible) return;
+
+    const checkNotificationPermission = async () => {
+      const currentPrefs = notificationService.getPreferences();
+      if (currentPrefs.enabled) {
+        const hasPermission = await notificationService.checkPermission();
+        if (!hasPermission) {
+          // Permission was denied - disable notifications and show alert
+          await notificationService.updatePreferences({ enabled: false });
+          setNotificationPrefs({ ...currentPrefs, enabled: false });
+          Alert.alert(
+            t('Permission Required', { _tags: tags }),
+            t('Notification permission is required to receive notifications. Please enable it in system settings.', { _tags: tags })
+          );
+        }
+      }
+    };
+    
+    checkNotificationPermission();
+  }, [visible, tags, t]);
+
   useEffect(() => {
     const updateSupporterStatus = () => {
       setIsSupporter(inAppPurchaseService.isSupporter());
@@ -542,6 +565,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   const handleNotificationChange = async (key: keyof typeof notificationPrefs, value: boolean) => {
+    // If enabling notifications, check and request permission first
+    if (key === 'enabled' && value) {
+      const hasPermission = await notificationService.checkPermission();
+      if (!hasPermission) {
+        const granted = await notificationService.requestPermission();
+        if (!granted) {
+          Alert.alert(
+            t('Permission Required', { _tags: tags }),
+            t('Notification permission is required to receive notifications. Please enable it in system settings.', { _tags: tags })
+          );
+          return; // Don't enable notifications if permission denied
+        }
+      }
+    }
+
     const updated = { ...notificationPrefs, [key]: value };
     await notificationService.updatePreferences(updated);
     setNotificationPrefs(updated);

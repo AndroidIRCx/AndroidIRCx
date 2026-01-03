@@ -36,6 +36,14 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
     }
   };
 
+  const handleBiometricPress = () => {
+    // Clear any previous errors when attempting biometric unlock
+    if (pinError) {
+      onClearPinError();
+    }
+    onBiometricUnlock();
+  };
+
   return (
     <Modal
       visible={visible}
@@ -46,27 +54,26 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>App Locked</Text>
           {usePin && (
-            <>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Enter PIN"
-                value={pinEntry}
-                onChangeText={handlePinChange}
-                keyboardType="numeric"
-                secureTextEntry
-              />
-              {!!pinError && (
-                <Text style={[styles.optionText, { color: colors.error }]}>
-                  {pinError}
-                </Text>
-              )}
-            </>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter PIN"
+              value={pinEntry}
+              onChangeText={handlePinChange}
+              keyboardType="numeric"
+              secureTextEntry
+            />
+          )}
+          {/* Show error message for both PIN and biometric errors */}
+          {!!pinError && (
+            <Text style={[styles.optionText, { color: colors.error, marginTop: 8, marginBottom: 8 }]}>
+              {pinError}
+            </Text>
           )}
           <View style={styles.modalButtons}>
             {useBiometric && (
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonJoin]}
-                onPress={onBiometricUnlock}>
+                onPress={handleBiometricPress}>
                 <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
                   Use Biometrics
                 </Text>

@@ -11,22 +11,37 @@ import { useEffect, useState } from 'react';
 import { useUIStore } from '../stores/uiStore';
 import { adRewardService } from '../services/AdRewardService';
 import { bannerAdService } from '../services/BannerAdService';
+import { inAppPurchaseService } from '../services/InAppPurchaseService';
 
 export function useBannerAds() {
   const scriptingTimeMs = useUIStore(state => state.scriptingTimeMs);
   const [isScriptingTracking, setIsScriptingTracking] = useState(false);
+  const [hasNoAds, setHasNoAds] = useState(false);
 
   // Effect: Poll for scripting time tracking status changes
   useEffect(() => {
     // Check immediately
     setIsScriptingTracking(adRewardService.isTracking());
+    setHasNoAds(inAppPurchaseService.hasNoAds());
 
     // Poll every second to detect tracking status changes
     const interval = setInterval(() => {
       setIsScriptingTracking(adRewardService.isTracking());
+      setHasNoAds(inAppPurchaseService.hasNoAds());
     }, 1000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Effect: Listen to purchase changes
+  useEffect(() => {
+    const unsubscribePurchases = inAppPurchaseService.addListener(() => {
+      setHasNoAds(inAppPurchaseService.hasNoAds());
+    });
+
+    return () => {
+      unsubscribePurchases();
+    };
   }, []);
 
   // Effect: Initialize and listen to ad service changes
@@ -52,9 +67,16 @@ export function useBannerAds() {
     };
   }, []);
 
-  // Effect: Control banner ad visibility based ONLY on scripting time tracking status
+  // Effect: Control banner ad visibility based on premium status and scripting time tracking status
   useEffect(() => {
-    // Banner ads ALWAYS show when scripting time is NOT actively tracking
+    // Never show ads if user has purchased ad removal (no ads, pro, supporter)
+    if (hasNoAds) {
+      bannerAdService.stopShowHideCycle();
+      bannerAdService.setBannerVisible(false);
+      return;
+    }
+
+    // Banner ads show when scripting time is NOT actively tracking (OFF)
     // Banner ads hide when scripting time IS actively tracking (ON)
     if (isScriptingTracking) {
       // Scripting time is ON (tracking) - hide banner ads
@@ -65,5 +87,5 @@ export function useBannerAds() {
       bannerAdService.stopShowHideCycle(); // Stop any cycling
       bannerAdService.setBannerVisible(true); // Show always
     }
-  }, [isScriptingTracking]); // Depend ONLY on tracking status
+  }, [isScriptingTracking, hasNoAds]); // Depend on tracking status AND premium status
 }

@@ -108,11 +108,13 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
   const toggleScriptingTimeActive = useCallback((value: boolean) => {
     if (value) {
       // Start scripting time tracking (also enables no-ads mode)
+      // For users with unlimited scripting, this will just enable the mode without tracking
       adRewardService.startUsageTracking();
     } else {
       // Stop scripting time tracking (also disables no-ads mode)
       adRewardService.stopUsageTracking();
     }
+    // Update state immediately for better UX
     setScriptingTimeActive(value);
   }, []);
 
@@ -358,6 +360,11 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
               onValueChange={toggleScriptingTimeActive}
               disabled={!hasTime && !hasUnlimitedScripting}
             />
+            {hasUnlimitedScripting && (
+              <Text style={[styles.subtitle, { fontSize: 11, marginTop: 4, fontStyle: 'italic' }]}>
+                {t('Unlimited scripting: Toggle enables/disables no-ads mode')}
+              </Text>
+            )}
           </View>
           {adUnitType === 'Fallback' && (
             <Text style={[styles.subtitle, { marginBottom: 8, fontStyle: 'italic' }]}>

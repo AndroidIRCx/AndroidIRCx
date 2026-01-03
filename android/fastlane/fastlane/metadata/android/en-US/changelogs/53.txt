@@ -1,0 +1,7 @@
+v1.5.2 Bug Fixes & Improvements:
+- Fixed ads showing for premium users (no-ads/pro/supporter purchases)
+- Fixed scripting time toggle for unlimited users (Pro/Supporter tiers)
+- Fixed biometric unlock with improved error handling and retry mechanism
+- Improved app lock: Better error messages for both PIN and biometric unlock
+- Enhanced ad display logic to properly respect premium status
+- Users can now retry biometric unlock after failures

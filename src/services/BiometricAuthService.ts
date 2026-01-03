@@ -91,7 +91,11 @@ class BiometricAuthService {
       console.log('[BiometricAuthService] getGenericPassword result:', result);
 
       if (result === false) {
-        return { success: false, errorKey: 'Authentication cancelled or credentials not found' };
+        return { 
+          success: false, 
+          errorKey: 'Authentication cancelled or credentials not found',
+          errorMessage: 'Biometric authentication was cancelled or failed. Please try again.'
+        };
       }
 
       return { success: Boolean(result) };

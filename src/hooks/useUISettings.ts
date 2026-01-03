@@ -87,7 +87,7 @@ export function useUISettings({
         await settingsService.getSetting('autoSwitchPrivate', false)
       );
       setTabSortAlphabetical(
-        await settingsService.getSetting('tabSortAlphabetical', false)
+        await settingsService.getSetting('tabSortAlphabetical', true)
       );
       setShowEncryptionIndicators(
         await settingsService.getSetting('showEncryptionIndicators', true)

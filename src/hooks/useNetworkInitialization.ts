@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { settingsService } from '../services/SettingsService';
 import { tabService } from '../services/TabService';
 import { messageHistoryService } from '../services/MessageHistoryService';
+import { IRCMessage } from '../services/IRCService';
 import { useTabStore } from '../stores/tabStore';
 import { serverTabId, makeServerTab } from '../utils/tabUtils';
 
@@ -82,29 +83,32 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
           }));
         const ensuredServer = tabsNormalized.some(t => t.type === 'server') ? tabsNormalized : [makeServerTab(initialNetworkName), ...tabsNormalized];
 
-        // Progressive loading: Set tabs without history first (fast startup)
-        // Message history will be lazy-loaded when tabs are switched to
-        const tabsWithoutHistory = ensuredServer.map(tab => ({
-          ...tab,
-          messages: [], // Start with empty messages - will be loaded on demand
-        }));
-
-        setTabs(tabsWithoutHistory);
-        
-        // Load history only for the initial active tab (server tab) in background
-        // This provides immediate content while keeping startup fast
+        // Load history for server tab BEFORE creating tabs
+        // This ensures history is loaded before new messages arrive, preventing history from being cleared
         const initialServerId = serverTabId(initialNetworkName);
-        const initialTab = tabsWithoutHistory.find(t => t.id === initialServerId);
-        if (initialTab) {
-          // Load history for initial tab asynchronously (non-blocking)
-          messageHistoryService.loadMessages(initialTab.networkId, 'server')
-            .then(history => {
-              setTabs(prev => prev.map(t =>
-                t.id === initialServerId ? { ...t, messages: history } : t
-              ));
-            })
-            .catch(err => console.error('Error loading initial tab history:', err));
+        let serverTabHistory: IRCMessage[] = [];
+        const serverTab = ensuredServer.find(t => t.id === initialServerId);
+        if (serverTab) {
+          try {
+            serverTabHistory = await messageHistoryService.loadMessages(initialNetworkName, 'server');
+          } catch (err) {
+            console.error('Error loading server tab history on startup:', err);
+            // Continue without history if loading fails
+          }
         }
+        
+        // Progressive loading: Set tabs with server tab history loaded, others without history
+        // Message history for other tabs will be lazy-loaded when tabs are switched to
+        const tabsWithHistory = ensuredServer.map(tab => {
+          if (tab.id === initialServerId) {
+            // Server tab gets loaded history
+            return { ...tab, messages: serverTabHistory };
+          }
+          // Other tabs start with empty messages - will be loaded on demand
+          return { ...tab, messages: [] };
+        });
+
+        setTabs(tabsWithHistory);
         setActiveTabId(initialServerId);
 
       } catch (error) {

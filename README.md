@@ -171,7 +171,9 @@ maintaining full compatibility with IRCv3 standards.
   - DCC file transfers
   - Notifications
   - Firebase Crashlytics integration
-  - Google Mobile Ads
+  - Google Mobile Ads (with premium ad removal options)
+  - In-App Purchases: Remove Ads, Pro Unlimited, Supporter Pro tiers
+  - Scripting system with time-based access (watch ads for time or purchase unlimited)
 
 ## 🛠️ Technology Stack
 
@@ -339,6 +341,9 @@ List, **NOT** through the Hamburger Menu (☰).
 
 - **TLS/SSL**: Full support for encrypted connections
 - **App Lock**: Biometric/PIN lock with a quick lock action
+    - Biometric unlock with improved error handling and retry mechanism
+    - PIN unlock with error messages and retry support
+    - Auto-lock on background/launch options
 - **SASL**: Complete SASL PLAIN authentication support with proper CAP integration
 - **Certificate Validation**: Configurable certificate checking
 - **Password Storage**: Secure storage for secrets with biometric/PIN support (fallback to
@@ -398,7 +403,7 @@ This client implements the IRC protocol according to:
 - [PROJECT](PROJECT.md) - Project explained
 ## 🔄 Development Status
 
-**Current Version**: 1.4.4 (Dignity)
+**Current Version**: 1.5.2
 
 ---
 

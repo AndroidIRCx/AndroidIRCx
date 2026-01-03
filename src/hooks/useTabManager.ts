@@ -10,6 +10,7 @@ import { useTabStore } from '../stores/tabStore';
 import { ChannelTab } from '../types';
 import { IRCMessage } from '../services/IRCService';
 import { messageBatcher } from '../utils/MessageBatcher';
+import { performanceService } from '../services/PerformanceService';
 
 export function useTabManager() {
   // IMPORTANT: Only subscribe to state values, not actions
@@ -292,12 +293,17 @@ export function useTabManager() {
         if (tab) {
           const newMessages = [...(tab.messages || []), ...messages];
 
-          // Limit message history (keep last 200)
-          const trimmedMessages = newMessages.slice(-200);
+          // Use performance config for message limit instead of hardcoded 200
+          // This respects user settings for message history
+          const perfConfig = performanceService.getConfig();
+          const messagesFinal =
+            perfConfig.enableMessageCleanup && newMessages.length > perfConfig.cleanupThreshold
+              ? newMessages.slice(-perfConfig.messageLimit)
+              : newMessages;
 
           tabUpdates.push({
             tabId,
-            updates: { messages: trimmedMessages },
+            updates: { messages: messagesFinal },
           });
 
           // Mark activity if not active tab
