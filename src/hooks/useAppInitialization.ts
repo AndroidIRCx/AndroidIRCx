@@ -24,10 +24,27 @@ declare const ErrorUtils: {
 export function useAppInitialization() {
   useEffect(() => {
     // Initialize Firebase App Check using modular API
+    // 
+    // Play Integrity Requirements (for production):
+    // 1. App must be uploaded/published to Google Play Console
+    // 2. SHA-256 certificate fingerprint must be registered in Google Play Console
+    //    (Go to: Play Console > Your App > Setup > App Integrity > App signing)
+    // 3. Play Integrity API must be enabled in Google Play Console
+    //    (Go to: Play Console > Your App > Setup > App Integrity)
+    // 4. App must be signed with the correct signing key
+    // 5. Package name must match: com.androidircx
+    //
+    // Debug mode uses debug provider (no Play Integrity required)
     const initAppCheck = async () => {
       try {
+        console.log('🔐 Initializing Firebase App Check...');
+        const app = getApp();
+        console.log('✅ Firebase app instance obtained');
+        
         const rnfbProvider = new ReactNativeFirebaseAppCheckProvider();
-        rnfbProvider.configure({
+        console.log('✅ ReactNativeFirebaseAppCheckProvider created');
+        
+        const providerConfig = {
           android: {
             provider: __DEV__ ? 'debug' : 'playIntegrity',
           },
@@ -38,13 +55,31 @@ export function useAppInitialization() {
             provider: 'reCaptchaV3',
             siteKey: 'none',
           },
-        });
-        await initializeAppCheck(getApp(), {
+        };
+        
+        console.log('🔧 Configuring App Check provider:', JSON.stringify(providerConfig, null, 2));
+        rnfbProvider.configure(providerConfig);
+        console.log('✅ Provider configured');
+        
+        console.log('🚀 Initializing App Check...');
+        await initializeAppCheck(app, {
           provider: rnfbProvider,
           isTokenAutoRefreshEnabled: true,
         });
-      } catch (error) {
-        console.warn('App Check initialization failed:', error);
+        console.log('✅ App Check initialized successfully');
+      } catch (error: any) {
+        console.error('❌ App Check initialization failed:', error);
+        console.error('Error details:', {
+          message: error?.message,
+          code: error?.code,
+          stack: error?.stack,
+        });
+        // Don't throw - App Check is not critical for app functionality
+        // Play Integrity might fail if:
+        // 1. App not published/uploaded to Google Play Console
+        // 2. SHA-256 certificate fingerprint not registered
+        // 3. Play Integrity API not enabled in Google Play Console
+        // 4. App not signed with the correct key
       }
     };
     initAppCheck();

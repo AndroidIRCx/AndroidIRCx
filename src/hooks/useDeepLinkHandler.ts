@@ -3,7 +3,7 @@ import { Alert, Linking } from 'react-native';
 import { parseIRCUrl, findMatchingNetwork, createTempNetworkFromUrl, getUrlDisplayName } from '../utils/ircUrlParser';
 import { connectionManager } from '../services/ConnectionManager';
 import { identityProfilesService } from '../services/IdentityProfilesService';
-import { IRCNetworkConfig } from '../services/SettingsService';
+import { IRCNetworkConfig, settingsService } from '../services/SettingsService';
 import { logger } from '../services/Logger';
 import type { ChannelTab } from '../types';
 
@@ -47,6 +47,8 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
   // Queue for URLs received while app is locked or during first run
   const pendingUrlRef = useRef<string | null>(null);
   const isProcessingRef = useRef(false);
+  const lastProcessedUrlRef = useRef<string | null>(null);
+  const lastProcessedTimeRef = useRef<number>(0);
 
   /**
    * Process a deep link URL
@@ -107,18 +109,44 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
 
     try {
       // Check if we're already connected to this server
-      // We check by matching the network ID against the server hostname
+      // We check by matching the actual server hostname:port, not just networkId
       const allConnections = connectionManager.getAllConnections();
       let existingConnection: { networkId: string; ircService: any } | null = null;
 
-      // Look for existing connection matching the server
+      // First, try to match by networkId (for cases where networkId is the server hostname)
       for (const context of allConnections) {
-        // Network IDs are typically the server hostname or network name
-        // Check if the networkId matches the server (case-insensitive)
         const normalizedNetworkId = context.networkId.toLowerCase().replace(/\s*\(\d+\)$/, ''); // Remove (2), (3) suffixes
         if (normalizedNetworkId === parsed.server.toLowerCase()) {
-          existingConnection = { networkId: context.networkId, ircService: context.ircService };
-          break;
+          const isConnected = context.ircService.getConnectionStatus();
+          if (isConnected) {
+            existingConnection = { networkId: context.networkId, ircService: context.ircService };
+            break;
+          }
+        }
+      }
+
+      // If not found, check by matching against saved networks' servers
+      // This handles cases where networkId is a network name (like "DBase") but we're connecting to irc.dbase.in.rs
+      if (!existingConnection) {
+        const networks = await settingsService.loadNetworks();
+        const parsedServerLower = parsed.server.toLowerCase();
+        
+        for (const context of allConnections) {
+          const isConnected = context.ircService.getConnectionStatus();
+          if (!isConnected) continue;
+
+          // Find the network config for this connection
+          const network = networks.find(n => n.name === context.networkId || n.id === context.networkId);
+          if (network && network.servers) {
+            // Check if any server in this network matches the parsed URL
+            for (const srv of network.servers) {
+              if (srv.hostname.toLowerCase() === parsedServerLower && srv.port === parsed.port) {
+                existingConnection = { networkId: context.networkId, ircService: context.ircService };
+                break;
+              }
+            }
+          }
+          if (existingConnection) break;
         }
       }
 
@@ -184,6 +212,29 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
       const serverToUse = networkToUse.servers.find(
         s => s.hostname.toLowerCase() === parsed.server.toLowerCase() && s.port === parsed.port
       ) || networkToUse.servers[0];
+
+      // Double-check if we're already connected to this server:port before connecting
+      // This prevents race conditions where a connection was established between the initial check and now
+      const allConnectionsNow = connectionManager.getAllConnections();
+      const networksForCheck = await settingsService.loadNetworks();
+      for (const context of allConnectionsNow) {
+        const isConnected = context.ircService.getConnectionStatus();
+        if (!isConnected) continue;
+
+        // Check if this connection matches the server we're trying to connect to
+        const network = networksForCheck.find(n => n.name === context.networkId || n.id === context.networkId);
+        if (network && network.servers) {
+          for (const srv of network.servers) {
+            if (srv.hostname.toLowerCase() === parsed.server.toLowerCase() && srv.port === parsed.port) {
+              logger.info('deeplink', `Already connected to ${parsed.server}:${parsed.port}, joining channel if specified`);
+              if (parsed.channel) {
+                handleJoinChannel(parsed.channel, parsed.channelKey);
+              }
+              return; // Already connected, don't create duplicate
+            }
+          }
+        }
+      }
 
       // Show confirmation for temporary networks
       if (shouldShowTempWarning) {
@@ -251,6 +302,13 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
   const handleUrl = useCallback(async (url: string | null) => {
     if (!url) return;
 
+    // Prevent processing the same URL multiple times in quick succession (within 2 seconds)
+    const now = Date.now();
+    if (url === lastProcessedUrlRef.current && (now - lastProcessedTimeRef.current) < 2000) {
+      logger.info('deeplink', `Ignoring duplicate URL received within 2 seconds: ${url}`);
+      return;
+    }
+
     // Queue if app is locked or first run not complete
     if (isAppLocked || !isFirstRunComplete) {
       logger.info('deeplink', 'App locked or first run not complete, queuing URL');
@@ -266,6 +324,8 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
     }
 
     isProcessingRef.current = true;
+    lastProcessedUrlRef.current = url;
+    lastProcessedTimeRef.current = now;
     try {
       await processDeepLink(url);
     } finally {

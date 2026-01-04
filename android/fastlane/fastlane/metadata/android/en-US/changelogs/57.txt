@@ -1,0 +1,5 @@
+v1.5.6 - Bug Fixes & Improvements:
+• Fixed IRC deep link crash - Resolved issue where clicking ircs:// links for existing servers (like irc.dbase.in.rs) created multiple tabs and crashed the app. Improved connection detection and duplicate prevention.
+• Fixed Play Integrity integration - Enhanced Firebase App Check initialization with better error handling and logging. Added comprehensive ProGuard rules for Play Integrity API.
+• Enhanced deep link handling - Improved connection reuse logic to prevent duplicate connections when clicking IRC URLs
+• Stability improvements and bug fixes

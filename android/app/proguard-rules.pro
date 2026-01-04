@@ -21,6 +21,9 @@
 
 # Play Integrity
 -keep class com.google.android.play.core.integrity.** { *; }
+-keep class com.google.android.play.integrity.** { *; }
+-dontwarn com.google.android.play.core.integrity.**
+-dontwarn com.google.android.play.integrity.**
 
 # Firebase Messaging
 -keep class com.google.firebase.messaging.** { *; }
