@@ -1,6 +1,0 @@
-v1.4.8 IAP stability fixes:
-- Guarded Android pending purchase flush when the API is missing
-- Accept purchaseToken as proof on Android when transactionReceipt is absent
-- Added timeout and error handling for finishTransaction to avoid stuck UI
-- Added "Restore purchases" button with feedback
-- Settings quality-of-life: Premium section moves to bottom for Supporter Pro users

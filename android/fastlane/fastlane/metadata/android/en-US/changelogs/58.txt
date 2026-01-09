@@ -1,7 +1,0 @@
-v1.5.7 - Settings & Security Improvements:
-• Fixed Settings submenus - Auto-Reconnect, Connection Quality, Global Proxy, and Commands now properly open configuration modals
-• Enhanced backup/restore - Identity profiles and networks are now correctly restored from backups
-• Improved security - PIN and biometric authentication can be enabled together with automatic fallback
-• Added TOR proxy option alongside SOCKS5, SOCKS4, and HTTP
-• Notice messages now display sender nick/service for better identification
-• Various UI improvements and bug fixes

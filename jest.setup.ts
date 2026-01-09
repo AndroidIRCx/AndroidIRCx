@@ -371,14 +371,16 @@ jest.mock('react-native-config', () => ({
   },
 }));
 
-jest.mock('react-native-document-picker', () => ({
+jest.mock('@react-native-documents/picker', () => ({
   __esModule: true,
-  default: {
-    pick: jest.fn().mockResolvedValue([]),
-    pickSingle: jest.fn().mockResolvedValue({}),
-    pickMultiple: jest.fn().mockResolvedValue([]),
-    pickDirectory: jest.fn().mockResolvedValue(null),
-    isCancel: jest.fn(() => false),
+  pick: jest.fn().mockResolvedValue([]),
+  pickDirectory: jest.fn().mockResolvedValue(null),
+  isErrorWithCode: jest.fn(() => false),
+  errorCodes: {
+    OPERATION_CANCELED: 'OPERATION_CANCELED',
+    IN_PROGRESS: 'ASYNC_OP_IN_PROGRESS',
+    UNABLE_TO_OPEN_FILE_TYPE: 'UNABLE_TO_OPEN_FILE_TYPE',
+    NULL_PRESENTER: 'NULL_PRESENTER',
   },
   types: {
     allFiles: '*/*',

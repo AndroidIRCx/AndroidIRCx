@@ -84,3 +84,4 @@ yarn-error.log
 /secrets/
 /.claude/
 nul
+/MEDIA_UPLOAD_API.md

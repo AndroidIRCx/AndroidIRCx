@@ -1,4 +1,0 @@
-v1.5.4 Bug Fixes & Improvements:
-• Fixed biometric unlock reliability issues
-• Enhanced app lock functionality
-• Code improvements and stability enhancements

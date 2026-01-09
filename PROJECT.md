@@ -1459,7 +1459,7 @@ This project uses `patch-package` to keep small vendor fixes in version control.
 
 - `react-native` (0.83.1) - Android 15 edge-to-edge API compatibility fix
 - `react-native-libsodium` (1.5.0)
-- `react-native-document-picker` (9.3.1)
+- `@react-native-documents/picker` (12.0.0)
 
 ### How to update or add a patch
 

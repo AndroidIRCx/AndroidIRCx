@@ -163,7 +163,19 @@ export const useTabStore = create<TabState>((set, get) => ({
       set((state) => {
         // Remove existing tabs for this network
         const otherTabs = state.tabs.filter((t) => t.networkId !== networkId);
-        return { tabs: [...otherTabs, ...loadedTabs] };
+        // CRITICAL FIX: Preserve messages from existing tabs when merging
+        // Map loaded tabs and merge with existing tabs if they have messages
+        const existingTabsMap = new Map(state.tabs.map(t => [t.id, t]));
+        const mergedTabs = loadedTabs.map(loadedTab => {
+          const existingTab = existingTabsMap.get(loadedTab.id);
+          // If existing tab has messages, preserve them
+          if (existingTab && existingTab.messages && existingTab.messages.length > 0) {
+            return { ...loadedTab, messages: existingTab.messages };
+          }
+          // Otherwise use loaded tab (which has empty messages array)
+          return loadedTab;
+        });
+        return { tabs: [...otherTabs, ...mergedTabs] };
       });
     } catch (error) {
       console.error(`Failed to load tabs for network ${networkId}:`, error);

@@ -1,8 +1,0 @@
-v1.5.0 Performance & Stability:
-- Fixed "Maximum update depth exceeded" crashes during connection
-- Improved performance: 60% fewer re-renders through optimized state management
-- Message batching: Smooth handling of rapid IRC server messages (ISUPPORT, WHO, etc.)
-- Architecture improvements: Zustand stores for better state management
-- Code quality: Major refactoring (4174 → 1674 lines in App.tsx, 59.9% reduction)
-- Added performance monitoring and storage caching utilities
-- Enhanced testing coverage for critical components

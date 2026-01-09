@@ -13,7 +13,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
-import DocumentPicker from 'react-native-document-picker';
+import { pick, types, errorCodes, isErrorWithCode } from '@react-native-documents/picker';
 import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 import { ChannelUser } from '../services/IRCService';
 import { ircService } from '../services/IRCService';
@@ -462,16 +462,20 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         break;
       case 'enc_import_file':
         try {
-          const picker = await DocumentPicker.pickSingle({
-            type: [DocumentPicker.types.allFiles],
-            copyTo: 'cachesDirectory',
+          const result = await pick({
+            type: [types.allFiles],
+            mode: 'import',
           });
+          if (result.length === 0) return;
+          const picker = result[0];
           const uri = picker.fileCopyUri || picker.uri;
           const path = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
           const contents = await RNFS.readFile(path, 'utf8');
           await handleExternalPayload(contents);
         } catch (e: any) {
-          if (!DocumentPicker.isCancel(e)) {
+          if (isErrorWithCode(e) && e.code === errorCodes.OPERATION_CANCELED) {
+            // User cancelled, ignore
+          } else {
             setActionMessage(t('Failed to import key file'));
           }
         }
@@ -989,16 +993,23 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         transparent
         animationType="fade"
         onRequestClose={() => setShowContextMenu(false)}>
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowContextMenu(false)}>
-          <View style={styles.contextMenu}>
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setShowContextMenu(false)}
+          />
+          <View 
+            style={styles.contextMenu}
+            onStartShouldSetResponder={() => true}
+            onMoveShouldSetResponder={() => true}>
             {selectedUser && (
               <ScrollView
                 style={styles.contextMenuScroll}
                 contentContainerStyle={styles.contextMenuContent}
-                showsVerticalScrollIndicator>
+                showsVerticalScrollIndicator
+                onStartShouldSetResponder={() => true}
+                onMoveShouldSetResponder={() => true}>
                 <View style={styles.contextMenuHeader}>
                   <Text style={styles.contextMenuTitle}>
                     {getNickPrefix(selectedUser.modes)}{selectedUser.nick}
@@ -1315,7 +1326,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
               </ScrollView>
             )}
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
       <Modal
         visible={showKeyQr}

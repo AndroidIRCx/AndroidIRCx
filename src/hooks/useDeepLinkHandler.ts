@@ -48,6 +48,8 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
   const pendingUrlRef = useRef<string | null>(null);
   const isProcessingRef = useRef(false);
   const lastProcessedUrlRef = useRef<string | null>(null);
+  // Track setTimeout IDs for cleanup to prevent memory leaks
+  const timeoutIdsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const lastProcessedTimeRef = useRef<number>(0);
 
   /**
@@ -257,9 +259,11 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
                   if (parsed.channel && parsed.channelKey) {
                     // If channel has a key, we need to join it manually after connection
                     // The auto-join might not include the key
-                    setTimeout(() => {
+                    const timeoutId = setTimeout(() => {
+                      timeoutIdsRef.current.delete(timeoutId);
                       handleJoinChannel(parsed.channel!, parsed.channelKey);
                     }, 2000); // Wait 2s for connection to complete
+                    timeoutIdsRef.current.add(timeoutId);
                   }
                 } catch (error: any) {
                   logger.error('deeplink', `Connection failed: ${error?.message || String(error)}`);
@@ -275,9 +279,11 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
 
           // If channel specified with key, join manually
           if (parsed.channel && parsed.channelKey) {
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
+              timeoutIdsRef.current.delete(timeoutId);
               handleJoinChannel(parsed.channel!, parsed.channelKey);
             }, 2000);
+            timeoutIdsRef.current.add(timeoutId);
           }
         } catch (error: any) {
           logger.error('deeplink', `Connection failed: ${error?.message || String(error)}`);
@@ -370,6 +376,11 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
 
     return () => {
       subscription.remove();
+      // Clean up any pending timeouts to prevent memory leaks
+      timeoutIdsRef.current.forEach(timeoutId => {
+        clearTimeout(timeoutId);
+      });
+      timeoutIdsRef.current.clear();
     };
   }, [handleUrl]);
 };

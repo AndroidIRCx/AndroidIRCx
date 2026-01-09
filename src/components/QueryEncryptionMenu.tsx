@@ -12,7 +12,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
-import DocumentPicker from 'react-native-document-picker';
+import { pick, types, errorCodes, isErrorWithCode } from '@react-native-documents/picker';
 import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 import { ircService } from '../services/IRCService';
 import { connectionManager } from '../services/ConnectionManager';
@@ -291,16 +291,20 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
         break;
       case 'enc_import_file':
         try {
-          const picker = await DocumentPicker.pickSingle({
-            type: [DocumentPicker.types.allFiles],
-            copyTo: 'cachesDirectory',
+          const result = await pick({
+            type: [types.allFiles],
+            mode: 'import',
           });
+          if (result.length === 0) return;
+          const picker = result[0];
           const uri = picker.fileCopyUri || picker.uri;
           const path = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
           const contents = await RNFS.readFile(path, 'utf8');
           await handleExternalPayload(contents);
         } catch (e: any) {
-          if (!DocumentPicker.isCancel(e)) {
+          if (isErrorWithCode(e) && e.code === errorCodes.OPERATION_CANCELED) {
+            // User cancelled, ignore
+          } else {
             setActionMessage(t('Failed to import key file'));
           }
         }

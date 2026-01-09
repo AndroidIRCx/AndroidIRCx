@@ -315,6 +315,23 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
             targetTabType = 'query';
             newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(messageNetwork, message.from);
           }
+        } else if (message.type === 'nick' && !message.channel) {
+          // Nick change messages without a channel should follow notice routing
+          // This handles cases where the user changes nick but isn't in any channels
+          // or when the nick change is a server-wide notice
+          if (!forceServerNotice && noticeTargetPref === 'active' && currentActiveTab && isSameNetworkAsActive) {
+            targetTabId = currentActiveTab.id;
+            targetTabType = currentActiveTab.type;
+          } else if (!forceServerNotice && noticeTargetPref === 'notice' && hasValidNetwork) {
+            targetTabId = noticeTabId(messageNetwork);
+            targetTabType = 'channel';
+          } else if (!forceServerNotice && noticeTargetPref === 'private' && message.from && hasValidNetwork) {
+            // For private routing, use the old nick (message.from) to find the query tab
+            targetTabId = queryTabId(messageNetwork, message.from);
+            targetTabType = 'query';
+            newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(messageNetwork, message.from);
+          }
+          // If noticeTargetPref is 'server', it will stay on server tab (default)
         } else if (message.channel && hasValidNetwork) {
           const isWildcardTarget = normalizedChannel === '*';
           const isSelfTarget =

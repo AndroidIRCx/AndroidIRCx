@@ -1,5 +1,0 @@
-v1.5.5 - Critical Fix & New Features:
-• Fixed biometric unlock issue - Users who couldn't unlock with biometrics can now authenticate successfully. Automatic migration for existing users.
-• Added IRC deep link support - Open irc:// and ircs:// URLs directly in the app. Supports connecting to servers and joining channels via links.
-• Improved error handling for app lock authentication
-• Code quality improvements and stability enhancements

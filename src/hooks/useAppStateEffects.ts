@@ -3,6 +3,7 @@ import { Alert, AppState } from 'react-native';
 import type { MutableRefObject } from 'react';
 import { tabService } from '../services/TabService';
 import { useTabStore } from '../stores/tabStore';
+import { useConnectionStore } from '../stores/connectionStore';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
 import type { ChannelTab } from '../types';
 
@@ -49,16 +50,27 @@ export const useAppStateEffects = (params: UseAppStateEffectsParams) => {
 
       // Reload tabs from storage when app becomes active (in case state was lost)
       if (nextState === 'active') {
+        // Get fresh values from store to avoid stale closure issues
+        // Use getState() to get the latest values instead of closure values
         const currentTabs = useTabStore.getState().tabs;
-        const currentNetworkId = activeConnectionId || primaryNetworkId;
+        // Get fresh network ID from store instead of closure
+        const connectionState = useConnectionStore.getState();
+        const freshActiveConnectionId = connectionState.activeConnectionId;
+        const freshPrimaryNetworkId = connectionState.primaryNetworkId;
+        const currentNetworkId = freshActiveConnectionId || freshPrimaryNetworkId || activeConnectionId || primaryNetworkId;
 
         // Only reload if we have a network and tabs seem to be missing
+        // CRITICAL FIX: Don't reload tabs if they already exist - this would overwrite messages
+        // The lazy loading hook will handle loading messages for tabs that need them
         if (currentNetworkId && currentTabs.length === 0) {
           try {
             console.log('?? App became active, reloading tabs from storage for network:', currentNetworkId);
             const loadedTabs = await tabService.getTabs(currentNetworkId);
-            if (loadedTabs && loadedTabs.length > 0) {
-              setTabs(loadedTabs);
+            // Double-check tabs are still missing before updating (race condition protection)
+            const finalTabs = useTabStore.getState().tabs;
+            if (finalTabs.length === 0 && loadedTabs && loadedTabs.length > 0) {
+              // Use loadTabsFromStorage instead of setTabs to preserve any existing messages
+              useTabStore.getState().loadTabsFromStorage(currentNetworkId);
               console.log('? Reloaded', loadedTabs.length, 'tabs from storage');
             }
           } catch (error) {
