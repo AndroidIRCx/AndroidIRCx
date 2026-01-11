@@ -23,45 +23,55 @@ export const HelpConnectionScreen: React.FC<HelpConnectionScreenProps> = ({
     <HelpScreenBase visible={visible} onClose={onClose} title="IRC Connection Guide">
       <HelpSection title="Quick Start">
         <HelpParagraph>Follow these simple steps to connect to an IRC server:</HelpParagraph>
-        <HelpBullet>1. Open Settings</HelpBullet>
-        <HelpBullet>2. Tap "Add Network"</HelpBullet>
-        <HelpBullet>3. Enter network details</HelpBullet>
-        <HelpBullet>4. Tap "Connect"</HelpBullet>
+        <HelpBullet>1. Tap the dropdown (▼) in the header</HelpBullet>
+        <HelpBullet>2. Choose "Choose Network" (or "Connect Another Network")</HelpBullet>
+        <HelpBullet>3. Tap the [+] button to add a network</HelpBullet>
+        <HelpBullet>4. Save, then tap the network name to connect</HelpBullet>
       </HelpSection>
 
       <HelpSection title="Detailed Guide">
-        <HelpSubsection title="Step 1: Open Settings">
-          <HelpBullet>Tap the ⚙️ icon in the header bar</HelpBullet>
-          <HelpBullet>Navigate to "Connection & Networks" section</HelpBullet>
+        <HelpSubsection title="Step 1: Open the Networks list">
+          <HelpBullet>Tap the dropdown (▼) in the header</HelpBullet>
+          <HelpBullet>Select "Choose Network" (or "Connect Another Network" if connected)</HelpBullet>
         </HelpSubsection>
 
-        <HelpSubsection title="Step 2: Add New Network">
-          <HelpParagraph>Tap "Add Network" button and fill in the network details:</HelpParagraph>
-          <HelpBullet>Network Name: A friendly name (e.g., "DBase IRC")</HelpBullet>
-          <HelpBullet>Server Address: IRC server hostname (e.g., irc.dbase.in.rs)</HelpBullet>
-          <HelpBullet>Port: Usually 6697 for SSL, 6667 for non-SSL</HelpBullet>
-          <HelpBullet>SSL/TLS: Enable for secure connections (recommended)</HelpBullet>
+        <HelpSubsection title="Step 2: Add a network">
+          <HelpParagraph>Tap the [+] button in the Networks header to open Network Settings:</HelpParagraph>
+          <HelpBullet>Network Name: Friendly name (e.g., "DBase")</HelpBullet>
+          <HelpBullet>Nickname + Real Name: Required identity fields</HelpBullet>
+          <HelpBullet>Alt Nick + Ident: Optional fallbacks</HelpBullet>
+          <HelpBullet>Auto-Join Channels: Optional list like "#lobby, #help"</HelpBullet>
+          <HelpBullet>Save with the [Save] button in the header</HelpBullet>
         </HelpSubsection>
 
-        <HelpSubsection title="Step 3: Set Your Identity">
-          <HelpBullet>Nickname: Your display name on IRC</HelpBullet>
-          <HelpBullet>Alternate Nick: Backup if nickname is taken</HelpBullet>
-          <HelpBullet>Username: Your IRC username (ident)</HelpBullet>
-          <HelpBullet>Real Name: Your full name or description</HelpBullet>
+        <HelpSubsection title="Step 3: Add a server (optional)">
+          <HelpParagraph>In the Networks list, tap "+ Add Server" under your network:</HelpParagraph>
+          <HelpBullet>Hostname: e.g., irc.dbase.in.rs</HelpBullet>
+          <HelpBullet>Port: 6697 (SSL) or 6667 (plain)</HelpBullet>
+          <HelpBullet>Use SSL/TLS: Recommended</HelpBullet>
+          <HelpBullet>Server Password / Favorite Server: Optional</HelpBullet>
+          <HelpBullet>Tap [Save]</HelpBullet>
         </HelpSubsection>
 
-        <HelpSubsection title="Step 4: Optional Settings">
-          <HelpBullet>Auto-Connect: Connect on app startup</HelpBullet>
-          <HelpBullet>Auto-Join Channels: List of channels to join automatically</HelpBullet>
-          <HelpBullet>Password: Server password (if required)</HelpBullet>
-          <HelpBullet>NickServ Password: For registered nicknames</HelpBullet>
+        <HelpSubsection title="Step 4: Set identity profiles (advanced)">
+          <HelpParagraph>Identity profiles are managed in Settings:</HelpParagraph>
+          <HelpBullet>Tap the ☰ menu → Settings</HelpBullet>
+          <HelpBullet>Open "Connection & Network"</HelpBullet>
+          <HelpBullet>Tap "Identity Profiles"</HelpBullet>
+          <HelpBullet>Select a network, then "+ Add / Edit Identity"</HelpBullet>
+          <HelpBullet>Save and select the profile for that network</HelpBullet>
         </HelpSubsection>
 
         <HelpSubsection title="Step 5: Connect">
-          <HelpBullet>Tap "Save" to save network configuration</HelpBullet>
-          <HelpBullet>Tap "Connect" to connect to the network</HelpBullet>
-          <HelpBullet>Wait for connection confirmation</HelpBullet>
+          <HelpBullet>Open the Networks list again (dropdown → "Choose Network")</HelpBullet>
+          <HelpBullet>Tap the network name to connect</HelpBullet>
+          <HelpBullet>Or tap a specific server under that network to connect to it</HelpBullet>
         </HelpSubsection>
+      </HelpSection>
+
+      <HelpSection title="Quick Connect Tips">
+        <HelpBullet>When disconnected, tap the network name in the header to connect</HelpBullet>
+        <HelpBullet>Use dropdown → "Connect to Default" for a one-tap connect</HelpBullet>
       </HelpSection>
 
       <HelpSection title="Popular IRC Networks">

@@ -36,11 +36,11 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
         <HelpSubsection title="Disconnects Frequently">
           <HelpParagraph>Symptoms: Random disconnections, "Connection lost"</HelpParagraph>
           <HelpParagraph>Solutions:</HelpParagraph>
-          <HelpBullet>Enable auto-reconnect: Settings → Connection → Auto-Reconnect</HelpBullet>
-          <HelpBullet>Adjust connection timeout: Settings → Connection → Timeout</HelpBullet>
+          <HelpBullet>Enable auto-reconnect: Settings → Connection & Network → Auto-Reconnect</HelpBullet>
+          <HelpBullet>Adjust auto-reconnect delays: Settings → Connection & Network → Auto-Reconnect</HelpBullet>
           <HelpBullet>Check network stability</HelpBullet>
           <HelpBullet>Try different server in same network</HelpBullet>
-          <HelpBullet>Reduce keep-alive interval</HelpBullet>
+          <HelpBullet>Review lag settings: Settings → Connection & Network → Connection Quality</HelpBullet>
         </HelpSubsection>
 
         <HelpSubsection title="SSL/TLS Errors">
@@ -60,7 +60,7 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
           <HelpBullet>Try alternate nickname</HelpBullet>
           <HelpBullet>Wait a few minutes (old session timeout)</HelpBullet>
           <HelpBullet>Use /msg NickServ GHOST YourNick password</HelpBullet>
-          <HelpBullet>Change nickname in Settings → Identity</HelpBullet>
+          <HelpBullet>Change nickname: dropdown (▼) → Choose Network → Edit → Nickname</HelpBullet>
         </HelpSubsection>
 
         <HelpSubsection title="NickServ Won't Identify">
@@ -95,8 +95,8 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
         <HelpSubsection title="Can't See Messages">
           <HelpParagraph>Symptoms: Channel appears empty, no messages visible</HelpParagraph>
           <HelpParagraph>Solutions:</HelpParagraph>
-          <HelpBullet>Check "Show Raw Commands" setting</HelpBullet>
-          <HelpBullet>Verify message filters in Settings</HelpBullet>
+          <HelpBullet>Check Settings → Display & UI → Show Raw Commands</HelpBullet>
+          <HelpBullet>Verify filters in Settings → Messages & History</HelpBullet>
           <HelpBullet>Restart app to reload message history</HelpBullet>
           <HelpBullet>Check if user is ignored</HelpBullet>
         </HelpSubsection>
@@ -133,9 +133,8 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
         <HelpSubsection title="Channel Won't Stay Open">
           <HelpParagraph>Symptoms: Channel tab closes automatically</HelpParagraph>
           <HelpParagraph>Solutions:</HelpParagraph>
-          <HelpBullet>Disable auto-close in Settings</HelpBullet>
+          <HelpBullet>Add it to auto-join: dropdown (▼) → Choose Network → Edit → Auto-Join Channels</HelpBullet>
           <HelpBullet>Rejoin channel manually</HelpBullet>
-          <HelpBullet>Add to auto-join list</HelpBullet>
           <HelpBullet>Check network connection</HelpBullet>
         </HelpSubsection>
       </HelpSection>
@@ -199,7 +198,7 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
         <HelpSubsection title="Media Won't Download">
           <HelpParagraph>Solutions:</HelpParagraph>
           <HelpBullet>Check internet connection</HelpBullet>
-          <HelpBullet>Enable auto-download in Settings</HelpBullet>
+          <HelpBullet>Enable auto-download: Settings → Media → Auto-Download Media</HelpBullet>
           <HelpBullet>Verify storage permission</HelpBullet>
           <HelpBullet>Clear media cache</HelpBullet>
         </HelpSubsection>
@@ -208,7 +207,7 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
           <HelpParagraph>Solutions:</HelpParagraph>
           <HelpBullet>Request decryption key from sender</HelpBullet>
           <HelpBullet>Verify E2EE key exchange</HelpBullet>
-          <HelpBullet>Check Key Management</HelpBullet>
+          <HelpBullet>Check Security → Manage Encryption Keys</HelpBullet>
         </HelpSubsection>
       </HelpSection>
 
@@ -256,7 +255,7 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
 
         <HelpInfoBox>
           Enable Debug Logging:{'\n'}
-          Settings → Developer → Debug Logs{'\n'}
+          Settings → Development → Enable Console Logging (debug builds only){'\n'}
           Send logs with your report.
         </HelpInfoBox>
       </HelpSection>

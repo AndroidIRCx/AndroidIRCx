@@ -102,14 +102,14 @@ export const HelpEncryptionScreen: React.FC<HelpEncryptionScreenProps> = ({
 
         <HelpSubsection title="Lock icon not showing">
           <HelpParagraph>Encryption may be disabled or keys not exchanged.</HelpParagraph>
-          <HelpParagraph>Solution: Check Settings → Security → E2EE Enabled</HelpParagraph>
+          <HelpParagraph>Solution: Check Settings → Display & UI → Show Encryption Indicators</HelpParagraph>
         </HelpSubsection>
       </HelpSection>
 
       <HelpSection title="Key Management">
         <HelpInfoBox>
           View and manage your keys in:{'\n'}
-          Settings → Security → Key Management
+          Settings → Security → Manage Encryption Keys
         </HelpInfoBox>
       </HelpSection>
     </HelpScreenBase>

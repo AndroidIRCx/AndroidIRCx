@@ -39,9 +39,9 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
 
       <HelpSection title="How to Send Media">
         <HelpSubsection title="Step 1: Enable Media Feature">
-          <HelpBullet>Open Settings</HelpBullet>
-          <HelpBullet>Go to "Media & Files"</HelpBullet>
-          <HelpBullet>Enable "Media Sharing"</HelpBullet>
+          <HelpBullet>Open Settings (☰ menu)</HelpBullet>
+          <HelpBullet>Go to "Media"</HelpBullet>
+          <HelpBullet>Enable "Enable Encrypted Media Sharing"</HelpBullet>
         </HelpSubsection>
 
         <HelpSubsection title="Step 2: Send Photo">
@@ -91,7 +91,7 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
 
       <HelpSection title="Settings">
         <HelpSubsection title="Media Quality">
-          <HelpParagraph>Settings → Media & Files → Upload Quality</HelpParagraph>
+          <HelpParagraph>Settings → Media → Media Quality</HelpParagraph>
           <HelpBullet>Original - Full quality (larger file)</HelpBullet>
           <HelpBullet>High - 90% quality</HelpBullet>
           <HelpBullet>Medium - 70% quality</HelpBullet>
@@ -99,14 +99,14 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
         </HelpSubsection>
 
         <HelpSubsection title="Auto-Download">
-          <HelpParagraph>Settings → Media & Files → Auto-Download</HelpParagraph>
+          <HelpParagraph>Settings → Media → Auto-Download Media</HelpParagraph>
           <HelpBullet>WiFi only (recommended)</HelpBullet>
           <HelpBullet>WiFi + Mobile Data</HelpBullet>
           <HelpBullet>Never (manual only)</HelpBullet>
         </HelpSubsection>
 
         <HelpSubsection title="Storage">
-          <HelpParagraph>Settings → Media & Files → Media Cache</HelpParagraph>
+          <HelpParagraph>Settings → Media → Maximum Cache Size / Clear Media Cache</HelpParagraph>
           <HelpBullet>View cache size</HelpBullet>
           <HelpBullet>Clear cache</HelpBullet>
           <HelpBullet>Set max cache size</HelpBullet>
@@ -118,12 +118,6 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
           <HelpBullet>All media is AES-256 encrypted before upload</HelpBullet>
           <HelpBullet>Encryption key is only shared with authorized recipients</HelpBullet>
           <HelpBullet>Server cannot decrypt media</HelpBullet>
-        </HelpSubsection>
-
-        <HelpSubsection title="Expiration">
-          <HelpParagraph>Configure media expiration:</HelpParagraph>
-          <HelpParagraph>Settings → Media & Files → Media Expiration</HelpParagraph>
-          <HelpBullet>1 day, 7 days, 30 days, Never</HelpBullet>
         </HelpSubsection>
 
         <HelpSubsection title="Metadata">
