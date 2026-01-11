@@ -10,6 +10,10 @@ export interface PerformanceConfig {
   cleanupThreshold: number; // Cleanup when messages exceed this count (default: 1500)
   renderOptimization: boolean; // Use React.memo and useMemo for optimization
   imageLazyLoad: boolean; // Lazy load images (only load when visible)
+  userListGrouping: boolean; // Group users by mode (ops/voice)
+  userListVirtualization: boolean; // Use FlatList for large user lists
+  userListAutoDisableGroupingThreshold: number; // Disable grouping above N users
+  userListAutoVirtualizeThreshold: number; // Enable virtualization above N users
 }
 
 class PerformanceService {
@@ -23,6 +27,10 @@ class PerformanceService {
     cleanupThreshold: 1500,
     renderOptimization: true,
     imageLazyLoad: true,
+    userListGrouping: true,
+    userListVirtualization: true,
+    userListAutoDisableGroupingThreshold: 1000,
+    userListAutoVirtualizeThreshold: 500,
   };
 
   private listeners: Array<(config: PerformanceConfig) => void> = [];

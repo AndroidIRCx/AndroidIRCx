@@ -6,7 +6,8 @@
  */
 
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ChannelTabs } from './ChannelTabs';
 import { MessageArea } from './MessageArea';
 import { MessageInput } from './MessageInput';
@@ -51,7 +52,11 @@ interface AppLayoutProps {
   showUserList: boolean;
   showSearchButton: boolean;
   safeAreaInsets: { top: number; bottom: number };
-  keyboardInset: number;
+  keyboardAvoidingEnabled: boolean;
+  keyboardBehaviorIOS: 'padding' | 'height' | 'position' | 'translate-with-padding';
+  keyboardBehaviorAndroid: 'padding' | 'height' | 'position' | 'translate-with-padding';
+  keyboardVerticalOffset: number;
+  useAndroidBottomSafeArea: boolean;
   styles: any;
   handleTabPress: (tabId: string) => void;
   handleTabLongPress: (tab: ChannelTab) => void;
@@ -97,7 +102,11 @@ export function AppLayout({
   showUserList,
   showSearchButton,
   safeAreaInsets,
-  keyboardInset,
+  keyboardAvoidingEnabled,
+  keyboardBehaviorIOS,
+  keyboardBehaviorAndroid,
+  keyboardVerticalOffset,
+  useAndroidBottomSafeArea,
   styles,
   handleTabPress,
   handleTabLongPress,
@@ -134,8 +143,18 @@ export function AppLayout({
     );
   };
 
+  const keyboardBehavior = Platform.OS === 'ios' ? keyboardBehaviorIOS : keyboardBehaviorAndroid;
+  const bottomInset = Platform.OS === 'android' && !useAndroidBottomSafeArea
+    ? 0
+    : safeAreaInsets.bottom;
+
   return (
-    <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
+    <KeyboardAvoidingView
+      behavior={keyboardAvoidingEnabled ? keyboardBehavior : undefined}
+      enabled={keyboardAvoidingEnabled}
+      keyboardVerticalOffset={keyboardVerticalOffset}
+      style={[styles.container, { paddingTop: safeAreaInsets.top }]}
+    >
       <HeaderBar
         networkName={isConnected ? networkName : (selectedNetworkName || networkName)}
         ping={ping}
@@ -203,7 +222,7 @@ export function AppLayout({
               channel={activeTab?.type === 'channel' ? activeTab.name : undefined}
               network={activeTab?.networkId}
               tabId={activeTab?.id}
-              bottomInset={safeAreaInsets.bottom}
+              bottomInset={bottomInset}
               searchVisible={searchVisible}
               onSearchVisibleChange={setSearchVisible}
             />
@@ -256,13 +275,12 @@ export function AppLayout({
         disabled={!isConnected}
         prefilledMessage={prefillMessage || undefined}
         onPrefillUsed={() => useUIStore.getState().setPrefillMessage(null)}
-        bottomInset={safeAreaInsets.bottom}
-        keyboardInset={keyboardInset}
+        bottomInset={bottomInset}
         tabType={activeTab?.type}
         tabName={activeTab?.name}
         network={activeTab?.networkId}
         tabId={activeTab?.id}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }

@@ -140,7 +140,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
         mediaResult.type || 'file',
         mediaResult.mimeType,
         (progress) => {
-          setUploadProgress(Math.round(progress * 100));
+          setUploadProgress(Math.round(progress.percentage));
         }
       );
 
@@ -164,6 +164,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     if (!mediaResult?.uri) return null;
 
     const { type, uri, mimeType } = mediaResult;
+    const previewHeight = Math.min(screenHeight * 0.45, 360);
     
     // Normalize URI for display
     let displayUri = uri;
@@ -177,7 +178,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     // Image preview
     if (type === 'image' || type === 'gif' || mimeType?.startsWith('image/')) {
       return (
-        <View style={styles.previewContainer}>
+        <View style={[styles.previewContainer, { height: previewHeight }]}>
           <Image
             source={{ uri: displayUri }}
             style={styles.imagePreview}
@@ -194,13 +195,14 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     // Video preview
     if (type === 'video' || mimeType?.startsWith('video/')) {
       return (
-        <View style={styles.previewContainer}>
+        <View style={[styles.previewContainer, { height: previewHeight }]}>
           <Video
             source={{ uri: displayUri }}
             style={styles.videoPreview}
             controls
             paused
             resizeMode="contain"
+            useTextureView
             onError={(e) => {
               console.error('[MediaPreviewModal] Video load error:', e);
               setError(t('Failed to load video preview'));
@@ -213,7 +215,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     // Audio preview
     if (type === 'voice' || mimeType?.startsWith('audio/')) {
       return (
-        <View style={[styles.previewContainer, styles.audioContainer]}>
+        <View style={[styles.previewContainer, styles.audioContainer, { height: previewHeight }]}>
           <Text style={[styles.audioIcon, { color: colors.text }]}>🎵</Text>
           <Text style={[styles.audioLabel, { color: colors.text }]}>
             {t('Audio File')}

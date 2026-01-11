@@ -61,6 +61,11 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const [noticeTarget, setNoticeTarget] = useState<'active' | 'server' | 'notice' | 'private'>('server');
   const [showEncryptionIndicatorsSetting, setShowEncryptionIndicatorsSetting] = useState(propShowEncryptionIndicators ?? true);
   const [showSendButton, setShowSendButton] = useState(true);
+  const [keyboardAvoidingEnabled, setKeyboardAvoidingEnabled] = useState(true);
+  const [keyboardBehaviorIOS, setKeyboardBehaviorIOS] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('padding');
+  const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('height');
+  const [keyboardVerticalOffset, setKeyboardVerticalOffset] = useState('0');
+  const [useAndroidBottomSafeArea, setUseAndroidBottomSafeArea] = useState(true);
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
 
   // Load initial state
@@ -77,6 +82,21 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
 
       const sendButton = await settingsService.getSetting('showSendButton', true);
       setShowSendButton(sendButton);
+
+      const avoidingEnabled = await settingsService.getSetting('keyboardAvoidingEnabled', true);
+      setKeyboardAvoidingEnabled(avoidingEnabled);
+
+      const behaviorIOS = await settingsService.getSetting('keyboardBehaviorIOS', 'padding');
+      setKeyboardBehaviorIOS(behaviorIOS);
+
+      const behaviorAndroid = await settingsService.getSetting('keyboardBehaviorAndroid', 'height');
+      setKeyboardBehaviorAndroid(behaviorAndroid);
+
+      const offsetValue = await settingsService.getSetting('keyboardVerticalOffset', 0);
+      setKeyboardVerticalOffset(String(offsetValue));
+
+      const androidSafeArea = await settingsService.getSetting('useAndroidBottomSafeArea', true);
+      setUseAndroidBottomSafeArea(androidSafeArea);
     };
     loadSettings();
   }, []);
@@ -97,6 +117,28 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   }, [propShowEncryptionIndicators]);
 
   const sectionData: SettingItemType[] = useMemo(() => {
+    const formatBehaviorLabel = (value: string) => {
+      switch (value) {
+        case 'padding':
+          return t('Padding', { _tags: tags });
+        case 'height':
+          return t('Height', { _tags: tags });
+        case 'position':
+          return t('Position', { _tags: tags });
+        case 'translate-with-padding':
+          return t('Translate with padding', { _tags: tags });
+        default:
+          return value;
+      }
+    };
+
+    const behaviorOptions = [
+      { id: 'behavior-padding', label: t('Padding', { _tags: tags }), value: 'padding' },
+      { id: 'behavior-height', label: t('Height', { _tags: tags }), value: 'height' },
+      { id: 'behavior-position', label: t('Position', { _tags: tags }), value: 'position' },
+      { id: 'behavior-translate-with-padding', label: t('Translate with padding', { _tags: tags }), value: 'translate-with-padding' },
+    ];
+
     const items: SettingItemType[] = [
       {
         id: 'display-tab-sort',
@@ -321,6 +363,89 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           await settingsService.setSetting('showSendButton', boolValue);
         },
       },
+      {
+        id: 'display-keyboard-avoiding',
+        title: t('Keyboard Avoiding', { _tags: tags }),
+        description: keyboardAvoidingEnabled
+          ? t('Adjust layout when the keyboard opens', { _tags: tags })
+          : t('Keep layout fixed when the keyboard opens', { _tags: tags }),
+        type: 'switch',
+        value: keyboardAvoidingEnabled,
+        searchKeywords: ['keyboard', 'avoiding', 'input', 'overlap', 'layout'],
+        onValueChange: async (value: boolean | string) => {
+          const boolValue = value as boolean;
+          setKeyboardAvoidingEnabled(boolValue);
+          await settingsService.setSetting('keyboardAvoidingEnabled', boolValue);
+        },
+      },
+      {
+        id: 'display-keyboard-behavior-ios',
+        title: t('Keyboard Behavior (iOS)', { _tags: tags }),
+        description: t('Current: {mode}', { mode: formatBehaviorLabel(keyboardBehaviorIOS), _tags: tags }),
+        type: 'submenu',
+        disabled: !keyboardAvoidingEnabled,
+        searchKeywords: ['keyboard', 'behavior', 'ios', 'padding', 'height', 'position'],
+        submenuItems: behaviorOptions.map(option => ({
+          id: `keyboard-behavior-ios-${option.value}`,
+          title: option.label,
+          type: 'button' as const,
+          onPress: async () => {
+            setKeyboardBehaviorIOS(option.value as 'padding' | 'height' | 'position' | 'translate-with-padding');
+            await settingsService.setSetting('keyboardBehaviorIOS', option.value);
+          },
+        })),
+      },
+      {
+        id: 'display-keyboard-behavior-android',
+        title: t('Keyboard Behavior (Android)', { _tags: tags }),
+        description: t('Current: {mode}', { mode: formatBehaviorLabel(keyboardBehaviorAndroid), _tags: tags }),
+        type: 'submenu',
+        disabled: !keyboardAvoidingEnabled,
+        searchKeywords: ['keyboard', 'behavior', 'android', 'padding', 'height', 'position'],
+        submenuItems: behaviorOptions.map(option => ({
+          id: `keyboard-behavior-android-${option.value}`,
+          title: option.label,
+          type: 'button' as const,
+          onPress: async () => {
+            setKeyboardBehaviorAndroid(option.value as 'padding' | 'height' | 'position' | 'translate-with-padding');
+            await settingsService.setSetting('keyboardBehaviorAndroid', option.value);
+          },
+        })),
+      },
+      {
+        id: 'display-keyboard-offset',
+        title: t('Keyboard Vertical Offset', { _tags: tags }),
+        description: t('Additional padding in pixels for keyboard avoidance', { _tags: tags }),
+        type: 'input',
+        value: keyboardVerticalOffset,
+        keyboardType: 'numeric',
+        disabled: !keyboardAvoidingEnabled,
+        searchKeywords: ['keyboard', 'offset', 'padding', 'avoid', 'height'],
+        onValueChange: async (value: boolean | string) => {
+          const raw = String(value);
+          const sanitized = raw.replace(/[^0-9-]/g, '');
+          setKeyboardVerticalOffset(sanitized);
+          const numericValue = Number(sanitized);
+          if (Number.isFinite(numericValue)) {
+            await settingsService.setSetting('keyboardVerticalOffset', numericValue);
+          }
+        },
+      },
+      {
+        id: 'display-android-bottom-safe-area',
+        title: t('Android Bottom Safe Area', { _tags: tags }),
+        description: useAndroidBottomSafeArea
+          ? t('Keep spacing above the gesture bar', { _tags: tags })
+          : t('Use full height on Android', { _tags: tags }),
+        type: 'switch',
+        value: useAndroidBottomSafeArea,
+        searchKeywords: ['android', 'safe area', 'gesture', 'navigation', 'bottom', 'inset'],
+        onValueChange: async (value: boolean | string) => {
+          const boolValue = value as boolean;
+          setUseAndroidBottomSafeArea(boolValue);
+          await settingsService.setSetting('useAndroidBottomSafeArea', boolValue);
+        },
+      },
     ];
 
     return items;
@@ -331,6 +456,11 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     noticeTarget,
     showEncryptionIndicatorsSetting,
     showSendButton,
+    keyboardAvoidingEnabled,
+    keyboardBehaviorIOS,
+    keyboardBehaviorAndroid,
+    keyboardVerticalOffset,
+    useAndroidBottomSafeArea,
     layoutConfig,
     t,
     tags,

@@ -112,10 +112,9 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = ({
               {isActive && (
                 <View
                   style={[
-                    styles.activeIndicator,
-                    isVertical && styles.activeIndicatorVertical,
-                    position === 'left' && styles.activeIndicatorLeft,
-                    position === 'right' && styles.activeIndicatorRight,
+                    isVertical ? styles.activeIndicatorVertical : styles.activeIndicatorHorizontal,
+                    isVertical && position === 'left' && styles.activeIndicatorLeft,
+                    isVertical && position === 'right' && styles.activeIndicatorRight,
                   ]}
                 />
               )}
@@ -189,7 +188,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.warning,
     fontWeight: '700',
   },
-  activeIndicator: {
+  activeIndicatorHorizontal: {
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -198,17 +197,16 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.accent,
   },
   activeIndicatorVertical: {
+    position: 'absolute',
     top: 0,
     bottom: 0,
     width: 3,
-    height: '100%',
+    backgroundColor: colors.accent,
   },
   activeIndicatorLeft: {
     left: 0,
-    right: undefined,
   },
   activeIndicatorRight: {
     right: 0,
-    left: undefined,
   },
 });

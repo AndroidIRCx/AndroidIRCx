@@ -92,6 +92,16 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
           <HelpBullet>Ensure you have voice (+v) if channel is moderated</HelpBullet>
         </HelpSubsection>
 
+        <HelpSubsection title="Keyboard Covers Input">
+          <HelpParagraph>Symptoms: Keyboard overlaps the message input</HelpParagraph>
+          <HelpParagraph>Solutions:</HelpParagraph>
+          <HelpBullet>Go to Settings  Display & UI  Keyboard Avoiding</HelpBullet>
+          <HelpBullet>Android: try Behavior = Height (default) or Padding</HelpBullet>
+          <HelpBullet>iOS: try Behavior = Padding or Position</HelpBullet>
+          <HelpBullet>Adjust Keyboard Vertical Offset (e.g., 16-48)</HelpBullet>
+          <HelpBullet>Android: toggle "Android Bottom Safe Area" for fullscreen vs. inset</HelpBullet>
+        </HelpSubsection>
+
         <HelpSubsection title="Can't See Messages">
           <HelpParagraph>Symptoms: Channel appears empty, no messages visible</HelpParagraph>
           <HelpParagraph>Solutions:</HelpParagraph>

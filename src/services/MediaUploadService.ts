@@ -14,7 +14,7 @@
  */
 
 import RNFS from 'react-native-fs';
-import { NativeModules } from 'react-native';
+import { DeviceEventEmitter, NativeModules } from 'react-native';
 import { Buffer } from 'buffer';
 
 // Native modules for reliable HTTP requests
@@ -116,6 +116,7 @@ class MediaUploadService {
     expires: number,
     onProgress?: ProgressCallback
   ): Promise<{ size: number; sha256: string; status: string }> {
+    let progressSubscription: { remove: () => void } | null = null;
     try {
       // Check if token is expired
       const now = Math.floor(Date.now() / 1000);
@@ -150,6 +151,23 @@ class MediaUploadService {
       this.activeUploads.set(mediaId, true);
       console.log('[MediaUploadService] Upload started, file size:', bytes.length, 'bytes');
 
+      if (onProgress) {
+        onProgress({
+          bytesUploaded: 0,
+          totalBytes: bytes.length,
+          percentage: 0,
+        });
+        progressSubscription = DeviceEventEmitter.addListener('HttpPutProgress', (payload) => {
+          if (!payload || payload.uploadId !== mediaId) {
+            return;
+          }
+          const totalBytes = payload.totalBytes || bytes.length;
+          const bytesUploaded = payload.bytesWritten || 0;
+          const percentage = totalBytes > 0 ? (bytesUploaded / totalBytes) * 100 : 0;
+          onProgress({ bytesUploaded, totalBytes, percentage });
+        });
+      }
+
       // Use native HttpPut module for direct binary upload
       if (!HttpPut) {
         throw new Error('HttpPut native module is not available');
@@ -161,7 +179,8 @@ class MediaUploadService {
         {
           'Content-Type': 'application/octet-stream',
           'Accept': 'application/json',
-        }
+        },
+        mediaId
       );
 
       // Clean up temporary binary file
@@ -185,6 +204,10 @@ class MediaUploadService {
       this.activeUploads.delete(mediaId);
       console.error('[MediaUploadService] Upload file error:', error);
       throw error;
+    } finally {
+      if (progressSubscription) {
+        progressSubscription.remove();
+      }
     }
   }
 

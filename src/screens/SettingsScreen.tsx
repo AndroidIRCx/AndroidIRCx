@@ -1311,6 +1311,64 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           },
           searchKeywords: ['lazy', 'load', 'images', 'photos', 'visible', 'performance'],
         },
+        {
+          id: 'perf-user-grouping',
+          title: t('User List Grouping', { _tags: tags }),
+          description: t('Group users by status (ops/voice/etc.)', { _tags: tags }),
+          type: 'switch' as const,
+          value: performanceConfig?.userListGrouping !== false,
+          onValueChange: async (value: boolean) => {
+            await performanceService.setConfig({ userListGrouping: value });
+            setPerformanceConfig(performanceService.getConfig());
+          },
+          searchKeywords: ['user', 'list', 'group', 'grouping', 'ops', 'voice', 'performance'],
+        },
+        {
+          id: 'perf-user-grouping-threshold',
+          title: t('Auto-Disable Grouping Threshold', { _tags: tags }),
+          description: `Disable grouping above ${performanceConfig?.userListAutoDisableGroupingThreshold || 1000} users`,
+          type: 'input' as const,
+          value: performanceConfig?.userListAutoDisableGroupingThreshold?.toString() || '1000',
+          keyboardType: 'numeric',
+          onValueChange: async (value: string) => {
+            const threshold = parseInt(value, 10);
+            if (!isNaN(threshold) && threshold > 0) {
+              await performanceService.setConfig({ userListAutoDisableGroupingThreshold: threshold });
+              setPerformanceConfig(performanceService.getConfig());
+            }
+          },
+          disabled: performanceConfig?.userListGrouping === false,
+          searchKeywords: ['user', 'list', 'group', 'threshold', 'auto', 'disable', 'performance'],
+        },
+        {
+          id: 'perf-user-virtualization',
+          title: t('User List Virtualization', { _tags: tags }),
+          description: t('Use FlatList for large user lists (non-grouped)', { _tags: tags }),
+          type: 'switch' as const,
+          value: performanceConfig?.userListVirtualization !== false,
+          onValueChange: async (value: boolean) => {
+            await performanceService.setConfig({ userListVirtualization: value });
+            setPerformanceConfig(performanceService.getConfig());
+          },
+          searchKeywords: ['user', 'list', 'virtualization', 'flatlist', 'performance'],
+        },
+        {
+          id: 'perf-user-virtualization-threshold',
+          title: t('Auto-Virtualize Threshold', { _tags: tags }),
+          description: `Enable virtualization above ${performanceConfig?.userListAutoVirtualizeThreshold || 500} users`,
+          type: 'input' as const,
+          value: performanceConfig?.userListAutoVirtualizeThreshold?.toString() || '500',
+          keyboardType: 'numeric',
+          onValueChange: async (value: string) => {
+            const threshold = parseInt(value, 10);
+            if (!isNaN(threshold) && threshold > 0) {
+              await performanceService.setConfig({ userListAutoVirtualizeThreshold: threshold });
+              setPerformanceConfig(performanceService.getConfig());
+            }
+          },
+          disabled: performanceConfig?.userListVirtualization === false,
+          searchKeywords: ['user', 'list', 'virtualization', 'threshold', 'auto', 'performance'],
+        },
       ],
     },
     {
@@ -2174,4 +2232,3 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     </Modal>
   );
 };
-

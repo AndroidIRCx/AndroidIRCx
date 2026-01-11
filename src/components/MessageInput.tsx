@@ -27,7 +27,6 @@ interface MessageInputProps {
   prefilledMessage?: string;
   onPrefillUsed?: () => void;
   bottomInset?: number;
-  keyboardInset?: number;
   tabType?: 'channel' | 'query' | 'server' | 'notice' | 'dcc';
   tabName?: string;
   network?: string;
@@ -41,7 +40,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   prefilledMessage,
   onPrefillUsed,
   bottomInset = 0,
-  keyboardInset = 0,
   tabType = 'server',
   tabName,
   network,
@@ -50,7 +48,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const layoutConfig = layoutService.getConfig();
-  const totalBottomInset = bottomInset + layoutConfig.navigationBarOffset + keyboardInset;
+  const totalBottomInset = bottomInset + layoutConfig.navigationBarOffset;
   const styles = createStyles(colors, totalBottomInset);
   const [message, setMessage] = useState('');
   const [suggestions, setSuggestions] = useState<Array<{ text: string; description?: string; source: 'command' | 'alias' | 'history' }>>([]);

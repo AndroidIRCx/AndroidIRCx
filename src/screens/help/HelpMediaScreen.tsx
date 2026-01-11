@@ -115,8 +115,8 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
 
       <HelpSection title="Privacy & Security">
         <HelpSubsection title="Encryption">
-          <HelpBullet>All media is AES-256 encrypted before upload</HelpBullet>
-          <HelpBullet>Encryption key is only shared with authorized recipients</HelpBullet>
+          <HelpBullet>All media is encrypted with XChaCha20-Poly1305 before upload</HelpBullet>
+          <HelpBullet>Encryption keys are only shared with authorized recipients</HelpBullet>
           <HelpBullet>Server cannot decrypt media</HelpBullet>
         </HelpSubsection>
 

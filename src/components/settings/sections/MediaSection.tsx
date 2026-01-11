@@ -10,7 +10,7 @@
  */
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Alert, View, Text, TouchableOpacity, Switch } from 'react-native';
+import { Alert, View, Text, TouchableOpacity, Switch, Modal, ScrollView, TextInput, StyleSheet } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
 import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
@@ -54,10 +54,11 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
   const [autoDownload, setAutoDownload] = useState(true);
   const [wifiOnly, setWifiOnly] = useState(false);
   const [maxCacheSize, setMaxCacheSize] = useState(250 * 1024 * 1024); // 250MB default
-  const [mediaQuality, setMediaQuality] = useState<'Original' | 'High' | 'Medium' | 'Low'>('Original');
-  const [videoQuality, setVideoQuality] = useState<'4K' | '1080p' | '720p' | '480p'>('1080p');
+  const [mediaQuality, setMediaQuality] = useState<'original' | 'high' | 'medium' | 'low'>('original');
+  const [videoQuality, setVideoQuality] = useState<'4k' | '1080p' | '720p' | '480p'>('1080p');
   const [voiceMaxDuration, setVoiceMaxDuration] = useState(180); // 3 minutes default
   const [cacheSize, setCacheSize] = useState(0);
+  const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
 
   // Load initial state
   useEffect(() => {
@@ -78,10 +79,10 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       setMaxCacheSize(cacheSizeSetting);
       
       const quality = await mediaSettingsService.getMediaQuality();
-      setMediaQuality(quality as 'Original' | 'High' | 'Medium' | 'Low');
+      setMediaQuality(quality);
       
       const videoQual = await mediaSettingsService.getVideoQuality();
-      setVideoQuality(videoQual as '4K' | '1080p' | '720p' | '480p');
+      setVideoQuality(videoQual);
       
       const voiceDuration = await mediaSettingsService.getVoiceMaxDuration();
       setVoiceMaxDuration(voiceDuration);
@@ -141,6 +142,20 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
   };
 
   const sectionData: SettingItemType[] = useMemo(() => {
+    const mediaQualityLabel = {
+      original: t('Original', { _tags: tags }),
+      high: t('High', { _tags: tags }),
+      medium: t('Medium', { _tags: tags }),
+      low: t('Low', { _tags: tags }),
+    }[mediaQuality] || mediaQuality;
+
+    const videoQualityLabel = {
+      '4k': '4K',
+      '1080p': '1080p',
+      '720p': '720p',
+      '480p': '480p',
+    }[videoQuality] || videoQuality;
+
     const items: SettingItemType[] = [
       {
         id: 'media-enabled',
@@ -224,24 +239,24 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       {
         id: 'media-quality',
         title: t('Media Quality', { _tags: tags }),
-        description: t('Current: {quality}', { quality: mediaQuality, _tags: tags }),
+        description: t('Current: {quality}', { quality: mediaQualityLabel, _tags: tags }),
         type: 'submenu',
         disabled: !mediaEnabled,
         submenuItems: [
-          { id: 'quality-original', title: t('Original', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('Original') },
-          { id: 'quality-high', title: t('High', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('High') },
-          { id: 'quality-medium', title: t('Medium', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('Medium') },
-          { id: 'quality-low', title: t('Low', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('Low') },
+          { id: 'quality-original', title: t('Original', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('original') },
+          { id: 'quality-high', title: t('High', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('high') },
+          { id: 'quality-medium', title: t('Medium', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('medium') },
+          { id: 'quality-low', title: t('Low', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('low') },
         ],
       },
       {
         id: 'video-quality',
         title: t('Video Recording Quality', { _tags: tags }),
-        description: t('Current: {quality}', { quality: videoQuality, _tags: tags }),
+        description: t('Current: {quality}', { quality: videoQualityLabel, _tags: tags }),
         type: 'submenu',
         disabled: !mediaEnabled,
         submenuItems: [
-          { id: 'video-4k', title: '4K', type: 'button' as const, onPress: () => setVideoQuality('4K') },
+          { id: 'video-4k', title: '4K', type: 'button' as const, onPress: () => setVideoQuality('4k') },
           { id: 'video-1080p', title: '1080p', type: 'button' as const, onPress: () => setVideoQuality('1080p') },
           { id: 'video-720p', title: '720p', type: 'button' as const, onPress: () => setVideoQuality('720p') },
           { id: 'video-480p', title: '480p', type: 'button' as const, onPress: () => setVideoQuality('480p') },
@@ -295,6 +310,9 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
     saveSettings();
   }, [maxCacheSize, mediaQuality, videoQuality, voiceMaxDuration]);
 
+  const modalStyles = useMemo(() => createModalStyles(colors), [colors]);
+  const activeSubmenu = sectionData.find(item => item.id === showSubmenu);
+
   return (
     <View>
       {sectionData.map((item) => (
@@ -304,8 +322,167 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
           colors={colors}
           styles={styles}
           settingIcons={settingIcons}
+          onPress={(itemId) => {
+            if (item.type === 'submenu') {
+              setShowSubmenu(itemId);
+            }
+          }}
         />
       ))}
+      <Modal
+        visible={showSubmenu !== null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSubmenu(null)}>
+        <View style={modalStyles.submenuOverlay}>
+          <View style={modalStyles.submenuContainer}>
+            <View style={modalStyles.submenuHeader}>
+              <Text style={modalStyles.submenuTitle}>
+                {activeSubmenu?.title || t('Options', { _tags: tags })}
+              </Text>
+              <TouchableOpacity onPress={() => setShowSubmenu(null)}>
+                <Text style={modalStyles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              {activeSubmenu?.submenuItems?.map((subItem) => {
+                if (subItem.type === 'switch') {
+                  return (
+                    <View key={subItem.id} style={modalStyles.submenuItem}>
+                      <View style={modalStyles.submenuItemContent}>
+                        <Text style={modalStyles.submenuItemText}>{subItem.title}</Text>
+                        {subItem.description && (
+                          <Text style={modalStyles.submenuItemDescription}>{subItem.description}</Text>
+                        )}
+                      </View>
+                      <Switch
+                        value={subItem.value as boolean}
+                        onValueChange={(value) => subItem.onValueChange?.(value)}
+                        disabled={subItem.disabled}
+                      />
+                    </View>
+                  );
+                }
+                if (subItem.type === 'input') {
+                  return (
+                    <View key={subItem.id} style={modalStyles.submenuItem}>
+                      <View style={modalStyles.submenuItemContent}>
+                        <Text style={modalStyles.submenuItemText}>{subItem.title}</Text>
+                        {subItem.description && (
+                          <Text style={modalStyles.submenuItemDescription}>{subItem.description}</Text>
+                        )}
+                        <TextInput
+                          style={[
+                            modalStyles.submenuInput,
+                            subItem.disabled && modalStyles.disabledInput,
+                            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                          ]}
+                          value={subItem.value as string}
+                          onChangeText={(text) => subItem.onValueChange?.(text)}
+                          placeholder={subItem.placeholder}
+                          placeholderTextColor={colors.textSecondary}
+                          keyboardType={subItem.keyboardType || 'default'}
+                          secureTextEntry={subItem.secureTextEntry}
+                          editable={!subItem.disabled}
+                        />
+                      </View>
+                    </View>
+                  );
+                }
+                return (
+                  <TouchableOpacity
+                    key={subItem.id}
+                    style={modalStyles.submenuItem}
+                    onPress={() => {
+                      subItem.onPress?.();
+                      if (subItem.type !== 'switch' && subItem.type !== 'input') {
+                        setShowSubmenu(null);
+                      }
+                    }}
+                    disabled={subItem.disabled}>
+                    <View style={modalStyles.submenuItemContent}>
+                      <Text style={[modalStyles.submenuItemText, subItem.disabled && modalStyles.disabledText]}>
+                        {subItem.title}
+                      </Text>
+                      {subItem.description && (
+                        <Text style={[modalStyles.submenuItemDescription, subItem.disabled && modalStyles.disabledText]}>
+                          {subItem.description}
+                        </Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
+
+const createModalStyles = (colors: any) => StyleSheet.create({
+  submenuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  submenuContainer: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  submenuHeader: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  submenuTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  closeButtonText: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  submenuItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  submenuItemContent: {
+    flexDirection: 'column',
+  },
+  submenuItemText: {
+    fontSize: 14,
+    color: colors.text,
+  },
+  submenuItemDescription: {
+    marginTop: 4,
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  submenuInput: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+  },
+  disabledText: {
+    color: colors.textSecondary,
+    opacity: 0.6,
+  },
+  disabledInput: {
+    opacity: 0.6,
+  },
+});

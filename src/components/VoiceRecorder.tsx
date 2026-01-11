@@ -25,7 +25,12 @@ import { useT } from '../i18n/transifex';
 import { mediaSettingsService } from '../services/MediaSettingsService';
 import RNFS from 'react-native-fs';
 import Video from 'react-native-video';
-import { Camera, useCameraDevice, useMicrophonePermission } from 'react-native-vision-camera';
+import AudioRecorderPlayer, {
+  AudioEncoderAndroidType,
+  AudioSourceAndroidType,
+  AVEncoderAudioQualityIOSType,
+  OutputFormatAndroidType,
+} from 'react-native-audio-recorder-player';
 
 interface VoiceRecorderProps {
   onRecordingComplete: (fileUri: string, duration: number) => void;
@@ -48,16 +53,11 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const waveformAnimRef = useRef(new Animated.Value(0)).current;
   const waveformAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
-  const cameraRef = useRef<Camera>(null);
-  const recordingPathRef = useRef<string | null>(null);
+  const recorderRef = useRef(AudioRecorderPlayer);
+  const stopRequestedRef = useRef(false);
   
-  // Use camera device for audio recording (react-native-vision-camera supports audio-only recording)
-  const device = useCameraDevice('back');
-  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } = useMicrophonePermission();
-
   // Load max duration from settings
   useEffect(() => {
     const loadSettings = async () => {
@@ -67,13 +67,42 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     loadSettings();
   }, []);
 
-  // Request microphone permission using react-native-vision-camera
+  // Request microphone permission
   const requestMicrophonePermission = async (): Promise<boolean> => {
-    if (!hasMicPermission) {
-      const granted = await requestMicPermission();
-      return granted;
+    if (Platform.OS !== 'android') {
+      return true;
     }
-    return hasMicPermission;
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+      {
+        title: t('Microphone permission'),
+        message: t('This app needs access to your microphone to record voice messages.'),
+        buttonNeutral: t('Ask me later'),
+        buttonNegative: t('Cancel'),
+        buttonPositive: t('OK'),
+      }
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  };
+
+  const getAudioSet = () => ({
+    AudioSourceAndroid: AudioSourceAndroidType.MIC,
+    OutputFormatAndroid: OutputFormatAndroidType.MPEG_4,
+    AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
+    AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
+    AVEncodingOptionIOS: 'aac',
+    AVFormatIDKeyIOS: 'aac',
+    AVNumberOfChannelsKeyIOS: 1,
+    AVSampleRateKeyIOS: 44100,
+  });
+
+  const handleRecordProgress = (positionMs: number) => {
+    const seconds = Math.floor(positionMs / 1000);
+    setDuration(seconds);
+    if (seconds >= maxDuration && !stopRequestedRef.current) {
+      stopRequestedRef.current = true;
+      stopRecording();
+    }
   };
 
   // Start recording
@@ -86,6 +115,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       }
 
       setError(null);
+      stopRequestedRef.current = false;
       setState('recording');
       setDuration(0);
 
@@ -97,69 +127,15 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       // Start waveform animation
       startWaveformAnimation();
 
-      // Start duration timer
-      durationIntervalRef.current = setInterval(() => {
-        setDuration((prev) => {
-          const newDuration = prev + 1;
-          
-          // Auto-stop at max duration
-          if (newDuration >= maxDuration) {
-            stopRecording();
-            return maxDuration;
-          }
-          
-          return newDuration;
-        });
-      }, 1000);
+      const recorder = recorderRef.current;
+      recorder.setSubscriptionDuration(0.2);
+      recorder.addRecordBackListener((meta) => {
+        if (meta?.currentPosition != null) {
+          handleRecordProgress(meta.currentPosition);
+        }
+      });
 
-      // Start audio recording using react-native-vision-camera
-      // Note: We use Camera component with audio-only mode
-      if (cameraRef.current && device) {
-        recordingPathRef.current = filePath;
-        
-        // Start recording audio-only video (will be saved as .m4a)
-        await cameraRef.current.startRecording({
-          fileType: 'mp4',
-          videoCodec: 'h264',
-          onRecordingFinished: async (video) => {
-            try {
-              // Copy audio file to cache directory
-              let audioPath = video.path;
-              if (!audioPath.startsWith('file://')) {
-                audioPath = `file://${audioPath}`;
-              }
-              
-              // Remove file:// prefix for RNFS operations
-              const normalizedAudioPath = audioPath.replace('file://', '');
-              const audioData = await RNFS.readFile(normalizedAudioPath, 'base64');
-              await RNFS.writeFile(filePath, audioData, 'base64');
-              
-              console.log('[VoiceRecorder] Recording saved:', filePath);
-              
-              // Update recordingUri to the saved file path
-              setRecordingUri(filePath);
-            } catch (err) {
-              console.error('[VoiceRecorder] Error saving recording:', err);
-              setError(t('Failed to save recording'));
-              setState('idle');
-            }
-          },
-          onRecordingError: (error) => {
-            console.error('[VoiceRecorder] Recording error:', error);
-            setError(error.message || t('Recording failed'));
-            setState('idle');
-            
-            // Stop duration timer
-            if (durationIntervalRef.current) {
-              clearInterval(durationIntervalRef.current);
-              durationIntervalRef.current = null;
-            }
-            stopWaveformAnimation();
-          },
-        });
-      } else {
-        console.log('[VoiceRecorder] Camera not available, using placeholder');
-      }
+      await recorder.startRecorder(filePath, getAudioSet(), true);
       
       console.log('[VoiceRecorder] Recording started:', filePath);
     } catch (err: any) {
@@ -172,66 +148,38 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   // Stop recording
   const stopRecording = async () => {
     try {
-      if (durationIntervalRef.current) {
-        clearInterval(durationIntervalRef.current);
-        durationIntervalRef.current = null;
-      }
-
       stopWaveformAnimation();
 
-      // Stop camera recording if active
-      if (cameraRef.current && state === 'recording') {
-        try {
-          await cameraRef.current.stopRecording();
-        } catch (err) {
-          console.error('[VoiceRecorder] Error stopping recording:', err);
-        }
-      }
+      const recorder = recorderRef.current;
+      recorder.removeRecordBackListener();
 
       console.log('[VoiceRecorder] Recording stopped');
 
-      if (duration > 0 && recordingUri) {
-        // Wait for file to be saved by onRecordingFinished callback
-        // The callback copies the file to cache directory asynchronously
-        let fileExists = false;
-        let retries = 0;
-        const maxRetries = 10; // Wait up to 1 second (10 x 100ms)
-
-        while (!fileExists && retries < maxRetries) {
-          const exists = await RNFS.exists(recordingUri);
-          if (exists) {
-            fileExists = true;
-            break;
-          }
-
-          // Check alternative path if available
-          if (recordingPathRef.current) {
-            const pathExists = await RNFS.exists(recordingPathRef.current);
-            if (pathExists) {
-              setRecordingUri(recordingPathRef.current);
-              fileExists = true;
-              break;
-            }
-          }
-
-          // Wait 100ms before retrying
-          await new Promise(resolve => setTimeout(resolve, 100));
-          retries++;
+      let finalPath = recordingUri;
+      if (state === 'recording') {
+        const recordedPath = await recorder.stopRecorder();
+        const normalizedPath = recordedPath?.startsWith('file://')
+          ? recordedPath.replace('file://', '')
+          : recordedPath;
+        if (normalizedPath) {
+          finalPath = normalizedPath;
+          setRecordingUri(normalizedPath);
         }
+      }
 
-        if (!fileExists) {
-          console.warn('[VoiceRecorder] Recording file not found after', retries, 'retries');
+      if (duration > 0 && finalPath) {
+        const exists = await RNFS.exists(finalPath);
+        if (!exists) {
           setError(t('Recording file not found'));
           setState('idle');
           return;
         }
-
-        console.log('[VoiceRecorder] Recording file verified after', retries, 'retries');
         setState('recorded');
-      } else {
-        setState('idle');
-        setRecordingUri(null);
+        return;
       }
+
+      setState('idle');
+      setRecordingUri(null);
     } catch (err: any) {
       console.error('[VoiceRecorder] Stop recording error:', err);
       setError(err.message || t('Failed to stop recording'));
@@ -328,9 +276,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (durationIntervalRef.current) {
-        clearInterval(durationIntervalRef.current);
-      }
+      recorderRef.current.removeRecordBackListener();
+      recorderRef.current.stopRecorder().catch(() => {});
       stopWaveformAnimation();
       if (recordingUri) {
         RNFS.unlink(recordingUri).catch(() => {});
@@ -369,18 +316,6 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Hidden camera for audio recording */}
-      {device && hasMicPermission && (
-        <Camera
-          ref={cameraRef}
-          style={{ width: 0, height: 0, position: 'absolute', opacity: 0 }}
-          device={device}
-          isActive={state === 'recording'}
-          video={true}
-          audio={true}
-        />
-      )}
-
       {/* Error message */}
       {error && (
         <View style={styles.errorContainer}>

@@ -23,6 +23,7 @@ declare const ErrorUtils: {
   setGlobalHandler: (handler: (error: Error, isFatal?: boolean) => void) => void;
 };
 import RNBootSplash from 'react-native-bootsplash';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -98,7 +99,6 @@ import { useUserListActions } from './src/hooks/useUserListActions';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
 import { useLazyMessageHistory } from './src/hooks/useLazyMessageHistory';
 import { useDeepLinkHandler } from './src/hooks/useDeepLinkHandler';
-import { useKeyboardInset } from './src/hooks/useKeyboardInset';
 import { killSwitchService } from './src/services/KillSwitchService';
 import {
   serverTabId,
@@ -125,10 +125,12 @@ function App() {
 
   return (
     <TXProvider tx={tx}>
-      <SafeAreaProvider>
-        <StatusBar barStyle="light-content" backgroundColor="#2196F3" />
-        <AppContent />
-      </SafeAreaProvider>
+      <KeyboardProvider>
+        <SafeAreaProvider>
+          <StatusBar barStyle="light-content" backgroundColor="#2196F3" />
+          <AppContent />
+        </SafeAreaProvider>
+      </KeyboardProvider>
     </TXProvider>
   );
 }
@@ -342,6 +344,11 @@ function AppContent() {
   const [tabSortAlphabetical, setTabSortAlphabetical] = useState(true);
   const [showHeaderSearchButton, setShowHeaderSearchButton] = useState(true);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [keyboardAvoidingEnabled, setKeyboardAvoidingEnabled] = useState(true);
+  const [keyboardBehaviorIOS, setKeyboardBehaviorIOS] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('padding');
+  const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('height');
+  const [keyboardVerticalOffset, setKeyboardVerticalOffset] = useState(0);
+  const [useAndroidBottomSafeArea, setUseAndroidBottomSafeArea] = useState(true);
 
   const pendingAlertRef = useRef<{ title: string; message?: string; buttons?: any } | null>(null);
   const motdCompleteRef = useRef<Set<string>>(new Set());
@@ -397,6 +404,47 @@ function AppContent() {
 
     return () => {
       unsubscribe && unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    const loadKeyboardSettings = async () => {
+      const avoidingEnabled = await settingsService.getSetting('keyboardAvoidingEnabled', true);
+      const behaviorIOS = await settingsService.getSetting('keyboardBehaviorIOS', 'padding');
+      const behaviorAndroid = await settingsService.getSetting('keyboardBehaviorAndroid', 'height');
+      const verticalOffset = await settingsService.getSetting('keyboardVerticalOffset', 0);
+      const androidBottomSafeArea = await settingsService.getSetting('useAndroidBottomSafeArea', true);
+      setKeyboardAvoidingEnabled(avoidingEnabled);
+      setKeyboardBehaviorIOS(behaviorIOS);
+      setKeyboardBehaviorAndroid(behaviorAndroid);
+      setKeyboardVerticalOffset(verticalOffset);
+      setUseAndroidBottomSafeArea(androidBottomSafeArea);
+    };
+    loadKeyboardSettings();
+
+    const unsubscribeAvoiding = settingsService.onSettingChange<boolean>('keyboardAvoidingEnabled', (value) => {
+      setKeyboardAvoidingEnabled(Boolean(value));
+    });
+    const unsubscribeBehaviorIOS = settingsService.onSettingChange<string>('keyboardBehaviorIOS', (value) => {
+      setKeyboardBehaviorIOS(value as 'padding' | 'height' | 'position' | 'translate-with-padding');
+    });
+    const unsubscribeBehaviorAndroid = settingsService.onSettingChange<string>('keyboardBehaviorAndroid', (value) => {
+      setKeyboardBehaviorAndroid(value as 'padding' | 'height' | 'position' | 'translate-with-padding');
+    });
+    const unsubscribeVerticalOffset = settingsService.onSettingChange<number>('keyboardVerticalOffset', (value) => {
+      const numericValue = typeof value === 'number' ? value : Number(value);
+      setKeyboardVerticalOffset(Number.isFinite(numericValue) ? numericValue : 0);
+    });
+    const unsubscribeAndroidSafeArea = settingsService.onSettingChange<boolean>('useAndroidBottomSafeArea', (value) => {
+      setUseAndroidBottomSafeArea(Boolean(value));
+    });
+
+    return () => {
+      unsubscribeAvoiding();
+      unsubscribeBehaviorIOS();
+      unsubscribeBehaviorAndroid();
+      unsubscribeVerticalOffset();
+      unsubscribeAndroidSafeArea();
     };
   }, []);
 
@@ -470,7 +518,6 @@ function AppContent() {
   useLazyMessageHistory({ activeTabId });
 
   const layoutConfig = useLayoutConfig();
-  const keyboardInset = useKeyboardInset();
   const [sideTabsVisible, setSideTabsVisible] = useState(true);
 
   useEffect(() => {
@@ -719,7 +766,11 @@ function AppContent() {
         appLocked={appLocked}
         showUserList={showUserList}
         safeAreaInsets={safeAreaInsets}
-        keyboardInset={keyboardInset}
+        keyboardAvoidingEnabled={keyboardAvoidingEnabled}
+        keyboardBehaviorIOS={keyboardBehaviorIOS}
+        keyboardBehaviorAndroid={keyboardBehaviorAndroid}
+        keyboardVerticalOffset={keyboardVerticalOffset}
+        useAndroidBottomSafeArea={useAndroidBottomSafeArea}
         styles={styles}
         handleTabPress={handleTabPress}
         handleTabLongPress={handleTabLongPress}

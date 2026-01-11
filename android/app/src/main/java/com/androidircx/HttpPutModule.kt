@@ -6,6 +6,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import java.io.File
 import java.io.FileInputStream
 import java.net.HttpURLConnection
@@ -25,6 +27,7 @@ class HttpPutModule(reactContext: ReactApplicationContext) :
         urlString: String,
         filePath: String,
         headers: ReadableMap?,
+        uploadId: String?,
         promise: Promise
     ) {
         try {
@@ -90,10 +93,16 @@ class HttpPutModule(reactContext: ReactApplicationContext) :
             val buffer = ByteArray(8192)
             var bytesRead: Int
             var totalBytesWritten = 0L
+            var lastEmittedBytes = 0L
+            val emitThreshold = 256 * 1024 // 256KB
 
             while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                 outputStream.write(buffer, 0, bytesRead)
                 totalBytesWritten += bytesRead
+                if (totalBytesWritten - lastEmittedBytes >= emitThreshold) {
+                    emitProgress(uploadId, totalBytesWritten, fileSize)
+                    lastEmittedBytes = totalBytesWritten
+                }
             }
 
             inputStream.close()
@@ -101,6 +110,7 @@ class HttpPutModule(reactContext: ReactApplicationContext) :
             outputStream.close()
 
             Log.d(TAG, "File uploaded, bytes written: $totalBytesWritten")
+            emitProgress(uploadId, totalBytesWritten, fileSize)
 
             // Get response
             val responseCode = connection.responseCode
@@ -150,5 +160,20 @@ class HttpPutModule(reactContext: ReactApplicationContext) :
                 e
             )
         }
+    }
+
+    private fun emitProgress(uploadId: String?, bytesWritten: Long, totalBytes: Long) {
+        val emitter = reactApplicationContext
+            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        val payload = Arguments.createMap().apply {
+            putString("uploadId", uploadId)
+            putDouble("bytesWritten", bytesWritten.toDouble())
+            putDouble("totalBytes", totalBytes.toDouble())
+            putDouble(
+                "percentage",
+                if (totalBytes > 0) (bytesWritten.toDouble() / totalBytes.toDouble()) * 100.0 else 0.0
+            )
+        }
+        emitter.emit("HttpPutProgress", payload)
     }
 }

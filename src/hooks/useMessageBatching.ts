@@ -89,7 +89,25 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
           }
         }
 
-        const tabIndex = newTabs.findIndex(t => t.id === targetTabId);
+        let tabIndex = newTabs.findIndex(t => t.id === targetTabId);
+        if (tabIndex === -1 && messageNetwork && message?.channel) {
+          const normalizedName = message.channel.toLowerCase();
+          if (targetTabType === 'channel') {
+            tabIndex = newTabs.findIndex(
+              t =>
+                t.type === 'channel' &&
+                t.networkId === messageNetwork &&
+                t.name.toLowerCase() === normalizedName
+            );
+          } else if (targetTabType === 'query') {
+            tabIndex = newTabs.findIndex(
+              t =>
+                t.type === 'query' &&
+                t.networkId === messageNetwork &&
+                t.name.toLowerCase() === normalizedName
+            );
+          }
+        }
 
         if (tabIndex === -1) {
           // Create new tab
