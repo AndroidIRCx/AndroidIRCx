@@ -206,9 +206,33 @@ const getModeColor = (modes?: string[], colors?: any): string => {
   }, [users]);
 
   const sortedUsers = useMemo(() => {
-    return [...users].sort((a, b) =>
-      a.nick.toLowerCase().localeCompare(b.nick.toLowerCase())
-    );
+    // Sort by mode priority first, then alphabetically
+    const modePriority: { [key: string]: number } = {
+      'q': 0, // owner
+      'a': 1, // admin
+      'o': 2, // operator
+      'h': 3, // halfop
+      'v': 4, // voice
+    };
+
+    return [...users].sort((a, b) => {
+      // Get highest priority mode for each user
+      const getHighestPriority = (modes: string[]): number => {
+        if (modes.length === 0) return 99; // No modes
+        return Math.min(...modes.map(m => modePriority[m] ?? 99));
+      };
+
+      const aPriority = getHighestPriority(a.modes);
+      const bPriority = getHighestPriority(b.modes);
+
+      // First sort by mode priority
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+
+      // Then sort alphabetically by nick
+      return a.nick.toLowerCase().localeCompare(b.nick.toLowerCase());
+    });
   }, [users]);
 
   const filteredUsers = useMemo(() => {
@@ -838,7 +862,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                     onPress={() => toggleGroup('q')}
                     activeOpacity={0.7}>
                     <Text style={[styles.modeGroupTitle, { color: getModeColor(['q'], colors) }]}>
-                      {collapsedGroups.has('q') ? '?' : ''} {getUserModeDescription('q')?.name || 'Owner'} ({filteredGroupedUsers.q.length})
+                      {collapsedGroups.has('q') ? '▶ ' : '▼ '}{getUserModeDescription('q')?.name || 'Owner'} ({filteredGroupedUsers.q.length})
                     </Text>
                   </TouchableOpacity>
                   {!collapsedGroups.has('q') && filteredGroupedUsers.q.map((user, index) => (
@@ -855,7 +879,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                     onPress={() => toggleGroup('a')}
                     activeOpacity={0.7}>
                     <Text style={[styles.modeGroupTitle, { color: getModeColor(['a'], colors) }]}>
-                      {collapsedGroups.has('a') ? '?' : ''} {getUserModeDescription('a')?.name || 'Admin'} ({filteredGroupedUsers.a.length})
+                      {collapsedGroups.has('a') ? '▶ ' : '▼ '}{getUserModeDescription('a')?.name || 'Admin'} ({filteredGroupedUsers.a.length})
                     </Text>
                   </TouchableOpacity>
                   {!collapsedGroups.has('a') && filteredGroupedUsers.a.map((user, index) => (
@@ -872,7 +896,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                     onPress={() => toggleGroup('o')}
                     activeOpacity={0.7}>
                     <Text style={[styles.modeGroupTitle, { color: getModeColor(['o'], colors) }]}>
-                      {collapsedGroups.has('o') ? '?' : ''} {getUserModeDescription('o')?.name || 'Operator'} ({filteredGroupedUsers.o.length})
+                      {collapsedGroups.has('o') ? '▶ ' : '▼ '}{getUserModeDescription('o')?.name || 'Operator'} ({filteredGroupedUsers.o.length})
                     </Text>
                   </TouchableOpacity>
                   {!collapsedGroups.has('o') && filteredGroupedUsers.o.map((user, index) => (
@@ -889,7 +913,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                     onPress={() => toggleGroup('h')}
                     activeOpacity={0.7}>
                     <Text style={[styles.modeGroupTitle, { color: getModeColor(['h'], colors) }]}>
-                      {collapsedGroups.has('h') ? '?' : ''} {getUserModeDescription('h')?.name || 'Half-Operator'} ({filteredGroupedUsers.h.length})
+                      {collapsedGroups.has('h') ? '▶ ' : '▼ '}{getUserModeDescription('h')?.name || 'Half-Operator'} ({filteredGroupedUsers.h.length})
                     </Text>
                   </TouchableOpacity>
                   {!collapsedGroups.has('h') && filteredGroupedUsers.h.map((user, index) => (
@@ -906,7 +930,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                     onPress={() => toggleGroup('v')}
                     activeOpacity={0.7}>
                     <Text style={[styles.modeGroupTitle, { color: getModeColor(['v'], colors) }]}>
-                      {collapsedGroups.has('v') ? '?' : ''} {getUserModeDescription('v')?.name || 'Voice'} ({filteredGroupedUsers.v.length})
+                      {collapsedGroups.has('v') ? '▶ ' : '▼ '}{getUserModeDescription('v')?.name || 'Voice'} ({filteredGroupedUsers.v.length})
                     </Text>
                   </TouchableOpacity>
                   {!collapsedGroups.has('v') && filteredGroupedUsers.v.map((user, index) => (
@@ -923,7 +947,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                     onPress={() => toggleGroup('none')}
                     activeOpacity={0.7}>
                     <Text style={styles.modeGroupTitle}>
-                      {collapsedGroups.has('none') ? '?' : ''} {t('Users')} ({filteredGroupedUsers.none.length})
+                      {collapsedGroups.has('none') ? '▶ ' : '▼ '}{t('Users')} ({filteredGroupedUsers.none.length})
                     </Text>
                   </TouchableOpacity>
                   {!collapsedGroups.has('none') && filteredGroupedUsers.none.map((user, index) => (

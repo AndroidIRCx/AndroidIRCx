@@ -212,6 +212,16 @@
 -keep class com.nitromodules.** { *; }
 -dontwarn com.nitromodules.**
 
+# Nitro Audio Recorder Player (Margelo)
+-keep class com.margelo.nitro.audiorecorderplayer.** { *; }
+-keep @com.facebook.proguard.annotations.DoNotStrip class * { *; }
+-keep @com.facebook.proguard.annotations.KeepGettersAndSetters class * { *; }
+-keepclassmembers class com.margelo.nitro.audiorecorderplayer.HybridAudioRecorderPlayer {
+    *;
+}
+-keepnames class com.margelo.nitro.audiorecorderplayer.** { *; }
+-dontwarn com.margelo.nitro.audiorecorderplayer.**
+
 # QR Code SVG
 -keep class com.reactnativeqrcodesvg.** { *; }
 -dontwarn com.reactnativeqrcodesvg.**

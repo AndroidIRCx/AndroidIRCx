@@ -303,6 +303,31 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
 
         if (message.type === 'raw' || message.isRaw) {
           // Raw/system messages should stay on the server tab
+          // EXCEPT: connection messages (disconnect, etc.) should follow notice routing if server tab doesn't exist
+          // This prevents recreating a closed server tab when user manually closes it
+          if (message.rawCategory === 'connection' && hasValidNetwork) {
+            const serverTab = latest.tabsRef.current?.find((t: ChannelTab) => t.id === serverTabId(messageNetwork));
+            if (!serverTab) {
+              // Server tab doesn't exist (user closed it), follow notice routing instead
+              if (!forceServerNotice && noticeTargetPref === 'active' && currentActiveTab && isSameNetworkAsActive) {
+                targetTabId = currentActiveTab.id;
+                targetTabType = currentActiveTab.type;
+              } else if (!forceServerNotice && noticeTargetPref === 'notice') {
+                targetTabId = noticeTabId(messageNetwork);
+                targetTabType = 'channel';
+              } else if (!forceServerNotice && noticeTargetPref === 'private' && currentActiveTab) {
+                // For private routing, use the current active tab if it's a query, otherwise fallback to notice tab
+                if (currentActiveTab.type === 'query') {
+                  targetTabId = currentActiveTab.id;
+                  targetTabType = 'query';
+                } else {
+                  targetTabId = noticeTabId(messageNetwork);
+                  targetTabType = 'channel';
+                }
+              }
+              // If noticeTargetPref is 'server' or no valid routing found, stay on default server tab (will be created)
+            }
+          }
         } else if (message.type === 'notice') {
           if (!forceServerNotice && noticeTargetPref === 'active' && currentActiveTab && isSameNetworkAsActive) {
             targetTabId = currentActiveTab.id;
