@@ -71,7 +71,7 @@
     "@testing-library/react-native": "^13.3.3",
     "@transifex/cli": "^7.1.5",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.0.3",
+    "@types/node": "^25.0.6",
     "@types/react": "^19.2.7",
     "@types/react-test-renderer": "^19.1.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
