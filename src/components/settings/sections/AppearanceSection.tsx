@@ -63,7 +63,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     const loadSettings = async () => {
       const enabled = await settingsService.getSetting('showHeaderSearchButton', true);
       setShowHeaderSearchButton(enabled);
-      const messageAreaEnabled = await settingsService.getSetting('showMessageAreaSearchButton', true);
+      const messageAreaEnabled = await settingsService.getSetting('showMessageAreaSearchButton', false);
       setShowMessageAreaSearchButton(messageAreaEnabled);
     };
     loadSettings();

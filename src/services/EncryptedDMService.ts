@@ -666,15 +666,30 @@ class EncryptedDMService {
     return sodium.crypto_generichash(32, shared);
   }
 
+  async getMessageKeyForNetwork(network: string, nick: string): Promise<Uint8Array> {
+    await this.ensureReady();
+    const bundle = await this.getBundleForNetwork(network, nick);
+    if (!bundle) throw new Error(t('No bundle'));
+    return this.deriveKey(bundle.encPub);
+  }
+
+  private buildMessageAAD(network: string | null, nick: string): string {
+    if (network) {
+      return `dmmsg:${network}:${nick}`;
+    }
+    return `dmmsg:legacy:${nick}`;
+  }
+
   async encrypt(plaintext: string, nick: string) {
     await this.ensureReady();
     const bundle = await this.getBundle(nick);
     if (!bundle) throw new Error(t('No bundle'));
     const key = await this.deriveKey(bundle.encPub);
+    const aad = this.buildMessageAAD(null, nick);
     const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
     const cipher = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       this.fromString(plaintext),
-      '',  // additional_data must be string (not null) for native
+      aad,
       null,
       nonce,
       key,
@@ -695,13 +710,25 @@ class EncryptedDMService {
     if (!bundle) throw new Error(t('Missing bundle'));
     if (bundle.encPub !== msg.from) throw new Error(t('Public key mismatch'));
     const key = await this.deriveKey(bundle.encPub);
-    const plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-      null,
-      this.fromB64(msg.cipher),
-      '',  // additional_data must be string (not null) for native
-      this.fromB64(msg.nonce),
-      key,
-    );
+    const aad = this.buildMessageAAD(null, fromNick);
+    let plain: Uint8Array;
+    try {
+      plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null,
+        this.fromB64(msg.cipher),
+        aad,
+        this.fromB64(msg.nonce),
+        key,
+      );
+    } catch (error) {
+      plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null,
+        this.fromB64(msg.cipher),
+        '',
+        this.fromB64(msg.nonce),
+        key,
+      );
+    }
     return this.toString(plain);
   }
 
@@ -711,10 +738,11 @@ class EncryptedDMService {
     const bundle = await this.getBundleForNetwork(network, nick);
     if (!bundle) throw new Error(t('No bundle'));
     const key = await this.deriveKey(bundle.encPub);
+    const aad = this.buildMessageAAD(network, nick);
     const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
     const cipher = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       this.fromString(plaintext),
-      '',  // additional_data must be string (not null) for native
+      aad,
       null,
       nonce,
       key,
@@ -735,13 +763,25 @@ class EncryptedDMService {
     if (!bundle) throw new Error(t('Missing bundle'));
     if (bundle.encPub !== msg.from) throw new Error(t('Public key mismatch'));
     const key = await this.deriveKey(bundle.encPub);
-    const plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-      null,
-      this.fromB64(msg.cipher),
-      '',  // additional_data must be string (not null) for native
-      this.fromB64(msg.nonce),
-      key,
-    );
+    const aad = this.buildMessageAAD(network, fromNick);
+    let plain: Uint8Array;
+    try {
+      plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null,
+        this.fromB64(msg.cipher),
+        aad,
+        this.fromB64(msg.nonce),
+        key,
+      );
+    } catch (error) {
+      plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null,
+        this.fromB64(msg.cipher),
+        '',
+        this.fromB64(msg.nonce),
+        key,
+      );
+    }
     return this.toString(plain);
   }
 

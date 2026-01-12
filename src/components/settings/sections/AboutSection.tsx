@@ -41,6 +41,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
       title: t('About AndroidIRCX', { _tags: tags }),
       description: t('App information and credits', { _tags: tags }),
       type: 'button',
+      searchKeywords: ['about', 'app', 'information', 'credits', 'version', 'androidircx', 'developer', 'info'],
       onPress: onShowAbout,
     },
   ];

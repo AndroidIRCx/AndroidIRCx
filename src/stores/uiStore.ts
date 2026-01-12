@@ -349,11 +349,8 @@ export const useUIStore = create<UIState>()(
       storage: createJSONStorage(() => AsyncStorage),
       // Persist important UI settings - explicitly exclude modal visibility states
       partialize: (state) => ({
-        appLockEnabled: state.appLockEnabled,
-        appLockUseBiometric: state.appLockUseBiometric,
-        appLockUsePin: state.appLockUsePin,
-        appLockOnLaunch: state.appLockOnLaunch,
-        appLockOnBackground: state.appLockOnBackground,
+        // NOTE: App lock settings are NOT persisted here - they are managed by settingsService
+        // to maintain a single source of truth and avoid sync issues
         scriptingTimeMs: state.scriptingTimeMs,
         adFreeTimeMs: state.adFreeTimeMs,
         showRawCommands: state.showRawCommands,

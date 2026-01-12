@@ -23,6 +23,9 @@ class IRCForegroundService : Service() {
         const val ACTION_START = "com.androidircx.action.START_FOREGROUND_SERVICE"
         const val ACTION_STOP = "com.androidircx.action.STOP_FOREGROUND_SERVICE"
         const val ACTION_UPDATE = "com.androidircx.action.UPDATE_FOREGROUND_SERVICE"
+        const val ACTION_DISCONNECT_QUIT = "com.androidircx.action.DISCONNECT_QUIT"
+        const val ACTION_DISCONNECT_QUIT_BROADCAST =
+            "com.androidircx.action.DISCONNECT_QUIT_BROADCAST"
         const val EXTRA_NETWORK_NAME = "network_name"
         const val EXTRA_NOTIFICATION_TITLE = "notification_title"
         const val EXTRA_NOTIFICATION_TEXT = "notification_text"
@@ -70,6 +73,11 @@ class IRCForegroundService : Service() {
             ACTION_STOP -> {
                 stopForegroundService()
             }
+
+            ACTION_DISCONNECT_QUIT -> {
+                sendDisconnectQuitBroadcast()
+                stopForegroundService()
+            }
         }
 
         // If service is killed by system, restart it
@@ -99,11 +107,22 @@ class IRCForegroundService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val disconnectIntent = Intent(this, IRCForegroundService::class.java).apply {
+            action = ACTION_DISCONNECT_QUIT
+        }
+        val disconnectPendingIntent = PendingIntent.getService(
+            this,
+            1,
+            disconnectIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentIntent(pendingIntent)
+            .addAction(R.drawable.ic_notification, "Disconnect & Quit", disconnectPendingIntent)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
@@ -132,6 +151,13 @@ class IRCForegroundService : Service() {
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun sendDisconnectQuitBroadcast() {
+        val intent = Intent(ACTION_DISCONNECT_QUIT_BROADCAST).apply {
+            setPackage(packageName)
+        }
+        sendBroadcast(intent)
     }
 
     private fun stopForegroundService() {

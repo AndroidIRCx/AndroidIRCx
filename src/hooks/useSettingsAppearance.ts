@@ -38,7 +38,8 @@ export const useSettingsAppearance = (): UseSettingsAppearanceReturn => {
     const loadSettings = async () => {
       const lang = await settingsService.getSetting<string>('appLanguage', 'system');
       setAppLanguageState(lang);
-      
+
+      await layoutService.initialize();
       const config = layoutService.getConfig();
       setLayoutConfig(config);
     };

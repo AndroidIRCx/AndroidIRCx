@@ -52,6 +52,11 @@ class ChannelEncryptionService {
     return normalized.replace(/ \(\d+\)$/, '');
   }
 
+  private buildMessageAAD(channel: string, network: string): string {
+    const canonicalNetwork = this.canonicalizeNetwork(network);
+    return `chanmsg:${canonicalNetwork}:${channel}`;
+  }
+
   private getStorageKey(channel: string, network: string): string {
     const canonicalNetwork = this.canonicalizeNetwork(network);
     return `${CHANNEL_KEY_PREFIX}${canonicalNetwork.toLowerCase()}:${channel.toLowerCase()}`;
@@ -114,9 +119,10 @@ class ChannelEncryptionService {
 
     const key = this.fromB64(channelKey.key);
     const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+    const aad = this.buildMessageAAD(channel, network);
     const cipher = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       this.fromString(plaintext),
-      '',
+      aad,
       null,
       nonce,
       key,
@@ -138,13 +144,25 @@ class ChannelEncryptionService {
     if (!channelKey) throw new Error('no channel key');
 
     const key = this.fromB64(channelKey.key);
-    const plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-      null,
-      this.fromB64(msg.cipher),
-      '',
-      this.fromB64(msg.nonce),
-      key,
-    );
+    const aad = this.buildMessageAAD(channel, network);
+    let plain: Uint8Array;
+    try {
+      plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null,
+        this.fromB64(msg.cipher),
+        aad,
+        this.fromB64(msg.nonce),
+        key,
+      );
+    } catch (error) {
+      plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null,
+        this.fromB64(msg.cipher),
+        '',
+        this.fromB64(msg.nonce),
+        key,
+      );
+    }
 
     return this.toString(plain);
   }

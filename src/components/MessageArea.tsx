@@ -427,7 +427,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
   const [copyStatus, setCopyStatus] = useState('');
   const selectionMode = selectedMessageIds.size > 0;
-  const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] = useState(true);
+  const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] = useState(false);
 
   // Search state (controlled or uncontrolled)
   const [internalSearchVisible, setInternalSearchVisible] = useState(false);
@@ -454,7 +454,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
   useEffect(() => {
     const loadSetting = async () => {
-      const enabled = await settingsService.getSetting('showMessageAreaSearchButton', true);
+      const enabled = await settingsService.getSetting('showMessageAreaSearchButton', false);
       setShowMessageAreaSearchButton(enabled);
     };
     loadSetting();

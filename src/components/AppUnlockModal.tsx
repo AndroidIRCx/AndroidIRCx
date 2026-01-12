@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, TouchableOpacity, View, Text, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { useSettingsSecurity } from '../hooks/useSettingsSecurity';
 
 interface AppUnlockModalProps {
   visible: boolean;
@@ -32,6 +33,7 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
   styles,
 }) => {
   const [showKillSwitchConfirm, setShowKillSwitchConfirm] = useState(false);
+  const { killSwitchCustomName, killSwitchCustomIcon, killSwitchCustomColor } = useSettingsSecurity();
 
   const handlePinChange = (text: string) => {
     const sanitized = text.replace(/[^0-9]/g, '');
@@ -107,11 +109,11 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
           {/* Kill Switch Button - only show if enabled */}
           {onKillSwitch && (
             <TouchableOpacity
-              style={[styles.killSwitchButton, { borderColor: colors.error || '#f44336' }]}
+              style={[styles.killSwitchButton, { borderColor: killSwitchCustomColor }]}
               onPress={handleKillSwitchPress}>
-              <Icon name="skull" size={16} color={colors.error || '#f44336'} solid style={{ marginRight: 8 }} />
-              <Text style={[styles.killSwitchText, { color: colors.error || '#f44336' }]}>
-                🚨 Kill Switch
+              <Icon name={killSwitchCustomIcon} size={16} color={killSwitchCustomColor} solid style={{ marginRight: 8 }} />
+              <Text style={[styles.killSwitchText, { color: killSwitchCustomColor }]}>
+                {killSwitchCustomName}
               </Text>
             </TouchableOpacity>
           )}

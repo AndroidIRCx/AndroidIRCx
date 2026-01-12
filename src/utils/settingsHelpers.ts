@@ -107,34 +107,61 @@ export const filterSettings = (
 export const orderSections = (
   sections: SettingsSection[],
   isSupporter: boolean = false,
-  hasNoAds: boolean = false
+  hasNoAds: boolean = false,
+  hasScriptingPro: boolean = false
 ): SettingsSection[] => {
-  // Define section order - logically grouped
-  const sectionOrder: string[] = [
-    'Premium',                    // Premium features first
-    'Appearance',                 // Visual customization
-    'Display & UI',               // UI layout and display
-    'Messages & History',         // Message handling and history
-    'Media',                      // Encrypted media sharing
-    'Notifications',             // Notification settings
-    'Highlighting',              // Message highlighting
-    'Connection & Network',       // Network, bouncer, proxy, etc.
-    'Security',                   // Security and quick connect
-    'Users & Services',          // User management
-    'Commands',                   // Command aliases and custom commands
-    'Performance',               // Performance optimization
-    'Background & Battery',      // Background service and battery
-    'Scripting & Ads',           // Scripting and ad preferences
-    'Privacy & Legal',           // Privacy and legal info
-    'Development',                // Dev-only settings
-    'About',                     // About and info
+  // Check if user has any premium status
+  const isPremiumUser = isSupporter || hasNoAds || hasScriptingPro;
+
+  // Define section order - Premium at top for non-paying, at bottom for paying
+  const sectionOrderForPremium: string[] = [
+    'Premium',                    // Premium features first for non-paying users
+    'Appearance',
+    'Display & UI',
+    'Messages & History',
+    'Media',
+    'Notifications',
+    'Highlighting',
+    'Connection & Network',
+    'Security',
+    'Users & Services',
+    'Commands',
+    'Performance',
+    'Background & Battery',
+    'Scripting & Ads',
+    'Privacy & Legal',
+    'Development',
+    'About',
   ];
+
+  const sectionOrderForRegular: string[] = [
+    'Appearance',
+    'Display & UI',
+    'Messages & History',
+    'Media',
+    'Notifications',
+    'Highlighting',
+    'Connection & Network',
+    'Security',
+    'Users & Services',
+    'Commands',
+    'Performance',
+    'Background & Battery',
+    'Scripting & Ads',
+    'Privacy & Legal',
+    'Development',
+    'About',
+    'Premium',                    // Premium at bottom for paying users
+  ];
+
+  // Choose order based on premium status
+  const sectionOrder = isPremiumUser ? sectionOrderForRegular : sectionOrderForPremium;
 
   // Sort sections based on order
   const ordered = [...sections].sort((a, b) => {
     const aIndex = sectionOrder.indexOf(a.title);
     const bIndex = sectionOrder.indexOf(b.title);
-    
+
     // If both are in order, use order
     if (aIndex !== -1 && bIndex !== -1) {
       return aIndex - bIndex;
@@ -145,11 +172,6 @@ export const orderSections = (
     // If neither is in order, maintain original order
     return 0;
   });
-
-  // Filter out premium section if user doesn't have premium
-  if (!isSupporter && !hasNoAds) {
-    return ordered.filter(section => section.title !== 'Premium');
-  }
 
   return ordered;
 };
@@ -240,14 +262,8 @@ export const buildGlobalProxyConfig = (
  */
 export const toggleSectionExpansion = (
   sectionTitle: string,
-  expandedSections: Set<string>,
-  alwaysExpandedSections: string[] = ['About']
+  expandedSections: Set<string>
 ): Set<string> => {
-  // Don't allow collapsing always-expanded sections
-  if (alwaysExpandedSections.includes(sectionTitle)) {
-    return expandedSections;
-  }
-
   const newExpandedSections = new Set(expandedSections);
   if (newExpandedSections.has(sectionTitle)) {
     newExpandedSections.delete(sectionTitle);

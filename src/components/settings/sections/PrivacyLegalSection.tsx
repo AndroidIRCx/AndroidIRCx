@@ -43,6 +43,7 @@ export const PrivacyLegalSection: React.FC<PrivacyLegalSectionProps> = ({
       title: t('My Data & Privacy', { _tags: tags }),
       description: t('Export or delete your data (GDPR/CCPA rights)', { _tags: tags }),
       type: 'button',
+      searchKeywords: ['data', 'privacy', 'export', 'delete', 'gdpr', 'ccpa', 'rights', 'personal', 'information'],
       onPress: onShowDataPrivacy,
     },
     {
@@ -50,6 +51,7 @@ export const PrivacyLegalSection: React.FC<PrivacyLegalSectionProps> = ({
       title: t('Privacy & Ads', { _tags: tags }),
       description: t('Manage consent for personalized ads and watch ads for rewards', { _tags: tags }),
       type: 'button',
+      searchKeywords: ['privacy', 'ads', 'consent', 'personalized', 'advertising', 'rewards', 'watch', 'manage'],
       onPress: onShowPrivacyAds,
     },
   ];

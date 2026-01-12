@@ -1,6 +1,0 @@
-v1.5.8 - Critical Bug Fixes:
-• Fixed auto-reconnect not working with multiple networks
-• Fixed messages not showing after returning from background notification
-• Fixed lock screen freeze after app stays in background overnight
-• Biometric unlock now activates only when you tap the button (not automatically)
-• Improved app stability and performance after long background periods

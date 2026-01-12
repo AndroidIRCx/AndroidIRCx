@@ -1,5 +1,6 @@
-import React from 'react';
-import { Alert } from 'react-native';
+import React, { useState } from 'react';
+import { Modal, ScrollView, TouchableOpacity, View, Text, StyleSheet, TextInput } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { SettingItem } from '../SettingItem';
 import { useSettingsSecurity } from '../../../hooks/useSettingsSecurity';
 import { useT } from '../../../i18n/transifex';
@@ -39,14 +40,47 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:SecurityQuickConnectSection.tsx,feature:settings';
+  const [showQuickConnectModal, setShowQuickConnectModal] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [hexInput, setHexInput] = useState('');
+
+  const predefinedColors = [
+    { name: 'Red', value: '#f44336' },
+    { name: 'Pink', value: '#e91e63' },
+    { name: 'Purple', value: '#9c27b0' },
+    { name: 'Deep Purple', value: '#673ab7' },
+    { name: 'Indigo', value: '#3f51b5' },
+    { name: 'Blue', value: '#2196f3' },
+    { name: 'Light Blue', value: '#03a9f4' },
+    { name: 'Cyan', value: '#00bcd4' },
+    { name: 'Teal', value: '#009688' },
+    { name: 'Green', value: '#4caf50' },
+    { name: 'Light Green', value: '#8bc34a' },
+    { name: 'Lime', value: '#cddc39' },
+    { name: 'Yellow', value: '#ffeb3b' },
+    { name: 'Amber', value: '#ffc107' },
+    { name: 'Orange', value: '#ff9800' },
+    { name: 'Deep Orange', value: '#ff5722' },
+    { name: 'Brown', value: '#795548' },
+    { name: 'Grey', value: '#9e9e9e' },
+    { name: 'Blue Grey', value: '#607d8b' },
+    { name: 'Black', value: '#000000' },
+  ];
+
   const {
     killSwitchEnabledOnHeader,
     killSwitchEnabledOnLockScreen,
     killSwitchShowWarnings,
+    killSwitchCustomName,
+    killSwitchCustomIcon,
+    killSwitchCustomColor,
     quickConnectNetworkId,
     setKillSwitchEnabledOnHeader,
     setKillSwitchEnabledOnLockScreen,
     setKillSwitchShowWarnings,
+    setKillSwitchCustomName,
+    setKillSwitchCustomIcon,
+    setKillSwitchCustomColor,
     setQuickConnectNetworkId,
   } = useSettingsSecurity();
 
@@ -60,34 +94,16 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
       type: 'button',
       searchKeywords: ['quick', 'connect', 'network', 'header', 'tap', 'default'],
       onPress: () => {
-        Alert.alert(
-          t('Select Quick Connect Network', { _tags: tags }),
-          t('Choose which network to connect when tapping the header "Tap to connect" button.', { _tags: tags }),
-          [
-            { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-            {
-              text: t('Use Default', { _tags: tags }),
-              onPress: async () => {
-                await setQuickConnectNetworkId(null);
-              },
-            },
-            ...networks.map(net => ({
-              text: net.name,
-              onPress: async () => {
-                await setQuickConnectNetworkId(net.id);
-              },
-            })),
-          ]
-        );
+        setShowQuickConnectModal(true);
       },
     },
     {
       id: 'kill-switch-header',
       title: t('Kill Switch on Header', { _tags: tags }),
-      description: t('Show kill switch button (💀) in header', { _tags: tags }),
+      description: t('Show kill switch button in header', { _tags: tags }),
       type: 'switch',
       value: killSwitchEnabledOnHeader,
-      searchKeywords: ['kill', 'switch', 'header', 'emergency', 'wipe', 'delete', 'panic', 'skull'],
+      searchKeywords: ['kill', 'switch', 'header', 'emergency', 'wipe', 'delete', 'panic', 'button', 'show'],
       onValueChange: async (value: boolean | string) => {
         await setKillSwitchEnabledOnHeader(value as boolean);
       },
@@ -98,7 +114,7 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
       description: t('Show kill switch button on app unlock screen', { _tags: tags }),
       type: 'switch',
       value: killSwitchEnabledOnLockScreen,
-      searchKeywords: ['kill', 'switch', 'lock', 'screen', 'unlock', 'emergency', 'wipe', 'delete', 'panic'],
+      searchKeywords: ['kill', 'switch', 'lock', 'screen', 'unlock', 'emergency', 'wipe', 'delete', 'panic', 'button'],
       onValueChange: async (value: boolean | string) => {
         await setKillSwitchEnabledOnLockScreen(value as boolean);
       },
@@ -109,9 +125,43 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
       description: t('Show confirmation dialogs before activating kill switch (header only)', { _tags: tags }),
       type: 'switch',
       value: killSwitchShowWarnings,
-      searchKeywords: ['kill', 'switch', 'warnings', 'confirmation', 'dialog', 'alert'],
+      searchKeywords: ['kill', 'switch', 'warnings', 'confirmation', 'dialog', 'alert', 'show'],
       onValueChange: async (value: boolean | string) => {
         await setKillSwitchShowWarnings(value as boolean);
+      },
+    },
+    {
+      id: 'kill-switch-custom-name',
+      title: t('Kill Switch Custom Name', { _tags: tags }),
+      description: t('Custom name for kill switch button (e.g., "meow meow" for obfuscation)', { _tags: tags }),
+      type: 'input',
+      value: killSwitchCustomName,
+      placeholder: t('Enter custom name', { _tags: tags }),
+      searchKeywords: ['kill', 'switch', 'name', 'custom', 'rename', 'obfuscate', 'hide'],
+      onValueChange: async (value: boolean | string) => {
+        await setKillSwitchCustomName(value as string);
+      },
+    },
+    {
+      id: 'kill-switch-custom-icon',
+      title: t('Kill Switch Custom Icon', { _tags: tags }),
+      description: t('FontAwesome5 icon name (e.g., "cat", "heart", "star")', { _tags: tags }),
+      type: 'input',
+      value: killSwitchCustomIcon,
+      placeholder: t('Enter icon name', { _tags: tags }),
+      searchKeywords: ['kill', 'switch', 'icon', 'custom', 'fontawesome', 'change'],
+      onValueChange: async (value: boolean | string) => {
+        await setKillSwitchCustomIcon(value as string);
+      },
+    },
+    {
+      id: 'kill-switch-custom-color',
+      title: t('Kill Switch Custom Color', { _tags: tags }),
+      description: t('Tap to choose from preset colors or enter hex code', { _tags: tags }),
+      type: 'button',
+      searchKeywords: ['kill', 'switch', 'color', 'custom', 'hex', 'change', 'picker'],
+      onPress: () => {
+        setShowColorPicker(true);
       },
     },
   ];
@@ -130,6 +180,280 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
           />
         );
       })}
+
+      {/* Quick Connect Network Picker Modal */}
+      <Modal
+        visible={showQuickConnectModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowQuickConnectModal(false)}>
+        <View style={modalStyles.overlay}>
+          <View style={[modalStyles.container, { backgroundColor: colors.surface }]}>
+            <Text style={[modalStyles.title, { color: colors.text }]}>
+              {t('Select Quick Connect Network', { _tags: tags })}
+            </Text>
+            <Text style={[modalStyles.description, { color: colors.textSecondary }]}>
+              {t('Choose which network to connect when tapping the header "Tap to connect" button.', { _tags: tags })}
+            </Text>
+            <ScrollView style={modalStyles.scroll}>
+              <TouchableOpacity
+                style={[modalStyles.item, { borderBottomColor: colors.border }]}
+                onPress={async () => {
+                  await setQuickConnectNetworkId(null);
+                  setShowQuickConnectModal(false);
+                }}>
+                <Text
+                  style={[
+                    modalStyles.itemText,
+                    { color: colors.text },
+                    !quickConnectNetworkId && modalStyles.itemTextSelected,
+                    !quickConnectNetworkId && { color: colors.primary },
+                  ]}>
+                  {t('Use Default', { _tags: tags })}
+                </Text>
+              </TouchableOpacity>
+              {networks.map((net, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[modalStyles.item, { borderBottomColor: colors.border }]}
+                  onPress={async () => {
+                    await setQuickConnectNetworkId(net.id);
+                    setShowQuickConnectModal(false);
+                  }}>
+                  <Text
+                    style={[
+                      modalStyles.itemText,
+                      { color: colors.text },
+                      quickConnectNetworkId === net.id && modalStyles.itemTextSelected,
+                      quickConnectNetworkId === net.id && { color: colors.primary },
+                    ]}>
+                    {net.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={[modalStyles.closeButton, { backgroundColor: colors.primary }]}
+              onPress={() => setShowQuickConnectModal(false)}>
+              <Text style={modalStyles.closeButtonText}>
+                {t('Close', { _tags: tags })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Color Picker Modal */}
+      <Modal
+        visible={showColorPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowColorPicker(false)}>
+        <View style={modalStyles.overlay}>
+          <View style={[modalStyles.container, { backgroundColor: colors.surface }]}>
+            <Text style={[modalStyles.title, { color: colors.text }]}>
+              {t('Choose Color', { _tags: tags })}
+            </Text>
+            <Text style={[modalStyles.description, { color: colors.textSecondary }]}>
+              {t('Current color: {color}', { color: killSwitchCustomColor, _tags: tags })}
+            </Text>
+
+            {/* Live Preview */}
+            <View style={colorPickerStyles.livePreview}>
+              <View style={[colorPickerStyles.previewButton, { borderColor: killSwitchCustomColor }]}>
+                <Icon name={killSwitchCustomIcon} size={20} color={killSwitchCustomColor} solid style={{ marginRight: 8 }} />
+                <Text style={[colorPickerStyles.previewText, { color: killSwitchCustomColor }]}>
+                  {killSwitchCustomName}
+                </Text>
+              </View>
+            </View>
+
+            {/* Color preview box */}
+            <View style={[colorPickerStyles.colorPreview, { backgroundColor: killSwitchCustomColor }]} />
+
+            {/* Hex Input */}
+            <View style={colorPickerStyles.hexInputContainer}>
+              <Text style={[colorPickerStyles.hexLabel, { color: colors.text }]}>
+                {t('Hex Color:', { _tags: tags })}
+              </Text>
+              <TextInput
+                style={[colorPickerStyles.hexInput, { color: colors.text, borderColor: colors.border }]}
+                value={hexInput || killSwitchCustomColor}
+                onChangeText={(text) => {
+                  setHexInput(text);
+                  // Validate and apply if valid hex color
+                  const hexPattern = /^#[0-9A-Fa-f]{6}$/;
+                  if (hexPattern.test(text)) {
+                    setKillSwitchCustomColor(text);
+                  }
+                }}
+                placeholder="#ff0000"
+                placeholderTextColor={colors.textSecondary}
+                maxLength={7}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* Predefined colors grid */}
+            <ScrollView style={modalStyles.scroll}>
+              <View style={colorPickerStyles.colorGrid}>
+                {predefinedColors.map((color, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[
+                      colorPickerStyles.colorButton,
+                      { backgroundColor: color.value },
+                      killSwitchCustomColor === color.value && colorPickerStyles.colorButtonSelected,
+                    ]}
+                    onPress={async () => {
+                      await setKillSwitchCustomColor(color.value);
+                    }}>
+                    {killSwitchCustomColor === color.value && (
+                      <Text style={colorPickerStyles.checkmark}>✓</Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={[modalStyles.closeButton, { backgroundColor: colors.primary }]}
+              onPress={() => {
+                setShowColorPicker(false);
+                setHexInput(''); // Clear hex input on close
+              }}>
+              <Text style={modalStyles.closeButtonText}>
+                {t('Done', { _tags: tags })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    borderRadius: 8,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  description: {
+    fontSize: 14,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  scroll: {
+    maxHeight: 300,
+    marginBottom: 12,
+  },
+  item: {
+    padding: 12,
+    borderBottomWidth: 1,
+  },
+  itemText: {
+    fontSize: 16,
+  },
+  itemTextSelected: {
+    fontWeight: '600',
+  },
+  closeButton: {
+    padding: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});
+
+const colorPickerStyles = StyleSheet.create({
+  livePreview: {
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+  },
+  previewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+  },
+  previewText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  colorPreview: {
+    width: '100%',
+    height: 50,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  hexInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  hexLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  hexInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 10,
+    fontSize: 14,
+    fontFamily: 'monospace',
+  },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  colorButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 3,
+    borderColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  colorButtonSelected: {
+    borderColor: '#000',
+  },
+  checkmark: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+});

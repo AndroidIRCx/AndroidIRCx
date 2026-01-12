@@ -271,7 +271,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [hideIrcServiceListenerMessages, setHideIrcServiceListenerMessages] = useState(true);
   const [closePrivateMessage, setClosePrivateMessage] = useState(false);
   const [closePrivateMessageText, setClosePrivateMessageText] = useState('Closing window');
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set([aboutTitle]));
+  const prevAboutTitleRef = useRef(aboutTitle);
   const [lagCheckMethod, setLagCheckMethod] = useState<'ctcp' | 'server'>('server');
   const sectionListRef = useRef<SectionList>(null);
   // DCC submenu items now managed by ConnectionNetworkSection
@@ -288,22 +289,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       setShowEncryptionIndicatorsSetting(showEncryptionIndicators);
       refreshThemes();
     loadChannelSettings();
-    
+
     // Statistics are now managed by useSettingsConnection hook
     // No need for periodic updates here - hook handles it
     }
   }, [visible, showRawCommands, showEncryptionIndicators, currentNetwork, rawCategoryVisibility]);
 
-  // Ensure About section is always expanded, but Help section expands only when clicked
-  useEffect(() => {
-    setExpandedSections(prev => {
-      const newSet = new Set(prev);
-      newSet.add(aboutTitle);
-      return newSet;
-    });
-  }, [aboutTitle]);
-
   // Theme changes now handled by useSettingsAppearance hook
+  useEffect(() => {
+    const previousTitle = prevAboutTitleRef.current;
+    if (previousTitle === aboutTitle) return;
+
+    setExpandedSections(prev => {
+      if (!prev.has(previousTitle)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.delete(previousTitle);
+      next.add(aboutTitle);
+      return next;
+    });
+    prevAboutTitleRef.current = aboutTitle;
+  }, [aboutTitle]);
 
   // Check notification permission when settings screen opens
   useEffect(() => {
@@ -1169,7 +1176,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           id: 'security-quick-connect-section',
           title: 'security-quick-connect-section',
           type: 'custom' as const,
-          searchKeywords: ['quick', 'connect', 'favorite', 'identity', 'profile'],
+          searchKeywords: ['quick', 'connect', 'favorite', 'identity', 'profile', 'kill', 'switch', 'panic', 'emergency', 'wipe', 'delete', 'custom', 'icon', 'color', 'name'],
         }, // Security & Quick Connect merged here
       ],
     },
@@ -1472,8 +1479,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   ];
 
   const orderedSections = useMemo(() => {
-    return orderSections(sections, isSupporter, hasNoAds);
-  }, [sections, isSupporter, hasNoAds]);
+    return orderSections(sections, isSupporter, hasNoAds, hasScriptingPro);
+  }, [sections, isSupporter, hasNoAds, hasScriptingPro]);
 
   const filteredSections = useMemo(() => {
     return filterSettings(orderedSections, searchTerm);
@@ -1727,7 +1734,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   const toggleSection = (sectionTitle: string) => {
-    const newExpandedSections = toggleSectionExpansion(sectionTitle, expandedSections, [aboutTitle]);
+    const newExpandedSections = toggleSectionExpansion(sectionTitle, expandedSections);
     setExpandedSections(newExpandedSections);
   };
 
@@ -1798,7 +1805,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 icon={iconInfo}
                 isExpanded={expandedSections.has(title)}
                 onToggle={() => toggleSection(title)}
-                disabled={title === aboutTitle}
                 colors={colors}
                 styles={styles}
               />

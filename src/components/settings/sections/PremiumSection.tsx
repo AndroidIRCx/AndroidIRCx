@@ -41,6 +41,7 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({
       title: t('Upgrade to Premium', { _tags: tags }),
       description: t('Unlock unlimited scripting, no ads, and premium features', { _tags: tags }),
       type: 'button',
+      searchKeywords: ['premium', 'upgrade', 'purchase', 'buy', 'scripting', 'no-ads', 'ad-free', 'features', 'pro', 'supporter'],
       onPress: onShowPurchaseScreen,
     },
   ];

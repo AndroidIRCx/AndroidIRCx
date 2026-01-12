@@ -66,6 +66,8 @@ maintaining full compatibility with IRCv3 standards.
     - Key verification with fingerprints and QR codes
     - Offline key exchange via file and NFC
     - TOFU + key pinning with change warnings
+  - Context-bound AAD for encrypted messages and media (network/nick/channel/mediaId)
+  - Backward-compatible decryption for legacy ciphertext (update to v1.6.3+ for new AAD)
 
 - **IRCv3 Full Compliance** 🎉
     - **Complete Implementation**: All 18 IRCv3 capabilities supported (Standard + Draft)

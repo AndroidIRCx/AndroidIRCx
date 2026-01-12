@@ -123,33 +123,41 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
 
       console.log('[MediaPreviewModal] Processing file:', fileUri);
 
-      // Step 1: Encrypt media file
+      // Step 1: Request upload token (gives us mediaId for AAD binding)
+      const uploadToken = await mediaUploadService.requestUploadToken(
+        mediaResult.type || 'file',
+        mediaResult.mimeType
+      );
+
+      // Step 2: Encrypt media file (bind AAD to mediaId)
       const encryptResult = await mediaEncryptionService.encryptMediaFile(
         fileUri,
         network,
-        tabId
+        tabId,
+        uploadToken.id
       );
 
       if (!encryptResult.success || !encryptResult.encryptedUri) {
         throw new Error(encryptResult.error || t('Encryption failed'));
       }
 
-      // Step 2: Upload encrypted file
-      const uploadResult = await mediaUploadService.uploadMedia(
+      // Step 3: Upload encrypted file using the pre-issued token
+      const uploadResult = await mediaUploadService.uploadFile(
         encryptResult.encryptedUri,
-        mediaResult.type || 'file',
-        mediaResult.mimeType,
+        uploadToken.id,
+        uploadToken.upload_token,
+        uploadToken.expires,
         (progress) => {
           setUploadProgress(Math.round(progress.percentage));
         }
       );
 
-      if (!uploadResult.success || !uploadResult.ircTag) {
-        throw new Error(uploadResult.error || t('Upload failed'));
+      if (uploadResult.status !== 'ready') {
+        throw new Error(t('Upload failed'));
       }
 
-      // Step 3: Notify parent with IRC tag
-      onSendComplete(uploadResult.ircTag, caption || undefined);
+      // Step 4: Notify parent with IRC tag
+      onSendComplete(`!enc-media [${uploadToken.id}]`, caption || undefined);
 
       // Close modal
       onClose();

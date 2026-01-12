@@ -1,7 +1,7 @@
 # Android IRC Client - Project Documentation
 
 **Last Updated:** 2026-01-04
-**Version:** 1.5.5 (Critical Biometric Fix)
+**Version:** 1.6.3 (Security + Persistence)
 **Status:** Active Development - Refactoring Complete
 
 ---
@@ -74,6 +74,7 @@ Additional verification / exchange options:
 - Fingerprint QR codes for out-of-band verification
 - File export/import of DM key bundles
 - NFC key exchange (when supported)
+- Encrypted messages/media use context-bound AAD (network/nick/channel/mediaId) with legacy fallback
 
 **Tech Stack:**
 
@@ -1000,6 +1001,14 @@ that can be done later if needed.
 ---
 
 ## Recent Changes
+
+### v1.6.3 (2026-01-12) - Security + Persistence
+
+- Persist layout/appearance settings across restarts (tab position, layout, spacing, timestamps).
+- Strengthened E2E encryption with context-bound AAD for DM/channel messages and media.
+- Media encryption now binds to mediaId while reusing existing chat keys (legacy fallback
+  preserved).
+- Decryption failures now suggest updating to v1.6.3+ when new AAD is required.
 
 ### v1.5.5 (2026-01-04) - CRITICAL BIOMETRIC UNLOCK FIX
 

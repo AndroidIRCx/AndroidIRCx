@@ -160,11 +160,12 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       {
         id: 'media-enabled',
         title: t('Enable Encrypted Media Sharing', { _tags: tags }),
-        description: mediaEnabled 
+        description: mediaEnabled
           ? t('Media sharing is enabled. Attachment button (📎) appears on encrypted conversations.', { _tags: tags })
           : t('Media sharing is disabled. Attachment button will not appear.', { _tags: tags }),
         type: 'switch',
         value: mediaEnabled,
+        searchKeywords: ['media', 'sharing', 'encrypted', 'attachment', 'enable', 'disable', 'photo', 'video', 'image', 'file'],
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setMediaEnabled(boolValue);
@@ -177,6 +178,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         description: t('Media sharing works only in encrypted conversations (DMs with key exchange or encrypted channels). All media is automatically encrypted using existing E2E keys.', { _tags: tags }),
         type: 'button' as const,
         disabled: true,
+        searchKeywords: ['media', 'info', 'about', 'sharing', 'encrypted', 'e2e', 'help', 'information'],
         onPress: () => {}, // No-op for info button
       },
       {
@@ -186,6 +188,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         type: 'switch',
         value: showEncryptionIndicator,
         disabled: !mediaEnabled,
+        searchKeywords: ['encryption', 'indicator', 'icon', 'lock', 'media', 'thumbnail', 'show', 'display'],
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setShowEncryptionIndicator(boolValue);
@@ -199,6 +202,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         type: 'switch',
         value: autoDownload,
         disabled: !mediaEnabled,
+        searchKeywords: ['auto', 'download', 'automatic', 'media', 'received', 'save'],
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setAutoDownload(boolValue);
@@ -212,6 +216,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         type: 'switch',
         value: wifiOnly,
         disabled: !mediaEnabled || !autoDownload,
+        searchKeywords: ['wifi', 'only', 'download', 'data', 'cellular', 'mobile', 'network'],
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setWifiOnly(boolValue);
@@ -221,13 +226,14 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       {
         id: 'media-cache-size',
         title: t('Maximum Cache Size', { _tags: tags }),
-        description: t('Current cache: {size} / Max: {max}', { 
+        description: t('Current cache: {size} / Max: {max}', {
           size: formatCacheSize(cacheSize),
           max: formatMaxCacheSize(maxCacheSize),
-          _tags: tags 
+          _tags: tags
         }),
         type: 'submenu',
         disabled: !mediaEnabled,
+        searchKeywords: ['cache', 'size', 'storage', 'limit', 'maximum', 'space', 'mb', 'gb'],
         submenuItems: [
           { id: 'cache-50mb', title: '50 MB', type: 'button' as const, onPress: () => setMaxCacheSize(50 * 1024 * 1024) },
           { id: 'cache-100mb', title: '100 MB', type: 'button' as const, onPress: () => setMaxCacheSize(100 * 1024 * 1024) },
@@ -242,6 +248,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         description: t('Current: {quality}', { quality: mediaQualityLabel, _tags: tags }),
         type: 'submenu',
         disabled: !mediaEnabled,
+        searchKeywords: ['quality', 'resolution', 'compression', 'media', 'image', 'photo', 'original', 'high', 'medium', 'low'],
         submenuItems: [
           { id: 'quality-original', title: t('Original', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('original') },
           { id: 'quality-high', title: t('High', { _tags: tags }), type: 'button' as const, onPress: () => setMediaQuality('high') },
@@ -255,6 +262,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         description: t('Current: {quality}', { quality: videoQualityLabel, _tags: tags }),
         type: 'submenu',
         disabled: !mediaEnabled,
+        searchKeywords: ['video', 'quality', 'recording', 'resolution', '4k', '1080p', '720p', '480p', 'hd'],
         submenuItems: [
           { id: 'video-4k', title: '4K', type: 'button' as const, onPress: () => setVideoQuality('4k') },
           { id: 'video-1080p', title: '1080p', type: 'button' as const, onPress: () => setVideoQuality('1080p') },
@@ -268,6 +276,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         description: t('Current: {duration} seconds', { duration: voiceMaxDuration, _tags: tags }),
         type: 'submenu',
         disabled: !mediaEnabled,
+        searchKeywords: ['voice', 'audio', 'recording', 'duration', 'length', 'maximum', 'time', 'limit', 'seconds', 'minutes'],
         submenuItems: [
           { id: 'voice-60s', title: t('1 minute', { _tags: tags }), type: 'button' as const, onPress: () => setVoiceMaxDuration(60) },
           { id: 'voice-180s', title: t('3 minutes', { _tags: tags }), type: 'button' as const, onPress: () => setVoiceMaxDuration(180) },
@@ -280,6 +289,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         description: t('Free up storage by clearing cached media files', { _tags: tags }),
         type: 'button',
         disabled: !mediaEnabled || cacheSize === 0,
+        searchKeywords: ['clear', 'cache', 'delete', 'storage', 'space', 'free', 'media', 'files'],
         onPress: handleClearCache,
       },
     ];

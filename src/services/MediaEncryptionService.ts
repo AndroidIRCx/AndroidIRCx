@@ -61,6 +61,18 @@ class MediaEncryptionService {
     return new Uint8Array(Buffer.from(b64, 'base64'));
   }
 
+  private buildMediaAAD(
+    tabType: 'channel' | 'query',
+    network: string,
+    identifier: string,
+    mediaId?: string
+  ): string {
+    if (mediaId) {
+      return `media:${tabType}:${network}:${identifier}:${mediaId}`;
+    }
+    return `media:${tabType}:${network}:${identifier}`;
+  }
+
   /**
    * Detect MIME type from magic bytes (file signature)
    */
@@ -183,7 +195,8 @@ class MediaEncryptionService {
   async encryptMediaFile(
     fileUri: string,
     network: string,
-    tabId: string
+    tabId: string,
+    mediaId?: string
   ): Promise<EncryptedMediaResult> {
     try {
       await this.ensureReady();
@@ -303,12 +316,12 @@ class MediaEncryptionService {
 
       if (tabType === 'channel') {
         // Encrypt with channel key
-        const result = await this.encryptWithChannelKey(fileBytes, identifier, network);
+        const result = await this.encryptWithChannelKey(fileBytes, identifier, network, mediaId);
         encryptedBytes = result.encrypted;
         nonce = result.nonce;
       } else if (tabType === 'query') {
         // Encrypt with DM key
-        const result = await this.encryptWithDMKey(fileBytes, identifier, network);
+        const result = await this.encryptWithDMKey(fileBytes, identifier, network, mediaId);
         encryptedBytes = result.encrypted;
         nonce = result.nonce;
       } else {
@@ -432,7 +445,8 @@ class MediaEncryptionService {
   async decryptMediaFile(
     encryptedUri: string,
     network: string,
-    tabId: string
+    tabId: string,
+    mediaId?: string
   ): Promise<DecryptedMediaResult> {
     try {
       await this.ensureReady();
@@ -562,7 +576,8 @@ class MediaEncryptionService {
           encryptedBytes,
           nonceBytes,
           identifier,
-          network
+          network,
+          mediaId
         );
       } else if (tabType === 'query') {
         // Decrypt with DM key
@@ -570,7 +585,8 @@ class MediaEncryptionService {
           encryptedBytes,
           nonceBytes,
           identifier,
-          network
+          network,
+          mediaId
         );
       } else {
         return { success: false, error: 'Unsupported tab type for decryption' };
@@ -709,7 +725,8 @@ class MediaEncryptionService {
   private async encryptWithChannelKey(
     data: Uint8Array,
     channel: string,
-    network: string
+    network: string,
+    mediaId?: string
   ): Promise<{ encrypted: Uint8Array; nonce: Uint8Array }> {
     const channelKey = await channelEncryptionService.getChannelKey(channel, network);
     if (!channelKey) {
@@ -719,9 +736,10 @@ class MediaEncryptionService {
     const key = this.fromB64(channelKey.key);
     const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
 
+    const aad = this.buildMediaAAD('channel', network, channel, mediaId);
     const encrypted = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       data,
-      '',     // additional_data
+      aad,
       null,   // nsec (not used)
       nonce,
       key
@@ -737,7 +755,8 @@ class MediaEncryptionService {
     encrypted: Uint8Array,
     nonce: Uint8Array,
     channel: string,
-    network: string
+    network: string,
+    mediaId?: string
   ): Promise<Uint8Array> {
     const channelKey = await channelEncryptionService.getChannelKey(channel, network);
     if (!channelKey) {
@@ -754,16 +773,44 @@ class MediaEncryptionService {
       network,
     });
 
-    const decrypted = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-      null,   // nsec (not used)
-      encrypted,
-      '',     // additional_data
-      nonce,
-      key
-    );
+    const aadWithId = mediaId ? this.buildMediaAAD('channel', network, channel, mediaId) : null;
+    const aad = this.buildMediaAAD('channel', network, channel);
+    try {
+      const decrypted = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null,   // nsec (not used)
+        encrypted,
+        aadWithId || aad,
+        nonce,
+        key
+      );
 
-    console.log('[MediaEncryptionService] Decryption successful, decrypted length:', decrypted.length);
-    return decrypted;
+      console.log('[MediaEncryptionService] Decryption successful, decrypted length:', decrypted.length);
+      return decrypted;
+    } catch (error) {
+      try {
+        const decrypted = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+          null,
+          encrypted,
+          aad,
+          nonce,
+          key
+        );
+
+        console.log('[MediaEncryptionService] Decryption successful, decrypted length:', decrypted.length);
+        return decrypted;
+      } catch (error) {
+        const decrypted = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+          null,
+          encrypted,
+          '',
+          nonce,
+          key
+        );
+
+        console.log('[MediaEncryptionService] Decryption successful, decrypted length:', decrypted.length);
+        return decrypted;
+      }
+    }
   }
 
   /**
@@ -772,30 +819,17 @@ class MediaEncryptionService {
   private async encryptWithDMKey(
     data: Uint8Array,
     nick: string,
-    network: string
+    network: string,
+    mediaId?: string
   ): Promise<{ encrypted: Uint8Array; nonce: Uint8Array }> {
-    // Get DM bundle to derive key
-    const bundle = await encryptedDMService.getBundleForNetwork(network, nick);
-    if (!bundle) {
-      throw new Error('No DM bundle found for encryption');
-    }
-
-    // Derive shared key using EncryptedDMService's deriveKey method
-    // Note: We need access to deriveKey, but it's private. We'll need to use the service's encrypt method
-    // and extract the key derivation logic.
-
-    // Alternative: Use the EncryptedDMService to get the derived key directly
-    // For now, we'll use a workaround by calling the private deriveKey through reflection
-    // or we need to add a public method to EncryptedDMService
-
-    // Temporary solution: Derive key manually using the same logic as EncryptedDMService
-    const key = await this.deriveDMKey(bundle.encPub);
+    const key = await encryptedDMService.getMessageKeyForNetwork(network, nick);
+    const aad = this.buildMediaAAD('query', network, nick, mediaId);
 
     const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
 
     const encrypted = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       data,
-      '',
+      aad,
       null,
       nonce,
       key
@@ -811,42 +845,42 @@ class MediaEncryptionService {
     encrypted: Uint8Array,
     nonce: Uint8Array,
     nick: string,
-    network: string
+    network: string,
+    mediaId?: string
   ): Promise<Uint8Array> {
-    const bundle = await encryptedDMService.getBundleForNetwork(network, nick);
-    if (!bundle) {
-      throw new Error('No DM bundle found for decryption');
+    const key = await encryptedDMService.getMessageKeyForNetwork(network, nick);
+    const aadWithId = mediaId ? this.buildMediaAAD('query', network, nick, mediaId) : null;
+    const aad = this.buildMediaAAD('query', network, nick);
+
+    try {
+      return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+        null,
+        encrypted,
+        aadWithId || aad,
+        nonce,
+        key
+      );
+    } catch (error) {
+      try {
+        return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+          null,
+          encrypted,
+          aad,
+          nonce,
+          key
+        );
+      } catch (innerError) {
+        return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
+          null,
+          encrypted,
+          '',
+          nonce,
+          key
+        );
+      }
     }
-
-    const key = await this.deriveDMKey(bundle.encPub);
-
-    const decrypted = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-      null,
-      encrypted,
-      '',
-      nonce,
-      key
-    );
-
-    return decrypted;
   }
 
-  /**
-   * Derive DM encryption key from bundle public key
-   * (Same logic as EncryptedDMService.deriveKey)
-   */
-  private async deriveDMKey(theirEncPub: string): Promise<Uint8Array> {
-    // Get our identity
-    const self = await encryptedDMService.getOrCreateIdentity();
-    const ourPriv = this.fromB64(self.encPriv);
-    const theirPub = this.fromB64(theirEncPub);
-
-    // Perform X25519 key exchange using crypto_box_beforenm
-    // This derives a shared secret from our private key and their public key
-    const sharedKey = sodium.crypto_box_beforenm(theirPub, ourPriv);
-
-    return sharedKey;
-  }
 
   /**
    * Get encryption info for debugging/display

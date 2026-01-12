@@ -183,7 +183,8 @@ class MediaDownloadService {
       const decryptResult = await mediaEncryptionService.decryptMediaFile(
         tempPath,
         network,
-        tabId
+        tabId,
+        mediaId
       );
 
       if (!decryptResult.success || !decryptResult.decryptedUri) {

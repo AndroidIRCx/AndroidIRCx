@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
+import { BackHandler, DeviceEventEmitter, Platform } from 'react-native';
 import RNBootSplash from 'react-native-bootsplash';
 import { ircService } from '../services/IRCService';
 import { backgroundService } from '../services/BackgroundService';
 import { notificationService } from '../services/NotificationService';
+import { connectionManager } from '../services/ConnectionManager';
+import { ircForegroundService } from '../services/IRCForegroundService';
 import { channelManagementService } from '../services/ChannelManagementService';
 import { userManagementService } from '../services/UserManagementService';
 import { messageReactionsService } from '../services/MessageReactionsService';
@@ -18,6 +21,8 @@ import { commandService } from '../services/CommandService';
 import { performanceService } from '../services/PerformanceService';
 import { themeService } from '../services/ThemeService';
 import { scriptingService } from '../services/ScriptingService';
+import { messageHistoryBatching } from '../services/MessageHistoryBatching';
+import { settingsService, DEFAULT_QUIT_MESSAGE } from '../services/SettingsService';
 
 export const useStartupServices = () => {
   useEffect(() => {
@@ -147,5 +152,36 @@ export const useStartupServices = () => {
         console.error('Error cleaning up background service:', error);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    const subscription = DeviceEventEmitter.addListener(
+      'IRCForegroundServiceDisconnectQuit',
+      async () => {
+        try {
+          const quitMessage = await settingsService.getSetting(
+            'quitMessage',
+            DEFAULT_QUIT_MESSAGE
+          );
+          connectionManager.disconnectAll(quitMessage);
+          await messageHistoryBatching.flushSync().catch(err => {
+            console.error('Error flushing message history on quit action:', err);
+          });
+          backgroundService.cleanup();
+          await ircForegroundService.stop().catch(err => {
+            console.error('Error stopping foreground service on quit action:', err);
+          });
+        } catch (error) {
+          console.error('Error handling foreground disconnect action:', error);
+        } finally {
+          BackHandler.exitApp();
+        }
+      }
+    );
+
+    return () => subscription.remove();
   }, []);
 };

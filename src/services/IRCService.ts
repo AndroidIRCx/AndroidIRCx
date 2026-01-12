@@ -1072,7 +1072,7 @@ export class IRCService {
                 text: t('🔒 {message}', {
                   message: e.message === 'no channel key'
                     ? t('Missing channel key. Use /chankey request <nick> to get it.')
-                    : t('Decryption failed'),
+                    : t('Decryption failed. If this was sent from v1.6.3+, please update to v1.6.3 or newer.'),
                 }),
                 timestamp: messageTimestamp,
               });
@@ -1133,7 +1133,7 @@ export class IRCService {
               this.addMessage({
                 type: 'error',
                 channel: channelIdentifier,
-                text: t('Encrypted message from {nick} could not be decrypted', { nick: fromNick }),
+                text: t('Encrypted message from {nick} could not be decrypted. If they are on v1.6.3+, please update to v1.6.3 or newer.', { nick: fromNick }),
                 timestamp: messageTimestamp,
               });
             });

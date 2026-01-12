@@ -6,9 +6,11 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
+import { useSettingsSecurity } from '../hooks/useSettingsSecurity';
 
 interface HeaderBarProps {
 
@@ -102,6 +104,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const [isSupporter, setIsSupporter] = useState(false);
+  const { killSwitchCustomIcon, killSwitchCustomColor } = useSettingsSecurity();
 
   const styles = createStyles(colors);
 
@@ -164,7 +167,12 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             style={styles.iconButton}
             onPress={onKillSwitchPress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Text style={styles.icon}>💀</Text>
+            <Icon
+              name={killSwitchCustomIcon}
+              size={20}
+              color={killSwitchCustomColor}
+              solid
+            />
           </TouchableOpacity>
         )}
 

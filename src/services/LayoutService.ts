@@ -34,6 +34,9 @@ class LayoutService {
     navigationBarOffset: 0,
   };
 
+  private initialized = false;
+  private initPromise: Promise<void> | null = null;
+
   private listeners: Array<(config: LayoutConfig) => void> = [];
   private readonly STORAGE_KEY = '@AndroidIRCX:layoutConfig';
 
@@ -41,26 +44,39 @@ class LayoutService {
    * Initialize layout service
    */
   async initialize(): Promise<void> {
-    try {
-      const stored = await AsyncStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const data = JSON.parse(stored);
-        this.config = { ...this.config, ...data };
-        if (!data.userListPosition) {
-          this.config.userListPosition = 'right';
-        }
-        // Migrate old compactMode to viewMode if needed
-        if (data.compactMode !== undefined && !data.viewMode) {
-          this.config.viewMode = data.compactMode ? 'compact' : 'comfortable';
-        }
-        // Migrate old showTimestamps to timestampDisplay
-        if (data.showTimestamps !== undefined && !data.timestampDisplay) {
-          this.config.timestampDisplay = data.showTimestamps ? 'grouped' : 'never';
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load layout config:', error);
+    if (this.initialized) {
+      return;
     }
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+    this.initPromise = (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(this.STORAGE_KEY);
+        if (stored) {
+          const data = JSON.parse(stored);
+          this.config = { ...this.config, ...data };
+          if (!data.userListPosition) {
+            this.config.userListPosition = 'right';
+          }
+          // Migrate old compactMode to viewMode if needed
+          if (data.compactMode !== undefined && !data.viewMode) {
+            this.config.viewMode = data.compactMode ? 'compact' : 'comfortable';
+          }
+          // Migrate old showTimestamps to timestampDisplay
+          if (data.showTimestamps !== undefined && !data.timestampDisplay) {
+            this.config.timestampDisplay = data.showTimestamps ? 'grouped' : 'never';
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load layout config:', error);
+      } finally {
+        this.initialized = true;
+        this.initPromise = null;
+        this.notifyListeners();
+      }
+    })();
+    return this.initPromise;
   }
 
   /**

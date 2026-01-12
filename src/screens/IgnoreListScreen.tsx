@@ -26,15 +26,51 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
 }) => {
   const t = useT();
   const [ignoredUsers, setIgnoredUsers] = useState<IgnoredUser[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<IgnoredUser[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newMask, setNewMask] = useState('');
   const [newReason, setNewReason] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
+  const [showNetworkPicker, setShowNetworkPicker] = useState(false);
+  const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
 
   useEffect(() => {
     if (visible) {
       loadIgnoredUsers();
+      loadAvailableNetworks();
     }
   }, [visible, network]);
+
+  useEffect(() => {
+    filterUsers();
+  }, [ignoredUsers, searchQuery, selectedNetwork]);
+
+  const loadAvailableNetworks = () => {
+    const networks = connectionManager.getAllConnections().map(conn => conn.config.id);
+    setAvailableNetworks(networks);
+  };
+
+  const filterUsers = () => {
+    let filtered = [...ignoredUsers];
+
+    // Filter by network
+    if (selectedNetwork) {
+      filtered = filtered.filter(user => user.network === selectedNetwork);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        user =>
+          user.mask.toLowerCase().includes(query) ||
+          (user.reason && user.reason.toLowerCase().includes(query))
+      );
+    }
+
+    setFilteredUsers(filtered);
+  };
 
   const getUserManagementService = () => {
     // Use connection-specific service if available, otherwise fallback to singleton
@@ -49,7 +85,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
 
   const loadIgnoredUsers = () => {
     const svc = getUserManagementService();
-    const ignored = svc.getIgnoredUsers(network);
+    const ignored = svc.getIgnoredUsers(); // Load all networks
     setIgnoredUsers(ignored);
   };
 
@@ -112,19 +148,49 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
           </View>
         </View>
 
+        {/* Search and Filter Section */}
+        <View style={styles.filterSection}>
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder={t('Search by mask or reason...')}
+            placeholderTextColor="#9E9E9E"
+          />
+          <TouchableOpacity
+            style={styles.networkFilterButton}
+            onPress={() => setShowNetworkPicker(true)}>
+            <Text style={styles.networkFilterButtonText}>
+              {selectedNetwork ? selectedNetwork : t('All Networks')}
+            </Text>
+            <Text style={styles.networkFilterButtonArrow}>▼</Text>
+          </TouchableOpacity>
+        </View>
+
         <ScrollView style={styles.content}>
-          {ignoredUsers.length === 0 ? (
+          {filteredUsers.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('No ignored users')}</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery || selectedNetwork
+                  ? t('No matching ignored users')
+                  : t('No ignored users')}
+              </Text>
               <Text style={styles.emptySubtext}>
-                {t('Add users to ignore their messages')}
+                {searchQuery || selectedNetwork
+                  ? t('Try different filters')
+                  : t('Add users to ignore their messages')}
               </Text>
             </View>
           ) : (
-            ignoredUsers.map((ignored, index) => (
+            filteredUsers.map((ignored, index) => (
               <View key={index} style={styles.ignoreItem}>
                 <View style={styles.ignoreContent}>
                   <Text style={styles.ignoreMask}>{ignored.mask}</Text>
+                  {ignored.network && (
+                    <Text style={styles.ignoreNetwork}>
+                      {t('Network: {network}').replace('{network}', ignored.network)}
+                    </Text>
+                  )}
                   {ignored.reason && (
                     <Text style={styles.ignoreReason}>{ignored.reason}</Text>
                   )}
@@ -193,6 +259,59 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
             </View>
           </View>
         </Modal>
+
+        {/* Network Picker Modal */}
+        <Modal
+          visible={showNetworkPicker}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowNetworkPicker(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t('Filter by Network')}</Text>
+              <ScrollView style={styles.networkPickerScroll}>
+                <TouchableOpacity
+                  style={styles.networkPickerItem}
+                  onPress={() => {
+                    setSelectedNetwork(null);
+                    setShowNetworkPicker(false);
+                  }}>
+                  <Text
+                    style={[
+                      styles.networkPickerItemText,
+                      !selectedNetwork && styles.networkPickerItemTextSelected,
+                    ]}>
+                    {t('All Networks')}
+                  </Text>
+                </TouchableOpacity>
+                {availableNetworks.map((net, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={styles.networkPickerItem}
+                    onPress={() => {
+                      setSelectedNetwork(net);
+                      setShowNetworkPicker(false);
+                    }}>
+                    <Text
+                      style={[
+                        styles.networkPickerItemText,
+                        selectedNetwork === net && styles.networkPickerItemTextSelected,
+                      ]}>
+                      {net}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                style={[styles.modalSingleButton, styles.modalButtonPrimary]}
+                onPress={() => setShowNetworkPicker(false)}>
+                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
+                  {t('Close')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     </Modal>
   );
@@ -242,6 +361,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+  filterSection: {
+    padding: 12,
+    backgroundColor: '#F5F5F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    gap: 8,
+  },
+  searchInput: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 4,
+    padding: 10,
+    fontSize: 14,
+    color: '#212121',
+  },
+  networkFilterButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 4,
+    padding: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  networkFilterButtonText: {
+    fontSize: 14,
+    color: '#212121',
+  },
+  networkFilterButtonArrow: {
+    fontSize: 12,
+    color: '#757575',
+  },
   content: {
     flex: 1,
   },
@@ -277,6 +430,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontFamily: 'monospace',
     marginBottom: 4,
+  },
+  ignoreNetwork: {
+    fontSize: 12,
+    color: '#2196F3',
+    marginBottom: 4,
+    fontWeight: '500',
   },
   ignoreReason: {
     fontSize: 14,
@@ -348,6 +507,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     alignItems: 'center',
   },
+  modalSingleButton: {
+    padding: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    marginTop: 8,
+  },
   modalButtonCancel: {
     backgroundColor: '#9E9E9E',
   },
@@ -362,5 +528,25 @@ const styles = StyleSheet.create({
   modalButtonTextPrimary: {
     color: '#FFFFFF',
   },
+  networkPickerScroll: {
+    maxHeight: 300,
+    marginVertical: 12,
+  },
+  networkPickerItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  networkPickerItemText: {
+    fontSize: 16,
+    color: '#212121',
+  },
+  networkPickerItemTextSelected: {
+    color: '#2196F3',
+    fontWeight: '600',
+  },
 });
+
+
+
 

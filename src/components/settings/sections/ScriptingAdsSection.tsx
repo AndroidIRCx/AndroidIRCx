@@ -62,6 +62,7 @@ export const ScriptingAdsSection: React.FC<ScriptingAdsSectionProps> = ({
       title: t('Scripts (Scripting Time & No-Ads)', { _tags: tags }),
       description: t('Manage IRC scripts and automation. Scripting time is also ad-free time.', { _tags: tags }),
       type: 'button',
+      searchKeywords: ['scripts', 'scripting', 'automation', 'time', 'no-ads', 'ad-free', 'premium', 'manage'],
       onPress: onShowScripting,
     },
     {
@@ -69,6 +70,7 @@ export const ScriptingAdsSection: React.FC<ScriptingAdsSectionProps> = ({
       title: t('Scripting Help', { _tags: tags }),
       description: t('Learn how to write and use scripts', { _tags: tags }),
       type: 'button',
+      searchKeywords: ['scripting', 'help', 'learn', 'write', 'use', 'scripts', 'guide', 'tutorial'],
       onPress: onShowScriptingHelp,
     },
     {
@@ -79,6 +81,7 @@ export const ScriptingAdsSection: React.FC<ScriptingAdsSectionProps> = ({
         : t('Always shown for normal users', { _tags: tags }),
       type: 'switch',
       value: watchAdButtonEnabledForPremium,
+      searchKeywords: ['watch', 'ad', 'button', 'premium', 'support', 'show', 'enable'],
       onValueChange: async (value: boolean | string) => {
         await setWatchAdButtonEnabledForPremium(value as boolean);
       },
@@ -88,6 +91,7 @@ export const ScriptingAdsSection: React.FC<ScriptingAdsSectionProps> = ({
       id: 'watch-ad-button',
       title: 'watch-ad-button',
       type: 'custom',
+      searchKeywords: ['watch', 'ad', 'button', 'scripting', 'time', 'no-ads', 'reward'],
     },
   ];
 
