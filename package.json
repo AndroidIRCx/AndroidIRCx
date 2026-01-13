@@ -57,7 +57,7 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
+    "@babel/core": "^7.28.6",
     "@babel/preset-env": "^7.28.5",
     "@babel/runtime": "^7.25.0",
     "@react-native-community/cli": "20.1.0",
