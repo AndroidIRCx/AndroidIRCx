@@ -7855,10 +7855,10 @@ react-native-nfc-manager@^3.17.2:
   resolved "https://registry.yarnpkg.com/react-native-nfc-manager/-/react-native-nfc-manager-3.17.2.tgz#81924946b7fe381bbf85bfb16af90cb05cac4944"
   integrity sha512-0NryP/Iw2hzw4MVH5KCngoRerNUrnRok6VfLrlFcFZRKyTQ7KTgpsdDxCB6cR33qYNyEDrWGBayfAI+ym5gt8Q==
 
-react-native-nitro-modules@^0.33.0:
-  version "0.33.0"
-  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.33.0.tgz#2998ab11316c8300d69a5fb83923236fe3f43d71"
-  integrity sha512-LwY4l8hn8SbLFpD9Od3wXosSdTHcSLYP3sH6SPSKNY5UOgOcFK6Mw0eG0QjrWIGtnb6igKbbQgD31N4o7Ptv6Q==
+react-native-nitro-modules@^0.33.1:
+  version "0.33.1"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.33.1.tgz#586a44220e3669e620241630e3c05da626c625af"
+  integrity sha512-Kdo8qiqlkGAEs7fq29i0yiZs0Gf7ucmMiFsH8PH4uzsnSGEt2CQRBJGnQKKMl9vJYL8e7rzA0TZKRwO/L8G/Sg==
 
 react-native-qrcode-svg@^6.3.21:
   version "6.3.21"
