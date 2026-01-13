@@ -41,6 +41,7 @@ advanced features including:
 - **Real-time typing indicators** with auto-hide and multi-user support
 - **Smart command autocomplete** with built-in commands, aliases (70+), and history
 - End-to-end encryption for DMs and channels
+- **Client certificate management** for SASL EXTERNAL authentication
 - Proxy/Tor support
 - Background service for persistent connections
 - Channel and query management
@@ -354,9 +355,55 @@ App.tsx (Main UI Component - 635 lines, down from 4174)
   nickservPassword?: string;
   autoConnect?: boolean;
   autoJoinChannels?: string[];
+  clientCert?: string;    // PEM-encoded certificate (for SASL EXTERNAL)
+  clientKey?: string;     // PEM-encoded private key (for SASL EXTERNAL)
   // ... many other optional fields
 }
 ```
+
+### CertificateManagerService (`src/services/CertificateManagerService.ts`)
+
+**Purpose:** Generate, store, and manage X.509 client certificates for IRC SASL EXTERNAL
+authentication
+
+**Key Methods:**
+
+- `generateCertificate(options)` - Generate new RSA-2048 self-signed certificate
+- `getCertificate(id)` - Retrieve full certificate with private key
+- `listCertificates()` - Get all certificate metadata (without private keys)
+- `deleteCertificate(id)` - Delete certificate from storage
+- `getFingerprint(pemCert)` - Calculate SHA-256 fingerprint from certificate
+- `formatFingerprint(fingerprint, format)` - Format fingerprint (colon/no-colon, upper/lower)
+- `extractFingerprintFromPem(pemCert)` - Extract fingerprint from PEM certificate
+- `validateCertificate(cert)` - Check if certificate is expired or expiring soon
+
+**Certificate Generation:**
+
+- RSA-2048 keypair generation using node-forge
+- Self-signed X.509 certificates with configurable validity period (1-10 years)
+- SHA-256 signature algorithm
+- Common Name (CN) field for identification
+- Automatic fingerprint calculation
+
+**Storage:**
+
+- Full certificates stored in SecureStorage (Keychain when available)
+- Metadata indexed for quick listing
+- Storage keys: `cert:{id}` for full data, `certs:index` for metadata list
+
+**Fingerprint Formats:**
+
+- `COLON_SEPARATED_UPPER` - AA:BB:CC:DD (most common for IRC)
+- `COLON_SEPARATED_LOWER` - aa:bb:cc:dd
+- `NO_COLON_UPPER` - AABBCCDD
+- `NO_COLON_LOWER` - aabbccdd
+
+**IRC Integration:**
+
+- Certificates used for SASL EXTERNAL authentication
+- Fingerprints sent to NickServ/CertFP/HostServ via `/msg <service> CERT ADD <fingerprint>`
+- Context menu options: "View Certificate Fingerprint", "Share Cert with NickServ"
+- IRC commands: `/certfp` (display fingerprint), `/certadd [service]` (send to service)
 
 ---
 
@@ -489,6 +536,48 @@ App.tsx (Main UI Component - 635 lines, down from 4174)
 - Auto-complete for nicks (Tab key simulation)
 - Emoji support
 - Send button
+
+### Certificate Modals
+
+**CertificateGeneratorModal** (`src/components/modals/CertificateGeneratorModal.tsx`)
+
+**Purpose:** Generate new X.509 client certificates for SASL EXTERNAL authentication
+
+**Features:**
+
+- Form inputs: Certificate Name, Common Name (CN), Validity Period (1-10 years)
+- Real-time validation
+- RSA-2048 keypair generation (~1-2 seconds)
+- Success screen with fingerprint display and copy button
+- Automatic certificate storage in SecureStorage
+
+**CertificateSelectorModal** (`src/components/modals/CertificateSelectorModal.tsx`)
+
+**Purpose:** Browse and select existing certificates
+
+**Features:**
+
+- List all generated certificates with metadata
+- Status indicators: Valid (green), Expiring Soon (orange), Expired (red)
+- Certificate details: name, common name, fingerprint preview, validity dates
+- Select certificate to apply to network configuration
+- Delete certificates with confirmation dialog
+- "Generate New" button for quick certificate creation
+- Empty state with onboarding message
+
+**CertificateFingerprintModal** (`src/components/modals/CertificateFingerprintModal.tsx`)
+
+**Purpose:** Display and share certificate fingerprints
+
+**Features:**
+
+- SHA-256 fingerprint display with format toggle (colons on/off)
+- QR code generation for fingerprint sharing
+- IRC service selector (NickServ, CertFP, HostServ)
+- Copy fingerprint button
+- Copy IRC command button (`/msg <service> CERT ADD <fingerprint>`)
+- Send directly to IRC service (if connected)
+- Usage instructions
 
 ---
 
@@ -1002,6 +1091,69 @@ that can be done later if needed.
 
 ## Recent Changes
 
+### v1.6.4 (2026-01-13) - Client Certificate Management
+
+**Client Certificate Management for SASL EXTERNAL:**
+
+- ✅ **CertificateManagerService** - Generate, store, and manage X.509 certificates
+    - RSA-2048 keypair generation using node-forge
+    - Self-signed certificates with configurable validity (1-10 years)
+    - SHA-256 fingerprint calculation with multiple formats
+    - Secure storage using react-native-keychain (Keychain/fallback AsyncStorage)
+    - Certificate validation and expiry checking
+
+- ✅ **Certificate UI Components:**
+    - `CertificateGeneratorModal` - Generate new certificates with form validation
+    - `CertificateSelectorModal` - Browse, select, and delete certificates
+    - `CertificateFingerprintModal` - Display fingerprints with QR codes and sharing
+
+- ✅ **Network Settings Integration:**
+    - Added certificate management buttons in SASL EXTERNAL section
+    - "Generate New" - Create fresh certificate
+    - "Select Existing" - Choose from saved certificates
+    - "View Fingerprint" - Display current certificate fingerprint
+    - Certificates automatically applied to network configuration
+
+- ✅ **Context Menu Integration:**
+    - "View Certificate Fingerprint" - Display fingerprint with copy options
+    - "Share Cert with NickServ" - Send fingerprint command to IRC service
+    - Available on server tabs when certificate is configured
+
+- ✅ **IRC Commands:**
+    - `/certfp` - Display certificate fingerprint with instructions
+    - `/certadd [service]` - Send fingerprint to IRC service (defaults to NickServ)
+    - Support for NickServ, CertFP, and HostServ services
+
+- ✅ **Certificate Types:**
+    - `CertificateInfo` - Full certificate with private key
+    - `CertificateMetadata` - Certificate info without private key (for listings)
+    - `FingerprintFormat` - Four format variations (colon/no-colon, upper/lower)
+    - `IRCService` enum - NickServ, CertFP, HostServ
+
+**Files Added:**
+
+- `src/types/certificate.ts` - Type definitions for certificates
+- `src/services/CertificateManagerService.ts` - Core certificate management service
+- `src/components/modals/CertificateGeneratorModal.tsx` - Certificate generation UI
+- `src/components/modals/CertificateSelectorModal.tsx` - Certificate selection UI
+- `src/components/modals/CertificateFingerprintModal.tsx` - Fingerprint display UI
+
+**Files Modified:**
+
+- `src/screens/NetworkSettingsScreen.tsx` - Added certificate management buttons and modals
+- `src/hooks/useTabContextMenu.ts` - Added certificate context menu options
+- `src/services/CommandService.ts` - Added /certfp and /certadd commands
+- `package.json` - Added node-forge@1.3.3 and @types/node-forge@1.3.14
+
+**Usage:**
+
+1. Navigate to Network Settings → SASL EXTERNAL section
+2. Click "Generate New" or "Select Existing" to configure certificate
+3. View fingerprint with "View Fingerprint" button
+4. Connect to IRC server with SASL EXTERNAL enabled
+5. Use context menu or `/certadd` command to send fingerprint to NickServ
+6. Server will authenticate using certificate
+
 ### v1.6.3 (2026-01-12) - Security + Persistence
 
 - Persist layout/appearance settings across restarts (tab position, layout, spacing, timestamps).
@@ -1353,6 +1505,11 @@ D:\AndroidProjects\androidircx\
 │   ├── components/             # React components
 │   │   ├── AppLayout.tsx      # Main layout rendering (extracted from App.tsx)
 │   │   ├── AppModals.tsx      # All modal components (extracted from App.tsx)
+│   │   ├── modals/
+│   │   │   ├── CertificateGeneratorModal.tsx  # Certificate generation UI
+│   │   │   ├── CertificateSelectorModal.tsx   # Certificate selection UI
+│   │   │   ├── CertificateFingerprintModal.tsx # Fingerprint display UI
+│   │   │   └── ... (other modals)
 │   │   ├── ChannelTabs.tsx
 │   │   ├── MessageArea.tsx
 │   │   ├── MessageInput.tsx    # Command autocomplete, typing indicator sender
@@ -1389,9 +1546,10 @@ D:\AndroidProjects\androidircx\
 │   │   ├── StorageCache.ts     # LRU cache with TTL and write batching
 │   │   ├── MessageReactionsService.ts # Reaction tracking
 │   │   ├── SettingsService.ts # Uses StorageCache
+│   │   ├── CertificateManagerService.ts # X.509 certificate generation and management
 │   │   ├── ChannelEncryptionService.ts
 │   │   ├── EncryptedDMService.ts
-│   │   ├── CommandService.ts   # Command aliases (70+) and history
+│   │   ├── CommandService.ts   # Command aliases (70+) and history, /certfp, /certadd
 │   │   └── ... (40+ services)
 │   │
 │   ├── screens/                # Screen components
@@ -1405,7 +1563,8 @@ D:\AndroidProjects\androidircx\
 │   │   └── modeDescriptions.ts # IRC mode descriptions (UnrealIRCd standards)
 │   │
 │   └── types/                  # TypeScript types
-│       └── index.ts
+│       ├── index.ts
+│       └── certificate.ts      # Certificate and fingerprint types
 │
 ├── App.tsx                     # Main app component (635 lines, down from 4174)
 ├── package.json

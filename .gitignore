@@ -85,3 +85,4 @@ yarn-error.log
 /.claude/
 nul
 /MEDIA_UPLOAD_API.md
+/tmpclaude-*

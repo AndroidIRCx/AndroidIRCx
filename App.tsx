@@ -111,7 +111,10 @@ import {
 import { getActiveTabSafe } from './src/utils/activeTabUtils';
 
 // Suppress noisy pooled synthetic event warnings that can appear in dev logging
-LogBox.ignoreLogs(['This synthetic event is reused for performance reasons.']);
+LogBox.ignoreLogs([
+  'This synthetic event is reused for performance reasons.',
+  "It looks like you might be using shared value's .value inside reanimated inline style.",
+]);
 
 function App() {
   // Initialize Firebase App Check, consent management, AdMob, and error reporting

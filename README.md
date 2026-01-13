@@ -59,6 +59,8 @@ maintaining full compatibility with IRCv3 standards.
   - SSL/TLS encryption support
   - Certificate validation options
   - Server password authentication
+  - **Client certificate authentication (SASL EXTERNAL)** - Passwordless login with X.509
+    certificates
   - Proxy/Tor support
 
 - **Encryption & Trust**
@@ -338,6 +340,279 @@ List, **NOT** through the Hamburger Menu (☰).
     - Auto-join configured channels
     - Enable server-time timestamps
     - Activate all negotiated IRCv3 features
+
+## 🔐 Client Certificate Authentication (SASL EXTERNAL)
+
+AndroidIRCX supports client certificate authentication for passwordless, secure IRC connections
+using SASL EXTERNAL.
+
+### What are Client Certificates?
+
+Client certificates are X.509 digital certificates that uniquely identify you to IRC servers using
+cryptographic authentication. They provide stronger security than passwords and enable automatic
+authentication without entering credentials.
+
+**Key Features:**
+
+- RSA-2048 bit encryption
+- SHA-256 fingerprints
+- Self-signed certificates (no CA required)
+- Stored securely in device Keychain
+- Valid for 1-10 years (configurable)
+
+**Benefits:**
+
+- **No password transmission** - Identity verified cryptographically
+- **Stronger authentication** - 2048-bit keys are more secure than typical passwords
+- **Device-specific** - Each device has its own certificate
+- **Automatic login** - No need to type NickServ password on each connection
+
+### Quick Start Guide
+
+**5 Steps to Get Started:**
+
+1. **Generate Certificate**
+    - Go to Settings → Network Settings → Select your network
+    - Scroll to "SASL EXTERNAL" section
+    - Tap "➕ Generate New"
+    - Fill in: Certificate Name, Common Name, Validity Period
+    - Wait ~2 seconds for generation
+    - Copy the fingerprint
+
+2. **Add to NickServ**
+    - Connect to your IRC network
+    - Send fingerprint: `/msg NickServ CERT ADD <fingerprint>`
+    - Or use app command: `/certadd` (after connecting)
+
+3. **Configure Network**
+    - Ensure SASL EXTERNAL is enabled in Network Settings
+    - Certificate should already be applied (from step 1)
+    - Save settings
+
+4. **Connect**
+    - Connect to your IRC network
+    - Authentication happens automatically via SASL EXTERNAL
+
+5. **Verify**
+    - Check connection messages for SASL success
+    - You should be automatically identified to NickServ
+
+### Generating a Certificate
+
+1. Open **Settings** → **Network Settings**
+2. Select the network you want to configure
+3. Scroll down to **SASL EXTERNAL** section
+4. Tap **"➕ Generate New"** button
+
+**Certificate Form:**
+
+- **Certificate Name**: A friendly name (e.g., "My Phone", "Android Device")
+- **Common Name (CN)**: Your IRC nickname or identifier (e.g., "YourNick/AndroidIRCX")
+- **Validity Period**: How long the certificate is valid (1-10 years)
+    - Recommendation: 1-2 years for security, 5+ years for convenience
+
+5. Tap **"Generate Certificate"**
+6. Wait 1-2 seconds for RSA key generation
+7. **Copy the fingerprint** from the success screen
+
+The certificate is automatically applied to your network settings.
+
+### Registering Certificate with IRC Service
+
+**Option A: Using NickServ (Most Common)**
+
+1. Connect to your IRC network
+2. Send command: `/msg NickServ CERT ADD <fingerprint>`
+    - Replace `<fingerprint>` with the fingerprint you copied
+    - Use the fingerprint format: `AA:BB:CC:DD:...` (with colons)
+
+**Option B: Using App Command (After Certificate is Configured)**
+
+1. Configure certificate in Network Settings first
+2. Connect to your IRC network
+3. Use command: `/certadd` (sends to NickServ by default)
+4. Or specify service: `/certadd CertFP` or `/certadd HostServ`
+
+**Option C: Using Context Menu**
+
+1. Connect to your IRC network with certificate configured
+2. Long-press the server tab
+3. Select "Share Cert with NickServ" from context menu
+4. Fingerprint is sent automatically
+
+**Verification:**
+
+- You should receive a confirmation from NickServ
+- Typical response: "Added fingerprint to your account"
+- Check your certificate list: `/msg NickServ CERT LIST`
+
+### Network Configuration
+
+**Enable SASL EXTERNAL:**
+
+1. Go to Network Settings → Your Network
+2. Scroll to **SASL** section
+3. Enable "Enable SASL"
+4. Set SASL Mechanism to **"EXTERNAL"**
+5. Ensure your certificate is configured (should show in SASL EXTERNAL section)
+
+**Certificate Options:**
+
+- **Generate New** - Create a new certificate
+- **Select Existing** - Choose from previously generated certificates
+- **View Fingerprint** - Display current certificate's fingerprint
+- **Manual Entry** - Paste PEM-encoded certificate/key manually
+
+### Managing Certificates
+
+**View All Certificates:**
+
+- Network Settings → SASL EXTERNAL → "📁 Select Existing"
+- Shows all generated certificates with status indicators:
+    - 🟢 Valid (green) - Certificate is active
+    - 🟠 Expires Soon (orange) - Less than 30 days remaining
+    - 🔴 Expired (red) - Certificate has expired
+
+**View Fingerprint:**
+
+- Network Settings → SASL EXTERNAL → "🔑 View Fingerprint"
+- Or long-press server tab → "View Certificate Fingerprint"
+- Or use command: `/certfp` (when connected)
+
+**Delete Certificate:**
+
+- Open Certificate Selector
+- Tap certificate → Delete button
+- Confirm deletion
+- Remember to remove from NickServ: `/msg NickServ CERT DEL <fingerprint>`
+
+### IRC Commands
+
+**`/certfp`** - Display your current certificate fingerprint
+
+Usage:
+
+```
+/certfp
+```
+
+Output:
+
+```
+*** Certificate Fingerprint (SHA-256):
+*** AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99
+***
+*** To add to NickServ:
+*** /msg NickServ CERT ADD AA:BB:CC:...
+***
+*** Or use: /certadd [service] (default: NickServ)
+```
+
+**`/certadd [service]`** - Send certificate fingerprint to IRC service
+
+Usage:
+
+```
+/certadd              # Sends to NickServ (default)
+/certadd NickServ     # Explicitly send to NickServ
+/certadd CertFP       # Send to CertFP service
+/certadd HostServ     # Send to HostServ service
+```
+
+### Troubleshooting
+
+**Problem: "SASL authentication failed"**
+
+Possible causes:
+
+1. **Certificate not added to NickServ**
+    - Solution: Add fingerprint with `/msg NickServ CERT ADD <fingerprint>`
+    - Verify: `/msg NickServ CERT LIST`
+
+2. **Wrong SASL mechanism**
+    - Solution: Ensure SASL mechanism is set to "EXTERNAL" (not PLAIN)
+    - Check: Network Settings → SASL → SASL Mechanism
+
+3. **Certificate/key mismatch**
+    - Solution: Regenerate certificate and re-add to NickServ
+
+4. **Server doesn't support SASL EXTERNAL**
+    - Solution: Contact network administrators
+    - Alternative: Use SASL PLAIN with password
+
+**Problem: "No certificate configured"**
+
+Solutions:
+
+- Go to Network Settings → SASL EXTERNAL
+- Tap "Generate New" or "Select Existing"
+- Ensure certificate is applied (should show "View Fingerprint" button)
+
+**Problem: Certificate expired**
+
+Solutions:
+
+- Generate new certificate
+- Add new fingerprint to NickServ
+- Remove old certificate from app (optional)
+
+### Security Best Practices
+
+**Certificate Management:**
+
+1. **Use separate certificates per device**
+    - Don't share certificates between devices
+    - Each device should have its own certificate
+    - Easier to revoke if device is lost
+
+2. **Set appropriate validity periods**
+    - 1-2 years: Better security (force periodic renewal)
+    - 5+ years: More convenient (less maintenance)
+    - Balance security vs. convenience
+
+3. **Backup certificates**
+    - Export certificate from NickServ: `/msg NickServ CERT LIST`
+    - Write down fingerprint for reference
+    - Don't backup private keys (defeats purpose)
+
+4. **Revoke old certificates**
+    - Remove from NickServ: `/msg NickServ CERT DEL <fingerprint>`
+    - Delete from app: Certificate Selector → Tap certificate → Delete
+
+**Lost Device:**
+
+If your device is lost or stolen:
+
+1. From another device, remove certificate from NickServ:
+   ```
+   /msg NickServ CERT DEL <fingerprint>
+   ```
+2. Change your NickServ password (if you have one)
+3. Check for unauthorized access: `/msg NickServ LISTVHOST`
+
+### Supported Networks
+
+Most modern IRC networks support SASL EXTERNAL:
+
+- Libera.Chat
+- OFTC
+- Rizon
+- EFnet (with Atheme)
+- And many others
+
+Check your network's documentation for specific instructions.
+
+### Additional Resources
+
+- **Network Documentation:**
+    - Libera.Chat: https://libera.chat/guides/certfp
+    - OFTC: https://www.oftc.net/NickServ/CertFP/
+    - Rizon: https://wiki.rizon.net/index.php?title=CertFP
+
+- **Technical References:**
+    - RFC 5280: X.509 Certificate Standard
+    - SASL EXTERNAL: RFC 4422, Section 4
+    - IRC SASL: https://ircv3.net/specs/extensions/sasl-3.1
 
 ## 🔐 Security
 

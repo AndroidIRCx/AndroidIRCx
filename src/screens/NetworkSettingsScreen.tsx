@@ -13,6 +13,11 @@ import {
 } from 'react-native';
 import { IRCNetworkConfig, settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
+import { CertificateGeneratorModal } from '../components/modals/CertificateGeneratorModal';
+import { CertificateSelectorModal } from '../components/modals/CertificateSelectorModal';
+import { CertificateFingerprintModal } from '../components/modals/CertificateFingerprintModal';
+import { certificateManager } from '../services/CertificateManagerService';
+import type { CertificateInfo } from '../types/certificate';
 
 interface NetworkSettingsScreenProps {
   networkId?: string;
@@ -44,6 +49,11 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const [proxyPassword, setProxyPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Certificate modal states
+  const [showCertGenerator, setShowCertGenerator] = useState(false);
+  const [showCertSelector, setShowCertSelector] = useState(false);
+  const [showCertFingerprint, setShowCertFingerprint] = useState(false);
 
   useEffect(() => {
     if (networkId) {
@@ -101,6 +111,32 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  // Certificate handlers
+  const handleCertificateGenerated = (cert: CertificateInfo) => {
+    setClientCert(cert.pemCert);
+    setClientKey(cert.pemKey);
+    setShowCertGenerator(false);
+    Alert.alert(
+      t('Success'),
+      t('Certificate generated and applied! Don\'t forget to add the fingerprint to NickServ.')
+    );
+  };
+
+  const handleCertificateSelected = (cert: CertificateInfo) => {
+    setClientCert(cert.pemCert);
+    setClientKey(cert.pemKey);
+    setShowCertSelector(false);
+    Alert.alert(t('Success'), t('Certificate applied to network configuration'));
+  };
+
+  const handleViewFingerprint = () => {
+    if (!clientCert.trim()) {
+      Alert.alert(t('Error'), t('No certificate configured'));
+      return;
+    }
+    setShowCertFingerprint(true);
   };
 
   const handleSave = async () => {
@@ -349,6 +385,37 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('SASL EXTERNAL (Client Certificate)')}</Text>
+
+          {/* Certificate Management Buttons */}
+          <View style={styles.certButtonsRow}>
+            <TouchableOpacity
+              style={styles.certButton}
+              onPress={() => setShowCertGenerator(true)}>
+              <Text style={styles.certButtonText}>➕ {t('Generate New')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.certButton}
+              onPress={() => setShowCertSelector(true)}>
+              <Text style={styles.certButtonText}>📁 {t('Select Existing')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* View Fingerprint Button (only if cert is set) */}
+          {clientCert.trim() && (
+            <TouchableOpacity
+              style={[styles.certButton, styles.fingerprintButton]}
+              onPress={handleViewFingerprint}>
+              <Text style={styles.certButtonText}>🔑 {t('View Fingerprint')}</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{t('or enter manually')}</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{t('Client Certificate (PEM)')}</Text>
             <TextInput
@@ -378,6 +445,29 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
           </ScrollView>
         )}
       </View>
+
+      {/* Certificate Modals */}
+      <CertificateGeneratorModal
+        visible={showCertGenerator}
+        onClose={() => setShowCertGenerator(false)}
+        onCertificateGenerated={handleCertificateGenerated}
+        defaultCommonName={`${nick}@${name}`}
+      />
+
+      <CertificateSelectorModal
+        visible={showCertSelector}
+        onClose={() => setShowCertSelector(false)}
+        onSelect={handleCertificateSelected}
+        defaultCommonName={`${nick}@${name}`}
+      />
+
+      {clientCert.trim() && (
+        <CertificateFingerprintModal
+          visible={showCertFingerprint}
+          onClose={() => setShowCertFingerprint(false)}
+          fingerprint={certificateManager.extractFingerprintFromPem(clientCert)}
+        />
+      )}
     </Modal>
   );
 };
@@ -494,6 +584,43 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  certButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  certButton: {
+    flex: 1,
+    backgroundColor: '#4A9EFF',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  certButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  fingerprintButton: {
+    backgroundColor: '#4CAF50',
+    marginBottom: 12,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  dividerText: {
+    fontSize: 12,
+    color: '#757575',
+    marginHorizontal: 12,
   },
 });
 

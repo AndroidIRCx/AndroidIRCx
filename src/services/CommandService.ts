@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IRCService } from './IRCService';
+import { certificateManager } from './CertificateManagerService';
+import { FingerprintFormat } from '../types/certificate';
 
 export interface CommandAlias {
   alias: string;
@@ -30,6 +32,8 @@ export class CommandService {
   private readonly ALIASES_STORAGE_KEY = '@AndroidIRCX:commandAliases';
   private readonly CUSTOM_COMMANDS_STORAGE_KEY = '@AndroidIRCX:customCommands';
   private readonly HISTORY_STORAGE_KEY = '@AndroidIRCX:commandHistory';
+  private currentNetworkCert?: string;
+  private onLocalMessage?: (message: string) => void;
 
   constructor() {
     // IRCService will be set later
@@ -37,6 +41,22 @@ export class CommandService {
 
   setIRCService(ircService: IRCService): void {
     this.ircService = ircService;
+  }
+
+  /**
+   * Set the current network's certificate (PEM format)
+   * Should be called when switching networks or updating certificate
+   */
+  setCurrentNetworkCert(certPem?: string): void {
+    this.currentNetworkCert = certPem;
+  }
+
+  /**
+   * Set handler for displaying local messages to user
+   * These are informational messages that should appear in the UI but not be sent to IRC
+   */
+  setLocalMessageHandler(handler: (message: string) => void): void {
+    this.onLocalMessage = handler;
   }
 
   /**
@@ -176,11 +196,19 @@ export class CommandService {
       }
     }
 
-
     // Extract command and arguments
     const parts = trimmed.split(/\s+/);
     const commandName = parts[0].substring(1).toLowerCase(); // Remove leading /
     const args = parts.slice(1);
+
+    // Handle built-in certificate commands
+    if (commandName === 'certfp') {
+      return this.handleCertFpCommand();
+    }
+
+    if (commandName === 'certadd') {
+      return this.handleCertAddCommand(args);
+    }
 
     // Check for alias
     const alias = this.aliases.get(commandName);
@@ -443,6 +471,82 @@ export class CommandService {
     } catch (error) {
       console.error('Failed to save command history:', error);
     }
+  }
+
+  /**
+   * Handle /certfp command - Display certificate fingerprint
+   */
+  private handleCertFpCommand(): string | null {
+    if (!this.currentNetworkCert) {
+      this.onLocalMessage?.(
+        '*** Error: No certificate configured for this network.\n' +
+        '*** Configure one in Network Settings (SASL EXTERNAL section).'
+      );
+      return null;
+    }
+
+    try {
+      const fingerprint = certificateManager.extractFingerprintFromPem(this.currentNetworkCert);
+      const formatted = certificateManager.formatFingerprint(
+        fingerprint,
+        FingerprintFormat.COLON_SEPARATED_UPPER
+      );
+
+      const message =
+        '*** Certificate Fingerprint (SHA-256):\n' +
+        `*** ${formatted}\n` +
+        '***\n' +
+        '*** To add to NickServ:\n' +
+        `*** /msg NickServ CERT ADD ${formatted}\n` +
+        '***\n' +
+        '*** Or use: /certadd [service] (default: NickServ)';
+
+      this.onLocalMessage?.(message);
+    } catch (error) {
+      console.error('Failed to extract fingerprint:', error);
+      this.onLocalMessage?.(
+        '*** Error: Failed to extract certificate fingerprint.\n' +
+        '*** The certificate may be invalid or corrupted.'
+      );
+    }
+
+    return null;
+  }
+
+  /**
+   * Handle /certadd command - Send fingerprint to IRC service
+   * @param args - [service] optional, defaults to NickServ
+   */
+  private handleCertAddCommand(args: string[]): string | null {
+    if (!this.currentNetworkCert) {
+      this.onLocalMessage?.(
+        '*** Error: No certificate configured for this network.\n' +
+        '*** Configure one in Network Settings (SASL EXTERNAL section).'
+      );
+      return null;
+    }
+
+    const service = args[0] || 'NickServ';
+
+    try {
+      const fingerprint = certificateManager.extractFingerprintFromPem(this.currentNetworkCert);
+      const formatted = certificateManager.formatFingerprint(
+        fingerprint,
+        FingerprintFormat.COLON_SEPARATED_UPPER
+      );
+      const command = `PRIVMSG ${service} :CERT ADD ${formatted}`;
+
+      this.ircService?.sendRaw(command);
+      this.onLocalMessage?.(`*** Certificate fingerprint sent to ${service}`);
+    } catch (error) {
+      console.error('Failed to send fingerprint:', error);
+      this.onLocalMessage?.(
+        '*** Error: Failed to send certificate fingerprint.\n' +
+        '*** The certificate may be invalid or corrupted.'
+      );
+    }
+
+    return null;
   }
 
   /**

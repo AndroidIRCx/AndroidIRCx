@@ -10,6 +10,7 @@
 import { useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { Alert } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { IRCNetworkConfig, settingsService, DEFAULT_PART_MESSAGE } from '../services/SettingsService';
 import { connectionManager } from '../services/ConnectionManager';
 import { tabService } from '../services/TabService';
@@ -22,6 +23,8 @@ import { dccChatService } from '../services/DCCChatService';
 import { useUIStore } from '../stores/uiStore';
 import { serverTabId, sortTabsGrouped } from '../utils/tabUtils';
 import type { ChannelTab } from '../types';
+import { certificateManager } from '../services/CertificateManagerService';
+import { FingerprintFormat } from '../types/certificate';
 
 interface UseTabContextMenuParams {
   activeTabId: string | null;
@@ -86,6 +89,73 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           },
           style: 'destructive',
         });
+
+        // Certificate options (only when connected)
+        const networkConfig = await getNetworkConfigForId(tab.networkId);
+        if (networkConfig?.clientCert) {
+          options.push({
+            text: t('View Certificate Fingerprint'),
+            onPress: async () => {
+              try {
+                const fingerprint = certificateManager.extractFingerprintFromPem(networkConfig.clientCert!);
+                const formatted = certificateManager.formatFingerprint(
+                  fingerprint,
+                  FingerprintFormat.COLON_SEPARATED_UPPER
+                );
+                safeAlert(
+                  t('Certificate Fingerprint'),
+                  `SHA-256:\n${formatted}\n\nTo add to NickServ:\n/msg NickServ CERT ADD ${formatted}`,
+                  [
+                    {
+                      text: t('Copy Fingerprint'),
+                      onPress: () => {
+                        Clipboard.setString(formatted);
+                        safeAlert(t('Copied'), t('Fingerprint copied to clipboard'));
+                      },
+                    },
+                    {
+                      text: t('Copy Command'),
+                      onPress: () => {
+                        Clipboard.setString(`/msg NickServ CERT ADD ${formatted}`);
+                        safeAlert(t('Copied'), t('Command copied to clipboard'));
+                      },
+                    },
+                    { text: t('Close'), style: 'cancel' },
+                  ]
+                );
+              } catch (error) {
+                console.error('Failed to extract fingerprint:', error);
+                safeAlert(t('Error'), t('Failed to extract certificate fingerprint'));
+              }
+            },
+          });
+
+          options.push({
+            text: t('Share Cert with NickServ'),
+            onPress: async () => {
+              try {
+                const fingerprint = certificateManager.extractFingerprintFromPem(networkConfig.clientCert!);
+                const formatted = certificateManager.formatFingerprint(
+                  fingerprint,
+                  FingerprintFormat.COLON_SEPARATED_UPPER
+                );
+                const command = `/msg NickServ CERT ADD ${formatted}`;
+
+                // Send command to IRC server
+                const tabConnection = connectionManager.getConnection(tab.networkId);
+                if (tabConnection?.ircService) {
+                  tabConnection.ircService.sendRaw(command.substring(1)); // Remove leading /
+                  safeAlert(t('Sent'), t('Certificate fingerprint sent to NickServ'));
+                } else {
+                  safeAlert(t('Error'), t('Not connected to IRC server'));
+                }
+              } catch (error) {
+                console.error('Failed to send fingerprint:', error);
+                safeAlert(t('Error'), t('Failed to send certificate fingerprint'));
+              }
+            },
+          });
+        }
       } else {
         options.push({
           text: `Connect ${tab.networkId}`,

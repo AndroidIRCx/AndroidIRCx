@@ -850,7 +850,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           initialNumToRender={perfConfig.maxVisibleMessages}
           maxToRenderPerBatch={perfConfig.messageLoadChunk}
           windowSize={10}
-          removeClippedSubviews={true}
+          removeClippedSubviews={false}
           maintainVisibleContentPosition={{ autoscrollToTopThreshold: 50, minIndexForVisible: 1 }}
           style={styles.container}
           contentContainerStyle={styles.contentContainer}
@@ -917,6 +917,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           onScroll={handleScroll}
           scrollEventThrottle={16}
           maintainVisibleContentPosition={{ autoscrollToTopThreshold: 50, minIndexForVisible: 1 }}
+          removeClippedSubviews={false}
           style={styles.container}
           contentContainerStyle={styles.contentContainer}
         />
