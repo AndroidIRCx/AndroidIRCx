@@ -7791,10 +7791,10 @@ react-native-battery-optimization-check@^1.0.8:
   resolved "https://registry.yarnpkg.com/react-native-battery-optimization-check/-/react-native-battery-optimization-check-1.0.8.tgz#1592e8662be02ac6dbff06e25523bf1835958a77"
   integrity sha512-OXACVlMho/rmTg3YS2GQ0juGb7YKJTrvUnD7BMDNGpAUm6ykcgkU0i3vML76ZHRYTO1rB5Pdh4re+LeKSvVWsQ==
 
-react-native-bootsplash@^6.3.11:
-  version "6.3.11"
-  resolved "https://registry.yarnpkg.com/react-native-bootsplash/-/react-native-bootsplash-6.3.11.tgz#5ed543e5273d7d75912dbfc56c5b0a66bb4ee924"
-  integrity sha512-VA102LDBPyqMJzRtIb5H6MWsKSSpjzW49e34E2kpOivmkYllLlOpkpB/Q6Yvrt4u3EbkgOxB5gerJERhvcO4Tg==
+react-native-bootsplash@^6.3.12:
+  version "6.3.12"
+  resolved "https://registry.yarnpkg.com/react-native-bootsplash/-/react-native-bootsplash-6.3.12.tgz#b6760f0e1e4feb2de683e7e1c9ed790f8e51268b"
+  integrity sha512-o+3rj6fNJGMW2tcWIyB3P1Mps4O4yU3+qcHeLmd7FFzABVzez0To7bpeQ7rTApdb3bIg8s61R8PI7+fwkakGBQ==
   dependencies:
     "@expo/config-plugins" "^9.0.0 || ^10.0.0"
     "@react-native-community/cli-config-android" "^18.0.0"
