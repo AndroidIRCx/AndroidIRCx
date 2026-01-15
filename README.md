@@ -1,6 +1,5 @@
 # AndroidIRCX
 
-[![CodeQL](https://github.com/AndroidIRCx/AndroidIRCx/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/AndroidIRCx/AndroidIRCx/actions/workflows/codeql.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/androidircx/androidircx)](https://github.com/androidircx/androidircx/releases)
 [![GitHub Issues](https://img.shields.io/github/issues/androidircx/androidircx)](https://github.com/androidircx/androidircx/issues)
 [![GitHub License](https://img.shields.io/github/license/androidircx/androidircx)](https://github.com/androidircx/androidircx/blob/main/LICENSE)
