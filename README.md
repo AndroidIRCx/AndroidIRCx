@@ -179,6 +179,17 @@ maintaining full compatibility with IRCv3 standards.
   - In-App Purchases: Remove Ads, Pro Unlimited, Supporter Pro tiers
   - Scripting system with time-based access (watch ads for time or purchase unlimited)
 
+- **ZNC Subscription Service** 🆕
+    - **Multiple ZNC Accounts** - Purchase and manage multiple ZNC bouncer accounts
+    - **Restore Purchases** - Full Google Play restore functionality
+    - **One-Click Setup** - Auto-configure ZNC to any network (default: DBase)
+    - **Network Integration** - ZNC servers integrate with existing Network/Server settings
+    - **Account Management**:
+        - View account status (active, pending, expired)
+        - Refresh account credentials
+        - Copy username/password
+        - Assign/unassign from networks
+
 ## 🛠️ Technology Stack
 
 - **Framework**: React Native 0.83.1
@@ -204,12 +215,14 @@ AndroidIRCX/
 │   ├── services/            # Business logic
 │   │   ├── IRCService.ts    # IRC protocol (Full IRCv3 - 18 capabilities)
 │   │   ├── MessageReactionsService.ts # Reaction tracking (NEW v1.4.4)
+│   │   ├── SubscriptionService.ts # ZNC multi-account management (NEW v1.6.6)
 │   │   ├── CommandService.ts # Command aliases (70+) and history
 │   │   └── SettingsService.ts # Network/server configuration
 │   ├── screens/             # Full-screen views
 │   │   ├── NetworksListScreen.tsx
 │   │   ├── NetworkSettingsScreen.tsx
-│   │   └── ServerSettingsScreen.tsx
+│   │   ├── ServerSettingsScreen.tsx
+│   │   └── ZncSubscriptionScreen.tsx # ZNC subscription management (NEW v1.6.6)
 │   └── types/               # TypeScript type definitions
 ├── android/                 # Android native code
 ├── ios/                     # iOS native code
@@ -677,10 +690,9 @@ This client implements the IRC protocol according to:
 
 - [IRC Setup Guide](IRC_SETUP.md) - Detailed IRC connection setup
 - [Debug Notes](DEBUG_NOTES.md) - Troubleshooting guide
-- [PROJECT](PROJECT.md) - Project explained
 ## 🔄 Development Status
 
-**Current Version**: 1.5.2
+**Current Version**: 1.6.6
 
 ---
 

@@ -8,6 +8,7 @@ import com.facebook.react.uimanager.ViewManager
 /**
  * React Native package for Play Integrity API module
  */
+@Suppress("DEPRECATION")
 class PlayIntegrityPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
         return listOf(PlayIntegrityModule(reactContext))

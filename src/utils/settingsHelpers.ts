@@ -19,6 +19,7 @@ export const getSectionIcon = (title: string): SectionIcon | null => {
   const iconMap: Record<string, SectionIcon | null> = {
     'Premium': null, // No icon for Premium as requested
     'Appearance': { name: 'palette', solid: true },
+    'ZNC Subscription': { name: 'server', solid: false },
     'Display & UI': { name: 'desktop', solid: false },
     'Messages & History': { name: 'history', solid: false },
     'Messages': { name: 'history', solid: false }, // Legacy support
@@ -116,6 +117,7 @@ export const orderSections = (
   // Define section order - Premium at top for non-paying, at bottom for paying
   const sectionOrderForPremium: string[] = [
     'Premium',                    // Premium features first for non-paying users
+    'ZNC Subscription',
     'Appearance',
     'Display & UI',
     'Messages & History',
@@ -152,6 +154,7 @@ export const orderSections = (
     'Development',
     'About',
     'Premium',                    // Premium at bottom for paying users
+    'ZNC Subscription',
   ];
 
   // Choose order based on premium status

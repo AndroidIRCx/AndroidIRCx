@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.androidircx
 
 import android.app.Application

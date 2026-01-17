@@ -42,8 +42,12 @@ import { ScriptingHelpScreen } from './ScriptingHelpScreen';
 import { BackupScreen } from './BackupScreen';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { adRewardService } from '../services/AdRewardService';
+import { subscriptionService } from '../services/SubscriptionService';
+import * as RNIap from 'react-native-iap';
+import type { ProductSubscription, Purchase, PurchaseError } from 'react-native-iap';
 import { KeyManagementScreen } from './KeyManagementScreen';
 import { FirstRunSetupScreen } from './FirstRunSetupScreen';
+import { ZncSubscriptionScreen } from './ZncSubscriptionScreen';
 import { PrivacyAdsScreen } from './PrivacyAdsScreen';
 import { DataPrivacyScreen } from './DataPrivacyScreen';
 import { RawMessageCategory, RAW_MESSAGE_CATEGORIES, getDefaultRawCategoryVisibility } from '../services/IRCService';
@@ -107,6 +111,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const { theme, colors } = useTheme();
   const styles = useMemo(() => createStyles(colors, theme), [colors, theme]);
   const tags = 'screen:settings,file:SettingsScreen.tsx,feature:settings';
+  const zncSubscriptionIdConst = 'znc';
+  const zncBasePlanId = 'znc-user';
   const settingIcons = useMemo<Record<string, SettingIcon>>(
     () => SETTINGS_ICONS,
     []
@@ -115,6 +121,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const helpTitle = t('📖 Help & Documentation', { _tags: tags });
   const scriptingAdsTitle = t('Scripting & Ads', { _tags: tags });
   const premiumTitle = t('💎 Premium', { _tags: tags });
+  const zncSubscriptionTitle = t('ZNC Subscription', { _tags: tags });
   const connectionTitle = t('Connection & Network', { _tags: tags });
   const languageLabels = useMemo(
     () => ({
@@ -187,6 +194,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [showBackupScreen, setShowBackupScreen] = useState(false);
   const [showKeyManagement, setShowKeyManagement] = useState(false);
+  const [showZncSubscription, setShowZncSubscription] = useState(false);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
   const [migrationNetwork, setMigrationNetwork] = useState('');
   const [storageStats, setStorageStats] = useState<{ keyCount: number; totalBytes: number }>({ keyCount: 0, totalBytes: 0 });
@@ -235,6 +243,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setQuickConnectNetworkId,
   } = securitySettings;
   
+  const [zncPurchaseToken, setZncPurchaseToken] = useState('');
+  const [zncSubscriptionId, setZncSubscriptionId] = useState(zncSubscriptionIdConst);
+  const [zncUsername, setZncUsername] = useState('');
+  const [zncSubscriptionStatus, setZncSubscriptionStatus] = useState<string | null>(null);
+  const [zncExpiresAt, setZncExpiresAt] = useState<string | null>(null);
+  const [zncPassword, setZncPassword] = useState<string | null>(null);
+  const [zncAccountStatus, setZncAccountStatus] = useState<string | null>(null);
+  const [zncRegistering, setZncRegistering] = useState(false);
+  const [zncOfferToken, setZncOfferToken] = useState<string | null>(null);
+  const [zncDisplayPrice, setZncDisplayPrice] = useState<string | null>(null);
+  const [zncPurchasing, setZncPurchasing] = useState(false);
+  const zncUsernameRef = useRef('');
+
   const [autoConnectFavoriteServer, setAutoConnectFavoriteServer] = useState(false);
   const [showFirstRunSetup, setShowFirstRunSetup] = useState(false);
   const [tabSortAlphabetical, setTabSortAlphabetical] = useState(true);
@@ -300,6 +321,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   }, [visible, showRawCommands, showEncryptionIndicators, currentNetwork, rawCategoryVisibility]);
 
+  useEffect(() => {
+    zncUsernameRef.current = zncUsername;
+  }, [zncUsername]);
+
   // Theme changes now handled by useSettingsAppearance hook
   useEffect(() => {
     const previousTitle = prevAboutTitleRef.current;
@@ -339,6 +364,82 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     
     checkNotificationPermission();
   }, [visible, tags, t]);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    let purchaseUpdateSubscription: any;
+    let purchaseErrorSubscription: any;
+    let cancelled = false;
+
+    const setupIap = async () => {
+      try {
+        await initZncIap();
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Error initializing ZNC IAP:', error);
+        }
+      }
+    };
+
+    setupIap();
+
+    purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
+      async (purchase: Purchase) => {
+        if (purchase.productId !== zncSubscriptionIdConst) {
+          return;
+        }
+        setZncPurchasing(false);
+        const token = purchase.purchaseToken || purchase.transactionReceipt || '';
+        if (!token) {
+          Alert.alert(
+            t('Purchase Error', { _tags: tags }),
+            t('Missing purchase token from Google Play.', { _tags: tags })
+          );
+          return;
+        }
+
+        try {
+          await RNIap.finishTransaction({ purchase, isConsumable: false });
+        } catch (error) {
+          console.error('Error finishing ZNC transaction:', error);
+        }
+
+        setZncPurchaseToken(token);
+        await persistZncConfig({
+          purchaseToken: token,
+          subscriptionId: zncSubscriptionIdConst,
+          zncUsername: zncUsernameRef.current,
+        });
+        await registerZncSubscriptionWithToken(token, zncUsernameRef.current);
+      }
+    );
+
+    purchaseErrorSubscription = RNIap.purchaseErrorListener(
+      (error: PurchaseError) => {
+        if (error.productId && error.productId !== zncSubscriptionIdConst) {
+          return;
+        }
+        setZncPurchasing(false);
+        if (error.code !== 'E_USER_CANCELLED') {
+          Alert.alert(
+            t('Purchase Failed', { _tags: tags }),
+            error.message || t('Please try again later.', { _tags: tags })
+          );
+        }
+      }
+    );
+
+    return () => {
+      cancelled = true;
+      if (purchaseUpdateSubscription) {
+        purchaseUpdateSubscription.remove();
+      }
+      if (purchaseErrorSubscription) {
+        purchaseErrorSubscription.remove();
+      }
+    };
+  }, [visible, initZncIap, registerZncSubscriptionWithToken, tags, t, zncSubscriptionIdConst]);
 
   // Supporter status now managed by useSettingsPremium hook - no local state needed
 
@@ -406,6 +507,32 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setClosePrivateMessageText(await settingsService.getSetting('closePrivateMessageText', 'Closing window'));
     setNoticeTarget(await settingsService.getSetting('noticeTarget', 'server'));
     setLagCheckMethod(await settingsService.getSetting('lagCheckMethod', 'server'));
+    const zncConfig = await settingsService.getSetting('zncSubscriptionConfig', {
+      purchaseToken: '',
+      subscriptionId: '',
+      zncUsername: '',
+    });
+    const subscriptionId = zncConfig.subscriptionId || zncSubscriptionIdConst;
+    setZncPurchaseToken(zncConfig.purchaseToken || '');
+    setZncSubscriptionId(subscriptionId);
+    setZncUsername(zncConfig.zncUsername || '');
+    if (subscriptionId !== zncConfig.subscriptionId) {
+      await settingsService.setSetting('zncSubscriptionConfig', {
+        purchaseToken: zncConfig.purchaseToken || '',
+        subscriptionId,
+        zncUsername: zncConfig.zncUsername || '',
+      });
+    }
+    const zncState = await settingsService.getSetting('zncSubscriptionState', {
+      status: null,
+      expiresAt: null,
+      zncPassword: null,
+      zncStatus: null,
+    });
+    setZncSubscriptionStatus(zncState.status);
+    setZncExpiresAt(zncState.expiresAt);
+    setZncPassword(zncState.zncPassword);
+    setZncAccountStatus(zncState.zncStatus);
     // autoJoinFavoritesEnabled now managed by ConnectionNetworkSection component
   };
 
@@ -434,6 +561,319 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     dataBackupService.getStorageStats().then(setStorageStats).catch(() => {});
     // Identities
     identityProfilesService.list().then(setIdentityProfiles).catch(() => {});
+  };
+
+  const loadZncSubscriptionProduct = useCallback(async () => {
+    try {
+      const products = await RNIap.fetchProducts({
+        skus: [zncSubscriptionIdConst],
+        type: 'subs',
+      });
+      const subscription = products.find(
+        (item): item is ProductSubscription =>
+          item.id === zncSubscriptionIdConst && item.type === 'subs'
+      );
+      if (!subscription) {
+        setZncOfferToken(null);
+        setZncDisplayPrice(null);
+        return;
+      }
+      setZncDisplayPrice(subscription.displayPrice || null);
+      if (Platform.OS === 'android') {
+        const offers = subscription.subscriptionOfferDetailsAndroid || [];
+        const matchedOffer =
+          offers.find(offer => offer.basePlanId === zncBasePlanId) || offers[0];
+        setZncOfferToken(matchedOffer?.offerToken || null);
+      }
+    } catch (error) {
+      setZncOfferToken(null);
+      setZncDisplayPrice(null);
+    }
+  }, [zncBasePlanId, zncSubscriptionIdConst]);
+
+  const initZncIap = useCallback(async () => {
+    await RNIap.initConnection();
+    if (Platform.OS === 'android') {
+      const flushPending = (RNIap as any).flushFailedPurchasesCachedAsPendingAndroid;
+      if (typeof flushPending === 'function') {
+        await flushPending();
+      }
+    }
+    await loadZncSubscriptionProduct();
+  }, [loadZncSubscriptionProduct]);
+
+  const persistZncConfig = useCallback(async (updates: Partial<{ purchaseToken: string; subscriptionId: string; zncUsername: string }>) => {
+    const nextConfig = {
+      purchaseToken: updates.purchaseToken ?? zncPurchaseToken,
+      subscriptionId: updates.subscriptionId ?? zncSubscriptionId,
+      zncUsername: updates.zncUsername ?? zncUsername,
+    };
+    await settingsService.setSetting('zncSubscriptionConfig', nextConfig);
+  }, [zncPurchaseToken, zncSubscriptionId, zncUsername]);
+
+  const formatZncExpiresAt = (value: string | null) => {
+    if (!value) return t('Not available', { _tags: tags });
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString();
+  };
+
+  const applyZncServerToDBase = useCallback(async (username: string, password: string) => {
+    if (!username || !password) return;
+    const networks = await settingsService.loadNetworks();
+    let dbaseNetwork = networks.find(n => n.id === 'DBase' || n.name === 'DBase') || null;
+    if (!dbaseNetwork) {
+      dbaseNetwork = await settingsService.createDefaultNetwork();
+    }
+
+    const serverId = 'znc-subscription';
+    const serverConfig = {
+      id: serverId,
+      hostname: 'irc.androidircx.com',
+      port: 16786,
+      ssl: true,
+      rejectUnauthorized: true,
+      name: 'ZNC Subscription',
+      favorite: true,
+      password: `${username}:${password}`,
+    };
+
+    const existing = dbaseNetwork.servers.find(s => s.id === serverId);
+    if (existing) {
+      await settingsService.updateServerInNetwork(dbaseNetwork.id, serverId, serverConfig);
+    } else {
+      await settingsService.addServerToNetwork(dbaseNetwork.id, serverConfig);
+    }
+
+    await settingsService.updateNetwork(dbaseNetwork.id, {
+      defaultServerId: serverId,
+      connectionType: 'znc',
+    });
+  }, []);
+
+  const connectNowToZnc = async () => {
+    if (!zncUsername || !zncPassword) {
+      Alert.alert(
+        t('Missing Credentials', { _tags: tags }),
+        t('Register your subscription to get ZNC credentials first.', { _tags: tags })
+      );
+      return;
+    }
+
+    await applyZncServerToDBase(zncUsername, zncPassword);
+    const networks = await settingsService.loadNetworks();
+    const dbaseNetwork = networks.find(n => n.id === 'DBase' || n.name === 'DBase');
+    const zncServer = dbaseNetwork?.servers.find(s => s.id === 'znc-subscription') || dbaseNetwork?.servers.find(s => s.hostname === 'irc.androidircx.com' && s.port === 16786);
+
+    if (!dbaseNetwork || !zncServer) {
+      Alert.alert(
+        t('Connection Error', { _tags: tags }),
+        t('ZNC server configuration is missing.', { _tags: tags })
+      );
+      return;
+    }
+
+    const activeConnection = connectionManager.getConnection(dbaseNetwork.id);
+    if (!activeConnection) {
+      Alert.alert(
+        t('Not Connected', { _tags: tags }),
+        t('DBase is not connected. Open Networks and connect to DBase to use ZNC.', { _tags: tags })
+      );
+      return;
+    }
+
+    const globalProxy = await settingsService.getSetting('globalProxy', { enabled: false } as any);
+    const proxyToUse = dbaseNetwork.proxy || globalProxy || null;
+
+    const connectionConfig = {
+      host: (zncServer.hostname || '').trim(),
+      port: zncServer.port,
+      nick: dbaseNetwork.nick,
+      altNick: dbaseNetwork.altNick,
+      username: dbaseNetwork.ident || dbaseNetwork.nick,
+      realname: dbaseNetwork.realname,
+      password: zncServer.password,
+      tls: zncServer.ssl,
+      rejectUnauthorized: zncServer.rejectUnauthorized,
+      proxy: proxyToUse,
+      sasl: dbaseNetwork.sasl,
+    };
+
+    try {
+      activeConnection.ircService.disconnect(t('Reconnecting to ZNC...', { _tags: tags }));
+      await activeConnection.ircService.connect(connectionConfig);
+      Alert.alert(
+        t('Connected', { _tags: tags }),
+        t('Reconnected to ZNC for DBase.', { _tags: tags })
+      );
+    } catch (error: any) {
+      Alert.alert(
+        t('Connection Failed', { _tags: tags }),
+        error?.message || t('Unable to reconnect to ZNC.', { _tags: tags })
+      );
+    }
+  };
+
+  const startZncPurchase = async () => {
+    const username = zncUsername.trim();
+    if (!username) {
+      Alert.alert(
+        t('Missing Information', { _tags: tags }),
+        t('Please enter a ZNC username.', { _tags: tags })
+      );
+      return;
+    }
+
+    setZncPurchasing(true);
+    try {
+      await persistZncConfig({ zncUsername: username, subscriptionId: zncSubscriptionIdConst });
+      await initZncIap();
+
+      if (Platform.OS === 'android' && !zncOfferToken) {
+        await loadZncSubscriptionProduct();
+      }
+
+      if (Platform.OS === 'android' && !zncOfferToken) {
+        throw new Error('Missing subscription offer token.');
+      }
+
+      const request = Platform.select({
+        ios: {
+          request: {
+            apple: {
+              sku: zncSubscriptionIdConst,
+            },
+          },
+          type: 'subs' as const,
+        },
+        android: {
+          request: {
+            google: {
+              skus: [zncSubscriptionIdConst],
+              subscriptionOffers: [{
+                sku: zncSubscriptionIdConst,
+                offerToken: zncOfferToken as string,
+              }],
+            },
+          },
+          type: 'subs' as const,
+        },
+        default: {
+          request: {
+            google: {
+              skus: [zncSubscriptionIdConst],
+              subscriptionOffers: [{
+                sku: zncSubscriptionIdConst,
+                offerToken: zncOfferToken as string,
+              }],
+            },
+          },
+          type: 'subs' as const,
+        },
+      });
+
+      if (!request) {
+        throw new Error('Unsupported platform for subscriptions.');
+      }
+
+      await RNIap.requestPurchase(request);
+    } catch (error: any) {
+      setZncPurchasing(false);
+      Alert.alert(
+        t('Purchase Failed', { _tags: tags }),
+        error?.message || t('Please try again later.', { _tags: tags })
+      );
+    }
+  };
+
+  const registerZncSubscriptionWithToken = useCallback(async (purchaseToken: string, username: string) => {
+    const subscriptionId = zncSubscriptionIdConst;
+    const trimmedToken = purchaseToken.trim();
+    const trimmedUsername = username.trim();
+
+    if (!trimmedToken) {
+      Alert.alert(
+        t('Missing Information', { _tags: tags }),
+        t('Please complete the purchase first.', { _tags: tags })
+      );
+      return;
+    }
+
+    // Don't show error if username is missing but we're just updating an existing subscription
+    // The username might be retrieved from the server response
+    if (!trimmedUsername) {
+      // Still try to register, as the server might return the username in the response
+      console.warn('Username is empty, but attempting registration with purchase token only');
+    }
+
+    setZncRegistering(true);
+    try {
+      // Persist the purchase token even if username is empty
+      await persistZncConfig({ purchaseToken: trimmedToken, subscriptionId, zncUsername: trimmedUsername });
+
+      const response = await subscriptionService.registerZncSubscription({
+        purchaseToken: trimmedToken,
+        subscriptionId,
+        zncUsername: trimmedUsername || '', // Pass empty string if username is not provided
+      });
+
+      // Use the username from the response if available, otherwise fall back to the one we sent
+      const effectiveUsername = response.znc_username || trimmedUsername;
+      setZncSubscriptionStatus(response.status || null);
+      setZncExpiresAt(response.expires_at || null);
+      setZncPassword(response.znc_password || null);
+      setZncAccountStatus(response.znc_status || null);
+
+      // Only update the UI username if we have a valid one
+      if (effectiveUsername) {
+        setZncUsername(effectiveUsername);
+        await persistZncConfig({ zncUsername: effectiveUsername });
+      }
+
+      await settingsService.setSetting('zncSubscriptionState', {
+        status: response.status || null,
+        expiresAt: response.expires_at || null,
+        zncPassword: response.znc_password || null,
+        zncStatus: response.znc_status || null,
+      });
+
+      if ((response.status === 'active' || response.status === 'grace') && response.znc_username && response.znc_password) {
+        await applyZncServerToDBase(response.znc_username, response.znc_password);
+        Alert.alert(
+          t('ZNC Ready', { _tags: tags }),
+          t('ZNC server added to DBase network.', { _tags: tags })
+        );
+      } else {
+        Alert.alert(
+          t('Subscription Updated', { _tags: tags }),
+          t('Status: {status}', { status: response.status || 'unknown', _tags: tags })
+        );
+      }
+    } catch (error: any) {
+      Alert.alert(
+        t('Subscription Error', { _tags: tags }),
+        error?.message || t('Unable to register subscription.', { _tags: tags })
+      );
+    } finally {
+      setZncRegistering(false);
+    }
+  }, [applyZncServerToDBase, persistZncConfig, tags, t, zncSubscriptionIdConst]);
+
+  const registerZncSubscription = async () => {
+    const purchaseToken = zncPurchaseToken.trim();
+
+    if (!purchaseToken) {
+      Alert.alert(
+        t('Purchase Required', { _tags: tags }),
+        t('Please complete the purchase first.', { _tags: tags })
+      );
+      return;
+    }
+
+    // Allow registration even if username is empty, as it might be retrieved from server
+    const username = zncUsername.trim();
+
+    await registerZncSubscriptionWithToken(purchaseToken, username);
   };
 
   const buildGlobalProxyConfig = (overrides?: Partial<GlobalProxyInputs>) => {
@@ -858,6 +1298,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   }, [searchTerm, filteredSections]);
 
   // Icon mapping now handled by utility function
+  const zncStatusLabel = zncSubscriptionStatus || t('Not registered', { _tags: tags });
+  const zncExpiresLabel = formatZncExpiresAt(zncExpiresAt);
+  const zncAccountLabel = zncAccountStatus || t('Not available', { _tags: tags });
+  const zncPurchaseDescription = zncDisplayPrice
+    ? t('Price: {price}', { price: zncDisplayPrice, _tags: tags })
+    : t('Monthly subscription via Google Play', { _tags: tags });
 
   const sections = [
     {
@@ -871,6 +1317,34 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           icon: { name: 'crown', solid: true },
           onPress: () => onShowPurchaseScreen?.(),
           searchKeywords: ['premium', 'upgrade', 'pro', 'supporter', 'no-ads', 'remove ads', 'unlimited', 'scripting', 'purchase', 'buy'],
+        },
+      ],
+    },
+    {
+      title: zncSubscriptionTitle,
+      data: [
+        {
+          id: 'znc-manage-subscriptions',
+          title: t('Manage ZNC Accounts', { _tags: tags }),
+          description: t('Purchase, manage, and configure ZNC bouncer accounts', { _tags: tags }),
+          type: 'button' as const,
+          icon: { name: 'server', solid: false },
+          onPress: () => setShowZncSubscription(true),
+          searchKeywords: ['znc', 'subscription', 'purchase', 'buy', 'bouncer', 'accounts', 'manage'],
+        },
+        {
+          id: 'znc-subscription-info',
+          title: t('About ZNC Service', { _tags: tags }),
+          description: t('ZNC keeps you connected 24/7 with message playback', { _tags: tags }),
+          type: 'button' as const,
+          icon: { name: 'info-circle', solid: false },
+          onPress: () => {
+            Alert.alert(
+              t('ZNC Subscription', { _tags: tags }),
+              t('ZNC is an IRC bouncer that keeps you connected 24/7. Features include:\n\n- Always-on connection\n- Message playback when you reconnect\n- Multiple network support\n- Automatic configuration\n\nPrimarily intended for DBase network. Use on other networks at your own risk.', { _tags: tags })
+            );
+          },
+          searchKeywords: ['znc', 'info', 'about', 'bouncer', 'features'],
         },
       ],
     },
@@ -2159,6 +2633,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <KeyManagementScreen
         visible={showKeyManagement}
         onClose={() => setShowKeyManagement(false)}
+      />
+      <ZncSubscriptionScreen
+        visible={showZncSubscription}
+        onClose={() => setShowZncSubscription(false)}
       />
 
       <Modal

@@ -279,7 +279,7 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
       ], false));
       setActiveTabId(initialServerTabId);
 
-      // Save connection state for auto-reconnect
+      // Save connection state and enable auto-reconnect for this network
       if (networkToUse.name) {
         const channels: string[] = [];
         // Get channels from tabs
@@ -297,6 +297,22 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
           });
         }
         await autoReconnectService.saveConnectionState(finalId, config, channels, networkToUse);
+
+        // Enable auto-reconnect for this network if not already configured
+        // This ensures all connections have auto-reconnect enabled by default
+        const existingConfig = autoReconnectService.getConfig(finalId);
+        if (!existingConfig) {
+          await autoReconnectService.setConfig(finalId, {
+            enabled: true,
+            maxAttempts: 10,
+            initialDelay: 1000,
+            maxDelay: 60000,
+            backoffMultiplier: 2,
+            rejoinChannels: true,
+            smartReconnect: true,
+            minReconnectInterval: 5000,
+          });
+        }
       }
 
     } catch (error: any) {
