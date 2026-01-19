@@ -88,11 +88,11 @@ class IRCForegroundService : Service() {
         val notification = createNotification(title, text)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // Use SPECIAL_USE type for persistent IRC connections (no timeout limit)
+            // Use DATA_SYNC type for persistent IRC connections
             startForeground(
                 NOTIFICATION_ID,
                 notification,
-                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
             )
         } else {
             startForeground(NOTIFICATION_ID, notification)
@@ -186,12 +186,21 @@ class IRCForegroundService : Service() {
     override fun onDestroy() {
         android.util.Log.d("IRCForegroundService", "onDestroy called")
         try {
-            // Ensure cleanup happens quickly
-            stopForegroundService()
+            // Release wake lock first
+            wakeLock?.let {
+                if (it.isHeld) {
+                    it.release()
+                }
+            }
+            wakeLock = null
+
+            // CRITICAL: Call stopForeground immediately in onDestroy to prevent
+            // ForegroundServiceDidNotStopInTimeException
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            isServiceStarted = false
         } catch (e: Exception) {
             android.util.Log.e("IRCForegroundService", "Error in onDestroy: ${e.message}", e)
-        } finally {
-            super.onDestroy()
         }
+        super.onDestroy()
     }
 }
