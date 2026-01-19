@@ -2449,10 +2449,10 @@
   resolved "https://registry.yarnpkg.com/@react-native-documents/picker/-/picker-12.0.0.tgz#fbb88a9434da1fb0035a5196fd02259ff67596f9"
   integrity sha512-7kdUaF0Kin3F6OBixHTGY7mMHG7JAejbnAWUQltC8v2xmkPN+CMli3i4sm62ZIEhYzf3QX+fCe/3kFBcr+Vb6g==
 
-"@react-native-firebase/app-check@^23.7.0":
-  version "23.8.2"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/app-check/-/app-check-23.8.2.tgz#87b19efa2fe9d9692db948af7cfa677ad33da649"
-  integrity sha512-E79/RJhVG2VdEDDHigXxJzaNEvokeNVjlg4dT/ZQwHdzUU524GQ4CaqYWX47MCBLxL1+NP0TvR0Auavxpy+ypA==
+"@react-native-firebase/app-check@^23.8.3":
+  version "23.8.3"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app-check/-/app-check-23.8.3.tgz#3e32dddc3662b375d12b643603a30c7327bc7576"
+  integrity sha512-T9YiJ/mSyan4eWoVjW4jLvgxts7vrDie6D2PyM9FED/y6ThW4hkS16X4IT9wq9FlugywymZ82NQUlsvrA6Zl+w==
 
 "@react-native-firebase/app@23.7.0":
   version "23.7.0"
