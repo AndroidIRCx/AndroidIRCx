@@ -3,6 +3,8 @@ import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { IRCMessage } from '../services/IRCService';
 import { performanceService } from '../services/PerformanceService';
 import { serverTabId, noticeTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
+import { soundService } from '../services/SoundService';
+import { SoundEventType } from '../types/sound';
 import type { ChannelTab } from '../types';
 
 interface MessageBatchItem {
@@ -122,6 +124,9 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
               isEncrypted: newTabIsEncrypted,
               sendEncrypted: false,
             });
+            if (targetTabType === 'query') {
+              soundService.playSound(SoundEventType.RING);
+            }
             tabsModified = true;
           }
         } else {

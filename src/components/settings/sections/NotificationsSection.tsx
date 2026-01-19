@@ -5,6 +5,7 @@ import { useSettingsNotifications } from '../../../hooks/useSettingsNotification
 import { useT } from '../../../i18n/transifex';
 import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
 import { notificationService, NotificationPreferences } from '../../../services/NotificationService';
+import { SoundSettingsScreen } from '../../../screens/SoundSettingsScreen';
 
 interface NotificationsSectionProps {
   colors: {
@@ -58,6 +59,7 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
   const [showChannelNotifModal, setShowChannelNotifModal] = useState(false);
   const [channelNotifList, setChannelNotifList] = useState<{ channel: string; prefs: NotificationPreferences }[]>([]);
   const [newChannelNotif, setNewChannelNotif] = useState('');
+  const [showSoundSettings, setShowSoundSettings] = useState(false);
 
   const refreshChannelNotifList = useCallback(() => {
     setChannelNotifList(notificationService.listChannelPreferences());
@@ -141,6 +143,16 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
         onPress: () => {
           setChannelNotifList(notificationService.listChannelPreferences());
           setShowChannelNotifModal(true);
+        },
+      },
+      {
+        id: 'notifications-sounds',
+        title: t('Sound Settings', { _tags: tags }),
+        description: t('Configure notification sounds and themes', { _tags: tags }),
+        type: 'button',
+        searchKeywords: ['sound', 'sounds', 'audio', 'notification', 'tone', 'alert', 'ring', 'volume', 'theme'],
+        onPress: () => {
+          setShowSoundSettings(true);
         },
       },
     ];
@@ -261,6 +273,12 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
           </View>
         </View>
       </Modal>
+
+      {/* Sound Settings Screen */}
+      <SoundSettingsScreen
+        visible={showSoundSettings}
+        onClose={() => setShowSoundSettings(false)}
+      />
     </>
   );
 };

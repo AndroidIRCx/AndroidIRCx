@@ -265,6 +265,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const builtInCommands = [
       { cmd: 'join', desc: t('Join a channel') },
       { cmd: 'part', desc: t('Leave a channel') },
+      { cmd: 'hop', desc: t('Rejoin current channel') },
       { cmd: 'quit', desc: t('Disconnect from server') },
       { cmd: 'nick', desc: t('Change nickname') },
       { cmd: 'msg', desc: t('Send private message') },

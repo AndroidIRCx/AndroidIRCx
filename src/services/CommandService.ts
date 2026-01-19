@@ -209,6 +209,26 @@ export class CommandService {
     if (commandName === 'certadd') {
       return this.handleCertAddCommand(args);
     }
+    if (commandName === 'hop') {
+      const provided = args[0];
+      const looksLikeChannel = (value?: string) =>
+        !!value && (value.startsWith('#') || value.startsWith('&') || value.startsWith('+') || value.startsWith('!'));
+      const targetChannel = looksLikeChannel(provided) ? provided : channel;
+      const reasonArgs = looksLikeChannel(provided) ? args.slice(1) : args;
+
+      if (!targetChannel) {
+        this.onLocalMessage?.('*** Usage: /hop [channel] [reason]');
+        return null;
+      }
+
+      const reason = reasonArgs.length > 0 ? ` :${reasonArgs.join(' ')}` : '';
+      const joinDelayMs = 250;
+      this.ircService?.sendRaw(`PART ${targetChannel}${reason}`);
+      setTimeout(() => {
+        this.ircService?.sendRaw(`JOIN ${targetChannel}`);
+      }, joinDelayMs);
+      return null;
+    }
 
     // Check for alias
     const alias = this.aliases.get(commandName);

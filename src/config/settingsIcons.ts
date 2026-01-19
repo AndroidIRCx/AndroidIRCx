@@ -12,6 +12,7 @@ export const SETTINGS_ICONS: Record<string, SettingIcon> = {
   'connection-quality': { name: 'signal', solid: false },
   'notifications-enabled': { name: 'bell', solid: false },
   'notifications-per-channel': { name: 'bullhorn', solid: false },
+  'notifications-sounds': { name: 'volume-up', solid: false },
   'security-app-lock': { name: 'lock', solid: true },
   'security-manage-keys': { name: 'key', solid: true },
   'history-backup': { name: 'save', solid: false },

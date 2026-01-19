@@ -12,6 +12,8 @@ import { userActivityService } from '../services/UserActivityService';
 import { scriptingService } from '../services/ScriptingService';
 import { dccChatService } from '../services/DCCChatService';
 import { dccFileService } from '../services/DCCFileService';
+import { soundService } from '../services/SoundService';
+import { SoundEventType } from '../types/sound';
 import { useTabStore } from '../stores/tabStore';
 import { tabService } from '../services/TabService';
 import { messageHistoryService } from '../services/MessageHistoryService';
@@ -401,6 +403,39 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
           newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(messageNetwork, message.from);
         }
 
+        // Play notification sounds for relevant events
+        // Only for incoming messages, not local echo (from !== currentNick)
+        const isLocalEcho = message.from?.toLowerCase() === currentNick.toLowerCase();
+        if (!isLocalEcho && message.type === 'message' && message.text) {
+          // Private message sound
+          if (targetTabType === 'query' && message.from) {
+            soundService.playSound(SoundEventType.PRIVATE_MESSAGE);
+          }
+          // Mention sound - check if current nick is mentioned in the message
+          else if (targetTabType === 'channel' && currentNick) {
+            const mentionPattern = new RegExp(`\\b${currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+            if (mentionPattern.test(message.text)) {
+              soundService.playSound(SoundEventType.MENTION);
+            }
+          }
+        }
+        // Notice sound
+        if (message.type === 'notice' && !isLocalEcho) {
+          soundService.playSound(SoundEventType.NOTICE);
+        }
+        // CTCP sound (for DCC and other CTCP requests)
+        if (message.type === 'ctcp' && !isLocalEcho) {
+          soundService.playSound(SoundEventType.CTCP);
+        }
+        // Join sound
+        if (message.type === 'join' && !isLocalEcho) {
+          soundService.playSound(SoundEventType.JOIN);
+        }
+        // Kick sound - play if user was kicked (message.text contains kicked user)
+        if (message.type === 'mode' && message.text?.includes('kicked')) {
+          soundService.playSound(SoundEventType.KICK);
+        }
+
         // Add message to pending batch
         latest.pendingMessagesRef.current.push({
           message,
@@ -559,12 +594,18 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
             userActivityService.clearNetwork(currentConnectionId);
             scriptingService.handleDisconnect(currentConnectionId, 'Disconnected');
           }
+          // Play disconnect sound
+          soundService.playSound(SoundEventType.DISCONNECT);
         }
       });
 
       const unsubscribeRegistered = activeIRCService.on('registered', async () => {
         const netId = connectionManager.getActiveNetworkId() || activeIRCService.getNetworkName();
         if (!netId || netId === 'Not connected') return;
+
+        // Play login sound
+        soundService.playSound(SoundEventType.LOGIN);
+
         const netConfig = await settingsService.getNetwork(netId);
         if (!netConfig) return;
         // OPER (only if user provided oper password)

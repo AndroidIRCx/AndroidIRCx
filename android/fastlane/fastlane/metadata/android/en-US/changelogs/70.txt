@@ -1,0 +1,7 @@
+v1.6.8
+- NEW: Customizable notification sounds for IRC events
+- Sound schemes: Classic IRC, Modern, Silent
+- Per-event sound control with custom sound picker
+- Master volume and foreground/background options
+- FIXED: DCC file transfer requests now work correctly
+- DCC SEND offers show accept/decline prompt as expected

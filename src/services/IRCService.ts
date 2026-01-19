@@ -4293,6 +4293,17 @@ export class IRCService {
       case 'ACTION':
         // ACTION messages are display-only, don't echo them back
         break;
+      case 'DCC':
+        // DCC requests (SEND, CHAT, etc.) - emit as message for DCC handlers
+        // Reconstruct the CTCP format that dccFileService.parseSendOffer expects
+        this.addMessage({
+          type: 'ctcp',
+          from,
+          text: `\x01DCC ${args || ''}\x01`,
+          channel: target,
+          timestamp: Date.now(),
+        });
+        break;
       default:
         this.logRaw(`Unknown CTCP command: ${command} from ${from}`);
     }

@@ -10,6 +10,7 @@ import { adRewardService } from '../services/AdRewardService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { bannerAdService } from '../services/BannerAdService';
 import { errorReportingService } from '../services/ErrorReportingService';
+import { soundService } from '../services/SoundService';
 
 // ErrorUtils is available globally in React Native
 declare const ErrorUtils: {
@@ -134,6 +135,11 @@ export function useAppInitialization() {
         console.log('🔄 Initializing BannerAdService...');
         await bannerAdService.initialize();
         console.log('✅ BannerAdService initialized successfully');
+
+        // Step 7: Initialize SoundService
+        console.log('🔄 Initializing SoundService...');
+        await soundService.initialize();
+        console.log('✅ SoundService initialized successfully');
       } catch (error) {
         console.error('❌ Failed to initialize ads with consent:', error);
         console.error('Error details:', JSON.stringify(error, null, 2));

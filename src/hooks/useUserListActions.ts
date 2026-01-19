@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { ChannelTab } from '../services/IRCService';
 import { encryptedDMService } from '../services/EncryptedDMService';
+import { soundService } from '../services/SoundService';
+import { SoundEventType } from '../types/sound';
 import { queryTabId } from '../utils/tabUtils';
 import { sortTabsGrouped } from '../utils/tabUtils';
 import { useUIStore } from '../stores/uiStore';
@@ -42,6 +44,7 @@ export function useUserListActions({
         isEncrypted,
       };
       setTabs((prev) => sortTabsGrouped([...prev, newQueryTab], tabSortAlphabetical));
+      soundService.playSound(SoundEventType.RING);
       setActiveTabId(newQueryTab.id);
     }
   }, [tabs, activeTab, tabSortAlphabetical, setTabs, setActiveTabId]);
