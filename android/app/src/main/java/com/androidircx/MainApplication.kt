@@ -176,6 +176,21 @@ class MainApplication : Application(), ReactApplication {
           Log.d(TAG, "Loading React Native...")
           loadReactNative(this)
           Log.d(TAG, "React Native loaded successfully")
+      } catch (e: com.facebook.soloader.SoLoaderDSONotFoundError) {
+          Log.e(TAG, "CRITICAL: Native library not found: ${e.message}", e)
+          reportToCrashlyticsSafely(e)
+          // Try to provide more context about the ABI
+          try {
+              val abi = android.os.Build.SUPPORTED_ABIS.joinToString(", ")
+              Log.e(TAG, "Device supported ABIs: $abi")
+          } catch (ignored: Exception) {
+          }
+          // Re-throw - app cannot function without native libraries
+          throw RuntimeException("Native library not found - please reinstall the app", e)
+      } catch (e: UnsatisfiedLinkError) {
+          Log.e(TAG, "CRITICAL: Failed to link native library: ${e.message}", e)
+          reportToCrashlyticsSafely(e)
+          throw RuntimeException("Native library linking failed - please reinstall the app", e)
       } catch (e: Exception) {
           Log.e(TAG, "CRITICAL: Failed to load React Native: ${e.message}", e)
           // Report to Crashlytics safely

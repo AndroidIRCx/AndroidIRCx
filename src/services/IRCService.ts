@@ -309,6 +309,8 @@ export class IRCService {
         const tlsOptions: any = {
           host: config.host,
           port: config.port,
+          // Socket timeout to prevent hanging connections that can cause native crashes
+          timeout: 30000, // 30 seconds read/write timeout
         };
 
         if (config.tls) {
@@ -392,6 +394,15 @@ export class IRCService {
                   timestamp: Date.now(),
                 });
               }
+            }
+          });
+
+          // Handle socket timeout - this helps prevent native crashes from hung connections
+          this.socket.on('timeout', () => {
+            this.logRaw('IRCService: Socket timeout detected');
+            // Send a PING to check if connection is still alive
+            if (this.isConnected && this.registered) {
+              this.sendRaw(`PING :timeout-check-${Date.now()}`);
             }
           });
 
@@ -4110,6 +4121,8 @@ export class IRCService {
   disconnect(message?: string): void {
     this.manualDisconnect = true;
     if (this.socket) {
+      const socketRef = this.socket;
+
       if (this.isConnected) {
         try {
           this.sendRaw(`QUIT :${message || DEFAULT_QUIT_MESSAGE}`);
@@ -4118,12 +4131,35 @@ export class IRCService {
           this.logRaw(`IRCService: Unable to send QUIT during disconnect: ${error?.message || error}`);
         }
       }
+
+      // Remove all listeners first to prevent callbacks during destruction
+      // This helps prevent native crashes from race conditions
       try {
-        this.socket.destroy();
+        socketRef.removeAllListeners();
       } catch (error: any) {
-        // Socket may have already been destroyed
-        this.logRaw(`IRCService: Socket destroy error (ignored): ${error?.message || error}`);
+        this.logRaw(`IRCService: Error removing listeners: ${error?.message || error}`);
       }
+
+      // Try graceful close with end() before destroy()
+      // This gives the socket a chance to flush and close cleanly
+      try {
+        socketRef.end();
+      } catch (error: any) {
+        // Socket may not support end() or already closed
+        this.logRaw(`IRCService: Socket end() error (ignored): ${error?.message || error}`);
+      }
+
+      // Use a small delay before destroy to allow graceful shutdown
+      // This helps prevent native crashes from abrupt socket termination
+      setTimeout(() => {
+        try {
+          socketRef.destroy();
+        } catch (error: any) {
+          // Socket may have already been destroyed
+          this.logRaw(`IRCService: Socket destroy error (ignored): ${error?.message || error}`);
+        }
+      }, 100);
+
       this.socket = null;
       this.isConnected = false;
       this.registered = false;

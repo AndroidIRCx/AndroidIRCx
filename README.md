@@ -688,11 +688,11 @@ This client implements the IRC protocol according to:
 
 ## 📚 Additional Documentation
 
-- [IRC Setup Guide](IRC_SETUP.md) - Detailed IRC connection setup
 - [Debug Notes](DEBUG_NOTES.md) - Troubleshooting guide
+
 ## 🔄 Development Status
 
-**Current Version**: 1.6.6
+**Current Version**: 1.6.7
 
 ---
 
