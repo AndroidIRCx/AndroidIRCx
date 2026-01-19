@@ -7959,10 +7959,10 @@ react-native-vision-camera@^4.7.3:
   resolved "https://registry.yarnpkg.com/react-native-vision-camera/-/react-native-vision-camera-4.7.3.tgz#ed03cedabcaec54774f5aa40e69afa30069924d4"
   integrity sha512-g1/neOyjSqn1kaAa2FxI/qp5KzNvPcF0bnQw6NntfbxH6tm0+8WFZszlgb5OV+iYlB6lFUztCbDtyz5IpL47OA==
 
-react-native-worklets@^0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.7.1.tgz#263da5216b0b5342b9f1b36e0ab897c5ca5c863b"
-  integrity sha512-KNsvR48ULg73QhTlmwPbdJLPsWcyBotrGPsrDRDswb5FYpQaJEThUKc2ncXE4UM5dn/ewLoQHjSjLaKUVPxPhA==
+react-native-worklets@^0.7.2:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.7.2.tgz#acfbfe4f8c7f3b2889e7f394e4fbd7e78e167134"
+  integrity sha512-DuLu1kMV/Uyl9pQHp3hehAlThoLw7Yk2FwRTpzASOmI+cd4845FWn3m2bk9MnjUw8FBRIyhwLqYm2AJaXDXsog==
   dependencies:
     "@babel/plugin-transform-arrow-functions" "7.27.1"
     "@babel/plugin-transform-class-properties" "7.27.1"
