@@ -7949,10 +7949,10 @@ react-native-vector-icons@^10.3.0:
     prop-types "^15.7.2"
     yargs "^16.1.1"
 
-react-native-video@^6.18.0:
-  version "6.18.0"
-  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-6.18.0.tgz#2f8fc0fff27e270f592e5a15a05972f88b20e8b0"
-  integrity sha512-9BjAtAh1uGq6h/GNCCh5yzb/iI9qJHuflwNGExyhoUxbhPD1s+15h+CdpJ2MKKJTXw6J7w+nQOp1Ywa54R8w7Q==
+react-native-video@^6.19.0:
+  version "6.19.0"
+  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-6.19.0.tgz#828887010291259fef1367fb53a2de01886876fc"
+  integrity sha512-JVojWIxwuH5C3RjVrF4UyuweuOH/Guq/W2xeN9zugePXZI8Xn/j6/oU94gCWHaFzkR/HGeJpqMq+l9aEHSnpIQ==
 
 react-native-vision-camera@^4.7.3:
   version "4.7.3"
