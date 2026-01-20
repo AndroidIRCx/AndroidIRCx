@@ -34,10 +34,11 @@ import {
   ZNC_BASE_PLAN_ID,
   isZncAccountActive,
   isZncAccountReady,
-  hasZncCredentials,
   formatZncExpiry,
 } from '../services/SubscriptionService';
 import { settingsService, IRCNetworkConfig, IRCServerConfig } from '../services/SettingsService';
+import { biometricAuthService } from '../services/BiometricAuthService';
+import { secureStorageService } from '../services/SecureStorageService';
 import { NetworkPickerModal } from '../components/modals/NetworkPickerModal';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
@@ -80,6 +81,17 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   // Restore state
   const [restoring, setRestoring] = useState(false);
 
+  // Password lock state
+  const [biometricLockEnabled, setBiometricLockEnabled] = useState(false);
+  const [pinLockEnabled, setPinLockEnabled] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [passwordsUnlocked, setPasswordsUnlocked] = useState(true);
+  const [pinModalVisible, setPinModalVisible] = useState(false);
+  const [pinEntry, setPinEntry] = useState('');
+  const [pinError, setPinError] = useState('');
+  const pinResolveRef = useRef<((ok: boolean) => void) | null>(null);
+  const PIN_STORAGE_KEY = '@AndroidIRCX:pin-lock';
+
   // Refs for IAP listeners
   const purchaseUpdateSubscription = useRef<any>(null);
   const purchaseErrorSubscription = useRef<any>(null);
@@ -90,6 +102,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   useEffect(() => {
     if (visible) {
       initializeIap();
+      loadPasswordLockState();
       loadAccounts();
 
       // Subscribe to account changes
@@ -100,7 +113,115 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
         cleanupIap();
       };
     }
-  }, [visible]);
+  }, [visible, loadPasswordLockState]);
+
+  const loadPasswordLockState = useCallback(async () => {
+    const biometryType = await biometricAuthService.getBiometryType();
+    const available = Boolean(biometryType);
+    setBiometricAvailable(available);
+
+    const lockSetting = await settingsService.getSetting('biometricPasswordLock', false);
+    const pinSetting = await settingsService.getSetting('pinPasswordLock', false);
+    const storedPin = await secureStorageService.getSecret(PIN_STORAGE_KEY);
+
+    const biometricEnabled = lockSetting && available;
+    const pinEnabled = pinSetting && Boolean(storedPin);
+
+    if (lockSetting && !available) {
+      await settingsService.setSetting('biometricPasswordLock', false);
+    }
+    if (pinSetting && !storedPin) {
+      await settingsService.setSetting('pinPasswordLock', false);
+    }
+
+    setBiometricLockEnabled(biometricEnabled);
+    setPinLockEnabled(pinEnabled);
+    setPasswordsUnlocked(!(biometricEnabled || pinEnabled));
+  }, []);
+
+  const closePinModal = useCallback((ok: boolean) => {
+    setPinModalVisible(false);
+    setPinEntry('');
+    setPinError('');
+    const resolve = pinResolveRef.current;
+    pinResolveRef.current = null;
+    if (resolve) resolve(ok);
+  }, []);
+
+  const requestPinUnlock = useCallback(() => {
+    setPinEntry('');
+    setPinError('');
+    setPinModalVisible(true);
+    return new Promise<boolean>((resolve) => {
+      pinResolveRef.current = resolve;
+    });
+  }, []);
+
+  const handlePinSubmit = useCallback(async () => {
+    const trimmed = pinEntry.trim();
+    const stored = await secureStorageService.getSecret(PIN_STORAGE_KEY);
+    if (!stored) {
+      setPinError(t('No PIN is set.'));
+      return;
+    }
+    if (trimmed === stored) {
+      setPasswordsUnlocked(true);
+      closePinModal(true);
+      return;
+    }
+    setPinError(t('Incorrect PIN.'));
+  }, [closePinModal, pinEntry, t]);
+
+  const unlockPasswords = useCallback(async (): Promise<boolean> => {
+    const passwordLockActive = biometricLockEnabled || pinLockEnabled;
+    if (!passwordLockActive) {
+      setPasswordsUnlocked(true);
+      return true;
+    }
+    if (passwordsUnlocked) {
+      return true;
+    }
+
+    if (biometricLockEnabled && biometricAvailable) {
+      const result = await biometricAuthService.authenticate(
+        t('Unlock passwords'),
+        t('Authenticate to view passwords')
+      );
+      if (result.success) {
+        setPasswordsUnlocked(true);
+        return true;
+      }
+      if (!pinLockEnabled) {
+        Alert.alert(
+          t('Authentication failed'),
+          result.errorMessage || t('Unable to unlock passwords.')
+        );
+        return false;
+      }
+    }
+
+    if (pinLockEnabled) {
+      return await requestPinUnlock();
+    }
+
+    if (biometricLockEnabled && !biometricAvailable) {
+      Alert.alert(
+        t('Biometrics unavailable'),
+        t('Enable a fingerprint/biometric on your device first.')
+      );
+      return false;
+    }
+
+    setPasswordsUnlocked(true);
+    return true;
+  }, [
+    biometricAvailable,
+    biometricLockEnabled,
+    passwordsUnlocked,
+    pinLockEnabled,
+    requestPinUnlock,
+    t,
+  ]);
 
   // Additional effect to ensure subscription offers are loaded when screen becomes visible
   useEffect(() => {
@@ -767,12 +888,25 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     }
   };
 
-  const handleAddToNetwork = (account: ZncAccount) => {
-    if (!hasZncCredentials(account)) {
+  const getUnlockedPassword = useCallback(async (account: ZncAccount): Promise<string | null> => {
+    const unlocked = await unlockPasswords();
+    if (!unlocked) {
+      return null;
+    }
+    return await subscriptionService.getAccountPassword(account.id);
+  }, [unlockPasswords]);
+
+  const handleAddToNetwork = async (account: ZncAccount) => {
+    if (!account.zncUsername || !isZncAccountReady(account)) {
       Alert.alert(t('Error'), t('Account credentials not ready. Please refresh status first.'));
       return;
     }
-    setSelectedAccount(account);
+    const password = await getUnlockedPassword(account);
+    if (!password) {
+      Alert.alert(t('Error'), t('Credentials not available.'));
+      return;
+    }
+    setSelectedAccount({ ...account, zncPassword: password });
     setShowNetworkPicker(true);
   };
 
@@ -783,7 +917,12 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
     try {
       // Generate server config
-      const serverConfig = subscriptionService.generateServerConfig(selectedAccount);
+      const password = await subscriptionService.getAccountPassword(selectedAccount.id);
+      if (!password) {
+        Alert.alert(t('Error'), t('Credentials not available.'));
+        return;
+      }
+      const serverConfig = subscriptionService.generateServerConfig(selectedAccount, password);
 
       // Check if ZNC server already exists in this network
       const existingServer = network.servers?.find(
@@ -894,13 +1033,18 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     }
   };
 
-  const handleCopyCredentials = (account: ZncAccount) => {
-    if (!account.zncUsername || !account.zncPassword) {
+  const handleCopyCredentials = async (account: ZncAccount) => {
+    if (!account.zncUsername) {
       Alert.alert(t('Error'), t('Credentials not available.'));
       return;
     }
 
-    const text = `Username: ${account.zncUsername}\nPassword: ${account.zncPassword}`;
+    const password = await getUnlockedPassword(account);
+    if (!password) {
+      Alert.alert(t('Error'), t('Credentials not available.'));
+      return;
+    }
+    const text = `Username: ${account.zncUsername}\nPassword: ${password}`;
     Clipboard.setString(text);
     Alert.alert(t('Copied'), t('Credentials copied to clipboard.'));
   };
@@ -955,13 +1099,14 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     );
   };
 
-  const handleShowCredentials = (account: ZncAccount) => {
+  const handleShowCredentials = async (account: ZncAccount) => {
     if (!account.zncUsername) {
       Alert.alert(t('Error'), t('Credentials not available.'));
       return;
     }
 
-    const passwordText = account.zncPassword || t('Not available');
+    const password = await getUnlockedPassword(account);
+    const passwordText = password || t('Not available');
     Alert.alert(
       t('ZNC Credentials'),
       `${t('Username')}: ${account.zncUsername}\n${t('Password')}: ${passwordText}\n\n${t('Server')}: irc.androidircx.com\n${t('Port')}: 16786 (SSL)`,
@@ -969,11 +1114,10 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
         {
           text: t('Copy'),
           onPress: () => {
-            if (account.zncPassword) {
-              const text = `Username: ${account.zncUsername}\nPassword: ${account.zncPassword}`;
-              Clipboard.setString(text);
-              Alert.alert(t('Copied'), t('Credentials copied to clipboard.'));
-            }
+            if (!password) return;
+            const text = `Username: ${account.zncUsername}\nPassword: ${password}`;
+            Clipboard.setString(text);
+            Alert.alert(t('Copied'), t('Credentials copied to clipboard.'));
           },
         },
         { text: t('Close'), style: 'cancel' },
@@ -1053,7 +1197,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     const statusColor = getStatusColor(item.status);
     const isActive = isZncAccountActive(item);
     const isReady = isZncAccountReady(item);
-    const hasCredentials = hasZncCredentials(item);
+    const hasCredentials = Boolean(item.zncUsername) && isReady;
 
     return (
       <View style={[styles.accountCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -1353,6 +1497,64 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
                 ) : (
                   <Text style={styles.confirmButtonText}>{t('Continue')}</Text>
                 )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* PIN Unlock Modal */}
+      <Modal
+        visible={pinModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => closePinModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.usernameModal, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              {t('Unlock passwords')}
+            </Text>
+            <Text style={[styles.modalDescription, { color: colors.textSecondary }]}>
+              {t('Enter your PIN to unlock passwords.')}
+            </Text>
+
+            <TextInput
+              style={[styles.usernameInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+              value={pinEntry}
+              onChangeText={(text) => {
+                const sanitized = text.replace(/[^0-9]/g, '');
+                setPinEntry(sanitized);
+                if (pinError) setPinError('');
+              }}
+              placeholder={t('PIN')}
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="numeric"
+              secureTextEntry
+              autoFocus
+            />
+            {!!pinError && (
+              <Text style={[styles.modalDescription, { color: colors.error || '#FF5252' }]}>
+                {pinError}
+              </Text>
+            )}
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton, { borderColor: colors.border }]}
+                onPress={() => closePinModal(false)}
+              >
+                <Text style={[styles.cancelButtonText, { color: colors.text }]}>
+                  {t('Cancel')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton, { backgroundColor: colors.primary }]}
+                onPress={handlePinSubmit}
+                disabled={!pinEntry.trim()}
+              >
+                <Text style={styles.confirmButtonText}>{t('Confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>

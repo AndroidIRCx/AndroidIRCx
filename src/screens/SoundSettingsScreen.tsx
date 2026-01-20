@@ -113,6 +113,13 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
         await previewCustomSound(fileUri);
 
         // Ask for confirmation
+        const handleDismiss = () => {
+          stopSound();
+          if (shouldCleanupCopy) {
+            void cleanupPickedCopy(result?.fileCopyUri);
+          }
+        };
+
         Alert.alert(
           t('Use this sound?'),
           t('Do you want to use this sound for {event}?').replace('{event}', SOUND_EVENT_LABELS[eventType]),
@@ -120,12 +127,7 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
             {
               text: t('Cancel'),
               style: 'cancel',
-              onPress: async () => {
-                await stopSound();
-                if (shouldCleanupCopy) {
-                  await cleanupPickedCopy(result?.fileCopyUri);
-                }
-              },
+              onPress: handleDismiss,
             },
             {
               text: t('Use'),
@@ -137,7 +139,8 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
                 }
               },
             },
-          ]
+          ],
+          { onDismiss: handleDismiss }
         );
       }
     } catch (error: any) {

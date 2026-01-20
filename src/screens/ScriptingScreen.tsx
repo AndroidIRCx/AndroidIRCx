@@ -440,6 +440,11 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
               </Text>
             </View>
           )}
+          <View style={[styles.warningBox, { backgroundColor: '#2196F3' + '20', borderLeftColor: '#2196F3' }]}>
+            <Text style={[styles.warningText, { color: '#2196F3' }]}>
+              {t('Scripts run with full access to your local IRC data. Only install scripts you trust and avoid running scripts from unknown sources.')}
+            </Text>
+          </View>
 
           <View style={styles.row}>
           <TouchableOpacity style={styles.button} onPress={handleNewScript}>

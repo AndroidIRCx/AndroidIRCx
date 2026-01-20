@@ -11,6 +11,8 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logger } from './Logger';
+import { settingsService } from './SettingsService';
+import { secureStorageService } from './SecureStorageService';
 import {
   ZncAccount,
   ZncAccountMetadata,
@@ -28,6 +30,8 @@ import {
 } from '../types/znc';
 
 const API_BASE_URL = 'https://androidircx.com/api';
+const ZNC_PASSWORD_PREFIX = '@AndroidIRCX:zncPassword:';
+const ZNC_TOKEN_PREFIX = '@AndroidIRCX:zncPurchaseToken:';
 
 type ZncAccountsListener = (accounts: ZncAccount[]) => void;
 
@@ -35,6 +39,71 @@ class SubscriptionService {
   private accounts: ZncAccount[] = [];
   private listeners: Set<ZncAccountsListener> = new Set();
   private initialized: boolean = false;
+
+  private getPasswordKey(accountId: string): string {
+    return `${ZNC_PASSWORD_PREFIX}${accountId}`;
+  }
+
+  private getTokenKey(accountId: string): string {
+    return `${ZNC_TOKEN_PREFIX}${accountId}`;
+  }
+
+  private async isPasswordLockEnabled(): Promise<boolean> {
+    const [biometricLock, pinLock] = await Promise.all([
+      settingsService.getSetting('biometricPasswordLock', false),
+      settingsService.getSetting('pinPasswordLock', false),
+    ]);
+    return Boolean(biometricLock || pinLock);
+  }
+
+  private async prepareAccountsForStorage(
+    accounts: ZncAccount[],
+    lockEnabled: boolean
+  ): Promise<ZncAccount[]> {
+    const persisted: ZncAccount[] = [];
+
+    for (const account of accounts) {
+      const next: ZncAccount = { ...account };
+      const passwordKey = this.getPasswordKey(account.id);
+      const tokenKey = this.getTokenKey(account.id);
+
+      if (lockEnabled) {
+        if (account.zncPassword) {
+          await secureStorageService.setSecret(passwordKey, account.zncPassword);
+          next.zncPassword = null;
+        }
+        if (account.purchaseToken) {
+          await secureStorageService.setSecret(tokenKey, account.purchaseToken);
+          next.purchaseToken = '';
+        }
+      } else {
+        await secureStorageService.removeSecret(passwordKey);
+        await secureStorageService.removeSecret(tokenKey);
+      }
+
+      persisted.push(next);
+    }
+
+    return persisted;
+  }
+
+  private async hydrateAccountsFromSecureStorage(accounts: ZncAccount[]): Promise<ZncAccount[]> {
+    const hydrated: ZncAccount[] = [];
+    for (const account of accounts) {
+      const passwordKey = this.getPasswordKey(account.id);
+      const tokenKey = this.getTokenKey(account.id);
+      const [storedPassword, storedToken] = await Promise.all([
+        secureStorageService.getSecret(passwordKey),
+        secureStorageService.getSecret(tokenKey),
+      ]);
+      hydrated.push({
+        ...account,
+        zncPassword: account.zncPassword || storedPassword,
+        purchaseToken: account.purchaseToken || storedToken || '',
+      });
+    }
+    return hydrated;
+  }
 
   /**
    * Initialize the service and load accounts from storage
@@ -46,6 +115,15 @@ class SubscriptionService {
 
     try {
       await this.loadAccounts();
+      const lockEnabled = await this.isPasswordLockEnabled();
+      if (lockEnabled) {
+        const persisted = await this.prepareAccountsForStorage(this.accounts, true);
+        await AsyncStorage.setItem(ZNC_STORAGE_KEYS.ACCOUNTS, JSON.stringify(persisted));
+        await this.savePurchaseTokens();
+      } else {
+        this.accounts = await this.hydrateAccountsFromSecureStorage(this.accounts);
+        await this.saveAccounts();
+      }
       this.initialized = true;
       logger.info('znc', 'SubscriptionService initialized');
     } catch (error) {
@@ -73,7 +151,7 @@ class SubscriptionService {
       try {
         const raw = await AsyncStorage.getItem(ZNC_STORAGE_KEYS.ACCOUNTS);
         if (raw) {
-          logger.warn('znc', `Raw storage content: ${raw.substring(0, 200)}...`);
+          logger.warn('znc', `Raw storage length: ${raw.length}`);
         }
       } catch (innerError) {
         logger.error('znc', `Failed to read raw storage content: ${innerError}`);
@@ -87,7 +165,9 @@ class SubscriptionService {
    */
   private async saveAccounts(): Promise<void> {
     try {
-      await AsyncStorage.setItem(ZNC_STORAGE_KEYS.ACCOUNTS, JSON.stringify(this.accounts));
+      const lockEnabled = await this.isPasswordLockEnabled();
+      const persisted = await this.prepareAccountsForStorage(this.accounts, lockEnabled);
+      await AsyncStorage.setItem(ZNC_STORAGE_KEYS.ACCOUNTS, JSON.stringify(persisted));
       logger.info('znc', `Saved ${this.accounts.length} ZNC accounts`);
     } catch (error) {
       logger.error('znc', `Failed to save ZNC accounts: ${error}`);
@@ -99,11 +179,24 @@ class SubscriptionService {
    */
   private async savePurchaseTokens(): Promise<void> {
     try {
-      const tokens = this.accounts.map(a => ({
-        token: a.purchaseToken,
-        accountId: a.id,
-      }));
-      await AsyncStorage.setItem(ZNC_STORAGE_KEYS.TOKENS, JSON.stringify(tokens));
+      const lockEnabled = await this.isPasswordLockEnabled();
+      if (lockEnabled) {
+        const tokenIndex = this.accounts.map(a => ({ accountId: a.id }));
+        await Promise.all(
+          this.accounts.map(a => (
+            a.purchaseToken
+              ? secureStorageService.setSecret(this.getTokenKey(a.id), a.purchaseToken)
+              : Promise.resolve()
+          ))
+        );
+        await AsyncStorage.setItem(ZNC_STORAGE_KEYS.TOKENS, JSON.stringify(tokenIndex));
+      } else {
+        const tokens = this.accounts.map(a => ({
+          token: a.purchaseToken,
+          accountId: a.id,
+        }));
+        await AsyncStorage.setItem(ZNC_STORAGE_KEYS.TOKENS, JSON.stringify(tokens));
+      }
     } catch (error) {
       logger.error('znc', `Failed to save purchase tokens: ${error}`);
     }
@@ -117,6 +210,16 @@ class SubscriptionService {
       const raw = await AsyncStorage.getItem(ZNC_STORAGE_KEYS.TOKENS);
       if (raw) {
         const tokens = JSON.parse(raw);
+        const lockEnabled = await this.isPasswordLockEnabled();
+        if (lockEnabled) {
+          const ids = tokens.map((t: { accountId?: string }) => t.accountId).filter(Boolean) as string[];
+          const stored = await Promise.all(
+            ids.map(id => secureStorageService.getSecret(this.getTokenKey(id)))
+          );
+          const parsedTokens = stored.filter(Boolean) as string[];
+          logger.info('znc', `Retrieved ${parsedTokens.length} tokens from secure storage for restore`);
+          return parsedTokens;
+        }
         const parsedTokens = tokens.map((t: { token: string }) => t.token);
         logger.info('znc', `Retrieved ${parsedTokens.length} tokens from storage for restore`);
         return parsedTokens;
@@ -126,6 +229,15 @@ class SubscriptionService {
     }
 
     // Fallback to tokens from accounts
+    const lockEnabled = await this.isPasswordLockEnabled();
+    if (lockEnabled) {
+      const stored = await Promise.all(
+        this.accounts.map(a => secureStorageService.getSecret(this.getTokenKey(a.id)))
+      );
+      const accountTokens = stored.filter(Boolean) as string[];
+      logger.info('znc', `Using ${accountTokens.length} tokens from secure storage for restore`);
+      return accountTokens;
+    }
     const accountTokens = this.accounts.map(a => a.purchaseToken).filter(token => token !== null && token !== '');
     logger.info('znc', `Using ${accountTokens.length} tokens from accounts for restore`);
     return accountTokens;
@@ -185,6 +297,16 @@ class SubscriptionService {
    */
   getAccount(accountId: string): ZncAccount | undefined {
     return this.accounts.find(a => a.id === accountId);
+  }
+
+  async getAccountPassword(accountId: string): Promise<string | null> {
+    const lockEnabled = await this.isPasswordLockEnabled();
+    const account = this.getAccount(accountId);
+    if (!lockEnabled && account?.zncPassword) {
+      return account.zncPassword;
+    }
+    const stored = await secureStorageService.getSecret(this.getPasswordKey(accountId));
+    return stored || account?.zncPassword || null;
   }
 
   /**
@@ -541,10 +663,11 @@ class SubscriptionService {
   /**
    * Generate ZNC server configuration for adding to a network
    */
-  generateServerConfig(account: ZncAccount): ZncServerConfig {
+  generateServerConfig(account: ZncAccount, passwordOverride?: string | null): ZncServerConfig {
     // ZNC requires password in format "username:password"
-    const zncPassword = account.zncPassword
-      ? `${account.zncUsername}:${account.zncPassword}`
+    const rawPassword = passwordOverride ?? account.zncPassword;
+    const zncPassword = rawPassword
+      ? `${account.zncUsername}:${rawPassword}`
       : '';
 
     return {
@@ -570,6 +693,8 @@ class SubscriptionService {
       this.accounts.splice(index, 1);
       await this.saveAccounts();
       await this.savePurchaseTokens();
+      await secureStorageService.removeSecret(this.getPasswordKey(accountId));
+      await secureStorageService.removeSecret(this.getTokenKey(accountId));
       this.notifyListeners();
       logger.info('znc', `Local account deleted: ${accountId}`);
     }
@@ -605,7 +730,7 @@ class SubscriptionService {
 
     if (body) {
       options.body = JSON.stringify(body);
-      logger.debug('znc', `API call body: ${JSON.stringify(body)}`);
+      logger.debug('znc', `API call body keys: ${Object.keys(body).join(', ')}`);
     }
 
     try {
@@ -632,7 +757,8 @@ class SubscriptionService {
         return {};
       });
 
-      logger.debug('znc', `API response data: ${JSON.stringify(data)}`);
+      const responseKeys = data && typeof data === 'object' ? Object.keys(data as object) : [];
+      logger.debug('znc', `API response keys: ${responseKeys.join(', ')}`);
       return data as T;
     } catch (error) {
       logger.error('znc', `Network error in API call: ${error}`);

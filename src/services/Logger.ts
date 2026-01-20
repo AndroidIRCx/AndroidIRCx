@@ -78,10 +78,11 @@ class Logger {
 
   private add(level: LogLevel, tag: string, message: string) {
     if (!this.enabled) return;
+    const sanitizedMessage = sanitizeMessage(message);
     const entry: LogEntry = {
       level,
       tag,
-      message,
+      message: sanitizedMessage,
       timestamp: Date.now(),
     };
     this.buffer.push(entry);
@@ -89,7 +90,7 @@ class Logger {
 
     if (this.echoToConsole) {
       const prefix = `[${level.toUpperCase()}][${tag}]`;
-      const line = `${prefix} ${sanitizeMessage(message)}`;
+      const line = `${prefix} ${sanitizedMessage}`;
       switch (level) {
         case 'debug':
           // eslint-disable-next-line no-console

@@ -282,217 +282,217 @@
     "string": "Kartica obaveštenja"
   },
   "Private/query tab": {
-    "string": "Private/query tab"
+    "string": "Privatni tab"
   },
   "Show Timestamps": {
-    "string": "Show Timestamps"
+    "string": "Prikaži vremenske oznake"
   },
   "Display message timestamps": {
-    "string": "Display message timestamps"
+    "string": "Prikaži vremenske oznake poruka"
   },
   "Info": {
     "string": "Info"
   },
   "Timestamp display setting coming soon": {
-    "string": "Timestamp display setting coming soon"
+    "string": "Podešavanje prikaza vremenskih oznaka uskoro stiže"
   },
   "Timestamp Display": {
-    "string": "Timestamp Display"
+    "string": "Prikaz vremenskih oznaka"
   },
   "Show timestamps: {mode}": {
-    "string": "Show timestamps: {mode}"
+    "string": "Prikaži vremenske oznake: {mode}"
   },
   "Select when to show timestamps:": {
-    "string": "Select when to show timestamps:"
+    "string": "Izaberi kada će se prikazivati vremenske oznake:"
   },
   "Always": {
-    "string": "Always"
+    "string": "Uvek"
   },
   "Only for first message in a group": {
-    "string": "Only for first message in a group"
+    "string": "Samo prva poruka u grupi"
   },
   "Never": {
-    "string": "Never"
+    "string": "Nikada"
   },
   "Timestamp Format": {
-    "string": "Timestamp Format"
+    "string": "Format vremenske oznake"
   },
   "Format: {format}": {
     "string": "Format: {format}"
   },
   "Select format:": {
-    "string": "Select format:"
+    "string": "Izaberi format:"
   },
   "12-hour (AM/PM)": {
-    "string": "12-hour (AM/PM)"
+    "string": "12-časovni (AM/PM)"
   },
   "24-hour": {
-    "string": "24-hour"
+    "string": "24-časovni"
   },
   "Show Encryption Indicators": {
-    "string": "Show Encryption Indicators"
+    "string": "Prikaži indikatore šifrovanja"
   },
   "Lock icons visible on tabs/messages": {
-    "string": "Lock icons visible on tabs/messages"
+    "string": "Ikone katanca vidljive na tabovima/porukama"
   },
   "Hide lock icons": {
-    "string": "Hide lock icons"
+    "string": "Sakrij ikone katanca"
   },
   "Messages": {
-    "string": "Messages"
+    "string": "Poruke"
   },
   "Part Message": {
-    "string": "Part Message"
+    "string": "Poruka pri izlasku iz sobe"
   },
   "Message to send when leaving a channel.": {
-    "string": "Message to send when leaving a channel."
+    "string": "Poruka koja se šalje prilikom napuštanja sobe"
   },
   "Quit Message": {
-    "string": "Quit Message"
+    "string": "Poruka za izlazak"
   },
   "Message to send when disconnecting.": {
-    "string": "Message to send when disconnecting."
+    "string": "Poruka koja se šalje prilikom prekida veze."
   },
   "Send Message on Query Close": {
-    "string": "Send Message on Query Close"
+    "string": "Pošalji poruku kada se pvt zatvori"
   },
   "Send a message when you close a private message window.": {
-    "string": "Send a message when you close a private message window."
+    "string": "Pošalji poruku kada zatvoriš prozor privatne poruke."
   },
   "Query Close Message": {
-    "string": "Query Close Message"
+    "string": "Poruka pri zatvaranju pvt-a"
   },
   "The message to send.": {
-    "string": "The message to send."
+    "string": "Poruka koja se šalje."
   },
   "Enter message...": {
-    "string": "Enter message..."
+    "string": "Unesi poruku..."
   },
   "Notifications": {
-    "string": "Notifications"
+    "string": "Obaveštenja"
   },
   "Enable Notifications": {
-    "string": "Enable Notifications"
+    "string": "Omogući obaveštenja"
   },
   "Receive notifications for messages": {
-    "string": "Receive notifications for messages"
+    "string": "Primaj obaveštenja za poruke"
   },
   "Notify on Mentions": {
-    "string": "Notify on Mentions"
+    "string": "Obaveštavaj o pomenima"
   },
   "Get notified when someone mentions your nickname": {
-    "string": "Get notified when someone mentions your nickname"
+    "string": "Budi obavešten kada te neko pomene po nadimku"
   },
   "Notify on Private Messages": {
-    "string": "Notify on Private Messages"
+    "string": "Obaveštavaj o privatnim porukama"
   },
   "Get notified for private messages": {
-    "string": "Get notified for private messages"
+    "string": "Budi obavešten o privatnim porukama"
   },
   "Notify on All Messages": {
-    "string": "Notify on All Messages"
+    "string": "Obaveštavaj o svim porukama"
   },
   "Get notified for all channel messages": {
-    "string": "Get notified for all channel messages"
+    "string": "Budi obavešten o svim porukama na kanalu"
   },
   "Do Not Disturb": {
-    "string": "Do Not Disturb"
+    "string": "Ne uznemiravaj me"
   },
   "Disable all notifications": {
-    "string": "Disable all notifications"
+    "string": "Onemogući sva obaveštenja"
   },
   "Per-Channel Settings": {
-    "string": "Per-Channel Settings"
+    "string": "Podešavanja po kanalu"
   },
   "Configure notifications for specific channels": {
-    "string": "Configure notifications for specific channels"
+    "string": "Podesi obaveštenja za određjene kanale"
   },
   "Highlighting": {
-    "string": "Highlighting"
+    "string": "Isticanje"
   },
   "Add Highlight Word": {
-    "string": "Add Highlight Word"
+    "string": "Dodaj reč za isticanje"
   },
   "Messages containing these words will be highlighted.": {
-    "string": "Messages containing these words will be highlighted."
+    "string": "Poruke koje sadrže ove reči biće istaknute."
   },
   "Enter a word to highlight...": {
-    "string": "Enter a word to highlight..."
+    "string": "Unesi reč za isticanje..."
   },
   "Remove Highlight Word": {
-    "string": "Remove Highlight Word"
+    "string": "Obriši reč za isticanje..."
   },
   "Are you sure you want to remove \"{word}\"?": {
-    "string": "Are you sure you want to remove \"{word}\"?"
+    "string": "Da li si siguran da želiš da ukloniš \"{word}\"?"
   },
   "Remove": {
-    "string": "Remove"
+    "string": "Obriši"
   },
   "Connection & Network": {
-    "string": "Connection & Network"
+    "string": "Veza i mreža"
   },
   "Auto-Connect to Favorite Server": {
-    "string": "Auto-Connect to Favorite Server"
+    "string": "Automatski se poveži na omiljeni server"
   },
   "When opening a network, prefer the server marked as favorite.": {
-    "string": "When opening a network, prefer the server marked as favorite."
+    "string": "Prilikom otvaranja mreže, preferiraj server označen kao omiljeni."
   },
   "Auto-Reconnect": {
-    "string": "Auto-Reconnect"
+    "string": "Automatsko ponovno povezivanje"
   },
   "{attempts} attempts, {mode}": {
-    "string": "{attempts} attempts, {mode}"
+    "string": "{attempts} pokušaja, {mode}"
   },
   "rejoin channels": {
-    "string": "rejoin channels"
+    "string": "ponovo se pridruži kanalima"
   },
   "no rejoin": {
-    "string": "no rejoin"
+    "string": "nemoj se ponovo pridružiti kanalima"
   },
   "Automatically reconnect on disconnect": {
-    "string": "Automatically reconnect on disconnect"
+    "string": "Automatski se ponovo poveži nakon prekida veze"
   },
   "Enable Auto-Reconnect": {
-    "string": "Enable Auto-Reconnect"
+    "string": "Omogući automatsko ponovno povezivanje"
   },
   "Rejoin Channels After Reconnect": {
-    "string": "Rejoin Channels After Reconnect"
+    "string": "Ponovo se pridruži kanalima nakon ponovnog povezivanja"
   },
   "Automatically rejoin channels you were in": {
-    "string": "Automatically rejoin channels you were in"
+    "string": "Automatski se ponovo pridruži kanalima u kojima si bio"
   },
   "Smart Reconnection": {
-    "string": "Smart Reconnection"
+    "string": "Pametno ponovno povezivanje"
   },
   "Avoid flood by spacing reconnection attempts": {
-    "string": "Avoid flood by spacing reconnection attempts"
+    "string": "Izbegavaj preopterećenje tako što ćeš razmaknuti pokušaje ponovnog povezivanja"
   },
   "Min Port": {
     "string": "Min Port"
   },
   "Max Port": {
-    "string": "Max Port"
+    "string": "Maks Port"
   },
   "No PIN is set.": {
-    "string": "No PIN is set."
+    "string": "Niste podesili PIN."
   },
   "Incorrect PIN.": {
     "string": "Incorrect PIN."
   },
   "Message Spacing": {
-    "string": "Message Spacing"
+    "string": "Razmak između poruka"
   },
   "Message Padding": {
-    "string": "Message Padding"
+    "string": "Ispuna poruka"
   },
   "Navigation Bar Offset (Android)": {
-    "string": "Navigation Bar Offset (Android)"
+    "string": "Pomak navigacione trake (Android)"
   },
   "Sort Tabs Alphabetically": {
     "string": "Sort Tabs Alphabetically"
   },
   "Display & UI": {
-    "string": "Display & UI"
+    "string": "Prikaz i korisnicki interfejs"
   },
   "Show Raw Commands": {
     "string": "Show Raw Commands"

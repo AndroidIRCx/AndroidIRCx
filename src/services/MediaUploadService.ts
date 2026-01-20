@@ -117,6 +117,7 @@ class MediaUploadService {
     onProgress?: ProgressCallback
   ): Promise<{ size: number; sha256: string; status: string }> {
     let progressSubscription: { remove: () => void } | null = null;
+    let tempBinaryPath: string | null = null;
     try {
       // Check if token is expired
       const now = Math.floor(Date.now() / 1000);
@@ -142,7 +143,7 @@ class MediaUploadService {
       const bytes = new Uint8Array(binaryBuffer);
 
       // Write binary data to temporary file for native upload
-      const tempBinaryPath = `${RNFS.CachesDirectoryPath}/upload_${Date.now()}.bin`;
+      tempBinaryPath = `${RNFS.CachesDirectoryPath}/upload_${Date.now()}.bin`;
       const binaryB64 = Buffer.from(bytes).toString('base64');
       await RNFS.writeFile(tempBinaryPath, binaryB64, 'base64');
 
@@ -185,7 +186,10 @@ class MediaUploadService {
 
       // Clean up temporary binary file
       try {
-        await RNFS.unlink(tempBinaryPath);
+        if (tempBinaryPath) {
+          await RNFS.unlink(tempBinaryPath);
+          tempBinaryPath = null;
+        }
       } catch (e) {
         // Ignore cleanup errors
       }
@@ -207,6 +211,13 @@ class MediaUploadService {
     } finally {
       if (progressSubscription) {
         progressSubscription.remove();
+      }
+      if (tempBinaryPath) {
+        try {
+          await RNFS.unlink(tempBinaryPath);
+        } catch {
+          // Ignore cleanup errors
+        }
       }
     }
   }

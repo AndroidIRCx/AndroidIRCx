@@ -516,10 +516,20 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           const selfNick = activeIrc.getCurrentNick();
           const payload = await encryptedDMService.exportBundlePayload(selfNick);
           const filename = `androidircx-key-${selfNick}.json`;
-          const path = `${RNFS.DocumentDirectoryPath}/${filename}`;
-          await RNFS.writeFile(path, payload, 'utf8');
-          await Share.open({ url: `file://${path}`, type: 'application/json' });
-          setActionMessage(t('Key file shared'));
+          const path = `${RNFS.CachesDirectoryPath}/${filename}`;
+          try {
+            await RNFS.writeFile(path, payload, 'utf8');
+            await Share.open({ url: `file://${path}`, type: 'application/json' });
+            setActionMessage(t('Key file shared'));
+          } finally {
+            try {
+              if (await RNFS.exists(path)) {
+                await RNFS.unlink(path);
+              }
+            } catch {
+              // Ignore cleanup errors
+            }
+          }
         } catch (e) {
           setActionMessage(t('Failed to share key file'));
         }
@@ -534,8 +544,19 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           const picker = result[0];
           const uri = picker.fileCopyUri || picker.uri;
           const path = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
-          const contents = await RNFS.readFile(path, 'utf8');
-          await handleExternalPayload(contents);
+          const shouldCleanupCopy = Boolean(picker.fileCopyUri);
+          try {
+            const contents = await RNFS.readFile(path, 'utf8');
+            await handleExternalPayload(contents);
+          } finally {
+            if (shouldCleanupCopy) {
+              try {
+                await RNFS.unlink(path);
+              } catch {
+                // Ignore cleanup errors
+              }
+            }
+          }
         } catch (e: any) {
           if (isErrorWithCode(e) && e.code === errorCodes.OPERATION_CANCELED) {
             // User cancelled, ignore
