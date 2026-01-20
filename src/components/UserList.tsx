@@ -29,6 +29,7 @@ import { settingsService } from '../services/SettingsService';
 import { performanceService, PerformanceConfig } from '../services/PerformanceService';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { getUserModeDescription } from '../utils/modeDescriptions';
+import { useUIStore } from '../stores/uiStore';
 
 // Note: This function cannot use useT() as it's exported outside the component
 // The translation will be handled where it's called
@@ -675,8 +676,9 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         setActionMessage(t('DCC CHAT offer sent to {nick}').replace('{nick}', selectedUser.nick));
         break;
       case 'dcc_send':
-        activeIrc.sendRaw(`PRIVMSG ${selectedUser.nick} :\x01DCC SEND\x01`);
-        setActionMessage(t('DCC SEND offer initiated to {nick}').replace('{nick}', selectedUser.nick));
+        // Open the DCC send modal with file picker
+        useUIStore.getState().setDccSendTarget({ nick: selectedUser.nick, networkId: network || '' });
+        useUIStore.getState().setShowDccSendModal(true);
         break;
       case 'ignore':
         const isIgnored = userManagementService.isUserIgnored(

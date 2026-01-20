@@ -163,8 +163,20 @@ class DCCFileService {
       transfer.status = 'cancelled';
       this.transfers.set(transferId, transfer);
       this.emit(transfer);
+
+      // Clean up cached file for outgoing transfers
+      if (transfer.direction === 'outgoing' && transfer.filePath) {
+        this.cleanupCachedFile(transfer.filePath);
+      }
     }
     this.sockets.delete(transferId);
+
+    // Close server for outgoing transfers
+    const server = this.sendServers.get(transferId);
+    if (server) {
+      server.close();
+      this.sendServers.delete(transferId);
+    }
   }
 
   list(): DCCFileTransfer[] {
@@ -174,9 +186,56 @@ class DCCFileService {
   // Outgoing DCC SEND
   async sendFile(irc: IRCService, peerNick: string, networkId: string, filePath: string, port?: number) {
     const RNFS = require('react-native-fs');
-    const stat = await RNFS.stat(filePath);
-    const filename = filePath.split(/[\\/]/).pop() || 'file';
+
+    console.log('[DCCFileService] sendFile called with path:', filePath);
+
+    // Validate file path
+    if (!filePath) {
+      throw new Error(t('No file path provided'));
+    }
+
+    // URL decode the path in case it wasn't decoded properly
+    let decodedPath = filePath;
+    try {
+      decodedPath = decodeURIComponent(filePath);
+    } catch (e) {
+      // Use original if decode fails
+    }
+    console.log('[DCCFileService] Decoded path:', decodedPath);
+
+    // Check if path is a content:// URI (not supported by RNFS directly)
+    if (decodedPath.startsWith('content://')) {
+      throw new Error(t('Invalid file path. Please select the file again.'));
+    }
+
+    // Check if file exists with proper error handling
+    let exists = false;
+    try {
+      exists = await RNFS.exists(decodedPath);
+    } catch (existsError: any) {
+      console.error('[DCCFileService] RNFS.exists error:', existsError);
+      throw new Error(t('Cannot check file: {error}').replace('{error}', existsError?.message || 'Unknown error'));
+    }
+
+    if (!exists) {
+      console.error('[DCCFileService] File does not exist:', decodedPath);
+      throw new Error(t('File not found: {path}').replace('{path}', decodedPath.split('/').pop() || decodedPath));
+    }
+
+    let stat;
+    try {
+      stat = await RNFS.stat(decodedPath);
+    } catch (statError: any) {
+      console.error('[DCCFileService] RNFS.stat error:', statError);
+      throw new Error(t('Cannot read file info: {error}').replace('{error}', statError?.message || 'Unknown error'));
+    }
+
+    const filename = decodedPath.split(/[\\/]/).pop() || 'file';
     const size = stat.size;
+    // Use decoded path for the rest of the operations
+    filePath = decodedPath;
+
+    console.log('[DCCFileService] File info - name:', filename, 'size:', size);
 
     const transfer: DCCFileTransfer = {
       id: `dccfile-${Date.now()}-${Math.random()}`,
@@ -220,6 +279,9 @@ class DCCFileService {
         socket.destroy();
         server.close();
         this.sendServers.delete(transfer.id);
+
+        // Clean up cached file if it was copied from document picker
+        this.cleanupCachedFile(filePath);
       }
     });
 
@@ -247,6 +309,37 @@ class DCCFileService {
     const parts = ip.split('.').map(p => parseInt(p, 10));
     if (parts.length !== 4 || parts.some(isNaN)) return null;
     return ((parts[0] << 24) >>> 0) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
+  }
+
+  /**
+   * Clean up copied file after DCC transfer completes.
+   * Only deletes files that are in the app's directories (cache or documents).
+   */
+  private async cleanupCachedFile(filePath: string): Promise<void> {
+    try {
+      const RNFS = require('react-native-fs');
+
+      // Only delete if the file is in app's directories
+      // This prevents accidental deletion of user's original files
+      const isInAppDir = filePath && (
+        filePath.includes(RNFS.CachesDirectoryPath) ||
+        filePath.includes(RNFS.DocumentDirectoryPath) ||
+        filePath.includes('/cache/') ||
+        filePath.includes('/Cache/') ||
+        filePath.includes('/files/')
+      );
+
+      if (isInAppDir) {
+        const exists = await RNFS.exists(filePath);
+        if (exists) {
+          await RNFS.unlink(filePath);
+          console.log('[DCCFileService] Cleaned up copied file:', filePath);
+        }
+      }
+    } catch (error) {
+      // Silently ignore cleanup errors - not critical
+      console.warn('[DCCFileService] Failed to clean up copied file:', error);
+    }
   }
 }
 
