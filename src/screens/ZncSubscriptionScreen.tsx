@@ -98,23 +98,6 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   const pendingUsernameRef = useRef<string>('');
   const pendingPurchaseTokenRef = useRef<string>(''); // For retry when username exists
 
-  // Initialize IAP and load accounts
-  useEffect(() => {
-    if (visible) {
-      initializeIap();
-      loadPasswordLockState();
-      loadAccounts();
-
-      // Subscribe to account changes
-      const unsubscribe = subscriptionService.addListener(setAccounts);
-
-      return () => {
-        unsubscribe();
-        cleanupIap();
-      };
-    }
-  }, [visible, loadPasswordLockState]);
-
   const loadPasswordLockState = useCallback(async () => {
     const biometryType = await biometricAuthService.getBiometryType();
     const available = Boolean(biometryType);
@@ -138,6 +121,23 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     setPinLockEnabled(pinEnabled);
     setPasswordsUnlocked(!(biometricEnabled || pinEnabled));
   }, []);
+
+  // Initialize IAP and load accounts
+  useEffect(() => {
+    if (visible) {
+      initializeIap();
+      loadPasswordLockState();
+      loadAccounts();
+
+      // Subscribe to account changes
+      const unsubscribe = subscriptionService.addListener(setAccounts);
+
+      return () => {
+        unsubscribe();
+        cleanupIap();
+      };
+    }
+  }, [visible, loadPasswordLockState]);
 
   const closePinModal = useCallback((ok: boolean) => {
     setPinModalVisible(false);
