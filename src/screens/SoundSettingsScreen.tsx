@@ -15,8 +15,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { pick } from '@react-native-documents/picker';
+import { pick, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
 import Slider from '@react-native-community/slider';
+import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
 import { useSoundSettings } from '../hooks/useSoundSettings';
 import { useT } from '../i18n/transifex';
@@ -77,6 +78,23 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
     }));
   }, []);
 
+  const normalizeFileUri = useCallback((uri: string) => (
+    uri.startsWith('file://') ? uri.slice(7) : uri
+  ), []);
+
+  const cleanupPickedCopy = useCallback(async (uri?: string) => {
+    if (!uri) return;
+    const path = normalizeFileUri(uri);
+    try {
+      const exists = await RNFS.exists(path);
+      if (exists) {
+        await RNFS.unlink(path);
+      }
+    } catch (cleanupError) {
+      console.warn('[SoundSettingsScreen] Failed to clean up picked file:', cleanupError);
+    }
+  }, [normalizeFileUri]);
+
   const handlePickCustomSound = useCallback(async (eventType: SoundEventType) => {
     setIsPickingSound(true);
     setPickingForEvent(eventType);
@@ -87,9 +105,12 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
         copyTo: 'documentDirectory',
       });
 
-      if (result?.uri) {
+      const fileUri = result?.fileCopyUri ?? result?.uri;
+      const shouldCleanupCopy = Boolean(result?.fileCopyUri);
+
+      if (fileUri) {
         // Preview the sound first
-        await previewCustomSound(result.uri);
+        await previewCustomSound(fileUri);
 
         // Ask for confirmation
         Alert.alert(
@@ -99,20 +120,28 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
             {
               text: t('Cancel'),
               style: 'cancel',
-              onPress: () => stopSound(),
+              onPress: async () => {
+                await stopSound();
+                if (shouldCleanupCopy) {
+                  await cleanupPickedCopy(result?.fileCopyUri);
+                }
+              },
             },
             {
               text: t('Use'),
               onPress: async () => {
                 await stopSound();
-                await setCustomSound(eventType, result.uri);
+                await setCustomSound(eventType, normalizeFileUri(fileUri));
+                if (shouldCleanupCopy) {
+                  await cleanupPickedCopy(result?.fileCopyUri);
+                }
               },
             },
           ]
         );
       }
     } catch (error: any) {
-      if (error?.code !== 'DOCUMENT_PICKER_CANCELED') {
+      if (!(isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED)) {
         console.error('[SoundSettingsScreen] Error picking sound:', error);
         Alert.alert(t('Error'), t('Failed to select sound file.'));
       }
@@ -120,7 +149,7 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
       setIsPickingSound(false);
       setPickingForEvent(null);
     }
-  }, [t, previewCustomSound, stopSound, setCustomSound]);
+  }, [t, previewCustomSound, stopSound, setCustomSound, normalizeFileUri, cleanupPickedCopy]);
 
   const handleResetEvent = useCallback(async (eventType: SoundEventType) => {
     Alert.alert(

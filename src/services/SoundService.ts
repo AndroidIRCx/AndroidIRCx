@@ -409,6 +409,7 @@ class SoundService {
     // Copy the file to app's document directory for persistence
     const filename = `custom_${eventType}_${Date.now()}.wav`;
     const destPath = `${RNFS.DocumentDirectoryPath}/sounds/${filename}`;
+    const previousCustomUri = this.settings.events[eventType]?.customUri;
 
     try {
       // Ensure sounds directory exists
@@ -426,6 +427,17 @@ class SoundService {
         useCustom: true,
         customUri: destPath,
       });
+
+      if (previousCustomUri && previousCustomUri !== destPath) {
+        try {
+          const exists = await RNFS.exists(previousCustomUri);
+          if (exists) {
+            await RNFS.unlink(previousCustomUri);
+          }
+        } catch (cleanupError) {
+          console.warn('[SoundService] Failed to delete previous custom sound file:', cleanupError);
+        }
+      }
 
       console.log(`[SoundService] Custom sound set for ${eventType}: ${destPath}`);
     } catch (error) {

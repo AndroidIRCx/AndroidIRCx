@@ -158,6 +158,7 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
       cleanupCopiedFile(filePath);
     }
     setFileName('');
+    onChangeFilePath('');
     onClose();
   };
 

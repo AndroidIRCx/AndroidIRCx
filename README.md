@@ -690,10 +690,6 @@ This client implements the IRC protocol according to:
 
 - [Debug Notes](DEBUG_NOTES.md) - Troubleshooting guide
 
-## 🔄 Development Status
-
-**Current Version**: 1.6.7
-
 ---
 
 **Note**: This project is in active development. Some features may be incomplete or subject to change.
