@@ -56,6 +56,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const t = useT();
   const tags = 'screen:settings,file:DisplayUISection.tsx,feature:settings';
   const { layoutConfig, updateLayoutConfig } = useSettingsAppearance();
+  const isSideTabsLayout = layoutConfig?.tabPosition === 'left' || layoutConfig?.tabPosition === 'right';
   
   const [tabSortAlphabetical, setTabSortAlphabetical] = useState(true);
   const [localShowRawCommands, setLocalShowRawCommands] = useState(propShowRawCommands);
@@ -403,9 +404,9 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
             case 'input_below':
               return t('Banner shown below message input', { _tags: tags });
             case 'tabs_above':
-              return t('Banner shown above header', { _tags: tags });
+              return t(isSideTabsLayout ? 'Banner shown above header' : 'Banner shown above channel tabs', { _tags: tags });
             case 'tabs_below':
-              return t('Banner shown below header', { _tags: tags });
+              return t(isSideTabsLayout ? 'Banner shown below header' : 'Banner shown below channel tabs', { _tags: tags });
             default:
               return t('Banner shown above message input', { _tags: tags });
           }
@@ -433,7 +434,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           },
           {
             id: 'banner-pos-tabs-above',
-            title: t('Above header', { _tags: tags }),
+            title: t(isSideTabsLayout ? 'Above header' : 'Above channel tabs', { _tags: tags }),
             type: 'button' as const,
             onPress: async () => {
               setBannerPosition('tabs_above');
@@ -442,7 +443,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           },
           {
             id: 'banner-pos-tabs-below',
-            title: t('Below header', { _tags: tags }),
+            title: t(isSideTabsLayout ? 'Below header' : 'Below channel tabs', { _tags: tags }),
             type: 'button' as const,
             onPress: async () => {
               setBannerPosition('tabs_below');
@@ -551,6 +552,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     keyboardVerticalOffset,
     useAndroidBottomSafeArea,
     bannerPosition,
+    isSideTabsLayout,
     layoutConfig,
     t,
     tags,
