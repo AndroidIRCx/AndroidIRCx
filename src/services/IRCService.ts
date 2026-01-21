@@ -5051,6 +5051,26 @@ export class IRCService {
     return this.isConnected;
   }
 
+  getLocalAddress(): string | undefined {
+    const socket = this.socket as any;
+    const direct = socket?.localAddress;
+    if (typeof direct === 'string' && direct.length > 0) {
+      return direct;
+    }
+    if (typeof socket?.address === 'function') {
+      try {
+        const info = socket.address();
+        const addr = info && typeof info === 'object' ? info.address : undefined;
+        if (typeof addr === 'string' && addr.length > 0) {
+          return addr;
+        }
+      } catch {
+        // ignore address errors
+      }
+    }
+    return undefined;
+  }
+
   onMessage(callback: (message: IRCMessage) => void): () => void {
     this.messageListeners.push(callback);
     this.logRaw(`IRCService: Message listener registered. Total listeners: ${this.messageListeners.length}`);

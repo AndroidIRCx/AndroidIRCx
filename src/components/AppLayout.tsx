@@ -191,7 +191,7 @@ export function AppLayout({
       keyboardVerticalOffset={keyboardVerticalOffset}
       style={[styles.container, { paddingTop: safeAreaInsets.top }]}
     >
-      {isSideTabs && bannerPosition === 'tabs_above' && bannerNode}
+      {bannerPosition === 'tabs_above' && bannerNode}
       <HeaderBar
         networkName={isConnected ? networkName : (selectedNetworkName || networkName)}
         ping={ping}
@@ -214,8 +214,7 @@ export function AppLayout({
         showSearchButton={showSearchButton}
         onSearchPress={() => setSearchVisible(prev => !prev)}
       />
-      {isSideTabs && bannerPosition === 'tabs_below' && bannerNode}
-      {layoutConfig.tabPosition === 'top' && bannerPosition === 'tabs_above' && bannerNode}
+      {bannerPosition === 'tabs_below' && bannerNode}
       {layoutConfig.tabPosition === 'top' && (
         <ChannelTabs
           tabs={tabs}
@@ -226,7 +225,6 @@ export function AppLayout({
           position="top"
         />
       )}
-      {layoutConfig.tabPosition === 'top' && bannerPosition === 'tabs_below' && bannerNode}
       <View
         style={[
           styles.contentArea,
@@ -281,7 +279,6 @@ export function AppLayout({
           />
         )}
       </View>
-      {layoutConfig.tabPosition === 'bottom' && bannerPosition === 'tabs_above' && bannerNode}
       {layoutConfig.tabPosition === 'bottom' && (
         <ChannelTabs
           tabs={tabs}
@@ -292,7 +289,6 @@ export function AppLayout({
           position="bottom"
         />
       )}
-      {layoutConfig.tabPosition === 'bottom' && bannerPosition === 'tabs_below' && bannerNode}
       {activeTab && showTypingIndicators && typingUsers.get(activeTab.networkId)?.get(activeTab.name) && (
         <TypingIndicator typingUsers={typingUsers.get(activeTab.networkId)!.get(activeTab.name)!} />
       )}

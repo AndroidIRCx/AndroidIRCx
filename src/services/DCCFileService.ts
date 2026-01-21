@@ -2,6 +2,7 @@ import TcpSocket, { Socket, Server } from 'react-native-tcp-socket';
 import { Platform } from 'react-native';
 import type { IRCService } from './IRCService';
 import { tx } from '../i18n/transifex';
+import { settingsService } from './SettingsService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -57,14 +58,25 @@ class DCCFileService {
     const cleaned = text.replace(/\x01/g, '').trim();
     // Format: DCC SEND <filename> <ip> <port> <size> [token]
     const match = cleaned.match(/^DCC\s+SEND\s+(.+?)\s+(\S+)\s+(\d+)\s+(\d+)?(?:\s+(\S+))?/);
-    if (!match) return null;
+    if (!match) {
+      console.log('[DCCFileService] parseSendOffer no match:', { cleaned });
+      return null;
+    }
     const [, filename, ip, portStr, sizeStr, token] = match;
     const port = parseInt(portStr, 10);
     const size = sizeStr ? parseInt(sizeStr, 10) : undefined;
     if (isNaN(port)) return null;
+    console.log('[DCCFileService] parseSendOffer matched:', {
+      filename,
+      ip,
+      port,
+      size,
+      token,
+    });
+    const host = /^\d+$/.test(ip) ? this.intToIp(ip) : ip;
     return {
       filename: filename.replace(/"/g, ''),
-      host: this.intToIp(ip) || ip,
+      host,
       port,
       size: size && !isNaN(size) ? size : undefined,
       token,
@@ -90,6 +102,14 @@ class DCCFileService {
   async accept(transferId: string, irc: IRCService, downloadPath: string) {
     const transfer = this.transfers.get(transferId);
     if (!transfer) return;
+    console.log('[DCCFileService] accept transfer:', {
+      id: transferId,
+      host: transfer.offer.host,
+      port: transfer.offer.port,
+      filename: transfer.offer.filename,
+      size: transfer.offer.size,
+      path: downloadPath,
+    });
     transfer.status = 'downloading';
     transfer.filePath = downloadPath;
     this.transfers.set(transferId, transfer);
@@ -109,6 +129,7 @@ class DCCFileService {
     }
 
     const socket = TcpSocket.createConnection({ host: transfer.offer.host, port: transfer.offer.port }, async () => {
+      console.log('[DCCFileService] socket connected:', { id: transferId, host: transfer.offer.host, port: transfer.offer.port });
       // If resume requested, sender should respond with ACCEPT; we still start reading
     });
     this.sockets.set(transferId, socket);
@@ -134,6 +155,7 @@ class DCCFileService {
     socket.on('error', (err: any) => {
       const transferState = this.transfers.get(transferId);
       if (!transferState) return;
+      console.error('[DCCFileService] socket error:', { id: transferId, error: err?.message || err });
       transferState.status = 'failed';
       transferState.error = err?.message || t('Transfer failed');
       this.transfers.set(transferId, transferState);
@@ -141,9 +163,10 @@ class DCCFileService {
       this.sockets.delete(transferId);
     });
 
-    socket.on('close', () => {
+    socket.on('close', (hadError?: boolean) => {
       const transferState = this.transfers.get(transferId);
       if (!transferState) return;
+      console.log('[DCCFileService] socket closed:', { id: transferId, hadError: !!hadError });
       if (transferState.status !== 'failed' && transferState.status !== 'cancelled') {
         transferState.status = 'completed';
       }
@@ -252,7 +275,21 @@ class DCCFileService {
     this.emit(transfer);
 
     const chosenPort = port || this.defaultPortRange.min + Math.floor(Math.random() * (this.defaultPortRange.max - this.defaultPortRange.min));
+    const rawHostOverride = await settingsService.getSetting('dccHostOverride', '');
+    const dccHostOverride = typeof rawHostOverride === 'string' ? rawHostOverride.trim() : '';
+    if (dccHostOverride && /\s/.test(dccHostOverride)) {
+      console.warn('[DCCFileService] Ignoring DCC host override with whitespace:', dccHostOverride);
+    }
+    const normalizedOverride = dccHostOverride && !/\s/.test(dccHostOverride) ? dccHostOverride : '';
+    console.log('[DCCFileService] Starting send server:', {
+      id: transfer.id,
+      peerNick,
+      networkId,
+      chosenPort,
+      hostOverride: normalizedOverride || undefined,
+    });
     const server = TcpSocket.createServer(async socket => {
+      console.log('[DCCFileService] Send socket connected:', { id: transfer.id });
       // Stream file
       const chunkSize = 32 * 1024;
       let offset = 0;
@@ -271,6 +308,7 @@ class DCCFileService {
         this.transfers.set(transfer.id, transfer);
         this.emit(transfer);
       } catch (e: any) {
+        console.error('[DCCFileService] Send socket error:', { id: transfer.id, error: e?.message || e });
         transfer.status = 'failed';
         transfer.error = e?.message || t('Send failed');
         this.transfers.set(transfer.id, transfer);
@@ -288,8 +326,26 @@ class DCCFileService {
     server.listen({ port: chosenPort, host: '0.0.0.0' }, () => {
       const addr = server.address();
       if (typeof addr === 'object' && addr) {
-        const hostInt = this.ipToInt(addr.address || '0.0.0.0') || 0;
-        const payload = hostInt ? `${hostInt}` : addr.address;
+        let hostAddress = normalizedOverride || addr.address || '0.0.0.0';
+        const needsFallback = !normalizedOverride && (hostAddress === '0.0.0.0' || hostAddress === '::' || hostAddress === '::1');
+        const localAddr = typeof irc.getLocalAddress === 'function' ? irc.getLocalAddress() : undefined;
+        if (needsFallback && localAddr) {
+          if (localAddr && localAddr.includes('.') && this.ipToInt(localAddr)) {
+            hostAddress = localAddr;
+          }
+        }
+        const hostInt = this.ipToInt(hostAddress) || 0;
+        const payload = hostInt ? `${hostInt}` : hostAddress;
+        console.log('[DCCFileService] Sending DCC SEND:', {
+          id: transfer.id,
+          peerNick,
+          hostAddress,
+          payload,
+          hostOverride: normalizedOverride || undefined,
+          localAddr,
+          port: addr.port,
+          size,
+        });
         const ctcp = `\x01DCC SEND "${filename}" ${payload} ${addr.port} ${size}\x01`;
         irc.sendRaw(`PRIVMSG ${peerNick} :${ctcp}`);
       }

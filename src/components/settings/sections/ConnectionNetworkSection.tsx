@@ -89,6 +89,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   const [autoJoinFavoritesEnabled, setAutoJoinFavoritesEnabled] = useState(true);
   const [dccMinPort, setDccMinPort] = useState(5000);
   const [dccMaxPort, setDccMaxPort] = useState(6000);
+  const [dccHostOverride, setDccHostOverride] = useState('');
   const [lagCheckMethod, setLagCheckMethod] = useState<'ctcp' | 'server'>('server');
   const [globalProxyType, setGlobalProxyType] = useState<'socks5' | 'socks4' | 'http' | 'tor'>('socks5');
   const [globalProxyHost, setGlobalProxyHost] = useState('');
@@ -130,6 +131,8 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       const dccRange = await settingsService.getSetting('dccPortRange', { min: 5000, max: 6000 });
       setDccMinPort(dccRange.min || 5000);
       setDccMaxPort(dccRange.max || 6000);
+      const dccHost = await settingsService.getSetting('dccHostOverride', '');
+      setDccHostOverride(dccHost);
       
       const proxy = await settingsService.getSetting('globalProxy', null);
       if (proxy) {
@@ -479,7 +482,20 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         }
       },
     },
-  ]), [dccMinPort, dccMaxPort, t, tags]);
+    {
+      id: 'dcc-host-override',
+      title: t('DCC Host/IP Override', { _tags: tags }),
+      description: t('Optional public IP or hostname to include in DCC SEND offers', { _tags: tags }),
+      type: 'input',
+      value: dccHostOverride,
+      searchKeywords: ['dcc', 'ip', 'host', 'address', 'public', 'nat', 'forward', 'override'],
+      onValueChange: async (value: string | boolean) => {
+        const raw = String(value);
+        setDccHostOverride(raw);
+        await settingsService.setSetting('dccHostOverride', raw.trim());
+      },
+    },
+  ]), [dccMinPort, dccMaxPort, dccHostOverride, t, tags]);
 
   // Helper to get default auto-reconnect config
   const getDefaultAutoReconnectConfig = useCallback((): AutoReconnectConfig => ({

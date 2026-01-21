@@ -36,7 +36,7 @@
     "string": "Error al copiar al portapeles"
   },
   "Backup saved to:\n{path}": {
-    "string": ""
+    "string": "Copia de seguridad guardada en:\n1{patch}"
   },
   "OK": {
     "string": "OK"
@@ -69,142 +69,142 @@
     "string": "Exportación Completa"
   },
   "Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)": {
-    "string": "Caracteres exportados {count} en {format} formato."
+    "string": "Caracteres exportados {count} en {format} formato.\n\n(En producción, esto se guardaría en un archivo)"
   },
   "Export Error": {
     "string": "Export Error"
   },
   "Failed to export history": {
-    "string": ""
+    "string": "Fallo al exportar el historial"
   },
   "Clear Message History": {
-    "string": ""
+    "string": "Borrar Historial de Mensajes"
   },
   "Are you sure you want to clear all message history? This cannot be undone.": {
-    "string": ""
+    "string": "¿Está seguro de que desea borrar todo el historial de mensajes? Esto no se puede deshacer."
   },
   "Clear": {
     "string": ""
   },
   "Message history cleared": {
-    "string": ""
+    "string": "Historial de mensajes borrado"
   },
   "Settings backup generated (excludes logs and message history).": {
-    "string": ""
+    "string": "Se generó una copia de seguridad de la configuración (excluye los registros y el historial de mensajes)."
   },
   "Full backup generated (includes all data).": {
-    "string": ""
+    "string": "Copia de seguridad completa generada (incluye todos los datos)."
   },
   "Backup Error": {
-    "string": ""
+    "string": "Error de Copia de Seguridad"
   },
   "Failed to create backup": {
-    "string": ""
+    "string": "Error al crear la copia de seguridad"
   },
   "Restore Complete": {
-    "string": ""
+    "string": "Restauración Completa"
   },
   "Restore Error": {
-    "string": ""
+    "string": "Error de Restauración"
   },
   "Use fingerprint/biometric to unlock": {
-    "string": ""
+    "string": "El uso de huellas dactilares/biométricos para desbloquear"
   },
   "Enter PIN to unlock": {
-    "string": ""
+    "string": "Ingrese el PIN para desbloquear"
   },
   "PIN must be at least 4 digits.": {
-    "string": ""
+    "string": "El PIN debe tener al menos 4 dígitos."
   },
   "PINs do not match.": {
-    "string": ""
+    "string": "Los pines no coinciden."
   },
   "Biometrics unavailable": {
     "string": "Biometría no disponible"
   },
   "Enable a fingerprint/biometric on your device first.": {
-    "string": ""
+    "string": "Habilite primero una huella dactilar/biométrica en su dispositivo."
   },
   "Unlock passwords": {
-    "string": ""
+    "string": "Desbloqueo de contraseñas"
   },
   "Authentication failed": {
-    "string": ""
+    "string": "Error de autenticación"
   },
   "Unable to unlock passwords.": {
-    "string": ""
+    "string": "No se pueden desbloquear contraseñas."
   },
   "Biometric setup failed": {
-    "string": ""
+    "string": "Falló la configuración biométrica"
   },
   "Unable to enable biometric lock for passwords.": {
-    "string": ""
+    "string": "No se puede habilitar el bloqueo biométrico para las contraseñas."
   },
   "Enable a method": {
-    "string": ""
+    "string": "Habilitar un método"
   },
   "Turn on biometric or PIN for App Lock first.": {
-    "string": ""
+    "string": "Active primero el bloqueo biométrico o con PIN para la aplicación."
   },
   "Unable to enable biometric app lock.": {
     "string": ""
   },
   "Appearance": {
-    "string": ""
+    "string": "Apariencia"
   },
   "Theme": {
-    "string": ""
+    "string": "Tema"
   },
   "Custom theme": {
-    "string": ""
+    "string": "Tema personalizado"
   },
   "Dark mode (default)": {
-    "string": ""
+    "string": "Modo oscuro (predeterminado)"
   },
   "Light mode": {
-    "string": ""
+    "string": "Modo Claro"
   },
   "+ Create New Theme": {
-    "string": ""
+    "string": "+ Crear Tema Nuevo"
   },
   "Edit {name}": {
-    "string": ""
+    "string": "Editar {name}"
   },
   "Delete {name}": {
-    "string": ""
+    "string": "Eliminar {name}"
   },
   "Delete Theme": {
-    "string": ""
+    "string": "Eliminar Tema"
   },
   "Are you sure you want to delete \"{name}\"?": {
-    "string": ""
+    "string": "¿Está seguro de que desea eliminar \"1{name}\"?"
   },
   "Delete": {
-    "string": ""
+    "string": "Eliminar"
   },
   "Tab Position": {
-    "string": ""
+    "string": "Posición de la Pestaña"
   },
   "Tabs at {position}": {
-    "string": ""
+    "string": "Pestañas en 1{position} "
   },
   "Select tab position:": {
-    "string": ""
+    "string": "Seleccionar posición de pestaña:"
   },
   "Top": {
-    "string": ""
+    "string": "Arriba"
   },
   "Bottom": {
-    "string": ""
+    "string": "Parte inferior"
   },
   "Left": {
-    "string": ""
+    "string": "Izquierda"
   },
   "Right": {
-    "string": ""
+    "string": "Derecha"
   },
   "User List Position": {
-    "string": ""
+    "string": "Posición de la Lista de Usuarios"
   },
   "User list at {position}": {
     "string": ""
@@ -213,7 +213,7 @@
     "string": ""
   },
   "View Mode": {
-    "string": ""
+    "string": "Ver Mode"
   },
   "Current: {mode}": {
     "string": ""

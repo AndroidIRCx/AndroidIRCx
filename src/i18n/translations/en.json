@@ -6526,5 +6526,11 @@
   },
   "Logs all channel invites with user info.": {
     "string": "Logs all channel invites with user info."
+  },
+  "DCC Host/IP Override": {
+    "string": "DCC Host/IP Override"
+  },
+  "Optional public IP or hostname to include in DCC SEND offers": {
+    "string": "Optional public IP or hostname to include in DCC SEND offers"
   }
 }
