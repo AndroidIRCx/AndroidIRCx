@@ -6,34 +6,34 @@
     "string": ""
   },
   "App lock disabled": {
-    "string": ""
+    "string": "Desactivar bloqueo de app"
   },
   "Enable app lock first.": {
-    "string": ""
+    "string": "Activa primero el bloqueo de la app"
   },
   "Cancel": {
-    "string": ""
+    "string": "Cancelar"
   },
   "Error": {
-    "string": ""
+    "string": "Error"
   },
   "Channel Favorites": {
-    "string": ""
+    "string": "Canales Favoritos"
   },
   "Message History": {
-    "string": ""
+    "string": "Historial de mensajes"
   },
   "Backup Ready": {
-    "string": ""
+    "string": "Respaldo Listo"
   },
   "Success": {
-    "string": ""
+    "string": "Completado"
   },
   "Backup data copied to clipboard": {
-    "string": ""
+    "string": "Respaldo copiado al portapapeles"
   },
   "Failed to copy to clipboard": {
-    "string": ""
+    "string": "Error al copiar al portapeles"
   },
   "Backup saved to:\n{path}": {
     "string": ""
@@ -60,7 +60,7 @@
     "string": ""
   },
   "Copy to Clipboard": {
-    "string": ""
+    "string": "Copiar al Portapapeles"
   },
   "Save to File": {
     "string": ""
@@ -120,7 +120,7 @@
     "string": ""
   },
   "Biometrics unavailable": {
-    "string": ""
+    "string": "Biometría no disponible"
   },
   "Enable a fingerprint/biometric on your device first.": {
     "string": ""
@@ -345,7 +345,7 @@
     "string": ""
   },
   "Message to send when leaving a channel.": {
-    "string": ""
+    "string": "Mensaje a enviar cuando sale de un canal."
   },
   "Quit Message": {
     "string": ""
@@ -714,7 +714,7 @@
     "string": ""
   },
   "No other networks available": {
-    "string": ""
+    "string": "No hay otras redes disponibles."
   },
   "Delete Favorite": {
     "string": ""
@@ -1182,7 +1182,7 @@
     "string": ""
   },
   "No network available. Please configure a network first.": {
-    "string": ""
+    "string": "No hay redes disponibles. Por favor configure una red primero."
   },
   "Configure": {
     "string": ""
@@ -1461,7 +1461,7 @@
     "string": ""
   },
   "Oper Username": {
-    "string": ""
+    "string": "Oper: Nombre de Usuario"
   },
   "Defaults to nick": {
     "string": ""
@@ -1923,7 +1923,7 @@
     "string": ""
   },
   "Messages will be encrypted automatically when a key is available.": {
-    "string": ""
+    "string": "Los mensajes se cifrarán automáticamente cuando haya una clave disponible."
   },
   "Enable to automatically encrypt all messages to this channel.": {
     "string": ""
@@ -2160,7 +2160,7 @@
     "string": ""
   },
   "Available functions": {
-    "string": ""
+    "string": "Funciones disponibles"
   },
   "• api.log(text) — log to script log buffer": {
     "string": ""
@@ -2274,7 +2274,7 @@
     "string": ""
   },
   "Tap \"Request Ad\" to load an ad from Google. First load may take a few moments.": {
-    "string": ""
+    "string": "Toca \"Request Ad\" para cargar un anuncio de Google. La primera vez en cargar puede demorar un poco. "
   },
   "Ads temporarily unavailable. The app works fine without them. Retrying in {cooldownSeconds}s...": {
     "string": ""
@@ -2523,10 +2523,10 @@
     "string": ""
   },
   "Verified": {
-    "string": ""
+    "string": "Verificado"
   },
   "Verify DM Key": {
-    "string": ""
+    "string": "Verificar llave DM"
   },
   "Compare fingerprints out-of-band:\n\nYou: {self}\n{nick}: {peer}": {
     "string": ""
@@ -2562,7 +2562,7 @@
     "string": ""
   },
   "Share Key File": {
-    "string": ""
+    "string": "Compartir archivo de clave"
   },
   "Import Key File": {
     "string": ""
@@ -2637,7 +2637,7 @@
     "string": ""
   },
   "DCC CHAT offer sent to {nick}": {
-    "string": ""
+    "string": "DCC CHAT enviado a {nick}"
   },
   "DCC SEND offer initiated to {nick}": {
     "string": ""
@@ -2664,7 +2664,7 @@
     "string": ""
   },
   "Took half-op from {nick}": {
-    "string": ""
+    "string": "Recibió half-op de {nick}"
   },
   "Gave op to {nick}": {
     "string": ""
@@ -2862,7 +2862,7 @@
     "string": ""
   },
   "No WHOIS information available": {
-    "string": ""
+    "string": "No hay información disponible de WHOIS"
   },
   "Request WHOIS": {
     "string": ""
@@ -4296,6 +4296,33 @@
     "string": ""
   },
   "WHOIS data for {nick} not found after completion signal.": {
+    "string": ""
+  },
+  "Banner Position": {
+    "string": ""
+  },
+  "Banner shown above message input": {
+    "string": ""
+  },
+  "Banner shown below message input": {
+    "string": ""
+  },
+  "Banner shown above header": {
+    "string": ""
+  },
+  "Banner shown below header": {
+    "string": ""
+  },
+  "Above message input": {
+    "string": ""
+  },
+  "Below message input": {
+    "string": ""
+  },
+  "Above header": {
+    "string": ""
+  },
+  "Below header": {
     "string": ""
   }
 }

@@ -16,9 +16,16 @@ import { connectionManager } from '../services/ConnectionManager';
 import { mediaSettingsService } from '../services/MediaSettingsService';
 import { mediaEncryptionService } from '../services/MediaEncryptionService';
 import { settingsService } from '../services/SettingsService';
+import { useTabStore } from '../stores/tabStore';
 import { MediaUploadModal } from './MediaUploadModal';
 import { MediaPreviewModal } from './MediaPreviewModal';
 import { MediaPickResult } from '../services/MediaPickerService';
+
+type MessageInputSuggestion = {
+  text: string;
+  description?: string;
+  source: 'command' | 'alias' | 'history' | 'nick';
+};
 
 interface MessageInputProps {
   placeholder?: string;
@@ -51,7 +58,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const totalBottomInset = bottomInset + layoutConfig.navigationBarOffset;
   const styles = createStyles(colors, totalBottomInset);
   const [message, setMessage] = useState('');
-  const [suggestions, setSuggestions] = useState<Array<{ text: string; description?: string; source: 'command' | 'alias' | 'history' }>>([]);
+  const [suggestions, setSuggestions] = useState<MessageInputSuggestion[]>([]);
 
   // Media upload state
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
@@ -143,8 +150,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const connection = connectionManager.getConnection(activeNetworkId);
     if (!connection?.ircService) return;
 
-    // Send TAGMSG with typing tag (server-visible)
-    connection.ircService.sendRaw(`@typing=${status} TAGMSG ${tabName}`);
+    // Only send typing indicator if server supports it (has typing capability)
+    connection.ircService.sendTypingIndicator(tabName, status);
   };
 
   const handleSubmit = () => {
@@ -285,9 +292,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       { cmd: 'enc', desc: t('DM encryption help') },
       { cmd: 'chankey', desc: t('Channel encryption commands') },
       { cmd: 'quote', desc: t('Send raw IRC command') },
+      { cmd: 'ctcp', desc: t('CTCP request') },
+      { cmd: 'dcc', desc: t('DCC commands') },
+      { cmd: 'xdcc', desc: t('XDCC bot commands') },
     ];
 
-    const commandMatches = builtInCommands
+    const commandMatches: MessageInputSuggestion[] = builtInCommands
       .filter(item => `/${item.cmd}`.toLowerCase().startsWith(typedLower))
       .map(item => ({
         text: `/${item.cmd}`,
@@ -297,7 +307,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       .slice(0, 6);
 
     // Aliases
-    const aliasMatches = commandService.getAliases()
+    const aliasMatches: Array<MessageInputSuggestion & { score: number }> = commandService.getAliases()
       .map(alias => {
         const aliasText = `/${alias.alias}`;
         return {
@@ -317,14 +327,52 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     // History
     const history = commandService.getHistory(30).map(entry => entry.command);
     const uniqueHistory = Array.from(new Set(history));
-    const historyMatches = uniqueHistory
+    const historyMatches: MessageInputSuggestion[] = uniqueHistory
       .filter(cmd => cmd.toLowerCase().startsWith(typedLower))
       .map(cmd => ({ text: cmd, source: 'history' as const }))
       .slice(0, 6);
 
-    // Merge: commands first, then aliases, then history - dedupe by text
-    const merged: Array<{ text: string; description?: string; source: 'command' | 'alias' | 'history' }> = [];
-    [...commandMatches, ...aliasMatches, ...historyMatches].forEach(item => {
+    // Nick suggestions (channel users + recent query tabs)
+    let nickMatches: MessageInputSuggestion[] = [];
+    const lastSpaceIndex = text.lastIndexOf(' ');
+    const rawToken = lastSpaceIndex === -1 ? text : text.slice(lastSpaceIndex + 1);
+    const token = rawToken.startsWith('@') ? rawToken.slice(1) : rawToken;
+    const isCommandToken = rawToken.startsWith('/') && lastSpaceIndex === -1;
+    if (!isCommandToken && token.length >= 2) {
+      const networkId = network || connectionManager.getActiveNetworkId();
+      const conn = networkId ? connectionManager.getConnection(networkId) : null;
+      const nickSet = new Map<string, string>();
+      if (conn?.ircService && tabType === 'channel' && tabName) {
+        conn.ircService.getChannelUsers(tabName)
+          .map((user: any) => user.nick)
+          .filter(Boolean)
+          .forEach((nick: string) => {
+            const lower = nick.toLowerCase();
+            if (!nickSet.has(lower)) nickSet.set(lower, nick);
+          });
+      }
+      if (networkId) {
+        const tabs = useTabStore.getState().getTabsByNetwork(networkId);
+        tabs
+          .filter(t => t.type === 'query')
+          .map(t => t.name)
+          .filter(Boolean)
+          .forEach(nick => {
+            const lower = nick.toLowerCase();
+            if (!nickSet.has(lower)) nickSet.set(lower, nick);
+          });
+      }
+      const tokenLower = token.toLowerCase();
+      nickMatches = Array.from(nickSet.values())
+        .filter(nick => nick.toLowerCase().startsWith(tokenLower))
+        .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+        .slice(0, 6)
+        .map(nick => ({ text: nick, source: 'nick' as const }));
+    }
+
+    // Merge: commands first, then aliases, then history, then nick matches - dedupe by text
+    const merged: MessageInputSuggestion[] = [];
+    [...commandMatches, ...aliasMatches, ...historyMatches, ...nickMatches].forEach(item => {
       if (!merged.some(m => m.text.toLowerCase() === item.text.toLowerCase())) {
         merged.push({ text: item.text, description: (item as any).description, source: item.source });
       }
@@ -389,7 +437,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             <TouchableOpacity
               key={suggestion.text}
               onPress={() => {
-                setMessage(suggestion.text + (suggestion.text.endsWith(' ') ? '' : ' '));
+                if (suggestion.source === 'nick') {
+                  const lastSpaceIndex = message.lastIndexOf(' ');
+                  const before = lastSpaceIndex === -1 ? '' : message.slice(0, lastSpaceIndex + 1);
+                  const rawToken = lastSpaceIndex === -1 ? message : message.slice(lastSpaceIndex + 1);
+                  const prefix = rawToken.startsWith('@') ? '@' : '';
+                  setMessage(`${before}${prefix}${suggestion.text} `);
+                } else {
+                  setMessage(suggestion.text + (suggestion.text.endsWith(' ') ? '' : ' '));
+                }
                 setSuggestions([]);
               }}
               style={styles.suggestionRow}

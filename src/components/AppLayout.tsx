@@ -5,7 +5,7 @@
  * Extracted from App.tsx to reduce complexity.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Platform, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ChannelTabs } from './ChannelTabs';
@@ -17,6 +17,7 @@ import { HeaderBar } from './HeaderBar';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { ChannelTab } from '../types';
 import { bannerAdService } from '../services/BannerAdService';
+import { settingsService } from '../services/SettingsService';
 import { useUIStore } from '../stores/uiStore';
 
 interface AppLayoutProps {
@@ -128,6 +129,22 @@ export function AppLayout({
 
   // Message search state
   const [searchVisible, setSearchVisible] = useState(false);
+  const [bannerPosition, setBannerPosition] = useState<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>('input_above');
+
+  useEffect(() => {
+    let isMounted = true;
+    settingsService.getSetting('bannerPosition', 'input_above').then(value => {
+      if (isMounted) setBannerPosition(value);
+    });
+    const unsubscribe = settingsService.onSettingChange<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>(
+      'bannerPosition',
+      value => setBannerPosition(value)
+    );
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   const renderUserList = (position: 'left' | 'right' | 'top' | 'bottom') => {
     if (!activeTab || activeTab.type !== 'channel' || !showUserList) {
@@ -149,6 +166,23 @@ export function AppLayout({
   const bottomInset = Platform.OS === 'android' && !useAndroidBottomSafeArea
     ? 0
     : safeAreaInsets.bottom;
+  const bannerNode = (
+    <View style={[
+      styles.bannerAdContainer,
+      !bannerVisible && { height: 0, overflow: 'hidden', opacity: 0 }
+    ]}>
+      <BannerAd
+        unitId={bannerAdService.getBannerAdUnitId()}
+        size={BannerAdSize.BANNER}
+        requestOptions={{
+          requestNonPersonalizedAdsOnly: !bannerAdService.canShowPersonalizedAds(),
+        }}
+        onAdFailedToLoad={(error) => {
+          console.error('Banner ad failed to load:', error);
+        }}
+      />
+    </View>
+  );
 
   return (
     <KeyboardAvoidingView
@@ -157,6 +191,7 @@ export function AppLayout({
       keyboardVerticalOffset={keyboardVerticalOffset}
       style={[styles.container, { paddingTop: safeAreaInsets.top }]}
     >
+      {isSideTabs && bannerPosition === 'tabs_above' && bannerNode}
       <HeaderBar
         networkName={isConnected ? networkName : (selectedNetworkName || networkName)}
         ping={ping}
@@ -179,6 +214,8 @@ export function AppLayout({
         showSearchButton={showSearchButton}
         onSearchPress={() => setSearchVisible(prev => !prev)}
       />
+      {isSideTabs && bannerPosition === 'tabs_below' && bannerNode}
+      {layoutConfig.tabPosition === 'top' && bannerPosition === 'tabs_above' && bannerNode}
       {layoutConfig.tabPosition === 'top' && (
         <ChannelTabs
           tabs={tabs}
@@ -189,6 +226,7 @@ export function AppLayout({
           position="top"
         />
       )}
+      {layoutConfig.tabPosition === 'top' && bannerPosition === 'tabs_below' && bannerNode}
       <View
         style={[
           styles.contentArea,
@@ -243,6 +281,7 @@ export function AppLayout({
           />
         )}
       </View>
+      {layoutConfig.tabPosition === 'bottom' && bannerPosition === 'tabs_above' && bannerNode}
       {layoutConfig.tabPosition === 'bottom' && (
         <ChannelTabs
           tabs={tabs}
@@ -253,24 +292,11 @@ export function AppLayout({
           position="bottom"
         />
       )}
+      {layoutConfig.tabPosition === 'bottom' && bannerPosition === 'tabs_below' && bannerNode}
       {activeTab && showTypingIndicators && typingUsers.get(activeTab.networkId)?.get(activeTab.name) && (
         <TypingIndicator typingUsers={typingUsers.get(activeTab.networkId)!.get(activeTab.name)!} />
       )}
-      <View style={[
-        styles.bannerAdContainer,
-        !bannerVisible && { height: 0, overflow: 'hidden', opacity: 0 }
-      ]}>
-        <BannerAd
-          unitId={bannerAdService.getBannerAdUnitId()}
-          size={BannerAdSize.BANNER}
-          requestOptions={{
-            requestNonPersonalizedAdsOnly: !bannerAdService.canShowPersonalizedAds(),
-          }}
-          onAdFailedToLoad={(error) => {
-            console.error('Banner ad failed to load:', error);
-          }}
-        />
-      </View>
+      {bannerPosition === 'input_above' && bannerNode}
       <MessageInput
         placeholder="Enter a message"
         onSubmit={handleSendMessage}
@@ -283,6 +309,7 @@ export function AppLayout({
         network={activeTab?.networkId}
         tabId={activeTab?.id}
       />
+      {bannerPosition === 'input_below' && bannerNode}
     </KeyboardAvoidingView>
   );
 }

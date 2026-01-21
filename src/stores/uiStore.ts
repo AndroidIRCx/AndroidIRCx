@@ -71,6 +71,7 @@ export interface UIState {
   channelLogEntries: ChannelLogEntry[];
   prefillMessage: string | null;
   showDccTransfers: boolean;
+  dccTransfersMinimized: boolean;
   showDccSendModal: boolean;
   dccSendTarget: { nick: string; networkId: string } | null;
   dccSendPath: string;
@@ -146,6 +147,7 @@ export interface UIState {
   setChannelLogEntries: (entries: ChannelLogEntry[]) => void;
   setPrefillMessage: (message: string | null) => void;
   setShowDccTransfers: (show: boolean) => void;
+  setDccTransfersMinimized: (minimized: boolean) => void;
   setShowDccSendModal: (show: boolean) => void;
   setDccSendTarget: (target: { nick: string; networkId: string } | null) => void;
   setDccSendPath: (path: string) => void;
@@ -215,6 +217,7 @@ const initialState = {
   channelLogEntries: [],
   prefillMessage: null,
   showDccTransfers: false,
+  dccTransfersMinimized: false,
   showDccSendModal: false,
   dccSendTarget: null,
   dccSendPath: '',
@@ -305,6 +308,7 @@ export const useUIStore = create<UIState>()(
       setChannelLogEntries: (entries) => set({ channelLogEntries: entries }),
       setPrefillMessage: (message) => set({ prefillMessage: message }),
       setShowDccTransfers: (show) => set({ showDccTransfers: show }),
+      setDccTransfersMinimized: (minimized) => set({ dccTransfersMinimized: minimized }),
       setShowDccSendModal: (show) => set({ showDccSendModal: show }),
       setDccSendTarget: (target) => set({ dccSendTarget: target }),
       setDccSendPath: (path) => set({ dccSendPath: path }),
@@ -339,6 +343,7 @@ export const useUIStore = create<UIState>()(
         showChannelNoteModal: false,
         showChannelLogModal: false,
         showDccTransfers: false,
+        dccTransfersMinimized: false,
         showDccSendModal: false,
         showHelpConnection: false,
         showHelpCommands: false,

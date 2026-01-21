@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { IRCMessage } from '../services/IRCService';
 import { scriptingService } from '../services/ScriptingService';
 import { dccChatService } from '../services/DCCChatService';
+import { dccFileService } from '../services/DCCFileService';
 import { offlineQueueService } from '../services/OfflineQueueService';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
@@ -78,6 +79,139 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
     }
     commandToSend = scripted;
 
+    const reportCommandError = (text: string) => {
+      activeIRCService?.addMessage({ type: 'error', text, timestamp: Date.now() });
+    };
+
+    const normalizedCommand = commandToSend.trim();
+    if (normalizedCommand.startsWith('/')) {
+      const parts = normalizedCommand.split(/\s+/);
+      const baseCommand = parts[0].toLowerCase();
+
+      if (baseCommand === '/ctcp') {
+        const isQueryTarget = activeTab.type === 'query' ? activeTab.name : null;
+        if (parts.length < 3 && !isQueryTarget) {
+          reportCommandError(t('Usage: /ctcp <nick> <command> [args]'));
+          return;
+        }
+        const ctcpTarget = parts.length >= 3 ? parts[1] : isQueryTarget!;
+        const ctcpCommand = parts.length >= 3 ? parts[2] : parts[1];
+        const ctcpArgs = parts.slice(parts.length >= 3 ? 3 : 2).join(' ');
+        if (!isConnected) {
+          safeAlert(
+            t('Not Connected', { _tags: 'screen:app,file:App.tsx,feature:connect' }),
+            t('Please connect to a server first', { _tags: 'screen:app,file:App.tsx,feature:connect' })
+          );
+          return;
+        }
+        activeIRCService.sendCTCPRequest(ctcpTarget, ctcpCommand.toUpperCase(), ctcpArgs || undefined);
+        return;
+      }
+
+      if (baseCommand === '/xdcc') {
+        const isQueryTarget = activeTab.type === 'query' ? activeTab.name : null;
+        if (parts.length < 3 && !isQueryTarget) {
+          reportCommandError(t('Usage: /xdcc <bot> <command> [args]'));
+          return;
+        }
+        const xdccTarget = parts.length >= 3 ? parts[1] : isQueryTarget!;
+        const xdccCommand = parts.length >= 3 ? parts[2] : parts[1];
+        const xdccArgs = parts.slice(parts.length >= 3 ? 3 : 2).join(' ');
+        if (!isConnected) {
+          safeAlert(
+            t('Not Connected', { _tags: 'screen:app,file:App.tsx,feature:connect' }),
+            t('Please connect to a server first', { _tags: 'screen:app,file:App.tsx,feature:connect' })
+          );
+          return;
+        }
+        const payload = `XDCC ${xdccCommand.toUpperCase()}${xdccArgs ? ` ${xdccArgs}` : ''}`;
+        activeIRCService.sendRaw(`PRIVMSG ${xdccTarget} :${payload}`);
+        return;
+      }
+
+      if (baseCommand === '/dcc') {
+        if (!isConnected) {
+          safeAlert(
+            t('Not Connected', { _tags: 'screen:app,file:App.tsx,feature:connect' }),
+            t('Please connect to a server first', { _tags: 'screen:app,file:App.tsx,feature:connect' })
+          );
+          return;
+        }
+        if (parts.length < 2) {
+          reportCommandError(t('Usage: /dcc <chat|send> <nick> [path] [port]'));
+          return;
+        }
+        const subcommand = parts[1].toLowerCase();
+        if (subcommand === 'chat') {
+          if (parts.length < 3) {
+            reportCommandError(t('Usage: /dcc <chat|send> <nick> [path] [port]'));
+            return;
+          }
+          const peerNick = parts[2];
+          const networkId = activeTab.networkId || activeIRCService.getNetworkName();
+          await dccChatService.initiateChat(activeIRCService, peerNick, networkId);
+          return;
+        }
+        if (subcommand === 'send') {
+          const raw = normalizedCommand.replace(/^\/dcc\s+send\s+/i, '');
+          const firstSpace = raw.indexOf(' ');
+          if (firstSpace === -1) {
+            reportCommandError(t('Usage: /dcc <chat|send> <nick> [path] [port]'));
+            return;
+          }
+          const peerNick = raw.slice(0, firstSpace).trim();
+          let pathAndPort = raw.slice(firstSpace + 1).trim();
+          if (!peerNick || !pathAndPort) {
+            reportCommandError(t('Usage: /dcc <chat|send> <nick> [path] [port]'));
+            return;
+          }
+          let port: number | undefined;
+          let filePath = pathAndPort;
+          if (pathAndPort.startsWith('"')) {
+            const closingIndex = pathAndPort.lastIndexOf('"');
+            if (closingIndex > 0) {
+              filePath = pathAndPort.slice(1, closingIndex);
+              const remainder = pathAndPort.slice(closingIndex + 1).trim();
+              if (remainder) {
+                const maybePort = parseInt(remainder, 10);
+                if (!Number.isNaN(maybePort)) {
+                  port = maybePort;
+                }
+              }
+            }
+          } else {
+            const portMatch = pathAndPort.match(/\s+(\d{1,5})$/);
+            if (portMatch) {
+              port = parseInt(portMatch[1], 10);
+              pathAndPort = pathAndPort.slice(0, portMatch.index).trim();
+            }
+            filePath = pathAndPort;
+          }
+          if (!filePath) {
+            reportCommandError(t('Usage: /dcc <chat|send> <nick> [path] [port]'));
+            return;
+          }
+          const networkId = activeTab.networkId || activeIRCService.getNetworkName();
+          try {
+            await dccFileService.sendFile(activeIRCService, peerNick, networkId, filePath, port);
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: t('DCC SEND offer initiated to {nick}', { nick: peerNick }),
+              timestamp: Date.now(),
+            });
+          } catch (error: any) {
+            activeIRCService.addMessage({
+              type: 'error',
+              text: `${t('DCC Send Error')}: ${error?.message || error}`,
+              timestamp: Date.now(),
+            });
+          }
+          return;
+        }
+        reportCommandError(t('Usage: /dcc <chat|send> <nick> [path] [port]'));
+        return;
+      }
+    }
 
     if (activeTab.type === 'server') {
       // For server tab, still require connection

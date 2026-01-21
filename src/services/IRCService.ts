@@ -97,7 +97,7 @@ export const getDefaultRawCategoryVisibility = (): Record<RawMessageCategory, bo
 
 export interface IRCMessage {
   id: string;
-  type: 'message' | 'notice' | 'raw' | 'join' | 'part' | 'quit' | 'nick' | 'mode' | 'topic' | 'error' | 'invite' | 'monitor';
+  type: 'message' | 'notice' | 'raw' | 'join' | 'part' | 'quit' | 'nick' | 'mode' | 'topic' | 'error' | 'invite' | 'monitor' | 'ctcp';
   channel?: string;
   from?: string;
   text: string;
@@ -4304,8 +4304,44 @@ export class IRCService {
           timestamp: Date.now(),
         });
         break;
+      // DCC-related CTCP commands - emit for DCC handlers
+      case 'SLOTS':
+      case 'XDCC':
+      case 'TDCC':
+      case 'RDCC':
+        // SLOTS: File sharing slot availability (e.g., "SLOTS 5 open")
+        // XDCC/TDCC/RDCC: Extended DCC file sharing protocols
+        this.addMessage({
+          type: 'ctcp',
+          from,
+          text: `\x01${command} ${args || ''}\x01`,
+          channel: target,
+          timestamp: Date.now(),
+        });
+        break;
+      // Standard CTCP queries - respond appropriately
+      case 'CLIENTINFO':
+        this.sendCTCPResponse(from, 'CLIENTINFO', 'ACTION DCC PING TIME VERSION CLIENTINFO USERINFO SOURCE FINGER');
+        break;
+      case 'USERINFO':
+        this.sendCTCPResponse(from, 'USERINFO', this.config?.realname || 'AndroidIRCX User');
+        break;
+      case 'SOURCE':
+        this.sendCTCPResponse(from, 'SOURCE', 'https://github.com/AndroidIRCX');
+        break;
+      case 'FINGER':
+        this.sendCTCPResponse(from, 'FINGER', `${this.currentNick} - AndroidIRCX`);
+        break;
       default:
-        this.logRaw(`Unknown CTCP command: ${command} from ${from}`);
+        // For any other CTCP command, emit as message so UI can display it
+        this.addMessage({
+          type: 'ctcp',
+          from,
+          text: `\x01${command} ${args || ''}\x01`,
+          channel: target,
+          timestamp: Date.now(),
+        });
+        this.logRaw(`CTCP ${command} from ${from}: ${args || '(no args)'}`);
     }
   }
 
@@ -5172,6 +5208,38 @@ export class IRCService {
         });
       }
     }
+  }
+
+  /**
+   * Check if a specific IRCv3 capability is enabled on this connection.
+   * @param capability The capability name to check (e.g., 'typing', 'draft/typing', 'monitor')
+   * @returns true if the capability is enabled, false otherwise
+   */
+  hasCapability(capability: string): boolean {
+    return this.capEnabledSet.has(capability);
+  }
+
+  /**
+   * Check if typing indicators are supported by this server.
+   * Checks for both 'typing' and 'draft/typing' capabilities.
+   * @returns true if either typing capability is enabled
+   */
+  hasTypingCapability(): boolean {
+    return this.capEnabledSet.has('typing') || this.capEnabledSet.has('draft/typing');
+  }
+
+  /**
+   * Send a typing indicator if the server supports it.
+   * @param target The channel or nick to send the typing indicator to
+   * @param status The typing status: 'active', 'paused', or 'done'
+   * @returns true if the indicator was sent, false if not supported
+   */
+  sendTypingIndicator(target: string, status: 'active' | 'paused' | 'done'): boolean {
+    if (!this.isConnected || !this.hasTypingCapability()) {
+      return false;
+    }
+    this.sendRaw(`@+typing=${status} TAGMSG ${target}`);
+    return true;
   }
 }
 

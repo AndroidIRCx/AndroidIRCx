@@ -55,11 +55,13 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({
         </View>
         <View style={styles.section}>
           <Text style={styles.appName}>AndroidIRCX</Text>
-          <Text style={styles.version}>{t('Version 1.6.8')}</Text>
+          <Text style={styles.version}>{t('Version 1.6.9')}</Text>
         </View>
         <View style={styles.section}>
           <Text style={styles.label}>{t('Made by')}</Text>
-          <Text style={styles.value}>Velimir Majstorov</Text>
+          <TouchableOpacity onPress={() => handleOpenURL('https://majstorov.info/en/about')}>
+            <Text style={[styles.value, styles.link]}>Velimir Majstorov</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.section}>
           <Text style={styles.label}>{t('Network')}</Text>

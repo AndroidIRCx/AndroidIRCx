@@ -26,6 +26,7 @@ import { RenameModal } from './RenameModal';
 import { TabOptionsModal } from './TabOptionsModal';
 import { ChannelSettingsScreen } from '../screens/ChannelSettingsScreen';
 import { DccTransfersModal } from './DccTransfersModal';
+import { DccTransfersMinimizedIndicator } from './DccTransfersMinimizedIndicator';
 import { DccSendModal } from './DccSendModal';
 import { AppUnlockModal } from './AppUnlockModal';
 import { HelpTroubleshootingScreen } from '../screens/help/HelpTroubleshootingScreen';
@@ -136,6 +137,7 @@ export function AppModals({
     channelSettingsTarget,
     channelSettingsNetwork,
     showDccTransfers,
+    dccTransfersMinimized,
     showDccSendModal,
     dccSendTarget,
     dccSendPath,
@@ -344,6 +346,10 @@ export function AppModals({
         <DccTransfersModal
           visible={showDccTransfers}
           onClose={() => useUIStore.getState().setShowDccTransfers(false)}
+          onMinimize={() => {
+            useUIStore.getState().setShowDccTransfers(false);
+            useUIStore.getState().setDccTransfersMinimized(true);
+          }}
           transfers={dccTransfers}
           onAccept={(transferId, filePath) => dccFileService.accept(transferId, getActiveIRCService(), filePath)}
           onCancel={(transferId) => dccFileService.cancel(transferId)}
@@ -426,6 +432,17 @@ export function AppModals({
           onClose={() => setShowHelpChannelManagement(false)}
         />
       )}
+
+      {/* DCC Transfers Minimized Indicator */}
+      <DccTransfersMinimizedIndicator
+        visible={dccTransfersMinimized && !showDccTransfers}
+        transfers={dccTransfers}
+        onPress={() => {
+          useUIStore.getState().setDccTransfersMinimized(false);
+          useUIStore.getState().setShowDccTransfers(true);
+        }}
+        colors={colors}
+      />
     </>
   );
 }

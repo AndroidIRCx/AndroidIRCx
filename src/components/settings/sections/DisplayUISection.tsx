@@ -71,6 +71,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('height');
   const [keyboardVerticalOffset, setKeyboardVerticalOffset] = useState('0');
   const [useAndroidBottomSafeArea, setUseAndroidBottomSafeArea] = useState(true);
+  const [bannerPosition, setBannerPosition] = useState<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>('input_above');
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
 
   // Load initial state
@@ -105,6 +106,9 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
 
       const androidSafeArea = await settingsService.getSetting('useAndroidBottomSafeArea', true);
       setUseAndroidBottomSafeArea(androidSafeArea);
+
+      const bannerPos = await settingsService.getSetting('bannerPosition', 'input_above');
+      setBannerPosition(bannerPos);
     };
     loadSettings();
   }, []);
@@ -392,6 +396,62 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         },
       },
       {
+        id: 'display-banner-position',
+        title: t('Banner Position', { _tags: tags }),
+        description: (() => {
+          switch (bannerPosition) {
+            case 'input_below':
+              return t('Banner shown below message input', { _tags: tags });
+            case 'tabs_above':
+              return t('Banner shown above header', { _tags: tags });
+            case 'tabs_below':
+              return t('Banner shown below header', { _tags: tags });
+            default:
+              return t('Banner shown above message input', { _tags: tags });
+          }
+        })(),
+        type: 'submenu',
+        searchKeywords: ['banner', 'ads', 'ad', 'position', 'placement', 'layout'],
+        submenuItems: [
+          {
+            id: 'banner-pos-input-above',
+            title: t('Above message input', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setBannerPosition('input_above');
+              await settingsService.setSetting('bannerPosition', 'input_above');
+            },
+          },
+          {
+            id: 'banner-pos-input-below',
+            title: t('Below message input', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setBannerPosition('input_below');
+              await settingsService.setSetting('bannerPosition', 'input_below');
+            },
+          },
+          {
+            id: 'banner-pos-tabs-above',
+            title: t('Above header', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setBannerPosition('tabs_above');
+              await settingsService.setSetting('bannerPosition', 'tabs_above');
+            },
+          },
+          {
+            id: 'banner-pos-tabs-below',
+            title: t('Below header', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setBannerPosition('tabs_below');
+              await settingsService.setSetting('bannerPosition', 'tabs_below');
+            },
+          },
+        ],
+      },
+      {
         id: 'display-keyboard-avoiding',
         title: t('Keyboard Avoiding', { _tags: tags }),
         description: keyboardAvoidingEnabled
@@ -490,6 +550,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     keyboardBehaviorAndroid,
     keyboardVerticalOffset,
     useAndroidBottomSafeArea,
+    bannerPosition,
     layoutConfig,
     t,
     tags,

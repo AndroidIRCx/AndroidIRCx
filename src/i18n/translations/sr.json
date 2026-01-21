@@ -702,16 +702,16 @@
     "string": "No favorites yet"
   },
   "Network: {network}": {
-    "string": "Network: {network}"
+    "string": "Mreža: {network}"
   },
   "Auto-join": {
     "string": "Auto-join"
   },
   "Key set": {
-    "string": "Key set"
+    "string": "Ključ podešen"
   },
   "Move to {name}": {
-    "string": "Move to {name}"
+    "string": "Premesti u {name}"
   },
   "No other networks available": {
     "string": "No other networks available"
@@ -720,7 +720,7 @@
     "string": "Obriši omiljeno"
   },
   "Remove {name} from {network}?": {
-    "string": "Remove {name} from {network}?"
+    "string": "Obriši {name} iz {network}?"
   },
   "Auto-Join Favorites on Connect": {
     "string": "Auto-Join Favorites on Connect"
@@ -738,10 +738,10 @@
     "string": "Auto-Voice on Join"
   },
   "Enable Auto-Voice": {
-    "string": "Enable Auto-Voice"
+    "string": "Omogući Auto-Voice"
   },
   "For All Users": {
-    "string": "For All Users"
+    "string": "Za sve korisnike"
   },
   "For Operators/Halfops": {
     "string": "For Operators/Halfops"
@@ -750,13 +750,13 @@
     "string": "For IRC Ops (Admin/Netadmin)"
   },
   "DCC Settings": {
-    "string": "DCC Settings"
+    "string": "DCC Podešavanja"
   },
   "Users & Services": {
-    "string": "Users & Services"
+    "string": "Korisnici & Servisi"
   },
   "Add Service Nickname": {
-    "string": "Add Service Nickname"
+    "string": "Dodaj nadminak servisa"
   },
   "Prevent sending \"close query\" messages to these nicks.": {
     "string": "Prevent sending \"close query\" messages to these nicks."
@@ -765,64 +765,64 @@
     "string": "Enter a service name (e.g., Q)"
   },
   "Ignore List": {
-    "string": "Ignore List"
+    "string": "Lista ignorisanih"
   },
   "Manage ignored users": {
-    "string": "Manage ignored users"
+    "string": "Upravljaj ignorisanim korisnicima"
   },
   "Ignore list feature coming soon": {
-    "string": "Ignore list feature coming soon"
+    "string": "Ignore lista u pripremi"
   },
   "User Notes": {
-    "string": "User Notes"
+    "string": "Korisničke zabeleške"
   },
   "No notes saved": {
-    "string": "No notes saved"
+    "string": "Nema snimljenih zabeleški"
   },
   "User Aliases": {
-    "string": "User Aliases"
+    "string": "Korisničke prečice"
   },
   "No aliases saved": {
-    "string": "No aliases saved"
+    "string": "Nema dodatih prečica"
   },
   "Commands": {
-    "string": "Commands"
+    "string": "Komande"
   },
   "Command History": {
-    "string": "Command History"
+    "string": "Istorija komandi"
   },
   "Clear All History": {
-    "string": "Clear All History"
+    "string": "Obriši svu istoriju"
   },
   "Delete every command entry": {
     "string": "Izbriši svaki unos komande"
   },
   "Clear Command History": {
-    "string": "Clear Command History"
+    "string": "Obriči istoriju komandi"
   },
   "Are you sure you want to delete all command history?": {
     "string": "Da li ste sigurni da želite da obrišete celu istoriju komandi?"
   },
   "Command Aliases": {
-    "string": "Command Aliases"
+    "string": "Prečice za komande"
   },
   "Alias Name (without /)": {
-    "string": "Alias Name (without /)"
+    "string": "Ime prečice (bez /)"
   },
   "e.g. j": {
-    "string": "e.g. j"
+    "string": "n.p.r. j"
   },
   "Alias Command": {
-    "string": "Alias Command"
+    "string": "Komanda prečice"
   },
   "Example: /join {channel}": {
-    "string": "Example: /join {channel}"
+    "string": "Primer: /join {channel}"
   },
   "e.g. /join {channel}": {
-    "string": "e.g. /join {channel}"
+    "string": "n.p.r. /join {channel}"
   },
   "Add Alias": {
-    "string": "Add Alias"
+    "string": "Dodaj prečicu"
   },
   "Create or update alias": {
     "string": "Create or update alias"
@@ -852,37 +852,37 @@
     "string": "Save template with placeholders"
   },
   "History Statistics": {
-    "string": "History Statistics"
+    "string": "Statistika istorije"
   },
   "View message history statistics": {
-    "string": "View message history statistics"
+    "string": "Prikaži statistiku istorije poruka"
   },
   "Export History": {
-    "string": "Export History"
+    "string": "Izvezi Istoriju"
   },
   "Export message history to file": {
-    "string": "Export message history to file"
+    "string": "Izvezi istoriju poruka kao fajl"
   },
   "Export as JSON": {
-    "string": "Export as JSON"
+    "string": "Izvezi kao JSON"
   },
   "Export all messages in JSON format": {
     "string": "Export all messages in JSON format"
   },
   "Export as TXT": {
-    "string": "Export as TXT"
+    "string": "Izvezi kao TEKST"
   },
   "Export as plain text log": {
     "string": "Export as plain text log"
   },
   "Export as CSV": {
-    "string": "Export as CSV"
+    "string": "Izvezi kao CSV"
   },
   "Export as spreadsheet-compatible CSV": {
     "string": "Export as spreadsheet-compatible CSV"
   },
   "Clear History": {
-    "string": "Clear History"
+    "string": "Obriši istoriju"
   },
   "Delete all stored message history": {
     "string": "Izbriši svu sačuvanu istoriju poruka"
@@ -903,16 +903,16 @@
     "string": "Bouncer Status"
   },
   "Bouncer Settings": {
-    "string": "Bouncer Settings"
+    "string": "Bouncer Podešavanja"
   },
   "Enable Bouncer Support": {
-    "string": "Enable Bouncer Support"
+    "string": "Omogući podršku za Bouncer"
   },
   "Bouncer Type": {
-    "string": "Bouncer Type"
+    "string": "Bouncer Tip"
   },
   "Select bouncer type:": {
-    "string": "Select bouncer type:"
+    "string": "Izaberi tip bouncer:"
   },
   "Handle Playback Buffer": {
     "string": "Handle Playback Buffer"
@@ -4297,5 +4297,32 @@
   },
   "WHOIS data for {nick} not found after completion signal.": {
     "string": "WHOIS data for {nick} not found after completion signal."
+  },
+  "Banner Position": {
+    "string": "Banner Position"
+  },
+  "Banner shown above message input": {
+    "string": "Banner shown above message input"
+  },
+  "Banner shown below message input": {
+    "string": "Banner shown below message input"
+  },
+  "Banner shown above header": {
+    "string": "Banner shown above header"
+  },
+  "Banner shown below header": {
+    "string": "Banner shown below header"
+  },
+  "Above message input": {
+    "string": "Above message input"
+  },
+  "Below message input": {
+    "string": "Below message input"
+  },
+  "Above header": {
+    "string": "Above header"
+  },
+  "Below header": {
+    "string": "Below header"
   }
 }

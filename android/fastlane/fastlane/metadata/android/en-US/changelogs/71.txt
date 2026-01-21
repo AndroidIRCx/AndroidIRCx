@@ -1,0 +1,8 @@
+v1.6.9
+- Improved CTCP & DCC handling
+- Fixed typing indicator detection
+- Open received DCC files directly
+- Minimize DCC transfers with floating progress + completion notifications
+- Nickname auto-complete
+- Banner position customization
+- Stability & protocol improvements

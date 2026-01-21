@@ -83,6 +83,7 @@ export function useUIState() {
   const channelLogEntries = useUIStore(state => state.channelLogEntries);
   const prefillMessage = useUIStore(state => state.prefillMessage);
   const showDccTransfers = useUIStore(state => state.showDccTransfers);
+  const dccTransfersMinimized = useUIStore(state => state.dccTransfersMinimized);
   const showDccSendModal = useUIStore(state => state.showDccSendModal);
   const dccSendTarget = useUIStore(state => state.dccSendTarget);
   const dccSendPath = useUIStore(state => state.dccSendPath);
@@ -158,6 +159,7 @@ export function useUIState() {
     channelLogEntries,
     prefillMessage,
     showDccTransfers,
+    dccTransfersMinimized,
     showDccSendModal,
     dccSendTarget,
     dccSendPath,
