@@ -36,13 +36,13 @@
     "string": "Error al copiar al portapeles"
   },
   "Backup saved to:\n{path}": {
-    "string": ""
+    "string": "Copia de seguridad guardada en:\n1{patch}"
   },
   "OK": {
-    "string": ""
+    "string": "OK"
   },
   "Failed to save backup file": {
-    "string": ""
+    "string": "Error al guardar el archivo de copia de seguridad"
   },
   "Restore": {
     "string": "Restaurar"
@@ -51,13 +51,13 @@
     "string": "Copia de seguridad restaurada. Reiniciar la aplicación para garantizar todas las recargas de datos."
   },
   "Invalid backup data": {
-    "string": ""
+    "string": "Datos de copia de seguridad no válidos"
   },
   "Backup & Restore": {
-    "string": ""
+    "string": "Copia de Seguridad y Restauración"
   },
   "Close": {
-    "string": ""
+    "string": "Cerrar"
   },
   "Copy to Clipboard": {
     "string": "Copiar al Portapapeles"
@@ -66,13 +66,13 @@
     "string": "Guardar en Archivo"
   },
   "Export Complete": {
-    "string": ""
+    "string": "Exportación Completa"
   },
   "Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)": {
-    "string": ""
+    "string": "Caracteres exportados {count} en {format} formato.\n\n(En producción, esto se guardaría en un archivo)"
   },
   "Export Error": {
-    "string": ""
+    "string": "Export Error"
   },
   "Failed to export history": {
     "string": ""
@@ -6525,45 +6525,6 @@
     "string": ""
   },
   "Logs all channel invites with user info.": {
-    "string": ""
-  },
-  "Banner Position": {
-    "string": ""
-  },
-  "Banner shown above message input": {
-    "string": ""
-  },
-  "Banner shown below message input": {
-    "string": ""
-  },
-  "Banner shown above header": {
-    "string": ""
-  },
-  "Banner shown below header": {
-    "string": ""
-  },
-  "Banner shown above channel tabs": {
-    "string": ""
-  },
-  "Banner shown below channel tabs": {
-    "string": ""
-  },
-  "Above message input": {
-    "string": ""
-  },
-  "Below message input": {
-    "string": ""
-  },
-  "Above header": {
-    "string": ""
-  },
-  "Below header": {
-    "string": ""
-  },
-  "Above channel tabs": {
-    "string": ""
-  },
-  "Below channel tabs": {
     "string": ""
   }
 }

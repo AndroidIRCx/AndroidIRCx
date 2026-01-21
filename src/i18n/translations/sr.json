@@ -4298,43 +4298,2233 @@
   "WHOIS data for {nick} not found after completion signal.": {
     "string": "WHOIS data for {nick} not found after completion signal."
   },
-  "Banner Position": {
-    "string": "Banner Position"
+  "Kill switch requires PIN or biometric authentication.": {
+    "string": ""
   },
-  "Banner shown above message input": {
-    "string": "Banner shown above message input"
+  "Kill Switch Error": {
+    "string": ""
+  },
+  "Some errors occurred:\n{errors}": {
+    "string": ""
+  },
+  "Failed to take photo": {
+    "string": ""
+  },
+  "Camera permission is required to take photos": {
+    "string": ""
+  },
+  "Camera Permission Required": {
+    "string": ""
+  },
+  "This app needs access to your camera to take photos.": {
+    "string": ""
+  },
+  "Grant Permission": {
+    "string": ""
+  },
+  "Camera not available": {
+    "string": ""
+  },
+  "Loading image...": {
+    "string": ""
+  },
+  "Failed to load media": {
+    "string": ""
+  },
+  "Audio Message": {
+    "string": ""
+  },
+  "File": {
+    "string": ""
+  },
+  "Tap to open": {
+    "string": ""
+  },
+  "Encrypted": {
+    "string": ""
+  },
+  "Downloading... {progress}%": {
+    "string": ""
+  },
+  "Loading encrypted media...": {
+    "string": ""
+  },
+  "Cannot decrypt media: insufficient context. This may happen if the message is viewed outside its original channel or if encryption keys are not available.": {
+    "string": ""
+  },
+  "No media selected": {
+    "string": ""
+  },
+  "File does not exist. Please select the file again.": {
+    "string": ""
+  },
+  "Encryption failed": {
+    "string": ""
+  },
+  "Upload failed": {
+    "string": ""
+  },
+  "Failed to send media": {
+    "string": ""
+  },
+  "Failed to load image preview": {
+    "string": ""
+  },
+  "Failed to load video preview": {
+    "string": ""
+  },
+  "Audio File": {
+    "string": ""
+  },
+  "Failed to load audio preview": {
+    "string": ""
+  },
+  "Preview Media": {
+    "string": ""
+  },
+  "Type:": {
+    "string": ""
+  },
+  "Size:": {
+    "string": ""
+  },
+  "Duration:": {
+    "string": ""
+  },
+  "Dimensions:": {
+    "string": ""
+  },
+  "Caption (optional)": {
+    "string": ""
+  },
+  "Add a caption...": {
+    "string": ""
+  },
+  "Encrypting and uploading...": {
+    "string": ""
+  },
+  "Uploading...": {
+    "string": ""
+  },
+  "Sending...": {
+    "string": ""
+  },
+  "Send": {
+    "string": ""
+  },
+  "Take Photo": {
+    "string": ""
+  },
+  "Camera Permission": {
+    "string": ""
+  },
+  "Ask Me Later": {
+    "string": ""
+  },
+  "Record Video": {
+    "string": ""
+  },
+  "This app needs access to your camera to record videos.": {
+    "string": ""
+  },
+  "Microphone Permission": {
+    "string": ""
+  },
+  "This app needs access to your microphone to record videos with audio.": {
+    "string": ""
+  },
+  "Photo Library": {
+    "string": ""
+  },
+  "Video Library": {
+    "string": ""
+  },
+  "Voice Message": {
+    "string": ""
+  },
+  "This app needs access to your microphone to record voice messages.": {
+    "string": ""
+  },
+  "Microphone permission is required to record voice messages. Please allow microphone access in app settings.": {
+    "string": ""
+  },
+  "Failed to request microphone permission. Please check app settings.": {
+    "string": ""
+  },
+  "File Picker": {
+    "string": ""
+  },
+  "Select Media Source": {
+    "string": ""
+  },
+  "Rejoin current channel": {
+    "string": ""
+  },
+  "CTCP request": {
+    "string": ""
+  },
+  "DCC commands": {
+    "string": ""
+  },
+  "XDCC bot commands": {
+    "string": ""
+  },
+  "Attach media": {
+    "string": ""
+  },
+  "Send message": {
+    "string": ""
+  },
+  "Search messages...": {
+    "string": ""
+  },
+  "No results found": {
+    "string": ""
+  },
+  "{count} result(s) found": {
+    "string": ""
+  },
+  "Message Types:": {
+    "string": ""
+  },
+  "Copied": {
+    "string": ""
+  },
+  "Fingerprint copied to clipboard": {
+    "string": ""
+  },
+  "Command copied to clipboard": {
+    "string": ""
+  },
+  "Sent": {
+    "string": ""
+  },
+  "Fingerprint command sent to {{service}}": {
+    "string": ""
+  },
+  "Certificate Fingerprint": {
+    "string": ""
+  },
+  "Colons": {
+    "string": ""
+  },
+  "Copy Fingerprint": {
+    "string": ""
+  },
+  "QR Code": {
+    "string": ""
+  },
+  "Scan to quickly share your certificate fingerprint": {
+    "string": ""
+  },
+  "IRC Service": {
+    "string": ""
+  },
+  "Command": {
+    "string": ""
+  },
+  "Copy Command": {
+    "string": ""
+  },
+  "Send to {{service}}": {
+    "string": ""
+  },
+  "How to use": {
+    "string": ""
+  },
+  "1. Copy the command above\n2. Send it to {{service}} on IRC\n3. Your certificate will be associated with your nickname\n4. You can now authenticate using SASL EXTERNAL": {
+    "string": ""
+  },
+  "Certificate name is required": {
+    "string": ""
+  },
+  "Common Name (CN) is required": {
+    "string": ""
+  },
+  "Validity period must be between 1 and 10 years": {
+    "string": ""
+  },
+  "Failed to generate certificate": {
+    "string": ""
+  },
+  "Certificate Generated": {
+    "string": ""
+  },
+  "Generate Certificate": {
+    "string": ""
+  },
+  "Generate a new RSA-2048 self-signed certificate for IRC SASL EXTERNAL authentication.": {
+    "string": ""
+  },
+  "Certificate Name": {
+    "string": ""
+  },
+  "e.g., My IRC Certificate": {
+    "string": ""
+  },
+  "A friendly name for this certificate": {
+    "string": ""
+  },
+  "Common Name (CN)": {
+    "string": ""
+  },
+  "e.g., nick@irc.network": {
+    "string": ""
+  },
+  "Your nickname or email (used in certificate CN field)": {
+    "string": ""
+  },
+  "Validity Period (years)": {
+    "string": ""
+  },
+  "Certificate validity: 1-10 years": {
+    "string": ""
+  },
+  "Generating...": {
+    "string": ""
+  },
+  "What is this?": {
+    "string": ""
+  },
+  "Client certificates allow you to authenticate to IRC servers using TLS certificates instead of passwords. This is more secure and supported by many modern IRC networks.": {
+    "string": ""
+  },
+  "Certificate Generated Successfully!": {
+    "string": ""
+  },
+  "Name:": {
+    "string": ""
+  },
+  "Common Name:": {
+    "string": ""
+  },
+  "Valid From:": {
+    "string": ""
+  },
+  "Valid To:": {
+    "string": ""
+  },
+  "SHA-256 Fingerprint:": {
+    "string": ""
+  },
+  "Next Steps:": {
+    "string": ""
+  },
+  "Configure your IRC network to use this certificate": {
+    "string": ""
+  },
+  "Add the fingerprint to NickServ: /msg NickServ CERT ADD <fingerprint>": {
+    "string": ""
+  },
+  "Connect to IRC server with SASL EXTERNAL enabled": {
+    "string": ""
+  },
+  "Generating certificate...": {
+    "string": ""
+  },
+  "This can take a few seconds on older phones.": {
+    "string": ""
+  },
+  "Failed to load certificates": {
+    "string": ""
+  },
+  "Certificate Expired": {
+    "string": ""
+  },
+  "This certificate has expired. Please generate a new one.": {
+    "string": ""
+  },
+  "Certificate not found": {
+    "string": ""
+  },
+  "Failed to load certificate details": {
+    "string": ""
+  },
+  "Delete Certificate": {
+    "string": ""
+  },
+  "Are you sure you want to delete this certificate? This action cannot be undone. You will need to generate a new certificate and re-add it to IRC services.": {
+    "string": ""
+  },
+  "Certificate deleted": {
+    "string": ""
+  },
+  "Failed to delete certificate": {
+    "string": ""
+  },
+  "Expired": {
+    "string": ""
+  },
+  "Expires Soon": {
+    "string": ""
+  },
+  "Valid": {
+    "string": ""
+  },
+  "Valid:": {
+    "string": ""
+  },
+  "No Certificates": {
+    "string": ""
+  },
+  "You haven't generated any certificates yet. Generate one to get started.": {
+    "string": ""
+  },
+  "Generate New Certificate": {
+    "string": ""
+  },
+  "Select Certificate": {
+    "string": ""
+  },
+  "Loading certificates...": {
+    "string": ""
+  },
+  "certificate": {
+    "string": ""
+  },
+  "certificates": {
+    "string": ""
+  },
+  "New": {
+    "string": ""
+  },
+  "Recommended": {
+    "string": ""
+  },
+  "No Networks": {
+    "string": ""
+  },
+  "Create a network first to add ZNC to it.": {
+    "string": ""
+  },
+  "Select a network to add your ZNC server to. The ZNC will be automatically configured.": {
+    "string": ""
+  },
+  "Loading networks...": {
+    "string": ""
+  },
+  "Create New Network": {
+    "string": ""
+  },
+  "Show Header Search": {
+    "string": ""
+  },
+  "Search icon visible in the header": {
+    "string": ""
+  },
+  "Search icon hidden from the header": {
+    "string": ""
+  },
+  "Show Message Search Button": {
+    "string": ""
+  },
+  "Floating search button visible in message view": {
+    "string": ""
+  },
+  "Floating search button hidden": {
+    "string": ""
+  },
+  "Alias name and command are required": {
+    "string": ""
+  },
+  "Command name and template are required": {
+    "string": ""
+  },
+  "Use fingerprint/biometric or PIN to unlock": {
+    "string": ""
+  },
+  "Selected": {
+    "string": ""
+  },
+  "Unlock Passwords": {
+    "string": ""
+  },
+  "Re-enter PIN": {
+    "string": ""
+  },
+  "Confirm": {
+    "string": ""
+  },
+  "Submit": {
+    "string": ""
+  },
+  "Padding": {
+    "string": ""
+  },
+  "Height": {
+    "string": ""
+  },
+  "Position": {
+    "string": "Pozicija"
+  },
+  "Translate with padding": {
+    "string": ""
+  },
+  "Show Typing Indicators": {
+    "string": ""
+  },
+  "Display who is typing in the active tab": {
+    "string": ""
+  },
+  "Hide typing indicators": {
+    "string": ""
+  },
+  "Show Send Button": {
+    "string": ""
+  },
+  "Display send button next to message input": {
+    "string": ""
+  },
+  "Hide send button (use Enter key)": {
+    "string": ""
+  },
+  "Banner Position": {
+    "string": "Pozicija reklame"
   },
   "Banner shown below message input": {
-    "string": "Banner shown below message input"
+    "string": ""
   },
   "Banner shown above header": {
-    "string": "Banner shown above header"
+    "string": "Reklama se pokazuje iznad naslova"
   },
   "Banner shown below header": {
-    "string": "Banner shown below header"
+    "string": ""
   },
-  "Banner shown above channel tabs": {
-    "string": "Banner shown above channel tabs"
-  },
-  "Banner shown below channel tabs": {
-    "string": "Banner shown below channel tabs"
+  "Banner shown above message input": {
+    "string": "Reklama se pokazuje iznad polja za unos teksta"
   },
   "Above message input": {
-    "string": "Above message input"
+    "string": "Iznad unosa teksta"
   },
   "Below message input": {
-    "string": "Below message input"
+    "string": ""
   },
   "Above header": {
-    "string": "Above header"
+    "string": "Iznad naslova"
   },
   "Below header": {
-    "string": "Below header"
+    "string": ""
   },
-  "Above channel tabs": {
-    "string": "Above channel tabs"
+  "Keyboard Avoiding": {
+    "string": ""
   },
-  "Below channel tabs": {
-    "string": "Below channel tabs"
+  "Adjust layout when the keyboard opens": {
+    "string": ""
+  },
+  "Keep layout fixed when the keyboard opens": {
+    "string": ""
+  },
+  "Keyboard Behavior (iOS)": {
+    "string": ""
+  },
+  "Keyboard Behavior (Android)": {
+    "string": ""
+  },
+  "Keyboard Vertical Offset": {
+    "string": ""
+  },
+  "Additional padding in pixels for keyboard avoidance": {
+    "string": ""
+  },
+  "Android Bottom Safe Area": {
+    "string": ""
+  },
+  "Keep spacing above the gesture bar": {
+    "string": ""
+  },
+  "Use full height on Android": {
+    "string": ""
+  },
+  "Troubleshooting Guide": {
+    "string": ""
+  },
+  "Fix common problems and errors": {
+    "string": ""
+  },
+  "IRC Connection Guide": {
+    "string": ""
+  },
+  "Learn how to connect to IRC servers": {
+    "string": ""
+  },
+  "Commands Reference": {
+    "string": ""
+  },
+  "List of all IRC commands": {
+    "string": ""
+  },
+  "Encryption Guide": {
+    "string": ""
+  },
+  "End-to-end encryption for DMs and channels": {
+    "string": ""
+  },
+  "Media Sharing Guide": {
+    "string": ""
+  },
+  "Send encrypted photos, videos, and voice": {
+    "string": ""
+  },
+  "Channel Management": {
+    "string": ""
+  },
+  "Manage channels, modes, and permissions": {
+    "string": ""
+  },
+  "Clear Media Cache": {
+    "string": ""
+  },
+  "Are you sure you want to clear all cached media? This will free up storage space but media will need to be downloaded again.": {
+    "string": ""
+  },
+  "Cache Cleared": {
+    "string": ""
+  },
+  "Media cache has been cleared successfully.": {
+    "string": ""
+  },
+  "Failed to clear cache: {error}": {
+    "string": ""
+  },
+  "Original": {
+    "string": ""
+  },
+  "High": {
+    "string": ""
+  },
+  "Low": {
+    "string": ""
+  },
+  "Enable Encrypted Media Sharing": {
+    "string": ""
+  },
+  "Media sharing is enabled. Attachment button (📎) appears on encrypted conversations.": {
+    "string": ""
+  },
+  "Media sharing is disabled. Attachment button will not appear.": {
+    "string": ""
+  },
+  "About Media Sharing": {
+    "string": ""
+  },
+  "Media sharing works only in encrypted conversations (DMs with key exchange or encrypted channels). All media is automatically encrypted using existing E2E keys.": {
+    "string": ""
+  },
+  "Show Encryption Indicator": {
+    "string": ""
+  },
+  "Display 🔒 icon on media thumbnails to indicate encryption": {
+    "string": ""
+  },
+  "Auto-Download Media": {
+    "string": ""
+  },
+  "Automatically download media when received": {
+    "string": ""
+  },
+  "WiFi Only Downloads": {
+    "string": ""
+  },
+  "Only download media when connected to WiFi": {
+    "string": ""
+  },
+  "Maximum Cache Size": {
+    "string": ""
+  },
+  "Current cache: {size} / Max: {max}": {
+    "string": ""
+  },
+  "Media Quality": {
+    "string": ""
+  },
+  "Current: {quality}": {
+    "string": ""
+  },
+  "Video Recording Quality": {
+    "string": ""
+  },
+  "Max Voice Message Duration": {
+    "string": ""
+  },
+  "Current: {duration} seconds": {
+    "string": ""
+  },
+  "1 minute": {
+    "string": ""
+  },
+  "3 minutes": {
+    "string": ""
+  },
+  "5 minutes": {
+    "string": ""
+  },
+  "Free up storage by clearing cached media files": {
+    "string": ""
+  },
+  "Permission Required": {
+    "string": ""
+  },
+  "Notification permission is required to receive notifications. Please enable it in system settings.": {
+    "string": ""
+  },
+  "Sound Settings": {
+    "string": ""
+  },
+  "Configure notification sounds and themes": {
+    "string": ""
+  },
+  "Upgrade to Premium": {
+    "string": ""
+  },
+  "Unlock unlimited scripting, no ads, and premium features": {
+    "string": ""
+  },
+  "My Data & Privacy": {
+    "string": ""
+  },
+  "Export or delete your data (GDPR/CCPA rights)": {
+    "string": ""
+  },
+  "Privacy & Ads": {
+    "string": ""
+  },
+  "Manage consent for personalized ads and watch ads for rewards": {
+    "string": ""
+  },
+  "Scripts (Scripting Time & No-Ads)": {
+    "string": ""
+  },
+  "Manage IRC scripts and automation. Scripting time is also ad-free time.": {
+    "string": ""
+  },
+  "Show Watch Ad Button (Premium)": {
+    "string": ""
+  },
+  "Enable watch ad button to support the project (you have premium plan)": {
+    "string": ""
+  },
+  "Always shown for normal users": {
+    "string": ""
+  },
+  "Watch Ad (+60 min Scripting & No-Ads)": {
+    "string": ""
+  },
+  "Quick Connect Network": {
+    "string": ""
+  },
+  "Current: {network}": {
+    "string": ""
+  },
+  "Tap header to connect to default network": {
+    "string": ""
+  },
+  "Kill Switch on Header": {
+    "string": ""
+  },
+  "Show kill switch button in header": {
+    "string": ""
+  },
+  "Kill Switch on Lock Screen": {
+    "string": ""
+  },
+  "Show kill switch button on app unlock screen": {
+    "string": ""
+  },
+  "Show Kill Switch Warnings": {
+    "string": ""
+  },
+  "Show confirmation dialogs before activating kill switch (header only)": {
+    "string": ""
+  },
+  "Kill Switch Custom Name": {
+    "string": ""
+  },
+  "Custom name for kill switch button (e.g., \"meow meow\" for obfuscation)": {
+    "string": ""
+  },
+  "Enter custom name": {
+    "string": ""
+  },
+  "Kill Switch Custom Icon": {
+    "string": ""
+  },
+  "FontAwesome5 icon name (e.g., \"cat\", \"heart\", \"star\")": {
+    "string": ""
+  },
+  "Enter icon name": {
+    "string": ""
+  },
+  "Kill Switch Custom Color": {
+    "string": ""
+  },
+  "Tap to choose from preset colors or enter hex code": {
+    "string": ""
+  },
+  "Select Quick Connect Network": {
+    "string": ""
+  },
+  "Choose which network to connect when tapping the header \"Tap to connect\" button.": {
+    "string": ""
+  },
+  "Use Default": {
+    "string": ""
+  },
+  "Choose Color": {
+    "string": ""
+  },
+  "Current color: {color}": {
+    "string": ""
+  },
+  "Hex Color:": {
+    "string": ""
+  },
+  "Unable to enable biometric lock.": {
+    "string": ""
+  },
+  "PIN unlock enabled (fallback if biometric fails)": {
+    "string": ""
+  },
+  "Use a PIN to unlock (can be used with biometric)": {
+    "string": ""
+  },
+  "Failed to save video": {
+    "string": ""
+  },
+  "Recording failed": {
+    "string": ""
+  },
+  "Failed to start recording": {
+    "string": ""
+  },
+  "Failed to stop recording": {
+    "string": ""
+  },
+  "Camera and microphone permissions are required to record videos": {
+    "string": ""
+  },
+  "Permissions Required": {
+    "string": ""
+  },
+  "This app needs access to your camera and microphone to record videos.": {
+    "string": ""
+  },
+  "Grant Permissions": {
+    "string": ""
+  },
+  "Microphone permission": {
+    "string": ""
+  },
+  "Ask me later": {
+    "string": ""
+  },
+  "Microphone permission denied": {
+    "string": ""
+  },
+  "Recording file not found": {
+    "string": ""
+  },
+  "Recording file not found. Please record again.": {
+    "string": ""
+  },
+  "Failed to send recording": {
+    "string": ""
+  },
+  "Release to stop recording": {
+    "string": ""
+  },
+  "max": {
+    "string": ""
+  },
+  "Recording complete": {
+    "string": ""
+  },
+  "Stop": {
+    "string": ""
+  },
+  "Hold to record voice message": {
+    "string": ""
+  },
+  "Max duration: {duration} seconds": {
+    "string": ""
+  },
+  "Hold to Record": {
+    "string": ""
+  },
+  "Stop Recording": {
+    "string": ""
+  },
+  "*** Reconnected to {network}": {
+    "string": ""
+  },
+  "Invalid IRC URL": {
+    "string": ""
+  },
+  "The IRC URL format is invalid: {error}\n\nExpected: irc://server/channel": {
+    "string": ""
+  },
+  "Security Warning": {
+    "string": ""
+  },
+  "This URL contains a password which is visible in plain text. This is insecure.\n\nServer: {server}\n\nContinue anyway?": {
+    "string": ""
+  },
+  "Continue": {
+    "string": ""
+  },
+  "Already Connected": {
+    "string": ""
+  },
+  "Already connected to {server}": {
+    "string": ""
+  },
+  "Connect to IRC Server": {
+    "string": ""
+  },
+  "Connecting to {server}:{port}\n\nThis will create a temporary connection.{channel}\n\nContinue?": {
+    "string": ""
+  },
+  "Connect": {
+    "string": ""
+  },
+  "Failed to process IRC URL: {error}": {
+    "string": ""
+  },
+  "Usage: /ctcp <nick> <command> [args]": {
+    "string": ""
+  },
+  "Usage: /xdcc <bot> <command> [args]": {
+    "string": ""
+  },
+  "Usage: /dcc <chat|send> <nick> [path] [port]": {
+    "string": ""
+  },
+  "Failed to open battery optimization settings. Please enable it manually in system settings.": {
+    "string": ""
+  },
+  "View Certificate Fingerprint": {
+    "string": ""
+  },
+  "Failed to extract certificate fingerprint": {
+    "string": ""
+  },
+  "Share Cert with NickServ": {
+    "string": ""
+  },
+  "Certificate fingerprint sent to NickServ": {
+    "string": ""
+  },
+  "Not connected to IRC server": {
+    "string": ""
+  },
+  "Failed to send certificate fingerprint": {
+    "string": ""
+  },
+  "Version 1.6.9": {
+    "string": ""
+  },
+  "Are you sure you want to delete \"{networkName}\"? This cannot be undone.": {
+    "string": ""
+  },
+  "Failed to delete network": {
+    "string": ""
+  },
+  "Cannot Delete Server": {
+    "string": ""
+  },
+  "Each network must have at least one server.": {
+    "string": ""
+  },
+  "Delete Server": {
+    "string": ""
+  },
+  "Are you sure you want to delete \"{serverName}\"?": {
+    "string": ""
+  },
+  "Failed to delete server": {
+    "string": ""
+  },
+  "Export My Data": {
+    "string": ""
+  },
+  "This will create a JSON file with all your data (messages, settings, networks, etc.). You can then share this file via email, cloud storage, etc.": {
+    "string": ""
+  },
+  "Export Successful": {
+    "string": ""
+  },
+  "Your data has been exported. Would you like to share it?": {
+    "string": ""
+  },
+  "Not Now": {
+    "string": ""
+  },
+  "File saved to: {path}": {
+    "string": ""
+  },
+  "Export Failed": {
+    "string": ""
+  },
+  "Failed to export data: {error}": {
+    "string": ""
+  },
+  "An error occurred while exporting data.": {
+    "string": ""
+  },
+  "⚠️ Delete All My Data": {
+    "string": ""
+  },
+  "THIS CANNOT BE UNDONE!\n\nThis will permanently delete:\n• All messages\n• All settings\n• All networks\n• All identity profiles\n• Consent preferences\n• Cached data\n\nThe app will restart after deletion. Are you absolutely sure?": {
+    "string": ""
+  },
+  "DELETE EVERYTHING": {
+    "string": ""
+  },
+  "Final Confirmation": {
+    "string": ""
+  },
+  "Are you really sure? This will delete ALL your data permanently.": {
+    "string": ""
+  },
+  "Yes, Delete Everything": {
+    "string": ""
+  },
+  "Data Deleted": {
+    "string": ""
+  },
+  "All your data has been permanently deleted:\n\n{deletedList}\n\nThe app will restart and show the first-run setup again.": {
+    "string": ""
+  },
+  "Partial Deletion": {
+    "string": ""
+  },
+  "Some data could not be deleted.\n\nDeleted:\n{deletedList}\n\nFailed:\n{failedList}\n\nErrors:\n{errorDetails}\n\nPlease check logs for details.": {
+    "string": ""
+  },
+  "Critical error during data deletion: {error}\n\nPlease check the console logs for details.": {
+    "string": ""
+  },
+  "Setting Updated": {
+    "string": ""
+  },
+  "Crash reporting has been disabled. New crashes will not be collected.": {
+    "string": ""
+  },
+  "Crash reporting has been enabled. This helps improve app stability.": {
+    "string": ""
+  },
+  "Failed to update crash reporting setting.": {
+    "string": ""
+  },
+  "DATA COLLECTED": {
+    "string": ""
+  },
+  "Storage Used": {
+    "string": ""
+  },
+  "Ad Consent": {
+    "string": ""
+  },
+  "This shows data stored locally on your device. Third-party services (Google AdMob, Firebase) may have their own data retention policies.": {
+    "string": ""
+  },
+  "PRIVACY CONTROLS": {
+    "string": ""
+  },
+  "Crash Reporting": {
+    "string": ""
+  },
+  "Send anonymous crash reports to help improve app stability": {
+    "string": ""
+  },
+  "When disabled, crash reports will not be collected. This may make it harder to fix bugs you encounter.": {
+    "string": ""
+  },
+  "YOUR RIGHTS (GDPR/CCPA)": {
+    "string": ""
+  },
+  "Download all your data in JSON format": {
+    "string": ""
+  },
+  "Delete All My Data": {
+    "string": ""
+  },
+  "Permanently erase all your data (cannot be undone)": {
+    "string": ""
+  },
+  "🚨 KILL SWITCH 🚨": {
+    "string": ""
+  },
+  "EMERGENCY: Delete EVERYTHING including certs, logs, secure storage. Keyboard shortcut: Ctrl+Shift+K": {
+    "string": ""
+  },
+  "IMPORTANT INFORMATION": {
+    "string": ""
+  },
+  "What gets exported?": {
+    "string": ""
+  },
+  "All messages (including DMs)": {
+    "string": ""
+  },
+  "Network configurations": {
+    "string": ""
+  },
+  "Identity profiles": {
+    "string": ""
+  },
+  "Settings and preferences": {
+    "string": ""
+  },
+  "Consent status": {
+    "string": ""
+  },
+  "What gets deleted?": {
+    "string": ""
+  },
+  "All local data (messages, settings, etc.)": {
+    "string": ""
+  },
+  "Consent preferences (will be asked again)": {
+    "string": ""
+  },
+  "Cached files": {
+    "string": ""
+  },
+  "Note: Data already sent to Google (AdMob, Crashlytics) cannot be deleted via this app, but will be automatically deleted per their retention policies (14-90 days).": {
+    "string": ""
+  },
+  "Your Privacy Rights": {
+    "string": ""
+  },
+  "Under GDPR and CCPA, you have the right to:": {
+    "string": ""
+  },
+  "Access your data (Export)": {
+    "string": ""
+  },
+  "Delete your data (Right to be forgotten)": {
+    "string": ""
+  },
+  "Opt-out of data collection": {
+    "string": ""
+  },
+  "Withdraw consent at any time": {
+    "string": ""
+  },
+  "Data portability (Export to another service)": {
+    "string": ""
+  },
+  "Choose Your Channels": {
+    "string": ""
+  },
+  "Privacy Agreement": {
+    "string": ""
+  },
+  "By clicking Accept, you agree to:\n\n• Collection of device info, IP address, and location for ads\n• Use of Google Mobile Ads (personalized or non-personalized)\n• Our Privacy Policy and Terms\n\nYou can change these settings anytime in Settings > Privacy & Ads.": {
+    "string": ""
+  },
+  "Read Privacy Policy": {
+    "string": ""
+  },
+  "Failed to open privacy policy.": {
+    "string": ""
+  },
+  "Accept & Continue": {
+    "string": ""
+  },
+  "Failed to save consent. Please try again.": {
+    "string": ""
+  },
+  "AndroidIRCX is free to use, supported by ads": {
+    "string": ""
+  },
+  "What We Collect": {
+    "string": ""
+  },
+  "To provide free features, we use Google Mobile Ads which may collect:": {
+    "string": ""
+  },
+  "Device information": {
+    "string": ""
+  },
+  "IP address and location": {
+    "string": ""
+  },
+  "Ad interaction data": {
+    "string": ""
+  },
+  "Your Choices": {
+    "string": ""
+  },
+  "You can choose personalized ads (better rewards) or non-personalized ads (more privacy).": {
+    "string": ""
+  },
+  "You can change this anytime in Settings.": {
+    "string": ""
+  },
+  "Important": {
+    "string": ""
+  },
+  "You must accept our privacy terms to use this app. Click the button below to review and accept.": {
+    "string": ""
+  },
+  "Accepted": {
+    "string": ""
+  },
+  "You have accepted the privacy terms. You can change settings anytime in Settings.": {
+    "string": ""
+  },
+  "Privacy Terms Accepted": {
+    "string": ""
+  },
+  "Accept Privacy Terms & Continue": {
+    "string": ""
+  },
+  "You can review or change in Settings": {
+    "string": ""
+  },
+  "Tap to review and accept (required to continue)": {
+    "string": ""
+  },
+  "📄 Read Full Privacy Policy": {
+    "string": ""
+  },
+  "We comply with GDPR, CCPA, and other privacy laws. Your data is protected.": {
+    "string": ""
+  },
+  "Which channels do you want to join automatically?": {
+    "string": ""
+  },
+  "#channel1, #channel2, #channel3": {
+    "string": ""
+  },
+  "Enter channel names separated by commas. Channels should start with # or &": {
+    "string": ""
+  },
+  "Popular Channels": {
+    "string": ""
+  },
+  "Default channels": {
+    "string": ""
+  },
+  "Main channel only": {
+    "string": ""
+  },
+  "You can always change these channels later in network settings.": {
+    "string": ""
+  },
+  "Search by mask or reason...": {
+    "string": ""
+  },
+  "All Networks": {
+    "string": ""
+  },
+  "No matching ignored users": {
+    "string": ""
+  },
+  "Try different filters": {
+    "string": ""
+  },
+  "Filter by Network": {
+    "string": ""
+  },
+  "Certificate generated and applied! Don't forget to add the fingerprint to NickServ.": {
+    "string": ""
+  },
+  "Certificate applied to network configuration": {
+    "string": ""
+  },
+  "No certificate configured": {
+    "string": ""
+  },
+  "Generate New": {
+    "string": ""
+  },
+  "Select Existing": {
+    "string": ""
+  },
+  "View Fingerprint": {
+    "string": ""
+  },
+  "or enter manually": {
+    "string": ""
+  },
+  "Privacy Settings Updated": {
+    "string": ""
+  },
+  "Your privacy preferences have been saved.": {
+    "string": ""
+  },
+  "Change Privacy Settings": {
+    "string": ""
+  },
+  "You previously accepted our privacy terms. Would you like to withdraw your consent and reset privacy settings?": {
+    "string": ""
+  },
+  "Withdraw & Reset": {
+    "string": ""
+  },
+  "Failed to show consent form. Please try again.": {
+    "string": ""
+  },
+  "Reset Privacy Settings": {
+    "string": ""
+  },
+  "This will withdraw your consent and reset all privacy preferences. You will need to accept the terms again. Continue?": {
+    "string": ""
+  },
+  "Reset & Re-accept": {
+    "string": ""
+  },
+  "Privacy terms accepted. Your settings have been updated.": {
+    "string": ""
+  },
+  "Failed to reset consent. Please try again.": {
+    "string": ""
+  },
+  "Current Status": {
+    "string": ""
+  },
+  "You have consented to personalized ads based on your interests.": {
+    "string": ""
+  },
+  "Your consent is required to show ads.": {
+    "string": ""
+  },
+  "Consent not required in your region.": {
+    "string": ""
+  },
+  "Using non-personalized ads only.": {
+    "string": ""
+  },
+  "AndroidIRCX uses Google Mobile Ads to provide free features. Google may collect:": {
+    "string": ""
+  },
+  "Device information (model, OS version)": {
+    "string": ""
+  },
+  "IP address and approximate location": {
+    "string": ""
+  },
+  "Usage analytics": {
+    "string": ""
+  },
+  "Ad Types": {
+    "string": ""
+  },
+  "Personalized Ads": {
+    "string": ""
+  },
+  "Ads tailored to your interests based on your activity. May provide better rewards.": {
+    "string": ""
+  },
+  "Non-Personalized Ads": {
+    "string": ""
+  },
+  "Generic ads not based on your activity. More privacy, potentially lower rewards.": {
+    "string": ""
+  },
+  "Support & Rewards": {
+    "string": ""
+  },
+  "You have a premium plan. Watching ads helps support the project development.": {
+    "string": ""
+  },
+  "Support the project": {
+    "string": ""
+  },
+  "Manage Your Privacy": {
+    "string": ""
+  },
+  "Review Privacy Choices": {
+    "string": ""
+  },
+  "Withdraw consent or reset settings": {
+    "string": ""
+  },
+  "Change your ad personalization preferences": {
+    "string": ""
+  },
+  "Learn how we protect your data": {
+    "string": ""
+  },
+  "Compliance": {
+    "string": ""
+  },
+  "AndroidIRCX complies with:": {
+    "string": ""
+  },
+  "GDPR (EU, EEA, UK, Switzerland)": {
+    "string": ""
+  },
+  "CCPA (California)": {
+    "string": ""
+  },
+  "Other US state privacy laws": {
+    "string": ""
+  },
+  "You have the right to:": {
+    "string": ""
+  },
+  "Access your data": {
+    "string": ""
+  },
+  "Request data deletion": {
+    "string": ""
+  },
+  "Opt out of personalized ads": {
+    "string": ""
+  },
+  "Purchase Successful": {
+    "string": ""
+  },
+  "Thank you for your purchase!": {
+    "string": ""
+  },
+  "Purchase Failed": {
+    "string": ""
+  },
+  "Please try again later.": {
+    "string": ""
+  },
+  "Failed to load products. Please try again later.": {
+    "string": ""
+  },
+  "Restore complete": {
+    "string": ""
+  },
+  "Your purchases have been restored.": {
+    "string": ""
+  },
+  "Restore failed": {
+    "string": ""
+  },
+  "Loading products...": {
+    "string": ""
+  },
+  "Restore purchases": {
+    "string": ""
+  },
+  "• api.sendNotice(target, text, networkId?)": {
+    "string": ""
+  },
+  "• api.sendCTCP(target, type, params?, networkId?)": {
+    "string": ""
+  },
+  "• api.getChannelUsers(channel, networkId?) — returns string[]": {
+    "string": ""
+  },
+  "• api.getChannels(networkId?) — returns string[]": {
+    "string": ""
+  },
+  "• api.setTimer(name, delayMs, repeat?) — set timer": {
+    "string": ""
+  },
+  "• api.clearTimer(name) — clear timer": {
+    "string": ""
+  },
+  "• api.getNetworkId() — current network ID": {
+    "string": ""
+  },
+  "• api.isConnected(networkId?) — check connection": {
+    "string": ""
+  },
+  "Connection Events": {
+    "string": ""
+  },
+  "• onConnect(networkId) — when connected": {
+    "string": ""
+  },
+  "• onDisconnect(networkId, reason?) — when disconnected": {
+    "string": ""
+  },
+  "Message Events": {
+    "string": ""
+  },
+  "• onMessage(msg) — channel/query messages": {
+    "string": ""
+  },
+  "• onNotice(msg) — notice messages": {
+    "string": ""
+  },
+  "• onCTCP(type, from, text, msg) — CTCP requests": {
+    "string": ""
+  },
+  "Channel Events": {
+    "string": ""
+  },
+  "• onJoin(channel, nick, msg) — user joined": {
+    "string": ""
+  },
+  "• onPart(channel, nick, reason, msg) — user parted": {
+    "string": ""
+  },
+  "• onQuit(nick, reason, msg) — user quit": {
+    "string": ""
+  },
+  "• onNickChange(oldNick, newNick, msg) — nick changed": {
+    "string": ""
+  },
+  "• onKick(channel, kickedNick, kickerNick, reason, msg) — user kicked": {
+    "string": ""
+  },
+  "• onMode(channel, setterNick, mode, target?, msg) — mode changed": {
+    "string": ""
+  },
+  "• onTopic(channel, topic, setterNick, msg) — topic changed": {
+    "string": ""
+  },
+  "• onInvite(channel, inviterNick, msg) — channel invite": {
+    "string": ""
+  },
+  "Other Events": {
+    "string": ""
+  },
+  "• onRaw(line, direction, msg?) — raw IRC line (in/out)": {
+    "string": ""
+  },
+  "• onCommand(text, ctx) — outgoing command": {
+    "string": ""
+  },
+  "• onTimer(name) — timer fired": {
+    "string": ""
+  },
+  "CTCP Responder": {
+    "string": ""
+  },
+  "Timer Example": {
+    "string": ""
+  },
+  "Kick Protection": {
+    "string": ""
+  },
+  "• onRaw can modify or cancel raw IRC lines.": {
+    "string": ""
+  },
+  "• Use timers for periodic tasks, remember to clear on disconnect.": {
+    "string": ""
+  },
+  "• Check api.isConnected() before sending commands.": {
+    "string": ""
+  },
+  "Scripting Time & No-Ads Remaining:": {
+    "string": ""
+  },
+  "Scripting Time & No-Ads Active": {
+    "string": ""
+  },
+  "When ON: Time counts down, scripts can run, no banner ads": {
+    "string": ""
+  },
+  "Unlimited scripting: Toggle enables/disables no-ads mode": {
+    "string": ""
+  },
+  "Upgrade to Unlimited Scripting & No-Ads": {
+    "string": ""
+  },
+  "No scripting time available. Watch an ad to gain 60 minutes of scripting time and no-ads. Scripts will be automatically disabled when time runs out.": {
+    "string": ""
+  },
+  "Scripts run with full access to your local IRC data. Only install scripts you trust and avoid running scripts from unknown sources.": {
+    "string": ""
+  },
+  "Default Server": {
+    "string": ""
+  },
+  "Set as default server for \"Tap to connect\" header. This server will be used when tapping the network name in the header.": {
+    "string": ""
+  },
+  "📖 Help & Documentation": {
+    "string": ""
+  },
+  "Scripting & Ads": {
+    "string": ""
+  },
+  "💎 Premium": {
+    "string": ""
+  },
+  "ZNC Subscription": {
+    "string": ""
+  },
+  "Purchase Error": {
+    "string": ""
+  },
+  "Missing purchase token from Google Play.": {
+    "string": ""
+  },
+  "Not available": {
+    "string": ""
+  },
+  "Missing Credentials": {
+    "string": ""
+  },
+  "Register your subscription to get ZNC credentials first.": {
+    "string": ""
+  },
+  "Connection Error": {
+    "string": ""
+  },
+  "ZNC server configuration is missing.": {
+    "string": ""
+  },
+  "DBase is not connected. Open Networks and connect to DBase to use ZNC.": {
+    "string": ""
+  },
+  "Reconnecting to ZNC...": {
+    "string": ""
+  },
+  "Connected": {
+    "string": ""
+  },
+  "Reconnected to ZNC for DBase.": {
+    "string": ""
+  },
+  "Connection Failed": {
+    "string": ""
+  },
+  "Unable to reconnect to ZNC.": {
+    "string": ""
+  },
+  "Missing Information": {
+    "string": ""
+  },
+  "Please enter a ZNC username.": {
+    "string": ""
+  },
+  "Please complete the purchase first.": {
+    "string": ""
+  },
+  "ZNC Ready": {
+    "string": ""
+  },
+  "ZNC server added to DBase network.": {
+    "string": ""
+  },
+  "Subscription Updated": {
+    "string": ""
+  },
+  "Status: {status}": {
+    "string": ""
+  },
+  "Subscription Error": {
+    "string": ""
+  },
+  "Unable to register subscription.": {
+    "string": ""
+  },
+  "Purchase Required": {
+    "string": ""
+  },
+  "Not registered": {
+    "string": ""
+  },
+  "Price: {price}": {
+    "string": ""
+  },
+  "Monthly subscription via Google Play": {
+    "string": ""
+  },
+  "Remove ads, unlimited scripting, and more": {
+    "string": ""
+  },
+  "Manage ZNC Accounts": {
+    "string": ""
+  },
+  "Purchase, manage, and configure ZNC bouncer accounts": {
+    "string": ""
+  },
+  "About ZNC Service": {
+    "string": ""
+  },
+  "ZNC keeps you connected 24/7 with message playback": {
+    "string": ""
+  },
+  "ZNC is an IRC bouncer that keeps you connected 24/7. Features include:\n\n- Always-on connection\n- Message playback when you reconnect\n- Multiple network support\n- Automatic configuration\n\nPrimarily intended for DBase network. Use on other networks at your own risk.": {
+    "string": ""
+  },
+  "Messages & History": {
+    "string": ""
+  },
+  "Media": {
+    "string": ""
+  },
+  "User List Grouping": {
+    "string": ""
+  },
+  "Group users by status (ops/voice/etc.)": {
+    "string": ""
+  },
+  "Auto-Disable Grouping Threshold": {
+    "string": ""
+  },
+  "User List Virtualization": {
+    "string": ""
+  },
+  "Use FlatList for large user lists (non-grouped)": {
+    "string": ""
+  },
+  "Auto-Virtualize Threshold": {
+    "string": ""
+  },
+  "Privacy & Legal": {
+    "string": ""
+  },
+  "Development": {
+    "string": ""
+  },
+  "Enable Console Logging": {
+    "string": ""
+  },
+  "Toggle console.log output in development": {
+    "string": ""
+  },
+  "Use this sound?": {
+    "string": ""
+  },
+  "Do you want to use this sound for {event}?": {
+    "string": ""
+  },
+  "Use": {
+    "string": ""
+  },
+  "Failed to select sound file.": {
+    "string": ""
+  },
+  "Reset to Default": {
+    "string": ""
+  },
+  "Reset {event} sound to default?": {
+    "string": ""
+  },
+  "Reset": {
+    "string": ""
+  },
+  "Reset All Sounds": {
+    "string": ""
+  },
+  "This will reset all sound settings to defaults. Continue?": {
+    "string": ""
+  },
+  "Reset All": {
+    "string": ""
+  },
+  "Custom sound": {
+    "string": ""
+  },
+  "No sound": {
+    "string": ""
+  },
+  "Enable Sounds": {
+    "string": ""
+  },
+  "Master switch for all notification sounds": {
+    "string": ""
+  },
+  "Master Volume": {
+    "string": ""
+  },
+  "Playback": {
+    "string": ""
+  },
+  "Play in Foreground": {
+    "string": ""
+  },
+  "Play sounds when app is open": {
+    "string": ""
+  },
+  "Play in Background": {
+    "string": ""
+  },
+  "Play sounds when app is minimized": {
+    "string": ""
+  },
+  "Sound Scheme": {
+    "string": ""
+  },
+  "Event Sounds": {
+    "string": ""
+  },
+  "Reset All to Defaults": {
+    "string": ""
+  },
+  "Store Error": {
+    "string": ""
+  },
+  "ZNC subscription product (znc) is not available in the store. This may be because:\n• You're not in the test group\n• The app signing certificate doesn't match Play Console\n• The subscription is not published to your region\n• You need to join the beta/testing program": {
+    "string": ""
+  },
+  "Failed to connect to the store. Please check your internet connection and try again.": {
+    "string": ""
+  },
+  "Refreshed": {
+    "string": ""
+  },
+  "All account statuses updated.": {
+    "string": ""
+  },
+  "Failed to refresh accounts. Please check your connection.": {
+    "string": ""
+  },
+  "Failed to complete purchase. Please try again.": {
+    "string": ""
+  },
+  "Unable to complete purchase.": {
+    "string": ""
+  },
+  "Your ZNC account has been created successfully! Username: {username}": {
+    "string": ""
+  },
+  "Add to Network": {
+    "string": ""
+  },
+  "Username Taken": {
+    "string": ""
+  },
+  "This username already exists on our ZNC server. Please choose a different username.": {
+    "string": ""
+  },
+  "Try Again": {
+    "string": ""
+  },
+  "Registration Failed": {
+    "string": ""
+  },
+  "Unable to register ZNC account.": {
+    "string": ""
+  },
+  "Store not available. Please check your connection and try again.": {
+    "string": ""
+  },
+  "Subscription product is not available in the store. This may be due to store configuration or testing environment.": {
+    "string": ""
+  },
+  "Please enter a username.": {
+    "string": ""
+  },
+  "Username can only contain letters, numbers, underscore and dash.": {
+    "string": ""
+  },
+  "Username must be between 3 and 20 characters.": {
+    "string": ""
+  },
+  "You already have an account with this username.": {
+    "string": ""
+  },
+  "Failed to start purchase.": {
+    "string": ""
+  },
+  "No Purchases": {
+    "string": ""
+  },
+  "No ZNC subscriptions found to restore.": {
+    "string": ""
+  },
+  "No valid subscriptions found to restore.": {
+    "string": ""
+  },
+  "Restored": {
+    "string": ""
+  },
+  "{count} subscription(s) restored successfully.": {
+    "string": ""
+  },
+  "Failed to restore purchases.": {
+    "string": ""
+  },
+  "Account credentials not ready. Please refresh status first.": {
+    "string": ""
+  },
+  "Credentials not available.": {
+    "string": ""
+  },
+  "Server Exists": {
+    "string": ""
+  },
+  "This ZNC account is already configured in {network}. Do you want to update it?": {
+    "string": ""
+  },
+  "Update": {
+    "string": ""
+  },
+  "Failed to add ZNC to network.": {
+    "string": ""
+  },
+  "ZNC server added to {network}. You can now connect using the ZNC server.": {
+    "string": ""
+  },
+  "Failed to save network configuration.": {
+    "string": ""
+  },
+  "ZNC server configuration updated.": {
+    "string": ""
+  },
+  "Failed to update network configuration.": {
+    "string": ""
+  },
+  "Credentials copied to clipboard.": {
+    "string": ""
+  },
+  "Account status updated.": {
+    "string": ""
+  },
+  "Could not refresh account status. Account may not exist.": {
+    "string": ""
+  },
+  "Failed to refresh account status. Please check your connection.": {
+    "string": ""
+  },
+  "Remove from Network": {
+    "string": ""
+  },
+  "Remove ZNC server from {network}? This will not cancel your subscription.": {
+    "string": ""
+  },
+  "Removed": {
+    "string": ""
+  },
+  "ZNC server removed from network.": {
+    "string": ""
+  },
+  "Failed to remove from network.": {
+    "string": ""
+  },
+  "ZNC Credentials": {
+    "string": ""
+  },
+  "Delete Account": {
+    "string": ""
+  },
+  "Delete this ZNC account from your local storage? This will NOT cancel your subscription - you can restore it later using \"Restore Purchases\".": {
+    "string": ""
+  },
+  "Deleted": {
+    "string": ""
+  },
+  "Account removed from local storage.": {
+    "string": ""
+  },
+  "Failed to delete account.": {
+    "string": ""
+  },
+  "Ready": {
+    "string": ""
+  },
+  "Setting up...": {
+    "string": ""
+  },
+  "Suspended": {
+    "string": ""
+  },
+  "Expires": {
+    "string": ""
+  },
+  "ZNC Status": {
+    "string": ""
+  },
+  "Show": {
+    "string": ""
+  },
+  "Unlink": {
+    "string": ""
+  },
+  "No ZNC Accounts": {
+    "string": ""
+  },
+  "Purchase a ZNC subscription to get always-on IRC connectivity with message playback.": {
+    "string": ""
+  },
+  "Monthly subscription": {
+    "string": ""
+  },
+  "Creating ZNC Account, Please Wait...": {
+    "string": ""
+  },
+  "Loading Offers...": {
+    "string": ""
+  },
+  "Purchase ZNC Account": {
+    "string": ""
+  },
+  "Refresh Store": {
+    "string": ""
+  },
+  "Restore Purchases": {
+    "string": ""
+  },
+  "Choose ZNC Username": {
+    "string": ""
+  },
+  "Enter a username for your ZNC account. This will be used to log in to ZNC.": {
+    "string": ""
+  },
+  "Add ZNC to Network": {
+    "string": ""
+  },
+  "Connected to {count} servers{suffix}": {
+    "string": ""
+  },
+  "No file path provided": {
+    "string": ""
+  },
+  "Invalid file path. Please select the file again.": {
+    "string": ""
+  },
+  "Cannot check file: {error}": {
+    "string": ""
+  },
+  "File not found: {path}": {
+    "string": ""
+  },
+  "Cannot read file info: {error}": {
+    "string": ""
+  },
+  "Decryption failed. If this was sent from v1.6.3+, please update to v1.6.3 or newer.": {
+    "string": ""
+  },
+  "Encrypted message from {nick} could not be decrypted. If they are on v1.6.3+, please update to v1.6.3 or newer.": {
+    "string": ""
+  },
+  "No reason given": {
+    "string": ""
+  },
+  "*** You were killed by {server}: {reason}": {
+    "string": ""
+  },
+  "*** You were killed: {reason}": {
+    "string": ""
+  },
+  "*** {nick} was killed: {reason}": {
+    "string": ""
+  },
+  "{nick} sets mode {modes}": {
+    "string": ""
+  },
+  "*** TAGMSG {from} -> {target} ({tags})": {
+    "string": ""
+  },
+  "*** TAGMSG {from} -> {target}": {
+    "string": ""
+  },
+  "Kill Switch - Delete All Data": {
+    "string": ""
+  },
+  "WARNING: This will PERMANENTLY delete ALL app data including:\n\n• All messages and history\n• All networks and connections\n• All certificates and keys\n• All logs and cache\n• All settings and preferences\n• EVERYTHING\n\nThis action CANNOT be undone!\n\nType \"DELETE ALL\" to confirm.": {
+    "string": ""
+  },
+  "Delete All": {
+    "string": ""
+  },
+  "Are you ABSOLUTELY SURE? This will delete EVERYTHING and cannot be undone.": {
+    "string": ""
+  },
+  "YES, DELETE EVERYTHING": {
+    "string": ""
+  },
+  "Kill Switch Activated": {
+    "string": ""
+  },
+  "All data has been deleted. The app will now close.": {
+    "string": ""
+  },
+  "Auto-Voice": {
+    "string": ""
+  },
+  "Automatically voices users when they join.": {
+    "string": ""
+  },
+  "Rejoins channel if kicked.": {
+    "string": ""
+  },
+  "Responds to CTCP VERSION and TIME requests.": {
+    "string": ""
+  },
+  "Channel Guard": {
+    "string": ""
+  },
+  "Protects channel from bad words (example).": {
+    "string": ""
+  },
+  "Auto-Rejoin on Part": {
+    "string": ""
+  },
+  "Automatically rejoins channel if you part.": {
+    "string": ""
+  },
+  "Topic Logger": {
+    "string": ""
+  },
+  "Logs topic changes to script log.": {
+    "string": ""
+  },
+  "Invite Handler": {
+    "string": ""
+  },
+  "Auto-joins channels when invited.": {
+    "string": ""
+  },
+  "Mode Logger": {
+    "string": ""
+  },
+  "Logs mode changes to script log.": {
+    "string": ""
+  },
+  "Example of using timers - sends periodic message.": {
+    "string": ""
+  },
+  "User Counter": {
+    "string": ""
+  },
+  "Counts users in channels and logs on join/part.": {
+    "string": ""
+  },
+  "Highlight Tracker": {
+    "string": ""
+  },
+  "Tracks when your highlight words are mentioned and logs them.": {
+    "string": ""
+  },
+  "User Notes Manager": {
+    "string": ""
+  },
+  "Automatically saves notes about users based on their messages.": {
+    "string": ""
+  },
+  "Channel Info Tracker": {
+    "string": ""
+  },
+  "Tracks and logs channel information changes.": {
+    "string": ""
+  },
+  "Smart Welcome": {
+    "string": ""
+  },
+  "Welcomes users with personalized messages based on user notes.": {
+    "string": ""
+  },
+  "Message History Search": {
+    "string": ""
+  },
+  "Searches message history when you mention /search in a channel.": {
+    "string": ""
+  },
+  "Channel Bookmark Manager": {
+    "string": ""
+  },
+  "Automatically bookmarks channels you frequently visit.": {
+    "string": ""
+  },
+  "Connection Monitor": {
+    "string": ""
+  },
+  "Monitors connection quality and logs statistics.": {
+    "string": ""
+  },
+  "Auto Highlight Add": {
+    "string": ""
+  },
+  "Automatically adds your nick to highlight words when mentioned.": {
+    "string": ""
+  },
+  "User Alias Resolver": {
+    "string": ""
+  },
+  "Resolves user aliases and shows real nicks in logs.": {
+    "string": ""
+  },
+  "Channel Notes Reminder": {
+    "string": ""
+  },
+  "Shows channel notes when you join a channel.": {
+    "string": ""
+  },
+  "Tab Manager": {
+    "string": ""
+  },
+  "Logs tab activity and manages tab switching.": {
+    "string": ""
+  },
+  "Ignore List Manager": {
+    "string": ""
+  },
+  "Logs when ignored users try to message you.": {
+    "string": ""
+  },
+  "WHOIS Tracker": {
+    "string": ""
+  },
+  "Tracks WHOIS information for users and logs it.": {
+    "string": ""
+  },
+  "Message Statistics": {
+    "string": ""
+  },
+  "Tracks message statistics and shows them periodically.": {
+    "string": ""
+  },
+  "Theme-Aware Logger": {
+    "string": ""
+  },
+  "Logs theme information and adapts behavior based on theme.": {
+    "string": ""
+  },
+  "Channel User Tracker": {
+    "string": ""
+  },
+  "Tracks user activity in channels and logs user counts.": {
+    "string": ""
+  },
+  "Smart CTCP Handler": {
+    "string": ""
+  },
+  "Enhanced CTCP handler with logging and custom responses.": {
+    "string": ""
+  },
+  "Channel Mode Protector": {
+    "string": ""
+  },
+  "Monitors channel mode changes and logs important ones.": {
+    "string": ""
+  },
+  "Multi-Network Monitor": {
+    "string": ""
+  },
+  "Monitors all connected networks and logs their status.": {
+    "string": ""
+  },
+  "Storage Example": {
+    "string": ""
+  },
+  "Demonstrates using script storage to persist data.": {
+    "string": ""
+  },
+  "Notice Handler": {
+    "string": ""
+  },
+  "Handles NOTICE messages and logs important ones.": {
+    "string": ""
+  },
+  "Nick Change Tracker": {
+    "string": ""
+  },
+  "Tracks nick changes and updates user notes.": {
+    "string": ""
+  },
+  "Quit Tracker": {
+    "string": ""
+  },
+  "Tracks when users quit and logs their reasons.": {
+    "string": ""
+  },
+  "Kick Logger": {
+    "string": ""
+  },
+  "Logs all kick events with details.": {
+    "string": ""
+  },
+  "Invite Logger": {
+    "string": ""
+  },
+  "Logs all channel invites with user info.": {
+    "string": ""
   }
 }
