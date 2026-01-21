@@ -36,7 +36,7 @@
     "string": "Error al copiar al portapeles"
   },
   "Backup saved to:\n{path}": {
-    "string": "Copia de seguridad guardada en:\n1{patch}"
+    "string": ""
   },
   "OK": {
     "string": "OK"
@@ -69,7 +69,7 @@
     "string": "Exportación Completa"
   },
   "Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)": {
-    "string": "Caracteres exportados {count} en {format} formato.\n\n(En producción, esto se guardaría en un archivo)"
+    "string": "Caracteres exportados {count} en {format} formato."
   },
   "Export Error": {
     "string": "Export Error"
