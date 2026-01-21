@@ -2888,10 +2888,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^19.2.8":
-  version "19.2.8"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.8.tgz#307011c9f5973a6abab8e17d0293f48843627994"
-  integrity sha512-3MbSL37jEchWZz2p2mjntRZtPt837ij10ApxKfgmXCTuHWagYg7iA5bqPw6C8BMPfwidlvfPI/fxOc42HLhcyg==
+"@types/react@*", "@types/react@^19.2.9":
+  version "19.2.9"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.9.tgz#84ec7669742bb3e7e2e8d6a5258d95ead7764200"
+  integrity sha512-Lpo8kgb/igvMIPeNV2rsYKTgaORYdO1XGVZ4Qz3akwOj0ySGYMPlQWa8BaLn0G63D1aSaAQ5ldR06wCpChQCjA==
   dependencies:
     csstype "^3.2.2"
 
@@ -7837,10 +7837,10 @@ react-native-google-mobile-ads@^16.0.1:
     "@iabtcf/core" "^1.5.6"
     use-deep-compare-effect "^1.8.1"
 
-react-native-iap@^14.7.4:
-  version "14.7.4"
-  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-14.7.4.tgz#ce7a7c96bad5e6ac8029adcd7941fa5a4a83e0c4"
-  integrity sha512-uUH3xS+bpxa9gOm5OjF2spRP47qwcAm3Za4VMF8vIoMrnx7QIJ0JmTXiYI58dV7YnapJY3AJoUkruqLyex45nA==
+react-native-iap@^14.7.6:
+  version "14.7.6"
+  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-14.7.6.tgz#a20beb64715a49624e7beec8f373a19188682663"
+  integrity sha512-G0u4TUShdsiTdgPu1I3cMSHAJr6NCIYJ8hlx4rq5rYzRxY6mChRjLlgoNBi91wj4neseh1ds2NNhHj51nhVehQ==
 
 react-native-is-edge-to-edge@1.2.1, react-native-is-edge-to-edge@^1.2.1:
   version "1.2.1"
