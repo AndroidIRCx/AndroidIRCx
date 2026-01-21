@@ -4297,32 +4297,5 @@
   },
   "WHOIS data for {nick} not found after completion signal.": {
     "string": "WHOIS data for {nick} not found after completion signal."
-  },
-  "Banner Position": {
-    "string": "Banner Position"
-  },
-  "Banner shown above message input": {
-    "string": "Banner shown above message input"
-  },
-  "Banner shown below message input": {
-    "string": "Banner shown below message input"
-  },
-  "Banner shown above header": {
-    "string": "Banner shown above header"
-  },
-  "Banner shown below header": {
-    "string": "Banner shown below header"
-  },
-  "Above message input": {
-    "string": "Above message input"
-  },
-  "Below message input": {
-    "string": "Below message input"
-  },
-  "Above header": {
-    "string": "Above header"
-  },
-  "Below header": {
-    "string": "Below header"
   }
 }
