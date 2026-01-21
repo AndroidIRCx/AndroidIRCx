@@ -114,41 +114,41 @@ class DCCFileService {
     this.sockets.set(transferId, socket);
 
     socket.on('data', async (data: any) => {
-      const t = this.transfers.get(transferId);
-      if (!t) return;
+      const transferState = this.transfers.get(transferId);
+      if (!transferState) return;
       try {
         const RNFS = require('react-native-fs');
         await RNFS.appendFile(downloadPath, data.toString('base64'), 'base64');
       } catch (e) {
         // fallthrough; still count bytes
       }
-      t.bytesReceived += data.length;
-      this.transfers.set(transferId, t);
-      this.emit(t);
+      transferState.bytesReceived += data.length;
+      this.transfers.set(transferId, transferState);
+      this.emit(transferState);
       // Send ACK (bytes received) per DCC spec
       const ack = Buffer.alloc(4);
-      ack.writeUInt32BE(t.bytesReceived, 0);
+      ack.writeUInt32BE(transferState.bytesReceived, 0);
       socket.write(ack);
     });
 
     socket.on('error', (err: any) => {
-      const t = this.transfers.get(transferId);
-      if (!t) return;
-      t.status = 'failed';
-      t.error = err?.message || t('Transfer failed');
-      this.transfers.set(transferId, t);
-      this.emit(t);
+      const transferState = this.transfers.get(transferId);
+      if (!transferState) return;
+      transferState.status = 'failed';
+      transferState.error = err?.message || t('Transfer failed');
+      this.transfers.set(transferId, transferState);
+      this.emit(transferState);
       this.sockets.delete(transferId);
     });
 
     socket.on('close', () => {
-      const t = this.transfers.get(transferId);
-      if (!t) return;
-      if (t.status !== 'failed' && t.status !== 'cancelled') {
-        t.status = 'completed';
+      const transferState = this.transfers.get(transferId);
+      if (!transferState) return;
+      if (transferState.status !== 'failed' && transferState.status !== 'cancelled') {
+        transferState.status = 'completed';
       }
-      this.transfers.set(transferId, t);
-      this.emit(t);
+      this.transfers.set(transferId, transferState);
+      this.emit(transferState);
       this.sockets.delete(transferId);
     });
   }
