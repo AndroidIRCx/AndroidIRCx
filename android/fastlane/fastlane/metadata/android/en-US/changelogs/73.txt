@@ -1,0 +1,6 @@
+v1.6.11
+- Added 50+ new IRC commands (/away, /ban, /clear, /close, /server, etc.)
+- Full mIRC-compatible /server command with all parameters
+- Improved DCC transfer accept flow
+- IRC deep link query params support (?nick=, ?altNick=, etc.)
+- Better error handling and stability improvements

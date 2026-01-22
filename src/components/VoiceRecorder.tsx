@@ -344,7 +344,6 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           {recordingUri && (
             <Video
               source={{ uri: `file://${recordingUri}` }}
-              audioOnly
               controls
               paused={state !== 'playing'}
               style={styles.audioPlayer}
@@ -437,7 +436,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     minHeight: 300,
   },
   errorContainer: {
-    backgroundColor: colors.errorBackground || 'rgba(244, 67, 54, 0.1)',
+    backgroundColor: colors.error + '20' || 'rgba(244, 67, 54, 0.1)',
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
@@ -509,7 +508,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.primary,
   },
   deleteButton: {
-    backgroundColor: colors.errorBackground || 'rgba(244, 67, 54, 0.2)',
+    backgroundColor: colors.error + '20' || 'rgba(244, 67, 54, 0.2)',
   },
   actionButtonText: {
     color: colors.text,

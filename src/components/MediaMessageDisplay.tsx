@@ -217,7 +217,6 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
             </Text>
             <Video
               source={{ uri: mediaInfo.uri }}
-              audioOnly
               controls
               paused
               style={styles.audioPlayer}
@@ -284,7 +283,7 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
 
       {/* Error state */}
       {state === 'error' && (
-        <View style={[styles.stateContainer, { backgroundColor: colors.errorBackground }]}>
+        <View style={[styles.stateContainer, { backgroundColor: colors.error + '20' }]}>
           <Text style={[styles.errorIcon, { color: colors.error }]}>⚠️</Text>
           {error?.includes('No tabId provided for decryption') ? (
             <Text style={[styles.errorText, { color: colors.error }]}>

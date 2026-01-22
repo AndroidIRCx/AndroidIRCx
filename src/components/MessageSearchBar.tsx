@@ -222,7 +222,7 @@ const createStyles = (colors: any) =>
       textTransform: 'capitalize',
     },
     filterChipTextActive: {
-      color: colors.buttonText || '#fff',
+      color: colors.buttonPrimaryText || '#fff',
       fontWeight: '600',
     },
   });

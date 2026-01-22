@@ -57,7 +57,7 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
   const handleKillSwitchPress = () => {
     // Directly trigger kill switch - it will verify PIN/biometric
     // No warnings shown on lock screen for faster emergency use
-    onKillSwitch();
+    onKillSwitch?.();
   };
 
   return (

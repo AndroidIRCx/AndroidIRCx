@@ -63,25 +63,50 @@ class SubscriptionService {
     const persisted: ZncAccount[] = [];
 
     for (const account of accounts) {
-      const next: ZncAccount = { ...account };
-      const passwordKey = this.getPasswordKey(account.id);
-      const tokenKey = this.getTokenKey(account.id);
+      try {
+        const next: ZncAccount = { ...account };
+        const passwordKey = this.getPasswordKey(account.id);
+        const tokenKey = this.getTokenKey(account.id);
 
-      if (lockEnabled) {
-        if (account.zncPassword) {
-          await secureStorageService.setSecret(passwordKey, account.zncPassword);
-          next.zncPassword = null;
+        if (lockEnabled) {
+          if (account.zncPassword) {
+            try {
+              await secureStorageService.setSecret(passwordKey, account.zncPassword);
+              next.zncPassword = null;
+            } catch (passwordError) {
+              logger.error('znc', `Failed to save password for account ${account.id}: ${passwordError}`);
+              // Continue without clearing password - it will be stored in plain text
+            }
+          }
+          if (account.purchaseToken) {
+            try {
+              await secureStorageService.setSecret(tokenKey, account.purchaseToken);
+              next.purchaseToken = '';
+            } catch (tokenError) {
+              logger.error('znc', `Failed to save token for account ${account.id}: ${tokenError}`);
+              // Continue without clearing token - it will be stored in plain text
+            }
+          }
+        } else {
+          try {
+            await secureStorageService.removeSecret(passwordKey);
+            await secureStorageService.removeSecret(tokenKey);
+          } catch (removeError) {
+            logger.warn('znc', `Failed to remove secrets for account ${account.id}: ${removeError}`);
+            // Continue - not critical if removal fails
+          }
         }
-        if (account.purchaseToken) {
-          await secureStorageService.setSecret(tokenKey, account.purchaseToken);
-          next.purchaseToken = '';
-        }
-      } else {
-        await secureStorageService.removeSecret(passwordKey);
-        await secureStorageService.removeSecret(tokenKey);
+
+        persisted.push(next);
+      } catch (accountError) {
+        logger.error('znc', `Failed to prepare account ${account.id} for storage: ${accountError}`);
+        // Add account without sensitive data to prevent data loss
+        persisted.push({
+          ...account,
+          zncPassword: null,
+          purchaseToken: '',
+        });
       }
-
-      persisted.push(next);
     }
 
     return persisted;
@@ -390,9 +415,27 @@ class SubscriptionService {
       this.accounts.push(account);
     }
 
-    await this.saveAccounts();
-    await this.savePurchaseTokens();
-    this.notifyListeners();
+    // Save accounts and tokens with error handling to prevent crashes
+    try {
+      await this.saveAccounts();
+    } catch (saveError) {
+      logger.error('znc', `Failed to save accounts after registration: ${saveError}`);
+      // Don't throw - account is in memory, will be saved on next attempt
+    }
+    
+    try {
+      await this.savePurchaseTokens();
+    } catch (tokenError) {
+      logger.error('znc', `Failed to save purchase tokens after registration: ${tokenError}`);
+      // Don't throw - tokens are in memory, will be saved on next attempt
+    }
+    
+    try {
+      this.notifyListeners();
+    } catch (notifyError) {
+      logger.error('znc', `Failed to notify listeners after registration: ${notifyError}`);
+      // Don't throw - notification failure shouldn't crash
+    }
 
     logger.info('znc', `ZNC account registered: ${account.id}`);
     return account;

@@ -3,7 +3,7 @@ import { Modal, TouchableOpacity, View, Text } from 'react-native';
 import { useUIStore } from '../stores/uiStore';
 import { connectionManager } from '../services/ConnectionManager';
 import { sortTabsGrouped } from '../utils/tabUtils';
-import { ChannelTab } from '../services/IRCService';
+import { ChannelTab } from '../types';
 
 interface OptionsMenuProps {
   visible: boolean;

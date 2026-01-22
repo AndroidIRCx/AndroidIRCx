@@ -143,11 +143,15 @@ export const ChannelListScreen: React.FC<ChannelListScreenProps> = ({
   const handleToggleFavorite = async (channel: ChannelListItem) => {
     if (!network) return;
     
-    const isFavorite = channelFavoritesService.isFavorite(network, channel.name);
+    // Normalize network ID to base network name to ensure favorites are stored per base network
+    // "DBase (1)" -> "DBase", "DBase (2)" -> "DBase", "DBase" -> "DBase"
+    const baseNetworkId = network.replace(/\s+\(\d+\)$/, '');
+    
+    const isFavorite = channelFavoritesService.isFavorite(baseNetworkId, channel.name);
     if (isFavorite) {
-      await channelFavoritesService.removeFavorite(network, channel.name);
+      await channelFavoritesService.removeFavorite(baseNetworkId, channel.name);
     } else {
-      await channelFavoritesService.addFavorite(network, channel.name);
+      await channelFavoritesService.addFavorite(baseNetworkId, channel.name);
     }
   };
 

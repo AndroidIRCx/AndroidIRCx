@@ -599,12 +599,15 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
     }
 
     // Option to add/remove from favorites
-    const isFav = await channelFavoritesService.isFavorite(tab.networkId, tab.name);
+    // Normalize network ID to base network name to ensure favorites are stored per base network
+    // "DBase (1)" -> "DBase", "DBase (2)" -> "DBase", "DBase" -> "DBase"
+    const baseNetworkId = normalizeNetworkId(tab.networkId);
+    const isFav = await channelFavoritesService.isFavorite(baseNetworkId, tab.name);
     if (isFav) {
       options.push({
         text: 'Remove from Favorites',
         onPress: async () => {
-          await channelFavoritesService.removeFavorite(tab.networkId, tab.name);
+          await channelFavoritesService.removeFavorite(baseNetworkId, tab.name);
           useUIStore.getState().setShowTabOptionsModal(true);
         },
       });
@@ -612,7 +615,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       options.push({
         text: 'Add to Favorites',
         onPress: async () => {
-          await channelFavoritesService.addFavorite(tab.networkId, tab.name);
+          await channelFavoritesService.addFavorite(baseNetworkId, tab.name);
           useUIStore.getState().setShowTabOptionsModal(true);
         },
       });

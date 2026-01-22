@@ -31,8 +31,9 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
 
     try {
       const [result] = await pick({
+        // @ts-ignore - copyTo exists in some versions of document picker
         copyTo: 'documentDirectory',
-      });
+      }) as any[];
 
       if (result?.uri) {
         console.log('[DccSendModal] Pick result:', JSON.stringify(result, null, 2));

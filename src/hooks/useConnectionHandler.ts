@@ -55,7 +55,20 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
     autoConnectFavoriteServerRef,
   } = params;
 
-  const handleConnect = useCallback(async (network?: IRCNetworkConfig, serverId?: string, connectNetworkId?: string) => {
+  const handleConnect = useCallback(async (
+    network?: IRCNetworkConfig,
+    serverId?: string,
+    connectNetworkId?: string,
+    overrides?: {
+      identity?: {
+        nick?: string;
+        altNick?: string;
+        email?: string;
+        name?: string;
+        ident?: string;
+      };
+    },
+  ) => {
     let networkToUse = network;
     let serverToUse: IRCServerConfig | undefined;
     let identityProfile: IdentityProfile | undefined;
@@ -114,6 +127,19 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
         operUser: identityProfile.operUser || networkToUse.operUser,
         operPassword: identityProfile.operPassword || networkToUse.operPassword,
       };
+    }
+    if (networkToUse && overrides?.identity) {
+      const identityOverride = overrides.identity;
+      if (identityOverride.nick) networkToUse.nick = identityOverride.nick;
+      if (identityOverride.altNick) networkToUse.altNick = identityOverride.altNick;
+      if (identityOverride.ident) networkToUse.ident = identityOverride.ident;
+      if (identityOverride.name || identityOverride.email) {
+        let realname = identityOverride.name || networkToUse.realname;
+        if (identityOverride.email) {
+          realname = `${realname} <${identityOverride.email}>`;
+        }
+        networkToUse.realname = realname;
+      }
     }
 
     // Find server to use
@@ -282,9 +308,10 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
       // Save connection state and enable auto-reconnect for this network
       if (networkToUse.name) {
         const channels: string[] = [];
-        // Get channels from tabs
+        // Get channels from tabs - ONLY for this specific network
+        // This prevents saving channels from other networks when connecting to a new network
         tabsRef.current.forEach(tab => {
-          if (tab.type === 'channel' && tab.name.startsWith('#')) {
+          if (tab.type === 'channel' && tab.name.startsWith('#') && tab.networkId === finalId) {
             channels.push(tab.name);
           }
         });
@@ -366,5 +393,178 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
     autoConnectFavoriteServerRef,
   ]);
 
-  return { handleConnect };
+  /**
+   * Handle /server command connection logic
+   * Processes parsed server command arguments and creates/updates network config, then connects
+   */
+  const handleServerConnect = useCallback(async (serverArgs: any, activeIRCService: any) => {
+    try {
+      // Handle -m (new window) and -n (new window no connect)
+      const isNewWindow = serverArgs.switches?.newWindow || serverArgs.switches?.newWindowNoConnect;
+      
+      // Disconnect from current server if connected and NOT creating new window
+      const currentService = activeIRCService;
+      if (currentService && currentService.getConnectionStatus() && !isNewWindow) {
+        currentService.sendRaw(`QUIT :${t('Changing server')}`);
+        await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay
+      }
+
+      // Get or create network configuration
+      const networks = await settingsService.loadNetworks();
+      let network: IRCNetworkConfig | undefined;
+      let serverConfig: IRCServerConfig | undefined;
+
+      // Handle server index (Nth server) or group name
+      if (serverArgs.serverIndex) {
+        // Connect to Nth server from current network
+        const currentNetwork = networks.find(n => n.name === activeIRCService.getNetworkName());
+        if (currentNetwork && currentNetwork.servers[serverArgs.serverIndex - 1]) {
+          network = currentNetwork;
+          serverConfig = currentNetwork.servers[serverArgs.serverIndex - 1];
+        }
+      } else if (serverArgs.address) {
+        // Find existing network or create new one
+        network = networks.find(n => 
+          n.servers.some(s => 
+            s.hostname.toLowerCase() === serverArgs.address.toLowerCase() ||
+            n.name.toLowerCase() === serverArgs.address.toLowerCase()
+          )
+        );
+
+        if (!network) {
+          // Create temporary network
+          const defaultProfile = await identityProfilesService.getDefaultProfile();
+          // For -m (new window), use unique network name to force new connection
+          const networkName = isNewWindow 
+            ? `${serverArgs.address} (${Date.now()})`
+            : serverArgs.address;
+          network = {
+            id: `temp-${Date.now()}`,
+            name: networkName,
+            nick: serverArgs.identity?.nick || defaultProfile.nick || 'AndroidIRCX',
+            altNick: serverArgs.identity?.altNick || defaultProfile.altNick || 'AndroidIRCX_',
+            realname: serverArgs.identity?.name || defaultProfile.realname || 'AndroidIRCX User',
+            ident: defaultProfile.ident || 'androidircx',
+            servers: [],
+            identityProfileId: defaultProfile.id,
+          };
+        } else if (isNewWindow) {
+          // For -m (new window), create a new network entry even if it exists
+          // This will force ConnectionManager to create a new connection with suffix (1), (2), etc.
+          network = {
+            ...network,
+            id: `${network.id}-${Date.now()}`,
+            name: `${network.name} (new)`,
+          };
+        }
+
+        // Find or create server config
+        serverConfig = network.servers.find(s => 
+          s.hostname.toLowerCase() === serverArgs.address.toLowerCase()
+        );
+
+        if (!serverConfig) {
+          serverConfig = {
+            id: `server-${Date.now()}`,
+            hostname: serverArgs.address,
+            port: serverArgs.port || (serverArgs.switches?.ssl ? 6697 : 6667),
+            ssl: serverArgs.switches?.ssl || serverArgs.switches?.starttls || false,
+            rejectUnauthorized: true,
+            password: serverArgs.password || '',
+            name: serverArgs.address,
+          };
+          network.servers.push(serverConfig);
+        } else {
+          // Update server config with provided parameters
+          if (serverArgs.port) serverConfig.port = serverArgs.port;
+          if (serverArgs.switches?.ssl) serverConfig.ssl = true;
+          if (serverArgs.switches?.starttls) serverConfig.ssl = true;
+          if (serverArgs.password) serverConfig.password = serverArgs.password;
+        }
+
+        // Apply identity if provided
+        if (serverArgs.identity?.nick) network.nick = serverArgs.identity.nick;
+        if (serverArgs.identity?.altNick) network.altNick = serverArgs.identity.altNick;
+        if (serverArgs.identity?.name) network.realname = serverArgs.identity.name;
+        if (serverArgs.identity?.email) network.realname = `${network.realname} <${serverArgs.identity.email}>`;
+
+        // Apply SASL if provided
+        if (serverArgs.login?.method && serverArgs.login?.password) {
+          network.sasl = {
+            account: serverArgs.login.username || network.nick,
+            password: serverArgs.login.password,
+          };
+        }
+
+        // Add join channels if provided
+        if (serverArgs.joinChannels && serverArgs.joinChannels.length > 0) {
+          network.autoJoinChannels = serverArgs.joinChannels.map((j: any) => j.channel);
+        }
+      }
+
+      if (network && serverConfig) {
+        // For -n (new window no connect), just create the network config but don't connect
+        if (serverArgs.switches?.newWindowNoConnect) {
+          await settingsService.addNetwork(network);
+          activeIRCService.addMessage({
+            type: 'notice',
+            text: t('*** Network "{name}" created (not connected). Use /server -m {address} to connect.', { 
+              name: network.name,
+              address: serverArgs.address 
+            }),
+            timestamp: Date.now(),
+          });
+        } else {
+          // Connect using handleConnect
+          // For -m (new window), ConnectionManager will automatically create new connection with suffix
+          let newConnectionId: string | null = null;
+          const unsubscribeConnectionCreated = connectionManager.onConnectionCreated((networkId: string) => {
+            newConnectionId = networkId;
+          });
+          await handleConnect(network, serverConfig.id, undefined, {
+            identity: serverArgs.identity,
+          });
+          unsubscribeConnectionCreated();
+          if (serverArgs.joinChannels && serverArgs.joinChannels.length > 0) {
+            const connection =
+              (newConnectionId ? connectionManager.getConnection(newConnectionId) : undefined) ||
+              connectionManager.getActiveConnection();
+            const ircService = connection?.ircService;
+            if (ircService) {
+              const joinAll = () => {
+                serverArgs.joinChannels.forEach((j: any) => {
+                  ircService.joinChannel(j.channel, j.password);
+                });
+              };
+              if (ircService.isRegistered()) {
+                joinAll();
+              } else {
+                const unsubscribe = ircService.on('registered', () => {
+                  unsubscribe();
+                  joinAll();
+                });
+              }
+            }
+          }
+        }
+      } else {
+        activeIRCService.addMessage({
+          type: 'error',
+          text: t('Invalid server address or configuration'),
+          timestamp: Date.now(),
+        });
+      }
+    } catch (error: any) {
+      activeIRCService.addMessage({
+        type: 'error',
+        text: t('Failed to connect: {error}', { error: error.message || String(error) }),
+        timestamp: Date.now(),
+      });
+    }
+  }, [handleConnect, t]);
+
+  return { 
+    handleConnect,
+    handleServerConnect,
+  };
 };

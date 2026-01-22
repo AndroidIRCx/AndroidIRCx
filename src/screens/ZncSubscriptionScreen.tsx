@@ -816,17 +816,49 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   const handleRestorePurchases = async () => {
     setRestoring(true);
     try {
-      console.log('ZNC Restore: Fetching available purchases from store...');
-      const purchases = await RNIap.getAvailablePurchases();
-      console.log('ZNC Restore: Got purchases:', purchases.length, 'total');
-      console.log('ZNC Restore: Product IDs:', purchases.map(p => p.productId));
+      console.log('ZNC Restore: Fetching purchases from store...');
+      
+      // Try both getAvailablePurchases and getPurchaseHistory
+      // getAvailablePurchases returns only active subscriptions
+      // getPurchaseHistory returns all purchases including expired/cancelled ones
+      let purchases: any[] = [];
+      let purchaseHistory: any[] = [];
+      
+      try {
+        purchases = await RNIap.getAvailablePurchases();
+        console.log('ZNC Restore: Available purchases:', purchases.length);
+      } catch (error) {
+        console.warn('ZNC Restore: Failed to get available purchases:', error);
+      }
+      
+      try {
+        // getPurchaseHistory is available on Android and returns all purchases
+        if (RNIap.getPurchaseHistory && typeof RNIap.getPurchaseHistory === 'function') {
+          purchaseHistory = await RNIap.getPurchaseHistory();
+          console.log('ZNC Restore: Purchase history:', purchaseHistory.length);
+        }
+      } catch (error) {
+        console.warn('ZNC Restore: Failed to get purchase history:', error);
+      }
+      
+      // Combine both lists, removing duplicates by transactionId
+      const allPurchases = [...purchases];
+      const existingTransactionIds = new Set(purchases.map(p => p.transactionId));
+      purchaseHistory.forEach(p => {
+        if (!existingTransactionIds.has(p.transactionId)) {
+          allPurchases.push(p);
+        }
+      });
+      
+      console.log('ZNC Restore: Total unique purchases:', allPurchases.length);
+      console.log('ZNC Restore: Product IDs:', allPurchases.map(p => p.productId));
 
-      const zncPurchases = purchases.filter(p => p.productId === ZNC_PRODUCT_ID);
+      const zncPurchases = allPurchases.filter(p => p.productId === ZNC_PRODUCT_ID);
       console.log('ZNC Restore: ZNC purchases found:', zncPurchases.length);
 
       if (zncPurchases.length === 0) {
         // Log all available purchases for debugging
-        console.log('ZNC Restore: No ZNC purchases. Available products:', JSON.stringify(purchases.map(p => ({
+        console.log('ZNC Restore: No ZNC purchases. Available products:', JSON.stringify(allPurchases.map(p => ({
           productId: p.productId,
           transactionId: p.transactionId,
           purchaseStateAndroid: (p as any).purchaseStateAndroid,

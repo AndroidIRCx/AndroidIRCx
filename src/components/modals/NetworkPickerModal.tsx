@@ -16,14 +16,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { settingsService, NetworkConfig } from '../../services/SettingsService';
+import { settingsService, IRCNetworkConfig } from '../../services/SettingsService';
 import { useTheme } from '../../hooks/useTheme';
 import { useT } from '../../i18n/transifex';
 
 interface NetworkPickerModalProps {
   visible: boolean;
   onClose: () => void;
-  onSelectNetwork: (network: NetworkConfig) => void;
+  onSelectNetwork: (network: IRCNetworkConfig) => void;
   onCreateNew: () => void;
   /** Highlight this network as recommended */
   recommendedNetworkId?: string;
@@ -41,7 +41,7 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
-  const [networks, setNetworks] = useState<NetworkConfig[]>([]);
+  const [networks, setNetworks] = useState<IRCNetworkConfig[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -68,16 +68,16 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
     }
   };
 
-  const getNetworkIcon = (network: NetworkConfig) => {
+  const getNetworkIcon = (network: IRCNetworkConfig) => {
     // Check if network has ZNC server configured
-    const hasZnc = network.servers?.some(s => s.connectionType === 'znc');
+    const hasZnc = network.servers?.some((s: any) => s.connectionType === 'znc');
     if (hasZnc) {
       return { name: 'server', color: '#4CAF50' };
     }
     return { name: 'network-wired', color: colors.textSecondary };
   };
 
-  const renderNetwork = ({ item }: { item: NetworkConfig }) => {
+  const renderNetwork = ({ item }: { item: IRCNetworkConfig }) => {
     const isRecommended = item.name === recommendedNetworkId;
     const icon = getNetworkIcon(item);
     const serverCount = item.servers?.length || 0;
