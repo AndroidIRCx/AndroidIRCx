@@ -183,6 +183,30 @@ class IRCForegroundService : Service() {
         }
     }
 
+    /**
+     * Called by Android 14+ when a dataSync foreground service reaches its time limit.
+     * The app has a few seconds to stop the service cleanly, otherwise the system
+     * will throw ForegroundServiceDidNotStopInTimeException.
+     *
+     * The dataSync type has a 6-hour limit per 24-hour period on Android 14+.
+     */
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        android.util.Log.w(
+            "IRCForegroundService",
+            "Service timeout reached (startId=$startId, fgsType=$fgsType). Stopping service gracefully."
+        )
+
+        // Send a broadcast to notify the React Native side about the timeout
+        // so it can handle reconnection or notify the user
+        val intent = Intent("com.androidircx.action.SERVICE_TIMEOUT").apply {
+            setPackage(packageName)
+        }
+        sendBroadcast(intent)
+
+        // Stop the service gracefully
+        stopForegroundService()
+    }
+
     override fun onDestroy() {
         android.util.Log.d("IRCForegroundService", "onDestroy called")
         try {

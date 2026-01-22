@@ -6532,5 +6532,35 @@
   },
   "Optional public IP or hostname to include in DCC SEND offers": {
     "string": "Optional public IP or hostname to include in DCC SEND offers"
+  },
+  "Credits": {
+    "string": "Credits"
+  },
+  "Translators and contributors": {
+    "string": "Translators and contributors"
+  },
+  "Version 1.6.10": {
+    "string": "Version 1.6.10"
+  },
+  "Translators": {
+    "string": "Translators"
+  },
+  "Special thanks to everyone who helped translate AndroidIRCX into different languages.": {
+    "string": "Special thanks to everyone who helped translate AndroidIRCX into different languages."
+  },
+  "Help Translate": {
+    "string": "Help Translate"
+  },
+  "Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!": {
+    "string": "Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!"
+  },
+  "Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page.": {
+    "string": "Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page."
+  },
+  "Thank you to all contributors!": {
+    "string": "Thank you to all contributors!"
+  },
+  "Invalid certificate format. Please configure a valid PEM certificate.": {
+    "string": "Invalid certificate format. Please configure a valid PEM certificate."
   }
 }

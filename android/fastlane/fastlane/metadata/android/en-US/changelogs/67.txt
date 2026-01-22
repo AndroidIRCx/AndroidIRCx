@@ -1,5 +1,0 @@
-v1.6.5
-- Added typing indicators (toggle in Settings)
-- Improved foreground notifications for multiple connections
-- Message layout tweaks and background history saving
-- Updated dependencies for improved stability

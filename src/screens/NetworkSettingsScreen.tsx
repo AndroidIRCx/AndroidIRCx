@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -54,6 +54,12 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const [showCertGenerator, setShowCertGenerator] = useState(false);
   const [showCertSelector, setShowCertSelector] = useState(false);
   const [showCertFingerprint, setShowCertFingerprint] = useState(false);
+
+  // Memoized certificate fingerprint - returns null for invalid PEM
+  const certFingerprint = useMemo(() => {
+    if (!clientCert.trim()) return null;
+    return certificateManager.extractFingerprintFromPem(clientCert);
+  }, [clientCert]);
 
   useEffect(() => {
     if (networkId) {
@@ -134,6 +140,10 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const handleViewFingerprint = () => {
     if (!clientCert.trim()) {
       Alert.alert(t('Error'), t('No certificate configured'));
+      return;
+    }
+    if (!certFingerprint) {
+      Alert.alert(t('Error'), t('Invalid certificate format. Please configure a valid PEM certificate.'));
       return;
     }
     setShowCertFingerprint(true);
@@ -461,11 +471,11 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
         defaultCommonName={`${nick}@${name}`}
       />
 
-      {clientCert.trim() && (
+      {certFingerprint && (
         <CertificateFingerprintModal
           visible={showCertFingerprint}
           onClose={() => setShowCertFingerprint(false)}
-          fingerprint={certificateManager.extractFingerprintFromPem(clientCert)}
+          fingerprint={certFingerprint}
         />
       )}
     </Modal>

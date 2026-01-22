@@ -24,6 +24,7 @@ interface AboutSectionProps {
   };
   settingIcons: Record<string, SettingIcon | undefined>;
   onShowAbout: () => void;
+  onShowCredits: () => void;
 }
 
 export const AboutSection: React.FC<AboutSectionProps> = ({
@@ -31,6 +32,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
   styles,
   settingIcons,
   onShowAbout,
+  onShowCredits,
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:AboutSection.tsx,feature:settings';
@@ -43,6 +45,14 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
       type: 'button',
       searchKeywords: ['about', 'app', 'information', 'credits', 'version', 'androidircx', 'developer', 'info'],
       onPress: onShowAbout,
+    },
+    {
+      id: 'credits',
+      title: t('Credits', { _tags: tags }),
+      description: t('Translators and contributors', { _tags: tags }),
+      type: 'button',
+      searchKeywords: ['credits', 'translators', 'contributors', 'thanks', 'translation', 'language'],
+      onPress: onShowCredits,
     },
   ];
 

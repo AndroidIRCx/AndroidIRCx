@@ -209,9 +209,23 @@ class CertificateManagerService {
 
   /**
    * Get SHA-256 fingerprint for certificate
+   * @returns fingerprint hex string, or null if PEM is invalid
    */
-  getFingerprint(pemCert: string): string {
+  getFingerprint(pemCert: string): string | null {
     try {
+      // Validate input
+      if (!pemCert || typeof pemCert !== 'string' || !pemCert.trim()) {
+        console.warn('CertificateManager: Empty or invalid PEM input');
+        return null;
+      }
+
+      // Check for basic PEM structure
+      if (!pemCert.includes('-----BEGIN CERTIFICATE-----') ||
+          !pemCert.includes('-----END CERTIFICATE-----')) {
+        console.warn('CertificateManager: PEM does not contain certificate markers');
+        return null;
+      }
+
       // Parse PEM certificate
       const cert = forge.pki.certificateFromPem(pemCert);
 
@@ -227,7 +241,7 @@ class CertificateManagerService {
       return digest.toHex();
     } catch (error) {
       console.error('CertificateManager: Failed to calculate fingerprint:', error);
-      throw new Error(`Failed to calculate fingerprint: ${error}`);
+      return null;
     }
   }
 
@@ -287,8 +301,9 @@ class CertificateManagerService {
 
   /**
    * Extract fingerprint from existing PEM certificate
+   * @returns fingerprint hex string, or null if PEM is invalid
    */
-  extractFingerprintFromPem(pemCert: string): string {
+  extractFingerprintFromPem(pemCert: string): string | null {
     return this.getFingerprint(pemCert);
   }
 

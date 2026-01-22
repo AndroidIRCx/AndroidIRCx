@@ -1,5 +1,0 @@
-- Fixed PIN lock persistence - settings now properly save after closing app.
-- Customizable panic button - change name, icon, and color for discretion (defaults to "Meow Meow" 🐱).
-- Ignore list improvements - added search and network filtering.
-- Persist layout and appearance settings across restarts.
-- Hardened E2E encryption with context-bound AAD for DM/channel messages and media.

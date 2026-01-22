@@ -1,6 +1,0 @@
-v1.6.0
-- Add media sharing tools: camera, video, voice recordings, preview/upload.
-- Encrypted media upload/download services with caching and settings. 
-- New help and settings sections for media, background/battery, connection, and UI options. 
-- Message view/input improvements including search and parsing updates. 
-- Android native networking modules and foreground service updates.

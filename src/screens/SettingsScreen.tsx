@@ -28,6 +28,7 @@ import { connectionProfilesService } from '../services/ConnectionProfilesService
 import { ConnectionProfilesScreen } from './ConnectionProfilesScreen';
 import { settingsService, IRCNetworkConfig, DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE } from '../services/SettingsService';
 import { AboutScreen } from './AboutScreen';
+import { CreditsScreen } from './CreditsScreen';
 import { bouncerService, BouncerConfig } from '../services/BouncerService';
 import { layoutService, LayoutConfig, ViewMode, FontSize } from '../services/LayoutService';
 import { performanceService, PerformanceConfig } from '../services/PerformanceService';
@@ -188,6 +189,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   // Layout config and app language now come from useSettingsAppearance hook (see above)
   const [performanceConfig, setPerformanceConfig] = useState<PerformanceConfig | null>(null);
   const [showAbout, setShowAbout] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
   const [showPrivacyAds, setShowPrivacyAds] = useState(false);
   const [showDataPrivacy, setShowDataPrivacy] = useState(false);
   const [backupData, setBackupData] = useState('');
@@ -2029,6 +2031,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             styles={styles}
             settingIcons={settingIcons}
             onShowAbout={() => setShowAbout(true)}
+            onShowCredits={() => setShowCredits(true)}
           />
         );
       }
@@ -2617,6 +2620,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <AboutScreen
         visible={showAbout}
         onClose={() => setShowAbout(false)}
+      />
+      <CreditsScreen
+        visible={showCredits}
+        onClose={() => setShowCredits(false)}
       />
       <PrivacyAdsScreen
         visible={showPrivacyAds}

@@ -1,0 +1,5 @@
+v1.6.10
+- Fixed DCC file opening crash on Android 7+
+- Fixed certificate fingerprint display for invalid PEM data
+- Fixed foreground service timeout crash on Android 14+
+- Added credits page for project contributors

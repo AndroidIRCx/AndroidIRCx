@@ -1,5 +1,0 @@
-v1.6.7
-- Fixed background service crash on Android 14+ devices
-- Improved app startup stability on certain devices
-- Enhanced network connection reliability with better timeout handling
-- Security improvements for logging

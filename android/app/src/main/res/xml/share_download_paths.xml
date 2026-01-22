@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- External storage Download folder -->
+    <external-path
+        name="rnshare1"
+        path="Download/" />
+    <!-- App cache directory -->
+    <cache-path
+        name="rnshare2"
+        path="/" />
+    <!-- App internal files directory - REQUIRED for DCC file transfers -->
+    <files-path
+        name="rnshare3"
+        path="/" />
+</paths>

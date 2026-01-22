@@ -1,4 +1,0 @@
-v1.6.6
-- Fixed auto-reconnect for multiple servers on network change (WiFi to mobile)
-- ZNC subscription implemented
-- Stability improvements and bug fixes

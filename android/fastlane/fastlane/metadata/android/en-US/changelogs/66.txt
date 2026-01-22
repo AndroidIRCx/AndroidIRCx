@@ -1,6 +1,0 @@
-v1.6.4 - Client Certificate Authentication:
-- SASL EXTERNAL certs (generate/view/manage)
-- Fingerprint QR + /certfp, /certadd
-- Certificate generation UX improvements
-- Chat scroll readability fix
-- Updated dependencies for improved stability

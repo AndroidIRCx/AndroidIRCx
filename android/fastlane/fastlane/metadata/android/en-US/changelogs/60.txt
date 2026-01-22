@@ -1,7 +1,0 @@
-v1.5.9 - Bug Fixes & Improvements:
-- Fixed active tab showing "No messages" after returning from background
-- Fixed nick change messages now follow Notice routing settings
-- Fixed context menu closing unexpectedly when scrolling
-- Fixed memory leaks and race conditions in background state handling
-- Improved message history loading reliability
-- Updated dependencies for better stability

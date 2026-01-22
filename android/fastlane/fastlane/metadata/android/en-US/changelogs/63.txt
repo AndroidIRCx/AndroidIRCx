@@ -1,8 +1,0 @@
-v1.6.1
-- Android keyboard handling improvements with configurable offsets/behavior.
-- Voice recordings now capture audio only.
-- Media upload progress indicators and preview fixes (images/video).
-- Tab indicator fix for left/right tabs.
-- Duplicate channel tabs reduced for case-insensitive names.
-- New performance settings for user list grouping/virtualization.
-- Help updates for keyboard troubleshooting and media encryption wording.

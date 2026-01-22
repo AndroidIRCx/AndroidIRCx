@@ -1,4 +1,0 @@
-v1.6.2 Bug Fixes & Improvements:
-- Fixed user list group headers showing incorrect collapse/expand icons
-- Fixed user list sorting - now properly orders by rank (operators, half-ops, voice, users) even when grouping is disabled
-- Fixed audio recorder crashes in production builds

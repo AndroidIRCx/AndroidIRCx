@@ -97,16 +97,38 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
 
     try {
       const mimeType = getMimeType(transfer.offer.filename);
+      // Ensure path starts with / and construct proper file:// URI
+      const normalizedPath = transfer.filePath.startsWith('/')
+        ? transfer.filePath
+        : `/${transfer.filePath}`;
+
+      // Verify file exists before trying to open
+      const RNFS = require('react-native-fs');
+      const exists = await RNFS.exists(transfer.filePath);
+      if (!exists) {
+        Alert.alert('Error', 'File no longer exists at the saved location');
+        return;
+      }
+
       await Share.open({
-        url: `file://${transfer.filePath}`,
+        url: `file://${normalizedPath}`,
         type: mimeType,
         title: `Open ${transfer.offer.filename}`,
+        showAppsToView: true,
       });
     } catch (error: any) {
       // Share dialog was cancelled or failed
       if (error.message !== 'User did not share') {
         console.error('[DccTransfersModal] Error opening file:', error);
-        Alert.alert('Error', `Could not open file: ${error.message}`);
+        // Provide more helpful error message
+        if (error.message?.includes('null object reference') || error.message?.includes('Uri')) {
+          Alert.alert(
+            'Error',
+            'Could not open file. The file may need to be moved to an accessible location or the app may need to be restarted.',
+          );
+        } else {
+          Alert.alert('Error', `Could not open file: ${error.message}`);
+        }
       }
     }
   };
