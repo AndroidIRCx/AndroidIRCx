@@ -6532,5 +6532,35 @@
   },
   "Optional public IP or hostname to include in DCC SEND offers": {
     "string": "IP pública o nombre de host opcional para incluir en los pedidos de DCC SEND"
+  },
+  "Credits": {
+    "string": ""
+  },
+  "Translators and contributors": {
+    "string": ""
+  },
+  "Version 1.6.10": {
+    "string": ""
+  },
+  "Translators": {
+    "string": ""
+  },
+  "Special thanks to everyone who helped translate AndroidIRCX into different languages.": {
+    "string": ""
+  },
+  "Help Translate": {
+    "string": ""
+  },
+  "Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!": {
+    "string": ""
+  },
+  "Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page.": {
+    "string": ""
+  },
+  "Thank you to all contributors!": {
+    "string": ""
+  },
+  "Invalid certificate format. Please configure a valid PEM certificate.": {
+    "string": ""
   }
 }

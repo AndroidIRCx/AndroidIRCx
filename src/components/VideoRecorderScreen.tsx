@@ -168,7 +168,7 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
         animationType="slide"
         onRequestClose={onClose}
         statusBarTranslucent={false}>
-        <View style={[styles.container, { backgroundColor: colors.surfaceBackground }]}>
+        <View style={[styles.container, { backgroundColor: colors.surface }]}>
           <View style={styles.permissionContainer}>
             <Text style={[styles.permissionTitle, { color: colors.text }]}>
               {t('Permissions Required')}
@@ -182,7 +182,7 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
               <Text style={styles.permissionButtonText}>{t('Grant Permissions')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.cancelButton, { borderColor: colors.borderColor }]}
+              style={[styles.cancelButton, { borderColor: colors.border }]}
               onPress={onClose}>
               <Text style={[styles.cancelButtonText, { color: colors.text }]}>
                 {t('Cancel')}
@@ -202,13 +202,13 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
         animationType="slide"
         onRequestClose={onClose}
         statusBarTranslucent={false}>
-        <View style={[styles.container, { backgroundColor: colors.surfaceBackground }]}>
+        <View style={[styles.container, { backgroundColor: colors.surface }]}>
           <View style={styles.errorContainer}>
             <Text style={[styles.errorText, { color: colors.error }]}>
               {t('Camera not available')}
             </Text>
             <TouchableOpacity
-              style={[styles.cancelButton, { borderColor: colors.borderColor }]}
+              style={[styles.cancelButton, { borderColor: colors.border }]}
               onPress={onClose}>
               <Text style={[styles.cancelButtonText, { color: colors.text }]}>
                 {t('Close')}
@@ -257,7 +257,7 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
 
           {/* Error message */}
           {error && (
-            <View style={[styles.errorBanner, { backgroundColor: colors.errorBackground }]}>
+            <View style={[styles.errorBanner, { backgroundColor: colors.error + '20' }]}>
               <Text style={[styles.errorBannerText, { color: colors.error }]}>{error}</Text>
             </View>
           )}

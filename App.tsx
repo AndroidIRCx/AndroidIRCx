@@ -315,7 +315,7 @@ function AppContent() {
     }
     
     if (!verified) {
-      safeAlert(t('Error'), t('Kill switch requires PIN or biometric authentication.'));
+      Alert.alert(t('Error'), t('Kill switch requires PIN or biometric authentication.'));
       return;
     }
     
@@ -333,7 +333,7 @@ function AppContent() {
         t('Some errors occurred:\n{errors}').replace('{errors}', result.errors.join('\n'))
       );
     }
-  }, [attemptBiometricUnlock, safeAlert, t]);
+  }, [attemptBiometricUnlock, t]);
 
   // Banner ad lifecycle management (scripting time, ad-free time, show/hide cycle)
   useBannerAds();
@@ -428,8 +428,8 @@ function AppContent() {
       const verticalOffset = await settingsService.getSetting('keyboardVerticalOffset', 0);
       const androidBottomSafeArea = await settingsService.getSetting('useAndroidBottomSafeArea', true);
       setKeyboardAvoidingEnabled(avoidingEnabled);
-      setKeyboardBehaviorIOS(behaviorIOS);
-      setKeyboardBehaviorAndroid(behaviorAndroid);
+      setKeyboardBehaviorIOS(behaviorIOS as 'padding' | 'height' | 'position' | 'translate-with-padding');
+      setKeyboardBehaviorAndroid(behaviorAndroid as 'padding' | 'height' | 'position' | 'translate-with-padding');
       setKeyboardVerticalOffset(verticalOffset);
       setUseAndroidBottomSafeArea(androidBottomSafeArea);
     };
@@ -571,7 +571,7 @@ function AppContent() {
   });
 
   // Connection Handler - Handle IRC server connection
-  const { handleConnect } = useConnectionHandler({
+  const { handleConnect, handleServerConnect } = useConnectionHandler({
     setSelectedNetworkName,
     setActiveConnectionId,
     setNetworkName,
@@ -685,6 +685,7 @@ function AppContent() {
     pendingMessagesRef,
     motdCompleteRef,
     isMountedRef,
+    handleServerConnect,
   });
 
   // Configure DCC port range from settings
@@ -697,7 +698,7 @@ function AppContent() {
   useAutoConnectFavorite({
     autoConnectFavoriteServer,
     initialDataLoaded,
-    selectedNetworkName,
+    selectedNetworkName: selectedNetworkName ?? '',
     handleConnect,
     autoConnectAttemptedRef,
   });
@@ -711,6 +712,9 @@ function AppContent() {
     motdCompleteRef,
     motdSignal,
   });
+
+  // Note: /server command handling is now in useConnectionHandler.handleServerConnect
+  // and called directly from useConnectionLifecycle, so no need for event listener here
 
 
   // Remove handleAddPress as its logic is now merged into handleDropdownPress

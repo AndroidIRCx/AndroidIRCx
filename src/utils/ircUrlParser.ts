@@ -3,11 +3,14 @@ import { identityProfilesService, IdentityProfile } from '../services/IdentityPr
 
 /**
  * Parsed IRC URL structure
- * Supports format: irc[s]://[nick[:password]@]server[:port][/channel[,needkey]][?params]
+ * Supports format: irc[s]://[nick[:password]@]server[:port][/channel[,needkey]][?nick=X&altNick=Y&realname=Z&ident=W]
  */
 export interface ParsedIRCUrl {
   protocol: 'irc' | 'ircs';
   nick?: string;
+  altNick?: string;
+  realname?: string;
+  ident?: string;
   password?: string;
   server: string;
   port: number;
@@ -36,6 +39,13 @@ export function isIRCUrl(url: string): boolean {
  * - irc://nick@irc.example.com/channel
  * - irc://nick:password@irc.example.com:6667/channel,key
  * - irc://[::1]:6667/channel (IPv6)
+ * - ircs://irc.example.com:6697/channel?nick=MyNick&altNick=MyAltNick&realname=MyName&ident=myident
+ *
+ * Query parameters:
+ * - ?nick=X - Override nickname (takes precedence over nick@ in URL)
+ * - ?altNick=X or ?alt_nick=X - Set alternate nickname
+ * - ?realname=X or ?real_name=X - Set real name
+ * - ?ident=X - Set ident/username
  *
  * @param url The IRC URL to parse
  * @returns ParsedIRCUrl object with isValid flag
@@ -70,6 +80,20 @@ export function parseIRCUrl(url: string): ParsedIRCUrl {
   // Remove protocol
   let remaining = trimmed.substring(ircMatch[0].length);
 
+  // Extract query parameters (everything after ?)
+  let queryParams: Record<string, string> = {};
+  const queryIndex = remaining.indexOf('?');
+  if (queryIndex !== -1) {
+    const queryString = remaining.substring(queryIndex + 1);
+    remaining = remaining.substring(0, queryIndex);
+
+    // Parse query string
+    const params = new URLSearchParams(queryString);
+    params.forEach((value, key) => {
+      queryParams[key.toLowerCase()] = decodeURIComponent(value);
+    });
+  }
+
   // Extract channel and key (everything after first /)
   let channel: string | undefined;
   let channelKey: string | undefined;
@@ -79,12 +103,8 @@ export function parseIRCUrl(url: string): ParsedIRCUrl {
     remaining = remaining.substring(0, slashIndex);
 
     if (channelPart) {
-      // Remove query params if present
-      const queryIndex = channelPart.indexOf('?');
-      const channelAndKey = queryIndex !== -1 ? channelPart.substring(0, queryIndex) : channelPart;
-
       // Split channel and key (format: channel,key)
-      const parts = channelAndKey.split(',');
+      const parts = channelPart.split(',');
       channel = decodeURIComponent(parts[0].trim());
 
       // Ensure channel starts with # if it doesn't already
@@ -159,10 +179,20 @@ export function parseIRCUrl(url: string): ParsedIRCUrl {
     return invalidResult('Server hostname is missing');
   }
 
+  // Extract query parameters (nick, altNick, realname, ident)
+  // Query params override URL auth nick if both are present
+  const queryNick = queryParams['nick'];
+  const queryAltNick = queryParams['altnick'] || queryParams['alt_nick'];
+  const queryRealname = queryParams['realname'] || queryParams['real_name'];
+  const queryIdent = queryParams['ident'];
+
   // Success!
   return {
     protocol,
-    nick,
+    nick: queryNick || nick, // Query param takes precedence
+    altNick: queryAltNick,
+    realname: queryRealname,
+    ident: queryIdent,
     password,
     server,
     port,
@@ -246,13 +276,14 @@ export function createTempNetworkFromUrl(
   const networkId = `temp_${timestamp}_${parsedUrl.server}`;
 
   // Build network config
+  // Query params and URL auth take precedence over default profile
   const network: IRCNetworkConfig = {
     id: networkId,
     name: parsedUrl.server,
     nick: parsedUrl.nick || defaultProfile.nick || 'AndroidIRCX',
-    altNick: defaultProfile.altNick || 'AndroidIRCX_',
-    realname: defaultProfile.realname || 'AndroidIRCX User',
-    ident: defaultProfile.ident || 'androidircx',
+    altNick: parsedUrl.altNick || defaultProfile.altNick || 'AndroidIRCX_',
+    realname: parsedUrl.realname || defaultProfile.realname || 'AndroidIRCX User',
+    ident: parsedUrl.ident || defaultProfile.ident || 'androidircx',
     servers: [
       {
         id: `${networkId}_server`,

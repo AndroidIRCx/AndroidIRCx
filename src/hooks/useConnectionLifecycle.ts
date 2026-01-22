@@ -15,6 +15,7 @@ import { dccFileService } from '../services/DCCFileService';
 import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
 import { useTabStore } from '../stores/tabStore';
+import { useUIStore } from '../stores/uiStore';
 import { tabService } from '../services/TabService';
 import { messageHistoryService } from '../services/MessageHistoryService';
 import { serverTabId, channelTabId, queryTabId, noticeTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
@@ -43,6 +44,7 @@ interface UseConnectionLifecycleParams {
   pendingMessagesRef: React.MutableRefObject<Array<{message: IRCMessage, context: any}>>;
   motdCompleteRef: React.MutableRefObject<Set<string>>;
   isMountedRef: React.MutableRefObject<boolean>;
+  handleServerConnect?: (serverArgs: any, activeIRCService: any) => Promise<void>;
 }
 
 /**
@@ -72,6 +74,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
     pendingMessagesRef,
     motdCompleteRef,
     isMountedRef,
+    handleServerConnect,
   } = params;
 
   const t = useT();
@@ -299,15 +302,28 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
               .replace('{filename}', dccSend.filename)
               .replace('{size}', (dccSend.size || '?').toString()),
             [
-              { text: latest.t('Decline'), style: 'cancel', onPress: () => dccFileService.cancel(transfer.id) },
+              { 
+                text: latest.t('Decline'), 
+                style: 'cancel', 
+                onPress: () => {
+                  dccFileService.cancel(transfer.id);
+                  activeIRCService.addMessage({
+                    type: 'notice',
+                    text: latest.t('*** DCC SEND offer from {from}: {filename} - Rejected', { from: message.from, filename: dccSend.filename }),
+                    timestamp: Date.now(),
+                  });
+                }
+              },
               {
                 text: latest.t('Accept'),
                 onPress: () => {
-                  // The accept flow is handled elsewhere (user needs to choose download path)
-                  // Just log that user accepted the offer
+                  // Open DCC Transfers modal so user can see and manage the transfer
+                  useUIStore.getState().setShowDccTransfers(true);
+                  useUIStore.getState().setDccTransfersMinimized(false);
+                  // Inform user that transfer is ready to accept
                   activeIRCService.addMessage({
                     type: 'notice',
-                    text: `*** DCC SEND offer from ${message.from}: ${dccSend.filename} - Use DCC Transfers menu to accept`,
+                    text: latest.t('*** DCC SEND offer from {from}: {filename} - Open DCC Transfers to accept', { from: message.from, filename: dccSend.filename }),
                     timestamp: Date.now(),
                   });
                 },
@@ -760,6 +776,360 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         });
       });
 
+      // Listen for clear-tab command
+      const unsubscribeClearTab = activeIRCService.on('clear-tab', (target: string, network: string) => {
+        const latest = latestRef.current;
+        const currentTabs = latest.tabsRef.current;
+        // Find tab by target (channel name or nick)
+        const tabToClear = currentTabs.find(t => {
+          if (t.networkId === network) {
+            if (target.startsWith('#') || target.startsWith('&')) {
+              return t.type === 'channel' && t.name.toLowerCase() === target.toLowerCase();
+            } else {
+              return (t.type === 'query' || t.type === 'notice') && t.name.toLowerCase() === target.toLowerCase();
+            }
+          }
+          return false;
+        });
+        if (tabToClear) {
+          latest.safeSetState(() => {
+            useTabStore.getState().clearTabMessages(tabToClear.id);
+            // Also clear from message history
+            const channelKey = tabToClear.type === 'server' ? 'server' : tabToClear.name;
+            messageHistoryService.deleteMessages(network, channelKey).catch(err => {
+              console.error('Failed to clear message history:', err);
+            });
+          });
+        }
+      });
+
+      // Listen for close-tab command
+      const unsubscribeCloseTab = activeIRCService.on('close-tab', (target: string, network: string) => {
+        const latest = latestRef.current;
+        const currentTabs = latest.tabsRef.current;
+        // Find tab by target (channel name or nick)
+        const tabToClose = currentTabs.find(t => {
+          if (t.networkId === network) {
+            if (target.startsWith('#') || target.startsWith('&')) {
+              return t.type === 'channel' && t.name.toLowerCase() === target.toLowerCase();
+            } else {
+              return (t.type === 'query' || t.type === 'notice') && t.name.toLowerCase() === target.toLowerCase();
+            }
+          }
+          return false;
+        });
+        if (tabToClose && tabToClose.type !== 'server') {
+          latest.safeSetState(() => {
+            // Part channel if it's a channel tab
+            if (tabToClose.type === 'channel') {
+              activeIRCService.partChannel(tabToClose.name);
+            }
+            // Remove tab
+            useTabStore.getState().removeTab(tabToClose.id);
+            // Save tabs
+            const remainingTabs = currentTabs.filter(t => t.id !== tabToClose.id);
+            tabService.saveTabs(network, remainingTabs.filter(t => t.networkId === network)).catch(err => {
+              console.error('Failed to save tabs after close:', err);
+            });
+            // Switch to another tab if this was active
+            if (tabToClose.id === latest.activeTabId) {
+              const serverTab = remainingTabs.find(t => t.networkId === network && t.type === 'server');
+              const nextTab = serverTab || remainingTabs[0];
+              if (nextTab) {
+                latest.setActiveTabId(nextTab.id);
+              }
+            }
+          });
+        }
+      });
+
+      // Listen for server-command - Handle /server command with all mIRC parameters
+      const unsubscribeServerCommand = activeIRCService.on('server-command', async (serverArgs: any) => {
+        const latest = latestRef.current;
+        try {
+          // Handle server management (-sar)
+          if (serverArgs.management.sort || serverArgs.management.add || serverArgs.management.remove) {
+            const networks = await settingsService.loadNetworks();
+            if (serverArgs.management.sort) {
+              // Sort servers (implementation depends on requirements)
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t('*** Server list sorted'),
+                timestamp: Date.now(),
+              });
+            } else if (serverArgs.management.add && serverArgs.address) {
+              // Add server to network
+              const network = networks.find(n => n.name === activeIRCService.getNetworkName()) || networks[0];
+              if (network) {
+                const serverConfig = {
+                  id: `server-${Date.now()}`,
+                  hostname: serverArgs.address,
+                  port: serverArgs.managementOptions.port || serverArgs.port || 6667,
+                  ssl: serverArgs.switches.ssl || false,
+                  rejectUnauthorized: true,
+                  password: serverArgs.managementOptions.password || serverArgs.password || '',
+                  name: serverArgs.managementOptions.description || serverArgs.address,
+                };
+                await settingsService.addServerToNetwork(network.id, serverConfig);
+                activeIRCService.addMessage({
+                  type: 'notice',
+                  text: latest.t('*** Server added: {server}:{port}', { server: serverArgs.address, port: serverConfig.port }),
+                  timestamp: Date.now(),
+                });
+              }
+            } else if (serverArgs.management.remove && serverArgs.address) {
+              // Remove server from network
+              const network = networks.find(n => n.name === activeIRCService.getNetworkName()) || networks[0];
+              if (network) {
+                const server = network.servers.find(s => 
+                  s.hostname.toLowerCase() === serverArgs.address.toLowerCase() ||
+                  s.name?.toLowerCase() === serverArgs.address.toLowerCase()
+                );
+                if (server) {
+                  network.servers = network.servers.filter(s => s.id !== server.id);
+                  await settingsService.saveNetworks(networks);
+                  activeIRCService.addMessage({
+                    type: 'notice',
+                    text: latest.t('*** Server removed: {server}', { server: serverArgs.address }),
+                    timestamp: Date.now(),
+                  });
+                }
+              }
+            }
+            return;
+          }
+
+          // Handle connection (-d switch: disconnect only, no connect)
+          if (serverArgs.switches.disconnectOnly) {
+            if (activeIRCService.getConnectionStatus()) {
+              activeIRCService.sendRaw(`QUIT :${latest.t('Changing server')}`);
+            }
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** Server connection details updated'),
+              timestamp: Date.now(),
+            });
+            return;
+          }
+
+          // Handle server connection
+          if (!serverArgs.address && !serverArgs.serverIndex) {
+            // No parameters - connect to last server
+            activeIRCService.addMessage({
+              type: 'error',
+              text: latest.t('No server specified. Use /server <address> [port]'),
+              timestamp: Date.now(),
+            });
+            return;
+          }
+
+          // Call handleServerConnect directly if available, otherwise emit event for backward compatibility
+          if (handleServerConnect) {
+            await handleServerConnect(serverArgs, activeIRCService);
+          } else {
+            // Fallback: emit event for App.tsx to handle (backward compatibility)
+            activeIRCService.emit('server-connect', {
+              ...serverArgs,
+              network: activeIRCService.getNetworkName(),
+            });
+          }
+        } catch (error: any) {
+          activeIRCService.addMessage({
+            type: 'error',
+            text: latest.t('*** Server command error: {error}', { error: error.message || String(error) }),
+            timestamp: Date.now(),
+          });
+        }
+      });
+      unsubscribers.push(unsubscribeServerCommand);
+
+      // Listen for dns-lookup command - Resolve hostname via DNS-over-HTTPS
+      const unsubscribeDnsLookup = activeIRCService.on('dns-lookup', async (hostname: string) => {
+        const latest = latestRef.current;
+        const query = (hostname || '').trim();
+        if (!query) {
+          activeIRCService.addMessage({
+            type: 'error',
+            text: latest.t('Usage: /dns <hostname>'),
+            timestamp: Date.now(),
+          });
+          return;
+        }
+
+        const lookup = async (baseUrl: string, type: 'A' | 'AAAA') => {
+          const url = `${baseUrl}?name=${encodeURIComponent(query)}&type=${type}`;
+          const response = await fetch(url, {
+            headers: { Accept: 'application/dns-json' },
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const data = await response.json();
+          if (data?.Status !== 0) {
+            return [];
+          }
+          const answers = Array.isArray(data?.Answer) ? data.Answer : [];
+          return answers
+            .filter((entry: any) => entry?.type === (type === 'A' ? 1 : 28) && entry?.data)
+            .map((entry: any) => String(entry.data));
+        };
+
+        try {
+          const providers = [
+            'https://cloudflare-dns.com/dns-query',
+            'https://dns.google/resolve',
+          ];
+          let aRecords: string[] = [];
+          let aaaaRecords: string[] = [];
+          let resolved = false;
+
+          for (const provider of providers) {
+            try {
+              aRecords = await lookup(provider, 'A');
+              aaaaRecords = await lookup(provider, 'AAAA');
+              resolved = true;
+              break;
+            } catch {
+              // Try next provider
+            }
+          }
+
+          if (!resolved) {
+            activeIRCService.addMessage({
+              type: 'error',
+              text: latest.t('*** DNS lookup failed for {hostname}', { hostname: query }),
+              timestamp: Date.now(),
+            });
+            return;
+          }
+
+          const uniqueA = Array.from(new Set(aRecords));
+          const uniqueAAAA = Array.from(new Set(aaaaRecords));
+          if (uniqueA.length === 0 && uniqueAAAA.length === 0) {
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** No DNS records found for {hostname}', { hostname: query }),
+              timestamp: Date.now(),
+            });
+            return;
+          }
+
+          if (uniqueA.length > 0) {
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** DNS A for {hostname}: {records}', {
+                hostname: query,
+                records: uniqueA.join(', '),
+              }),
+              timestamp: Date.now(),
+            });
+          } else {
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** DNS A for {hostname}: <none>', { hostname: query }),
+              timestamp: Date.now(),
+            });
+          }
+
+          if (uniqueAAAA.length > 0) {
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** DNS AAAA for {hostname}: {records}', {
+                hostname: query,
+                records: uniqueAAAA.join(', '),
+              }),
+              timestamp: Date.now(),
+            });
+          } else {
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** DNS AAAA for {hostname}: <none>', { hostname: query }),
+              timestamp: Date.now(),
+            });
+          }
+        } catch (error: any) {
+          activeIRCService.addMessage({
+            type: 'error',
+            text: latest.t('*** DNS lookup failed for {hostname}: {error}', {
+              hostname: query,
+              error: error?.message || String(error),
+            }),
+            timestamp: Date.now(),
+          });
+        }
+      });
+      unsubscribers.push(unsubscribeDnsLookup);
+
+      // Listen for amsg command - Send message to all channels
+      const unsubscribeAmsg = activeIRCService.on('amsg', (message: string, network: string) => {
+        const latest = latestRef.current;
+        const currentTabs = latest.tabsRef.current;
+        const channelTabs = currentTabs.filter(t => t.networkId === network && t.type === 'channel');
+        channelTabs.forEach(tab => {
+          activeIRCService.sendRaw(`PRIVMSG ${tab.name} :${message}`);
+        });
+        if (channelTabs.length > 0) {
+          activeIRCService.addMessage({
+            type: 'notice',
+            text: latest.t('*** Message sent to {count} channel(s)', { count: channelTabs.length }),
+            timestamp: Date.now(),
+          });
+        }
+      });
+
+      // Listen for ame command - Send action to all channels
+      const unsubscribeAme = activeIRCService.on('ame', (action: string, network: string) => {
+        const latest = latestRef.current;
+        const currentTabs = latest.tabsRef.current;
+        const channelTabs = currentTabs.filter(t => t.networkId === network && t.type === 'channel');
+        channelTabs.forEach(tab => {
+          // CTCP ACTION encoding: \x01ACTION text\x01
+          activeIRCService.sendRaw(`PRIVMSG ${tab.name} :\x01ACTION ${action}\x01`);
+        });
+        if (channelTabs.length > 0) {
+          activeIRCService.addMessage({
+            type: 'notice',
+            text: latest.t('*** Action sent to {count} channel(s)', { count: channelTabs.length }),
+            timestamp: Date.now(),
+          });
+        }
+      });
+
+      // Listen for anotice command - Send notice to all channels
+      const unsubscribeAnotice = activeIRCService.on('anotice', (message: string, network: string) => {
+        const latest = latestRef.current;
+        const currentTabs = latest.tabsRef.current;
+        const channelTabs = currentTabs.filter(t => t.networkId === network && t.type === 'channel');
+        channelTabs.forEach(tab => {
+          activeIRCService.sendRaw(`NOTICE ${tab.name} :${message}`);
+        });
+        if (channelTabs.length > 0) {
+          activeIRCService.addMessage({
+            type: 'notice',
+            text: latest.t('*** Notice sent to {count} channel(s)', { count: channelTabs.length }),
+            timestamp: Date.now(),
+          });
+        }
+      });
+
+      // Listen for reconnect command
+      const unsubscribeReconnect = activeIRCService.on('reconnect', (network: string) => {
+        const latest = latestRef.current;
+        // Emit event that connection handler can pick up
+        connectionManager.getConnection(network)?.ircService.disconnect();
+        // Reconnect will be handled by auto-reconnect service or connection handler
+        latest.safeSetState(() => {
+          latest.setIsConnected(false);
+        });
+      });
+
+      // Listen for beep command
+      const unsubscribeBeep = activeIRCService.on('beep', (options: { count: number; delay: number }) => {
+        // Could trigger sound service beep
+        // For now, just log
+        console.log('Beep requested:', options);
+      });
+
       // Simulate ping (in real implementation, measure actual ping)
       const pingInterval = setInterval(() => {
         const latest = latestRef.current;
@@ -776,6 +1146,14 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         unsubscribeKeyRequests();
         unsubscribeChannelKeys();
         unsubscribeTyping();
+        unsubscribeClearTab();
+        unsubscribeCloseTab();
+        unsubscribeDnsLookup();
+        unsubscribeAmsg();
+        unsubscribeAme();
+        unsubscribeAnotice();
+        unsubscribeReconnect();
+        unsubscribeBeep();
         clearInterval(pingInterval);
         unsubscribeRegistered && unsubscribeRegistered();
         unsubscribeMotd && unsubscribeMotd();

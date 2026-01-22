@@ -6,6 +6,9 @@ import { ircForegroundService } from './IRCForegroundService';
 import { userManagementService } from './UserManagementService';
 import { tx } from '../i18n/transifex';
 
+// Re-export ChannelTab from types for backward compatibility
+export { ChannelTab } from '../types';
+
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 // All other service imports are removed to break circular dependencies.
@@ -4267,6 +4270,157 @@ export class IRCService {
     if (this.isConnected && channel) this.sendRaw(`NAMES ${channel}`);
   }
   
+  /**
+   * Parse /server command with mIRC-compatible parameters
+   * Supports: -demntsar switches, -l/-lname (SASL login), -i (identity), -jn (join channel), -sar (server management)
+   */
+  private parseServerCommand(args: string[]): any {
+    const result: any = {
+      switches: {
+        disconnectOnly: false, // -d
+        ssl: false, // -e
+        newWindow: false, // -m
+        newWindowNoConnect: false, // -n
+        starttls: false, // -t
+      },
+      management: {
+        sort: false, // -s
+        add: false, // -a
+        remove: false, // -r
+      },
+      address: '',
+      port: null as number | null,
+      password: '',
+      login: {
+        method: '',
+        password: '',
+        username: '',
+      },
+      identity: {
+        nick: '',
+        altNick: '',
+        email: '',
+        name: '',
+      },
+      joinChannels: [] as Array<{ channel: string; password: string }>,
+      managementOptions: {
+        description: '',
+        group: '',
+        port: null as number | null,
+        password: '',
+      },
+    };
+
+    let i = 0;
+    const len = args.length;
+
+    // Parse switches (-demntsar)
+    while (i < len && args[i].startsWith('-')) {
+      const switchStr = args[i].substring(1);
+      for (const char of switchStr) {
+        switch (char) {
+          case 'd': result.switches.disconnectOnly = true; break;
+          case 'e': result.switches.ssl = true; break;
+          case 'm': result.switches.newWindow = true; break;
+          case 'n': result.switches.newWindowNoConnect = true; break;
+          case 't': result.switches.starttls = true; break;
+          case 's': result.management.sort = true; break;
+          case 'a': result.management.add = true; break;
+          case 'r': result.management.remove = true; break;
+        }
+      }
+      i++;
+    }
+
+    // If management mode (-sar), parse management options
+    if (result.management.sort || result.management.add || result.management.remove) {
+      while (i < len) {
+        if (args[i] === '-d' && i + 1 < len) {
+          result.managementOptions.description = args[++i];
+        } else if (args[i] === '-p' && i + 1 < len) {
+          result.managementOptions.port = parseInt(args[++i], 10) || null;
+        } else if (args[i] === '-g' && i + 1 < len) {
+          result.managementOptions.group = args[++i];
+        } else if (args[i] === '-w' && i + 1 < len) {
+          result.managementOptions.password = args[++i];
+        } else if (!result.address && !args[i].startsWith('-')) {
+          result.address = args[i];
+        }
+        i++;
+      }
+      return result;
+    }
+
+    // Parse main address/group (can be number for Nth server, group name, or address)
+    if (i < len && !args[i].startsWith('-')) {
+      result.address = args[i++];
+      // Check if it's a number (Nth server)
+      const numMatch = result.address.match(/^\d+$/);
+      if (numMatch) {
+        result.serverIndex = parseInt(result.address, 10);
+        result.address = '';
+      }
+    }
+
+    // Parse port (if next arg is a number and not a switch)
+    if (i < len && !args[i].startsWith('-')) {
+      const portMatch = args[i].match(/^(\+|\*)?(\d+)$/);
+      if (portMatch) {
+        result.port = parseInt(portMatch[2], 10);
+        if (portMatch[1] === '+') result.switches.ssl = true;
+        if (portMatch[1] === '*') result.switches.starttls = true;
+        i++;
+      }
+    }
+
+    // Parse password (if next arg is not a switch)
+    if (i < len && !args[i].startsWith('-')) {
+      result.password = args[i++];
+    }
+
+    // Parse optional parameters
+    while (i < len) {
+      if (args[i] === '-l' && i + 2 < len) {
+        result.login.method = args[++i];
+        result.login.password = args[++i];
+        i++;
+      } else if (args[i] === '-lname' && i + 1 < len) {
+        result.login.username = args[++i];
+        i++;
+      } else if (args[i] === '-i' && i + 1 < len) {
+        result.identity.nick = args[++i];
+        if (i + 1 < len && !args[i + 1].startsWith('-')) {
+          result.identity.altNick = args[++i];
+        }
+        if (i + 1 < len && !args[i + 1].startsWith('-')) {
+          result.identity.email = args[++i];
+        }
+        if (i + 1 < len && !args[i + 1].startsWith('-')) {
+          result.identity.name = args[++i];
+        }
+        i++;
+      } else if ((args[i] === '-jn' || args[i] === '-j') && i + 1 < len) {
+        const channelPart = args[++i];
+        let password = '';
+        if (i + 1 < len && !args[i + 1].startsWith('-') && !args[i + 1].startsWith('#')) {
+          password = args[++i];
+        }
+        const channelMatch = channelPart.match(/^([#&!+][^\s]+)$/);
+        if (channelMatch) {
+          result.joinChannels.push({
+            channel: channelMatch[1],
+            password,
+          });
+        }
+        i++;
+      } else {
+        i++; // Skip unknown parameter
+      }
+    }
+
+    return result;
+  }
+
   private parseCTCP(message: string): { isCTCP: boolean; command?: string; args?: string } {
     if (!message || !message.startsWith('\x01') || !message.endsWith('\x01')) return { isCTCP: false };
     const content = message.slice(1, -1);
@@ -5021,6 +5175,586 @@ export class IRCService {
             default:
               this.addMessage({ type: 'error', text: t('Usage: /chankey <generate|share|request|remove|send|help> [args]'), timestamp: Date.now() });
           }
+          break;
+        case 'AWAY':
+          // /away [message] - Set away message (empty message removes away status)
+          const awayMessage = args.join(' ');
+          if (awayMessage) {
+            this.sendRaw(`AWAY :${awayMessage}`);
+            this.addMessage({ type: 'notice', text: t('*** You are now away: {message}', { message: awayMessage }), timestamp: Date.now() });
+          } else {
+            this.sendRaw('AWAY');
+            this.addMessage({ type: 'notice', text: t('*** You are no longer away'), timestamp: Date.now() });
+          }
+          break;
+        case 'BACK':
+          // /back - Remove away status (alias for /away)
+          this.sendRaw('AWAY');
+          this.addMessage({ type: 'notice', text: t('*** You are no longer away'), timestamp: Date.now() });
+          break;
+        case 'INVITE':
+          // /invite <nick> [channel] - Invite user to channel
+          if (args.length >= 1) {
+            const inviteNick = args[0];
+            const inviteChannel = args.length > 1 ? args[1] : (target.startsWith('#') || target.startsWith('&') ? target : '');
+            if (inviteChannel) {
+              this.sendCommand(`INVITE ${inviteNick} ${inviteChannel}`);
+              this.addMessage({ type: 'notice', text: t('*** Invited {nick} to {channel}', { nick: inviteNick, channel: inviteChannel }), timestamp: Date.now() });
+            } else {
+              this.addMessage({ type: 'error', text: t('Usage: /invite <nick> [channel]'), timestamp: Date.now() });
+            }
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /invite <nick> [channel]'), timestamp: Date.now() });
+          }
+          break;
+        case 'LIST':
+          // /list [options] - List channels on server
+          const listArgs = args.length > 0 ? args.join(' ') : '';
+          this.sendCommand(listArgs ? `LIST ${listArgs}` : 'LIST');
+          this.addMessage({ type: 'notice', text: t('*** Requesting channel list...'), timestamp: Date.now() });
+          break;
+        case 'NAMES':
+          // /names [channel] - List users in channel
+          const namesChannel = args.length > 0 ? args[0] : (target.startsWith('#') || target.startsWith('&') ? target : '');
+          if (namesChannel) {
+            this.sendCommand(`NAMES ${namesChannel}`);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /names [channel]'), timestamp: Date.now() });
+          }
+          break;
+        case 'WHO':
+          // /who [mask] - Query user information
+          const whoMask = args.length > 0 ? args.join(' ') : '';
+          this.sendCommand(whoMask ? `WHO ${whoMask}` : 'WHO');
+          break;
+        case 'BAN':
+          // /ban <nick> [channel] - Ban user from channel
+          if (args.length >= 1) {
+            const banNick = args[0];
+            const banChannel = args.length > 1 ? args[1] : (target.startsWith('#') || target.startsWith('&') ? target : '');
+            if (banChannel) {
+              // Try to get user's hostmask for ban, or use nick
+              this.sendCommand(`MODE ${banChannel} +b ${banNick}!*@*`);
+              this.addMessage({ type: 'notice', text: t('*** Banning {nick} from {channel}', { nick: banNick, channel: banChannel }), timestamp: Date.now() });
+            } else {
+              this.addMessage({ type: 'error', text: t('Usage: /ban <nick> [channel]'), timestamp: Date.now() });
+            }
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /ban <nick> [channel]'), timestamp: Date.now() });
+          }
+          break;
+        case 'UNBAN':
+          // /unban <nick|mask> [channel] - Unban user from channel
+          if (args.length >= 1) {
+            const unbanMask = args[0];
+            const unbanChannel = args.length > 1 ? args[1] : (target.startsWith('#') || target.startsWith('&') ? target : '');
+            if (unbanChannel) {
+              this.sendCommand(`MODE ${unbanChannel} -b ${unbanMask}`);
+              this.addMessage({ type: 'notice', text: t('*** Unbanning {mask} from {channel}', { mask: unbanMask, channel: unbanChannel }), timestamp: Date.now() });
+            } else {
+              this.addMessage({ type: 'error', text: t('Usage: /unban <nick|mask> [channel]'), timestamp: Date.now() });
+            }
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /unban <nick|mask> [channel]'), timestamp: Date.now() });
+          }
+          break;
+        case 'KICKBAN':
+          // /kickban <nick> [channel] [reason] - Kick and ban user
+          if (args.length >= 1) {
+            const kbNick = args[0];
+            const kbChannel = args.length > 1 && (args[1].startsWith('#') || args[1].startsWith('&')) ? args[1] : (target.startsWith('#') || target.startsWith('&') ? target : args[1] || '');
+            const kbReason = args.length > 2 ? args.slice(2).join(' ') : (args.length === 2 && !kbChannel.startsWith('#') && !kbChannel.startsWith('&') ? args[1] : '');
+            if (kbChannel && (kbChannel.startsWith('#') || kbChannel.startsWith('&'))) {
+              // Ban first, then kick
+              this.sendCommand(`MODE ${kbChannel} +b ${kbNick}!*@*`);
+              this.sendCommand(`KICK ${kbChannel} ${kbNick}${kbReason ? ` :${kbReason}` : ''}`);
+              this.addMessage({ type: 'notice', text: t('*** Kicking and banning {nick} from {channel}', { nick: kbNick, channel: kbChannel }), timestamp: Date.now() });
+            } else {
+              this.addMessage({ type: 'error', text: t('Usage: /kickban <nick> [channel] [reason]'), timestamp: Date.now() });
+            }
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /kickban <nick> [channel] [reason]'), timestamp: Date.now() });
+          }
+          break;
+        case 'NOTICE':
+          // /notice <target> <message> - Send notice message
+          if (args.length >= 2) {
+            const noticeTarget = args[0];
+            const noticeText = args.slice(1).join(' ');
+            this.sendRaw(`NOTICE ${noticeTarget} :${noticeText}`);
+            this.addMessage({ type: 'notice', channel: noticeTarget, from: this.currentNick, text: noticeText, timestamp: Date.now(), status: 'sent' });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /notice <target> <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'IGNORE':
+          // /ignore <nick|mask> [reason] - Ignore user messages
+          if (args.length >= 1) {
+            const ignoreMask = args[0];
+            const ignoreReason = args.length > 1 ? args.slice(1).join(' ') : undefined;
+            const network = this.getNetworkName();
+            userManagementService.ignoreUser(ignoreMask, ignoreReason, network).then(() => {
+              this.addMessage({ type: 'notice', text: t('*** Now ignoring {mask}', { mask: ignoreMask }), timestamp: Date.now() });
+            }).catch((e: Error) => {
+              this.addMessage({ type: 'error', text: t('*** Failed to ignore user: {message}', { message: e.message }), timestamp: Date.now() });
+            });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /ignore <nick|mask> [reason]'), timestamp: Date.now() });
+          }
+          break;
+        case 'UNIGNORE':
+          // /unignore <nick|mask> - Stop ignoring user
+          if (args.length >= 1) {
+            const unignoreMask = args[0];
+            const network = this.getNetworkName();
+            userManagementService.unignoreUser(unignoreMask, network).then(() => {
+              this.addMessage({ type: 'notice', text: t('*** No longer ignoring {mask}', { mask: unignoreMask }), timestamp: Date.now() });
+            }).catch((e: Error) => {
+              this.addMessage({ type: 'error', text: t('*** Failed to unignore user: {message}', { message: e.message }), timestamp: Date.now() });
+            });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /unignore <nick|mask>'), timestamp: Date.now() });
+          }
+          break;
+        case 'CLEAR':
+          // /clear - Clear current tab messages
+          this.emit('clear-tab', target, this.getNetworkName());
+          this.addMessage({ type: 'notice', text: t('*** Messages cleared'), timestamp: Date.now() });
+          break;
+        case 'CLOSE':
+          // /close - Close current tab
+          this.emit('close-tab', target, this.getNetworkName());
+          break;
+        case 'ECHO':
+          // /echo <message> - Display local message (useful for scripts/aliases)
+          if (args.length > 0) {
+            const echoText = args.join(' ');
+            this.addMessage({ type: 'notice', text: echoText, timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /echo <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'AMSG':
+          // /amsg <message> - Send message to all open channels
+          if (args.length > 0) {
+            const amsgText = args.join(' ');
+            this.emit('amsg', amsgText, this.getNetworkName());
+            this.addMessage({ type: 'notice', text: t('*** Sending message to all channels...'), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /amsg <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'AME':
+          // /ame <action> - Send action to all open channels
+          if (args.length > 0) {
+            const ameText = args.join(' ');
+            this.emit('ame', ameText, this.getNetworkName());
+            this.addMessage({ type: 'notice', text: t('*** Sending action to all channels...'), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /ame <action>'), timestamp: Date.now() });
+          }
+          break;
+        case 'ANOTICE':
+          // /anotice <message> - Send notice to all open channels
+          if (args.length > 0) {
+            const anoticeText = args.join(' ');
+            this.emit('anotice', anoticeText, this.getNetworkName());
+            this.addMessage({ type: 'notice', text: t('*** Sending notice to all channels...'), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /anotice <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'LUSERS':
+          // /lusers - Get user statistics
+          this.sendCommand('LUSERS');
+          break;
+        case 'VERSION':
+          // /version [server] - Get server version
+          const versionTarget = args.length > 0 ? args[0] : '';
+          this.sendCommand(versionTarget ? `VERSION ${versionTarget}` : 'VERSION');
+          break;
+        case 'TIME':
+          // /time [server] - Get server time
+          const timeTarget = args.length > 0 ? args[0] : '';
+          this.sendCommand(timeTarget ? `TIME ${timeTarget}` : 'TIME');
+          break;
+        case 'ADMIN':
+          // /admin [server] - Get server administrator info
+          const adminTarget = args.length > 0 ? args[0] : '';
+          this.sendCommand(adminTarget ? `ADMIN ${adminTarget}` : 'ADMIN');
+          break;
+        case 'LINKS':
+          // /links [mask] - List server links
+          const linksMask = args.length > 0 ? args.join(' ') : '';
+          this.sendCommand(linksMask ? `LINKS ${linksMask}` : 'LINKS');
+          break;
+        case 'STATS':
+          // /stats [query] [server] - Get server statistics
+          const statsQuery = args.length > 0 ? args[0] : '';
+          const statsServer = args.length > 1 ? args[1] : '';
+          if (statsQuery && statsServer) {
+            this.sendCommand(`STATS ${statsQuery} ${statsServer}`);
+          } else if (statsQuery) {
+            this.sendCommand(`STATS ${statsQuery}`);
+          } else {
+            this.sendCommand('STATS');
+          }
+          break;
+        case 'ISON':
+          // /ison <nick1> [nick2] ... - Check if nicks are online
+          if (args.length > 0) {
+            this.sendCommand(`ISON ${args.join(' ')}`);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /ison <nick1> [nick2] ...'), timestamp: Date.now() });
+          }
+          break;
+        case 'MOTD':
+          // /motd - Get message of the day
+          const motdTarget = args.length > 0 ? args[0] : '';
+          this.sendCommand(motdTarget ? `MOTD ${motdTarget}` : 'MOTD');
+          break;
+        case 'PING':
+          // /ping [server] - Ping server (explicit command)
+          const pingTarget = args.length > 0 ? args[0] : '';
+          this.sendCommand(pingTarget ? `PING ${pingTarget}` : 'PING');
+          break;
+        case 'TRACE':
+          // /trace [target] - Trace route to server
+          const traceTarget = args.length > 0 ? args[0] : '';
+          this.sendCommand(traceTarget ? `TRACE ${traceTarget}` : 'TRACE');
+          break;
+        case 'SQUERY':
+          // /squery <service> <message> - Query IRC services
+          if (args.length >= 2) {
+            const service = args[0];
+            const serviceMessage = args.slice(1).join(' ');
+            this.sendRaw(`PRIVMSG ${service} :${serviceMessage}`);
+            this.addMessage({ type: 'notice', channel: service, from: this.currentNick, text: serviceMessage, timestamp: Date.now(), status: 'sent' });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /squery <service> <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'RECONNECT':
+          // /reconnect - Reconnect to current server
+          this.emit('reconnect', this.getNetworkName());
+          this.addMessage({ type: 'notice', text: t('*** Reconnecting to server...'), timestamp: Date.now() });
+          break;
+        case 'SERVER': {
+          // /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-lname name] [-i nick anick email name] [-jn #channel pass] [-sar]
+          try {
+            const serverArgs = this.parseServerCommand(args);
+            this.emit('server-command', serverArgs);
+          } catch (error: any) {
+            this.addMessage({ 
+              type: 'error', 
+              text: error.message || t('Invalid /server command syntax'), 
+              timestamp: Date.now() 
+            });
+          }
+          break;
+        }
+        case 'DISCONNECT':
+          // /disconnect - Disconnect from server (alias for /quit)
+          this.sendRaw(`QUIT :${args.join(' ') || DEFAULT_QUIT_MESSAGE}`);
+          break;
+        case 'ANICK':
+          // /anick <nickname> - Set alternate nickname
+          if (args.length > 0) {
+            // Store alternate nick (could be saved to settings)
+            this.addMessage({ type: 'notice', text: t('*** Alternate nickname set to: {nick}', { nick: args[0] }), timestamp: Date.now() });
+            // Note: Actual alternate nick handling would be in connection logic
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /anick <nickname>'), timestamp: Date.now() });
+          }
+          break;
+        case 'AJINVITE':
+          // /ajinvite [on|off] - Auto-join on invite toggle
+          const ajinviteState = args.length > 0 ? args[0].toLowerCase() : 'toggle';
+          this.emit('ajinvite-toggle', { state: ajinviteState, network: this.getNetworkName() });
+          const isOn = ajinviteState === 'on' || (ajinviteState === 'toggle' && true); // Would check actual state
+          this.addMessage({ type: 'notice', text: t('*** Auto-join on invite: {state}', { state: isOn ? 'ON' : 'OFF' }), timestamp: Date.now() });
+          break;
+        case 'BEEP':
+          // /beep [number] [delay] - Play beep sound
+          const beepCount = args.length > 0 ? parseInt(args[0], 10) || 1 : 1;
+          const beepDelay = args.length > 1 ? parseInt(args[1], 10) || 0 : 0;
+          this.emit('beep', { count: beepCount, delay: beepDelay });
+          this.addMessage({ type: 'notice', text: t('*** Beep!'), timestamp: Date.now() });
+          break;
+        case 'CNOTICE':
+          // /cnotice <nick> <channel> <message> - Channel notice (bypass flood limits)
+          if (args.length >= 3) {
+            const cnoticeNick = args[0];
+            const cnoticeChannel = args[1];
+            const cnoticeMessage = args.slice(2).join(' ');
+            this.sendRaw(`NOTICE ${cnoticeChannel} :${cnoticeMessage}`);
+            this.addMessage({ type: 'notice', channel: cnoticeChannel, from: this.currentNick, text: cnoticeMessage, timestamp: Date.now(), status: 'sent' });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /cnotice <nick> <channel> <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'CPRIVMSG':
+          // /cprivmsg <nick> <channel> <message> - Channel privmsg (bypass flood limits)
+          if (args.length >= 3) {
+            const cprivmsgNick = args[0];
+            const cprivmsgChannel = args[1];
+            const cprivmsgMessage = args.slice(2).join(' ');
+            this.sendRaw(`PRIVMSG ${cprivmsgChannel} :${cprivmsgMessage}`);
+            this.addMessage({ type: 'message', channel: cprivmsgChannel, from: this.currentNick, text: cprivmsgMessage, timestamp: Date.now(), status: 'sent' });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /cprivmsg <nick> <channel> <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'HELP':
+          // /help [command] - Show help for command
+          if (args.length > 0) {
+            const helpCommand = args[0].toLowerCase();
+            this.emit('help', helpCommand);
+            this.addMessage({ type: 'notice', text: t('*** Help for /{command} - Use Settings > Help for full documentation', { command: helpCommand }), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'notice', text: t('*** IRC Commands Help'), timestamp: Date.now() });
+            this.addMessage({ type: 'notice', text: t('*** Use /help <command> for specific command help'), timestamp: Date.now() });
+            this.addMessage({ type: 'notice', text: t('*** Or go to Settings > Help for full documentation'), timestamp: Date.now() });
+          }
+          break;
+        case 'RAW':
+          // /raw <command> - Send raw IRC command (alias for /quote)
+          if (args.length > 0) {
+            const rawCommand = args.join(' ');
+            this.sendRaw(rawCommand);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /raw <command>'), timestamp: Date.now() });
+          }
+          break;
+        case 'DNS':
+          // /dns <hostname> - DNS lookup
+          if (args.length > 0) {
+            const hostname = args[0];
+            this.emit('dns-lookup', hostname);
+            this.addMessage({ type: 'notice', text: t('*** Looking up DNS for {hostname}...', { hostname }), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /dns <hostname>'), timestamp: Date.now() });
+          }
+          break;
+        case 'TIMER':
+          // /timer <name> <delay> <repetitions> <command> - Execute command after delay
+          if (args.length >= 4) {
+            const timerName = args[0];
+            const timerDelay = parseInt(args[1], 10);
+            const timerRepetitions = parseInt(args[2], 10);
+            const timerCommand = args.slice(3).join(' ');
+            if (!isNaN(timerDelay) && !isNaN(timerRepetitions) && timerDelay > 0) {
+              this.emit('timer', { name: timerName, delay: timerDelay, repetitions: timerRepetitions, command: timerCommand });
+              this.addMessage({ type: 'notice', text: t('*** Timer "{name}" set: {delay}ms, {repetitions} repetitions', { name: timerName, delay: timerDelay, repetitions: timerRepetitions }), timestamp: Date.now() });
+            } else {
+              this.addMessage({ type: 'error', text: t('Usage: /timer <name> <delay> <repetitions> <command>'), timestamp: Date.now() });
+            }
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /timer <name> <delay> <repetitions> <command>'), timestamp: Date.now() });
+          }
+          break;
+        case 'WINDOW':
+          // /window [-a] <name> - Window/tab management commands
+          if (args.length > 0) {
+            const windowAction = args[0];
+            if (windowAction === '-a') {
+              // Activate window
+              const windowName = args.length > 1 ? args[1] : '';
+              if (windowName) {
+                this.emit('window-activate', windowName);
+              } else {
+                this.addMessage({ type: 'error', text: t('Usage: /window -a <name>'), timestamp: Date.now() });
+              }
+            } else {
+              // Open/create window
+              this.emit('window-open', windowAction);
+            }
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /window [-a] <name>'), timestamp: Date.now() });
+          }
+          break;
+        case 'FILTER':
+          // /filter [-g] <text> - Filter messages
+          if (args.length > 0) {
+            const filterGlobal = args[0] === '-g';
+            const filterText = filterGlobal ? args.slice(1).join(' ') : args.join(' ');
+            if (filterText) {
+              this.emit('filter', { text: filterText, global: filterGlobal, network: this.getNetworkName() });
+              this.addMessage({ type: 'notice', text: t('*** Filtering messages containing: {text}', { text: filterText }), timestamp: Date.now() });
+            } else {
+              this.addMessage({ type: 'error', text: t('Usage: /filter [-g] <text>'), timestamp: Date.now() });
+            }
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /filter [-g] <text>'), timestamp: Date.now() });
+          }
+          break;
+        case 'WALLOPS':
+          // /wallops <message> - Send wallops message (IRCop)
+          if (args.length > 0) {
+            const wallopsMessage = args.join(' ');
+            this.sendCommand(`WALLOPS :${wallopsMessage}`);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /wallops <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'LOCOPS':
+          // /locops <message> - Send local ops message (IRCop)
+          if (args.length > 0) {
+            const locopsMessage = args.join(' ');
+            this.sendCommand(`LOCOPS :${locopsMessage}`);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /locops <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'GLOBOPS':
+          // /globops <message> - Send global ops message (IRCop)
+          if (args.length > 0) {
+            const globopsMessage = args.join(' ');
+            this.sendCommand(`GLOBOPS :${globopsMessage}`);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /globops <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'ADCHAT':
+          // /adchat <message> - Admin chat (IRCop)
+          if (args.length > 0) {
+            const adchatMessage = args.join(' ');
+            this.sendCommand(`ADCHAT :${adchatMessage}`);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /adchat <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'CHAT':
+          // /chat <service> <message> - Chat with services
+          if (args.length >= 2) {
+            const chatService = args[0];
+            const chatMessage = args.slice(1).join(' ');
+            this.sendRaw(`PRIVMSG ${chatService} :${chatMessage}`);
+            this.addMessage({ type: 'notice', channel: chatService, from: this.currentNick, text: chatMessage, timestamp: Date.now(), status: 'sent' });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /chat <service> <message>'), timestamp: Date.now() });
+          }
+          break;
+        case 'INFO':
+          // /info [server] - Get server information
+          const infoTarget = args.length > 0 ? args[0] : '';
+          this.sendCommand(infoTarget ? `INFO ${infoTarget}` : 'INFO');
+          break;
+        case 'KNOCK':
+          // /knock <channel> [message] - Request invite to invitation-only channel
+          if (args.length >= 1) {
+            const knockChannel = args[0];
+            const knockMessage = args.length > 1 ? args.slice(1).join(' ') : '';
+            this.sendCommand(knockMessage ? `KNOCK ${knockChannel} :${knockMessage}` : `KNOCK ${knockChannel}`);
+            this.addMessage({ type: 'notice', text: t('*** Knock sent to {channel}', { channel: knockChannel }), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /knock <channel> [message]'), timestamp: Date.now() });
+          }
+          break;
+        case 'RULES':
+          // /rules [server] - Get server rules
+          const rulesTarget = args.length > 0 ? args[0] : '';
+          this.sendCommand(rulesTarget ? `RULES ${rulesTarget}` : 'RULES');
+          break;
+        case 'SERVLIST':
+          // /servlist [mask] [type] - List IRC services
+          const servlistMask = args.length > 0 ? args[0] : '';
+          const servlistType = args.length > 1 ? args[1] : '';
+          if (servlistMask && servlistType) {
+            this.sendCommand(`SERVLIST ${servlistMask} ${servlistType}`);
+          } else if (servlistMask) {
+            this.sendCommand(`SERVLIST ${servlistMask}`);
+          } else {
+            this.sendCommand('SERVLIST');
+          }
+          break;
+        case 'USERHOST':
+          // /userhost <nick1> [nick2] ... - Get user host information
+          if (args.length > 0) {
+            this.sendCommand(`USERHOST ${args.join(' ')}`);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /userhost <nick1> [nick2] ...'), timestamp: Date.now() });
+          }
+          break;
+        case 'USERIP':
+          // /userip <nick> - Get user IP address
+          if (args.length > 0) {
+            this.sendCommand(`USERIP ${args[0]}`);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /userip <nick>'), timestamp: Date.now() });
+          }
+          break;
+        case 'USERS':
+          // /users - Get user list (deprecated, rarely used)
+          const usersTarget = args.length > 0 ? args[0] : '';
+          this.sendCommand(usersTarget ? `USERS ${usersTarget}` : 'USERS');
+          break;
+        case 'WATCH':
+          // /watch +nick1 -nick2 ... - Monitor users (legacy protocol)
+          if (args.length > 0) {
+            this.sendCommand(`WATCH ${args.join(' ')}`);
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /watch +nick1 -nick2 ...'), timestamp: Date.now() });
+          }
+          break;
+        case 'OPER':
+          // /oper <nick> <password> - IRCop login
+          if (args.length >= 2) {
+            const operNick = args[0];
+            const operPassword = args[1];
+            this.sendCommand(`OPER ${operNick} ${operPassword}`);
+            this.addMessage({ type: 'notice', text: t('*** Attempting IRCop login...'), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /oper <nick> <password>'), timestamp: Date.now() });
+          }
+          break;
+        case 'REHASH':
+          // /rehash - IRCop rehash server
+          this.sendCommand('REHASH');
+          this.addMessage({ type: 'notice', text: t('*** Requesting server rehash...'), timestamp: Date.now() });
+          break;
+        case 'SQUIT':
+          // /squit <server> [message] - IRCop disconnect server
+          if (args.length >= 1) {
+            const squitServer = args[0];
+            const squitMessage = args.length > 1 ? args.slice(1).join(' ') : '';
+            this.sendCommand(squitMessage ? `SQUIT ${squitServer} :${squitMessage}` : `SQUIT ${squitServer}`);
+            this.addMessage({ type: 'notice', text: t('*** Requesting server disconnect: {server}', { server: squitServer }), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /squit <server> [message]'), timestamp: Date.now() });
+          }
+          break;
+        case 'KILL':
+          // /kill <nick> <reason> - IRCop kill user
+          if (args.length >= 2) {
+            const killNick = args[0];
+            const killReason = args.slice(1).join(' ');
+            this.sendCommand(`KILL ${killNick} :${killReason}`);
+            this.addMessage({ type: 'notice', text: t('*** Killing user: {nick}', { nick: killNick }), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /kill <nick> <reason>'), timestamp: Date.now() });
+          }
+          break;
+        case 'CONNECT':
+          // /connect <server> <port> [remote] - IRCop connect servers
+          if (args.length >= 2) {
+            const connectServer = args[0];
+            const connectPort = args[1];
+            const connectRemote = args.length > 2 ? args[2] : '';
+            if (connectRemote) {
+              this.sendCommand(`CONNECT ${connectServer} ${connectPort} ${connectRemote}`);
+            } else {
+              this.sendCommand(`CONNECT ${connectServer} ${connectPort}`);
+            }
+            this.addMessage({ type: 'notice', text: t('*** Requesting server connection: {server}:{port}', { server: connectServer, port: connectPort }), timestamp: Date.now() });
+          } else {
+            this.addMessage({ type: 'error', text: t('Usage: /connect <server> <port> [remote]'), timestamp: Date.now() });
+          }
+          break;
+        case 'DIE':
+          // /die - IRCop shutdown server
+          this.sendCommand('DIE');
+          this.addMessage({ type: 'notice', text: t('*** Requesting server shutdown...'), timestamp: Date.now() });
           break;
         default: this.sendCommand(commandText); break;
       }

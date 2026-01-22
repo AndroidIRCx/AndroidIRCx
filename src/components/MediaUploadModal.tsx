@@ -20,6 +20,7 @@ import {
   StyleSheet,
   Platform,
   PermissionsAndroid,
+  Alert,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
@@ -70,12 +71,12 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
       } else if (result.error && result.error !== 'User cancelled') {
         // Show error (could use a toast/alert here)
         console.error(`[MediaUploadModal] ${action} error:`, result.error);
-        alert(result.error); // TODO: Replace with proper error modal
+        Alert.alert(t('Error'),result.error); // TODO: Replace with proper error modal
       }
     } catch (error: any) {
       console.error(`[MediaUploadModal] ${action} error:`, error);
       const errorMessage = error?.message || error?.toString() || `Failed to ${action.toLowerCase()}`;
-      alert(errorMessage);
+      Alert.alert(t('Error'),errorMessage);
     } finally {
       setLoading(false);
       setLoadingAction(null);
@@ -221,13 +222,13 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
                 }
               );
               if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-                alert(t('Microphone permission is required to record voice messages. Please allow microphone access in app settings.'));
+                Alert.alert(t('Error'),t('Microphone permission is required to record voice messages. Please allow microphone access in app settings.'));
                 return;
               }
             }
           } catch (err) {
             console.error('[MediaUploadModal] Microphone permission error:', err);
-            alert(t('Failed to request microphone permission. Please check app settings.'));
+            Alert.alert(t('Error'),t('Failed to request microphone permission. Please check app settings.'));
             return;
           }
         }
@@ -266,7 +267,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
         <View
           style={[
             styles.modalContainer,
-            { backgroundColor: colors.surfaceBackground },
+            { backgroundColor: colors.surface },
           ]}>
           {/* Header */}
           <View style={styles.header}>
@@ -288,7 +289,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
                     styles.gridItem,
                     {
                       backgroundColor: colors.messageBackground,
-                      borderColor: colors.borderColor,
+                      borderColor: colors.border,
                     },
                     isDisabled && styles.gridItemDisabled,
                   ]}

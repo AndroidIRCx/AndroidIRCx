@@ -847,7 +847,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
             style={styles.searchButton}
             onPress={() => handleSearchVisibleChange(true)}
             activeOpacity={0.7}>
-            <Icon name="search" size={20} color={colors.buttonText || '#fff'} />
+            <Icon name="search" size={20} color={colors.buttonPrimaryText || '#fff'} />
           </TouchableOpacity>
         )}
       </View>
@@ -889,7 +889,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
             style={styles.searchButton}
             onPress={() => handleSearchVisibleChange(true)}
             activeOpacity={0.7}>
-            <Icon name="search" size={20} color={colors.buttonText || '#fff'} />
+            <Icon name="search" size={20} color={colors.buttonPrimaryText || '#fff'} />
           </TouchableOpacity>
         )}
         <NickContextMenu
@@ -956,7 +956,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           style={styles.searchButton}
           onPress={() => handleSearchVisibleChange(true)}
           activeOpacity={0.7}>
-          <Icon name="search" size={20} color={colors.buttonText || '#fff'} />
+          <Icon name="search" size={20} color={colors.buttonPrimaryText || '#fff'} />
         </TouchableOpacity>
       )}
       <NickContextMenu
@@ -1215,7 +1215,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     marginLeft: 8,
   },
   selectionButtonText: {
-    color: colors.buttonText || '#fff',
+    color: colors.buttonPrimaryText || '#fff',
     fontWeight: '600',
   },
   selectionCancelButton: {

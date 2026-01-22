@@ -230,7 +230,6 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
           </Text>
           <Video
             source={{ uri: displayUri }}
-            audioOnly
             controls
             paused
             style={styles.audioPlayer}
@@ -281,10 +280,10 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
         <View
           style={[
             styles.modalContainer,
-            { backgroundColor: colors.surfaceBackground },
+            { backgroundColor: colors.surface },
           ]}>
           {/* Header */}
-          <View style={[styles.header, { borderBottomColor: colors.borderColor }]}>
+          <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <Text style={[styles.headerText, { color: colors.text }]}>
               {t('Preview Media')}
             </Text>
@@ -338,7 +337,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
                   {
                     backgroundColor: colors.inputBackground,
                     color: colors.text,
-                    borderColor: colors.borderColor,
+                    borderColor: colors.border,
                   },
                 ]}
                 placeholder={t('Add a caption...')}
@@ -356,7 +355,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
 
             {/* Error message */}
             {error && (
-              <View style={[styles.errorContainer, { backgroundColor: colors.errorBackground }]}>
+              <View style={[styles.errorContainer, { backgroundColor: colors.error + '20' }]}>
                 <Text style={[styles.errorText, { color: colors.error }]}>
                   {error}
                 </Text>
@@ -374,7 +373,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
                       : t('Uploading...')} {uploadProgress}%
                   </Text>
                 </View>
-                <View style={[styles.progressBar, { backgroundColor: colors.borderColor }]}>
+                <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
                   <View
                     style={[
                       styles.progressFill,

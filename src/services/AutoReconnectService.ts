@@ -337,8 +337,12 @@ class AutoReconnectService {
 
     const ircServiceInstance = connection.ircService;
 
-    // Get favorites with auto-join enabled
-    const favorites = channelFavoritesService.getAutoJoinChannels(network);
+    // Extract base network name for multi-connection scenarios
+    // "DBase (1)" -> "DBase", "DBase (2)" -> "DBase", "DBase" -> "DBase"
+    const baseNetworkName = network.replace(/\s+\(\d+\)$/, '');
+
+    // Get favorites with auto-join enabled - use base network name to ensure correct favorites
+    const favorites = channelFavoritesService.getAutoJoinChannels(baseNetworkName);
     const favoriteChannels = favorites.map(f => ({ name: f.name, key: f.key }));
 
     // Combine with tracked channels

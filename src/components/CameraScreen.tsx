@@ -50,7 +50,6 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
 
       // Take photo
       const photo = await cameraRef.current.takePhoto({
-        qualityPrioritization: 'speed',
         flash: 'off',
       });
 
@@ -107,7 +106,7 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
         animationType="slide"
         onRequestClose={onClose}
         statusBarTranslucent={false}>
-        <View style={[styles.container, { backgroundColor: colors.surfaceBackground }]}>
+        <View style={[styles.container, { backgroundColor: colors.surface }]}>
           <View style={styles.permissionContainer}>
             <Text style={[styles.permissionTitle, { color: colors.text }]}>
               {t('Camera Permission Required')}
@@ -121,7 +120,7 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
               <Text style={styles.permissionButtonText}>{t('Grant Permission')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.cancelButton, { borderColor: colors.borderColor }]}
+              style={[styles.cancelButton, { borderColor: colors.border }]}
               onPress={onClose}>
               <Text style={[styles.cancelButtonText, { color: colors.text }]}>
                 {t('Cancel')}
@@ -141,13 +140,13 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
         animationType="slide"
         onRequestClose={onClose}
         statusBarTranslucent={false}>
-        <View style={[styles.container, { backgroundColor: colors.surfaceBackground }]}>
+        <View style={[styles.container, { backgroundColor: colors.surface }]}>
           <View style={styles.errorContainer}>
             <Text style={[styles.errorText, { color: colors.error }]}>
               {t('Camera not available')}
             </Text>
             <TouchableOpacity
-              style={[styles.cancelButton, { borderColor: colors.borderColor }]}
+              style={[styles.cancelButton, { borderColor: colors.border }]}
               onPress={onClose}>
               <Text style={[styles.cancelButtonText, { color: colors.text }]}>
                 {t('Close')}
@@ -189,7 +188,7 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
 
           {/* Error message */}
           {error && (
-            <View style={[styles.errorBanner, { backgroundColor: colors.errorBackground }]}>
+            <View style={[styles.errorBanner, { backgroundColor: colors.error + '20' }]}>
               <Text style={[styles.errorBannerText, { color: colors.error }]}>{error}</Text>
             </View>
           )}

@@ -194,8 +194,11 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
         // Use matched network, but override with URL parameters if provided
         networkToUse = {
           ...matchedNetwork,
-          // Override nick if provided in URL
+          // Override identity fields if provided in URL query params
           nick: parsed.nick || matchedNetwork.nick,
+          altNick: parsed.altNick || matchedNetwork.altNick,
+          realname: parsed.realname || matchedNetwork.realname,
+          ident: parsed.ident || matchedNetwork.ident,
           // Add channel to auto-join if specified
           autoJoinChannels: parsed.channel
             ? [...(matchedNetwork.autoJoinChannels || []), parsed.channel]

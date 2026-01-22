@@ -55,7 +55,7 @@ interface AppModalsProps {
   handleConnect: (network?: any, serverId?: string) => void;
   handleJoinChannel: (channel: string) => void;
   handleExit: () => void;
-  handleFirstRunSetupComplete: () => void;
+  handleFirstRunSetupComplete: (networkConfig: any) => void;
   persistentSetShowRawCommands: (value: boolean) => void;
   persistentSetRawCategoryVisibility: (visibility: Record<string, boolean>) => void;
   persistentSetShowEncryptionIndicators: (value: boolean) => void;
@@ -64,7 +64,7 @@ interface AppModalsProps {
   setTabs: (updater: ChannelTab[] | ((prev: ChannelTab[]) => ChannelTab[])) => void;
   getActiveIRCService: () => any;
   safeAlert: (title: string, message?: string) => void;
-  attemptBiometricUnlock: () => void;
+  attemptBiometricUnlock: (isManualRetry?: boolean) => void;
   handleAppPinUnlock: (pin: string) => void;
   onKillSwitchFromUnlock: () => void;
   killSwitchEnabledOnLockScreen: boolean;
@@ -201,7 +201,7 @@ export function AppModals({
         }}
         isConnected={isConnected}
         networkName={networkName}
-        focusedNetworkId={focusedNetworkId}
+        focusedNetworkId={focusedNetworkId ?? null}
         showRawCommands={showRawCommands}
         setTabs={setTabs}
         tabSortAlphabetical={tabSortAlphabetical}
@@ -389,7 +389,7 @@ export function AppModals({
         onChangePinEntry={setAppPinEntry}
         onClearPinError={() => setAppPinError('')}
         onBiometricUnlock={attemptBiometricUnlock}
-        onPinUnlock={handleAppPinUnlock}
+        onPinUnlock={() => handleAppPinUnlock(appPinEntry)}
         onKillSwitch={killSwitchEnabledOnLockScreen ? onKillSwitchFromUnlock : undefined}
         colors={colors}
         styles={styles}

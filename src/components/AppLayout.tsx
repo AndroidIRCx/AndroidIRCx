@@ -68,7 +68,7 @@ interface AppLayoutProps {
   handleConnect: () => void;
   handleToggleUserList: () => void;
   handleLockButtonPress: () => void;
-  handleUserPress: (nick: string) => void;
+  handleUserPress: (user: { nick: string }) => void;
   handleWHOISPress: (nick: string) => void;
   showKillSwitchButton?: boolean;
   onKillSwitchPress?: () => void;
@@ -134,7 +134,7 @@ export function AppLayout({
   useEffect(() => {
     let isMounted = true;
     settingsService.getSetting('bannerPosition', 'input_above').then(value => {
-      if (isMounted) setBannerPosition(value);
+      if (isMounted) setBannerPosition(value as 'input_above' | 'input_below' | 'tabs_above' | 'tabs_below');
     });
     const unsubscribe = settingsService.onSettingChange<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>(
       'bannerPosition',

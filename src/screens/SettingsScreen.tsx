@@ -621,36 +621,46 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   const applyZncServerToDBase = useCallback(async (username: string, password: string) => {
-    if (!username || !password) return;
-    const networks = await settingsService.loadNetworks();
-    let dbaseNetwork = networks.find(n => n.id === 'DBase' || n.name === 'DBase') || null;
-    if (!dbaseNetwork) {
-      dbaseNetwork = await settingsService.createDefaultNetwork();
+    if (!username || !password) {
+      console.warn('applyZncServerToDBase: Missing username or password');
+      return;
     }
+    
+    try {
+      const networks = await settingsService.loadNetworks();
+      let dbaseNetwork = networks.find(n => n.id === 'DBase' || n.name === 'DBase') || null;
+      if (!dbaseNetwork) {
+        dbaseNetwork = await settingsService.createDefaultNetwork();
+      }
 
-    const serverId = 'znc-subscription';
-    const serverConfig = {
-      id: serverId,
-      hostname: 'irc.androidircx.com',
-      port: 16786,
-      ssl: true,
-      rejectUnauthorized: true,
-      name: 'ZNC Subscription',
-      favorite: true,
-      password: `${username}:${password}`,
-    };
+      const serverId = 'znc-subscription';
+      const serverConfig = {
+        id: serverId,
+        hostname: 'irc.androidircx.com',
+        port: 16786,
+        ssl: true,
+        rejectUnauthorized: true,
+        name: 'ZNC Subscription',
+        favorite: true,
+        password: `${username}:${password}`,
+      };
 
-    const existing = dbaseNetwork.servers.find(s => s.id === serverId);
-    if (existing) {
-      await settingsService.updateServerInNetwork(dbaseNetwork.id, serverId, serverConfig);
-    } else {
-      await settingsService.addServerToNetwork(dbaseNetwork.id, serverConfig);
+      const existing = dbaseNetwork.servers.find(s => s.id === serverId);
+      if (existing) {
+        await settingsService.updateServerInNetwork(dbaseNetwork.id, serverId, serverConfig);
+      } else {
+        await settingsService.addServerToNetwork(dbaseNetwork.id, serverConfig);
+      }
+
+      await settingsService.updateNetwork(dbaseNetwork.id, {
+        defaultServerId: serverId,
+        connectionType: 'znc',
+      });
+    } catch (error) {
+      console.error('applyZncServerToDBase: Error applying ZNC server:', error);
+      // Don't throw - log error but don't crash the app
+      throw error; // Re-throw so caller can handle it
     }
-
-    await settingsService.updateNetwork(dbaseNetwork.id, {
-      defaultServerId: serverId,
-      connectionType: 'znc',
-    });
   }, []);
 
   const connectNowToZnc = async () => {

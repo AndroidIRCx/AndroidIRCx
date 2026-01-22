@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 15+ (API 35) specific theme -->
+    <!-- Edge-to-edge is enforced, deprecated color APIs have no effect -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
+
+        <!-- On Android 15+, these attributes control system bar appearance -->
+        <!-- The actual colors are ignored as edge-to-edge is enforced -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Opt out of enforced edge-to-edge for this activity -->
+        <!-- This helps maintain compatibility with traditional layouts -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+
+    <style name="BootTheme" parent="Theme.BootSplash">
+        <item name="bootSplashBackground">@color/bootsplash_background</item>
+        <item name="bootSplashLogo">@drawable/bootsplash_logo</item>
+        <item name="postBootSplashTheme">@style/AppTheme</item>
+    </style>
+</resources>

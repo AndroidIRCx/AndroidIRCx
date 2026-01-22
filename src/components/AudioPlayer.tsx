@@ -28,7 +28,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ url }) => {
       ) : (
         <Video
           source={{ uri: url }}
-          audioOnly
           controls
           paused={paused}
           onLoad={() => setLoading(false)}
