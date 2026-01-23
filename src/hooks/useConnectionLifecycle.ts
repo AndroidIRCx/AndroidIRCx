@@ -8,12 +8,14 @@ import { settingsService } from '../services/SettingsService';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { offlineQueueService } from '../services/OfflineQueueService';
+import { autoReconnectService } from '../services/AutoReconnectService';
 import { userActivityService } from '../services/UserActivityService';
 import { scriptingService } from '../services/ScriptingService';
 import { dccChatService } from '../services/DCCChatService';
 import { dccFileService } from '../services/DCCFileService';
 import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
+import { notificationService } from '../services/NotificationService';
 import { useTabStore } from '../stores/tabStore';
 import { useUIStore } from '../stores/uiStore';
 import { tabService } from '../services/TabService';
@@ -421,23 +423,40 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
 
         // Play notification sounds for relevant events
         // Only for incoming messages, not local echo (from !== currentNick)
+        // Sounds respect per-channel notification preferences (mentions only, etc.)
         const isLocalEcho = message.from?.toLowerCase() === currentNick.toLowerCase();
         if (!isLocalEcho && message.type === 'message' && message.text) {
-          // Private message sound
-          if (targetTabType === 'query' && message.from) {
-            soundService.playSound(SoundEventType.PRIVATE_MESSAGE);
-          }
-          // Mention sound - check if current nick is mentioned in the message
-          else if (targetTabType === 'channel' && currentNick) {
-            const mentionPattern = new RegExp(`\\b${currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-            if (mentionPattern.test(message.text)) {
-              soundService.playSound(SoundEventType.MENTION);
+          // Check per-channel notification preferences before playing sounds
+          const shouldPlaySound = notificationService.shouldNotify(
+            { from: message.from, text: message.text, channel: message.channel, type: message.type },
+            currentNick,
+            messageNetwork
+          );
+
+          if (shouldPlaySound) {
+            // Private message sound
+            if (targetTabType === 'query' && message.from) {
+              soundService.playSound(SoundEventType.PRIVATE_MESSAGE);
+            }
+            // Mention sound - check if current nick is mentioned in the message
+            else if (targetTabType === 'channel' && currentNick) {
+              const mentionPattern = new RegExp(`\\b${currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+              if (mentionPattern.test(message.text)) {
+                soundService.playSound(SoundEventType.MENTION);
+              }
             }
           }
         }
-        // Notice sound
+        // Notice sound - also respect notification preferences
         if (message.type === 'notice' && !isLocalEcho) {
-          soundService.playSound(SoundEventType.NOTICE);
+          const shouldPlayNoticeSound = notificationService.shouldNotify(
+            { from: message.from, text: message.text || '', channel: message.channel, type: message.type },
+            currentNick,
+            messageNetwork
+          );
+          if (shouldPlayNoticeSound) {
+            soundService.playSound(SoundEventType.NOTICE);
+          }
         }
         // CTCP sound (for DCC and other CTCP requests)
         if (message.type === 'ctcp' && !isLocalEcho) {
@@ -902,6 +921,11 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
           // Handle connection (-d switch: disconnect only, no connect)
           if (serverArgs.switches.disconnectOnly) {
             if (activeIRCService.getConnectionStatus()) {
+              // Mark as intentional disconnect so auto-reconnect doesn't trigger
+              const disconnectNetworkName = activeIRCService.getNetworkName();
+              if (disconnectNetworkName) {
+                autoReconnectService.markIntentionalDisconnect(disconnectNetworkName);
+              }
               activeIRCService.sendRaw(`QUIT :${latest.t('Changing server')}`);
             }
             activeIRCService.addMessage({

@@ -4,3 +4,4 @@ v1.6.11
 - Improved DCC transfer accept flow
 - IRC deep link query params support (?nick=, ?altNick=, etc.)
 - Better error handling and stability improvements
+- Other bugs fixes

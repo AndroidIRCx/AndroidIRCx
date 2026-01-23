@@ -117,10 +117,17 @@ class SettingsService {
     }
 
     result = result.map(net => {
-      let servers = net.servers && net.servers.length > 0 ? net.servers : [this.buildDefaultServer()];
+      const isDBaseNetwork = net.name === 'DBase' || net.id === 'DBase';
 
-      // For DBase network, ensure both default servers are present
-      if (net.name === 'DBase') {
+      // For DBase network, ensure default servers exist; for user networks, keep their servers as-is
+      let servers = net.servers || [];
+
+      if (isDBaseNetwork) {
+        // For DBase network, ensure both default servers are present
+        if (servers.length === 0) {
+          servers = [this.buildDefaultServer()];
+        }
+
         const hasDbServer = servers.some(s => s.hostname === 'irc.dbase.in.rs');
         const hasAndroidircxServer = servers.some(s => s.hostname === 'irc.androidircx.com');
 
@@ -150,7 +157,10 @@ class SettingsService {
           // Default to rejecting unauthorized certs unless user explicitly disabled
           rejectUnauthorized: s.rejectUnauthorized !== false,
         })),
-        defaultServerId: net.defaultServerId || servers[0]?.id || DEFAULT_SERVER_ID,
+        // Only auto-set defaultServerId for DBase network
+        defaultServerId: isDBaseNetwork
+          ? (net.defaultServerId || servers[0]?.id || DEFAULT_SERVER_ID)
+          : net.defaultServerId,
         identityProfileId: net.identityProfileId || defaultProfile.id,
         nick: net.nick || defaultProfile.nick,
         altNick: net.altNick || defaultProfile.altNick,
@@ -301,9 +311,7 @@ class SettingsService {
           favorite: s.id === newServer.id,
         }));
       }
-      if (!network.defaultServerId) {
-        network.defaultServerId = newServer.id;
-      }
+      // Don't auto-set defaultServerId - let user explicitly mark server as default
       await this.saveNetworks(networks);
     }
   }
@@ -356,6 +364,15 @@ class SettingsService {
         network.defaultServerId = serverId;
         await this.saveNetworks(networks);
       }
+    }
+  }
+
+  async clearDefaultServerForNetwork(networkId: string, serverId: string): Promise<void> {
+    const networks = await this.loadNetworks();
+    const network = networks.find(n => n.id === networkId);
+    if (network && network.defaultServerId === serverId) {
+      network.defaultServerId = undefined;
+      await this.saveNetworks(networks);
     }
   }
 

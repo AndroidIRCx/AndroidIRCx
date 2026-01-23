@@ -13,50 +13,33 @@ export interface SectionIcon {
 }
 
 /**
- * Get icon information for a section title
+ * Get icon information for a section by ID
+ * Uses section ID (not translated title) for consistent icon mapping across languages
  */
-export const getSectionIcon = (title: string): SectionIcon | null => {
+export const getSectionIcon = (sectionId: string): SectionIcon | null => {
   const iconMap: Record<string, SectionIcon | null> = {
-    'Premium': null, // No icon for Premium as requested
-    'Appearance': { name: 'palette', solid: true },
-    'ZNC Subscription': { name: 'server', solid: false },
-    'Display & UI': { name: 'desktop', solid: false },
-    'Messages & History': { name: 'history', solid: false },
-    'Messages': { name: 'history', solid: false }, // Legacy support
-    'Message History': { name: 'history', solid: false }, // Legacy support
-    'Media': { name: 'image', solid: false },
-    'Notifications': { name: 'bell', solid: true },
-    'Highlighting': { name: 'highlighter', solid: false },
-    'Connection & Network': { name: 'network-wired', solid: false },
-    'Security': { name: 'shield-alt', solid: true },
-    'Security & Quick Connect': { name: 'shield-alt', solid: true }, // Legacy support
-    'Users & Services': { name: 'users', solid: false },
-    'Commands': { name: 'terminal', solid: false },
-    'Performance': { name: 'tachometer-alt', solid: false },
-    'Background & Battery': { name: 'battery-full', solid: false },
-    'Scripting & Ads': { name: 'code', solid: false },
-    'Scripting': { name: 'code', solid: false }, // Legacy support
-    'Privacy & Legal': { name: 'lock', solid: false },
-    'Development': { name: 'tools', solid: false },
-    'About': { name: 'info-circle', solid: true },
-    // Legacy/alternative names
-    'Background Service': { name: 'circle', solid: false },
-    'Connectivity': { name: 'wifi', solid: false },
-    'Connection Quality': { name: 'signal', solid: false },
-    'Connection Profiles': { name: 'network-wired', solid: false },
-    'Auto-Reconnect': { name: 'sync', solid: false },
-    'Channels': { name: 'hashtag', solid: false },
-    'DCC': { name: 'file', solid: false },
-    'Proxy': { name: 'shield-alt', solid: false },
-    'Identity Profiles': { name: 'user-circle', solid: false },
-    'Password Lock': { name: 'lock', solid: true },
-    'Privacy': { name: 'lock', solid: false },
-    'Legal': { name: 'gavel', solid: false },
-    'IRC Bouncer': { name: 'server', solid: false },
-    'Advanced': { name: 'cog', solid: false },
+    'premium': null, // No icon for Premium as requested
+    'appearance': { name: 'palette', solid: true },
+    'znc-subscription': { name: 'server', solid: false },
+    'display-ui': { name: 'desktop', solid: false },
+    'messages-history': { name: 'history', solid: false },
+    'media': { name: 'image', solid: false },
+    'notifications': { name: 'bell', solid: true },
+    'highlighting': { name: 'highlighter', solid: false },
+    'connection-network': { name: 'network-wired', solid: false },
+    'security': { name: 'shield-alt', solid: true },
+    'users-services': { name: 'users', solid: false },
+    'commands': { name: 'terminal', solid: false },
+    'performance': { name: 'tachometer-alt', solid: false },
+    'background-battery': { name: 'battery-full', solid: false },
+    'scripting-ads': { name: 'code', solid: false },
+    'privacy-legal': { name: 'lock', solid: false },
+    'development': { name: 'tools', solid: false },
+    'about': { name: 'info-circle', solid: true },
+    'help': { name: 'question-circle', solid: false },
   };
 
-  return iconMap[title] || null;
+  return iconMap[sectionId] || null;
 };
 
 /**
@@ -104,6 +87,7 @@ export const filterSettings = (
 /**
  * Order sections based on user status and preferences
  * Premium sections come first, then standard sections
+ * Uses section ID (not translated title) for consistent ordering across languages
  */
 export const orderSections = (
   sections: SettingsSection[],
@@ -114,56 +98,58 @@ export const orderSections = (
   // Check if user has any premium status
   const isPremiumUser = isSupporter || hasNoAds || hasScriptingPro;
 
-  // Define section order - Premium at top for non-paying, at bottom for paying
+  // Define section order by ID - Premium at top for non-paying, at bottom for paying
   const sectionOrderForPremium: string[] = [
-    'Premium',                    // Premium features first for non-paying users
-    'ZNC Subscription',
-    'Appearance',
-    'Display & UI',
-    'Messages & History',
-    'Media',
-    'Notifications',
-    'Highlighting',
-    'Connection & Network',
-    'Security',
-    'Users & Services',
-    'Commands',
-    'Performance',
-    'Background & Battery',
-    'Scripting & Ads',
-    'Privacy & Legal',
-    'Development',
-    'About',
+    'premium',                    // Premium features first for non-paying users
+    'znc-subscription',
+    'appearance',
+    'display-ui',
+    'messages-history',
+    'media',
+    'notifications',
+    'highlighting',
+    'connection-network',
+    'security',
+    'users-services',
+    'commands',
+    'performance',
+    'background-battery',
+    'scripting-ads',
+    'privacy-legal',
+    'development',
+    'about',
+    'help',
   ];
 
   const sectionOrderForRegular: string[] = [
-    'Appearance',
-    'Display & UI',
-    'Messages & History',
-    'Media',
-    'Notifications',
-    'Highlighting',
-    'Connection & Network',
-    'Security',
-    'Users & Services',
-    'Commands',
-    'Performance',
-    'Background & Battery',
-    'Scripting & Ads',
-    'Privacy & Legal',
-    'Development',
-    'About',
-    'Premium',                    // Premium at bottom for paying users
-    'ZNC Subscription',
+    'appearance',
+    'display-ui',
+    'messages-history',
+    'media',
+    'notifications',
+    'highlighting',
+    'connection-network',
+    'security',
+    'users-services',
+    'commands',
+    'performance',
+    'background-battery',
+    'scripting-ads',
+    'privacy-legal',
+    'development',
+    'about',
+    'help',
+    'premium',                    // Premium at bottom for paying users
+    'znc-subscription',
   ];
 
   // Choose order based on premium status
   const sectionOrder = isPremiumUser ? sectionOrderForRegular : sectionOrderForPremium;
 
-  // Sort sections based on order
+  // Sort sections based on order using section ID
   const ordered = [...sections].sort((a, b) => {
-    const aIndex = sectionOrder.indexOf(a.title);
-    const bIndex = sectionOrder.indexOf(b.title);
+    const aIndex = sectionOrder.indexOf(a.id);
+    const bIndex = sectionOrder.indexOf(b.id);
 
     // If both are in order, use order
     if (aIndex !== -1 && bIndex !== -1) {

@@ -4972,7 +4972,18 @@ export class IRCService {
       
       switch (command) {
         case 'JOIN': if (args.length > 0) this.joinChannel(args[0], args[1]); break;
-        case 'PART': this.partChannel(args.length > 0 ? args[0] : target, args.slice(1).join(' ')); break;
+        case 'PART': {
+          if (args.length === 0) {
+            const isChannelTarget =
+              target.startsWith('#') || target.startsWith('&') || target.startsWith('+') || target.startsWith('!');
+            if (!isChannelTarget) {
+              this.addMessage({ type: 'error', text: t('Usage: /part <channel> [message]'), timestamp: Date.now() });
+              break;
+            }
+          }
+          this.partChannel(args.length > 0 ? args[0] : target, args.slice(1).join(' '));
+          break;
+        }
         case 'NICK': if (args.length > 0) this.sendRaw(`NICK ${args[0]}`); break;
         case 'SETNAME': if (args.length > 0) this.setRealname(args.join(' ')); break;
         case 'BOT': {
@@ -4980,7 +4991,10 @@ export class IRCService {
           this.toggleBotMode(enable);
           break;
         }
-        case 'QUIT': this.sendRaw(`QUIT :${args.join(' ') || DEFAULT_QUIT_MESSAGE}`); break;
+        case 'QUIT':
+          this.emit('intentional-quit', this.getNetworkName());
+          this.sendRaw(`QUIT :${args.join(' ') || DEFAULT_QUIT_MESSAGE}`);
+          break;
         case 'WHOIS': if (args.length > 0) this.sendCommand(`WHOIS ${args.join(' ')}`); break;
         case 'WHOWAS':
           if (args.length > 0) {
@@ -5455,6 +5469,7 @@ export class IRCService {
         }
         case 'DISCONNECT':
           // /disconnect - Disconnect from server (alias for /quit)
+          this.emit('intentional-quit', this.getNetworkName());
           this.sendRaw(`QUIT :${args.join(' ') || DEFAULT_QUIT_MESSAGE}`);
           break;
         case 'ANICK':

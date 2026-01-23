@@ -30,6 +30,8 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   const [colors, setColors] = useState<ThemeColors>(themeService.getColors());
   const [editingColor, setEditingColor] = useState<keyof ThemeColors | null>(null);
   const [colorValue, setColorValue] = useState('');
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [hexInput, setHexInput] = useState('');
 
   useEffect(() => {
     if (theme) {
@@ -44,23 +46,24 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   const handleColorPress = (key: keyof ThemeColors) => {
     setEditingColor(key);
     setColorValue(colors[key]);
+    setHexInput(colors[key]);
+    setShowColorPicker(true);
   };
 
-  const handleColorSave = () => {
-    if (editingColor && colorValue) {
-      // Validate hex color
-      const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      if (hexPattern.test(colorValue) || colorValue.startsWith('rgba(')) {
-        setColors(prev => ({
-          ...prev,
-          [editingColor]: colorValue,
-        }));
-        setEditingColor(null);
-        setColorValue('');
-      } else {
-        Alert.alert(t('Invalid Color'), t('Please enter a valid hex color (e.g., #FF0000) or rgba value'));
-      }
+  const isValidColor = (value: string) => {
+    const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    return hexPattern.test(value) || value.startsWith('rgba(');
+  };
+
+  const applyColorValue = (value: string) => {
+    if (!editingColor) {
+      return;
     }
+    setColors(prev => ({
+      ...prev,
+      [editingColor]: value,
+    }));
+    setColorValue(value);
   };
 
   const handleSave = async () => {
@@ -176,6 +179,43 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   ];
 
   const currentColors = themeService.getColors();
+  const predefinedColors = [
+    '#000000',
+    '#1A1A1A',
+    '#2D2D2D',
+    '#3C3C3C',
+    '#4A4A4A',
+    '#5C5C5C',
+    '#6B6B6B',
+    '#8A8A8A',
+    '#B0B0B0',
+    '#D0D0D0',
+    '#E6E6E6',
+    '#FFFFFF',
+    '#1E3A8A',
+    '#2563EB',
+    '#3B82F6',
+    '#60A5FA',
+    '#93C5FD',
+    '#0F766E',
+    '#14B8A6',
+    '#2DD4BF',
+    '#34D399',
+    '#10B981',
+    '#16A34A',
+    '#22C55E',
+    '#4ADE80',
+    '#86EFAC',
+    '#F59E0B',
+    '#F97316',
+    '#EA580C',
+    '#EF4444',
+    '#DC2626',
+    '#B91C1C',
+    '#7C3AED',
+    '#A855F7',
+    '#C084FC',
+  ];
 
   return (
     <Modal
@@ -235,54 +275,112 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
                     ]}
                     onPress={() => handleColorPress(key)}
                   />
-                  {editingColor === key && (
-                    <View style={styles.colorEditor}>
-                      <TextInput
-                        style={[
-                          styles.colorInput,
-                          {
-                            backgroundColor: currentColors.surface,
-                            color: currentColors.text,
-                            borderColor: currentColors.border,
-                          },
-                        ]}
-                        value={colorValue}
-                        onChangeText={setColorValue}
-                        placeholder={t('#FFFFFF')}
-                        placeholderTextColor={currentColors.textSecondary}
-                        autoCapitalize="none"
-                      />
-                      <TouchableOpacity
-                        style={[
-                          styles.colorSaveButton,
-                          { backgroundColor: currentColors.primary },
-                        ]}
-                        onPress={handleColorSave}>
-                        <Text style={[styles.colorSaveText, { color: currentColors.onPrimary }]}>
-                          ✓
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.colorCancelButton,
-                          { backgroundColor: currentColors.surfaceVariant },
-                        ]}
-                        onPress={() => {
-                          setEditingColor(null);
-                          setColorValue('');
-                        }}>
-                        <Text style={[styles.colorCancelText, { color: currentColors.text }]}>
-                          ✕
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
                 </View>
               ))}
             </View>
           ))}
         </ScrollView>
       </View>
+      <Modal
+        visible={showColorPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setShowColorPicker(false);
+          setEditingColor(null);
+          setHexInput('');
+        }}>
+        <View style={styles.pickerOverlay}>
+          <View style={[styles.pickerContainer, { backgroundColor: currentColors.surface }]}>
+            <Text style={[styles.pickerTitle, { color: currentColors.text }]}>
+              {t('Choose Color')}
+            </Text>
+            <Text style={[styles.pickerSubtitle, { color: currentColors.textSecondary }]}>
+              {t('Current color: {color}', { color: colorValue || '' })}
+            </Text>
+            <View style={styles.pickerPreviewRow}>
+              <View
+                style={[
+                  styles.pickerPreview,
+                  { backgroundColor: colorValue || currentColors.surfaceVariant, borderColor: currentColors.border },
+                ]}
+              />
+            </View>
+            <View style={styles.pickerInputRow}>
+              <Text style={[styles.pickerLabel, { color: currentColors.text }]}>
+                {t('Hex Color:')}
+              </Text>
+              <TextInput
+                style={[
+                  styles.pickerInput,
+                  {
+                    backgroundColor: currentColors.surface,
+                    color: currentColors.text,
+                    borderColor: currentColors.border,
+                  },
+                ]}
+                value={hexInput}
+                onChangeText={(text) => {
+                  setHexInput(text);
+                  if (isValidColor(text)) {
+                    applyColorValue(text);
+                  }
+                }}
+                placeholder={t('#FFFFFF')}
+                placeholderTextColor={currentColors.textSecondary}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            <ScrollView style={styles.pickerGridScroll}>
+              <View style={styles.pickerGrid}>
+                {predefinedColors.map((value) => (
+                  <TouchableOpacity
+                    key={value}
+                    style={[
+                      styles.pickerSwatch,
+                      { backgroundColor: value },
+                      value === colorValue && { borderColor: currentColors.primary, borderWidth: 2 },
+                    ]}
+                    onPress={() => {
+                      setHexInput(value);
+                      applyColorValue(value);
+                    }}
+                  />
+                ))}
+              </View>
+            </ScrollView>
+            <View style={styles.pickerActions}>
+              <TouchableOpacity
+                style={[styles.pickerButton, { backgroundColor: currentColors.surfaceVariant }]}
+                onPress={() => {
+                  setShowColorPicker(false);
+                  setEditingColor(null);
+                  setHexInput('');
+                }}>
+                <Text style={[styles.pickerButtonText, { color: currentColors.text }]}>
+                  {t('Cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.pickerButton, { backgroundColor: currentColors.primary }]}
+                onPress={() => {
+                  if (hexInput && !isValidColor(hexInput)) {
+                    Alert.alert(t('Invalid Color'), t('Please enter a valid hex color (e.g., #FF0000) or rgba value'));
+                    return;
+                  }
+                  setShowColorPicker(false);
+                  setEditingColor(null);
+                  setHexInput('');
+                }}>
+                <Text style={[styles.pickerButtonText, { color: currentColors.onPrimary }]}>
+                  {t('Done')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Modal>
   );
 };
@@ -352,36 +450,81 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginLeft: 12,
   },
-  colorEditor: {
-    flexDirection: 'row',
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
+  },
+  pickerContainer: {
+    width: '90%',
+    maxWidth: 420,
+    borderRadius: 12,
+    padding: 16,
+  },
+  pickerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  pickerSubtitle: {
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  pickerPreviewRow: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  pickerPreview: {
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  pickerInputRow: {
+    marginBottom: 12,
+  },
+  pickerLabel: {
+    fontSize: 12,
+    marginBottom: 6,
+  },
+  pickerInput: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 12,
+  },
+  pickerGridScroll: {
+    maxHeight: 220,
+    marginBottom: 12,
+  },
+  pickerGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
-  colorInput: {
+  pickerSwatch: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
     borderWidth: 1,
-    borderRadius: 4,
-    padding: 8,
-    fontSize: 12,
-    width: 100,
+    borderColor: 'transparent',
   },
-  colorSaveButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 4,
+  pickerActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  colorSaveText: {
+  pickerButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  pickerButtonText: {
     fontSize: 14,
-    fontWeight: 'bold',
-  },
-  colorCancelButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 4,
-  },
-  colorCancelText: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
 });
 

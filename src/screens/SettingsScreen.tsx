@@ -1319,6 +1319,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const sections = [
     {
+      id: 'premium',
       title: premiumTitle,
       data: [
         {
@@ -1333,6 +1334,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ],
     },
     {
+      id: 'znc-subscription',
       title: zncSubscriptionTitle,
       data: [
         {
@@ -1361,6 +1363,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ],
     },
     {
+      id: 'appearance',
       title: t('Appearance', { _tags: tags }),
       data: [{
         id: 'appearance-section',
@@ -1370,6 +1373,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'display-ui',
       title: t('Display & UI', { _tags: tags }),
       data: [{
         id: 'display-ui-section',
@@ -1379,6 +1383,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'messages-history',
       title: t('Messages & History', { _tags: tags }),
       data: [
         {
@@ -1476,6 +1481,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ],
     },
     {
+      id: 'media',
       title: t('Media', { _tags: tags }),
       data: [{
         id: 'media-section',
@@ -1485,6 +1491,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'notifications',
       title: t('Notifications', { _tags: tags }),
       data: [{
         id: 'notifications-section',
@@ -1494,6 +1501,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'highlighting',
       title: t('Highlighting', { _tags: tags }),
       data: [{
         id: 'highlighting-section',
@@ -1503,6 +1511,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'connection-network',
       title: connectionTitle,
       data: [
         {
@@ -1655,6 +1664,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ],
     },
     {
+      id: 'security',
       title: t('Security', { _tags: tags }),
       data: [
         {
@@ -1672,6 +1682,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ],
     },
     {
+      id: 'users-services',
       title: t('Users & Services', { _tags: tags }),
       data: [{
         id: 'users-services-section',
@@ -1681,6 +1692,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'commands',
       title: t('Commands', { _tags: tags }),
       data: [{
         id: 'commands-section',
@@ -1695,6 +1707,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'performance',
       title: t('Performance', { _tags: tags }),
       data: [
         {
@@ -1870,6 +1883,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ],
     },
     {
+      id: 'background-battery',
       title: t('Background & Battery', { _tags: tags }),
       data: [{
         id: 'background-battery-section',
@@ -1879,6 +1893,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'scripting-ads',
       title: t('Scripting & Ads', { _tags: tags }),
       data: [
         {
@@ -1920,6 +1935,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       ],
     },
     {
+      id: 'privacy-legal',
       title: t('Privacy & Legal', { _tags: tags }),
       data: [{
         id: 'privacy-legal-section',
@@ -1931,6 +1947,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     ...(__DEV__
       ? [
           {
+            id: 'development',
             title: t('Development', { _tags: tags }),
             data: [
               {
@@ -1950,6 +1967,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         ]
       : []),
     {
+      id: 'about',
       title: aboutTitle,
       data: [{
         id: 'about-section',
@@ -1959,6 +1977,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'help',
       title: helpTitle,
       data: [{
         id: 'help-section',
@@ -2291,8 +2310,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           sections={displaySections as any}
           keyExtractor={(item) => item.id}
           renderItem={({ item, section }) => renderSettingItem(item, section.title)}
-          renderSectionHeader={({ section: { title } }) => {
-            const iconInfo = getSectionIcon(title);
+          renderSectionHeader={({ section: { id, title } }) => {
+            const iconInfo = getSectionIcon(id);
             return (
               <SettingsSectionHeader
                 title={title}
@@ -2599,9 +2618,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           setShowThemeEditor(false);
           setEditingTheme(undefined);
         }}
-        onSave={(theme) => {
-          setCurrentTheme(theme);
-          setAvailableThemes(themeService.getAvailableThemes());
+        onSave={() => {
+          refreshThemes();
           setShowThemeEditor(false);
           setEditingTheme(undefined);
         }}
