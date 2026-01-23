@@ -49,6 +49,7 @@ export interface UIState {
   showSettings: boolean;
   showPurchaseScreen: boolean;
   showIgnoreList: boolean;
+  showBlacklist: boolean;
   showWHOIS: boolean;
   whoisNick: string;
   showQueryEncryptionMenu: boolean;
@@ -125,6 +126,7 @@ export interface UIState {
   setShowSettings: (show: boolean) => void;
   setShowPurchaseScreen: (show: boolean) => void;
   setShowIgnoreList: (show: boolean) => void;
+  setShowBlacklist: (show: boolean) => void;
   setShowWHOIS: (show: boolean) => void;
   setWhoisNick: (nick: string) => void;
   setShowQueryEncryptionMenu: (show: boolean) => void;
@@ -195,6 +197,7 @@ const initialState = {
   showSettings: false,
   showPurchaseScreen: false,
   showIgnoreList: false,
+  showBlacklist: false,
   showWHOIS: false,
   whoisNick: '',
   showQueryEncryptionMenu: false,
@@ -286,6 +289,7 @@ export const useUIStore = create<UIState>()(
       setShowSettings: (show) => set({ showSettings: show }),
       setShowPurchaseScreen: (show) => set({ showPurchaseScreen: show }),
       setShowIgnoreList: (show) => set({ showIgnoreList: show }),
+      setShowBlacklist: (show) => set({ showBlacklist: show }),
       setShowWHOIS: (show) => set({ showWHOIS: show }),
       setWhoisNick: (nick) => set({ whoisNick: nick }),
       setShowQueryEncryptionMenu: (show) => set({ showQueryEncryptionMenu: show }),
@@ -333,6 +337,7 @@ export const useUIStore = create<UIState>()(
         showSettings: false,
         showPurchaseScreen: false,
         showIgnoreList: false,
+        showBlacklist: false,
         showWHOIS: false,
         showQueryEncryptionMenu: false,
         showChannelList: false,

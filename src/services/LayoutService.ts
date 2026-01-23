@@ -3,13 +3,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type TabPosition = 'top' | 'bottom' | 'left' | 'right';
 export type UserListPosition = 'left' | 'right' | 'top' | 'bottom';
 export type ViewMode = 'compact' | 'comfortable' | 'spacious';
-export type FontSize = 'small' | 'medium' | 'large' | 'xlarge';
+export type FontSize = 'small' | 'medium' | 'large' | 'custom';
 
 export interface LayoutConfig {
   tabPosition: TabPosition;
   userListPosition: UserListPosition;
   viewMode: ViewMode;
   fontSize: FontSize;
+  fontSizeValues: {
+    small: number;
+    medium: number;
+    large: number;
+    custom: number;
+  };
   messageSpacing: number; // Spacing between messages (0-20)
   messagePadding: number; // Padding inside message container (0-20)
   timestampDisplay: 'always' | 'grouped' | 'never';
@@ -25,6 +31,12 @@ class LayoutService {
     userListPosition: 'right',
     viewMode: 'comfortable',
     fontSize: 'medium',
+    fontSizeValues: {
+      small: 12,
+      medium: 14,
+      large: 16,
+      custom: 18,
+    },
     messageSpacing: 4,
     messagePadding: 8,
     timestampDisplay: 'always',
@@ -55,7 +67,18 @@ class LayoutService {
         const stored = await AsyncStorage.getItem(this.STORAGE_KEY);
         if (stored) {
           const data = JSON.parse(stored);
-          this.config = { ...this.config, ...data };
+          const nextConfig = { ...this.config, ...data };
+          if (data.fontSize === 'xlarge') {
+            nextConfig.fontSize = 'custom';
+            nextConfig.fontSizeValues = {
+              ...nextConfig.fontSizeValues,
+              custom: 18,
+            };
+          }
+          if (!data.fontSizeValues) {
+            nextConfig.fontSizeValues = { ...this.config.fontSizeValues };
+          }
+          this.config = nextConfig;
           if (!data.userListPosition) {
             this.config.userListPosition = 'right';
           }
@@ -156,13 +179,13 @@ class LayoutService {
    * Get font size in pixels
    */
   getFontSizePixels(): number {
-    const sizeMap: Record<FontSize, number> = {
+    const sizeMap = this.config.fontSizeValues || {
       small: 12,
       medium: 14,
       large: 16,
-      xlarge: 18,
+      custom: 18,
     };
-    return sizeMap[this.config.fontSize];
+    return sizeMap[this.config.fontSize] || 14;
   }
 
   /**
@@ -170,6 +193,19 @@ class LayoutService {
    */
   async setFontSize(size: FontSize): Promise<void> {
     await this.setConfig({ fontSize: size });
+  }
+
+  /**
+   * Set font size value (8-30px)
+   */
+  async setFontSizeValue(size: keyof LayoutConfig['fontSizeValues'], value: number): Promise<void> {
+    const nextValue = Math.max(8, Math.min(30, value));
+    await this.setConfig({
+      fontSizeValues: {
+        ...this.config.fontSizeValues,
+        [size]: nextValue,
+      },
+    });
   }
 
   /**

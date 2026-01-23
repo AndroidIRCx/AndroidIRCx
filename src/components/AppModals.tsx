@@ -17,6 +17,7 @@ import { NetworksListScreen } from '../screens/NetworksListScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { PurchaseScreen } from '../screens/PurchaseScreen';
 import { IgnoreListScreen } from '../screens/IgnoreListScreen';
+import { BlacklistScreen } from '../screens/BlacklistScreen';
 import { WHOISDisplay } from './WHOISDisplay';
 import { QueryEncryptionMenu } from './QueryEncryptionMenu';
 import { ChannelListScreen } from '../screens/ChannelListScreen';
@@ -118,6 +119,7 @@ export function AppModals({
     showNetworksList,
     showPurchaseScreen,
     showIgnoreList,
+    showBlacklist,
     showWHOIS,
     whoisNick,
     showQueryEncryptionMenu,
@@ -250,6 +252,7 @@ export function AppModals({
         showTypingIndicators={showTypingIndicators}
         onShowTypingIndicatorsChange={persistentSetShowTypingIndicators}
         onShowIgnoreList={() => useUIStore.getState().setShowIgnoreList(true)}
+        onShowBlacklist={() => useUIStore.getState().setShowBlacklist(true)}
         onShowPurchaseScreen={() => useUIStore.getState().setShowPurchaseScreen(true)}
       />
       {showPurchaseScreen && (
@@ -263,6 +266,13 @@ export function AppModals({
           visible={showIgnoreList}
           network={activeTab?.networkId}
           onClose={() => useUIStore.getState().setShowIgnoreList(false)}
+        />
+      )}
+      {showBlacklist && (
+        <BlacklistScreen
+          visible={showBlacklist}
+          network={activeTab?.networkId}
+          onClose={() => useUIStore.getState().setShowBlacklist(false)}
         />
       )}
       {showWHOIS && (

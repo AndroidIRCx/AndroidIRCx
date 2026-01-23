@@ -3,7 +3,7 @@ import { encryptedDMService } from './EncryptedDMService';
 import { channelEncryptionService } from './ChannelEncryptionService';
 import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, ProxyConfig } from './SettingsService';
 import { ircForegroundService } from './IRCForegroundService';
-import { userManagementService } from './UserManagementService';
+import { userManagementService, BlacklistEntry } from './UserManagementService';
 import { tx } from '../i18n/transifex';
 
 // Re-export ChannelTab from types for backward compatibility
@@ -159,6 +159,9 @@ export class IRCService {
   private monitoredNicks: Set<string> = new Set();
   private manualDisconnect: boolean = false;
 
+  // UserManagementService instance (set by ConnectionManager, fallback to global singleton)
+  private _userManagementService: typeof userManagementService | null = null;
+
   // Auto-reconnect with exponential backoff
   private autoReconnectEnabled: boolean = true;
   private reconnectTimer: NodeJS.Timeout | null = null;
@@ -267,6 +270,188 @@ export class IRCService {
     } finally {
       this.isLoggingRaw = false;
     }
+  }
+
+  private runBlacklistAction(
+    entry: BlacklistEntry,
+    context: {
+      nick: string;
+      username?: string;
+      hostname?: string;
+      channel?: string;
+      network?: string;
+      reasonOverride?: string;
+    }
+  ): void {
+    if (!context.nick || context.nick === this.currentNick) {
+      return;
+    }
+    const network = context.network || this.getNetworkName();
+    const reason = context.reasonOverride || entry.reason || t('Blacklisted');
+    const duration = entry.duration || '0'; // default to permanent
+    const resolvedMask = this.getUserManagementService().resolveBlacklistMask(
+      entry,
+      context.nick,
+      context.username,
+      context.hostname
+    );
+    const toUserMask = (mask: string): string => {
+      if (mask.includes('@')) {
+        let user = '*';
+        let host = '*';
+        if (mask.includes('!')) {
+          const afterBang = mask.split('!')[1] || '';
+          const [maskUser, maskHost] = afterBang.split('@');
+          user = maskUser || '*';
+          host = maskHost || '*';
+        } else {
+          const [maskUser, maskHost] = mask.split('@');
+          user = maskUser || '*';
+          host = maskHost || '*';
+        }
+        if (user === '*' && context.username) {
+          user = context.username;
+        }
+        if (host === '*' && context.hostname) {
+          host = context.hostname;
+        }
+        return `${user}@${host}`;
+      }
+      if (context.hostname) {
+        return `${context.username || '*'}@${context.hostname}`;
+      }
+      return `${context.username || '*'}@*`;
+    };
+    const toHostMask = (mask: string): string => {
+      let user = '*';
+      let host = '*';
+      if (mask.includes('@')) {
+        if (mask.includes('!')) {
+          const afterBang = mask.split('!')[1] || '';
+          const [maskUser, maskHost] = afterBang.split('@');
+          user = maskUser || '*';
+          host = maskHost || '*';
+        } else {
+          const [maskUser, maskHost] = mask.split('@');
+          user = maskUser || '*';
+          host = maskHost || '*';
+        }
+      }
+      // If host is still a wildcard and we have actual hostname, use it
+      if (host === '*' && context.hostname) {
+        host = context.hostname;
+      }
+      return `${user}@${host}`;
+    };
+    const userMask = toUserMask(resolvedMask);
+    const hostMask = toHostMask(resolvedMask);
+    const actionMask =
+      entry.action === 'akill'
+        ? userMask
+        : (entry.action === 'gline' || entry.action === 'shun')
+          ? hostMask
+          : resolvedMask;
+    const formatTemplate = (template: string): string => {
+      const normalized = template.trim().replace(/^\//, '');
+      return normalized
+        .replace(/\{mask\}/g, actionMask)
+        .replace(/\{usermask\}/g, userMask)
+        .replace(/\{hostmask\}/g, hostMask)
+        .replace(/\{nick\}/g, context.nick)
+        .replace(/\{user\}/g, context.username || '')
+        .replace(/\{host\}/g, context.hostname || '')
+        .replace(/\{channel\}/g, context.channel || '')
+        .replace(/\{reason\}/g, reason)
+        .replace(/\{duration\}/g, duration)
+        .replace(/\{network\}/g, network || '');
+    };
+
+    if (entry.commandTemplate && ['akill', 'gline', 'shun'].includes(entry.action)) {
+      this.sendCommand(formatTemplate(entry.commandTemplate));
+      return;
+    }
+
+    // Check if we have a valid channel (starts with # or &)
+    const isValidChannel = context.channel && /^[#&]/.test(context.channel);
+
+    switch (entry.action) {
+      case 'ignore':
+        this.getUserManagementService().ignoreUser(resolvedMask, reason, network);
+        break;
+      case 'ban':
+        if (isValidChannel) {
+          this.sendCommand(`MODE ${context.channel} +b ${resolvedMask}`);
+        }
+        break;
+      case 'kick_ban':
+        if (isValidChannel) {
+          this.sendCommand(`MODE ${context.channel} +b ${resolvedMask}`);
+          this.sendCommand(`KICK ${context.channel} ${context.nick} :${reason}`);
+        }
+        break;
+      case 'kill':
+        this.sendCommand(`KILL ${context.nick} :${reason}`);
+        break;
+      case 'os_kill':
+        this.sendCommand(`PRIVMSG OperServ :KILL ${context.nick} ${reason}`);
+        break;
+      case 'akill':
+        this.sendCommand(`PRIVMSG OperServ :AKILL ADD +${duration} ${userMask} ${reason}`);
+        break;
+      case 'gline':
+        this.sendCommand(`GLINE ${hostMask} ${duration} :${reason}`);
+        break;
+      case 'shun':
+        this.sendCommand(`SHUN ${hostMask} ${duration} :${reason}`);
+        break;
+      case 'custom':
+        if (entry.commandTemplate) {
+          this.sendCommand(formatTemplate(entry.commandTemplate));
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  private extractMaskFromNotice(text: string): { nick: string; username?: string; hostname?: string } | null {
+    if (!text) return null;
+    const sanitized = text
+      .replace(/\x03(\d{1,2}(,\d{1,2})?)?/g, '')
+      .replace(/[\x02\x0f\x1f\x16\x1d]/g, '');
+    const connectMatch = sanitized.match(/client connecting:\s*([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)!([^@\s]+)@([^\s]+)/i);
+    if (connectMatch) {
+      return {
+        nick: connectMatch[1],
+        username: connectMatch[2],
+        hostname: connectMatch[3].replace(/[)\],]+$/, ''),
+      };
+    }
+    const connectParenMatch = sanitized.match(/client connecting:\s*([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)\s*\(([^@\s]+)@([^\s\)]+)\)/i);
+    if (connectParenMatch) {
+      return {
+        nick: connectParenMatch[1],
+        username: connectParenMatch[2],
+        hostname: connectParenMatch[3].replace(/[)\],]+$/, ''),
+      };
+    }
+    const maskMatch = sanitized.match(/([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)!([^@\s]+)@([^\s]+)/);
+    if (maskMatch) {
+      return {
+        nick: maskMatch[1],
+        username: maskMatch[2],
+        hostname: maskMatch[3].replace(/[)\],]+$/, ''),
+      };
+    }
+    const parenMatch = sanitized.match(/([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)\s*\(([^@\s]+)@([^\s\)]+)\)/);
+    if (parenMatch) {
+      return {
+        nick: parenMatch[1],
+        username: parenMatch[2],
+        hostname: parenMatch[3].replace(/[)\],]+$/, ''),
+      };
+    }
+    return null;
   }
 
   connect(config: IRCConnectionConfig): Promise<void> {
@@ -985,7 +1170,7 @@ export class IRCService {
         const prefixParts = prefix.split('!');
         const username = prefixParts[1]?.split('@')[0];
         const hostname = prefixParts[1]?.split('@')[1];
-        if (userManagementService.isUserIgnored(fromNick, username, hostname, network)) {
+        if (this.getUserManagementService().isUserIgnored(fromNick, username, hostname, network)) {
           // User is ignored, skip this message
           return;
         }
@@ -1198,9 +1383,49 @@ export class IRCService {
         const noticeUsername = noticePrefixParts[1]?.split('@')[0];
         const noticeHostname = noticePrefixParts[1]?.split('@')[1];
         // Only ignore user notices, not server notices (server notices don't have ! in prefix)
-        if (prefix.includes('!') && userManagementService.isUserIgnored(noticeFrom, noticeUsername, noticeHostname, noticeNetwork)) {
+        if (prefix.includes('!') && this.getUserManagementService().isUserIgnored(noticeFrom, noticeUsername, noticeHostname, noticeNetwork)) {
           // User is ignored, skip this notice
           return;
+        }
+
+        if (noticeFrom && noticeFrom !== this.currentNick) {
+          if (prefix.includes('!')) {
+            const blacklistEntry = this.getUserManagementService().findMatchingBlacklistEntry(
+              noticeFrom,
+              noticeUsername,
+              noticeHostname,
+              noticeNetwork
+            );
+            if (blacklistEntry) {
+              this.runBlacklistAction(blacklistEntry, {
+                nick: noticeFrom,
+                username: noticeUsername,
+                hostname: noticeHostname,
+                channel: noticeTarget,
+                network: noticeNetwork,
+              });
+            }
+          } else {
+            const extracted = this.extractMaskFromNotice(noticeText);
+            if (extracted) {
+              const blacklistEntry = this.getUserManagementService().findMatchingBlacklistEntry(
+                extracted.nick,
+                extracted.username,
+                extracted.hostname,
+                noticeNetwork
+              );
+              if (blacklistEntry) {
+                this.runBlacklistAction(blacklistEntry, {
+                  nick: extracted.nick,
+                  username: extracted.username,
+                  hostname: extracted.hostname,
+                  channel: noticeTarget,
+                  network: noticeNetwork,
+                  reasonOverride: noticeText,
+                });
+              }
+            }
+          }
         }
         
         const noticeCTCP = this.parseCTCP(noticeText);
@@ -1239,10 +1464,45 @@ export class IRCService {
           reactions: reactTag, // draft/react
         });
         break;
+      case 'WALLOPS': {
+        const wallopsText = params[0] || '';
+        const wallopsFrom = this.extractNick(prefix);
+        const wallopsNetwork = this.getNetworkName();
+        const wallopsMask = this.extractMaskFromNotice(wallopsText);
+        if (wallopsMask) {
+          const blacklistEntry = this.getUserManagementService().findMatchingBlacklistEntry(
+            wallopsMask.nick,
+            wallopsMask.username,
+            wallopsMask.hostname,
+            wallopsNetwork
+          );
+          if (blacklistEntry) {
+            this.runBlacklistAction(blacklistEntry, {
+              nick: wallopsMask.nick,
+              username: wallopsMask.username,
+              hostname: wallopsMask.hostname,
+              network: wallopsNetwork,
+              reasonOverride: wallopsText,
+            });
+          }
+        }
+        this.addMessage({
+          type: 'notice',
+          from: wallopsFrom,
+          text: wallopsText,
+          timestamp: messageTimestamp,
+          isRaw: true,
+          rawCategory: 'server',
+        });
+        break;
+      }
 
       case 'JOIN':
         const channel = params[0] || '';
         const nick = this.extractNick(prefix);
+        const joinPrefixParts = prefix.split('!');
+        const joinUsername = joinPrefixParts[1]?.split('@')[0];
+        const joinHostname = joinPrefixParts[1]?.split('@')[1];
         
         let joinText = t('{nick} joined {channel}', { nick, channel });
         let account: string | undefined;
@@ -1275,6 +1535,25 @@ export class IRCService {
           }
         }
         
+        if (channel && nick && nick !== this.currentNick) {
+          const network = this.getNetworkName();
+          const blacklistEntry = this.getUserManagementService().findMatchingBlacklistEntry(
+            nick,
+            joinUsername,
+            joinHostname,
+            network
+          );
+          if (blacklistEntry) {
+            this.runBlacklistAction(blacklistEntry, {
+              nick,
+              username: joinUsername,
+              hostname: joinHostname,
+              channel,
+              network,
+            });
+          }
+        }
+
         if (nick === this.currentNick) {
           this.emit('joinedChannel', channel);
           this.pendingChannelIntro.add(channel);
@@ -5307,7 +5586,7 @@ export class IRCService {
             const ignoreMask = args[0];
             const ignoreReason = args.length > 1 ? args.slice(1).join(' ') : undefined;
             const network = this.getNetworkName();
-            userManagementService.ignoreUser(ignoreMask, ignoreReason, network).then(() => {
+            this.getUserManagementService().ignoreUser(ignoreMask, ignoreReason, network).then(() => {
               this.addMessage({ type: 'notice', text: t('*** Now ignoring {mask}', { mask: ignoreMask }), timestamp: Date.now() });
             }).catch((e: Error) => {
               this.addMessage({ type: 'error', text: t('*** Failed to ignore user: {message}', { message: e.message }), timestamp: Date.now() });
@@ -5321,7 +5600,7 @@ export class IRCService {
           if (args.length >= 1) {
             const unignoreMask = args[0];
             const network = this.getNetworkName();
-            userManagementService.unignoreUser(unignoreMask, network).then(() => {
+            this.getUserManagementService().unignoreUser(unignoreMask, network).then(() => {
               this.addMessage({ type: 'notice', text: t('*** No longer ignoring {mask}', { mask: unignoreMask }), timestamp: Date.now() });
             }).catch((e: Error) => {
               this.addMessage({ type: 'error', text: t('*** Failed to unignore user: {message}', { message: e.message }), timestamp: Date.now() });
@@ -5794,6 +6073,14 @@ export class IRCService {
 
   setNetworkId(id: string): void {
     this.networkId = id || '';
+  }
+
+  setUserManagementService(svc: typeof userManagementService): void {
+    this._userManagementService = svc;
+  }
+
+  getUserManagementService(): typeof userManagementService {
+    return this._userManagementService || userManagementService;
   }
 
   getConnectionStatus(): boolean {

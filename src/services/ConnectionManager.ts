@@ -135,6 +135,7 @@ class ConnectionManager {
     const channelManagementService = new ChannelManagementService(ircService);
     const userManagementService = new UserManagementService();
     userManagementService.setIRCService(ircService);
+    ircService.setUserManagementService(userManagementService);
     const channelListService = new ChannelListService(ircService);
     const autoRejoinService = new AutoRejoinService(ircService);
     const autoVoiceService = new AutoVoiceService(ircService);

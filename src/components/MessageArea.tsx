@@ -677,6 +677,29 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       : displayMessages.length
   );
 
+  useEffect(() => {
+    if (!perfConfig.enableVirtualization) {
+      if (loadedMessageCount !== displayMessages.length) {
+        setLoadedMessageCount(displayMessages.length);
+      }
+      return;
+    }
+
+    const minVisible = Math.min(perfConfig.maxVisibleMessages, displayMessages.length);
+    if (loadedMessageCount < minVisible) {
+      setLoadedMessageCount(minVisible);
+      return;
+    }
+    if (loadedMessageCount > displayMessages.length) {
+      setLoadedMessageCount(displayMessages.length);
+    }
+  }, [
+    perfConfig.enableVirtualization,
+    perfConfig.maxVisibleMessages,
+    displayMessages.length,
+    loadedMessageCount,
+  ]);
+
   // Visible messages for virtualization
   const visibleMessages = useMemo(() => {
     if (!perfConfig.enableVirtualization) {
@@ -1115,7 +1138,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   timestamp: {
     color: colors.messageTimestamp,
-    fontSize: layoutConfig.fontSize === 'small' ? 10 : layoutConfig.fontSize === 'large' ? 14 : layoutConfig.fontSize === 'xlarge' ? 16 : 12,
+    fontSize: Math.max(10, layoutService.getFontSizePixels() - 2),
     marginRight: 8,
     minWidth: 50,
   },

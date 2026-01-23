@@ -307,7 +307,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
   const renderScript = ({ item }: { item: ScriptConfig }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View style={{ flex: 1, marginRight: 12 }}>
+        <View style={styles.cardHeaderText}>
           <Text style={styles.title}>{item.name}</Text>
           <Text style={styles.subtitle}>{item.id}</Text>
           {item.description ? <Text style={styles.subtitle}>{item.description}</Text> : null}
@@ -476,7 +476,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
             scripts.map((item) => (
               <View key={item.id} style={styles.card}>
                 <View style={styles.cardHeader}>
-                  <View>
+                  <View style={styles.cardHeaderText}>
                     <Text style={styles.title}>{item.name}</Text>
                     <Text style={styles.subtitle}>{item.id}</Text>
                     {item.description ? <Text style={styles.subtitle}>{item.description}</Text> : null}
@@ -648,6 +648,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   list: { paddingBottom: 12 },
   card: { backgroundColor: colors.surface, padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardHeaderText: { flex: 1, marginRight: 12, minWidth: 0, flexShrink: 1 },
   title: { color: colors.text, fontWeight: '700', fontSize: 16 },
   subtitle: { color: colors.textSecondary, fontSize: 12 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 8, flexWrap: 'wrap' },

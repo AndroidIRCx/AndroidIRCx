@@ -18,7 +18,7 @@ import { pick, types, errorCodes, isErrorWithCode } from '@react-native-document
 import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 import { ChannelUser } from '../services/IRCService';
 import { ircService } from '../services/IRCService';
-import { userManagementService } from '../services/UserManagementService';
+import { userManagementService, BlacklistActionType } from '../services/UserManagementService';
 import { connectionManager } from '../services/ConnectionManager';
 import { dccChatService } from '../services/DCCChatService';
 import { useTheme } from '../hooks/useTheme';
@@ -76,6 +76,12 @@ export const UserList: React.FC<UserListProps> = ({
   const [showKeyScan, setShowKeyScan] = useState(false);
   const [scanError, setScanError] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [showBlacklistModal, setShowBlacklistModal] = useState(false);
+  const [showBlacklistActionPicker, setShowBlacklistActionPicker] = useState(false);
+  const [blacklistAction, setBlacklistAction] = useState<BlacklistActionType>('ban');
+  const [blacklistMaskChoice, setBlacklistMaskChoice] = useState<string>('nick');
+  const [blacklistReason, setBlacklistReason] = useState('');
+  const [blacklistCustomCommand, setBlacklistCustomCommand] = useState('');
   const [performanceConfig, setPerformanceConfig] = useState<PerformanceConfig>(
     () => performanceService.getConfig()
   );
@@ -129,6 +135,45 @@ export const UserList: React.FC<UserListProps> = ({
     setPerformanceConfig(performanceService.getConfig());
     const unsubscribe = performanceService.onConfigChange(setPerformanceConfig);
     return unsubscribe;
+  }, []);
+
+  const blacklistActionOptions: Array<{ id: BlacklistActionType; label: string }> = useMemo(() => ([
+    { id: 'ignore', label: t('Ignore (local)') },
+    { id: 'ban', label: t('Ban') },
+    { id: 'kick_ban', label: t('Kick + Ban') },
+    { id: 'kill', label: t('Kill') },
+    { id: 'os_kill', label: t('OperServ Kill') },
+    { id: 'akill', label: t('AKILL') },
+    { id: 'gline', label: t('GLINE') },
+    { id: 'shun', label: t('SHUN') },
+    { id: 'custom', label: t('Custom Command') },
+  ]), [t]);
+
+  const getBlacklistMaskOptions = useCallback((user: ChannelUser) => {
+    const options: Array<{ id: string; label: string; mask: string }> = [
+      { id: 'nick', label: t('Nick only'), mask: user.nick },
+      { id: 'nick_user_any', label: t('Nick!user@*'), mask: `${user.nick}!*@*` },
+    ];
+    if (user.host) {
+      options.push({ id: 'host', label: t('*!*@host'), mask: `*!*@${user.host}` });
+      options.push({ id: 'nick_host', label: t('Nick!*@host'), mask: `${user.nick}!*@${user.host}` });
+    }
+    return options;
+  }, [t]);
+
+  const getBlacklistTemplate = useCallback(async (action: BlacklistActionType, net?: string) => {
+    if (!['akill', 'gline', 'shun'].includes(action)) {
+      return '';
+    }
+    const stored = await settingsService.getSetting('blacklistTemplates', {});
+    const base = {
+      akill: 'PRIVMSG OperServ :AKILL ADD {usermask} {reason}',
+      gline: 'GLINE {hostmask} :{reason}',
+      shun: 'SHUN {hostmask} :{reason}',
+    };
+    const global = stored?.global || {};
+    const local = net && stored?.[net] ? stored[net] : {};
+    return (local?.[action] || global?.[action] || base[action] || '') as string;
   }, []);
 
 
@@ -719,6 +764,13 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           setActionMessage(t('{nick} ignored').replace('{nick}', selectedUser.nick));
         }
         break;
+      case 'blacklist':
+        setBlacklistAction('ban');
+        setBlacklistReason('');
+        setBlacklistCustomCommand('');
+        setBlacklistMaskChoice(selectedUser.host ? 'host' : 'nick');
+        setShowBlacklistModal(true);
+        break;
       case 'monitor_toggle':
         if (activeIrc.isMonitoring(selectedUser.nick)) {
           activeIrc.unmonitorNick(selectedUser.nick);
@@ -1069,6 +1121,11 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                       : t('Ignore User')}
                   </Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.contextMenuItem}
+                  onPress={() => handleContextMenuAction('blacklist')}>
+                  <Text style={styles.contextMenuText}>{t('Add to Blacklist')}</Text>
+                </TouchableOpacity>
                 {activeIrc.capEnabledSet && activeIrc.capEnabledSet.has('monitor') && (
                   <TouchableOpacity
                     style={styles.contextMenuItem}
@@ -1340,6 +1397,131 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                 </TouchableOpacity>
               </ScrollView>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showBlacklistModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowBlacklistModal(false)}>
+        <View style={styles.blacklistOverlay}>
+          <View style={styles.blacklistModal}>
+            <Text style={styles.blacklistTitle}>{t('Add to Blacklist')}</Text>
+            {selectedUser && (
+              <>
+                <Text style={styles.blacklistLabel}>{t('Mask')}</Text>
+                {getBlacklistMaskOptions(selectedUser).map(option => (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={styles.blacklistOption}
+                    onPress={() => setBlacklistMaskChoice(option.id)}>
+                    <Text style={[
+                      styles.blacklistOptionText,
+                      blacklistMaskChoice === option.id && styles.blacklistOptionTextSelected,
+                    ]}>
+                      {option.label} {option.mask}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                <Text style={styles.blacklistLabel}>{t('Action')}</Text>
+                <TouchableOpacity
+                  style={styles.blacklistPicker}
+                  onPress={() => setShowBlacklistActionPicker(true)}>
+                  <Text style={styles.blacklistPickerText}>
+                    {blacklistActionOptions.find(opt => opt.id === blacklistAction)?.label || blacklistAction}
+                  </Text>
+                </TouchableOpacity>
+                {blacklistAction === 'custom' && (
+                  <TextInput
+                    style={styles.blacklistInput}
+                    value={blacklistCustomCommand}
+                    onChangeText={setBlacklistCustomCommand}
+                    placeholder={t('Command template (use {mask}, {usermask}, {hostmask}, {nick})')}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                )}
+                <TextInput
+                  style={[styles.blacklistInput, styles.blacklistInputMultiline]}
+                  value={blacklistReason}
+                  onChangeText={setBlacklistReason}
+                  placeholder={t('Reason (optional)')}
+                  multiline
+                />
+                <View style={styles.blacklistButtons}>
+                  <TouchableOpacity
+                    style={[styles.blacklistButton, styles.blacklistButtonCancel]}
+                    onPress={() => setShowBlacklistModal(false)}>
+                    <Text style={styles.blacklistButtonText}>{t('Cancel')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
+                    onPress={async () => {
+                      if (!selectedUser) return;
+                      const maskOptions = getBlacklistMaskOptions(selectedUser);
+                      const choice = maskOptions.find(opt => opt.id === blacklistMaskChoice) || maskOptions[0];
+                      const templateCommand = blacklistAction === 'custom'
+                        ? blacklistCustomCommand.trim()
+                        : await getBlacklistTemplate(blacklistAction, network);
+                      await userManagementService.addBlacklistEntry(
+                        choice.mask,
+                        blacklistAction,
+                        blacklistReason.trim() || undefined,
+                        network,
+                        templateCommand || undefined
+                      );
+                      setShowBlacklistModal(false);
+                      setActionMessage(t('Added {nick} to blacklist').replace('{nick}', selectedUser.nick));
+                    }}>
+                    <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
+                      {t('Add')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showBlacklistActionPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowBlacklistActionPicker(false)}>
+        <View style={styles.blacklistOverlay}>
+          <View style={styles.blacklistModal}>
+            <Text style={styles.blacklistTitle}>{t('Select Action')}</Text>
+            <ScrollView style={styles.blacklistPickerScroll}>
+              {blacklistActionOptions.map(option => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={styles.blacklistOption}
+                  onPress={() => {
+                    setBlacklistAction(option.id);
+                    if (option.id !== 'custom') {
+                      setBlacklistCustomCommand('');
+                    }
+                    setShowBlacklistActionPicker(false);
+                  }}>
+                  <Text style={[
+                    styles.blacklistOptionText,
+                    blacklistAction === option.id && styles.blacklistOptionTextSelected,
+                  ]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
+              onPress={() => setShowBlacklistActionPicker(false)}>
+              <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
+                {t('Close')}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -1639,6 +1821,99 @@ const createStyles = (colors: any = {}) => StyleSheet.create({
     fontSize: 12,
     color: '#616161',
     textAlign: 'center',
+  },
+  blacklistOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  blacklistModal: {
+    backgroundColor: colors.surface || '#FFFFFF',
+    borderRadius: 10,
+    padding: 16,
+    width: '90%',
+    maxWidth: 400,
+  },
+  blacklistTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text || '#212121',
+    marginBottom: 12,
+  },
+  blacklistLabel: {
+    fontSize: 12,
+    color: colors.textSecondary || '#757575',
+    marginTop: 8,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  blacklistOption: {
+    paddingVertical: 8,
+  },
+  blacklistOptionText: {
+    fontSize: 13,
+    color: colors.text || '#212121',
+  },
+  blacklistOptionTextSelected: {
+    color: colors.primary || '#2196F3',
+    fontWeight: '600',
+  },
+  blacklistPicker: {
+    borderWidth: 1,
+    borderColor: colors.border || '#E0E0E0',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 8,
+  },
+  blacklistPickerText: {
+    fontSize: 14,
+    color: colors.text || '#212121',
+  },
+  blacklistInput: {
+    borderWidth: 1,
+    borderColor: colors.border || '#E0E0E0',
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 14,
+    color: colors.text || '#212121',
+    backgroundColor: colors.surface || '#FFFFFF',
+    marginBottom: 10,
+  },
+  blacklistInputMultiline: {
+    minHeight: 64,
+    textAlignVertical: 'top',
+  },
+  blacklistButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 8,
+  },
+  blacklistButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  blacklistButtonCancel: {
+    backgroundColor: colors.border || '#E0E0E0',
+  },
+  blacklistButtonPrimary: {
+    backgroundColor: colors.primary || '#2196F3',
+  },
+  blacklistButtonText: {
+    fontSize: 14,
+    color: colors.text || '#212121',
+  },
+  blacklistButtonTextPrimary: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  blacklistPickerScroll: {
+    maxHeight: 260,
+    marginBottom: 8,
   },
   qrModal: {
     backgroundColor: '#FFFFFF',

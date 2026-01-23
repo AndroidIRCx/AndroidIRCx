@@ -240,10 +240,10 @@
     "string": "Seleccione el tamaño de fuente:"
   },
   "Small": {
-    "string": "¨Pequeña"
+    "string": "Pequeña"
   },
   "Medium": {
-    "string": "Medio"
+    "string": "Media"
   },
   "Large": {
     "string": "Grande"
@@ -255,55 +255,55 @@
     "string": "Categorías Raw"
   },
   "Choose which raw messages are shown": {
-    "string": "Elija qué mensajes sin formato se muestran"
+    "string": "Elije qué mensajes raw serán mostrados"
   },
   "Notice Routing": {
-    "string": "Enrutamiento de Notice"
+    "string": "Ver Notice en"
   },
   "Show notices in the active tab": {
     "string": "Mostrar notice en la pestaña activa"
   },
   "Show notices in a Notices tab": {
-    "string": "Mostrar notices en una pestaña de Avisos"
+    "string": "Mostrar notice en la pestaña de notice"
   },
   "Show notices in a private/query tab": {
-    "string": "Mostrar notices en una pestaña privada/query"
+    "string": "Mostrar notice en la pestaña de privado"
   },
   "Show notices in the server tab": {
-    "string": "Mostrar notices en la pestaña servidor"
+    "string": "Mostrar notice en la pestaña de servidor"
   },
   "Active window": {
-    "string": "Ventana activa"
+    "string": "Ventana Activa"
   },
   "Server tab": {
     "string": "Pestaña Servidor"
   },
   "Notices tab": {
-    "string": "Pestaña Notices"
+    "string": "Pestaña Notice"
   },
   "Private/query tab": {
-    "string": "Pestaña Privado/query"
+    "string": "Pestaña Privado"
   },
   "Show Timestamps": {
-    "string": "Mostrar Marcas de Tiempo"
+    "string": "Mostrar Hora"
   },
   "Display message timestamps": {
-    "string": "Mostrar marcas de tiempo de mensajes"
+    "string": "Mostrar hora en mensajes"
   },
   "Info": {
     "string": "Información"
   },
   "Timestamp display setting coming soon": {
-    "string": "Configuración de visualización de la marca de tiempo próximamente"
+    "string": "Configuración de visualización de la hora próximamente"
   },
   "Timestamp Display": {
-    "string": "Visualización de la Marca de Tiempo"
+    "string": "Visualización de la Hora"
   },
   "Show timestamps: {mode}": {
-    "string": "Mostrar marcas de tiempo: {mode}"
+    "string": "Mostrar hora: {mode}"
   },
   "Select when to show timestamps:": {
-    "string": "Seleccione cuándo mostrar las marcas de tiempo:"
+    "string": "Seleccione cuándo mostrar la hora:"
   },
   "Always": {
     "string": "Siempre"
@@ -315,7 +315,7 @@
     "string": "Nunca"
   },
   "Timestamp Format": {
-    "string": "Formato de Marca de Tiempo"
+    "string": "Formato de Hora"
   },
   "Format: {format}": {
     "string": "Formato: {format}"
@@ -498,7 +498,7 @@
     "string": "Mostrar Comandos Raw"
   },
   "Display raw IRC protocol messages": {
-    "string": "Pantalla raw del protocolo IRC de mensajes"
+    "string": "Mostrar mensajes del protocolo raw IRC"
   },
   "Hide Join Messages": {
     "string": "Ocultar Mensajes Join"
@@ -3366,19 +3366,19 @@
     "string": "Líneas Raw enviadas al servidor"
   },
   "Server notices": {
-    "string": "Notices del servidor"
+    "string": "Notice del servidor"
   },
   "MOTD, account/away, and other server-emitted events.": {
     "string": "MOTD, cuenta/ausente y otros eventos emitidos por el servidor."
   },
   "Channel notices": {
-    "string": "Notices del canal"
+    "string": "Notice del canal"
   },
   "Channel modes, lists, topics, and per-channel system notices.": {
     "string": "Modos de canal, listas, topics y notices del sistema por canal."
   },
   "User notices": {
-    "string": "Notices de usuario"
+    "string": "Notice de usuario"
   },
   "User account status, oper, and presence state changes.": {
     "string": "Status de la cuenta de usuario, oper, y cambios de estado."
@@ -3552,7 +3552,7 @@
     "string": "Tema: {topic}"
   },
   "{oldNick} is now known as {newNick}": {
-    "string": "{oldNick} ahora es conocido como {newNick}"
+    "string": "{oldNick} es ahora {newNick}"
   },
   "Someone": {
     "string": "Alguien"
@@ -4206,7 +4206,7 @@
     "string": "Mensajes:{count}"
   },
   "Timestamp": {
-    "string": "Marca de tiempo"
+    "string": "Hora"
   },
   "Type": {
     "string": "Tipo"
@@ -4569,7 +4569,7 @@
     "string": "Nombre Común (CN)"
   },
   "e.g., nick@irc.network": {
-    "string": "e.g., nick@irc.network"
+    "string": "e.j., nick@irc.network"
   },
   "Your nickname or email (used in certificate CN field)": {
     "string": "Su apodo o correo electrónico (utilizado en el campo CN del certificado) "
@@ -4722,7 +4722,7 @@
     "string": "Botón de búsqueda flotante visible en la vista de mensajes"
   },
   "Floating search button hidden": {
-    "string": "Flotante de búsqueda botón oculto"
+    "string": "Botón flotante de búsqueda oculto"
   },
   "Alias name and command are required": {
     "string": "Se requieren el nombre de alias y el comando"
@@ -4785,13 +4785,13 @@
     "string": "El Banner se muestra debajo del mensaje de entrada"
   },
   "Banner shown above header": {
-    "string": "El Banner se muestra encima del encabezado"
+    "string": "El Banner se muestra arriba del encabezado"
   },
   "Banner shown below header": {
     "string": "El Banner se muestra debajo del encabezado"
   },
   "Banner shown above message input": {
-    "string": "El Banner se muestra encima de la entrada del mensaje"
+    "string": "El Banner se muestra arriba del mensaje de entrada"
   },
   "Above message input": {
     "string": "Entrada de mensaje anterior"
@@ -4806,7 +4806,7 @@
     "string": "Debajo del encabezado"
   },
   "Keyboard Avoiding": {
-    "string": "Evitar el teclado"
+    "string": "Ajustar Teclado"
   },
   "Adjust layout when the keyboard opens": {
     "string": "Ajustar el diseño cuando se abre el teclado"
@@ -4818,13 +4818,13 @@
     "string": "Comportamiento del teclado (iOS)"
   },
   "Keyboard Behavior (Android)": {
-    "string": "Keyboard Behavior (Android)"
+    "string": "Comportamiento del Teclado (Android)"
   },
   "Keyboard Vertical Offset": {
     "string": "Desplazamiento vertical del teclado"
   },
   "Additional padding in pixels for keyboard avoidance": {
-    "string": "Relleno adicional en píxeles para evitar el teclado"
+    "string": "Relleno adicional en píxeles para separar el teclado"
   },
   "Android Bottom Safe Area": {
     "string": "Área Segura Inferior de Android"
@@ -5064,7 +5064,7 @@
     "string": "Seleccione Red de Conexión Rápida"
   },
   "Choose which network to connect when tapping the header \"Tap to connect\" button.": {
-    "string": "Elija a qué red conectarse al tocar el botón \"Tocar para conectarse\" del encabezado."
+    "string": "Elije a qué red conectarse al tocar el botón \"Tocar para conectarse\" del encabezado."
   },
   "Use Default": {
     "string": "Usar Predeterminado"
@@ -6081,7 +6081,7 @@
     "string": "Nombre de usuario tomado"
   },
   "This username already exists on our ZNC server. Please choose a different username.": {
-    "string": "Este nombre de usuario ya existe en nuestro servidor ZNC. Elija otro."
+    "string": "Este nombre de usuario ya existe en nuestro servidor ZNC. Elije otro."
   },
   "Try Again": {
     "string": "Intentar otra vez"
@@ -6252,7 +6252,7 @@
     "string": "Restaurar Compras"
   },
   "Choose ZNC Username": {
-    "string": "Elija el nombre de usuario de ZNC"
+    "string": "Elije el nombre de usuario de ZNC"
   },
   "Enter a username for your ZNC account. This will be used to log in to ZNC.": {
     "string": "Introduce un nombre de usuario para tu cuenta de ZNC. Este se usará para iniciar sesión en ZNC."

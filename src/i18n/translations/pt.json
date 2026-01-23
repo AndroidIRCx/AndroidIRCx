@@ -6,37 +6,37 @@
     "string": ""
   },
   "App lock disabled": {
-    "string": ""
+    "string": "Bloqueio de aplicação desativado"
   },
   "Enable app lock first.": {
-    "string": ""
+    "string": "Primeiro, ative o bloqueio de aplicações."
   },
   "Cancel": {
-    "string": ""
+    "string": "Cancelar"
   },
   "Error": {
-    "string": ""
+    "string": "Erro"
   },
   "Channel Favorites": {
-    "string": ""
+    "string": "Favoritos do canal"
   },
   "Message History": {
-    "string": ""
+    "string": "Histórico de mensagens"
   },
   "Backup Ready": {
-    "string": ""
+    "string": "Backup Pronto"
   },
   "Success": {
-    "string": ""
+    "string": "Sucesso "
   },
   "Backup data copied to clipboard": {
-    "string": ""
+    "string": "Os dados de cópia de segurança foram copiados para a área de transferência."
   },
   "Failed to copy to clipboard": {
-    "string": ""
+    "string": "Falha ao copiar para a área de transferência"
   },
   "Backup saved to:\n{path}": {
-    "string": ""
+    "string": "Backup guardado em:\n{path}"
   },
   "OK": {
     "string": ""

@@ -60,6 +60,27 @@ export interface IgnoredUser {
   reason?: string;
 }
 
+export type BlacklistActionType =
+  | 'ignore'
+  | 'ban'
+  | 'kick_ban'
+  | 'kill'
+  | 'os_kill'
+  | 'akill'
+  | 'gline'
+  | 'shun'
+  | 'custom';
+
+export interface BlacklistEntry {
+  mask: string; // e.g., "nick!user@host" or just "nick"
+  action: BlacklistActionType;
+  network?: string;
+  addedAt: number;
+  reason?: string;
+  duration?: string; // for gline/akill/shun (e.g., "1d", "7d", "0" for permanent)
+  commandTemplate?: string; // for custom action
+}
+
 export class UserManagementService {
   private ircService: IRCService | null = null;
 
@@ -159,12 +180,14 @@ export class UserManagementService {
   private readonly NOTES_PREFIX = 'notes:';
   private readonly ALIASES_PREFIX = 'aliases:';
   private readonly IGNORE_PREFIX = 'ignore:';
+  private readonly BLACKLIST_PREFIX = 'blacklist:';
   
   private whoisCache: Map<string, WHOISInfo> = new Map(); // network:nick -> info
   private whowasCache: Map<string, WHOWASInfo[]> = new Map(); // network:nick -> info[]
   private userNotes: Map<string, UserNote> = new Map(); // network:nick -> note
   private userAliases: Map<string, UserAlias> = new Map(); // network:nick -> alias
   private ignoredUsers: Map<string, IgnoredUser> = new Map(); // network:mask -> ignored
+  private blacklistedUsers: Map<string, BlacklistEntry> = new Map(); // network:mask -> entry
   
   private whoisListeners: ((info: WHOISInfo) => void)[] = [];
   private whowasListeners: ((info: WHOWASInfo) => void)[] = [];
@@ -208,6 +231,9 @@ export class UserManagementService {
           } else if (key.includes(this.IGNORE_PREFIX)) {
             const ignored: IgnoredUser = parsed;
             this.ignoredUsers.set(ignored.network ? `${ignored.network}:${ignored.mask}` : ignored.mask, ignored);
+          } else if (key.includes(this.BLACKLIST_PREFIX)) {
+            const entry: BlacklistEntry = parsed;
+            this.blacklistedUsers.set(entry.network ? `${entry.network}:${entry.mask}` : entry.mask, entry);
           }
         }
       }
@@ -598,6 +624,147 @@ export class UserManagementService {
     }
     
     return ignored;
+  }
+
+  /**
+   * Add user to blacklist
+   */
+  async addBlacklistEntry(
+    mask: string,
+    action: BlacklistActionType,
+    reason?: string,
+    network?: string,
+    commandTemplate?: string,
+    duration?: string
+  ): Promise<void> {
+    const net = network || this.currentNetwork;
+    const key = net ? `${net}:${mask}` : mask;
+
+    const entry: BlacklistEntry = {
+      mask,
+      action,
+      network: net,
+      addedAt: Date.now(),
+      reason,
+      duration,
+      commandTemplate,
+    };
+
+    this.blacklistedUsers.set(key, entry);
+    const storageKey = `${this.STORAGE_PREFIX}${this.BLACKLIST_PREFIX}${key}`;
+    await this.saveToStorage(storageKey, entry);
+  }
+
+  /**
+   * Remove user from blacklist
+   */
+  async removeBlacklistEntry(mask: string, network?: string): Promise<void> {
+    const net = network || this.currentNetwork;
+    const key = net ? `${net}:${mask}` : mask;
+    this.blacklistedUsers.delete(key);
+    const storageKey = `${this.STORAGE_PREFIX}${this.BLACKLIST_PREFIX}${key}`;
+    await this.removeFromStorage(storageKey);
+  }
+
+  /**
+   * Get all blacklist entries
+   */
+  getBlacklistEntries(network?: string): BlacklistEntry[] {
+    const net = network || this.currentNetwork;
+    const entries: BlacklistEntry[] = [];
+
+    for (const entry of this.blacklistedUsers.values()) {
+      if (!net || entry.network === net) {
+        entries.push(entry);
+      }
+    }
+
+    return entries;
+  }
+
+  /**
+   * Find a matching blacklist entry (network-specific preferred over global)
+   */
+  findMatchingBlacklistEntry(
+    nick: string,
+    username?: string,
+    hostname?: string,
+    network?: string
+  ): BlacklistEntry | undefined {
+    const net = network || this.currentNetwork;
+    const entries = Array.from(this.blacklistedUsers.values());
+    const pickLatest = (candidates: BlacklistEntry[]) => {
+      if (!candidates.length) return undefined;
+      return candidates.slice().sort((a, b) => b.addedAt - a.addedAt)[0];
+    };
+    const networkMatches = entries.filter(entry => entry.network && entry.network === net);
+    const globalMatches = entries.filter(entry => !entry.network);
+
+    const networkHit = pickLatest(
+      networkMatches.filter(entry => this.matchesMaskPattern(nick, username, hostname, entry.mask))
+    );
+    if (networkHit) return networkHit;
+
+    return pickLatest(
+      globalMatches.filter(entry => this.matchesMaskPattern(nick, username, hostname, entry.mask))
+    );
+  }
+
+  /**
+   * Resolve a usable mask for server commands
+   */
+  resolveBlacklistMask(
+    entry: BlacklistEntry,
+    nick: string,
+    username?: string,
+    hostname?: string
+  ): string {
+    const trimmed = entry.mask.trim();
+    if (trimmed.includes('!') || trimmed.includes('@')) {
+      return trimmed;
+    }
+    if (hostname) {
+      return `*!*@${hostname}`;
+    }
+    return `${nick}!*@*`;
+  }
+
+  private matchesMaskPattern(
+    nick: string,
+    username: string | undefined,
+    hostname: string | undefined,
+    mask: string
+  ): boolean {
+    const trimmed = mask.trim();
+    if (!trimmed) return false;
+    const matchPart = (value: string | undefined, pattern: string | undefined): boolean => {
+      const normalizedPattern = (pattern || '').trim();
+      if (!normalizedPattern || normalizedPattern === '*') return true;
+      if (!value) return false;
+      return this.matchesWildcard(value, normalizedPattern);
+    };
+
+    if (trimmed.includes('!') && trimmed.includes('@')) {
+      const [maskNick, maskUserHost] = trimmed.split('!');
+      const [maskUser, maskHost] = (maskUserHost || '').split('@');
+      return (
+        matchPart(nick, maskNick) &&
+        matchPart(username, maskUser) &&
+        matchPart(hostname, maskHost)
+      );
+    }
+    if (trimmed.includes('@')) {
+      const [, maskHost] = trimmed.split('@');
+      return matchPart(hostname, maskHost);
+    }
+    return matchPart(nick, trimmed);
+  }
+
+  private matchesWildcard(value: string, pattern: string): boolean {
+    if (pattern === '*') return true;
+    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`^${escaped.replace(/\\\*/g, '.*')}$`, 'i');
+    return regex.test(value);
   }
 
   /**

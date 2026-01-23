@@ -1,0 +1,7 @@
+v1.6.12
+• New Blacklist system with automatic actions (ban, kick, kill, akill, gline, shun, custom commands)
+• Network-specific command templates for IRC operators
+• Enhanced font size settings with custom pixel values and slider
+• Improved user list with better context menu actions
+• Updated Spanish translations
+• Various bug fixes and stability improvements

@@ -88,6 +88,7 @@ interface SettingsScreenProps {
   showTypingIndicators?: boolean;
   onShowTypingIndicatorsChange?: (value: boolean) => void;
   onShowIgnoreList?: () => void;
+  onShowBlacklist?: () => void;
   onShowPurchaseScreen?: () => void;
 }
 
@@ -106,6 +107,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   showTypingIndicators = true,
   onShowTypingIndicatorsChange,
   onShowIgnoreList,
+  onShowBlacklist,
   onShowPurchaseScreen,
 }) => {
   const t = useT();
@@ -2174,6 +2176,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   settingIcons={settingIcons}
                   currentNetwork={currentNetwork}
                   onShowIgnoreList={onShowIgnoreList}
+                  onShowBlacklist={onShowBlacklist}
                 />
               );
             }

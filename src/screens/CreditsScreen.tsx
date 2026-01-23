@@ -34,7 +34,7 @@ const TRANSLATION_CREDITS: LanguageCredits[] = [
   },
   {
     language: 'Spanish',
-    translators: [{ nick: 'ARGENTIN07' }, { nick: 'cubanita83cuba' }],
+    translators: [{ nick: 'ARGENTIN07 🇦🇷' }, { nick: 'Cubanita83 🇨🇺' }],
   },
 ];
 

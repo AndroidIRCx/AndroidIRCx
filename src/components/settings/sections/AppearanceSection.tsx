@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Alert, Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { Alert, Modal, View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
 import { useT } from '../../../i18n/transifex';
@@ -305,46 +305,113 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       {
         id: 'layout-font-size',
         title: t('Font Size', { _tags: tags }),
-        description: t('Current: {size}', { size: layoutConfig?.fontSize || 'medium', _tags: tags }),
-        type: 'button',
-        searchKeywords: ['font', 'size', 'text', 'small', 'medium', 'large', 'xlarge', 'big'],
-        onPress: () => {
-          Alert.alert(
-            t('Font Size', { _tags: tags }),
-            t('Select font size:', { _tags: tags }),
-            [
-              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-              {
-                text: t('Small', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setFontSize('small');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Medium', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setFontSize('medium');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Large', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setFontSize('large');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Extra Large', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setFontSize('xlarge');
-                  updateLayoutConfig({});
-                },
-              },
-            ]
-          );
-        },
+        description: t('Current: {size} ({px}px)', {
+          size: layoutConfig?.fontSize || 'medium',
+          px: (layoutConfig?.fontSizeValues || { small: 12, medium: 14, large: 16, custom: 18 })[
+            layoutConfig?.fontSize || 'medium'
+          ],
+          _tags: tags,
+        }),
+        type: 'submenu',
+        searchKeywords: ['font', 'size', 'text', 'small', 'medium', 'large', 'custom'],
+        submenuItems: [
+          {
+            id: 'font-size-small',
+            title: t('Use Small', { _tags: tags }),
+            description: `${layoutConfig?.fontSizeValues?.small ?? 12}px`,
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setFontSize('small');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'font-size-medium',
+            title: t('Use Medium', { _tags: tags }),
+            description: `${layoutConfig?.fontSizeValues?.medium ?? 14}px`,
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setFontSize('medium');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'font-size-large',
+            title: t('Use Large', { _tags: tags }),
+            description: `${layoutConfig?.fontSizeValues?.large ?? 16}px`,
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setFontSize('large');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'font-size-custom',
+            title: t('Use Specified', { _tags: tags }),
+            description: `${layoutConfig?.fontSizeValues?.custom ?? 18}px`,
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setFontSize('custom');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'font-size-value-small',
+            title: t('Small Size (px)', { _tags: tags }),
+            type: 'input' as const,
+            value: (layoutConfig?.fontSizeValues?.small ?? 12).toString(),
+            keyboardType: 'numeric',
+            onValueChange: async (value: string | boolean) => {
+              const nextValue = parseInt(value as string, 10);
+              if (!isNaN(nextValue)) {
+                await layoutService.setFontSizeValue('small', nextValue);
+                updateLayoutConfig({});
+              }
+            },
+          },
+          {
+            id: 'font-size-value-medium',
+            title: t('Medium Size (px)', { _tags: tags }),
+            type: 'input' as const,
+            value: (layoutConfig?.fontSizeValues?.medium ?? 14).toString(),
+            keyboardType: 'numeric',
+            onValueChange: async (value: string | boolean) => {
+              const nextValue = parseInt(value as string, 10);
+              if (!isNaN(nextValue)) {
+                await layoutService.setFontSizeValue('medium', nextValue);
+                updateLayoutConfig({});
+              }
+            },
+          },
+          {
+            id: 'font-size-value-large',
+            title: t('Large Size (px)', { _tags: tags }),
+            type: 'input' as const,
+            value: (layoutConfig?.fontSizeValues?.large ?? 16).toString(),
+            keyboardType: 'numeric',
+            onValueChange: async (value: string | boolean) => {
+              const nextValue = parseInt(value as string, 10);
+              if (!isNaN(nextValue)) {
+                await layoutService.setFontSizeValue('large', nextValue);
+                updateLayoutConfig({});
+              }
+            },
+          },
+          {
+            id: 'font-size-value-custom',
+            title: t('Specified Size (px)', { _tags: tags }),
+            type: 'input' as const,
+            value: (layoutConfig?.fontSizeValues?.custom ?? 18).toString(),
+            keyboardType: 'numeric',
+            onValueChange: async (value: string | boolean) => {
+              const nextValue = parseInt(value as string, 10);
+              if (!isNaN(nextValue)) {
+                await layoutService.setFontSizeValue('custom', nextValue);
+                updateLayoutConfig({});
+              }
+            },
+          },
+        ],
       },
       {
         id: 'header-search-button',
@@ -498,6 +565,29 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                       <Text style={{ color: subItem.disabled ? colors.textDisabled : colors.text, fontSize: 16 }}>{subItem.title}</Text>
                       {subItem.description && <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 4 }}>{subItem.description}</Text>}
                     </TouchableOpacity>
+                  );
+                }
+                if (subItem.type === 'input') {
+                  return (
+                    <View
+                      key={subItem.id}
+                      style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                      <Text style={{ color: colors.text, fontSize: 16 }}>{subItem.title}</Text>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          { marginTop: 8, backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                          subItem.disabled && styles.disabledInput,
+                        ]}
+                        value={subItem.value as string}
+                        onChangeText={(text) => subItem.onValueChange?.(text)}
+                        placeholder={subItem.placeholder}
+                        placeholderTextColor={colors.textSecondary}
+                        keyboardType={subItem.keyboardType || 'default'}
+                        secureTextEntry={subItem.secureTextEntry}
+                        editable={!subItem.disabled}
+                      />
+                    </View>
                   );
                 }
                 return null;

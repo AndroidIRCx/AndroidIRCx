@@ -30,6 +30,7 @@ interface UsersServicesSectionProps {
   settingIcons: Record<string, SettingIcon | undefined>;
   currentNetwork?: string;
   onShowIgnoreList?: () => void;
+  onShowBlacklist?: () => void;
 }
 
 export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
@@ -38,6 +39,7 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
   settingIcons,
   currentNetwork,
   onShowIgnoreList,
+  onShowBlacklist,
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:UsersServicesSection.tsx,feature:settings';
@@ -115,6 +117,23 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
             Alert.alert(
               t('Info', { _tags: tags }),
               t('Ignore list feature coming soon', { _tags: tags })
+            );
+          }
+        },
+      },
+      {
+        id: 'user-blacklist',
+        title: t('Blacklist', { _tags: tags }),
+        description: t('Auto-run actions for matched masks', { _tags: tags }),
+        type: 'button',
+        searchKeywords: ['blacklist', 'ban', 'kick', 'kill', 'gline', 'akill', 'shun', 'mask'],
+        onPress: () => {
+          if (onShowBlacklist) {
+            onShowBlacklist();
+          } else {
+            Alert.alert(
+              t('Info', { _tags: tags }),
+              t('Blacklist feature coming soon', { _tags: tags })
             );
           }
         },
@@ -207,6 +226,7 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
     userAliases,
     currentNetwork,
     onShowIgnoreList,
+    onShowBlacklist,
     t,
     tags,
   ]);

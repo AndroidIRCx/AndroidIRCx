@@ -47,7 +47,10 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
   }, [ignoredUsers, searchQuery, selectedNetwork]);
 
   const loadAvailableNetworks = () => {
-    const networks = connectionManager.getAllConnections().map(conn => conn.config.id);
+    const networks = connectionManager
+      .getAllConnections()
+      .map(conn => conn?.config?.id)
+      .filter((id): id is string => Boolean(id));
     setAvailableNetworks(networks);
   };
 

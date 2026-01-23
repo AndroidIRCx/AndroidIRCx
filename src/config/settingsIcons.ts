@@ -73,6 +73,7 @@ export const SETTINGS_ICONS: Record<string, SettingIcon> = {
   // Users & Services
   'irc-services-add': { name: 'plus-circle', solid: false },
   'user-ignore': { name: 'user-slash', solid: false },
+  'user-blacklist': { name: 'user-times', solid: false },
   'user-notes': { name: 'sticky-note', solid: false },
   'user-aliases': { name: 'id-badge', solid: false },
 
