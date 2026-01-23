@@ -38,6 +38,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [favorite, setFavorite] = useState(false);
   const [isDefaultServer, setIsDefaultServer] = useState(false);
+  const [wasDefaultServer, setWasDefaultServer] = useState(false);
 
   useEffect(() => {
     if (serverId && networkId) {
@@ -65,7 +66,9 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
         setRejectUnauthorized(server.rejectUnauthorized !== false);
         setPassword(server.password || '');
         setFavorite(Boolean(server.favorite));
-        setIsDefaultServer(network.defaultServerId === serverId);
+        const isDefault = network.defaultServerId === serverId;
+        setIsDefaultServer(isDefault);
+        setWasDefaultServer(isDefault);
       } else {
         setError(t('Server not found'));
       }
@@ -104,6 +107,9 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
     // Update default server if needed
     if (isDefaultServer) {
       await settingsService.setDefaultServerForNetwork(networkId, server.id);
+    } else if (wasDefaultServer) {
+      // User unchecked the default server toggle - clear it
+      await settingsService.clearDefaultServerForNetwork(networkId, server.id);
     }
 
     onSave(server);

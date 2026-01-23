@@ -365,6 +365,7 @@ class ThemeService {
 
     this.customThemes.push(newTheme);
     await this.saveCustomThemes();
+    this.notifyListeners();
 
     return newTheme;
   }
@@ -391,9 +392,9 @@ class ThemeService {
     // If this is the current theme, update it
     if (this.currentTheme.id === themeId) {
       this.currentTheme = this.customThemes[themeIndex];
-      this.notifyListeners();
     }
 
+    this.notifyListeners();
     return true;
   }
 
@@ -410,6 +411,7 @@ class ThemeService {
 
     this.customThemes.splice(themeIndex, 1);
     await this.saveCustomThemes();
+    this.notifyListeners();
 
     return true;
   }

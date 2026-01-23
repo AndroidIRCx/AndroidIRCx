@@ -42,6 +42,7 @@ export interface SettingItem {
  * Settings section configuration
  */
 export interface SettingsSection {
+  id: string;
   title: string;
   data: SettingItem[];
 }

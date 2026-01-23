@@ -3573,49 +3573,49 @@
     "string": "*** {nick} inició sesión como {accountName}"
   },
   "*** {nick} is now away: {message}": {
-    "string": ""
+    "string": "*** {nick}no se encuentra ahora: {message}"
   },
   "*** {nick} is no longer away": {
-    "string": ""
+    "string": "*** {nick}ya se encuentra en línea"
   },
   "*** {nick} changed host to {host}": {
-    "string": ""
+    "string": "*** {nick}cambió su host a {host}"
   },
   "*** {nick} changed realname to: {realname}": {
-    "string": ""
+    "string": "*** {nick}cambió el nombre real a: {realname}"
   },
   "*** {nick} deleted a message": {
-    "string": ""
+    "string": "*** {nick}borró un mensaje"
   },
   "*** RAW Command: {message}": {
-    "string": ""
+    "string": "*** Comando RAW: {message} "
   },
   "*** Welcome to the {network} Network": {
-    "string": ""
+    "string": "*** Bienvenido a la {network}Red"
   },
   "IRC": {
     "string": "IRC"
   },
   "*** {message}": {
-    "string": ""
+    "string": "*** {message}"
   },
   "*** Server: {server} | Version: {version} | User modes: {userModes} | Channel modes: {channelModes}": {
-    "string": ""
+    "string": "*** Servidor: {server}| Versión: {version}| Modos de usuario: {userModes}| Modos de canales: {channelModes}"
   },
   "*** Server supports: {features}": {
-    "string": ""
+    "string": "*** El servidor admite: {features}"
   },
   "*** [{numeric}] {message}": {
-    "string": ""
+    "string": "*** [{numeric}] {message}"
   },
   "End of STATS report": {
     "string": "Fin del informe STATS"
   },
   "*** {label}: {message}": {
-    "string": ""
+    "string": "*** {label}:{message}"
   },
   "*** Version: {version} on {server} {comments}": {
-    "string": ""
+    "string": "*** Versión: {version}en {server}{comments}"
   },
   "End of INFO": {
     "string": "Fin de INFO"
@@ -3630,13 +3630,13 @@
     "string": "Tú eres servicio"
   },
   "*** Time on {server}: {time}": {
-    "string": ""
+    "string": "*** Tiempo en {server}:{time}"
   },
   "operator(s) online": {
     "string": "operator(s) en línea"
   },
   "*** {count} {message}": {
-    "string": ""
+    "string": "*** {count}{message}"
   },
   "unknown connection(s)": {
     "string": "conexion(es) desconocidas"
@@ -3648,13 +3648,13 @@
     "string": "Información administrativa"
   },
   "Current local users {current}, max {max}": {
-    "string": ""
+    "string": "Usuarios locales actuales {current}, máx{max}"
   },
   "Current global users {current}, max {max}": {
-    "string": ""
+    "string": "Usuarios globales actuales {current},máx{max}"
   },
   "*** - {server} Message of the Day -": {
-    "string": ""
+    "string": "***-{server}Mensaje del Día -"
   },
   "*** End of /MOTD command.": {
     "string": "*** Fin del comando /MOTD."
@@ -3669,40 +3669,40 @@
     "string": "desconocido"
   },
   "*** {channel} was created on {date}": {
-    "string": ""
+    "string": "***{channel}fue creado en{date}"
   },
   "*** You have invited {nick} to {channel}": {
-    "string": ""
+    "string": "*** Has ivitado a{nick}to{channel}"
   },
   "*** {channel} invite list: {mask}": {
-    "string": ""
+    "string": "***{channel}lista de invitados:{mask}"
   },
   "*** End of {channel} invite list": {
-    "string": ""
+    "string": "*** Fin de{channel}lista de invitados"
   },
   " by {nick}": {
-    "string": ""
+    "string": "por{nick}"
   },
   " on {date}": {
-    "string": ""
+    "string": "en{date}"
   },
   "*** {channel} exception list: {mask}{by}{time}": {
-    "string": ""
+    "string": "***{channel}lista de excepciones:{mask}{by}{time}"
   },
   "*** End of {channel} exception list": {
-    "string": ""
+    "string": "*** Fin de{channel}lista de excepciones"
   },
   "*** {channel} ban list: {mask}{by}{time}": {
-    "string": ""
+    "string": "***{channel}lista de bans:{mask}{by}{time}"
   },
   "*** End of {channel} ban list": {
-    "string": ""
+    "string": "*** Fin de{channel}lista de bans"
   },
   "*** Channel list:": {
     "string": "*** Lista de Canales:"
   },
   "*** {channel} ({users} users): {topic}": {
-    "string": ""
+    "string": "***{channel}({users}usuarios):{topic}"
   },
   "*** End of channel list": {
     "string": "*** Fin de la lista de canales"
@@ -3714,19 +3714,19 @@
     "string": "(IRCop)"
   },
   "*** WHO {channel}: {nick} ({user}@{host}) [{server}]{away}{op} - {real}": {
-    "string": ""
+    "string": "*** WHO{channel}:{nick}({user}@{host}) [{server}]{away}{op}{real}"
   },
   "*** End of WHO list for {channel}": {
-    "string": ""
+    "string": "*** Fin de la lista de WHO para{channel}"
   },
   "No such nick/channel": {
     "string": "No existe tal nick/canal"
   },
   "{label}: {message}": {
-    "string": ""
+    "string": "{label}:{message}"
   },
   "*** WHOWAS has no history for {nick}. If they are online, try /whois {nick}.": {
-    "string": ""
+    "string": "***No hay historial de WHOWAS para{nick}.Si está en línea pruebe con /whois{nick}."
   },
   "No such channel": {
     "string": "No existe ese canal"
@@ -3741,13 +3741,13 @@
     "string": "Nick erróneo"
   },
   "Nickname is already in use: {nick}": {
-    "string": ""
+    "string": "El nick ya está en uso:{nick}"
   },
   "*** Trying alternative nickname: {nick}": {
-    "string": ""
+    "string": "*** Intente con un nick alternativo:{nick}"
   },
   "*** Trying fallback nickname: {nick}": {
-    "string": ""
+    "string": "*** Intentando un nick alternativo:{nick}"
   },
   "Password incorrect": {
     "string": "Contraseña incorrecta"
@@ -3756,13 +3756,13 @@
     "string": "Conexión bloqueada o baneado"
   },
   "*** Connection blocked: {message}": {
-    "string": ""
+    "string": "*** Conexión bloqueada:{message}"
   },
   "They aren't on that channel": {
     "string": "Ellos no estan en ese canal"
   },
   "{nick} {channel}: {message}": {
-    "string": ""
+    "string": "{nick}{channel}:{message}"
   },
   "You're not on that channel": {
     "string": "No estás en ese canal"
@@ -3873,7 +3873,7 @@
     "string": "Falló la autenticación SASL "
   },
   "You are now logged in as {account}": {
-    "string": ""
+    "string": "Ahora has iniciado sesión con{account}"
   },
   "You are now logged out": {
     "string": "Ahora has cerrado sesión"
@@ -3894,19 +3894,19 @@
     "string": "Están disponibles los mecanismos SASL"
   },
   "*** {mechanisms} {message}": {
-    "string": ""
+    "string": "***{mechanisms}{message}"
   },
   "logged online": {
     "string": "Conectado en línea"
   },
   "*** {nick} ({user}@{host}) {message}": {
-    "string": ""
+    "string": "***{nick}({user}@{host}){message}"
   },
   "logged offline": {
     "string": "desconectado"
   },
   "*** Stopped watching {nick}": {
-    "string": ""
+    "string": "***Dejó de mirar{nick}"
   },
   "is online": {
     "string": "está en línea"
@@ -3915,7 +3915,7 @@
     "string": "está desconectado"
   },
   "*** WATCH list: {list}": {
-    "string": ""
+    "string": "***Lista WATCH:{list}"
   },
   "End of WATCH list": {
     "string": "Fin de la lista WATCH"
@@ -3924,13 +3924,13 @@
     "string": "Lista WATCH borrada"
   },
   "*** MONITOR online: {list}": {
-    "string": ""
+    "string": "***MONITOR en línea:{list}"
   },
   "*** MONITOR offline: {list}": {
-    "string": ""
+    "string": "***MONITOR desconectado:{list}"
   },
   "*** MONITOR list: {list}": {
-    "string": ""
+    "string": "***Lista MONITOR:{list}"
   },
   "End of MONITOR list": {
     "string": "Fin de la lista MONITOR"
@@ -3939,7 +3939,7 @@
     "string": "La lista MONITOR está llena"
   },
   "{message} (limit: {limit}, tried: {nicks})": {
-    "string": ""
+    "string": "{message}(límite:{limit},intentos:{nicks})"
   },
   "STARTTLS successful": {
     "string": "STARTTLS exitoso"
@@ -3951,7 +3951,7 @@
     "string": "está ausente"
   },
   "*** {nick} is away: {message}": {
-    "string": ""
+    "string": "***{nick}está lejos:{message}"
   },
   "You are no longer marked as being away": {
     "string": "Ya no estás marcado como ausente"
@@ -3960,34 +3960,34 @@
     "string": "Se le ha marcado como ausente"
   },
   "*** USERHOST: {data}": {
-    "string": ""
+    "string": "***USERHOST:{data}"
   },
   "*** Online: {nicks}": {
-    "string": ""
+    "string": "*** En línea:{nicks}"
   },
   "*** {nick} is {user}@{host} * {real}": {
-    "string": ""
+    "string": "***{nick}es{user}@{host}*{real}"
   },
   "{hours} hours, {minutes} minutes": {
-    "string": ""
+    "string": "{hours}horas,{minutes}minutos"
   },
   "{seconds} seconds": {
-    "string": ""
+    "string": "{seconds}segundos"
   },
   "*** {nick} has been idle {idle}, signed on {date}": {
-    "string": ""
+    "string": "***{nick}ha estado inactivo{idle},conectado desde{date}"
   },
   "*** End of WHOIS for {nick}": {
-    "string": ""
+    "string": "*** Fin del WHOIS para{nick}"
   },
   "*** {nick} is on channels: {channels}": {
-    "string": ""
+    "string": "***{nick}está en los canales:{channels}"
   },
   "has identified for this nick": {
     "string": "se ha identificado con este nick"
   },
   "*** {nick} {message}": {
-    "string": ""
+    "string": "***{nick}{message}"
   },
   "is available for help": {
     "string": "está disponible para ayuda"
@@ -4005,25 +4005,25 @@
     "string": "está utilizando una conexión segura"
   },
   "*** {nick} was {user}@{host} * {real}": {
-    "string": ""
+    "string": "***{nick}fue{user}@{host}*{real}"
   },
   "*** {nick} using {server} {info}": {
-    "string": ""
+    "string": "***{nick}usando{server}{info}"
   },
   "*** {nick} is logged in as {account}": {
-    "string": ""
+    "string": "***{nick}ha iniciado sesión como{account}"
   },
   "*** {nick} is actually using host {host}": {
-    "string": ""
+    "string": "***{nick}actualmente usa el host{host}"
   },
   "*** End of WHOWAS for {nick}": {
-    "string": ""
+    "string": "*** Fin del WHOWAS para{nick}"
   },
   "Server response": {
     "string": "Respuesta del servidor"
   },
   "[{numeric}] {message}": {
-    "string": ""
+    "string": "[{numeric}]{message}"
   },
   "*** Disconnected from server": {
     "string": "*** Desconectado del servidor"
@@ -4032,7 +4032,7 @@
     "string": "*** Reconexión automática cancelada"
   },
   "*** Reconnecting in {seconds} second{suffix} (attempt {attempt})...": {
-    "string": ""
+    "string": "*** Reconectando en{seconds}segundos{suffix}(intentar{attempt})..."
   },
   "*** Attempting to reconnect...": {
     "string": "***Intentando reconectar..."
@@ -4041,25 +4041,25 @@
     "string": "*** Reconectado exitosamente"
   },
   "*** Reconnection failed: {message}": {
-    "string": ""
+    "string": "*** Error de conexión:{message}"
   },
   "*** BATCH START: {type} ({ref})": {
-    "string": ""
+    "string": "*** BATCH START:{type}({ref})"
   },
   "*** Netsplit detected: {servers} ({count} users quit)": {
-    "string": ""
+    "string": "*** Se detectó una división de red / netsplit:{servers}({count}users quit)"
   },
   "*** Netjoin: {servers} ({count} users rejoined)": {
-    "string": ""
+    "string": "*** Unirse a la red/netjoin:{servers}({count}users rejoined)"
   },
   "*** Loading chat history ({count} messages)": {
-    "string": ""
+    "string": "*** Cargando el historial del chat ({count}mensajes)"
   },
   "*** Capability changes ({count} updates)": {
-    "string": ""
+    "string": "*** Cambios de capacidad ({count}actualizaciones)"
   },
   "*** BATCH END: {type} ({ref}) - {count} messages": {
-    "string": ""
+    "string": "*** BATCH END:{type}({ref}) -{count}mensajes"
   },
   "SETNAME command is not supported by this server": {
     "string": "El comando SETNAME no es compatible con este servidor"
@@ -4074,40 +4074,40 @@
     "string": "Este servidor no admite la REDACCIÓN DE MENSAJES"
   },
   "Usage: /{command} <nick|channel> <message>": {
-    "string": ""
+    "string": "Udo: /{command}<nick|canal><message>"
   },
   "*** Encryption key offer sent to {nick}. Waiting for acceptance...": {
-    "string": ""
+    "string": "*** Clave de cifrado enviada a{nick}.Esperando aceptación..."
   },
   "*** Failed to share encryption key: {message}": {
-    "string": ""
+    "string": "*** No se pudo compartir la clave de cifrado:{message}"
   },
   "Usage: /sharekey <nick>": {
-    "string": ""
+    "string": "Uso: /sharekey<nick>"
   },
   "*** Encryption key requested from {nick}": {
-    "string": ""
+    "string": "*** Clave de cifrado solicitada a{nick}"
   },
   "Usage: /requestkey <nick>": {
-    "string": ""
+    "string": "Uso: /requestkey <nick> "
   },
   "*** Encrypted send failed ({message}). Use \"Request Encryption Key\" from the user menu.": {
-    "string": ""
+    "string": "*** Envío de cifrado fallido ({message}). Utilice \"Solicitar clave de cifrado\" desde el menú de usuario."
   },
   "Usage: /encmsg <nick> <message>": {
-    "string": ""
+    "string": "Uso: /encmsg <nick><message>"
   },
   "DM encryption:": {
     "string": "Cifrado DM:"
   },
   "/sharekey <nick>          Offer your DM key": {
-    "string": ""
+    "string": "/sharekey <nick>Ofrezca su clave DM"
   },
   "/requestkey <nick>        Request DM key": {
-    "string": ""
+    "string": "/requestkey <nick>Solicite clave DM"
   },
   "/encmsg <nick> <message>  Send encrypted DM": {
-    "string": ""
+    "string": "/encmsg <nick><message>Envíe DM cifrado"
   },
   "Tips: keys must be exchanged first; use /requestkey if not paired.": {
     "string": "Consejos: las claves deben intercambiarse primero; use /requestkey si no están emparejadas."
@@ -4137,1240 +4137,1240 @@
     "string": "*** La clave de canal solo se puede generar en el canal"
   },
   "*** Channel encryption key generated for {channel}. Use /chankey share <nick> to share with others.": {
-    "string": ""
+    "string": "*** Clave de cifrado de canal generada para{channel}. Usa /chankey share<nick> ´para compartirla con otros."
   },
   "*** Failed to generate channel key: {message}": {
-    "string": ""
+    "string": "*** No se pudo generar la clave del canal:{message}"
   },
   "Usage: /chankey send <message>": {
-    "string": ""
+    "string": "Uso: /chankey send<message>"
   },
   "*** Channel key send must be used from a channel": {
     "string": "*** El envío de la clave del canal debe utilizarse desde el canal"
   },
   "*** Channel encryption send failed: {message}": {
-    "string": ""
+    "string": "*** Error en el envío de cifrado de canal:{message}"
   },
   "Missing channel key. Use /chankey generate and share first.": {
     "string": "Falta la clave del canal. Usa /chankey para generar y compartir primero."
   },
   "Usage: /chankey share <nick>": {
-    "string": ""
+    "string": "Uso: /chankey share<nick>"
   },
   "*** Channel key can only be shared from a channel": {
     "string": "*** La clave de canal solo se puede compartir desde el canal"
   },
   "*** Channel key for {channel} shared with {nick}": {
-    "string": ""
+    "string": "*** Clave de canal para {channel}compartida con{nick}"
   },
   "*** Failed to share channel key: {message}. Generate a key first with /chankey generate": {
-    "string": ""
+    "string": "*** No se pudo compartir la clave del canal:{message} . Genera primero una clave con /chankey generate"
   },
   "Usage: /chankey request <nick>": {
-    "string": ""
+    "string": "Uso: /chankey request <nick>"
   },
   "*** Channel key request must be done from a channel": {
     "string": "*** La solicitud de clave de canal debe realizarse desde el canal"
   },
   "Please share the channel key for {channel} with /chankey share {nick}": {
-    "string": ""
+    "string": "Por favor comparte la clave del canal para{channel}con /chankey share{nick}"
   },
   "*** Channel key requested from {nick} for {channel}": {
-    "string": ""
+    "string": "*** Clave de canal solicitada por {nick}para {channel}"
   },
   "*** Channel key can only be removed from a channel": {
     "string": "*** La clave de canal solo se puede eliminar en el canal"
   },
   "*** Channel encryption key removed for {channel}": {
-    "string": ""
+    "string": "*** Eliminada clave de cifrado de canal para {channel}"
   },
   "*** Failed to remove channel key: {message}": {
-    "string": ""
+    "string": "*** No se pudo eliminar la clave de canal:{message}"
   },
   "*** {arrow} {line}": {
-    "string": ""
+    "string": "***{arrow}{line}"
   },
   "IRC server": {
-    "string": ""
+    "string": "Servidor IRC"
   },
   "Connected to {networkName}": {
-    "string": ""
+    "string": "Conectado a{networkName}"
   },
   "AndroidIRCX Message History Export": {
-    "string": ""
+    "string": "Exportación del historial de mensajes de AndroidIRCX"
   },
   "Exported: {timestamp}": {
-    "string": ""
+    "string": "Exportado:{timestamp}"
   },
   "Messages: {count}": {
-    "string": ""
+    "string": "Mensajes:{count}"
   },
   "Timestamp": {
-    "string": ""
+    "string": "Marca de tiempo"
   },
   "Type": {
-    "string": ""
+    "string": "Tipo"
   },
   "Channel": {
-    "string": ""
+    "string": "Canal"
   },
   "From": {
-    "string": ""
+    "string": "De"
   },
   "Default Channel": {
-    "string": ""
+    "string": "Canal Predeterminado"
   },
   "Message from {name}": {
-    "string": ""
+    "string": "Mensaje de{name}"
   },
   "{from}: {text}": {
-    "string": ""
+    "string": "{from}:{text}"
   },
   "Failed to load scripts: {error}": {
-    "string": ""
+    "string": "No se pudieron cargar los scripts:{error}"
   },
   "No syntax errors detected.": {
-    "string": ""
+    "string": "No se detectaron errores de sintaxis."
   },
   "Cannot enable script: No scripting time available. Please watch an ad to gain 1 hour of scripting time.": {
-    "string": ""
+    "string": "No se puede habilitar el script: No hay tiempo disponible para escribir. Vea un anuncio para obtener 1 hora de escritura."
   },
   "Auto-Op": {
-    "string": ""
+    "string": "Auto-Op"
   },
   "Ops everyone who joins the channel.": {
-    "string": ""
+    "string": "Ops a todos los que se unen al canal"
   },
   "Welcome Message": {
-    "string": ""
+    "string": "Mensaje de Bienvenida"
   },
   "Greets users when they join.": {
-    "string": ""
+    "string": "Saludar a los usuarios cuando se unen."
   },
   "Channel Logger": {
-    "string": ""
+    "string": "Canal Registrado"
   },
   "Logs messages to scripting log buffer.": {
-    "string": ""
+    "string": "Registra mensajes en el búfer de registro de scripting"
   },
   "Custom Command Alias": {
-    "string": ""
+    "string": "Alias de Comando Perzonalizados"
   },
   "Adds /hello alias as example.": {
-    "string": ""
+    "string": "Agregar /hola alias de ejemplo"
   },
   "Script {name} failed to compile: {error}": {
-    "string": ""
+    "string": "Script{name}no se pudo compilar:{error}"
   },
   "All scripts disabled: Scripting time expired. Watch an ad to continue.": {
-    "string": ""
+    "string": "Todos los scripts están deshabilitados: Se agotó el tiempo de ejecución. Vea un anuncio para continuar."
   },
   "Error in script {name} hook {hook}: {error}": {
-    "string": ""
+    "string": "Error en script{name}hook{hook}:{error}"
   },
   "Test hook {hook} executed": {
-    "string": ""
+    "string": "Prueba de hook{hook}ejecutada"
   },
   "Test hook {hook} failed for {name}: {error}": {
-    "string": ""
+    "string": "Prueba hook{hook}fallida para{name}:{error}"
   },
   "AndroidIRCX - Download from https://androidircx.com": {
-    "string": ""
+    "string": "AndroidIRCX - Descarga desde https://androidircx.com"
   },
   "Goodbye from AndroidIRCX - download it from https://androidircx.com": {
-    "string": ""
+    "string": "Adiós desde AndroidIRCX: descárgalo en https://androidircx.com"
   },
   "Dark": {
-    "string": ""
+    "string": "Oscuro"
   },
   "Light": {
-    "string": ""
+    "string": "Claro"
   },
   "*** UserManagementService initialized": {
-    "string": ""
+    "string": "*** UserManagementService inicializado"
   },
   "New WHOIS request for same nick, cancelling previous.": {
-    "string": ""
+    "string": "Nueva solicitud de WHOIS para el mismo nick, cancelando la anterior."
   },
   "WHOIS request for {nick} timed out.": {
-    "string": ""
+    "string": "Solicitud de WHOIS para{nick}tiempo agotado."
   },
   "WHOIS data for {nick} not found after completion signal.": {
-    "string": ""
+    "string": "Informacion de WHOIS para{nick}No encontrado después de la señal de finalización."
   },
   "Kill switch requires PIN or biometric authentication.": {
-    "string": ""
+    "string": "Kill switch requiere PIN o autenticación biométrica."
   },
   "Kill Switch Error": {
-    "string": ""
+    "string": "Error Kill Switch"
   },
   "Some errors occurred:\n{errors}": {
-    "string": ""
+    "string": "Se produjeron algunos errores:\n{errors}"
   },
   "Failed to take photo": {
-    "string": ""
+    "string": "No se pudo tomar la foto"
   },
   "Camera permission is required to take photos": {
-    "string": ""
+    "string": "Se requiere permiso de la cámara para tomar fotografías."
   },
   "Camera Permission Required": {
-    "string": ""
+    "string": "Se requiere permiso de cámara"
   },
   "This app needs access to your camera to take photos.": {
-    "string": ""
+    "string": "Esta aplicación necesita acceso a tu cámara para tomar fotografías."
   },
   "Grant Permission": {
-    "string": ""
+    "string": "Conceder Permisos"
   },
   "Camera not available": {
-    "string": ""
+    "string": "Cámara no disponible"
   },
   "Loading image...": {
-    "string": ""
+    "string": "Cargando imagen..."
   },
   "Failed to load media": {
-    "string": ""
+    "string": "No se pudo cargar"
   },
   "Audio Message": {
-    "string": ""
+    "string": "Mensaje de Audio"
   },
   "File": {
-    "string": ""
+    "string": "Archivo"
   },
   "Tap to open": {
-    "string": ""
+    "string": "Toque para abrir"
   },
   "Encrypted": {
-    "string": ""
+    "string": "Encriptado"
   },
   "Downloading... {progress}%": {
-    "string": ""
+    "string": "Downloading... {progress}%"
   },
   "Loading encrypted media...": {
-    "string": ""
+    "string": "Cargando medios encriptados..."
   },
   "Cannot decrypt media: insufficient context. This may happen if the message is viewed outside its original channel or if encryption keys are not available.": {
-    "string": ""
+    "string": "No se pueden descifrar los medios: contexto insuficiente. Esto puede suceder si el mensaje se ve fuera de su canal original o si las claves de cifrado no están disponibles."
   },
   "No media selected": {
-    "string": ""
+    "string": "No hay medios seleccionados"
   },
   "File does not exist. Please select the file again.": {
-    "string": ""
+    "string": "Archivo no existe. Por favor, seleccione el archivo de nuevo."
   },
   "Encryption failed": {
-    "string": ""
+    "string": "Error de cifrado"
   },
   "Upload failed": {
-    "string": ""
+    "string": "Subida fallida"
   },
   "Failed to send media": {
-    "string": ""
+    "string": "Error al enviar medios"
   },
   "Failed to load image preview": {
-    "string": ""
+    "string": "Error al cargar la vista previa de la imagen"
   },
   "Failed to load video preview": {
-    "string": ""
+    "string": "Error al cargar la vista previa del video"
   },
   "Audio File": {
-    "string": ""
+    "string": "Archivo de Audio"
   },
   "Failed to load audio preview": {
-    "string": ""
+    "string": "No se pudo cargar la vista previa de audio"
   },
   "Preview Media": {
-    "string": ""
+    "string": "Medios de Previsualización"
   },
   "Type:": {
-    "string": ""
+    "string": "Tipo:"
   },
   "Size:": {
-    "string": ""
+    "string": "Tamaño:"
   },
   "Duration:": {
-    "string": ""
+    "string": "Duración:"
   },
   "Dimensions:": {
-    "string": ""
+    "string": "Dimensiones:"
   },
   "Caption (optional)": {
-    "string": ""
+    "string": "Pie de foto (opcional)"
   },
   "Add a caption...": {
-    "string": ""
+    "string": "Agregar un título..."
   },
   "Encrypting and uploading...": {
-    "string": ""
+    "string": "Encriptación y carga..."
   },
   "Uploading...": {
-    "string": ""
+    "string": "Subiendo..."
   },
   "Sending...": {
-    "string": ""
+    "string": "Enviando..."
   },
   "Send": {
-    "string": ""
+    "string": "Enviar"
   },
   "Take Photo": {
-    "string": ""
+    "string": "Tomar Foto"
   },
   "Camera Permission": {
-    "string": ""
+    "string": "Permiso de la Cámara"
   },
   "Ask Me Later": {
-    "string": ""
+    "string": "Pregúntame Más Tarde"
   },
   "Record Video": {
-    "string": ""
+    "string": "Grabar Video"
   },
   "This app needs access to your camera to record videos.": {
-    "string": ""
+    "string": "Esta aplicación necesita acceso a su cámara para grabar videos."
   },
   "Microphone Permission": {
-    "string": ""
+    "string": "Permiso de Micrófono"
   },
   "This app needs access to your microphone to record videos with audio.": {
-    "string": ""
+    "string": "Esta aplicación necesita acceso a su micrófono para grabar videos con audio."
   },
   "Photo Library": {
-    "string": ""
+    "string": "Biblioteca de Fotos"
   },
   "Video Library": {
-    "string": ""
+    "string": "Biblioteca Video"
   },
   "Voice Message": {
-    "string": ""
+    "string": "Mensaje de Voz"
   },
   "This app needs access to your microphone to record voice messages.": {
-    "string": ""
+    "string": "Esta aplicación necesita acceso a su micrófono para grabar mensajes de voz."
   },
   "Microphone permission is required to record voice messages. Please allow microphone access in app settings.": {
-    "string": ""
+    "string": "Se requiere permiso de micrófono para grabar mensajes de voz. Permita el acceso al micrófono en la configuración de la aplicación."
   },
   "Failed to request microphone permission. Please check app settings.": {
-    "string": ""
+    "string": "Error al solicitar permiso de micrófono. Por favor, compruebe la configuración de la aplicación."
   },
   "File Picker": {
-    "string": ""
+    "string": "Selector de Archivos"
   },
   "Select Media Source": {
-    "string": ""
+    "string": "Seleccionar Fuente de Medios"
   },
   "Rejoin current channel": {
-    "string": ""
+    "string": "Reentrar al canal actual"
   },
   "CTCP request": {
-    "string": ""
+    "string": "CTCP request"
   },
   "DCC commands": {
-    "string": ""
+    "string": "Comandos DCC"
   },
   "XDCC bot commands": {
-    "string": ""
+    "string": "Comandos del bot XDCC"
   },
   "Attach media": {
-    "string": ""
+    "string": "Adjuntar Multipedia"
   },
   "Send message": {
-    "string": ""
+    "string": "Enviar mensaje"
   },
   "Search messages...": {
-    "string": ""
+    "string": "Buscar mensaje..."
   },
   "No results found": {
-    "string": ""
+    "string": "No se encontraron resultados"
   },
   "{count} result(s) found": {
-    "string": ""
+    "string": "{count} resultado/s encontrado/s"
   },
   "Message Types:": {
-    "string": ""
+    "string": "Tipos de mensajes:"
   },
   "Copied": {
-    "string": ""
+    "string": "Copiado"
   },
   "Fingerprint copied to clipboard": {
-    "string": ""
+    "string": "Huella digital copiada al portapapeles"
   },
   "Command copied to clipboard": {
-    "string": ""
+    "string": "Comando copiado al portapapeles"
   },
   "Sent": {
-    "string": ""
+    "string": "Enviado"
   },
   "Fingerprint command sent to {{service}}": {
-    "string": ""
+    "string": "Comando de huella dactilar enviado a {{service}}"
   },
   "Certificate Fingerprint": {
-    "string": ""
+    "string": "Certificado de huella digital"
   },
   "Colons": {
-    "string": ""
+    "string": "Colons"
   },
   "Copy Fingerprint": {
-    "string": ""
+    "string": "Copiar huella digital"
   },
   "QR Code": {
-    "string": ""
+    "string": "Código QR"
   },
   "Scan to quickly share your certificate fingerprint": {
-    "string": ""
+    "string": "Escanee para compartir rápidamente la huella digital de su certificado"
   },
   "IRC Service": {
-    "string": ""
+    "string": "Servicio de IRC"
   },
   "Command": {
-    "string": ""
+    "string": "Command"
   },
   "Copy Command": {
-    "string": ""
+    "string": "Copiar Comando"
   },
   "Send to {{service}}": {
-    "string": ""
+    "string": "Enviar a {{service}}"
   },
   "How to use": {
-    "string": ""
+    "string": "Cómo usar"
   },
   "1. Copy the command above\n2. Send it to {{service}} on IRC\n3. Your certificate will be associated with your nickname\n4. You can now authenticate using SASL EXTERNAL": {
-    "string": ""
+    "string": "1. Copie el comando anterior\n2. Envíalo a {{service}} en IRC\n3. Su certificado estará asociado con su apodo\n4. Ahora puede autenticarse usando SASL EXTERNAL"
   },
   "Certificate name is required": {
-    "string": ""
+    "string": "Se necesita el nombre del certificado"
   },
   "Common Name (CN) is required": {
-    "string": ""
+    "string": "Se requiere el nombre común (CN)"
   },
   "Validity period must be between 1 and 10 years": {
-    "string": ""
+    "string": "El período de validez debe ser entre 1 y 10 años."
   },
   "Failed to generate certificate": {
-    "string": ""
+    "string": "No se pudo generar el certificado"
   },
   "Certificate Generated": {
-    "string": ""
+    "string": "Certificado Generado"
   },
   "Generate Certificate": {
-    "string": ""
+    "string": "Generar certificado"
   },
   "Generate a new RSA-2048 self-signed certificate for IRC SASL EXTERNAL authentication.": {
-    "string": ""
+    "string": "Genere un nuevo certificado autofirmado RSA-2048 para la autenticación externa SASL de IRC"
   },
   "Certificate Name": {
-    "string": ""
+    "string": "Nombre del certificado"
   },
   "e.g., My IRC Certificate": {
-    "string": ""
+    "string": "e.j., Mi Certificado IRC"
   },
   "A friendly name for this certificate": {
-    "string": ""
+    "string": "Un nombre amigable para este certificado"
   },
   "Common Name (CN)": {
-    "string": ""
+    "string": "Nombre Común (CN)"
   },
   "e.g., nick@irc.network": {
-    "string": ""
+    "string": "e.g., nick@irc.network"
   },
   "Your nickname or email (used in certificate CN field)": {
-    "string": ""
+    "string": "Su apodo o correo electrónico (utilizado en el campo CN del certificado) "
   },
   "Validity Period (years)": {
-    "string": ""
+    "string": "Período de validez (años)"
   },
   "Certificate validity: 1-10 years": {
-    "string": ""
+    "string": "Validez del certificado: 1-10 años"
   },
   "Generating...": {
-    "string": ""
+    "string": "Generando..."
   },
   "What is this?": {
-    "string": ""
+    "string": "¿Qué es eso?"
   },
   "Client certificates allow you to authenticate to IRC servers using TLS certificates instead of passwords. This is more secure and supported by many modern IRC networks.": {
-    "string": ""
+    "string": "Los certificados de cliente le permiten autenticarse en servidores IRC utilizando certificados TLS en lugar de contraseñas. Esto es más seguro y es compatible con muchas redes IRC modernas."
   },
   "Certificate Generated Successfully!": {
-    "string": ""
+    "string": "Certificado Generado Con Éxito!"
   },
   "Name:": {
-    "string": ""
+    "string": "Nombre:"
   },
   "Common Name:": {
-    "string": ""
+    "string": "Nombre Común:"
   },
   "Valid From:": {
-    "string": ""
+    "string": "Válido Desde:"
   },
   "Valid To:": {
-    "string": ""
+    "string": "Válido para:"
   },
   "SHA-256 Fingerprint:": {
-    "string": ""
+    "string": "Huella digital SHA-256"
   },
   "Next Steps:": {
-    "string": ""
+    "string": "Próximos Pasos:"
   },
   "Configure your IRC network to use this certificate": {
-    "string": ""
+    "string": "Configure su red IRC para usar este certificado"
   },
   "Add the fingerprint to NickServ: /msg NickServ CERT ADD <fingerprint>": {
-    "string": ""
+    "string": "Agregue una huella digital a NickServ: /msg NickServ CERT ADD<fingerprint>"
   },
   "Connect to IRC server with SASL EXTERNAL enabled": {
-    "string": ""
+    "string": "Conectarse al servidor IRC con SASL EXTERNAL habilitado"
   },
   "Generating certificate...": {
-    "string": ""
+    "string": "Generando certificado..."
   },
   "This can take a few seconds on older phones.": {
-    "string": ""
+    "string": "Esto puede demorar unos segundos en móviles más antiguos."
   },
   "Failed to load certificates": {
-    "string": ""
+    "string": "No se pudieron cargar los certificados"
   },
   "Certificate Expired": {
-    "string": ""
+    "string": "Certificado caducado"
   },
   "This certificate has expired. Please generate a new one.": {
-    "string": ""
+    "string": "Este certificado ha caducado. Por favor, genere uno nuevo."
   },
   "Certificate not found": {
-    "string": ""
+    "string": "Certificado no encontrado"
   },
   "Failed to load certificate details": {
-    "string": ""
+    "string": "No se pudieron cargar los detalles del certificado"
   },
   "Delete Certificate": {
-    "string": ""
+    "string": "Eliminar Certificado"
   },
   "Are you sure you want to delete this certificate? This action cannot be undone. You will need to generate a new certificate and re-add it to IRC services.": {
-    "string": ""
+    "string": "¿Está seguro de que desea eliminar este certificado? Esta acción no se puede deshacer. Deberá generar un nuevo certificado y volver a agregarlo a los servicios de IRC."
   },
   "Certificate deleted": {
-    "string": ""
+    "string": "Certificado eliminado"
   },
   "Failed to delete certificate": {
-    "string": ""
+    "string": "No se pudo eliminar el certificado"
   },
   "Expired": {
-    "string": ""
+    "string": "Caducado"
   },
   "Expires Soon": {
-    "string": ""
+    "string": "Expira pronto"
   },
   "Valid": {
-    "string": ""
+    "string": "Válido"
   },
   "Valid:": {
-    "string": ""
+    "string": "Válido:"
   },
   "No Certificates": {
-    "string": ""
+    "string": "Sin certificados"
   },
   "You haven't generated any certificates yet. Generate one to get started.": {
-    "string": ""
+    "string": "Aún no has generado ningún certificado. Genera uno para empezar."
   },
   "Generate New Certificate": {
-    "string": ""
+    "string": "Generar nuevo certificado"
   },
   "Select Certificate": {
-    "string": ""
+    "string": "Seleccionar certificado"
   },
   "Loading certificates...": {
-    "string": ""
+    "string": "Cargando certificados..."
   },
   "certificate": {
-    "string": ""
+    "string": "certificado"
   },
   "certificates": {
-    "string": ""
+    "string": "certificados"
   },
   "New": {
-    "string": ""
+    "string": "Nuevo"
   },
   "Recommended": {
-    "string": ""
+    "string": "Recomendado"
   },
   "No Networks": {
-    "string": ""
+    "string": "Sin Redes"
   },
   "Create a network first to add ZNC to it.": {
-    "string": ""
+    "string": "Cree una red primero para agregarle ZNC."
   },
   "Select a network to add your ZNC server to. The ZNC will be automatically configured.": {
-    "string": ""
+    "string": "Seleccione una red a la que agregar su servidor ZNC. El ZNC se configurará automáticamente."
   },
   "Loading networks...": {
-    "string": ""
+    "string": "Carga de redes..."
   },
   "Create New Network": {
-    "string": ""
+    "string": "Crear Nueva Red"
   },
   "Show Header Search": {
-    "string": ""
+    "string": "Mostrar Búsqueda de Encabezado"
   },
   "Search icon visible in the header": {
-    "string": ""
+    "string": "Icono de búsqueda visible en el encabezado"
   },
   "Search icon hidden from the header": {
-    "string": ""
+    "string": "Icono de búsqueda oculto en el encabezado"
   },
   "Show Message Search Button": {
-    "string": ""
+    "string": "Mostrar Botón de Búsqueda de Mensajes"
   },
   "Floating search button visible in message view": {
-    "string": ""
+    "string": "Botón de búsqueda flotante visible en la vista de mensajes"
   },
   "Floating search button hidden": {
-    "string": ""
+    "string": "Flotante de búsqueda botón oculto"
   },
   "Alias name and command are required": {
-    "string": ""
+    "string": "Se requieren el nombre de alias y el comando"
   },
   "Command name and template are required": {
-    "string": ""
+    "string": "Se requieren el nombre del comando y la plantilla"
   },
   "Use fingerprint/biometric or PIN to unlock": {
-    "string": ""
+    "string": "Utilice huella dactilar/biométrica o PIN para desbloquear"
   },
   "Selected": {
-    "string": ""
+    "string": "Seleccionado"
   },
   "Unlock Passwords": {
-    "string": ""
+    "string": "Desbloquear Contraseñas"
   },
   "Re-enter PIN": {
-    "string": ""
+    "string": "Vuelva a introducir el PIN"
   },
   "Confirm": {
-    "string": ""
+    "string": "Confirmar"
   },
   "Submit": {
-    "string": ""
+    "string": "Enviado"
   },
   "Padding": {
-    "string": ""
+    "string": "Relleno"
   },
   "Height": {
-    "string": ""
+    "string": "Altura"
   },
   "Position": {
-    "string": ""
+    "string": "Posición"
   },
   "Translate with padding": {
-    "string": ""
+    "string": "Traducir con relleno"
   },
   "Show Typing Indicators": {
-    "string": ""
+    "string": "Mostrar Indicadores de Escritura"
   },
   "Display who is typing in the active tab": {
-    "string": ""
+    "string": "Mostrar quién está escribiendo en la pestaña activa"
   },
   "Hide typing indicators": {
-    "string": ""
+    "string": "Ocultar indicadores de escritura"
   },
   "Show Send Button": {
-    "string": ""
+    "string": "Mostrar botón Enviar"
   },
   "Display send button next to message input": {
-    "string": ""
+    "string": "Mostrar el botón de envío junto a la entrada del mensaje"
   },
   "Hide send button (use Enter key)": {
-    "string": ""
+    "string": "Ocultar el botón de envío (use la tecla Enter)"
   },
   "Banner Position": {
-    "string": ""
+    "string": "Posición del banner"
   },
   "Banner shown below message input": {
-    "string": ""
+    "string": "El Banner se muestra debajo del mensaje de entrada"
   },
   "Banner shown above header": {
-    "string": ""
+    "string": "El Banner se muestra encima del encabezado"
   },
   "Banner shown below header": {
-    "string": ""
+    "string": "El Banner se muestra debajo del encabezado"
   },
   "Banner shown above message input": {
-    "string": ""
+    "string": "El Banner se muestra encima de la entrada del mensaje"
   },
   "Above message input": {
-    "string": ""
+    "string": "Entrada de mensaje anterior"
   },
   "Below message input": {
-    "string": ""
+    "string": "Debajo de la entrada del mensaje"
   },
   "Above header": {
-    "string": ""
+    "string": "Arriba del encabezado"
   },
   "Below header": {
-    "string": ""
+    "string": "Debajo del encabezado"
   },
   "Keyboard Avoiding": {
-    "string": ""
+    "string": "Evitar el teclado"
   },
   "Adjust layout when the keyboard opens": {
-    "string": ""
+    "string": "Ajustar el diseño cuando se abre el teclado"
   },
   "Keep layout fixed when the keyboard opens": {
-    "string": ""
+    "string": "Mantener el diseño fijo cuando se abre el teclado"
   },
   "Keyboard Behavior (iOS)": {
-    "string": ""
+    "string": "Comportamiento del teclado (iOS)"
   },
   "Keyboard Behavior (Android)": {
-    "string": ""
+    "string": "Keyboard Behavior (Android)"
   },
   "Keyboard Vertical Offset": {
-    "string": ""
+    "string": "Desplazamiento vertical del teclado"
   },
   "Additional padding in pixels for keyboard avoidance": {
-    "string": ""
+    "string": "Relleno adicional en píxeles para evitar el teclado"
   },
   "Android Bottom Safe Area": {
-    "string": ""
+    "string": "Área Segura Inferior de Android"
   },
   "Keep spacing above the gesture bar": {
-    "string": ""
+    "string": "Mantenga el espacio por encima de la barra de gestos"
   },
   "Use full height on Android": {
-    "string": ""
+    "string": "Usar altura completa en Android"
   },
   "Troubleshooting Guide": {
-    "string": ""
+    "string": "Guía de Solución de Problemas"
   },
   "Fix common problems and errors": {
-    "string": ""
+    "string": "Solucionar problemas y errores comunes"
   },
   "IRC Connection Guide": {
-    "string": ""
+    "string": "Guía de Conexión IRC"
   },
   "Learn how to connect to IRC servers": {
-    "string": ""
+    "string": "Aprende a conectarte a servidores IRC"
   },
   "Commands Reference": {
-    "string": ""
+    "string": "Referencia de Comandos"
   },
   "List of all IRC commands": {
-    "string": ""
+    "string": "Lista de todos los comandos de IRC"
   },
   "Encryption Guide": {
-    "string": ""
+    "string": "Guía de cifrado"
   },
   "End-to-end encryption for DMs and channels": {
-    "string": ""
+    "string": "Cifrado de extremo a extremo para mensajes directos/DMs y canales"
   },
   "Media Sharing Guide": {
-    "string": ""
+    "string": "Guía para Compartir Multimedia"
   },
   "Send encrypted photos, videos, and voice": {
-    "string": ""
+    "string": "Envíe fotos, videos y voz encriptados"
   },
   "Channel Management": {
-    "string": ""
+    "string": "Gestión de Canales"
   },
   "Manage channels, modes, and permissions": {
-    "string": ""
+    "string": "Administrar canales, modos y permisos"
   },
   "Clear Media Cache": {
-    "string": ""
+    "string": "Borrar caché de Multimedia"
   },
   "Are you sure you want to clear all cached media? This will free up storage space but media will need to be downloaded again.": {
-    "string": ""
+    "string": "¿Seguro que quieres borrar todos los archivos multimedia almacenados en caché? Esto liberará espacio, pero tendrás que volver a descargarlos."
   },
   "Cache Cleared": {
-    "string": ""
+    "string": "Caché borrada"
   },
   "Media cache has been cleared successfully.": {
-    "string": ""
+    "string": "La caché de multimedia se ha borrado correctamente."
   },
   "Failed to clear cache: {error}": {
-    "string": ""
+    "string": "No pudo borrar caché: {error}"
   },
   "Original": {
-    "string": ""
+    "string": "Original"
   },
   "High": {
-    "string": ""
+    "string": "Alto"
   },
   "Low": {
-    "string": ""
+    "string": "Bajo"
   },
   "Enable Encrypted Media Sharing": {
-    "string": ""
+    "string": "Habilitar el uso compartido cifrado de multimedia"
   },
   "Media sharing is enabled. Attachment button (📎) appears on encrypted conversations.": {
-    "string": ""
+    "string": "Compartir contenido multimedia está habilitado. El botón para adjuntar (📎) aparece en las conversaciones cifradas."
   },
   "Media sharing is disabled. Attachment button will not appear.": {
-    "string": ""
+    "string": "El uso compartido de multimedia está deshabilitado. El botón para adjuntar archivos no aparecerá."
   },
   "About Media Sharing": {
-    "string": ""
+    "string": "Acerca del uso compartido de multimedia"
   },
   "Media sharing works only in encrypted conversations (DMs with key exchange or encrypted channels). All media is automatically encrypted using existing E2E keys.": {
-    "string": ""
+    "string": "El intercambio de contenido multimedia solo funciona en conversaciones cifradas (mensajes directos con intercambio de claves o canales cifrados). Todo el contenido multimedia se cifra automáticamente con las claves E2E existentes."
   },
   "Show Encryption Indicator": {
-    "string": ""
+    "string": "Mostrar Indicador de Cifrado"
   },
   "Display 🔒 icon on media thumbnails to indicate encryption": {
-    "string": ""
+    "string": "Mostrar el icono 🔒  para indicar el cifrado"
   },
   "Auto-Download Media": {
-    "string": ""
+    "string": "Descarga automática de Multimedia"
   },
   "Automatically download media when received": {
-    "string": ""
+    "string": "Descargar automáticamente archivos multimedia cuando se reciben"
   },
   "WiFi Only Downloads": {
-    "string": ""
+    "string": "Descargas solo con WiFi"
   },
   "Only download media when connected to WiFi": {
-    "string": ""
+    "string": "Solamente descargue archivos multimedia cuando esté conectado con WiFi"
   },
   "Maximum Cache Size": {
-    "string": ""
+    "string": "Tamaño Máximo de Caché"
   },
   "Current cache: {size} / Max: {max}": {
-    "string": ""
+    "string": "Caché Actual:{size} /Max:{max}"
   },
   "Media Quality": {
-    "string": ""
+    "string": "Calidad de Multimedia"
   },
   "Current: {quality}": {
-    "string": ""
+    "string": "Actual:{quality}"
   },
   "Video Recording Quality": {
-    "string": ""
+    "string": "Calidad de Grabación de Video"
   },
   "Max Voice Message Duration": {
-    "string": ""
+    "string": "Duración Máxima del Mensaje de Voz"
   },
   "Current: {duration} seconds": {
-    "string": ""
+    "string": "Actual:{duration}segundos"
   },
   "1 minute": {
-    "string": ""
+    "string": "1 minuto"
   },
   "3 minutes": {
-    "string": ""
+    "string": "3 minutos"
   },
   "5 minutes": {
-    "string": ""
+    "string": "5 minutos"
   },
   "Free up storage by clearing cached media files": {
-    "string": ""
+    "string": "Libere almacenamiento borrando los archivos multimedia en caché"
   },
   "Permission Required": {
-    "string": ""
+    "string": "Se Requiere Permisos"
   },
   "Notification permission is required to receive notifications. Please enable it in system settings.": {
-    "string": ""
+    "string": "Se requiere permiso de notificaciones para recibirlas. Habilítelo en la configuración del sistema."
   },
   "Sound Settings": {
-    "string": ""
+    "string": "Configuración de Sonido"
   },
   "Configure notification sounds and themes": {
-    "string": ""
+    "string": "Configurar sonidos y temas de notificación."
   },
   "Upgrade to Premium": {
-    "string": ""
+    "string": "Actualizar a Premium"
   },
   "Unlock unlimited scripting, no ads, and premium features": {
-    "string": ""
+    "string": "Desbloquea scripts ilimitados, sin anuncios y funciones premium"
   },
   "My Data & Privacy": {
-    "string": ""
+    "string": "Mis Datos y Privacidad"
   },
   "Export or delete your data (GDPR/CCPA rights)": {
-    "string": ""
+    "string": "Exportar o eliminar sus datos (GDPR/CCPA rights)"
   },
   "Privacy & Ads": {
-    "string": ""
+    "string": "Privacidad y Anuncios"
   },
   "Manage consent for personalized ads and watch ads for rewards": {
-    "string": ""
+    "string": "Gestionar el consentimiento para anuncios personalizados y ver anuncios para obtener recompensas"
   },
   "Scripts (Scripting Time & No-Ads)": {
-    "string": ""
+    "string": "Scripts (Tiempo de Scripting y Sin Anuncios)"
   },
   "Manage IRC scripts and automation. Scripting time is also ad-free time.": {
-    "string": ""
+    "string": "Administre scripts de IRC y automatización. El tiempo de creación de scripts también es tiempo sin publicidad."
   },
   "Show Watch Ad Button (Premium)": {
-    "string": ""
+    "string": "Mostrar Botón Ver anuncio (Premium)"
   },
   "Enable watch ad button to support the project (you have premium plan)": {
-    "string": ""
+    "string": "Habilite el botón ver anuncio para respaldar el proyecto (tiene un plan premium)"
   },
   "Always shown for normal users": {
-    "string": ""
+    "string": "Siempre se muestra para usuarios normales"
   },
   "Watch Ad (+60 min Scripting & No-Ads)": {
-    "string": ""
+    "string": "Ver Anuncio (+60 min de Scripting y Sin Anuncios)"
   },
   "Quick Connect Network": {
-    "string": ""
+    "string": "Red de Conexión Rápida"
   },
   "Current: {network}": {
-    "string": ""
+    "string": "Actual: {network}"
   },
   "Tap header to connect to default network": {
-    "string": ""
+    "string": "Toque encabezado para conectarse a la red predeterminada"
   },
   "Kill Switch on Header": {
-    "string": ""
+    "string": "Interruptor de Apagado en el Encabezado"
   },
   "Show kill switch button in header": {
-    "string": ""
+    "string": "Mostrar el botón de apagado en el encabezado"
   },
   "Kill Switch on Lock Screen": {
-    "string": ""
+    "string": "Botón de Apagado en la Pantalla de Bloqueo"
   },
   "Show kill switch button on app unlock screen": {
-    "string": ""
+    "string": "Mostrar el Botón de Apagado en la pantalla de desbloqueo de la aplicación"
   },
   "Show Kill Switch Warnings": {
-    "string": ""
+    "string": "Mostrar las Advertencias del Botón de Apagado"
   },
   "Show confirmation dialogs before activating kill switch (header only)": {
-    "string": ""
+    "string": "Mostrar cuadros de diálogo de confirmación antes de activar el Botón de Apagado (solo encabezado)"
   },
   "Kill Switch Custom Name": {
-    "string": ""
+    "string": "Nombre Personalizado para el Botón de Apagado"
   },
   "Custom name for kill switch button (e.g., \"meow meow\" for obfuscation)": {
-    "string": ""
+    "string": "Nombre personalizado para el Botón de Apagado (e.j., \"miau miau\" para ofuscación)"
   },
   "Enter custom name": {
-    "string": ""
+    "string": "Introduce un nombre personalizado"
   },
   "Kill Switch Custom Icon": {
-    "string": ""
+    "string": "Icono Personalizado del Botón de Apagado"
   },
   "FontAwesome5 icon name (e.g., \"cat\", \"heart\", \"star\")": {
-    "string": ""
+    "string": "Nombre del icono FontAwesome5 (e.j., \"gato\", \"corazón\", \"estrella\")"
   },
   "Enter icon name": {
-    "string": ""
+    "string": "Introduzca el nombre del icono"
   },
   "Kill Switch Custom Color": {
-    "string": ""
+    "string": "Interruptor de Apagado Color Personalizado"
   },
   "Tap to choose from preset colors or enter hex code": {
-    "string": ""
+    "string": "Toque para elegir entre colores preestablecidos o ingrese un código hexadecimal"
   },
   "Select Quick Connect Network": {
-    "string": ""
+    "string": "Seleccione Red de Conexión Rápida"
   },
   "Choose which network to connect when tapping the header \"Tap to connect\" button.": {
-    "string": ""
+    "string": "Elija a qué red conectarse al tocar el botón \"Tocar para conectarse\" del encabezado."
   },
   "Use Default": {
-    "string": ""
+    "string": "Usar Predeterminado"
   },
   "Choose Color": {
-    "string": ""
+    "string": "Elige Color"
   },
   "Current color: {color}": {
-    "string": ""
+    "string": "Color actual: {color}"
   },
   "Hex Color:": {
-    "string": ""
+    "string": "Hex Color:"
   },
   "Unable to enable biometric lock.": {
-    "string": ""
+    "string": "No se puede habilitar el bloqueo biométrico."
   },
   "PIN unlock enabled (fallback if biometric fails)": {
-    "string": ""
+    "string": "Desbloqueo de PIN habilitado (alternativa si falla la biometría)"
   },
   "Use a PIN to unlock (can be used with biometric)": {
-    "string": ""
+    "string": "Utilice un PIN para desbloquear (se puede utilizar con biometría)"
   },
   "Failed to save video": {
-    "string": ""
+    "string": "No se pudo guardar el vídeo"
   },
   "Recording failed": {
-    "string": ""
+    "string": "Error de grabación"
   },
   "Failed to start recording": {
-    "string": ""
+    "string": "Error al iniciar la grabación"
   },
   "Failed to stop recording": {
-    "string": ""
+    "string": "Error al detener la grabación"
   },
   "Camera and microphone permissions are required to record videos": {
-    "string": ""
+    "string": "Se requieren permisos de cámara y micrófono para grabar videos"
   },
   "Permissions Required": {
-    "string": ""
+    "string": "Permisos Requeridos"
   },
   "This app needs access to your camera and microphone to record videos.": {
-    "string": ""
+    "string": "Esta aplicación necesita acceso a su cámara y micrófono para grabar videos."
   },
   "Grant Permissions": {
-    "string": ""
+    "string": "Conceder Permisos"
   },
   "Microphone permission": {
-    "string": ""
+    "string": "Permiso de micrófono"
   },
   "Ask me later": {
-    "string": ""
+    "string": "Pregúntame más tarde"
   },
   "Microphone permission denied": {
-    "string": ""
+    "string": "Permiso de micrófono denegado"
   },
   "Recording file not found": {
-    "string": ""
+    "string": "Archivo de grabación no encontrado"
   },
   "Recording file not found. Please record again.": {
-    "string": ""
+    "string": "No se encontró el archivo de grabación. Por favor, grabe de nuevo."
   },
   "Failed to send recording": {
-    "string": ""
+    "string": "Error al enviar la grabación"
   },
   "Release to stop recording": {
-    "string": ""
+    "string": "Suelte para detener la grabación"
   },
   "max": {
-    "string": ""
+    "string": "máx."
   },
   "Recording complete": {
-    "string": ""
+    "string": "Grabación completa"
   },
   "Stop": {
-    "string": ""
+    "string": "Detener"
   },
   "Hold to record voice message": {
-    "string": ""
+    "string": "Mantenga presionado para grabar un mensaje de voz"
   },
   "Max duration: {duration} seconds": {
-    "string": ""
+    "string": "Duración máxima: {duration} segundos"
   },
   "Hold to Record": {
-    "string": ""
+    "string": "Presionar para grabar"
   },
   "Stop Recording": {
-    "string": ""
+    "string": "Detener Grabación"
   },
   "*** Reconnected to {network}": {
-    "string": ""
+    "string": "*** Reconectado a {network}"
   },
   "Invalid IRC URL": {
-    "string": ""
+    "string": "URL de IRC no válida"
   },
   "The IRC URL format is invalid: {error}\n\nExpected: irc://server/channel": {
-    "string": ""
+    "string": "El formato de URL de IRC no es válido: {error}\n\nEsperado: irc://server/channel"
   },
   "Security Warning": {
-    "string": ""
+    "string": "Advertencia de Seguridad"
   },
   "This URL contains a password which is visible in plain text. This is insecure.\n\nServer: {server}\n\nContinue anyway?": {
-    "string": ""
+    "string": "Esta URL contiene una contraseña que es visible en texto sin formato. Esto es inseguro.\nServidor: {server}\n¿Continuar de todos modos?"
   },
   "Continue": {
-    "string": ""
+    "string": "Continuar"
   },
   "Already Connected": {
-    "string": ""
+    "string": "Ya está conectado"
   },
   "Already connected to {server}": {
-    "string": ""
+    "string": "Ya está conectado a{server}"
   },
   "Connect to IRC Server": {
-    "string": ""
+    "string": "Conectarse al Servidor IRC"
   },
   "Connecting to {server}:{port}\n\nThis will create a temporary connection.{channel}\n\nContinue?": {
-    "string": ""
+    "string": "Conexión a {server}:{port}\nEsto creará una conexión temporal.{channel}\n\n¿Continuar?"
   },
   "Connect": {
-    "string": ""
+    "string": "Conectar"
   },
   "Failed to process IRC URL: {error}": {
-    "string": ""
+    "string": "Error al procesar la URL de IRC: {error}"
   },
   "Usage: /ctcp <nick> <command> [args]": {
-    "string": ""
+    "string": "Uso: /ctcp <nick> <command> [args]"
   },
   "Usage: /xdcc <bot> <command> [args]": {
-    "string": ""
+    "string": "Uso: /xdcc <bot> <command> [args]"
   },
   "Usage: /dcc <chat|send> <nick> [path] [port]": {
-    "string": ""
+    "string": "Uso: /dcc <chat/send> <nick>  [path] [port]"
   },
   "Failed to open battery optimization settings. Please enable it manually in system settings.": {
-    "string": ""
+    "string": "Error al abrir la configuración de optimización de la batería. Habilítelo manualmente en la configuración del sistema."
   },
   "View Certificate Fingerprint": {
-    "string": ""
+    "string": "Ver Huella Digital del Certificado"
   },
   "Failed to extract certificate fingerprint": {
-    "string": ""
+    "string": "Error al extraer la huella digital del certificado"
   },
   "Share Cert with NickServ": {
-    "string": ""
+    "string": "Comparta el certificado con NickServ"
   },
   "Certificate fingerprint sent to NickServ": {
-    "string": ""
+    "string": "Huella digital del certificado enviada a NickServ"
   },
   "Not connected to IRC server": {
-    "string": ""
+    "string": "No conectado al servidor IRC"
   },
   "Failed to send certificate fingerprint": {
-    "string": ""
+    "string": "Error al enviar la huella digital del certificado"
   },
   "Version 1.6.9": {
-    "string": ""
+    "string": "Versión 1.6.9"
   },
   "Are you sure you want to delete \"{networkName}\"? This cannot be undone.": {
-    "string": ""
+    "string": "¿Seguro que quieres eliminar \"{networkName}\"? No se puede deshacer."
   },
   "Failed to delete network": {
-    "string": ""
+    "string": "No se pudo eliminar la red"
   },
   "Cannot Delete Server": {
-    "string": ""
+    "string": "No se puede eliminar el servidor"
   },
   "Each network must have at least one server.": {
-    "string": ""
+    "string": "Cada red debe tener al menos un servidor."
   },
   "Delete Server": {
-    "string": ""
+    "string": "Eliminar Servidor"
   },
   "Are you sure you want to delete \"{serverName}\"?": {
-    "string": ""
+    "string": "¿Está seguro de que desea eliminar \"{serverName}\"?"
   },
   "Failed to delete server": {
-    "string": ""
+    "string": "No se pudo eliminar el servidor"
   },
   "Export My Data": {
-    "string": ""
+    "string": "Exportar Mis Datos"
   },
   "This will create a JSON file with all your data (messages, settings, networks, etc.). You can then share this file via email, cloud storage, etc.": {
-    "string": ""
+    "string": "Esto creará un archivo JSON con todos tus datos (mensajes, configuración, redes, etc.). Podrás compartirlo por correo electrónico, almacenamiento en la nube, etc."
   },
   "Export Successful": {
-    "string": ""
+    "string": "Exportación Exitosa"
   },
   "Your data has been exported. Would you like to share it?": {
-    "string": ""
+    "string": "Tus datos se han exportado. ¿Quieres compartirlos?"
   },
   "Not Now": {
-    "string": ""
+    "string": "Ahora No"
   },
   "File saved to: {path}": {
-    "string": ""
+    "string": "Archivo guardado en: {path}"
   },
   "Export Failed": {
-    "string": ""
+    "string": "Exportación fallida"
   },
   "Failed to export data: {error}": {
-    "string": ""
+    "string": "Error al exportar datos: {error}"
   },
   "An error occurred while exporting data.": {
-    "string": ""
+    "string": "Se produjo un error al exportar datos,"
   },
   "⚠️ Delete All My Data": {
-    "string": ""
+    "string": "⚠️ Eliminar Todos Mis Datos"
   },
   "THIS CANNOT BE UNDONE!\n\nThis will permanently delete:\n• All messages\n• All settings\n• All networks\n• All identity profiles\n• Consent preferences\n• Cached data\n\nThe app will restart after deletion. Are you absolutely sure?": {
-    "string": ""
+    "string": "¡ESTO NO SE DEBE ELIMINAR!\n\nEliminaría permanentemente:\n• Todos los mensajes\n• Todos los ajustes\n• Todas las redes\n• Todos los perfiles de identidad\n• Preferencias de consentimiento\n• Datos en caché\n\nLa aplicación se reiniciará después de la eliminación. ¿Estás completamente seguro?"
   },
   "DELETE EVERYTHING": {
-    "string": ""
+    "string": "BORRAR TODO"
   },
   "Final Confirmation": {
-    "string": ""
+    "string": "Confirmación final"
   },
   "Are you really sure? This will delete ALL your data permanently.": {
-    "string": ""
+    "string": "¿Estás seguro? Esto eliminará todos tus datos permanentemente."
   },
   "Yes, Delete Everything": {
-    "string": ""
+    "string": "Sí, borrar todo"
   },
   "Data Deleted": {
-    "string": ""
+    "string": "Datos eliminados"
   },
   "All your data has been permanently deleted:\n\n{deletedList}\n\nThe app will restart and show the first-run setup again.": {
-    "string": ""
+    "string": "Todos sus datos han sido eliminados permanentemente:\n\n{deletedList}\n\nLa aplicación se reiniciará y volverá a mostrar la configuración de la primera ejecución."
   },
   "Partial Deletion": {
-    "string": ""
+    "string": "Eliminación parcial"
   },
   "Some data could not be deleted.\n\nDeleted:\n{deletedList}\n\nFailed:\n{failedList}\n\nErrors:\n{errorDetails}\n\nPlease check logs for details.": {
-    "string": ""
+    "string": "Algunos datos no se pudieron eliminar.\n\nSuprimido:\n{deletedList}\n\nFallido:\n{failedList}\n\nErrores:\n{errorDetails}\n\nConsulte los registros para obtener más detalles."
   },
   "Critical error during data deletion: {error}\n\nPlease check the console logs for details.": {
-    "string": ""
+    "string": "Error crítico durante la eliminación de datos: {error}\n\nConsulte los registros de la consola para obtener más detalles."
   },
   "Setting Updated": {
-    "string": ""
+    "string": "Configuración actualizada"
   },
   "Crash reporting has been disabled. New crashes will not be collected.": {
-    "string": ""
+    "string": "Se ha desactivado el informe de fallos. No se recopilarán nuevos fallos."
   },
   "Crash reporting has been enabled. This helps improve app stability.": {
-    "string": ""
+    "string": "Se han habilitado los informes de fallos. Esto ayuda a mejorar la estabilidad de la aplicación."
   },
   "Failed to update crash reporting setting.": {
-    "string": ""
+    "string": "No se pudo actualizar la configuración de informes de fallos."
   },
   "DATA COLLECTED": {
-    "string": ""
+    "string": "DATOS RECOPILADOS"
   },
   "Storage Used": {
-    "string": ""
+    "string": "Almacenamiento utilizado"
   },
   "Ad Consent": {
-    "string": ""
+    "string": "Acuerdo publicitario"
   },
   "This shows data stored locally on your device. Third-party services (Google AdMob, Firebase) may have their own data retention policies.": {
-    "string": ""
+    "string": "Esto muestra los datos almacenados localmente en tu dispositivo. Los servicios de terceros (Google AdMob, Firebase) pueden tener sus propias políticas de retención de datos."
   },
   "PRIVACY CONTROLS": {
-    "string": ""
+    "string": "CONTROLES DE PRIVACIDAD"
   },
   "Crash Reporting": {
-    "string": ""
+    "string": "Informe de fallos"
   },
   "Send anonymous crash reports to help improve app stability": {
-    "string": ""
+    "string": "Envíe informes de fallos anónimos para ayudar a mejorar la estabilidad de la aplicación"
   },
   "When disabled, crash reports will not be collected. This may make it harder to fix bugs you encounter.": {
-    "string": ""
+    "string": "Al deshabilitarla, no se recopilarán informes de fallos. Esto puede dificultar la corrección de errores."
   },
   "YOUR RIGHTS (GDPR/CCPA)": {
-    "string": ""
+    "string": "TUS DERECHOS (GDPR/CCPA)"
   },
   "Download all your data in JSON format": {
-    "string": ""
+    "string": "Descarga todos tus datos en formato JSON"
   },
   "Delete All My Data": {
-    "string": ""
+    "string": "Eliminar Todos Mis Datos"
   },
   "Permanently erase all your data (cannot be undone)": {
-    "string": ""
+    "string": "Borrar permanentemente todos tus datos (no se puede deshacer)"
   },
   "🚨 KILL SWITCH 🚨": {
-    "string": ""
+    "string": "🚨 BOTON DE APAGAR 🚨"
   },
   "EMERGENCY: Delete EVERYTHING including certs, logs, secure storage. Keyboard shortcut: Ctrl+Shift+K": {
-    "string": ""
+    "string": "EMERGENCIA: Borrar TODO, incluyendo certificados, registros y almacenamiento seguro. Atajo de teclado: Ctrl+Shift+K"
   },
   "IMPORTANT INFORMATION": {
-    "string": ""
+    "string": "INFORMACIÓN IMPORTANTE"
   },
   "What gets exported?": {
-    "string": ""
+    "string": "¿Qué se exporta?"
   },
   "All messages (including DMs)": {
-    "string": ""
+    "string": "Todos los mensajes (incluidos los mensajes directos)"
   },
   "Network configurations": {
-    "string": ""
+    "string": "Configuraciones de red"
   },
   "Identity profiles": {
-    "string": ""
+    "string": "Perfiles de identidad"
   },
   "Settings and preferences": {
     "string": "Configuraciones y Preferencias"
@@ -5433,877 +5433,877 @@
     "string": "Aceptar y Continuar"
   },
   "Failed to save consent. Please try again.": {
-    "string": ""
+    "string": "No se pudo guardar el consentimiento. Por favor, inténtelo de nuevo."
   },
   "AndroidIRCX is free to use, supported by ads": {
-    "string": ""
+    "string": "AndroidIRCX es de uso gratuito, respaldado por anuncios"
   },
   "What We Collect": {
-    "string": ""
+    "string": "Qué Recopilamos"
   },
   "To provide free features, we use Google Mobile Ads which may collect:": {
-    "string": ""
+    "string": "Para proporcionar funciones gratuitas, utilizamos Anuncios móviles de Google que pueden recopilar:"
   },
   "Device information": {
-    "string": ""
+    "string": "Información del dispositivo"
   },
   "IP address and location": {
-    "string": ""
+    "string": "Dirección IP y ubicación"
   },
   "Ad interaction data": {
-    "string": ""
+    "string": "Datos de interacción de anuncios"
   },
   "Your Choices": {
-    "string": ""
+    "string": "Sus Opciones"
   },
   "You can choose personalized ads (better rewards) or non-personalized ads (more privacy).": {
-    "string": ""
+    "string": "Puede elegir anuncios personalizados (mejores recompensas) o anuncios no personalizados (más privacidad)."
   },
   "You can change this anytime in Settings.": {
-    "string": ""
+    "string": "Puede cambiar esto en cualquier momento en Configuración."
   },
   "Important": {
-    "string": ""
+    "string": "Importante"
   },
   "You must accept our privacy terms to use this app. Click the button below to review and accept.": {
-    "string": ""
+    "string": "Debe aceptar nuestros términos de privacidad para usar esta aplicación. Haga clic en el botón de abajo para revisar y aceptar."
   },
   "Accepted": {
-    "string": ""
+    "string": "Aceptado"
   },
   "You have accepted the privacy terms. You can change settings anytime in Settings.": {
-    "string": ""
+    "string": "Usted ha aceptado los términos de privacidad. Puede cambiar la configuración en cualquier momento en Configuración."
   },
   "Privacy Terms Accepted": {
-    "string": ""
+    "string": "Términos de Privacidad Aceptados"
   },
   "Accept Privacy Terms & Continue": {
-    "string": ""
+    "string": "Acepte los Términos de Privacidad y Continúe"
   },
   "You can review or change in Settings": {
-    "string": ""
+    "string": "Puede revisar o cambiar la Configuración"
   },
   "Tap to review and accept (required to continue)": {
-    "string": ""
+    "string": "Toque para revisar y aceptar (requerido para continuar)"
   },
   "📄 Read Full Privacy Policy": {
-    "string": ""
+    "string": "📄 Lea la Política de Privacidad Completa"
   },
   "We comply with GDPR, CCPA, and other privacy laws. Your data is protected.": {
-    "string": ""
+    "string": "Cumplimos con GDPR, CCPA y otras leyes de privacidad. Sus datos están protegidos."
   },
   "Which channels do you want to join automatically?": {
-    "string": ""
+    "string": "¿A qué canales quieres unirte automáticamente?"
   },
   "#channel1, #channel2, #channel3": {
-    "string": ""
+    "string": "#canal1, #canal2, #canal3"
   },
   "Enter channel names separated by commas. Channels should start with # or &": {
-    "string": ""
+    "string": "Introduzca los nombres de los canales separados por comas. Los canales deben empezar con # o &."
   },
   "Popular Channels": {
-    "string": ""
+    "string": "Canales Populares"
   },
   "Default channels": {
-    "string": ""
+    "string": "Canales por Defecto"
   },
   "Main channel only": {
-    "string": ""
+    "string": "Solo canal principal"
   },
   "You can always change these channels later in network settings.": {
-    "string": ""
+    "string": "Siempre puedes cambiar estos canales más tarde en la configuración de red."
   },
   "Search by mask or reason...": {
-    "string": ""
+    "string": "Buscar por máscara o motivo..."
   },
   "All Networks": {
-    "string": ""
+    "string": "Todas las Redes"
   },
   "No matching ignored users": {
-    "string": ""
+    "string": "No hay usuarios coincidencias en ignorados."
   },
   "Try different filters": {
-    "string": ""
+    "string": "Prueba diferentes filtros"
   },
   "Filter by Network": {
-    "string": ""
+    "string": "Filtrar por Red"
   },
   "Certificate generated and applied! Don't forget to add the fingerprint to NickServ.": {
-    "string": ""
+    "string": "¡Certificado generado y aplicado! No olvides agregar la huella digital a NickServ."
   },
   "Certificate applied to network configuration": {
-    "string": ""
+    "string": "Certificado aplicado a la configuración de red"
   },
   "No certificate configured": {
-    "string": ""
+    "string": "Ningún certificado configurado"
   },
   "Generate New": {
-    "string": ""
+    "string": "Generar Nuevo"
   },
   "Select Existing": {
-    "string": ""
+    "string": "Seleccionar Existente"
   },
   "View Fingerprint": {
-    "string": ""
+    "string": "Ver huella digital"
   },
   "or enter manually": {
-    "string": ""
+    "string": "o ingresar manualmente"
   },
   "Privacy Settings Updated": {
-    "string": ""
+    "string": "Configuración de Privacidad Actualizada"
   },
   "Your privacy preferences have been saved.": {
-    "string": ""
+    "string": "Se han guardado sus preferencias de privacidad."
   },
   "Change Privacy Settings": {
-    "string": ""
+    "string": "Cambiar la Configuración de Privacidad"
   },
   "You previously accepted our privacy terms. Would you like to withdraw your consent and reset privacy settings?": {
-    "string": ""
+    "string": "Has aceptado previamente nuestras condiciones de privacidad. ¿Quieres retirar tu consentimiento y restablecer tu configuración de privacidad?"
   },
   "Withdraw & Reset": {
-    "string": ""
+    "string": "Retirar y Reiniciar"
   },
   "Failed to show consent form. Please try again.": {
-    "string": ""
+    "string": "No se pudo mostrar el formulario de consentimiento. Inténtalo de nuevo."
   },
   "Reset Privacy Settings": {
-    "string": ""
+    "string": "Restablecer la Configuración de Privacidad"
   },
   "This will withdraw your consent and reset all privacy preferences. You will need to accept the terms again. Continue?": {
-    "string": ""
+    "string": "Esto retirará tu consentimiento y restablecerá todas tus preferencias de privacidad. Deberás aceptar los términos de nuevo. ¿Continuar?"
   },
   "Reset & Re-accept": {
-    "string": ""
+    "string": "Restablecer y volver a aceptar"
   },
   "Privacy terms accepted. Your settings have been updated.": {
-    "string": ""
+    "string": "Términos de privacidad aceptados. Su configuración ha sido actualizada."
   },
   "Failed to reset consent. Please try again.": {
-    "string": ""
+    "string": "Error al restablecer el consentimiento. Por favor, inténtelo de nuevo."
   },
   "Current Status": {
-    "string": ""
+    "string": "Estado Actual"
   },
   "You have consented to personalized ads based on your interests.": {
-    "string": ""
+    "string": "Ha dado su consentimiento para recibir anuncios personalizados basados en sus intereses."
   },
   "Your consent is required to show ads.": {
-    "string": ""
+    "string": "Se requiere su consentimiento para mostrar anuncios."
   },
   "Consent not required in your region.": {
-    "string": ""
+    "string": "Consentimiento no requerido en su región."
   },
   "Using non-personalized ads only.": {
-    "string": ""
+    "string": "Usando solo anuncios no personalizados."
   },
   "AndroidIRCX uses Google Mobile Ads to provide free features. Google may collect:": {
-    "string": ""
+    "string": "AndroidIRCX utiliza Anuncios móviles de Google para proporcionar funciones gratuitas. Google puede recopilar:"
   },
   "Device information (model, OS version)": {
-    "string": ""
+    "string": "Información del dispositivo (modelo, versión del sistema operativo) "
   },
   "IP address and approximate location": {
-    "string": ""
+    "string": "Dirección IP y ubicación aproximada"
   },
   "Usage analytics": {
-    "string": ""
+    "string": "Análisis de uso"
   },
   "Ad Types": {
-    "string": ""
+    "string": "Tipos de Anuncios"
   },
   "Personalized Ads": {
-    "string": ""
+    "string": "Anuncios Personalizados"
   },
   "Ads tailored to your interests based on your activity. May provide better rewards.": {
-    "string": ""
+    "string": "Anuncios adaptados a sus intereses en función de su actividad. Puede proporcionar mejores recompensas."
   },
   "Non-Personalized Ads": {
-    "string": ""
+    "string": "Anuncios No Personalizados"
   },
   "Generic ads not based on your activity. More privacy, potentially lower rewards.": {
-    "string": ""
+    "string": "Anuncios genéricos que no se basan en su actividad. Más privacidad, recompensas potencialmente más bajas."
   },
   "Support & Rewards": {
-    "string": ""
+    "string": "Soporte y Recompensas"
   },
   "You have a premium plan. Watching ads helps support the project development.": {
-    "string": ""
+    "string": "Tienes un plan premium. Ver anuncios ayuda a respaldar el desarrollo del proyecto."
   },
   "Support the project": {
-    "string": ""
+    "string": "Apoya el proyecto"
   },
   "Manage Your Privacy": {
-    "string": ""
+    "string": "Administre su Privacidad"
   },
   "Review Privacy Choices": {
-    "string": ""
+    "string": "Revise las Opciones de Privacidad"
   },
   "Withdraw consent or reset settings": {
-    "string": ""
+    "string": "Retirar el consentimiento o restablecer la configuración"
   },
   "Change your ad personalization preferences": {
-    "string": ""
+    "string": "Cambiar las preferencias de personalización de anuncios"
   },
   "Learn how we protect your data": {
-    "string": ""
+    "string": "Conozca cómo protegemos sus datos"
   },
   "Compliance": {
-    "string": ""
+    "string": "Cumplimiento"
   },
   "AndroidIRCX complies with:": {
-    "string": ""
+    "string": "AndroidIRCX cumple con:"
   },
   "GDPR (EU, EEA, UK, Switzerland)": {
-    "string": ""
+    "string": "GDPR (EU, EEA, UK, Switzerland)"
   },
   "CCPA (California)": {
-    "string": ""
+    "string": "CCPA (California)"
   },
   "Other US state privacy laws": {
-    "string": ""
+    "string": "Otras leyes de privacidad de los estados de EE. UU."
   },
   "You have the right to:": {
-    "string": ""
+    "string": "Tienes derecho a:"
   },
   "Access your data": {
-    "string": ""
+    "string": "Accede a tus datos"
   },
   "Request data deletion": {
-    "string": ""
+    "string": "Solicitar la eliminación de datos"
   },
   "Opt out of personalized ads": {
-    "string": ""
+    "string": "Desactivar los anuncios personalizados"
   },
   "Purchase Successful": {
-    "string": ""
+    "string": "Compra exitosa"
   },
   "Thank you for your purchase!": {
-    "string": ""
+    "string": "¡Gracias por su compra!"
   },
   "Purchase Failed": {
-    "string": ""
+    "string": "Compra fallida"
   },
   "Please try again later.": {
-    "string": ""
+    "string": "Por favor, inténtelo de nuevo más tarde."
   },
   "Failed to load products. Please try again later.": {
-    "string": ""
+    "string": "No se pudieron cargar los productos. Inténtelo de nuevo más tarde."
   },
   "Restore complete": {
-    "string": ""
+    "string": "Restauración completa"
   },
   "Your purchases have been restored.": {
-    "string": ""
+    "string": "Tus compras han sido restauradas."
   },
   "Restore failed": {
-    "string": ""
+    "string": "Restauración fallida"
   },
   "Loading products...": {
-    "string": ""
+    "string": "Cargando productos..."
   },
   "Restore purchases": {
-    "string": ""
+    "string": "Restaurar compras"
   },
   "• api.sendNotice(target, text, networkId?)": {
-    "string": ""
+    "string": "• api.sendNotice(target, text, networkId?)"
   },
   "• api.sendCTCP(target, type, params?, networkId?)": {
-    "string": ""
+    "string": "• api.sendCTCP(target, type, params?, networkId?)"
   },
   "• api.getChannelUsers(channel, networkId?) — returns string[]": {
-    "string": ""
+    "string": "• api.getChannelUsers(channel, networkId?) — returns string[]"
   },
   "• api.getChannels(networkId?) — returns string[]": {
-    "string": ""
+    "string": "• api.getChannels(networkId?) — devuelve cadena[]"
   },
   "• api.setTimer(name, delayMs, repeat?) — set timer": {
-    "string": ""
+    "string": "• api.setTimer(name, delayMs, repeat?) — configura el temporizador"
   },
   "• api.clearTimer(name) — clear timer": {
-    "string": ""
+    "string": "• api.clearTimer(name) — borra temporizador"
   },
   "• api.getNetworkId() — current network ID": {
-    "string": ""
+    "string": "• api.getNetworkId() — ID de red actual"
   },
   "• api.isConnected(networkId?) — check connection": {
-    "string": ""
+    "string": "• api.isConnected(networkId?) — comprueba la conexión"
   },
   "Connection Events": {
-    "string": ""
+    "string": "Eventos de conexión"
   },
   "• onConnect(networkId) — when connected": {
-    "string": ""
+    "string": "• onConnect(networkId) — cuando está conectado"
   },
   "• onDisconnect(networkId, reason?) — when disconnected": {
-    "string": ""
+    "string": "• onDisconnect(networkId, reason?) — Cuando está desconectado"
   },
   "Message Events": {
-    "string": ""
+    "string": "Eventos de mensajes"
   },
   "• onMessage(msg) — channel/query messages": {
-    "string": ""
+    "string": "• onMessage(msg) — mensajes de canal/privado"
   },
   "• onNotice(msg) — notice messages": {
-    "string": ""
+    "string": "• onNotice(msg) — mensajes notice"
   },
   "• onCTCP(type, from, text, msg) — CTCP requests": {
-    "string": ""
+    "string": "• onCTCP(type, from, text, msg) — Solicitudes CTCP"
   },
   "Channel Events": {
-    "string": ""
+    "string": "Eventos del Canal"
   },
   "• onJoin(channel, nick, msg) — user joined": {
-    "string": ""
+    "string": "• onJoin(channel, nick, msg) — Usuario ha entrado"
   },
   "• onPart(channel, nick, reason, msg) — user parted": {
-    "string": ""
+    "string": "• onPart(channel, nick, reason, msg) — El usuario parte"
   },
   "• onQuit(nick, reason, msg) — user quit": {
-    "string": ""
+    "string": "• onQuit(nick, reason, msg) — el usuario sale"
   },
   "• onNickChange(oldNick, newNick, msg) — nick changed": {
-    "string": ""
+    "string": "• onNickChange(oldNick, newNick, msg) — nick changed"
   },
   "• onKick(channel, kickedNick, kickerNick, reason, msg) — user kicked": {
-    "string": ""
+    "string": "• onKick(channel, kickedNick, kickerNick, reason, msg) — usuario pateado"
   },
   "• onMode(channel, setterNick, mode, target?, msg) — mode changed": {
-    "string": ""
+    "string": "• onMode(channel, setterNick, mode, target?, msg) — modo cambiado"
   },
   "• onTopic(channel, topic, setterNick, msg) — topic changed": {
-    "string": ""
+    "string": "• onTopic(channel, topic, setterNick, msg) — tema cambiado"
   },
   "• onInvite(channel, inviterNick, msg) — channel invite": {
-    "string": ""
+    "string": "• onInvite(channel, inviterNick, msg) — invitación al canal"
   },
   "Other Events": {
-    "string": ""
+    "string": "Otros Eventos"
   },
   "• onRaw(line, direction, msg?) — raw IRC line (in/out)": {
-    "string": ""
+    "string": "• onRaw(line, direction, msg?) — raw IRC line (in/out)"
   },
   "• onCommand(text, ctx) — outgoing command": {
-    "string": ""
+    "string": "• onCommand(text, ctx) — comando saliente"
   },
   "• onTimer(name) — timer fired": {
-    "string": ""
+    "string": "• onTimer(name) — temporizador disparado"
   },
   "CTCP Responder": {
-    "string": ""
+    "string": "Responder CTCP "
   },
   "Timer Example": {
-    "string": ""
+    "string": "Ejemplo de Timer"
   },
   "Kick Protection": {
-    "string": ""
+    "string": "Protección Kick"
   },
   "• onRaw can modify or cancel raw IRC lines.": {
-    "string": ""
+    "string": "• onRaw Puede modificar o cancelar raw en IRC."
   },
   "• Use timers for periodic tasks, remember to clear on disconnect.": {
-    "string": ""
+    "string": "* Use temporizadores para tareas periódicas, recuerde borrar al desconectar."
   },
   "• Check api.isConnected() before sending commands.": {
-    "string": ""
+    "string": "* Consultar api.isConnected() antes de enviar comandos."
   },
   "Scripting Time & No-Ads Remaining:": {
-    "string": ""
+    "string": "Tiempo de Scripting y Sin Anuncios Restantes:"
   },
   "Scripting Time & No-Ads Active": {
-    "string": ""
+    "string": "Tiempo de Scripting y Sin Anuncios Activos"
   },
   "When ON: Time counts down, scripts can run, no banner ads": {
-    "string": ""
+    "string": "Cuando ESTÁ ACTIVADO: Cuenta regresiva del tiempo, se pueden ejecutar scripts, sin anuncios publicitarios"
   },
   "Unlimited scripting: Toggle enables/disables no-ads mode": {
-    "string": ""
+    "string": "Secuencias de comandos ilimitadas: Alternar habilita/deshabilita el modo sin anuncios"
   },
   "Upgrade to Unlimited Scripting & No-Ads": {
-    "string": ""
+    "string": "Actualice a Secuencias de comandos Ilimitadas y Sin Anuncios"
   },
   "No scripting time available. Watch an ad to gain 60 minutes of scripting time and no-ads. Scripts will be automatically disabled when time runs out.": {
-    "string": ""
+    "string": "No hay tiempo de scripting disponible. Mire un anuncio para ganar 60 minutos de tiempo de creación de scripts y sin anuncios. Los scripts se desactivarán automáticamente cuando se agote el tiempo."
   },
   "Scripts run with full access to your local IRC data. Only install scripts you trust and avoid running scripts from unknown sources.": {
-    "string": ""
+    "string": "Los scripts se ejecutan con acceso completo a sus datos IRC locales. Instale solo scripts en los que confíe y evite ejecutar scripts de fuentes desconocidas."
   },
   "Default Server": {
-    "string": ""
+    "string": "Servidor Predeterminado"
   },
   "Set as default server for \"Tap to connect\" header. This server will be used when tapping the network name in the header.": {
-    "string": ""
+    "string": "Establezca como servidor predeterminado el encabezado \"Tocar para conectarse\". Este servidor se utilizará al tocar el nombre de la red en el encabezado."
   },
   "📖 Help & Documentation": {
-    "string": ""
+    "string": "📖 Ayuda y Documentación"
   },
   "Scripting & Ads": {
-    "string": ""
+    "string": "Secuencias de comandos y Anuncios"
   },
   "💎 Premium": {
-    "string": ""
+    "string": "💎 Premium"
   },
   "ZNC Subscription": {
-    "string": ""
+    "string": "Suscripción a ZNC"
   },
   "Purchase Error": {
-    "string": ""
+    "string": "Error de Compra"
   },
   "Missing purchase token from Google Play.": {
-    "string": ""
+    "string": "Falta el token de compra de Google Play."
   },
   "Not available": {
-    "string": ""
+    "string": "No disponible"
   },
   "Missing Credentials": {
-    "string": ""
+    "string": "Credenciales Faltantes"
   },
   "Register your subscription to get ZNC credentials first.": {
-    "string": ""
+    "string": "Registre su suscripción para obtener primero las credenciales de ZNC."
   },
   "Connection Error": {
-    "string": ""
+    "string": "Error de Conexión"
   },
   "ZNC server configuration is missing.": {
-    "string": ""
+    "string": "Falta la configuración del servidor ZNC."
   },
   "DBase is not connected. Open Networks and connect to DBase to use ZNC.": {
-    "string": ""
+    "string": "DBase no está conectado. Abra Redes y conéctese a DBase para usar ZNC."
   },
   "Reconnecting to ZNC...": {
-    "string": ""
+    "string": "Reconectando a ZNC..."
   },
   "Connected": {
-    "string": ""
+    "string": "Conectado"
   },
   "Reconnected to ZNC for DBase.": {
-    "string": ""
+    "string": "Reconectado a ZNC para dBase."
   },
   "Connection Failed": {
-    "string": ""
+    "string": "Error de Conexión"
   },
   "Unable to reconnect to ZNC.": {
-    "string": ""
+    "string": "No se puede volver a conectar a ZNC."
   },
   "Missing Information": {
-    "string": ""
+    "string": "Información Faltante"
   },
   "Please enter a ZNC username.": {
-    "string": ""
+    "string": "Por favor ingrese un nombre de usuario de ZNC."
   },
   "Please complete the purchase first.": {
-    "string": ""
+    "string": "Complete la compra primero."
   },
   "ZNC Ready": {
-    "string": ""
+    "string": "ZNC Lista"
   },
   "ZNC server added to DBase network.": {
-    "string": ""
+    "string": "Se agregó servidor ZNC a la red DBase."
   },
   "Subscription Updated": {
-    "string": ""
+    "string": "Suscripción actualizada"
   },
   "Status: {status}": {
-    "string": ""
+    "string": "Estado: {status}"
   },
   "Subscription Error": {
-    "string": ""
+    "string": "Error de suscripción"
   },
   "Unable to register subscription.": {
-    "string": ""
+    "string": "No se puede registrar la suscripción."
   },
   "Purchase Required": {
-    "string": ""
+    "string": "Requiere compra"
   },
   "Not registered": {
-    "string": ""
+    "string": "No registrado"
   },
   "Price: {price}": {
-    "string": ""
+    "string": "Precio: {price}"
   },
   "Monthly subscription via Google Play": {
-    "string": ""
+    "string": "Suscripción mensual a través de Google Play"
   },
   "Remove ads, unlimited scripting, and more": {
-    "string": ""
+    "string": "Eliminar anuncios, scripts ilimitados y mucho más"
   },
   "Manage ZNC Accounts": {
-    "string": ""
+    "string": "Administrar cuentas de ZNC"
   },
   "Purchase, manage, and configure ZNC bouncer accounts": {
-    "string": ""
+    "string": "Comprar, administrar y configurar cuentas de rebote/bouncer de ZNC"
   },
   "About ZNC Service": {
-    "string": ""
+    "string": "Acerca del Servicio ZNC"
   },
   "ZNC keeps you connected 24/7 with message playback": {
-    "string": ""
+    "string": "ZNC te mantiene conectado 24/7 con reproducción de mensajes."
   },
   "ZNC is an IRC bouncer that keeps you connected 24/7. Features include:\n\n- Always-on connection\n- Message playback when you reconnect\n- Multiple network support\n- Automatic configuration\n\nPrimarily intended for DBase network. Use on other networks at your own risk.": {
-    "string": ""
+    "string": "ZNC es un rebotador/bouncer de IRC que te mantiene conectado 24/7. Sus características incluyen:\n\n- Conexión permanente\n- Reproducción de mensajes al reconectarte\n- Compatibilidad con múltiples redes\n- Configuración automática\n\nDiseñado principalmente para la red DBase. Úsalo en otras redes bajo tu propia responsabilidad."
   },
   "Messages & History": {
-    "string": ""
+    "string": "Mensajes e Historial"
   },
   "Media": {
-    "string": ""
+    "string": "Medios de Comunicación"
   },
   "User List Grouping": {
-    "string": ""
+    "string": "Agrupación de Lista de Usuarios"
   },
   "Group users by status (ops/voice/etc.)": {
-    "string": ""
+    "string": "Agrupar usuarios por estado (owner/ops/voice/etc.)"
   },
   "Auto-Disable Grouping Threshold": {
-    "string": ""
+    "string": "Auto-Desabilitado Límite de Grupo"
   },
   "User List Virtualization": {
-    "string": ""
+    "string": "Virtualización de Listas de Usuarios"
   },
   "Use FlatList for large user lists (non-grouped)": {
-    "string": ""
+    "string": "Utilice FlatList para listas de usuarios grandes (no agrupadas)"
   },
   "Auto-Virtualize Threshold": {
-    "string": ""
+    "string": "Auto-Virtualización de Límite"
   },
   "Privacy & Legal": {
-    "string": ""
+    "string": "Privacidad y Legal"
   },
   "Development": {
-    "string": ""
+    "string": "Desarrollo"
   },
   "Enable Console Logging": {
-    "string": ""
+    "string": "Habilitar el registro de la consola"
   },
   "Toggle console.log output in development": {
-    "string": ""
+    "string": "Alternar console.log de registro en desarrollo"
   },
   "Use this sound?": {
-    "string": ""
+    "string": "¿Usar este sonido?"
   },
   "Do you want to use this sound for {event}?": {
-    "string": ""
+    "string": "¿Quieres usar este sonido para {event}?"
   },
   "Use": {
-    "string": ""
+    "string": "Usar"
   },
   "Failed to select sound file.": {
-    "string": ""
+    "string": "Error al seleccionar el archivo de sonido."
   },
   "Reset to Default": {
-    "string": ""
+    "string": "Restablecer los valores predeterminados"
   },
   "Reset {event} sound to default?": {
-    "string": ""
+    "string": "Restablecer {event} sonido por defecto?"
   },
   "Reset": {
-    "string": ""
+    "string": "Restablecer"
   },
   "Reset All Sounds": {
-    "string": ""
+    "string": "Restrablecer Todos los Sonidos"
   },
   "This will reset all sound settings to defaults. Continue?": {
-    "string": ""
+    "string": "Esto restablecerá todos los ajustes de sonido a los valores predeterminados. ¿Continuar?"
   },
   "Reset All": {
-    "string": ""
+    "string": "Restablecer Todo"
   },
   "Custom sound": {
-    "string": ""
+    "string": "Sonido personalizado"
   },
   "No sound": {
-    "string": ""
+    "string": "Sin sonido"
   },
   "Enable Sounds": {
-    "string": ""
+    "string": "Habilitar Sonidos"
   },
   "Master switch for all notification sounds": {
-    "string": ""
+    "string": "Botón principal para todos los sonidos de notificación\n \n \n \n \n \n "
   },
   "Master Volume": {
-    "string": ""
+    "string": "Volumen maestro"
   },
   "Playback": {
-    "string": ""
+    "string": "Reproducción"
   },
   "Play in Foreground": {
-    "string": ""
+    "string": "Reprocudir en primer plano"
   },
   "Play sounds when app is open": {
-    "string": ""
+    "string": "Reproducir sonidos cuando la aplicación está abierta"
   },
   "Play in Background": {
-    "string": ""
+    "string": "Play en Segundo Plano"
   },
   "Play sounds when app is minimized": {
-    "string": ""
+    "string": "Reproducir sonidos cuando la aplicación esté minimizada"
   },
   "Sound Scheme": {
-    "string": ""
+    "string": "Esquema de sonido"
   },
   "Event Sounds": {
-    "string": ""
+    "string": "Eventos de Sonidos"
   },
   "Reset All to Defaults": {
-    "string": ""
+    "string": "Restablecer todo a los valores predeterminados"
   },
   "Store Error": {
-    "string": ""
+    "string": "Error de tienda"
   },
   "ZNC subscription product (znc) is not available in the store. This may be because:\n• You're not in the test group\n• The app signing certificate doesn't match Play Console\n• The subscription is not published to your region\n• You need to join the beta/testing program": {
-    "string": ""
+    "string": "El producto de suscripción ZNC (znc) no está disponible en la tienda.\n• Esto puede deberse a que\n• No estás en el grupo de prueba\n• El certificado de firma de la aplicación no coincide con Play Console\n• La suscripción no está publicada en su región\n• Necesitas unirte al programa beta/testing"
   },
   "Failed to connect to the store. Please check your internet connection and try again.": {
-    "string": ""
+    "string": "No se pudo conectar a la tienda. Por favor, revisa tu conexión a internet y vuelve a intentarlo."
   },
   "Refreshed": {
-    "string": ""
+    "string": "Actualizado"
   },
   "All account statuses updated.": {
-    "string": ""
+    "string": "Todos los estados de cuenta actualizados."
   },
   "Failed to refresh accounts. Please check your connection.": {
-    "string": ""
+    "string": "No se pudieron actualizar las cuentas. Por favor, revise su conexión."
   },
   "Failed to complete purchase. Please try again.": {
-    "string": ""
+    "string": "No se pudo completar la compra. Inténtalo de nuevo."
   },
   "Unable to complete purchase.": {
-    "string": ""
+    "string": "No se puede completar la compra."
   },
   "Your ZNC account has been created successfully! Username: {username}": {
-    "string": ""
+    "string": "¡Su cuenta ZNC ha sido creada con éxito! Nombre de Usuario: {username}"
   },
   "Add to Network": {
-    "string": ""
+    "string": "Agregar a la Red"
   },
   "Username Taken": {
-    "string": ""
+    "string": "Nombre de usuario tomado"
   },
   "This username already exists on our ZNC server. Please choose a different username.": {
-    "string": ""
+    "string": "Este nombre de usuario ya existe en nuestro servidor ZNC. Elija otro."
   },
   "Try Again": {
-    "string": ""
+    "string": "Intentar otra vez"
   },
   "Registration Failed": {
-    "string": ""
+    "string": "Registro fallido"
   },
   "Unable to register ZNC account.": {
-    "string": ""
+    "string": "No se puede registrar la cuenta ZNC."
   },
   "Store not available. Please check your connection and try again.": {
-    "string": ""
+    "string": "La tienda no está disponible. Por favor, compruebe su conexión e inténtelo de nuevo."
   },
   "Subscription product is not available in the store. This may be due to store configuration or testing environment.": {
-    "string": ""
+    "string": "El producto de suscripción no está disponible en la tienda. Esto puede deberse a la configuración de la tienda o al entorno de prueba."
   },
   "Please enter a username.": {
-    "string": ""
+    "string": "Por favor, introduzca un nombre de usuario."
   },
   "Username can only contain letters, numbers, underscore and dash.": {
-    "string": ""
+    "string": "El nombre de usuario sólo puede contener letras, números, guiones bajos y guiones."
   },
   "Username must be between 3 and 20 characters.": {
-    "string": ""
+    "string": "El nombre de usuario debe tener entre 3 y 20 caracteres."
   },
   "You already have an account with this username.": {
-    "string": ""
+    "string": "Ya tienes una cuenta con este nombre de usuario."
   },
   "Failed to start purchase.": {
-    "string": ""
+    "string": "No se pudo iniciar la compra."
   },
   "No Purchases": {
-    "string": ""
+    "string": "Sin compras"
   },
   "No ZNC subscriptions found to restore.": {
-    "string": ""
+    "string": "No se encontraron suscripciones ZNC para restaurar."
   },
   "No valid subscriptions found to restore.": {
-    "string": ""
+    "string": "No se encontraron suscripciones válidas para restaurar."
   },
   "Restored": {
-    "string": ""
+    "string": "Restaurado"
   },
   "{count} subscription(s) restored successfully.": {
-    "string": ""
+    "string": "{count} las subscription(s) se restauraron correctamente."
   },
   "Failed to restore purchases.": {
-    "string": ""
+    "string": "No se pudieron restaurar las compras."
   },
   "Account credentials not ready. Please refresh status first.": {
-    "string": ""
+    "string": "Las credenciales de la cuenta no están disponibles. Actualice el estado primero."
   },
   "Credentials not available.": {
-    "string": ""
+    "string": "Credenciales no disponibles."
   },
   "Server Exists": {
-    "string": ""
+    "string": "El servidor ya existe"
   },
   "This ZNC account is already configured in {network}. Do you want to update it?": {
-    "string": ""
+    "string": "Esta cuenta ZNC ya está configurada {network}. ¿Quieres actualizarlo?"
   },
   "Update": {
-    "string": ""
+    "string": "Actualizar"
   },
   "Failed to add ZNC to network.": {
-    "string": ""
+    "string": "No se pudo agregar la ZNC a la red."
   },
   "ZNC server added to {network}. You can now connect using the ZNC server.": {
-    "string": ""
+    "string": "ZNC servidor añadido {network}. Ahora puede conectarse utilizando el servidor ZNC."
   },
   "Failed to save network configuration.": {
-    "string": ""
+    "string": "No se pudo guardar la configuración de red."
   },
   "ZNC server configuration updated.": {
-    "string": ""
+    "string": "Se actualizó la configuración del servidor ZNC."
   },
   "Failed to update network configuration.": {
-    "string": ""
+    "string": "No se pudo actualizar la configuración de red."
   },
   "Credentials copied to clipboard.": {
-    "string": ""
+    "string": "Credenciales copiadas al portapapeles."
   },
   "Account status updated.": {
-    "string": ""
+    "string": "Estado de la cuenta actualizado."
   },
   "Could not refresh account status. Account may not exist.": {
-    "string": ""
+    "string": "No se pudo actualizar el estado de la cuenta. Es posible que la cuenta no exista."
   },
   "Failed to refresh account status. Please check your connection.": {
-    "string": ""
+    "string": "No se pudo actualizar el estado de la cuenta. Por favor, revise su conexión."
   },
   "Remove from Network": {
-    "string": ""
+    "string": "Eliminar de la Red"
   },
   "Remove ZNC server from {network}? This will not cancel your subscription.": {
-    "string": ""
+    "string": "Eliminar el servidor ZNC de {network}? Esto no cancelará su suscripción."
   },
   "Removed": {
-    "string": ""
+    "string": "Eliminado"
   },
   "ZNC server removed from network.": {
-    "string": ""
+    "string": "Servidor ZNC eliminado de la red."
   },
   "Failed to remove from network.": {
-    "string": ""
+    "string": "No se pudo eliminar de la red."
   },
   "ZNC Credentials": {
-    "string": ""
+    "string": "Credenciales de ZNC"
   },
   "Delete Account": {
-    "string": ""
+    "string": "Eliminar Cuenta"
   },
   "Delete this ZNC account from your local storage? This will NOT cancel your subscription - you can restore it later using \"Restore Purchases\".": {
-    "string": ""
+    "string": "¿Eliminar esta cuenta de ZNC de tu almacenamiento local? Esto NO cancelará tu suscripción; puedes restaurarla más tarde usando \"Restaurar compras\"."
   },
   "Deleted": {
-    "string": ""
+    "string": "Eliminado"
   },
   "Account removed from local storage.": {
-    "string": ""
+    "string": "Cuenta eliminada del almacenamiento local."
   },
   "Failed to delete account.": {
-    "string": ""
+    "string": "No se pudo eliminar la cuenta."
   },
   "Ready": {
-    "string": ""
+    "string": "Listo"
   },
   "Setting up...": {
-    "string": ""
+    "string": "Configurando..."
   },
   "Suspended": {
-    "string": ""
+    "string": "Suspendido"
   },
   "Expires": {
-    "string": ""
+    "string": "Vence"
   },
   "ZNC Status": {
-    "string": ""
+    "string": "Estado ZNC"
   },
   "Show": {
-    "string": ""
+    "string": "Mostrar"
   },
   "Unlink": {
-    "string": ""
+    "string": "Desconectar"
   },
   "No ZNC Accounts": {
-    "string": ""
+    "string": "No hay cuentas ZNC"
   },
   "Purchase a ZNC subscription to get always-on IRC connectivity with message playback.": {
-    "string": ""
+    "string": "Compre una suscripción a ZNC para obtener conectividad IRC siempre activa con reproducción de mensajes."
   },
   "Monthly subscription": {
-    "string": ""
+    "string": "Suscripción mensual"
   },
   "Creating ZNC Account, Please Wait...": {
-    "string": ""
+    "string": "Creando cuenta ZNC, por favor espere..."
   },
   "Loading Offers...": {
-    "string": ""
+    "string": "Cargando Ofertas..."
   },
   "Purchase ZNC Account": {
-    "string": ""
+    "string": "Comprar Cuenta ZNC"
   },
   "Refresh Store": {
-    "string": ""
+    "string": "Actualizar Tienda"
   },
   "Restore Purchases": {
-    "string": ""
+    "string": "Restaurar Compras"
   },
   "Choose ZNC Username": {
-    "string": ""
+    "string": "Elija el nombre de usuario de ZNC"
   },
   "Enter a username for your ZNC account. This will be used to log in to ZNC.": {
-    "string": ""
+    "string": "Introduce un nombre de usuario para tu cuenta de ZNC. Este se usará para iniciar sesión en ZNC."
   },
   "Add ZNC to Network": {
-    "string": ""
+    "string": "Agregar ZNC a la Red"
   },
   "Connected to {count} servers{suffix}": {
-    "string": ""
+    "string": "Conectado a {count} servidores{suffix}"
   },
   "No file path provided": {
-    "string": ""
+    "string": "No se proporcionó ninguna ruta de archivo"
   },
   "Invalid file path. Please select the file again.": {
-    "string": ""
+    "string": "Ruta de archivo no válida. Seleccione el archivo de nuevo."
   },
   "Cannot check file: {error}": {
-    "string": ""
+    "string": "No se puede comprobar el archivo: {error}"
   },
   "File not found: {path}": {
-    "string": ""
+    "string": "Archivo no encontrado: {path}"
   },
   "Cannot read file info: {error}": {
-    "string": ""
+    "string": "No se puede leer la información del archivo: {error}"
   },
   "Decryption failed. If this was sent from v1.6.3+, please update to v1.6.3 or newer.": {
-    "string": ""
+    "string": "Error de descifrado. Si se envió desde la versión 1.6.3 o posterior, actualice a la versión 1.6.3+ o posterior."
   },
   "Encrypted message from {nick} could not be decrypted. If they are on v1.6.3+, please update to v1.6.3 or newer.": {
-    "string": ""
+    "string": "El mensaje cifrado de {nick} no se pudo descifrar. Si están en v1.6.3+, actualice a v1.6.3 o posterior."
   },
   "No reason given": {
-    "string": ""
+    "string": "No se da ninguna razón"
   },
   "*** You were killed by {server}: {reason}": {
-    "string": ""
+    "string": "*** Fuiste killed por {server}: {reason}"
   },
   "*** You were killed: {reason}": {
-    "string": ""
+    "string": "*** Fuiste killed: {reason}"
   },
   "*** {nick} was killed: {reason}": {
-    "string": ""
+    "string": "*** {nick} fue killed: {reason}"
   },
   "{nick} sets mode {modes}": {
-    "string": ""
+    "string": "{nick} pone modo {modes}"
   },
   "*** TAGMSG {from} -> {target} ({tags})": {
-    "string": ""
+    "string": "*** TAGMSG {from} -> {target} ({tags})"
   },
   "*** TAGMSG {from} -> {target}": {
-    "string": ""
+    "string": "*** TAGMSG {from} -> {target}"
   },
   "Kill Switch - Delete All Data": {
     "string": "Kill Switch - Eliminar todos los datos"
@@ -6321,7 +6321,7 @@
     "string": "SI, BORRA TODO"
   },
   "Kill Switch Activated": {
-    "string": ""
+    "string": "Botón de Apagado Activado"
   },
   "All data has been deleted. The app will now close.": {
     "string": "Se han eliminado todos los datos. La aplicación se cerrará."
@@ -6330,7 +6330,7 @@
     "string": "Auto-Voice"
   },
   "Automatically voices users when they join.": {
-    "string": "Dar voice automáticamente a los usuarios cuando entran al canal."
+    "string": "Dar voice automáticamente a los usuarios al entrar al canal."
   },
   "Rejoins channel if kicked.": {
     "string": "Se reincorpora al canal si lo expulsan/kick."
@@ -6534,33 +6534,33 @@
     "string": "IP pública o nombre de host opcional para incluir en los pedidos de DCC SEND"
   },
   "Credits": {
-    "string": ""
+    "string": "Créditos"
   },
   "Translators and contributors": {
-    "string": ""
+    "string": "Traductores y colaboradores"
   },
   "Version 1.6.10": {
-    "string": ""
+    "string": "Versión 1.6.10"
   },
   "Translators": {
-    "string": ""
+    "string": "Traductores"
   },
   "Special thanks to everyone who helped translate AndroidIRCX into different languages.": {
-    "string": ""
+    "string": "Un agradecimiento especial a todos los que ayudaron a traducir AndroidIRCX a diferentes idiomas."
   },
   "Help Translate": {
-    "string": ""
+    "string": "Ayuda a traducir"
   },
   "Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!": {
-    "string": ""
+    "string": "¿Quieres ayudar a traducir AndroidIRCX a tu idioma? Usamos Transifex para las traducciones y nos encantaría contar con tu ayuda."
   },
   "Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page.": {
-    "string": ""
+    "string": "Envíe un correo electrónico a la dirección que aparece a continuación con el idioma que desea traducir y le invitaremos a nuestro proyecto Transifex. Una vez que complete las traducciones, su nombre se añadirá a esta página de créditos."
   },
   "Thank you to all contributors!": {
-    "string": ""
+    "string": "¡Gracias a todos los contribuyentes!"
   },
   "Invalid certificate format. Please configure a valid PEM certificate.": {
-    "string": ""
+    "string": "Formato de certificado no válido. Configure un certificado PEM válido."
   }
 }

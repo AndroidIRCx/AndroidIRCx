@@ -32,10 +32,13 @@ class AutoReconnectService {
   private reconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map(); // network -> timer
   private isReconnecting: Map<string, boolean> = new Map(); // network -> is reconnecting
   private lastReconnectTime: Map<string, number> = new Map(); // network -> last reconnect timestamp
+  private intentionalDisconnects: Map<string, number> = new Map(); // network -> timestamp of intentional disconnect
+  private readonly INTENTIONAL_DISCONNECT_TIMEOUT = 5000; // 5 seconds window to ignore auto-reconnect
   private readonly STORAGE_KEY = '@AndroidIRCX:connectionStates';
   private readonly CONFIG_STORAGE_KEY = '@AndroidIRCX:autoReconnectConfigs';
   private connectionListeners: Map<string, () => void> = new Map(); // network -> cleanup function
   private messageListeners: Map<string, () => void> = new Map(); // network -> cleanup function
+  private intentionalDisconnectListeners: Map<string, () => void> = new Map(); // network -> cleanup function
 
   /**
    * Initialize auto-reconnect service
@@ -73,6 +76,12 @@ class AutoReconnectService {
         } else {
           this.handleDisconnected(network);
         }
+      }
+    });
+
+    ircService.on('intentional-quit', (network: string) => {
+      if (network) {
+        this.markIntentionalDisconnect(network);
       }
     });
 
@@ -133,8 +142,15 @@ class AutoReconnectService {
       }
     });
 
+    const intentionalDisconnectCleanup = ircServiceInstance.on('intentional-quit', (network: string) => {
+      if (network) {
+        this.markIntentionalDisconnect(network);
+      }
+    });
+
     this.connectionListeners.set(networkId, connectionCleanup);
     this.messageListeners.set(networkId, messageCleanup);
+    this.intentionalDisconnectListeners.set(networkId, intentionalDisconnectCleanup);
   }
 
   /**
@@ -151,6 +167,12 @@ class AutoReconnectService {
     if (messageCleanup) {
       messageCleanup();
       this.messageListeners.delete(networkId);
+    }
+
+    const intentionalCleanup = this.intentionalDisconnectListeners.get(networkId);
+    if (intentionalCleanup) {
+      intentionalCleanup();
+      this.intentionalDisconnectListeners.delete(networkId);
     }
 
     console.log(`AutoReconnectService: Unregistered listeners for ${networkId}`);
@@ -204,6 +226,12 @@ class AutoReconnectService {
    */
   private handleDisconnected(network: string): void {
     console.log(`AutoReconnectService: handleDisconnected called for ${network}`);
+
+    // Check if this was an intentional disconnect (user-initiated via /server -d, /quit, etc.)
+    if (this.wasIntentionalDisconnect(network)) {
+      console.log(`AutoReconnectService: Skipping auto-reconnect for ${network} - disconnect was intentional`);
+      return;
+    }
 
     // Check if already reconnecting - prevent duplicate reconnect attempts
     if (this.isReconnecting.get(network)) {
@@ -477,6 +505,43 @@ class AutoReconnectService {
       this.reconnectTimers.delete(network);
     }
     this.isReconnecting.set(network, false);
+  }
+
+  /**
+   * Mark a disconnect as intentional (user-initiated via /server -d, /quit, exit button, etc.)
+   * This prevents auto-reconnect from triggering for intentional disconnections
+   */
+  markIntentionalDisconnect(network: string): void {
+    console.log(`AutoReconnectService: Marking intentional disconnect for ${network}`);
+    this.intentionalDisconnects.set(network, Date.now());
+    // Also cancel any pending reconnection
+    this.cancelReconnect(network);
+  }
+
+  /**
+   * Check if a recent disconnect was intentional
+   */
+  private wasIntentionalDisconnect(network: string): boolean {
+    const intentionalTime = this.intentionalDisconnects.get(network);
+    if (!intentionalTime) return false;
+
+    const timeSinceIntentional = Date.now() - intentionalTime;
+    const wasIntentional = timeSinceIntentional < this.INTENTIONAL_DISCONNECT_TIMEOUT;
+
+    if (wasIntentional) {
+      console.log(`AutoReconnectService: Disconnect was intentional (${timeSinceIntentional}ms ago) for ${network}`);
+      // Clear the flag after checking
+      this.intentionalDisconnects.delete(network);
+    }
+
+    return wasIntentional;
+  }
+
+  /**
+   * Clear intentional disconnect flag (e.g., when user manually reconnects)
+   */
+  clearIntentionalDisconnect(network: string): void {
+    this.intentionalDisconnects.delete(network);
   }
 
   /**
