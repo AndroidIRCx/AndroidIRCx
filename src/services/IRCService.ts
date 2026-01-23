@@ -297,8 +297,8 @@ export class IRCService {
     );
     const toUserMask = (mask: string): string => {
       if (mask.includes('@')) {
-        let user = '*';
-        let host = '*';
+        let user: string;
+        let host: string;
         if (mask.includes('!')) {
           const afterBang = mask.split('!')[1] || '';
           const [maskUser, maskHost] = afterBang.split('@');
