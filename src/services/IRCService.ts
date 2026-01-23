@@ -5487,8 +5487,8 @@ export class IRCService {
             const cnoticeNick = args[0];
             const cnoticeChannel = args[1];
             const cnoticeMessage = args.slice(2).join(' ');
-            this.sendRaw(`NOTICE ${cnoticeChannel} :${cnoticeMessage}`);
-            this.addMessage({ type: 'notice', channel: cnoticeChannel, from: this.currentNick, text: cnoticeMessage, timestamp: Date.now(), status: 'sent' });
+            this.sendRaw(`CNOTICE ${cnoticeNick} ${cnoticeChannel} :${cnoticeMessage}`);
+            this.addMessage({ type: 'notice', channel: cnoticeChannel, from: this.currentNick, text: `-> ${cnoticeNick}: ${cnoticeMessage}`, timestamp: Date.now(), status: 'sent' });
           } else {
             this.addMessage({ type: 'error', text: t('Usage: /cnotice <nick> <channel> <message>'), timestamp: Date.now() });
           }
@@ -5499,8 +5499,8 @@ export class IRCService {
             const cprivmsgNick = args[0];
             const cprivmsgChannel = args[1];
             const cprivmsgMessage = args.slice(2).join(' ');
-            this.sendRaw(`PRIVMSG ${cprivmsgChannel} :${cprivmsgMessage}`);
-            this.addMessage({ type: 'message', channel: cprivmsgChannel, from: this.currentNick, text: cprivmsgMessage, timestamp: Date.now(), status: 'sent' });
+            this.sendRaw(`CPRIVMSG ${cprivmsgNick} ${cprivmsgChannel} :${cprivmsgMessage}`);
+            this.addMessage({ type: 'message', channel: cprivmsgChannel, from: this.currentNick, text: `-> ${cprivmsgNick}: ${cprivmsgMessage}`, timestamp: Date.now(), status: 'sent' });
           } else {
             this.addMessage({ type: 'error', text: t('Usage: /cprivmsg <nick> <channel> <message>'), timestamp: Date.now() });
           }

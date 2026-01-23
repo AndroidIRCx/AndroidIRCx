@@ -22,7 +22,6 @@ declare const ErrorUtils: {
   getGlobalHandler: () => ((error: Error, isFatal?: boolean) => void) | null;
   setGlobalHandler: (handler: (error: Error, isFatal?: boolean) => void) => void;
 };
-import RNBootSplash from 'react-native-bootsplash';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import {
   SafeAreaProvider,
@@ -199,10 +198,7 @@ function AppContent() {
     setTabs,
     setShowFirstRunSetup,
     setIsCheckingFirstRun,
-    setShowRawCommands,
-    setRawCategoryVisibility,
     setShowTypingIndicators,
-    setHideJoinMessages,
     setHidePartMessages,
     setHideQuitMessages,
     setHideIrcServiceListenerMessages,
@@ -342,7 +338,7 @@ function AppContent() {
   useTabEncryption({ isConnected, setTabs, tabsRef });
 
   // Additional UI settings (not yet in store, keeping as local state for now)
-  const [autoSwitchPrivate, setAutoSwitchPrivate] = useState(false);
+  const [, setAutoSwitchPrivate] = useState(false);
   const [showEncryptionIndicators, setShowEncryptionIndicators] = useState(true);
   const [autoConnectFavoriteServer, setAutoConnectFavoriteServer] = useState(false);
   const autoConnectFavoriteServerRef = useRef(false);
