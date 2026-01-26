@@ -1136,7 +1136,6 @@ export class IRCService {
         }
         return;
       case 'INVITE':
-        const invitedNick = params[0] || '';
         const invitedChannel = params[1] || '';
         const inviter = this.extractNick(prefix);
         const invitePrefixParts = prefix.split('!');
