@@ -100,6 +100,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
 
+  // Enter key behavior state
+  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>('newline');
+
   // Load send button setting and subscribe to changes
   useEffect(() => {
     const loadSendButtonSetting = async () => {
@@ -107,6 +110,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       setShowSendButton(enabled);
       const showColors = await settingsService.getSetting('showColorPickerButton', true);
       setShowColorPickerButton(showColors);
+      const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'newline');
+      setEnterKeyBehavior(enterBehavior);
     };
     loadSendButtonSetting();
 
@@ -117,10 +122,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const unsubscribeColors = settingsService.onSettingChange<boolean>('showColorPickerButton', (value) => {
       setShowColorPickerButton(Boolean(value));
     });
+    const unsubscribeEnterBehavior = settingsService.onSettingChange<'send' | 'newline'>('enterKeyBehavior', (value) => {
+      setEnterKeyBehavior(value);
+    });
 
     return () => {
       unsubscribe();
       unsubscribeColors();
+      unsubscribeEnterBehavior();
     };
   }, []);
 
@@ -208,6 +217,19 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
       }
+    }
+  };
+
+  const handleKeyPress = (e: any) => {
+    // Intercept Enter key press when behavior is 'send'
+    if (enterKeyBehavior === 'send' && e.nativeEvent.key === 'Enter') {
+      // On iOS, we can prevent default to stop newline
+      if (Platform.OS === 'ios') {
+        e.preventDefault();
+        handleSubmit();
+      }
+      // On Android, when multiline={true}, Enter always creates newline
+      // We can't prevent it, but onSubmitEditing will be called if blurOnSubmit={true}
     }
   };
 
@@ -595,11 +617,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           onChangeText={handleChangeText}
           placeholder={placeholder || t('Enter a message')}
           placeholderTextColor={colors.inputPlaceholder}
-          onSubmitEditing={handleSubmit}
+          onSubmitEditing={enterKeyBehavior === 'send' ? handleSubmit : undefined}
+          onKeyPress={handleKeyPress}
           onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
           selection={selection}
           editable={!disabled}
-          multiline={false}
+          multiline={true}
+          blurOnSubmit={enterKeyBehavior === 'send'}
+          returnKeyType={enterKeyBehavior === 'send' ? 'send' : 'default'}
+          textAlignVertical="top"
         />
 
         {/* Send button (conditional) */}
@@ -839,6 +865,8 @@ const createStyles = (colors: any, bottomInset: number = 0) => StyleSheet.create
     fontSize: 14,
     color: colors.inputText,
     paddingVertical: 4,
+    minHeight: 20,
+    maxHeight: 120,
   },
   suggestionsContainer: {
     marginTop: 6,
