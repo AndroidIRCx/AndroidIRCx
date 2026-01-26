@@ -5266,6 +5266,15 @@ export class IRCService {
       if (lines.length === 1) {
         // Single line, send normally
         this.sendRaw(`PRIVMSG ${target} :${message}`);
+        // Echo the message locally
+        this.addMessage({
+          type: 'message',
+          channel: target,
+          from: this.currentNick,
+          text: message,
+          timestamp: Date.now(),
+          status: 'sent',
+        });
         return;
       }
 
@@ -5292,6 +5301,15 @@ export class IRCService {
         if (line.trim()) {
           this.sendRaw(`PRIVMSG ${target} :${line}`);
         }
+      });
+      // Echo the full multiline message locally (even in fallback mode)
+      this.addMessage({
+        type: 'message',
+        channel: target,
+        from: this.currentNick,
+        text: message,
+        timestamp: Date.now(),
+        status: 'sent',
       });
     }
   }

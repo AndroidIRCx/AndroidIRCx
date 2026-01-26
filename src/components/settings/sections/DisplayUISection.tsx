@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Alert, Modal, View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
 import { useT } from '../../../i18n/transifex';
@@ -67,6 +67,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const [showTypingIndicatorsSetting, setShowTypingIndicatorsSetting] = useState(propShowTypingIndicators ?? true);
   const [showSendButton, setShowSendButton] = useState(true);
   const [showColorPickerButton, setShowColorPickerButton] = useState(true);
+  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>('newline');
   const [keyboardAvoidingEnabled, setKeyboardAvoidingEnabled] = useState(true);
   const [keyboardBehaviorIOS, setKeyboardBehaviorIOS] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('padding');
   const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('height');
@@ -95,6 +96,9 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
 
       const colorPickerButton = await settingsService.getSetting('showColorPickerButton', true);
       setShowColorPickerButton(colorPickerButton);
+
+      const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'newline');
+      setEnterKeyBehavior(enterBehavior);
 
       const avoidingEnabled = await settingsService.getSetting('keyboardAvoidingEnabled', true);
       setKeyboardAvoidingEnabled(avoidingEnabled);
@@ -301,150 +305,146 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         id: 'message-text-align',
         title: t('Message Text Alignment', { _tags: tags }),
         description: t('Alignment: {align}', { align: layoutConfig?.messageTextAlign || 'left', _tags: tags }),
-        type: 'button',
+        type: 'submenu',
         searchKeywords: ['message', 'text', 'align', 'left', 'right', 'center', 'justify'],
-        onPress: () => {
-          Alert.alert(
-            t('Message Text Alignment', { _tags: tags }),
-            t('Select alignment:', { _tags: tags }),
-            [
-              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-              {
-                text: t('Left', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setMessageTextAlign('left');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Center', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setMessageTextAlign('center');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Right', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setMessageTextAlign('right');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Justify', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setMessageTextAlign('justify');
-                  updateLayoutConfig({});
-                },
-              },
-            ]
-          );
-        },
+        submenuItems: [
+          {
+            id: 'align-left',
+            title: t('Left', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setMessageTextAlign('left');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'align-center',
+            title: t('Center', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setMessageTextAlign('center');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'align-right',
+            title: t('Right', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setMessageTextAlign('right');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'align-justify',
+            title: t('Justify', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setMessageTextAlign('justify');
+              updateLayoutConfig({});
+            },
+          },
+        ],
       },
       {
         id: 'message-text-direction',
         title: t('Message Text Direction', { _tags: tags }),
         description: t('Direction: {direction}', { direction: layoutConfig?.messageTextDirection || 'auto', _tags: tags }),
-        type: 'button',
+        type: 'submenu',
         searchKeywords: ['message', 'text', 'direction', 'rtl', 'ltr', 'hebrew', 'arabic'],
-        onPress: () => {
-          Alert.alert(
-            t('Message Text Direction', { _tags: tags }),
-            t('Select direction:', { _tags: tags }),
-            [
-              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-              {
-                text: t('Auto', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setMessageTextDirection('auto');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Left-to-right', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setMessageTextDirection('ltr');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Right-to-left', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setMessageTextDirection('rtl');
-                  updateLayoutConfig({});
-                },
-              },
-            ]
-          );
-        },
+        submenuItems: [
+          {
+            id: 'direction-auto',
+            title: t('Auto', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setMessageTextDirection('auto');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'direction-ltr',
+            title: t('Left-to-right', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setMessageTextDirection('ltr');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'direction-rtl',
+            title: t('Right-to-left', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setMessageTextDirection('rtl');
+              updateLayoutConfig({});
+            },
+          },
+        ],
       },
       {
         id: 'layout-timestamp-display',
         title: t('Timestamp Display', { _tags: tags }),
         description: t('Show timestamps: {mode}', { mode: layoutConfig?.timestampDisplay || 'grouped', _tags: tags }),
-        type: 'button',
+        type: 'submenu',
         searchKeywords: ['timestamp', 'display', 'mode', 'always', 'grouped', 'never', 'time'],
-        onPress: () => {
-          Alert.alert(
-            t('Timestamp Display', { _tags: tags }),
-            t('Select when to show timestamps:', { _tags: tags }),
-            [
-              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-              {
-                text: t('Always', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setTimestampDisplay('always');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Only for first message in a group', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setTimestampDisplay('grouped');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('Never', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setTimestampDisplay('never');
-                  updateLayoutConfig({});
-                },
-              },
-            ]
-          );
-        },
+        submenuItems: [
+          {
+            id: 'timestamp-always',
+            title: t('Always', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setTimestampDisplay('always');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'timestamp-grouped',
+            title: t('Only for first message in a group', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setTimestampDisplay('grouped');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'timestamp-never',
+            title: t('Never', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setTimestampDisplay('never');
+              updateLayoutConfig({});
+            },
+          },
+        ],
       },
       {
         id: 'layout-timestamp-format',
         title: t('Timestamp Format', { _tags: tags }),
         description: t('Format: {format}', { format: layoutConfig?.timestampFormat || '12h', _tags: tags }),
-        type: 'button',
+        type: 'submenu',
         disabled: layoutConfig?.timestampDisplay === 'never',
         searchKeywords: ['timestamp', 'format', '12h', '24h', 'time', 'clock', 'am', 'pm'],
-        onPress: () => {
-          Alert.alert(
-            t('Timestamp Format', { _tags: tags }),
-            t('Select format:', { _tags: tags }),
-            [
-              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-              {
-                text: t('12-hour (AM/PM)', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setTimestampFormat('12h');
-                  updateLayoutConfig({});
-                },
-              },
-              {
-                text: t('24-hour', { _tags: tags }),
-                onPress: async () => {
-                  await layoutService.setTimestampFormat('24h');
-                  updateLayoutConfig({});
-                },
-              },
-            ]
-          );
-        },
+        submenuItems: [
+          {
+            id: 'format-12h',
+            title: t('12-hour (AM/PM)', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setTimestampFormat('12h');
+              updateLayoutConfig({});
+            },
+          },
+          {
+            id: 'format-24h',
+            title: t('24-hour', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              await layoutService.setTimestampFormat('24h');
+              updateLayoutConfig({});
+            },
+          },
+        ],
       },
       {
         id: 'display-encryption-icons',
@@ -492,6 +492,40 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           setShowSendButton(boolValue);
           await settingsService.setSetting('showSendButton', boolValue);
         },
+      },
+      {
+        id: 'display-enter-key-behavior',
+        title: t('Enter Key Behavior', { _tags: tags }),
+        description: (() => {
+          switch (enterKeyBehavior) {
+            case 'send':
+              return t('Enter key sends message', { _tags: tags });
+            default:
+              return t('Enter key creates new line', { _tags: tags });
+          }
+        })(),
+        type: 'submenu',
+        searchKeywords: ['enter', 'key', 'send', 'newline', 'multiline', 'input'],
+        submenuItems: [
+          {
+            id: 'enter-send',
+            title: t('Send message', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setEnterKeyBehavior('send');
+              await settingsService.setSetting('enterKeyBehavior', 'send');
+            },
+          },
+          {
+            id: 'enter-newline',
+            title: t('New line', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setEnterKeyBehavior('newline');
+              await settingsService.setSetting('enterKeyBehavior', 'newline');
+            },
+          },
+        ],
       },
       {
         id: 'display-color-picker-button',

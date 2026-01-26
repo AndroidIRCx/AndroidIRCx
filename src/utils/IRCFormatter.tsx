@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TextStyle, Linking } from 'react-native';
+import { Text, TextStyle, Linking, View } from 'react-native';
 
 /**
  * IRC color codes mapping (0-15)
@@ -355,6 +355,7 @@ export function formatIRCText(
 /**
  * Convert IRC formatted text to a single React Native Text component with nested styling
  * This is a convenience wrapper that wraps all segments in a parent Text component
+ * Handles multiline text by splitting on newlines and rendering each line separately
  */
 export function formatIRCTextAsComponent(
   text: string,
@@ -364,26 +365,63 @@ export function formatIRCTextAsComponent(
     return <Text style={baseStyle} />;
   }
 
-  const segments = parseIRCText(text);
+  // Split text by newlines to handle multiline messages
+  const lines = text.split('\n');
   const nbsp = String.fromCharCode(0xa0);
   const preserveTrailingSpaces = (value: string) =>
     value.replace(/(\s+)$/g, (spaces) => spaces.replace(/ /g, nbsp));
 
-  if (segments.length === 0) {
-    return <Text style={baseStyle}>{text}</Text>;
+  // If single line, use original logic
+  if (lines.length === 1) {
+    const segments = parseIRCText(text);
+    
+    if (segments.length === 0) {
+      return <Text style={baseStyle}>{text}</Text>;
+    }
+
+    return (
+      <Text style={baseStyle}>
+        {segments.map((segment, index) => {
+          const segmentStyle = styleToTextStyle(segment.style);
+          return (
+            <Text key={`segment-${index}`} style={segmentStyle}>
+              {preserveTrailingSpaces(segment.text)}
+            </Text>
+          );
+        })}
+      </Text>
+    );
   }
 
+  // Multiline: render each line separately to ensure newlines are displayed
+  // React Native Text component needs explicit newlines or separate Text elements
   return (
-    <Text style={baseStyle}>
-      {segments.map((segment, index) => {
-        const segmentStyle = styleToTextStyle(segment.style);
+    <View>
+      {lines.map((line, lineIndex) => {
+        const segments = parseIRCText(line);
+        
+        if (segments.length === 0) {
+          return (
+            <Text key={`line-${lineIndex}`} style={baseStyle}>
+              {line}
+            </Text>
+          );
+        }
+
         return (
-          <Text key={`segment-${index}`} style={segmentStyle}>
-            {preserveTrailingSpaces(segment.text)}
+          <Text key={`line-${lineIndex}`} style={baseStyle}>
+            {segments.map((segment, segmentIndex) => {
+              const segmentStyle = styleToTextStyle(segment.style);
+              return (
+                <Text key={`segment-${lineIndex}-${segmentIndex}`} style={segmentStyle}>
+                  {preserveTrailingSpaces(segment.text)}
+                </Text>
+              );
+            })}
           </Text>
         );
       })}
-    </Text>
+    </View>
   );
 }
 

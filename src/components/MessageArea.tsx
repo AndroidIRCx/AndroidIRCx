@@ -432,7 +432,10 @@ const MessageItem = React.memo<MessageItemProps>(({
           <>
             {formatParts ? (
               <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
-                <View style={styles.messageContent}>{renderFormattedParts(formatParts)}</View>
+                <View style={[
+                  styles.messageContent,
+                  message.text?.includes('\n') ? { flexDirection: 'column' } : null
+                ]}>{renderFormattedParts(formatParts)}</View>
                 {showImages && parsed.mediaIds.map((mediaId, index) => {
                   // Use the MessageArea's tabId as the primary source for media decryption
                   // This ensures that media in a specific channel/query uses the correct encryption key
@@ -475,7 +478,10 @@ const MessageItem = React.memo<MessageItemProps>(({
             ) : actionText !== null ? (
               // ACTION (/me) message
               <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
-                <View style={styles.messageContent}>
+                <View style={[
+                  styles.messageContent,
+                  message.text?.includes('\n') ? { flexDirection: 'column' } : null
+                ]}>
                   {!isGrouped && (
                     <Text style={[styles.messageText, { fontStyle: 'italic', color: actionMessageColor }]}>
                       * <Text style={styles.nick} onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}>{message.from}</Text>{' '}
@@ -528,7 +534,10 @@ const MessageItem = React.memo<MessageItemProps>(({
             ) : (
               // Regular message
               <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
-                <View style={styles.messageContent}>
+                <View style={[
+                  styles.messageContent,
+                  message.text?.includes('\n') ? { flexDirection: 'column' } : null
+                ]}>
                   {!isGrouped && (
                     <Text
                       style={styles.nick}
