@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Alert, Modal, View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { Alert, Modal, View, Text, TouchableOpacity, ScrollView, TextInput, Platform } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
 import { useT } from '../../../i18n/transifex';
@@ -9,6 +9,8 @@ import { layoutService } from '../../../services/LayoutService';
 import { settingsService } from '../../../services/SettingsService';
 import { applyTransifexLocale } from '../../../i18n/transifex';
 import { SUPPORTED_LOCALES } from '../../../i18n/config';
+import { pick, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
+import RNFS from 'react-native-fs';
 
 interface AppearanceSectionProps {
   colors: {
@@ -81,6 +83,116 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     };
   }, []);
 
+  // Export current theme to JSON file
+  const handleExportTheme = async () => {
+    try {
+      const jsonData = themeService.exportCurrentTheme();
+      if (!jsonData) {
+        Alert.alert(t('Error', { _tags: tags }), t('Failed to export theme', { _tags: tags }));
+        return;
+      }
+
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+      const themeName = currentTheme.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      const filename = `theme_${themeName}_${timestamp}.json`;
+
+      let savePath: string;
+      if (Platform.OS === 'android') {
+        const downloadDir = RNFS.DownloadDirectoryPath;
+        savePath = `${downloadDir}/${filename}`;
+      } else {
+        savePath = `${RNFS.DocumentDirectoryPath}/${filename}`;
+      }
+
+      await RNFS.writeFile(savePath, jsonData, 'utf8');
+      Alert.alert(
+        t('Theme Exported', { _tags: tags }),
+        t('Theme saved to:\n{path}', { path: savePath, _tags: tags }),
+        [{ text: t('OK', { _tags: tags }) }]
+      );
+    } catch (error) {
+      console.error('Failed to export theme:', error);
+      Alert.alert(
+        t('Error', { _tags: tags }),
+        error instanceof Error ? error.message : t('Failed to export theme', { _tags: tags })
+      );
+    }
+  };
+
+  // Import theme from JSON file
+  const handleImportTheme = async () => {
+    try {
+      const [result] = await pick({
+        type: ['application/json'],
+        copyTo: 'cachesDirectory',
+      });
+
+      if (!result || !result.uri) {
+        return;
+      }
+
+      // Read file content
+      let filePath = result.uri;
+      const resultAny = result as any;
+      if (Platform.OS === 'android' && filePath.startsWith('content://')) {
+        // Use the copied file path on Android
+        filePath = resultAny.fileCopyUri || result.uri;
+      }
+
+      // Normalize file path
+      if (filePath.startsWith('file://')) {
+        filePath = filePath.replace('file://', '');
+      }
+
+      const jsonContent = await RNFS.readFile(filePath, 'utf8');
+      const importResult = await themeService.importTheme(jsonContent);
+
+      if (importResult.success && importResult.theme) {
+        Alert.alert(
+          t('Theme Imported', { _tags: tags }),
+          t('Successfully imported theme "{name}". Would you like to use it now?', {
+            name: importResult.theme.name,
+            _tags: tags,
+          }),
+          [
+            { text: t('Later', { _tags: tags }), style: 'cancel' },
+            {
+              text: t('Use Now', { _tags: tags }),
+              onPress: async () => {
+                await themeService.setTheme(importResult.theme!.id);
+                refreshThemes();
+              },
+            },
+          ]
+        );
+        refreshThemes();
+      } else {
+        Alert.alert(
+          t('Import Failed', { _tags: tags }),
+          importResult.error || t('Failed to import theme', { _tags: tags })
+        );
+      }
+
+      // Clean up cached file
+      try {
+        if (resultAny.fileCopyUri) {
+          await RNFS.unlink(resultAny.fileCopyUri.replace('file://', ''));
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+    } catch (error: any) {
+      if (!(isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED)) {
+        console.error('Failed to import theme:', error);
+        Alert.alert(
+          t('Error', { _tags: tags }),
+          error instanceof Error ? error.message : t('Failed to import theme', { _tags: tags })
+        );
+      }
+    }
+  };
+
   const sectionData: SettingItemType[] = useMemo(() => {
     const items: SettingItemType[] = [
       {
@@ -142,6 +254,20 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               );
             },
           })),
+          {
+            id: 'theme-export',
+            title: t('Export Current Theme', { _tags: tags }),
+            description: t('Save theme to JSON file for sharing', { _tags: tags }),
+            type: 'button' as const,
+            onPress: handleExportTheme,
+          },
+          {
+            id: 'theme-import',
+            title: t('Import Theme', { _tags: tags }),
+            description: t('Load theme from JSON file', { _tags: tags }),
+            type: 'button' as const,
+            onPress: handleImportTheme,
+          },
         ],
       },
       {
@@ -494,7 +620,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     ];
 
     return items;
-  }, [currentTheme, availableThemes, layoutConfig, appLanguage, languageLabels, t, tags, refreshThemes, setAppLanguageFromHook, updateLayoutConfig, onShowThemeEditor, showHeaderSearchButton, showMessageAreaSearchButton]);
+  }, [currentTheme, availableThemes, layoutConfig, appLanguage, languageLabels, t, tags, refreshThemes, setAppLanguageFromHook, updateLayoutConfig, onShowThemeEditor, showHeaderSearchButton, showMessageAreaSearchButton, handleExportTheme, handleImportTheme]);
 
   const handleSubmenuPress = (itemId: string) => {
     const item = sectionData.find(i => i.id === itemId);

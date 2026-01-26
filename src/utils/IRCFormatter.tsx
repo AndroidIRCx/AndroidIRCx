@@ -1,11 +1,11 @@
 import React from 'react';
-import { Text, TextStyle } from 'react-native';
+import { Text, TextStyle, Linking } from 'react-native';
 
 /**
  * IRC color codes mapping (0-15)
  * According to modern.ircdocs.horse specification
  */
-const STANDARD_COLORS: { [key: number]: string } = {
+export const IRC_STANDARD_COLOR_MAP: { [key: number]: string } = {
   0: '#FFFFFF', // white
   1: '#000000', // black
   2: '#00007F', // blue
@@ -28,7 +28,7 @@ const STANDARD_COLORS: { [key: number]: string } = {
  * Extended color codes (16-98) RGB mapping
  * According to modern.ircdocs.horse specification
  */
-const EXTENDED_COLORS: { [key: number]: string } = {
+export const IRC_EXTENDED_COLOR_MAP: { [key: number]: string } = {
   16: '#470000', 17: '#472100', 18: '#474700', 19: '#324700', 20: '#004700',
   21: '#00472c', 22: '#004747', 23: '#002747', 24: '#000047', 25: '#2e0047',
   26: '#470047', 27: '#47002a', 28: '#740000', 29: '#743a00', 30: '#747400',
@@ -52,7 +52,7 @@ const EXTENDED_COLORS: { [key: number]: string } = {
  * Get color for extended color codes (16-98)
  */
 function getExtendedColor(code: number): string {
-  return EXTENDED_COLORS[code] || '#000000';
+  return IRC_EXTENDED_COLOR_MAP[code] || '#000000';
 }
 
 /**
@@ -79,7 +79,7 @@ interface TextSegment {
 /**
  * IRC Format Codes
  */
-const IRC_CODES = {
+export const IRC_FORMAT_CODES = {
   BOLD: 0x02,           // Ctrl+B
   COLOR: 0x03,          // Ctrl+C
   RESET: 0x0F,          // Ctrl+O
@@ -128,13 +128,13 @@ function parseIRCText(text: string): TextSegment[] {
 
     // Handle IRC format codes
     switch (charCode) {
-      case IRC_CODES.BOLD: // Ctrl+B - Bold
+      case IRC_FORMAT_CODES.BOLD: // Ctrl+B - Bold
         flushText();
         currentStyle.bold = !currentStyle.bold;
         i++;
         continue;
 
-      case IRC_CODES.COLOR: // Ctrl+C - Color
+      case IRC_FORMAT_CODES.COLOR: // Ctrl+C - Color
         flushText();
         
         let fgColor: number | null = null;
@@ -207,7 +207,7 @@ function parseIRCText(text: string): TextSegment[] {
         }
         continue;
 
-      case IRC_CODES.RESET: // Ctrl+O - Reset all formatting
+      case IRC_FORMAT_CODES.RESET: // Ctrl+O - Reset all formatting
         flushText();
         currentStyle = {
           bold: false,
@@ -221,25 +221,25 @@ function parseIRCText(text: string): TextSegment[] {
         i++;
         continue;
 
-      case IRC_CODES.UNDERLINE: // Ctrl+_ - Underline
+      case IRC_FORMAT_CODES.UNDERLINE: // Ctrl+_ - Underline
         flushText();
         currentStyle.underline = !currentStyle.underline;
         i++;
         continue;
 
-      case IRC_CODES.ITALIC: // Ctrl+] - Italic
+      case IRC_FORMAT_CODES.ITALIC: // Ctrl+] - Italic
         flushText();
         currentStyle.italic = !currentStyle.italic;
         i++;
         continue;
 
-      case IRC_CODES.STRIKETHROUGH: // Ctrl+^ - Strikethrough
+      case IRC_FORMAT_CODES.STRIKETHROUGH: // Ctrl+^ - Strikethrough
         flushText();
         currentStyle.strikethrough = !currentStyle.strikethrough;
         i++;
         continue;
 
-      case IRC_CODES.REVERSE: // Ctrl+V - Reverse (swap fg/bg)
+      case IRC_FORMAT_CODES.REVERSE: // Ctrl+V - Reverse (swap fg/bg)
         flushText();
         currentStyle.reverse = !currentStyle.reverse;
         i++;
@@ -286,8 +286,8 @@ function styleToTextStyle(style: FormatStyle, baseStyle?: TextStyle): TextStyle 
   if (fgColor !== null) {
     if (fgColor >= 16 && fgColor <= 98) {
       textStyle.color = getExtendedColor(fgColor);
-    } else if (STANDARD_COLORS[fgColor]) {
-      textStyle.color = STANDARD_COLORS[fgColor];
+    } else if (IRC_STANDARD_COLOR_MAP[fgColor]) {
+      textStyle.color = IRC_STANDARD_COLOR_MAP[fgColor];
     }
   }
 
@@ -295,8 +295,8 @@ function styleToTextStyle(style: FormatStyle, baseStyle?: TextStyle): TextStyle 
   if (bgColor !== null) {
     if (bgColor >= 16 && bgColor <= 98) {
       textStyle.backgroundColor = getExtendedColor(bgColor);
-    } else if (STANDARD_COLORS[bgColor]) {
-      textStyle.backgroundColor = STANDARD_COLORS[bgColor];
+    } else if (IRC_STANDARD_COLOR_MAP[bgColor]) {
+      textStyle.backgroundColor = IRC_STANDARD_COLOR_MAP[bgColor];
     }
   }
 
@@ -405,16 +405,16 @@ export function stripIRCFormatting(text: string): string {
 
     // Handle IRC format codes - skip them
     switch (charCode) {
-      case IRC_CODES.BOLD:
-      case IRC_CODES.RESET:
-      case IRC_CODES.UNDERLINE:
-      case IRC_CODES.ITALIC:
-      case IRC_CODES.STRIKETHROUGH:
-      case IRC_CODES.REVERSE:
+      case IRC_FORMAT_CODES.BOLD:
+      case IRC_FORMAT_CODES.RESET:
+      case IRC_FORMAT_CODES.UNDERLINE:
+      case IRC_FORMAT_CODES.ITALIC:
+      case IRC_FORMAT_CODES.STRIKETHROUGH:
+      case IRC_FORMAT_CODES.REVERSE:
         i++;
         continue;
 
-      case IRC_CODES.COLOR:
+      case IRC_FORMAT_CODES.COLOR:
         // Skip color codes
         if (i + 1 < length && /\d/.test(text[i + 1])) {
           i++;
@@ -462,10 +462,10 @@ export function formatIRCDebug(text: string): string {
     const charCode = char.charCodeAt(0);
 
     switch (charCode) {
-      case IRC_CODES.BOLD:
+      case IRC_FORMAT_CODES.BOLD:
         result += '[B]';
         break;
-      case IRC_CODES.COLOR:
+      case IRC_FORMAT_CODES.COLOR:
         let colorStr = '[C';
         i++;
         if (i < length && /\d/.test(text[i])) {
@@ -492,19 +492,19 @@ export function formatIRCDebug(text: string): string {
         result += colorStr;
         i--;
         break;
-      case IRC_CODES.RESET:
+      case IRC_FORMAT_CODES.RESET:
         result += '[R]';
         break;
-      case IRC_CODES.UNDERLINE:
+      case IRC_FORMAT_CODES.UNDERLINE:
         result += '[U]';
         break;
-      case IRC_CODES.ITALIC:
+      case IRC_FORMAT_CODES.ITALIC:
         result += '[I]';
         break;
-      case IRC_CODES.STRIKETHROUGH:
+      case IRC_FORMAT_CODES.STRIKETHROUGH:
         result += '[S]';
         break;
-      case IRC_CODES.REVERSE:
+      case IRC_FORMAT_CODES.REVERSE:
         result += '[REV]';
         break;
       default:
@@ -515,5 +515,98 @@ export function formatIRCDebug(text: string): string {
   }
 
   return result;
+}
+
+/**
+ * URL regex pattern for detecting links
+ */
+const URL_PATTERN = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+|ftp:\/\/[^\s<>"{}|\\^`\[\]]+|www\.[^\s<>"{}|\\^`\[\]]+)/gi;
+
+/**
+ * Format IRC text with clickable URLs (plain links, no preview)
+ * Used for topic messages and system messages where we want links clickable
+ * but without loading previews/images
+ */
+export function formatIRCTextWithLinks(
+  text: string,
+  baseStyle?: TextStyle,
+  linkColor?: string
+): React.ReactElement {
+  if (!text) {
+    return <Text style={baseStyle} />;
+  }
+
+  // First parse IRC formatting
+  const segments = parseIRCText(text);
+  const nbsp = String.fromCharCode(0xa0);
+  const preserveTrailingSpaces = (value: string) =>
+    value.replace(/(\s+)$/g, (spaces) => spaces.replace(/ /g, nbsp));
+
+  if (segments.length === 0) {
+    return <Text style={baseStyle}>{text}</Text>;
+  }
+
+  // Now for each segment, find URLs and make them clickable
+  const renderSegmentWithLinks = (segmentText: string, segmentStyle: TextStyle, segmentIndex: number) => {
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    const urlRegex = new RegExp(URL_PATTERN.source, 'gi');
+    let match;
+
+    while ((match = urlRegex.exec(segmentText)) !== null) {
+      // Add text before the URL
+      if (match.index > lastIndex) {
+        parts.push(
+          <Text key={`text-${segmentIndex}-${lastIndex}`} style={segmentStyle}>
+            {preserveTrailingSpaces(segmentText.substring(lastIndex, match.index))}
+          </Text>
+        );
+      }
+
+      // Add the URL as a clickable link
+      const url = match[0];
+      const fullUrl = url.startsWith('www.') ? `https://${url}` : url;
+      parts.push(
+        <Text
+          key={`link-${segmentIndex}-${match.index}`}
+          style={[segmentStyle, { color: linkColor || '#2196F3', textDecorationLine: 'underline' }]}
+          onPress={() => Linking.openURL(fullUrl).catch(() => {})}
+        >
+          {url}
+        </Text>
+      );
+
+      lastIndex = match.index + url.length;
+    }
+
+    // Add remaining text after the last URL
+    if (lastIndex < segmentText.length) {
+      parts.push(
+        <Text key={`text-${segmentIndex}-${lastIndex}`} style={segmentStyle}>
+          {preserveTrailingSpaces(segmentText.substring(lastIndex))}
+        </Text>
+      );
+    }
+
+    // If no URLs found, just return the text
+    if (parts.length === 0) {
+      return (
+        <Text key={`segment-${segmentIndex}`} style={segmentStyle}>
+          {preserveTrailingSpaces(segmentText)}
+        </Text>
+      );
+    }
+
+    return parts;
+  };
+
+  return (
+    <Text style={baseStyle}>
+      {segments.map((segment, index) => {
+        const segmentStyle = styleToTextStyle(segment.style);
+        return renderSegmentWithLinks(segment.text, segmentStyle, index);
+      })}
+    </Text>
+  );
 }
 

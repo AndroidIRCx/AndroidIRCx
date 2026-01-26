@@ -116,6 +116,14 @@ export interface IRCMessage {
   replyTo?: string; // draft/reply: msgid of message being replied to
   reactions?: string; // draft/react: reactions to message (format: msgid;emoji)
   typing?: 'active' | 'paused' | 'done'; // +typing: typing indicator status
+  username?: string;
+  hostname?: string;
+  target?: string;
+  mode?: string;
+  topic?: string;
+  reason?: string;
+  numeric?: string;
+  command?: string;
 }
 
 export interface ChannelUser {
@@ -1131,12 +1139,19 @@ export class IRCService {
         const invitedNick = params[0] || '';
         const invitedChannel = params[1] || '';
         const inviter = this.extractNick(prefix);
+        const invitePrefixParts = prefix.split('!');
+        const inviteUsername = invitePrefixParts[1]?.split('@')[0];
+        const inviteHostname = invitePrefixParts[1]?.split('@')[1];
         this.addMessage({
           type: 'invite',
           from: inviter,
           channel: invitedChannel,
           text: t('{inviter} invited you to join {channel}', { inviter, channel: invitedChannel }),
           timestamp: messageTimestamp,
+          username: inviteUsername,
+          hostname: inviteHostname,
+          target: invitedChannel,
+          command: 'INVITE',
         });
         return;
       case 'PRIVMSG':
@@ -1368,6 +1383,10 @@ export class IRCService {
             replyTo: replyTag, // draft/reply
             reactions: reactTag, // draft/react
             typing: typingTag as 'active' | 'paused' | 'done' | undefined, // +typing
+            username,
+            hostname,
+            target,
+            command: 'PRIVMSG',
           });
         }
         break;
@@ -1462,6 +1481,10 @@ export class IRCService {
           channelContext: channelContextTag, // draft/channel-context
           replyTo: replyTag, // draft/reply
           reactions: reactTag, // draft/react
+          username: noticeUsername,
+          hostname: noticeHostname,
+          target: noticeTarget,
+          command: 'NOTICE',
         });
         break;
       case 'WALLOPS': {
@@ -1565,6 +1588,10 @@ export class IRCService {
           from: nick,
           text: joinText,
           timestamp: messageTimestamp,
+          username: joinUsername,
+          hostname: joinHostname,
+          target: channel,
+          command: 'JOIN',
         });
         break;
 
@@ -1572,6 +1599,9 @@ export class IRCService {
         const partChannel = params[0] || '';
         const partNick = this.extractNick(prefix);
         const partMessage = params[1] || '';
+        const partPrefixParts = prefix.split('!');
+        const partUsername = partPrefixParts[1]?.split('@')[0];
+        const partHostname = partPrefixParts[1]?.split('@')[1];
 
         if (partChannel && partNick) {
           const usersMap = this.channelUsers.get(partChannel);
@@ -1595,6 +1625,11 @@ export class IRCService {
             message: partMessage ? t(': {message}', { message: partMessage }) : '',
           }),
           timestamp: messageTimestamp,
+          username: partUsername,
+          hostname: partHostname,
+          target: partChannel,
+          reason: partMessage || undefined,
+          command: 'PART',
         });
         if (isCurrentUserLeaving && partChannel) {
           this.emit('part', partChannel, partNick);
@@ -1658,6 +1693,9 @@ export class IRCService {
       case 'QUIT':
         const quitNick = this.extractNick(prefix);
         const quitMessage = params[0] || '';
+        const quitPrefixParts = prefix.split('!');
+        const quitUsername = quitPrefixParts[1]?.split('@')[0];
+        const quitHostname = quitPrefixParts[1]?.split('@')[1];
         const quitChannels: string[] = [];
         
         if (quitNick) {
@@ -1683,6 +1721,11 @@ export class IRCService {
               from: quitNick,
               text: quitText,
               timestamp: messageTimestamp,
+              username: quitUsername,
+              hostname: quitHostname,
+              target: channelName,
+              reason: quitMessage || undefined,
+              command: 'QUIT',
             });
           });
         } else {
@@ -1691,6 +1734,10 @@ export class IRCService {
             from: quitNick,
             text: quitText,
             timestamp: messageTimestamp,
+            username: quitUsername,
+            hostname: quitHostname,
+            reason: quitMessage || undefined,
+            command: 'QUIT',
           });
         }
         break;
@@ -1711,6 +1758,9 @@ export class IRCService {
           from: setBy,
           text: t('Topic: {topic}', { topic }),
           timestamp: messageTimestamp,
+          topic: topic,
+          target: topicChannel,
+          command: 'TOPIC',
         });
         break;
 
@@ -1787,6 +1837,9 @@ export class IRCService {
             reason: kickReason ? t(': {reason}', { reason: kickReason }) : '',
           }),
           timestamp: messageTimestamp,
+          target: kickTarget,
+          reason: kickReason || undefined,
+          command: 'KICK',
         });
         break;
 
@@ -1867,6 +1920,9 @@ export class IRCService {
           timestamp: messageTimestamp,
           isRaw: isUserModeChange,
           rawCategory: isUserModeChange ? 'server' : undefined,
+          mode: modeParams.join(' ').trim() || undefined,
+          target: modeChannel || undefined,
+          command: 'MODE',
         });
         break;
 
@@ -5159,6 +5215,11 @@ export class IRCService {
   }): void {
     // Send message with client-only tags
     if (this.isConnected) {
+      const normalizedMessage = message.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      if (!normalizedMessage.startsWith('/') && normalizedMessage.includes('\n')) {
+        this.sendMultilineMessage(target, normalizedMessage);
+        return;
+      }
       const tags: string[] = [];
 
       if (options?.channelContext) {
@@ -5172,14 +5233,14 @@ export class IRCService {
       }
 
       const tagString = tags.length > 0 ? `@${tags.join(';')} ` : '';
-      this.sendRaw(`${tagString}PRIVMSG ${target} :${message}`);
+      this.sendRaw(`${tagString}PRIVMSG ${target} :${normalizedMessage}`);
 
       // Echo message locally
       this.addMessage({
         type: 'message',
         channel: target,
         from: this.currentNick,
-        text: message,
+        text: normalizedMessage,
         timestamp: Date.now(),
         status: 'sent',
         channelContext: options?.channelContext,
@@ -5242,9 +5303,15 @@ export class IRCService {
       this.addMessage({ type: 'message', channel: target, from: this.currentNick, text: message, timestamp: Date.now(), status: 'pending' });
       return;
     }
+
+    const normalizedMessage = message.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    if (!normalizedMessage.startsWith('/') && normalizedMessage.includes('\n')) {
+      this.sendMultilineMessage(target, normalizedMessage);
+      return;
+    }
     
-    if (message.startsWith('/')) {
-      const commandText = message.substring(1).trim();
+    if (normalizedMessage.startsWith('/')) {
+      const commandText = normalizedMessage.substring(1).trim();
       const parts = commandText.split(' ');
       const command = parts[0].toUpperCase();
       const args = parts.slice(1);
@@ -6055,8 +6122,8 @@ export class IRCService {
       return;
     }
     
-    this.sendRaw(`PRIVMSG ${target} :${message}`);
-    this.addMessage({ type: 'message', channel: target, from: this.currentNick, text: message, timestamp: Date.now(), status: 'sent' });
+    this.sendRaw(`PRIVMSG ${target} :${normalizedMessage}`);
+    this.addMessage({ type: 'message', channel: target, from: this.currentNick, text: normalizedMessage, timestamp: Date.now(), status: 'sent' });
   }
 
   sendCommand(command: string): void {

@@ -68,13 +68,15 @@ export const useAutoJoinChannels = (params: UseAutoJoinChannelsParams) => {
         }
         setAutoJoinAttempted(true); // Mark as attempted
 
-        // Extract base network name for multi-connection scenarios
-        // "DBase (1)" -> "DBase", "DBase (2)" -> "DBase", "DBase" -> "DBase"
-        const baseNetworkName = activeNetId.replace(/\s+\(\d+\)$/, '');
-
-        const networkConfig = await settingsService.getNetwork(baseNetworkName);
+        const networks = await settingsService.loadNetworks();
+        const exactMatch = networks.find(n => n.id === activeNetId || n.name === activeNetId) || null;
+        const normalizedId = activeNetId.replace(/\s+\(\d+\)$/, '');
+        const networkConfig = exactMatch || networks.find(
+          n => n.id === normalizedId || n.name === normalizedId
+        ) || null;
+        const favoritesNetworkName = networkConfig?.name || activeNetId;
         const favorites = autoJoinFavoritesEnabled
-          ? channelFavoritesService.getFavorites(baseNetworkName) // join all favorites when enabled
+          ? channelFavoritesService.getFavorites(favoritesNetworkName) // join all favorites when enabled
           : [];
         const favoriteNames = favorites.map(f => f.name);
         const autoJoin = networkConfig?.autoJoinChannels || [];

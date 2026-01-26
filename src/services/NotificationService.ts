@@ -6,7 +6,7 @@
  * Uses react-native-notifications for cross-platform support.
  */
 
-import { Platform } from 'react-native';
+import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee, { AndroidImportance, AndroidCategory, EventType } from '@notifee/react-native';
 import { tx } from '../i18n/transifex';
@@ -47,11 +47,42 @@ class NotificationService {
 
   /**
    * Check if notification permission is granted
+   * Uses both PermissionsAndroid (for Android) and notifee for cross-platform support
    */
   async checkPermission(): Promise<boolean> {
     try {
-      const settings = await notifee.getNotificationSettings();
-      return settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
+      if (Platform.OS === 'android') {
+        // For Android 13+ (API 33+), check POST_NOTIFICATIONS permission directly
+        if (Platform.Version >= 33) {
+          try {
+            const hasPermission = await PermissionsAndroid.check(
+              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+            );
+            console.log('NotificationService: Android permission check (POST_NOTIFICATIONS):', hasPermission);
+            if (hasPermission) {
+              return true;
+            }
+          } catch (error) {
+            console.warn('NotificationService: Error checking Android permission:', error);
+          }
+        }
+        // For older Android versions or as fallback, check notifee settings
+        // Also check notifee for Android 13+ as additional verification
+        try {
+          const settings = await notifee.getNotificationSettings();
+          const notifeeGranted = settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
+          console.log('NotificationService: Notifee permission check:', notifeeGranted);
+          return notifeeGranted;
+        } catch (error) {
+          console.warn('NotificationService: Error checking notifee permission:', error);
+        }
+        // If both checks fail, return false
+        return false;
+      } else {
+        // iOS - use notifee
+        const settings = await notifee.getNotificationSettings();
+        return settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
+      }
     } catch (error) {
       console.error('NotificationService: Error checking permission:', error);
       return false;
@@ -59,14 +90,65 @@ class NotificationService {
   }
 
   /**
+   * Refresh permission status and update preferences if needed
+   * Call this when app returns to foreground to sync with system settings
+   */
+  async refreshPermissionStatus(): Promise<void> {
+    try {
+      const hasPermission = await this.checkPermission();
+      // If permission is granted but notifications are disabled, don't auto-enable
+      // User must manually enable them. But if permission was revoked, disable notifications.
+      if (this.preferences.enabled && !hasPermission) {
+        console.warn('NotificationService: Permission revoked, disabling notifications.');
+        this.preferences.enabled = false;
+        await this.savePreferences();
+      }
+      // If permission is granted, notifications can be enabled (but don't auto-enable)
+      // This allows user to enable notifications even if they were previously disabled
+    } catch (error) {
+      console.error('NotificationService: Error refreshing permission status:', error);
+    }
+  }
+
+  /**
    * Request notification permission
+   * Uses both PermissionsAndroid (for Android) and notifee for cross-platform support
    */
   async requestPermission(): Promise<boolean> {
     try {
-      const settings = await notifee.requestPermission();
-      const granted = settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
-      console.log('NotificationService: Permission request result:', granted ? 'granted' : 'denied');
-      return granted;
+      if (Platform.OS === 'android') {
+        // For Android 13+ (API 33+), request POST_NOTIFICATIONS permission directly
+        if (Platform.Version >= 33) {
+          try {
+            const granted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+            );
+            const isGranted = granted === PermissionsAndroid.RESULTS.GRANTED;
+            console.log('NotificationService: Android permission request (POST_NOTIFICATIONS):', isGranted);
+            if (isGranted) {
+              return true;
+            }
+          } catch (error) {
+            console.warn('NotificationService: Error requesting Android permission:', error);
+          }
+        }
+        // Also try notifee requestPermission as fallback or for older Android versions
+        try {
+          const settings = await notifee.requestPermission();
+          const notifeeGranted = settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
+          console.log('NotificationService: Notifee permission request:', notifeeGranted);
+          return notifeeGranted;
+        } catch (error) {
+          console.warn('NotificationService: Error requesting notifee permission:', error);
+        }
+        return false;
+      } else {
+        // iOS - use notifee
+        const settings = await notifee.requestPermission();
+        const granted = settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
+        console.log('NotificationService: Permission request result:', granted ? 'granted' : 'denied');
+        return granted;
+      }
     } catch (error) {
       console.error('NotificationService: Error requesting permission:', error);
       return false;
@@ -109,13 +191,16 @@ class NotificationService {
       // If notifications are enabled, check permission
       // If permission is not granted, automatically disable notifications
       // This prevents silent failures where notifications are enabled but permission is denied
-      if (this.preferences.enabled) {
-        const hasPermission = await this.checkPermission();
-        if (!hasPermission) {
-          console.warn('NotificationService: Notifications enabled but permission not granted. Disabling notifications.');
-          this.preferences.enabled = false;
-          await this.savePreferences();
-        }
+      // However, if permission is granted, keep notifications enabled even if they were previously disabled
+      const hasPermission = await this.checkPermission();
+      if (this.preferences.enabled && !hasPermission) {
+        console.warn('NotificationService: Notifications enabled but permission not granted. Disabling notifications.');
+        this.preferences.enabled = false;
+        await this.savePreferences();
+      } else if (!this.preferences.enabled && hasPermission) {
+        // Permission is granted but notifications are disabled - this is fine, user can enable them manually
+        // Don't auto-enable, just log that permission is available
+        console.log('NotificationService: Permission granted, notifications can be enabled by user.');
       }
 
       console.log('NotificationService: Initialized with Notifee');
@@ -185,6 +270,17 @@ class NotificationService {
    * Update global notification preferences
    */
   async updatePreferences(prefs: Partial<NotificationPreferences>): Promise<void> {
+    // If enabling notifications, verify permission is still granted before updating
+    if (prefs.enabled === true && !this.preferences.enabled) {
+      console.log('NotificationService: Enabling notifications, verifying permission...');
+      const hasPermission = await this.checkPermission();
+      if (!hasPermission) {
+        console.warn('NotificationService: Cannot enable notifications - permission not granted');
+        throw new Error('Notification permission not granted');
+      }
+      console.log('NotificationService: Permission verified, enabling notifications');
+    }
+    
     this.preferences = { ...this.preferences, ...prefs };
     await this.savePreferences();
   }

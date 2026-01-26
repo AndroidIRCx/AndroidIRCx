@@ -36,7 +36,7 @@
     "string": "Error al copiar al portapeles"
   },
   "Backup saved to:\n{path}": {
-    "string": "Copia de seguridad guardada en:\n1{patch}"
+    "string": "Copia de seguridad guardada en:\n{path}"
   },
   "OK": {
     "string": "OK"
@@ -72,7 +72,7 @@
     "string": "Caracteres exportados {count} en {format} formato.\n\n(En producción, esto se guardaría en un archivo)"
   },
   "Export Error": {
-    "string": "Export Error"
+    "string": "Error de Exportación"
   },
   "Failed to export history": {
     "string": "Fallo al exportar el historial"
@@ -177,7 +177,7 @@
     "string": "Eliminar Tema"
   },
   "Are you sure you want to delete \"{name}\"?": {
-    "string": "¿Está seguro de que desea eliminar \"1{name}\"?"
+    "string": "¿Está seguro de que desea eliminar \"{name}\"?"
   },
   "Delete": {
     "string": "Eliminar"
@@ -186,7 +186,7 @@
     "string": "Posición de la Pestaña"
   },
   "Tabs at {position}": {
-    "string": "Pestañas en 1{position} "
+    "string": "Pestañas en {position} "
   },
   "Select tab position:": {
     "string": "Seleccionar posición de pestaña:"
@@ -207,7 +207,7 @@
     "string": "Posición de la Lista de Usuarios"
   },
   "User list at {position}": {
-    "string": "Lista de usuarios en 1{position}"
+    "string": "Lista de usuarios en {position}"
   },
   "Select user list position:": {
     "string": "Seleccione la posición de la lista de usuarios"
@@ -690,10 +690,10 @@
     "string": "Canales"
   },
   "{count} favorite across networks": {
-    "string": "1{count} favorito en todas las redes"
+    "string": "{count} favorito en todas las redes"
   },
   "{count} favorites across networks": {
-    "string": "1{count} favoritos en todas las redes"
+    "string": "{count} favoritos en todas las redes"
   },
   "Manage favorite channels": {
     "string": "Administrar canales favoritos"
@@ -756,13 +756,13 @@
     "string": "Usuarios y Servicios"
   },
   "Add Service Nickname": {
-    "string": "Agregar Nick de Servicio. Ej: NiCK"
+    "string": "Agregar Nick de Servicio"
   },
   "Prevent sending \"close query\" messages to these nicks.": {
     "string": "Prevenir enviar mensajes de \"close query\" a estos nicks."
   },
   "Enter a service name (e.g., Q)": {
-    "string": "Introduzca un nombre de servicio (e.j., Q)"
+    "string": "Introduzca un nombre de servicio (e.j., Q ó NiCK)"
   },
   "Ignore List": {
     "string": "Lista de Ignorados"
@@ -783,7 +783,7 @@
     "string": "Alias de Usuario"
   },
   "No aliases saved": {
-    "string": "Ningun alias salvado"
+    "string": "Ningun alias guardado"
   },
   "Commands": {
     "string": "Comandos"
@@ -807,7 +807,7 @@
     "string": "Commandos de Aliases"
   },
   "Alias Name (without /)": {
-    "string": "Nombre del Alias (win /)"
+    "string": "Nombre del Alias (sin /)"
   },
   "e.g. j": {
     "string": "e.j. j"
@@ -840,7 +840,7 @@
     "string": "Plantilla de Comando"
   },
   "Use {param1}, {channel}, {nick} placeholders": {
-    "string": "Usar {param1},{channel},{nick}marcadores de posición"
+    "string": "Usar {param1}, {channel}, {nick} marcadores de posición"
   },
   "e.g. /msg {channel} Hello {param1}": {
     "string": "e.j. /msg {channel}Hola {param1}"
@@ -873,7 +873,7 @@
     "string": "Exportar como TXT"
   },
   "Export as plain text log": {
-    "string": "Exportar como registro de texto sin formato"
+    "string": "Exportar todos los mensajes en formato TXT"
   },
   "Export as CSV": {
     "string": "Exportar como CSV"
@@ -933,7 +933,7 @@
     "string": "Tiempo de espera de reproducción (ms)"
   },
   "Playback Age Limit (hours)": {
-    "string": "Límite de Edad de Reproducción (horas)"
+    "string": "Límite de tiempo de Reproducción (horas)"
   },
   "Request Playback (ZNC)": {
     "string": "Reproducción de solicitudes (ZNC)"
@@ -951,7 +951,7 @@
     "string": "Virtualización de lista de mensajes"
   },
   "Use FlatList for better performance with large channels": {
-    "string": "Utilice FlatList para un mejor rendimiento con canales grandes"
+    "string": "Usa Lista Plana para un mejor rendimiento con canales grandes"
   },
   "Lazy Load Old Messages": {
     "string": "Carga de mensajes antiguos"
@@ -963,7 +963,7 @@
     "string": "Optimización Render"
   },
   "Use React.memo and useMemo for optimized rendering": {
-    "string": "Utilice React.memo y useMemo para optimizar."
+    "string": "Usa React.memo y useMemo para optimizar."
   },
   "Automatic Message Cleanup": {
     "string": "Limpieza Automática de Mensajes"
@@ -984,7 +984,7 @@
     "string": "Imágenes de Carga Diferida"
   },
   "Only load images when they become visible": {
-    "string": "Únicamente la carga de imágenes cuando se hacen visibles"
+    "string": "Solamente carga las imágenes cuando están visibles"
   },
   "Background & Battery": {
     "string": "Segundo plano y Batería"
@@ -1200,7 +1200,7 @@
     "string": "Conexión fallida"
   },
   "{message}\n\nTried: {hostInfo}\nCheck host/port, SSL, and network reachability.": {
-    "string": "{message}\n\nIntento: {hostInfo}\nVerifique el host/puerto, SSL y la accesibilidad de la red. "
+    "string": "{message}\n\nIntento: {hostInfo}\nVerifique el host/puerto, SSL y la accesibilidad de la red."
   },
   "Not Connected": {
     "string": "No Conectado"
@@ -1239,7 +1239,7 @@
     "string": "Descarga completa"
   },
   "Saved to {path}": {
-    "string": "Guardado en 1{patch}"
+    "string": "Guardado en {path}"
   },
   "Download failed": {
     "string": "Descarga fallida"
@@ -1314,7 +1314,7 @@
     "string": "Seleccione al menos una opción de copias de seguridad"
   },
   "Generated backup with {count} items:\n{names}": {
-    "string": "Copia de seguridad generada con 1{count} items: 2{names}"
+    "string": "Copia de seguridad generada con {count} items: \n{names}"
   },
   "Failed to generate backup": {
     "string": "No se pudo generar la copia de seguridad"
@@ -1419,10 +1419,10 @@
     "string": "Nick: {nick}"
   },
   "Alt Nick: {altNick}": {
-    "string": "Alt Nick: {altNick}"
+    "string": "Nick Alternativo: {altNick}"
   },
   "Real Name: {name}": {
-    "string": "Real Name: {name}"
+    "string": "Nombre Real: {name}"
   },
   "Current Profile: {name}": {
     "string": "Perfil Actual: {name}"
@@ -1485,7 +1485,7 @@
     "string": "Solicitud de Chat DDC"
   },
   "{from} wants to start a DCC chat. Accept?": {
-    "string": "1{from} quiere iniciar un DCC chat. ¿Aceptar?"
+    "string": "{from} quiere iniciar un DCC chat. ¿Aceptar?"
   },
   "Decline": {
     "string": "Rechazar"
@@ -1665,7 +1665,7 @@
     "string": "Importar Clave DM"
   },
   "Existing: {old}\nNew: {new}\n\nOnly replace if verified out-of-band.": {
-    "string": "Existentes: 1{old}\nNuevo: 2{new}\n\nReemplácelo solo si se verifica fuera de banda."
+    "string": "Existentes: {old}\nNuevo: {new}\n\nReemplácelo solo si se verifica fuera de banda."
   },
   "Fingerprint: {fp}\n\nAccept this key for {nick}?": {
     "string": "Fingerprint: {fp}\n\nAcepte esta clave para {nick}?"
@@ -1686,7 +1686,7 @@
     "string": "¿Compartir su clave?"
   },
   "You imported {nick}'s key offline. For encrypted chat to work both ways, {nick} also needs your key.\n\n💡 Show your QR code for them to scan (no server messages)": {
-    "string": "Importaste la clave sin conexión {nick}. Para que el chat cifrado funcione en ambos sentidos, {nick} también necesita su clave.\nShow Muestre su código QR para que lo escaneen (sin mensajes del servidor)"
+    "string": "Importaste la clave sin conexión {nick}. Para que el chat cifrado funcione en ambos sentidos, {nick} también necesita su clave.\n\n💡 Show Muestre su código QR para que lo escaneen (sin mensajes del servidor)"
   },
   "Later": {
     "string": "Luego"
@@ -2163,16 +2163,16 @@
     "string": "Funciones disponibles"
   },
   "• api.log(text) — log to script log buffer": {
-    "string": "• api.log(text) — registro en el búfer de registro de script"
+    "string": "• api.log(texto) — registro en el búfer de registro de script"
   },
   "• api.sendMessage(channel, text, networkId?)": {
-    "string": "• api.sendMessage(canal, texto, id de red?)"
+    "string": "• api.sendMessage(canal, texto, id de red)"
   },
   "• api.sendCommand(command, networkId?)": {
     "string": "• api.sendCommand(comando, id de red?)"
   },
   "• api.userNick — current nick": {
-    "string": "• api.userNick— nick actual"
+    "string": "• api.userNick — nick actual"
   },
   "• api.getConfig() — script config JSON": {
     "string": "• api.getConfig() — configuración del script JSON"
@@ -2187,7 +2187,7 @@
     "string": "• onMessage(msg)"
   },
   "• onJoin(channel, nick, msg)": {
-    "string": "• onJoin(canal, nick, msg)"
+    "string": "• onJoin(channel, nick, msg)"
   },
   "• onCommand(text, ctx) ⇒ string | { command, cancel }": {
     "string": "• OnCommand(text, ctx) ⇒ string | { command, cancel }"
@@ -2214,7 +2214,7 @@
     "string": "• Utilice Lint para detectar errores de sintaxis."
   },
   "• Enable logging to see script output/errors in the log tab.": {
-    "string": "• Habilite el loggin para ver los salidas/errores del script, en la pestaña de log."
+    "string": "• Habilite el loggin para ver las salidas/errores del script, en la pestaña de log."
   },
   "• onCommand can cancel send by returning { cancel: true }.": {
     "string": "• onCommand puede cancelar el envio, devolviendo { cancel: true }."
@@ -2844,7 +2844,7 @@
     "string": "Servidor:"
   },
   "Away:": {
-    "string": "Away:"
+    "string": "Ausente:"
   },
   "User is away": {
     "string": "El usuario no está disponible ahora"
@@ -2931,7 +2931,7 @@
     "string": "Por favor escriba su nick"
   },
   "Please enter your real name": {
-    "string": "Por favor escriba su real name"
+    "string": "Por favor escriba su nombre real"
   },
   "{nick} Profile": {
     "string": "{nick}Perfil"
@@ -3066,7 +3066,7 @@
     "string": "Eliminar clave de cifrado"
   },
   "Are you sure you want to delete the encryption key for {nick} on {network}?\n\nFingerprint: {fingerprint}\n\nThis cannot be undone.": {
-    "string": "Estás seguro de eliminar la clave de cifrado para {nick} en {network}?\nFingerprint: {fingerprint}\nEsto no se puede deshacer."
+    "string": "Estás seguro de eliminar la clave de cifrado para {nick} en {network}?\n\nFingerprint: {fingerprint}\n\nEsto no se puede deshacer."
   },
   "Key deleted successfully": {
     "string": "Clave eliminada exitosamente"
@@ -3084,7 +3084,7 @@
     "string": "Mover la clave"
   },
   "This will move the key from {fromNetwork} to {toNetwork} and delete it from {fromNetwork}.\n\nContinue?": {
-    "string": "Esto moverá la clave de {fromNetwork} a {toNetwork} y la eliminará de {fromNetwork}.\n¿Continuar?"
+    "string": "Esto moverá la clave de {fromNetwork} a {toNetwork} y la eliminará de {fromNetwork}.\n\n¿Continuar?"
   },
   "Move": {
     "string": "Mover"
@@ -3573,16 +3573,16 @@
     "string": "*** {nick} inició sesión como {accountName}"
   },
   "*** {nick} is now away: {message}": {
-    "string": "*** {nick}no se encuentra ahora: {message}"
+    "string": "*** {nick} no se encuentra ahora: {message}"
   },
   "*** {nick} is no longer away": {
-    "string": "*** {nick}ya se encuentra en línea"
+    "string": "*** {nick} ya se encuentra en línea"
   },
   "*** {nick} changed host to {host}": {
     "string": "*** {nick}cambió su host a {host}"
   },
   "*** {nick} changed realname to: {realname}": {
-    "string": "*** {nick}cambió el nombre real a: {realname}"
+    "string": "*** {nick} cambió el nombre real a: {realname}"
   },
   "*** {nick} deleted a message": {
     "string": "*** {nick}borró un mensaje"
@@ -3591,7 +3591,7 @@
     "string": "*** Comando RAW: {message} "
   },
   "*** Welcome to the {network} Network": {
-    "string": "*** Bienvenido a la {network}Red"
+    "string": "*** Bienvenido a la Red {network}"
   },
   "IRC": {
     "string": "IRC"
@@ -3609,13 +3609,13 @@
     "string": "*** [{numeric}] {message}"
   },
   "End of STATS report": {
-    "string": "Fin del informe STATS"
+    "string": "Fin del informe STATS."
   },
   "*** {label}: {message}": {
-    "string": "*** {label}:{message}"
+    "string": "*** {label}: {message}"
   },
   "*** Version: {version} on {server} {comments}": {
-    "string": "*** Versión: {version}en {server}{comments}"
+    "string": "*** Versión: {version} en {server} {comments}"
   },
   "End of INFO": {
     "string": "Fin de INFO"
@@ -3630,13 +3630,13 @@
     "string": "Tú eres servicio"
   },
   "*** Time on {server}: {time}": {
-    "string": "*** Tiempo en {server}:{time}"
+    "string": "*** Tiempo en {server}: {time}"
   },
   "operator(s) online": {
     "string": "operator(s) en línea"
   },
   "*** {count} {message}": {
-    "string": "*** {count}{message}"
+    "string": "*** {count} {message}"
   },
   "unknown connection(s)": {
     "string": "conexion(es) desconocidas"
@@ -3648,10 +3648,10 @@
     "string": "Información administrativa"
   },
   "Current local users {current}, max {max}": {
-    "string": "Usuarios locales actuales {current}, máx{max}"
+    "string": "Usuarios locales actuales {current}, máx {max}"
   },
   "Current global users {current}, max {max}": {
-    "string": "Usuarios globales actuales {current},máx{max}"
+    "string": "Usuarios globales actuales {current}, máx {max}"
   },
   "*** - {server} Message of the Day -": {
     "string": "***-{server}Mensaje del Día -"
@@ -3669,64 +3669,64 @@
     "string": "desconocido"
   },
   "*** {channel} was created on {date}": {
-    "string": "***{channel}fue creado en{date}"
+    "string": "*** {channel} fue creado en {date}"
   },
   "*** You have invited {nick} to {channel}": {
     "string": "*** Has ivitado a{nick}to{channel}"
   },
   "*** {channel} invite list: {mask}": {
-    "string": "***{channel}lista de invitados:{mask}"
+    "string": "*** {channel} lista de invitados: {mask}"
   },
   "*** End of {channel} invite list": {
-    "string": "*** Fin de{channel}lista de invitados"
+    "string": "*** {channel} Fin de la lista de invitados."
   },
   " by {nick}": {
     "string": "por{nick}"
   },
   " on {date}": {
-    "string": "en{date}"
+    "string": "en {date}"
   },
   "*** {channel} exception list: {mask}{by}{time}": {
-    "string": "***{channel}lista de excepciones:{mask}{by}{time}"
+    "string": "*** {channel} {mask} {by} {time}"
   },
   "*** End of {channel} exception list": {
-    "string": "*** Fin de{channel}lista de excepciones"
+    "string": "*** {channel} Fin de la lista de excepción ban."
   },
   "*** {channel} ban list: {mask}{by}{time}": {
-    "string": "***{channel}lista de bans:{mask}{by}{time}"
+    "string": "*** {channel} {mask} {by} {time}"
   },
   "*** End of {channel} ban list": {
-    "string": "*** Fin de{channel}lista de bans"
+    "string": "*** {channel} Fin de la lista de ban."
   },
   "*** Channel list:": {
     "string": "*** Lista de Canales:"
   },
   "*** {channel} ({users} users): {topic}": {
-    "string": "***{channel}({users}usuarios):{topic}"
+    "string": "*** {channel} ({users} usuarios): {topic}"
   },
   "*** End of channel list": {
     "string": "*** Fin de la lista de canales"
   },
   " (away)": {
-    "string": "(lejos)"
+    "string": "(ausente)"
   },
   " (IRCop)": {
     "string": "(IRCop)"
   },
   "*** WHO {channel}: {nick} ({user}@{host}) [{server}]{away}{op} - {real}": {
-    "string": "*** WHO{channel}:{nick}({user}@{host}) [{server}]{away}{op}{real}"
+    "string": "*** {nick} ({user}@{host}) * {real} {away} {op} {channel} [{server}]"
   },
   "*** End of WHO list for {channel}": {
-    "string": "*** Fin de la lista de WHO para{channel}"
+    "string": "*** {channel} Fin de la lista de WHO."
   },
   "No such nick/channel": {
-    "string": "No existe tal nick/canal"
+    "string": "No existe ese nick/canal"
   },
   "{label}: {message}": {
-    "string": "{label}:{message}"
+    "string": "{label}: {message}"
   },
   "*** WHOWAS has no history for {nick}. If they are online, try /whois {nick}.": {
-    "string": "***No hay historial de WHOWAS para{nick}.Si está en línea pruebe con /whois{nick}."
+    "string": "*** No hay historial de WHOWAS para {nick}. Si está en línea pruebe con /whois {nick}."
   },
   "No such channel": {
     "string": "No existe ese canal"
@@ -3744,10 +3744,10 @@
     "string": "El nick ya está en uso:{nick}"
   },
   "*** Trying alternative nickname: {nick}": {
-    "string": "*** Intente con un nick alternativo:{nick}"
+    "string": "*** Intente con un nick alternativo: {nick}"
   },
   "*** Trying fallback nickname: {nick}": {
-    "string": "*** Intentando un nick alternativo:{nick}"
+    "string": "*** Intentando un nick alternativo: {nick}"
   },
   "Password incorrect": {
     "string": "Contraseña incorrecta"
@@ -3762,7 +3762,7 @@
     "string": "Ellos no estan en ese canal"
   },
   "{nick} {channel}: {message}": {
-    "string": "{nick}{channel}:{message}"
+    "string": "{nick} {channel}: {message}"
   },
   "You're not on that channel": {
     "string": "No estás en ese canal"
@@ -3786,7 +3786,7 @@
     "string": "No se puede unir al canal (clave incorrecta)"
   },
   "Bad channel mask": {
-    "string": "Máscara errónea de canal"
+    "string": "Máscara de canal incorrecta"
   },
   "Channel doesn't support modes": {
     "string": "El canal no admite modos"
@@ -3894,13 +3894,13 @@
     "string": "Están disponibles los mecanismos SASL"
   },
   "*** {mechanisms} {message}": {
-    "string": "***{mechanisms}{message}"
+    "string": "*** {mechanisms} {message}"
   },
   "logged online": {
     "string": "Conectado en línea"
   },
   "*** {nick} ({user}@{host}) {message}": {
-    "string": "***{nick}({user}@{host}){message}"
+    "string": "*** {nick} ({user}@{host}) {message}"
   },
   "logged offline": {
     "string": "desconectado"
@@ -3915,31 +3915,31 @@
     "string": "está desconectado"
   },
   "*** WATCH list: {list}": {
-    "string": "***Lista WATCH:{list}"
+    "string": "*** Lista WATCH: {list}"
   },
   "End of WATCH list": {
-    "string": "Fin de la lista WATCH"
+    "string": "Fin de la lista WATCH."
   },
   "WATCH list cleared": {
     "string": "Lista WATCH borrada"
   },
   "*** MONITOR online: {list}": {
-    "string": "***MONITOR en línea:{list}"
+    "string": "*** MONITOR en línea: {list}"
   },
   "*** MONITOR offline: {list}": {
     "string": "***MONITOR desconectado:{list}"
   },
   "*** MONITOR list: {list}": {
-    "string": "***Lista MONITOR:{list}"
+    "string": "*** Lista MONITOR: {list}"
   },
   "End of MONITOR list": {
-    "string": "Fin de la lista MONITOR"
+    "string": "Fin de la lista MONITOR."
   },
   "Monitor list is full": {
     "string": "La lista MONITOR está llena"
   },
   "{message} (limit: {limit}, tried: {nicks})": {
-    "string": "{message}(límite:{limit},intentos:{nicks})"
+    "string": "{message} (límite: {limit}, intentos: {nicks})"
   },
   "STARTTLS successful": {
     "string": "STARTTLS exitoso"
@@ -3951,7 +3951,7 @@
     "string": "está ausente"
   },
   "*** {nick} is away: {message}": {
-    "string": "***{nick}está lejos:{message}"
+    "string": "*** {nick} está ausente: {message}"
   },
   "You are no longer marked as being away": {
     "string": "Ya no estás marcado como ausente"
@@ -3966,7 +3966,7 @@
     "string": "*** En línea:{nicks}"
   },
   "*** {nick} is {user}@{host} * {real}": {
-    "string": "***{nick}es{user}@{host}*{real}"
+    "string": "*** {nick} {user}@{host} * {real}"
   },
   "{hours} hours, {minutes} minutes": {
     "string": "{hours}horas,{minutes}minutos"
@@ -3975,19 +3975,19 @@
     "string": "{seconds}segundos"
   },
   "*** {nick} has been idle {idle}, signed on {date}": {
-    "string": "***{nick}ha estado inactivo{idle},conectado desde{date}"
+    "string": "*** {nick} ha estado inactivo {idle}, conectado desde {date}"
   },
   "*** End of WHOIS for {nick}": {
-    "string": "*** Fin del WHOIS para{nick}"
+    "string": "*** {nick} Fin del WHOIS."
   },
   "*** {nick} is on channels: {channels}": {
-    "string": "***{nick}está en los canales:{channels}"
+    "string": "*** {nick} canales: {channels}"
   },
   "has identified for this nick": {
     "string": "se ha identificado con este nick"
   },
   "*** {nick} {message}": {
-    "string": "***{nick}{message}"
+    "string": "*** {nick} {message}"
   },
   "is available for help": {
     "string": "está disponible para ayuda"
@@ -4005,19 +4005,19 @@
     "string": "está utilizando una conexión segura"
   },
   "*** {nick} was {user}@{host} * {real}": {
-    "string": "***{nick}fue{user}@{host}*{real}"
+    "string": "*** {nick} fue {user}@{host} * {real}"
   },
   "*** {nick} using {server} {info}": {
-    "string": "***{nick}usando{server}{info}"
+    "string": "*** {nick} usando {server} {info}"
   },
   "*** {nick} is logged in as {account}": {
-    "string": "***{nick}ha iniciado sesión como{account}"
+    "string": "*** {nick} ha iniciado sesión como {account}"
   },
   "*** {nick} is actually using host {host}": {
-    "string": "***{nick}actualmente usa el host{host}"
+    "string": "*** {nick} actualmente usa el host {host}"
   },
   "*** End of WHOWAS for {nick}": {
-    "string": "*** Fin del WHOWAS para{nick}"
+    "string": "*** {nick} Fin del WHOWAS."
   },
   "Server response": {
     "string": "Respuesta del servidor"
@@ -4032,10 +4032,10 @@
     "string": "*** Reconexión automática cancelada"
   },
   "*** Reconnecting in {seconds} second{suffix} (attempt {attempt})...": {
-    "string": "*** Reconectando en{seconds}segundos{suffix}(intentar{attempt})..."
+    "string": "*** Reconectando en {seconds} segundos{suffix} (intentar{attempt})..."
   },
   "*** Attempting to reconnect...": {
-    "string": "***Intentando reconectar..."
+    "string": "*** Intentando reconectar..."
   },
   "*** Reconnected successfully": {
     "string": "*** Reconectado exitosamente"
@@ -4188,13 +4188,13 @@
     "string": "*** No se pudo eliminar la clave de canal:{message}"
   },
   "*** {arrow} {line}": {
-    "string": "***{arrow}{line}"
+    "string": "*** {arrow} {line}"
   },
   "IRC server": {
     "string": "Servidor IRC"
   },
   "Connected to {networkName}": {
-    "string": "Conectado a{networkName}"
+    "string": "Conectado a {networkName}"
   },
   "AndroidIRCX Message History Export": {
     "string": "Exportación del historial de mensajes de AndroidIRCX"
@@ -4224,7 +4224,7 @@
     "string": "Mensaje de{name}"
   },
   "{from}: {text}": {
-    "string": "{from}:{text}"
+    "string": "{from}: {text}"
   },
   "Failed to load scripts: {error}": {
     "string": "No se pudieron cargar los scripts:{error}"
@@ -4239,13 +4239,13 @@
     "string": "Auto-Op"
   },
   "Ops everyone who joins the channel.": {
-    "string": "Ops a todos los que se unen al canal"
+    "string": "Da Ops a todos los que se unen al canal"
   },
   "Welcome Message": {
     "string": "Mensaje de Bienvenida"
   },
   "Greets users when they join.": {
-    "string": "Saludar a los usuarios cuando se unen."
+    "string": "Saluda a los usuarios cuando se unen."
   },
   "Channel Logger": {
     "string": "Canal Registrado"
@@ -4257,7 +4257,7 @@
     "string": "Alias de Comando Perzonalizados"
   },
   "Adds /hello alias as example.": {
-    "string": "Agregar /hola alias de ejemplo"
+    "string": "Agrega /hola alias de ejemplo"
   },
   "Script {name} failed to compile: {error}": {
     "string": "Script{name}no se pudo compilar:{error}"
@@ -4266,13 +4266,13 @@
     "string": "Todos los scripts están deshabilitados: Se agotó el tiempo de ejecución. Vea un anuncio para continuar."
   },
   "Error in script {name} hook {hook}: {error}": {
-    "string": "Error en script{name}hook{hook}:{error}"
+    "string": "Error en script {name} hook {hook}: {error}"
   },
   "Test hook {hook} executed": {
     "string": "Prueba de hook{hook}ejecutada"
   },
   "Test hook {hook} failed for {name}: {error}": {
-    "string": "Prueba hook{hook}fallida para{name}:{error}"
+    "string": "Prueba hook {hook} fallida para {name}: {error}"
   },
   "AndroidIRCX - Download from https://androidircx.com": {
     "string": "AndroidIRCX - Descarga desde https://androidircx.com"
@@ -4296,7 +4296,7 @@
     "string": "Solicitud de WHOIS para{nick}tiempo agotado."
   },
   "WHOIS data for {nick} not found after completion signal.": {
-    "string": "Informacion de WHOIS para{nick}No encontrado después de la señal de finalización."
+    "string": "{nick} no está en el IRC."
   },
   "Kill switch requires PIN or biometric authentication.": {
     "string": "Kill switch requiere PIN o autenticación biométrica."
@@ -4773,7 +4773,7 @@
     "string": "Mostrar botón Enviar"
   },
   "Display send button next to message input": {
-    "string": "Mostrar el botón de envío junto a la entrada del mensaje"
+    "string": "Mostrar el botón de envío junto a la barra de texto"
   },
   "Hide send button (use Enter key)": {
     "string": "Ocultar el botón de envío (use la tecla Enter)"
@@ -4782,7 +4782,7 @@
     "string": "Posición del banner"
   },
   "Banner shown below message input": {
-    "string": "El Banner se muestra debajo del mensaje de entrada"
+    "string": "El Banner se muestra debajo de la barra de texto"
   },
   "Banner shown above header": {
     "string": "El Banner se muestra arriba del encabezado"
@@ -4791,13 +4791,13 @@
     "string": "El Banner se muestra debajo del encabezado"
   },
   "Banner shown above message input": {
-    "string": "El Banner se muestra arriba del mensaje de entrada"
+    "string": "El Banner se muestra arriba de la barra de texto"
   },
   "Above message input": {
-    "string": "Entrada de mensaje anterior"
+    "string": "Arriba de la barra de texto"
   },
   "Below message input": {
-    "string": "Debajo de la entrada del mensaje"
+    "string": "Debajo de la barra de texto"
   },
   "Above header": {
     "string": "Arriba del encabezado"
@@ -4818,7 +4818,7 @@
     "string": "Comportamiento del teclado (iOS)"
   },
   "Keyboard Behavior (Android)": {
-    "string": "Comportamiento del Teclado (Android)"
+    "string": "Comportamiento del teclado (Android) "
   },
   "Keyboard Vertical Offset": {
     "string": "Desplazamiento vertical del teclado"
@@ -4890,10 +4890,10 @@
     "string": "Original"
   },
   "High": {
-    "string": "Alto"
+    "string": "Alta"
   },
   "Low": {
-    "string": "Bajo"
+    "string": "Baja"
   },
   "Enable Encrypted Media Sharing": {
     "string": "Habilitar el uso compartido cifrado de multimedia"
@@ -4932,13 +4932,13 @@
     "string": "Tamaño Máximo de Caché"
   },
   "Current cache: {size} / Max: {max}": {
-    "string": "Caché Actual:{size} /Max:{max}"
+    "string": "Actual caché: {size} / Max: {max}"
   },
   "Media Quality": {
     "string": "Calidad de Multimedia"
   },
   "Current: {quality}": {
-    "string": "Actual:{quality}"
+    "string": "Actual: {quality}"
   },
   "Video Recording Quality": {
     "string": "Calidad de Grabación de Video"
@@ -4947,7 +4947,7 @@
     "string": "Duración Máxima del Mensaje de Voz"
   },
   "Current: {duration} seconds": {
-    "string": "Actual:{duration}segundos"
+    "string": "Actual: {duration} segundos"
   },
   "1 minute": {
     "string": "1 minuto"
@@ -4992,10 +4992,10 @@
     "string": "Gestionar el consentimiento para anuncios personalizados y ver anuncios para obtener recompensas"
   },
   "Scripts (Scripting Time & No-Ads)": {
-    "string": "Scripts (Tiempo de Scripting y Sin Anuncios)"
+    "string": "Scripts (Tiempo de Scripting Sin Anuncios)"
   },
   "Manage IRC scripts and automation. Scripting time is also ad-free time.": {
-    "string": "Administre scripts de IRC y automatización. El tiempo de creación de scripts también es tiempo sin publicidad."
+    "string": "Administre los scripts de IRC. El tiempo de creación de scripts también es tiempo sin publicidad."
   },
   "Show Watch Ad Button (Premium)": {
     "string": "Mostrar Botón Ver anuncio (Premium)"
@@ -5019,34 +5019,34 @@
     "string": "Toque encabezado para conectarse a la red predeterminada"
   },
   "Kill Switch on Header": {
-    "string": "Interruptor de Apagado en el Encabezado"
+    "string": "Interruptor de Borrar en el Encabezado"
   },
   "Show kill switch button in header": {
-    "string": "Mostrar el botón de apagado en el encabezado"
+    "string": "Mostrar el botón de Borrar en el encabezado"
   },
   "Kill Switch on Lock Screen": {
-    "string": "Botón de Apagado en la Pantalla de Bloqueo"
+    "string": "Botón de Borrar en la Pantalla de Bloqueo"
   },
   "Show kill switch button on app unlock screen": {
-    "string": "Mostrar el Botón de Apagado en la pantalla de desbloqueo de la aplicación"
+    "string": "Mostrar el Botón de Borrar en la pantalla de desbloqueo de la aplicación"
   },
   "Show Kill Switch Warnings": {
-    "string": "Mostrar las Advertencias del Botón de Apagado"
+    "string": "Mostrar las Advertencias del Botón de Borrar"
   },
   "Show confirmation dialogs before activating kill switch (header only)": {
-    "string": "Mostrar cuadros de diálogo de confirmación antes de activar el Botón de Apagado (solo encabezado)"
+    "string": "Mostrar cuadros de diálogo de confirmación antes de activar el Botón de Borrar (solo encabezado)"
   },
   "Kill Switch Custom Name": {
-    "string": "Nombre Personalizado para el Botón de Apagado"
+    "string": "Nombre Personalizado para el Botón de Borrar"
   },
   "Custom name for kill switch button (e.g., \"meow meow\" for obfuscation)": {
-    "string": "Nombre personalizado para el Botón de Apagado (e.j., \"miau miau\" para ofuscación)"
+    "string": "Nombre personalizado para el Botón de Borrar (e.j., \"miau miau\" para ofuscación)"
   },
   "Enter custom name": {
     "string": "Introduce un nombre personalizado"
   },
   "Kill Switch Custom Icon": {
-    "string": "Icono Personalizado del Botón de Apagado"
+    "string": "Icono Personalizado del Botón de Borrar"
   },
   "FontAwesome5 icon name (e.g., \"cat\", \"heart\", \"star\")": {
     "string": "Nombre del icono FontAwesome5 (e.j., \"gato\", \"corazón\", \"estrella\")"
@@ -5055,7 +5055,7 @@
     "string": "Introduzca el nombre del icono"
   },
   "Kill Switch Custom Color": {
-    "string": "Interruptor de Apagado Color Personalizado"
+    "string": "Interruptor de Borrar Color Personalizado"
   },
   "Tap to choose from preset colors or enter hex code": {
     "string": "Toque para elegir entre colores preestablecidos o ingrese un código hexadecimal"
@@ -5166,7 +5166,7 @@
     "string": "Advertencia de Seguridad"
   },
   "This URL contains a password which is visible in plain text. This is insecure.\n\nServer: {server}\n\nContinue anyway?": {
-    "string": "Esta URL contiene una contraseña que es visible en texto sin formato. Esto es inseguro.\nServidor: {server}\n¿Continuar de todos modos?"
+    "string": "Esta URL contiene una contraseña que es visible en TXT. Esto es inseguro.\nServidor: {server}\n¿Continuar de todos modos?"
   },
   "Continue": {
     "string": "Continuar"
@@ -5175,13 +5175,13 @@
     "string": "Ya está conectado"
   },
   "Already connected to {server}": {
-    "string": "Ya está conectado a{server}"
+    "string": "Ya está conectado a {server}"
   },
   "Connect to IRC Server": {
     "string": "Conectarse al Servidor IRC"
   },
   "Connecting to {server}:{port}\n\nThis will create a temporary connection.{channel}\n\nContinue?": {
-    "string": "Conexión a {server}:{port}\nEsto creará una conexión temporal.{channel}\n\n¿Continuar?"
+    "string": "Conectando a {server}:{port}\n\nEsto creará una conexión temporal.{channel}\n\n¿Continuar?"
   },
   "Connect": {
     "string": "Conectar"
@@ -5352,7 +5352,7 @@
     "string": "Borrar permanentemente todos tus datos (no se puede deshacer)"
   },
   "🚨 KILL SWITCH 🚨": {
-    "string": "🚨 BOTON DE APAGAR 🚨"
+    "string": "🚨 BOTON DE BORRAR 🚨"
   },
   "EMERGENCY: Delete EVERYTHING including certs, logs, secure storage. Keyboard shortcut: Ctrl+Shift+K": {
     "string": "EMERGENCIA: Borrar TODO, incluyendo certificados, registros y almacenamiento seguro. Atajo de teclado: Ctrl+Shift+K"
@@ -5400,16 +5400,16 @@
     "string": "Según el RGPD y la CCPA, usted tiene derecho a:"
   },
   "Access your data (Export)": {
-    "string": "Acceda a sus datos (Exportar)"
+    "string": "Acceder a sus datos (Exportar)"
   },
   "Delete your data (Right to be forgotten)": {
-    "string": "Eliminar tus datos (Derecho a ser olvidado)"
+    "string": "Eliminar sus datos (Derecho a eliminar sus datos)"
   },
   "Opt-out of data collection": {
     "string": "Exclusión voluntaria de la recopilación de datos"
   },
   "Withdraw consent at any time": {
-    "string": "Quitar el permiso en cualquier momento"
+    "string": "Quitarse los permisos en cualquier momento"
   },
   "Data portability (Export to another service)": {
     "string": "Portabilidad de datos (Exportación a otro servicio)"
@@ -5706,43 +5706,43 @@
     "string": "Restaurar compras"
   },
   "• api.sendNotice(target, text, networkId?)": {
-    "string": "• api.sendNotice(target, text, networkId?)"
+    "string": "• api.sendNotice(objetivo, texto, id de red)"
   },
   "• api.sendCTCP(target, type, params?, networkId?)": {
-    "string": "• api.sendCTCP(target, type, params?, networkId?)"
+    "string": "• api.sendCTCP(objetivo, tipo, parámetros, id de red)"
   },
   "• api.getChannelUsers(channel, networkId?) — returns string[]": {
-    "string": "• api.getChannelUsers(channel, networkId?) — returns string[]"
+    "string": "• api.getChannelUsers(canal, id de red) — devuelve cadena[]"
   },
   "• api.getChannels(networkId?) — returns string[]": {
-    "string": "• api.getChannels(networkId?) — devuelve cadena[]"
+    "string": "• api.getChannels(id de red) — devuelve cadena[]"
   },
   "• api.setTimer(name, delayMs, repeat?) — set timer": {
-    "string": "• api.setTimer(name, delayMs, repeat?) — configura el temporizador"
+    "string": "• api.setTimer(nombre, delayMs, repetir) — configura el temporizador"
   },
   "• api.clearTimer(name) — clear timer": {
-    "string": "• api.clearTimer(name) — borra temporizador"
+    "string": "• api.clearTimer(nombre) — borra temporizador"
   },
   "• api.getNetworkId() — current network ID": {
     "string": "• api.getNetworkId() — ID de red actual"
   },
   "• api.isConnected(networkId?) — check connection": {
-    "string": "• api.isConnected(networkId?) — comprueba la conexión"
+    "string": "• api.isConnected(id de red) — comprueba la conexión"
   },
   "Connection Events": {
     "string": "Eventos de conexión"
   },
   "• onConnect(networkId) — when connected": {
-    "string": "• onConnect(networkId) — cuando está conectado"
+    "string": "• onConnect(id de red) — cuando está conectado"
   },
   "• onDisconnect(networkId, reason?) — when disconnected": {
-    "string": "• onDisconnect(networkId, reason?) — Cuando está desconectado"
+    "string": "• onDisconnect(id de red, motivo) — Cuando está desconectado"
   },
   "Message Events": {
     "string": "Eventos de mensajes"
   },
   "• onMessage(msg) — channel/query messages": {
-    "string": "• onMessage(msg) — mensajes de canal/privado"
+    "string": "• onMessage(mensaje) — mensajes de canal/privado"
   },
   "• onNotice(msg) — notice messages": {
     "string": "• onNotice(msg) — mensajes notice"
@@ -5760,34 +5760,34 @@
     "string": "• onPart(channel, nick, reason, msg) — El usuario parte"
   },
   "• onQuit(nick, reason, msg) — user quit": {
-    "string": "• onQuit(nick, reason, msg) — el usuario sale"
+    "string": "• onQuit(nick, motivo, mensaje) — el usuario sale"
   },
   "• onNickChange(oldNick, newNick, msg) — nick changed": {
-    "string": "• onNickChange(oldNick, newNick, msg) — nick changed"
+    "string": "• onNickChange(nickantiguo, nuevonick, mensaje) — nick cambiado"
   },
   "• onKick(channel, kickedNick, kickerNick, reason, msg) — user kicked": {
-    "string": "• onKick(channel, kickedNick, kickerNick, reason, msg) — usuario pateado"
+    "string": "• onKick(canal, kickedNick, kickerNick, motivo, mensaje) — usuario pateado"
   },
   "• onMode(channel, setterNick, mode, target?, msg) — mode changed": {
-    "string": "• onMode(channel, setterNick, mode, target?, msg) — modo cambiado"
+    "string": "• onMode(canal, setterNick, modo, bjetivo, mensaje) — modo cambiado"
   },
   "• onTopic(channel, topic, setterNick, msg) — topic changed": {
-    "string": "• onTopic(channel, topic, setterNick, msg) — tema cambiado"
+    "string": "• onTopic(canal, topic, setterNick, mensaje) — tema cambiado"
   },
   "• onInvite(channel, inviterNick, msg) — channel invite": {
-    "string": "• onInvite(channel, inviterNick, msg) — invitación al canal"
+    "string": "• onInvite(canal, Nickinvitado, mensaje) — invitación al canal"
   },
   "Other Events": {
     "string": "Otros Eventos"
   },
   "• onRaw(line, direction, msg?) — raw IRC line (in/out)": {
-    "string": "• onRaw(line, direction, msg?) — raw IRC line (in/out)"
+    "string": "• onRaw(linea, direccion, mensaje) — raw IRC linea (in/out)"
   },
   "• onCommand(text, ctx) — outgoing command": {
-    "string": "• onCommand(text, ctx) — comando saliente"
+    "string": "• onCommand(texto, ctx) — comando saliente"
   },
   "• onTimer(name) — timer fired": {
-    "string": "• onTimer(name) — temporizador disparado"
+    "string": "• onTimer(nombre) — temporizador disparado"
   },
   "CTCP Responder": {
     "string": "Responder CTCP "
@@ -5808,19 +5808,19 @@
     "string": "* Consultar api.isConnected() antes de enviar comandos."
   },
   "Scripting Time & No-Ads Remaining:": {
-    "string": "Tiempo de Scripting y Sin Anuncios Restantes:"
+    "string": "Tiempo de Scripting Sin Anuncios Restantes:"
   },
   "Scripting Time & No-Ads Active": {
-    "string": "Tiempo de Scripting y Sin Anuncios Activos"
+    "string": "Tiempo de Scripting Sin Anuncios Activos"
   },
   "When ON: Time counts down, scripts can run, no banner ads": {
-    "string": "Cuando ESTÁ ACTIVADO: Cuenta regresiva del tiempo, se pueden ejecutar scripts, sin anuncios publicitarios"
+    "string": "Cuando ESTÁ ACTIVADO: Hace una cuenta regresiva del tiempo y se pueden ejecutar scripts, sin anuncios publicitarios"
   },
   "Unlimited scripting: Toggle enables/disables no-ads mode": {
-    "string": "Secuencias de comandos ilimitadas: Alternar habilita/deshabilita el modo sin anuncios"
+    "string": "Scripts ilimitadas: Alternar habilita/deshabilita el modo sin anuncios"
   },
   "Upgrade to Unlimited Scripting & No-Ads": {
-    "string": "Actualice a Secuencias de comandos Ilimitadas y Sin Anuncios"
+    "string": "Actualice a Scripts Ilimitadas Sin Anuncios"
   },
   "No scripting time available. Watch an ad to gain 60 minutes of scripting time and no-ads. Scripts will be automatically disabled when time runs out.": {
     "string": "No hay tiempo de scripting disponible. Mire un anuncio para ganar 60 minutos de tiempo de creación de scripts y sin anuncios. Los scripts se desactivarán automáticamente cuando se agote el tiempo."
@@ -5952,7 +5952,7 @@
     "string": "Agrupación de Lista de Usuarios"
   },
   "Group users by status (ops/voice/etc.)": {
-    "string": "Agrupar usuarios por estado (owner/ops/voice/etc.)"
+    "string": "Agrupar usuarios por niveles (owner/ops/voice/etc.)"
   },
   "Auto-Disable Grouping Threshold": {
     "string": "Auto-Desabilitado Límite de Grupo"
@@ -5961,7 +5961,7 @@
     "string": "Virtualización de Listas de Usuarios"
   },
   "Use FlatList for large user lists (non-grouped)": {
-    "string": "Utilice FlatList para listas de usuarios grandes (no agrupadas)"
+    "string": "Usa Lista Plana para listas de usuarios grandes (no agrupadas)"
   },
   "Auto-Virtualize Threshold": {
     "string": "Auto-Virtualización de Límite"
@@ -6321,7 +6321,7 @@
     "string": "SI, BORRA TODO"
   },
   "Kill Switch Activated": {
-    "string": "Botón de Apagado Activado"
+    "string": "Botón de Borrar Activado"
   },
   "All data has been deleted. The app will now close.": {
     "string": "Se han eliminado todos los datos. La aplicación se cerrará."
@@ -6330,7 +6330,7 @@
     "string": "Auto-Voice"
   },
   "Automatically voices users when they join.": {
-    "string": "Dar voice automáticamente a los usuarios al entrar al canal."
+    "string": "Da voice automáticamente a los usuarios al entrar al canal."
   },
   "Rejoins channel if kicked.": {
     "string": "Se reincorpora al canal si lo expulsan/kick."
@@ -6375,7 +6375,7 @@
     "string": "Contador de usuarios"
   },
   "Counts users in channels and logs on join/part.": {
-    "string": "Cuenta usuarios en canales y registra cuando hacen join/part."
+    "string": "Cuenta usuarios en los canales y registra cuando hacen join/part."
   },
   "Highlight Tracker": {
     "string": "Rastreador de aspectos destacados."
@@ -6405,7 +6405,7 @@
     "string": "Búsqueda de Historial de Mensajes"
   },
   "Searches message history when you mention /search in a channel.": {
-    "string": "Busca mensajes en el historial cuando mencionas / busca en el canal"
+    "string": "Busca el historial de mensajes cuando escribes /search en el canal"
   },
   "Channel Bookmark Manager": {
     "string": "Administrador de Marcador de Canales"
@@ -6453,7 +6453,7 @@
     "string": "Rastreador de WHOIS"
   },
   "Tracks WHOIS information for users and logs it.": {
-    "string": "Seguimiento de la información de WHOIS de los usuarios y la registra."
+    "string": "Rastrea la información de WHOIS de los usuarios y la registra."
   },
   "Message Statistics": {
     "string": "Estadística de Mensajes"
@@ -6562,5 +6562,872 @@
   },
   "Invalid certificate format. Please configure a valid PEM certificate.": {
     "string": "Formato de certificado no válido. Configure un certificado PEM válido."
+  },
+  "Ignore (local)": {
+    "string": ""
+  },
+  "Kill": {
+    "string": ""
+  },
+  "OperServ Kill": {
+    "string": ""
+  },
+  "AKILL": {
+    "string": ""
+  },
+  "GLINE": {
+    "string": ""
+  },
+  "SHUN": {
+    "string": ""
+  },
+  "Custom Command": {
+    "string": ""
+  },
+  "Nick only": {
+    "string": ""
+  },
+  "Nick!user@*": {
+    "string": ""
+  },
+  "*!*@host": {
+    "string": ""
+  },
+  "Nick!*@host": {
+    "string": ""
+  },
+  "Add to Blacklist": {
+    "string": ""
+  },
+  "Mask": {
+    "string": ""
+  },
+  "Action": {
+    "string": ""
+  },
+  "Command template (use {mask}, {usermask}, {hostmask}, {nick})": {
+    "string": ""
+  },
+  "Select Action": {
+    "string": ""
+  },
+  "Set away message": {
+    "string": ""
+  },
+  "Remove away status": {
+    "string": ""
+  },
+  "Invite user to channel": {
+    "string": ""
+  },
+  "List channels on server": {
+    "string": ""
+  },
+  "List users in channel": {
+    "string": ""
+  },
+  "Query user information": {
+    "string": ""
+  },
+  "Ban user from channel": {
+    "string": ""
+  },
+  "Unban user from channel": {
+    "string": ""
+  },
+  "Kick and ban user": {
+    "string": ""
+  },
+  "Send notice message": {
+    "string": ""
+  },
+  "Ignore user messages": {
+    "string": ""
+  },
+  "Stop ignoring user": {
+    "string": ""
+  },
+  "Clear current tab messages": {
+    "string": ""
+  },
+  "Close current tab": {
+    "string": ""
+  },
+  "Display local message": {
+    "string": ""
+  },
+  "Send message to all channels": {
+    "string": ""
+  },
+  "Send action to all channels": {
+    "string": ""
+  },
+  "Send notice to all channels": {
+    "string": ""
+  },
+  "Get user statistics": {
+    "string": ""
+  },
+  "Get server version": {
+    "string": ""
+  },
+  "Get server time": {
+    "string": ""
+  },
+  "Get server admin info": {
+    "string": ""
+  },
+  "List server links": {
+    "string": ""
+  },
+  "Get server statistics": {
+    "string": ""
+  },
+  "Check if nicks are online": {
+    "string": ""
+  },
+  "Get message of the day": {
+    "string": ""
+  },
+  "Ping server": {
+    "string": ""
+  },
+  "Trace route to server": {
+    "string": ""
+  },
+  "Query IRC services": {
+    "string": ""
+  },
+  "Reconnect to server": {
+    "string": ""
+  },
+  "Connect to server: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]": {
+    "string": ""
+  },
+  "Set alternate nickname": {
+    "string": ""
+  },
+  "Auto-join on invite toggle": {
+    "string": ""
+  },
+  "Play beep sound": {
+    "string": ""
+  },
+  "Channel notice": {
+    "string": ""
+  },
+  "Channel privmsg": {
+    "string": ""
+  },
+  "Show help": {
+    "string": ""
+  },
+  "DNS lookup": {
+    "string": ""
+  },
+  "Execute command after delay": {
+    "string": ""
+  },
+  "Window/tab management": {
+    "string": ""
+  },
+  "Filter messages": {
+    "string": ""
+  },
+  "Send wallops message (IRCop)": {
+    "string": ""
+  },
+  "Send local ops message (IRCop)": {
+    "string": ""
+  },
+  "Send global ops message (IRCop)": {
+    "string": ""
+  },
+  "Admin chat (IRCop)": {
+    "string": ""
+  },
+  "Chat with services": {
+    "string": ""
+  },
+  "Get server information": {
+    "string": ""
+  },
+  "Request invite to channel": {
+    "string": ""
+  },
+  "Get server rules": {
+    "string": ""
+  },
+  "List IRC services": {
+    "string": ""
+  },
+  "Get user host information": {
+    "string": ""
+  },
+  "Get user IP address": {
+    "string": ""
+  },
+  "Get user list": {
+    "string": ""
+  },
+  "Monitor users (legacy)": {
+    "string": ""
+  },
+  "IRCop login": {
+    "string": ""
+  },
+  "IRCop rehash server": {
+    "string": ""
+  },
+  "IRCop disconnect server": {
+    "string": ""
+  },
+  "IRCop kill user": {
+    "string": ""
+  },
+  "IRCop connect servers": {
+    "string": ""
+  },
+  "IRCop shutdown server": {
+    "string": ""
+  },
+  "Open color picker": {
+    "string": ""
+  },
+  "mIRC Formatting": {
+    "string": ""
+  },
+  "Standard": {
+    "string": ""
+  },
+  "Extended": {
+    "string": ""
+  },
+  "FG": {
+    "string": ""
+  },
+  "BG": {
+    "string": ""
+  },
+  "Select color {index}": {
+    "string": ""
+  },
+  "Failed to export theme": {
+    "string": ""
+  },
+  "Theme Exported": {
+    "string": ""
+  },
+  "Theme saved to:\n{path}": {
+    "string": ""
+  },
+  "Theme Imported": {
+    "string": ""
+  },
+  "Successfully imported theme \"{name}\". Would you like to use it now?": {
+    "string": ""
+  },
+  "Use Now": {
+    "string": ""
+  },
+  "Import Failed": {
+    "string": ""
+  },
+  "Failed to import theme": {
+    "string": ""
+  },
+  "Export Current Theme": {
+    "string": ""
+  },
+  "Save theme to JSON file for sharing": {
+    "string": ""
+  },
+  "Import Theme": {
+    "string": ""
+  },
+  "Load theme from JSON file": {
+    "string": ""
+  },
+  "Current: {size} ({px}px)": {
+    "string": ""
+  },
+  "Use Small": {
+    "string": ""
+  },
+  "Use Medium": {
+    "string": ""
+  },
+  "Use Large": {
+    "string": ""
+  },
+  "Use Specified": {
+    "string": ""
+  },
+  "Small Size (px)": {
+    "string": ""
+  },
+  "Medium Size (px)": {
+    "string": ""
+  },
+  "Large Size (px)": {
+    "string": ""
+  },
+  "Specified Size (px)": {
+    "string": ""
+  },
+  "Group Messages": {
+    "string": ""
+  },
+  "Group consecutive messages from the same user": {
+    "string": ""
+  },
+  "Message Text Alignment": {
+    "string": ""
+  },
+  "Alignment: {align}": {
+    "string": ""
+  },
+  "Select alignment:": {
+    "string": ""
+  },
+  "Center": {
+    "string": ""
+  },
+  "Justify": {
+    "string": ""
+  },
+  "Message Text Direction": {
+    "string": ""
+  },
+  "Direction: {direction}": {
+    "string": ""
+  },
+  "Select direction:": {
+    "string": ""
+  },
+  "Auto": {
+    "string": ""
+  },
+  "Left-to-right": {
+    "string": ""
+  },
+  "Right-to-left": {
+    "string": ""
+  },
+  "Show Color Picker Button": {
+    "string": ""
+  },
+  "Display mIRC color picker next to message input": {
+    "string": ""
+  },
+  "Hide mIRC color picker button": {
+    "string": ""
+  },
+  "Blacklist": {
+    "string": ""
+  },
+  "Auto-run actions for matched masks": {
+    "string": ""
+  },
+  "Blacklist feature coming soon": {
+    "string": ""
+  },
+  "Added {nick} to blacklist": {
+    "string": ""
+  },
+  "Changing server": {
+    "string": ""
+  },
+  "*** Network \"{name}\" created (not connected). Use /server -m {address} to connect.": {
+    "string": ""
+  },
+  "Invalid server address or configuration": {
+    "string": ""
+  },
+  "Failed to connect: {error}": {
+    "string": ""
+  },
+  "*** DCC SEND offer from {from}: {filename} - Rejected": {
+    "string": ""
+  },
+  "*** DCC SEND offer from {from}: {filename} - Open DCC Transfers to accept": {
+    "string": ""
+  },
+  "*** Server list sorted": {
+    "string": ""
+  },
+  "*** Server added: {server}:{port}": {
+    "string": ""
+  },
+  "*** Server removed: {server}": {
+    "string": ""
+  },
+  "*** Server connection details updated": {
+    "string": ""
+  },
+  "No server specified. Use /server <address> [port]": {
+    "string": ""
+  },
+  "*** Server command error: {error}": {
+    "string": ""
+  },
+  "Usage: /dns <hostname>": {
+    "string": ""
+  },
+  "*** DNS lookup failed for {hostname}": {
+    "string": ""
+  },
+  "*** No DNS records found for {hostname}": {
+    "string": ""
+  },
+  "*** DNS A for {hostname}: {records}": {
+    "string": ""
+  },
+  "*** DNS A for {hostname}: <none>": {
+    "string": ""
+  },
+  "*** DNS AAAA for {hostname}: {records}": {
+    "string": ""
+  },
+  "*** DNS AAAA for {hostname}: <none>": {
+    "string": ""
+  },
+  "*** DNS lookup failed for {hostname}: {error}": {
+    "string": ""
+  },
+  "*** Message sent to {count} channel(s)": {
+    "string": ""
+  },
+  "*** Action sent to {count} channel(s)": {
+    "string": ""
+  },
+  "*** Notice sent to {count} channel(s)": {
+    "string": ""
+  },
+  "Version 1.6.13": {
+    "string": ""
+  },
+  "Missing Command": {
+    "string": ""
+  },
+  "Custom command is required for this action.": {
+    "string": ""
+  },
+  "Blacklist entry updated": {
+    "string": ""
+  },
+  "User added to blacklist": {
+    "string": ""
+  },
+  "Remove from Blacklist": {
+    "string": ""
+  },
+  "User removed from blacklist": {
+    "string": ""
+  },
+  "Templates": {
+    "string": ""
+  },
+  "No matching blacklist entries": {
+    "string": ""
+  },
+  "No blacklist entries": {
+    "string": ""
+  },
+  "Add users to auto-run actions on join": {
+    "string": ""
+  },
+  "Edit Blacklist Entry": {
+    "string": ""
+  },
+  "Enter a mask to match. Examples:": {
+    "string": ""
+  },
+  "nick (match a nick)": {
+    "string": ""
+  },
+  "*!*@host.com (match a host)": {
+    "string": ""
+  },
+  "*!*@*.tor-exit.* (wildcards allowed)": {
+    "string": ""
+  },
+  "Command template (use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration})": {
+    "string": ""
+  },
+  "Duration (e.g., 1d, 7d, 1h, 0 for permanent)": {
+    "string": ""
+  },
+  "Blacklist Templates": {
+    "string": ""
+  },
+  "Set default commands for AKILL/GLINE/SHUN. Use {mask}, {usermask}, {hostmask}, {reason}.": {
+    "string": ""
+  },
+  "AKILL template": {
+    "string": ""
+  },
+  "GLINE template": {
+    "string": ""
+  },
+  "SHUN template": {
+    "string": ""
+  },
+  "Invite exception added": {
+    "string": ""
+  },
+  "Invite exception removed": {
+    "string": ""
+  },
+  "Invite Exception List": {
+    "string": ""
+  },
+  "Invite mask (e.g., *!*@trusted.host)": {
+    "string": ""
+  },
+  "Refresh Invite List": {
+    "string": ""
+  },
+  "No invite exceptions": {
+    "string": ""
+  },
+  "Highlights": {
+    "string": ""
+  },
+  "Blacklisted": {
+    "string": ""
+  },
+  "Usage: /part <channel> [message]": {
+    "string": ""
+  },
+  "*** You are now away: {message}": {
+    "string": ""
+  },
+  "*** You are no longer away": {
+    "string": ""
+  },
+  "*** Invited {nick} to {channel}": {
+    "string": ""
+  },
+  "Usage: /invite <nick> [channel]": {
+    "string": ""
+  },
+  "*** Requesting channel list...": {
+    "string": ""
+  },
+  "Usage: /names [channel]": {
+    "string": ""
+  },
+  "*** Banning {nick} from {channel}": {
+    "string": ""
+  },
+  "Usage: /ban <nick> [channel]": {
+    "string": ""
+  },
+  "*** Unbanning {mask} from {channel}": {
+    "string": ""
+  },
+  "Usage: /unban <nick|mask> [channel]": {
+    "string": ""
+  },
+  "*** Kicking and banning {nick} from {channel}": {
+    "string": ""
+  },
+  "Usage: /kickban <nick> [channel] [reason]": {
+    "string": ""
+  },
+  "Usage: /notice <target> <message>": {
+    "string": ""
+  },
+  "*** Now ignoring {mask}": {
+    "string": ""
+  },
+  "*** Failed to ignore user: {message}": {
+    "string": ""
+  },
+  "Usage: /ignore <nick|mask> [reason]": {
+    "string": ""
+  },
+  "*** No longer ignoring {mask}": {
+    "string": ""
+  },
+  "*** Failed to unignore user: {message}": {
+    "string": ""
+  },
+  "Usage: /unignore <nick|mask>": {
+    "string": ""
+  },
+  "*** Messages cleared": {
+    "string": ""
+  },
+  "Usage: /echo <message>": {
+    "string": ""
+  },
+  "*** Sending message to all channels...": {
+    "string": ""
+  },
+  "Usage: /amsg <message>": {
+    "string": ""
+  },
+  "*** Sending action to all channels...": {
+    "string": ""
+  },
+  "Usage: /ame <action>": {
+    "string": ""
+  },
+  "*** Sending notice to all channels...": {
+    "string": ""
+  },
+  "Usage: /anotice <message>": {
+    "string": ""
+  },
+  "Usage: /ison <nick1> [nick2] ...": {
+    "string": ""
+  },
+  "Usage: /squery <service> <message>": {
+    "string": ""
+  },
+  "*** Reconnecting to server...": {
+    "string": ""
+  },
+  "Invalid /server command syntax": {
+    "string": ""
+  },
+  "*** Alternate nickname set to: {nick}": {
+    "string": ""
+  },
+  "Usage: /anick <nickname>": {
+    "string": ""
+  },
+  "*** Auto-join on invite: {state}": {
+    "string": ""
+  },
+  "*** Beep!": {
+    "string": ""
+  },
+  "Usage: /cnotice <nick> <channel> <message>": {
+    "string": ""
+  },
+  "Usage: /cprivmsg <nick> <channel> <message>": {
+    "string": ""
+  },
+  "*** Help for /{command} - Use Settings > Help for full documentation": {
+    "string": ""
+  },
+  "*** IRC Commands Help": {
+    "string": ""
+  },
+  "*** Use /help <command> for specific command help": {
+    "string": ""
+  },
+  "*** Or go to Settings > Help for full documentation": {
+    "string": ""
+  },
+  "Usage: /raw <command>": {
+    "string": ""
+  },
+  "*** Looking up DNS for {hostname}...": {
+    "string": ""
+  },
+  "*** Timer \"{name}\" set: {delay}ms, {repetitions} repetitions": {
+    "string": ""
+  },
+  "Usage: /timer <name> <delay> <repetitions> <command>": {
+    "string": ""
+  },
+  "Usage: /window -a <name>": {
+    "string": ""
+  },
+  "Usage: /window [-a] <name>": {
+    "string": ""
+  },
+  "*** Filtering messages containing: {text}": {
+    "string": ""
+  },
+  "Usage: /filter [-g] <text>": {
+    "string": ""
+  },
+  "Usage: /wallops <message>": {
+    "string": ""
+  },
+  "Usage: /locops <message>": {
+    "string": ""
+  },
+  "Usage: /globops <message>": {
+    "string": ""
+  },
+  "Usage: /adchat <message>": {
+    "string": ""
+  },
+  "Usage: /chat <service> <message>": {
+    "string": ""
+  },
+  "*** Knock sent to {channel}": {
+    "string": ""
+  },
+  "Usage: /knock <channel> [message]": {
+    "string": ""
+  },
+  "Usage: /userhost <nick1> [nick2] ...": {
+    "string": ""
+  },
+  "Usage: /userip <nick>": {
+    "string": ""
+  },
+  "Usage: /watch +nick1 -nick2 ...": {
+    "string": ""
+  },
+  "*** Attempting IRCop login...": {
+    "string": ""
+  },
+  "Usage: /oper <nick> <password>": {
+    "string": ""
+  },
+  "*** Requesting server rehash...": {
+    "string": ""
+  },
+  "*** Requesting server disconnect: {server}": {
+    "string": ""
+  },
+  "Usage: /squit <server> [message]": {
+    "string": ""
+  },
+  "*** Killing user: {nick}": {
+    "string": ""
+  },
+  "Usage: /kill <nick> <reason>": {
+    "string": ""
+  },
+  "*** Requesting server connection: {server}:{port}": {
+    "string": ""
+  },
+  "Usage: /connect <server> <port> [remote]": {
+    "string": ""
+  },
+  "*** Requesting server shutdown...": {
+    "string": ""
+  },
+  "Invalid theme file format": {
+    "string": ""
+  },
+  "Theme is missing required color: {key}": {
+    "string": ""
+  },
+  "Invalid JSON format": {
+    "string": ""
+  },
+  "Message format": {
+    "string": ""
+  },
+  "Message with mention format": {
+    "string": ""
+  },
+  "Action (/me) message format": {
+    "string": ""
+  },
+  "Action (/me) message with mention format": {
+    "string": ""
+  },
+  "Notice message format": {
+    "string": ""
+  },
+  "Event (join/leave/etc.) message format": {
+    "string": ""
+  },
+  "time": {
+    "string": ""
+  },
+  "sender": {
+    "string": ""
+  },
+  "message": {
+    "string": ""
+  },
+  "channel": {
+    "string": ""
+  },
+  "network": {
+    "string": ""
+  },
+  "account": {
+    "string": ""
+  },
+  "hostname": {
+    "string": ""
+  },
+  "hostmask": {
+    "string": ""
+  },
+  "target": {
+    "string": ""
+  },
+  "mode": {
+    "string": ""
+  },
+  "topic": {
+    "string": ""
+  },
+  "reason": {
+    "string": ""
+  },
+  "numeric": {
+    "string": ""
+  },
+  "command": {
+    "string": ""
+  },
+  "This is an example message.": {
+    "string": ""
+  },
+  "Example topic": {
+    "string": ""
+  },
+  "Example reason": {
+    "string": ""
+  },
+  "does an example action": {
+    "string": ""
+  },
+  "[sender-nick!user@host.test has joined]": {
+    "string": ""
+  },
+  "Message Format": {
+    "string": ""
+  },
+  "Add Part": {
+    "string": ""
+  },
+  "Edit Part": {
+    "string": ""
+  },
+  "Token": {
+    "string": ""
+  },
+  "Text color": {
+    "string": ""
+  },
+  "Move Left": {
+    "string": ""
+  },
+  "Move Right": {
+    "string": ""
+  },
+  "Apply": {
+    "string": ""
+  },
+  "Pick Color": {
+    "string": ""
+  },
+  "Custom": {
+    "string": ""
+  },
+  "#RRGGBB": {
+    "string": ""
+  },
+  "Edit format": {
+    "string": ""
+  },
+  "Customize format": {
+    "string": ""
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   TextInput,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  ScrollView,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../hooks/useTheme';
@@ -20,12 +22,29 @@ import { useTabStore } from '../stores/tabStore';
 import { MediaUploadModal } from './MediaUploadModal';
 import { MediaPreviewModal } from './MediaPreviewModal';
 import { MediaPickResult } from '../services/MediaPickerService';
+import { IRC_EXTENDED_COLOR_MAP, IRC_FORMAT_CODES, IRC_STANDARD_COLOR_MAP } from '../utils/IRCFormatter';
 
 type MessageInputSuggestion = {
   text: string;
   description?: string;
   source: 'command' | 'alias' | 'history' | 'nick';
 };
+
+const MIR_CONTROL = {
+  bold: String.fromCharCode(IRC_FORMAT_CODES.BOLD),
+  italic: String.fromCharCode(IRC_FORMAT_CODES.ITALIC),
+  underline: String.fromCharCode(IRC_FORMAT_CODES.UNDERLINE),
+  reverse: String.fromCharCode(IRC_FORMAT_CODES.REVERSE),
+  reset: String.fromCharCode(IRC_FORMAT_CODES.RESET),
+  color: String.fromCharCode(IRC_FORMAT_CODES.COLOR),
+  strikethrough: String.fromCharCode(IRC_FORMAT_CODES.STRIKETHROUGH),
+};
+
+const MIR_STANDARD_COLORS = Array.from({ length: 16 }, (_, index) => IRC_STANDARD_COLOR_MAP[index]);
+const MIR_EXTENDED_COLORS = Array.from({ length: 99 }, (_, index) => {
+  if (index < 16) return IRC_STANDARD_COLOR_MAP[index];
+  return IRC_EXTENDED_COLOR_MAP[index];
+});
 
 interface MessageInputProps {
   placeholder?: string;
@@ -59,12 +78,20 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const styles = createStyles(colors, totalBottomInset);
   const [message, setMessage] = useState('');
   const [suggestions, setSuggestions] = useState<MessageInputSuggestion[]>([]);
+  const [selection, setSelection] = useState({ start: 0, end: 0 });
+  const selectionRef = useRef(selection);
 
   // Media upload state
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
   const [showMediaPreviewModal, setShowMediaPreviewModal] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<MediaPickResult | null>(null);
   const [showAttachmentButton, setShowAttachmentButton] = useState(false);
+  const [showColorPickerButton, setShowColorPickerButton] = useState(true);
+  const [showColorPickerModal, setShowColorPickerModal] = useState(false);
+  const [paletteMode, setPaletteMode] = useState<'standard' | 'extended'>('standard');
+  const [colorTarget, setColorTarget] = useState<'fg' | 'bg'>('fg');
+  const [selectedFg, setSelectedFg] = useState<number | null>(null);
+  const [selectedBg, setSelectedBg] = useState<number | null>(null);
 
   // Send button state
   const [showSendButton, setShowSendButton] = useState(true);
@@ -78,6 +105,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const loadSendButtonSetting = async () => {
       const enabled = await settingsService.getSetting('showSendButton', true);
       setShowSendButton(enabled);
+      const showColors = await settingsService.getSetting('showColorPickerButton', true);
+      setShowColorPickerButton(showColors);
     };
     loadSendButtonSetting();
 
@@ -85,11 +114,19 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const unsubscribe = settingsService.onSettingChange<boolean>('showSendButton', (value) => {
       setShowSendButton(value);
     });
+    const unsubscribeColors = settingsService.onSettingChange<boolean>('showColorPickerButton', (value) => {
+      setShowColorPickerButton(Boolean(value));
+    });
 
     return () => {
       unsubscribe();
+      unsubscribeColors();
     };
   }, []);
+
+  useEffect(() => {
+    selectionRef.current = selection;
+  }, [selection]);
 
   // Check if attachment button should be shown
   useEffect(() => {
@@ -200,6 +237,48 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const handleMediaPreviewClose = () => {
     setSelectedMedia(null);
     setShowMediaPreviewModal(false);
+  };
+
+  const formatColorCode = (fg: number, bg?: number | null) => {
+    const fgText = fg.toString().padStart(2, '0');
+    const bgText = bg === null || bg === undefined ? '' : `,${bg.toString().padStart(2, '0')}`;
+    return `${MIR_CONTROL.color}${fgText}${bgText}`;
+  };
+
+  const applyControlCode = useCallback((openCode: string, closeCode?: string) => {
+    const { start, end } = selectionRef.current;
+    const before = message.slice(0, start);
+    const selected = message.slice(start, end);
+    const after = message.slice(end);
+    if (start !== end) {
+      const closing = closeCode ?? openCode;
+      const nextValue = `${before}${openCode}${selected}${closing}${after}`;
+      const nextCursor = before.length + openCode.length + selected.length + closing.length;
+      setMessage(nextValue);
+      setSelection({ start: nextCursor, end: nextCursor });
+      return;
+    }
+    const nextValue = `${before}${openCode}${after}`;
+    const nextCursor = start + openCode.length;
+    setMessage(nextValue);
+    setSelection({ start: nextCursor, end: nextCursor });
+  }, [message]);
+
+  const handleColorPick = (code: number) => {
+    if (colorTarget === 'bg') {
+      const fg = selectedFg ?? 0;
+      setSelectedBg(code);
+      applyControlCode(formatColorCode(fg, code), MIR_CONTROL.color);
+      return;
+    }
+    setSelectedFg(code);
+    applyControlCode(formatColorCode(code, selectedBg), MIR_CONTROL.color);
+  };
+
+  const handleResetFormatting = () => {
+    setSelectedFg(null);
+    setSelectedBg(null);
+    applyControlCode(MIR_CONTROL.reset);
   };
 
   // Cleanup typing indicator on unmount
@@ -443,6 +522,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setSuggestions(merged.slice(0, 8));
   };
 
+  const showToolbar = showAttachmentButton || showColorPickerButton;
+  const useToolbarScroll = showAttachmentButton && showColorPickerButton;
+
   // Support external prefill (e.g., quick actions)
   React.useEffect(() => {
     if (prefilledMessage) {
@@ -455,15 +537,56 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.inputContainer}>
-        {/* Attachment button (conditional) */}
-        {showAttachmentButton && (
-          <TouchableOpacity
-            style={styles.attachmentButton}
-            onPress={handleAttachmentPress}
-            disabled={disabled}
-            accessibilityLabel={t('Attach media')}>
-            <Text style={styles.attachmentIcon}>📎</Text>
-          </TouchableOpacity>
+        {showToolbar && (
+          <View style={styles.toolbarContainer}>
+            {useToolbarScroll ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.toolbarContent}
+              >
+                {showAttachmentButton && (
+                  <TouchableOpacity
+                    style={styles.attachmentButton}
+                    onPress={handleAttachmentPress}
+                    disabled={disabled}
+                    accessibilityLabel={t('Attach media')}>
+                    <Text style={styles.attachmentIcon}>📎</Text>
+                  </TouchableOpacity>
+                )}
+                {showColorPickerButton && (
+                  <TouchableOpacity
+                    style={styles.colorButton}
+                    onPress={() => setShowColorPickerModal(true)}
+                    disabled={disabled}
+                    accessibilityLabel={t('Open color picker')}>
+                    <Icon name="palette" size={16} color={colors.textSecondary} solid />
+                  </TouchableOpacity>
+                )}
+              </ScrollView>
+            ) : (
+              <>
+                {showAttachmentButton && (
+                  <TouchableOpacity
+                    style={styles.attachmentButton}
+                    onPress={handleAttachmentPress}
+                    disabled={disabled}
+                    accessibilityLabel={t('Attach media')}>
+                    <Text style={styles.attachmentIcon}>📎</Text>
+                  </TouchableOpacity>
+                )}
+                {showColorPickerButton && (
+                  <TouchableOpacity
+                    style={styles.colorButton}
+                    onPress={() => setShowColorPickerModal(true)}
+                    disabled={disabled}
+                    accessibilityLabel={t('Open color picker')}>
+                    <Icon name="palette" size={16} color={colors.textSecondary} solid />
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
+          </View>
         )}
 
         <TextInput
@@ -473,6 +596,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           placeholder={placeholder || t('Enter a message')}
           placeholderTextColor={colors.inputPlaceholder}
           onSubmitEditing={handleSubmit}
+          onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
+          selection={selection}
           editable={!disabled}
           multiline={false}
         />
@@ -523,6 +648,111 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         </View>
       )}
 
+      <Modal
+        visible={showColorPickerModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowColorPickerModal(false)}
+      >
+        <View style={styles.colorModalOverlay}>
+          <View style={styles.colorModalCard}>
+            <View style={styles.colorModalHeader}>
+              <Text style={styles.colorModalTitle}>{t('mIRC Formatting')}</Text>
+              <TouchableOpacity onPress={() => setShowColorPickerModal(false)}>
+                <Text style={styles.colorModalClose}>{t('Close')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.formatActionsRow}>
+              <TouchableOpacity
+                style={styles.formatAction}
+                onPress={() => applyControlCode(MIR_CONTROL.bold)}
+              >
+                <Text style={[styles.formatActionText, styles.formatBold]}>B</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.formatAction}
+                onPress={() => applyControlCode(MIR_CONTROL.italic)}
+              >
+                <Text style={[styles.formatActionText, styles.formatItalic]}>I</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.formatAction}
+                onPress={() => applyControlCode(MIR_CONTROL.underline)}
+              >
+                <Text style={[styles.formatActionText, styles.formatUnderline]}>U</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.formatAction}
+                onPress={() => applyControlCode(MIR_CONTROL.strikethrough)}
+              >
+                <Text style={[styles.formatActionText, styles.formatStrike]}>S</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.formatAction}
+                onPress={() => applyControlCode(MIR_CONTROL.reverse)}
+              >
+                <Text style={styles.formatActionText}>R</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.formatAction}
+                onPress={handleResetFormatting}
+              >
+                <Text style={styles.formatActionText}>0</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.paletteTabs}>
+              <TouchableOpacity
+                style={[styles.paletteTab, paletteMode === 'standard' && styles.paletteTabActive]}
+                onPress={() => setPaletteMode('standard')}
+              >
+                <Text style={[styles.paletteTabText, paletteMode === 'standard' && styles.paletteTabTextActive]}>
+                  {t('Standard')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.paletteTab, paletteMode === 'extended' && styles.paletteTabActive]}
+                onPress={() => setPaletteMode('extended')}
+              >
+                <Text style={[styles.paletteTabText, paletteMode === 'extended' && styles.paletteTabTextActive]}>
+                  {t('Extended')}
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.paletteSpacer} />
+              <TouchableOpacity
+                style={[styles.paletteTarget, colorTarget === 'fg' && styles.paletteTargetActive]}
+                onPress={() => setColorTarget('fg')}
+              >
+                <Text style={[styles.paletteTargetText, colorTarget === 'fg' && styles.paletteTargetTextActive]}>
+                  {t('FG')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.paletteTarget, colorTarget === 'bg' && styles.paletteTargetActive]}
+                onPress={() => setColorTarget('bg')}
+              >
+                <Text style={[styles.paletteTargetText, colorTarget === 'bg' && styles.paletteTargetTextActive]}>
+                  {t('BG')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.colorGridScroll} contentContainerStyle={styles.colorGrid}>
+              {(paletteMode === 'standard' ? MIR_STANDARD_COLORS : MIR_EXTENDED_COLORS).map((hex, index) => (
+                <TouchableOpacity
+                  key={`${paletteMode}-${index}`}
+                  style={[styles.colorSwatch, { backgroundColor: hex }]}
+                  onPress={() => handleColorPick(index)}
+                  accessibilityLabel={t('Select color {index}', { index })}
+                >
+                  {(colorTarget === 'fg' ? selectedFg : selectedBg) === index && (
+                    <Text style={styles.colorSwatchCheck}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       {/* Media upload modals */}
       <MediaUploadModal
         visible={showMediaUploadModal}
@@ -572,6 +802,13 @@ const createStyles = (colors: any, bottomInset: number = 0) => StyleSheet.create
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
+  toolbarContainer: {
+    marginRight: 8,
+  },
+  toolbarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   attachmentButton: {
     marginRight: 8,
     padding: 4,
@@ -579,6 +816,14 @@ const createStyles = (colors: any, bottomInset: number = 0) => StyleSheet.create
   attachmentIcon: {
     fontSize: 20,
     opacity: 0.7,
+  },
+  colorButton: {
+    marginRight: 4,
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   sendButton: {
     marginLeft: 8,
@@ -607,5 +852,134 @@ const createStyles = (colors: any, bottomInset: number = 0) => StyleSheet.create
   },
   suggestionText: {
     fontSize: 13,
+  },
+  colorModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  colorModalCard: {
+    width: '92%',
+    maxWidth: 420,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+  },
+  colorModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  colorModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  colorModalClose: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  formatActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  formatAction: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  formatActionText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  formatBold: {
+    fontWeight: '800',
+  },
+  formatItalic: {
+    fontStyle: 'italic',
+  },
+  formatUnderline: {
+    textDecorationLine: 'underline',
+  },
+  formatStrike: {
+    textDecorationLine: 'line-through',
+  },
+  paletteTabs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  paletteTab: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: 8,
+  },
+  paletteTabActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  paletteTabText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  paletteTabTextActive: {
+    color: colors.onPrimary || '#fff',
+  },
+  paletteSpacer: {
+    flex: 1,
+  },
+  paletteTarget: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginLeft: 6,
+  },
+  paletteTargetActive: {
+    backgroundColor: colors.surfaceVariant || colors.background,
+  },
+  paletteTargetText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  paletteTargetTextActive: {
+    color: colors.primary,
+  },
+  colorGridScroll: {
+    maxHeight: 280,
+  },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingBottom: 4,
+  },
+  colorSwatch: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  colorSwatchCheck: {
+    color: colors.text,
+    fontWeight: '700',
   },
 });

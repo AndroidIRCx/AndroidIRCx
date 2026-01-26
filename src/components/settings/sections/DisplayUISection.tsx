@@ -66,6 +66,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const [showEncryptionIndicatorsSetting, setShowEncryptionIndicatorsSetting] = useState(propShowEncryptionIndicators ?? true);
   const [showTypingIndicatorsSetting, setShowTypingIndicatorsSetting] = useState(propShowTypingIndicators ?? true);
   const [showSendButton, setShowSendButton] = useState(true);
+  const [showColorPickerButton, setShowColorPickerButton] = useState(true);
   const [keyboardAvoidingEnabled, setKeyboardAvoidingEnabled] = useState(true);
   const [keyboardBehaviorIOS, setKeyboardBehaviorIOS] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('padding');
   const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('height');
@@ -91,6 +92,9 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
 
       const sendButton = await settingsService.getSetting('showSendButton', true);
       setShowSendButton(sendButton);
+
+      const colorPickerButton = await settingsService.getSetting('showColorPickerButton', true);
+      setShowColorPickerButton(colorPickerButton);
 
       const avoidingEnabled = await settingsService.getSetting('keyboardAvoidingEnabled', true);
       setKeyboardAvoidingEnabled(avoidingEnabled);
@@ -273,12 +277,106 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         title: t('Show Timestamps', { _tags: tags }),
         description: t('Display message timestamps', { _tags: tags }),
         type: 'switch',
-        value: true,
+        value: layoutConfig?.timestampDisplay !== 'never',
         searchKeywords: ['timestamps', 'time', 'clock', 'display', 'show'],
-        onValueChange: () => Alert.alert(
-          t('Info', { _tags: tags }),
-          t('Timestamp display setting coming soon', { _tags: tags })
-        ),
+        onValueChange: async (value: boolean | string) => {
+          const showTimestamps = value as boolean;
+          await layoutService.setTimestampDisplay(showTimestamps ? 'grouped' : 'never');
+          updateLayoutConfig({});
+        },
+      },
+      {
+        id: 'display-message-grouping',
+        title: t('Group Messages', { _tags: tags }),
+        description: t('Group consecutive messages from the same user', { _tags: tags }),
+        type: 'switch',
+        value: layoutConfig?.messageGroupingEnabled !== false,
+        searchKeywords: ['group', 'messages', 'combine', 'consecutive', 'spacing'],
+        onValueChange: async (value: boolean | string) => {
+          await layoutService.setMessageGroupingEnabled(Boolean(value));
+          updateLayoutConfig({});
+        },
+      },
+      {
+        id: 'message-text-align',
+        title: t('Message Text Alignment', { _tags: tags }),
+        description: t('Alignment: {align}', { align: layoutConfig?.messageTextAlign || 'left', _tags: tags }),
+        type: 'button',
+        searchKeywords: ['message', 'text', 'align', 'left', 'right', 'center', 'justify'],
+        onPress: () => {
+          Alert.alert(
+            t('Message Text Alignment', { _tags: tags }),
+            t('Select alignment:', { _tags: tags }),
+            [
+              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+              {
+                text: t('Left', { _tags: tags }),
+                onPress: async () => {
+                  await layoutService.setMessageTextAlign('left');
+                  updateLayoutConfig({});
+                },
+              },
+              {
+                text: t('Center', { _tags: tags }),
+                onPress: async () => {
+                  await layoutService.setMessageTextAlign('center');
+                  updateLayoutConfig({});
+                },
+              },
+              {
+                text: t('Right', { _tags: tags }),
+                onPress: async () => {
+                  await layoutService.setMessageTextAlign('right');
+                  updateLayoutConfig({});
+                },
+              },
+              {
+                text: t('Justify', { _tags: tags }),
+                onPress: async () => {
+                  await layoutService.setMessageTextAlign('justify');
+                  updateLayoutConfig({});
+                },
+              },
+            ]
+          );
+        },
+      },
+      {
+        id: 'message-text-direction',
+        title: t('Message Text Direction', { _tags: tags }),
+        description: t('Direction: {direction}', { direction: layoutConfig?.messageTextDirection || 'auto', _tags: tags }),
+        type: 'button',
+        searchKeywords: ['message', 'text', 'direction', 'rtl', 'ltr', 'hebrew', 'arabic'],
+        onPress: () => {
+          Alert.alert(
+            t('Message Text Direction', { _tags: tags }),
+            t('Select direction:', { _tags: tags }),
+            [
+              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+              {
+                text: t('Auto', { _tags: tags }),
+                onPress: async () => {
+                  await layoutService.setMessageTextDirection('auto');
+                  updateLayoutConfig({});
+                },
+              },
+              {
+                text: t('Left-to-right', { _tags: tags }),
+                onPress: async () => {
+                  await layoutService.setMessageTextDirection('ltr');
+                  updateLayoutConfig({});
+                },
+              },
+              {
+                text: t('Right-to-left', { _tags: tags }),
+                onPress: async () => {
+                  await layoutService.setMessageTextDirection('rtl');
+                  updateLayoutConfig({});
+                },
+              },
+            ]
+          );
+        },
       },
       {
         id: 'layout-timestamp-display',
@@ -393,6 +491,21 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           const boolValue = value as boolean;
           setShowSendButton(boolValue);
           await settingsService.setSetting('showSendButton', boolValue);
+        },
+      },
+      {
+        id: 'display-color-picker-button',
+        title: t('Show Color Picker Button', { _tags: tags }),
+        description: showColorPickerButton
+          ? t('Display mIRC color picker next to message input', { _tags: tags })
+          : t('Hide mIRC color picker button', { _tags: tags }),
+        type: 'switch',
+        value: showColorPickerButton,
+        searchKeywords: ['color', 'picker', 'mirc', 'formatting', 'input', 'button'],
+        onValueChange: async (value: boolean | string) => {
+          const boolValue = value as boolean;
+          setShowColorPickerButton(boolValue);
+          await settingsService.setSetting('showColorPickerButton', boolValue);
         },
       },
       {

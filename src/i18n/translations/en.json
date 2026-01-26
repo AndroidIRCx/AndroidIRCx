@@ -6562,5 +6562,872 @@
   },
   "Invalid certificate format. Please configure a valid PEM certificate.": {
     "string": "Invalid certificate format. Please configure a valid PEM certificate."
+  },
+  "Ignore (local)": {
+    "string": "Ignore (local)"
+  },
+  "Kill": {
+    "string": "Kill"
+  },
+  "OperServ Kill": {
+    "string": "OperServ Kill"
+  },
+  "AKILL": {
+    "string": "AKILL"
+  },
+  "GLINE": {
+    "string": "GLINE"
+  },
+  "SHUN": {
+    "string": "SHUN"
+  },
+  "Custom Command": {
+    "string": "Custom Command"
+  },
+  "Nick only": {
+    "string": "Nick only"
+  },
+  "Nick!user@*": {
+    "string": "Nick!user@*"
+  },
+  "*!*@host": {
+    "string": "*!*@host"
+  },
+  "Nick!*@host": {
+    "string": "Nick!*@host"
+  },
+  "Add to Blacklist": {
+    "string": "Add to Blacklist"
+  },
+  "Mask": {
+    "string": "Mask"
+  },
+  "Action": {
+    "string": "Action"
+  },
+  "Command template (use {mask}, {usermask}, {hostmask}, {nick})": {
+    "string": "Command template (use {mask}, {usermask}, {hostmask}, {nick})"
+  },
+  "Select Action": {
+    "string": "Select Action"
+  },
+  "Set away message": {
+    "string": "Set away message"
+  },
+  "Remove away status": {
+    "string": "Remove away status"
+  },
+  "Invite user to channel": {
+    "string": "Invite user to channel"
+  },
+  "List channels on server": {
+    "string": "List channels on server"
+  },
+  "List users in channel": {
+    "string": "List users in channel"
+  },
+  "Query user information": {
+    "string": "Query user information"
+  },
+  "Ban user from channel": {
+    "string": "Ban user from channel"
+  },
+  "Unban user from channel": {
+    "string": "Unban user from channel"
+  },
+  "Kick and ban user": {
+    "string": "Kick and ban user"
+  },
+  "Send notice message": {
+    "string": "Send notice message"
+  },
+  "Ignore user messages": {
+    "string": "Ignore user messages"
+  },
+  "Stop ignoring user": {
+    "string": "Stop ignoring user"
+  },
+  "Clear current tab messages": {
+    "string": "Clear current tab messages"
+  },
+  "Close current tab": {
+    "string": "Close current tab"
+  },
+  "Display local message": {
+    "string": "Display local message"
+  },
+  "Send message to all channels": {
+    "string": "Send message to all channels"
+  },
+  "Send action to all channels": {
+    "string": "Send action to all channels"
+  },
+  "Send notice to all channels": {
+    "string": "Send notice to all channels"
+  },
+  "Get user statistics": {
+    "string": "Get user statistics"
+  },
+  "Get server version": {
+    "string": "Get server version"
+  },
+  "Get server time": {
+    "string": "Get server time"
+  },
+  "Get server admin info": {
+    "string": "Get server admin info"
+  },
+  "List server links": {
+    "string": "List server links"
+  },
+  "Get server statistics": {
+    "string": "Get server statistics"
+  },
+  "Check if nicks are online": {
+    "string": "Check if nicks are online"
+  },
+  "Get message of the day": {
+    "string": "Get message of the day"
+  },
+  "Ping server": {
+    "string": "Ping server"
+  },
+  "Trace route to server": {
+    "string": "Trace route to server"
+  },
+  "Query IRC services": {
+    "string": "Query IRC services"
+  },
+  "Reconnect to server": {
+    "string": "Reconnect to server"
+  },
+  "Connect to server: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]": {
+    "string": "Connect to server: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]"
+  },
+  "Set alternate nickname": {
+    "string": "Set alternate nickname"
+  },
+  "Auto-join on invite toggle": {
+    "string": "Auto-join on invite toggle"
+  },
+  "Play beep sound": {
+    "string": "Play beep sound"
+  },
+  "Channel notice": {
+    "string": "Channel notice"
+  },
+  "Channel privmsg": {
+    "string": "Channel privmsg"
+  },
+  "Show help": {
+    "string": "Show help"
+  },
+  "DNS lookup": {
+    "string": "DNS lookup"
+  },
+  "Execute command after delay": {
+    "string": "Execute command after delay"
+  },
+  "Window/tab management": {
+    "string": "Window/tab management"
+  },
+  "Filter messages": {
+    "string": "Filter messages"
+  },
+  "Send wallops message (IRCop)": {
+    "string": "Send wallops message (IRCop)"
+  },
+  "Send local ops message (IRCop)": {
+    "string": "Send local ops message (IRCop)"
+  },
+  "Send global ops message (IRCop)": {
+    "string": "Send global ops message (IRCop)"
+  },
+  "Admin chat (IRCop)": {
+    "string": "Admin chat (IRCop)"
+  },
+  "Chat with services": {
+    "string": "Chat with services"
+  },
+  "Get server information": {
+    "string": "Get server information"
+  },
+  "Request invite to channel": {
+    "string": "Request invite to channel"
+  },
+  "Get server rules": {
+    "string": "Get server rules"
+  },
+  "List IRC services": {
+    "string": "List IRC services"
+  },
+  "Get user host information": {
+    "string": "Get user host information"
+  },
+  "Get user IP address": {
+    "string": "Get user IP address"
+  },
+  "Get user list": {
+    "string": "Get user list"
+  },
+  "Monitor users (legacy)": {
+    "string": "Monitor users (legacy)"
+  },
+  "IRCop login": {
+    "string": "IRCop login"
+  },
+  "IRCop rehash server": {
+    "string": "IRCop rehash server"
+  },
+  "IRCop disconnect server": {
+    "string": "IRCop disconnect server"
+  },
+  "IRCop kill user": {
+    "string": "IRCop kill user"
+  },
+  "IRCop connect servers": {
+    "string": "IRCop connect servers"
+  },
+  "IRCop shutdown server": {
+    "string": "IRCop shutdown server"
+  },
+  "Open color picker": {
+    "string": "Open color picker"
+  },
+  "mIRC Formatting": {
+    "string": "mIRC Formatting"
+  },
+  "Standard": {
+    "string": "Standard"
+  },
+  "Extended": {
+    "string": "Extended"
+  },
+  "FG": {
+    "string": "FG"
+  },
+  "BG": {
+    "string": "BG"
+  },
+  "Select color {index}": {
+    "string": "Select color {index}"
+  },
+  "Failed to export theme": {
+    "string": "Failed to export theme"
+  },
+  "Theme Exported": {
+    "string": "Theme Exported"
+  },
+  "Theme saved to:\n{path}": {
+    "string": "Theme saved to:\n{path}"
+  },
+  "Theme Imported": {
+    "string": "Theme Imported"
+  },
+  "Successfully imported theme \"{name}\". Would you like to use it now?": {
+    "string": "Successfully imported theme \"{name}\". Would you like to use it now?"
+  },
+  "Use Now": {
+    "string": "Use Now"
+  },
+  "Import Failed": {
+    "string": "Import Failed"
+  },
+  "Failed to import theme": {
+    "string": "Failed to import theme"
+  },
+  "Export Current Theme": {
+    "string": "Export Current Theme"
+  },
+  "Save theme to JSON file for sharing": {
+    "string": "Save theme to JSON file for sharing"
+  },
+  "Import Theme": {
+    "string": "Import Theme"
+  },
+  "Load theme from JSON file": {
+    "string": "Load theme from JSON file"
+  },
+  "Current: {size} ({px}px)": {
+    "string": "Current: {size} ({px}px)"
+  },
+  "Use Small": {
+    "string": "Use Small"
+  },
+  "Use Medium": {
+    "string": "Use Medium"
+  },
+  "Use Large": {
+    "string": "Use Large"
+  },
+  "Use Specified": {
+    "string": "Use Specified"
+  },
+  "Small Size (px)": {
+    "string": "Small Size (px)"
+  },
+  "Medium Size (px)": {
+    "string": "Medium Size (px)"
+  },
+  "Large Size (px)": {
+    "string": "Large Size (px)"
+  },
+  "Specified Size (px)": {
+    "string": "Specified Size (px)"
+  },
+  "Group Messages": {
+    "string": "Group Messages"
+  },
+  "Group consecutive messages from the same user": {
+    "string": "Group consecutive messages from the same user"
+  },
+  "Message Text Alignment": {
+    "string": "Message Text Alignment"
+  },
+  "Alignment: {align}": {
+    "string": "Alignment: {align}"
+  },
+  "Select alignment:": {
+    "string": "Select alignment:"
+  },
+  "Center": {
+    "string": "Center"
+  },
+  "Justify": {
+    "string": "Justify"
+  },
+  "Message Text Direction": {
+    "string": "Message Text Direction"
+  },
+  "Direction: {direction}": {
+    "string": "Direction: {direction}"
+  },
+  "Select direction:": {
+    "string": "Select direction:"
+  },
+  "Auto": {
+    "string": "Auto"
+  },
+  "Left-to-right": {
+    "string": "Left-to-right"
+  },
+  "Right-to-left": {
+    "string": "Right-to-left"
+  },
+  "Show Color Picker Button": {
+    "string": "Show Color Picker Button"
+  },
+  "Display mIRC color picker next to message input": {
+    "string": "Display mIRC color picker next to message input"
+  },
+  "Hide mIRC color picker button": {
+    "string": "Hide mIRC color picker button"
+  },
+  "Blacklist": {
+    "string": "Blacklist"
+  },
+  "Auto-run actions for matched masks": {
+    "string": "Auto-run actions for matched masks"
+  },
+  "Blacklist feature coming soon": {
+    "string": "Blacklist feature coming soon"
+  },
+  "Added {nick} to blacklist": {
+    "string": "Added {nick} to blacklist"
+  },
+  "Changing server": {
+    "string": "Changing server"
+  },
+  "*** Network \"{name}\" created (not connected). Use /server -m {address} to connect.": {
+    "string": "*** Network \"{name}\" created (not connected). Use /server -m {address} to connect."
+  },
+  "Invalid server address or configuration": {
+    "string": "Invalid server address or configuration"
+  },
+  "Failed to connect: {error}": {
+    "string": "Failed to connect: {error}"
+  },
+  "*** DCC SEND offer from {from}: {filename} - Rejected": {
+    "string": "*** DCC SEND offer from {from}: {filename} - Rejected"
+  },
+  "*** DCC SEND offer from {from}: {filename} - Open DCC Transfers to accept": {
+    "string": "*** DCC SEND offer from {from}: {filename} - Open DCC Transfers to accept"
+  },
+  "*** Server list sorted": {
+    "string": "*** Server list sorted"
+  },
+  "*** Server added: {server}:{port}": {
+    "string": "*** Server added: {server}:{port}"
+  },
+  "*** Server removed: {server}": {
+    "string": "*** Server removed: {server}"
+  },
+  "*** Server connection details updated": {
+    "string": "*** Server connection details updated"
+  },
+  "No server specified. Use /server <address> [port]": {
+    "string": "No server specified. Use /server <address> [port]"
+  },
+  "*** Server command error: {error}": {
+    "string": "*** Server command error: {error}"
+  },
+  "Usage: /dns <hostname>": {
+    "string": "Usage: /dns <hostname>"
+  },
+  "*** DNS lookup failed for {hostname}": {
+    "string": "*** DNS lookup failed for {hostname}"
+  },
+  "*** No DNS records found for {hostname}": {
+    "string": "*** No DNS records found for {hostname}"
+  },
+  "*** DNS A for {hostname}: {records}": {
+    "string": "*** DNS A for {hostname}: {records}"
+  },
+  "*** DNS A for {hostname}: <none>": {
+    "string": "*** DNS A for {hostname}: <none>"
+  },
+  "*** DNS AAAA for {hostname}: {records}": {
+    "string": "*** DNS AAAA for {hostname}: {records}"
+  },
+  "*** DNS AAAA for {hostname}: <none>": {
+    "string": "*** DNS AAAA for {hostname}: <none>"
+  },
+  "*** DNS lookup failed for {hostname}: {error}": {
+    "string": "*** DNS lookup failed for {hostname}: {error}"
+  },
+  "*** Message sent to {count} channel(s)": {
+    "string": "*** Message sent to {count} channel(s)"
+  },
+  "*** Action sent to {count} channel(s)": {
+    "string": "*** Action sent to {count} channel(s)"
+  },
+  "*** Notice sent to {count} channel(s)": {
+    "string": "*** Notice sent to {count} channel(s)"
+  },
+  "Version 1.6.13": {
+    "string": "Version 1.6.13"
+  },
+  "Missing Command": {
+    "string": "Missing Command"
+  },
+  "Custom command is required for this action.": {
+    "string": "Custom command is required for this action."
+  },
+  "Blacklist entry updated": {
+    "string": "Blacklist entry updated"
+  },
+  "User added to blacklist": {
+    "string": "User added to blacklist"
+  },
+  "Remove from Blacklist": {
+    "string": "Remove from Blacklist"
+  },
+  "User removed from blacklist": {
+    "string": "User removed from blacklist"
+  },
+  "Templates": {
+    "string": "Templates"
+  },
+  "No matching blacklist entries": {
+    "string": "No matching blacklist entries"
+  },
+  "No blacklist entries": {
+    "string": "No blacklist entries"
+  },
+  "Add users to auto-run actions on join": {
+    "string": "Add users to auto-run actions on join"
+  },
+  "Edit Blacklist Entry": {
+    "string": "Edit Blacklist Entry"
+  },
+  "Enter a mask to match. Examples:": {
+    "string": "Enter a mask to match. Examples:"
+  },
+  "nick (match a nick)": {
+    "string": "nick (match a nick)"
+  },
+  "*!*@host.com (match a host)": {
+    "string": "*!*@host.com (match a host)"
+  },
+  "*!*@*.tor-exit.* (wildcards allowed)": {
+    "string": "*!*@*.tor-exit.* (wildcards allowed)"
+  },
+  "Command template (use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration})": {
+    "string": "Command template (use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration})"
+  },
+  "Duration (e.g., 1d, 7d, 1h, 0 for permanent)": {
+    "string": "Duration (e.g., 1d, 7d, 1h, 0 for permanent)"
+  },
+  "Blacklist Templates": {
+    "string": "Blacklist Templates"
+  },
+  "Set default commands for AKILL/GLINE/SHUN. Use {mask}, {usermask}, {hostmask}, {reason}.": {
+    "string": "Set default commands for AKILL/GLINE/SHUN. Use {mask}, {usermask}, {hostmask}, {reason}."
+  },
+  "AKILL template": {
+    "string": "AKILL template"
+  },
+  "GLINE template": {
+    "string": "GLINE template"
+  },
+  "SHUN template": {
+    "string": "SHUN template"
+  },
+  "Invite exception added": {
+    "string": "Invite exception added"
+  },
+  "Invite exception removed": {
+    "string": "Invite exception removed"
+  },
+  "Invite Exception List": {
+    "string": "Invite Exception List"
+  },
+  "Invite mask (e.g., *!*@trusted.host)": {
+    "string": "Invite mask (e.g., *!*@trusted.host)"
+  },
+  "Refresh Invite List": {
+    "string": "Refresh Invite List"
+  },
+  "No invite exceptions": {
+    "string": "No invite exceptions"
+  },
+  "Highlights": {
+    "string": "Highlights"
+  },
+  "Blacklisted": {
+    "string": "Blacklisted"
+  },
+  "Usage: /part <channel> [message]": {
+    "string": "Usage: /part <channel> [message]"
+  },
+  "*** You are now away: {message}": {
+    "string": "*** You are now away: {message}"
+  },
+  "*** You are no longer away": {
+    "string": "*** You are no longer away"
+  },
+  "*** Invited {nick} to {channel}": {
+    "string": "*** Invited {nick} to {channel}"
+  },
+  "Usage: /invite <nick> [channel]": {
+    "string": "Usage: /invite <nick> [channel]"
+  },
+  "*** Requesting channel list...": {
+    "string": "*** Requesting channel list..."
+  },
+  "Usage: /names [channel]": {
+    "string": "Usage: /names [channel]"
+  },
+  "*** Banning {nick} from {channel}": {
+    "string": "*** Banning {nick} from {channel}"
+  },
+  "Usage: /ban <nick> [channel]": {
+    "string": "Usage: /ban <nick> [channel]"
+  },
+  "*** Unbanning {mask} from {channel}": {
+    "string": "*** Unbanning {mask} from {channel}"
+  },
+  "Usage: /unban <nick|mask> [channel]": {
+    "string": "Usage: /unban <nick|mask> [channel]"
+  },
+  "*** Kicking and banning {nick} from {channel}": {
+    "string": "*** Kicking and banning {nick} from {channel}"
+  },
+  "Usage: /kickban <nick> [channel] [reason]": {
+    "string": "Usage: /kickban <nick> [channel] [reason]"
+  },
+  "Usage: /notice <target> <message>": {
+    "string": "Usage: /notice <target> <message>"
+  },
+  "*** Now ignoring {mask}": {
+    "string": "*** Now ignoring {mask}"
+  },
+  "*** Failed to ignore user: {message}": {
+    "string": "*** Failed to ignore user: {message}"
+  },
+  "Usage: /ignore <nick|mask> [reason]": {
+    "string": "Usage: /ignore <nick|mask> [reason]"
+  },
+  "*** No longer ignoring {mask}": {
+    "string": "*** No longer ignoring {mask}"
+  },
+  "*** Failed to unignore user: {message}": {
+    "string": "*** Failed to unignore user: {message}"
+  },
+  "Usage: /unignore <nick|mask>": {
+    "string": "Usage: /unignore <nick|mask>"
+  },
+  "*** Messages cleared": {
+    "string": "*** Messages cleared"
+  },
+  "Usage: /echo <message>": {
+    "string": "Usage: /echo <message>"
+  },
+  "*** Sending message to all channels...": {
+    "string": "*** Sending message to all channels..."
+  },
+  "Usage: /amsg <message>": {
+    "string": "Usage: /amsg <message>"
+  },
+  "*** Sending action to all channels...": {
+    "string": "*** Sending action to all channels..."
+  },
+  "Usage: /ame <action>": {
+    "string": "Usage: /ame <action>"
+  },
+  "*** Sending notice to all channels...": {
+    "string": "*** Sending notice to all channels..."
+  },
+  "Usage: /anotice <message>": {
+    "string": "Usage: /anotice <message>"
+  },
+  "Usage: /ison <nick1> [nick2] ...": {
+    "string": "Usage: /ison <nick1> [nick2] ..."
+  },
+  "Usage: /squery <service> <message>": {
+    "string": "Usage: /squery <service> <message>"
+  },
+  "*** Reconnecting to server...": {
+    "string": "*** Reconnecting to server..."
+  },
+  "Invalid /server command syntax": {
+    "string": "Invalid /server command syntax"
+  },
+  "*** Alternate nickname set to: {nick}": {
+    "string": "*** Alternate nickname set to: {nick}"
+  },
+  "Usage: /anick <nickname>": {
+    "string": "Usage: /anick <nickname>"
+  },
+  "*** Auto-join on invite: {state}": {
+    "string": "*** Auto-join on invite: {state}"
+  },
+  "*** Beep!": {
+    "string": "*** Beep!"
+  },
+  "Usage: /cnotice <nick> <channel> <message>": {
+    "string": "Usage: /cnotice <nick> <channel> <message>"
+  },
+  "Usage: /cprivmsg <nick> <channel> <message>": {
+    "string": "Usage: /cprivmsg <nick> <channel> <message>"
+  },
+  "*** Help for /{command} - Use Settings > Help for full documentation": {
+    "string": "*** Help for /{command} - Use Settings > Help for full documentation"
+  },
+  "*** IRC Commands Help": {
+    "string": "*** IRC Commands Help"
+  },
+  "*** Use /help <command> for specific command help": {
+    "string": "*** Use /help <command> for specific command help"
+  },
+  "*** Or go to Settings > Help for full documentation": {
+    "string": "*** Or go to Settings > Help for full documentation"
+  },
+  "Usage: /raw <command>": {
+    "string": "Usage: /raw <command>"
+  },
+  "*** Looking up DNS for {hostname}...": {
+    "string": "*** Looking up DNS for {hostname}..."
+  },
+  "*** Timer \"{name}\" set: {delay}ms, {repetitions} repetitions": {
+    "string": "*** Timer \"{name}\" set: {delay}ms, {repetitions} repetitions"
+  },
+  "Usage: /timer <name> <delay> <repetitions> <command>": {
+    "string": "Usage: /timer <name> <delay> <repetitions> <command>"
+  },
+  "Usage: /window -a <name>": {
+    "string": "Usage: /window -a <name>"
+  },
+  "Usage: /window [-a] <name>": {
+    "string": "Usage: /window [-a] <name>"
+  },
+  "*** Filtering messages containing: {text}": {
+    "string": "*** Filtering messages containing: {text}"
+  },
+  "Usage: /filter [-g] <text>": {
+    "string": "Usage: /filter [-g] <text>"
+  },
+  "Usage: /wallops <message>": {
+    "string": "Usage: /wallops <message>"
+  },
+  "Usage: /locops <message>": {
+    "string": "Usage: /locops <message>"
+  },
+  "Usage: /globops <message>": {
+    "string": "Usage: /globops <message>"
+  },
+  "Usage: /adchat <message>": {
+    "string": "Usage: /adchat <message>"
+  },
+  "Usage: /chat <service> <message>": {
+    "string": "Usage: /chat <service> <message>"
+  },
+  "*** Knock sent to {channel}": {
+    "string": "*** Knock sent to {channel}"
+  },
+  "Usage: /knock <channel> [message]": {
+    "string": "Usage: /knock <channel> [message]"
+  },
+  "Usage: /userhost <nick1> [nick2] ...": {
+    "string": "Usage: /userhost <nick1> [nick2] ..."
+  },
+  "Usage: /userip <nick>": {
+    "string": "Usage: /userip <nick>"
+  },
+  "Usage: /watch +nick1 -nick2 ...": {
+    "string": "Usage: /watch +nick1 -nick2 ..."
+  },
+  "*** Attempting IRCop login...": {
+    "string": "*** Attempting IRCop login..."
+  },
+  "Usage: /oper <nick> <password>": {
+    "string": "Usage: /oper <nick> <password>"
+  },
+  "*** Requesting server rehash...": {
+    "string": "*** Requesting server rehash..."
+  },
+  "*** Requesting server disconnect: {server}": {
+    "string": "*** Requesting server disconnect: {server}"
+  },
+  "Usage: /squit <server> [message]": {
+    "string": "Usage: /squit <server> [message]"
+  },
+  "*** Killing user: {nick}": {
+    "string": "*** Killing user: {nick}"
+  },
+  "Usage: /kill <nick> <reason>": {
+    "string": "Usage: /kill <nick> <reason>"
+  },
+  "*** Requesting server connection: {server}:{port}": {
+    "string": "*** Requesting server connection: {server}:{port}"
+  },
+  "Usage: /connect <server> <port> [remote]": {
+    "string": "Usage: /connect <server> <port> [remote]"
+  },
+  "*** Requesting server shutdown...": {
+    "string": "*** Requesting server shutdown..."
+  },
+  "Invalid theme file format": {
+    "string": "Invalid theme file format"
+  },
+  "Theme is missing required color: {key}": {
+    "string": "Theme is missing required color: {key}"
+  },
+  "Invalid JSON format": {
+    "string": "Invalid JSON format"
+  },
+  "Message format": {
+    "string": "Message format"
+  },
+  "Message with mention format": {
+    "string": "Message with mention format"
+  },
+  "Action (/me) message format": {
+    "string": "Action (/me) message format"
+  },
+  "Action (/me) message with mention format": {
+    "string": "Action (/me) message with mention format"
+  },
+  "Notice message format": {
+    "string": "Notice message format"
+  },
+  "Event (join/leave/etc.) message format": {
+    "string": "Event (join/leave/etc.) message format"
+  },
+  "time": {
+    "string": "time"
+  },
+  "sender": {
+    "string": "sender"
+  },
+  "message": {
+    "string": "message"
+  },
+  "channel": {
+    "string": "channel"
+  },
+  "network": {
+    "string": "network"
+  },
+  "account": {
+    "string": "account"
+  },
+  "hostname": {
+    "string": "hostname"
+  },
+  "hostmask": {
+    "string": "hostmask"
+  },
+  "target": {
+    "string": "target"
+  },
+  "mode": {
+    "string": "mode"
+  },
+  "topic": {
+    "string": "topic"
+  },
+  "reason": {
+    "string": "reason"
+  },
+  "numeric": {
+    "string": "numeric"
+  },
+  "command": {
+    "string": "command"
+  },
+  "This is an example message.": {
+    "string": "This is an example message."
+  },
+  "Example topic": {
+    "string": "Example topic"
+  },
+  "Example reason": {
+    "string": "Example reason"
+  },
+  "does an example action": {
+    "string": "does an example action"
+  },
+  "[sender-nick!user@host.test has joined]": {
+    "string": "[sender-nick!user@host.test has joined]"
+  },
+  "Message Format": {
+    "string": "Message Format"
+  },
+  "Add Part": {
+    "string": "Add Part"
+  },
+  "Edit Part": {
+    "string": "Edit Part"
+  },
+  "Token": {
+    "string": "Token"
+  },
+  "Text color": {
+    "string": "Text color"
+  },
+  "Move Left": {
+    "string": "Move Left"
+  },
+  "Move Right": {
+    "string": "Move Right"
+  },
+  "Apply": {
+    "string": "Apply"
+  },
+  "Pick Color": {
+    "string": "Pick Color"
+  },
+  "Custom": {
+    "string": "Custom"
+  },
+  "#RRGGBB": {
+    "string": "#RRGGBB"
+  },
+  "Edit format": {
+    "string": "Edit format"
+  },
+  "Customize format": {
+    "string": "Customize format"
   }
 }

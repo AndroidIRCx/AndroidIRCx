@@ -2,13 +2,18 @@ import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react'
 import {
   View,
   Text,
+  ScrollView,
+  TextInput,
   FlatList,
   StyleSheet,
   TouchableOpacity,
   Modal,
+  Animated,
+  PanResponder,
+  TextStyle,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { IRCMessage, RawMessageCategory } from '../services/IRCService';
+import { IRCMessage, RawMessageCategory, ChannelUser } from '../services/IRCService';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { parseMessage, isVideoUrl, isAudioUrl, isDownloadableFileUrl } from '../utils/MessageParser';
@@ -23,13 +28,14 @@ import { messageHistoryService } from '../services/MessageHistoryService';
 import { highlightService } from '../services/HighlightService';
 import { VideoPlayer } from './VideoPlayer';
 import { AudioPlayer } from './AudioPlayer';
-import { userManagementService } from '../services/UserManagementService';
+import { userManagementService, BlacklistActionType } from '../services/UserManagementService';
 import { dccChatService } from '../services/DCCChatService';
 import { ircService } from '../services/IRCService';
-import { formatIRCTextAsComponent } from '../utils/IRCFormatter';
+import { formatIRCTextAsComponent, formatIRCTextWithLinks } from '../utils/IRCFormatter';
 import { MessageSearchBar, MessageSearchFilters } from './MessageSearchBar';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { settingsService } from '../services/SettingsService';
+import { MessageFormatPart, MessageFormatStyle, ThemeMessageFormats } from '../services/ThemeService';
 
 interface MessageAreaProps {
   messages: IRCMessage[];
@@ -65,7 +71,49 @@ interface MessageItemProps {
   channel?: string;
   tabId?: string;
   layoutWidth?: number;
+  messageFormats?: ThemeMessageFormats;
 }
+
+const applyMessageFormatStyle = (
+  baseStyle: TextStyle,
+  formatStyle?: MessageFormatStyle,
+): TextStyle => {
+  if (!formatStyle) {
+    return baseStyle;
+  }
+
+  const textStyle: TextStyle = { ...baseStyle };
+
+  if (formatStyle.bold) {
+    textStyle.fontWeight = 'bold';
+  }
+  if (formatStyle.italic) {
+    textStyle.fontStyle = 'italic';
+  }
+  if (formatStyle.underline) {
+    textStyle.textDecorationLine = textStyle.textDecorationLine
+      ? `${textStyle.textDecorationLine} underline`
+      : 'underline';
+  }
+  if (formatStyle.strikethrough) {
+    textStyle.textDecorationLine = textStyle.textDecorationLine
+      ? `${textStyle.textDecorationLine} line-through`
+      : 'line-through';
+  }
+  if (formatStyle.color) {
+    textStyle.color = formatStyle.color;
+  }
+  if (formatStyle.backgroundColor) {
+    textStyle.backgroundColor = formatStyle.backgroundColor;
+  }
+  if (formatStyle.reverse) {
+    const prevColor = textStyle.color;
+    textStyle.color = textStyle.backgroundColor;
+    textStyle.backgroundColor = prevColor;
+  }
+
+  return textStyle;
+};
 
 // Memoized message item component for performance
 const MessageItem = React.memo<MessageItemProps>(({
@@ -86,6 +134,7 @@ const MessageItem = React.memo<MessageItemProps>(({
   channel,
   tabId,
   layoutWidth,
+  messageFormats,
 }) => {
   const formatTimestamp = useCallback((timestamp: number): string => {
     const date = new Date(timestamp);
@@ -212,9 +261,146 @@ const MessageItem = React.memo<MessageItemProps>(({
     return false;
   }, [message.text, message.type, currentNick]);
 
+  const actionMessageColor = isHighlighted ? colors.highlightText : colors.actionMessage;
+
   const shouldShowTimestamp =
     timestampDisplay === 'always' ||
     (timestampDisplay === 'grouped' && !isGrouped);
+
+  const formatParts = useMemo(() => {
+    if (!messageFormats) {
+      return null;
+    }
+
+    if (message.type === 'message') {
+      if (actionText !== null) {
+        return isHighlighted ? messageFormats.actionMention : messageFormats.action;
+      }
+      return isHighlighted ? messageFormats.messageMention : messageFormats.message;
+    }
+
+    if (message.type === 'notice') {
+      return messageFormats.notice;
+    }
+
+    if (['join', 'part', 'quit', 'invite', 'monitor', 'mode', 'topic'].includes(message.type)) {
+      return messageFormats.event;
+    }
+
+    return null;
+  }, [messageFormats, message.type, isHighlighted, actionText]);
+
+  const baseLineColor =
+    message.type === 'message'
+      ? actionText !== null
+        ? actionMessageColor
+        : isHighlighted
+          ? colors.highlightText
+          : colors.messageText
+      : getMessageColor(message.type);
+
+  const baseLineStyle = StyleSheet.flatten([styles.messageText, { color: baseLineColor }]);
+  const inlineBaseStyle: TextStyle = {
+    ...baseLineStyle,
+    flex: undefined,
+    flexGrow: undefined,
+    flexShrink: undefined,
+  };
+
+  const renderFormattedParts = useCallback(
+    (parts: MessageFormatPart[]) => {
+      const hostmask = message.username && message.hostname
+        ? `${message.from || ''}!${message.username}@${message.hostname}`
+        : '';
+      const tokenValues: Record<string, string> = {
+        time: shouldShowTimestamp ? formatTimestamp(message.timestamp) : '',
+        nick: !isGrouped ? message.from || '' : '',
+        message: actionText !== null ? actionText : message.text,
+        channel: message.channel || channel || '',
+        network: message.network || network || '',
+        account: message.account || '',
+        username: message.username || '',
+        hostname: message.hostname || '',
+        hostmask,
+        target: message.target || message.channel || channel || '',
+        mode: message.mode || '',
+        topic: message.topic || '',
+        reason: message.reason || '',
+        numeric: message.numeric || '',
+        command: message.command || '',
+      };
+
+      return parts.map((part, index) => {
+        if (part.type === 'text') {
+          if (!part.value) {
+            return null;
+          }
+          return (
+            <Text key={`part-${index}`} style={applyMessageFormatStyle(inlineBaseStyle, part.style)}>
+              {part.value}
+            </Text>
+          );
+        }
+
+        if (part.value === 'message') {
+          if (!tokenValues.message) {
+            return null;
+          }
+          return React.cloneElement(
+            formatIRCTextAsComponent(tokenValues.message, applyMessageFormatStyle(inlineBaseStyle, part.style)),
+            { key: `part-${index}` },
+          );
+        }
+
+        const tokenValue = tokenValues[part.value] || '';
+        if (!tokenValue) {
+          return null;
+        }
+
+        if (part.value === 'nick') {
+          return (
+            <Text
+              key={`part-${index}`}
+              style={applyMessageFormatStyle(inlineBaseStyle, part.style)}
+              onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
+            >
+              {tokenValue}
+            </Text>
+          );
+        }
+
+        return (
+          <Text key={`part-${index}`} style={applyMessageFormatStyle(inlineBaseStyle, part.style)}>
+            {tokenValue}
+          </Text>
+        );
+      });
+    },
+    [
+      actionText,
+      inlineBaseStyle,
+      channel,
+      formatTimestamp,
+      isGrouped,
+      message.account,
+      message.channel,
+      message.command,
+      message.hostname,
+      message.mode,
+      message.network,
+      message.numeric,
+      message.reason,
+      message.text,
+      message.timestamp,
+      message.from,
+      message.target,
+      message.topic,
+      message.username,
+      network,
+      onNickLongPress,
+      shouldShowTimestamp,
+    ],
+  );
 
   return (
     <TouchableOpacity
@@ -230,7 +416,7 @@ const MessageItem = React.memo<MessageItemProps>(({
         message.status === 'pending' && styles.pendingMessage,
         isSelected && styles.selectedMessage,
       ]}>
-        {shouldShowTimestamp && (
+        {!formatParts && shouldShowTimestamp && (
           <Text style={styles.timestamp}>
             {formatTimestamp(message.timestamp)}
           </Text>
@@ -244,18 +430,60 @@ const MessageItem = React.memo<MessageItemProps>(({
           )
         ) : message.type === 'message' ? (
           <>
-            {actionText !== null ? (
+            {formatParts ? (
+              <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
+                <View style={styles.messageContent}>{renderFormattedParts(formatParts)}</View>
+                {showImages && parsed.mediaIds.map((mediaId, index) => {
+                  // Use the MessageArea's tabId as the primary source for media decryption
+                  // This ensures that media in a specific channel/query uses the correct encryption key
+                  const mediaTabId = tabId;
+
+                  return mediaTabId && network ? (
+                    <MediaMessageDisplay
+                      key={`media-${message.id}-${index}`}
+                      mediaId={mediaId}
+                      network={network}
+                      tabId={mediaTabId}
+                    />
+                  ) : (
+                    // If tabId is not available, we can't decrypt the media, so show an error or skip
+                    <Text key={`media-${message.id}-${index}`} style={{color: 'red'}}>
+                      [Encrypted media - unable to decrypt: no tab context]
+                    </Text>
+                  );
+                })}
+                {showImages && parsed.imageUrls.map((url, index) => (
+                  <ImagePreview key={`img-${message.id}-${index}`} url={url} thumbnail />
+                ))}
+                {showImages && parsed.videoUrls.map((url, index) => (
+                  url ? <VideoPlayer key={`video-${message.id}-${index}`} url={url} /> : null
+                ))}
+                {showImages && parsed.audioUrls.map((url, index) => (
+                  url ? <AudioPlayer key={`audio-${message.id}-${index}`} url={url} /> : null
+                ))}
+                {showImages && parsed.fileUrls.map((url, index) => (
+                  url ? <LinkPreview key={`file-${message.id}-${index}`} url={url} showDownloadButton /> : null
+                ))}
+                {showImages && parsed.linkUrls.map((url, index) => (
+                  url ? <LinkPreview key={`link-${message.id}-${index}`} url={url} showDownloadButton={false} /> : null
+                ))}
+                <MessageReactionsComponent
+                  messageId={message.id}
+                  currentUserNick={currentNick}
+                />
+              </View>
+            ) : actionText !== null ? (
               // ACTION (/me) message
               <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
                 <View style={styles.messageContent}>
                   {!isGrouped && (
-                    <Text style={[styles.messageText, { fontStyle: 'italic', color: colors.actionMessage }]}>
+                    <Text style={[styles.messageText, { fontStyle: 'italic', color: actionMessageColor }]}>
                       * <Text style={styles.nick} onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}>{message.from}</Text>{' '}
                     </Text>
                   )}
                   {formatIRCTextAsComponent(
                     message.text,
-                    StyleSheet.flatten([styles.messageText, { fontStyle: 'italic', color: colors.actionMessage }])
+                    StyleSheet.flatten([styles.messageText, { fontStyle: 'italic', color: actionMessageColor }])
                   )}
                 </View>
                 {showImages && parsed.mediaIds.map((mediaId, index) => {
@@ -311,7 +539,9 @@ const MessageItem = React.memo<MessageItemProps>(({
                   )}
                   {formatIRCTextAsComponent(
                     message.text,
-                    styles.messageText,
+                    isHighlighted
+                      ? StyleSheet.flatten([styles.messageText, { color: colors.highlightText }])
+                      : styles.messageText,
                   )}
                 </View>
                 {showImages && parsed.mediaIds.map((mediaId, index) => {
@@ -355,6 +585,8 @@ const MessageItem = React.memo<MessageItemProps>(({
               </View>
             )}
           </>
+        ) : formatParts ? (
+          <View style={styles.messageContent}>{renderFormattedParts(formatParts)}</View>
         ) : (
           <View style={styles.messageContent}>
             {message.type === 'notice' && message.from ? (
@@ -370,6 +602,13 @@ const MessageItem = React.memo<MessageItemProps>(({
                   StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }])
                 )}
               </View>
+            ) : message.type === 'topic' ? (
+              // Topic messages with clickable links (no preview)
+              formatIRCTextWithLinks(
+                message.text,
+                StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }]),
+                colors.primary
+              )
             ) : (
               formatIRCTextAsComponent(
                 message.type === 'join' || message.type === 'part' || message.type === 'quit'
@@ -420,18 +659,45 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   onSearchVisibleChange,
 }) => {
   const t = useT();
-  const { colors } = useTheme();
+  const { theme, colors } = useTheme();
   const layoutConfig = layoutService.getConfig();
   const totalBottomInset = bottomInset + layoutConfig.navigationBarOffset;
   const styles = createStyles(colors, layoutConfig, totalBottomInset);
   const flatListRef = useRef<FlatList>(null);
   const [contextNick, setContextNick] = useState<string | null>(null);
+  const [contextUser, setContextUser] = useState<ChannelUser | null>(null);
   const [showContextMenu, setShowContextMenu] = useState(false);
+  const [showBlacklistModal, setShowBlacklistModal] = useState(false);
+  const [showBlacklistActionPicker, setShowBlacklistActionPicker] = useState(false);
+  const [blacklistAction, setBlacklistAction] = useState<BlacklistActionType>('ban');
+  const [blacklistMaskChoice, setBlacklistMaskChoice] = useState<string>('nick');
+  const [blacklistReason, setBlacklistReason] = useState('');
+  const [blacklistCustomCommand, setBlacklistCustomCommand] = useState('');
   const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
   const [copyStatus, setCopyStatus] = useState('');
   const selectionMode = selectedMessageIds.size > 0;
   const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+  const selectionBarPan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const selectionBarPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 3 || Math.abs(gesture.dy) > 3,
+      onPanResponderGrant: () => {
+        selectionBarPan.setOffset({
+          x: selectionBarPan.x.__getValue(),
+          y: selectionBarPan.y.__getValue(),
+        });
+        selectionBarPan.setValue({ x: 0, y: 0 });
+      },
+      onPanResponderMove: Animated.event(
+        [null, { dx: selectionBarPan.x, dy: selectionBarPan.y }],
+        { useNativeDriver: false }
+      ),
+      onPanResponderRelease: () => selectionBarPan.flattenOffset(),
+      onPanResponderTerminate: () => selectionBarPan.flattenOffset(),
+    })
+  ).current;
 
   // Search state (controlled or uncontrolled)
   const [internalSearchVisible, setInternalSearchVisible] = useState(false);
@@ -464,6 +730,13 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   }, [containerWidth]);
 
   useEffect(() => {
+    if (!selectionMode) {
+      selectionBarPan.setValue({ x: 0, y: 0 });
+      selectionBarPan.setOffset({ x: 0, y: 0 });
+    }
+  }, [selectionMode, selectionBarPan]);
+
+  useEffect(() => {
     const loadSetting = async () => {
       const enabled = await settingsService.getSetting('showMessageAreaSearchButton', false);
       setShowMessageAreaSearchButton(enabled);
@@ -481,12 +754,63 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
   const connection = network ? connectionManager.getConnection(network) : null;
   const currentNick = connection?.ircService.getCurrentNick() || '';
+  const resolveContextUser = useCallback((nick: string | null) => {
+    if (!nick || !channel) return null;
+    const activeIrc: any = connection?.ircService || ircService;
+    if (typeof activeIrc.getChannelUsers !== 'function') return null;
+    const users = activeIrc.getChannelUsers(channel) as ChannelUser[];
+    return users.find(user => user.nick.toLowerCase() === nick.toLowerCase()) || null;
+  }, [channel, connection]);
+
+  const blacklistActionOptions: Array<{ id: BlacklistActionType; label: string }> = useMemo(() => ([
+    { id: 'ignore', label: t('Ignore (local)') },
+    { id: 'ban', label: t('Ban') },
+    { id: 'kick_ban', label: t('Kick + Ban') },
+    { id: 'kill', label: t('Kill') },
+    { id: 'os_kill', label: t('OperServ Kill') },
+    { id: 'akill', label: t('AKILL') },
+    { id: 'gline', label: t('GLINE') },
+    { id: 'shun', label: t('SHUN') },
+    { id: 'custom', label: t('Custom Command') },
+  ]), [t]);
+
+  const getBlacklistMaskOptions = useCallback((user: ChannelUser | null, nick: string | null) => {
+    const safeNick = nick || '';
+    const options: Array<{ id: string; label: string; mask: string }> = [
+      { id: 'nick', label: t('Nick only'), mask: safeNick },
+      { id: 'nick_user_any', label: t('Nick!user@*'), mask: `${safeNick}!*@*` },
+    ];
+    if (user?.host) {
+      options.push({ id: 'host', label: t('*!*@host'), mask: `*!*@${user.host}` });
+      options.push({ id: 'nick_host', label: t('Nick!*@host'), mask: `${safeNick}!*@${user.host}` });
+    }
+    return options;
+  }, [t]);
+
+  const getBlacklistTemplate = useCallback(async (action: BlacklistActionType, net?: string) => {
+    if (!['akill', 'gline', 'shun'].includes(action)) {
+      return '';
+    }
+    const stored = await settingsService.getSetting('blacklistTemplates', {});
+    const base = {
+      akill: 'PRIVMSG OperServ :AKILL ADD {usermask} {reason}',
+      gline: 'GLINE {hostmask} :{reason}',
+      shun: 'SHUN {hostmask} :{reason}',
+    };
+    const global = stored?.global || {};
+    const local = net && stored?.[net] ? stored[net] : {};
+    return (local?.[action] || global?.[action] || base[action] || '') as string;
+  }, []);
   const handleNickAction = useCallback((action: string) => {
     if (!contextNick) return;
     const activeIrc: any = connection?.ircService || ircService;
+    const selectedUser = resolveContextUser(contextNick);
     switch (action) {
       case 'whois':
         activeIrc.sendCommand(`WHOIS ${contextNick}`);
+        break;
+      case 'copy':
+        Clipboard.setString(contextNick);
         break;
       case 'ctcp_ping':
         activeIrc.sendCTCPRequest(contextNick, 'PING', Date.now().toString());
@@ -519,11 +843,63 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         }
         break;
       }
+      case 'blacklist': {
+        setBlacklistAction('ban');
+        setBlacklistReason('');
+        setBlacklistCustomCommand('');
+        setBlacklistMaskChoice(selectedUser?.host ? 'host' : 'nick');
+        setShowBlacklistModal(true);
+        break;
+      }
+      case 'give_voice':
+        if (channel) activeIrc.sendCommand(`MODE ${channel} +v ${contextNick}`);
+        break;
+      case 'take_voice':
+        if (channel) activeIrc.sendCommand(`MODE ${channel} -v ${contextNick}`);
+        break;
+      case 'give_halfop':
+        if (channel) activeIrc.sendCommand(`MODE ${channel} +h ${contextNick}`);
+        break;
+      case 'take_halfop':
+        if (channel) activeIrc.sendCommand(`MODE ${channel} -h ${contextNick}`);
+        break;
+      case 'give_op':
+        if (channel) activeIrc.sendCommand(`MODE ${channel} +o ${contextNick}`);
+        break;
+      case 'take_op':
+        if (channel) activeIrc.sendCommand(`MODE ${channel} -o ${contextNick}`);
+        break;
+      case 'kick':
+        if (channel) activeIrc.sendCommand(`KICK ${channel} ${contextNick}`);
+        break;
+      case 'kick_message':
+        if (channel) activeIrc.sendCommand(`KICK ${channel} ${contextNick} :Kicked`);
+        break;
+      case 'ban': {
+        if (!channel) break;
+        const mask = selectedUser?.host ? `*!*@${selectedUser.host}` : `${contextNick}!*@*`;
+        activeIrc.sendCommand(`MODE ${channel} +b ${mask}`);
+        break;
+      }
+      case 'kick_ban': {
+        if (!channel) break;
+        const mask = selectedUser?.host ? `*!*@${selectedUser.host}` : `${contextNick}!*@*`;
+        activeIrc.sendCommand(`MODE ${channel} +b ${mask}`);
+        activeIrc.sendCommand(`KICK ${channel} ${contextNick}`);
+        break;
+      }
+      case 'kick_ban_message': {
+        if (!channel) break;
+        const mask = selectedUser?.host ? `*!*@${selectedUser.host}` : `${contextNick}!*@*`;
+        activeIrc.sendCommand(`MODE ${channel} +b ${mask}`);
+        activeIrc.sendCommand(`KICK ${channel} ${contextNick} :Kicked`);
+        break;
+      }
       default:
         break;
     }
     setShowContextMenu(false);
-  }, [contextNick, connection, network]);
+  }, [channel, contextNick, connection, network, resolveContextUser]);
 
   // Listen for performance config changes
   const [perfConfig, setPerfConfig] = useState(performanceService.getConfig());
@@ -636,8 +1012,13 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       ? searchFiltered.slice(-perfConfig.messageLimit)
       : searchFiltered;
 
+    const groupingEnabled = layoutState.messageGroupingEnabled !== false;
+
     // Group consecutive messages
     return limitedMessages.map((message, index) => {
+      if (!groupingEnabled) {
+        return { ...message, isGrouped: false };
+      }
       if (index === 0) return { ...message, isGrouped: false };
 
       const prevMessage = limitedMessages[index - 1];
@@ -667,6 +1048,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     hideIrcServiceListenerMessages,
     searchVisible,
     searchFilters,
+    layoutState.messageGroupingEnabled,
   ]);
 
   // Track if we're at the bottom for auto-scroll
@@ -799,6 +1181,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         isGrouped={item.isGrouped || false}
         onNickLongPress={(nick) => {
           setContextNick(nick);
+          setContextUser(resolveContextUser(nick));
           setShowContextMenu(true);
         }}
         onLongPressMessage={handleMessageLongPress}
@@ -810,6 +1193,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         channel={channel}
         tabId={tabId}
         layoutWidth={containerWidth}
+        messageFormats={theme.messageFormats}
       />
     );
   }, [
@@ -818,6 +1202,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     colors,
     styles,
     currentNick,
+    resolveContextUser,
     handleMessageLongPress,
     handleMessagePress,
     selectedMessageIds,
@@ -827,6 +1212,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     channel,
     tabId,
     containerWidth,
+    theme.messageFormats,
   ]);
 
   // Get item key
@@ -850,6 +1236,136 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     if (!searchVisible || !searchFilters.searchTerm.trim()) return undefined;
     return displayMessages.length;
   }, [searchVisible, searchFilters.searchTerm, displayMessages.length]);
+
+  const blacklistModals = (
+    <>
+      <Modal
+        visible={showBlacklistModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowBlacklistModal(false)}>
+        <View style={styles.blacklistOverlay}>
+          <View style={styles.blacklistModal}>
+            <Text style={styles.blacklistTitle}>{t('Add to Blacklist')}</Text>
+            {contextNick ? (
+              <>
+                <Text style={styles.blacklistLabel}>{t('Mask')}</Text>
+                {getBlacklistMaskOptions(contextUser, contextNick).map(option => (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={styles.blacklistOption}
+                    onPress={() => setBlacklistMaskChoice(option.id)}>
+                    <Text style={[
+                      styles.blacklistOptionText,
+                      blacklistMaskChoice === option.id && styles.blacklistOptionTextSelected,
+                    ]}>
+                      {option.label} {option.mask}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                <Text style={styles.blacklistLabel}>{t('Action')}</Text>
+                <TouchableOpacity
+                  style={styles.blacklistPicker}
+                  onPress={() => setShowBlacklistActionPicker(true)}>
+                  <Text style={styles.blacklistPickerText}>
+                    {blacklistActionOptions.find(opt => opt.id === blacklistAction)?.label || blacklistAction}
+                  </Text>
+                </TouchableOpacity>
+                {blacklistAction === 'custom' && (
+                  <TextInput
+                    style={styles.blacklistInput}
+                    value={blacklistCustomCommand}
+                    onChangeText={setBlacklistCustomCommand}
+                    placeholder={t('Command template (use {mask}, {usermask}, {hostmask}, {nick})')}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                )}
+                <TextInput
+                  style={[styles.blacklistInput, styles.blacklistInputMultiline]}
+                  value={blacklistReason}
+                  onChangeText={setBlacklistReason}
+                  placeholder={t('Reason (optional)')}
+                  multiline
+                />
+                <View style={styles.blacklistButtons}>
+                  <TouchableOpacity
+                    style={[styles.blacklistButton, styles.blacklistButtonCancel]}
+                    onPress={() => setShowBlacklistModal(false)}>
+                    <Text style={styles.blacklistButtonText}>{t('Cancel')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
+                    onPress={async () => {
+                      if (!contextNick) {
+                        setShowBlacklistModal(false);
+                        return;
+                      }
+                      const maskOptions = getBlacklistMaskOptions(contextUser, contextNick);
+                      const choice = maskOptions.find(opt => opt.id === blacklistMaskChoice) || maskOptions[0];
+                      const templateCommand = blacklistAction === 'custom'
+                        ? blacklistCustomCommand.trim()
+                        : await getBlacklistTemplate(blacklistAction, network);
+                      await userManagementService.addBlacklistEntry(
+                        choice.mask,
+                        blacklistAction,
+                        blacklistReason.trim() || undefined,
+                        network,
+                        templateCommand || undefined
+                      );
+                      setShowBlacklistModal(false);
+                    }}>
+                    <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
+                      {t('Add')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={showBlacklistActionPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBlacklistActionPicker(false)}>
+        <View style={styles.blacklistOverlay}>
+          <View style={styles.blacklistModal}>
+            <Text style={styles.blacklistTitle}>{t('Select Action')}</Text>
+            <ScrollView style={styles.blacklistPickerScroll}>
+              {blacklistActionOptions.map(option => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={styles.blacklistOption}
+                  onPress={() => {
+                    setBlacklistAction(option.id);
+                    if (option.id !== 'custom') {
+                      setBlacklistCustomCommand('');
+                    }
+                    setShowBlacklistActionPicker(false);
+                  }}>
+                  <Text style={[
+                    styles.blacklistOptionText,
+                    blacklistAction === option.id && styles.blacklistOptionTextSelected,
+                  ]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
+              onPress={() => setShowBlacklistActionPicker(false)}>
+              <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
+                {t('Close')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
 
   if (displayMessages.length === 0) {
     return (
@@ -927,8 +1443,12 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           activeNick={currentNick}
           connection={connection}
         />
+        {blacklistModals}
         {selectionMode && (
-          <View style={styles.selectionBar}>
+          <Animated.View
+            style={[styles.selectionBar, { transform: selectionBarPan.getTranslateTransform() }]}
+            {...selectionBarPanResponder.panHandlers}
+          >
             <Text style={styles.selectionText}>{t('{count} selected').replace('{count}', selectedMessageIds.size.toString())}</Text>
             <View style={styles.selectionActions}>
               <TouchableOpacity style={styles.selectionButton} onPress={handleCopySelected}>
@@ -938,7 +1458,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
                 <Text style={[styles.selectionButtonText, styles.selectionCancelText]}>{t('Cancel')}</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Animated.View>
         )}
         {copyStatus ? (
           <View style={styles.selectionToast}>
@@ -994,8 +1514,12 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         activeNick={currentNick}
         connection={connection}
       />
+      {blacklistModals}
       {selectionMode && (
-        <View style={styles.selectionBar}>
+        <Animated.View
+          style={[styles.selectionBar, { transform: selectionBarPan.getTranslateTransform() }]}
+          {...selectionBarPanResponder.panHandlers}
+        >
           <Text style={styles.selectionText}>{t('{count} selected').replace('{count}', selectedMessageIds.size.toString())}</Text>
           <View style={styles.selectionActions}>
             <TouchableOpacity style={styles.selectionButton} onPress={handleCopySelected}>
@@ -1005,7 +1529,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
               <Text style={[styles.selectionButtonText, styles.selectionCancelText]}>{t('Cancel')}</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
       )}
       {copyStatus ? (
         <View style={styles.selectionToast}>
@@ -1024,6 +1548,8 @@ interface NickContextMenuProps {
   styles: any;
   colors: any;
   network?: string;
+  channel?: string;
+  activeNick?: string;
   connection: any;
 }
 
@@ -1035,6 +1561,8 @@ const NickContextMenu: React.FC<NickContextMenuProps> = ({
   styles,
   colors,
   network,
+  channel,
+  activeNick,
   connection,
 }) => {
   const t = useT();
@@ -1042,6 +1570,31 @@ const NickContextMenu: React.FC<NickContextMenuProps> = ({
   const isMonitoring = nick && typeof activeIrc?.isMonitoring === 'function' ? activeIrc.isMonitoring(nick) : false;
   const canMonitor = Boolean(activeIrc?.capEnabledSet && activeIrc.capEnabledSet.has && activeIrc.capEnabledSet.has('monitor'));
   const isIgnored = nick ? userManagementService.isUserIgnored(nick, undefined, undefined, network) : false;
+  const [showCTCPGroup, setShowCTCPGroup] = useState(false);
+  const [showOpsGroup, setShowOpsGroup] = useState(false);
+
+  useEffect(() => {
+    if (!visible) {
+      setShowCTCPGroup(false);
+      setShowOpsGroup(false);
+    }
+  }, [visible, nick]);
+
+  const channelUsers = useMemo(() => {
+    if (!channel || typeof activeIrc.getChannelUsers !== 'function') return [];
+    return activeIrc.getChannelUsers(channel) as ChannelUser[];
+  }, [activeIrc, channel]);
+
+  const normalizedNick = nick ? nick.toLowerCase() : '';
+  const normalizedActive = activeNick ? activeNick.toLowerCase() : '';
+  const targetUser = normalizedNick
+    ? channelUsers.find(user => user.nick.toLowerCase() === normalizedNick)
+    : undefined;
+  const currentUser = normalizedActive
+    ? channelUsers.find(user => user.nick.toLowerCase() === normalizedActive)
+    : undefined;
+  const isCurrentUserHalfOp = currentUser?.modes.some(mode => ['h', 'o', 'a', 'q'].includes(mode)) || false;
+  const isCurrentUserOp = currentUser?.modes.some(mode => ['o', 'a', 'q'].includes(mode)) || false;
 
   return (
     <Modal
@@ -1052,32 +1605,123 @@ const NickContextMenu: React.FC<NickContextMenuProps> = ({
       <TouchableOpacity style={styles.contextOverlay} activeOpacity={1} onPress={onClose}>
         <View style={styles.contextBox}>
           <Text style={styles.contextTitle}>{nick}</Text>
-          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('whois')}>
-            <Text style={styles.contextText}>{t('WHOIS')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_ping')}>
-            <Text style={styles.contextText}>{t('CTCP PING')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_version')}>
-            <Text style={styles.contextText}>{t('CTCP VERSION')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_time')}>
-            <Text style={styles.contextText}>{t('CTCP TIME')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('dcc_chat')}>
-            <Text style={styles.contextText}>{t('Start DCC Chat')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ignore_toggle')}>
-            <Text style={styles.contextText}>{isIgnored ? t('Unignore User') : t('Ignore User')}</Text>
-          </TouchableOpacity>
-          {canMonitor && (
-            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('monitor_toggle')}>
-              <Text style={styles.contextText}>{isMonitoring ? t('Unmonitor Nick') : t('Monitor Nick')}</Text>
+          <ScrollView>
+            <View style={styles.contextGroupHeader}>
+              <Text style={styles.contextGroupTitle}>{t('Quick Actions')}</Text>
+            </View>
+            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('whois')}>
+              <Text style={styles.contextText}>{t('WHOIS')}</Text>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.contextCancel} onPress={onClose}>
-            <Text style={styles.contextCancelText}>{t('Close')}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('copy')}>
+              <Text style={styles.contextText}>{t('Copy Nickname')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ignore_toggle')}>
+              <Text style={styles.contextText}>{isIgnored ? t('Unignore User') : t('Ignore User')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('blacklist')}>
+              <Text style={styles.contextText}>{t('Add to Blacklist')}</Text>
+            </TouchableOpacity>
+            {canMonitor && (
+              <TouchableOpacity style={styles.contextItem} onPress={() => onAction('monitor_toggle')}>
+                <Text style={styles.contextText}>{isMonitoring ? t('Unmonitor Nick') : t('Monitor Nick')}</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('dcc_chat')}>
+              <Text style={styles.contextText}>{t('Start DCC Chat')}</Text>
+            </TouchableOpacity>
+
+            <View style={styles.contextDivider} />
+            <View style={styles.contextGroupHeader}>
+              <Text style={styles.contextGroupTitle}>{t('CTCP')}</Text>
+            </View>
+            <TouchableOpacity style={styles.contextItem} onPress={() => setShowCTCPGroup(prev => !prev)}>
+              <Text style={styles.contextText}>{showCTCPGroup ? t('CTCP v') : t('CTCP >')}</Text>
+            </TouchableOpacity>
+            {showCTCPGroup && (
+              <View style={styles.contextSubGroup}>
+                <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_ping')}>
+                  <Text style={styles.contextText}>{t('CTCP PING')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_version')}>
+                  <Text style={styles.contextText}>{t('CTCP VERSION')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_time')}>
+                  <Text style={styles.contextText}>{t('CTCP TIME')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {channel && (isCurrentUserHalfOp || isCurrentUserOp) && (
+              <>
+                <View style={styles.contextDivider} />
+                <View style={styles.contextGroupHeader}>
+                  <Text style={styles.contextGroupTitle}>{t('Operator Controls')}</Text>
+                </View>
+                <TouchableOpacity style={styles.contextItem} onPress={() => setShowOpsGroup(prev => !prev)}>
+                  <Text style={styles.contextText}>
+                    {showOpsGroup ? t('Operator Controls v') : t('Operator Controls >')}
+                  </Text>
+                </TouchableOpacity>
+                {showOpsGroup && (
+                  <View style={styles.contextSubGroup}>
+                    {isCurrentUserHalfOp && (
+                      <>
+                        {targetUser?.modes.includes('v') ? (
+                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('take_voice')}>
+                            <Text style={styles.contextText}>{t('Take Voice')}</Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('give_voice')}>
+                            <Text style={styles.contextText}>{t('Give Voice')}</Text>
+                          </TouchableOpacity>
+                        )}
+                      </>
+                    )}
+                    {isCurrentUserOp && (
+                      <>
+                        {targetUser?.modes.includes('h') ? (
+                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('take_halfop')}>
+                            <Text style={styles.contextText}>{t('Take Half-Op')}</Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('give_halfop')}>
+                            <Text style={styles.contextText}>{t('Give Half-Op')}</Text>
+                          </TouchableOpacity>
+                        )}
+                        {targetUser?.modes.includes('o') ? (
+                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('take_op')}>
+                            <Text style={styles.contextText}>{t('Take Op')}</Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('give_op')}>
+                            <Text style={styles.contextText}>{t('Give Op')}</Text>
+                          </TouchableOpacity>
+                        )}
+                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick')}>
+                          <Text style={[styles.contextText, styles.contextWarning]}>{t('Kick')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick_message')}>
+                          <Text style={[styles.contextText, styles.contextWarning]}>{t('Kick (with message)')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ban')}>
+                          <Text style={[styles.contextText, styles.contextDanger]}>{t('Ban')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick_ban')}>
+                          <Text style={[styles.contextText, styles.contextDanger]}>{t('Kick + Ban')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick_ban_message')}>
+                          <Text style={[styles.contextText, styles.contextDanger]}>{t('Kick + Ban (with message)')}</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
+                )}
+              </>
+            )}
+            <TouchableOpacity style={styles.contextCancel} onPress={onClose}>
+              <Text style={styles.contextCancelText}>{t('Close')}</Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </TouchableOpacity>
     </Modal>
@@ -1112,6 +1756,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   emptyText: {
     color: colors.textSecondary,
     fontSize: layoutService.getFontSizePixels(),
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   messageContainer: {
     flexDirection: 'row',
@@ -1141,6 +1786,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     fontSize: Math.max(10, layoutService.getFontSizePixels() - 2),
     marginRight: 8,
     minWidth: 50,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   messageWrapper: {
     flex: 1,
@@ -1153,17 +1799,22 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   linkText: {
     color: colors.primary,
     textDecorationLine: 'underline',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   nick: {
     color: colors.messageNick,
     fontSize: 14,
     fontWeight: '600',
     marginRight: 8,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   messageText: {
     color: colors.messageText,
     fontSize: layoutService.getFontSizePixels(),
     flex: 1,
+    flexShrink: 1,
+    textAlign: layoutConfig.messageTextAlign || 'left',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   contextOverlay: {
     flex: 1,
@@ -1182,6 +1833,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     fontWeight: '700',
     color: colors.text,
     marginBottom: 8,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   contextItem: {
     paddingVertical: 10,
@@ -1189,6 +1841,34 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   contextText: {
     color: colors.text,
     fontSize: 14,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  contextWarning: {
+    color: colors.warning || colors.text,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  contextDanger: {
+    color: colors.error || colors.text,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  contextGroupHeader: {
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  contextGroupTitle: {
+    fontSize: 12,
+    color: colors.textSecondary || colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  contextDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+    marginVertical: 8,
+  },
+  contextSubGroup: {
+    paddingLeft: 10,
   },
   contextCancel: {
     paddingVertical: 12,
@@ -1200,6 +1880,104 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   contextCancelText: {
     color: colors.primary,
     fontWeight: '600',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  blacklistModal: {
+    width: '90%',
+    maxWidth: 420,
+    backgroundColor: colors.surface || colors.messageBackground,
+    borderRadius: 12,
+    padding: 16,
+  },
+  blacklistTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistLabel: {
+    fontSize: 12,
+    color: colors.textSecondary || colors.text,
+    marginTop: 8,
+    marginBottom: 6,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistOption: {
+    paddingVertical: 8,
+  },
+  blacklistOptionText: {
+    color: colors.text,
+    fontSize: 14,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistOptionTextSelected: {
+    color: colors.primary,
+    fontWeight: '600',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistPicker: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    backgroundColor: colors.surfaceVariant || colors.messageBackground,
+  },
+  blacklistPickerText: {
+    color: colors.text,
+    fontSize: 14,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: colors.text,
+    marginTop: 8,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistInputMultiline: {
+    minHeight: 70,
+    textAlignVertical: 'top',
+  },
+  blacklistButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  blacklistButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  blacklistButtonCancel: {
+    marginRight: 8,
+    backgroundColor: colors.surfaceVariant || colors.messageBackground,
+  },
+  blacklistButtonPrimary: {
+    backgroundColor: colors.primary,
+  },
+  blacklistButtonText: {
+    color: colors.text,
+    fontWeight: '600',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistButtonTextPrimary: {
+    color: colors.onPrimary || '#fff',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistPickerScroll: {
+    maxHeight: 220,
   },
   selectionBar: {
     position: 'absolute',
@@ -1225,6 +2003,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     color: colors.text,
     fontWeight: '600',
     fontSize: 14,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   selectionActions: {
     flexDirection: 'row',
@@ -1240,6 +2019,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   selectionButtonText: {
     color: colors.buttonPrimaryText || '#fff',
     fontWeight: '600',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   selectionCancelButton: {
     backgroundColor: colors.surfaceAlt || colors.messageBackground,
@@ -1248,6 +2028,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   selectionCancelText: {
     color: colors.text,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   selectionToast: {
     position: 'absolute',
@@ -1263,6 +2044,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   selectionToastText: {
     color: colors.text,
     fontWeight: '600',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   searchButton: {
     position: 'absolute',

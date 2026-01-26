@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,10 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import { themeService, Theme, ThemeColors } from '../services/ThemeService';
+import { themeService, Theme, ThemeColors, ThemeMessageFormats } from '../services/ThemeService';
 import { useT } from '../i18n/transifex';
+import { MessageFormatEditorScreen } from './MessageFormatEditorScreen';
+import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
 
 interface ThemeEditorScreenProps {
   visible: boolean;
@@ -28,19 +30,29 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   const t = useT();
   const [themeName, setThemeName] = useState('');
   const [colors, setColors] = useState<ThemeColors>(themeService.getColors());
+  const [messageFormats, setMessageFormats] = useState<ThemeMessageFormats | undefined>(undefined);
+  const [messageFormatsDirty, setMessageFormatsDirty] = useState(false);
+  const [showMessageFormatEditor, setShowMessageFormatEditor] = useState(false);
   const [editingColor, setEditingColor] = useState<keyof ThemeColors | null>(null);
   const [colorValue, setColorValue] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hexInput, setHexInput] = useState('');
+  const initialMessageFormats = useMemo(
+    () => messageFormats ?? getDefaultMessageFormats(),
+    [messageFormats],
+  );
 
   useEffect(() => {
     if (theme) {
       setThemeName(theme.name);
       setColors(theme.colors);
+      setMessageFormats(theme.messageFormats);
     } else {
       setThemeName('');
       setColors(themeService.getColors());
+      setMessageFormats(undefined);
     }
+    setMessageFormatsDirty(false);
   }, [theme, visible]);
 
   const handleColorPress = (key: keyof ThemeColors) => {
@@ -74,22 +86,32 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
 
     if (theme) {
       // Update existing theme
-      await themeService.updateCustomTheme(theme.id, {
+      const updates: Partial<Theme> = {
         name: themeName,
         colors,
-      });
+      };
+      if (messageFormatsDirty) {
+        updates.messageFormats = messageFormats;
+      }
+      await themeService.updateCustomTheme(theme.id, updates);
       onSave({
         ...theme,
         name: themeName,
         colors,
+        messageFormats: messageFormatsDirty ? messageFormats : theme.messageFormats,
       });
     } else {
       // Create new theme
       const newTheme = await themeService.createCustomTheme(themeName, 'dark');
-      await themeService.updateCustomTheme(newTheme.id, { colors });
+      const updates: Partial<Theme> = { colors };
+      if (messageFormatsDirty) {
+        updates.messageFormats = messageFormats;
+      }
+      await themeService.updateCustomTheme(newTheme.id, updates);
       onSave({
         ...newTheme,
         colors,
+        messageFormats: messageFormatsDirty ? messageFormats : undefined,
       });
     }
 
@@ -132,7 +154,10 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
         'joinMessage',
         'partMessage',
         'quitMessage',
+        'modeMessage',
         'topicMessage',
+        'inviteMessage',
+        'monitorMessage',
         'actionMessage',
       ],
     },
@@ -171,10 +196,17 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
         'userListBackground',
         'userListText',
         'userListBorder',
+        'userOwner',
+        'userAdmin',
         'userOp',
+        'userHalfop',
         'userVoice',
         'userNormal',
       ],
+    },
+    {
+      title: t('Highlights'),
+      keys: ['highlightBackground', 'highlightText'],
     },
   ];
 
@@ -253,6 +285,19 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
               placeholder={t('Enter theme name')}
               placeholderTextColor={currentColors.textSecondary}
             />
+          </View>
+          <View style={[styles.section, { borderBottomColor: currentColors.divider }]}>
+            <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
+              {t('Message format')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.formatButton, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}
+              onPress={() => setShowMessageFormatEditor(true)}
+            >
+              <Text style={[styles.formatButtonText, { color: currentColors.text }]}>
+                {messageFormats ? t('Edit format') : t('Customize format')}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {colorCategories.map(category => (
@@ -381,6 +426,17 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
           </View>
         </View>
       </Modal>
+      <MessageFormatEditorScreen
+        visible={showMessageFormatEditor}
+        colors={currentColors}
+        initialFormats={initialMessageFormats}
+        onSave={(formats) => {
+          setMessageFormats(formats);
+          setMessageFormatsDirty(true);
+          setShowMessageFormatEditor(false);
+        }}
+        onCancel={() => setShowMessageFormatEditor(false)}
+      />
     </Modal>
   );
 };
@@ -426,6 +482,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
+  },
+  formatButton: {
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  formatButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   input: {
     borderWidth: 1,

@@ -3,6 +3,8 @@
  * 
  * Manages channel state including modes, bans, exceptions, keys, limits, and topics.
  * Tracks channel information and provides methods to query and modify channel settings.
+ * Copyright (c) 2025-2026 Velimir Majstorov
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { IRCService } from './IRCService';
@@ -43,6 +45,11 @@ export class ChannelManagementService {
   private channelInfoListeners: ((channel: string, info: ChannelInfo) => void)[] = [];
   private ircService: IRCService;
 
+  // Buffers for collecting list entries (ban, exception, invite)
+  private banListBuffer: Map<string, string[]> = new Map();
+  private exceptionListBuffer: Map<string, string[]> = new Map();
+  private inviteListBuffer: Map<string, string[]> = new Map();
+
   constructor(ircService?: IRCService) {
     // Import the singleton only if no instance is provided
     const { ircService: singleton } = require('./IRCService');
@@ -55,11 +62,18 @@ export class ChannelManagementService {
   initialize(): void {
     console.log('ChannelManagementService: Initialized');
     this.ircService.addRawMessage('*** ChannelManagementService initialized', 'debug');
-    this.ircService.on('topic', (channel, topic, setBy) => this.updateTopic(channel, topic, setBy));
-    this.ircService.on('channelMode', (channel, modeString, modeParams) => this.updateModes(channel, modeString, modeParams));
-    this.ircService.on('clear-channel', (channel) => this.clearChannel(channel));
-    this.ircService.on('numeric', (numeric, prefix, params, timestamp) => {
-        if (numeric === 332) { // RPL_TOPIC
+    this.ircService.on('topic', (channel: string, topic: string, setBy: string) => this.updateTopic(channel, topic, setBy));
+    this.ircService.on('channelMode', (channel: string, modeString: string, modeParams: string[]) => this.updateModes(channel, modeString, modeParams));
+    this.ircService.on('clear-channel', (channel: string) => this.clearChannel(channel));
+    this.ircService.on('numeric', (numeric: number, prefix: string, params: string[], timestamp: number) => {
+        if (numeric === 324) { // RPL_CHANNELMODEIS - Response to MODE #channel query
+            const channel = params[1] || '';
+            const modeString = params[2] || '';
+            const modeParams = params.slice(3);
+            if (channel && modeString) {
+                this.updateModes(channel, modeString, modeParams);
+            }
+        } else if (numeric === 332) { // RPL_TOPIC
             const topicChannel = params[1] || '';
             const topic = params[2] || '';
             this.updateTopic(topicChannel, topic);
@@ -69,8 +83,62 @@ export class ChannelManagementService {
             const topicTime = params[3] ? parseInt(params[3], 10) * 1000 : undefined;
             if (topicWhoChannel && topicSetter) {
                 this.updateChannelInfo(topicWhoChannel, {
-                topicSetBy: topicSetter,
-                topicSetAt: topicTime,
+                    topicSetBy: topicSetter,
+                    topicSetAt: topicTime,
+                });
+            }
+        } else if (numeric === 346) { // RPL_INVITELIST - Invite list entry
+            const channel = params[1] || '';
+            const mask = params[2] || '';
+            if (channel && mask) {
+                if (!this.inviteListBuffer.has(channel)) {
+                    this.inviteListBuffer.set(channel, []);
+                }
+                this.inviteListBuffer.get(channel)!.push(mask);
+            }
+        } else if (numeric === 347) { // RPL_ENDOFINVITELIST - End of invite list
+            const channel = params[1] || '';
+            if (channel) {
+                const inviteList = this.inviteListBuffer.get(channel) || [];
+                this.inviteListBuffer.delete(channel);
+                this.updateChannelInfo(channel, {
+                    modes: { inviteList },
+                });
+            }
+        } else if (numeric === 348) { // RPL_EXCEPTLIST - Exception list entry
+            const channel = params[1] || '';
+            const mask = params[2] || '';
+            if (channel && mask) {
+                if (!this.exceptionListBuffer.has(channel)) {
+                    this.exceptionListBuffer.set(channel, []);
+                }
+                this.exceptionListBuffer.get(channel)!.push(mask);
+            }
+        } else if (numeric === 349) { // RPL_ENDOFEXCEPTLIST - End of exception list
+            const channel = params[1] || '';
+            if (channel) {
+                const exceptionList = this.exceptionListBuffer.get(channel) || [];
+                this.exceptionListBuffer.delete(channel);
+                this.updateChannelInfo(channel, {
+                    modes: { exceptionList },
+                });
+            }
+        } else if (numeric === 367) { // RPL_BANLIST - Ban list entry
+            const channel = params[1] || '';
+            const mask = params[2] || '';
+            if (channel && mask) {
+                if (!this.banListBuffer.has(channel)) {
+                    this.banListBuffer.set(channel, []);
+                }
+                this.banListBuffer.get(channel)!.push(mask);
+            }
+        } else if (numeric === 368) { // RPL_ENDOFBANLIST - End of ban list
+            const channel = params[1] || '';
+            if (channel) {
+                const banList = this.banListBuffer.get(channel) || [];
+                this.banListBuffer.delete(channel);
+                this.updateChannelInfo(channel, {
+                    modes: { banList },
                 });
             }
         }
@@ -318,6 +386,20 @@ export class ChannelManagementService {
    */
   requestInviteList(channel: string): void {
     ircService.sendCommand(`MODE ${channel} I`);
+  }
+
+  /**
+   * Add invite exception mask
+   */
+  addInvite(channel: string, mask: string): void {
+    this.setChannelMode(channel, '+I', mask);
+  }
+
+  /**
+   * Remove invite exception mask
+   */
+  removeInvite(channel: string, mask: string): void {
+    this.setChannelMode(channel, '-I', mask);
   }
 
   /**

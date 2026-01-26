@@ -1,0 +1,5 @@
+v1.6.13
+- Extended message format tokens: added username, hostname, hostmask, target, mode, topic, reason, numeric, and command tokens for advanced message customization
+- Live preview in message format editor: see how your formatted messages will look in real-time with styled preview
+- Improved message formatting: better support for IRC event details in custom message formats
+- Enhanced token labels: clearer token names in the format editor for easier customization

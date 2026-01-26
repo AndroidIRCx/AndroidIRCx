@@ -39,139 +39,139 @@
     "string": "Backup guardado em:\n{path}"
   },
   "OK": {
-    "string": ""
+    "string": "OK"
   },
   "Failed to save backup file": {
-    "string": ""
+    "string": "Falha ao guardar o ficheiro de backup"
   },
   "Restore": {
-    "string": ""
+    "string": "Restaurar"
   },
   "Backup restored. Restart app to ensure all data reloads.": {
-    "string": ""
+    "string": "Backup restaurado. Reinicie a aplicação para garantir que todos os dados são recarregados."
   },
   "Invalid backup data": {
-    "string": ""
+    "string": "Dados de cópia de segurança inválidos"
   },
   "Backup & Restore": {
-    "string": ""
+    "string": "Backup e restauro"
   },
   "Close": {
-    "string": ""
+    "string": "Fechar"
   },
   "Copy to Clipboard": {
-    "string": ""
+    "string": "Copiar para a Área de Transferência"
   },
   "Save to File": {
-    "string": ""
+    "string": "Salvar em arquivo"
   },
   "Export Complete": {
-    "string": ""
+    "string": "Exportação concluída"
   },
   "Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)": {
-    "string": ""
+    "string": "Exportado {count} caracteres em {format}formato.\n\n(Em produção, isto seria guardado num arquivo)"
   },
   "Export Error": {
-    "string": ""
+    "string": "Erro de exportação"
   },
   "Failed to export history": {
-    "string": ""
+    "string": "Erro ao exportar o histórico"
   },
   "Clear Message History": {
-    "string": ""
+    "string": "Limpar histórico de mensagens"
   },
   "Are you sure you want to clear all message history? This cannot be undone.": {
-    "string": ""
+    "string": "Tem a certeza de que pretende apagar todo o histórico de mensagens? Esta ação é irreversível."
   },
   "Clear": {
-    "string": ""
+    "string": "Limpiar"
   },
   "Message history cleared": {
-    "string": ""
+    "string": "O histórico de mensagens foi apagado."
   },
   "Settings backup generated (excludes logs and message history).": {
-    "string": ""
+    "string": "Cópia de segurança da configuração gerada (exclui registos e histórico de mensagens)."
   },
   "Full backup generated (includes all data).": {
-    "string": ""
+    "string": "Cópia de segurança completa gerada (inclui todos os dados)."
   },
   "Backup Error": {
-    "string": ""
+    "string": "Erro de backup"
   },
   "Failed to create backup": {
-    "string": ""
+    "string": "Falha ao criar o backup"
   },
   "Restore Complete": {
-    "string": ""
+    "string": "Restauração completa"
   },
   "Restore Error": {
-    "string": ""
+    "string": "Erro de restauração"
   },
   "Use fingerprint/biometric to unlock": {
-    "string": ""
+    "string": "Utilize a impressão digital/biometria para desbloquear"
   },
   "Enter PIN to unlock": {
-    "string": ""
+    "string": "Introduza o PIN para desbloquear"
   },
   "PIN must be at least 4 digits.": {
-    "string": ""
+    "string": "O PIN deve ter pelo menos 4 dígitos."
   },
   "PINs do not match.": {
-    "string": ""
+    "string": "Os PIN não coincidem."
   },
   "Biometrics unavailable": {
-    "string": ""
+    "string": "Biometria indisponível"
   },
   "Enable a fingerprint/biometric on your device first.": {
-    "string": ""
+    "string": "Primeiro, ative a impressão digital/biometria no seu dispositivo."
   },
   "Unlock passwords": {
-    "string": ""
+    "string": "Desbloquear palavras-passe"
   },
   "Authentication failed": {
-    "string": ""
+    "string": "A autenticação falhou."
   },
   "Unable to unlock passwords.": {
-    "string": ""
+    "string": "Não foi possível desbloquear as passwords."
   },
   "Biometric setup failed": {
-    "string": ""
+    "string": "Falha na configuração biométrica"
   },
   "Unable to enable biometric lock for passwords.": {
-    "string": ""
+    "string": "Não foi possível ativar o bloqueio biométrico para as palavras-passe."
   },
   "Enable a method": {
-    "string": ""
+    "string": "Ativar um método"
   },
   "Turn on biometric or PIN for App Lock first.": {
-    "string": ""
+    "string": "Primeiro, ative a biometria ou o PIN para o bloqueio de aplicações."
   },
   "Unable to enable biometric app lock.": {
-    "string": ""
+    "string": "Não foi possível ativar o bloqueio biométrico da aplicação."
   },
   "Appearance": {
-    "string": ""
+    "string": "Aspeto"
   },
   "Theme": {
-    "string": ""
+    "string": "Tema"
   },
   "Custom theme": {
-    "string": ""
+    "string": "Tema personalizado"
   },
   "Dark mode (default)": {
-    "string": ""
+    "string": "Modo escuro (padrão)"
   },
   "Light mode": {
-    "string": ""
+    "string": "Modo claro"
   },
   "+ Create New Theme": {
-    "string": ""
+    "string": "+ Criar novo tema"
   },
   "Edit {name}": {
-    "string": ""
+    "string": "Editar {name} "
   },
   "Delete {name}": {
-    "string": ""
+    "string": "Eliminar {name}"
   },
   "Delete Theme": {
     "string": ""
@@ -6561,6 +6561,873 @@
     "string": ""
   },
   "Invalid certificate format. Please configure a valid PEM certificate.": {
+    "string": ""
+  },
+  "Ignore (local)": {
+    "string": ""
+  },
+  "Kill": {
+    "string": ""
+  },
+  "OperServ Kill": {
+    "string": ""
+  },
+  "AKILL": {
+    "string": ""
+  },
+  "GLINE": {
+    "string": ""
+  },
+  "SHUN": {
+    "string": ""
+  },
+  "Custom Command": {
+    "string": ""
+  },
+  "Nick only": {
+    "string": ""
+  },
+  "Nick!user@*": {
+    "string": ""
+  },
+  "*!*@host": {
+    "string": ""
+  },
+  "Nick!*@host": {
+    "string": ""
+  },
+  "Add to Blacklist": {
+    "string": ""
+  },
+  "Mask": {
+    "string": ""
+  },
+  "Action": {
+    "string": ""
+  },
+  "Command template (use {mask}, {usermask}, {hostmask}, {nick})": {
+    "string": ""
+  },
+  "Select Action": {
+    "string": ""
+  },
+  "Set away message": {
+    "string": ""
+  },
+  "Remove away status": {
+    "string": ""
+  },
+  "Invite user to channel": {
+    "string": ""
+  },
+  "List channels on server": {
+    "string": ""
+  },
+  "List users in channel": {
+    "string": ""
+  },
+  "Query user information": {
+    "string": ""
+  },
+  "Ban user from channel": {
+    "string": ""
+  },
+  "Unban user from channel": {
+    "string": ""
+  },
+  "Kick and ban user": {
+    "string": ""
+  },
+  "Send notice message": {
+    "string": ""
+  },
+  "Ignore user messages": {
+    "string": ""
+  },
+  "Stop ignoring user": {
+    "string": ""
+  },
+  "Clear current tab messages": {
+    "string": ""
+  },
+  "Close current tab": {
+    "string": ""
+  },
+  "Display local message": {
+    "string": ""
+  },
+  "Send message to all channels": {
+    "string": ""
+  },
+  "Send action to all channels": {
+    "string": ""
+  },
+  "Send notice to all channels": {
+    "string": ""
+  },
+  "Get user statistics": {
+    "string": ""
+  },
+  "Get server version": {
+    "string": ""
+  },
+  "Get server time": {
+    "string": ""
+  },
+  "Get server admin info": {
+    "string": ""
+  },
+  "List server links": {
+    "string": ""
+  },
+  "Get server statistics": {
+    "string": ""
+  },
+  "Check if nicks are online": {
+    "string": ""
+  },
+  "Get message of the day": {
+    "string": ""
+  },
+  "Ping server": {
+    "string": ""
+  },
+  "Trace route to server": {
+    "string": ""
+  },
+  "Query IRC services": {
+    "string": ""
+  },
+  "Reconnect to server": {
+    "string": ""
+  },
+  "Connect to server: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]": {
+    "string": ""
+  },
+  "Set alternate nickname": {
+    "string": ""
+  },
+  "Auto-join on invite toggle": {
+    "string": ""
+  },
+  "Play beep sound": {
+    "string": ""
+  },
+  "Channel notice": {
+    "string": ""
+  },
+  "Channel privmsg": {
+    "string": ""
+  },
+  "Show help": {
+    "string": ""
+  },
+  "DNS lookup": {
+    "string": ""
+  },
+  "Execute command after delay": {
+    "string": ""
+  },
+  "Window/tab management": {
+    "string": ""
+  },
+  "Filter messages": {
+    "string": ""
+  },
+  "Send wallops message (IRCop)": {
+    "string": ""
+  },
+  "Send local ops message (IRCop)": {
+    "string": ""
+  },
+  "Send global ops message (IRCop)": {
+    "string": ""
+  },
+  "Admin chat (IRCop)": {
+    "string": ""
+  },
+  "Chat with services": {
+    "string": ""
+  },
+  "Get server information": {
+    "string": ""
+  },
+  "Request invite to channel": {
+    "string": ""
+  },
+  "Get server rules": {
+    "string": ""
+  },
+  "List IRC services": {
+    "string": ""
+  },
+  "Get user host information": {
+    "string": ""
+  },
+  "Get user IP address": {
+    "string": ""
+  },
+  "Get user list": {
+    "string": ""
+  },
+  "Monitor users (legacy)": {
+    "string": ""
+  },
+  "IRCop login": {
+    "string": ""
+  },
+  "IRCop rehash server": {
+    "string": ""
+  },
+  "IRCop disconnect server": {
+    "string": ""
+  },
+  "IRCop kill user": {
+    "string": ""
+  },
+  "IRCop connect servers": {
+    "string": ""
+  },
+  "IRCop shutdown server": {
+    "string": ""
+  },
+  "Open color picker": {
+    "string": ""
+  },
+  "mIRC Formatting": {
+    "string": ""
+  },
+  "Standard": {
+    "string": ""
+  },
+  "Extended": {
+    "string": ""
+  },
+  "FG": {
+    "string": ""
+  },
+  "BG": {
+    "string": ""
+  },
+  "Select color {index}": {
+    "string": ""
+  },
+  "Failed to export theme": {
+    "string": ""
+  },
+  "Theme Exported": {
+    "string": ""
+  },
+  "Theme saved to:\n{path}": {
+    "string": ""
+  },
+  "Theme Imported": {
+    "string": ""
+  },
+  "Successfully imported theme \"{name}\". Would you like to use it now?": {
+    "string": ""
+  },
+  "Use Now": {
+    "string": ""
+  },
+  "Import Failed": {
+    "string": ""
+  },
+  "Failed to import theme": {
+    "string": ""
+  },
+  "Export Current Theme": {
+    "string": ""
+  },
+  "Save theme to JSON file for sharing": {
+    "string": ""
+  },
+  "Import Theme": {
+    "string": ""
+  },
+  "Load theme from JSON file": {
+    "string": ""
+  },
+  "Current: {size} ({px}px)": {
+    "string": ""
+  },
+  "Use Small": {
+    "string": ""
+  },
+  "Use Medium": {
+    "string": ""
+  },
+  "Use Large": {
+    "string": ""
+  },
+  "Use Specified": {
+    "string": ""
+  },
+  "Small Size (px)": {
+    "string": ""
+  },
+  "Medium Size (px)": {
+    "string": ""
+  },
+  "Large Size (px)": {
+    "string": ""
+  },
+  "Specified Size (px)": {
+    "string": ""
+  },
+  "Group Messages": {
+    "string": ""
+  },
+  "Group consecutive messages from the same user": {
+    "string": ""
+  },
+  "Message Text Alignment": {
+    "string": ""
+  },
+  "Alignment: {align}": {
+    "string": ""
+  },
+  "Select alignment:": {
+    "string": ""
+  },
+  "Center": {
+    "string": ""
+  },
+  "Justify": {
+    "string": ""
+  },
+  "Message Text Direction": {
+    "string": ""
+  },
+  "Direction: {direction}": {
+    "string": ""
+  },
+  "Select direction:": {
+    "string": ""
+  },
+  "Auto": {
+    "string": ""
+  },
+  "Left-to-right": {
+    "string": ""
+  },
+  "Right-to-left": {
+    "string": ""
+  },
+  "Show Color Picker Button": {
+    "string": ""
+  },
+  "Display mIRC color picker next to message input": {
+    "string": ""
+  },
+  "Hide mIRC color picker button": {
+    "string": ""
+  },
+  "Blacklist": {
+    "string": ""
+  },
+  "Auto-run actions for matched masks": {
+    "string": ""
+  },
+  "Blacklist feature coming soon": {
+    "string": ""
+  },
+  "Added {nick} to blacklist": {
+    "string": ""
+  },
+  "Changing server": {
+    "string": ""
+  },
+  "*** Network \"{name}\" created (not connected). Use /server -m {address} to connect.": {
+    "string": ""
+  },
+  "Invalid server address or configuration": {
+    "string": ""
+  },
+  "Failed to connect: {error}": {
+    "string": ""
+  },
+  "*** DCC SEND offer from {from}: {filename} - Rejected": {
+    "string": ""
+  },
+  "*** DCC SEND offer from {from}: {filename} - Open DCC Transfers to accept": {
+    "string": ""
+  },
+  "*** Server list sorted": {
+    "string": ""
+  },
+  "*** Server added: {server}:{port}": {
+    "string": ""
+  },
+  "*** Server removed: {server}": {
+    "string": ""
+  },
+  "*** Server connection details updated": {
+    "string": ""
+  },
+  "No server specified. Use /server <address> [port]": {
+    "string": ""
+  },
+  "*** Server command error: {error}": {
+    "string": ""
+  },
+  "Usage: /dns <hostname>": {
+    "string": ""
+  },
+  "*** DNS lookup failed for {hostname}": {
+    "string": ""
+  },
+  "*** No DNS records found for {hostname}": {
+    "string": ""
+  },
+  "*** DNS A for {hostname}: {records}": {
+    "string": ""
+  },
+  "*** DNS A for {hostname}: <none>": {
+    "string": ""
+  },
+  "*** DNS AAAA for {hostname}: {records}": {
+    "string": ""
+  },
+  "*** DNS AAAA for {hostname}: <none>": {
+    "string": ""
+  },
+  "*** DNS lookup failed for {hostname}: {error}": {
+    "string": ""
+  },
+  "*** Message sent to {count} channel(s)": {
+    "string": ""
+  },
+  "*** Action sent to {count} channel(s)": {
+    "string": ""
+  },
+  "*** Notice sent to {count} channel(s)": {
+    "string": ""
+  },
+  "Version 1.6.13": {
+    "string": ""
+  },
+  "Missing Command": {
+    "string": ""
+  },
+  "Custom command is required for this action.": {
+    "string": ""
+  },
+  "Blacklist entry updated": {
+    "string": ""
+  },
+  "User added to blacklist": {
+    "string": ""
+  },
+  "Remove from Blacklist": {
+    "string": ""
+  },
+  "User removed from blacklist": {
+    "string": ""
+  },
+  "Templates": {
+    "string": ""
+  },
+  "No matching blacklist entries": {
+    "string": ""
+  },
+  "No blacklist entries": {
+    "string": ""
+  },
+  "Add users to auto-run actions on join": {
+    "string": ""
+  },
+  "Edit Blacklist Entry": {
+    "string": ""
+  },
+  "Enter a mask to match. Examples:": {
+    "string": ""
+  },
+  "nick (match a nick)": {
+    "string": ""
+  },
+  "*!*@host.com (match a host)": {
+    "string": ""
+  },
+  "*!*@*.tor-exit.* (wildcards allowed)": {
+    "string": ""
+  },
+  "Command template (use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration})": {
+    "string": ""
+  },
+  "Duration (e.g., 1d, 7d, 1h, 0 for permanent)": {
+    "string": ""
+  },
+  "Blacklist Templates": {
+    "string": ""
+  },
+  "Set default commands for AKILL/GLINE/SHUN. Use {mask}, {usermask}, {hostmask}, {reason}.": {
+    "string": ""
+  },
+  "AKILL template": {
+    "string": ""
+  },
+  "GLINE template": {
+    "string": ""
+  },
+  "SHUN template": {
+    "string": ""
+  },
+  "Invite exception added": {
+    "string": ""
+  },
+  "Invite exception removed": {
+    "string": ""
+  },
+  "Invite Exception List": {
+    "string": ""
+  },
+  "Invite mask (e.g., *!*@trusted.host)": {
+    "string": ""
+  },
+  "Refresh Invite List": {
+    "string": ""
+  },
+  "No invite exceptions": {
+    "string": ""
+  },
+  "Highlights": {
+    "string": ""
+  },
+  "Blacklisted": {
+    "string": ""
+  },
+  "Usage: /part <channel> [message]": {
+    "string": ""
+  },
+  "*** You are now away: {message}": {
+    "string": ""
+  },
+  "*** You are no longer away": {
+    "string": ""
+  },
+  "*** Invited {nick} to {channel}": {
+    "string": ""
+  },
+  "Usage: /invite <nick> [channel]": {
+    "string": ""
+  },
+  "*** Requesting channel list...": {
+    "string": ""
+  },
+  "Usage: /names [channel]": {
+    "string": ""
+  },
+  "*** Banning {nick} from {channel}": {
+    "string": ""
+  },
+  "Usage: /ban <nick> [channel]": {
+    "string": ""
+  },
+  "*** Unbanning {mask} from {channel}": {
+    "string": ""
+  },
+  "Usage: /unban <nick|mask> [channel]": {
+    "string": ""
+  },
+  "*** Kicking and banning {nick} from {channel}": {
+    "string": ""
+  },
+  "Usage: /kickban <nick> [channel] [reason]": {
+    "string": ""
+  },
+  "Usage: /notice <target> <message>": {
+    "string": ""
+  },
+  "*** Now ignoring {mask}": {
+    "string": ""
+  },
+  "*** Failed to ignore user: {message}": {
+    "string": ""
+  },
+  "Usage: /ignore <nick|mask> [reason]": {
+    "string": ""
+  },
+  "*** No longer ignoring {mask}": {
+    "string": ""
+  },
+  "*** Failed to unignore user: {message}": {
+    "string": ""
+  },
+  "Usage: /unignore <nick|mask>": {
+    "string": ""
+  },
+  "*** Messages cleared": {
+    "string": ""
+  },
+  "Usage: /echo <message>": {
+    "string": ""
+  },
+  "*** Sending message to all channels...": {
+    "string": ""
+  },
+  "Usage: /amsg <message>": {
+    "string": ""
+  },
+  "*** Sending action to all channels...": {
+    "string": ""
+  },
+  "Usage: /ame <action>": {
+    "string": ""
+  },
+  "*** Sending notice to all channels...": {
+    "string": ""
+  },
+  "Usage: /anotice <message>": {
+    "string": ""
+  },
+  "Usage: /ison <nick1> [nick2] ...": {
+    "string": ""
+  },
+  "Usage: /squery <service> <message>": {
+    "string": ""
+  },
+  "*** Reconnecting to server...": {
+    "string": ""
+  },
+  "Invalid /server command syntax": {
+    "string": ""
+  },
+  "*** Alternate nickname set to: {nick}": {
+    "string": ""
+  },
+  "Usage: /anick <nickname>": {
+    "string": ""
+  },
+  "*** Auto-join on invite: {state}": {
+    "string": ""
+  },
+  "*** Beep!": {
+    "string": ""
+  },
+  "Usage: /cnotice <nick> <channel> <message>": {
+    "string": ""
+  },
+  "Usage: /cprivmsg <nick> <channel> <message>": {
+    "string": ""
+  },
+  "*** Help for /{command} - Use Settings > Help for full documentation": {
+    "string": ""
+  },
+  "*** IRC Commands Help": {
+    "string": ""
+  },
+  "*** Use /help <command> for specific command help": {
+    "string": ""
+  },
+  "*** Or go to Settings > Help for full documentation": {
+    "string": ""
+  },
+  "Usage: /raw <command>": {
+    "string": ""
+  },
+  "*** Looking up DNS for {hostname}...": {
+    "string": ""
+  },
+  "*** Timer \"{name}\" set: {delay}ms, {repetitions} repetitions": {
+    "string": ""
+  },
+  "Usage: /timer <name> <delay> <repetitions> <command>": {
+    "string": ""
+  },
+  "Usage: /window -a <name>": {
+    "string": ""
+  },
+  "Usage: /window [-a] <name>": {
+    "string": ""
+  },
+  "*** Filtering messages containing: {text}": {
+    "string": ""
+  },
+  "Usage: /filter [-g] <text>": {
+    "string": ""
+  },
+  "Usage: /wallops <message>": {
+    "string": ""
+  },
+  "Usage: /locops <message>": {
+    "string": ""
+  },
+  "Usage: /globops <message>": {
+    "string": ""
+  },
+  "Usage: /adchat <message>": {
+    "string": ""
+  },
+  "Usage: /chat <service> <message>": {
+    "string": ""
+  },
+  "*** Knock sent to {channel}": {
+    "string": ""
+  },
+  "Usage: /knock <channel> [message]": {
+    "string": ""
+  },
+  "Usage: /userhost <nick1> [nick2] ...": {
+    "string": ""
+  },
+  "Usage: /userip <nick>": {
+    "string": ""
+  },
+  "Usage: /watch +nick1 -nick2 ...": {
+    "string": ""
+  },
+  "*** Attempting IRCop login...": {
+    "string": ""
+  },
+  "Usage: /oper <nick> <password>": {
+    "string": ""
+  },
+  "*** Requesting server rehash...": {
+    "string": ""
+  },
+  "*** Requesting server disconnect: {server}": {
+    "string": ""
+  },
+  "Usage: /squit <server> [message]": {
+    "string": ""
+  },
+  "*** Killing user: {nick}": {
+    "string": ""
+  },
+  "Usage: /kill <nick> <reason>": {
+    "string": ""
+  },
+  "*** Requesting server connection: {server}:{port}": {
+    "string": ""
+  },
+  "Usage: /connect <server> <port> [remote]": {
+    "string": ""
+  },
+  "*** Requesting server shutdown...": {
+    "string": ""
+  },
+  "Invalid theme file format": {
+    "string": ""
+  },
+  "Theme is missing required color: {key}": {
+    "string": ""
+  },
+  "Invalid JSON format": {
+    "string": ""
+  },
+  "Message format": {
+    "string": ""
+  },
+  "Message with mention format": {
+    "string": ""
+  },
+  "Action (/me) message format": {
+    "string": ""
+  },
+  "Action (/me) message with mention format": {
+    "string": ""
+  },
+  "Notice message format": {
+    "string": ""
+  },
+  "Event (join/leave/etc.) message format": {
+    "string": ""
+  },
+  "time": {
+    "string": ""
+  },
+  "sender": {
+    "string": ""
+  },
+  "message": {
+    "string": ""
+  },
+  "channel": {
+    "string": ""
+  },
+  "network": {
+    "string": ""
+  },
+  "account": {
+    "string": ""
+  },
+  "hostname": {
+    "string": ""
+  },
+  "hostmask": {
+    "string": ""
+  },
+  "target": {
+    "string": ""
+  },
+  "mode": {
+    "string": ""
+  },
+  "topic": {
+    "string": ""
+  },
+  "reason": {
+    "string": ""
+  },
+  "numeric": {
+    "string": ""
+  },
+  "command": {
+    "string": ""
+  },
+  "This is an example message.": {
+    "string": ""
+  },
+  "Example topic": {
+    "string": ""
+  },
+  "Example reason": {
+    "string": ""
+  },
+  "does an example action": {
+    "string": ""
+  },
+  "[sender-nick!user@host.test has joined]": {
+    "string": ""
+  },
+  "Message Format": {
+    "string": ""
+  },
+  "Add Part": {
+    "string": ""
+  },
+  "Edit Part": {
+    "string": ""
+  },
+  "Token": {
+    "string": ""
+  },
+  "Text color": {
+    "string": ""
+  },
+  "Move Left": {
+    "string": ""
+  },
+  "Move Right": {
+    "string": ""
+  },
+  "Apply": {
+    "string": ""
+  },
+  "Pick Color": {
+    "string": ""
+  },
+  "Custom": {
+    "string": ""
+  },
+  "#RRGGBB": {
+    "string": ""
+  },
+  "Edit format": {
+    "string": ""
+  },
+  "Customize format": {
     "string": ""
   }
 }
