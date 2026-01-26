@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { Alert, Modal, View, Text, TextInput, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsNotifications } from '../../../hooks/useSettingsNotifications';
@@ -54,6 +54,7 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
   const {
     notificationPrefs,
     updateNotificationPrefs,
+    refreshNotificationPrefs,
   } = useSettingsNotifications();
   
   const [showChannelNotifModal, setShowChannelNotifModal] = useState(false);
@@ -61,26 +62,67 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
   const [newChannelNotif, setNewChannelNotif] = useState('');
   const [showSoundSettings, setShowSoundSettings] = useState(false);
 
+  // Refresh notification preferences and permission status when component mounts
+  useEffect(() => {
+    const refresh = async () => {
+      await refreshNotificationPrefs();
+    };
+    refresh();
+  }, [refreshNotificationPrefs]);
+
   const refreshChannelNotifList = useCallback(() => {
     setChannelNotifList(notificationService.listChannelPreferences());
   }, []);
 
   const handleNotificationChange = useCallback(async (key: keyof NotificationPreferences, value: boolean) => {
-    // If enabling notifications, check and request permission first
+    // If enabling notifications, ALWAYS check permission first (even if it was previously enabled)
+    // This ensures we sync with system settings every time
     if (key === 'enabled' && value) {
+      console.log('NotificationService: Attempting to enable notifications, checking permission...');
+      
+      // Always check permission first - don't rely on cached state
       const hasPermission = await notificationService.checkPermission();
-      if (!hasPermission) {
-        const granted = await notificationService.requestPermission();
-        if (!granted) {
+      console.log('NotificationService: Permission check result:', hasPermission);
+      
+      if (hasPermission) {
+        // Permission is granted, enable notifications directly
+        console.log('NotificationService: Permission granted, enabling notifications');
+        await updateNotificationPrefs({ [key]: value });
+        return;
+      }
+      
+      // Permission not granted, try to request it
+      console.log('NotificationService: Permission not granted, requesting...');
+      const granted = await notificationService.requestPermission();
+      console.log('NotificationService: Permission request result:', granted);
+      
+      if (!granted) {
+        // Permission was denied - check one more time in case user enabled it in system settings
+        // This handles the case where user enables permission in system settings while dialog is open
+        console.log('NotificationService: Permission request denied, checking again...');
+        const hasPermissionAfterRequest = await notificationService.checkPermission();
+        console.log('NotificationService: Second permission check result:', hasPermissionAfterRequest);
+        
+        if (!hasPermissionAfterRequest) {
           Alert.alert(
             t('Permission Required', { _tags: tags }),
             t('Notification permission is required to receive notifications. Please enable it in system settings.', { _tags: tags })
           );
           return; // Don't enable notifications if permission denied
         }
+        // Permission was granted after second check, enable notifications
+        console.log('NotificationService: Permission granted on second check, enabling notifications');
+        await updateNotificationPrefs({ [key]: value });
+        return;
       }
+      
+      // Permission was granted, enable notifications
+      console.log('NotificationService: Permission granted after request, enabling notifications');
+      await updateNotificationPrefs({ [key]: value });
+      return;
     }
 
+    // For disabling or other changes, just update preferences
     await updateNotificationPrefs({ [key]: value });
   }, [updateNotificationPrefs, t, tags]);
 

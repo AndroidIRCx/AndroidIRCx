@@ -252,7 +252,7 @@ class ScriptingService {
             onJoin: (channel, nick, msg) => {
               if (nick === msg?.from && msg?.from === api?.userNick) return;
               if (channel && nick && api?.sendCommand) {
-                api.sendCommand('MODE ' + channel + ' +o ' + nick);
+                api.sendCommand('MODE ' + channel + ' +o ' + nick, msg?.network);
               }
             }
           };
@@ -266,10 +266,10 @@ class ScriptingService {
         builtIn: true,
         code: `
           module.exports = {
-            onJoin: (channel, nick) => {
+            onJoin: (channel, nick, msg) => {
               if (!channel || !nick) return;
               if (nick === api?.userNick) return; // skip your own join
-              api.sendMessage(channel, 'Welcome, ' + nick + '!');
+              api.sendMessage(channel, 'Welcome, ' + nick + '!', msg?.network);
             }
           };
         `,
@@ -315,10 +315,10 @@ class ScriptingService {
         builtIn: true,
         code: `
           module.exports = {
-            onJoin: (channel, nick) => {
+            onJoin: (channel, nick, msg) => {
               if (!channel || !nick) return;
               if (nick === api?.userNick) return;
-              api.sendCommand('MODE ' + channel + ' +v ' + nick);
+              api.sendCommand('MODE ' + channel + ' +v ' + nick, msg?.network);
             }
           };
         `,
@@ -480,14 +480,14 @@ class ScriptingService {
         builtIn: true,
         code: `
           module.exports = {
-            onJoin: (channel, nick) => {
+            onJoin: (channel, nick, msg) => {
               if (!channel) return;
-              const users = api.getChannelUsers(channel);
+              const users = api.getChannelUsers(channel, msg?.network);
               api.log(channel + ' now has ' + users.length + ' users');
             },
-            onPart: (channel, nick) => {
+            onPart: (channel, nick, reason, msg) => {
               if (!channel) return;
-              const users = api.getChannelUsers(channel);
+              const users = api.getChannelUsers(channel, msg?.network);
               api.log(channel + ' now has ' + users.length + ' users');
             }
           };
@@ -562,14 +562,14 @@ class ScriptingService {
         builtIn: true,
         code: `
           module.exports = {
-            onJoin: async (channel, nick) => {
+            onJoin: async (channel, nick, msg) => {
               if (!channel || !nick) return;
               if (nick === api.userNick) return;
-              const note = await api.getUserNote(nick);
+              const note = await api.getUserNote(nick, msg?.network);
               if (note) {
-                api.sendMessage(channel, 'Welcome back, ' + nick + '! (' + note + ')');
+                api.sendMessage(channel, 'Welcome back, ' + nick + '! (' + note + ')', msg?.network);
               } else {
-                api.sendMessage(channel, 'Welcome, ' + nick + '!');
+                api.sendMessage(channel, 'Welcome, ' + nick + '!', msg?.network);
               }
             }
           };
@@ -696,9 +696,9 @@ class ScriptingService {
         builtIn: true,
         code: `
           module.exports = {
-            onJoin: async (channel, nick) => {
+            onJoin: async (channel, nick, msg) => {
               if (!channel || nick !== api.userNick) return;
-              const note = await api.getChannelNote(channel);
+              const note = await api.getChannelNote(channel, msg?.network);
               if (note) {
                 api.log('Channel note for ' + channel + ': ' + note);
               }
@@ -748,9 +748,9 @@ class ScriptingService {
         builtIn: true,
         code: `
           module.exports = {
-            onJoin: async (channel, nick) => {
+            onJoin: async (channel, nick, msg) => {
               if (!nick || nick === api.userNick) return;
-              const userInfo = await api.getUserInfo(nick);
+              const userInfo = await api.getUserInfo(nick, msg?.network);
               if (userInfo) {
                 api.log('User ' + nick + ' info: ' + JSON.stringify(userInfo));
               }
@@ -808,9 +808,9 @@ class ScriptingService {
         builtIn: true,
         code: `
           module.exports = {
-            onJoin: (channel, nick) => {
+            onJoin: (channel, nick, msg) => {
               if (!channel) return;
-              const users = api.getChannelUsers(channel);
+              const users = api.getChannelUsers(channel, msg?.network);
               const opCount = users.filter(u => u.startsWith('@')).length;
               const voiceCount = users.filter(u => u.startsWith('+')).length;
               api.log(channel + ': ' + users.length + ' users (' + opCount + ' ops, ' + voiceCount + ' voiced)');

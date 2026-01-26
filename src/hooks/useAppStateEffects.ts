@@ -5,6 +5,7 @@ import { tabService } from '../services/TabService';
 import { useTabStore } from '../stores/tabStore';
 import { useConnectionStore } from '../stores/connectionStore';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
+import { notificationService } from '../services/NotificationService';
 import type { ChannelTab } from '../types';
 
 interface PendingAlertPayload {
@@ -50,6 +51,12 @@ export const useAppStateEffects = (params: UseAppStateEffectsParams) => {
 
       // Reload tabs from storage when app becomes active (in case state was lost)
       if (nextState === 'active') {
+        // Refresh notification permission status when app returns to foreground
+        // This ensures we sync with system settings if user changed permissions
+        notificationService.refreshPermissionStatus().catch(err => {
+          console.error('Error refreshing notification permission status:', err);
+        });
+
         // Get fresh values from store to avoid stale closure issues
         // Use getState() to get the latest values instead of closure values
         const currentTabs = useTabStore.getState().tabs;

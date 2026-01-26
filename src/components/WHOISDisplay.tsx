@@ -69,26 +69,29 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
       return;
     }
     setLoading(true);
-    const info = userService.getWHOIS(nick, network);
-    if (info && info.realname) { // Check for a basic field to determine if data is "full" enough initially
-      setWhoisInfo(info);
-      setLoading(false);
-    } else {
-      // Always request fresh WHOIS data when opened, even if partial data exists
-      try {
-        const fullInfo = await userService.requestWHOIS(nick, network);
-        setWhoisInfo(fullInfo);
-      } catch (error) {
-        if (!visibleRef.current) return;
-        //console.error('WHOIS request failed or timed out:', error);
+
+    // Show cached data immediately as placeholder (if available)
+    const cachedInfo = userService.getWHOIS(nick, network);
+    if (cachedInfo && cachedInfo.realname) {
+      setWhoisInfo(cachedInfo);
+    }
+
+    // Always request fresh WHOIS data to ensure we have the latest info
+    try {
+      const freshInfo = await userService.requestWHOIS(nick, network);
+      if (visibleRef.current) {
+        setWhoisInfo(freshInfo);
+      }
+    } catch (error) {
+      if (!visibleRef.current) return;
+      // If request failed and we don't have cached data, try to get whatever is in cache
+      if (!cachedInfo || !cachedInfo.realname) {
         const fallbackInfo = userService.getWHOIS(nick, network);
         setWhoisInfo(fallbackInfo);
-        if (!fallbackInfo || !fallbackInfo.realname) {
-          //Alert.alert('WHOIS Error', error.message || 'Failed to retrieve full WHOIS information.');
-        }
-      } finally {
-        if (visibleRef.current) setLoading(false);
       }
+      // Keep showing cached data if request failed but we had cached data
+    } finally {
+      if (visibleRef.current) setLoading(false);
     }
   };
 

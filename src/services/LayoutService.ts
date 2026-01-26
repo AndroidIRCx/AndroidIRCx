@@ -18,6 +18,9 @@ export interface LayoutConfig {
   };
   messageSpacing: number; // Spacing between messages (0-20)
   messagePadding: number; // Padding inside message container (0-20)
+  messageGroupingEnabled: boolean;
+  messageTextAlign: 'left' | 'right' | 'center' | 'justify';
+  messageTextDirection: 'auto' | 'ltr' | 'rtl';
   timestampDisplay: 'always' | 'grouped' | 'never';
   timestampFormat: '12h' | '24h';
   showNickColors: boolean;
@@ -39,6 +42,9 @@ class LayoutService {
     },
     messageSpacing: 4,
     messagePadding: 8,
+    messageGroupingEnabled: true,
+    messageTextAlign: 'left',
+    messageTextDirection: 'auto',
     timestampDisplay: 'always',
     timestampFormat: '24h',
     showNickColors: true,
@@ -89,6 +95,15 @@ class LayoutService {
           // Migrate old showTimestamps to timestampDisplay
           if (data.showTimestamps !== undefined && !data.timestampDisplay) {
             this.config.timestampDisplay = data.showTimestamps ? 'grouped' : 'never';
+          }
+          if (data.messageGroupingEnabled === undefined) {
+            this.config.messageGroupingEnabled = true;
+          }
+          if (!data.messageTextAlign) {
+            this.config.messageTextAlign = 'left';
+          }
+          if (!data.messageTextDirection) {
+            this.config.messageTextDirection = 'auto';
           }
         }
       } catch (error) {
@@ -248,6 +263,48 @@ class LayoutService {
    */
   async setTimestampDisplay(display: 'always' | 'grouped' | 'never'): Promise<void> {
     await this.setConfig({ timestampDisplay: display });
+  }
+
+  /**
+   * Get message grouping
+   */
+  getMessageGroupingEnabled(): boolean {
+    return this.config.messageGroupingEnabled;
+  }
+
+  /**
+   * Set message grouping
+   */
+  async setMessageGroupingEnabled(enabled: boolean): Promise<void> {
+    await this.setConfig({ messageGroupingEnabled: enabled });
+  }
+
+  /**
+   * Get message text alignment
+   */
+  getMessageTextAlign(): 'left' | 'right' | 'center' | 'justify' {
+    return this.config.messageTextAlign;
+  }
+
+  /**
+   * Set message text alignment
+   */
+  async setMessageTextAlign(align: 'left' | 'right' | 'center' | 'justify'): Promise<void> {
+    await this.setConfig({ messageTextAlign: align });
+  }
+
+  /**
+   * Get message text direction
+   */
+  getMessageTextDirection(): 'auto' | 'ltr' | 'rtl' {
+    return this.config.messageTextDirection;
+  }
+
+  /**
+   * Set message text direction
+   */
+  async setMessageTextDirection(direction: 'auto' | 'ltr' | 'rtl'): Promise<void> {
+    await this.setConfig({ messageTextDirection: direction });
   }
 
   /**

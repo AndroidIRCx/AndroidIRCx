@@ -102,6 +102,28 @@ describe('IRCService command helpers', () => {
     expect(socket.writes.some(w => w.includes('PRIVMSG #chan :hi there'))).toBe(true);
   });
 
+  it('uses multiline sender when message contains newlines', () => {
+    const multiSpy = jest.spyOn(irc, 'sendMultilineMessage');
+    (irc as any).capEnabledSet.add('draft/multiline');
+
+    irc.sendMessage('#chan', 'line one\r\nline two');
+
+    expect(multiSpy).toHaveBeenCalledWith('#chan', 'line one\nline two');
+    expect(socket.writes.some(w => w.includes('draft/multiline-concat'))).toBe(true);
+    multiSpy.mockRestore();
+  });
+
+  it('uses multiline sender for tagged messages with newlines', () => {
+    const multiSpy = jest.spyOn(irc, 'sendMultilineMessage');
+    (irc as any).capEnabledSet.add('draft/multiline');
+
+    irc.sendMessageWithTags('#chan', 'alpha\nbeta', { replyTo: 'msgid123' });
+
+    expect(multiSpy).toHaveBeenCalledWith('#chan', 'alpha\nbeta');
+    expect(socket.writes.some(w => w.includes('draft/multiline-concat'))).toBe(true);
+    multiSpy.mockRestore();
+  });
+
   it('supports /msg and reports usage errors', () => {
     const messages: IRCMessage[] = [];
     irc.onMessage(m => messages.push(m));

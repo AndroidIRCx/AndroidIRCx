@@ -86,16 +86,67 @@ export interface ThemeColors {
   userListBackground: string;
   userListText: string;
   userListBorder: string;
-  userOp: string;
-  userVoice: string;
+  userOwner: string;    // ~ channel owner
+  userAdmin: string;    // & channel admin
+  userOp: string;       // @ channel operator
+  userHalfop: string;   // % half-operator
+  userVoice: string;    // + voiced user
   userNormal: string;
   highlightBackground: string;
+  highlightText: string;      // Text color when mentioned/highlighted
 }
+
+export type MessageFormatToken =
+  | 'time'
+  | 'nick'
+  | 'message'
+  | 'channel'
+  | 'network'
+  | 'account'
+  | 'username'
+  | 'hostname'
+  | 'hostmask'
+  | 'target'
+  | 'mode'
+  | 'topic'
+  | 'reason'
+  | 'numeric'
+  | 'command';
+
+export interface MessageFormatStyle {
+  color?: string;
+  backgroundColor?: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+  reverse?: boolean;
+}
+
+export interface MessageFormatPart {
+  type: 'text' | 'token';
+  value: string;
+  style?: MessageFormatStyle;
+}
+
+export interface ThemeMessageFormats {
+  message: MessageFormatPart[];
+  messageMention: MessageFormatPart[];
+  action: MessageFormatPart[];
+  actionMention: MessageFormatPart[];
+  notice: MessageFormatPart[];
+  event: MessageFormatPart[];
+}
+
+const cloneMessageFormats = (
+  formats?: ThemeMessageFormats,
+): ThemeMessageFormats | undefined => (formats ? JSON.parse(JSON.stringify(formats)) : undefined);
 
 export interface Theme {
   id: string;
   name: string;
   colors: ThemeColors;
+  messageFormats?: ThemeMessageFormats;
   isCustom: boolean;
 }
 
@@ -172,10 +223,14 @@ const DARK_THEME: Theme = {
     userListBackground: '#1A1A1A',
     userListText: '#E0E0E0',
     userListBorder: '#2A2A2A',
-    userOp: '#F44336',
-    userVoice: '#4CAF50',
+    userOwner: '#9C27B0',     // ~ purple
+    userAdmin: '#F44336',     // & red
+    userOp: '#FF9800',        // @ orange
+    userHalfop: '#2196F3',    // % blue
+    userVoice: '#4CAF50',     // + green
     userNormal: '#E0E0E0',
     highlightBackground: 'rgba(33, 150, 243, 0.2)',
+    highlightText: '#FFEB3B',       // Yellow text for mentions
   },
 };
 
@@ -252,10 +307,14 @@ const LIGHT_THEME: Theme = {
     userListBackground: '#FAFAFA',
     userListText: '#212121',
     userListBorder: '#E0E0E0',
-    userOp: '#F44336',
-    userVoice: '#4CAF50',
+    userOwner: '#7B1FA2',     // ~ purple (darker for light theme)
+    userAdmin: '#D32F2F',     // & red (darker for light theme)
+    userOp: '#F57C00',        // @ orange (darker for light theme)
+    userHalfop: '#1976D2',    // % blue (darker for light theme)
+    userVoice: '#388E3C',     // + green (darker for light theme)
     userNormal: '#212121',
     highlightBackground: 'rgba(33, 150, 243, 0.1)',
+    highlightText: '#FF6F00',       // Orange text for mentions (darker for light theme)
   },
 };
 
@@ -361,6 +420,7 @@ class ThemeService {
       name,
       isCustom: true,
       colors: { ...baseTheme.colors },
+      messageFormats: cloneMessageFormats(baseTheme.messageFormats),
     };
 
     this.customThemes.push(newTheme);
@@ -385,6 +445,9 @@ class ThemeService {
         ...this.customThemes[themeIndex].colors,
         ...updates.colors,
       };
+    }
+    if (updates.messageFormats) {
+      this.customThemes[themeIndex].messageFormats = cloneMessageFormats(updates.messageFormats);
     }
 
     await this.saveCustomThemes();
@@ -433,6 +496,107 @@ class ThemeService {
   // Helper method to get a color by key
   getColor(key: keyof ThemeColors): string {
     return this.currentTheme.colors[key];
+  }
+
+  /**
+   * Export a theme to JSON string for sharing
+   */
+  exportTheme(themeId: string): string | null {
+    let theme: Theme | undefined;
+
+    if (themeId === 'dark') {
+      theme = DARK_THEME;
+    } else if (themeId === 'light') {
+      theme = LIGHT_THEME;
+    } else {
+      theme = this.customThemes.find(t => t.id === themeId);
+    }
+
+    if (!theme) {
+      return null;
+    }
+
+    // Create export object with metadata
+    const exportData = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      theme: {
+        name: theme.name,
+        colors: theme.colors,
+        messageFormats: theme.messageFormats,
+      },
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  }
+
+  /**
+   * Import a theme from JSON string
+   */
+  async importTheme(jsonString: string): Promise<{ success: boolean; theme?: Theme; error?: string }> {
+    try {
+      const data = JSON.parse(jsonString);
+
+      // Validate the import data structure
+      if (!data.theme || !data.theme.name || !data.theme.colors) {
+        return { success: false, error: t('Invalid theme file format') };
+      }
+
+      // Validate that colors object has required keys
+      const requiredKeys: (keyof ThemeColors)[] = [
+        'background', 'surface', 'text', 'primary', 'messageText',
+      ];
+
+      for (const key of requiredKeys) {
+        if (!data.theme.colors[key]) {
+          return { success: false, error: t('Theme is missing required color: {key}', { key }) };
+        }
+      }
+
+      // Create new custom theme with imported colors
+      // Merge with dark theme defaults to fill any missing colors
+      const newTheme: Theme = {
+        id: `imported_${Date.now()}`,
+        name: data.theme.name,
+        isCustom: true,
+        colors: {
+          ...DARK_THEME.colors, // Default values
+          ...data.theme.colors, // Imported values override defaults
+        },
+        messageFormats: cloneMessageFormats(data.theme.messageFormats),
+      };
+
+      // Check if a theme with the same name exists
+      const existingIndex = this.customThemes.findIndex(
+        t => t.name.toLowerCase() === newTheme.name.toLowerCase()
+      );
+
+      if (existingIndex !== -1) {
+        // Append a number to make name unique
+        newTheme.name = `${data.theme.name} (${Date.now() % 1000})`;
+      }
+
+      this.customThemes.push(newTheme);
+      await this.saveCustomThemes();
+      this.notifyListeners();
+
+      return { success: true, theme: newTheme };
+    } catch (error) {
+      console.error('Failed to import theme:', error);
+      return {
+        success: false,
+        error: error instanceof SyntaxError
+          ? t('Invalid JSON format')
+          : t('Failed to import theme'),
+      };
+    }
+  }
+
+  /**
+   * Get current theme for export
+   */
+  exportCurrentTheme(): string {
+    return this.exportTheme(this.currentTheme.id) || '';
   }
 }
 

@@ -3,7 +3,7 @@ import { ircService, IRCConnectionConfig, IRCService } from './IRCService';
 import { channelFavoritesService } from './ChannelFavoritesService';
 import { bouncerService } from './BouncerService';
 import { connectionManager } from './ConnectionManager';
-import { IRCNetworkConfig } from './SettingsService';
+import { IRCNetworkConfig, settingsService } from './SettingsService';
 
 export interface AutoReconnectConfig {
   enabled: boolean;
@@ -39,6 +39,16 @@ class AutoReconnectService {
   private connectionListeners: Map<string, () => void> = new Map(); // network -> cleanup function
   private messageListeners: Map<string, () => void> = new Map(); // network -> cleanup function
   private intentionalDisconnectListeners: Map<string, () => void> = new Map(); // network -> cleanup function
+
+  private async resolveNetworkConfig(networkId: string): Promise<IRCNetworkConfig | null> {
+    const networks = await settingsService.loadNetworks();
+    const exactMatch = networks.find(n => n.id === networkId || n.name === networkId) || null;
+    if (exactMatch) {
+      return exactMatch;
+    }
+    const normalizedId = networkId.replace(/\s+\(\d+\)$/, '');
+    return networks.find(n => n.id === normalizedId || n.name === normalizedId) || null;
+  }
 
   /**
    * Initialize auto-reconnect service
@@ -365,12 +375,12 @@ class AutoReconnectService {
 
     const ircServiceInstance = connection.ircService;
 
-    // Extract base network name for multi-connection scenarios
-    // "DBase (1)" -> "DBase", "DBase (2)" -> "DBase", "DBase" -> "DBase"
-    const baseNetworkName = network.replace(/\s+\(\d+\)$/, '');
+    const state = this.connectionStates.get(network);
+    const networkConfig = state?.networkConfig || await this.resolveNetworkConfig(network);
+    const favoritesNetworkName = networkConfig?.name || network;
 
-    // Get favorites with auto-join enabled - use base network name to ensure correct favorites
-    const favorites = channelFavoritesService.getAutoJoinChannels(baseNetworkName);
+    // Get favorites with auto-join enabled
+    const favorites = channelFavoritesService.getAutoJoinChannels(favoritesNetworkName);
     const favoriteChannels = favorites.map(f => ({ name: f.name, key: f.key }));
 
     // Combine with tracked channels

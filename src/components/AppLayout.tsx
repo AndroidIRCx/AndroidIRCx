@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, View, useWindowDimensions } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ChannelTabs } from './ChannelTabs';
 import { MessageArea } from './MessageArea';
@@ -124,6 +124,8 @@ export function AppLayout({
   showKillSwitchButton = false,
   onKillSwitchPress,
 }: AppLayoutProps) {
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
   const isSideTabs = layoutConfig.tabPosition === 'left' || layoutConfig.tabPosition === 'right';
   const showSideTabs = isSideTabs && sideTabsVisible;
 
@@ -163,6 +165,7 @@ export function AppLayout({
   };
 
   const keyboardBehavior = Platform.OS === 'ios' ? keyboardBehaviorIOS : keyboardBehaviorAndroid;
+  const keyboardEnabled = keyboardAvoidingEnabled && !(Platform.OS === 'android' && isLandscape);
   const bottomInset = Platform.OS === 'android' && !useAndroidBottomSafeArea
     ? 0
     : safeAreaInsets.bottom;
@@ -186,8 +189,8 @@ export function AppLayout({
 
   return (
     <KeyboardAvoidingView
-      behavior={keyboardAvoidingEnabled ? keyboardBehavior : undefined}
-      enabled={keyboardAvoidingEnabled}
+      behavior={keyboardEnabled ? keyboardBehavior : undefined}
+      enabled={keyboardEnabled}
       keyboardVerticalOffset={keyboardVerticalOffset}
       style={[styles.container, { paddingTop: safeAreaInsets.top }]}
     >

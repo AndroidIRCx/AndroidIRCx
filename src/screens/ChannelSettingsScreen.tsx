@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2025-2026 Velimir Majstorov
+ * SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -37,6 +42,7 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   const [limit, setLimit] = useState('');
   const [banMask, setBanMask] = useState('');
   const [exceptionMask, setExceptionMask] = useState('');
+  const [inviteMask, setInviteMask] = useState('');
 
   // Encryption settings state
   const [alwaysEncrypt, setAlwaysEncrypt] = useState(false);
@@ -61,9 +67,14 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
     };
     loadEncryptionSettings();
 
-    // Request current channel modes
+    // Request current channel modes and topic
     ircService.sendCommand(`MODE ${channel}`);
     ircService.sendCommand(`TOPIC ${channel}`);
+
+    // Request channel lists (bans, exceptions, invites)
+    channelManagementService.requestBanList(channel);
+    channelManagementService.requestExceptionList(channel);
+    channelManagementService.requestInviteList(channel);
 
     // Listen for channel info changes
     const unsubscribe = channelManagementService.onChannelInfoChange((ch, info) => {
@@ -140,6 +151,21 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
     channelManagementService.removeException(channel, mask);
     Alert.alert(t('Success'), t('Exception removed'));
     channelManagementService.requestExceptionList(channel);
+  };
+
+  const handleAddInvite = () => {
+    if (inviteMask.trim()) {
+      channelManagementService.addInvite(channel, inviteMask.trim());
+      Alert.alert(t('Success'), t('Invite exception added'));
+      setInviteMask('');
+      channelManagementService.requestInviteList(channel);
+    }
+  };
+
+  const handleRemoveInvite = (mask: string) => {
+    channelManagementService.removeInvite(channel, mask);
+    Alert.alert(t('Success'), t('Invite exception removed'));
+    channelManagementService.requestInviteList(channel);
   };
 
   const toggleMode = (mode: string, param?: string) => {
@@ -597,6 +623,50 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
               </View>
             ) : (
               <Text style={styles.emptyText}>{t('No exceptions')}</Text>
+            )}
+          </View>
+
+          {/* Invite Exception List */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t('Invite Exception List')}</Text>
+              {getChannelModeDescription('I') && (
+                <Text style={styles.sectionDescription}>
+                  {getChannelModeDescription('I')?.description}
+                </Text>
+              )}
+            </View>
+            <View style={styles.inputRow}>
+              <TextInput
+                style={[styles.input, styles.inputFlex]}
+                value={inviteMask}
+                onChangeText={setInviteMask}
+                placeholder={t('Invite mask (e.g., *!*@trusted.host)')}
+              />
+              <TouchableOpacity style={styles.addButton} onPress={handleAddInvite}>
+                <Text style={styles.addButtonText}>{t('Add')}</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => channelManagementService.requestInviteList(channel)}>
+              <Text style={styles.buttonText}>{t('Refresh Invite List')}</Text>
+            </TouchableOpacity>
+            {modes.inviteList && modes.inviteList.length > 0 ? (
+              <View style={styles.listContainer}>
+                {modes.inviteList.map((mask, index) => (
+                  <View key={index} style={styles.listItem}>
+                    <Text style={styles.listItemText}>{mask}</Text>
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => handleRemoveInvite(mask)}>
+                      <Text style={styles.removeButtonText}>{t('Remove')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.emptyText}>{t('No invite exceptions')}</Text>
             )}
           </View>
         </ScrollView>

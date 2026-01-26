@@ -46,7 +46,9 @@ export const useSettingsNotifications = (): UseSettingsNotificationsReturn => {
     checkBatteryOptimization();
   }, []);
 
-  const refreshNotificationPrefs = useCallback(() => {
+  const refreshNotificationPrefs = useCallback(async () => {
+    // Refresh permission status first to sync with system settings
+    await notificationService.refreshPermissionStatus();
     setNotificationPrefs(notificationService.getPreferences());
   }, []);
 
@@ -54,24 +56,65 @@ export const useSettingsNotifications = (): UseSettingsNotificationsReturn => {
     const currentPrefs = notificationService.getPreferences();
     const newPrefs = { ...currentPrefs, ...prefs };
     
-    // If enabling notifications, request permission
-    if (newPrefs.enabled && !currentPrefs.enabled && Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          // Permission was denied - disable notifications and show alert
-          await notificationService.updatePreferences({ enabled: false });
-          setNotificationPrefs({ ...currentPrefs, enabled: false });
-          Alert.alert(
-            t('Permission Required', { _tags: tags }),
-            t('Notification permission is required to receive notifications. Please enable it in system settings.', { _tags: tags })
+    // If enabling notifications, check permission first
+    if (newPrefs.enabled && !currentPrefs.enabled) {
+      // First check if permission is already granted
+      const hasPermission = await notificationService.checkPermission();
+      if (hasPermission) {
+        // Permission is granted, proceed with enabling notifications
+        await notificationService.updatePreferences(newPrefs);
+        setNotificationPrefs(newPrefs);
+        return;
+      }
+      
+      // Permission not granted, try to request it
+      if (Platform.OS === 'android') {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
           );
-          return;
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            // Check again with notifee in case permission was granted in system settings
+            const hasPermissionAfterRequest = await notificationService.checkPermission();
+            if (!hasPermissionAfterRequest) {
+              // Permission was denied - disable notifications and show alert
+              await notificationService.updatePreferences({ enabled: false });
+              setNotificationPrefs({ ...currentPrefs, enabled: false });
+              Alert.alert(
+                t('Permission Required', { _tags: tags }),
+                t('Notification permission is required to receive notifications. Please enable it in system settings.', { _tags: tags })
+              );
+              return;
+            }
+            // Permission was granted after second check, proceed
+          }
+        } catch (error) {
+          console.error('Failed to request notification permission:', error);
+          // Check permission one more time with notifee
+          const hasPermissionAfterError = await notificationService.checkPermission();
+          if (!hasPermissionAfterError) {
+            await notificationService.updatePreferences({ enabled: false });
+            setNotificationPrefs({ ...currentPrefs, enabled: false });
+            return;
+          }
+          // Permission was granted, proceed
         }
-      } catch (error) {
-        console.error('Failed to request notification permission:', error);
+      } else {
+        // iOS - use notifee requestPermission
+        const granted = await notificationService.requestPermission();
+        if (!granted) {
+          // Check again in case permission was granted in system settings
+          const hasPermissionAfterRequest = await notificationService.checkPermission();
+          if (!hasPermissionAfterRequest) {
+            await notificationService.updatePreferences({ enabled: false });
+            setNotificationPrefs({ ...currentPrefs, enabled: false });
+            Alert.alert(
+              t('Permission Required', { _tags: tags }),
+              t('Notification permission is required to receive notifications. Please enable it in system settings.', { _tags: tags })
+            );
+            return;
+          }
+        }
       }
     }
     

@@ -189,15 +189,15 @@ export const UserList: React.FC<UserListProps> = ({
     return '';
   };
 
-  // Get mode color
+  // Get mode color from theme
 const getModeColor = (modes?: string[], colors?: any): string => {
-    if (!modes || modes.length === 0) return colors?.text || '#212121';
-    if (modes.includes('q')) return colors?.owner || '#9C27B0'; // owner - purple
-    if (modes.includes('a')) return colors?.admin || '#F44336'; // admin - red
-    if (modes.includes('o')) return colors?.op || '#FF9800'; // op - orange
-    if (modes.includes('h')) return colors?.halfop || '#2196F3'; // halfop - blue
-    if (modes.includes('v')) return colors?.voice || '#4CAF50'; // voice - green
-    return colors?.text || '#212121'; // regular user
+    if (!modes || modes.length === 0) return colors?.userNormal || colors?.text || '#212121';
+    if (modes.includes('q')) return colors?.userOwner || '#9C27B0'; // ~ owner - purple
+    if (modes.includes('a')) return colors?.userAdmin || '#F44336'; // & admin - red
+    if (modes.includes('o')) return colors?.userOp || '#FF9800'; // @ op - orange
+    if (modes.includes('h')) return colors?.userHalfop || '#2196F3'; // % halfop - blue
+    if (modes.includes('v')) return colors?.userVoice || '#4CAF50'; // + voice - green
+    return colors?.userNormal || colors?.text || '#212121'; // regular user
   };
 
   const groupingEnabled = performanceConfig.userListGrouping !== false;
