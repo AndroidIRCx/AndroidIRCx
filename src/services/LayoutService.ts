@@ -13,6 +13,8 @@ export type FontSize = 'small' | 'medium' | 'large' | 'custom';
 export interface LayoutConfig {
   tabPosition: TabPosition;
   userListPosition: UserListPosition;
+  userListSizePx: number; // Width (left/right) or height (top/bottom) in pixels
+  userListNickFontSizePx: number; // Nick font size in the user list
   viewMode: ViewMode;
   fontSize: FontSize;
   fontSizeValues: {
@@ -37,6 +39,8 @@ class LayoutService {
   private config: LayoutConfig = {
     tabPosition: 'top',
     userListPosition: 'right',
+    userListSizePx: 150,
+    userListNickFontSizePx: 13,
     viewMode: 'comfortable',
     fontSize: 'medium',
     fontSizeValues: {
@@ -92,6 +96,12 @@ class LayoutService {
           this.config = nextConfig;
           if (!data.userListPosition) {
             this.config.userListPosition = 'right';
+          }
+          if (data.userListSizePx === undefined) {
+            this.config.userListSizePx = 150;
+          }
+          if (data.userListNickFontSizePx === undefined) {
+            this.config.userListNickFontSizePx = 13;
           }
           // Migrate old compactMode to viewMode if needed
           if (data.compactMode !== undefined && !data.viewMode) {
@@ -164,6 +174,36 @@ class LayoutService {
    */
   async setUserListPosition(position: UserListPosition): Promise<void> {
     await this.setConfig({ userListPosition: position });
+  }
+
+  /**
+   * Get user list size in pixels
+   */
+  getUserListSizePx(): number {
+    return this.config.userListSizePx;
+  }
+
+  /**
+   * Set user list size in pixels (positive integer, no hard max)
+   */
+  async setUserListSizePx(sizePx: number): Promise<void> {
+    const nextValue = Math.max(1, Math.floor(sizePx));
+    await this.setConfig({ userListSizePx: nextValue });
+  }
+
+  /**
+   * Get nick font size in the user list
+   */
+  getUserListNickFontSizePx(): number {
+    return this.config.userListNickFontSizePx;
+  }
+
+  /**
+   * Set nick font size in the user list (positive integer, no hard max)
+   */
+  async setUserListNickFontSizePx(sizePx: number): Promise<void> {
+    const nextValue = Math.max(1, Math.floor(sizePx));
+    await this.setConfig({ userListNickFontSizePx: nextValue });
   }
 
   /**

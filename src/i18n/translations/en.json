@@ -7441,5 +7441,38 @@
   },
   "New line": {
     "string": "New line"
+  },
+  "User List Size": {
+    "string": "User List Size"
+  },
+  "User List Nick Font Size": {
+    "string": "User List Nick Font Size"
+  },
+  "Reset User List Defaults": {
+    "string": "Reset User List Defaults"
+  },
+  "Reset user list size and nick font size to defaults": {
+    "string": "Reset user list size and nick font size to defaults"
+  },
+  "Version 1.6.14": {
+    "string": "Version 1.6.14"
+  },
+  "These are all current channel modes. Use switches below to toggle common modes.": {
+    "string": "These are all current channel modes. Use switches below to toggle common modes."
+  },
+  "Enter a valid number": {
+    "string": "Enter a valid number"
+  },
+  "Value must be greater than 0": {
+    "string": "Value must be greater than 0"
+  },
+  "Nicklist Tongue Button": {
+    "string": "Nicklist Tongue Button"
+  },
+  "Show a small center handle to open/close the user list": {
+    "string": "Show a small center handle to open/close the user list"
+  },
+  "Nicklist Tongue Size": {
+    "string": "Nicklist Tongue Size"
   }
 }

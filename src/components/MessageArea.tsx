@@ -44,6 +44,7 @@ import { MessageFormatPart, MessageFormatStyle, ThemeMessageFormats } from '../s
 
 interface MessageAreaProps {
   messages: IRCMessage[];
+  channelUsers?: ChannelUser[];
   showRawCommands?: boolean;
   rawCategoryVisibility?: Record<RawMessageCategory, boolean>;
   hideJoinMessages?: boolean;
@@ -60,6 +61,7 @@ interface MessageAreaProps {
 
 interface MessageItemProps {
   message: IRCMessage;
+  channelUsers?: ChannelUser[];
   timestampDisplay: 'always' | 'grouped' | 'never';
   timestampFormat: '12h' | '24h';
   colors: any;
@@ -123,6 +125,7 @@ const applyMessageFormatStyle = (
 // Memoized message item component for performance
 const MessageItem = React.memo<MessageItemProps>(({
   message,
+  channelUsers,
   timestampDisplay,
   timestampFormat,
   colors,
@@ -312,6 +315,89 @@ const MessageItem = React.memo<MessageItemProps>(({
     flexShrink: undefined,
   };
 
+  const nickMap = useMemo(() => {
+    const map = new Map<string, string>();
+    (channelUsers || []).forEach(user => {
+      if (!user?.nick) return;
+      map.set(user.nick.toLowerCase(), user.nick);
+    });
+    return map;
+  }, [channelUsers]);
+
+  const containsIrcFormatting = useCallback((text: string | undefined | null): boolean => {
+    if (!text) return false;
+    return /[\x02\x03\x0F\x16\x1D\x1E\x1F]/.test(text);
+  }, []);
+
+  const renderTextWithNickActions = useCallback((
+    text: string,
+    baseStyle: TextStyle,
+    keyPrefix: string,
+  ) => {
+    if (!text) {
+      return <Text key={`${keyPrefix}-empty`} style={baseStyle} />;
+    }
+    // If the message uses IRC formatting codes, fall back to the existing formatter.
+    if (containsIrcFormatting(text)) {
+      return React.cloneElement(formatIRCTextAsComponent(text, baseStyle), {
+        key: `${keyPrefix}-formatted`,
+      });
+    }
+
+    const tokens = text.match(/\S+|\s+/g) || [];
+    return (
+      <Text key={`${keyPrefix}-text`} style={baseStyle}>
+        {tokens.map((token, index) => {
+          // Preserve whitespace as-is.
+          if (/^\s+$/.test(token)) {
+            return (
+              <Text key={`${keyPrefix}-ws-${index}`} style={baseStyle}>
+                {token}
+              </Text>
+            );
+          }
+
+          // Extract a potential nick while preserving surrounding punctuation.
+          const match = token.match(/^([^A-Za-z0-9_`^\\\-\[\]{}|]*)(@?[A-Za-z0-9_`^\\\-\[\]{}|]+)([^A-Za-z0-9_`^\\\-\[\]{}|]*)$/);
+          if (!match) {
+            return (
+              <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
+                {token}
+              </Text>
+            );
+          }
+
+          const [, leading, core, trailing] = match;
+          const coreNick = core.startsWith('@') ? core.slice(1) : core;
+          const resolved = nickMap.get(coreNick.toLowerCase());
+          if (!resolved) {
+            return (
+              <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
+                {token}
+              </Text>
+            );
+          }
+
+          const openMenu = () => {
+            if (onNickLongPress) {
+              onNickLongPress(resolved);
+            }
+          };
+
+          return (
+            <Text key={`${keyPrefix}-nick-${index}`} style={baseStyle}>
+              {leading}
+              <Text style={styles.nick} onPress={openMenu} onLongPress={openMenu}>
+                {core}
+              </Text>
+              {trailing}
+            </Text>
+          );
+        })}
+      </Text>
+    );
+  }, [containsIrcFormatting, nickMap, onNickLongPress, styles.nick]);
+
   const renderFormattedParts = useCallback(
     (parts: MessageFormatPart[]) => {
       const hostmask = message.username && message.hostname
@@ -367,6 +453,7 @@ const MessageItem = React.memo<MessageItemProps>(({
             <Text
               key={`part-${index}`}
               style={applyMessageFormatStyle(inlineBaseStyle, part.style)}
+              onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
               onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
             >
               {tokenValue}
@@ -489,12 +576,13 @@ const MessageItem = React.memo<MessageItemProps>(({
                 ]}>
                   {!isGrouped && (
                     <Text style={[styles.messageText, { fontStyle: 'italic', color: actionMessageColor }]}>
-                      * <Text style={styles.nick} onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}>{message.from}</Text>{' '}
+                      * <Text style={styles.nick} onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)} onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}>{message.from}</Text>{' '}
                     </Text>
                   )}
-                  {formatIRCTextAsComponent(
+                  {renderTextWithNickActions(
                     message.text,
-                    StyleSheet.flatten([styles.messageText, { fontStyle: 'italic', color: actionMessageColor }])
+                    StyleSheet.flatten([styles.messageText, { fontStyle: 'italic', color: actionMessageColor }]),
+                    `action-${message.id}`,
                   )}
                 </View>
                 {showImages && parsed.mediaIds.map((mediaId, index) => {
@@ -546,16 +634,18 @@ const MessageItem = React.memo<MessageItemProps>(({
                   {!isGrouped && (
                     <Text
                       style={styles.nick}
+                      onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
                       onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
                     >
                       {message.from}
                     </Text>
                   )}
-                  {formatIRCTextAsComponent(
+                  {renderTextWithNickActions(
                     message.text,
                     isHighlighted
                       ? StyleSheet.flatten([styles.messageText, { color: colors.highlightText }])
                       : styles.messageText,
+                    `msg-${message.id}`,
                   )}
                 </View>
                 {showImages && parsed.mediaIds.map((mediaId, index) => {
@@ -607,13 +697,15 @@ const MessageItem = React.memo<MessageItemProps>(({
               <View style={styles.messageWrapper}>
                 <Text
                   style={[styles.nick, { color: getMessageColor(message.type) }]}
+                  onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
                   onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
                 >
                   {message.from}
                 </Text>
-                {formatIRCTextAsComponent(
+                {renderTextWithNickActions(
                   message.text,
-                  StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }])
+                  StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }]),
+                  `notice-${message.id}`,
                 )}
               </View>
             ) : message.type === 'topic' ? (
@@ -624,11 +716,12 @@ const MessageItem = React.memo<MessageItemProps>(({
                 colors.primary
               )
             ) : (
-              formatIRCTextAsComponent(
+              renderTextWithNickActions(
                 message.type === 'join' || message.type === 'part' || message.type === 'quit'
                   ? `*** ${message.text}`
                   : message.text,
-                StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }])
+                StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }]),
+                `sys-${message.id}`,
               )
             )}
           </View>
@@ -651,7 +744,8 @@ const MessageItem = React.memo<MessageItemProps>(({
     prevProps.showImages === nextProps.showImages &&
     prevProps.network === nextProps.network &&
     prevProps.channel === nextProps.channel &&
-    prevProps.layoutWidth === nextProps.layoutWidth
+    prevProps.layoutWidth === nextProps.layoutWidth &&
+    prevProps.channelUsers === nextProps.channelUsers
   );
 });
 
@@ -659,6 +753,7 @@ MessageItem.displayName = 'MessageItem';
 
 export const MessageArea: React.FC<MessageAreaProps> = ({
   messages,
+  channelUsers,
   showRawCommands = true,
   rawCategoryVisibility,
   hideJoinMessages = false,
@@ -770,11 +865,14 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const currentNick = connection?.ircService.getCurrentNick() || '';
   const resolveContextUser = useCallback((nick: string | null) => {
     if (!nick || !channel) return null;
+    if (channelUsers && channelUsers.length > 0) {
+      return channelUsers.find(user => user.nick.toLowerCase() === nick.toLowerCase()) || null;
+    }
     const activeIrc: any = connection?.ircService || ircService;
     if (typeof activeIrc.getChannelUsers !== 'function') return null;
     const users = activeIrc.getChannelUsers(channel) as ChannelUser[];
     return users.find(user => user.nick.toLowerCase() === nick.toLowerCase()) || null;
-  }, [channel, connection]);
+  }, [channel, channelUsers, connection]);
 
   const blacklistActionOptions: Array<{ id: BlacklistActionType; label: string }> = useMemo(() => ([
     { id: 'ignore', label: t('Ignore (local)') },
@@ -1187,6 +1285,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     return (
       <MessageItem
         message={item}
+        channelUsers={channelUsers}
         timestampDisplay={layoutState.timestampDisplay}
         timestampFormat={layoutState.timestampFormat}
         colors={colors}

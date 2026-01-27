@@ -65,6 +65,48 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   const [showHeaderSearchButton, setShowHeaderSearchButton] = useState(true);
   const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] = useState(true);
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
+  const [userListSizeInput, setUserListSizeInput] = useState('150');
+  const [userListSizeError, setUserListSizeError] = useState('');
+  const [userListNickFontInput, setUserListNickFontInput] = useState('13');
+  const [userListNickFontError, setUserListNickFontError] = useState('');
+  const [nicklistTongueEnabled, setNicklistTongueEnabled] = useState(true);
+  const [nicklistTongueSizeInput, setNicklistTongueSizeInput] = useState('56');
+  const [nicklistTongueSizeError, setNicklistTongueSizeError] = useState('');
+
+  useEffect(() => {
+    if (!layoutConfig) return;
+    setUserListSizeInput(String(layoutConfig.userListSizePx ?? 150));
+    setUserListSizeError('');
+    setUserListNickFontInput(String(layoutConfig.userListNickFontSizePx ?? 13));
+    setUserListNickFontError('');
+  }, [layoutConfig?.userListSizePx, layoutConfig?.userListNickFontSizePx]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadTongueSettings = async () => {
+      const enabled = await settingsService.getSetting('nicklistTongueEnabled', true);
+      const sizePx = await settingsService.getSetting('nicklistTongueSizePx', 56);
+      if (mounted) {
+        setNicklistTongueEnabled(Boolean(enabled));
+        setNicklistTongueSizeInput(String(sizePx ?? 56));
+        setNicklistTongueSizeError('');
+      }
+    };
+    loadTongueSettings();
+    const unsubEnabled = settingsService.onSettingChange<boolean>('nicklistTongueEnabled', (value) => {
+      setNicklistTongueEnabled(Boolean(value));
+    });
+    const unsubSize = settingsService.onSettingChange<number>('nicklistTongueSizePx', (value) => {
+      if (!mounted) return;
+      setNicklistTongueSizeInput(String(value ?? 56));
+      setNicklistTongueSizeError('');
+    });
+    return () => {
+      mounted = false;
+      unsubEnabled();
+      unsubSize();
+    };
+  }, []);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -394,6 +436,127 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               },
             ]
           );
+        },
+      },
+      {
+        id: 'layout-userlist-size',
+        title: t('User List Size', { _tags: tags }),
+        description: `Size: ${layoutConfig?.userListSizePx ?? 150}px`,
+        type: 'input',
+        value: userListSizeInput,
+        error: userListSizeError,
+        keyboardType: 'numeric',
+        searchKeywords: ['userlist', 'nicklist', 'size', 'width', 'height', 'panel', 'users'],
+        onValueChange: async (value: string | boolean) => {
+          const text = String(value);
+          setUserListSizeInput(text);
+          const trimmed = text.trim();
+          if (!trimmed) {
+            setUserListSizeError('');
+            return;
+          }
+          const size = parseInt(trimmed, 10);
+          if (isNaN(size)) {
+            setUserListSizeError(t('Enter a valid number', { _tags: tags }));
+            return;
+          }
+          if (size <= 0) {
+            setUserListSizeError(t('Value must be greater than 0', { _tags: tags }));
+            return;
+          }
+          setUserListSizeError('');
+          await layoutService.setUserListSizePx(size);
+          updateLayoutConfig({});
+        },
+      },
+      {
+        id: 'layout-userlist-nick-font-size',
+        title: t('User List Nick Font Size', { _tags: tags }),
+        description: `Font: ${layoutConfig?.userListNickFontSizePx ?? 13}px`,
+        type: 'input',
+        value: userListNickFontInput,
+        error: userListNickFontError,
+        keyboardType: 'numeric',
+        searchKeywords: ['userlist', 'nicklist', 'font', 'size', 'nick', 'users', 'text'],
+        onValueChange: async (value: string | boolean) => {
+          const text = String(value);
+          setUserListNickFontInput(text);
+          const trimmed = text.trim();
+          if (!trimmed) {
+            setUserListNickFontError('');
+            return;
+          }
+          const size = parseInt(trimmed, 10);
+          if (isNaN(size)) {
+            setUserListNickFontError(t('Enter a valid number', { _tags: tags }));
+            return;
+          }
+          if (size <= 0) {
+            setUserListNickFontError(t('Value must be greater than 0', { _tags: tags }));
+            return;
+          }
+          setUserListNickFontError('');
+          await layoutService.setUserListNickFontSizePx(size);
+          updateLayoutConfig({});
+        },
+      },
+      {
+        id: 'layout-userlist-reset-defaults',
+        title: t('Reset User List Defaults', { _tags: tags }),
+        description: t('Reset user list size and nick font size to defaults', { _tags: tags }),
+        type: 'button',
+        searchKeywords: ['userlist', 'nicklist', 'reset', 'default', 'size', 'font', 'users'],
+        onPress: async () => {
+          await layoutService.setUserListSizePx(150);
+          await layoutService.setUserListNickFontSizePx(13);
+          setUserListSizeInput('150');
+          setUserListSizeError('');
+          setUserListNickFontInput('13');
+          setUserListNickFontError('');
+          updateLayoutConfig({});
+        },
+      },
+      {
+        id: 'layout-nicklist-tongue-enabled',
+        title: t('Nicklist Tongue Button', { _tags: tags }),
+        description: t('Show a small center handle to open/close the user list', { _tags: tags }),
+        type: 'switch',
+        value: nicklistTongueEnabled,
+        searchKeywords: ['nicklist', 'userlist', 'handle', 'tongue', 'button', 'slide', 'gesture'],
+        onValueChange: async (value: boolean | string) => {
+          const enabled = Boolean(value);
+          setNicklistTongueEnabled(enabled);
+          await settingsService.setSetting('nicklistTongueEnabled', enabled);
+        },
+      },
+      {
+        id: 'layout-nicklist-tongue-size',
+        title: t('Nicklist Tongue Size', { _tags: tags }),
+        description: `Size: ${nicklistTongueSizeInput || '56'}px`,
+        type: 'input',
+        value: nicklistTongueSizeInput,
+        error: nicklistTongueSizeError,
+        keyboardType: 'numeric',
+        searchKeywords: ['nicklist', 'userlist', 'handle', 'tongue', 'size', 'button'],
+        onValueChange: async (value: string | boolean) => {
+          const text = String(value);
+          setNicklistTongueSizeInput(text);
+          const trimmed = text.trim();
+          if (!trimmed) {
+            setNicklistTongueSizeError('');
+            return;
+          }
+          const size = parseInt(trimmed, 10);
+          if (isNaN(size)) {
+            setNicklistTongueSizeError(t('Enter a valid number', { _tags: tags }));
+            return;
+          }
+          if (size <= 0) {
+            setNicklistTongueSizeError(t('Value must be greater than 0', { _tags: tags }));
+            return;
+          }
+          setNicklistTongueSizeError('');
+          await settingsService.setSetting('nicklistTongueSizePx', size);
         },
       },
       {

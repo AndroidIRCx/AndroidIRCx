@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Platform, View, useWindowDimensions } from 'react-native';
+import { Platform, View, useWindowDimensions, TouchableOpacity, PanResponder } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ChannelTabs } from './ChannelTabs';
 import { MessageArea } from './MessageArea';
@@ -22,6 +22,8 @@ import { ChannelTab } from '../types';
 import { bannerAdService } from '../services/BannerAdService';
 import { settingsService } from '../services/SettingsService';
 import { useUIStore } from '../stores/uiStore';
+import { LayoutConfig } from '../services/LayoutService';
+import { useTheme } from '../hooks/useTheme';
 
 interface AppLayoutProps {
   tabs: ChannelTab[];
@@ -44,10 +46,7 @@ interface AppLayoutProps {
   typingUsers: Map<string, Map<string, Map<string, any>>>;
   bannerVisible: boolean;
   prefillMessage: string | null;
-  layoutConfig: {
-    tabPosition: 'top' | 'bottom' | 'left' | 'right';
-    userListPosition: 'left' | 'right' | 'top' | 'bottom';
-  };
+  layoutConfig: LayoutConfig;
   sideTabsVisible: boolean;
   showSideTabsToggle: boolean;
   onToggleSideTabs: () => void;
@@ -127,6 +126,7 @@ export function AppLayout({
   showKillSwitchButton = false,
   onKillSwitchPress,
 }: AppLayoutProps) {
+  const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const isSideTabs = layoutConfig.tabPosition === 'left' || layoutConfig.tabPosition === 'right';
@@ -135,6 +135,9 @@ export function AppLayout({
   // Message search state
   const [searchVisible, setSearchVisible] = useState(false);
   const [bannerPosition, setBannerPosition] = useState<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>('input_above');
+  const [nicklistTongueEnabled, setNicklistTongueEnabled] = useState(true);
+  const [nicklistTongueSizePx, setNicklistTongueSizePx] = useState(56);
+  const setShowUserList = useUIStore(state => state.setShowUserList);
 
   useEffect(() => {
     let isMounted = true;
@@ -151,6 +154,31 @@ export function AppLayout({
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    const loadTongueSettings = async () => {
+      const enabled = await settingsService.getSetting('nicklistTongueEnabled', true);
+      const sizePx = await settingsService.getSetting('nicklistTongueSizePx', 56);
+      if (mounted) {
+        setNicklistTongueEnabled(Boolean(enabled));
+        setNicklistTongueSizePx(Math.max(24, Math.floor(Number(sizePx) || 56)));
+      }
+    };
+    loadTongueSettings();
+
+    const unsubEnabled = settingsService.onSettingChange<boolean>('nicklistTongueEnabled', (value) => {
+      setNicklistTongueEnabled(Boolean(value));
+    });
+    const unsubSize = settingsService.onSettingChange<number>('nicklistTongueSizePx', (value) => {
+      setNicklistTongueSizePx(Math.max(24, Math.floor(Number(value) || 56)));
+    });
+    return () => {
+      mounted = false;
+      unsubEnabled();
+      unsubSize();
+    };
+  }, []);
+
   const renderUserList = (position: 'left' | 'right' | 'top' | 'bottom') => {
     if (!activeTab || activeTab.type !== 'channel' || !showUserList) {
       return null;
@@ -161,11 +189,121 @@ export function AppLayout({
         channelName={activeTab.name}
         network={activeTab?.networkId}
         position={position}
+        panelSizePx={layoutConfig.userListSizePx}
+        nickFontSizePx={layoutConfig.userListNickFontSizePx}
         onUserPress={handleUserPress}
         onWHOISPress={handleWHOISPress}
       />
     );
   };
+
+  const shouldShowNicklistTongue =
+    nicklistTongueEnabled &&
+    showNicklistButton &&
+    !!activeTab &&
+    activeTab.type === 'channel';
+
+  const tonguePanResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => shouldShowNicklistTongue,
+    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 6 || Math.abs(gesture.dy) > 6,
+    onPanResponderRelease: (_, gesture) => {
+      const threshold = 24;
+      const pos = layoutConfig.userListPosition;
+      if (pos === 'left') {
+        if (gesture.dx > threshold) setShowUserList(true);
+        if (gesture.dx < -threshold) setShowUserList(false);
+        return;
+      }
+      if (pos === 'right') {
+        if (gesture.dx < -threshold) setShowUserList(true);
+        if (gesture.dx > threshold) setShowUserList(false);
+        return;
+      }
+      if (pos === 'top') {
+        if (gesture.dy > threshold) setShowUserList(true);
+        if (gesture.dy < -threshold) setShowUserList(false);
+        return;
+      }
+      if (pos === 'bottom') {
+        if (gesture.dy < -threshold) setShowUserList(true);
+        if (gesture.dy > threshold) setShowUserList(false);
+      }
+    },
+  });
+
+  const tongueStyle = (() => {
+    const size = nicklistTongueSizePx;
+    const base = {
+      position: 'absolute' as const,
+      zIndex: 5,
+      opacity: 0.9,
+      backgroundColor: colors.surfaceVariant || colors.surface,
+      borderColor: colors.border,
+    };
+    const pos = layoutConfig.userListPosition;
+    if (pos === 'left') {
+      return [
+        base,
+        {
+          left: 0,
+          top: '50%',
+          marginTop: -size / 2,
+          width: 18,
+          height: size,
+          borderTopRightRadius: 10,
+          borderBottomRightRadius: 10,
+          borderWidth: 1,
+          borderLeftWidth: 0,
+        },
+      ];
+    }
+    if (pos === 'right') {
+      return [
+        base,
+        {
+          right: 0,
+          top: '50%',
+          marginTop: -size / 2,
+          width: 18,
+          height: size,
+          borderTopLeftRadius: 10,
+          borderBottomLeftRadius: 10,
+          borderWidth: 1,
+          borderRightWidth: 0,
+        },
+      ];
+    }
+    if (pos === 'top') {
+      return [
+        base,
+        {
+          top: 0,
+          left: '50%',
+          marginLeft: -size / 2,
+          width: size,
+          height: 18,
+          borderBottomLeftRadius: 10,
+          borderBottomRightRadius: 10,
+          borderWidth: 1,
+          borderTopWidth: 0,
+        },
+      ];
+    }
+    return [
+      base,
+      {
+        bottom: 0,
+        left: '50%',
+        marginLeft: -size / 2,
+        width: size,
+        height: 18,
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+        borderWidth: 1,
+        borderBottomWidth: 0,
+      },
+    ];
+  })();
 
   const keyboardBehavior = Platform.OS === 'ios' ? keyboardBehaviorIOS : keyboardBehaviorAndroid;
   const keyboardEnabled = keyboardAvoidingEnabled && !(Platform.OS === 'android' && isLandscape);
@@ -257,6 +395,7 @@ export function AppLayout({
           <View style={styles.messageAreaContainer}>
             <MessageArea
               messages={activeMessages}
+              channelUsers={activeUsers}
               showRawCommands={showRawCommands}
               rawCategoryVisibility={rawCategoryVisibility}
               hideJoinMessages={hideJoinMessages}
@@ -270,6 +409,16 @@ export function AppLayout({
               searchVisible={searchVisible}
               onSearchVisibleChange={setSearchVisible}
             />
+            {shouldShowNicklistTongue && (
+              <TouchableOpacity
+                {...tonguePanResponder.panHandlers}
+                onPress={handleToggleUserList}
+                activeOpacity={0.85}
+                style={tongueStyle}
+                accessibilityRole="button"
+                accessibilityLabel="Toggle user list"
+              />
+            )}
           </View>
           {layoutConfig.userListPosition === 'right' && renderUserList('right')}
           {layoutConfig.userListPosition === 'bottom' && renderUserList('bottom')}
