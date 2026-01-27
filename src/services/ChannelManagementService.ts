@@ -299,17 +299,17 @@ export class ChannelManagementService {
    */
   setChannelMode(channel: string, mode: string, param?: string): void {
     const modeString = mode.startsWith('+') || mode.startsWith('-') ? mode : `+${mode}`;
-    const command = param 
+    const command = param
       ? `MODE ${channel} ${modeString} ${param}`
       : `MODE ${channel} ${modeString}`;
-    ircService.sendCommand(command);
+    this.ircService.sendCommand(command);
   }
 
   /**
    * Set channel topic
    */
   setTopic(channel: string, topic: string): void {
-    ircService.sendCommand(`TOPIC ${channel} :${topic}`);
+    this.ircService.sendCommand(`TOPIC ${channel} :${topic}`);
   }
 
   /**
@@ -372,21 +372,21 @@ export class ChannelManagementService {
    * Request ban list from server
    */
   requestBanList(channel: string): void {
-    ircService.sendCommand(`MODE ${channel} b`);
+    this.ircService.sendCommand(`MODE ${channel} b`);
   }
 
   /**
    * Request exception list from server
    */
   requestExceptionList(channel: string): void {
-    ircService.sendCommand(`MODE ${channel} e`);
+    this.ircService.sendCommand(`MODE ${channel} e`);
   }
 
   /**
    * Request invite list from server
    */
   requestInviteList(channel: string): void {
-    ircService.sendCommand(`MODE ${channel} I`);
+    this.ircService.sendCommand(`MODE ${channel} I`);
   }
 
   /**

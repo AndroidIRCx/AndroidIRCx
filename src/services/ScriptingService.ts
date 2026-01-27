@@ -224,7 +224,14 @@ class ScriptingService {
       throw new Error(msg);
     }
 
-    this.scripts = this.scripts.map(s => s.id === id ? { ...s, enabled } : s);
+    // Update the enabled state and recompile the script to ensure hooks are set up
+    this.scripts = this.scripts.map(s => {
+      if (s.id !== id) return s;
+      const updated = { ...s, enabled };
+      // Recompile the script when enabling to set up hooks
+      // (hooks are not set when script is compiled while disabled)
+      return enabled ? this.compile(updated) : { ...updated, hooks: undefined };
+    });
     await this.save();
 
     // Start/stop usage tracking based on enabled scripts
@@ -1088,9 +1095,11 @@ class ScriptingService {
         this.addLog({ level: 'error', message: String(msg).substring(0, 500), scriptId: script.id });
       },
 
-      // User info
-      userNick: connectionManager.getActiveConnection()?.ircService.getCurrentNick() || '',
-      
+      // User info - use getter to get current nick at execution time
+      get userNick() {
+        return connectionManager.getActiveConnection()?.ircService.getCurrentNick() || '';
+      },
+
       // Config
       getConfig: () => script.config || {},
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,8 +15,9 @@ import {
   Switch,
   Modal,
 } from 'react-native';
-import { channelManagementService, ChannelInfo } from '../services/ChannelManagementService';
-import { ircService } from '../services/IRCService';
+import { ChannelInfo, ChannelManagementService } from '../services/ChannelManagementService';
+import { IRCService } from '../services/IRCService';
+import { connectionManager } from '../services/ConnectionManager';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { channelEncryptionSettingsService } from '../services/ChannelEncryptionSettingsService';
 import { useT } from '../i18n/transifex';
@@ -43,13 +44,34 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   const [banMask, setBanMask] = useState('');
   const [exceptionMask, setExceptionMask] = useState('');
   const [inviteMask, setInviteMask] = useState('');
+  // Track raw mode string for modes not represented by toggles
+  const [rawModeString, setRawModeString] = useState('');
 
   // Encryption settings state
   const [alwaysEncrypt, setAlwaysEncrypt] = useState(false);
   const [hasEncryptionKey, setHasEncryptionKey] = useState(false);
 
+  // Get the correct services for this network from ConnectionManager
+  const { channelManagementService, ircService } = useMemo(() => {
+    const context = connectionManager.getConnection(network);
+    if (context) {
+      return {
+        channelManagementService: context.channelManagementService,
+        ircService: context.ircService,
+      };
+    }
+    // Fallback to singletons if connection not found (shouldn't happen in normal use)
+    console.warn(`ChannelSettingsScreen: No connection found for network "${network}", using fallback`);
+    const { channelManagementService: fallbackCMS } = require('../services/ChannelManagementService');
+    const { ircService: fallbackIRC } = require('../services/IRCService');
+    return {
+      channelManagementService: fallbackCMS as ChannelManagementService,
+      ircService: fallbackIRC as IRCService,
+    };
+  }, [network]);
+
   useEffect(() => {
-    if (!visible || !channel || !network) return;
+    if (!visible || !channel || !network || !channelManagementService || !ircService) return;
 
     // Load current channel info
     const info = channelManagementService.getChannelInfo(channel);
@@ -57,6 +79,7 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
     setTopic(info?.topic || '');
     setKey(info?.modes.key || '');
     setLimit(info?.modes.limit?.toString() || '');
+    setRawModeString(channelManagementService.getModeString(channel) || '');
 
     // Load encryption settings
     const loadEncryptionSettings = async () => {
@@ -83,13 +106,14 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
         setTopic(info.topic || '');
         setKey(info.modes.key || '');
         setLimit(info.modes.limit?.toString() || '');
+        setRawModeString(channelManagementService.getModeString(channel) || '');
       }
     });
 
     return () => {
       unsubscribe();
     };
-  }, [visible, channel, network]);
+  }, [visible, channel, network, channelManagementService, ircService]);
 
   const handleSetTopic = () => {
     if (topic.trim()) {
@@ -116,6 +140,11 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
       Alert.alert(t('Success'), t('Channel limit set to {limitNum}').replace('{limitNum}', limitNum.toString()));
     } else if (limit === '') {
       channelManagementService.removeLimit(channel);
+      // Clear the input immediately to avoid showing a stale number
+      // when the limit has been removed.
+      setLimit('');
+      // Request updated modes so UI reflects server state ASAP.
+      ircService.sendCommand(`MODE ${channel}`);
       Alert.alert(t('Success'), t('Channel limit removed'));
     } else {
       Alert.alert(t('Error'), t('Invalid limit value'));
@@ -170,32 +199,40 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
 
   const toggleMode = (mode: string, param?: string) => {
     const current = channelInfo?.modes;
-    let modeString = '';
-    
+    let modeStr = '';
+
     switch (mode) {
       case 'i':
-        modeString = current?.inviteOnly ? '-i' : '+i';
+        modeStr = current?.inviteOnly ? '-i' : '+i';
         break;
       case 't':
-        modeString = current?.topicProtected ? '-t' : '+t';
+        modeStr = current?.topicProtected ? '-t' : '+t';
         break;
       case 'n':
-        modeString = current?.noExternalMessages ? '-n' : '+n';
+        modeStr = current?.noExternalMessages ? '-n' : '+n';
         break;
       case 'm':
-        modeString = current?.moderated ? '-m' : '+m';
+        modeStr = current?.moderated ? '-m' : '+m';
         break;
       case 'p':
-        modeString = current?.private ? '-p' : '+p';
+        modeStr = current?.private ? '-p' : '+p';
         break;
       case 's':
-        modeString = current?.secret ? '-s' : '+s';
+        modeStr = current?.secret ? '-s' : '+s';
         break;
     }
-    
-    if (modeString) {
-      channelManagementService.setChannelMode(channel, modeString, param);
+
+    if (modeStr) {
+      channelManagementService.setChannelMode(channel, modeStr, param);
+      // Request updated modes after a short delay to confirm the change
+      setTimeout(() => {
+        ircService.sendCommand(`MODE ${channel}`);
+      }, 500);
     }
+  };
+
+  const refreshModes = () => {
+    ircService.sendCommand(`MODE ${channel}`);
   };
 
   // Encryption handlers
@@ -243,7 +280,7 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
         { text: t('Cancel'), style: 'cancel' },
         {
           text: t('Request'),
-          onPress: (nick) => {
+          onPress: (nick: string | undefined) => {
             if (nick && nick.trim()) {
               ircService.sendCommand(`/chankey request ${nick.trim()}`);
               Alert.alert(t('Success'), t('Key request sent to {nick}').replace('{nick}', nick.trim()));
@@ -263,7 +300,7 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
         { text: t('Cancel'), style: 'cancel' },
         {
           text: t('Share'),
-          onPress: (nick) => {
+          onPress: (nick: string | undefined) => {
             if (nick && nick.trim()) {
               ircService.sendCommand(`/chankey share ${nick.trim()}`);
               Alert.alert(t('Success'), t('Key shared with {nick}').replace('{nick}', nick.trim()));
@@ -341,9 +378,17 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
 
           {/* Channel Modes */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('Channel Modes')}</Text>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>{t('Channel Modes')}</Text>
+              <TouchableOpacity style={styles.refreshButton} onPress={refreshModes}>
+                <Text style={styles.refreshButtonText}>{t('Refresh')}</Text>
+              </TouchableOpacity>
+            </View>
             <Text style={styles.modeString}>
-              {channelManagementService.getModeString(channel) || t('No modes set')}
+              {rawModeString || t('No modes set')}
+            </Text>
+            <Text style={styles.metaText}>
+              {t('These are all current channel modes. Use switches below to toggle common modes.')}
             </Text>
 
             <View style={styles.modeRow}>
@@ -723,6 +768,23 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     marginBottom: 12,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  refreshButton: {
+    backgroundColor: '#E0E0E0',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+  },
+  refreshButtonText: {
+    color: '#424242',
+    fontSize: 12,
+    fontWeight: '500',
   },
   sectionDescription: {
     fontSize: 12,

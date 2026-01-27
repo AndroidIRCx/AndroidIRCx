@@ -85,6 +85,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [suggestions, setSuggestions] = useState<MessageInputSuggestion[]>([]);
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const selectionRef = useRef(selection);
+  const suppressNextSelectionChangeRef = useRef(false);
 
   // Media upload state
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
@@ -141,6 +142,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   useEffect(() => {
     selectionRef.current = selection;
   }, [selection]);
+
+  const setSelectionSafely = useCallback((next: { start: number; end: number }) => {
+    suppressNextSelectionChangeRef.current = true;
+    setSelection(next);
+  }, []);
 
   // Check if attachment button should be shown
   useEffect(() => {
@@ -282,14 +288,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       const nextValue = `${before}${openCode}${selected}${closing}${after}`;
       const nextCursor = before.length + openCode.length + selected.length + closing.length;
       setMessage(nextValue);
-      setSelection({ start: nextCursor, end: nextCursor });
+      setSelectionSafely({ start: nextCursor, end: nextCursor });
       return;
     }
     const nextValue = `${before}${openCode}${after}`;
     const nextCursor = start + openCode.length;
     setMessage(nextValue);
-    setSelection({ start: nextCursor, end: nextCursor });
-  }, [message]);
+    setSelectionSafely({ start: nextCursor, end: nextCursor });
+  }, [message, setSelectionSafely]);
 
   const handleColorPick = (code: number) => {
     if (colorTarget === 'bg') {
@@ -624,7 +630,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           placeholderTextColor={colors.inputPlaceholder}
           onSubmitEditing={enterKeyBehavior === 'send' ? handleSubmit : undefined}
           onKeyPress={handleKeyPress}
-          onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
+          onSelectionChange={(event) => {
+            if (suppressNextSelectionChangeRef.current) {
+              suppressNextSelectionChangeRef.current = false;
+              return;
+            }
+            setSelection(event.nativeEvent.selection);
+          }}
           selection={selection}
           editable={!disabled}
           multiline={true}
@@ -655,15 +667,19 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             <TouchableOpacity
               key={suggestion.text}
               onPress={() => {
+                let nextMessage = '';
                 if (suggestion.source === 'nick') {
                   const lastSpaceIndex = message.lastIndexOf(' ');
                   const before = lastSpaceIndex === -1 ? '' : message.slice(0, lastSpaceIndex + 1);
                   const rawToken = lastSpaceIndex === -1 ? message : message.slice(lastSpaceIndex + 1);
                   const prefix = rawToken.startsWith('@') ? '@' : '';
-                  setMessage(`${before}${prefix}${suggestion.text} `);
+                  nextMessage = `${before}${prefix}${suggestion.text} `;
                 } else {
-                  setMessage(suggestion.text + (suggestion.text.endsWith(' ') ? '' : ' '));
+                  nextMessage = suggestion.text + (suggestion.text.endsWith(' ') ? '' : ' ');
                 }
+                setMessage(nextMessage);
+                const cursorPos = nextMessage.length;
+                setSelectionSafely({ start: cursorPos, end: cursorPos });
                 setSuggestions([]);
               }}
               style={styles.suggestionRow}
