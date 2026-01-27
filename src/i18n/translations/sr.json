@@ -6,112 +6,112 @@
     "string": "6697"
   },
   "App lock disabled": {
-    "string": "Закључавање апликације је онемогућено"
+    "string": "Zaključavanje aplikacije je onemogućeno"
   },
   "Enable app lock first.": {
-    "string": "Прво омогућите закључавање апликације."
+    "string": "Prvo omogućite zaključavanje aplikacije."
   },
   "Cancel": {
-    "string": "Откажи"
+    "string": "Otkaži"
   },
   "Error": {
-    "string": "Грешка"
+    "string": "Greška"
   },
   "Channel Favorites": {
-    "string": "Омиљени канали"
+    "string": "Omiljeni kanali"
   },
   "Message History": {
-    "string": "Историја порука"
+    "string": "Istorija poruka"
   },
   "Backup Ready": {
-    "string": "Резервна копија је спремна"
+    "string": "Rezervna kopija je spremna"
   },
   "Success": {
-    "string": "Успех"
+    "string": "Uspeh"
   },
   "Backup data copied to clipboard": {
-    "string": "Резервна копија података копирана у међуспремник"
+    "string": "Rezervna kopija podataka kopirana u međuspremnik"
   },
   "Failed to copy to clipboard": {
-    "string": "Копирање у међуспремник није успело"
+    "string": "Kopiranje u međuspremnik nije uspelo"
   },
   "Backup saved to:\n{path}": {
-    "string": "Резервна копија је сачувана у:\n {path}"
+    "string": "Rezervna kopija je sačuvana u:\n {path}"
   },
   "OK": {
-    "string": "У реду"
+    "string": "U redu"
   },
   "Failed to save backup file": {
-    "string": "Чување резервне копије датотеке није успело"
+    "string": "Čuvanje rezervne kopije datoteke nije uspelo"
   },
   "Restore": {
-    "string": "Врати"
+    "string": "Vrati"
   },
   "Backup restored. Restart app to ensure all data reloads.": {
-    "string": "Резервна копија је враћена. Поново покрените апликацију да бисте осигурали поновно учитавање свих података."
+    "string": "Rezervna kopija je vraćena. Ponovo pokrenite aplikaciju da biste osigurali ponovno učitavanje svih podataka."
   },
   "Invalid backup data": {
-    "string": "Неважећи подаци резервне копије"
+    "string": "Nevažeći podaci rezervne kopije"
   },
   "Backup & Restore": {
-    "string": "Резервна копија и враћање"
+    "string": "Rezervna kopija i vraćanje"
   },
   "Close": {
-    "string": "Затвори"
+    "string": "Zatvori"
   },
   "Copy to Clipboard": {
-    "string": "Копирај у међуспремник"
+    "string": "Kopiraj u međuspremnik"
   },
   "Save to File": {
-    "string": "Сачувај у датотеку"
+    "string": "Sačuvaj u datoteku"
   },
   "Export Complete": {
-    "string": "Извоз завршен"
+    "string": "Izvoz završen"
   },
   "Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)": {
-    "string": "Извезени су знакови {count} у формату {format} .\n\n (У продукцији, ово би било сачувано у датотеци)"
+    "string": "Izvezeno je {count} znakova u {format} formatu.\n\n(U produkciji bi ovo bilo sačuvano u fajl)"
   },
   "Export Error": {
-    "string": "Грешка при извозу"
+    "string": "Greška pri izvozu"
   },
   "Failed to export history": {
-    "string": "Извоз историје није успео"
+    "string": "Izvoz istorije nije uspeo"
   },
   "Clear Message History": {
-    "string": "Обриши историју порука"
+    "string": "Obriši istoriju poruka"
   },
   "Are you sure you want to clear all message history? This cannot be undone.": {
-    "string": "Да ли сте сигурни да желите да обришете сву историју порука? Ова радња се не може поништити."
+    "string": "Da li ste sigurni da želite da obrišete svu istoriju poruka? Ova radnja se ne može poništiti."
   },
   "Clear": {
-    "string": "Јасно"
+    "string": "Jasno"
   },
   "Message history cleared": {
-    "string": "Историја порука је обрисана"
+    "string": "Istorija poruka je obrisana"
   },
   "Settings backup generated (excludes logs and message history).": {
-    "string": "Генерисана је резервна копија подешавања (не укључује логове и историју порука)."
+    "string": "Generisana je rezervna kopija podešavanja (ne uključuje logove i istoriju poruka)."
   },
   "Full backup generated (includes all data).": {
-    "string": "Генерисана је потпуна резервна копија (укључује све податке)."
+    "string": "Generisana je potpuna rezervna kopija (uključuje sve podatke)."
   },
   "Backup Error": {
-    "string": "Грешка при прављењу резервне копије"
+    "string": "Greška pri pravljenju rezervne kopije"
   },
   "Failed to create backup": {
-    "string": "Није успело креирање резервне копије"
+    "string": "Nije uspelo kreiranje rezervne kopije"
   },
   "Restore Complete": {
-    "string": "Враћање завршено"
+    "string": "Vraćanje završeno"
   },
   "Restore Error": {
-    "string": "Грешка при враћању"
+    "string": "Greška pri vraćanju"
   },
   "Use fingerprint/biometric to unlock": {
-    "string": "Користите отисак прста/биометрију за откључавање"
+    "string": "Koristite otisak prsta/biometriju za otključavanje"
   },
   "Enter PIN to unlock": {
-    "string": "Унесите ПИН за откључавање"
+    "string": "Unesite PIN za otključavanje"
   },
   "PIN must be at least 4 digits.": {
     "string": "PIN mora imati najmanje 4 cifre."
@@ -120,13 +120,13 @@
     "string": "PIN-ovi se ne podudaraju."
   },
   "Biometrics unavailable": {
-    "string": "Biometrija није доступна"
+    "string": "Biometrija nije dostupna"
   },
   "Enable a fingerprint/biometric on your device first.": {
     "string": "Omogući otisak prsta/biometriju na svom uređaju prvo."
   },
   "Unlock passwords": {
-    "string": "Откључај лозинке"
+    "string": "Otključaj lozinke"
   },
   "Authentication failed": {
     "string": "Autentikacija nije uspela"
@@ -4299,496 +4299,496 @@
     "string": "WHOIS data for {nick} not found after completion signal."
   },
   "Kill switch requires PIN or biometric authentication.": {
-    "string": ""
+    "string": "Kill switch zahteva PIN ili biometrijsku autentifikaciju."
   },
   "Kill Switch Error": {
-    "string": ""
+    "string": "Greška kill switch-a"
   },
   "Some errors occurred:\n{errors}": {
-    "string": ""
+    "string": "Došlo je do grešaka:\n{errors}"
   },
   "Failed to take photo": {
-    "string": ""
+    "string": "Neuspešno fotografisanje"
   },
   "Camera permission is required to take photos": {
-    "string": ""
+    "string": "Dozvola za kameru je potrebna za fotografisanje"
   },
   "Camera Permission Required": {
-    "string": ""
+    "string": "Potrebna je dozvola za kameru"
   },
   "This app needs access to your camera to take photos.": {
-    "string": ""
+    "string": "Ovoj aplikaciji je potreban pristup kameri za fotografisanje."
   },
   "Grant Permission": {
-    "string": ""
+    "string": "Daj dozvolu"
   },
   "Camera not available": {
-    "string": ""
+    "string": "Kamera nije dostupna"
   },
   "Loading image...": {
-    "string": ""
+    "string": "Učitavanje slike..."
   },
   "Failed to load media": {
-    "string": ""
+    "string": "Neuspešno učitavanje medija"
   },
   "Audio Message": {
-    "string": ""
+    "string": "Audio poruka"
   },
   "File": {
-    "string": ""
+    "string": "Fajl"
   },
   "Tap to open": {
-    "string": ""
+    "string": "Dodirni za otvaranje"
   },
   "Encrypted": {
-    "string": ""
+    "string": "Šifrovano"
   },
   "Downloading... {progress}%": {
-    "string": ""
+    "string": "Preuzimanje... {progress}%"
   },
   "Loading encrypted media...": {
-    "string": ""
+    "string": "Učitavanje šifrovanog medija..."
   },
   "Cannot decrypt media: insufficient context. This may happen if the message is viewed outside its original channel or if encryption keys are not available.": {
-    "string": ""
+    "string": "Nije moguće dešifrovati medij: nedovoljan kontekst. Ovo se može desiti ako se poruka gleda van originalnog kanala ili ako ključevi za šifrovanje nisu dostupni."
   },
   "No media selected": {
-    "string": ""
+    "string": "Nijedan medij nije izabran"
   },
   "File does not exist. Please select the file again.": {
-    "string": ""
+    "string": "Fajl ne postoji. Molimo izaberite fajl ponovo."
   },
   "Encryption failed": {
-    "string": ""
+    "string": "Šifrovanje nije uspelo"
   },
   "Upload failed": {
-    "string": ""
+    "string": "Otpremanje nije uspelo"
   },
   "Failed to send media": {
-    "string": ""
+    "string": "Neuspešno slanje medija"
   },
   "Failed to load image preview": {
-    "string": ""
+    "string": "Neuspešno učitavanje pregleda slike"
   },
   "Failed to load video preview": {
-    "string": ""
+    "string": "Neuspešno učitavanje pregleda videa"
   },
   "Audio File": {
-    "string": ""
+    "string": "Audio fajl"
   },
   "Failed to load audio preview": {
-    "string": ""
+    "string": "Neuspešno učitavanje pregleda audio fajla"
   },
   "Preview Media": {
-    "string": ""
+    "string": "Pregled medija"
   },
   "Type:": {
-    "string": ""
+    "string": "Tip:"
   },
   "Size:": {
-    "string": ""
+    "string": "Veličina:"
   },
   "Duration:": {
-    "string": ""
+    "string": "Trajanje:"
   },
   "Dimensions:": {
-    "string": ""
+    "string": "Dimenzije:"
   },
   "Caption (optional)": {
-    "string": ""
+    "string": "Opis (opciono)"
   },
   "Add a caption...": {
-    "string": ""
+    "string": "Dodaj opis..."
   },
   "Encrypting and uploading...": {
-    "string": ""
+    "string": "Šifrovanje i otpremanje..."
   },
   "Uploading...": {
-    "string": ""
+    "string": "Otpremanje..."
   },
   "Sending...": {
-    "string": ""
+    "string": "Slanje..."
   },
   "Send": {
-    "string": ""
+    "string": "Pošalji"
   },
   "Take Photo": {
-    "string": ""
+    "string": "Fotografiši"
   },
   "Camera Permission": {
-    "string": ""
+    "string": "Dozvola za kameru"
   },
   "Ask Me Later": {
-    "string": ""
+    "string": "Pitaj me kasnije"
   },
   "Record Video": {
-    "string": ""
+    "string": "Snimi video"
   },
   "This app needs access to your camera to record videos.": {
-    "string": ""
+    "string": "Ovoj aplikaciji je potreban pristup kameri za snimanje videa."
   },
   "Microphone Permission": {
-    "string": ""
+    "string": "Dozvola za mikrofon"
   },
   "This app needs access to your microphone to record videos with audio.": {
-    "string": ""
+    "string": "Ovoj aplikaciji je potreban pristup mikrofonu za snimanje videa sa zvukom."
   },
   "Photo Library": {
-    "string": ""
+    "string": "Galerija fotografija"
   },
   "Video Library": {
-    "string": ""
+    "string": "Galerija videa"
   },
   "Voice Message": {
-    "string": ""
+    "string": "Glasovna poruka"
   },
   "This app needs access to your microphone to record voice messages.": {
-    "string": ""
+    "string": "Ovoj aplikaciji je potreban pristup mikrofonu za snimanje glasovnih poruka."
   },
   "Microphone permission is required to record voice messages. Please allow microphone access in app settings.": {
-    "string": ""
+    "string": "Dozvola za mikrofon je potrebna za snimanje glasovnih poruka. Molimo omogućite pristup mikrofonu u podešavanjima aplikacije."
   },
   "Failed to request microphone permission. Please check app settings.": {
-    "string": ""
+    "string": "Neuspešan zahtev za dozvolu mikrofona. Proverite podešavanja aplikacije."
   },
   "File Picker": {
-    "string": ""
+    "string": "Birač fajlova"
   },
   "Select Media Source": {
-    "string": ""
+    "string": "Izaberi izvor medija"
   },
   "Rejoin current channel": {
-    "string": ""
+    "string": "Ponovo se pridruži trenutnom kanalu"
   },
   "CTCP request": {
-    "string": ""
+    "string": "CTCP zahtev"
   },
   "DCC commands": {
-    "string": ""
+    "string": "DCC komande"
   },
   "XDCC bot commands": {
-    "string": ""
+    "string": "XDCC bot komande"
   },
   "Attach media": {
-    "string": ""
+    "string": "Prikači medij"
   },
   "Send message": {
-    "string": ""
+    "string": "Pošalji poruku"
   },
   "Search messages...": {
-    "string": ""
+    "string": "Pretraži poruke..."
   },
   "No results found": {
-    "string": ""
+    "string": "Nema rezultata"
   },
   "{count} result(s) found": {
-    "string": ""
+    "string": "Pronađeno rezultata: {count}"
   },
   "Message Types:": {
-    "string": ""
+    "string": "Tipovi poruka:"
   },
   "Copied": {
-    "string": ""
+    "string": "Kopirano"
   },
   "Fingerprint copied to clipboard": {
-    "string": ""
+    "string": "Otisak je kopiran u međuspremnik"
   },
   "Command copied to clipboard": {
-    "string": ""
+    "string": "Komanda je kopirana u međuspremnik"
   },
   "Sent": {
-    "string": ""
+    "string": "Poslato"
   },
   "Fingerprint command sent to {{service}}": {
-    "string": ""
+    "string": "Komanda otiska je poslata na {{service}}"
   },
   "Certificate Fingerprint": {
-    "string": ""
+    "string": "Otisak sertifikata"
   },
   "Colons": {
-    "string": ""
+    "string": "Dvotačke"
   },
   "Copy Fingerprint": {
-    "string": ""
+    "string": "Kopiraj otisak"
   },
   "QR Code": {
-    "string": ""
+    "string": "QR kod"
   },
   "Scan to quickly share your certificate fingerprint": {
-    "string": ""
+    "string": "Skeniraj za brzo deljenje otiska sertifikata"
   },
   "IRC Service": {
-    "string": ""
+    "string": "IRC servis"
   },
   "Command": {
-    "string": ""
+    "string": "Komanda"
   },
   "Copy Command": {
-    "string": ""
+    "string": "Kopiraj komandu"
   },
   "Send to {{service}}": {
-    "string": ""
+    "string": "Pošalji na {{service}}"
   },
   "How to use": {
-    "string": ""
+    "string": "Kako se koristi"
   },
   "1. Copy the command above\n2. Send it to {{service}} on IRC\n3. Your certificate will be associated with your nickname\n4. You can now authenticate using SASL EXTERNAL": {
-    "string": ""
+    "string": "1. Kopiraj komandu iznad\n2. Pošalji je na {{service}} na IRC-u\n3. Tvoj sertifikat će biti povezan sa tvojim nadimkom\n4. Sada možeš da se autentifikuješ koristeći SASL EXTERNAL"
   },
   "Certificate name is required": {
-    "string": ""
+    "string": "Naziv sertifikata je obavezan"
   },
   "Common Name (CN) is required": {
-    "string": ""
+    "string": "Common Name (CN) je obavezan"
   },
   "Validity period must be between 1 and 10 years": {
-    "string": ""
+    "string": "Period važenja mora biti između 1 i 10 godina"
   },
   "Failed to generate certificate": {
-    "string": ""
+    "string": "Neuspešno generisanje sertifikata"
   },
   "Certificate Generated": {
-    "string": ""
+    "string": "Sertifikat je generisan"
   },
   "Generate Certificate": {
-    "string": ""
+    "string": "Generiši sertifikat"
   },
   "Generate a new RSA-2048 self-signed certificate for IRC SASL EXTERNAL authentication.": {
-    "string": ""
+    "string": "Generiši novi RSA-2048 samopotpisani sertifikat za IRC SASL EXTERNAL autentifikaciju."
   },
   "Certificate Name": {
-    "string": ""
+    "string": "Naziv sertifikata"
   },
   "e.g., My IRC Certificate": {
-    "string": ""
+    "string": "npr. Moj IRC sertifikat"
   },
   "A friendly name for this certificate": {
-    "string": ""
+    "string": "Prijateljski naziv za ovaj sertifikat"
   },
   "Common Name (CN)": {
-    "string": ""
+    "string": "Common Name (CN)"
   },
   "e.g., nick@irc.network": {
-    "string": ""
+    "string": "npr. nick@irc.network"
   },
   "Your nickname or email (used in certificate CN field)": {
-    "string": ""
+    "string": "Tvoj nadimak ili imejl (koristi se u CN polju sertifikata)"
   },
   "Validity Period (years)": {
-    "string": ""
+    "string": "Period važenja (godine)"
   },
   "Certificate validity: 1-10 years": {
-    "string": ""
+    "string": "Važenje sertifikata: 1–10 godina"
   },
   "Generating...": {
-    "string": ""
+    "string": "Generisanje..."
   },
   "What is this?": {
-    "string": ""
+    "string": "Šta je ovo?"
   },
   "Client certificates allow you to authenticate to IRC servers using TLS certificates instead of passwords. This is more secure and supported by many modern IRC networks.": {
-    "string": ""
+    "string": "Klijentski sertifikati ti omogućavaju da se autentifikuješ na IRC servere pomoću TLS sertifikata umesto lozinki. Ovo je bezbednije i podržano je na mnogim modernim IRC mrežama."
   },
   "Certificate Generated Successfully!": {
-    "string": ""
+    "string": "Sertifikat je uspešno generisan!"
   },
   "Name:": {
-    "string": ""
+    "string": "Naziv:"
   },
   "Common Name:": {
-    "string": ""
+    "string": "Common Name:"
   },
   "Valid From:": {
-    "string": ""
+    "string": "Važi od:"
   },
   "Valid To:": {
-    "string": ""
+    "string": "Važi do:"
   },
   "SHA-256 Fingerprint:": {
-    "string": ""
+    "string": "SHA-256 otisak:"
   },
   "Next Steps:": {
-    "string": ""
+    "string": "Sledeći koraci:"
   },
   "Configure your IRC network to use this certificate": {
-    "string": ""
+    "string": "Podesi svoju IRC mrežu da koristi ovaj sertifikat"
   },
   "Add the fingerprint to NickServ: /msg NickServ CERT ADD <fingerprint>": {
-    "string": ""
+    "string": "Dodaj otisak u NickServ: /msg NickServ CERT ADD <fingerprint>"
   },
   "Connect to IRC server with SASL EXTERNAL enabled": {
-    "string": ""
+    "string": "Poveži se na IRC server sa uključenim SASL EXTERNAL"
   },
   "Generating certificate...": {
-    "string": ""
+    "string": "Generisanje sertifikata..."
   },
   "This can take a few seconds on older phones.": {
-    "string": ""
+    "string": "Ovo može potrajati nekoliko sekundi na starijim telefonima."
   },
   "Failed to load certificates": {
-    "string": ""
+    "string": "Neuspešno učitavanje sertifikata"
   },
   "Certificate Expired": {
-    "string": ""
+    "string": "Sertifikat je istekao"
   },
   "This certificate has expired. Please generate a new one.": {
-    "string": ""
+    "string": "Ovaj sertifikat je istekao. Molimo generiši novi."
   },
   "Certificate not found": {
-    "string": ""
+    "string": "Sertifikat nije pronađen"
   },
   "Failed to load certificate details": {
-    "string": ""
+    "string": "Neuspešno učitavanje detalja sertifikata"
   },
   "Delete Certificate": {
-    "string": ""
+    "string": "Obriši sertifikat"
   },
   "Are you sure you want to delete this certificate? This action cannot be undone. You will need to generate a new certificate and re-add it to IRC services.": {
-    "string": ""
+    "string": "Da li si siguran da želiš da obrišeš ovaj sertifikat? Ova radnja se ne može poništiti. Moraćeš da generišeš novi sertifikat i ponovo ga dodaš u IRC servise."
   },
   "Certificate deleted": {
-    "string": ""
+    "string": "Sertifikat je obrisan"
   },
   "Failed to delete certificate": {
-    "string": ""
+    "string": "Neuspešno brisanje sertifikata"
   },
   "Expired": {
-    "string": ""
+    "string": "Istekao"
   },
   "Expires Soon": {
-    "string": ""
+    "string": "Uskoro ističe"
   },
   "Valid": {
-    "string": ""
+    "string": "Važeći"
   },
   "Valid:": {
-    "string": ""
+    "string": "Važi:"
   },
   "No Certificates": {
-    "string": ""
+    "string": "Nema sertifikata"
   },
   "You haven't generated any certificates yet. Generate one to get started.": {
-    "string": ""
+    "string": "Još uvek nisi generisao nijedan sertifikat. Generiši jedan za početak."
   },
   "Generate New Certificate": {
-    "string": ""
+    "string": "Generiši novi sertifikat"
   },
   "Select Certificate": {
-    "string": ""
+    "string": "Izaberi sertifikat"
   },
   "Loading certificates...": {
-    "string": ""
+    "string": "Učitavanje sertifikata..."
   },
   "certificate": {
-    "string": ""
+    "string": "sertifikat"
   },
   "certificates": {
-    "string": ""
+    "string": "sertifikati"
   },
   "New": {
-    "string": ""
+    "string": "Novo"
   },
   "Recommended": {
-    "string": ""
+    "string": "Preporučeno"
   },
   "No Networks": {
-    "string": ""
+    "string": "Nema mreža"
   },
   "Create a network first to add ZNC to it.": {
-    "string": ""
+    "string": "Prvo napravi mrežu da bi dodao ZNC na nju."
   },
   "Select a network to add your ZNC server to. The ZNC will be automatically configured.": {
-    "string": ""
+    "string": "Izaberi mrežu na koju želiš da dodaš svoj ZNC server. ZNC će biti automatski podešen."
   },
   "Loading networks...": {
-    "string": ""
+    "string": "Učitavanje mreža..."
   },
   "Create New Network": {
-    "string": ""
+    "string": "Napravi novu mrežu"
   },
   "Show Header Search": {
-    "string": ""
+    "string": "Prikaži pretragu u zaglavlju"
   },
   "Search icon visible in the header": {
-    "string": ""
+    "string": "Ikonica pretrage je vidljiva u zaglavlju"
   },
   "Search icon hidden from the header": {
-    "string": ""
+    "string": "Ikonica pretrage je sakrivena iz zaglavlja"
   },
   "Show Message Search Button": {
-    "string": ""
+    "string": "Prikaži dugme za pretragu poruka"
   },
   "Floating search button visible in message view": {
-    "string": ""
+    "string": "Plutajuće dugme za pretragu je vidljivo u prikazu poruka"
   },
   "Floating search button hidden": {
-    "string": ""
+    "string": "Plutajuće dugme za pretragu je sakriveno"
   },
   "Alias name and command are required": {
-    "string": ""
+    "string": "Naziv aliasa i komanda su obavezni"
   },
   "Command name and template are required": {
-    "string": ""
+    "string": "Naziv komande i šablon su obavezni"
   },
   "Use fingerprint/biometric or PIN to unlock": {
-    "string": ""
+    "string": "Koristi otisak/biometriju ili PIN za otključavanje"
   },
   "Selected": {
-    "string": ""
+    "string": "Izabrano"
   },
   "Unlock Passwords": {
-    "string": ""
+    "string": "Otključaj lozinke"
   },
   "Re-enter PIN": {
-    "string": ""
+    "string": "Ponovo unesi PIN"
   },
   "Confirm": {
-    "string": ""
+    "string": "Potvrdi"
   },
   "Submit": {
-    "string": ""
+    "string": "Potvrdi"
   },
   "Padding": {
-    "string": ""
+    "string": "Ispuna"
   },
   "Height": {
-    "string": ""
+    "string": "Visina"
   },
   "Position": {
     "string": "Pozicija"
   },
   "Translate with padding": {
-    "string": ""
+    "string": "Prevedi sa ispunom"
   },
   "Show Typing Indicators": {
-    "string": ""
+    "string": "Prikaži indikatore kucanja"
   },
   "Display who is typing in the active tab": {
-    "string": ""
+    "string": "Prikaži ko kuca u aktivnoj kartici"
   },
   "Hide typing indicators": {
-    "string": ""
+    "string": "Sakrij indikatore kucanja"
   },
   "Show Send Button": {
-    "string": ""
+    "string": "Prikaži dugme za slanje"
   },
   "Display send button next to message input": {
-    "string": ""
+    "string": "Prikaži dugme za slanje pored polja za unos poruke"
   },
   "Hide send button (use Enter key)": {
-    "string": ""
+    "string": "Sakrij dugme za slanje (koristi Enter taster)"
   },
   "Banner Position": {
     "string": "Pozicija reklame"
   },
   "Banner shown below message input": {
-    "string": ""
+    "string": "Baner prikazan ispod polja za unos poruke"
   },
   "Banner shown above header": {
     "string": "Reklama se pokazuje iznad naslova"
   },
   "Banner shown below header": {
-    "string": ""
+    "string": "Baner prikazan ispod zaglavlja"
   },
   "Banner shown above message input": {
     "string": "Reklama se pokazuje iznad polja za unos teksta"
@@ -4797,1138 +4797,1138 @@
     "string": "Iznad unosa teksta"
   },
   "Below message input": {
-    "string": ""
+    "string": "Ispod polja za unos poruke"
   },
   "Above header": {
     "string": "Iznad naslova"
   },
   "Below header": {
-    "string": ""
+    "string": "Ispod zaglavlja"
   },
   "Keyboard Avoiding": {
-    "string": ""
+    "string": "Izbegavanje tastature"
   },
   "Adjust layout when the keyboard opens": {
-    "string": ""
+    "string": "Prilagodi raspored kada se tastatura otvori"
   },
   "Keep layout fixed when the keyboard opens": {
-    "string": ""
+    "string": "Zadrži fiksan raspored kada se tastatura otvori"
   },
   "Keyboard Behavior (iOS)": {
-    "string": ""
+    "string": "Ponašanje tastature (iOS)"
   },
   "Keyboard Behavior (Android)": {
-    "string": ""
+    "string": "Ponašanje tastature (Android)"
   },
   "Keyboard Vertical Offset": {
-    "string": ""
+    "string": "Vertikalni pomak tastature"
   },
   "Additional padding in pixels for keyboard avoidance": {
-    "string": ""
+    "string": "Dodatna ispuna u pikselima za izbegavanje tastature"
   },
   "Android Bottom Safe Area": {
-    "string": ""
+    "string": "Donja bezbedna zona na Androidu"
   },
   "Keep spacing above the gesture bar": {
-    "string": ""
+    "string": "Zadrži razmak iznad trake sa gestovima"
   },
   "Use full height on Android": {
-    "string": ""
+    "string": "Koristi punu visinu na Androidu"
   },
   "Troubleshooting Guide": {
-    "string": ""
+    "string": "Vodič za rešavanje problema"
   },
   "Fix common problems and errors": {
-    "string": ""
+    "string": "Reši česte probleme i greške"
   },
   "IRC Connection Guide": {
-    "string": ""
+    "string": "Vodič za IRC povezivanje"
   },
   "Learn how to connect to IRC servers": {
-    "string": ""
+    "string": "Nauči kako da se povežeš na IRC servere"
   },
   "Commands Reference": {
-    "string": ""
+    "string": "Referenca komandi"
   },
   "List of all IRC commands": {
-    "string": ""
+    "string": "Spisak svih IRC komandi"
   },
   "Encryption Guide": {
-    "string": ""
+    "string": "Vodič za šifrovanje"
   },
   "End-to-end encryption for DMs and channels": {
-    "string": ""
+    "string": "End-to-end šifrovanje za DM-ove i kanale"
   },
   "Media Sharing Guide": {
-    "string": ""
+    "string": "Vodič za deljenje medija"
   },
   "Send encrypted photos, videos, and voice": {
-    "string": ""
+    "string": "Šalji šifrovane fotografije, video i glas"
   },
   "Channel Management": {
-    "string": ""
+    "string": "Upravljanje kanalima"
   },
   "Manage channels, modes, and permissions": {
-    "string": ""
+    "string": "Upravljaj kanalima, modovima i dozvolama"
   },
   "Clear Media Cache": {
-    "string": ""
+    "string": "Očisti keš medija"
   },
   "Are you sure you want to clear all cached media? This will free up storage space but media will need to be downloaded again.": {
-    "string": ""
+    "string": "Da li si siguran da želiš da očistiš sav keširani medij? Ovo će osloboditi prostor, ali će mediji morati ponovo da se preuzmu."
   },
   "Cache Cleared": {
-    "string": ""
+    "string": "Keš je očišćen"
   },
   "Media cache has been cleared successfully.": {
-    "string": ""
+    "string": "Keš medija je uspešno očišćen."
   },
   "Failed to clear cache: {error}": {
-    "string": ""
+    "string": "Neuspešno čišćenje keša: {error}"
   },
   "Original": {
-    "string": ""
+    "string": "Original"
   },
   "High": {
-    "string": ""
+    "string": "Visok"
   },
   "Low": {
-    "string": ""
+    "string": "Nizak"
   },
   "Enable Encrypted Media Sharing": {
-    "string": ""
+    "string": "Omogući deljenje šifrovanog medija"
   },
   "Media sharing is enabled. Attachment button (📎) appears on encrypted conversations.": {
-    "string": ""
+    "string": "Deljenje medija je omogućeno. Dugme za prilog (📎) se pojavljuje u šifrovanim razgovorima."
   },
   "Media sharing is disabled. Attachment button will not appear.": {
-    "string": ""
+    "string": "Deljenje medija je onemogućeno. Dugme za prilog se neće pojaviti."
   },
   "About Media Sharing": {
-    "string": ""
+    "string": "O deljenju medija"
   },
   "Media sharing works only in encrypted conversations (DMs with key exchange or encrypted channels). All media is automatically encrypted using existing E2E keys.": {
-    "string": ""
+    "string": "Deljenje medija radi samo u šifrovanim razgovorima (DM-ovi sa razmenom ključeva ili šifrovani kanali). Sav medij se automatski šifruje postojećim E2E ključevima."
   },
   "Show Encryption Indicator": {
-    "string": ""
+    "string": "Prikaži indikator šifrovanja"
   },
   "Display 🔒 icon on media thumbnails to indicate encryption": {
-    "string": ""
+    "string": "Prikaži ikonicu 🔒 na sličicama medija da označi šifrovanje"
   },
   "Auto-Download Media": {
-    "string": ""
+    "string": "Automatsko preuzimanje medija"
   },
   "Automatically download media when received": {
-    "string": ""
+    "string": "Automatski preuzmi medij kada stigne"
   },
   "WiFi Only Downloads": {
-    "string": ""
+    "string": "Preuzimanje samo preko WiFi-ja"
   },
   "Only download media when connected to WiFi": {
-    "string": ""
+    "string": "Preuzimaj medij samo kada si povezan na WiFi"
   },
   "Maximum Cache Size": {
-    "string": ""
+    "string": "Maksimalna veličina keša"
   },
   "Current cache: {size} / Max: {max}": {
-    "string": ""
+    "string": "Trenutni keš: {size} / Maks: {max}"
   },
   "Media Quality": {
-    "string": ""
+    "string": "Kvalitet medija"
   },
   "Current: {quality}": {
-    "string": ""
+    "string": "Trenutno: {quality}"
   },
   "Video Recording Quality": {
-    "string": ""
+    "string": "Kvalitet snimanja videa"
   },
   "Max Voice Message Duration": {
-    "string": ""
+    "string": "Maksimalno trajanje glasovne poruke"
   },
   "Current: {duration} seconds": {
-    "string": ""
+    "string": "Trenutno: {duration} sekundi"
   },
   "1 minute": {
-    "string": ""
+    "string": "1 minut"
   },
   "3 minutes": {
-    "string": ""
+    "string": "3 minuta"
   },
   "5 minutes": {
-    "string": ""
+    "string": "5 minuta"
   },
   "Free up storage by clearing cached media files": {
-    "string": ""
+    "string": "Oslobodi prostor brisanjem keširanih medija"
   },
   "Permission Required": {
-    "string": ""
+    "string": "Potrebna je dozvola"
   },
   "Notification permission is required to receive notifications. Please enable it in system settings.": {
-    "string": ""
+    "string": "Dozvola za obaveštenja je potrebna da bi ih primao. Omogući je u sistemskim podešavanjima."
   },
   "Sound Settings": {
-    "string": ""
+    "string": "Podešavanja zvuka"
   },
   "Configure notification sounds and themes": {
-    "string": ""
+    "string": "Podesi zvukove obaveštenja i teme"
   },
   "Upgrade to Premium": {
-    "string": ""
+    "string": "Nadogradi na Premium"
   },
   "Unlock unlimited scripting, no ads, and premium features": {
-    "string": ""
+    "string": "Otključaj neograničeno skriptovanje, bez reklama i premium funkcije"
   },
   "My Data & Privacy": {
-    "string": ""
+    "string": "Moji podaci i privatnost"
   },
   "Export or delete your data (GDPR/CCPA rights)": {
-    "string": ""
+    "string": "Izvezi ili obriši svoje podatke (GDPR/CCPA prava)"
   },
   "Privacy & Ads": {
-    "string": ""
+    "string": "Privatnost i reklame"
   },
   "Manage consent for personalized ads and watch ads for rewards": {
-    "string": ""
+    "string": "Upravljaj pristankom za personalizovane reklame i gledaj reklame za nagrade"
   },
   "Scripts (Scripting Time & No-Ads)": {
-    "string": ""
+    "string": "Skripte (vreme za skriptovanje i bez reklama)"
   },
   "Manage IRC scripts and automation. Scripting time is also ad-free time.": {
-    "string": ""
+    "string": "Upravljaj IRC skriptama i automatizacijom. Vreme za skriptovanje je takođe vreme bez reklama."
   },
   "Show Watch Ad Button (Premium)": {
-    "string": ""
+    "string": "Prikaži dugme Gledaj reklamu (Premium)"
   },
   "Enable watch ad button to support the project (you have premium plan)": {
-    "string": ""
+    "string": "Omogući dugme za gledanje reklame da podržiš projekat (imaš premium plan)"
   },
   "Always shown for normal users": {
-    "string": ""
+    "string": "Uvek prikazano za obične korisnike"
   },
   "Watch Ad (+60 min Scripting & No-Ads)": {
-    "string": ""
+    "string": "Gledaj reklamu (+60 min skriptovanja i bez reklama)"
   },
   "Quick Connect Network": {
-    "string": ""
+    "string": "Mreža za brzo povezivanje"
   },
   "Current: {network}": {
-    "string": ""
+    "string": "Trenutno: {network}"
   },
   "Tap header to connect to default network": {
-    "string": ""
+    "string": "Dodirni zaglavlje da se povežeš na podrazumevanu mrežu"
   },
   "Kill Switch on Header": {
-    "string": ""
+    "string": "Kill switch u zaglavlju"
   },
   "Show kill switch button in header": {
-    "string": ""
+    "string": "Prikaži dugme kill switch u zaglavlju"
   },
   "Kill Switch on Lock Screen": {
-    "string": ""
+    "string": "Kill switch na ekranu za otključavanje"
   },
   "Show kill switch button on app unlock screen": {
-    "string": ""
+    "string": "Prikaži dugme kill switch na ekranu za otključavanje aplikacije"
   },
   "Show Kill Switch Warnings": {
-    "string": ""
+    "string": "Prikaži upozorenja za kill switch"
   },
   "Show confirmation dialogs before activating kill switch (header only)": {
-    "string": ""
+    "string": "Prikaži dijaloge za potvrdu pre aktiviranja kill switch-a (samo zaglavlje)"
   },
   "Kill Switch Custom Name": {
-    "string": ""
+    "string": "Prilagođeni naziv kill switch-a"
   },
   "Custom name for kill switch button (e.g., \"meow meow\" for obfuscation)": {
     "string": ""
   },
   "Enter custom name": {
-    "string": ""
+    "string": "Unesi prilagođeni naziv"
   },
   "Kill Switch Custom Icon": {
-    "string": ""
+    "string": "Prilagođena ikonica kill switch-a"
   },
   "FontAwesome5 icon name (e.g., \"cat\", \"heart\", \"star\")": {
     "string": ""
   },
   "Enter icon name": {
-    "string": ""
+    "string": "Unesi naziv ikonice"
   },
   "Kill Switch Custom Color": {
-    "string": ""
+    "string": "Prilagođena boja kill switch-a"
   },
   "Tap to choose from preset colors or enter hex code": {
-    "string": ""
+    "string": "Dodirni da izabereš neku od ponuđenih boja ili unesi hex kod"
   },
   "Select Quick Connect Network": {
-    "string": ""
+    "string": "Izaberi mrežu za brzo povezivanje"
   },
   "Choose which network to connect when tapping the header \"Tap to connect\" button.": {
     "string": ""
   },
   "Use Default": {
-    "string": ""
+    "string": "Koristi podrazumevano"
   },
   "Choose Color": {
-    "string": ""
+    "string": "Izaberi boju"
   },
   "Current color: {color}": {
-    "string": ""
+    "string": "Trenutna boja: {color}"
   },
   "Hex Color:": {
-    "string": ""
+    "string": "Hex boja:"
   },
   "Unable to enable biometric lock.": {
-    "string": ""
+    "string": "Nije moguće omogućiti biometrijsko zaključavanje."
   },
   "PIN unlock enabled (fallback if biometric fails)": {
-    "string": ""
+    "string": "PIN otključavanje omogućeno (rezerva ako biometrija ne uspe)"
   },
   "Use a PIN to unlock (can be used with biometric)": {
-    "string": ""
+    "string": "Koristi PIN za otključavanje (može i uz biometriju)"
   },
   "Failed to save video": {
-    "string": ""
+    "string": "Neuspešno čuvanje videa"
   },
   "Recording failed": {
-    "string": ""
+    "string": "Snimanje nije uspelo"
   },
   "Failed to start recording": {
-    "string": ""
+    "string": "Neuspešan početak snimanja"
   },
   "Failed to stop recording": {
-    "string": ""
+    "string": "Neuspešno zaustavljanje snimanja"
   },
   "Camera and microphone permissions are required to record videos": {
-    "string": ""
+    "string": "Dozvole za kameru i mikrofon su potrebne za snimanje videa"
   },
   "Permissions Required": {
-    "string": ""
+    "string": "Potrebne su dozvole"
   },
   "This app needs access to your camera and microphone to record videos.": {
-    "string": ""
+    "string": "Ovoj aplikaciji su potrebni pristupi kameri i mikrofonu za snimanje videa."
   },
   "Grant Permissions": {
-    "string": ""
+    "string": "Daj dozvole"
   },
   "Microphone permission": {
-    "string": ""
+    "string": "Dozvola za mikrofon"
   },
   "Ask me later": {
-    "string": ""
+    "string": "Pitaj me kasnije"
   },
   "Microphone permission denied": {
-    "string": ""
+    "string": "Dozvola za mikrofon je odbijena"
   },
   "Recording file not found": {
-    "string": ""
+    "string": "Fajl snimka nije pronađen"
   },
   "Recording file not found. Please record again.": {
-    "string": ""
+    "string": "Fajl snimka nije pronađen. Molimo snimi ponovo."
   },
   "Failed to send recording": {
-    "string": ""
+    "string": "Neuspešno slanje snimka"
   },
   "Release to stop recording": {
-    "string": ""
+    "string": "Pusti da zaustaviš snimanje"
   },
   "max": {
-    "string": ""
+    "string": "maks"
   },
   "Recording complete": {
-    "string": ""
+    "string": "Snimanje završeno"
   },
   "Stop": {
-    "string": ""
+    "string": "Stop"
   },
   "Hold to record voice message": {
-    "string": ""
+    "string": "Drži za snimanje glasovne poruke"
   },
   "Max duration: {duration} seconds": {
-    "string": ""
+    "string": "Maksimalno trajanje: {duration} sekundi"
   },
   "Hold to Record": {
-    "string": ""
+    "string": "Drži za snimanje"
   },
   "Stop Recording": {
-    "string": ""
+    "string": "Zaustavi snimanje"
   },
   "*** Reconnected to {network}": {
-    "string": ""
+    "string": "*** Ponovo povezan na {network}"
   },
   "Invalid IRC URL": {
-    "string": ""
+    "string": "Nevažeći IRC URL"
   },
   "The IRC URL format is invalid: {error}\n\nExpected: irc://server/channel": {
-    "string": ""
+    "string": "Format IRC URL-a nije važeći: {error}\n\nOčekivano: irc://server/channel"
   },
   "Security Warning": {
-    "string": ""
+    "string": "Bezbednosno upozorenje"
   },
   "This URL contains a password which is visible in plain text. This is insecure.\n\nServer: {server}\n\nContinue anyway?": {
-    "string": ""
+    "string": "Ovaj URL sadrži lozinku koja je vidljiva kao običan tekst. Ovo nije bezbedno.\n\nServer: {server}\n\nIpak nastaviti?"
   },
   "Continue": {
-    "string": ""
+    "string": "Nastavi"
   },
   "Already Connected": {
-    "string": ""
+    "string": "Već povezano"
   },
   "Already connected to {server}": {
-    "string": ""
+    "string": "Već povezano na {server}"
   },
   "Connect to IRC Server": {
-    "string": ""
+    "string": "Poveži se na IRC server"
   },
   "Connecting to {server}:{port}\n\nThis will create a temporary connection.{channel}\n\nContinue?": {
-    "string": ""
+    "string": "Povezivanje na {server}:{port}\n\nOvo će napraviti privremenu vezu.{channel}\n\nNastaviti?"
   },
   "Connect": {
-    "string": ""
+    "string": "Poveži"
   },
   "Failed to process IRC URL: {error}": {
-    "string": ""
+    "string": "Neuspešna obrada IRC URL-a: {error}"
   },
   "Usage: /ctcp <nick> <command> [args]": {
-    "string": ""
+    "string": "Upotreba: /ctcp <nick> <komanda> [args]"
   },
   "Usage: /xdcc <bot> <command> [args]": {
-    "string": ""
+    "string": "Upotreba: /xdcc <bot> <komanda> [args]"
   },
   "Usage: /dcc <chat|send> <nick> [path] [port]": {
-    "string": ""
+    "string": "Upotreba: /dcc <chat|send> <nick> [putanja] [port]"
   },
   "Failed to open battery optimization settings. Please enable it manually in system settings.": {
-    "string": ""
+    "string": "Neuspešno otvaranje podešavanja optimizacije baterije. Omogući ručno u sistemskim podešavanjima."
   },
   "View Certificate Fingerprint": {
-    "string": ""
+    "string": "Prikaži otisak sertifikata"
   },
   "Failed to extract certificate fingerprint": {
-    "string": ""
+    "string": "Neuspešno izdvajanje otiska sertifikata"
   },
   "Share Cert with NickServ": {
-    "string": ""
+    "string": "Podeli sertifikat sa NickServ-om"
   },
   "Certificate fingerprint sent to NickServ": {
-    "string": ""
+    "string": "Otisak sertifikata je poslat NickServ-u"
   },
   "Not connected to IRC server": {
-    "string": ""
+    "string": "Nije povezano na IRC server"
   },
   "Failed to send certificate fingerprint": {
-    "string": ""
+    "string": "Neuspešno slanje otiska sertifikata"
   },
   "Version 1.6.9": {
-    "string": ""
+    "string": "Verzija 1.6.9"
   },
   "Are you sure you want to delete \"{networkName}\"? This cannot be undone.": {
     "string": ""
   },
   "Failed to delete network": {
-    "string": ""
+    "string": "Neuspešno brisanje mreže"
   },
   "Cannot Delete Server": {
-    "string": ""
+    "string": "Nije moguće obrisati server"
   },
   "Each network must have at least one server.": {
-    "string": ""
+    "string": "Svaka mreža mora imati bar jedan server."
   },
   "Delete Server": {
-    "string": ""
+    "string": "Obriši server"
   },
   "Are you sure you want to delete \"{serverName}\"?": {
     "string": ""
   },
   "Failed to delete server": {
-    "string": ""
+    "string": "Neuspešno brisanje servera"
   },
   "Export My Data": {
-    "string": ""
+    "string": "Izvezi moje podatke"
   },
   "This will create a JSON file with all your data (messages, settings, networks, etc.). You can then share this file via email, cloud storage, etc.": {
-    "string": ""
+    "string": "Ovo će napraviti JSON fajl sa svim tvojim podacima (poruke, podešavanja, mreže itd.). Zatim možeš da podeliš taj fajl putem imejla, cloud skladišta itd."
   },
   "Export Successful": {
-    "string": ""
+    "string": "Izvoz uspešan"
   },
   "Your data has been exported. Would you like to share it?": {
-    "string": ""
+    "string": "Tvoji podaci su izvezeni. Želiš li da ih podeliš?"
   },
   "Not Now": {
-    "string": ""
+    "string": "Ne sada"
   },
   "File saved to: {path}": {
-    "string": ""
+    "string": "Fajl je sačuvan u: {path}"
   },
   "Export Failed": {
-    "string": ""
+    "string": "Izvoz nije uspeo"
   },
   "Failed to export data: {error}": {
-    "string": ""
+    "string": "Neuspešan izvoz podataka: {error}"
   },
   "An error occurred while exporting data.": {
-    "string": ""
+    "string": "Došlo je do greške prilikom izvoza podataka."
   },
   "⚠️ Delete All My Data": {
-    "string": ""
+    "string": "⚠️ Obriši sve moje podatke"
   },
   "THIS CANNOT BE UNDONE!\n\nThis will permanently delete:\n• All messages\n• All settings\n• All networks\n• All identity profiles\n• Consent preferences\n• Cached data\n\nThe app will restart after deletion. Are you absolutely sure?": {
-    "string": ""
+    "string": "OVO SE NE MOŽE PONIŠTITI!\n\nOvo će trajno obrisati:\n• Sve poruke\n• Sva podešavanja\n• Sve mreže\n• Sve profile identiteta\n• Podešavanja pristanka\n• Keširane podatke\n\nAplikacija će se restartovati nakon brisanja. Da li si apsolutno siguran?"
   },
   "DELETE EVERYTHING": {
-    "string": ""
+    "string": "OBRIŠI SVE"
   },
   "Final Confirmation": {
-    "string": ""
+    "string": "Konačna potvrda"
   },
   "Are you really sure? This will delete ALL your data permanently.": {
-    "string": ""
+    "string": "Da li si zaista siguran? Ovo će trajno obrisati SVE tvoje podatke."
   },
   "Yes, Delete Everything": {
-    "string": ""
+    "string": "Da, obriši sve"
   },
   "Data Deleted": {
-    "string": ""
+    "string": "Podaci su obrisani"
   },
   "All your data has been permanently deleted:\n\n{deletedList}\n\nThe app will restart and show the first-run setup again.": {
-    "string": ""
+    "string": "Svi tvoji podaci su trajno obrisani:\n\n{deletedList}\n\nAplikacija će se restartovati i ponovo prikazati početno podešavanje."
   },
   "Partial Deletion": {
-    "string": ""
+    "string": "Delimično brisanje"
   },
   "Some data could not be deleted.\n\nDeleted:\n{deletedList}\n\nFailed:\n{failedList}\n\nErrors:\n{errorDetails}\n\nPlease check logs for details.": {
-    "string": ""
+    "string": "Neki podaci nisu mogli biti obrisani.\n\nObrisano:\n{deletedList}\n\nNeuspešno:\n{failedList}\n\nGreške:\n{errorDetails}\n\nProveri logove za detalje."
   },
   "Critical error during data deletion: {error}\n\nPlease check the console logs for details.": {
-    "string": ""
+    "string": "Kritična greška tokom brisanja podataka: {error}\n\nProveri konzolne logove za detalje."
   },
   "Setting Updated": {
-    "string": ""
+    "string": "Podešavanje je ažurirano"
   },
   "Crash reporting has been disabled. New crashes will not be collected.": {
-    "string": ""
+    "string": "Prijava rušenja je onemogućena. Nova rušenja se neće beležiti."
   },
   "Crash reporting has been enabled. This helps improve app stability.": {
-    "string": ""
+    "string": "Prijava rušenja je omogućena. Ovo pomaže da se poboljša stabilnost aplikacije."
   },
   "Failed to update crash reporting setting.": {
-    "string": ""
+    "string": "Neuspešno ažuriranje podešavanja prijave rušenja."
   },
   "DATA COLLECTED": {
-    "string": ""
+    "string": "PRIKUPLJENI PODACI"
   },
   "Storage Used": {
-    "string": ""
+    "string": "Iskorišćen prostor"
   },
   "Ad Consent": {
-    "string": ""
+    "string": "Pristanak za reklame"
   },
   "This shows data stored locally on your device. Third-party services (Google AdMob, Firebase) may have their own data retention policies.": {
-    "string": ""
+    "string": "Ovo prikazuje podatke sačuvane lokalno na tvom uređaju. Servisi trećih strana (Google AdMob, Firebase) mogu imati sopstvene politike čuvanja podataka."
   },
   "PRIVACY CONTROLS": {
-    "string": ""
+    "string": "KONTROLE PRIVATNOSTI"
   },
   "Crash Reporting": {
-    "string": ""
+    "string": "Prijava rušenja"
   },
   "Send anonymous crash reports to help improve app stability": {
-    "string": ""
+    "string": "Šalji anonimne izveštaje o rušenju kako bi se poboljšala stabilnost aplikacije"
   },
   "When disabled, crash reports will not be collected. This may make it harder to fix bugs you encounter.": {
-    "string": ""
+    "string": "Kada je isključeno, izveštaji o rušenju se neće prikupljati. Ovo može otežati ispravljanje bagova na koje naiđeš."
   },
   "YOUR RIGHTS (GDPR/CCPA)": {
-    "string": ""
+    "string": "TVOJA PRAVA (GDPR/CCPA)"
   },
   "Download all your data in JSON format": {
-    "string": ""
+    "string": "Preuzmi sve svoje podatke u JSON formatu"
   },
   "Delete All My Data": {
-    "string": ""
+    "string": "Obriši sve moje podatke"
   },
   "Permanently erase all your data (cannot be undone)": {
-    "string": ""
+    "string": "Trajno obriši sve svoje podatke (ne može se poništiti)"
   },
   "🚨 KILL SWITCH 🚨": {
-    "string": ""
+    "string": "🚨 KILL SWITCH 🚨"
   },
   "EMERGENCY: Delete EVERYTHING including certs, logs, secure storage. Keyboard shortcut: Ctrl+Shift+K": {
-    "string": ""
+    "string": "HITNO: Obriši SVE uključujući sertifikate, logove i bezbedno skladište. Prečica na tastaturi: Ctrl+Shift+K"
   },
   "IMPORTANT INFORMATION": {
-    "string": ""
+    "string": "VAŽNE INFORMACIJE"
   },
   "What gets exported?": {
-    "string": ""
+    "string": "Šta se izvozi?"
   },
   "All messages (including DMs)": {
-    "string": ""
+    "string": "Sve poruke (uključujući DM-ove)"
   },
   "Network configurations": {
-    "string": ""
+    "string": "Konfiguracije mreže"
   },
   "Identity profiles": {
-    "string": ""
+    "string": "Profili identiteta"
   },
   "Settings and preferences": {
-    "string": ""
+    "string": "Podešavanja i preferencije"
   },
   "Consent status": {
-    "string": ""
+    "string": "Status pristanka"
   },
   "What gets deleted?": {
-    "string": ""
+    "string": "Šta se briše?"
   },
   "All local data (messages, settings, etc.)": {
-    "string": ""
+    "string": "Svi lokalni podaci (poruke, podešavanja itd.)"
   },
   "Consent preferences (will be asked again)": {
-    "string": ""
+    "string": "Podešavanja pristanka (biće ponovo zatražena)"
   },
   "Cached files": {
-    "string": ""
+    "string": "Keširani fajlovi"
   },
   "Note: Data already sent to Google (AdMob, Crashlytics) cannot be deleted via this app, but will be automatically deleted per their retention policies (14-90 days).": {
-    "string": ""
+    "string": "Napomena: Podaci koji su već poslati Google-u (AdMob, Crashlytics) ne mogu da se obrišu kroz ovu aplikaciju, ali će biti automatski obrisani prema njihovim politikama čuvanja podataka (14–90 dana)."
   },
   "Your Privacy Rights": {
-    "string": ""
+    "string": "Tvoja prava na privatnost"
   },
   "Under GDPR and CCPA, you have the right to:": {
-    "string": ""
+    "string": "Prema GDPR i CCPA, imaš pravo da:"
   },
   "Access your data (Export)": {
-    "string": ""
+    "string": "Pristupiš svojim podacima (izvoz)"
   },
   "Delete your data (Right to be forgotten)": {
-    "string": ""
+    "string": "Obrišeš svoje podatke (pravo na zaborav)"
   },
   "Opt-out of data collection": {
-    "string": ""
+    "string": "Isključiš prikupljanje podataka"
   },
   "Withdraw consent at any time": {
-    "string": ""
+    "string": "Povučeš pristanak u bilo kom trenutku"
   },
   "Data portability (Export to another service)": {
-    "string": ""
+    "string": "Prenosivost podataka (izvoz u drugi servis)"
   },
   "Choose Your Channels": {
-    "string": ""
+    "string": "Izaberi svoje kanale"
   },
   "Privacy Agreement": {
-    "string": ""
+    "string": "Sporazum o privatnosti"
   },
   "By clicking Accept, you agree to:\n\n• Collection of device info, IP address, and location for ads\n• Use of Google Mobile Ads (personalized or non-personalized)\n• Our Privacy Policy and Terms\n\nYou can change these settings anytime in Settings > Privacy & Ads.": {
-    "string": ""
+    "string": "Klikom na Prihvati, slažeš se sa:\n\n• Prikupljanjem informacija o uređaju, IP adresi i lokaciji za reklame\n• Korišćenjem Google Mobile Ads (personalizovane ili nepersonalizovane)\n• Našom Politikom privatnosti i Uslovima\n\nOva podešavanja možeš promeniti u bilo kom trenutku u Podešavanja > Privatnost i reklame."
   },
   "Read Privacy Policy": {
-    "string": ""
+    "string": "Pročitaj Politiku privatnosti"
   },
   "Failed to open privacy policy.": {
-    "string": ""
+    "string": "Neuspešno otvaranje Politike privatnosti."
   },
   "Accept & Continue": {
-    "string": ""
+    "string": "Prihvati i nastavi"
   },
   "Failed to save consent. Please try again.": {
-    "string": ""
+    "string": "Neuspešno čuvanje pristanka. Pokušaj ponovo."
   },
   "AndroidIRCX is free to use, supported by ads": {
-    "string": ""
+    "string": "AndroidIRCX je besplatan za korišćenje, uz podršku reklama"
   },
   "What We Collect": {
-    "string": ""
+    "string": "Šta prikupljamo"
   },
   "To provide free features, we use Google Mobile Ads which may collect:": {
-    "string": ""
+    "string": "Da bismo obezbedili besplatne funkcije, koristimo Google Mobile Ads koji može da prikuplja:"
   },
   "Device information": {
-    "string": ""
+    "string": "Informacije o uređaju"
   },
   "IP address and location": {
-    "string": ""
+    "string": "IP adresu i lokaciju"
   },
   "Ad interaction data": {
-    "string": ""
+    "string": "Podatke o interakciji sa reklamama"
   },
   "Your Choices": {
-    "string": ""
+    "string": "Tvoj izbor"
   },
   "You can choose personalized ads (better rewards) or non-personalized ads (more privacy).": {
-    "string": ""
+    "string": "Možeš da izabereš personalizovane reklame (bolje nagrade) ili nepersonalizovane reklame (više privatnosti)."
   },
   "You can change this anytime in Settings.": {
-    "string": ""
+    "string": "Ovo možeš promeniti u bilo kom trenutku u Podešavanjima."
   },
   "Important": {
-    "string": ""
+    "string": "Važno"
   },
   "You must accept our privacy terms to use this app. Click the button below to review and accept.": {
-    "string": ""
+    "string": "Moraš prihvatiti naše uslove privatnosti da bi koristio ovu aplikaciju. Klikni na dugme ispod da pregledaš i prihvatiš."
   },
   "Accepted": {
-    "string": ""
+    "string": "Prihvaćeno"
   },
   "You have accepted the privacy terms. You can change settings anytime in Settings.": {
-    "string": ""
+    "string": "Prihvatio si uslove privatnosti. Podešavanja možeš promeniti u bilo kom trenutku u Podešavanjima."
   },
   "Privacy Terms Accepted": {
-    "string": ""
+    "string": "Uslovi privatnosti su prihvaćeni"
   },
   "Accept Privacy Terms & Continue": {
-    "string": ""
+    "string": "Prihvati uslove privatnosti i nastavi"
   },
   "You can review or change in Settings": {
-    "string": ""
+    "string": "Možeš pregledati ili promeniti u Podešavanjima"
   },
   "Tap to review and accept (required to continue)": {
-    "string": ""
+    "string": "Dodirni da pregledaš i prihvatiš (neophodno za nastavak)"
   },
   "📄 Read Full Privacy Policy": {
-    "string": ""
+    "string": "📄 Pročitaj celu Politiku privatnosti"
   },
   "We comply with GDPR, CCPA, and other privacy laws. Your data is protected.": {
-    "string": ""
+    "string": "Usklađeni smo sa GDPR, CCPA i drugim zakonima o privatnosti. Tvoji podaci su zaštićeni."
   },
   "Which channels do you want to join automatically?": {
-    "string": ""
+    "string": "Kojim kanalima želiš da se automatski pridružiš?"
   },
   "#channel1, #channel2, #channel3": {
-    "string": ""
+    "string": "#kanal1, #kanal2, #kanal3"
   },
   "Enter channel names separated by commas. Channels should start with # or &": {
-    "string": ""
+    "string": "Unesi nazive kanala odvojene zarezima. Kanali treba da počinju sa # ili &"
   },
   "Popular Channels": {
-    "string": ""
+    "string": "Popularni kanali"
   },
   "Default channels": {
-    "string": ""
+    "string": "Podrazumevani kanali"
   },
   "Main channel only": {
-    "string": ""
+    "string": "Samo glavni kanal"
   },
   "You can always change these channels later in network settings.": {
-    "string": ""
+    "string": "Ove kanale uvek možeš kasnije promeniti u podešavanjima mreže."
   },
   "Search by mask or reason...": {
-    "string": ""
+    "string": "Pretraži po maski ili razlogu..."
   },
   "All Networks": {
-    "string": ""
+    "string": "Sve mreže"
   },
   "No matching ignored users": {
-    "string": ""
+    "string": "Nema ignorisanih korisnika koji se poklapaju"
   },
   "Try different filters": {
-    "string": ""
+    "string": "Probaj druge filtere"
   },
   "Filter by Network": {
-    "string": ""
+    "string": "Filtriraj po mreži"
   },
   "Certificate generated and applied! Don't forget to add the fingerprint to NickServ.": {
-    "string": ""
+    "string": "Sertifikat je generisan i primenjen! Ne zaboravi da dodaš otisak u NickServ."
   },
   "Certificate applied to network configuration": {
-    "string": ""
+    "string": "Sertifikat je primenjen na konfiguraciju mreže"
   },
   "No certificate configured": {
-    "string": ""
+    "string": "Nijedan sertifikat nije podešen"
   },
   "Generate New": {
-    "string": ""
+    "string": "Generiši novi"
   },
   "Select Existing": {
-    "string": ""
+    "string": "Izaberi postojeći"
   },
   "View Fingerprint": {
-    "string": ""
+    "string": "Prikaži otisak"
   },
   "or enter manually": {
-    "string": ""
+    "string": "ili unesi ručno"
   },
   "Privacy Settings Updated": {
-    "string": ""
+    "string": "Podešavanja privatnosti su ažurirana"
   },
   "Your privacy preferences have been saved.": {
-    "string": ""
+    "string": "Tvoje postavke privatnosti su sačuvane."
   },
   "Change Privacy Settings": {
-    "string": ""
+    "string": "Promeni podešavanja privatnosti"
   },
   "You previously accepted our privacy terms. Would you like to withdraw your consent and reset privacy settings?": {
-    "string": ""
+    "string": "Ranije si prihvatio naše uslove privatnosti. Da li želiš da povučeš pristanak i resetuješ podešavanja privatnosti?"
   },
   "Withdraw & Reset": {
-    "string": ""
+    "string": "Povuci pristanak i resetuj"
   },
   "Failed to show consent form. Please try again.": {
-    "string": ""
+    "string": "Neuspešno prikazivanje forme za pristanak. Pokušaj ponovo."
   },
   "Reset Privacy Settings": {
-    "string": ""
+    "string": "Resetuj podešavanja privatnosti"
   },
   "This will withdraw your consent and reset all privacy preferences. You will need to accept the terms again. Continue?": {
-    "string": ""
+    "string": "Ovo će povući tvoj pristanak i resetovati sva podešavanja privatnosti. Moraćeš ponovo da prihvatiš uslove. Nastaviti?"
   },
   "Reset & Re-accept": {
-    "string": ""
+    "string": "Resetuj i ponovo prihvati"
   },
   "Privacy terms accepted. Your settings have been updated.": {
-    "string": ""
+    "string": "Uslovi privatnosti su prihvaćeni. Tvoja podešavanja su ažurirana."
   },
   "Failed to reset consent. Please try again.": {
-    "string": ""
+    "string": "Neuspešno resetovanje pristanka. Pokušaj ponovo."
   },
   "Current Status": {
-    "string": ""
+    "string": "Trenutni status"
   },
   "You have consented to personalized ads based on your interests.": {
-    "string": ""
+    "string": "Dao si pristanak za personalizovane reklame na osnovu svojih interesovanja."
   },
   "Your consent is required to show ads.": {
-    "string": ""
+    "string": "Tvoj pristanak je potreban za prikaz reklama."
   },
   "Consent not required in your region.": {
-    "string": ""
+    "string": "Pristanak nije potreban u tvom regionu."
   },
   "Using non-personalized ads only.": {
-    "string": ""
+    "string": "Koriste se samo nepersonalizovane reklame."
   },
   "AndroidIRCX uses Google Mobile Ads to provide free features. Google may collect:": {
-    "string": ""
+    "string": "AndroidIRCX koristi Google Mobile Ads da obezbedi besplatne funkcije. Google može da prikuplja:"
   },
   "Device information (model, OS version)": {
-    "string": ""
+    "string": "Informacije o uređaju (model, verzija OS-a)"
   },
   "IP address and approximate location": {
-    "string": ""
+    "string": "IP adresu i približnu lokaciju"
   },
   "Usage analytics": {
-    "string": ""
+    "string": "Analitiku korišćenja"
   },
   "Ad Types": {
-    "string": ""
+    "string": "Tipovi reklama"
   },
   "Personalized Ads": {
-    "string": ""
+    "string": "Personalizovane reklame"
   },
   "Ads tailored to your interests based on your activity. May provide better rewards.": {
-    "string": ""
+    "string": "Reklame prilagođene tvojim interesovanjima na osnovu aktivnosti. Mogu dati bolje nagrade."
   },
   "Non-Personalized Ads": {
-    "string": ""
+    "string": "Nepersonalizovane reklame"
   },
   "Generic ads not based on your activity. More privacy, potentially lower rewards.": {
-    "string": ""
+    "string": "Generičke reklame koje nisu zasnovane na tvojoj aktivnosti. Više privatnosti, potencijalno manje nagrade."
   },
   "Support & Rewards": {
-    "string": ""
+    "string": "Podrška i nagrade"
   },
   "You have a premium plan. Watching ads helps support the project development.": {
-    "string": ""
+    "string": "Imaš premium plan. Gledanje reklama pomaže razvoju projekta."
   },
   "Support the project": {
-    "string": ""
+    "string": "Podrži projekat"
   },
   "Manage Your Privacy": {
-    "string": ""
+    "string": "Upravljaj privatnošću"
   },
   "Review Privacy Choices": {
-    "string": ""
+    "string": "Pregledaj izbor privatnosti"
   },
   "Withdraw consent or reset settings": {
-    "string": ""
+    "string": "Povuci pristanak ili resetuj podešavanja"
   },
   "Change your ad personalization preferences": {
-    "string": ""
+    "string": "Promeni podešavanja personalizacije reklama"
   },
   "Learn how we protect your data": {
-    "string": ""
+    "string": "Saznaj kako štitimo tvoje podatke"
   },
   "Compliance": {
-    "string": ""
+    "string": "Usklađenost"
   },
   "AndroidIRCX complies with:": {
-    "string": ""
+    "string": "AndroidIRCX je usklađen sa:"
   },
   "GDPR (EU, EEA, UK, Switzerland)": {
-    "string": ""
+    "string": "GDPR (EU, EEA, UK, Švajcarska)"
   },
   "CCPA (California)": {
-    "string": ""
+    "string": "CCPA (Kalifornija)"
   },
   "Other US state privacy laws": {
-    "string": ""
+    "string": "Drugi zakoni o privatnosti američkih država"
   },
   "You have the right to:": {
-    "string": ""
+    "string": "Imaš pravo da:"
   },
   "Access your data": {
-    "string": ""
+    "string": "Pristupiš svojim podacima"
   },
   "Request data deletion": {
-    "string": ""
+    "string": "Zahtevaš brisanje podataka"
   },
   "Opt out of personalized ads": {
-    "string": ""
+    "string": "Isključiš personalizovane reklame"
   },
   "Purchase Successful": {
-    "string": ""
+    "string": "Kupovina uspešna"
   },
   "Thank you for your purchase!": {
-    "string": ""
+    "string": "Hvala ti na kupovini!"
   },
   "Purchase Failed": {
-    "string": ""
+    "string": "Kupovina nije uspela"
   },
   "Please try again later.": {
-    "string": ""
+    "string": "Pokušaj ponovo kasnije."
   },
   "Failed to load products. Please try again later.": {
-    "string": ""
+    "string": "Neuspešno učitavanje proizvoda. Pokušaj ponovo kasnije."
   },
   "Restore complete": {
-    "string": ""
+    "string": "Vraćanje završeno"
   },
   "Your purchases have been restored.": {
-    "string": ""
+    "string": "Tvoje kupovine su vraćene."
   },
   "Restore failed": {
-    "string": ""
+    "string": "Vraćanje nije uspelo"
   },
   "Loading products...": {
-    "string": ""
+    "string": "Učitavanje proizvoda..."
   },
   "Restore purchases": {
-    "string": ""
+    "string": "Vrati kupovine"
   },
   "• api.sendNotice(target, text, networkId?)": {
-    "string": ""
+    "string": "• api.sendNotice(target, text, networkId?)"
   },
   "• api.sendCTCP(target, type, params?, networkId?)": {
-    "string": ""
+    "string": "• api.sendCTCP(target, type, params?, networkId?)"
   },
   "• api.getChannelUsers(channel, networkId?) — returns string[]": {
-    "string": ""
+    "string": "• api.getChannelUsers(channel, networkId?) — vraća string[]"
   },
   "• api.getChannels(networkId?) — returns string[]": {
-    "string": ""
+    "string": "• api.getChannels(networkId?) — vraća string[]"
   },
   "• api.setTimer(name, delayMs, repeat?) — set timer": {
-    "string": ""
+    "string": "• api.setTimer(name, delayMs, repeat?) — postavi tajmer"
   },
   "• api.clearTimer(name) — clear timer": {
-    "string": ""
+    "string": "• api.clearTimer(name) — obriši tajmer"
   },
   "• api.getNetworkId() — current network ID": {
-    "string": ""
+    "string": "• api.getNetworkId() — ID trenutne mreže"
   },
   "• api.isConnected(networkId?) — check connection": {
-    "string": ""
+    "string": "• api.isConnected(networkId?) — proveri konekciju"
   },
   "Connection Events": {
-    "string": ""
+    "string": "Događaji povezivanja"
   },
   "• onConnect(networkId) — when connected": {
-    "string": ""
+    "string": "• onConnect(networkId) — kada se poveže"
   },
   "• onDisconnect(networkId, reason?) — when disconnected": {
-    "string": ""
+    "string": "• onDisconnect(networkId, reason?) — kada se prekine veza"
   },
   "Message Events": {
-    "string": ""
+    "string": "Događaji poruka"
   },
   "• onMessage(msg) — channel/query messages": {
-    "string": ""
+    "string": "• onMessage(msg) — poruke kanala/upita"
   },
   "• onNotice(msg) — notice messages": {
-    "string": ""
+    "string": "• onNotice(msg) — notice poruke"
   },
   "• onCTCP(type, from, text, msg) — CTCP requests": {
-    "string": ""
+    "string": "• onCTCP(type, from, text, msg) — CTCP zahtevi"
   },
   "Channel Events": {
-    "string": ""
+    "string": "Događaji kanala"
   },
   "• onJoin(channel, nick, msg) — user joined": {
-    "string": ""
+    "string": "• onJoin(channel, nick, msg) — korisnik se pridružio"
   },
   "• onPart(channel, nick, reason, msg) — user parted": {
-    "string": ""
+    "string": "• onPart(channel, nick, reason, msg) — korisnik je otišao"
   },
   "• onQuit(nick, reason, msg) — user quit": {
-    "string": ""
+    "string": "• onQuit(nick, reason, msg) — korisnik je napustio IRC"
   },
   "• onNickChange(oldNick, newNick, msg) — nick changed": {
-    "string": ""
+    "string": "• onNickChange(oldNick, newNick, msg) — nadimak je promenjen"
   },
   "• onKick(channel, kickedNick, kickerNick, reason, msg) — user kicked": {
-    "string": ""
+    "string": "• onKick(channel, kickedNick, kickerNick, reason, msg) — korisnik je izbačen"
   },
   "• onMode(channel, setterNick, mode, target?, msg) — mode changed": {
-    "string": ""
+    "string": "• onMode(channel, setterNick, mode, target?, msg) — mod je promenjen"
   },
   "• onTopic(channel, topic, setterNick, msg) — topic changed": {
-    "string": ""
+    "string": "• onTopic(channel, topic, setterNick, msg) — tema je promenjena"
   },
   "• onInvite(channel, inviterNick, msg) — channel invite": {
-    "string": ""
+    "string": "• onInvite(channel, inviterNick, msg) — poziv na kanal"
   },
   "Other Events": {
-    "string": ""
+    "string": "Ostali događaji"
   },
   "• onRaw(line, direction, msg?) — raw IRC line (in/out)": {
-    "string": ""
+    "string": "• onRaw(line, direction, msg?) — sirova IRC linija (ulaz/izlaz)"
   },
   "• onCommand(text, ctx) — outgoing command": {
-    "string": ""
+    "string": "• onCommand(text, ctx) — odlazna komanda"
   },
   "• onTimer(name) — timer fired": {
-    "string": ""
+    "string": "• onTimer(name) — tajmer je okinut"
   },
   "CTCP Responder": {
-    "string": ""
+    "string": "CTCP responder"
   },
   "Timer Example": {
-    "string": ""
+    "string": "Primer tajmera"
   },
   "Kick Protection": {
-    "string": ""
+    "string": "Zaštita od izbacivanja"
   },
   "• onRaw can modify or cancel raw IRC lines.": {
-    "string": ""
+    "string": "• onRaw može da izmeni ili otkaže sirove IRC linije."
   },
   "• Use timers for periodic tasks, remember to clear on disconnect.": {
-    "string": ""
+    "string": "• Koristi tajmere za periodične zadatke, i ne zaboravi da ih obrišeš pri prekidu veze."
   },
   "• Check api.isConnected() before sending commands.": {
-    "string": ""
+    "string": "• Proveri api.isConnected() pre slanja komandi."
   },
   "Scripting Time & No-Ads Remaining:": {
-    "string": ""
+    "string": "Preostalo vreme za skriptovanje i bez reklama:"
   },
   "Scripting Time & No-Ads Active": {
-    "string": ""
+    "string": "Skriptovanje i bez reklama aktivno"
   },
   "When ON: Time counts down, scripts can run, no banner ads": {
-    "string": ""
+    "string": "Kada je UKLJUČENO: vreme odbrojava, skripte mogu da rade, nema baner reklama"
   },
   "Unlimited scripting: Toggle enables/disables no-ads mode": {
-    "string": ""
+    "string": "Neograničeno skriptovanje: prekidač uključuje/isključuje režim bez reklama"
   },
   "Upgrade to Unlimited Scripting & No-Ads": {
-    "string": ""
+    "string": "Nadogradi na neograničeno skriptovanje i bez reklama"
   },
   "No scripting time available. Watch an ad to gain 60 minutes of scripting time and no-ads. Scripts will be automatically disabled when time runs out.": {
-    "string": ""
+    "string": "Nema dostupnog vremena za skriptovanje. Gledaj reklamu da dobiješ 60 minuta skriptovanja i bez reklama. Skripte će se automatski isključiti kada vreme istekne."
   },
   "Scripts run with full access to your local IRC data. Only install scripts you trust and avoid running scripts from unknown sources.": {
-    "string": ""
+    "string": "Skripte rade sa punim pristupom tvojim lokalnim IRC podacima. Instaliraj samo skripte kojima veruješ i izbegavaj pokretanje skripti iz nepoznatih izvora."
   },
   "Default Server": {
-    "string": ""
+    "string": "Podrazumevani server"
   },
   "Set as default server for \"Tap to connect\" header. This server will be used when tapping the network name in the header.": {
     "string": ""
   },
   "📖 Help & Documentation": {
-    "string": ""
+    "string": "📖 Pomoć i dokumentacija"
   },
   "Scripting & Ads": {
-    "string": ""
+    "string": "Skriptovanje i reklame"
   },
   "💎 Premium": {
-    "string": ""
+    "string": "💎 Premium"
   },
   "ZNC Subscription": {
-    "string": ""
+    "string": "ZNC pretplata"
   },
   "Purchase Error": {
-    "string": ""
+    "string": "Greška pri kupovini"
   },
   "Missing purchase token from Google Play.": {
-    "string": ""
+    "string": "Nedostaje token kupovine sa Google Play-a."
   },
   "Not available": {
-    "string": ""
+    "string": "Nije dostupno"
   },
   "Missing Credentials": {
-    "string": ""
+    "string": "Nedostaju kredencijali"
   },
   "Register your subscription to get ZNC credentials first.": {
-    "string": ""
+    "string": "Prvo registruj svoju pretplatu da dobiješ ZNC kredencijale."
   },
   "Connection Error": {
-    "string": ""
+    "string": "Greška konekcije"
   },
   "ZNC server configuration is missing.": {
-    "string": ""
+    "string": "Nedostaje konfiguracija ZNC servera."
   },
   "DBase is not connected. Open Networks and connect to DBase to use ZNC.": {
-    "string": ""
+    "string": "DBase nije povezan. Otvori Mreže i poveži se na DBase da koristiš ZNC."
   },
   "Reconnecting to ZNC...": {
-    "string": ""
+    "string": "Ponovno povezivanje na ZNC..."
   },
   "Connected": {
-    "string": ""
+    "string": "Povezano"
   },
   "Reconnected to ZNC for DBase.": {
-    "string": ""
+    "string": "Ponovo povezano na ZNC za DBase."
   },
   "Connection Failed": {
-    "string": ""
+    "string": "Povezivanje nije uspelo"
   },
   "Unable to reconnect to ZNC.": {
-    "string": ""
+    "string": "Nije moguće ponovo povezati se na ZNC."
   },
   "Missing Information": {
-    "string": ""
+    "string": "Nedostaju informacije"
   },
   "Please enter a ZNC username.": {
-    "string": ""
+    "string": "Unesi ZNC korisničko ime."
   },
   "Please complete the purchase first.": {
-    "string": ""
+    "string": "Prvo dovrši kupovinu."
   },
   "ZNC Ready": {
-    "string": ""
+    "string": "ZNC je spreman"
   },
   "ZNC server added to DBase network.": {
-    "string": ""
+    "string": "ZNC server je dodat u DBase mrežu."
   },
   "Subscription Updated": {
-    "string": ""
+    "string": "Pretplata je ažurirana"
   },
   "Status: {status}": {
-    "string": ""
+    "string": "Status: {status}"
   },
   "Subscription Error": {
-    "string": ""
+    "string": "Greška pretplate"
   },
   "Unable to register subscription.": {
-    "string": ""
+    "string": "Nije moguće registrovati pretplatu."
   },
   "Purchase Required": {
-    "string": ""
+    "string": "Kupovina je potrebna"
   },
   "Not registered": {
-    "string": ""
+    "string": "Nije registrovano"
   },
   "Price: {price}": {
-    "string": ""
+    "string": "Cena: {price}"
   },
   "Monthly subscription via Google Play": {
-    "string": ""
+    "string": "Mesečna pretplata preko Google Play-a"
   },
   "Remove ads, unlimited scripting, and more": {
-    "string": ""
+    "string": "Ukloni reklame, neograničeno skriptovanje i još mnogo toga"
   },
   "Manage ZNC Accounts": {
-    "string": ""
+    "string": "Upravljaj ZNC nalozima"
   },
   "Purchase, manage, and configure ZNC bouncer accounts": {
     "string": ""

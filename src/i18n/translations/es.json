@@ -1719,7 +1719,7 @@
     "string": "Contacto"
   },
   "AndroidIRCX Website": {
-    "string": "AndroidIRCX Website"
+    "string": "AndroidIRCX Sitio Web"
   },
   "AndroidIRCX Github": {
     "string": "AndroidIRCX Github"
@@ -7473,6 +7473,6 @@
     "string": "Mostrar un pequeño identificador central para abrir/cerrar la lista de usuarios"
   },
   "Nicklist Tongue Size": {
-    "string": ""
+    "string": "Tamaño de La Lista Nicklist"
   }
 }
