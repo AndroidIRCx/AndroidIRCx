@@ -7429,5 +7429,17 @@
   },
   "Customize format": {
     "string": ""
+  },
+  "Enter Key Behavior": {
+    "string": ""
+  },
+  "Enter key sends message": {
+    "string": ""
+  },
+  "Enter key creates new line": {
+    "string": ""
+  },
+  "New line": {
+    "string": ""
   }
 }

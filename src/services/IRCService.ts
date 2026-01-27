@@ -1301,7 +1301,7 @@ export class IRCService {
         // Handle encrypted channel key sharing (via DM)
         if (msgText.startsWith('!chanenc-key ')) {
           const keyData = msgText.substring('!chanenc-key '.length);
-          channelEncryptionService.importChannelKey(keyData)
+          channelEncryptionService.importChannelKey(keyData, this.getNetworkName())
             .then(imported => {
               this.addMessage({
                 type: 'notice',

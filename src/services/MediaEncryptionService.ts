@@ -64,16 +64,23 @@ class MediaEncryptionService {
     return new Uint8Array(Buffer.from(b64, 'base64'));
   }
 
+  private canonicalizeNetwork(network: string): string {
+    const normalized = (network || '').trim();
+    if (!normalized) return normalized;
+    return normalized.replace(/ \(\d+\)$/, '');
+  }
+
   private buildMediaAAD(
     tabType: 'channel' | 'query',
     network: string,
     identifier: string,
     mediaId?: string
   ): string {
+    const canonicalNetwork = this.canonicalizeNetwork(network);
     if (mediaId) {
-      return `media:${tabType}:${network}:${identifier}:${mediaId}`;
+      return `media:${tabType}:${canonicalNetwork}:${identifier}:${mediaId}`;
     }
-    return `media:${tabType}:${network}:${identifier}`;
+    return `media:${tabType}:${canonicalNetwork}:${identifier}`;
   }
 
   /**

@@ -180,10 +180,14 @@ class ChannelEncryptionService {
   }
 
   // Import a channel key from JSON
-  async importChannelKey(keyData: string): Promise<ChannelKey> {
+  async importChannelKey(keyData: string, networkOverride?: string): Promise<ChannelKey> {
     const channelKey = JSON.parse(keyData) as ChannelKey;
     if (channelKey.v !== 1) throw new Error('invalid version');
-    channelKey.network = this.canonicalizeNetwork(channelKey.network);
+    // IMPORTANT: network names are client-local labels. When importing a key
+    // received via DM, we should bind it to the current local network rather
+    // than the sender's network label from the payload.
+    const effectiveNetwork = networkOverride ?? channelKey.network;
+    channelKey.network = this.canonicalizeNetwork(effectiveNetwork);
     await this.storeChannelKey(channelKey);
     return channelKey;
   }

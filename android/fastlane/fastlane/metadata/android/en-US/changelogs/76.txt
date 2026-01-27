@@ -1,0 +1,4 @@
+- Minor bug fixes & dependency updates
+- Channel key import now binds to your local network name (prevents key mismatch).
+- Media decryption more reliable with network-name canonicalization.
+- Nick autocomplete keeps the cursor at the end (especially when Enter=Send).
