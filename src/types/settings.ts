@@ -30,6 +30,7 @@ export interface SettingItem {
   id: string;
   title: string;
   description?: string;
+  error?: string;
   type: SettingItemType;
   value?: boolean | string;
   onPress?: () => void;

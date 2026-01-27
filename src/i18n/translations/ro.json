@@ -7441,5 +7441,23 @@
   },
   "New line": {
     "string": ""
+  },
+  "User List Size": {
+    "string": ""
+  },
+  "User List Nick Font Size": {
+    "string": ""
+  },
+  "Reset User List Defaults": {
+    "string": ""
+  },
+  "Reset user list size and nick font size to defaults": {
+    "string": ""
+  },
+  "Version 1.6.14": {
+    "string": ""
+  },
+  "These are all current channel modes. Use switches below to toggle common modes.": {
+    "string": ""
   }
 }

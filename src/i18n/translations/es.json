@@ -7395,7 +7395,7 @@
     "string": "Formato del Mensaje"
   },
   "Add Part": {
-    "string": "Agregar Part"
+    "string": "Agregar Parte al Mensaje"
   },
   "Edit Part": {
     "string": "Editar Part"
@@ -7441,5 +7441,23 @@
   },
   "New line": {
     "string": "Nueva línea"
+  },
+  "User List Size": {
+    "string": "Tamaño de la Lista de Usuarios"
+  },
+  "User List Nick Font Size": {
+    "string": "Lista de Usuarios Nick Tamaño de fuente"
+  },
+  "Reset User List Defaults": {
+    "string": "Restablecer por Defecto la Lista de Usuarios"
+  },
+  "Reset user list size and nick font size to defaults": {
+    "string": "Restablezca el tamaño de la lista de usuarios y el tamaño de fuente de nick"
+  },
+  "Version 1.6.14": {
+    "string": "Version 1.6.14"
+  },
+  "These are all current channel modes. Use switches below to toggle common modes.": {
+    "string": "Estos son todos los modos de canal actuales. Use los interruptores a continuación para alternar los modos comunes."
   }
 }

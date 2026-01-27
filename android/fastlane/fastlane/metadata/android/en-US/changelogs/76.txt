@@ -2,3 +2,6 @@
 - Channel key import now binds to your local network name (prevents key mismatch).
 - Media decryption more reliable with network-name canonicalization.
 - Nick autocomplete keeps the cursor at the end (especially when Enter=Send).
+- New: user list size/font settings + reset defaults.
+- New: clickable nicks in messages/join/part/quit with nicklist actions.
+- New: center “tongue” handle to open/close nicklist (with settings).

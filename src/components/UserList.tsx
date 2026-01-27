@@ -52,6 +52,8 @@ interface UserListProps {
   onUserPress?: (user: ChannelUser) => void;
   onWHOISPress?: (nick: string) => void;
   position?: 'left' | 'right' | 'top' | 'bottom';
+  panelSizePx?: number;
+  nickFontSizePx?: number;
 }
 
 export const UserList: React.FC<UserListProps> = ({
@@ -61,10 +63,15 @@ export const UserList: React.FC<UserListProps> = ({
   onUserPress,
   onWHOISPress,
   position = 'right',
+  panelSizePx = 150,
+  nickFontSizePx = 13,
 }) => {
   const t = useT();
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(
+    () => createStyles(colors, panelSizePx, nickFontSizePx),
+    [colors, panelSizePx, nickFontSizePx]
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<ChannelUser | null>(null);
   const [showContextMenu, setShowContextMenu] = useState(false);
@@ -1606,43 +1613,45 @@ const getModeColor = (modes?: string[], colors?: any): string => {
   );
 };
 
-const createStyles = (colors: any = {}) => StyleSheet.create({
-  container: {
-    width: 150,
-    backgroundColor: colors.surface || '#FFFFFF',
-  },
-  containerLeft: {
-    borderRightWidth: 1,
-    borderRightColor: colors.border || '#E0E0E0',
-  },
-  containerRight: {
-    borderLeftWidth: 1,
-    borderLeftColor: colors.border || '#E0E0E0',
-  },
-  containerTop: {
-    width: '100%',
-    height: 160,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border || '#E0E0E0',
-  },
-  containerBottom: {
-    width: '100%',
-    height: 160,
-    borderTopWidth: 1,
-    borderTopColor: colors.border || '#E0E0E0',
-  },
-  header: {
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border || '#E0E0E0',
-    backgroundColor: colors.surfaceVariant || '#F5F5F5',
-  },
-  headerText: {
-    fontSize: 12,
-    color: colors.textSecondary || '#757575',
-    fontWeight: '500',
-  },
-  searchContainer: {
+const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizePx: number = 13) => {
+  const accountFontSizePx = Math.max(9, nickFontSizePx - 2);
+  return StyleSheet.create({
+    container: {
+      width: panelSizePx,
+      backgroundColor: colors.surface || '#FFFFFF',
+    },
+    containerLeft: {
+      borderRightWidth: 1,
+      borderRightColor: colors.border || '#E0E0E0',
+    },
+    containerRight: {
+      borderLeftWidth: 1,
+      borderLeftColor: colors.border || '#E0E0E0',
+    },
+    containerTop: {
+      width: '100%',
+      height: panelSizePx,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border || '#E0E0E0',
+    },
+    containerBottom: {
+      width: '100%',
+      height: panelSizePx,
+      borderTopWidth: 1,
+      borderTopColor: colors.border || '#E0E0E0',
+    },
+    header: {
+      padding: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border || '#E0E0E0',
+      backgroundColor: colors.surfaceVariant || '#F5F5F5',
+    },
+    headerText: {
+      fontSize: 12,
+      color: colors.textSecondary || '#757575',
+      fontWeight: '500',
+    },
+    searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
@@ -1679,17 +1688,17 @@ const createStyles = (colors: any = {}) => StyleSheet.create({
     paddingVertical: 6,
     alignItems: 'center',
   },
-  userNick: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: colors.text || '#212121',
-  },
-  userAccount: {
-    fontSize: 11,
-    color: colors.textSecondary || '#9E9E9E',
-    fontStyle: 'italic',
-  },
-  emptyContainer: {
+    userNick: {
+      fontSize: nickFontSizePx,
+      fontWeight: '400',
+      color: colors.text || '#212121',
+    },
+    userAccount: {
+      fontSize: accountFontSizePx,
+      color: colors.textSecondary || '#9E9E9E',
+      fontStyle: 'italic',
+    },
+    emptyContainer: {
     padding: 16,
     alignItems: 'center',
   },
@@ -1968,5 +1977,6 @@ const createStyles = (colors: any = {}) => StyleSheet.create({
     color: '#2196F3',
     textAlign: 'center',
     fontWeight: '500',
-  },
-});
+    },
+  });
+};
