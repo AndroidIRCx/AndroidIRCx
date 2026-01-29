@@ -12,6 +12,7 @@ import Sound from 'react-native-sound';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus, Platform } from 'react-native';
+import { awayService } from './AwayService';
 import {
   SoundEventType,
   SoundSettings,
@@ -171,6 +172,10 @@ class SoundService {
 
     // Check if sounds are enabled globally
     if (!this.settings.enabled) {
+      return;
+    }
+
+    if (awayService.shouldMuteSounds()) {
       return;
     }
 

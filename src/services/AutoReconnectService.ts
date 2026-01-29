@@ -384,18 +384,31 @@ class AutoReconnectService {
     const networkConfig = state?.networkConfig || await this.resolveNetworkConfig(network);
     const favoritesNetworkName = networkConfig?.name || network;
 
-    // Get favorites with auto-join enabled
-    const favorites = channelFavoritesService.getAutoJoinChannels(favoritesNetworkName);
+    const autoJoinFavoritesEnabled = await settingsService.getSetting('autoJoinFavorites', true);
+    const favorites = autoJoinFavoritesEnabled
+      ? channelFavoritesService.getFavorites(favoritesNetworkName)
+      : [];
     const favoriteChannels = favorites.map(f => ({ name: f.name, key: f.key }));
+    const autoJoinChannels = networkConfig?.autoJoinChannels || [];
 
-    // Combine with tracked channels
+    // Only rejoin channels from auto-join list or favorites
+    const allowed = new Set<string>([...autoJoinChannels, ...favoriteChannels.map(f => f.name)]);
     const allChannels = new Map<string, string | undefined>();
-    channels.forEach(ch => allChannels.set(ch, undefined));
     favoriteChannels.forEach(f => allChannels.set(f.name, f.key));
+    autoJoinChannels.forEach(ch => {
+      if (!allChannels.has(ch)) {
+        allChannels.set(ch, undefined);
+      }
+    });
+
+    if (allowed.size === 0) {
+      return;
+    }
 
     // Rejoin with delay between each to avoid flood
     let delay = 0;
     for (const [channel, key] of allChannels) {
+      if (!allowed.has(channel)) continue;
       setTimeout(() => {
         ircServiceInstance.joinChannel(channel, key);
       }, delay);

@@ -3537,7 +3537,7 @@
     "string": "{nick} ({account}) se unió a {channel}"
   },
   "{nick} left {channel}{message}": {
-    "string": "{nick} salió de {channel}{message}"
+    "string": "{nick} salió de {channel} {message}"
   },
   ": {message}": {
     "string": ": {message}"
@@ -3546,7 +3546,7 @@
     "string": "Usuario"
   },
   "{nick} quit{message}": {
-    "string": "{nick} salió{message}"
+    "string": "{nick} cierra{message}"
   },
   "Topic: {topic}": {
     "string": "Tema: {topic}"
@@ -3558,7 +3558,7 @@
     "string": "Alguien"
   },
   "{by} kicked {target} from {channel}{reason}": {
-    "string": "{by} expulsó a {target} de {channel}{reason}"
+    "string": "{by} expulsó a {target} de {channel} {reason}"
   },
   ": {reason}": {
     "string": ": {reason}"

@@ -9,6 +9,8 @@ import { channelEncryptionService } from './ChannelEncryptionService';
 import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, ProxyConfig } from './SettingsService';
 import { ircForegroundService } from './IRCForegroundService';
 import { userManagementService, BlacklistEntry } from './UserManagementService';
+import { protectionService } from './ProtectionService';
+import { useTabStore } from '../stores/tabStore';
 import { tx } from '../i18n/transifex';
 
 // Re-export ChannelTab from types for backward compatibility
@@ -108,6 +110,8 @@ export interface IRCMessage {
   type: 'message' | 'notice' | 'raw' | 'join' | 'part' | 'quit' | 'nick' | 'mode' | 'topic' | 'error' | 'invite' | 'monitor' | 'ctcp';
   channel?: string;
   from?: string;
+  oldNick?: string;
+  newNick?: string;
   text: string;
   timestamp: number;
   isRaw?: boolean;
@@ -157,6 +161,7 @@ export class IRCService {
   private registered: boolean = false;
   private currentNick: string = '';
   private altNick: string = '';
+  private selfUserModes: Set<string> = new Set();
   private nickChangeAttempts: number = 0;
   private verboseLogging: boolean = false;
   private isLoggingRaw: boolean = false;
@@ -1172,12 +1177,6 @@ export class IRCService {
           return;
         }
         
-        const ctcp = this.parseCTCP(msgText);
-        if (ctcp.isCTCP && ctcp.command) {
-          this.handleCTCPRequest(fromNick, target, ctcp.command, ctcp.args);
-          return;
-        }
-        
         const isChannel = target.startsWith('#') || target.startsWith('&') || target.startsWith('+') || target.startsWith('!');
         
         if (!isChannel && fromNick === this.currentNick && target === this.currentNick) {
@@ -1191,6 +1190,33 @@ export class IRCService {
         const hostname = prefixParts[1]?.split('@')[1];
         if (this.getUserManagementService().isUserIgnored(fromNick, username, hostname, network)) {
           // User is ignored, skip this message
+          return;
+        }
+
+        const ctcp = this.parseCTCP(msgText);
+        const protectionContext = this.getProtectionTabContext(target, fromNick, isChannel);
+        const protectionDecision = protectionService.evaluateIncomingMessage({
+          type: 'message',
+          channel: isChannel ? target : fromNick,
+          from: fromNick,
+          text: msgText,
+          timestamp: messageTimestamp,
+          network,
+          username,
+          hostname,
+        }, {
+          isActiveTab: protectionContext.isActiveTab,
+          isQueryOpen: protectionContext.isQueryOpen,
+          isChannel,
+          isCtcp: ctcp.isCTCP,
+        });
+        if (protectionDecision) {
+          this.handleProtectionBlock(protectionDecision.kind, fromNick, username, hostname, isChannel ? target : null);
+          return;
+        }
+
+        if (ctcp.isCTCP && ctcp.command) {
+          this.handleCTCPRequest(fromNick, target, ctcp.command, ctcp.args);
           return;
         }
         
@@ -1395,21 +1421,45 @@ export class IRCService {
         }
         break;
 
-      case 'NOTICE':
-        const noticeTarget = params[0] || '';
-        const noticeFrom = this.extractNick(prefix);
-        const noticeText = params[1] || '';
-        
-        // Check if user is ignored (for user notices, not server notices)
-        const noticeNetwork = this.getNetworkName();
-        const noticePrefixParts = prefix.split('!');
-        const noticeUsername = noticePrefixParts[1]?.split('@')[0];
-        const noticeHostname = noticePrefixParts[1]?.split('@')[1];
-        // Only ignore user notices, not server notices (server notices don't have ! in prefix)
-        if (prefix.includes('!') && this.getUserManagementService().isUserIgnored(noticeFrom, noticeUsername, noticeHostname, noticeNetwork)) {
-          // User is ignored, skip this notice
-          return;
-        }
+        case 'NOTICE':
+          const noticeTarget = params[0] || '';
+          const noticeFrom = this.extractNick(prefix);
+          const noticeText = params[1] || '';
+          
+          // Check if user is ignored (for user notices, not server notices)
+          const noticeNetwork = this.getNetworkName();
+          const noticePrefixParts = prefix.split('!');
+          const noticeUsername = noticePrefixParts[1]?.split('@')[0];
+          const noticeHostname = noticePrefixParts[1]?.split('@')[1];
+          // Only ignore user notices, not server notices (server notices don't have ! in prefix)
+          if (prefix.includes('!') && this.getUserManagementService().isUserIgnored(noticeFrom, noticeUsername, noticeHostname, noticeNetwork)) {
+            // User is ignored, skip this notice
+            return;
+          }
+
+          if (prefix.includes('!') && noticeText) {
+            const isChannelNotice = noticeTarget.startsWith('#') || noticeTarget.startsWith('&') || noticeTarget.startsWith('+') || noticeTarget.startsWith('!');
+            const noticeContext = this.getProtectionTabContext(noticeTarget, noticeFrom, isChannelNotice);
+            const decision = protectionService.evaluateIncomingMessage({
+              type: 'notice',
+              channel: isChannelNotice ? noticeTarget : noticeFrom,
+              from: noticeFrom,
+              text: noticeText,
+              timestamp: messageTimestamp,
+              network: noticeNetwork,
+              username: noticeUsername,
+              hostname: noticeHostname,
+            }, {
+              isActiveTab: noticeContext.isActiveTab,
+              isQueryOpen: noticeContext.isQueryOpen,
+              isChannel: isChannelNotice,
+              isCtcp: false,
+            });
+            if (decision) {
+              this.handleProtectionBlock(decision.kind, noticeFrom, noticeUsername, noticeHostname, isChannelNotice ? noticeTarget : null);
+              return;
+            }
+          }
 
         if (noticeFrom && noticeFrom !== this.currentNick) {
           if (prefix.includes('!')) {
@@ -1792,24 +1842,28 @@ export class IRCService {
           oldNick: oldNick || t('Someone'),
           newNick,
         });
-        if (affectedChannels.length > 0) {
-          affectedChannels.forEach(channelName => {
+          if (affectedChannels.length > 0) {
+            affectedChannels.forEach(channelName => {
+              this.addMessage({
+                type: 'nick',
+                channel: channelName,
+                from: oldNick,
+                oldNick,
+                newNick,
+                text: nickText,
+                timestamp: messageTimestamp,
+              });
+            });
+          } else {
             this.addMessage({
               type: 'nick',
-              channel: channelName,
               from: oldNick,
+              oldNick,
+              newNick,
               text: nickText,
               timestamp: messageTimestamp,
             });
-          });
-        } else {
-          this.addMessage({
-            type: 'nick',
-            from: oldNick,
-            text: nickText,
-            timestamp: messageTimestamp,
-          });
-        }
+          }
         break;
 
       case 'KICK':
@@ -1871,6 +1925,10 @@ export class IRCService {
            (modeChannel === this.currentNick || !modeChannel));
 
         const modeNick = this.extractNick(prefix);
+
+        if (isUserModeChange && modeChannel === this.currentNick) {
+          this.updateSelfUserModes(modeString);
+        }
 
         // Colorize mode flags with IRC color codes
         const colorizeMode = (modeStr: string): string => {
@@ -2093,6 +2151,9 @@ export class IRCService {
           const welcomeNick = params[0];
           if (welcomeNick) this.currentNick = welcomeNick;
         }
+        if (this.currentNick) {
+          this.sendCommand(`MODE ${this.currentNick}`);
+        }
         this.addMessage({
           type: 'raw',
           text: t('*** Welcome to the {network} Network', { network: params[0] || t('IRC') }),
@@ -2210,6 +2271,20 @@ export class IRCService {
         break;
       }
 
+      case 221: {
+        // RPL_UMODEIS: :server 221 yournick +modes
+        const modeString = params[1] || '';
+        this.updateSelfUserModes(modeString);
+        this.addMessage({
+          type: 'raw',
+          text: t('*** User modes: {modes}', { modes: modeString || t('none') }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
       case 241:
       case 243:
       case 244: {
@@ -2282,6 +2357,7 @@ export class IRCService {
       case 381: {
         // RPL_YOUREOPER: :server 381 yournick :You are now an IRC operator
         const message = params.slice(1).join(' ').replace(/^:/, '') || t('You are now an IRC operator');
+        this.updateSelfUserModes('+o');
         this.addMessage({
           type: 'raw',
           text: t('*** {message}', { message }),
@@ -4297,6 +4373,99 @@ export class IRCService {
     return this.currentNick;
   }
 
+  getSelfUserModes(): string[] {
+    return Array.from(this.selfUserModes.values());
+  }
+
+  isServerOper(): boolean {
+    return this.selfUserModes.has('o');
+  }
+
+  private buildProtectionMask(nick: string, username?: string, hostname?: string): string {
+    const user = username || '*';
+    const host = hostname || '*';
+    return `${nick}!${user}@${host}`;
+  }
+
+  private buildSilenceMask(nick: string, hostname?: string): string {
+    if (hostname) {
+      return `*!*@${hostname}`;
+    }
+    return nick;
+  }
+
+  private getProtectionTabContext(target: string, fromNick: string, isChannel: boolean): { isActiveTab: boolean; isQueryOpen: boolean } {
+    const tabs = useTabStore.getState().tabs;
+    const activeTab = useTabStore.getState().getActiveTab();
+    const networkId = this.getNetworkName();
+    const tabMatchesTarget = activeTab
+      ? activeTab.networkId === networkId &&
+        (isChannel
+          ? activeTab.type === 'channel' && activeTab.name.toLowerCase() === target.toLowerCase()
+          : activeTab.type === 'query' && activeTab.name.toLowerCase() === fromNick.toLowerCase())
+      : false;
+    const isQueryOpen = tabs.some(
+      t => t.networkId === networkId && t.type === 'query' && t.name.toLowerCase() === fromNick.toLowerCase(),
+    );
+    return { isActiveTab: tabMatchesTarget, isQueryOpen };
+  }
+
+  private handleProtectionBlock(
+    decisionKind: string,
+    fromNick: string,
+    username: string | undefined,
+    hostname: string | undefined,
+    channel: string | null,
+  ): void {
+    const network = this.getNetworkName();
+    const ignoreMask = this.buildProtectionMask(fromNick, username, hostname);
+    const hostMask = this.buildSilenceMask(fromNick, hostname);
+    if (!this.getUserManagementService().isUserIgnored(fromNick, username, hostname, network)) {
+      this.getUserManagementService().ignoreUser(ignoreMask, `Auto protection: ${decisionKind}`, network).catch(err => {
+        this.logRaw(`IRCService: Failed to auto-ignore ${ignoreMask}: ${err?.message || err}`);
+      });
+    }
+
+    const actionConfig = protectionService.getActionConfig();
+    if (actionConfig.protEnforceSilence) {
+      const silenceMask = this.buildSilenceMask(fromNick, hostname);
+      this.sendRaw(`SILENCE +${silenceMask}`);
+    }
+
+    if (!this.isServerOper() || actionConfig.protIrcopAction === 'none') {
+      return;
+    }
+
+    const reason = actionConfig.protIrcopReason || `Auto protection: ${decisionKind}`;
+    switch (actionConfig.protIrcopAction) {
+      case 'ban':
+        if (channel) {
+          this.sendCommand(`MODE ${channel} +b ${hostMask}`);
+          this.sendCommand(`KICK ${channel} ${fromNick} :${reason}`);
+        }
+        break;
+      case 'kill':
+        this.sendCommand(`KILL ${fromNick} :${reason}`);
+        break;
+      case 'kline':
+        if (actionConfig.protIrcopDuration) {
+          this.sendCommand(`KLINE ${actionConfig.protIrcopDuration} ${hostMask} :${reason}`);
+        } else {
+          this.sendCommand(`KLINE ${hostMask} :${reason}`);
+        }
+        break;
+      case 'gline':
+        if (actionConfig.protIrcopDuration) {
+          this.sendCommand(`GLINE ${hostMask} ${actionConfig.protIrcopDuration} :${reason}`);
+        } else {
+          this.sendCommand(`GLINE ${hostMask} :${reason}`);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
   isRegistered(): boolean {
     return this.registered;
   }
@@ -4400,11 +4569,26 @@ export class IRCService {
     this.userListListeners.forEach(cb => cb(channel, users));
   }
 
+  private updateSelfUserModes(modeString: string): void {
+    if (!modeString) return;
+    let adding = true;
+    for (const char of modeString) {
+      if (char === '+') { adding = true; continue; }
+      if (char === '-') { adding = false; continue; }
+      if (adding) {
+        this.selfUserModes.add(char);
+      } else {
+        this.selfUserModes.delete(char);
+      }
+    }
+  }
+
   private handleChannelModeChange(channel: string, modeParams: string[]): void {
     if (modeParams.length === 0) return;
     
     const usersMap = this.channelUsers.get(channel);
     if (!usersMap) return;
+    const antiDeop = protectionService.getAntiDeopConfig();
     
     const modeString = modeParams[0] || '';
     let paramIndex = 1;
@@ -4428,6 +4612,13 @@ export class IRCService {
             }
             const modePriority: { [key: string]: number } = { 'q': 0, 'a': 1, 'o': 2, 'h': 3, 'v': 4 };
             user.modes.sort((a, b) => (modePriority[a] ?? 99) - (modePriority[b] ?? 99));
+          }
+          if (!adding && char === 'o' && antiDeop.protAntiDeopEnabled && targetNick.toLowerCase() === this.currentNick.toLowerCase()) {
+            if (antiDeop.protAntiDeopUseChanserv) {
+              this.sendRaw(`PRIVMSG ChanServ :OP ${channel} ${this.currentNick}`);
+            } else {
+              this.sendCommand(`MODE ${channel} +o ${this.currentNick}`);
+            }
           }
         }
       }
@@ -4511,6 +4702,7 @@ export class IRCService {
     this.channelUsers.clear();
     this.namesBuffer.clear();
     this.channelUsers.forEach((_, channel) => this.emit('clear-channel', channel));
+    this.selfUserModes.clear();
     this.cleanupLabels(); // Clean up pending labeled-response commands
     this.seenMessageIds.clear(); // Clear message ID cache for deduplication
   }

@@ -1,7 +1,4 @@
 {
-  "1080": {
-    "string": "1080"
-  },
   "6697": {
     "string": "6697"
   },
@@ -5040,7 +5037,7 @@
     "string": "Prilagođeni naziv kill switch-a"
   },
   "Custom name for kill switch button (e.g., \"meow meow\" for obfuscation)": {
-    "string": ""
+    "string": "Prilagođeni naziv dugmeta kill switch-a (npr. \"mjau mjau\" radi prikrivanja)"
   },
   "Enter custom name": {
     "string": "Unesi prilagođeni naziv"
@@ -5049,7 +5046,7 @@
     "string": "Prilagođena ikonica kill switch-a"
   },
   "FontAwesome5 icon name (e.g., \"cat\", \"heart\", \"star\")": {
-    "string": ""
+    "string": "Naziv FontAwesome5 ikonice (npr. \"cat\", \"heart\", \"star\")"
   },
   "Enter icon name": {
     "string": "Unesi naziv ikonice"
@@ -5064,7 +5061,7 @@
     "string": "Izaberi mrežu za brzo povezivanje"
   },
   "Choose which network to connect when tapping the header \"Tap to connect\" button.": {
-    "string": ""
+    "string": "Izaberi koju mrežu da povežeš kada dodirneš dugme „Dodirni za povezivanje“ u zaglavlju."
   },
   "Use Default": {
     "string": "Koristi podrazumevano"
@@ -5223,7 +5220,7 @@
     "string": "Verzija 1.6.9"
   },
   "Are you sure you want to delete \"{networkName}\"? This cannot be undone.": {
-    "string": ""
+    "string": "Da li si siguran/na da želiš da obrišeš \"{networkName}\"? Ovo ne može da se opozove."
   },
   "Failed to delete network": {
     "string": "Neuspešno brisanje mreže"
@@ -5238,7 +5235,7 @@
     "string": "Obriši server"
   },
   "Are you sure you want to delete \"{serverName}\"?": {
-    "string": ""
+    "string": "Da li si siguran/na da želiš da obrišeš \"{serverName}\"?"
   },
   "Failed to delete server": {
     "string": "Neuspešno brisanje servera"
@@ -5832,7 +5829,7 @@
     "string": "Podrazumevani server"
   },
   "Set as default server for \"Tap to connect\" header. This server will be used when tapping the network name in the header.": {
-    "string": ""
+    "string": "Postavi kao podrazumevani server za zaglavlje „Dodirni za povezivanje“. Ovaj server će se koristiti kada dodirneš naziv mreže u zaglavlju."
   },
   "📖 Help & Documentation": {
     "string": "📖 Pomoć i dokumentacija"
@@ -5931,136 +5928,136 @@
     "string": "Upravljaj ZNC nalozima"
   },
   "Purchase, manage, and configure ZNC bouncer accounts": {
-    "string": ""
+    "string": "Kupuj, upravljaj i podešavaj ZNC bouncer naloge"
   },
   "About ZNC Service": {
-    "string": ""
+    "string": "O ZNC usluzi"
   },
   "ZNC keeps you connected 24/7 with message playback": {
-    "string": ""
+    "string": "ZNC te drži povezanim 24/7 uz reprodukciju poruka"
   },
   "ZNC is an IRC bouncer that keeps you connected 24/7. Features include:\n\n- Always-on connection\n- Message playback when you reconnect\n- Multiple network support\n- Automatic configuration\n\nPrimarily intended for DBase network. Use on other networks at your own risk.": {
-    "string": ""
+    "string": "ZNC je IRC bouncer koji te drži povezanim 24/7. Funkcije uključuju:\n\n- Uvek aktivnu vezu\n- Reprodukciju poruka kada se ponovo povežeš\n- Podršku za više mreža\n- Automatsku konfiguraciju\n\nPre svega namenjeno za DBase mrežu. Korišćenje na drugim mrežama je na sopstveni rizik."
   },
   "Messages & History": {
-    "string": ""
+    "string": "Poruke i istorija"
   },
   "Media": {
-    "string": ""
+    "string": "Mediji"
   },
   "User List Grouping": {
-    "string": ""
+    "string": "Grupisanje liste korisnika"
   },
   "Group users by status (ops/voice/etc.)": {
-    "string": ""
+    "string": "Grupiši korisnike po statusu (op/voice itd.)"
   },
   "Auto-Disable Grouping Threshold": {
-    "string": ""
+    "string": "Prag za automatsko isključivanje grupisanja"
   },
   "User List Virtualization": {
-    "string": ""
+    "string": "Virtualizacija liste korisnika"
   },
   "Use FlatList for large user lists (non-grouped)": {
-    "string": ""
+    "string": "Koristi FlatList za velike liste korisnika (bez grupisanja)"
   },
   "Auto-Virtualize Threshold": {
-    "string": ""
+    "string": "Prag za automatsku virtualizaciju"
   },
   "Privacy & Legal": {
-    "string": ""
+    "string": "Privatnost i pravno"
   },
   "Development": {
-    "string": ""
+    "string": "Razvoj"
   },
   "Enable Console Logging": {
-    "string": ""
+    "string": "Omogući logovanje u konzoli"
   },
   "Toggle console.log output in development": {
-    "string": ""
+    "string": "Uključi/isključi console.log izlaz u razvoju"
   },
   "Use this sound?": {
-    "string": ""
+    "string": "Koristi ovaj zvuk?"
   },
   "Do you want to use this sound for {event}?": {
-    "string": ""
+    "string": "Da li želiš da koristiš ovaj zvuk za {event}?"
   },
   "Use": {
-    "string": ""
+    "string": "Koristi"
   },
   "Failed to select sound file.": {
-    "string": ""
+    "string": "Neuspešan izbor fajla sa zvukom."
   },
   "Reset to Default": {
-    "string": ""
+    "string": "Vrati na podrazumevano"
   },
   "Reset {event} sound to default?": {
-    "string": ""
+    "string": "Vrati zvuk za {event} na podrazumevano?"
   },
   "Reset": {
-    "string": ""
+    "string": "Vrati"
   },
   "Reset All Sounds": {
-    "string": ""
+    "string": "Vrati sve zvukove"
   },
   "This will reset all sound settings to defaults. Continue?": {
-    "string": ""
+    "string": "Ovo će vratiti sva podešavanja zvuka na podrazumevano. Nastavi?"
   },
   "Reset All": {
-    "string": ""
+    "string": "Vrati sve"
   },
   "Custom sound": {
-    "string": ""
+    "string": "Prilagođeni zvuk"
   },
   "No sound": {
-    "string": ""
+    "string": "Bez zvuka"
   },
   "Enable Sounds": {
-    "string": ""
+    "string": "Omogući zvukove"
   },
   "Master switch for all notification sounds": {
-    "string": ""
+    "string": "Glavni prekidač za sve zvukove obaveštenja"
   },
   "Master Volume": {
-    "string": ""
+    "string": "Glasnoća"
   },
   "Playback": {
-    "string": ""
+    "string": "Reprodukcija"
   },
   "Play in Foreground": {
-    "string": ""
+    "string": "Pusti u prvom planu"
   },
   "Play sounds when app is open": {
-    "string": ""
+    "string": "Pusti zvukove kada je aplikacija otvorena"
   },
   "Play in Background": {
-    "string": ""
+    "string": "Pusti u pozadini"
   },
   "Play sounds when app is minimized": {
-    "string": ""
+    "string": "Pusti zvukove kada je aplikacija minimizovana"
   },
   "Sound Scheme": {
-    "string": ""
+    "string": "Šema zvukova"
   },
   "Event Sounds": {
-    "string": ""
+    "string": "Zvukovi događaja"
   },
   "Reset All to Defaults": {
-    "string": ""
+    "string": "Vrati sve na podrazumevano"
   },
   "Store Error": {
-    "string": ""
+    "string": "Greška prodavnice"
   },
   "ZNC subscription product (znc) is not available in the store. This may be because:\n• You're not in the test group\n• The app signing certificate doesn't match Play Console\n• The subscription is not published to your region\n• You need to join the beta/testing program": {
-    "string": ""
+    "string": "ZNC proizvod pretplate (znc) nije dostupan u prodavnici. Razlog može biti:\n• Nisi u test grupi\n• Sertifikat za potpisivanje aplikacije se ne poklapa sa Play Console-om\n• Pretplata nije objavljena za tvoj region\n• Potrebno je da se pridružiš beta/test programu"
   },
   "Failed to connect to the store. Please check your internet connection and try again.": {
-    "string": ""
+    "string": "Neuspešno povezivanje sa prodavnicom. Proveri internet vezu i pokušaj ponovo."
   },
   "Refreshed": {
-    "string": ""
+    "string": "Osveženo"
   },
   "All account statuses updated.": {
-    "string": ""
+    "string": "Svi statusi naloga su ažurirani."
   },
   "Failed to refresh accounts. Please check your connection.": {
     "string": ""

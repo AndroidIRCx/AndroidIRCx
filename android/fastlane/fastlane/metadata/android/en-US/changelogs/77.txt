@@ -1,0 +1,6 @@
+v1.6.15
+- New decoration editor with previews, mIRC palette everywhere, and cleaner style lists.
+- Nick completion and message formatting fixes; encoding issues resolved.
+- Away system improvements (presets, mentions, auto-answer) and settings UX polish.
+- Shared user context menu, DCC filters/anti-spam defaults, and scripting state now persists.
+- Bug fixes, performance tweaks, and updated dependencies.

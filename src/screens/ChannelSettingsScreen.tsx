@@ -20,8 +20,12 @@ import { IRCService } from '../services/IRCService';
 import { connectionManager } from '../services/ConnectionManager';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { channelEncryptionSettingsService } from '../services/ChannelEncryptionSettingsService';
+import { settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
 import { getChannelModeDescription } from '../utils/modeDescriptions';
+import { formatIRCTextAsComponent, stripIRCFormatting } from '../utils/IRCFormatter';
+import { repairMojibake } from '../utils/EncodingUtils';
+import { ColorPickerModal } from '../components/ColorPickerModal';
 
 interface ChannelSettingsScreenProps {
   channel: string;
@@ -44,8 +48,35 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   const [banMask, setBanMask] = useState('');
   const [exceptionMask, setExceptionMask] = useState('');
   const [inviteMask, setInviteMask] = useState('');
+  const [topicStyleId, setTopicStyleId] = useState('');
+  const [topicStyles, setTopicStyles] = useState<string[]>([]);
+  const [showTopicStyles, setShowTopicStyles] = useState(false);
+  const [showTopicSelect, setShowTopicSelect] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showTopicStyleEditor, setShowTopicStyleEditor] = useState(false);
+  const [topicStyleEditorIndex, setTopicStyleEditorIndex] = useState<number | null>(null);
+  const [topicStyleEditorValue, setTopicStyleEditorValue] = useState('');
   // Track raw mode string for modes not represented by toggles
   const [rawModeString, setRawModeString] = useState('');
+  const topicPreviewText = topic || t('Topic Preview');
+  const pickerColors = {
+    text: '#212121',
+    textSecondary: '#757575',
+    primary: '#2196F3',
+    surface: '#FFFFFF',
+    border: '#E0E0E0',
+    background: '#FFFFFF',
+  };
+
+  const sanitizeStyleString = (style: string) => {
+    const normalized = repairMojibake(style);
+    const allowedControls = new Set([0x02, 0x03, 0x0F, 0x16, 0x1D, 0x1F, 0x1E, 0x08]);
+    return Array.from(normalized).filter((char) => {
+      const code = char.charCodeAt(0);
+      if (code >= 32 && code !== 127) return true;
+      return allowedControls.has(code);
+    }).join('');
+  };
 
   // Encryption settings state
   const [alwaysEncrypt, setAlwaysEncrypt] = useState(false);
@@ -73,22 +104,35 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   useEffect(() => {
     if (!visible || !channel || !network || !channelManagementService || !ircService) return;
 
-    // Load current channel info
-    const info = channelManagementService.getChannelInfo(channel);
-    setChannelInfo(info);
-    setTopic(info?.topic || '');
-    setKey(info?.modes.key || '');
-    setLimit(info?.modes.limit?.toString() || '');
-    setRawModeString(channelManagementService.getModeString(channel) || '');
+    const loadSettings = async () => {
+      // Load current channel info
+      const info = channelManagementService.getChannelInfo(channel);
+      setChannelInfo(info);
+      setTopic(info?.topic || '');
+      setKey(info?.modes.key || '');
+      setLimit(info?.modes.limit?.toString() || '');
+      setRawModeString(channelManagementService.getModeString(channel) || '');
 
-    // Load encryption settings
-    const loadEncryptionSettings = async () => {
+      const storedTopicStyleId = await settingsService.getSetting('topicStyleId', '');
+      const storedTopicStyles = await settingsService.getSetting('topicStyles', []);
+      const normalizedTopicStyleId = storedTopicStyleId ? sanitizeStyleString(String(storedTopicStyleId)) : '';
+      const normalizedTopicStyles = (storedTopicStyles as string[]).map((style) => sanitizeStyleString(String(style)));
+      setTopicStyleId(normalizedTopicStyleId);
+      setTopicStyles(normalizedTopicStyles);
+      if (normalizedTopicStyleId !== storedTopicStyleId) {
+        await settingsService.setSetting('topicStyleId', normalizedTopicStyleId);
+      }
+      if (normalizedTopicStyles.some((style, idx) => style !== storedTopicStyles[idx])) {
+        await settingsService.setSetting('topicStyles', normalizedTopicStyles);
+      }
+
+      // Load encryption settings
       const alwaysEncryptSetting = await channelEncryptionSettingsService.getAlwaysEncrypt(channel, network);
       const hasKey = await channelEncryptionService.hasChannelKey(channel, network);
       setAlwaysEncrypt(alwaysEncryptSetting);
       setHasEncryptionKey(hasKey);
     };
-    loadEncryptionSettings();
+    loadSettings();
 
     // Request current channel modes and topic
     ircService.sendCommand(`MODE ${channel}`);
@@ -117,9 +161,62 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
 
   const handleSetTopic = () => {
     if (topic.trim()) {
-      channelManagementService.setTopic(channel, topic.trim());
+      const rawTopic = topic.trim();
+      let finalTopic = rawTopic;
+      if (topicStyleId) {
+        if (/<TOPIC>/i.test(topicStyleId)) {
+          finalTopic = topicStyleId.replace(/<TOPIC>/gi, rawTopic);
+        } else {
+          finalTopic = `${topicStyleId} ${rawTopic}`.trim();
+        }
+      }
+      channelManagementService.setTopic(channel, finalTopic);
       Alert.alert(t('Success'), t('Topic updated'));
     }
+  };
+
+  const renderTopicStylePreview = (styleText: string, baseStyle: any, sampleText: string) => {
+    const replaced = styleText
+      ? styleText.replace(/<TOPIC>/gi, sampleText)
+      : sampleText;
+    const plain = stripIRCFormatting(replaced).trim();
+    const fallback = plain.length > 0 ? plain : replaced;
+    return formatIRCTextAsComponent(replaced, baseStyle) || fallback;
+  };
+
+  const handleInsertColor = (code: string) => {
+    setTopicStyleEditorValue((prev) => `${prev}${code}`);
+    setShowColorPicker(false);
+  };
+
+  const topicStyleEditorPreview = topicStyleEditorValue
+    ? renderTopicStylePreview(topicStyleEditorValue, styles.editorPreviewText, topicPreviewText)
+    : topicPreviewText;
+
+  const openTopicStyleEditor = (value = '', index: number | null = null) => {
+    setTopicStyleEditorIndex(index);
+    setTopicStyleEditorValue(sanitizeStyleString(value));
+    setShowTopicStyleEditor(true);
+  };
+
+  const closeTopicStyleEditor = () => {
+    setShowTopicStyleEditor(false);
+    setTopicStyleEditorIndex(null);
+    setTopicStyleEditorValue('');
+  };
+
+  const saveTopicStyleEditor = async () => {
+    const nextValue = sanitizeStyleString(topicStyleEditorValue.trim());
+    if (!nextValue) return;
+    const updated = [...topicStyles];
+    if (topicStyleEditorIndex !== null && topicStyleEditorIndex >= 0 && topicStyleEditorIndex < updated.length) {
+      updated[topicStyleEditorIndex] = nextValue;
+    } else {
+      updated.push(nextValue);
+    }
+    setTopicStyles(updated);
+    await settingsService.setSetting('topicStyles', updated);
+    closeTopicStyleEditor();
   };
 
   const handleSetKey = () => {
@@ -367,6 +464,32 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
             <TouchableOpacity style={styles.button} onPress={handleSetTopic}>
               <Text style={styles.buttonText}>{t('Set Topic')}</Text>
             </TouchableOpacity>
+            <View style={styles.topicStylePreview}>
+              <Text style={styles.topicStylePreviewLabel}>{t('Topic Style Preview')}</Text>
+              {topicStyleId
+                ? renderTopicStylePreview(topicStyleId, styles.topicStylePreviewText, topicPreviewText)
+                : (
+                  <Text style={styles.topicStylePreviewText}>
+                    {t('No topic style selected')}
+                  </Text>
+                )}
+            </View>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                  if (topicStyles.length === 0) {
+                    Alert.alert(t('No styles'), t('Add topic styles first.'));
+                    return;
+                  }
+                  setShowTopicSelect(true);
+                }}>
+                <Text style={styles.buttonText}>{t('Select Topic Style')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => setShowTopicStyles(true)}>
+                <Text style={styles.buttonText}>{t('Manage Topic Styles')}</Text>
+              </TouchableOpacity>
+            </View>
             {channelInfo?.topicSetBy && (
               <Text style={styles.metaText}>
                 {t('Set by {topicSetBy}').replace('{topicSetBy}', channelInfo.topicSetBy)}
@@ -715,6 +838,134 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
             )}
           </View>
         </ScrollView>
+
+        <Modal visible={showTopicStyles} transparent animationType="fade" onRequestClose={() => setShowTopicStyles(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t('Topic Styles')}</Text>
+              <View style={styles.modalRow}>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={() => openTopicStyleEditor()}>
+                  <Text style={styles.modalButtonText}>{t('Add style')}</Text>
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={{ maxHeight: 260 }}>
+                {topicStyles.map((styleText, index) => (
+                  <View
+                    key={`${styleText}-${index}`}
+                    style={styles.modalListItem}>
+                    <View style={styles.modalListRow}>
+                      <View style={{ flex: 1 }}>
+                        {renderTopicStylePreview(styleText, styles.modalListItemText, topicPreviewText)}
+                      </View>
+                      <TouchableOpacity
+                        style={styles.modalRemoveButton}
+                        onPress={() => openTopicStyleEditor(styleText, index)}>
+                        <Text style={styles.modalRemoveButtonText}>{t('Edit')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.modalRemoveButton}
+                        onPress={async () => {
+                          const updated = topicStyles.filter((_, i) => i !== index);
+                          setTopicStyles(updated);
+                          await settingsService.setSetting('topicStyles', updated);
+                        }}>
+                        <Text style={styles.modalRemoveButtonText}>{t('Remove')}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity style={styles.modalButtonSecondary} onPress={() => setShowTopicStyles(false)}>
+                  <Text style={styles.modalButtonSecondaryText}>{t('Close')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal visible={showTopicSelect} transparent animationType="fade" onRequestClose={() => setShowTopicSelect(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t('Select Topic Style')}</Text>
+              <ScrollView style={{ maxHeight: 300 }}>
+                {topicStyles.map((styleText, index) => (
+                  <TouchableOpacity
+                    key={`${styleText}-${index}`}
+                    style={styles.modalListItem}
+                    onPress={async () => {
+                      setTopicStyleId(styleText);
+                      await settingsService.setSetting('topicStyleId', styleText);
+                      setShowTopicSelect(false);
+                    }}>
+                    {renderTopicStylePreview(styleText, styles.modalListItemText, topicPreviewText)}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity
+                  style={styles.modalButtonSecondary}
+                  onPress={async () => {
+                    setTopicStyleId('');
+                    await settingsService.setSetting('topicStyleId', '');
+                    setShowTopicSelect(false);
+                  }}>
+                  <Text style={styles.modalButtonSecondaryText}>{t('Clear')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButtonSecondary} onPress={() => setShowTopicSelect(false)}>
+                  <Text style={styles.modalButtonSecondaryText}>{t('Close')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal visible={showTopicStyleEditor} transparent animationType="fade" onRequestClose={closeTopicStyleEditor}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {topicStyleEditorIndex !== null ? t('Edit style') : t('Add style')}
+              </Text>
+              <TextInput
+                style={styles.editorInput}
+                value={topicStyleEditorValue}
+                onChangeText={setTopicStyleEditorValue}
+                placeholder={t('Use <TOPIC>')}
+                placeholderTextColor="#999"
+                multiline
+              />
+              <View style={styles.editorPreviewBox}>
+                {typeof topicStyleEditorPreview === 'string' ? (
+                  <Text style={styles.editorPreviewText}>{topicStyleEditorPreview}</Text>
+                ) : (
+                  topicStyleEditorPreview
+                )}
+              </View>
+              <View style={styles.modalRow}>
+                <TouchableOpacity style={styles.modalButtonSecondary} onPress={() => setShowColorPicker(true)}>
+                  <Text style={styles.modalButtonSecondaryText}>{t('Colors')}</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity style={styles.modalButtonSecondary} onPress={closeTopicStyleEditor}>
+                  <Text style={styles.modalButtonSecondaryText}>{t('Cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButton} onPress={saveTopicStyleEditor}>
+                  <Text style={styles.modalButtonText}>{t('Save')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        <ColorPickerModal
+          visible={showColorPicker}
+          onClose={() => setShowColorPicker(false)}
+          onInsert={handleInsertColor}
+          title={t('mIRC Colors')}
+          colors={pickerColors}
+        />
       </View>
     </Modal>
   );
@@ -927,6 +1178,135 @@ const styles = StyleSheet.create({
   statusWarning: {
     fontSize: 14,
     color: '#FF9800',
+    fontWeight: '500',
+  },
+  topicStylePreview: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 4,
+    padding: 10,
+    marginBottom: 8,
+    backgroundColor: '#FAFAFA',
+  },
+  topicStylePreviewLabel: {
+    fontSize: 12,
+    color: '#757575',
+    marginBottom: 4,
+  },
+  topicStylePreviewText: {
+    fontSize: 13,
+    color: '#212121',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 480,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#212121',
+    marginBottom: 12,
+  },
+  modalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  modalInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 4,
+    padding: 10,
+    color: '#212121',
+    backgroundColor: '#FFFFFF',
+  },
+  editorInput: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#212121',
+    minHeight: 140,
+    textAlignVertical: 'top',
+    marginBottom: 12,
+  },
+  editorPreviewBox: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 12,
+  },
+  editorPreviewText: {
+    fontSize: 14,
+    color: '#212121',
+  },
+  modalButton: {
+    backgroundColor: '#2196F3',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+  },
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  modalListItem: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  modalListRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  modalListItemText: {
+    color: '#212121',
+    fontSize: 13,
+  },
+  modalRemoveButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+    backgroundColor: '#E0E0E0',
+  },
+  modalRemoveButtonText: {
+    color: '#424242',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modalButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+  },
+  modalButtonSecondary: {
+    backgroundColor: '#E0E0E0',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+  },
+  modalButtonSecondaryText: {
+    color: '#424242',
+    fontSize: 14,
     fontWeight: '500',
   },
 });

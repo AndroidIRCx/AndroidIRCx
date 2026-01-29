@@ -21,3 +21,6 @@ export { UsersServicesSection } from './UsersServicesSection';
 export { CommandsSection } from './CommandsSection';
 export { MediaSection } from './MediaSection';
 export { HelpSection } from './HelpSection';
+export { AwaySection } from './AwaySection';
+export { ProtectionSection } from './ProtectionSection';
+export { WritingSection } from './WritingSection';

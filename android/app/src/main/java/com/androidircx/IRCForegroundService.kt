@@ -16,6 +16,8 @@ class IRCForegroundService : Service() {
 
     private var wakeLock: PowerManager.WakeLock? = null
     private var isServiceStarted = false
+    private var lastTitle: String = "IRC Connected"
+    private var lastText: String = "Maintaining connection"
 
     companion object {
         const val CHANNEL_ID = "irc_connection_channel"
@@ -48,24 +50,36 @@ class IRCForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
+        val action = intent?.action
+        when (action) {
             ACTION_START -> {
-                if (!isServiceStarted) {
-                    val networkName = intent.getStringExtra(EXTRA_NETWORK_NAME) ?: "IRC"
-                    val title = intent.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: "IRC Connected"
-                    val text = intent.getStringExtra(EXTRA_NOTIFICATION_TEXT)
-                        ?: "Maintaining connection to $networkName"
+                val networkName = intent.getStringExtra(EXTRA_NETWORK_NAME) ?: "IRC"
+                val title = intent.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: "IRC Connected"
+                val text = intent.getStringExtra(EXTRA_NOTIFICATION_TEXT)
+                    ?: "Maintaining connection to $networkName"
+                lastTitle = title
+                lastText = text
 
+                if (!isServiceStarted) {
                     startForegroundService(title, text)
                     wakeLock?.acquire()
                     isServiceStarted = true
+                } else {
+                    updateNotification(title, text)
                 }
             }
 
             ACTION_UPDATE -> {
-                if (isServiceStarted) {
-                    val title = intent.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: "IRC Connected"
-                    val text = intent.getStringExtra(EXTRA_NOTIFICATION_TEXT) ?: "Connected"
+                val title = intent.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: lastTitle
+                val text = intent.getStringExtra(EXTRA_NOTIFICATION_TEXT) ?: lastText
+                lastTitle = title
+                lastText = text
+
+                if (!isServiceStarted) {
+                    startForegroundService(title, text)
+                    wakeLock?.acquire()
+                    isServiceStarted = true
+                } else {
                     updateNotification(title, text)
                 }
             }
@@ -77,6 +91,16 @@ class IRCForegroundService : Service() {
             ACTION_DISCONNECT_QUIT -> {
                 sendDisconnectQuitBroadcast()
                 stopForegroundService()
+            }
+
+            else -> {
+                // Service can be restarted by the system with a null/unknown intent.
+                // Ensure we enter foreground immediately to avoid timeout crash.
+                if (!isServiceStarted) {
+                    startForegroundService(lastTitle, lastText)
+                    wakeLock?.acquire()
+                    isServiceStarted = true
+                }
             }
         }
 

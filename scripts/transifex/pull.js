@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { loadEnvFile } = require('./loadEnv');
@@ -13,10 +14,27 @@ if (!env.TRANSIFEX_TOKEN || !env.TRANSIFEX_SECRET) {
 const cliPath = path.resolve(__dirname, '../../node_modules/@transifex/cli/bin/run');
 const outDir = path.resolve(__dirname, '../../src/i18n/translations');
 
-const args = ['pull', '--pretty', '-f', outDir];
-const result = spawnSync(process.execPath, [cliPath, ...args], { stdio: 'inherit', env });
-if (result.error) {
-  console.error(result.error.message);
+// Preserve the manually maintained Serbian translation file across pulls.
+const srPath = path.join(outDir, 'sr.json');
+const srBackupPath = path.join(outDir, 'sr.json.__manual_backup__');
+const hasSr = fs.existsSync(srPath);
+if (hasSr) {
+  fs.copyFileSync(srPath, srBackupPath);
 }
 
-process.exit(typeof result.status === 'number' ? result.status : 1);
+let result;
+try {
+  const args = ['pull', '--pretty', '-f', outDir];
+  result = spawnSync(process.execPath, [cliPath, ...args], { stdio: 'inherit', env });
+  if (result.error) {
+    console.error(result.error.message);
+  }
+} finally {
+  // Restore sr.json so Transifex never overwrites it.
+  if (hasSr && fs.existsSync(srBackupPath)) {
+    fs.copyFileSync(srBackupPath, srPath);
+    fs.unlinkSync(srBackupPath);
+  }
+}
+
+process.exit(result && typeof result.status === 'number' ? result.status : 1);

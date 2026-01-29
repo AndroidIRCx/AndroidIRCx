@@ -16,6 +16,7 @@ export const SettingSwitch: React.FC<SettingSwitchProps> = ({
   onValueChange,
 }) => {
   const itemIcon = icon;
+  const descriptionContent = item.descriptionNode ?? item.description;
 
   return (
     <View style={[styles.settingItem, item.disabled && styles.disabledItem]}>
@@ -34,10 +35,18 @@ export const SettingSwitch: React.FC<SettingSwitchProps> = ({
             {item.title}
           </Text>
         </View>
-        {item.description && (
-          <Text style={[styles.settingDescription, item.disabled && styles.disabledText]}>
-            {item.description}
-          </Text>
+        {descriptionContent && (
+          typeof descriptionContent === 'string' || typeof descriptionContent === 'number'
+            ? (
+              <Text style={[styles.settingDescription, item.disabled && styles.disabledText]}>
+                {descriptionContent}
+              </Text>
+            )
+            : (
+              <View style={{ marginTop: 4 }}>
+                {descriptionContent}
+              </View>
+            )
         )}
       </View>
       <Switch

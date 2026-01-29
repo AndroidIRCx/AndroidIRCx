@@ -62,7 +62,7 @@ import { SUPPORTED_LOCALES } from '../i18n/config';
 import consoleManager from '../utils/consoleManager';
 import { SettingItem as SettingItemComponent } from '../components/settings/SettingItem';
 import { SettingsSectionHeader } from '../components/settings/SettingsSectionHeader';
-import { ScriptingAdsSection, SecurityQuickConnectSection, PrivacyLegalSection, AboutSection, HelpSection, AppearanceSection, DisplayUISection, MessageHistorySection, NotificationsSection, ConnectionNetworkSection, BackgroundBatterySection, HighlightingSection, SecuritySection, UsersServicesSection, CommandsSection, MediaSection } from '../components/settings/sections';
+import { ScriptingAdsSection, SecurityQuickConnectSection, PrivacyLegalSection, AboutSection, HelpSection, AppearanceSection, DisplayUISection, MessageHistorySection, NotificationsSection, ConnectionNetworkSection, BackgroundBatterySection, HighlightingSection, SecuritySection, UsersServicesSection, CommandsSection, MediaSection, AwaySection, ProtectionSection, WritingSection } from '../components/settings/sections';
 import { SettingItem, SettingIcon } from '../types/settings';
 import { useSettingsPremium } from '../hooks/useSettingsPremium';
 import { useSettingsSecurity } from '../hooks/useSettingsSecurity';
@@ -1508,6 +1508,36 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }], // Placeholder - actual rendering handled by component
     },
     {
+      id: 'away',
+      title: t('Away', { _tags: tags }),
+      data: [{
+        id: 'away-section',
+        title: 'away-section',
+        type: 'custom' as const,
+        searchKeywords: ['away', 'back', 'auto-away', 'auto answer', 'auto-answer', 'announce', 'nick', 'return', 'message'],
+      }], // Placeholder - actual rendering handled by component
+    },
+    {
+      id: 'protection',
+      title: t('Protection', { _tags: tags }),
+      data: [{
+        id: 'protection-section',
+        title: 'protection-section',
+        type: 'custom' as const,
+        searchKeywords: ['protection', 'anti-spam', 'spam', 'flood', 'dos', 'ctcp', 'query', 'dcc', 'silence'],
+      }], // Placeholder - actual rendering handled by component
+    },
+    {
+      id: 'writing',
+      title: t('Writing', { _tags: tags }),
+      data: [{
+        id: 'writing-section',
+        title: 'writing-section',
+        type: 'custom' as const,
+        searchKeywords: ['writing', 'decoration', 'styles', 'nick completion', 'completion', 'formatting', 'text'],
+      }], // Placeholder - actual rendering handled by component
+    },
+    {
       id: 'highlighting',
       title: t('Highlighting', { _tags: tags }),
       data: [{
@@ -2120,6 +2150,37 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             if (item.id === 'notifications-section' && sectionTitle === t('Notifications', { _tags: tags })) {
               return (
                 <NotificationsSection
+                  key={item.id}
+                  colors={colors}
+                  styles={styles}
+                  settingIcons={settingIcons}
+                />
+              );
+            }
+            if (item.id === 'away-section' && sectionTitle === t('Away', { _tags: tags })) {
+              return (
+                <AwaySection
+                  key={item.id}
+                  colors={colors}
+                  styles={styles}
+                  settingIcons={settingIcons}
+                  onClose={onClose}
+                />
+              );
+            }
+            if (item.id === 'protection-section' && sectionTitle === t('Protection', { _tags: tags })) {
+              return (
+                <ProtectionSection
+                  key={item.id}
+                  colors={colors}
+                  styles={styles}
+                  settingIcons={settingIcons}
+                />
+              );
+            }
+            if (item.id === 'writing-section' && sectionTitle === t('Writing', { _tags: tags })) {
+              return (
+                <WritingSection
                   key={item.id}
                   colors={colors}
                   styles={styles}

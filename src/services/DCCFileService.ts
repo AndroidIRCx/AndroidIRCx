@@ -181,6 +181,17 @@ class DCCFileService {
     });
   }
 
+  async getDefaultDownloadPath(filename: string): Promise<string> {
+    const RNFS = require('react-native-fs');
+    const folderSetting = await settingsService.getSetting('dccDownloadFolder', '');
+    const baseFolder = folderSetting && typeof folderSetting === 'string'
+      ? folderSetting.trim()
+      : '';
+    const safeName = this.sanitizeFilename(filename || 'download');
+    const targetBase = baseFolder || RNFS.DocumentDirectoryPath;
+    return `${targetBase}/${safeName}`;
+  }
+
   cancel(transferId: string) {
     const socket = this.sockets.get(transferId);
     if (socket) {
@@ -298,6 +309,8 @@ class DCCFileService {
       // Stream file
       const chunkSize = 32 * 1024;
       let offset = 0;
+      const maxKbps = await settingsService.getSetting('dccSendMaxKbps', 0);
+      const maxBytesPerSec = maxKbps > 0 ? maxKbps * 1024 : 0;
       try {
         while (offset < size) {
           const chunk = await RNFS.read(filePath, Math.min(chunkSize, size - offset), offset, 'base64');
@@ -307,7 +320,12 @@ class DCCFileService {
           transfer.bytesReceived = offset;
           this.transfers.set(transfer.id, transfer);
           this.emit(transfer);
-          await new Promise(res => setTimeout(res, 1));
+          if (maxBytesPerSec > 0) {
+            const delayMs = Math.max(Math.ceil((buf.length / maxBytesPerSec) * 1000), 1);
+            await new Promise(res => setTimeout(res, delayMs));
+          } else {
+            await new Promise(res => setTimeout(res, 1));
+          }
         }
         transfer.status = 'completed';
         this.transfers.set(transfer.id, transfer);
@@ -370,6 +388,10 @@ class DCCFileService {
     const parts = ip.split('.').map(p => parseInt(p, 10));
     if (parts.length !== 4 || parts.some(isNaN)) return null;
     return ((parts[0] << 24) >>> 0) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
+  }
+
+  private sanitizeFilename(name: string): string {
+    return name.replace(/[\\/:*?"<>|]+/g, '_').trim() || 'download';
   }
 
   /**
