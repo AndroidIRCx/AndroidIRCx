@@ -51,7 +51,7 @@ class LayoutService {
     },
     messageSpacing: 4,
     messagePadding: 8,
-    messageGroupingEnabled: true,
+    messageGroupingEnabled: false,
     messageTextAlign: 'left',
     messageTextDirection: 'auto',
     timestampDisplay: 'always',
@@ -112,6 +112,7 @@ class LayoutService {
             this.config.timestampDisplay = data.showTimestamps ? 'grouped' : 'never';
           }
           if (data.messageGroupingEnabled === undefined) {
+            // Preserve legacy behavior for existing installs that predate the setting.
             this.config.messageGroupingEnabled = true;
           }
           if (!data.messageTextAlign) {

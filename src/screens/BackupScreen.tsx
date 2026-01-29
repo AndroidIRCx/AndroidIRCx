@@ -35,6 +35,22 @@ interface BackupOption {
   keyPattern: string | RegExp | ((key: string) => boolean);
 }
 
+const isNetworkKey = (key: string) => key.includes('@AndroidIRCX:networks') || key.includes('NETWORKS');
+const isSettingsKey = (key: string, isExplicitMatch: boolean) => (
+  key.includes('@AndroidIRCX:settings:') ||
+  key === 'SETTINGS' ||
+  key === 'FIRST_RUN_COMPLETED' ||
+  isExplicitMatch
+);
+const isEncryptionKey = (key: string) => key.startsWith('chanenc:') || key.startsWith('encdm:') || key.startsWith('encstg:');
+const isProfileKey = (key: string) => key.includes('identityProfiles') || key.includes('connectionProfiles');
+const isFavoritesKey = (key: string) => key.includes('channelFavorites');
+const isNotesKey = (key: string) => key.includes('channelNotes') || key.includes('channelBookmarks') || key.includes('userAlias');
+const isHighlightsKey = (key: string) => key.includes('HIGHLIGHT') || key.includes('notification');
+const isTabsKey = (key: string) => key.startsWith('TABS_');
+const isMessagesKey = (key: string) => key.startsWith('MESSAGES_');
+const isLogsKey = (key: string) => key.includes('log') && !key.includes('login');
+
 export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) => {
   const t = useT();
   const { colors } = useTheme();
@@ -54,63 +70,76 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       name: t('App Settings', { _tags: tags }),
       description: t('General app preferences and configurations', { _tags: tags }),
       enabled: true,
-      keyPattern: (key) => key.includes('@AndroidIRCX:settings:') || key === 'SETTINGS',
+      keyPattern: (key) => {
+        const explicitMatch = ![
+          isNetworkKey,
+          isEncryptionKey,
+          isProfileKey,
+          isFavoritesKey,
+          isNotesKey,
+          isHighlightsKey,
+          isTabsKey,
+          isMessagesKey,
+          isLogsKey,
+        ].some(match => match(key));
+        return isSettingsKey(key, explicitMatch);
+      },
     },
     {
       id: 'encryption',
       name: t('Encryption Keys', { _tags: tags }),
       description: t('Channel encryption keys and DM bundles', { _tags: tags }),
       enabled: true,
-      keyPattern: (key) => key.startsWith('chanenc:') || key.startsWith('encdm:') || key.startsWith('encstg:'),
+      keyPattern: isEncryptionKey,
     },
     {
       id: 'profiles',
       name: t('Identity & Connection Profiles', { _tags: tags }),
       description: t('User identity profiles and connection templates', { _tags: tags }),
       enabled: true,
-      keyPattern: (key) => key.includes('identityProfiles') || key.includes('connectionProfiles'),
+      keyPattern: isProfileKey,
     },
     {
       id: 'favorites',
       name: t('Channel Favorites', { _tags: tags }),
       description: t('Favorite channels and auto-join settings', { _tags: tags }),
       enabled: true,
-      keyPattern: (key) => key.includes('channelFavorites'),
+      keyPattern: isFavoritesKey,
     },
     {
       id: 'notes',
       name: t('Channel Notes & Bookmarks', { _tags: tags }),
       description: t('Channel notes, bookmarks, and user aliases', { _tags: tags }),
       enabled: true,
-      keyPattern: (key) => key.includes('channelNotes') || key.includes('channelBookmarks') || key.includes('userAlias'),
+      keyPattern: isNotesKey,
     },
     {
       id: 'highlights',
       name: t('Highlights & Notifications', { _tags: tags }),
       description: t('Highlight words and notification preferences', { _tags: tags }),
       enabled: true,
-      keyPattern: (key) => key.includes('HIGHLIGHT') || key.includes('notification'),
+      keyPattern: isHighlightsKey,
     },
     {
       id: 'tabs',
       name: t('Open Tabs', { _tags: tags }),
       description: t('Currently open channel and query tabs', { _tags: tags }),
       enabled: false,
-      keyPattern: (key) => key.startsWith('TABS_'),
+      keyPattern: isTabsKey,
     },
     {
       id: 'messages',
       name: t('Message History', { _tags: tags }),
       description: t('Saved message history for all tabs', { _tags: tags }),
       enabled: false,
-      keyPattern: (key) => key.startsWith('MESSAGES_'),
+      keyPattern: isMessagesKey,
     },
     {
       id: 'logs',
       name: t('Activity Logs', { _tags: tags }),
       description: t('Channel activity logs and join/part history', { _tags: tags }),
       enabled: false,
-      keyPattern: (key) => key.includes('log') && !key.includes('login'),
+      keyPattern: isLogsKey,
     },
   ]);
 
@@ -173,20 +202,27 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         return;
       }
 
-      // Filter keys based on enabled options
-      const selectedKeys = allKeys.filter((key) =>
-        enabledOptions.some((opt) => {
-          if (typeof opt.keyPattern === 'function') {
-            return opt.keyPattern(key);
-          } else if (opt.keyPattern instanceof RegExp) {
-            return opt.keyPattern.test(key);
-          } else {
-            return key.includes(opt.keyPattern);
-          }
-        })
-      );
-
-      const data = await dataBackupService.exportKeys(selectedKeys);
+      const includeAll = enabledOptions.length === backupOptions.length;
+      let data: string;
+      let selectedKeys: string[] = [];
+      if (includeAll) {
+        data = await dataBackupService.exportAll();
+        selectedKeys = allKeys;
+      } else {
+        // Filter keys based on enabled options
+        selectedKeys = allKeys.filter((key) =>
+          enabledOptions.some((opt) => {
+            if (typeof opt.keyPattern === 'function') {
+              return opt.keyPattern(key);
+            } else if (opt.keyPattern instanceof RegExp) {
+              return opt.keyPattern.test(key);
+            } else {
+              return key.includes(opt.keyPattern);
+            }
+          })
+        );
+        data = await dataBackupService.exportKeys(selectedKeys);
+      }
       setBackupData(data);
       setShowPreviewModal(true);
 

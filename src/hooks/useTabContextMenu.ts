@@ -82,6 +82,12 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       const tabConnection = connectionManager.getConnection(tab.networkId);
       const isTabConnected = !!tabConnection?.ircService.getConnectionStatus();
       const isPrimaryServer = primaryNetworkId ? tab.networkId === primaryNetworkId : false;
+      const svc = tabConnection?.ircService || ircService;
+      const currentNick = svc?.getCurrentNick?.() || '';
+      if (isTabConnected && currentNick) {
+        svc.sendCommand?.(`MODE ${currentNick}`);
+      }
+      const isServerOper = typeof svc?.isServerOper === 'function' ? svc.isServerOper() : false;
 
       if (isTabConnected) {
         options.push({
@@ -208,6 +214,89 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           useUIStore.getState().setShowRenameModal(true);
         },
       });
+      if (isServerOper) {
+        options.push({
+          text: 'IRCop Commands',
+          onPress: () => {
+            const ircopOptions = [
+              { text: 'ADMIN', onPress: () => svc.sendCommand('ADMIN') },
+              { text: 'INFO', onPress: () => svc.sendCommand('INFO') },
+              { text: 'VERSION', onPress: () => svc.sendCommand('VERSION') },
+              { text: 'TIME', onPress: () => svc.sendCommand('TIME') },
+              { text: 'MOTD', onPress: () => svc.sendCommand('MOTD') },
+              { text: 'LUSERS', onPress: () => svc.sendCommand('LUSERS') },
+              { text: 'LINKS', onPress: () => svc.sendCommand('LINKS') },
+              {
+                text: 'STATS',
+                onPress: () => {
+                  Alert.prompt(
+                    'STATS',
+                    'Enter STATS query (optional)',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Send',
+                        onPress: (query?: string) => {
+                          const trimmed = (query || '').trim();
+                          svc.sendCommand(trimmed ? `STATS ${trimmed}` : 'STATS');
+                        },
+                      },
+                    ],
+                    'plain-text'
+                  );
+                },
+              },
+              { text: 'TRACE', onPress: () => svc.sendCommand('TRACE') },
+              {
+                text: 'REHASH',
+                onPress: () => safeAlert('REHASH', 'Rehash server configuration?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Rehash', onPress: () => svc.sendCommand('REHASH') },
+                ]),
+              },
+              {
+                text: 'RESTART',
+                onPress: () => safeAlert('RESTART', 'Restart IRC server?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Restart', onPress: () => svc.sendCommand('RESTART') },
+                ]),
+              },
+              {
+                text: 'DIE',
+                onPress: () => safeAlert('DIE', 'Shut down IRC server?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Shutdown', onPress: () => svc.sendCommand('DIE') },
+                ]),
+              },
+              {
+                text: 'WALLOP',
+                onPress: () => {
+                  Alert.prompt(
+                    'WALLOP',
+                    'Enter WALLOP message',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Send',
+                        onPress: (message?: string) => {
+                          const trimmed = (message || '').trim();
+                          if (!trimmed) return;
+                          svc.sendCommand(`WALLOP :${trimmed}`);
+                        },
+                      },
+                    ],
+                    'plain-text'
+                  );
+                },
+              },
+              { text: 'Cancel', style: 'cancel', onPress: () => {} },
+            ];
+            useUIStore.getState().setTabOptionsTitle(`IRCop: ${tab.networkId}`);
+            useUIStore.getState().setTabOptions(ircopOptions);
+            useUIStore.getState().setShowTabOptionsModal(true);
+          },
+        });
+      }
       if (!isPrimaryServer) {
         options.push({
           text: 'Close Server Tab',

@@ -123,8 +123,8 @@ android {
         applicationId = "com.androidircx"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
-        versionCode = 76
-        versionName = "1.6.14"
+        versionCode = 77
+        versionName = "1.6.15"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
     }
@@ -170,6 +170,9 @@ android {
 
     // Fix for SoLoaderDSONotFoundError - ensure native libraries are included
     packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
         pickFirst '**/libreactnative.so'
         pickFirst '**/libc++_shared.so'
         pickFirst '**/libhermes.so'

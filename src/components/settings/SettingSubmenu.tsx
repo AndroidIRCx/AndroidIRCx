@@ -16,6 +16,7 @@ export const SettingSubmenu: React.FC<SettingSubmenuProps> = ({
   onPress,
 }) => {
   const itemIcon = icon;
+  const descriptionContent = item.descriptionNode ?? item.description;
 
   return (
     <TouchableOpacity
@@ -36,8 +37,16 @@ export const SettingSubmenu: React.FC<SettingSubmenuProps> = ({
           )}
           <Text style={styles.settingTitle}>{item.title}</Text>
         </View>
-        {item.description && (
-          <Text style={styles.settingDescription}>{item.description}</Text>
+        {descriptionContent && (
+          typeof descriptionContent === 'string' || typeof descriptionContent === 'number'
+            ? (
+              <Text style={styles.settingDescription}>{descriptionContent}</Text>
+            )
+            : (
+              <View style={{ marginTop: 4 }}>
+                {descriptionContent}
+              </View>
+            )
         )}
       </View>
       <Text style={styles.chevron}>›</Text>

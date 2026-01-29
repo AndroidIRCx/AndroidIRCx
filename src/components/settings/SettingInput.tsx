@@ -19,6 +19,7 @@ export const SettingInput: React.FC<SettingInputProps> = ({
   const itemIcon = icon;
   const [isFocused, setIsFocused] = useState(false);
   const [displayValue, setDisplayValue] = useState<string>((item.value as string) || '');
+  const descriptionContent = item.descriptionNode ?? item.description;
 
   useEffect(() => {
     // When not focused, always reflect the latest external value.
@@ -44,10 +45,18 @@ export const SettingInput: React.FC<SettingInputProps> = ({
             {item.title}
           </Text>
         </View>
-        {item.description && (
-          <Text style={[styles.settingDescription, item.disabled && styles.disabledText]}>
-            {item.description}
-          </Text>
+        {descriptionContent && (
+          typeof descriptionContent === 'string' || typeof descriptionContent === 'number'
+            ? (
+              <Text style={[styles.settingDescription, item.disabled && styles.disabledText]}>
+                {descriptionContent}
+              </Text>
+            )
+            : (
+              <View style={{ marginTop: 4 }}>
+                {descriptionContent}
+              </View>
+            )
         )}
         <TextInput
           style={[

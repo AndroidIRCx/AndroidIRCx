@@ -35,6 +35,7 @@ import { performanceService, PerformanceConfig } from '../services/PerformanceSe
 import Clipboard from '@react-native-clipboard/clipboard';
 import { getUserModeDescription } from '../utils/modeDescriptions';
 import { useUIStore } from '../stores/uiStore';
+import { NickContextMenu } from './NickContextMenu';
 
 // Note: This function cannot use useT() as it's exported outside the component
 // The translation will be handled where it's called
@@ -75,9 +76,6 @@ export const UserList: React.FC<UserListProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<ChannelUser | null>(null);
   const [showContextMenu, setShowContextMenu] = useState(false);
-  const [showE2EGroup, setShowE2EGroup] = useState(false);
-  const [showCTCPGroup, setShowCTCPGroup] = useState(false);
-  const [showOpsGroup, setShowOpsGroup] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
   const [allowQrVerification, setAllowQrVerification] = useState(true);
   const [allowFileExchange, setAllowFileExchange] = useState(true);
@@ -94,6 +92,9 @@ export const UserList: React.FC<UserListProps> = ({
   const [blacklistMaskChoice, setBlacklistMaskChoice] = useState<string>('nick');
   const [blacklistReason, setBlacklistReason] = useState('');
   const [blacklistCustomCommand, setBlacklistCustomCommand] = useState('');
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [isServerOper, setIsServerOper] = useState(false);
   const [performanceConfig, setPerformanceConfig] = useState<PerformanceConfig>(
     () => performanceService.getConfig()
   );
@@ -339,6 +340,10 @@ const getModeColor = (modes?: string[], colors?: any): string => {
   }, [filteredGroupedUsers, filteredUsers.length, groupingActive]);
 
   const activeIrc = (network ? connectionManager.getConnection(network)?.ircService : null) || ircService;
+  useEffect(() => {
+    const oper = typeof (activeIrc as any).isServerOper === 'function' ? (activeIrc as any).isServerOper() : false;
+    setIsServerOper(oper);
+  }, [activeIrc]);
 
   // Always use network-aware storage. Get network from IRC service if not provided as prop.
   const getNetworkForStorage = useCallback((): string => {
@@ -493,8 +498,16 @@ const getModeColor = (modes?: string[], colors?: any): string => {
 
   const handleUserLongPress = useCallback((user: ChannelUser) => {
     setSelectedUser(user);
+    const currentNick = activeIrc.getCurrentNick?.();
+    if (currentNick) {
+      activeIrc.sendCommand?.(`MODE ${currentNick}`);
+      setTimeout(() => {
+        const oper = typeof (activeIrc as any).isServerOper === 'function' ? (activeIrc as any).isServerOper() : false;
+        setIsServerOper(oper);
+      }, 300);
+    }
     setShowContextMenu(true);
-  }, []);
+  }, [activeIrc]);
 
   const handleContextMenuAction = async (action: string) => {
     if (!selectedUser || !channelName) return;
@@ -783,6 +796,36 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         setBlacklistMaskChoice(selectedUser.host ? 'host' : 'nick');
         setShowBlacklistModal(true);
         break;
+      case 'kill': {
+        const targetNick = selectedUser.nick;
+        Alert.prompt(
+          t('KILL {nick}').replace('{nick}', targetNick),
+          t('Enter reason'),
+          [
+            { text: t('Cancel'), style: 'cancel' },
+            {
+              text: t('Send'),
+              onPress: (reason?: string) => {
+                const trimmed = (reason || '').trim();
+                if (!trimmed) {
+                  Alert.alert(t('Error'), t('Reason is required'));
+                  return;
+                }
+                activeIrc.sendCommand(`KILL ${targetNick} :${trimmed}`);
+                setActionMessage(t('KILL sent to {nick}').replace('{nick}', targetNick));
+              },
+            },
+          ],
+          'plain-text'
+        );
+        break;
+      }
+      case 'add_note': {
+        const existingNote = userManagementService.getUserNote(selectedUser.nick, network);
+        setNoteText(existingNote || '');
+        setShowNoteModal(true);
+        break;
+      }
       case 'monitor_toggle':
         if (activeIrc.isMonitoring(selectedUser.nick)) {
           activeIrc.unmonitorNick(selectedUser.nick);
@@ -896,6 +939,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
   if (!channelName) {
     return null;
   }
+
+  const contextConnection = network ? connectionManager.getConnection(network) : null;
 
   return (
     <View
@@ -1067,348 +1112,61 @@ const getModeColor = (modes?: string[], colors?: any): string => {
       )}
 
       {/* Context Menu Modal */}
-      <Modal
+      <NickContextMenu
         visible={showContextMenu}
+        nick={selectedUser?.nick}
+        onClose={() => setShowContextMenu(false)}
+        onAction={handleContextMenuAction}
+        colors={colors}
+        connection={contextConnection}
+        network={network}
+        channel={channelName}
+        activeNick={activeIrc.getCurrentNick()}
+        allowQrVerification={allowQrVerification}
+        allowFileExchange={allowFileExchange}
+        allowNfcExchange={allowNfcExchange}
+        isServerOper={isServerOper}
+        ignoreActionId="ignore"
+      />
+
+      <Modal
+        visible={showNoteModal}
         transparent
-        animationType="fade"
-        onRequestClose={() => setShowContextMenu(false)}>
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={() => setShowContextMenu(false)}
-          />
-          <View 
-            style={styles.contextMenu}
-            onStartShouldSetResponder={() => true}
-            onMoveShouldSetResponder={() => true}>
-            {selectedUser && (
-              <ScrollView
-                style={styles.contextMenuScroll}
-                contentContainerStyle={styles.contextMenuContent}
-                showsVerticalScrollIndicator
-                onStartShouldSetResponder={() => true}
-                onMoveShouldSetResponder={() => true}>
-                <View style={styles.contextMenuHeader}>
-                  <Text style={styles.contextMenuTitle}>
-                    {getNickPrefix(selectedUser.modes)}{selectedUser.nick}
-                  </Text>
-                  {selectedUser.account && selectedUser.account !== '*' && (
-                    <Text style={styles.contextMenuSubtitle}>
-                      {t('Account: {account}').replace('{account}', selectedUser.account)}
-                    </Text>
-                  )}
-                </View>
-                <View style={styles.contextMenuDivider} />
-
-                <View style={styles.contextMenuGroupHeader}>
-                  <Text style={styles.contextMenuGroupTitle}>{t('Quick Actions')}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => handleContextMenuAction('whois')}>
-                  <Text style={styles.contextMenuText}>{t('WHOIS')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => handleContextMenuAction('query')}>
-                  <Text style={styles.contextMenuText}>{t('Open Query')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => handleContextMenuAction('copy')}>
-                  <Text style={styles.contextMenuText}>{t('Copy Nickname')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => handleContextMenuAction('ignore')}>
-                  <Text style={styles.contextMenuText}>
-                    {userManagementService.isUserIgnored(
-                      selectedUser.nick,
-                      undefined,
-                      selectedUser.host,
-                      network
-                    )
-                      ? t('Unignore User')
-                      : t('Ignore User')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => handleContextMenuAction('blacklist')}>
-                  <Text style={styles.contextMenuText}>{t('Add to Blacklist')}</Text>
-                </TouchableOpacity>
-                {activeIrc.capEnabledSet && activeIrc.capEnabledSet.has('monitor') && (
-                  <TouchableOpacity
-                    style={styles.contextMenuItem}
-                    onPress={() => handleContextMenuAction('monitor_toggle')}>
-                    <Text style={styles.contextMenuText}>
-                      {activeIrc.isMonitoring(selectedUser.nick)
-                        ? t('Unmonitor Nick')
-                        : t('Monitor Nick')}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                <View style={styles.contextMenuDivider} />
-
-                <View style={styles.contextMenuGroupHeader}>
-                  <Text style={styles.contextMenuGroupTitle}>{t('Encryption')}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => setShowE2EGroup(prev => !prev)}>
-                  <Text style={styles.contextMenuText}>
-                    {showE2EGroup ? t('E2E Encryption v') : t('E2E Encryption >')}
-                  </Text>
-                </TouchableOpacity>
-                {showE2EGroup && (
-                  <View style={styles.subGroup}>
-                    <TouchableOpacity
-                      style={styles.contextMenuItem}
-                      onPress={() => handleContextMenuAction('enc_share')}>
-                      <Text style={styles.contextMenuText}>{t('Share DM Key')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.contextMenuItem}
-                      onPress={() => handleContextMenuAction('enc_request')}>
-                      <Text style={styles.contextMenuText}>{t('Request DM Key (36s)')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.contextMenuItem}
-                      onPress={() => handleContextMenuAction('enc_verify')}>
-                      <Text style={styles.contextMenuText}>{t('Verify DM Key')}</Text>
-                    </TouchableOpacity>
-                    {allowQrVerification && (
-                      <>
-                        <TouchableOpacity
-                          style={styles.contextMenuItem}
-                          onPress={() => handleContextMenuAction('enc_qr_show_bundle')}>
-                          <Text style={styles.contextMenuText}>{t('Share Key Bundle QR')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.contextMenuItem}
-                          onPress={() => handleContextMenuAction('enc_qr_show_fingerprint')}>
-                          <Text style={styles.contextMenuText}>{t('Show Fingerprint QR (Verify)')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.contextMenuItem}
-                          onPress={() => handleContextMenuAction('enc_qr_scan')}>
-                          <Text style={styles.contextMenuText}>{t('Scan QR Code')}</Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
-                    {allowFileExchange && (
-                      <>
-                        <TouchableOpacity
-                          style={styles.contextMenuItem}
-                          onPress={() => handleContextMenuAction('enc_share_file')}>
-                          <Text style={styles.contextMenuText}>{t('Share Key File')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.contextMenuItem}
-                          onPress={() => handleContextMenuAction('enc_import_file')}>
-                          <Text style={styles.contextMenuText}>{t('Import Key File')}</Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
-                    {allowNfcExchange && (
-                      <>
-                        <TouchableOpacity
-                          style={styles.contextMenuItem}
-                          onPress={() => handleContextMenuAction('enc_share_nfc')}>
-                          <Text style={styles.contextMenuText}>{t('Share via NFC')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.contextMenuItem}
-                          onPress={() => handleContextMenuAction('enc_receive_nfc')}>
-                          <Text style={styles.contextMenuText}>{t('Receive via NFC')}</Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
-                    {channelName && (
-                      <>
-                        <TouchableOpacity
-                          style={styles.contextMenuItem}
-                          onPress={() => handleContextMenuAction('chan_share')}>
-                          <Text style={styles.contextMenuText}>{t('Share Channel Key')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.contextMenuItem}
-                          onPress={() => handleContextMenuAction('chan_request')}>
-                          <Text style={styles.contextMenuText}>{t('Request Channel Key')}</Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
-                  </View>
-                )}
-                <View style={styles.contextMenuDivider} />
-
-                <View style={styles.contextMenuGroupHeader}>
-                  <Text style={styles.contextMenuGroupTitle}>{t('CTCP')}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => setShowCTCPGroup(prev => !prev)}>
-                  <Text style={styles.contextMenuText}>
-                    {showCTCPGroup ? t('CTCP v') : t('CTCP >')}
-                  </Text>
-                </TouchableOpacity>
-                {showCTCPGroup && (
-                  <View style={styles.subGroup}>
-                    <TouchableOpacity
-                      style={styles.contextMenuItem}
-                      onPress={() => handleContextMenuAction('ctcp_ping')}>
-                      <Text style={styles.contextMenuText}>{t('CTCP PING')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.contextMenuItem}
-                      onPress={() => handleContextMenuAction('ctcp_version')}>
-                      <Text style={styles.contextMenuText}>{t('CTCP VERSION')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.contextMenuItem}
-                      onPress={() => handleContextMenuAction('ctcp_time')}>
-                      <Text style={styles.contextMenuText}>{t('CTCP TIME')}</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-                <View style={styles.contextMenuDivider} />
-
-                <View style={styles.contextMenuGroupHeader}>
-                  <Text style={styles.contextMenuGroupTitle}>{t('DCC')}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => handleContextMenuAction('dcc_chat')}>
-                  <Text style={styles.contextMenuText}>{t('Start DCC Chat')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => handleContextMenuAction('dcc_send')}>
-                  <Text style={styles.contextMenuText}>{t('Offer DCC Send')}</Text>
-                </TouchableOpacity>
-
-                {(isCurrentUserOp() || isCurrentUserHalfOp()) && (
-                  <>
-                    <View style={styles.contextMenuDivider} />
-                    <View style={styles.contextMenuGroupHeader}>
-                      <Text style={styles.contextMenuGroupTitle}>{t('Operator Controls')}</Text>
-                    </View>
-                    <TouchableOpacity
-                      style={styles.contextMenuItem}
-                      onPress={() => setShowOpsGroup(prev => !prev)}>
-                      <Text style={[styles.contextMenuSubtitle, { fontWeight: '600' }]}>
-                        {showOpsGroup ? t('Operator Controls v') : t('Operator Controls >')}
-                      </Text>
-                    </TouchableOpacity>
-
-                    {showOpsGroup && (
-                      <View style={styles.subGroup}>
-                        {isCurrentUserHalfOp() && (
-                          <>
-                            {selectedUser.modes.includes('v') ? (
-                              <TouchableOpacity
-                                style={styles.contextMenuItem}
-                                onPress={() => handleContextMenuAction('take_voice')}>
-                                <Text style={styles.contextMenuText}>{t('Take Voice')}</Text>
-                              </TouchableOpacity>
-                            ) : (
-                              <TouchableOpacity
-                                style={styles.contextMenuItem}
-                                onPress={() => handleContextMenuAction('give_voice')}>
-                                <Text style={styles.contextMenuText}>{t('Give Voice')}</Text>
-                              </TouchableOpacity>
-                            )}
-                          </>
-                        )}
-
-                        {isCurrentUserOp() && (
-                          <>
-                            {selectedUser.modes.includes('h') ? (
-                              <TouchableOpacity
-                                style={styles.contextMenuItem}
-                                onPress={() => handleContextMenuAction('take_halfop')}>
-                                <Text style={styles.contextMenuText}>{t('Take Half-Op')}</Text>
-                              </TouchableOpacity>
-                            ) : (
-                              <TouchableOpacity
-                                style={styles.contextMenuItem}
-                                onPress={() => handleContextMenuAction('give_halfop')}>
-                                <Text style={styles.contextMenuText}>{t('Give Half-Op')}</Text>
-                              </TouchableOpacity>
-                            )}
-
-                            {selectedUser.modes.includes('o') ? (
-                              <TouchableOpacity
-                                style={styles.contextMenuItem}
-                                onPress={() => handleContextMenuAction('take_op')}>
-                                <Text style={styles.contextMenuText}>{t('Take Op')}</Text>
-                              </TouchableOpacity>
-                            ) : (
-                              <TouchableOpacity
-                                style={styles.contextMenuItem}
-                                onPress={() => handleContextMenuAction('give_op')}>
-                                <Text style={styles.contextMenuText}>{t('Give Op')}</Text>
-                              </TouchableOpacity>
-                            )}
-
-                            <TouchableOpacity
-                              style={styles.contextMenuItem}
-                              onPress={() => handleContextMenuAction('kick')}>
-                              <Text style={[styles.contextMenuText, styles.contextMenuWarning]}>
-                                {t('Kick')}
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={styles.contextMenuItem}
-                              onPress={() => handleContextMenuAction('kick_message')}>
-                              <Text style={[styles.contextMenuText, styles.contextMenuWarning]}>
-                                {t('Kick (with message)')}
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={styles.contextMenuItem}
-                              onPress={() => handleContextMenuAction('ban')}>
-                              <Text style={[styles.contextMenuText, styles.contextMenuDanger]}>
-                                {t('Ban')}
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={styles.contextMenuItem}
-                              onPress={() => handleContextMenuAction('kick_ban')}>
-                              <Text style={[styles.contextMenuText, styles.contextMenuDanger]}>
-                                {t('Kick + Ban')}
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={styles.contextMenuItem}
-                              onPress={() => handleContextMenuAction('kick_ban_message')}>
-                              <Text style={[styles.contextMenuText, styles.contextMenuDanger]}>
-                                {t('Kick + Ban (with message)')}
-                              </Text>
-                            </TouchableOpacity>
-                          </>
-                        )}
-                      </View>
-                    )}
-                  </>
-                )}
-
-                <View style={styles.contextMenuDivider} />
-                {actionMessage ? (
-                  <View style={styles.feedbackContainer}>
-                    <Text style={styles.feedbackText}>{actionMessage}</Text>
-                  </View>
-                ) : null}
-                <TouchableOpacity
-                  style={styles.contextMenuItem}
-                  onPress={() => setShowContextMenu(false)}>
-                  <Text style={[styles.contextMenuText, styles.contextMenuCancel]}>
-                    {t('Cancel')}
-                  </Text>
-                </TouchableOpacity>
-              </ScrollView>
-            )}
+        animationType="slide"
+        onRequestClose={() => setShowNoteModal(false)}>
+        <View style={styles.blacklistOverlay}>
+          <View style={styles.noteModal}>
+            <Text style={styles.blacklistTitle}>{t('User Note')}</Text>
+            <TextInput
+              style={[styles.noteInput, styles.blacklistInputMultiline]}
+              value={noteText}
+              onChangeText={setNoteText}
+              placeholder={t('Enter note about this user')}
+              multiline
+              textAlignVertical="top"
+            />
+            <View style={styles.blacklistButtons}>
+              <TouchableOpacity
+                style={[styles.blacklistButton, styles.blacklistButtonCancel]}
+                onPress={() => setShowNoteModal(false)}>
+                <Text style={styles.blacklistButtonText}>{t('Cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
+                onPress={async () => {
+                  if (!selectedUser) return;
+                  if (noteText.trim()) {
+                    await userManagementService.addUserNote(selectedUser.nick, noteText.trim(), network);
+                  } else {
+                    await userManagementService.removeUserNote(selectedUser.nick, network);
+                  }
+                  setShowNoteModal(false);
+                }}>
+                <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
+                  {t('Save')}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1780,6 +1538,18 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
     borderBottomWidth: 1,
     borderBottomColor: colors.border || '#E0E0E0',
   },
+  contextMenuHeaderRow: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border || '#E0E0E0',
+  },
+  contextMenuHeaderText: {
+    flex: 1,
+  },
   contextMenuTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -1789,6 +1559,22 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
   contextMenuSubtitle: {
     fontSize: 12,
     color: colors.textSecondary || '#757575',
+  },
+  contextMenuCopyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border || '#E0E0E0',
+    backgroundColor: colors.surface || '#FFFFFF',
+  },
+  contextMenuCopyText: {
+    fontSize: 12,
+    color: colors.primary || '#2196F3',
+    fontWeight: '600',
   },
   contextMenuGroupHeader: {
     paddingHorizontal: 16,
@@ -1818,6 +1604,15 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
     color: colors.textSecondary,
     textAlign: 'center',
   },
+  contextMenuFooter: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border || '#E0E0E0',
+    paddingVertical: 8,
+  },
+  contextMenuFooterButton: {
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
   contextMenuWarning: {
     color: '#FF9800', // Orange for warnings (kick)
   },
@@ -1826,6 +1621,17 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
   },
   subGroup: {
     paddingLeft: 12,
+  },
+  contextMenuSubHeader: {
+    marginTop: 8,
+    marginBottom: 4,
+    paddingHorizontal: 16,
+  },
+  contextMenuSubTitle: {
+    fontSize: 11,
+    color: colors.textSecondary || '#757575',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   feedbackContainer: {
     paddingHorizontal: 16,
@@ -1843,6 +1649,13 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
     alignItems: 'center',
   },
   blacklistModal: {
+    backgroundColor: colors.surface || '#FFFFFF',
+    borderRadius: 10,
+    padding: 16,
+    width: '90%',
+    maxWidth: 400,
+  },
+  noteModal: {
     backgroundColor: colors.surface || '#FFFFFF',
     borderRadius: 10,
     padding: 16,
@@ -1886,6 +1699,16 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
     color: colors.text || '#212121',
   },
   blacklistInput: {
+    borderWidth: 1,
+    borderColor: colors.border || '#E0E0E0',
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 14,
+    color: colors.text || '#212121',
+    backgroundColor: colors.surface || '#FFFFFF',
+    marginBottom: 10,
+  },
+  noteInput: {
     borderWidth: 1,
     borderColor: colors.border || '#E0E0E0',
     borderRadius: 6,

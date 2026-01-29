@@ -241,8 +241,17 @@ class ScriptingService {
   async installBuiltIns(scripts: ScriptConfig[]) {
     // Replace any existing built-ins with fresh versions
     const builtInIds = new Set(scripts.map(s => s.id));
+    const existingBuiltIns = this.scripts.filter(s => s.builtIn && builtInIds.has(s.id));
     this.scripts = this.scripts.filter(s => !(s.builtIn && builtInIds.has(s.id)));
-    scripts.forEach(s => this.scripts.push(this.compile(s)));
+    scripts.forEach(s => {
+      const existing = existingBuiltIns.find(prev => prev.id === s.id);
+      const merged: ScriptConfig = {
+        ...s,
+        enabled: existing?.enabled ?? s.enabled,
+        config: existing?.config ?? s.config,
+      };
+      this.scripts.push(this.compile(merged));
+    });
     await this.save();
   }
 

@@ -21,11 +21,11 @@ import {
   ThemeColors,
   ThemeMessageFormats,
 } from '../services/ThemeService';
+import { ColorPalettePicker } from '../components/ColorPalettePicker';
 import {
   AVAILABLE_MESSAGE_FORMAT_TOKENS,
   getDefaultMessageFormats,
 } from '../utils/MessageFormatDefaults';
-import { IRC_EXTENDED_COLOR_MAP, IRC_STANDARD_COLOR_MAP } from '../utils/IRCFormatter';
 
 interface MessageFormatEditorScreenProps {
   visible: boolean;
@@ -107,7 +107,7 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
   const [editState, setEditState] = useState<EditState | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorTarget, setColorTarget] = useState<ColorTarget>('color');
-  const [colorMode, setColorMode] = useState<'standard' | 'extended' | 'custom'>('standard');
+  const [colorMode, setColorMode] = useState<'palette' | 'custom'>('palette');
   const [customColor, setCustomColor] = useState('#FFFFFF');
 
   useEffect(() => {
@@ -123,7 +123,18 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
       { key: 'action', title: t('Action (/me) message format') },
       { key: 'actionMention', title: t('Action (/me) message with mention format') },
       { key: 'notice', title: t('Notice message format') },
-      { key: 'event', title: t('Event (join/leave/etc.) message format') },
+      { key: 'join', title: t('Join message format') },
+      { key: 'part', title: t('Part message format') },
+      { key: 'quit', title: t('Quit message format') },
+      { key: 'nick', title: t('Nick change message format') },
+      { key: 'invite', title: t('Invite message format') },
+      { key: 'monitor', title: t('Monitor message format') },
+      { key: 'mode', title: t('Mode message format') },
+      { key: 'topic', title: t('Topic message format') },
+      { key: 'raw', title: t('Raw message format') },
+      { key: 'error', title: t('Error message format') },
+      { key: 'ctcp', title: t('CTCP message format') },
+      { key: 'event', title: t('Event (fallback) message format') },
     ],
     [t],
   );
@@ -132,6 +143,8 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
     () => ({
       time: t('time'),
       nick: t('sender'),
+      oldnick: t('old nick'),
+      newnick: t('new nick'),
       message: t('message'),
       channel: t('channel'),
       network: t('network'),
@@ -154,6 +167,8 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
       message: {
         time: '12:00',
         nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
         message: t('This is an example message.'),
         channel: '#example',
         network: 'Network',
@@ -171,6 +186,8 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
       messageMention: {
         time: '12:00',
         nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
         message: t('This is an example message.'),
         channel: '#example',
         network: 'Network',
@@ -188,6 +205,8 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
       action: {
         time: '12:00',
         nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
         message: t('does an example action'),
         channel: '#example',
         network: 'Network',
@@ -205,6 +224,8 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
       actionMention: {
         time: '12:00',
         nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
         message: t('does an example action'),
         channel: '#example',
         network: 'Network',
@@ -222,6 +243,8 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
       notice: {
         time: '12:00',
         nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
         message: t('This is an example message.'),
         channel: '#example',
         network: 'Network',
@@ -236,9 +259,220 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
         numeric: '001',
         command: 'NOTICE',
       },
+      join: {
+        time: '12:00',
+        nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('sender-nick joined #example'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'sender-nick!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'JOIN',
+      },
+      part: {
+        time: '12:00',
+        nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('sender-nick left #example: Example reason'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'sender-nick!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'PART',
+      },
+      quit: {
+        time: '12:00',
+        nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('sender-nick quit: Example reason'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'sender-nick!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'QUIT',
+      },
+      nick: {
+        time: '12:00',
+        nick: 'old-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('old-nick is now known as new-nick'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'old-nick!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'NICK',
+      },
+      invite: {
+        time: '12:00',
+        nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('sender-nick invited you to #example'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'sender-nick!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'INVITE',
+      },
+      monitor: {
+        time: '12:00',
+        nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('sender-nick is now online'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'sender-nick!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'MONITOR',
+      },
+      mode: {
+        time: '12:00',
+        nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('sender-nick set mode +o other-nick'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'sender-nick!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'MODE',
+      },
+      topic: {
+        time: '12:00',
+        nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('sender-nick changed topic to: Example topic'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'sender-nick!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'TOPIC',
+      },
+      raw: {
+        time: '12:00',
+        nick: 'server',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('*** RAW Command: PING :example'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'server!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'RAW',
+      },
+      error: {
+        time: '12:00',
+        nick: 'server',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('*** Connection error [000]: Example error'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'server!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'ERROR',
+      },
+      ctcp: {
+        time: '12:00',
+        nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
+        message: t('CTCP VERSION request'),
+        channel: '#example',
+        network: 'Network',
+        account: 'account',
+        username: 'user',
+        hostname: 'host.test',
+        hostmask: 'sender-nick!user@host.test',
+        target: '#example',
+        mode: '+o',
+        topic: t('Example topic'),
+        reason: t('Example reason'),
+        numeric: '001',
+        command: 'CTCP',
+      },
       event: {
         time: '12:00',
         nick: 'sender-nick',
+        oldnick: 'old-nick',
+        newnick: 'new-nick',
         message: t('[sender-nick!user@host.test has joined]'),
         channel: '#example',
         network: 'Network',
@@ -343,6 +577,7 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
 
   const openColorPicker = (target: ColorTarget) => {
     setColorTarget(target);
+    setColorMode('palette');
     setShowColorPicker(true);
   };
 
@@ -746,36 +981,18 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                   style={[
                     styles.toggleButton,
                     {
-                      backgroundColor: colorMode === 'standard' ? colors.primary : colors.surfaceVariant,
+                      backgroundColor: colorMode === 'palette' ? colors.primary : colors.surfaceVariant,
                     },
                   ]}
-                  onPress={() => setColorMode('standard')}
+                  onPress={() => setColorMode('palette')}
                 >
                   <Text
                     style={[
                       styles.toggleText,
-                      { color: colorMode === 'standard' ? colors.onPrimary : colors.text },
+                      { color: colorMode === 'palette' ? colors.onPrimary : colors.text },
                     ]}
                   >
-                    {t('Standard')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.toggleButton,
-                    {
-                      backgroundColor: colorMode === 'extended' ? colors.primary : colors.surfaceVariant,
-                    },
-                  ]}
-                  onPress={() => setColorMode('extended')}
-                >
-                  <Text
-                    style={[
-                      styles.toggleText,
-                      { color: colorMode === 'extended' ? colors.onPrimary : colors.text },
-                    ]}
-                  >
-                    {t('Extended')}
+                    {t('Palette')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -810,43 +1027,37 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                   placeholderTextColor={colors.textSecondary}
                 />
               ) : (
-                <ScrollView contentContainerStyle={styles.paletteGrid}>
-                  {Object.entries(colorMode === 'standard' ? IRC_STANDARD_COLOR_MAP : IRC_EXTENDED_COLOR_MAP).map(
-                    ([key, value]) => (
-                      <TouchableOpacity
-                        key={`${colorMode}-${key}`}
-                        style={[styles.paletteSwatch, { backgroundColor: value }]}
-                        onPress={() => applyColor(value)}
-                      />
-                    ),
-                  )}
-                </ScrollView>
+                <ColorPalettePicker
+                  colors={colors}
+                  outputMode="hex"
+                  targetMode="single"
+                  onInsert={applyColor}
+                  onClear={clearColor}
+                  insertLabel={t('Apply')}
+                  clearLabel={t('Clear')}
+                />
               )}
 
-              <View style={styles.editorRow}>
-                <TouchableOpacity
-                  style={[styles.secondaryButton, { backgroundColor: colors.surfaceVariant }]}
-                  onPress={clearColor}
-                >
-                  <Text style={[styles.secondaryButtonText, { color: colors.text }]}>
-                    {t('Clear')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.primaryButton, { backgroundColor: colors.primary }]}
-                  onPress={() => {
-                    if (colorMode === 'custom') {
-                      applyColor(customColor.trim());
-                      return;
-                    }
-                    setShowColorPicker(false);
-                  }}
-                >
-                  <Text style={[styles.primaryButtonText, { color: colors.onPrimary }]}>
-                    {t('Apply')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              {colorMode === 'custom' && (
+                <View style={styles.editorRow}>
+                  <TouchableOpacity
+                    style={[styles.secondaryButton, { backgroundColor: colors.surfaceVariant }]}
+                    onPress={clearColor}
+                  >
+                    <Text style={[styles.secondaryButtonText, { color: colors.text }]}>
+                      {t('Clear')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.primaryButton, { backgroundColor: colors.primary }]}
+                    onPress={() => applyColor(customColor.trim())}
+                  >
+                    <Text style={[styles.primaryButtonText, { color: colors.onPrimary }]}>
+                      {t('Apply')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
         </Modal>
@@ -1041,18 +1252,6 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 13,
     fontWeight: '700',
-  },
-  paletteGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingBottom: 12,
-  },
-  paletteSwatch: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    marginRight: 8,
-    marginBottom: 8,
   },
   previewRow: {
     flexDirection: 'row',

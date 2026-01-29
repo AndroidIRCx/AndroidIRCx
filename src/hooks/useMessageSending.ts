@@ -13,7 +13,9 @@ import { offlineQueueService } from '../services/OfflineQueueService';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { messageHistoryService } from '../services/MessageHistoryService';
+import { settingsService } from '../services/SettingsService';
 import { useTabStore } from '../stores/tabStore';
+import { applyDecoration } from '../utils/DecorationFormatter';
 
 interface UseMessageSendingParams {
   isConnected: boolean;
@@ -63,8 +65,30 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
       activeTab.name.startsWith('!');
     const isPrivateTarget = activeTab.type === 'query' || (!isChannelTarget && activeTab.type !== 'server' && activeTab.type !== 'dcc');
 
+    let outgoingMessage = message;
+    if (!message.trim().startsWith('/')) {
+      const decorEnabled = await settingsService.getSetting('decorEnabled', false);
+      if (decorEnabled) {
+        const decorUseColors = await settingsService.getSetting('decorUseColors', true);
+        const decorBold = await settingsService.getSetting('decorBold', false);
+        const decorUnderline = await settingsService.getSetting('decorUnderline', false);
+        const decorTextStyleId = await settingsService.getSetting('decorTextStyleId', '');
+        const decorColorStyleId = await settingsService.getSetting('decorColorStyleId', '');
+        const decorAdornmentId = await settingsService.getSetting('decorAdornmentId', '');
+        outgoingMessage = applyDecoration(outgoingMessage, {
+          enabled: true,
+          useColors: decorUseColors,
+          bold: decorBold,
+          underline: decorUnderline,
+          textStyleId: decorTextStyleId,
+          colorStyleId: decorColorStyleId,
+          adornmentId: decorAdornmentId,
+        });
+      }
+    }
+
     // Process command through command service (handles /quote, aliases, custom commands)
-    const processedCommand = await activeCommandService.processCommand(message, activeTab.name);
+    const processedCommand = await activeCommandService.processCommand(outgoingMessage, activeTab.name);
 
     // If activeCommandService.processCommand returns null, it means it handled the command internally (e.g., /quote)
     // and no further processing is needed for this message.
@@ -75,7 +99,7 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
     }
 
     // Use processed command or original message if it's not a command
-    let commandToSend = (processedCommand !== null && processedCommand.startsWith('/')) ? processedCommand : message;
+    let commandToSend = (processedCommand !== null && processedCommand.startsWith('/')) ? processedCommand : outgoingMessage;
 
     // Run scripting on outgoing commands (aliases / automation)
     const scripted = scriptingService.processOutgoingCommand(commandToSend, { channel: activeTab.name, networkId: activeTab.networkId });

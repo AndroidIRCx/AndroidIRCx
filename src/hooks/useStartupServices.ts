@@ -27,7 +27,10 @@ import { performanceService } from '../services/PerformanceService';
 import { themeService } from '../services/ThemeService';
 import { scriptingService } from '../services/ScriptingService';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
-import { settingsService, DEFAULT_QUIT_MESSAGE } from '../services/SettingsService';
+import { NEW_FEATURE_DEFAULTS, settingsService, DEFAULT_QUIT_MESSAGE } from '../services/SettingsService';
+import { awayService } from '../services/AwayService';
+import { protectionService } from '../services/ProtectionService';
+import { presetImportService } from '../services/PresetImportService';
 
 export const useStartupServices = () => {
   useEffect(() => {
@@ -113,6 +116,72 @@ export const useStartupServices = () => {
 
   useEffect(() => {
     performanceService.initialize();
+  }, []);
+
+  useEffect(() => {
+    awayService.initialize();
+  }, []);
+
+  useEffect(() => {
+    const seedDefaults = async () => {
+      try {
+        const [
+          spamPmKeywords,
+          dccAcceptExts,
+          dccRejectExts,
+          dccDontSendExts,
+        ] = await Promise.all([
+          settingsService.getSetting('spamPmKeywords', NEW_FEATURE_DEFAULTS.spamPmKeywords),
+          settingsService.getSetting('dccAcceptExts', NEW_FEATURE_DEFAULTS.dccAcceptExts),
+          settingsService.getSetting('dccRejectExts', NEW_FEATURE_DEFAULTS.dccRejectExts),
+          settingsService.getSetting('dccDontSendExts', NEW_FEATURE_DEFAULTS.dccDontSendExts),
+        ]);
+
+        const mergeUnique = (existing: string[], defaults: string[]) => {
+          const seen = new Set(existing);
+          const merged = [...existing];
+          defaults.forEach((entry) => {
+            if (!seen.has(entry)) {
+              merged.push(entry);
+              seen.add(entry);
+            }
+          });
+          return merged;
+        };
+
+        const nextSpam = mergeUnique(spamPmKeywords || [], NEW_FEATURE_DEFAULTS.spamPmKeywords);
+        if (nextSpam.length !== (spamPmKeywords || []).length) {
+          await settingsService.setSetting('spamPmKeywords', nextSpam);
+        }
+
+        const nextAccept = mergeUnique(dccAcceptExts || [], NEW_FEATURE_DEFAULTS.dccAcceptExts);
+        if (nextAccept.length !== (dccAcceptExts || []).length) {
+          await settingsService.setSetting('dccAcceptExts', nextAccept);
+        }
+
+        const nextReject = mergeUnique(dccRejectExts || [], NEW_FEATURE_DEFAULTS.dccRejectExts);
+        if (nextReject.length !== (dccRejectExts || []).length) {
+          await settingsService.setSetting('dccRejectExts', nextReject);
+        }
+
+        const nextDontSend = mergeUnique(dccDontSendExts || [], NEW_FEATURE_DEFAULTS.dccDontSendExts);
+        if (nextDontSend.length !== (dccDontSendExts || []).length) {
+          await settingsService.setSetting('dccDontSendExts', nextDontSend);
+        }
+      } catch (error) {
+        console.error('Error seeding default spam/DCC lists:', error);
+      }
+    };
+
+    seedDefaults();
+  }, []);
+
+  useEffect(() => {
+    protectionService.initialize();
+  }, []);
+
+  useEffect(() => {
+    presetImportService.initialize();
   }, []);
 
   useEffect(() => {

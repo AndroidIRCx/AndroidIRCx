@@ -13,6 +13,7 @@ import { scriptingService } from '../services/ScriptingService';
 import { tabService } from '../services/TabService';
 import { messageHistoryService } from '../services/MessageHistoryService';
 import { autoReconnectService } from '../services/AutoReconnectService';
+import { channelFavoritesService } from '../services/ChannelFavoritesService';
 import { logger } from '../services/Logger';
 import { errorReportingService } from '../services/ErrorReportingService';
 import { useUIStore } from '../stores/uiStore';
@@ -313,14 +314,15 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
       // Save connection state and enable auto-reconnect for this network
       if (networkToUse.name) {
         const channels: string[] = [];
-        // Get channels from tabs - ONLY for this specific network
-        // This prevents saving channels from other networks when connecting to a new network
-        tabsRef.current.forEach(tab => {
-          if (tab.type === 'channel' && tab.name.startsWith('#') && tab.networkId === finalId) {
-            channels.push(tab.name);
+        const autoJoinFavoritesEnabled = await settingsService.getSetting('autoJoinFavorites', true);
+        const favorites = autoJoinFavoritesEnabled
+          ? channelFavoritesService.getFavorites(networkToUse.name)
+          : [];
+        favorites.forEach(fav => {
+          if (!channels.includes(fav.name)) {
+            channels.push(fav.name);
           }
         });
-        // Add auto-join channels
         if (networkToUse.autoJoinChannels) {
           networkToUse.autoJoinChannels.forEach(ch => {
             if (!channels.includes(ch)) {

@@ -9,7 +9,7 @@ import { IRCMessage, ChannelUser } from '../services/IRCService';
 import { connectionManager } from '../services/ConnectionManager';
 import { ircService } from '../services/IRCService';
 import { userManagementService } from '../services/UserManagementService';
-import { settingsService } from '../services/SettingsService';
+import { NEW_FEATURE_DEFAULTS, settingsService } from '../services/SettingsService';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { offlineQueueService } from '../services/OfflineQueueService';
@@ -28,6 +28,25 @@ import { messageHistoryService } from '../services/MessageHistoryService';
 import { serverTabId, channelTabId, queryTabId, noticeTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
 import { useT } from '../i18n/transifex';
 import type { ChannelTab } from '../types';
+
+const normalizePattern = (pattern: string) =>
+  pattern.trim().toLowerCase();
+
+const matchWildcard = (filename: string, pattern: string): boolean => {
+  if (!pattern) return false;
+  const escaped = pattern
+    .toLowerCase()
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '.*')
+    .replace(/\?/g, '.');
+  const re = new RegExp(`^${escaped}$`, 'i');
+  return re.test(filename.toLowerCase());
+};
+
+const matchesAnyPattern = (filename: string, patterns: string[]) => {
+  if (!patterns.length) return false;
+  return patterns.some(p => matchWildcard(filename, normalizePattern(p)));
+};
 
 interface UseConnectionLifecycleParams {
   processBatchedMessages: () => void;
@@ -289,19 +308,68 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         const dccInvite = dccChatService.parseDccChatInvite(message.text);
         if (dccInvite && message.from) {
           const session = dccChatService.handleIncomingInvite(message.from, messageNetwork, dccInvite.host, dccInvite.port);
-          latest.safeAlert(
-            latest.t('DCC Chat Request'),
-            latest.t('{from} wants to start a DCC chat. Accept?').replace('{from}', message.from),
-            [
-              { text: latest.t('Decline'), style: 'cancel', onPress: () => dccChatService.closeSession(session.id) },
-              { text: latest.t('Accept'), onPress: () => dccChatService.acceptInvite(session.id, activeIRCService) },
-            ]
-          );
+          const autoChatFrom = await settingsService.getSetting('dccAutoChatFrom', 1);
+          if (autoChatFrom > 1) {
+            dccChatService.acceptInvite(session.id, activeIRCService);
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** DCC CHAT from {from} auto-accepted', { from: message.from }),
+              timestamp: Date.now(),
+            });
+          } else {
+            latest.safeAlert(
+              latest.t('DCC Chat Request'),
+              latest.t('{from} wants to start a DCC chat. Accept?').replace('{from}', message.from),
+              [
+                { text: latest.t('Decline'), style: 'cancel', onPress: () => dccChatService.closeSession(session.id) },
+                { text: latest.t('Accept'), onPress: () => dccChatService.acceptInvite(session.id, activeIRCService) },
+              ]
+            );
+          }
         }
         // Handle DCC SEND offers
         const dccSend = dccFileService.parseSendOffer(message.text);
         if (dccSend && message.from) {
           const transfer = dccFileService.handleOffer(message.from, messageNetwork, dccSend);
+          const autoMode = await settingsService.getSetting('dccAutoGetMode', 'accept');
+          const acceptExts = await settingsService.getSetting('dccAcceptExts', NEW_FEATURE_DEFAULTS.dccAcceptExts);
+          const rejectExts = await settingsService.getSetting('dccRejectExts', NEW_FEATURE_DEFAULTS.dccRejectExts);
+          const dontSendExts = await settingsService.getSetting('dccDontSendExts', NEW_FEATURE_DEFAULTS.dccDontSendExts);
+          const autoGetFrom = await settingsService.getSetting('dccAutoGetFrom', 1);
+          const filename = dccSend.filename || '';
+          const allowAuto = Number(autoGetFrom) > 1;
+          let action: 'accept' | 'reject' | 'prompt' = 'prompt';
+          if (matchesAnyPattern(filename, dontSendExts)) {
+            action = 'reject';
+          } else if (matchesAnyPattern(filename, rejectExts)) {
+            action = 'reject';
+          } else if (matchesAnyPattern(filename, acceptExts)) {
+            action = 'accept';
+          } else if (allowAuto) {
+            if (autoMode === 'accept') action = 'accept';
+            if (autoMode === 'reject' || autoMode === 'dont_send') action = 'reject';
+          }
+
+          if (action === 'accept') {
+            const downloadPath = await dccFileService.getDefaultDownloadPath(dccSend.filename);
+            await dccFileService.accept(transfer.id, activeIRCService, downloadPath);
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** DCC SEND offer from {from}: {filename} - Auto-accepted', { from: message.from, filename: dccSend.filename }),
+              timestamp: Date.now(),
+            });
+            return;
+          }
+
+          if (action === 'reject') {
+            dccFileService.cancel(transfer.id);
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** DCC SEND offer from {from}: {filename} - Rejected by filters', { from: message.from, filename: dccSend.filename }),
+              timestamp: Date.now(),
+            });
+            return;
+          }
           latest.safeAlert(
             latest.t('DCC SEND Offer'),
             latest.t('{from} offers "{filename}" ({size} bytes). Accept?')

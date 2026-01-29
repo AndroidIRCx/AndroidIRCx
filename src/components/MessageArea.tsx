@@ -16,7 +16,14 @@ import {
   Animated,
   PanResponder,
   TextStyle,
+  Alert,
 } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
+import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
+import Share from 'react-native-share';
+import RNFS from 'react-native-fs';
+import { pick, types, errorCodes, isErrorWithCode } from '@react-native-documents/picker';
+import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { IRCMessage, RawMessageCategory, ChannelUser } from '../services/IRCService';
 import { useTheme } from '../hooks/useTheme';
@@ -36,11 +43,20 @@ import { AudioPlayer } from './AudioPlayer';
 import { userManagementService, BlacklistActionType } from '../services/UserManagementService';
 import { dccChatService } from '../services/DCCChatService';
 import { ircService } from '../services/IRCService';
+import { encryptedDMService } from '../services/EncryptedDMService';
+import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { formatIRCTextAsComponent, formatIRCTextWithLinks } from '../utils/IRCFormatter';
 import { MessageSearchBar, MessageSearchFilters } from './MessageSearchBar';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { NickContextMenu } from './NickContextMenu';
 import { settingsService } from '../services/SettingsService';
 import { MessageFormatPart, MessageFormatStyle, ThemeMessageFormats } from '../services/ThemeService';
+import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
+import { useTabStore } from '../stores/tabStore';
+import { queryTabId, sortTabsGrouped } from '../utils/tabUtils';
+import { soundService } from '../services/SoundService';
+import { SoundEventType } from '../types/sound';
+import { useUIStore } from '../stores/uiStore';
 
 interface MessageAreaProps {
   messages: IRCMessage[];
@@ -165,13 +181,15 @@ const MessageItem = React.memo<MessageItemProps>(({
       case 'error':
         return colors.error;
       case 'notice':
-        return colors.warning;
+        return colors.noticeMessage || colors.warning;
       case 'join':
         return colors.joinMessage;
       case 'part':
         return colors.partMessage;
       case 'quit':
         return colors.quitMessage;
+      case 'nick':
+        return colors.nickMessage || colors.info;
       case 'invite':
         return colors.inviteMessage;
       case 'monitor':
@@ -181,7 +199,9 @@ const MessageItem = React.memo<MessageItemProps>(({
       case 'mode':
         return colors.modeMessage || '#5DADE2'; // Light blue color for mode messages
       case 'raw':
-        return colors.textSecondary;
+        return colors.rawMessage || colors.textSecondary;
+      case 'ctcp':
+        return colors.ctcpMessage || colors.info;
       default:
         return colors.messageText;
     }
@@ -275,28 +295,66 @@ const MessageItem = React.memo<MessageItemProps>(({
     timestampDisplay === 'always' ||
     (timestampDisplay === 'grouped' && !isGrouped);
 
+  const normalizedMessageFormats = useMemo(
+    () => (messageFormats ? { ...getDefaultMessageFormats(), ...messageFormats } : null),
+    [messageFormats],
+  );
+
   const formatParts = useMemo(() => {
-    if (!messageFormats) {
+    if (!normalizedMessageFormats) {
       return null;
     }
 
     if (message.type === 'message') {
       if (actionText !== null) {
-        return isHighlighted ? messageFormats.actionMention : messageFormats.action;
+        return isHighlighted ? normalizedMessageFormats.actionMention : normalizedMessageFormats.action;
       }
-      return isHighlighted ? messageFormats.messageMention : messageFormats.message;
+      return isHighlighted ? normalizedMessageFormats.messageMention : normalizedMessageFormats.message;
     }
 
     if (message.type === 'notice') {
-      return messageFormats.notice;
+      return normalizedMessageFormats.notice;
     }
 
+    if (message.type === 'join') {
+      return normalizedMessageFormats.join;
+    }
+    if (message.type === 'part') {
+      return normalizedMessageFormats.part;
+    }
+    if (message.type === 'quit') {
+      return normalizedMessageFormats.quit;
+    }
+    if (message.type === 'nick') {
+      return normalizedMessageFormats.nick;
+    }
+    if (message.type === 'invite') {
+      return normalizedMessageFormats.invite;
+    }
+    if (message.type === 'monitor') {
+      return normalizedMessageFormats.monitor;
+    }
+    if (message.type === 'mode') {
+      return normalizedMessageFormats.mode;
+    }
+    if (message.type === 'topic') {
+      return normalizedMessageFormats.topic;
+    }
+    if (message.type === 'raw') {
+      return normalizedMessageFormats.raw;
+    }
+    if (message.type === 'error') {
+      return normalizedMessageFormats.error;
+    }
+    if (message.type === 'ctcp') {
+      return normalizedMessageFormats.ctcp;
+    }
     if (['join', 'part', 'quit', 'invite', 'monitor', 'mode', 'topic'].includes(message.type)) {
-      return messageFormats.event;
+      return normalizedMessageFormats.event;
     }
 
     return null;
-  }, [messageFormats, message.type, isHighlighted, actionText]);
+  }, [normalizedMessageFormats, message.type, isHighlighted, actionText]);
 
   const baseLineColor =
     message.type === 'message'
@@ -406,6 +464,8 @@ const MessageItem = React.memo<MessageItemProps>(({
       const tokenValues: Record<string, string> = {
         time: shouldShowTimestamp ? formatTimestamp(message.timestamp) : '',
         nick: !isGrouped ? message.from || '' : '',
+        oldnick: message.oldNick || '',
+        newnick: message.newNick || '',
         message: actionText !== null ? actionText : message.text,
         channel: message.channel || channel || '',
         network: message.network || network || '',
@@ -782,11 +842,38 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const [blacklistMaskChoice, setBlacklistMaskChoice] = useState<string>('nick');
   const [blacklistReason, setBlacklistReason] = useState('');
   const [blacklistCustomCommand, setBlacklistCustomCommand] = useState('');
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [showKeyQr, setShowKeyQr] = useState(false);
+  const [qrPayload, setQrPayload] = useState<string | null>(null);
+  const [qrType, setQrType] = useState<'bundle' | 'fingerprint'>('bundle');
+  const [showKeyScan, setShowKeyScan] = useState(false);
+  const [scanError, setScanError] = useState('');
+  const [allowQrVerification, setAllowQrVerification] = useState(true);
+  const [allowFileExchange, setAllowFileExchange] = useState(true);
+  const [allowNfcExchange, setAllowNfcExchange] = useState(true);
+  const [tabSortAlphabetical, setTabSortAlphabetical] = useState(true);
+  const [isServerOper, setIsServerOper] = useState(false);
   const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
   const [copyStatus, setCopyStatus] = useState('');
   const selectionMode = selectedMessageIds.size > 0;
   const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+  const device = useCameraDevice('back');
+  const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } = useCameraPermission();
+  const scanHandledRef = useRef(false);
+  const codeScanner = useCodeScanner({
+    codeTypes: ['qr'],
+    onCodeScanned: (codes) => {
+      if (!showKeyScan || scanHandledRef.current) return;
+      const code = codes[0]?.value || codes[0]?.rawValue;
+      if (!code) return;
+      scanHandledRef.current = true;
+      setShowKeyScan(false);
+      setScanError('');
+      handleExternalPayload(code);
+    },
+  });
   const selectionBarPan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const selectionBarPanResponder = useRef(
     PanResponder.create({
@@ -861,8 +948,58 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      const qr = await settingsService.getSetting('securityAllowQrVerification', true);
+      const file = await settingsService.getSetting('securityAllowFileExchange', true);
+      const nfc = await settingsService.getSetting('securityAllowNfcExchange', true);
+      if (mounted) {
+        setAllowQrVerification(qr);
+        setAllowFileExchange(file);
+        setAllowNfcExchange(nfc);
+      }
+    };
+    load();
+    const unsubQr = settingsService.onSettingChange('securityAllowQrVerification', (v) => setAllowQrVerification(Boolean(v)));
+    const unsubFile = settingsService.onSettingChange('securityAllowFileExchange', (v) => setAllowFileExchange(Boolean(v)));
+    const unsubNfc = settingsService.onSettingChange('securityAllowNfcExchange', (v) => setAllowNfcExchange(Boolean(v)));
+    return () => {
+      mounted = false;
+      unsubQr();
+      unsubFile();
+      unsubNfc();
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadSort = async () => {
+      const sort = await settingsService.getSetting('tabSortAlphabetical', true);
+      if (mounted) setTabSortAlphabetical(Boolean(sort));
+    };
+    loadSort();
+    const unsub = settingsService.onSettingChange('tabSortAlphabetical', (value) => {
+      setTabSortAlphabetical(Boolean(value));
+    });
+    return () => {
+      mounted = false;
+      unsub();
+    };
+  }, []);
+
+  useEffect(() => {
+    const oper = typeof activeIrc?.isServerOper === 'function' ? activeIrc.isServerOper() : false;
+    setIsServerOper(oper);
+  }, [activeIrc]);
+
   const connection = network ? connectionManager.getConnection(network) : null;
   const currentNick = connection?.ircService.getCurrentNick() || '';
+  const tabs = useTabStore(state => state.tabs);
+  const setTabs = useTabStore(state => state.setTabs);
+  const setActiveTabId = useTabStore(state => state.setActiveTabId);
+  const getTabById = useTabStore(state => state.getTabById);
+  const activeTab = tabId ? getTabById(tabId) : undefined;
   const resolveContextUser = useCallback((nick: string | null) => {
     if (!nick || !channel) return null;
     if (channelUsers && channelUsers.length > 0) {
@@ -913,16 +1050,356 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     const local = net && stored?.[net] ? stored[net] : {};
     return (local?.[action] || global?.[action] || base[action] || '') as string;
   }, []);
-  const handleNickAction = useCallback((action: string) => {
+
+  const activeIrc = connection?.ircService || ircService;
+
+  const getNetworkForStorage = useCallback((): string => {
+    return network || activeIrc.getNetworkName() || 'default';
+  }, [network, activeIrc]);
+
+  const handleExternalPayload = useCallback(async (raw: string) => {
+    if (!contextNick) {
+      Alert.alert(t('Error'), t('Select a user first'));
+      return;
+    }
+    try {
+      const payload = encryptedDMService.parseExternalPayload(raw);
+      const targetNick = contextNick;
+      if (payload.nick && payload.nick.toLowerCase() !== targetNick.toLowerCase()) {
+        Alert.alert(
+          t('Mismatched Nick'),
+          t('This payload is for {payloadNick}, but you selected {targetNick}.')
+            .replace('{payloadNick}', payload.nick)
+            .replace('{targetNick}', targetNick),
+          [{ text: t('OK'), style: 'cancel' }]
+        );
+        return;
+      }
+
+      if (payload.type === 'encdm-fingerprint') {
+        const storageNetwork = getNetworkForStorage();
+        const currentFp = await encryptedDMService.getBundleFingerprintForNetwork(storageNetwork, targetNick);
+        if (!currentFp) {
+          Alert.alert(t('No Key'), t('No DM key stored for {nick}.').replace('{nick}', targetNick));
+          return;
+        }
+        const currentDisplay = encryptedDMService.formatFingerprintForDisplay(currentFp);
+        const incomingDisplay = encryptedDMService.formatFingerprintForDisplay(payload.fingerprint);
+        const matches = currentFp === payload.fingerprint;
+        Alert.alert(
+          t('Fingerprint Check'),
+          t('Stored: {stored}\nScanned: {scanned}\n\n{result}')
+            .replace('{stored}', currentDisplay)
+            .replace('{scanned}', incomingDisplay)
+            .replace('{result}', matches ? t('Match ✅') : t('Mismatch ⚠️')),
+          matches
+            ? [
+                {
+                  text: t('Mark Verified'),
+                  onPress: async () => {
+                    await encryptedDMService.setVerifiedForNetwork(storageNetwork, targetNick, true);
+                  },
+                },
+                { text: t('Close'), style: 'cancel' },
+              ]
+            : [{ text: t('Close'), style: 'cancel' }]
+        );
+        return;
+      }
+
+      encryptedDMService.verifyBundle(payload.bundle);
+      const storageNetwork = getNetworkForStorage();
+      const existingFp = await encryptedDMService.getBundleFingerprintForNetwork(storageNetwork, targetNick);
+      const newDisplay = encryptedDMService.formatFingerprintForDisplay(payload.fingerprint);
+      const oldDisplay = existingFp
+        ? encryptedDMService.formatFingerprintForDisplay(existingFp)
+        : t('None');
+      const isChange = Boolean(existingFp && existingFp !== payload.fingerprint);
+      Alert.alert(
+        isChange ? t('Replace DM Key') : t('Import DM Key'),
+        isChange
+          ? t('Existing: {old}\nNew: {new}\n\nOnly replace if verified out-of-band.')
+              .replace('{old}', oldDisplay)
+              .replace('{new}', newDisplay)
+          : t('Fingerprint: {fp}\n\nAccept this key for {nick}?')
+              .replace('{fp}', newDisplay)
+              .replace('{nick}', targetNick),
+        [
+          { text: t('Cancel'), style: 'cancel' },
+          {
+            text: isChange ? t('Replace') : t('Accept'),
+            onPress: async () => {
+              await encryptedDMService.acceptExternalBundleForNetwork(storageNetwork, targetNick, payload.bundle, isChange);
+              setTimeout(() => {
+                Alert.alert(
+                  t('Share Your Key?'),
+                  t('You imported {nick}\'s key offline. For encrypted chat to work both ways, {nick} also needs your key.\n\n💡 Show your QR code for them to scan (no server messages)')
+                    .replace(/{nick}/g, targetNick),
+                  [
+                    { text: t('Later'), style: 'cancel' },
+                    {
+                      text: t('Show QR Code'),
+                      onPress: async () => {
+                        try {
+                          const selfNick = activeIrc.getCurrentNick();
+                          const sharePayload = await encryptedDMService.exportBundlePayload(selfNick);
+                          setQrPayload(sharePayload);
+                          setQrType('bundle');
+                          setShowKeyQr(true);
+                        } catch {
+                          Alert.alert(t('Error'), t('Failed to generate QR'));
+                        }
+                      },
+                    },
+                  ]
+                );
+              }, 500);
+            },
+          },
+        ]
+      );
+    } catch {
+      Alert.alert(t('Error'), t('Invalid key payload'));
+    }
+  }, [activeIrc, contextNick, getNetworkForStorage, t]);
+  const handleNickAction = useCallback(async (action: string) => {
     if (!contextNick) return;
-    const activeIrc: any = connection?.ircService || ircService;
     const selectedUser = resolveContextUser(contextNick);
+    const currentNetwork = network || activeTab?.networkId || activeIrc.getNetworkName();
     switch (action) {
       case 'whois':
         activeIrc.sendCommand(`WHOIS ${contextNick}`);
         break;
+      case 'query': {
+        if (!currentNetwork) break;
+        const queryId = queryTabId(currentNetwork, contextNick);
+        const existingTab = tabs.find(t => t.id === queryId && t.type === 'query');
+        if (existingTab) {
+          setActiveTabId(existingTab.id);
+        } else {
+          const isEncrypted = await encryptedDMService.isEncryptedForNetwork(currentNetwork, contextNick);
+          const newQueryTab = {
+            id: queryId,
+            name: contextNick,
+            type: 'query',
+            networkId: currentNetwork,
+            messages: [],
+            isEncrypted,
+          };
+          setTabs(prev => sortTabsGrouped([...prev, newQueryTab], tabSortAlphabetical));
+          soundService.playSound(SoundEventType.RING);
+          setActiveTabId(newQueryTab.id);
+        }
+        break;
+      }
       case 'copy':
         Clipboard.setString(contextNick);
+        break;
+      case 'enc_share':
+        try {
+          const bundle = await encryptedDMService.exportBundle();
+          activeIrc.sendRaw(`PRIVMSG ${contextNick} :!enc-offer ${JSON.stringify(bundle)}`);
+        } catch {
+          Alert.alert(t('Error'), t('Failed to share key'));
+        }
+        break;
+      case 'enc_request':
+        activeIrc.sendRaw(`PRIVMSG ${contextNick} :!enc-req`);
+        encryptedDMService.awaitBundleForNick(contextNick, 36000).catch(() => {});
+        break;
+      case 'enc_qr_show_fingerprint':
+        try {
+          const selfNick = activeIrc.getCurrentNick();
+          const payload = await encryptedDMService.exportFingerprintPayload(selfNick);
+          setQrPayload(payload);
+          setQrType('fingerprint');
+          setShowKeyQr(true);
+        } catch {
+          Alert.alert(t('Error'), t('Failed to generate QR'));
+        }
+        break;
+      case 'enc_qr_show_bundle':
+        try {
+          const selfNick = activeIrc.getCurrentNick();
+          const payload = await encryptedDMService.exportBundlePayload(selfNick);
+          setQrPayload(payload);
+          setQrType('bundle');
+          setShowKeyQr(true);
+        } catch {
+          Alert.alert(t('Error'), t('Failed to generate QR'));
+        }
+        break;
+      case 'enc_qr_scan':
+        try {
+          const permission = hasCameraPermission || (await requestCameraPermission()) === 'authorized';
+          if (!permission) {
+            Alert.alert(t('Error'), t('Camera permission denied'));
+            break;
+          }
+          scanHandledRef.current = false;
+          setShowKeyScan(true);
+          setScanError('');
+        } catch {
+          Alert.alert(t('Error'), t('Failed to open camera'));
+        }
+        break;
+      case 'enc_share_file':
+        try {
+          const selfNick = activeIrc.getCurrentNick();
+          const payload = await encryptedDMService.exportBundlePayload(selfNick);
+          const filename = `androidircx-key-${selfNick}.json`;
+          const path = `${RNFS.CachesDirectoryPath}/${filename}`;
+          try {
+            await RNFS.writeFile(path, payload, 'utf8');
+            await Share.open({ url: `file://${path}`, type: 'application/json' });
+          } finally {
+            try {
+              if (await RNFS.exists(path)) {
+                await RNFS.unlink(path);
+              }
+            } catch {
+              // Ignore cleanup errors
+            }
+          }
+        } catch {
+          Alert.alert(t('Error'), t('Failed to share key file'));
+        }
+        break;
+      case 'enc_import_file':
+        try {
+          const result = await pick({
+            type: [types.allFiles],
+            mode: 'import',
+          });
+          if (result.length === 0) return;
+          const picker = result[0];
+          const uri = picker.fileCopyUri || picker.uri;
+          const path = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
+          const shouldCleanupCopy = Boolean(picker.fileCopyUri);
+          try {
+            const contents = await RNFS.readFile(path, 'utf8');
+            await handleExternalPayload(contents);
+          } finally {
+            if (shouldCleanupCopy) {
+              try {
+                await RNFS.unlink(path);
+              } catch {
+                // Ignore cleanup errors
+              }
+            }
+          }
+        } catch (e: any) {
+          if (isErrorWithCode(e) && e.code === errorCodes.OPERATION_CANCELED) {
+            // ignore
+          } else {
+            Alert.alert(t('Error'), t('Failed to import key file'));
+          }
+        }
+        break;
+      case 'enc_share_nfc':
+        try {
+          const supported = await NfcManager.isSupported();
+          if (!supported) {
+            Alert.alert(t('Error'), t('NFC not supported'));
+            break;
+          }
+          const selfNick = activeIrc.getCurrentNick();
+          const payload = await encryptedDMService.exportBundlePayload(selfNick);
+          await NfcManager.start();
+          await NfcManager.requestTechnology(NfcTech.Ndef);
+          const bytes = Ndef.encodeMessage([Ndef.textRecord(payload)]);
+          if (bytes) {
+            await NfcManager.writeNdefMessage(bytes);
+          }
+        } catch {
+          Alert.alert(t('Error'), t('Failed to share via NFC'));
+        } finally {
+          try { await NfcManager.cancelTechnologyRequest(); } catch {}
+        }
+        break;
+      case 'enc_receive_nfc':
+        try {
+          const supported = await NfcManager.isSupported();
+          if (!supported) {
+            Alert.alert(t('Error'), t('NFC not supported'));
+            break;
+          }
+          await NfcManager.start();
+          await NfcManager.requestTechnology(NfcTech.Ndef);
+          const tag = await NfcManager.getTag();
+          const ndefMessage = tag?.ndefMessage?.[0];
+          const payload = ndefMessage ? Ndef.text.decodePayload(ndefMessage.payload) : null;
+          if (!payload) {
+            Alert.alert(t('Error'), t('No NFC payload'));
+            break;
+          }
+          await handleExternalPayload(payload);
+        } catch {
+          Alert.alert(t('Error'), t('Failed to read NFC'));
+        } finally {
+          try { await NfcManager.cancelTechnologyRequest(); } catch {}
+        }
+        break;
+      case 'enc_verify':
+        try {
+          const status = network
+            ? await encryptedDMService.getVerificationStatusForNetwork(network, contextNick)
+            : await encryptedDMService.getVerificationStatus(contextNick);
+          if (!status.fingerprint) {
+            Alert.alert(t('Verify DM Key'), t('No DM key for {nick}').replace('{nick}', contextNick));
+            break;
+          }
+          const selfFp = encryptedDMService.formatFingerprintForDisplay(await encryptedDMService.getSelfFingerprint());
+          const peerFp = encryptedDMService.formatFingerprintForDisplay(status.fingerprint);
+          const verifiedLabel = status.verified ? t('Verified') : t('Mark Verified');
+          Alert.alert(
+            t('Verify DM Key'),
+            t('Compare fingerprints out-of-band:\n\nYou: {self}\n{nick}: {peer}')
+              .replace('{self}', selfFp)
+              .replace('{nick}', contextNick)
+              .replace('{peer}', peerFp),
+            [
+              {
+                text: verifiedLabel,
+                onPress: async () => {
+                  if (!status.verified) {
+                    const storageNetwork = getNetworkForStorage();
+                    await encryptedDMService.setVerifiedForNetwork(storageNetwork, contextNick, true);
+                  }
+                },
+              },
+              {
+                text: t('Copy Fingerprints'),
+                onPress: () => {
+                  Clipboard.setString(`You: ${selfFp}\n${contextNick}: ${peerFp}`);
+                },
+              },
+              { text: t('Close'), style: 'cancel' },
+            ]
+          );
+        } catch {
+          Alert.alert(t('Error'), t('Failed to load fingerprints'));
+        }
+        break;
+      case 'chan_share':
+        try {
+          if (!channel) break;
+          const keyData = await channelEncryptionService.exportChannelKey(channel, currentNetwork || activeIrc.getNetworkName());
+          activeIrc.sendRaw(`PRIVMSG ${contextNick} :!chanenc-key ${keyData}`);
+        } catch (e: any) {
+          Alert.alert(t('Error'), e?.message || t('Failed to share channel key'));
+        }
+        break;
+      case 'chan_request':
+        try {
+          if (!channel) break;
+          const requester = activeIrc.getCurrentNick();
+          activeIrc.sendRaw(
+            `PRIVMSG ${contextNick} :Please share the channel key for ${channel} with /chankey share ${requester}`
+          );
+        } catch (e: any) {
+          Alert.alert(t('Error'), e?.message || t('Failed to request channel key'));
+        }
         break;
       case 'ctcp_ping':
         activeIrc.sendCTCPRequest(contextNick, 'PING', Date.now().toString());
@@ -934,7 +1411,13 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         activeIrc.sendCTCPRequest(contextNick, 'TIME');
         break;
       case 'dcc_chat':
-        dccChatService.initiateChat(activeIrc, contextNick, network || activeIrc.getNetworkName());
+        dccChatService.initiateChat(activeIrc, contextNick, currentNetwork || activeIrc.getNetworkName());
+        break;
+      case 'dcc_send':
+        if (currentNetwork) {
+          useUIStore.getState().setDccSendTarget({ nick: contextNick, networkId: currentNetwork });
+          useUIStore.getState().setShowDccSendModal(true);
+        }
         break;
       case 'ignore_toggle': {
         const isIgnored = userManagementService.isUserIgnored(contextNick, undefined, undefined, network);
@@ -943,6 +1426,12 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         } else {
           userManagementService.ignoreUser(contextNick, undefined, network);
         }
+        break;
+      }
+      case 'add_note': {
+        const existingNote = userManagementService.getUserNote(contextNick, network);
+        setNoteText(existingNote || '');
+        setShowNoteModal(true);
         break;
       }
       case 'monitor_toggle': {
@@ -961,6 +1450,29 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         setBlacklistCustomCommand('');
         setBlacklistMaskChoice(selectedUser?.host ? 'host' : 'nick');
         setShowBlacklistModal(true);
+        break;
+      }
+      case 'kill': {
+        const targetNick = contextNick;
+        Alert.prompt(
+          t('KILL {nick}').replace('{nick}', targetNick),
+          t('Enter reason'),
+          [
+            { text: t('Cancel'), style: 'cancel' },
+            {
+              text: t('Send'),
+              onPress: (reason?: string) => {
+                const trimmed = (reason || '').trim();
+                if (!trimmed) {
+                  Alert.alert(t('Error'), t('Reason is required'));
+                  return;
+                }
+                activeIrc.sendCommand(`KILL ${targetNick} :${trimmed}`);
+              },
+            },
+          ],
+          'plain-text'
+        );
         break;
       }
       case 'give_voice':
@@ -1011,7 +1523,23 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         break;
     }
     setShowContextMenu(false);
-  }, [channel, contextNick, connection, network, resolveContextUser]);
+  }, [
+    activeIrc,
+    activeTab,
+    channel,
+    contextNick,
+    getNetworkForStorage,
+    handleExternalPayload,
+    hasCameraPermission,
+    network,
+    requestCameraPermission,
+    resolveContextUser,
+    setActiveTabId,
+    setTabs,
+    tabSortAlphabetical,
+    tabs,
+    t,
+  ]);
 
   // Listen for performance config changes
   const [perfConfig, setPerfConfig] = useState(performanceService.getConfig());
@@ -1068,8 +1596,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
   // Filter and group messages
   const displayMessages = useMemo(() => {
-    const filtered = messages.filter((msg) => {
-      if (msg.isRaw && !showRawCommands) return false;
+      const filtered = messages.filter((msg) => {
+        if (msg.isRaw && !showRawCommands) return false;
       if (msg.isRaw && showRawCommands && rawCategoryVisibility) {
         const categoryKey = (msg.rawCategory || 'debug') as RawMessageCategory;
         if (rawCategoryVisibility[categoryKey] === false) {
@@ -1295,6 +1823,14 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         onNickLongPress={(nick) => {
           setContextNick(nick);
           setContextUser(resolveContextUser(nick));
+          const selfNick = activeIrc.getCurrentNick?.();
+          if (selfNick) {
+            activeIrc.sendCommand?.(`MODE ${selfNick}`);
+            setTimeout(() => {
+              const oper = typeof activeIrc?.isServerOper === 'function' ? activeIrc.isServerOper() : false;
+              setIsServerOper(oper);
+            }, 300);
+          }
           setShowContextMenu(true);
         }}
         onLongPressMessage={handleMessageLongPress}
@@ -1352,6 +1888,47 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
   const blacklistModals = (
     <>
+      <Modal
+        visible={showNoteModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowNoteModal(false)}>
+        <View style={styles.blacklistOverlay}>
+          <View style={styles.noteModal}>
+            <Text style={styles.blacklistTitle}>{t('User Note')}</Text>
+            <TextInput
+              style={[styles.noteInput, styles.blacklistInputMultiline]}
+              value={noteText}
+              onChangeText={setNoteText}
+              placeholder={t('Enter note about this user')}
+              multiline
+              textAlignVertical="top"
+            />
+            <View style={styles.blacklistButtons}>
+              <TouchableOpacity
+                style={[styles.blacklistButton, styles.blacklistButtonCancel]}
+                onPress={() => setShowNoteModal(false)}>
+                <Text style={styles.blacklistButtonText}>{t('Cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
+                onPress={async () => {
+                  if (!contextNick) return;
+                  if (noteText.trim()) {
+                    await userManagementService.addUserNote(contextNick, noteText.trim(), network);
+                  } else {
+                    await userManagementService.removeUserNote(contextNick, network);
+                  }
+                  setShowNoteModal(false);
+                }}>
+                <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
+                  {t('Save')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <Modal
         visible={showBlacklistModal}
         transparent
@@ -1477,6 +2054,76 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           </View>
         </View>
       </Modal>
+      <Modal
+        visible={showKeyQr}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowKeyQr(false)}>
+        <TouchableOpacity
+          style={styles.blacklistOverlay}
+          activeOpacity={1}
+          onPress={() => setShowKeyQr(false)}>
+          <View style={styles.qrModal}>
+            <View style={styles.qrModalHeader}>
+              <Text style={styles.qrModalTitle}>
+                {qrType === 'bundle' ? t('Share Key Bundle') : t('Fingerprint QR')}
+              </Text>
+              <Text style={styles.qrModalSubtitle}>
+                {qrType === 'bundle'
+                  ? t('Scan this QR to import your key')
+                  : t('Scan to verify fingerprint')}
+              </Text>
+            </View>
+            <View style={styles.qrCodeContainer}>
+              {qrPayload ? (
+                <QRCode value={qrPayload} size={220} />
+              ) : (
+                <Text style={styles.blacklistOptionText}>{t('No QR payload')}</Text>
+              )}
+            </View>
+            <TouchableOpacity
+              style={styles.qrModalButton}
+              onPress={() => {
+                if (qrPayload) {
+                  Clipboard.setString(qrPayload);
+                  Alert.alert(t('Copied'), t('QR payload copied'));
+                }
+              }}>
+              <Text style={styles.qrModalButtonText}>{t('Copy QR Payload')}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+      <Modal
+        visible={showKeyScan}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowKeyScan(false)}>
+        <TouchableOpacity
+          style={styles.blacklistOverlay}
+          activeOpacity={1}
+          onPress={() => setShowKeyScan(false)}>
+          <View style={styles.scanContainer}>
+            <View style={styles.scanHeader}>
+              <Text style={styles.scanTitle}>{t('Scan Key')}</Text>
+              <Text style={styles.scanText}>{t('Scan a fingerprint QR')}</Text>
+              {scanError ? <Text style={styles.scanError}>{scanError}</Text> : null}
+            </View>
+            {device ? (
+              <Camera
+                style={{ flex: 1 }}
+                device={device}
+                isActive={showKeyScan}
+                codeScanner={codeScanner}
+              />
+            ) : (
+              <View style={styles.scanFallback}>
+                <Text style={styles.scanText}>{t('Camera not available')}</Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </>
   );
 
@@ -1549,12 +2196,16 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           nick={contextNick}
           onClose={() => setShowContextMenu(false)}
           onAction={(action) => handleNickAction(action)}
-          styles={styles}
           colors={colors}
           network={network}
           channel={channel}
           activeNick={currentNick}
           connection={connection}
+          allowQrVerification={allowQrVerification}
+          allowFileExchange={allowFileExchange}
+          allowNfcExchange={allowNfcExchange}
+          isServerOper={isServerOper}
+          ignoreActionId="ignore_toggle"
         />
         {blacklistModals}
         {selectionMode && (
@@ -1620,12 +2271,16 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         nick={contextNick}
         onClose={() => setShowContextMenu(false)}
         onAction={(action) => handleNickAction(action)}
-        styles={styles}
         colors={colors}
         network={network}
         channel={channel}
         activeNick={currentNick}
         connection={connection}
+        allowQrVerification={allowQrVerification}
+        allowFileExchange={allowFileExchange}
+        allowNfcExchange={allowNfcExchange}
+        isServerOper={isServerOper}
+        ignoreActionId="ignore_toggle"
       />
       {blacklistModals}
       {selectionMode && (
@@ -1650,194 +2305,6 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         </View>
       ) : null}
     </View>
-  );
-};
-
-interface NickContextMenuProps {
-  visible: boolean;
-  nick: string | null;
-  onClose: () => void;
-  onAction: (action: string) => void;
-  styles: any;
-  colors: any;
-  network?: string;
-  channel?: string;
-  activeNick?: string;
-  connection: any;
-}
-
-const NickContextMenu: React.FC<NickContextMenuProps> = ({
-  visible,
-  nick,
-  onClose,
-  onAction,
-  styles,
-  colors,
-  network,
-  channel,
-  activeNick,
-  connection,
-}) => {
-  const t = useT();
-  const activeIrc: any = connection?.ircService || ircService;
-  const isMonitoring = nick && typeof activeIrc?.isMonitoring === 'function' ? activeIrc.isMonitoring(nick) : false;
-  const canMonitor = Boolean(activeIrc?.capEnabledSet && activeIrc.capEnabledSet.has && activeIrc.capEnabledSet.has('monitor'));
-  const isIgnored = nick ? userManagementService.isUserIgnored(nick, undefined, undefined, network) : false;
-  const [showCTCPGroup, setShowCTCPGroup] = useState(false);
-  const [showOpsGroup, setShowOpsGroup] = useState(false);
-
-  useEffect(() => {
-    if (!visible) {
-      setShowCTCPGroup(false);
-      setShowOpsGroup(false);
-    }
-  }, [visible, nick]);
-
-  const channelUsers = useMemo(() => {
-    if (!channel || typeof activeIrc.getChannelUsers !== 'function') return [];
-    return activeIrc.getChannelUsers(channel) as ChannelUser[];
-  }, [activeIrc, channel]);
-
-  const normalizedNick = nick ? nick.toLowerCase() : '';
-  const normalizedActive = activeNick ? activeNick.toLowerCase() : '';
-  const targetUser = normalizedNick
-    ? channelUsers.find(user => user.nick.toLowerCase() === normalizedNick)
-    : undefined;
-  const currentUser = normalizedActive
-    ? channelUsers.find(user => user.nick.toLowerCase() === normalizedActive)
-    : undefined;
-  const isCurrentUserHalfOp = currentUser?.modes.some(mode => ['h', 'o', 'a', 'q'].includes(mode)) || false;
-  const isCurrentUserOp = currentUser?.modes.some(mode => ['o', 'a', 'q'].includes(mode)) || false;
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}>
-      <TouchableOpacity style={styles.contextOverlay} activeOpacity={1} onPress={onClose}>
-        <View style={styles.contextBox}>
-          <Text style={styles.contextTitle}>{nick}</Text>
-          <ScrollView>
-            <View style={styles.contextGroupHeader}>
-              <Text style={styles.contextGroupTitle}>{t('Quick Actions')}</Text>
-            </View>
-            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('whois')}>
-              <Text style={styles.contextText}>{t('WHOIS')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('copy')}>
-              <Text style={styles.contextText}>{t('Copy Nickname')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ignore_toggle')}>
-              <Text style={styles.contextText}>{isIgnored ? t('Unignore User') : t('Ignore User')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('blacklist')}>
-              <Text style={styles.contextText}>{t('Add to Blacklist')}</Text>
-            </TouchableOpacity>
-            {canMonitor && (
-              <TouchableOpacity style={styles.contextItem} onPress={() => onAction('monitor_toggle')}>
-                <Text style={styles.contextText}>{isMonitoring ? t('Unmonitor Nick') : t('Monitor Nick')}</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('dcc_chat')}>
-              <Text style={styles.contextText}>{t('Start DCC Chat')}</Text>
-            </TouchableOpacity>
-
-            <View style={styles.contextDivider} />
-            <View style={styles.contextGroupHeader}>
-              <Text style={styles.contextGroupTitle}>{t('CTCP')}</Text>
-            </View>
-            <TouchableOpacity style={styles.contextItem} onPress={() => setShowCTCPGroup(prev => !prev)}>
-              <Text style={styles.contextText}>{showCTCPGroup ? t('CTCP v') : t('CTCP >')}</Text>
-            </TouchableOpacity>
-            {showCTCPGroup && (
-              <View style={styles.contextSubGroup}>
-                <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_ping')}>
-                  <Text style={styles.contextText}>{t('CTCP PING')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_version')}>
-                  <Text style={styles.contextText}>{t('CTCP VERSION')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_time')}>
-                  <Text style={styles.contextText}>{t('CTCP TIME')}</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {channel && (isCurrentUserHalfOp || isCurrentUserOp) && (
-              <>
-                <View style={styles.contextDivider} />
-                <View style={styles.contextGroupHeader}>
-                  <Text style={styles.contextGroupTitle}>{t('Operator Controls')}</Text>
-                </View>
-                <TouchableOpacity style={styles.contextItem} onPress={() => setShowOpsGroup(prev => !prev)}>
-                  <Text style={styles.contextText}>
-                    {showOpsGroup ? t('Operator Controls v') : t('Operator Controls >')}
-                  </Text>
-                </TouchableOpacity>
-                {showOpsGroup && (
-                  <View style={styles.contextSubGroup}>
-                    {isCurrentUserHalfOp && (
-                      <>
-                        {targetUser?.modes.includes('v') ? (
-                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('take_voice')}>
-                            <Text style={styles.contextText}>{t('Take Voice')}</Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('give_voice')}>
-                            <Text style={styles.contextText}>{t('Give Voice')}</Text>
-                          </TouchableOpacity>
-                        )}
-                      </>
-                    )}
-                    {isCurrentUserOp && (
-                      <>
-                        {targetUser?.modes.includes('h') ? (
-                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('take_halfop')}>
-                            <Text style={styles.contextText}>{t('Take Half-Op')}</Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('give_halfop')}>
-                            <Text style={styles.contextText}>{t('Give Half-Op')}</Text>
-                          </TouchableOpacity>
-                        )}
-                        {targetUser?.modes.includes('o') ? (
-                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('take_op')}>
-                            <Text style={styles.contextText}>{t('Take Op')}</Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <TouchableOpacity style={styles.contextItem} onPress={() => onAction('give_op')}>
-                            <Text style={styles.contextText}>{t('Give Op')}</Text>
-                          </TouchableOpacity>
-                        )}
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick')}>
-                          <Text style={[styles.contextText, styles.contextWarning]}>{t('Kick')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick_message')}>
-                          <Text style={[styles.contextText, styles.contextWarning]}>{t('Kick (with message)')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ban')}>
-                          <Text style={[styles.contextText, styles.contextDanger]}>{t('Ban')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick_ban')}>
-                          <Text style={[styles.contextText, styles.contextDanger]}>{t('Kick + Ban')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick_ban_message')}>
-                          <Text style={[styles.contextText, styles.contextDanger]}>{t('Kick + Ban (with message)')}</Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
-                  </View>
-                )}
-              </>
-            )}
-            <TouchableOpacity style={styles.contextCancel} onPress={onClose}>
-              <Text style={styles.contextCancelText}>{t('Close')}</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
-      </TouchableOpacity>
-    </Modal>
   );
 };
 
@@ -1941,12 +2408,46 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     borderRadius: 12,
     padding: 16,
   },
+  contextHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  contextHeaderText: {
+    flex: 1,
+  },
   contextTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 8,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  contextCopyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  contextCopyText: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '600',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  contextScroll: {
+    maxHeight: 360,
+  },
+  contextScrollContent: {
+    paddingTop: 8,
   },
   contextItem: {
     paddingVertical: 10,
@@ -1983,12 +2484,26 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   contextSubGroup: {
     paddingLeft: 10,
   },
-  contextCancel: {
-    paddingVertical: 12,
-    alignItems: 'center',
+  contextSubHeader: {
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  contextSubTitle: {
+    fontSize: 11,
+    color: colors.textSecondary || colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  contextFooter: {
     borderTopWidth: 1,
     borderTopColor: colors.border,
     marginTop: 8,
+    paddingTop: 8,
+  },
+  contextCancel: {
+    paddingVertical: 12,
+    alignItems: 'center',
   },
   contextCancelText: {
     color: colors.primary,
@@ -2002,6 +2517,13 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     alignItems: 'center',
   },
   blacklistModal: {
+    width: '90%',
+    maxWidth: 420,
+    backgroundColor: colors.surface || colors.messageBackground,
+    borderRadius: 12,
+    padding: 16,
+  },
+  noteModal: {
     width: '90%',
     maxWidth: 420,
     backgroundColor: colors.surface || colors.messageBackground,
@@ -2058,6 +2580,16 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     marginTop: 8,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
+  noteInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: colors.text,
+    marginTop: 8,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
   blacklistInputMultiline: {
     minHeight: 70,
     textAlignVertical: 'top',
@@ -2091,6 +2623,88 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   blacklistPickerScroll: {
     maxHeight: 220,
+  },
+  qrModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    minWidth: 300,
+    maxWidth: 360,
+    width: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    overflow: 'hidden',
+  },
+  qrModalHeader: {
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  qrModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#212121',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  qrModalSubtitle: {
+    fontSize: 13,
+    color: '#757575',
+    textAlign: 'center',
+  },
+  qrCodeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#FFFFFF',
+  },
+  qrModalButton: {
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  qrModalButtonText: {
+    fontSize: 15,
+    color: '#2196F3',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  scanContainer: {
+    backgroundColor: '#000',
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: '90%',
+    maxWidth: 360,
+    aspectRatio: 3 / 4,
+  },
+  scanHeader: {
+    padding: 14,
+    backgroundColor: '#111',
+  },
+  scanTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  scanText: {
+    color: '#fff',
+    textAlign: 'center',
+    paddingVertical: 10,
+  },
+  scanError: {
+    color: '#FF5252',
+    textAlign: 'center',
+    paddingVertical: 6,
+  },
+  scanFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   selectionBar: {
     position: 'absolute',

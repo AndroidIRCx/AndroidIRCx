@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { ReactNode } from 'react';
 import { StyleProp, ViewStyle, TextInputProps } from 'react-native';
 
 /**
@@ -30,6 +31,7 @@ export interface SettingItem {
   id: string;
   title: string;
   description?: string;
+  descriptionNode?: ReactNode;
   error?: string;
   type: SettingItemType;
   value?: boolean | string;

@@ -3,6 +3,7 @@ package com.androidircx
 
 import android.app.Application
 import android.util.Log
+import java.io.File
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -144,9 +145,70 @@ class MainApplication : Application(), ReactApplication {
         }
     }
 
+    private fun logNativeDiagnostics(stage: String) {
+        try {
+            val abis = android.os.Build.SUPPORTED_ABIS.joinToString(", ")
+            Log.d(TAG, "[$stage] Device ABIs: $abis")
+        } catch (e: Exception) {
+            Log.w(TAG, "[$stage] Failed to read supported ABIs: ${e.message}")
+        }
+
+        try {
+            val nativeDir = applicationInfo?.nativeLibraryDir ?: "unknown"
+            val nativeDirFile = File(nativeDir)
+            val nativeFiles = nativeDirFile.listFiles()
+            val nativeList = nativeFiles?.joinToString(", ") { it.name } ?: "none"
+            Log.d(TAG, "[$stage] nativeLibraryDir=$nativeDir (exists=${nativeDirFile.exists()})")
+            Log.d(TAG, "[$stage] native libs: $nativeList")
+        } catch (e: Exception) {
+            Log.w(TAG, "[$stage] Failed to list native libs: ${e.message}")
+        }
+    }
+
+    private fun logReactNativeClassDiagnostics(stage: String, includeNative: Boolean = false) {
+        val classNames = mutableListOf(
+            "com.facebook.react.PackageList",
+            "com.facebook.react.ReactNativeApplicationEntryPoint",
+            "com.facebook.react.defaults.DefaultReactHost"
+        )
+        if (includeNative) {
+            classNames.add("com.facebook.react.internal.featureflags.ReactNativeFeatureFlagsCxxInterop")
+        }
+        classNames.forEach { className ->
+            try {
+                Class.forName(className)
+                Log.d(TAG, "[$stage] Class OK: $className")
+            } catch (e: Throwable) {
+                Log.e(TAG, "[$stage] Class check failed: $className (${e.message})", e)
+                reportToCrashlyticsSafely(e)
+            }
+        }
+    }
+
+    private fun recordCrashlyticsKeys() {
+        try {
+            val crashlytics = com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
+            crashlytics.setCustomKey("app_version", BuildConfig.VERSION_NAME)
+            crashlytics.setCustomKey("build_number", BuildConfig.VERSION_CODE)
+            crashlytics.setCustomKey(
+                "device_abis",
+                android.os.Build.SUPPORTED_ABIS.joinToString(", ")
+            )
+            crashlytics.setCustomKey(
+                "native_lib_dir",
+                applicationInfo?.nativeLibraryDir ?: "unknown"
+            )
+            crashlytics.setCustomKey("new_arch_enabled", true)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to set Crashlytics diagnostic keys: ${e.message}")
+        }
+    }
+
   override fun onCreate() {
     super.onCreate()
       Log.d(TAG, "Application onCreate started")
+      logNativeDiagnostics("onCreate:begin")
+      logReactNativeClassDiagnostics("onCreate:begin", includeNative = false)
 
       try {
           // Initialize Firebase first (before React Native)
@@ -158,8 +220,7 @@ class MainApplication : Application(), ReactApplication {
           try {
               val crashlytics = com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance()
               // Set custom keys for better crash reporting
-              crashlytics.setCustomKey("app_version", "1.6.0")
-              crashlytics.setCustomKey("build_number", "61")
+              recordCrashlyticsKeys()
               Log.d(TAG, "Crashlytics configured successfully")
           } catch (e: Exception) {
               Log.w(TAG, "Failed to configure Crashlytics: ${e.message}", e)
@@ -176,6 +237,8 @@ class MainApplication : Application(), ReactApplication {
           Log.d(TAG, "Loading React Native...")
           loadReactNative(this)
           Log.d(TAG, "React Native loaded successfully")
+          logNativeDiagnostics("onCreate:afterRN")
+          logReactNativeClassDiagnostics("onCreate:afterRN", includeNative = true)
       } catch (e: com.facebook.soloader.SoLoaderDSONotFoundError) {
           Log.e(TAG, "CRITICAL: Native library not found: ${e.message}", e)
           reportToCrashlyticsSafely(e)

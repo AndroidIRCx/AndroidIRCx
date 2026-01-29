@@ -20,6 +20,7 @@ import { useT } from '../i18n/transifex';
 import { commandService } from '../services/CommandService';
 import { layoutService } from '../services/LayoutService';
 import { connectionManager } from '../services/ConnectionManager';
+import { awayService } from '../services/AwayService';
 import { mediaSettingsService } from '../services/MediaSettingsService';
 import { mediaEncryptionService } from '../services/MediaEncryptionService';
 import { settingsService } from '../services/SettingsService';
@@ -27,12 +28,21 @@ import { useTabStore } from '../stores/tabStore';
 import { MediaUploadModal } from './MediaUploadModal';
 import { MediaPreviewModal } from './MediaPreviewModal';
 import { MediaPickResult } from '../services/MediaPickerService';
-import { IRC_EXTENDED_COLOR_MAP, IRC_FORMAT_CODES, IRC_STANDARD_COLOR_MAP } from '../utils/IRCFormatter';
+import { IRC_FORMAT_CODES, stripIRCFormatting } from '../utils/IRCFormatter';
+import { repairMojibake } from '../utils/EncodingUtils';
+import { ColorPalettePicker } from './ColorPalettePicker';
 
 type MessageInputSuggestion = {
   text: string;
   description?: string;
   source: 'command' | 'alias' | 'history' | 'nick';
+};
+
+type PendingNickReplacement = {
+  start: number;
+  end: number;
+  display: string;
+  styled: string;
 };
 
 const MIR_CONTROL = {
@@ -45,11 +55,6 @@ const MIR_CONTROL = {
   strikethrough: String.fromCharCode(IRC_FORMAT_CODES.STRIKETHROUGH),
 };
 
-const MIR_STANDARD_COLORS = Array.from({ length: 16 }, (_, index) => IRC_STANDARD_COLOR_MAP[index]);
-const MIR_EXTENDED_COLORS = Array.from({ length: 99 }, (_, index) => {
-  if (index < 16) return IRC_STANDARD_COLOR_MAP[index];
-  return IRC_EXTENDED_COLOR_MAP[index];
-});
 
 interface MessageInputProps {
   placeholder?: string;
@@ -94,17 +99,19 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [showAttachmentButton, setShowAttachmentButton] = useState(false);
   const [showColorPickerButton, setShowColorPickerButton] = useState(true);
   const [showColorPickerModal, setShowColorPickerModal] = useState(false);
-  const [paletteMode, setPaletteMode] = useState<'standard' | 'extended'>('standard');
-  const [colorTarget, setColorTarget] = useState<'fg' | 'bg'>('fg');
-  const [selectedFg, setSelectedFg] = useState<number | null>(null);
-  const [selectedBg, setSelectedBg] = useState<number | null>(null);
 
   // Send button state
   const [showSendButton, setShowSendButton] = useState(true);
+  const [nickCompleteEnabled, setNickCompleteEnabled] = useState(false);
+  const [nickCompleteSeparator1, setNickCompleteSeparator1] = useState('');
+  const [nickCompleteSeparator2, setNickCompleteSeparator2] = useState('');
+  const [nickCompleteStyleId, setNickCompleteStyleId] = useState('');
+  const [pendingNickReplacements, setPendingNickReplacements] = useState<PendingNickReplacement[]>([]);
 
   // Typing indicator state
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
+  const lastActivityRef = useRef(0);
 
   // Enter key behavior state
   const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>('newline');
@@ -118,6 +125,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       setShowColorPickerButton(showColors);
       const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'newline');
       setEnterKeyBehavior(enterBehavior);
+      const nickEnabled = await settingsService.getSetting('nickCompleteEnabled', false);
+      const sep1 = await settingsService.getSetting('nickCompleteSeparator1', '');
+      const sep2 = await settingsService.getSetting('nickCompleteSeparator2', '');
+      const styleId = await settingsService.getSetting('nickCompleteStyleId', '');
+      setNickCompleteEnabled(nickEnabled);
+      setNickCompleteSeparator1(sep1);
+      setNickCompleteSeparator2(sep2);
+      setNickCompleteStyleId(styleId);
     };
     loadSendButtonSetting();
 
@@ -131,11 +146,27 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const unsubscribeEnterBehavior = settingsService.onSettingChange<'send' | 'newline'>('enterKeyBehavior', (value) => {
       setEnterKeyBehavior(value);
     });
+    const unsubscribeNickEnabled = settingsService.onSettingChange<boolean>('nickCompleteEnabled', (value) => {
+      setNickCompleteEnabled(Boolean(value));
+    });
+    const unsubscribeSep1 = settingsService.onSettingChange<string>('nickCompleteSeparator1', (value) => {
+      setNickCompleteSeparator1(String(value ?? ''));
+    });
+    const unsubscribeSep2 = settingsService.onSettingChange<string>('nickCompleteSeparator2', (value) => {
+      setNickCompleteSeparator2(String(value ?? ''));
+    });
+    const unsubscribeStyle = settingsService.onSettingChange<string>('nickCompleteStyleId', (value) => {
+      setNickCompleteStyleId(String(value ?? ''));
+    });
 
     return () => {
       unsubscribe();
       unsubscribeColors();
       unsubscribeEnterBehavior();
+      unsubscribeNickEnabled();
+      unsubscribeSep1();
+      unsubscribeSep2();
+      unsubscribeStyle();
     };
   }, []);
 
@@ -147,6 +178,62 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     suppressNextSelectionChangeRef.current = true;
     setSelection(next);
   }, []);
+
+  const sanitizeStyleString = useCallback((style: string) => {
+    const normalized = repairMojibake(style);
+    const allowedControls = new Set([0x02, 0x03, 0x0F, 0x16, 0x1D, 0x1F, 0x1E, 0x08]);
+    return Array.from(normalized).filter((char) => {
+      const code = char.charCodeAt(0);
+      if (code >= 32 && code !== 127) return true;
+      return allowedControls.has(code);
+    }).join('');
+  }, []);
+
+  const normalizeNickStyle = useCallback((style: string) => (
+    sanitizeStyleString(style)
+      .replace(/(\x08)(on|off)$/i, '$1')
+      .replace(/\s+(on|off)$/i, '')
+  ), [sanitizeStyleString]);
+
+  const replaceBackspacePlaceholder = useCallback((template: string, value: string) => {
+    const idx = template.indexOf('\x08');
+    if (idx === -1) return template;
+    const before = template.slice(0, idx);
+    const after = template.slice(idx + 1).replace(/\x08/g, '');
+    return `${before}${value}${after}`;
+  }, []);
+
+  const buildNickCompletionParts = useCallback((nick: string) => {
+    if (!nickCompleteEnabled) {
+      return { display: nick, styled: nick };
+    }
+
+    if (nickCompleteStyleId) {
+      const normalizedStyle = normalizeNickStyle(nickCompleteStyleId);
+      if (/<nick>/i.test(normalizedStyle)) {
+        const styled = normalizedStyle.replace(/<nick>/gi, nick);
+        return { display: stripIRCFormatting(styled), styled };
+      }
+      if (normalizedStyle.includes('\x08')) {
+        const styled = replaceBackspacePlaceholder(normalizedStyle, nick);
+        return { display: stripIRCFormatting(styled), styled };
+      }
+    }
+
+    const sep1 = nickCompleteSeparator1 || '';
+    const sep2 = nickCompleteSeparator2 || '';
+    const combined = `${sep1}${nick}${sep2}`;
+    const base = combined.trim().length > 0 ? combined : nick;
+    return { display: base, styled: base };
+  }, [
+    nickCompleteEnabled,
+    nickCompleteSeparator1,
+    nickCompleteSeparator2,
+    nickCompleteStyleId,
+    normalizeNickStyle,
+    replaceBackspacePlaceholder,
+  ]);
+
 
   // Check if attachment button should be shown
   useEffect(() => {
@@ -211,17 +298,40 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     connection.ircService.sendTypingIndicator(tabName, status);
   };
 
+  const applyPendingNickReplacements = useCallback((value: string) => {
+    if (pendingNickReplacements.length === 0) return value;
+    let next = value;
+    pendingNickReplacements.forEach((replacement) => {
+      let start = replacement.start;
+      if (start < 0 || start + replacement.display.length > next.length ||
+        next.slice(start, start + replacement.display.length) !== replacement.display) {
+        start = next.indexOf(replacement.display);
+      }
+      if (start === -1) {
+        return;
+      }
+      const end = start + replacement.display.length;
+      next = `${next.slice(0, start)}${replacement.styled}${next.slice(end)}`;
+    });
+    return next;
+  }, [pendingNickReplacements]);
+
   const handleSubmit = () => {
     if (message.trim() && !disabled) {
+      const activeNetworkId = network || connectionManager.getActiveNetworkId();
+      awayService.recordActivity(activeNetworkId || undefined);
       // Send typing=done before submitting
       if (isTypingRef.current) {
         sendTypingIndicator('done');
         isTypingRef.current = false;
       }
 
-      onSubmit(message.trim());
+      const trimmedMessage = message.trim();
+      const withNickStyles = trimmedMessage.startsWith('/') ? message : applyPendingNickReplacements(message);
+      onSubmit(withNickStyles.trim());
       setMessage('');
       setSuggestions([]);
+      setPendingNickReplacements([]);
 
       // Clear any pending typing timeout
       if (typingTimeoutRef.current) {
@@ -272,12 +382,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setShowMediaPreviewModal(false);
   };
 
-  const formatColorCode = (fg: number, bg?: number | null) => {
-    const fgText = fg.toString().padStart(2, '0');
-    const bgText = bg === null || bg === undefined ? '' : `,${bg.toString().padStart(2, '0')}`;
-    return `${MIR_CONTROL.color}${fgText}${bgText}`;
-  };
-
   const applyControlCode = useCallback((openCode: string, closeCode?: string) => {
     const { start, end } = selectionRef.current;
     const before = message.slice(0, start);
@@ -297,20 +401,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setSelectionSafely({ start: nextCursor, end: nextCursor });
   }, [message, setSelectionSafely]);
 
-  const handleColorPick = (code: number) => {
-    if (colorTarget === 'bg') {
-      const fg = selectedFg ?? 0;
-      setSelectedBg(code);
-      applyControlCode(formatColorCode(fg, code), MIR_CONTROL.color);
-      return;
-    }
-    setSelectedFg(code);
-    applyControlCode(formatColorCode(code, selectedBg), MIR_CONTROL.color);
+  const handleInsertColor = (code: string) => {
+    applyControlCode(code, MIR_CONTROL.color);
   };
 
   const handleResetFormatting = () => {
-    setSelectedFg(null);
-    setSelectedBg(null);
     applyControlCode(MIR_CONTROL.reset);
   };
 
@@ -343,6 +438,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   const handleChangeText = (text: string) => {
     setMessage(text);
+    if (pendingNickReplacements.length > 0) {
+      setPendingNickReplacements(prev => prev.filter(item => text.includes(item.display)));
+    }
+    const now = Date.now();
+    if (now - lastActivityRef.current > 3000) {
+      lastActivityRef.current = now;
+      const activeNetworkId = network || connectionManager.getActiveNetworkId();
+      awayService.recordActivity(activeNetworkId || undefined);
+    }
 
     // Handle typing indicators
     if (text.trim() && !disabled && tabName && tabType !== 'server') {
@@ -374,6 +478,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
 
     if (!text.trim()) {
+      setPendingNickReplacements([]);
       setSuggestions([]);
       return;
     }
@@ -673,7 +778,33 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                   const before = lastSpaceIndex === -1 ? '' : message.slice(0, lastSpaceIndex + 1);
                   const rawToken = lastSpaceIndex === -1 ? message : message.slice(lastSpaceIndex + 1);
                   const prefix = rawToken.startsWith('@') ? '@' : '';
-                  nextMessage = `${before}${prefix}${suggestion.text} `;
+                  const { display, styled } = buildNickCompletionParts(suggestion.text);
+                  const displayWithPrefix = `${prefix}${display}`;
+                  const styledWithPrefix = `${prefix}${styled}`;
+                  const displayToken = displayWithPrefix.endsWith(' ')
+                    ? displayWithPrefix
+                    : `${displayWithPrefix} `;
+                  nextMessage = `${before}${displayToken}`;
+                  if (styledWithPrefix !== displayWithPrefix) {
+                    const insertStart = before.length;
+                    const insertEnd = insertStart + displayWithPrefix.length;
+                    const delta = displayToken.length - rawToken.length;
+                    setPendingNickReplacements(prev => {
+                      const next = prev
+                        .filter(item => item.end <= insertStart || item.start >= insertStart + rawToken.length)
+                        .map(item => (
+                          item.start >= insertStart + rawToken.length
+                            ? { ...item, start: item.start + delta, end: item.end + delta }
+                            : item
+                        ));
+                      return [...next, {
+                        start: insertStart,
+                        end: insertEnd,
+                        display: displayWithPrefix,
+                        styled: styledWithPrefix,
+                      }];
+                    });
+                  }
                 } else {
                   nextMessage = suggestion.text + (suggestion.text.endsWith(' ') ? '' : ' ');
                 }
@@ -747,55 +878,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 <Text style={styles.formatActionText}>0</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.paletteTabs}>
-              <TouchableOpacity
-                style={[styles.paletteTab, paletteMode === 'standard' && styles.paletteTabActive]}
-                onPress={() => setPaletteMode('standard')}
-              >
-                <Text style={[styles.paletteTabText, paletteMode === 'standard' && styles.paletteTabTextActive]}>
-                  {t('Standard')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.paletteTab, paletteMode === 'extended' && styles.paletteTabActive]}
-                onPress={() => setPaletteMode('extended')}
-              >
-                <Text style={[styles.paletteTabText, paletteMode === 'extended' && styles.paletteTabTextActive]}>
-                  {t('Extended')}
-                </Text>
-              </TouchableOpacity>
-              <View style={styles.paletteSpacer} />
-              <TouchableOpacity
-                style={[styles.paletteTarget, colorTarget === 'fg' && styles.paletteTargetActive]}
-                onPress={() => setColorTarget('fg')}
-              >
-                <Text style={[styles.paletteTargetText, colorTarget === 'fg' && styles.paletteTargetTextActive]}>
-                  {t('FG')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.paletteTarget, colorTarget === 'bg' && styles.paletteTargetActive]}
-                onPress={() => setColorTarget('bg')}
-              >
-                <Text style={[styles.paletteTargetText, colorTarget === 'bg' && styles.paletteTargetTextActive]}>
-                  {t('BG')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.colorGridScroll} contentContainerStyle={styles.colorGrid}>
-              {(paletteMode === 'standard' ? MIR_STANDARD_COLORS : MIR_EXTENDED_COLORS).map((hex, index) => (
-                <TouchableOpacity
-                  key={`${paletteMode}-${index}`}
-                  style={[styles.colorSwatch, { backgroundColor: hex }]}
-                  onPress={() => handleColorPick(index)}
-                  accessibilityLabel={t('Select color {index}', { index })}
-                >
-                  {(colorTarget === 'fg' ? selectedFg : selectedBg) === index && (
-                    <Text style={styles.colorSwatchCheck}>✓</Text>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <ColorPalettePicker
+              colors={colors}
+              onInsert={handleInsertColor}
+              autoInsertOnBg
+              insertLabel={t('Insert colors')}
+              clearLabel={t('Clear selection')}
+            />
           </View>
         </View>
       </Modal>
@@ -960,75 +1049,5 @@ const createStyles = (colors: any, bottomInset: number = 0) => StyleSheet.create
   },
   formatStrike: {
     textDecorationLine: 'line-through',
-  },
-  paletteTabs: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  paletteTab: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginRight: 8,
-  },
-  paletteTabActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  paletteTabText: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  paletteTabTextActive: {
-    color: colors.onPrimary || '#fff',
-  },
-  paletteSpacer: {
-    flex: 1,
-  },
-  paletteTarget: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginLeft: 6,
-  },
-  paletteTargetActive: {
-    backgroundColor: colors.surfaceVariant || colors.background,
-  },
-  paletteTargetText: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  paletteTargetTextActive: {
-    color: colors.primary,
-  },
-  colorGridScroll: {
-    maxHeight: 280,
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingBottom: 4,
-  },
-  colorSwatch: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  colorSwatchCheck: {
-    color: colors.text,
-    fontWeight: '700',
   },
 });

@@ -16,6 +16,7 @@ export const SettingButton: React.FC<SettingButtonProps> = ({
   onPress,
 }) => {
   const itemIcon = icon;
+  const descriptionContent = item.descriptionNode ?? item.description;
 
   return (
     <TouchableOpacity
@@ -38,10 +39,18 @@ export const SettingButton: React.FC<SettingButtonProps> = ({
             {item.title}
           </Text>
         </View>
-        {item.description && (
-          <Text style={[styles.settingDescription, item.disabled && styles.disabledText]}>
-            {item.description}
-          </Text>
+        {descriptionContent && (
+          typeof descriptionContent === 'string' || typeof descriptionContent === 'number'
+            ? (
+              <Text style={[styles.settingDescription, item.disabled && styles.disabledText]}>
+                {descriptionContent}
+              </Text>
+            )
+            : (
+              <View style={{ marginTop: 4 }}>
+                {descriptionContent}
+              </View>
+            )
         )}
       </View>
       <Text style={styles.chevron}>›</Text>

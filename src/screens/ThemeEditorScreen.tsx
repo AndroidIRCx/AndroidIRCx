@@ -126,7 +126,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   const colorCategories: Array<{ title: string; keys: Array<keyof ThemeColors> }> = [
     {
       title: t('Background'),
-      keys: ['background', 'surface', 'surfaceVariant'],
+      keys: ['background', 'surface', 'surfaceVariant', 'surfaceAlt', 'cardBackground'],
     },
     {
       title: t('Text'),
@@ -139,6 +139,10 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
     {
       title: t('Secondary'),
       keys: ['secondary', 'onSecondary'],
+    },
+    {
+      title: t('Accent'),
+      keys: ['accent', 'onAccent'],
     },
     {
       title: t('Status'),
@@ -156,14 +160,18 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
         'messageNick',
         'messageTimestamp',
         'systemMessage',
+        'noticeMessage',
         'joinMessage',
         'partMessage',
         'quitMessage',
+        'nickMessage',
         'modeMessage',
         'topicMessage',
         'inviteMessage',
         'monitorMessage',
         'actionMessage',
+        'rawMessage',
+        'ctcpMessage',
       ],
     },
     {
@@ -179,6 +187,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
         'buttonSecondaryText',
         'buttonDisabled',
         'buttonDisabledText',
+        'buttonText',
       ],
     },
     {
@@ -211,7 +220,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
     },
     {
       title: t('Highlights'),
-      keys: ['highlightBackground', 'highlightText'],
+      keys: ['highlightBackground', 'highlightText', 'selectionBackground'],
     },
   ];
 

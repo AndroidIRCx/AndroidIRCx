@@ -99,6 +99,16 @@ export const CreditsScreen: React.FC<CreditsScreenProps> = ({
             </View>
           ))}
 
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('IRcap Credits')}</Text>
+            <Text style={styles.sectionDescription}>
+              {t('IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiration for away, protections, writing styles, and the IRcap theme.')}
+            </Text>
+            <Text style={styles.sectionDescription}>
+              {t('IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme.')}
+            </Text>
+          </View>
+
           {/* Help Translate Section */}
           <View style={styles.helpSection}>
             <Text style={styles.helpTitle}>{t('Help Translate')}</Text>

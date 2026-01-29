@@ -7459,5 +7459,20 @@
   },
   "These are all current channel modes. Use switches below to toggle common modes.": {
     "string": ""
+  },
+  "Enter a valid number": {
+    "string": ""
+  },
+  "Value must be greater than 0": {
+    "string": ""
+  },
+  "Nicklist Tongue Button": {
+    "string": ""
+  },
+  "Show a small center handle to open/close the user list": {
+    "string": ""
+  },
+  "Nicklist Tongue Size": {
+    "string": ""
   }
 }

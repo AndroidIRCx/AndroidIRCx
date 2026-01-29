@@ -174,136 +174,136 @@
     "string": "Eliminar {name}"
   },
   "Delete Theme": {
-    "string": ""
+    "string": "Eliminar tema"
   },
   "Are you sure you want to delete \"{name}\"?": {
-    "string": ""
+    "string": "Tem a certeza de que pretende eliminar \" {name}\"?"
   },
   "Delete": {
-    "string": ""
+    "string": "Eliminar"
   },
   "Tab Position": {
-    "string": ""
+    "string": "Posição da Janela"
   },
   "Tabs at {position}": {
-    "string": ""
+    "string": "Janelas em {position}"
   },
   "Select tab position:": {
-    "string": ""
+    "string": "Selecione a posição da janela:"
   },
   "Top": {
-    "string": ""
+    "string": "Topo"
   },
   "Bottom": {
-    "string": ""
+    "string": "Fundo"
   },
   "Left": {
-    "string": ""
+    "string": "Esquerda"
   },
   "Right": {
-    "string": ""
+    "string": "Direita"
   },
   "User List Position": {
-    "string": ""
+    "string": "Posição na lista de utilizadores"
   },
   "User list at {position}": {
-    "string": ""
+    "string": "Lista de utilizadores em {position}"
   },
   "Select user list position:": {
-    "string": ""
+    "string": "Selecione a posição na lista de utilizadores:"
   },
   "View Mode": {
-    "string": ""
+    "string": "Modo de visualização"
   },
   "Current: {mode}": {
-    "string": ""
+    "string": "Atual: {mode}"
   },
   "Select view mode:": {
-    "string": ""
+    "string": "Selecione o modo de visualização:"
   },
   "Compact": {
-    "string": ""
+    "string": "Compacto"
   },
   "Comfortable": {
-    "string": ""
+    "string": "Confortável"
   },
   "Spacious": {
-    "string": ""
+    "string": "Espaçoso"
   },
   "Font Size": {
-    "string": ""
+    "string": "Tamanho da fonte"
   },
   "Current: {size}": {
-    "string": ""
+    "string": "Atual: {size}"
   },
   "Select font size:": {
-    "string": ""
+    "string": "Selecione o tamanho da letra:"
   },
   "Small": {
-    "string": ""
+    "string": "Pequena"
   },
   "Medium": {
-    "string": ""
+    "string": "Médio"
   },
   "Large": {
-    "string": ""
+    "string": "Grande"
   },
   "Extra Large": {
-    "string": ""
+    "string": "Extra Grande"
   },
   "Raw Categories": {
-    "string": ""
+    "string": "Categorias Raw"
   },
   "Choose which raw messages are shown": {
-    "string": ""
+    "string": "Escolha quais as mensagens raw que serão exibidas."
   },
   "Notice Routing": {
-    "string": ""
+    "string": "Encaminhamento de notificações "
   },
   "Show notices in the active tab": {
-    "string": ""
+    "string": "Exibir notificações na janela ativa"
   },
   "Show notices in a Notices tab": {
-    "string": ""
+    "string": "Visualizar os notificações  na janela de notificações ."
   },
   "Show notices in a private/query tab": {
-    "string": ""
+    "string": "Exibir notificações num separador privado/de consulta."
   },
   "Show notices in the server tab": {
-    "string": ""
+    "string": "Exibir notificações no separador do servidor"
   },
   "Active window": {
-    "string": ""
+    "string": "Janela ativa"
   },
   "Server tab": {
-    "string": ""
+    "string": "Guia Servidor"
   },
   "Notices tab": {
-    "string": ""
+    "string": "Guia notificações"
   },
   "Private/query tab": {
-    "string": ""
+    "string": "Separador Privada/de consulta"
   },
   "Show Timestamps": {
-    "string": ""
+    "string": "Mostrar carimbos de data/hora"
   },
   "Display message timestamps": {
-    "string": ""
+    "string": "Exibir carimbos de data/hora das mensagens"
   },
   "Info": {
-    "string": ""
+    "string": "Informações"
   },
   "Timestamp display setting coming soon": {
-    "string": ""
+    "string": "Configuração de exibição de data e hora em breve"
   },
   "Timestamp Display": {
-    "string": ""
+    "string": "Exibição de carimbo de data/hora"
   },
   "Show timestamps: {mode}": {
-    "string": ""
+    "string": "Visualizar registos de data e hora: {mode}"
   },
   "Select when to show timestamps:": {
-    "string": ""
+    "string": "Selecione quando visualizar os registos de data e hora:"
   },
   "Always": {
     "string": ""
@@ -7458,6 +7458,21 @@
     "string": ""
   },
   "These are all current channel modes. Use switches below to toggle common modes.": {
+    "string": ""
+  },
+  "Enter a valid number": {
+    "string": ""
+  },
+  "Value must be greater than 0": {
+    "string": ""
+  },
+  "Nicklist Tongue Button": {
+    "string": ""
+  },
+  "Show a small center handle to open/close the user list": {
+    "string": ""
+  },
+  "Nicklist Tongue Size": {
     "string": ""
   }
 }
