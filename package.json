@@ -14,7 +14,8 @@
     "start": "react-native start",
     "test": "jest",
     "tx:pull": "node scripts/transifex/pull.js",
-    "tx:push": "node scripts/transifex/push.js"
+    "tx:push": "node scripts/transifex/push.js",
+    "tx:merge-sr": "node scripts/transifex/merge-missing-keys.js"
   },
   "dependencies": {
     "@noble/curves": "^2.0.1",

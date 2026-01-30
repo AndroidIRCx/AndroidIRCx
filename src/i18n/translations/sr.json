@@ -1,4 +1,7 @@
 {
+  "1080": {
+    "string": "1080"
+  },
   "6697": {
     "string": "6697"
   },
@@ -7456,5 +7459,20 @@
   },
   "These are all current channel modes. Use switches below to toggle common modes.": {
     "string": "Ovo su svi trenutni režimi kanala. Koristite prekidače ispod za menjanje uobičajenih režima."
+  },
+  "Enter a valid number": {
+    "string": "Unesite ispravan broj"
+  },
+  "Value must be greater than 0": {
+    "string": "Vrednost mora biti veća od 0"
+  },
+  "Nicklist Tongue Button": {
+    "string": "Dugme ručice liste korisnika"
+  },
+  "Show a small center handle to open/close the user list": {
+    "string": "Prikaži malu centralnu ručicu za otvaranje/zatvaranje liste korisnika"
+  },
+  "Nicklist Tongue Size": {
+    "string": "Veličina ručice liste korisnika"
   }
 }

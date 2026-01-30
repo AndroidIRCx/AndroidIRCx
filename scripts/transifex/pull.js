@@ -35,6 +35,14 @@ try {
     fs.copyFileSync(srBackupPath, srPath);
     fs.unlinkSync(srBackupPath);
   }
+  // Merge missing keys from en.json into sr.json (without overwriting existing translations).
+  const mergeScript = path.join(__dirname, 'merge-missing-keys.js');
+  if (fs.existsSync(mergeScript)) {
+    const mergeResult = spawnSync(process.execPath, [mergeScript], { stdio: 'inherit', cwd: path.resolve(__dirname, '../..') });
+    if (mergeResult.status !== 0) {
+      console.warn('merge-missing-keys.js failed (status %s)', mergeResult.status);
+    }
+  }
 }
 
 process.exit(result && typeof result.status === 'number' ? result.status : 1);
