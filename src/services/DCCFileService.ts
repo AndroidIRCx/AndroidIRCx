@@ -4,7 +4,6 @@
  */
 
 import TcpSocket, { Socket, Server } from 'react-native-tcp-socket';
-import { Platform, Alert } from 'react-native';
 import type { IRCService } from './IRCService';
 import { tx } from '../i18n/transifex';
 import { settingsService } from './SettingsService';

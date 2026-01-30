@@ -153,7 +153,6 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   const [encryptionPassword, setEncryptionPassword] = useState('');
   const [pendingBackupData, setPendingBackupData] = useState('');
   const [pendingSelectedKeys, setPendingSelectedKeys] = useState<string[]>([]);
-  const [isEncrypted, setIsEncrypted] = useState(false);
   const [decryptPassword, setDecryptPassword] = useState('');
   const [showDecryptPrompt, setShowDecryptPrompt] = useState(false);
 
@@ -245,7 +244,6 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       } else {
         // No sensitive data, proceed without encryption prompt
         setBackupData(data);
-        setIsEncrypted(false);
         setShowPreviewModal(true);
 
         const enabledNames = enabledOptions.map((opt) => opt.name).join(', ');
@@ -273,7 +271,6 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       try {
         const encryptedData = await dataBackupService.encryptBackup(pendingBackupData, encryptionPassword);
         setBackupData(encryptedData);
-        setIsEncrypted(true);
         Alert.alert(
           t('Backup Encrypted', { _tags: tags }),
           t('Your backup has been encrypted. Keep your password safe - you will need it to restore this backup.', { _tags: tags })
@@ -287,7 +284,6 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       }
     } else {
       setBackupData(pendingBackupData);
-      setIsEncrypted(false);
     }
 
     setEncryptionPassword('');
