@@ -18,8 +18,45 @@ const FALLBACK_PREFIX = '@AndroidIRCX:secure:';
 const KEY_INDEX = '@AndroidIRCX:keychain_index';
 
 class SecureStorageService {
+  private _fallbackWarningShown = false;
+  private _usingFallback = false;
+
   private isKeychainAvailable(): boolean {
     return Boolean(Keychain && Keychain.setInternetCredentials);
+  }
+
+  /**
+   * Check if secure storage is using hardware-backed Keychain.
+   * Returns true if Keychain is available, false if falling back to AsyncStorage.
+   */
+  isUsingSecureKeychain(): boolean {
+    return this.isKeychainAvailable();
+  }
+
+  /**
+   * Check if we're using the less secure AsyncStorage fallback.
+   * This should be shown as a warning to users in security-sensitive contexts.
+   */
+  isUsingFallbackStorage(): boolean {
+    return !this.isKeychainAvailable();
+  }
+
+  /**
+   * Get security status information for display in UI.
+   */
+  getSecurityStatus(): {
+    isSecure: boolean;
+    storageType: 'keychain' | 'asyncstorage';
+    warning: string | null;
+  } {
+    const isSecure = this.isKeychainAvailable();
+    return {
+      isSecure,
+      storageType: isSecure ? 'keychain' : 'asyncstorage',
+      warning: isSecure
+        ? null
+        : 'Secure storage (Keychain) is not available. Passwords and tokens are stored in AsyncStorage which is less secure. On a compromised device or in backups, this data could be accessible.',
+    };
   }
 
   // Maintain an index of keys stored in Keychain (since Keychain can't list keys)

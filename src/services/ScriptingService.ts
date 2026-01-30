@@ -17,6 +17,8 @@ import { themeService } from './ThemeService';
 import { connectionQualityService } from './ConnectionQualityService';
 import { settingsService } from './SettingsService';
 
+import { APP_VERSION } from '../config/appVersion';
+
 type HookResult = void | string | { command?: string; cancel?: boolean };
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
@@ -371,7 +373,7 @@ class ScriptingService {
           module.exports = {
             onCTCP: (type, from, text) => {
               if (type === 'VERSION') {
-                api.sendCTCP(from, 'VERSION', 'AndroidIRCX Scripting System');
+                api.sendCTCP(from, 'VERSION', 'AndroidIRCX ' + api.appVersion + ' (Scripting)');
               } else if (type === 'TIME') {
                 api.sendCTCP(from, 'TIME', new Date().toISOString());
               } else if (type === 'PING') {
@@ -851,7 +853,7 @@ class ScriptingService {
               api.log('CTCP ' + type + ' from ' + from);
               if (type === 'VERSION') {
                 const theme = api.getTheme();
-                api.sendCTCP(from, 'VERSION', 'AndroidIRCX v1.0 (Theme: ' + (theme?.name || 'default') + ')');
+                api.sendCTCP(from, 'VERSION', 'AndroidIRCX ' + api.appVersion + ' (Theme: ' + (theme?.name || 'default') + ')');
               } else if (type === 'TIME') {
                 api.sendCTCP(from, 'TIME', new Date().toISOString());
               } else if (type === 'PING') {
@@ -1107,6 +1109,11 @@ class ScriptingService {
       // User info - use getter to get current nick at execution time
       get userNick() {
         return connectionManager.getActiveConnection()?.ircService.getCurrentNick() || '';
+      },
+
+      // App version (from app.json) for CTCP VERSION etc.
+      get appVersion() {
+        return APP_VERSION;
       },
 
       // Config

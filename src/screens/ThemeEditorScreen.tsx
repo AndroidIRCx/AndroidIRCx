@@ -164,6 +164,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
         'joinMessage',
         'partMessage',
         'quitMessage',
+        'kickMessage',
         'nickMessage',
         'modeMessage',
         'topicMessage',

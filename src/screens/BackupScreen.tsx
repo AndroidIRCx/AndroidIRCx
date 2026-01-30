@@ -51,6 +51,9 @@ const isTabsKey = (key: string) => key.startsWith('TABS_');
 const isMessagesKey = (key: string) => key.startsWith('MESSAGES_');
 const isLogsKey = (key: string) => key.includes('log') && !key.includes('login');
 
+// Security warning text for sensitive data
+const SENSITIVE_DATA_WARNING = 'This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup.';
+
 export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) => {
   const t = useT();
   const { colors } = useTheme();
@@ -146,6 +149,13 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   const [backupData, setBackupData] = useState('');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [storageStats, setStorageStats] = useState({ keyCount: 0, totalBytes: 0 });
+  const [showEncryptionPrompt, setShowEncryptionPrompt] = useState(false);
+  const [encryptionPassword, setEncryptionPassword] = useState('');
+  const [pendingBackupData, setPendingBackupData] = useState('');
+  const [pendingSelectedKeys, setPendingSelectedKeys] = useState<string[]>([]);
+  const [isEncrypted, setIsEncrypted] = useState(false);
+  const [decryptPassword, setDecryptPassword] = useState('');
+  const [showDecryptPrompt, setShowDecryptPrompt] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -223,24 +233,75 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         );
         data = await dataBackupService.exportKeys(selectedKeys);
       }
-      setBackupData(data);
-      setShowPreviewModal(true);
 
-      const enabledNames = enabledOptions.map((opt) => opt.name).join(', ');
-      Alert.alert(
-        t('Backup Ready', { _tags: tags }),
-        t('Generated backup with {count} items:\n{names}', {
-          count: selectedKeys.length,
-          names: enabledNames,
-          _tags: tags,
-        })
-      );
+      // Check if backup contains sensitive data
+      const { hasSensitive } = dataBackupService.checkForSensitiveData(selectedKeys);
+
+      if (hasSensitive) {
+        // Store pending data and show encryption prompt
+        setPendingBackupData(data);
+        setPendingSelectedKeys(selectedKeys);
+        setShowEncryptionPrompt(true);
+      } else {
+        // No sensitive data, proceed without encryption prompt
+        setBackupData(data);
+        setIsEncrypted(false);
+        setShowPreviewModal(true);
+
+        const enabledNames = enabledOptions.map((opt) => opt.name).join(', ');
+        Alert.alert(
+          t('Backup Ready', { _tags: tags }),
+          t('Generated backup with {count} items:\n{names}', {
+            count: selectedKeys.length,
+            names: enabledNames,
+            _tags: tags,
+          })
+        );
+      }
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
         error instanceof Error ? error.message : t('Failed to generate backup', { _tags: tags })
       );
     }
+  };
+
+  const handleEncryptionChoice = async (encrypt: boolean) => {
+    setShowEncryptionPrompt(false);
+
+    if (encrypt && encryptionPassword.trim().length > 0) {
+      try {
+        const encryptedData = await dataBackupService.encryptBackup(pendingBackupData, encryptionPassword);
+        setBackupData(encryptedData);
+        setIsEncrypted(true);
+        Alert.alert(
+          t('Backup Encrypted', { _tags: tags }),
+          t('Your backup has been encrypted. Keep your password safe - you will need it to restore this backup.', { _tags: tags })
+        );
+      } catch (error) {
+        Alert.alert(
+          t('Encryption Failed', { _tags: tags }),
+          error instanceof Error ? error.message : t('Failed to encrypt backup', { _tags: tags })
+        );
+        return;
+      }
+    } else {
+      setBackupData(pendingBackupData);
+      setIsEncrypted(false);
+    }
+
+    setEncryptionPassword('');
+    setPendingBackupData('');
+    setShowPreviewModal(true);
+
+    Alert.alert(
+      t('Backup Ready', { _tags: tags }),
+      t('Generated backup with {count} items.', {
+        count: pendingSelectedKeys.length,
+        _tags: tags,
+      })
+    );
+    setPendingSelectedKeys([]);
   };
 
   const handleCopyToClipboard = () => {
@@ -296,39 +357,68 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         return;
       }
 
-      Alert.alert(
-        t('Confirm Restore', { _tags: tags }),
-        t('This will overwrite existing data. Are you sure?', { _tags: tags }),
-        [
-          { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-          {
-            text: t('Restore', { _tags: tags }),
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await dataBackupService.importAll(backupData);
-                Alert.alert(
-                  t('Success', { _tags: tags }),
-                  t('Backup restored. Restart app to ensure all data reloads.', { _tags: tags })
-                );
-                setShowPreviewModal(false);
-                loadStorageStats();
-              } catch (error) {
-                Alert.alert(
-                  t('Error', { _tags: tags }),
-                  error instanceof Error ? error.message : t('Invalid backup data', { _tags: tags })
-                );
-              }
-            },
-          },
-        ]
-      );
+      // Check if backup is encrypted
+      if (dataBackupService.isEncryptedBackup(backupData)) {
+        setShowDecryptPrompt(true);
+        return;
+      }
+
+      performRestore(backupData);
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
         error instanceof Error ? error.message : t('Failed to restore backup', { _tags: tags })
       );
     }
+  };
+
+  const handleDecryptAndRestore = async () => {
+    if (!decryptPassword.trim()) {
+      Alert.alert(t('Error', { _tags: tags }), t('Please enter the password', { _tags: tags }));
+      return;
+    }
+
+    try {
+      const decryptedData = await dataBackupService.decryptBackup(backupData, decryptPassword);
+      setShowDecryptPrompt(false);
+      setDecryptPassword('');
+      performRestore(decryptedData);
+    } catch (error) {
+      Alert.alert(
+        t('Decryption Failed', { _tags: tags }),
+        t('Wrong password or corrupted data. Please check your password and try again.', { _tags: tags })
+      );
+    }
+  };
+
+  const performRestore = (dataToRestore: string) => {
+    Alert.alert(
+      t('Confirm Restore', { _tags: tags }),
+      t('This will overwrite existing data. Are you sure?', { _tags: tags }),
+      [
+        { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+        {
+          text: t('Restore', { _tags: tags }),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await dataBackupService.importAll(dataToRestore);
+              Alert.alert(
+                t('Success', { _tags: tags }),
+                t('Backup restored. Restart app to ensure all data reloads.', { _tags: tags })
+              );
+              setShowPreviewModal(false);
+              loadStorageStats();
+            } catch (error) {
+              Alert.alert(
+                t('Error', { _tags: tags }),
+                error instanceof Error ? error.message : t('Invalid backup data', { _tags: tags })
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (!visible) return null;
@@ -409,6 +499,101 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
             </TouchableOpacity>
           </View>
         </ScrollView>
+
+        {/* Encryption Prompt Modal */}
+        <Modal
+          visible={showEncryptionPrompt}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowEncryptionPrompt(false)}>
+          <View style={styles.encryptionModalOverlay}>
+            <View style={styles.encryptionModalContent}>
+              <Text style={styles.encryptionModalTitle}>
+                {t('Sensitive Data Detected', { _tags: tags })}
+              </Text>
+              <Text style={styles.encryptionModalText}>
+                {t(SENSITIVE_DATA_WARNING, { _tags: tags })}
+              </Text>
+              <Text style={[styles.encryptionModalText, { marginTop: 12, fontWeight: '600' }]}>
+                {t('Do you want to encrypt this backup?', { _tags: tags })}
+              </Text>
+              <TextInput
+                style={styles.encryptionInput}
+                placeholder={t('Enter encryption password (optional)', { _tags: tags })}
+                placeholderTextColor={colors.textSecondary}
+                secureTextEntry
+                value={encryptionPassword}
+                onChangeText={setEncryptionPassword}
+              />
+              <View style={styles.encryptionButtonRow}>
+                <TouchableOpacity
+                  style={[styles.encryptionButton, styles.encryptionButtonSecondary]}
+                  onPress={() => handleEncryptionChoice(false)}>
+                  <Text style={styles.encryptionButtonTextSecondary}>
+                    {t('Export Unencrypted', { _tags: tags })}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.encryptionButton, !encryptionPassword.trim() && styles.encryptionButtonDisabled]}
+                  onPress={() => handleEncryptionChoice(true)}
+                  disabled={!encryptionPassword.trim()}>
+                  <Text style={styles.encryptionButtonText}>
+                    {t('Encrypt & Export', { _tags: tags })}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Decrypt Prompt Modal */}
+        <Modal
+          visible={showDecryptPrompt}
+          transparent
+          animationType="fade"
+          onRequestClose={() => {
+            setShowDecryptPrompt(false);
+            setDecryptPassword('');
+          }}>
+          <View style={styles.encryptionModalOverlay}>
+            <View style={styles.encryptionModalContent}>
+              <Text style={styles.encryptionModalTitle}>
+                {t('Encrypted Backup', { _tags: tags })}
+              </Text>
+              <Text style={styles.encryptionModalText}>
+                {t('This backup is encrypted. Please enter the password to decrypt and restore it.', { _tags: tags })}
+              </Text>
+              <TextInput
+                style={styles.encryptionInput}
+                placeholder={t('Enter decryption password', { _tags: tags })}
+                placeholderTextColor={colors.textSecondary}
+                secureTextEntry
+                value={decryptPassword}
+                onChangeText={setDecryptPassword}
+              />
+              <View style={styles.encryptionButtonRow}>
+                <TouchableOpacity
+                  style={[styles.encryptionButton, styles.encryptionButtonSecondary]}
+                  onPress={() => {
+                    setShowDecryptPrompt(false);
+                    setDecryptPassword('');
+                  }}>
+                  <Text style={styles.encryptionButtonTextSecondary}>
+                    {t('Cancel', { _tags: tags })}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.encryptionButton, !decryptPassword.trim() && styles.encryptionButtonDisabled]}
+                  onPress={handleDecryptAndRestore}
+                  disabled={!decryptPassword.trim()}>
+                  <Text style={styles.encryptionButtonText}>
+                    {t('Decrypt & Restore', { _tags: tags })}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {/* Preview/Restore Modal */}
         <Modal
@@ -686,5 +871,70 @@ const createStyles = (colors: any) =>
     },
     primaryText: {
       color: colors.primary,
+    },
+    encryptionModalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    encryptionModalContent: {
+      width: '100%',
+      maxWidth: 400,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 20,
+    },
+    encryptionModalTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    encryptionModalText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+    },
+    encryptionInput: {
+      marginTop: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.background,
+    },
+    encryptionButtonRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      gap: 12,
+      marginTop: 20,
+    },
+    encryptionButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+    },
+    encryptionButtonSecondary: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    encryptionButtonDisabled: {
+      opacity: 0.5,
+    },
+    encryptionButtonText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    encryptionButtonTextSecondary: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '500',
     },
   });

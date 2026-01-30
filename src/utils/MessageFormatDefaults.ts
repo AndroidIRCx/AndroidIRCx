@@ -70,6 +70,12 @@ export const DEFAULT_MESSAGE_FORMATS: ThemeMessageFormats = {
     { type: 'text', value: '] ' },
     { type: 'token', value: 'message' },
   ],
+  kick: [
+    { type: 'text', value: '[' },
+    { type: 'token', value: 'time' },
+    { type: 'text', value: '] ' },
+    { type: 'token', value: 'message' },
+  ],
   nick: [
     { type: 'text', value: '[' },
     { type: 'token', value: 'time' },

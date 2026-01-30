@@ -4,12 +4,53 @@
  */
 
 import TcpSocket, { Socket, Server } from 'react-native-tcp-socket';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import type { IRCService } from './IRCService';
 import { tx } from '../i18n/transifex';
 import { settingsService } from './SettingsService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
+
+/**
+ * Check if an IP address is a private/local address (RFC1918, localhost, link-local)
+ * This includes:
+ * - 10.0.0.0/8 (Class A private)
+ * - 172.16.0.0/12 (Class B private)
+ * - 192.168.0.0/16 (Class C private)
+ * - 127.0.0.0/8 (localhost)
+ * - 169.254.0.0/16 (link-local)
+ * - 0.0.0.0 (unspecified)
+ */
+function isPrivateOrLocalIp(ip: string): boolean {
+  // Handle hostname localhost
+  if (ip.toLowerCase() === 'localhost') return true;
+
+  // Parse IPv4
+  const parts = ip.split('.').map(p => parseInt(p, 10));
+  if (parts.length !== 4 || parts.some(isNaN)) return false; // Not a valid IPv4
+
+  const [a, b] = parts;
+
+  // 10.0.0.0/8
+  if (a === 10) return true;
+
+  // 172.16.0.0/12 (172.16.x.x - 172.31.x.x)
+  if (a === 172 && b >= 16 && b <= 31) return true;
+
+  // 192.168.0.0/16
+  if (a === 192 && b === 168) return true;
+
+  // 127.0.0.0/8 (localhost)
+  if (a === 127) return true;
+
+  // 169.254.0.0/16 (link-local)
+  if (a === 169 && b === 254) return true;
+
+  // 0.0.0.0 (unspecified)
+  if (a === 0 && b === 0) return true;
+
+  return false;
+}
 
 type TransferStatus = 'pending' | 'downloading' | 'completed' | 'failed' | 'cancelled' | 'sending';
 
@@ -107,6 +148,18 @@ class DCCFileService {
   async accept(transferId: string, irc: IRCService, downloadPath: string) {
     const transfer = this.transfers.get(transferId);
     if (!transfer) return;
+
+    // Security check: Block private/local IP addresses if setting is enabled
+    const blockPrivateIp = await settingsService.getSetting('dccBlockPrivateIp', true);
+    if (blockPrivateIp && isPrivateOrLocalIp(transfer.offer.host)) {
+      console.warn('[DCCFileService] Blocked connection to private/local IP:', transfer.offer.host);
+      transfer.status = 'failed';
+      transfer.error = t('Connection blocked: Private/local IP address ({host}). This could be an SSRF attack. You can disable this protection in Settings > Connection > DCC if you trust this connection.', { host: transfer.offer.host });
+      this.transfers.set(transferId, transfer);
+      this.emit(transfer);
+      return;
+    }
+
     console.log('[DCCFileService] accept transfer:', {
       id: transferId,
       host: transfer.offer.host,

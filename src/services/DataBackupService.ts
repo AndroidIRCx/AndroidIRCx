@@ -10,6 +10,34 @@ import { settingsService } from './SettingsService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
+// Lazy-load sodium to avoid startup delays
+let sodiumInstance: any = null;
+async function getSodium() {
+  if (!sodiumInstance) {
+    const sodium = require('react-native-libsodium');
+    await sodium.ready;
+    sodiumInstance = sodium;
+  }
+  return sodiumInstance;
+}
+
+// Keys that may contain sensitive data (passwords, tokens, etc.)
+const SENSITIVE_KEY_PATTERNS = [
+  '@AndroidIRCX:secure:',  // SecureStorage fallback keys
+  'password',
+  'token',
+  'sasl',
+  'znc',
+];
+
+/**
+ * Check if a key might contain sensitive data
+ */
+function isSensitiveKey(key: string): boolean {
+  const keyLower = key.toLowerCase();
+  return SENSITIVE_KEY_PATTERNS.some(pattern => keyLower.includes(pattern.toLowerCase()));
+}
+
 export interface BackupPayload {
   version: number;
   createdAt: string;
@@ -106,6 +134,118 @@ class DataBackupService {
    */
   async getAllKeys(): Promise<string[]> {
     return await AsyncStorage.getAllKeys();
+  }
+
+  /**
+   * Check if the backup data contains sensitive keys that should be warned about.
+   */
+  checkForSensitiveData(keys: string[]): { hasSensitive: boolean; sensitiveKeys: string[] } {
+    const sensitiveKeys = keys.filter(isSensitiveKey);
+    return {
+      hasSensitive: sensitiveKeys.length > 0,
+      sensitiveKeys,
+    };
+  }
+
+  /**
+   * Encrypt backup data with a password using libsodium.
+   * Returns a base64-encoded encrypted payload with salt and nonce.
+   */
+  async encryptBackup(json: string, password: string): Promise<string> {
+    const sodium = await getSodium();
+
+    // Generate a random salt for key derivation
+    const salt = sodium.randombytes_buf(sodium.crypto_pwhash_SALTBYTES);
+
+    // Derive a key from the password
+    const key = sodium.crypto_pwhash(
+      sodium.crypto_secretbox_KEYBYTES,
+      password,
+      salt,
+      sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
+      sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
+      sodium.crypto_pwhash_ALG_DEFAULT
+    );
+
+    // Generate a random nonce
+    const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
+
+    // Encrypt the data
+    const encoder = new TextEncoder();
+    const plaintext = encoder.encode(json);
+    const ciphertext = sodium.crypto_secretbox_easy(plaintext, nonce, key);
+
+    // Combine salt + nonce + ciphertext and encode as base64
+    const combined = new Uint8Array(salt.length + nonce.length + ciphertext.length);
+    combined.set(salt, 0);
+    combined.set(nonce, salt.length);
+    combined.set(ciphertext, salt.length + nonce.length);
+
+    // Create encrypted payload
+    const encryptedPayload = {
+      version: 1,
+      encrypted: true,
+      data: sodium.to_base64(combined),
+    };
+
+    return JSON.stringify(encryptedPayload);
+  }
+
+  /**
+   * Decrypt backup data with a password.
+   * Returns the decrypted JSON string or throws on failure.
+   */
+  async decryptBackup(encryptedJson: string, password: string): Promise<string> {
+    const sodium = await getSodium();
+
+    const parsed = JSON.parse(encryptedJson);
+    if (!parsed.encrypted || !parsed.data) {
+      throw new Error(t('Not an encrypted backup'));
+    }
+
+    // Decode the combined data
+    const combined = sodium.from_base64(parsed.data);
+
+    // Extract salt, nonce, and ciphertext
+    const salt = combined.slice(0, sodium.crypto_pwhash_SALTBYTES);
+    const nonce = combined.slice(
+      sodium.crypto_pwhash_SALTBYTES,
+      sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES
+    );
+    const ciphertext = combined.slice(
+      sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES
+    );
+
+    // Derive the key from password
+    const key = sodium.crypto_pwhash(
+      sodium.crypto_secretbox_KEYBYTES,
+      password,
+      salt,
+      sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
+      sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
+      sodium.crypto_pwhash_ALG_DEFAULT
+    );
+
+    // Decrypt
+    const plaintext = sodium.crypto_secretbox_open_easy(ciphertext, nonce, key);
+    if (!plaintext) {
+      throw new Error(t('Decryption failed - wrong password or corrupted data'));
+    }
+
+    const decoder = new TextDecoder();
+    return decoder.decode(plaintext);
+  }
+
+  /**
+   * Check if a backup string is encrypted.
+   */
+  isEncryptedBackup(json: string): boolean {
+    try {
+      const parsed = JSON.parse(json);
+      return parsed.encrypted === true && typeof parsed.data === 'string';
+    } catch {
+      return false;
+    }
   }
 
   /**

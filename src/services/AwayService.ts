@@ -18,6 +18,7 @@ type AwayState = {
   announceTimer?: NodeJS.Timeout;
   lastAutoAnswerByNick: Map<string, number>;
   originalNick?: string;
+  pendingAwayNick?: string;
   suppressNextClear?: boolean;
 };
 
@@ -83,12 +84,13 @@ class AwayService {
 
     cleanup.push(ircService.onMessage((message) => this.handleIncomingMessage(networkId, ircService, message)));
     cleanup.push(ircService.on('send-raw', (raw: string) => this.handleOutgoingRaw(networkId, ircService, raw)));
-    cleanup.push(ircService.on('numeric', (numeric: string, _prefix: string, params: string[]) => {
+    cleanup.push(ircService.on('numeric', async (numeric: string, _prefix: string, params: string[]) => {
       if (numeric === '305') {
         // RPL_UNAWAY
         state.isAway = false;
         state.reason = '';
         this.stopAnnounceTimer(networkId);
+        await this.restoreNickIfNeeded(networkId, ircService);
       }
       if (numeric === '306') {
         // RPL_NOWAWAY
@@ -104,6 +106,7 @@ class AwayService {
         state.isAway = false;
         state.reason = '';
         state.originalNick = undefined;
+        state.pendingAwayNick = undefined;
       } else {
         this.scheduleAutoAway(networkId, ircService);
       }
@@ -286,16 +289,21 @@ class AwayService {
       if (!state.originalNick) {
         state.originalNick = currentNick;
       }
+      state.pendingAwayNick = nextNick;
       ircService.sendRaw(`NICK ${nextNick}`);
     }
   }
 
   private async restoreNickIfNeeded(networkId: string, ircService: IRCService): Promise<void> {
     const state = this.ensureState(networkId);
-    if (state.originalNick && state.originalNick !== ircService.getCurrentNick()) {
-      ircService.sendRaw(`NICK ${state.originalNick}`);
+    if (state.originalNick) {
+      const currentNick = ircService.getCurrentNick();
+      if (state.pendingAwayNick || state.originalNick !== currentNick) {
+        ircService.sendRaw(`NICK ${state.originalNick}`);
+      }
     }
     state.originalNick = undefined;
+    state.pendingAwayNick = undefined;
   }
 
   private startAnnounceTimer(networkId: string, ircService: IRCService): void {

@@ -4,7 +4,7 @@
  */
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, StyleSheet } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
 import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
@@ -45,6 +45,12 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
   const tags = 'screen:settings,file:ProtectionSection.tsx,feature:settings';
   const [activeTab, setActiveTab] = useState<'flood' | 'spam'>('spam');
   const [showKeywords, setShowKeywords] = useState(false);
+  const [showSpamModeModal, setShowSpamModeModal] = useState(false);
+  const [showSpamLogModal, setShowSpamLogModal] = useState(false);
+  const [showSpamLogDeleteModal, setShowSpamLogDeleteModal] = useState(false);
+  const [showIrcopActionModal, setShowIrcopActionModal] = useState(false);
+  const [showProtInfoModal, setShowProtInfoModal] = useState(false);
+  const [spamLogContent, setSpamLogContent] = useState('');
 
   const [spamPmMode, setSpamPmMode] = useState<'when_open' | 'always'>('when_open');
   const [spamPmKeywords, setSpamPmKeywords] = useState<string[]>([]);
@@ -232,27 +238,7 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
       description: t('Mode: {mode}', { mode: spamModeLabel, _tags: tags }),
       type: 'button',
       onPress: () => {
-        Alert.alert(
-          t('Private Message Filter', { _tags: tags }),
-          t('Select anti-spam mode', { _tags: tags }),
-          [
-            { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-            {
-              text: t('When open', { _tags: tags }),
-              onPress: async () => {
-                setSpamPmMode('when_open');
-                await settingsService.setSetting('spamPmMode', 'when_open');
-              },
-            },
-            {
-              text: t('Always', { _tags: tags }),
-              onPress: async () => {
-                setSpamPmMode('always');
-                await settingsService.setSetting('spamPmMode', 'always');
-              },
-            },
-          ]
-        );
+        setShowSpamModeModal(true);
       },
     },
     {
@@ -279,23 +265,18 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
       type: 'button',
       onPress: async () => {
         const log = await protectionService.getSpamLog();
-        Alert.alert(
-          t('SPAM.log', { _tags: tags }),
-          log && log.trim().length > 0 ? log.slice(0, 3500) : t('No spam log entries.', { _tags: tags })
-        );
+        const content = log && log.trim().length > 0
+          ? log.slice(0, 3500)
+          : t('No spam log entries.', { _tags: tags });
+        setSpamLogContent(content);
+        setShowSpamLogModal(true);
       },
     },
     {
       id: 'spam-log-delete',
       title: t('Delete SPAM.log', { _tags: tags }),
       type: 'button',
-      onPress: async () => {
-        await protectionService.clearSpamLog();
-        Alert.alert(
-          t('Delete SPAM.log', { _tags: tags }),
-          t('Spam log cleared.', { _tags: tags })
-        );
-      },
+      onPress: () => setShowSpamLogDeleteModal(true),
     },
     {
       id: 'spam-channel-enabled',
@@ -461,50 +442,7 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
         _tags: tags,
       }),
       type: 'button',
-      onPress: () => {
-        Alert.alert(
-          t('IRCop auto action', { _tags: tags }),
-          t('Select action when spam/flood is detected', { _tags: tags }),
-          [
-            { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-            {
-              text: t('None', { _tags: tags }),
-              onPress: async () => {
-                setProtIrcopAction('none');
-                await settingsService.setSetting('protIrcopAction', 'none');
-              },
-            },
-            {
-              text: t('BAN', { _tags: tags }),
-              onPress: async () => {
-                setProtIrcopAction('ban');
-                await settingsService.setSetting('protIrcopAction', 'ban');
-              },
-            },
-            {
-              text: t('KILL', { _tags: tags }),
-              onPress: async () => {
-                setProtIrcopAction('kill');
-                await settingsService.setSetting('protIrcopAction', 'kill');
-              },
-            },
-            {
-              text: t('KLINE', { _tags: tags }),
-              onPress: async () => {
-                setProtIrcopAction('kline');
-                await settingsService.setSetting('protIrcopAction', 'kline');
-              },
-            },
-            {
-              text: t('GLINE', { _tags: tags }),
-              onPress: async () => {
-                setProtIrcopAction('gline');
-                await settingsService.setSetting('protIrcopAction', 'gline');
-              },
-            },
-          ]
-        );
-      },
+      onPress: () => setShowIrcopActionModal(true),
     },
     {
       id: 'prot-ircop-reason',
@@ -536,10 +474,7 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
       title: t('Information about protections', { _tags: tags }),
       type: 'button',
       onPress: () => {
-        Alert.alert(
-          t('Protections', { _tags: tags }),
-          t('Protections will ignore spam/flood users and can trigger IRCop actions when enabled.', { _tags: tags })
-        );
+        setShowProtInfoModal(true);
       },
     },
   ], [
@@ -684,6 +619,146 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
               <TouchableOpacity
                 style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
                 onPress={() => setShowKeywords(false)}>
+                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Close', { _tags: tags })}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal visible={showSpamModeModal} transparent animationType="fade" onRequestClose={() => setShowSpamModeModal(false)}>
+        <View style={stylesLocal.modalContainer}>
+          <View style={stylesLocal.modalContent}>
+            <Text style={stylesLocal.modalTitle}>{t('Private Message Filter', { _tags: tags })}</Text>
+            <Text style={[stylesLocal.presetText, { marginBottom: 12 }]}>
+              {t('Select anti-spam mode', { _tags: tags })}
+            </Text>
+            <View style={stylesLocal.modalButtonRow}>
+              <TouchableOpacity
+                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
+                onPress={() => setShowSpamModeModal(false)}>
+                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Cancel', { _tags: tags })}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={stylesLocal.modalButton}
+                onPress={async () => {
+                  setSpamPmMode('when_open');
+                  await settingsService.setSetting('spamPmMode', 'when_open');
+                  setShowSpamModeModal(false);
+                }}>
+                <Text style={stylesLocal.modalButtonText}>{t('When open', { _tags: tags })}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={stylesLocal.modalButton}
+                onPress={async () => {
+                  setSpamPmMode('always');
+                  await settingsService.setSetting('spamPmMode', 'always');
+                  setShowSpamModeModal(false);
+                }}>
+                <Text style={stylesLocal.modalButtonText}>{t('Always', { _tags: tags })}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal visible={showSpamLogModal} transparent animationType="fade" onRequestClose={() => setShowSpamLogModal(false)}>
+        <View style={stylesLocal.modalContainer}>
+          <View style={stylesLocal.modalContent}>
+            <Text style={stylesLocal.modalTitle}>{t('SPAM.log', { _tags: tags })}</Text>
+            <ScrollView style={{ maxHeight: 260 }}>
+              <Text style={stylesLocal.presetText}>{spamLogContent}</Text>
+            </ScrollView>
+            <View style={stylesLocal.modalButtonRow}>
+              <TouchableOpacity
+                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
+                onPress={() => setShowSpamLogModal(false)}>
+                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Close', { _tags: tags })}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={showSpamLogDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSpamLogDeleteModal(false)}>
+        <View style={stylesLocal.modalContainer}>
+          <View style={stylesLocal.modalContent}>
+            <Text style={stylesLocal.modalTitle}>{t('Delete SPAM.log', { _tags: tags })}</Text>
+            <Text style={[stylesLocal.presetText, { marginBottom: 12 }]}>
+              {t('Are you sure you want to clear the spam log?', { _tags: tags })}
+            </Text>
+            <View style={stylesLocal.modalButtonRow}>
+              <TouchableOpacity
+                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
+                onPress={() => setShowSpamLogDeleteModal(false)}>
+                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Cancel', { _tags: tags })}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={stylesLocal.modalButton}
+                onPress={async () => {
+                  await protectionService.clearSpamLog();
+                  setShowSpamLogDeleteModal(false);
+                  setSpamLogContent(t('Spam log cleared.', { _tags: tags }));
+                  setShowSpamLogModal(true);
+                }}>
+                <Text style={stylesLocal.modalButtonText}>{t('Delete', { _tags: tags })}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={showIrcopActionModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowIrcopActionModal(false)}>
+        <View style={stylesLocal.modalContainer}>
+          <View style={stylesLocal.modalContent}>
+            <Text style={stylesLocal.modalTitle}>{t('IRCop auto action', { _tags: tags })}</Text>
+            <Text style={[stylesLocal.presetText, { marginBottom: 12 }]}>
+              {t('Select action when spam/flood is detected', { _tags: tags })}
+            </Text>
+            <View style={stylesLocal.modalButtonRow}>
+              <TouchableOpacity
+                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
+                onPress={() => setShowIrcopActionModal(false)}>
+                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Cancel', { _tags: tags })}</Text>
+              </TouchableOpacity>
+              {['none', 'ban', 'kill', 'kline', 'gline'].map((action) => (
+                <TouchableOpacity
+                  key={action}
+                  style={stylesLocal.modalButton}
+                  onPress={async () => {
+                    const next = action as 'none' | 'ban' | 'kill' | 'kline' | 'gline';
+                    setProtIrcopAction(next);
+                    await settingsService.setSetting('protIrcopAction', next);
+                    setShowIrcopActionModal(false);
+                  }}>
+                  <Text style={stylesLocal.modalButtonText}>
+                    {action === 'none' ? t('None', { _tags: tags }) : action.toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={showProtInfoModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowProtInfoModal(false)}>
+        <View style={stylesLocal.modalContainer}>
+          <View style={stylesLocal.modalContent}>
+            <Text style={stylesLocal.modalTitle}>{t('Protections', { _tags: tags })}</Text>
+            <Text style={[stylesLocal.presetText, { marginBottom: 12 }]}>
+              {t('Protections will ignore spam/flood users and can trigger IRCop actions when enabled.', { _tags: tags })}
+            </Text>
+            <View style={stylesLocal.modalButtonRow}>
+              <TouchableOpacity
+                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
+                onPress={() => setShowProtInfoModal(false)}>
                 <Text style={stylesLocal.modalButtonTextSecondary}>{t('Close', { _tags: tags })}</Text>
               </TouchableOpacity>
             </View>
