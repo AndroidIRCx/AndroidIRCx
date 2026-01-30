@@ -1,0 +1,9 @@
+v1.6.16
+- DCC now blocks private/local IPs by default (SSRF protection)
+- Backup encryption option with password
+- Crashlytics data sanitization
+- Secure storage status indicators
+- Protection settings now use proper modals
+- Away presets sync with default reasons
+- Theme editor enhancements
+- Better error handling throughout

@@ -3549,7 +3549,7 @@
     "string": "{nick} cierra{message}"
   },
   "Topic: {topic}": {
-    "string": "Tema: {topic}"
+    "string": "topic: {topic}"
   },
   "{oldNick} is now known as {newNick}": {
     "string": "{oldNick} es ahora {newNick}"
@@ -3600,7 +3600,7 @@
     "string": "*** {message}"
   },
   "*** Server: {server} | Version: {version} | User modes: {userModes} | Channel modes: {channelModes}": {
-    "string": "*** Servidor: {server}| Versión: {version}| Modos de usuario: {userModes}| Modos de canales: {channelModes}"
+    "string": "*** Servidor: {server} | Versión: {version} | Modos de usuario: {userModes} | Modos de canales: {channelModes}"
   },
   "*** Server supports: {features}": {
     "string": "*** El servidor admite: {features}"
@@ -3669,7 +3669,7 @@
     "string": "desconocido"
   },
   "*** {channel} was created on {date}": {
-    "string": "*** {channel} fue creado en {date}"
+    "string": "*** {channel} fue creado el {date}"
   },
   "*** You have invited {nick} to {channel}": {
     "string": "*** Has ivitado a{nick}to{channel}"
@@ -3756,7 +3756,7 @@
     "string": "Conexión bloqueada o baneado"
   },
   "*** Connection blocked: {message}": {
-    "string": "*** Conexión bloqueada:{message}"
+    "string": "*** Conexión bloqueada: {message}"
   },
   "They aren't on that channel": {
     "string": "Ellos no estan en ese canal"

@@ -10,10 +10,7 @@ import { consentService } from './ConsentService';
 import { bannerAdService } from './BannerAdService';
 import { inAppPurchaseService } from './InAppPurchaseService';
 
-// Pull app version from app.json so bonuses track real builds
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const appConfig = require('../../app.json');
-const APP_VERSION: string = appConfig?.version || '1.5.0';
+import { APP_VERSION } from '../config/appVersion';
 
 const STORAGE_KEY = '@AndroidIRCX:scriptingTime';
 const INITIAL_BONUS_KEY = '@AndroidIRCX:initialBonusGranted';

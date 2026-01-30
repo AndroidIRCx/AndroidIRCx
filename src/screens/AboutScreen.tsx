@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
+import { APP_VERSION } from '../config/appVersion';
 
 interface AboutScreenProps {
   visible: boolean;
@@ -60,7 +61,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({
         </View>
         <View style={styles.section}>
           <Text style={styles.appName}>AndroidIRCX</Text>
-          <Text style={styles.version}>{t('Version 1.6.15')}</Text>
+          <Text style={styles.version}>{t('Version {version}', { version: APP_VERSION })}</Text>
         </View>
         <View style={styles.section}>
           <Text style={styles.label}>{t('Made by')}</Text>

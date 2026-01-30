@@ -188,6 +188,8 @@ const MessageItem = React.memo<MessageItemProps>(({
         return colors.partMessage;
       case 'quit':
         return colors.quitMessage;
+      case 'kick':
+        return colors.kickMessage || colors.error;
       case 'nick':
         return colors.nickMessage || colors.info;
       case 'invite':
@@ -324,6 +326,9 @@ const MessageItem = React.memo<MessageItemProps>(({
     }
     if (message.type === 'quit') {
       return normalizedMessageFormats.quit;
+    }
+    if (message.type === 'kick') {
+      return normalizedMessageFormats.kick;
     }
     if (message.type === 'nick') {
       return normalizedMessageFormats.nick;

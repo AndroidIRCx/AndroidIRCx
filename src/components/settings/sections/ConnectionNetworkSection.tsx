@@ -106,6 +106,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   const [dccCloseQueriesOnChat, setDccCloseQueriesOnChat] = useState(false);
   const [dccRequestOnFail, setDccRequestOnFail] = useState(false);
   const [dccAllowByIp, setDccAllowByIp] = useState(false);
+  const [dccBlockPrivateIp, setDccBlockPrivateIp] = useState(true); // Block RFC1918/localhost by default for security
   const [dccPassive, setDccPassive] = useState(false);
   const [dccReplyQueueCommands, setDccReplyQueueCommands] = useState(false);
   const [dccSendMaxKbps, setDccSendMaxKbps] = useState('0');
@@ -230,6 +231,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       setDccCloseQueriesOnChat(await settingsService.getSetting('dccCloseQueriesOnChat', false));
       setDccRequestOnFail(await settingsService.getSetting('dccRequestOnFail', false));
       setDccAllowByIp(await settingsService.getSetting('dccAllowByIp', false));
+      setDccBlockPrivateIp(await settingsService.getSetting('dccBlockPrivateIp', true)); // Default to true for security
       setDccPassive(await settingsService.getSetting('dccPassive', false));
       setDccReplyQueueCommands(await settingsService.getSetting('dccReplyQueueCommands', false));
       setDccSendMaxKbps(String(await settingsService.getSetting('dccSendMaxKbps', 0)));
@@ -844,6 +846,36 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       },
     },
     {
+      id: 'dcc-block-private-ip',
+      title: t('Block private/local IPs', { _tags: tags }),
+      description: t('Block DCC connections to private (RFC1918) and localhost addresses. This prevents SSRF-like attacks where a malicious user could trick your client into connecting to internal network services.', { _tags: tags }),
+      type: 'switch',
+      value: dccBlockPrivateIp,
+      onValueChange: async (value) => {
+        if (!value) {
+          // Show warning when disabling
+          Alert.alert(
+            t('Security Warning', { _tags: tags }),
+            t('Disabling this option allows DCC connections to private network addresses (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). This could allow malicious users to make your device connect to internal network services. Only disable if you understand the risks and need to connect to a local IRC bouncer or similar service.\n\nAre you sure you want to disable this protection?', { _tags: tags }),
+            [
+              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+              {
+                text: t('Disable Protection', { _tags: tags }),
+                style: 'destructive',
+                onPress: async () => {
+                  setDccBlockPrivateIp(false);
+                  await settingsService.setSetting('dccBlockPrivateIp', false);
+                },
+              },
+            ]
+          );
+        } else {
+          setDccBlockPrivateIp(true);
+          await settingsService.setSetting('dccBlockPrivateIp', true);
+        }
+      },
+    },
+    {
       id: 'dcc-passive',
       title: t('Passive DCC', { _tags: tags }),
       type: 'switch',
@@ -919,6 +951,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     dccCloseQueriesOnChat,
     dccRequestOnFail,
     dccAllowByIp,
+    dccBlockPrivateIp,
     dccPassive,
     dccReplyQueueCommands,
     dccSendMaxKbps,

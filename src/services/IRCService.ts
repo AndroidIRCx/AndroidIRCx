@@ -12,6 +12,7 @@ import { userManagementService, BlacklistEntry } from './UserManagementService';
 import { protectionService } from './ProtectionService';
 import { useTabStore } from '../stores/tabStore';
 import { tx } from '../i18n/transifex';
+import { APP_VERSION } from '../config/appVersion';
 
 // Re-export ChannelTab from types for backward compatibility
 export { ChannelTab } from '../types';
@@ -107,7 +108,7 @@ export const getDefaultRawCategoryVisibility = (): Record<RawMessageCategory, bo
 
 export interface IRCMessage {
   id: string;
-  type: 'message' | 'notice' | 'raw' | 'join' | 'part' | 'quit' | 'nick' | 'mode' | 'topic' | 'error' | 'invite' | 'monitor' | 'ctcp';
+  type: 'message' | 'notice' | 'raw' | 'join' | 'part' | 'quit' | 'kick' | 'nick' | 'mode' | 'topic' | 'error' | 'invite' | 'monitor' | 'ctcp';
   channel?: string;
   from?: string;
   oldNick?: string;
@@ -1885,7 +1886,7 @@ export class IRCService {
         }
         
         this.addMessage({
-          type: 'mode',
+          type: 'kick',
           channel: kickChannel,
           from: kickBy,
           text: t('{by} kicked {target} from {channel}{reason}', {
@@ -4967,7 +4968,7 @@ export class IRCService {
   private handleCTCPRequest(from: string, target: string, command: string, args?: string): void {
     switch (command) {
       case 'VERSION':
-        this.sendCTCPResponse(from, 'VERSION', 'AndroidIRCX 1.0 React Native :https://github.com/AndroidIRCX');
+        this.sendCTCPResponse(from, 'VERSION', `AndroidIRCX ${APP_VERSION} React Native :https://github.com/AndroidIRCX`);
         break;
       case 'TIME':
         this.sendCTCPResponse(from, 'TIME', new Date().toISOString());

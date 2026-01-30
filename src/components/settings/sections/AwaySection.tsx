@@ -418,6 +418,7 @@ export const AwaySection: React.FC<AwaySectionProps> = ({
     awayPresets.length,
     awaySelectedPreset,
     awayDefaultReason,
+    autoAwayReason,
     t,
     tags,
   ]);
@@ -642,6 +643,14 @@ export const AwaySection: React.FC<AwaySectionProps> = ({
                       setAwaySelectedPreset(next);
                       await settingsService.setSetting('awaySelectedPreset', next);
                     }
+                    if (awayDefaultReason === prevValue) {
+                      setAwayDefaultReason(next);
+                      await settingsService.setSetting('awayDefaultReason', next);
+                    }
+                    if (autoAwayReason === prevValue) {
+                      setAutoAwayReason(next);
+                      await settingsService.setSetting('autoAwayReason', next);
+                    }
                   } else {
                     updated.push(next);
                   }
@@ -676,8 +685,19 @@ export const AwaySection: React.FC<AwaySectionProps> = ({
                       ]}
                       onPress={async () => {
                         const next = awaySelectedPreset === preset ? '' : preset;
+                        const prevSelected = awaySelectedPreset;
                         setAwaySelectedPreset(next);
                         await settingsService.setSetting('awaySelectedPreset', next);
+                        if (next) {
+                          if (!awayDefaultReason.trim() || awayDefaultReason === prevSelected) {
+                            setAwayDefaultReason(next);
+                            await settingsService.setSetting('awayDefaultReason', next);
+                          }
+                          if (!autoAwayReason.trim() || autoAwayReason === prevSelected) {
+                            setAutoAwayReason(next);
+                            await settingsService.setSetting('autoAwayReason', next);
+                          }
+                        }
                       }}>
                       <Text
                         style={[
