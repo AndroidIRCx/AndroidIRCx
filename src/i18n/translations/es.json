@@ -720,7 +720,7 @@
     "string": "Eliminar Favorito"
   },
   "Remove {name} from {network}?": {
-    "string": "Eliminar {name}para {network}"
+    "string": "Eliminar {name} para {network}?"
   },
   "Auto-Join Favorites on Connect": {
     "string": "Auto-Join a Favoritos al conectar"
@@ -843,7 +843,7 @@
     "string": "Usar {param1}, {channel}, {nick} marcadores de posición"
   },
   "e.g. /msg {channel} Hello {param1}": {
-    "string": "e.j. /msg {channel}Hola {param1}"
+    "string": "e.j. /msg {channel} Hola {param1}"
   },
   "Add Custom Command": {
     "string": "Agregar Comando Personalizado"
@@ -1170,7 +1170,7 @@
     "string": "Transferencia DCC Completada"
   },
   "{filename} received ({bytes} bytes).": {
-    "string": "{filename}recibido ({bytes}bytes)."
+    "string": "{filename} recibido ({bytes} bytes)."
   },
   "DCC Transfer Failed": {
     "string": "Transferencia DCC Fallida"
@@ -2622,7 +2622,7 @@
     "string": "Error al compartir la clave del canal"
   },
   "Requested channel key for {channel} from {nick}": {
-    "string": "Clave de canal solicitada para {channel}de {nick}"
+    "string": "Clave de canal solicitada para {channel} de {nick}"
   },
   "Failed to request channel key": {
     "string": "No se pudo solicitar la clave del canal"
@@ -2856,7 +2856,7 @@
     "string": "Idle:"
   },
   "{minutes} minutes": {
-    "string": "{minutes}minutos"
+    "string": "{minutes} minutos"
   },
   "Signed on:": {
     "string": "Logeado:"
@@ -2934,7 +2934,7 @@
     "string": "Por favor escriba su nombre real"
   },
   "{nick} Profile": {
-    "string": "{nick}Perfil"
+    "string": "{nick} Perfil"
   },
   "Please enter network name and server": {
     "string": "Por favor entre el nombre de la red y el servidor"
@@ -3483,7 +3483,7 @@
     "string": "*** NOTA {command} [{code}]{context}: {description}"
   },
   "{inviter} invited you to join {channel}": {
-    "string": "{inviter} te invitamos a unirte en {channel}"
+    "string": "{inviter} te invita a {channel}"
   },
   "*** {nick} accepted your encryption key. Encrypted chat enabled.": {
     "string": "*** {nick} aceptó su clave de cifrado. Chat cifrado habilitado."
@@ -3549,7 +3549,7 @@
     "string": "{nick} cierra{message}"
   },
   "Topic: {topic}": {
-    "string": "topic: {topic}"
+    "string": "{topic}"
   },
   "{oldNick} is now known as {newNick}": {
     "string": "{oldNick} es ahora {newNick}"
@@ -3579,13 +3579,13 @@
     "string": "*** {nick} ya se encuentra en línea"
   },
   "*** {nick} changed host to {host}": {
-    "string": "*** {nick}cambió su host a {host}"
+    "string": "*** {nick} cambió su host a {host}"
   },
   "*** {nick} changed realname to: {realname}": {
     "string": "*** {nick} cambió el nombre real a: {realname}"
   },
   "*** {nick} deleted a message": {
-    "string": "*** {nick}borró un mensaje"
+    "string": "*** {nick} borró un mensaje"
   },
   "*** RAW Command: {message}": {
     "string": "*** Comando RAW: {message} "
@@ -3672,7 +3672,7 @@
     "string": "*** {channel} fue creado el {date}"
   },
   "*** You have invited {nick} to {channel}": {
-    "string": "*** Has ivitado a{nick}to{channel}"
+    "string": "*** Invitaste a {nick} a {channel}"
   },
   "*** {channel} invite list: {mask}": {
     "string": "*** {channel} {mask}"
@@ -3684,7 +3684,7 @@
     "string": "por {nick}"
   },
   " on {date}": {
-    "string": "en {date}"
+    "string": "el {date}"
   },
   "*** {channel} exception list: {mask}{by}{time}": {
     "string": "*** {channel} {mask} {by} {time}"
@@ -3873,7 +3873,7 @@
     "string": "Falló la autenticación SASL "
   },
   "You are now logged in as {account}": {
-    "string": "Ahora has iniciado sesión con{account}"
+    "string": "Ahora has iniciado sesión con {account}"
   },
   "You are now logged out": {
     "string": "Ahora has cerrado sesión"
@@ -3906,7 +3906,7 @@
     "string": "desconectado"
   },
   "*** Stopped watching {nick}": {
-    "string": "***Dejó de mirar{nick}"
+    "string": "*** Dejó de mirar {nick}"
   },
   "is online": {
     "string": "está en línea"
@@ -3969,10 +3969,10 @@
     "string": "*** {nick} {user}@{host} * {real}"
   },
   "{hours} hours, {minutes} minutes": {
-    "string": "{hours}horas,{minutes}minutos"
+    "string": "{hours} horas, {minutes} minutos"
   },
   "{seconds} seconds": {
-    "string": "{seconds}segundos"
+    "string": "{seconds} segundos"
   },
   "*** {nick} has been idle {idle}, signed on {date}": {
     "string": "*** {nick} ha estado inactivo {idle}, conectado desde {date}"
@@ -4047,19 +4047,19 @@
     "string": "*** BATCH START:{type}({ref})"
   },
   "*** Netsplit detected: {servers} ({count} users quit)": {
-    "string": "*** Se detectó una división de red / netsplit:{servers}({count}users quit)"
+    "string": "*** Netsplit detectado: {servers} ({count} users quit)"
   },
   "*** Netjoin: {servers} ({count} users rejoined)": {
-    "string": "*** Unirse a la red/netjoin:{servers}({count}users rejoined)"
+    "string": "*** Netjoin: {servers} ({count} users rejoined)"
   },
   "*** Loading chat history ({count} messages)": {
-    "string": "*** Cargando el historial del chat ({count}mensajes)"
+    "string": "*** Cargando el historial del chat ({count} mensajes)"
   },
   "*** Capability changes ({count} updates)": {
-    "string": "*** Cambios de capacidad ({count}actualizaciones)"
+    "string": "*** Cambios de capacidad ({count} actualizaciones)"
   },
   "*** BATCH END: {type} ({ref}) - {count} messages": {
-    "string": "*** BATCH END:{type}({ref}) -{count}mensajes"
+    "string": "*** BATCH END: {type} ({ref}) - {count} mensajes"
   },
   "SETNAME command is not supported by this server": {
     "string": "El comando SETNAME no es compatible con este servidor"
@@ -4077,7 +4077,7 @@
     "string": "Uso: /{command}<nick|canal><message>"
   },
   "*** Encryption key offer sent to {nick}. Waiting for acceptance...": {
-    "string": "*** Clave de cifrado enviada a{nick}.Esperando aceptación..."
+    "string": "*** Clave de cifrado enviada a {nick}. Esperando aceptación..."
   },
   "*** Failed to share encryption key: {message}": {
     "string": "*** No se pudo compartir la clave de cifrado:{message}"
@@ -4086,7 +4086,7 @@
     "string": "Uso: /sharekey<nick>"
   },
   "*** Encryption key requested from {nick}": {
-    "string": "*** Clave de cifrado solicitada a{nick}"
+    "string": "*** Clave de cifrado solicitada desde {nick}"
   },
   "Usage: /requestkey <nick>": {
     "string": "Uso: /requestkey <nick> "
@@ -4137,7 +4137,7 @@
     "string": "*** La clave de canal solo se puede generar en el canal"
   },
   "*** Channel encryption key generated for {channel}. Use /chankey share <nick> to share with others.": {
-    "string": "*** Clave de cifrado de canal generada para{channel}. Usa /chankey share<nick> ´para compartirla con otros."
+    "string": "*** Clave de cifrado de canal generada para {channel}. Usa /chankey share <nick> para compartirla con otros."
   },
   "*** Failed to generate channel key: {message}": {
     "string": "*** No se pudo generar la clave del canal:{message}"
@@ -4161,7 +4161,7 @@
     "string": "*** La clave de canal solo se puede compartir desde el canal"
   },
   "*** Channel key for {channel} shared with {nick}": {
-    "string": "*** Clave de canal para {channel}compartida con{nick}"
+    "string": "*** Clave de canal para {channel} compartida con {nick}"
   },
   "*** Failed to share channel key: {message}. Generate a key first with /chankey generate": {
     "string": "*** No se pudo compartir la clave del canal:{message} . Genera primero una clave con /chankey generate"
@@ -4173,10 +4173,10 @@
     "string": "*** La solicitud de clave de canal debe realizarse desde el canal"
   },
   "Please share the channel key for {channel} with /chankey share {nick}": {
-    "string": "Por favor comparte la clave del canal para{channel}con /chankey share{nick}"
+    "string": "Por favor comparte la clave del canal para {channel} con /chankey share {nick}"
   },
   "*** Channel key requested from {nick} for {channel}": {
-    "string": "*** Clave de canal solicitada por {nick}para {channel}"
+    "string": "*** Clave de canal solicitada por {nick} para {channel}"
   },
   "*** Channel key can only be removed from a channel": {
     "string": "*** La clave de canal solo se puede eliminar en el canal"
@@ -4221,7 +4221,7 @@
     "string": "Canal Predeterminado"
   },
   "Message from {name}": {
-    "string": "Mensaje de{name}"
+    "string": "Mensaje de {name}"
   },
   "{from}: {text}": {
     "string": "{from}: {text}"
@@ -4260,7 +4260,7 @@
     "string": "Agrega /hola alias de ejemplo"
   },
   "Script {name} failed to compile: {error}": {
-    "string": "Script{name}no se pudo compilar:{error}"
+    "string": "Script {name} no se pudo compilar: {error}"
   },
   "All scripts disabled: Scripting time expired. Watch an ad to continue.": {
     "string": "Todos los scripts están deshabilitados: Se agotó el tiempo de ejecución. Vea un anuncio para continuar."
@@ -4269,7 +4269,7 @@
     "string": "Error en script {name} hook {hook}: {error}"
   },
   "Test hook {hook} executed": {
-    "string": "Prueba de hook{hook}ejecutada"
+    "string": "Prueba de hook {hook} ejecutada"
   },
   "Test hook {hook} failed for {name}: {error}": {
     "string": "Prueba hook {hook} fallida para {name}: {error}"
@@ -4293,7 +4293,7 @@
     "string": "Nueva solicitud de WHOIS para el mismo nick, cancelando la anterior."
   },
   "WHOIS request for {nick} timed out.": {
-    "string": "Solicitud de WHOIS para{nick}tiempo agotado."
+    "string": "Solicitud de WHOIS para {nick} tiempo agotado."
   },
   "WHOIS data for {nick} not found after completion signal.": {
     "string": "{nick} no está en el IRC."
@@ -5049,7 +5049,7 @@
     "string": "Icono Personalizado del Botón de Borrar"
   },
   "FontAwesome5 icon name (e.g., \"cat\", \"heart\", \"star\")": {
-    "string": "Nombre del icono FontAwesome5 (e.j., \"gato\", \"corazón\", \"estrella\")"
+    "string": "Nombre del icono FontAwesome5 (e.j., \"cat\", \"heart\", \"star\")"
   },
   "Enter icon name": {
     "string": "Introduzca el nombre del icono"
@@ -6033,7 +6033,7 @@
     "string": "Reproducir sonidos cuando la aplicación está abierta"
   },
   "Play in Background": {
-    "string": "Play en Segundo Plano"
+    "string": "Reproducir en Segundo Plano"
   },
   "Play sounds when app is minimized": {
     "string": "Reproducir sonidos cuando la aplicación esté minimizada"
@@ -7474,5 +7474,788 @@
   },
   "Nicklist Tongue Size": {
     "string": "Tamaño de La Lista Nicklist"
+  },
+  "Insert": {
+    "string": "Insertar"
+  },
+  "mIRC Colors": {
+    "string": "Colores mIRC"
+  },
+  "KILL {nick}": {
+    "string": "KILL {nick}"
+  },
+  "Enter reason": {
+    "string": "Ingrese el motivo"
+  },
+  "Reason is required": {
+    "string": "Se requiere una razón"
+  },
+  "Scan this QR to import your key": {
+    "string": "Escanee este QR para importar su clave"
+  },
+  "Scan to verify fingerprint": {
+    "string": "Escanee para verificar la huella dactilar"
+  },
+  "No QR payload": {
+    "string": "Sin carga útil QR"
+  },
+  "Copy QR Payload": {
+    "string": "Copiar Carga útil QR"
+  },
+  "Scan Key": {
+    "string": "Clave de Escaneo"
+  },
+  "Insert colors": {
+    "string": "Insertar colores"
+  },
+  "Clear selection": {
+    "string": "Borrar selección"
+  },
+  "Copy nickname": {
+    "string": "Copiar apodo"
+  },
+  "User list v": {
+    "string": "Lista de usuarios v"
+  },
+  "User list >": {
+    "string": "Lista de usuarios >"
+  },
+  "KILL (with reason)": {
+    "string": "KILL (con razón)"
+  },
+  "CTCP + DCC v": {
+    "string": "CTCP + DCC v"
+  },
+  "CTCP + DCC >": {
+    "string": "CTCP + DCC >"
+  },
+  "Change nick to pattern": {
+    "string": "Cambiar nick a patrón"
+  },
+  "Example: <me>^away": {
+    "string": "Ejemplo: <me>^ausente"
+  },
+  "Notify away if nick is mentioned": {
+    "string": "Notify a ausente si se menciona a nick"
+  },
+  "DeOp on channels": {
+    "string": "DeOp en canales"
+  },
+  "Announce away status": {
+    "string": "Anunciar el estado ausente"
+  },
+  "Auto-answer": {
+    "string": "Auto-respuesta"
+  },
+  "Disable sounds when away": {
+    "string": "Deshabilitar sonidos cuando está ausente"
+  },
+  "Multiserver": {
+    "string": "Multiservidor"
+  },
+  "Apply away to all connected networks": {
+    "string": "Aplicar a todas las redes conectadas"
+  },
+  "Away presets": {
+    "string": "Ausente ajustes preestablecidos"
+  },
+  "{count} presets": {
+    "string": "{count} ajustes preestablecidos"
+  },
+  "Default away reason": {
+    "string": "Motivo de ausencia por defecto"
+  },
+  "Go Away Now": {
+    "string": "Ausente Ahora"
+  },
+  "Send AWAY with default reason": {
+    "string": "Enviar AUSENTE con motivo predeterminado"
+  },
+  "Return (Back)": {
+    "string": "Volver (Atrás)"
+  },
+  "Clear AWAY status": {
+    "string": "Borrar el estado AUSENTE"
+  },
+  "Auto-answer message": {
+    "string": "Mensaje de auto-respuesta"
+  },
+  "Auto-answer presets": {
+    "string": "Auto-respuesta ajustes preestablecidos"
+  },
+  "{count} messages": {
+    "string": "{count} mensajes"
+  },
+  "Announce every (min.)": {
+    "string": "Anuncie cada (min.)"
+  },
+  "Announce only on channels": {
+    "string": "Anunciar solo en canales"
+  },
+  "Do not announce on channels": {
+    "string": "No anuncie en los canales"
+  },
+  "Away text": {
+    "string": "Texto ausente"
+  },
+  "Return text": {
+    "string": "Devolver el texto"
+  },
+  "Auto-away enabled": {
+    "string": "Auto-ausente habilitado"
+  },
+  "Auto-away minutes": {
+    "string": "Minutos de Auto-ausencia"
+  },
+  "Auto-away reason": {
+    "string": "Motivo de auto-ausente"
+  },
+  "Minimize to systray": {
+    "string": "Minimizar a la bandeja del sistema"
+  },
+  "Away system": {
+    "string": "Sistema ausente"
+  },
+  "Add preset": {
+    "string": "Agregar prestablecido"
+  },
+  "Colors": {
+    "string": "Colores"
+  },
+  "Add message": {
+    "string": "Agregar mensaje"
+  },
+  "Download Folder": {
+    "string": "Carpeta de Descarga"
+  },
+  "Folder picker is not supported on this device.": {
+    "string": "El selector de carpetas no es compatible con este dispositivo."
+  },
+  "Unable to resolve a folder from the selected file.": {
+    "string": "No se puede resolver una carpeta del archivo seleccionado."
+  },
+  "Failed to pick a folder. Please try again.": {
+    "string": "No se pudo elegir una carpeta. Por favor, inténtelo de nuevo."
+  },
+  "Reject": {
+    "string": "Rechazar"
+  },
+  "Don't send": {
+    "string": "No envíe"
+  },
+  "2 - Friends/Allowlist": {
+    "string": "2 - Amigos/Lista de permisos"
+  },
+  "3 - Ops": {
+    "string": "3 - Ops"
+  },
+  "4 - Auto Op & Notify": {
+    "string": "4- Auto Op y Notify"
+  },
+  "1 - Always ask": {
+    "string": "1 - Pregunta siempre"
+  },
+  "Getting files (auto)": {
+    "string": "Obtención de archivos (auto)"
+  },
+  "Mode: {mode}": {
+    "string": "Modo: {mode}"
+  },
+  "Auto-Get Mode": {
+    "string": "Modo de auto-obtención"
+  },
+  "Select behavior for incoming files": {
+    "string": "Seleccionar comportamiento para archivos entrantes"
+  },
+  "File type filters": {
+    "string": "Filtros de tipo de archivo"
+  },
+  "Accept {accept} / Reject {reject} / Block {block}": {
+    "string": "Aceptar {accept} / Rechazar {reject} / Bloquear {block}"
+  },
+  "Accept list": {
+    "string": "Aceptar lista"
+  },
+  "{count} items": {
+    "string": "{count} Elementos"
+  },
+  "Reject list": {
+    "string": "Lista de rechazo"
+  },
+  "Don't send list": {
+    "string": "No enviar lista"
+  },
+  "Auto accept CHAT from": {
+    "string": "Auto-aceptar el CHAT desde"
+  },
+  "Auto Accept Chat": {
+    "string": "Auto-aceptar Chat"
+  },
+  "Select who can auto-start DCC chat": {
+    "string": "Seleccione quién puede auto-iniciar el DCC chat"
+  },
+  "Auto accept gets from": {
+    "string": "La auto-aceptación obtiene de"
+  },
+  "Auto Accept Gets": {
+    "string": "La auto-aceptación obtiene"
+  },
+  "Select who can auto-send files": {
+    "string": "Seleccione quién puede auto-enviar archivos"
+  },
+  "Auto-open viewer": {
+    "string": "Visor de auto-apertura"
+  },
+  "Close queries when chat opens": {
+    "string": "Cerrar consultas cuando se abra el chat"
+  },
+  "Request on fail when receiving": {
+    "string": "Solicitud en caso de fallo al recibir"
+  },
+  "Allow DCC by IP": {
+    "string": "Permitir DCC por IP"
+  },
+  "Block private/local IPs": {
+    "string": "Bloquear IP privadas/locales"
+  },
+  "Block DCC connections to private (RFC1918) and localhost addresses. This prevents SSRF-like attacks where a malicious user could trick your client into connecting to internal network services.": {
+    "string": "Bloquee las conexiones DCC a direcciones privadas (RFC1918) y locales. Esto evita ataques tipo SSRF, donde un usuario malicioso podría engañar a su cliente para que se conecte a servicios de red internos."
+  },
+  "Disabling this option allows DCC connections to private network addresses (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). This could allow malicious users to make your device connect to internal network services. Only disable if you understand the risks and need to connect to a local IRC bouncer or similar service.\n\nAre you sure you want to disable this protection?": {
+    "string": "Deshabilitar esta opción permite conexiones DCC a direcciones de red privadas (10.xxxx, 192.168.xx, 172.16-31.x. x, localhost). Esto podría permitir que usuarios malintencionados hagan que su dispositivo se conecte a servicios de red internos. Deshabilítelo solo si comprende los riesgos y necesita conectarse a un bouncer de IRC local o un servicio similar.\n\n¿Está seguro de que desea deshabilitar esta protección?"
+  },
+  "Disable Protection": {
+    "string": "Deshabilitar la Protección"
+  },
+  "Passive DCC": {
+    "string": "DCC pasivo"
+  },
+  "Reply queue commands": {
+    "string": "Responder comandos de cola"
+  },
+  "Max. speed on sends (KB/s)": {
+    "string": "Max. velocidad de envío (KB/s)"
+  },
+  "Cancel if send speed is above (KB/s)": {
+    "string": "Cancelar si la velocidad de envío es superior (KB/s)"
+  },
+  "Download folder": {
+    "string": "Carpeta de descarga"
+  },
+  "Default app folder": {
+    "string": "Carpeta por defecto de la aplicación"
+  },
+  "Add extension (e.g. *.zip)": {
+    "string": "Agregar extensión (e.j., *.zip)"
+  },
+  "Tap to remove": {
+    "string": "Toque para eliminar"
+  },
+  "When open": {
+    "string": "Cuando está abierto"
+  },
+  "Anti-spam on private messages": {
+    "string": "Anti-spam en mensajes privados"
+  },
+  "Spam keywords list": {
+    "string": "Lista de palabras clave de spam"
+  },
+  "{count} patterns": {
+    "string": "{count} patrones"
+  },
+  "Logging in SPAM.log": {
+    "string": "Iniciar sesión en SPAM.log"
+  },
+  "Check SPAM.log": {
+    "string": "Revisar SPAM.log"
+  },
+  "No spam log entries.": {
+    "string": "No hay entradas de registro de spam."
+  },
+  "Delete SPAM.log": {
+    "string": "Eliminar SPAM.log"
+  },
+  "Anti-spam on channels": {
+    "string": "Anti-spam en canales"
+  },
+  "No spam on quits": {
+    "string": "No spam en quits"
+  },
+  "CTCP Flood & various": {
+    "string": "CTCP Flood y varios"
+  },
+  "Text Flood": {
+    "string": "Flood de Texto"
+  },
+  "DCC flood": {
+    "string": "DCC flood"
+  },
+  "Query flood": {
+    "string": "Flood en Privado"
+  },
+  "D.O.S. attacks": {
+    "string": "Ataques D. O. S."
+  },
+  "Anti deop/ban/kick": {
+    "string": "Anti deop/ban/kick"
+  },
+  "Using Chanserv": {
+    "string": "Usando Chanserv"
+  },
+  "Exclude protections on": {
+    "string": "Excluir protecciones en"
+  },
+  "Example: CTCP SLOTS MP3 SOUND": {
+    "string": "Ejemplo: CTCP SLOTS MP3 SOUND"
+  },
+  "Enforce with /silence": {
+    "string": "Reforzar con /silence"
+  },
+  "Block Tsunamis": {
+    "string": "Bloquear Tsunamis"
+  },
+  "Text Flood Net": {
+    "string": "Texto flood en Red"
+  },
+  "IRCop auto action": {
+    "string": "Auto-acción de IRCop"
+  },
+  "Action: {action}": {
+    "string": "Acción: {action}"
+  },
+  "IRCop reason": {
+    "string": "Razón de IRCop"
+  },
+  "IRCop duration": {
+    "string": "Duración del IRCop"
+  },
+  "Used for GLINE/KLINE if supported": {
+    "string": "Se usa para GLINE/KLINE si es compatible"
+  },
+  "Information about protections": {
+    "string": "Información sobre protecciones"
+  },
+  "Anti-Spam": {
+    "string": "Anti-Spam"
+  },
+  "Flood / DOS": {
+    "string": "Flood / DOS"
+  },
+  "Spam keywords": {
+    "string": "Palabras clave de spam"
+  },
+  "Add keyword or wildcard": {
+    "string": "Agregar palabra clave o comodín"
+  },
+  "Private Message Filter": {
+    "string": "Filtro de Mensajes Privados"
+  },
+  "Select anti-spam mode": {
+    "string": "Seleccione el modo anti-spam"
+  },
+  "SPAM.log": {
+    "string": "SPAM.log"
+  },
+  "Are you sure you want to clear the spam log?": {
+    "string": "¿Está seguro de que desea borrar el SPAM.log?"
+  },
+  "Spam log cleared.": {
+    "string": "Registro de spam borrado."
+  },
+  "Select action when spam/flood is detected": {
+    "string": "Seleccione la acción cuando se detecte spam/flood"
+  },
+  "Protections": {
+    "string": "Protecciones"
+  },
+  "Protections will ignore spam/flood users and can trigger IRCop actions when enabled.": {
+    "string": "Las protecciones ignorarán a los usuarios de spam/flood y pueden desencadenar acciones de IRCop cuando estén habilitadas."
+  },
+  "Decoration style": {
+    "string": "Estilo de decoración"
+  },
+  "None selected": {
+    "string": "Ninguna seleccionada"
+  },
+  "No styles": {
+    "string": "Sin estilos"
+  },
+  "Add styles first.": {
+    "string": "Agregue estilos primero."
+  },
+  "Bold": {
+    "string": "Negrita"
+  },
+  "Underline": {
+    "string": "Subrayado"
+  },
+  "Use colors": {
+    "string": "Usar colores"
+  },
+  "Styles list": {
+    "string": "Lista de estilos"
+  },
+  "{count} styles": {
+    "string": "{count} estilos"
+  },
+  "Active style": {
+    "string": "Estilo activo"
+  },
+  "Nick completion styles": {
+    "string": "Estilos de Nick completion"
+  },
+  "Decoration style: {text}": {
+    "string": "Estilo de decoración: {text}"
+  },
+  "none": {
+    "string": "ninguno"
+  },
+  "Decoration": {
+    "string": "Decoración"
+  },
+  "Nick Completion": {
+    "string": "Nick Completion"
+  },
+  "Decoration styles": {
+    "string": "Estilos de decoración"
+  },
+  "Add style": {
+    "string": "Agregar estilo"
+  },
+  "Select style": {
+    "string": "Seleccione estilo"
+  },
+  "Edit style": {
+    "string": "Editar estilo"
+  },
+  "Use <nick>": {
+    "string": "Uso <nick>"
+  },
+  "Use <text>": {
+    "string": "Uso <text>"
+  },
+  "KILL sent to {nick}": {
+    "string": "KILL enviado a {nick}"
+  },
+  "*** DCC CHAT from {from} auto-accepted": {
+    "string": "*** DCC CHAT de {from} auto-aceptado"
+  },
+  "*** DCC SEND offer from {from}: {filename} - Auto-accepted": {
+    "string": "*** DCC SEND oferta desde {from}: {filename} - Auto-aceptado"
+  },
+  "*** DCC SEND offer from {from}: {filename} - Rejected by filters": {
+    "string": "*** DCC SEND oferta desde {from}: {filename} - Rechazada por filtros"
+  },
+  "Version 1.6.16": {
+    "string": "Version 1.6.16"
+  },
+  "Backup Encrypted": {
+    "string": "Copia de Seguridad Cifrada"
+  },
+  "Your backup has been encrypted. Keep your password safe - you will need it to restore this backup.": {
+    "string": "Su copia de seguridad ha sido encriptada. Mantenga segura su contraseña - la necesitará para restaurar esta copia de seguridad."
+  },
+  "Encryption Failed": {
+    "string": "Error de Cifrado"
+  },
+  "Failed to encrypt backup": {
+    "string": "Error al cifrar la copia de seguridad"
+  },
+  "Generated backup with {count} items.": {
+    "string": "Copia de seguridad generada con {count} elementos."
+  },
+  "Please enter the password": {
+    "string": "Por favor, introduzca la contraseña"
+  },
+  "Decryption Failed": {
+    "string": "Descifrado fallido"
+  },
+  "Wrong password or corrupted data. Please check your password and try again.": {
+    "string": "Contraseña incorrecta o datos dañados. Por favor, compruebe su contraseña e inténtelo de nuevo."
+  },
+  "Sensitive Data Detected": {
+    "string": "Datos Sensibles Detectados"
+  },
+  "This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup.": {
+    "string": "Esta copia de seguridad puede contener datos confidenciales, como contraseñas de servidor, tokens de autenticación y claves de cifrado. Estos datos se almacenarán en texto sin formato a menos que elija cifrar la copia de seguridad."
+  },
+  "Do you want to encrypt this backup?": {
+    "string": "¿Desea cifrar esta copia de seguridad?"
+  },
+  "Enter encryption password (optional)": {
+    "string": "Introduzca la contraseña de cifrado (opcional)"
+  },
+  "Export Unencrypted": {
+    "string": "Exportar sin cifrar"
+  },
+  "Encrypt & Export": {
+    "string": "Encriptar y Exportar"
+  },
+  "Encrypted Backup": {
+    "string": "Copia de Seguridad Cifrada"
+  },
+  "This backup is encrypted. Please enter the password to decrypt and restore it.": {
+    "string": "Esta copia de seguridad está encriptada. Ingrese la contraseña para descifrarla y restaurarla."
+  },
+  "Enter decryption password": {
+    "string": "Ingrese la contraseña de descifrado"
+  },
+  "Decrypt & Restore": {
+    "string": "Descifrar y Restaurar"
+  },
+  "Topic Preview": {
+    "string": "Topic Vista Previa"
+  },
+  "Topic Style Preview": {
+    "string": "Vista Previa del Estilo del Topic"
+  },
+  "No topic style selected": {
+    "string": "Sin estilo de topic seleccionado"
+  },
+  "Add topic styles first.": {
+    "string": "Agregue estilos de topic primero."
+  },
+  "Select Topic Style": {
+    "string": "Seleccionar Estilo de Topic"
+  },
+  "Manage Topic Styles": {
+    "string": "Administrar Estilos de Topic"
+  },
+  "Topic Styles": {
+    "string": "Estilos de Topic"
+  },
+  "Use <TOPIC>": {
+    "string": "Uso <TOPIC>"
+  },
+  "IRcap Credits": {
+    "string": "Créditos IRcap"
+  },
+  "IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiration for away, protections, writing styles, and the IRcap theme.": {
+    "string": "IRcap (c) Carlos Esteve Cremades, 1997-2026. La inspiración para away, protecciones, estilos de escritura, y el tema IRcap."
+  },
+  "IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme.": {
+    "string": "Tema de IRcap para AndroidIRCx hecho por la Comunidad 07, basado en el tema original de IRcap."
+  },
+  "Join message format": {
+    "string": "Formato de mensaje join"
+  },
+  "Part message format": {
+    "string": "Formato de mensaje part"
+  },
+  "Quit message format": {
+    "string": "Formato de mensaje quit"
+  },
+  "Kick message format": {
+    "string": "Formato de mensaje kick"
+  },
+  "Nick change message format": {
+    "string": "Formato de mensaje cambio de nick"
+  },
+  "Invite message format": {
+    "string": "Formato de mensajes invite"
+  },
+  "Monitor message format": {
+    "string": "Formato de mensaje Monitor"
+  },
+  "Mode message format": {
+    "string": "Formato de mensaje mode"
+  },
+  "Topic message format": {
+    "string": "Formato de mensaje topic"
+  },
+  "Raw message format": {
+    "string": "Formato de mensajes raw"
+  },
+  "Error message format": {
+    "string": "Formato de mensaje error"
+  },
+  "CTCP message format": {
+    "string": "Formato de mensaje CTCP"
+  },
+  "Event (fallback) message format": {
+    "string": "Formato de mensaje evento (fallback)"
+  },
+  "old nick": {
+    "string": "anterior nick"
+  },
+  "new nick": {
+    "string": "nuevo nick"
+  },
+  "sender-nick joined #example": {
+    "string": "sender-nick se unió a #AndroidiRCX"
+  },
+  "sender-nick left #example: Example reason": {
+    "string": "sender-nick se fue de #AndroidIRCX: Part."
+  },
+  "sender-nick quit: Example reason": {
+    "string": "sender-nick se desconectó: Quit."
+  },
+  "kicker kicked target from #example: Example reason": {
+    "string": "Expulsado de #AndroidIRCX: Kick."
+  },
+  "old-nick is now known as new-nick": {
+    "string": "old-nick es ahora new-nick"
+  },
+  "sender-nick invited you to #example": {
+    "string": "sender-nick te invitamos a #AndroidIRCX"
+  },
+  "sender-nick is now online": {
+    "string": "sender-nick entró al chat"
+  },
+  "sender-nick set mode +o other-nick": {
+    "string": "sender-nick pone modo +o other-nick"
+  },
+  "sender-nick changed topic to: Example topic": {
+    "string": "sender-nick pone topic: Bienvenido a #AndroidIRCX"
+  },
+  "*** RAW Command: PING :example": {
+    "string": "*** Comando RAW: PING :ejemplo"
+  },
+  "*** Connection error [000]: Example error": {
+    "string": "*** Error de conexión [000]: Error de ejemplo"
+  },
+  "CTCP VERSION request": {
+    "string": "Solicitud de CTCP VERSIÓN"
+  },
+  "Palette": {
+    "string": "Paleta"
+  },
+  "Away": {
+    "string": "Ausente"
+  },
+  "Protection": {
+    "string": "Protección"
+  },
+  "Writing": {
+    "string": "Escritura"
+  },
+  "Accent": {
+    "string": "Acento"
+  },
+  "Not an encrypted backup": {
+    "string": "No una copia de seguridad encriptada"
+  },
+  "Decryption failed - wrong password or corrupted data": {
+    "string": "Error de descifrado: contraseña incorrecta o datos dañados"
+  },
+  "Connection blocked: Private/local IP address ({host}). This could be an SSRF attack. You can disable this protection in Settings > Connection > DCC if you trust this connection.": {
+    "string": "Conexión bloqueada: Dirección IP privada/local ({host}). Esto podría ser un ataque de la SSRF. Puede deshabilitar esta protección en Configuración > Conexión > DCC si confía en esta conexión."
+  },
+  "*** User modes: {modes}": {
+    "string": "*** Modos de usuario: {modes}"
+  },
+  "Version {version}": {
+    "string": "Version {version}"
+  },
+  "Blacklist Nick": {
+    "string": ""
+  },
+  "Default Ban Type": {
+    "string": ""
+  },
+  "Select the default ban mask type (0-9)": {
+    "string": ""
+  },
+  "Ban by user@host": {
+    "string": ""
+  },
+  "Ban by *user@host": {
+    "string": ""
+  },
+  "Ban by host only": {
+    "string": ""
+  },
+  "Ban by *user@*.domain": {
+    "string": ""
+  },
+  "Ban by *.domain only": {
+    "string": ""
+  },
+  "Ban exact nick!user@host": {
+    "string": ""
+  },
+  "Ban nick with *user@host": {
+    "string": ""
+  },
+  "Ban nick with any user@host": {
+    "string": ""
+  },
+  "Ban nick with *user@*.domain": {
+    "string": ""
+  },
+  "Ban nick with *.domain": {
+    "string": ""
+  },
+  "Select Default Ban Type": {
+    "string": ""
+  },
+  "Choose the default ban mask type": {
+    "string": ""
+  },
+  "Predefined Kick/Ban Reasons": {
+    "string": ""
+  },
+  "{count} reasons": {
+    "string": ""
+  },
+  "Show Ban Mask Preview": {
+    "string": ""
+  },
+  "Display the ban mask before applying": {
+    "string": ""
+  },
+  "Always Confirm Kick/Ban": {
+    "string": ""
+  },
+  "Show reason dialog for all kick/ban actions": {
+    "string": ""
+  },
+  "Add new reason...": {
+    "string": ""
+  },
+  "Reset to Defaults": {
+    "string": ""
+  },
+  "Load Scrollback on Join": {
+    "string": ""
+  },
+  "Load previous messages from local history when joining channels": {
+    "string": ""
+  },
+  "Scrollback Lines": {
+    "string": ""
+  },
+  "Number of previous messages to load: {count}": {
+    "string": ""
+  },
+  "IRcap Theme": {
+    "string": ""
+  },
+  "enters": {
+    "string": ""
+  },
+  "leaves": {
+    "string": ""
+  },
+  "closes": {
+    "string": ""
+  },
+  "kicked_by": {
+    "string": ""
+  },
+  "now_known_as": {
+    "string": ""
+  },
+  "invites_you_to": {
+    "string": ""
+  },
+  "joined_monitor_list": {
+    "string": ""
+  },
+  "sets_mode": {
+    "string": ""
+  },
+  "sets_topic": {
+    "string": ""
   }
 }

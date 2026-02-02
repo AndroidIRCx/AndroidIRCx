@@ -15,6 +15,8 @@ export interface BouncerConfig {
   markPlaybackMessages: boolean; // Mark playback messages differently
   skipOldPlayback: boolean; // Skip very old playback messages (older than X hours)
   playbackAgeLimit: number; // Max age of playback messages in hours (default: 24)
+  loadScrollbackOnJoin: boolean; // Load previous messages from local history when joining channel
+  scrollbackLines: number; // Number of scrollback lines to load (default: 50)
 }
 
 export interface BouncerInfo {
@@ -35,6 +37,8 @@ export class BouncerService {
     markPlaybackMessages: true,
     skipOldPlayback: false,
     playbackAgeLimit: 24,
+    loadScrollbackOnJoin: true,
+    scrollbackLines: 50,
   };
 
   private bouncerInfo: BouncerInfo = {

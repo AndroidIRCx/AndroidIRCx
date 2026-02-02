@@ -111,15 +111,33 @@ class IRCForegroundService : Service() {
     private fun startForegroundService(title: String, text: String) {
         val notification = createNotification(title, text)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // Use DATA_SYNC type for persistent IRC connections
-            startForeground(
-                NOTIFICATION_ID,
-                notification,
-                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // Use DATA_SYNC type for persistent IRC connections
+                startForeground(
+                    NOTIFICATION_ID,
+                    notification,
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+        } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
+            // Android 12+ blocks foreground service start from background
+            // Log and fail gracefully - the service will be stopped
+            android.util.Log.w(
+                "IRCForegroundService",
+                "Cannot start foreground service from background (Android 12+ restriction): ${e.message}"
             )
-        } else {
-            startForeground(NOTIFICATION_ID, notification)
+            // Stop the service since we can't go foreground
+            stopSelf()
+        } catch (e: Exception) {
+            android.util.Log.e(
+                "IRCForegroundService",
+                "Failed to start foreground service: ${e.message}",
+                e
+            )
+            stopSelf()
         }
     }
 

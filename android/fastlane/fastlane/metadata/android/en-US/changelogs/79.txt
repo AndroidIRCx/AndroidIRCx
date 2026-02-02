@@ -1,0 +1,6 @@
+v1.6.17
+- Added kick/ban system with custom reasons and ban mask types (0-9)
+- Added predefined kick/ban reasons list
+- Added default ban type setting
+- Protection settings expanded with ban configuration options
+- Notification sounds no longer interrupt background audio (radio, YouTube)

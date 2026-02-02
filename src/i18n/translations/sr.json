@@ -897,7 +897,7 @@
     "string": "Napravi rezervnu kopiju ili vrati sve podatke aplikacije"
   },
   "IRC Bouncer": {
-    "string": "IRC bouncer"
+    "string": "IRC Bouncer"
   },
   "Bouncer Status": {
     "string": "Status bouncera"
@@ -5790,7 +5790,7 @@
     "string": "• onTimer(name) — tajmer je okinut"
   },
   "CTCP Responder": {
-    "string": "CTCP responder"
+    "string": "CTCP odgovarač"
   },
   "Timer Example": {
     "string": "Primer tajmera"
@@ -7474,5 +7474,788 @@
   },
   "Nicklist Tongue Size": {
     "string": "Veličina ručice liste korisnika"
+  },
+  "Insert": {
+    "string": ""
+  },
+  "mIRC Colors": {
+    "string": ""
+  },
+  "KILL {nick}": {
+    "string": ""
+  },
+  "Enter reason": {
+    "string": ""
+  },
+  "Reason is required": {
+    "string": ""
+  },
+  "Scan this QR to import your key": {
+    "string": ""
+  },
+  "Scan to verify fingerprint": {
+    "string": ""
+  },
+  "No QR payload": {
+    "string": ""
+  },
+  "Copy QR Payload": {
+    "string": ""
+  },
+  "Scan Key": {
+    "string": ""
+  },
+  "Insert colors": {
+    "string": ""
+  },
+  "Clear selection": {
+    "string": ""
+  },
+  "Copy nickname": {
+    "string": ""
+  },
+  "User list v": {
+    "string": ""
+  },
+  "User list >": {
+    "string": ""
+  },
+  "KILL (with reason)": {
+    "string": ""
+  },
+  "CTCP + DCC v": {
+    "string": ""
+  },
+  "CTCP + DCC >": {
+    "string": ""
+  },
+  "Change nick to pattern": {
+    "string": ""
+  },
+  "Example: <me>^away": {
+    "string": ""
+  },
+  "Notify away if nick is mentioned": {
+    "string": ""
+  },
+  "DeOp on channels": {
+    "string": ""
+  },
+  "Announce away status": {
+    "string": ""
+  },
+  "Auto-answer": {
+    "string": ""
+  },
+  "Disable sounds when away": {
+    "string": ""
+  },
+  "Multiserver": {
+    "string": ""
+  },
+  "Apply away to all connected networks": {
+    "string": ""
+  },
+  "Away presets": {
+    "string": ""
+  },
+  "{count} presets": {
+    "string": ""
+  },
+  "Default away reason": {
+    "string": ""
+  },
+  "Go Away Now": {
+    "string": ""
+  },
+  "Send AWAY with default reason": {
+    "string": ""
+  },
+  "Return (Back)": {
+    "string": ""
+  },
+  "Clear AWAY status": {
+    "string": ""
+  },
+  "Auto-answer message": {
+    "string": ""
+  },
+  "Auto-answer presets": {
+    "string": ""
+  },
+  "{count} messages": {
+    "string": ""
+  },
+  "Announce every (min.)": {
+    "string": ""
+  },
+  "Announce only on channels": {
+    "string": ""
+  },
+  "Do not announce on channels": {
+    "string": ""
+  },
+  "Away text": {
+    "string": ""
+  },
+  "Return text": {
+    "string": ""
+  },
+  "Auto-away enabled": {
+    "string": ""
+  },
+  "Auto-away minutes": {
+    "string": ""
+  },
+  "Auto-away reason": {
+    "string": ""
+  },
+  "Minimize to systray": {
+    "string": ""
+  },
+  "Away system": {
+    "string": ""
+  },
+  "Add preset": {
+    "string": ""
+  },
+  "Colors": {
+    "string": ""
+  },
+  "Add message": {
+    "string": ""
+  },
+  "Download Folder": {
+    "string": ""
+  },
+  "Folder picker is not supported on this device.": {
+    "string": ""
+  },
+  "Unable to resolve a folder from the selected file.": {
+    "string": ""
+  },
+  "Failed to pick a folder. Please try again.": {
+    "string": ""
+  },
+  "Reject": {
+    "string": ""
+  },
+  "Don't send": {
+    "string": ""
+  },
+  "2 - Friends/Allowlist": {
+    "string": ""
+  },
+  "3 - Ops": {
+    "string": ""
+  },
+  "4 - Auto Op & Notify": {
+    "string": ""
+  },
+  "1 - Always ask": {
+    "string": ""
+  },
+  "Getting files (auto)": {
+    "string": ""
+  },
+  "Mode: {mode}": {
+    "string": ""
+  },
+  "Auto-Get Mode": {
+    "string": ""
+  },
+  "Select behavior for incoming files": {
+    "string": ""
+  },
+  "File type filters": {
+    "string": ""
+  },
+  "Accept {accept} / Reject {reject} / Block {block}": {
+    "string": ""
+  },
+  "Accept list": {
+    "string": ""
+  },
+  "{count} items": {
+    "string": ""
+  },
+  "Reject list": {
+    "string": ""
+  },
+  "Don't send list": {
+    "string": ""
+  },
+  "Auto accept CHAT from": {
+    "string": ""
+  },
+  "Auto Accept Chat": {
+    "string": ""
+  },
+  "Select who can auto-start DCC chat": {
+    "string": ""
+  },
+  "Auto accept gets from": {
+    "string": ""
+  },
+  "Auto Accept Gets": {
+    "string": ""
+  },
+  "Select who can auto-send files": {
+    "string": ""
+  },
+  "Auto-open viewer": {
+    "string": ""
+  },
+  "Close queries when chat opens": {
+    "string": ""
+  },
+  "Request on fail when receiving": {
+    "string": ""
+  },
+  "Allow DCC by IP": {
+    "string": ""
+  },
+  "Block private/local IPs": {
+    "string": ""
+  },
+  "Block DCC connections to private (RFC1918) and localhost addresses. This prevents SSRF-like attacks where a malicious user could trick your client into connecting to internal network services.": {
+    "string": ""
+  },
+  "Disabling this option allows DCC connections to private network addresses (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). This could allow malicious users to make your device connect to internal network services. Only disable if you understand the risks and need to connect to a local IRC bouncer or similar service.\n\nAre you sure you want to disable this protection?": {
+    "string": ""
+  },
+  "Disable Protection": {
+    "string": ""
+  },
+  "Passive DCC": {
+    "string": ""
+  },
+  "Reply queue commands": {
+    "string": ""
+  },
+  "Max. speed on sends (KB/s)": {
+    "string": ""
+  },
+  "Cancel if send speed is above (KB/s)": {
+    "string": ""
+  },
+  "Download folder": {
+    "string": ""
+  },
+  "Default app folder": {
+    "string": ""
+  },
+  "Add extension (e.g. *.zip)": {
+    "string": ""
+  },
+  "Tap to remove": {
+    "string": ""
+  },
+  "When open": {
+    "string": ""
+  },
+  "Anti-spam on private messages": {
+    "string": ""
+  },
+  "Spam keywords list": {
+    "string": ""
+  },
+  "{count} patterns": {
+    "string": ""
+  },
+  "Logging in SPAM.log": {
+    "string": ""
+  },
+  "Check SPAM.log": {
+    "string": ""
+  },
+  "No spam log entries.": {
+    "string": ""
+  },
+  "Delete SPAM.log": {
+    "string": ""
+  },
+  "Anti-spam on channels": {
+    "string": ""
+  },
+  "No spam on quits": {
+    "string": ""
+  },
+  "CTCP Flood & various": {
+    "string": "CTCP poplava i razno"
+  },
+  "Text Flood": {
+    "string": "Poplava teksta"
+  },
+  "DCC flood": {
+    "string": "DCC poplava"
+  },
+  "Query flood": {
+    "string": "Poplava upita"
+  },
+  "D.O.S. attacks": {
+    "string": "D.O.S. napadi"
+  },
+  "Anti deop/ban/kick": {
+    "string": "Zaštita od deop/ban/kick"
+  },
+  "Using Chanserv": {
+    "string": "Koristeći Chanserv"
+  },
+  "Exclude protections on": {
+    "string": "Isključi zaštitu za"
+  },
+  "Example: CTCP SLOTS MP3 SOUND": {
+    "string": "Primer: CTCP SLOTS MP3 SOUND"
+  },
+  "Enforce with /silence": {
+    "string": "Primeni sa /silence"
+  },
+  "Block Tsunamis": {
+    "string": "Blokiraj tsunamije"
+  },
+  "Text Flood Net": {
+    "string": "Mrežna poplava teksta"
+  },
+  "IRCop auto action": {
+    "string": "Automatska IRCop akcija"
+  },
+  "Action: {action}": {
+    "string": "Akcija: {action}"
+  },
+  "IRCop reason": {
+    "string": "Razlog IRCop-a"
+  },
+  "IRCop duration": {
+    "string": "Trajanje IRCop-a"
+  },
+  "Used for GLINE/KLINE if supported": {
+    "string": "Koristi se za GLINE/KLINE ako je podržano"
+  },
+  "Information about protections": {
+    "string": "Informacije o zaštitama"
+  },
+  "Anti-Spam": {
+    "string": "Anti-Spam"
+  },
+  "Flood / DOS": {
+    "string": "Poplava / DOS"
+  },
+  "Spam keywords": {
+    "string": "Spam ključne reči"
+  },
+  "Add keyword or wildcard": {
+    "string": "Dodajte ključnu reč ili džoker znak"
+  },
+  "Private Message Filter": {
+    "string": "Filter privatnih poruka"
+  },
+  "Select anti-spam mode": {
+    "string": "Izaberite anti-spam režim"
+  },
+  "SPAM.log": {
+    "string": "SPAM.log"
+  },
+  "Are you sure you want to clear the spam log?": {
+    "string": "Da li ste sigurni da želite da očistite spam log?"
+  },
+  "Spam log cleared.": {
+    "string": "Spam log očišćen."
+  },
+  "Select action when spam/flood is detected": {
+    "string": "Izaberite akciju kada se detektuje spam/poplava"
+  },
+  "Protections": {
+    "string": "Zaštite"
+  },
+  "Protections will ignore spam/flood users and can trigger IRCop actions when enabled.": {
+    "string": "Zaštite će ignorisati spamer/e i može pokrenuti IRCop akcije kada su omogućene."
+  },
+  "Decoration style": {
+    "string": "Stil dekoracije"
+  },
+  "None selected": {
+    "string": "Ništa izabrano"
+  },
+  "No styles": {
+    "string": "Nema stilova"
+  },
+  "Add styles first.": {
+    "string": "Prvo dodajte stilove."
+  },
+  "Bold": {
+    "string": "Podebljano"
+  },
+  "Underline": {
+    "string": "Podvučeno"
+  },
+  "Use colors": {
+    "string": "Koristi boje"
+  },
+  "Styles list": {
+    "string": "Lista stilova"
+  },
+  "{count} styles": {
+    "string": "{count} stilova"
+  },
+  "Active style": {
+    "string": "Aktivni stil"
+  },
+  "Nick completion styles": {
+    "string": "Stilovi dopunjavanja nadimaka"
+  },
+  "Decoration style: {text}": {
+    "string": "Stil dekoracije: {text}"
+  },
+  "none": {
+    "string": "nijedan"
+  },
+  "Decoration": {
+    "string": "Dekoracija"
+  },
+  "Nick Completion": {
+    "string": "Dopunjavanje nadimaka"
+  },
+  "Decoration styles": {
+    "string": "Stilovi dekoracije"
+  },
+  "Add style": {
+    "string": "Dodaj stil"
+  },
+  "Select style": {
+    "string": "Izaberi stil"
+  },
+  "Edit style": {
+    "string": "Uredi stil"
+  },
+  "Use <nick>": {
+    "string": "Koristi <nadimak>"
+  },
+  "Use <text>": {
+    "string": "Koristi <tekst>"
+  },
+  "KILL sent to {nick}": {
+    "string": "KILL poslat ka {nick}"
+  },
+  "*** DCC CHAT from {from} auto-accepted": {
+    "string": "*** DCC Ćaskanje od {from} automatski prihvaćeno"
+  },
+  "*** DCC SEND offer from {from}: {filename} - Auto-accepted": {
+    "string": "*** DCC SEND ponuda od {from}: {filename} - Automatski prihvaćena"
+  },
+  "*** DCC SEND offer from {from}: {filename} - Rejected by filters": {
+    "string": "*** DCC SEND ponuda od {from}: {filename} - Odbačena od filtera"
+  },
+  "Version 1.6.16": {
+    "string": "Verzija 1.6.16"
+  },
+  "Backup Encrypted": {
+    "string": "Rezervna kopija šifrovana"
+  },
+  "Your backup has been encrypted. Keep your password safe - you will need it to restore this backup.": {
+    "string": "Vaša rezervna kopija je šifrovana. Čuvajte lozinku na sigurnom - biće vam potrebna za vraćanje ove rezervne kopije."
+  },
+  "Encryption Failed": {
+    "string": "Šifrovanje nije uspelo"
+  },
+  "Failed to encrypt backup": {
+    "string": "Šifrovanje rezervne kopije nije uspelo"
+  },
+  "Generated backup with {count} items.": {
+    "string": "Kreirana rezervna kopija sa {count} stavki."
+  },
+  "Please enter the password": {
+    "string": "Molimo unesite lozinku"
+  },
+  "Decryption Failed": {
+    "string": "Dešifrovanje nije uspelo"
+  },
+  "Wrong password or corrupted data. Please check your password and try again.": {
+    "string": "Pogrešna lozinka ili oštećeni podaci. Molimo proverite lozinku i pokušajte ponovo."
+  },
+  "Sensitive Data Detected": {
+    "string": "Osetljivi podaci otkriveni"
+  },
+  "This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup.": {
+    "string": "Ova rezervna kopija može sadržati osetljive podatke kao što su lozinke servera, tokeni za autentifikaciju i šifarski ključevi. Ovi podaci će biti sačuvani kao običan tekst osim ako ne izaberete da šifrujete rezervnu kopiju."
+  },
+  "Do you want to encrypt this backup?": {
+    "string": "Želite li da šifrujete ovu rezervnu kopiju?"
+  },
+  "Enter encryption password (optional)": {
+    "string": "Unesite lozinku za šifrovanje (opciono)"
+  },
+  "Export Unencrypted": {
+    "string": "Izvezi nešifrovano"
+  },
+  "Encrypt & Export": {
+    "string": "Šifruj i izvezi"
+  },
+  "Encrypted Backup": {
+    "string": "Šifrovana rezervna kopija"
+  },
+  "This backup is encrypted. Please enter the password to decrypt and restore it.": {
+    "string": "Ova rezervna kopija je šifrovana. Molimo unesite lozinku za dešifrovanje i vraćanje."
+  },
+  "Enter decryption password": {
+    "string": "Unesite lozinku za dešifrovanje"
+  },
+  "Decrypt & Restore": {
+    "string": "Dešifruj i vrati"
+  },
+  "Topic Preview": {
+    "string": "Pregled teme"
+  },
+  "Topic Style Preview": {
+    "string": "Pregled stila teme"
+  },
+  "No topic style selected": {
+    "string": "Nije izabran stil teme"
+  },
+  "Add topic styles first.": {
+    "string": "Prvo dodaj stilove tema."
+  },
+  "Select Topic Style": {
+    "string": "Izaberi stil teme"
+  },
+  "Manage Topic Styles": {
+    "string": "Upravljanje stilovima tema"
+  },
+  "Topic Styles": {
+    "string": "Stilovi tema"
+  },
+  "Use <TOPIC>": {
+    "string": "Koristi <TEMA>"
+  },
+  "IRcap Credits": {
+    "string": "IRcap zaslugama"
+  },
+  "IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiration for away, protections, writing styles, and the IRcap theme.": {
+    "string": "IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiracija za odsustvo, zaštitu, stilove pisanja i IRcap temu."
+  },
+  "IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme.": {
+    "string": "IRcap tema za AndroidIRCx od ARGENTIN07, zasnovana na originalnoj IRcap temi."
+  },
+  "Join message format": {
+    "string": "Format poruke pridruživanja"
+  },
+  "Part message format": {
+    "string": "Format poruke odlaska"
+  },
+  "Quit message format": {
+    "string": "Format poruke izlaska"
+  },
+  "Kick message format": {
+    "string": "Format poruke izbacivanja"
+  },
+  "Nick change message format": {
+    "string": "Format poruke promene nadimka"
+  },
+  "Invite message format": {
+    "string": "Format poruke pozivnice"
+  },
+  "Monitor message format": {
+    "string": "Format poruke monitora"
+  },
+  "Mode message format": {
+    "string": "Format poruke moda"
+  },
+  "Topic message format": {
+    "string": "Format poruke teme"
+  },
+  "Raw message format": {
+    "string": "Format sirove poruke"
+  },
+  "Error message format": {
+    "string": "Format poruke greške"
+  },
+  "CTCP message format": {
+    "string": "CTCP format poruke"
+  },
+  "Event (fallback) message format": {
+    "string": "Format poruke događaja (rezervni)"
+  },
+  "old nick": {
+    "string": "stari nadimak"
+  },
+  "new nick": {
+    "string": "nov nadimak"
+  },
+  "sender-nick joined #example": {
+    "string": "sender-nick se pridružio #primer"
+  },
+  "sender-nick left #example: Example reason": {
+    "string": "sender-nick je napustio #primer: Primer razloga"
+  },
+  "sender-nick quit: Example reason": {
+    "string": "sender-nick se odjavio: Primer razloga"
+  },
+  "kicker kicked target from #example: Example reason": {
+    "string": "kicker je izbacio cilj sa #primer: Primer razlog"
+  },
+  "old-nick is now known as new-nick": {
+    "string": "stari-nick je sada poznat kao novi-nick"
+  },
+  "sender-nick invited you to #example": {
+    "string": "sender-nick vas je pozvao na #primer"
+  },
+  "sender-nick is now online": {
+    "string": "sender-nick je sada online"
+  },
+  "sender-nick set mode +o other-nick": {
+    "string": "sender-nick je postavio mod +o drugi-nick"
+  },
+  "sender-nick changed topic to: Example topic": {
+    "string": "sender-nick je promenio temu u: Primer teme"
+  },
+  "*** RAW Command: PING :example": {
+    "string": "*** SIROVA Komanda: PING :primer"
+  },
+  "*** Connection error [000]: Example error": {
+    "string": "*** Greška u konekciji [000]: Primer greške"
+  },
+  "CTCP VERSION request": {
+    "string": "CTCP VERSION zahtev"
+  },
+  "Palette": {
+    "string": "Paleta"
+  },
+  "Away": {
+    "string": "Odsutan"
+  },
+  "Protection": {
+    "string": "Zaštita"
+  },
+  "Writing": {
+    "string": "Pisanje"
+  },
+  "Accent": {
+    "string": "Akcent"
+  },
+  "Not an encrypted backup": {
+    "string": "Nije šifrovana rezervna kopija"
+  },
+  "Decryption failed - wrong password or corrupted data": {
+    "string": "Dešifrovanje nije uspelo - pogrešna lozinka ili oštećeni podaci"
+  },
+  "Connection blocked: Private/local IP address ({host}). This could be an SSRF attack. You can disable this protection in Settings > Connection > DCC if you trust this connection.": {
+    "string": "Veza je blokirana: Privatna/lokalna IP adresa ({host}). Ovo može biti SSRF napad. Možete onemogućiti ovu zaštitu u Podešavanja > Veza > DCC ako verujete ovoj vezi."
+  },
+  "*** User modes: {modes}": {
+    "string": "*** Korisnički modovi: {modes}"
+  },
+  "Version {version}": {
+    "string": "Verzija {version}"
+  },
+  "Blacklist Nick": {
+    "string": "Crna lista"
+  },
+  "Default Ban Type": {
+    "string": "Podrazumevani tip bana"
+  },
+  "Select the default ban mask type (0-9)": {
+    "string": "Podesi podrazumevanu ban masku (0-9)"
+  },
+  "Ban by user@host": {
+    "string": "Banuj user@host"
+  },
+  "Ban by *user@host": {
+    "string": "Banuj *user@host"
+  },
+  "Ban by host only": {
+    "string": "Banuj samo host"
+  },
+  "Ban by *user@*.domain": {
+    "string": "Banuj *user@*.domen"
+  },
+  "Ban by *.domain only": {
+    "string": "Ban samo *.domen"
+  },
+  "Ban exact nick!user@host": {
+    "string": "Banuj tačno nick!user@host"
+  },
+  "Ban nick with *user@host": {
+    "string": "Banuj nick sa *user@host"
+  },
+  "Ban nick with any user@host": {
+    "string": "Banuj nick sa korisnik@host"
+  },
+  "Ban nick with *user@*.domain": {
+    "string": "Banuj nick sa *korisnik@*.domen"
+  },
+  "Ban nick with *.domain": {
+    "string": "Banuj nick sa *.domen"
+  },
+  "Select Default Ban Type": {
+    "string": "Podesi default tip Bana"
+  },
+  "Choose the default ban mask type": {
+    "string": "Podesi podrazumevanu ban masku"
+  },
+  "Predefined Kick/Ban Reasons": {
+    "string": "Predefinisani Kick/Ban razlozi"
+  },
+  "{count} reasons": {
+    "string": "{count} razloga"
+  },
+  "Show Ban Mask Preview": {
+    "string": "Pregled Ban maske"
+  },
+  "Display the ban mask before applying": {
+    "string": "Prikaži ban mask pre potvrđivanja"
+  },
+  "Always Confirm Kick/Ban": {
+    "string": "Uvek traži potvrdu za Kick/Ban"
+  },
+  "Show reason dialog for all kick/ban actions": {
+    "string": "Prikaži podešavanje za razlog za sve Kick/Ban akcije"
+  },
+  "Add new reason...": {
+    "string": "Dodaj novi razlog..."
+  },
+  "Reset to Defaults": {
+    "string": ""
+  },
+  "Load Scrollback on Join": {
+    "string": "Učitaj scrollback pri ulasku"
+  },
+  "Load previous messages from local history when joining channels": {
+    "string": "Učitaj prethodne poruke iz lokalne istorije pri ulasku u kanal"
+  },
+  "Scrollback Lines": {
+    "string": "Broj linija scrollback-a"
+  },
+  "Number of previous messages to load: {count}": {
+    "string": "Broj prethodnih poruka za učitavanje: {count}"
+  },
+  "IRcap Theme": {
+    "string": "IRcap tema"
+  },
+  "enters": {
+    "string": "ulazi"
+  },
+  "leaves": {
+    "string": "napušta"
+  },
+  "closes": {
+    "string": "zatvara"
+  },
+  "kicked_by": {
+    "string": "izbačen od strane"
+  },
+  "now_known_as": {
+    "string": "sada poznat kao"
+  },
+  "invites_you_to": {
+    "string": "poziva Vas na"
+  },
+  "joined_monitor_list": {
+    "string": "prudružio se listi za praćenje"
+  },
+  "sets_mode": {
+    "string": "postavlja mod"
+  },
+  "sets_topic": {
+    "string": "postavlja temu"
   }
 }

@@ -80,6 +80,14 @@ export interface UIState {
   dccSendTarget: { nick: string; networkId: string } | null;
   dccSendPath: string;
 
+  // Blacklist
+  blacklistTarget: {
+    type: 'channel' | 'query' | 'nick';
+    networkId: string;
+    channel?: string;
+    nick?: string;
+  } | null;
+
   // Help Screens
   showHelpConnection: boolean;
   showHelpCommands: boolean;
@@ -157,6 +165,14 @@ export interface UIState {
   setDccSendTarget: (target: { nick: string; networkId: string } | null) => void;
   setDccSendPath: (path: string) => void;
 
+  // Actions - Blacklist
+  setBlacklistTarget: (target: {
+    type: 'channel' | 'query' | 'nick';
+    networkId: string;
+    channel?: string;
+    nick?: string;
+  } | null) => void;
+
   // Actions - Help Screens
   setShowHelpConnection: (show: boolean) => void;
   setShowHelpCommands: (show: boolean) => void;
@@ -227,6 +243,7 @@ const initialState = {
   showDccSendModal: false,
   dccSendTarget: null,
   dccSendPath: '',
+  blacklistTarget: null,
   showHelpConnection: false,
   showHelpCommands: false,
   showHelpEncryption: false,
@@ -320,6 +337,9 @@ export const useUIStore = create<UIState>()(
       setDccSendTarget: (target) => set({ dccSendTarget: target }),
       setDccSendPath: (path) => set({ dccSendPath: path }),
 
+      // Blacklist
+      setBlacklistTarget: (target) => set({ blacklistTarget: target }),
+
       // Help Screens
       setShowHelpConnection: (show) => set({ showHelpConnection: show }),
       setShowHelpCommands: (show) => set({ showHelpCommands: show }),
@@ -353,6 +373,7 @@ export const useUIStore = create<UIState>()(
         showDccTransfers: false,
         dccTransfersMinimized: false,
         showDccSendModal: false,
+        blacklistTarget: null,
         showHelpConnection: false,
         showHelpCommands: false,
         showHelpEncryption: false,
@@ -379,6 +400,7 @@ export const useUIStore = create<UIState>()(
         hideIrcServiceListenerMessages: state.hideIrcServiceListenerMessages,
         // NOTE: Modal visibility states are intentionally excluded from persistence
         // They should always start as false on app launch
+        blacklistTarget: state.blacklistTarget, // Also exclude blacklistTarget from persistence
       }),
     }
   )

@@ -13,6 +13,7 @@ import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus, Platform } from 'react-native';
 import { awayService } from './AwayService';
+import { audioFocusService } from './AudioFocusService';
 import {
   SoundEventType,
   SoundSettings,
@@ -27,8 +28,10 @@ const CUSTOM_SCHEMES_KEY = '@AndroidIRCX:customSoundSchemes';
 
 type SettingsListener = (settings: SoundSettings) => void;
 
-// Enable playback in silence mode
-Sound.setCategory('Playback');
+// Use Ambient category to allow mixing with other apps (music, YouTube)
+// On iOS: Ambient allows mixing with other audio
+// On Android: We'll request transient audio focus that ducks other audio
+Sound.setCategory('Ambient', false); // false = don't mix with others (we handle focus manually)
 
 class SoundService {
   private currentSound: Sound | null = null;
@@ -238,14 +241,22 @@ class SoundService {
 
       const { filename, basePath } = soundInfo;
 
+      // Request audio focus before playing (Android)
+      // This uses "duck" mode - other apps (music, radio) will be lowered but not stopped
+      await audioFocusService.requestTransientFocus();
+
       // Create and play sound
       this.isPlaying = true;
       this.currentSound = new Sound(filename, basePath, (error) => {
         if (error) {
           console.error(`[SoundService] Failed to load sound for ${eventType}:`, error);
           this.isPlaying = false;
+          audioFocusService.releaseFocus();
           return;
         }
+
+        // Get sound duration for focus management
+        const durationMs = this.currentSound?.getDuration() ?? 0;
 
         // Set volume and play
         this.currentSound?.setVolume(volume);
@@ -254,12 +265,22 @@ class SoundService {
             console.warn(`[SoundService] Playback failed for ${eventType}`);
           }
           this.releaseCurrentSound();
+          // Release audio focus after playback completes
+          audioFocusService.releaseFocus();
         });
+
+        // Fallback: release focus after duration + 100ms buffer (in case play callback doesn't fire)
+        if (durationMs > 0) {
+          setTimeout(() => {
+            audioFocusService.releaseFocus();
+          }, (durationMs * 1000) + 100);
+        }
       });
 
     } catch (error) {
       console.error(`[SoundService] Failed to play sound for ${eventType}:`, error);
       this.isPlaying = false;
+      audioFocusService.releaseFocus();
     }
   }
 

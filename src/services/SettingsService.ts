@@ -233,6 +233,21 @@ export const NEW_FEATURE_DEFAULTS = {
   dccSendMaxKbps: 0,
   dccCancelAboveKbps: 0,
   dccDownloadFolder: '',
+
+  // Ban settings
+  defaultBanType: 2,           // 0-9, default: 2 (*!*@host)
+  predefinedKickReasons: [
+    'Spamming',
+    'Flooding',
+    'Abusive behavior',
+    'Advertising',
+    'Off-topic',
+    'Trolling',
+    'Harassment',
+  ],
+  showBanMaskPreview: true,    // Show preview in modal
+  rememberLastBanType: false,  // Remember last used type
+  confirmBeforeKickBan: true,  // Always show modal (default: true)
 };
 
 class SettingsService {

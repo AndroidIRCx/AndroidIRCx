@@ -9,6 +9,10 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useT } from '../i18n/transifex';
 import { ircService, ChannelUser } from '../services/IRCService';
 import { userManagementService } from '../services/UserManagementService';
+import { banService } from '../services/BanService';
+import { settingsService, NEW_FEATURE_DEFAULTS } from '../services/SettingsService';
+import { useUIStore } from '../stores/uiStore';
+import KickBanModal from './KickBanModal';
 
 interface NickContextMenuProps {
   visible: boolean;
@@ -59,6 +63,12 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
   const [showCTCPGroup, setShowCTCPGroup] = useState(false);
   const [showOpsGroup, setShowOpsGroup] = useState(false);
   const [showUserListGroup, setShowUserListGroup] = useState(false);
+  const [showKickBanModal, setShowKickBanModal] = useState(false);
+  const [kickBanMode, setKickBanMode] = useState<'kick' | 'ban' | 'kickban'>('kickban');
+  const [userHostInfo, setUserHostInfo] = useState<{user: string; host: string} | null>(null);
+  const [confirmBeforeKickBan, setConfirmBeforeKickBan] = useState<boolean>(true);
+  const [defaultBanType, setDefaultBanType] = useState<number>(2);
+  const [defaultKickReason, setDefaultKickReason] = useState<string>('Goodbye');
 
   useEffect(() => {
     if (!visible) {
@@ -66,8 +76,37 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
       setShowCTCPGroup(false);
       setShowOpsGroup(false);
       setShowUserListGroup(false);
+      setShowKickBanModal(false);
+      setUserHostInfo(null);
     }
   }, [visible, nick]);
+
+  // Load kick/ban settings when menu opens
+  useEffect(() => {
+    if (visible) {
+      const loadSettings = async () => {
+        const confirm = await settingsService.getSetting('confirmBeforeKickBan', NEW_FEATURE_DEFAULTS.confirmBeforeKickBan);
+        const banType = await settingsService.getSetting('defaultBanType', NEW_FEATURE_DEFAULTS.defaultBanType);
+        const reasons = await settingsService.getSetting('predefinedKickReasons', NEW_FEATURE_DEFAULTS.predefinedKickReasons);
+        setConfirmBeforeKickBan(confirm);
+        setDefaultBanType(banType);
+        setDefaultKickReason(reasons[0] || 'Goodbye');
+      };
+      loadSettings();
+    }
+  }, [visible]);
+
+  // Send silent WHO when menu opens to get user@host info
+  useEffect(() => {
+    if (visible && nick && activeIrc?.sendSilentWho) {
+      // Only fetch if we don't already have info for this nick
+      if (!userHostInfo) {
+        activeIrc.sendSilentWho(nick, (user: string, host: string) => {
+          setUserHostInfo({ user, host });
+        });
+      }
+    }
+  }, [visible, nick, activeIrc, userHostInfo]);
 
   const channelUsers = useMemo(() => {
     if (!channel || typeof activeIrc.getChannelUsers !== 'function') return [];
@@ -84,6 +123,47 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
     : undefined;
   const isCurrentUserHalfOp = currentUser?.modes.some(mode => ['h', 'o', 'a', 'q'].includes(mode)) || false;
   const isCurrentUserOp = currentUser?.modes.some(mode => ['o', 'a', 'q'].includes(mode)) || false;
+
+  // Execute kick/ban directly without modal
+  const executeKickBanDirect = (mode: 'kick' | 'ban' | 'kickban', withReason: boolean = false) => {
+    if (!channel || !nick) return;
+    
+    const user = userHostInfo?.user || targetUser?.nick || '';
+    const host = userHostInfo?.host || targetUser?.host || '';
+    const banMask = user && host 
+      ? banService.generateBanMask(nick, user, host, defaultBanType)
+      : `${nick}!*@*`;
+    
+    const reason = withReason ? '' : defaultKickReason;
+    
+    // Apply ban first (if requested)
+    if (mode === 'ban' || mode === 'kickban') {
+      const banCmd = `MODE ${channel} +b ${banMask}`;
+      console.log('📤 Direct ban:', banCmd);
+      activeIrc.sendRaw(banCmd);
+    }
+    
+    // Then kick (if requested)  
+    if (mode === 'kick' || mode === 'kickban') {
+      const kickReason = reason.trim() || 'Goodbye';
+      const kickCmd = `KICK ${channel} ${nick} :${kickReason}`;
+      console.log('📤 Direct kick:', kickCmd);
+      activeIrc.sendRaw(kickCmd);
+    }
+  };
+
+  // Handle kick/ban button press
+  const handleKickBanPress = (mode: 'kick' | 'ban' | 'kickban', withReason: boolean = false) => {
+    if (confirmBeforeKickBan || withReason) {
+      // Show modal for confirmation or custom reason
+      setKickBanMode(mode);
+      setShowKickBanModal(true);
+    } else {
+      // Execute directly with defaults
+      executeKickBanDirect(mode, false);
+      onClose();
+    }
+  };
 
   const styles = useMemo(() => StyleSheet.create({
     contextOverlay: {
@@ -165,6 +245,14 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
       color: colors.text,
       fontSize: 14,
     },
+    contextItemWithIcon: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    contextIcon: {
+      width: 16,
+    },
     contextSubGroup: {
       paddingLeft: 12,
     },
@@ -204,9 +292,11 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
           <View style={styles.contextHeaderRow}>
             <View style={styles.contextHeaderText}>
               <Text style={styles.contextTitle}>{nick}</Text>
-              {targetUser?.account && targetUser.account !== '*' && (
+              {userHostInfo ? (
+                <Text style={styles.contextSubtitle}>{userHostInfo.user}@{userHostInfo.host}</Text>
+              ) : targetUser?.account && targetUser.account !== '*' ? (
                 <Text style={styles.contextSubtitle}>{t('Account: {account}').replace('{account}', targetUser.account)}</Text>
-              )}
+              ) : null}
             </View>
             <TouchableOpacity style={styles.contextCopyButton} onPress={() => onAction('copy')}>
               <Icon name="copy" size={12} color={colors.primary} />
@@ -216,39 +306,76 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
           <ScrollView style={styles.contextScroll} contentContainerStyle={styles.contextScrollContent}>
             <Text style={styles.contextGroupTitle}>{t('Quick Actions')}</Text>
             <TouchableOpacity style={styles.contextItem} onPress={() => onAction('whois')}>
-              <Text style={styles.contextText}>{t('WHOIS')}</Text>
+              <View style={styles.contextItemWithIcon}>
+                <Icon name="info-circle" size={14} color={colors.text} style={styles.contextIcon} />
+                <Text style={styles.contextText}>{t('WHOIS')}</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity style={styles.contextItem} onPress={() => onAction('query')}>
-              <Text style={styles.contextText}>{t('Open Query')}</Text>
+              <View style={styles.contextItemWithIcon}>
+                <Icon name="comments" size={14} color={colors.text} style={styles.contextIcon} />
+                <Text style={styles.contextText}>{t('Open Query')}</Text>
+              </View>
             </TouchableOpacity>
             {canMonitor && (
               <TouchableOpacity style={styles.contextItem} onPress={() => onAction('monitor_toggle')}>
-                <Text style={styles.contextText}>{isMonitoring ? t('Unmonitor Nick') : t('Monitor Nick')}</Text>
+                <View style={styles.contextItemWithIcon}>
+                  <Icon name="eye" size={14} color={colors.text} style={styles.contextIcon} />
+                  <Text style={styles.contextText}>{isMonitoring ? t('Unmonitor Nick') : t('Monitor Nick')}</Text>
+                </View>
               </TouchableOpacity>
             )}
 
             <View style={styles.contextDivider} />
             <TouchableOpacity style={styles.contextItem} onPress={() => setShowUserListGroup(prev => !prev)}>
-              <Text style={styles.contextText}>
-                {showUserListGroup ? t('User list v') : t('User list >')}
-              </Text>
+              <View style={styles.contextItemWithIcon}>
+                <Icon name="users" size={14} color={colors.text} style={styles.contextIcon} />
+                <Text style={styles.contextText}>
+                  {showUserListGroup ? t('User list v') : t('User list >')}
+                </Text>
+              </View>
             </TouchableOpacity>
             {showUserListGroup && (
               <View style={styles.contextSubGroup}>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction(ignoreActionId)}>
-                  <Text style={styles.contextText}>{isIgnored ? t('Unignore User') : t('Ignore User')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name={isIgnored ? "undo" : "ban"} size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{isIgnored ? t('Unignore User') : t('Ignore User')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('blacklist')}>
-                  <Text style={styles.contextText}>{t('Add to Blacklist')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="list-alt" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Add to Blacklist')}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.contextItem} onPress={() => {
+                  useUIStore.getState().setShowBlacklist(true);
+                  useUIStore.getState().setBlacklistTarget({
+                    type: 'nick',
+                    networkId: network || '',
+                    nick: nick || '',
+                  });
+                }}>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="user-slash" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Blacklist Nick')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('add_note')}>
-                  <Text style={styles.contextText}>
-                    {userManagementService.getUserNote(nick || '', network) ? t('Edit Note') : t('Add Note')}
-                  </Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="sticky-note" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>
+                      {userManagementService.getUserNote(nick || '', network) ? t('Edit Note') : t('Add Note')}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
                 {isServerOper && (
                   <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kill')}>
-                    <Text style={[styles.contextText, styles.contextDanger]}>{t('KILL (with reason)')}</Text>
+                    <View style={styles.contextItemWithIcon}>
+                      <Icon name="skull" size={14} color="#EF5350" style={styles.contextIcon} />
+                      <Text style={[styles.contextText, styles.contextDanger]}>{t('KILL (with reason)')}</Text>
+                    </View>
                   </TouchableOpacity>
                 )}
               </View>
@@ -256,61 +383,100 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
 
             <View style={styles.contextDivider} />
             <TouchableOpacity style={styles.contextItem} onPress={() => setShowE2EGroup(prev => !prev)}>
-              <Text style={styles.contextText}>
-                {showE2EGroup ? t('E2E Encryption v') : t('E2E Encryption >')}
-              </Text>
+              <View style={styles.contextItemWithIcon}>
+                <Icon name="lock" size={14} color={colors.text} style={styles.contextIcon} />
+                <Text style={styles.contextText}>
+                  {showE2EGroup ? t('E2E Encryption v') : t('E2E Encryption >')}
+                </Text>
+              </View>
             </TouchableOpacity>
             {showE2EGroup && (
               <View style={styles.contextSubGroup}>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_share')}>
-                  <Text style={styles.contextText}>{t('Share DM Key')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="key" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Share DM Key')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_request')}>
-                  <Text style={styles.contextText}>{t('Request DM Key (36s)')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="sync" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Request DM Key (36s)')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_verify')}>
-                  <Text style={styles.contextText}>{t('Verify DM Key')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="check-circle" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Verify DM Key')}</Text>
+                  </View>
                 </TouchableOpacity>
                 {allowQrVerification && (
                   <>
                     <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_qr_show_bundle')}>
-                      <Text style={styles.contextText}>{t('Share Key Bundle QR')}</Text>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="qrcode" size={14} color={colors.text} style={styles.contextIcon} />
+                        <Text style={styles.contextText}>{t('Share Key Bundle QR')}</Text>
+                      </View>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_qr_show_fingerprint')}>
-                      <Text style={styles.contextText}>{t('Show Fingerprint QR (Verify)')}</Text>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="fingerprint" size={14} color={colors.text} style={styles.contextIcon} />
+                        <Text style={styles.contextText}>{t('Show Fingerprint QR (Verify)')}</Text>
+                      </View>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_qr_scan')}>
-                      <Text style={styles.contextText}>{t('Scan QR Code')}</Text>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="camera" size={14} color={colors.text} style={styles.contextIcon} />
+                        <Text style={styles.contextText}>{t('Scan QR Code')}</Text>
+                      </View>
                     </TouchableOpacity>
                   </>
                 )}
                 {allowFileExchange && (
                   <>
                     <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_share_file')}>
-                      <Text style={styles.contextText}>{t('Share Key File')}</Text>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="file-export" size={14} color={colors.text} style={styles.contextIcon} />
+                        <Text style={styles.contextText}>{t('Share Key File')}</Text>
+                      </View>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_import_file')}>
-                      <Text style={styles.contextText}>{t('Import Key File')}</Text>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="file-import" size={14} color={colors.text} style={styles.contextIcon} />
+                        <Text style={styles.contextText}>{t('Import Key File')}</Text>
+                      </View>
                     </TouchableOpacity>
                   </>
                 )}
                 {allowNfcExchange && (
                   <>
                     <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_share_nfc')}>
-                      <Text style={styles.contextText}>{t('Share via NFC')}</Text>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="wifi" size={14} color={colors.text} style={styles.contextIcon} />
+                        <Text style={styles.contextText}>{t('Share via NFC')}</Text>
+                      </View>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.contextItem} onPress={() => onAction('enc_receive_nfc')}>
-                      <Text style={styles.contextText}>{t('Receive via NFC')}</Text>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="wifi" size={14} color={colors.text} style={styles.contextIcon} />
+                        <Text style={styles.contextText}>{t('Receive via NFC')}</Text>
+                      </View>
                     </TouchableOpacity>
                   </>
                 )}
                 {channel && (
                   <>
                     <TouchableOpacity style={styles.contextItem} onPress={() => onAction('chan_share')}>
-                      <Text style={styles.contextText}>{t('Share Channel Key')}</Text>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="key" size={14} color={colors.text} style={styles.contextIcon} />
+                        <Text style={styles.contextText}>{t('Share Channel Key')}</Text>
+                      </View>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.contextItem} onPress={() => onAction('chan_request')}>
-                      <Text style={styles.contextText}>{t('Request Channel Key')}</Text>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="sync" size={14} color={colors.text} style={styles.contextIcon} />
+                        <Text style={styles.contextText}>{t('Request Channel Key')}</Text>
+                      </View>
                     </TouchableOpacity>
                   </>
                 )}
@@ -321,9 +487,12 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
               <>
                 <View style={styles.contextDivider} />
                 <TouchableOpacity style={styles.contextItem} onPress={() => setShowOpsGroup(prev => !prev)}>
-                  <Text style={styles.contextText}>
-                    {showOpsGroup ? t('Operator Controls v') : t('Operator Controls >')}
-                  </Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="user-shield" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>
+                      {showOpsGroup ? t('Operator Controls v') : t('Operator Controls >')}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
                 {showOpsGroup && (
                   <View style={styles.contextSubGroup}>
@@ -331,11 +500,17 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                       <>
                         {targetUser?.modes.includes('v') ? (
                           <TouchableOpacity style={styles.contextItem} onPress={() => onAction('take_voice')}>
-                            <Text style={styles.contextText}>{t('Take Voice')}</Text>
+                            <View style={styles.contextItemWithIcon}>
+                              <Icon name="microphone-slash" size={14} color={colors.text} style={styles.contextIcon} />
+                              <Text style={styles.contextText}>{t('Take Voice')}</Text>
+                            </View>
                           </TouchableOpacity>
                         ) : (
                           <TouchableOpacity style={styles.contextItem} onPress={() => onAction('give_voice')}>
-                            <Text style={styles.contextText}>{t('Give Voice')}</Text>
+                            <View style={styles.contextItemWithIcon}>
+                              <Icon name="microphone" size={14} color={colors.text} style={styles.contextIcon} />
+                              <Text style={styles.contextText}>{t('Give Voice')}</Text>
+                            </View>
                           </TouchableOpacity>
                         )}
                       </>
@@ -344,36 +519,63 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                       <>
                         {targetUser?.modes.includes('h') ? (
                           <TouchableOpacity style={styles.contextItem} onPress={() => onAction('take_halfop')}>
-                            <Text style={styles.contextText}>{t('Take Half-Op')}</Text>
+                            <View style={styles.contextItemWithIcon}>
+                              <Icon name="user-minus" size={14} color={colors.text} style={styles.contextIcon} />
+                              <Text style={styles.contextText}>{t('Take Half-Op')}</Text>
+                            </View>
                           </TouchableOpacity>
                         ) : (
                           <TouchableOpacity style={styles.contextItem} onPress={() => onAction('give_halfop')}>
-                            <Text style={styles.contextText}>{t('Give Half-Op')}</Text>
+                            <View style={styles.contextItemWithIcon}>
+                              <Icon name="user-plus" size={14} color={colors.text} style={styles.contextIcon} />
+                              <Text style={styles.contextText}>{t('Give Half-Op')}</Text>
+                            </View>
                           </TouchableOpacity>
                         )}
                         {targetUser?.modes.includes('o') ? (
                           <TouchableOpacity style={styles.contextItem} onPress={() => onAction('take_op')}>
-                            <Text style={styles.contextText}>{t('Take Op')}</Text>
+                            <View style={styles.contextItemWithIcon}>
+                              <Icon name="user-times" size={14} color={colors.text} style={styles.contextIcon} />
+                              <Text style={styles.contextText}>{t('Take Op')}</Text>
+                            </View>
                           </TouchableOpacity>
                         ) : (
                           <TouchableOpacity style={styles.contextItem} onPress={() => onAction('give_op')}>
-                            <Text style={styles.contextText}>{t('Give Op')}</Text>
+                            <View style={styles.contextItemWithIcon}>
+                              <Icon name="user-check" size={14} color={colors.text} style={styles.contextIcon} />
+                              <Text style={styles.contextText}>{t('Give Op')}</Text>
+                            </View>
                           </TouchableOpacity>
                         )}
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick')}>
-                          <Text style={[styles.contextText, styles.contextWarning]}>{t('Kick')}</Text>
+                        <TouchableOpacity style={styles.contextItem} onPress={() => handleKickBanPress('kick', false)}>
+                          <View style={styles.contextItemWithIcon}>
+                            <Icon name="sign-out-alt" size={14} color="#FB8C00" style={styles.contextIcon} />
+                            <Text style={[styles.contextText, styles.contextWarning]}>{t('Kick')}</Text>
+                          </View>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick_message')}>
-                          <Text style={[styles.contextText, styles.contextWarning]}>{t('Kick (with message)')}</Text>
+                        <TouchableOpacity style={styles.contextItem} onPress={() => handleKickBanPress('kick', true)}>
+                          <View style={styles.contextItemWithIcon}>
+                            <Icon name="sign-out-alt" size={14} color="#FB8C00" style={styles.contextIcon} />
+                            <Text style={[styles.contextText, styles.contextWarning]}>{t('Kick (with message)')}</Text>
+                          </View>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ban')}>
-                          <Text style={[styles.contextText, styles.contextDanger]}>{t('Ban')}</Text>
+                        <TouchableOpacity style={styles.contextItem} onPress={() => handleKickBanPress('ban', false)}>
+                          <View style={styles.contextItemWithIcon}>
+                            <Icon name="ban" size={14} color="#EF5350" style={styles.contextIcon} />
+                            <Text style={[styles.contextText, styles.contextDanger]}>{t('Ban')}</Text>
+                          </View>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick_ban')}>
-                          <Text style={[styles.contextText, styles.contextDanger]}>{t('Kick + Ban')}</Text>
+                        <TouchableOpacity style={styles.contextItem} onPress={() => handleKickBanPress('kickban', false)}>
+                          <View style={styles.contextItemWithIcon}>
+                            <Icon name="times-circle" size={14} color="#EF5350" style={styles.contextIcon} />
+                            <Text style={[styles.contextText, styles.contextDanger]}>{t('Kick + Ban')}</Text>
+                          </View>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kick_ban_message')}>
-                          <Text style={[styles.contextText, styles.contextDanger]}>{t('Kick + Ban (with message)')}</Text>
+                        <TouchableOpacity style={styles.contextItem} onPress={() => handleKickBanPress('kickban', true)}>
+                          <View style={styles.contextItemWithIcon}>
+                            <Icon name="times-circle" size={14} color="#EF5350" style={styles.contextIcon} />
+                            <Text style={[styles.contextText, styles.contextDanger]}>{t('Kick + Ban (with message)')}</Text>
+                          </View>
                         </TouchableOpacity>
                       </>
                     )}
@@ -384,26 +586,44 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
 
             <View style={styles.contextDivider} />
             <TouchableOpacity style={styles.contextItem} onPress={() => setShowCTCPGroup(prev => !prev)}>
-              <Text style={styles.contextText}>
-                {showCTCPGroup ? t('CTCP + DCC v') : t('CTCP + DCC >')}
-              </Text>
+              <View style={styles.contextItemWithIcon}>
+                <Icon name="comment-alt" size={14} color={colors.text} style={styles.contextIcon} />
+                <Text style={styles.contextText}>
+                  {showCTCPGroup ? t('CTCP + DCC v') : t('CTCP + DCC >')}
+                </Text>
+              </View>
             </TouchableOpacity>
             {showCTCPGroup && (
               <View style={styles.contextSubGroup}>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_ping')}>
-                  <Text style={styles.contextText}>{t('CTCP PING')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="ping-pong" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('CTCP PING')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_version')}>
-                  <Text style={styles.contextText}>{t('CTCP VERSION')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="tag" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('CTCP VERSION')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('ctcp_time')}>
-                  <Text style={styles.contextText}>{t('CTCP TIME')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="clock" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('CTCP TIME')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('dcc_chat')}>
-                  <Text style={styles.contextText}>{t('Start DCC Chat')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="comments" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Start DCC Chat')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('dcc_send')}>
-                  <Text style={styles.contextText}>{t('Offer DCC Send')}</Text>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="paper-plane" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Offer DCC Send')}</Text>
+                  </View>
                 </TouchableOpacity>
               </View>
             )}
@@ -415,6 +635,59 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
           </View>
         </View>
       </TouchableOpacity>
+
+      <KickBanModal
+        visible={showKickBanModal}
+        onClose={() => setShowKickBanModal(false)}
+        onConfirm={(options) => {
+          console.log('🔥 KickBanModal onConfirm called:', options);
+          // Execute kick/ban directly
+          if (!channel || !nick) {
+            console.log('❌ No channel or nick');
+            return;
+          }
+          
+          const user = userHostInfo?.user || targetUser?.nick || '';
+          const host = userHostInfo?.host || targetUser?.host || '';
+          const banMask = user && host 
+            ? banService.generateBanMask(nick, user, host, options.banType)
+            : `${nick}!*@*`;
+          
+          // Apply ban first (if requested)
+          if (options.ban) {
+            const banCmd = `MODE ${channel} +b ${banMask}`;
+            console.log('📤 Sending ban:', banCmd);
+            activeIrc.sendRaw(banCmd);
+          }
+          
+          // Then kick (if requested)  
+          if (options.kick) {
+            const kickReason = options.reason?.trim() || 'Goodbye';
+            const kickCmd = `KICK ${channel} ${nick} :${kickReason}`;
+            console.log('📤 Sending kick:', kickCmd);
+            activeIrc.sendRaw(kickCmd);
+          }
+          
+          // Schedule unban if requested
+          if (options.ban && options.unbanAfterSeconds && options.unbanAfterSeconds > 0) {
+            setTimeout(() => {
+              activeIrc.sendRaw(`MODE ${channel} -b ${banMask}`);
+            }, options.unbanAfterSeconds * 1000);
+          }
+          
+          setShowKickBanModal(false);
+        }}
+        nick={nick || ''}
+        userHost={userHostInfo ? `${userHostInfo.user}@${userHostInfo.host}` : (targetUser?.host ? `${targetUser.nick}@${targetUser.host}` : undefined)}
+        mode={kickBanMode}
+        colors={{
+          background: colors.surface,
+          text: colors.text,
+          accent: colors.primary,
+          border: colors.border,
+          inputBackground: colors.background,
+        }}
+      />
     </Modal>
   );
 };

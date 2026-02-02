@@ -1696,6 +1696,31 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               },
               disabled: !bouncerConfig?.enabled || bouncerInfo?.type !== 'znc' || !bouncerInfo?.playbackSupported,
             },
+            {
+              id: 'bouncer-load-scrollback',
+              title: t('Load Scrollback on Join', { _tags: tags }),
+              description: t('Load previous messages from local history when joining channels', { _tags: tags }),
+              type: 'switch' as const,
+              value: bouncerConfig?.loadScrollbackOnJoin ?? true,
+              onValueChange: async (value: boolean) => {
+                await updateBouncerConfig({ loadScrollbackOnJoin: value });
+              },
+            },
+            {
+              id: 'bouncer-scrollback-lines',
+              title: t('Scrollback Lines', { _tags: tags }),
+              description: t('Number of previous messages to load: {count}', { _tags: tags, count: bouncerConfig?.scrollbackLines || 50 }),
+              type: 'input' as const,
+              value: bouncerConfig?.scrollbackLines?.toString() || '50',
+              keyboardType: 'numeric',
+              onValueChange: async (value: string) => {
+                const lines = parseInt(value, 10);
+                if (!isNaN(lines) && lines > 0 && lines <= 500) {
+                  await updateBouncerConfig({ scrollbackLines: lines });
+                }
+              },
+              disabled: !(bouncerConfig?.loadScrollbackOnJoin ?? true),
+            },
           ],
         },
       ],

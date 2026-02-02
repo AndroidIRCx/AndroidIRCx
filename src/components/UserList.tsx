@@ -500,7 +500,13 @@ const getModeColor = (modes?: string[], colors?: any): string => {
     setSelectedUser(user);
     const currentNick = activeIrc.getCurrentNick?.();
     if (currentNick) {
-      activeIrc.sendCommand?.(`MODE ${currentNick}`);
+      // Use silent mode to avoid flooding server tab
+      if (activeIrc.sendSilentMode) {
+        activeIrc.sendSilentMode(currentNick);
+      } else {
+        // Fallback for older versions
+        activeIrc.sendCommand?.(`MODE ${currentNick}`);
+      }
       setTimeout(() => {
         const oper = typeof (activeIrc as any).isServerOper === 'function' ? (activeIrc as any).isServerOper() : false;
         setIsServerOper(oper);

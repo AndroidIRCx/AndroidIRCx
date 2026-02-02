@@ -15,6 +15,7 @@ export interface ChannelTab {
   hasActivity?: boolean;
   isEncrypted?: boolean;
   sendEncrypted?: boolean; // user toggle to send encrypted by default
+  scrollbackLoaded?: boolean; // whether scrollback history has been loaded for this tab
 }
 
 export interface IRCNetwork {

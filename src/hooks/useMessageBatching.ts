@@ -3,18 +3,27 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { IRCMessage } from '../services/IRCService';
 import { performanceService } from '../services/PerformanceService';
 import { serverTabId, noticeTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
 import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
+import { messageHistoryService } from '../services/MessageHistoryService';
+import { bouncerService } from '../services/BouncerService';
 import type { ChannelTab } from '../types';
 
 interface MessageBatchItem {
   message: IRCMessage;
   context: any;
+}
+
+interface NewTabInfo {
+  tabId: string;
+  networkId: string;
+  channelName: string;
+  type: 'channel' | 'query';
 }
 
 interface UseMessageBatchingParams {
@@ -34,6 +43,118 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
     setTabs,
   } = params;
 
+  // Track newly created tabs that need scrollback loading
+  const newTabsNeedingScrollbackRef = useRef<NewTabInfo[]>([]);
+  const scrollbackLoadingRef = useRef<Set<string>>(new Set());
+
+  // Load scrollback for newly created tabs
+  const loadScrollbackForNewTabs = useCallback(async () => {
+    const tabsToProcess = [...newTabsNeedingScrollbackRef.current];
+    newTabsNeedingScrollbackRef.current = [];
+
+    if (tabsToProcess.length === 0) return;
+
+    const bouncerConfig = bouncerService.getConfig();
+    if (!bouncerConfig.loadScrollbackOnJoin) {
+      return;
+    }
+
+    const scrollbackLines = bouncerConfig.scrollbackLines || 50;
+
+    for (const tabInfo of tabsToProcess) {
+      // Skip if already loading
+      if (scrollbackLoadingRef.current.has(tabInfo.tabId)) {
+        continue;
+      }
+      scrollbackLoadingRef.current.add(tabInfo.tabId);
+
+      try {
+        // Load history from storage
+        const history = await messageHistoryService.loadMessages(
+          tabInfo.networkId,
+          tabInfo.channelName
+        );
+
+        if (history.length === 0) {
+          scrollbackLoadingRef.current.delete(tabInfo.tabId);
+          continue;
+        }
+
+        // Get the last X messages as scrollback
+        const scrollback = history.slice(-scrollbackLines);
+
+        if (scrollback.length > 0) {
+          // Mark scrollback messages
+          const markedScrollback = scrollback.map(msg => ({
+            ...msg,
+            isScrollback: true,
+          }));
+
+          // Prepend scrollback to existing messages
+          setTabs(prevTabs => {
+            const tabIndex = prevTabs.findIndex(t => t.id === tabInfo.tabId);
+            if (tabIndex === -1) {
+              return prevTabs;
+            }
+
+            const tab = prevTabs[tabIndex];
+            // Filter out any messages from scrollback that are already in tab
+            // (based on timestamp to avoid duplicates)
+            const existingTimestamps = new Set(tab.messages.map(m => m.timestamp));
+            const uniqueScrollback = markedScrollback.filter(
+              m => !existingTimestamps.has(m.timestamp)
+            );
+
+            if (uniqueScrollback.length === 0) {
+              return prevTabs;
+            }
+
+            // Add separator message between scrollback and new messages
+            const separatorMessage: IRCMessage = {
+              id: `scrollback-separator-${Date.now()}`,
+              type: 'system',
+              text: `─── Scrollback (${uniqueScrollback.length} messages) ───`,
+              timestamp: uniqueScrollback[uniqueScrollback.length - 1]?.timestamp || Date.now(),
+              channel: tabInfo.channelName,
+              isScrollback: true,
+            };
+
+            const newMessages = [
+              ...uniqueScrollback,
+              separatorMessage,
+              ...tab.messages,
+            ];
+
+            const newTabs = [...prevTabs];
+            newTabs[tabIndex] = {
+              ...tab,
+              messages: newMessages,
+              scrollbackLoaded: true,
+            };
+
+            console.log(`📜 Loaded ${uniqueScrollback.length} scrollback messages for ${tabInfo.channelName}`);
+            return newTabs;
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to load scrollback for ${tabInfo.channelName}:`, error);
+      } finally {
+        scrollbackLoadingRef.current.delete(tabInfo.tabId);
+      }
+    }
+  }, [setTabs]);
+
+  // Process scrollback queue after batch processing
+  useEffect(() => {
+    if (newTabsNeedingScrollbackRef.current.length > 0) {
+      // Small delay to let the UI update first
+      const timer = setTimeout(() => {
+        loadScrollbackForNewTabs();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loadScrollbackForNewTabs]);
+
   const processBatchedMessages = useCallback(() => {
     const batch = pendingMessagesRef.current;
     if (__DEV__) {
@@ -48,6 +169,9 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
     if (__DEV__) {
       console.log('🔄 Processing batch of', batch.length, 'messages');
     }
+
+    // Track newly created tabs for scrollback loading
+    const newlyCreatedTabs: NewTabInfo[] = [];
 
     // Process all messages in a single setTabs call
     setTabs(prevTabs => {
@@ -120,9 +244,10 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
           // Create new tab
           if (hasValidNetwork) {
             if (!tabsModified) newTabs = [...newTabs];
+            const channelName = message.channel || message.from || targetTabId;
             newTabs.push({
               id: targetTabId,
-              name: targetTabType === 'server' ? messageNetwork : (message.channel || message.from || targetTabId),
+              name: targetTabType === 'server' ? messageNetwork : channelName,
               type: targetTabType,
               networkId: messageNetwork,
               messages: [message],
@@ -131,6 +256,15 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
             });
             if (targetTabType === 'query') {
               soundService.playSound(SoundEventType.RING);
+            }
+            // Track for scrollback loading (only for channel and query tabs)
+            if (targetTabType === 'channel' || targetTabType === 'query') {
+              newlyCreatedTabs.push({
+                tabId: targetTabId,
+                networkId: messageNetwork,
+                channelName,
+                type: targetTabType,
+              });
             }
             tabsModified = true;
           }
@@ -166,7 +300,14 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
       }
       return result;
     });
-  }, [activeTabId, messageBatchTimeoutRef, pendingMessagesRef, setTabs, tabSortAlphabetical]);
+
+    // Queue newly created tabs for scrollback loading
+    if (newlyCreatedTabs.length > 0) {
+      newTabsNeedingScrollbackRef.current.push(...newlyCreatedTabs);
+      // Trigger scrollback loading
+      setTimeout(() => loadScrollbackForNewTabs(), 50);
+    }
+  }, [activeTabId, loadScrollbackForNewTabs, messageBatchTimeoutRef, pendingMessagesRef, setTabs, tabSortAlphabetical]);
 
   return { processBatchedMessages };
 };

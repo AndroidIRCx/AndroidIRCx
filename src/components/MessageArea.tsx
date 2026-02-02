@@ -57,6 +57,8 @@ import { queryTabId, sortTabsGrouped } from '../utils/tabUtils';
 import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
 import { useUIStore } from '../stores/uiStore';
+import { banService } from '../services/BanService';
+import KickBanModal from './KickBanModal';
 
 interface MessageAreaProps {
   messages: IRCMessage[];
@@ -85,6 +87,7 @@ interface MessageItemProps {
   currentNick: string;
   isGrouped: boolean;
   onNickLongPress?: (nick: string) => void;
+  onChannelPress?: (channel: string) => void;
   onPressMessage?: (message: IRCMessage) => void;
   onLongPressMessage?: (message: IRCMessage) => void;
   isSelected?: boolean;
@@ -149,6 +152,7 @@ const MessageItem = React.memo<MessageItemProps>(({
   currentNick,
   isGrouped,
   onNickLongPress,
+  onChannelPress,
   onPressMessage,
   onLongPressMessage,
   isSelected = false,
@@ -420,6 +424,25 @@ const MessageItem = React.memo<MessageItemProps>(({
             );
           }
 
+          // Check for channel names (e.g., #channel, &channel)
+          // Channel pattern: starts with # or &, followed by valid channel characters
+          const channelMatch = token.match(/^([^#&]*)([#&][^\s,\x07\x00\r\n:]+)(.*)$/);
+          if (channelMatch && onChannelPress) {
+            const [, leadingCh, channelName, trailingCh] = channelMatch;
+            const joinChannel = () => {
+              onChannelPress(channelName);
+            };
+            return (
+              <Text key={`${keyPrefix}-channel-${index}`} style={baseStyle}>
+                {leadingCh}
+                <Text style={[styles.nick, { color: colors.primary }]} onPress={joinChannel}>
+                  {channelName}
+                </Text>
+                {trailingCh}
+              </Text>
+            );
+          }
+
           // Extract a potential nick while preserving surrounding punctuation.
           const match = token.match(/^([^A-Za-z0-9_`^\\\-\[\]{}|]*)(@?[A-Za-z0-9_`^\\\-\[\]{}|]+)([^A-Za-z0-9_`^\\\-\[\]{}|]*)$/);
           if (!match) {
@@ -459,7 +482,7 @@ const MessageItem = React.memo<MessageItemProps>(({
         })}
       </Text>
     );
-  }, [containsIrcFormatting, nickMap, onNickLongPress, styles.nick]);
+  }, [containsIrcFormatting, nickMap, onNickLongPress, onChannelPress, styles.nick, colors.primary]);
 
   const renderFormattedParts = useCallback(
     (parts: MessageFormatPart[]) => {
@@ -841,6 +864,9 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const [contextNick, setContextNick] = useState<string | null>(null);
   const [contextUser, setContextUser] = useState<ChannelUser | null>(null);
   const [showContextMenu, setShowContextMenu] = useState(false);
+  const [showKickBanModal, setShowKickBanModal] = useState(false);
+  const [kickBanTarget, setKickBanTarget] = useState<{ nick: string; user?: string; host?: string } | null>(null);
+  const [kickBanMode, setKickBanMode] = useState<'kick' | 'ban' | 'kickban'>('kickban');
   const [showBlacklistModal, setShowBlacklistModal] = useState(false);
   const [showBlacklistActionPicker, setShowBlacklistActionPicker] = useState(false);
   const [blacklistAction, setBlacklistAction] = useState<BlacklistActionType>('ban');
@@ -1524,6 +1550,24 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         activeIrc.sendCommand(`KICK ${channel} ${contextNick} :Kicked`);
         break;
       }
+      case 'kick_with_options':
+      case 'ban_with_options':
+      case 'kick_ban_with_options': {
+        // Set up the kickban target and show the modal
+        if (channel && contextNick) {
+          setKickBanTarget({
+            nick: contextNick,
+            user: selectedUser?.username,
+            host: selectedUser?.host,
+          });
+          setKickBanMode(
+            action === 'kick_with_options' ? 'kick' :
+            action === 'ban_with_options' ? 'ban' : 'kickban'
+          );
+          setShowKickBanModal(true);
+        }
+        break;
+      }
       default:
         break;
     }
@@ -1545,6 +1589,33 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     tabs,
     t,
   ]);
+
+  const handleKickBanConfirm = useCallback((options) => {
+    if (!channel || !kickBanTarget) return;
+
+    const banMask = banService.generateBanMask(
+      kickBanTarget.nick,
+      kickBanTarget.user || '',
+      kickBanTarget.host || '',
+      options.banType
+    );
+
+    if (options.ban) {
+      activeIrc.sendRaw(`MODE ${channel} +b ${banMask}`);
+    }
+
+    if (options.kick) {
+      activeIrc.sendRaw(`KICK ${channel} ${kickBanTarget.nick} :${options.reason || 'Goodbye'}`);
+    }
+
+    if (options.unbanAfterSeconds) {
+      setTimeout(() => {
+        activeIrc.sendRaw(`MODE ${channel} -b ${banMask}`);
+      }, options.unbanAfterSeconds * 1000);
+    }
+
+    setShowKickBanModal(false);
+  }, [activeIrc, channel, kickBanTarget]);
 
   // Listen for performance config changes
   const [perfConfig, setPerfConfig] = useState(performanceService.getConfig());
@@ -1838,6 +1909,9 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           }
           setShowContextMenu(true);
         }}
+        onChannelPress={(channelName) => {
+          activeIrc.sendRaw?.(`JOIN ${channelName}`);
+        }}
         onLongPressMessage={handleMessageLongPress}
         onPressMessage={handleMessagePress}
         isSelected={selectedMessageIds.has(item.id)}
@@ -1867,6 +1941,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     tabId,
     containerWidth,
     theme.messageFormats,
+    activeIrc,
   ]);
 
   // Get item key
@@ -2286,6 +2361,21 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         allowNfcExchange={allowNfcExchange}
         isServerOper={isServerOper}
         ignoreActionId="ignore_toggle"
+      />
+      <KickBanModal
+        visible={showKickBanModal}
+        onClose={() => setShowKickBanModal(false)}
+        onConfirm={handleKickBanConfirm}
+        nick={kickBanTarget?.nick || ''}
+        userHost={kickBanTarget?.user && kickBanTarget?.host ? `${kickBanTarget.user}@${kickBanTarget.host}` : undefined}
+        mode={kickBanMode}
+        colors={{
+          background: colors.surface,
+          text: colors.text,
+          accent: colors.primary,
+          border: colors.border,
+          inputBackground: colors.messageBackground,
+        }}
       />
       {blacklistModals}
       {selectionMode && (

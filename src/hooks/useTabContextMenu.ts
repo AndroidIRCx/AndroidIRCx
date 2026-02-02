@@ -229,6 +229,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
               {
                 text: 'STATS',
                 onPress: () => {
+                  useUIStore.getState().setShowTabOptionsModal(false);
                   Alert.prompt(
                     'STATS',
                     'Enter STATS query (optional)',
@@ -544,6 +545,19 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           useUIStore.getState().setShowTabOptionsModal(false);
         },
       });
+
+      // Add blacklist option for queries
+      options.push({
+        text: 'Blacklist',
+        onPress: () => {
+          useUIStore.getState().setShowBlacklist(true);
+          useUIStore.getState().setBlacklistTarget({
+            type: 'query',
+            networkId: tab.networkId,
+            nick: tab.name,
+          });
+        },
+      });
     }
 
     // Option for Channel Settings
@@ -686,6 +700,19 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           useUIStore.getState().setChannelNoteTarget({ networkId: tab.networkId, channel: tab.name });
           useUIStore.getState().setChannelLogEntries(log.slice().sort((a, b) => a.timestamp - b.timestamp));
           useUIStore.getState().setShowChannelLogModal(true);
+        },
+      });
+
+      // Add blacklist option
+      options.push({
+        text: 'Blacklist',
+        onPress: () => {
+          useUIStore.getState().setShowBlacklist(true);
+          useUIStore.getState().setBlacklistTarget({
+            type: 'channel',
+            networkId: tab.networkId,
+            channel: tab.name,
+          });
         },
       });
     }

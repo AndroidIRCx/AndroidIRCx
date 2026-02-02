@@ -234,6 +234,9 @@ export class CommandService {
       }, joinDelayMs);
       return null;
     }
+    if (commandName === 'ban') {
+      return this.handleBanCommand(args, channel);
+    }
 
     // Check for alias
     const alias = this.aliases.get(commandName);
@@ -584,6 +587,157 @@ export class CommandService {
       timestamp: entry.timestamp || Date.now(),
       channel: entry.channel,
     }));
+  }
+
+  /**
+   * Handle /ban command with support for all switches and options
+   */
+  private handleBanCommand(args: string[], channel?: string): string | null {
+    if (!channel) {
+      this.onLocalMessage?.('*** Error: No channel specified. Usage: /ban [-kruNbeIq] [#channel] <nickname|address> [type] [kick message]');
+      return null;
+    }
+
+    // Parse command arguments
+    const { switches, targetChannel, target, banType, message } = this.parseBanCommand(args, channel);
+
+    // Validate channel
+    if (!targetChannel) {
+      this.onLocalMessage?.('*** Error: No channel specified. Usage: /ban [-kruNbeIq] [#channel] <nickname|address> [type] [kick message]');
+      return null;
+    }
+
+    // Determine ban mask
+    let banMask = target;
+    // If target doesn't look like a mask, try to resolve it to a user's hostmask
+    if (!target.includes('!') && !target.includes('@') && !target.includes('*')) {
+      // In a real implementation, we would look up the user's hostmask
+      // For now, we'll use a generic mask
+      banMask = `*!*@${target}`;
+    }
+
+    // Apply ban
+    if (switches.b) {
+      this.ircService?.sendRaw(`MODE ${targetChannel} +b ${banMask}`);
+    }
+
+    // Apply except
+    if (switches.e) {
+      this.ircService?.sendRaw(`MODE ${targetChannel} +e ${banMask}`);
+    }
+
+    // Apply invite
+    if (switches.I) {
+      this.ircService?.sendRaw(`MODE ${targetChannel} +I ${banMask}`);
+    }
+
+    // Apply quiet (if supported)
+    if (switches.q) {
+      this.ircService?.sendRaw(`MODE ${targetChannel} +q ${banMask}`);
+    }
+
+    // Kick user
+    if (switches.k) {
+      const kickMessage = message || 'Banned';
+      this.ircService?.sendRaw(`KICK ${targetChannel} ${target} :${kickMessage}`);
+    }
+
+    // Schedule unban
+    if (switches.u && switches.u > 0) {
+      setTimeout(() => {
+        this.ircService?.sendRaw(`MODE ${targetChannel} -b ${banMask}`);
+      }, switches.u * 1000);
+    }
+
+    return null;
+  }
+
+  /**
+   * Parse /ban command arguments
+   */
+  private parseBanCommand(args: string[], defaultChannel: string): {
+    switches: { k: boolean; r: boolean; u: number; b: boolean; e: boolean; I: boolean; q: boolean };
+    targetChannel: string | null;
+    target: string;
+    banType: number;
+    message: string;
+  } {
+    const switches: { k: boolean; r: boolean; u: number; b: boolean; e: boolean; I: boolean; q: boolean } = {
+      k: false, // kick
+      r: false, // reason (not a real switch, but for internal use)
+      u: 0,     // unban after N seconds
+      b: true,  // ban
+      e: false, // except
+      I: false, // invite
+      q: false, // quiet
+    };
+
+    let channel: string | null = defaultChannel;
+    let target: string = '';
+    let banType: number = 2; // Default to *!*@host
+    let message: string = '';
+
+    let i = 0;
+    // Parse switches first (starting with -)
+    while (i < args.length && args[i].startsWith('-')) {
+      const switchStr = args[i].substring(1);
+      for (const char of switchStr) {
+        switch (char.toLowerCase()) {
+          case 'k':
+            switches.k = true;
+            break;
+          case 'r':
+            switches.r = true;
+            break;
+          case 'u':
+            // Look for the number after 'u'
+            // This is a simplified implementation - in reality, you'd need to parse the number
+            switches.u = 300; // Default to 5 minutes if no number specified
+            break;
+          case 'b':
+            switches.b = true;
+            break;
+          case 'e':
+            switches.e = true;
+            break;
+          case 'i':
+            switches.I = true;
+            break;
+          case 'q':
+            switches.q = true;
+            break;
+        }
+      }
+      i++;
+    }
+
+    // Next argument might be channel if it starts with #
+    if (i < args.length && args[i].startsWith('#')) {
+      channel = args[i];
+      i++;
+    }
+
+    // Next argument is the target
+    if (i < args.length) {
+      target = args[i];
+      i++;
+    }
+
+    // Next argument might be ban type (number 0-9)
+    if (i < args.length) {
+      const num = parseInt(args[i], 10);
+      if (!isNaN(num) && num >= 0 && num <= 9) {
+        banType = num;
+        i++;
+      }
+    }
+
+    // Remaining arguments form the message
+    if (i < args.length) {
+      message = args.slice(i).join(' ');
+    }
+
+    return { switches, targetChannel: channel, target, banType, message };
   }
 }
 

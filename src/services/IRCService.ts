@@ -108,7 +108,7 @@ export const getDefaultRawCategoryVisibility = (): Record<RawMessageCategory, bo
 
 export interface IRCMessage {
   id: string;
-  type: 'message' | 'notice' | 'raw' | 'join' | 'part' | 'quit' | 'kick' | 'nick' | 'mode' | 'topic' | 'error' | 'invite' | 'monitor' | 'ctcp';
+  type: 'message' | 'notice' | 'raw' | 'join' | 'part' | 'quit' | 'kick' | 'nick' | 'mode' | 'topic' | 'error' | 'invite' | 'monitor' | 'ctcp' | 'system';
   channel?: string;
   from?: string;
   oldNick?: string;
@@ -134,6 +134,8 @@ export interface IRCMessage {
   reason?: string;
   numeric?: string;
   command?: string;
+  isScrollback?: boolean; // Message loaded from local scrollback history
+  isPlayback?: boolean; // Message from bouncer playback buffer
 }
 
 export interface ChannelUser {
@@ -239,6 +241,9 @@ export class IRCService {
   private pendingConnectionStates: boolean[] = []; // buffer connection state events
   private lastWhowasTarget: string | null = null;
   private lastWhowasAt: number = 0;
+  private silentWhoNicks: Set<string> = new Set(); // Nicks for which we want silent WHO (no display)
+  private silentWhoCallbacks: Map<string, ((user: string, host: string) => void)> = new Map(); // Callbacks for silent WHO responses
+  private silentModeNicks: Set<string> = new Set(); // Nicks for which we want silent MODE (no display)
 
   public on(event: string, listener: Function) {
     if (!this.eventListeners.has(event)) {
@@ -2276,6 +2281,14 @@ export class IRCService {
         // RPL_UMODEIS: :server 221 yournick +modes
         const modeString = params[1] || '';
         this.updateSelfUserModes(modeString);
+        
+        // Check if this was a silent MODE request
+        if (this.silentModeNicks.has(this.currentNick.toLowerCase())) {
+          // Don't display - keep it silent
+          this.silentModeNicks.delete(this.currentNick.toLowerCase());
+          break;
+        }
+        
         this.addMessage({
           type: 'raw',
           text: t('*** User modes: {modes}', { modes: modeString || t('none') }),
@@ -2856,6 +2869,20 @@ export class IRCService {
         const awayStatus = whoFlags.includes('G') ? t(' (away)') : '';
         const opStatus = whoFlags.includes('*') ? t(' (IRCop)') : '';
 
+        // Check if this is a silent WHO response
+        const whoNickLower = whoNick.toLowerCase();
+        if (this.silentWhoNicks.has(whoNickLower)) {
+          // This was a silent WHO - call callback if exists and don't display
+          const callback = this.silentWhoCallbacks.get(whoNickLower);
+          if (callback) {
+            callback(whoUser, whoHost);
+            // Note: we don't delete the callback here, we wait for ENDOFWHO (315)
+            // to clean up both the callback and the nick from the set
+          }
+          // Don't add message - keep it silent
+          break;
+        }
+
         this.addMessage({
           type: 'raw',
           text: t('*** WHO {channel}: {nick} ({user}@{host}) [{server}]{away}{op} - {real}', {
@@ -2878,6 +2905,16 @@ export class IRCService {
       case 315: {
         // RPL_ENDOFWHO: :server 315 yournick channel :End of WHO list
         const whoChannel = params[1] || '';
+        
+        // Check if this was a silent WHO (channel/nick was in the silent set)
+        if (this.silentWhoNicks.has(whoChannel.toLowerCase())) {
+          // Clear any remaining callback (in case WHO returned no results)
+          this.silentWhoCallbacks.delete(whoChannel.toLowerCase());
+          this.silentWhoNicks.delete(whoChannel.toLowerCase());
+          // Don't display - keep it silent
+          break;
+        }
+        
         this.addMessage({
           type: 'raw',
           text: t('*** End of WHO list for {channel}', { channel: whoChannel }),
@@ -4648,6 +4685,57 @@ export class IRCService {
         this.logRaw(`IRCService: Unable to send message (socket closed): ${error?.message || error}`);
         // Mark as disconnected to prevent further write attempts
         this.isConnected = false;
+      }
+    }
+  }
+
+  /**
+   * Send a silent WHO command - the command and its response won't be displayed in the UI.
+   * Useful for fetching user information without spamming the server tab.
+   * @param nick The nick to query
+   * @param callback Optional callback that receives (username, hostname) when response arrives
+   */
+  public sendSilentWho(nick: string, callback?: ((user: string, host: string) => void)): void {
+    if (this.socket && this.isConnected) {
+      // Mark this nick as silent WHO target
+      this.silentWhoNicks.add(nick.toLowerCase());
+      
+      // Store callback if provided
+      if (callback) {
+        this.silentWhoCallbacks.set(nick.toLowerCase(), callback);
+      }
+      
+      // Send WHO without adding to wire messages (silent)
+      try {
+        this.socket.write(`WHO ${nick}\r\n`);
+        // Don't call addWireMessage - this keeps it silent
+        this.emit('send-raw', `WHO ${nick}`);
+      } catch (error: any) {
+        this.logRaw(`IRCService: Unable to send silent WHO (socket closed): ${error?.message || error}`);
+        this.silentWhoNicks.delete(nick.toLowerCase());
+        this.silentWhoCallbacks.delete(nick.toLowerCase());
+      }
+    }
+  }
+
+  /**
+   * Send a silent MODE command to get user modes - the response won't be displayed in the UI.
+   * Useful for checking if user is an oper without spamming the server tab.
+   * @param nick The nick to query
+   */
+  public sendSilentMode(nick: string): void {
+    if (this.socket && this.isConnected) {
+      // Mark this nick as silent MODE target
+      this.silentModeNicks.add(nick.toLowerCase());
+      
+      // Send MODE without adding to wire messages (silent)
+      try {
+        this.socket.write(`MODE ${nick}\r\n`);
+        // Don't call addWireMessage - this keeps it silent
+        this.emit('send-raw', `MODE ${nick}`);
+      } catch (error: any) {
+        this.logRaw(`IRCService: Unable to send silent MODE (socket closed): ${error?.message || error}`);
+        this.silentModeNicks.delete(nick.toLowerCase());
       }
     }
   }

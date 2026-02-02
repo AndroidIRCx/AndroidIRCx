@@ -7474,5 +7474,788 @@
   },
   "Nicklist Tongue Size": {
     "string": "Nicklist Tongue Size"
+  },
+  "Insert": {
+    "string": "Insert"
+  },
+  "mIRC Colors": {
+    "string": "mIRC Colors"
+  },
+  "KILL {nick}": {
+    "string": "KILL {nick}"
+  },
+  "Enter reason": {
+    "string": "Enter reason"
+  },
+  "Reason is required": {
+    "string": "Reason is required"
+  },
+  "Scan this QR to import your key": {
+    "string": "Scan this QR to import your key"
+  },
+  "Scan to verify fingerprint": {
+    "string": "Scan to verify fingerprint"
+  },
+  "No QR payload": {
+    "string": "No QR payload"
+  },
+  "Copy QR Payload": {
+    "string": "Copy QR Payload"
+  },
+  "Scan Key": {
+    "string": "Scan Key"
+  },
+  "Insert colors": {
+    "string": "Insert colors"
+  },
+  "Clear selection": {
+    "string": "Clear selection"
+  },
+  "Copy nickname": {
+    "string": "Copy nickname"
+  },
+  "User list v": {
+    "string": "User list v"
+  },
+  "User list >": {
+    "string": "User list >"
+  },
+  "KILL (with reason)": {
+    "string": "KILL (with reason)"
+  },
+  "CTCP + DCC v": {
+    "string": "CTCP + DCC v"
+  },
+  "CTCP + DCC >": {
+    "string": "CTCP + DCC >"
+  },
+  "Change nick to pattern": {
+    "string": "Change nick to pattern"
+  },
+  "Example: <me>^away": {
+    "string": "Example: <me>^away"
+  },
+  "Notify away if nick is mentioned": {
+    "string": "Notify away if nick is mentioned"
+  },
+  "DeOp on channels": {
+    "string": "DeOp on channels"
+  },
+  "Announce away status": {
+    "string": "Announce away status"
+  },
+  "Auto-answer": {
+    "string": "Auto-answer"
+  },
+  "Disable sounds when away": {
+    "string": "Disable sounds when away"
+  },
+  "Multiserver": {
+    "string": "Multiserver"
+  },
+  "Apply away to all connected networks": {
+    "string": "Apply away to all connected networks"
+  },
+  "Away presets": {
+    "string": "Away presets"
+  },
+  "{count} presets": {
+    "string": "{count} presets"
+  },
+  "Default away reason": {
+    "string": "Default away reason"
+  },
+  "Go Away Now": {
+    "string": "Go Away Now"
+  },
+  "Send AWAY with default reason": {
+    "string": "Send AWAY with default reason"
+  },
+  "Return (Back)": {
+    "string": "Return (Back)"
+  },
+  "Clear AWAY status": {
+    "string": "Clear AWAY status"
+  },
+  "Auto-answer message": {
+    "string": "Auto-answer message"
+  },
+  "Auto-answer presets": {
+    "string": "Auto-answer presets"
+  },
+  "{count} messages": {
+    "string": "{count} messages"
+  },
+  "Announce every (min.)": {
+    "string": "Announce every (min.)"
+  },
+  "Announce only on channels": {
+    "string": "Announce only on channels"
+  },
+  "Do not announce on channels": {
+    "string": "Do not announce on channels"
+  },
+  "Away text": {
+    "string": "Away text"
+  },
+  "Return text": {
+    "string": "Return text"
+  },
+  "Auto-away enabled": {
+    "string": "Auto-away enabled"
+  },
+  "Auto-away minutes": {
+    "string": "Auto-away minutes"
+  },
+  "Auto-away reason": {
+    "string": "Auto-away reason"
+  },
+  "Minimize to systray": {
+    "string": "Minimize to systray"
+  },
+  "Away system": {
+    "string": "Away system"
+  },
+  "Add preset": {
+    "string": "Add preset"
+  },
+  "Colors": {
+    "string": "Colors"
+  },
+  "Add message": {
+    "string": "Add message"
+  },
+  "Download Folder": {
+    "string": "Download Folder"
+  },
+  "Folder picker is not supported on this device.": {
+    "string": "Folder picker is not supported on this device."
+  },
+  "Unable to resolve a folder from the selected file.": {
+    "string": "Unable to resolve a folder from the selected file."
+  },
+  "Failed to pick a folder. Please try again.": {
+    "string": "Failed to pick a folder. Please try again."
+  },
+  "Reject": {
+    "string": "Reject"
+  },
+  "Don't send": {
+    "string": "Don't send"
+  },
+  "2 - Friends/Allowlist": {
+    "string": "2 - Friends/Allowlist"
+  },
+  "3 - Ops": {
+    "string": "3 - Ops"
+  },
+  "4 - Auto Op & Notify": {
+    "string": "4 - Auto Op & Notify"
+  },
+  "1 - Always ask": {
+    "string": "1 - Always ask"
+  },
+  "Getting files (auto)": {
+    "string": "Getting files (auto)"
+  },
+  "Mode: {mode}": {
+    "string": "Mode: {mode}"
+  },
+  "Auto-Get Mode": {
+    "string": "Auto-Get Mode"
+  },
+  "Select behavior for incoming files": {
+    "string": "Select behavior for incoming files"
+  },
+  "File type filters": {
+    "string": "File type filters"
+  },
+  "Accept {accept} / Reject {reject} / Block {block}": {
+    "string": "Accept {accept} / Reject {reject} / Block {block}"
+  },
+  "Accept list": {
+    "string": "Accept list"
+  },
+  "{count} items": {
+    "string": "{count} items"
+  },
+  "Reject list": {
+    "string": "Reject list"
+  },
+  "Don't send list": {
+    "string": "Don't send list"
+  },
+  "Auto accept CHAT from": {
+    "string": "Auto accept CHAT from"
+  },
+  "Auto Accept Chat": {
+    "string": "Auto Accept Chat"
+  },
+  "Select who can auto-start DCC chat": {
+    "string": "Select who can auto-start DCC chat"
+  },
+  "Auto accept gets from": {
+    "string": "Auto accept gets from"
+  },
+  "Auto Accept Gets": {
+    "string": "Auto Accept Gets"
+  },
+  "Select who can auto-send files": {
+    "string": "Select who can auto-send files"
+  },
+  "Auto-open viewer": {
+    "string": "Auto-open viewer"
+  },
+  "Close queries when chat opens": {
+    "string": "Close queries when chat opens"
+  },
+  "Request on fail when receiving": {
+    "string": "Request on fail when receiving"
+  },
+  "Allow DCC by IP": {
+    "string": "Allow DCC by IP"
+  },
+  "Block private/local IPs": {
+    "string": "Block private/local IPs"
+  },
+  "Block DCC connections to private (RFC1918) and localhost addresses. This prevents SSRF-like attacks where a malicious user could trick your client into connecting to internal network services.": {
+    "string": "Block DCC connections to private (RFC1918) and localhost addresses. This prevents SSRF-like attacks where a malicious user could trick your client into connecting to internal network services."
+  },
+  "Disabling this option allows DCC connections to private network addresses (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). This could allow malicious users to make your device connect to internal network services. Only disable if you understand the risks and need to connect to a local IRC bouncer or similar service.\n\nAre you sure you want to disable this protection?": {
+    "string": "Disabling this option allows DCC connections to private network addresses (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). This could allow malicious users to make your device connect to internal network services. Only disable if you understand the risks and need to connect to a local IRC bouncer or similar service.\n\nAre you sure you want to disable this protection?"
+  },
+  "Disable Protection": {
+    "string": "Disable Protection"
+  },
+  "Passive DCC": {
+    "string": "Passive DCC"
+  },
+  "Reply queue commands": {
+    "string": "Reply queue commands"
+  },
+  "Max. speed on sends (KB/s)": {
+    "string": "Max. speed on sends (KB/s)"
+  },
+  "Cancel if send speed is above (KB/s)": {
+    "string": "Cancel if send speed is above (KB/s)"
+  },
+  "Download folder": {
+    "string": "Download folder"
+  },
+  "Default app folder": {
+    "string": "Default app folder"
+  },
+  "Add extension (e.g. *.zip)": {
+    "string": "Add extension (e.g. *.zip)"
+  },
+  "Tap to remove": {
+    "string": "Tap to remove"
+  },
+  "When open": {
+    "string": "When open"
+  },
+  "Anti-spam on private messages": {
+    "string": "Anti-spam on private messages"
+  },
+  "Spam keywords list": {
+    "string": "Spam keywords list"
+  },
+  "{count} patterns": {
+    "string": "{count} patterns"
+  },
+  "Logging in SPAM.log": {
+    "string": "Logging in SPAM.log"
+  },
+  "Check SPAM.log": {
+    "string": "Check SPAM.log"
+  },
+  "No spam log entries.": {
+    "string": "No spam log entries."
+  },
+  "Delete SPAM.log": {
+    "string": "Delete SPAM.log"
+  },
+  "Anti-spam on channels": {
+    "string": "Anti-spam on channels"
+  },
+  "No spam on quits": {
+    "string": "No spam on quits"
+  },
+  "CTCP Flood & various": {
+    "string": "CTCP Flood & various"
+  },
+  "Text Flood": {
+    "string": "Text Flood"
+  },
+  "DCC flood": {
+    "string": "DCC flood"
+  },
+  "Query flood": {
+    "string": "Query flood"
+  },
+  "D.O.S. attacks": {
+    "string": "D.O.S. attacks"
+  },
+  "Anti deop/ban/kick": {
+    "string": "Anti deop/ban/kick"
+  },
+  "Using Chanserv": {
+    "string": "Using Chanserv"
+  },
+  "Exclude protections on": {
+    "string": "Exclude protections on"
+  },
+  "Example: CTCP SLOTS MP3 SOUND": {
+    "string": "Example: CTCP SLOTS MP3 SOUND"
+  },
+  "Enforce with /silence": {
+    "string": "Enforce with /silence"
+  },
+  "Block Tsunamis": {
+    "string": "Block Tsunamis"
+  },
+  "Text Flood Net": {
+    "string": "Text Flood Net"
+  },
+  "IRCop auto action": {
+    "string": "IRCop auto action"
+  },
+  "Action: {action}": {
+    "string": "Action: {action}"
+  },
+  "IRCop reason": {
+    "string": "IRCop reason"
+  },
+  "IRCop duration": {
+    "string": "IRCop duration"
+  },
+  "Used for GLINE/KLINE if supported": {
+    "string": "Used for GLINE/KLINE if supported"
+  },
+  "Information about protections": {
+    "string": "Information about protections"
+  },
+  "Anti-Spam": {
+    "string": "Anti-Spam"
+  },
+  "Flood / DOS": {
+    "string": "Flood / DOS"
+  },
+  "Spam keywords": {
+    "string": "Spam keywords"
+  },
+  "Add keyword or wildcard": {
+    "string": "Add keyword or wildcard"
+  },
+  "Private Message Filter": {
+    "string": "Private Message Filter"
+  },
+  "Select anti-spam mode": {
+    "string": "Select anti-spam mode"
+  },
+  "SPAM.log": {
+    "string": "SPAM.log"
+  },
+  "Are you sure you want to clear the spam log?": {
+    "string": "Are you sure you want to clear the spam log?"
+  },
+  "Spam log cleared.": {
+    "string": "Spam log cleared."
+  },
+  "Select action when spam/flood is detected": {
+    "string": "Select action when spam/flood is detected"
+  },
+  "Protections": {
+    "string": "Protections"
+  },
+  "Protections will ignore spam/flood users and can trigger IRCop actions when enabled.": {
+    "string": "Protections will ignore spam/flood users and can trigger IRCop actions when enabled."
+  },
+  "Decoration style": {
+    "string": "Decoration style"
+  },
+  "None selected": {
+    "string": "None selected"
+  },
+  "No styles": {
+    "string": "No styles"
+  },
+  "Add styles first.": {
+    "string": "Add styles first."
+  },
+  "Bold": {
+    "string": "Bold"
+  },
+  "Underline": {
+    "string": "Underline"
+  },
+  "Use colors": {
+    "string": "Use colors"
+  },
+  "Styles list": {
+    "string": "Styles list"
+  },
+  "{count} styles": {
+    "string": "{count} styles"
+  },
+  "Active style": {
+    "string": "Active style"
+  },
+  "Nick completion styles": {
+    "string": "Nick completion styles"
+  },
+  "Decoration style: {text}": {
+    "string": "Decoration style: {text}"
+  },
+  "none": {
+    "string": "none"
+  },
+  "Decoration": {
+    "string": "Decoration"
+  },
+  "Nick Completion": {
+    "string": "Nick Completion"
+  },
+  "Decoration styles": {
+    "string": "Decoration styles"
+  },
+  "Add style": {
+    "string": "Add style"
+  },
+  "Select style": {
+    "string": "Select style"
+  },
+  "Edit style": {
+    "string": "Edit style"
+  },
+  "Use <nick>": {
+    "string": "Use <nick>"
+  },
+  "Use <text>": {
+    "string": "Use <text>"
+  },
+  "KILL sent to {nick}": {
+    "string": "KILL sent to {nick}"
+  },
+  "*** DCC CHAT from {from} auto-accepted": {
+    "string": "*** DCC CHAT from {from} auto-accepted"
+  },
+  "*** DCC SEND offer from {from}: {filename} - Auto-accepted": {
+    "string": "*** DCC SEND offer from {from}: {filename} - Auto-accepted"
+  },
+  "*** DCC SEND offer from {from}: {filename} - Rejected by filters": {
+    "string": "*** DCC SEND offer from {from}: {filename} - Rejected by filters"
+  },
+  "Version 1.6.16": {
+    "string": "Version 1.6.16"
+  },
+  "Backup Encrypted": {
+    "string": "Backup Encrypted"
+  },
+  "Your backup has been encrypted. Keep your password safe - you will need it to restore this backup.": {
+    "string": "Your backup has been encrypted. Keep your password safe - you will need it to restore this backup."
+  },
+  "Encryption Failed": {
+    "string": "Encryption Failed"
+  },
+  "Failed to encrypt backup": {
+    "string": "Failed to encrypt backup"
+  },
+  "Generated backup with {count} items.": {
+    "string": "Generated backup with {count} items."
+  },
+  "Please enter the password": {
+    "string": "Please enter the password"
+  },
+  "Decryption Failed": {
+    "string": "Decryption Failed"
+  },
+  "Wrong password or corrupted data. Please check your password and try again.": {
+    "string": "Wrong password or corrupted data. Please check your password and try again."
+  },
+  "Sensitive Data Detected": {
+    "string": "Sensitive Data Detected"
+  },
+  "This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup.": {
+    "string": "This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup."
+  },
+  "Do you want to encrypt this backup?": {
+    "string": "Do you want to encrypt this backup?"
+  },
+  "Enter encryption password (optional)": {
+    "string": "Enter encryption password (optional)"
+  },
+  "Export Unencrypted": {
+    "string": "Export Unencrypted"
+  },
+  "Encrypt & Export": {
+    "string": "Encrypt & Export"
+  },
+  "Encrypted Backup": {
+    "string": "Encrypted Backup"
+  },
+  "This backup is encrypted. Please enter the password to decrypt and restore it.": {
+    "string": "This backup is encrypted. Please enter the password to decrypt and restore it."
+  },
+  "Enter decryption password": {
+    "string": "Enter decryption password"
+  },
+  "Decrypt & Restore": {
+    "string": "Decrypt & Restore"
+  },
+  "Topic Preview": {
+    "string": "Topic Preview"
+  },
+  "Topic Style Preview": {
+    "string": "Topic Style Preview"
+  },
+  "No topic style selected": {
+    "string": "No topic style selected"
+  },
+  "Add topic styles first.": {
+    "string": "Add topic styles first."
+  },
+  "Select Topic Style": {
+    "string": "Select Topic Style"
+  },
+  "Manage Topic Styles": {
+    "string": "Manage Topic Styles"
+  },
+  "Topic Styles": {
+    "string": "Topic Styles"
+  },
+  "Use <TOPIC>": {
+    "string": "Use <TOPIC>"
+  },
+  "IRcap Credits": {
+    "string": "IRcap Credits"
+  },
+  "IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiration for away, protections, writing styles, and the IRcap theme.": {
+    "string": "IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiration for away, protections, writing styles, and the IRcap theme."
+  },
+  "IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme.": {
+    "string": "IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme."
+  },
+  "Join message format": {
+    "string": "Join message format"
+  },
+  "Part message format": {
+    "string": "Part message format"
+  },
+  "Quit message format": {
+    "string": "Quit message format"
+  },
+  "Kick message format": {
+    "string": "Kick message format"
+  },
+  "Nick change message format": {
+    "string": "Nick change message format"
+  },
+  "Invite message format": {
+    "string": "Invite message format"
+  },
+  "Monitor message format": {
+    "string": "Monitor message format"
+  },
+  "Mode message format": {
+    "string": "Mode message format"
+  },
+  "Topic message format": {
+    "string": "Topic message format"
+  },
+  "Raw message format": {
+    "string": "Raw message format"
+  },
+  "Error message format": {
+    "string": "Error message format"
+  },
+  "CTCP message format": {
+    "string": "CTCP message format"
+  },
+  "Event (fallback) message format": {
+    "string": "Event (fallback) message format"
+  },
+  "old nick": {
+    "string": "old nick"
+  },
+  "new nick": {
+    "string": "new nick"
+  },
+  "sender-nick joined #example": {
+    "string": "sender-nick joined #example"
+  },
+  "sender-nick left #example: Example reason": {
+    "string": "sender-nick left #example: Example reason"
+  },
+  "sender-nick quit: Example reason": {
+    "string": "sender-nick quit: Example reason"
+  },
+  "kicker kicked target from #example: Example reason": {
+    "string": "kicker kicked target from #example: Example reason"
+  },
+  "old-nick is now known as new-nick": {
+    "string": "old-nick is now known as new-nick"
+  },
+  "sender-nick invited you to #example": {
+    "string": "sender-nick invited you to #example"
+  },
+  "sender-nick is now online": {
+    "string": "sender-nick is now online"
+  },
+  "sender-nick set mode +o other-nick": {
+    "string": "sender-nick set mode +o other-nick"
+  },
+  "sender-nick changed topic to: Example topic": {
+    "string": "sender-nick changed topic to: Example topic"
+  },
+  "*** RAW Command: PING :example": {
+    "string": "*** RAW Command: PING :example"
+  },
+  "*** Connection error [000]: Example error": {
+    "string": "*** Connection error [000]: Example error"
+  },
+  "CTCP VERSION request": {
+    "string": "CTCP VERSION request"
+  },
+  "Palette": {
+    "string": "Palette"
+  },
+  "Away": {
+    "string": "Away"
+  },
+  "Protection": {
+    "string": "Protection"
+  },
+  "Writing": {
+    "string": "Writing"
+  },
+  "Accent": {
+    "string": "Accent"
+  },
+  "Not an encrypted backup": {
+    "string": "Not an encrypted backup"
+  },
+  "Decryption failed - wrong password or corrupted data": {
+    "string": "Decryption failed - wrong password or corrupted data"
+  },
+  "Connection blocked: Private/local IP address ({host}). This could be an SSRF attack. You can disable this protection in Settings > Connection > DCC if you trust this connection.": {
+    "string": "Connection blocked: Private/local IP address ({host}). This could be an SSRF attack. You can disable this protection in Settings > Connection > DCC if you trust this connection."
+  },
+  "*** User modes: {modes}": {
+    "string": "*** User modes: {modes}"
+  },
+  "Version {version}": {
+    "string": "Version {version}"
+  },
+  "Blacklist Nick": {
+    "string": "Blacklist Nick"
+  },
+  "Default Ban Type": {
+    "string": "Default Ban Type"
+  },
+  "Select the default ban mask type (0-9)": {
+    "string": "Select the default ban mask type (0-9)"
+  },
+  "Ban by user@host": {
+    "string": "Ban by user@host"
+  },
+  "Ban by *user@host": {
+    "string": "Ban by *user@host"
+  },
+  "Ban by host only": {
+    "string": "Ban by host only"
+  },
+  "Ban by *user@*.domain": {
+    "string": "Ban by *user@*.domain"
+  },
+  "Ban by *.domain only": {
+    "string": "Ban by *.domain only"
+  },
+  "Ban exact nick!user@host": {
+    "string": "Ban exact nick!user@host"
+  },
+  "Ban nick with *user@host": {
+    "string": "Ban nick with *user@host"
+  },
+  "Ban nick with any user@host": {
+    "string": "Ban nick with any user@host"
+  },
+  "Ban nick with *user@*.domain": {
+    "string": "Ban nick with *user@*.domain"
+  },
+  "Ban nick with *.domain": {
+    "string": "Ban nick with *.domain"
+  },
+  "Select Default Ban Type": {
+    "string": "Select Default Ban Type"
+  },
+  "Choose the default ban mask type": {
+    "string": "Choose the default ban mask type"
+  },
+  "Predefined Kick/Ban Reasons": {
+    "string": "Predefined Kick/Ban Reasons"
+  },
+  "{count} reasons": {
+    "string": "{count} reasons"
+  },
+  "Show Ban Mask Preview": {
+    "string": "Show Ban Mask Preview"
+  },
+  "Display the ban mask before applying": {
+    "string": "Display the ban mask before applying"
+  },
+  "Always Confirm Kick/Ban": {
+    "string": "Always Confirm Kick/Ban"
+  },
+  "Show reason dialog for all kick/ban actions": {
+    "string": "Show reason dialog for all kick/ban actions"
+  },
+  "Add new reason...": {
+    "string": "Add new reason..."
+  },
+  "Reset to Defaults": {
+    "string": "Reset to Defaults"
+  },
+  "Load Scrollback on Join": {
+    "string": "Load Scrollback on Join"
+  },
+  "Load previous messages from local history when joining channels": {
+    "string": "Load previous messages from local history when joining channels"
+  },
+  "Scrollback Lines": {
+    "string": "Scrollback Lines"
+  },
+  "Number of previous messages to load: {count}": {
+    "string": "Number of previous messages to load: {count}"
+  },
+  "IRcap Theme": {
+    "string": "IRcap Theme"
+  },
+  "enters": {
+    "string": "enters"
+  },
+  "leaves": {
+    "string": "leaves"
+  },
+  "closes": {
+    "string": "closes"
+  },
+  "kicked_by": {
+    "string": "kicked_by"
+  },
+  "now_known_as": {
+    "string": "now_known_as"
+  },
+  "invites_you_to": {
+    "string": "invites_you_to"
+  },
+  "joined_monitor_list": {
+    "string": "joined_monitor_list"
+  },
+  "sets_mode": {
+    "string": "sets_mode"
+  },
+  "sets_topic": {
+    "string": "sets_topic"
   }
 }

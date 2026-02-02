@@ -1,6 +1,6 @@
 {
   "name": "androidircx",
-  "version": "1.6.16",
+  "version": "1.6.17",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -27,6 +27,7 @@
     "@react-native-firebase/app": "23.8.4",
     "@react-native-firebase/app-check": "^23.8.4",
     "@react-native-firebase/crashlytics": "23.8.4",
+    "@react-native-picker/picker": "^2.11.4",
     "@react-native/new-app-screen": "0.83.1",
     "@transifex/native": "^7.1.5",
     "@transifex/react": "^7.1.5",

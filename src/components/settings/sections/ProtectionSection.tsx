@@ -77,6 +77,16 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
   const [editingKeywordIndex, setEditingKeywordIndex] = useState<number | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
 
+  // Ban settings
+  const [defaultBanType, setDefaultBanType] = useState<number>(2);
+  const [predefinedKickReasons, setPredefinedKickReasons] = useState<string[]>([]);
+  const [showBanMaskPreview, setShowBanMaskPreview] = useState<boolean>(true);
+  const [rememberLastBanType, setRememberLastBanType] = useState<boolean>(false);
+  const [confirmBeforeKickBan, setConfirmBeforeKickBan] = useState<boolean>(true);
+  const [showBanReasonsModal, setShowBanReasonsModal] = useState(false);
+  const [newBanReason, setNewBanReason] = useState('');
+  const [editingReasonIndex, setEditingReasonIndex] = useState<number | null>(null);
+  const [showBanTypeModal, setShowBanTypeModal] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -100,6 +110,13 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
       setProtIrcopAction(await settingsService.getSetting('protIrcopAction', 'none'));
       setProtIrcopReason(await settingsService.getSetting('protIrcopReason', 'Auto protection: spam/flood'));
       setProtIrcopDuration(await settingsService.getSetting('protIrcopDuration', '1h'));
+
+      // Load ban settings
+      setDefaultBanType(await settingsService.getSetting('defaultBanType', NEW_FEATURE_DEFAULTS.defaultBanType));
+      setPredefinedKickReasons(await settingsService.getSetting('predefinedKickReasons', NEW_FEATURE_DEFAULTS.predefinedKickReasons));
+      setShowBanMaskPreview(await settingsService.getSetting('showBanMaskPreview', NEW_FEATURE_DEFAULTS.showBanMaskPreview));
+      setRememberLastBanType(await settingsService.getSetting('rememberLastBanType', NEW_FEATURE_DEFAULTS.rememberLastBanType));
+      setConfirmBeforeKickBan(await settingsService.getSetting('confirmBeforeKickBan', NEW_FEATURE_DEFAULTS.confirmBeforeKickBan));
     };
     load();
   }, []);
@@ -477,6 +494,45 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
         setShowProtInfoModal(true);
       },
     },
+    // Ban settings
+    {
+      id: 'default_ban_type',
+      title: t('Default Ban Type', { _tags: tags }),
+      description: t('Select the default ban mask type (0-9)', { _tags: tags }),
+      type: 'button',
+      onPress: () => setShowBanTypeModal(true),
+    },
+    {
+      id: 'predefined_kick_reasons',
+      title: t('Predefined Kick/Ban Reasons', { _tags: tags }),
+      description: t('{count} reasons', { count: predefinedKickReasons.length, _tags: tags }),
+      type: 'button',
+      onPress: () => setShowBanReasonsModal(true),
+    },
+    {
+      id: 'show_ban_mask_preview',
+      title: t('Show Ban Mask Preview', { _tags: tags }),
+      description: t('Display the ban mask before applying', { _tags: tags }),
+      type: 'switch',
+      value: showBanMaskPreview,
+      onValueChange: async (value) => {
+        const next = Boolean(value);
+        setShowBanMaskPreview(next);
+        await settingsService.setSetting('showBanMaskPreview', next);
+      },
+    },
+    {
+      id: 'confirm_before_kickban',
+      title: t('Always Confirm Kick/Ban', { _tags: tags }),
+      description: t('Show reason dialog for all kick/ban actions', { _tags: tags }),
+      type: 'switch',
+      value: confirmBeforeKickBan,
+      onValueChange: async (value) => {
+        const next = Boolean(value);
+        setConfirmBeforeKickBan(next);
+        await settingsService.setSetting('confirmBeforeKickBan', next);
+      },
+    },
   ], [
     protCtcpFlood,
     protTextFlood,
@@ -492,6 +548,10 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
     protIrcopAction,
     protIrcopReason,
     protIrcopDuration,
+    defaultBanType,
+    predefinedKickReasons.length,
+    showBanMaskPreview,
+    confirmBeforeKickBan,
     t,
     tags,
   ]);
@@ -775,6 +835,176 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
         title={t('mIRC Colors', { _tags: tags })}
         colors={colors}
       />
+
+      {/* Ban Type Selection Modal */}
+      <Modal
+        visible={showBanTypeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBanTypeModal(false)}
+      >
+        <View style={stylesLocal.modalContainer}>
+          <View style={stylesLocal.modalContent}>
+            <Text style={stylesLocal.modalTitle}>{t('Select Default Ban Type', { _tags: tags })}</Text>
+            <Text style={[stylesLocal.presetText, { marginBottom: 12 }]}>
+              {t('Choose the default ban mask type', { _tags: tags })}
+            </Text>
+            <ScrollView style={{ maxHeight: 320 }}>
+              {[
+                { id: 0, label: '0 - *!user@host', desc: t('Ban by user@host', { _tags: tags }) },
+                { id: 1, label: '1 - *!*user@host', desc: t('Ban by *user@host', { _tags: tags }) },
+                { id: 2, label: '2 - *!*@host', desc: t('Ban by host only', { _tags: tags }) },
+                { id: 3, label: '3 - *!*user@*.host', desc: t('Ban by *user@*.domain', { _tags: tags }) },
+                { id: 4, label: '4 - *!*@*.host', desc: t('Ban by *.domain only', { _tags: tags }) },
+                { id: 5, label: '5 - nick!user@host', desc: t('Ban exact nick!user@host', { _tags: tags }) },
+                { id: 6, label: '6 - nick!*user@host', desc: t('Ban nick with *user@host', { _tags: tags }) },
+                { id: 7, label: '7 - nick!*@host', desc: t('Ban nick with any user@host', { _tags: tags }) },
+                { id: 8, label: '8 - nick!*user@*.host', desc: t('Ban nick with *user@*.domain', { _tags: tags }) },
+                { id: 9, label: '9 - nick!*@*.host', desc: t('Ban nick with *.domain', { _tags: tags }) },
+              ].map((bt) => (
+                <TouchableOpacity
+                  key={bt.id}
+                  style={[
+                    stylesLocal.presetItem,
+                    defaultBanType === bt.id && { backgroundColor: colors.primary + '20' }
+                  ]}
+                  onPress={async () => {
+                    setDefaultBanType(bt.id);
+                    await settingsService.setSetting('defaultBanType', bt.id);
+                    setShowBanTypeModal(false);
+                  }}
+                >
+                  <Text style={[stylesLocal.presetText, { fontWeight: defaultBanType === bt.id ? '600' : '400' }]}>
+                    {bt.label}
+                  </Text>
+                  <Text style={[stylesLocal.presetText, { fontSize: 12, opacity: 0.7 }]}>
+                    {bt.desc}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <View style={stylesLocal.modalButtonRow}>
+              <TouchableOpacity
+                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
+                onPress={() => setShowBanTypeModal(false)}
+              >
+                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Cancel', { _tags: tags })}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal for managing predefined kick/ban reasons */}
+      <Modal
+        visible={showBanReasonsModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBanReasonsModal(false)}
+      >
+        <View style={stylesLocal.modalContainer}>
+          <View style={stylesLocal.modalContent}>
+            <Text style={stylesLocal.modalTitle}>{t('Predefined Kick/Ban Reasons', { _tags: tags })}</Text>
+
+            <View style={stylesLocal.modalRow}>
+              <TextInput
+                style={stylesLocal.modalInput}
+                placeholder={t('Add new reason...', { _tags: tags })}
+                placeholderTextColor={colors.textSecondary}
+                value={newBanReason}
+                onChangeText={setNewBanReason}
+              />
+              {editingReasonIndex !== null && (
+                <TouchableOpacity
+                  style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
+                  onPress={() => {
+                    setEditingReasonIndex(null);
+                    setNewBanReason('');
+                  }}
+                >
+                  <Text style={stylesLocal.modalButtonTextSecondary}>{t('Cancel', { _tags: tags })}</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={stylesLocal.modalButton}
+                onPress={async () => {
+                  const next = newBanReason.trim();
+                  if (!next) return;
+
+                  let updated = [...predefinedKickReasons];
+                  if (editingReasonIndex !== null && editingReasonIndex >= 0 && editingReasonIndex < updated.length) {
+                    updated[editingReasonIndex] = next;
+                  } else {
+                    updated.push(next);
+                  }
+
+                  setPredefinedKickReasons(updated);
+                  setNewBanReason('');
+                  setEditingReasonIndex(null);
+                  await settingsService.setSetting('predefinedKickReasons', updated);
+                }}
+              >
+                <Text style={stylesLocal.modalButtonText}>
+                  {editingReasonIndex !== null ? t('Save', { _tags: tags }) : t('Add', { _tags: tags })}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 260 }}>
+              {predefinedKickReasons.map((reason, idx) => (
+                <View key={`${reason}-${idx}`} style={stylesLocal.presetItem}>
+                  <View style={stylesLocal.presetRow}>
+                    <Text style={stylesLocal.presetText}>{reason}</Text>
+                    <TouchableOpacity
+                      style={stylesLocal.editButton}
+                      onPress={() => {
+                        setNewBanReason(reason);
+                        setEditingReasonIndex(idx);
+                      }}
+                    >
+                      <Text style={stylesLocal.editButtonText}>{t('Edit', { _tags: tags })}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={stylesLocal.removeButton}
+                      onPress={async () => {
+                        const updated = predefinedKickReasons.filter((_, i) => i !== idx);
+                        setPredefinedKickReasons(updated);
+                        if (editingReasonIndex === idx) {
+                          setEditingReasonIndex(null);
+                          setNewBanReason('');
+                        }
+                        await settingsService.setSetting('predefinedKickReasons', updated);
+                      }}
+                    >
+                      <Text style={stylesLocal.removeButtonText}>{t('Remove', { _tags: tags })}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={stylesLocal.modalButtonRow}>
+              <TouchableOpacity
+                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
+                onPress={async () => {
+                  // Reset to defaults
+                  const defaults = NEW_FEATURE_DEFAULTS.predefinedKickReasons;
+                  setPredefinedKickReasons(defaults);
+                  await settingsService.setSetting('predefinedKickReasons', defaults);
+                }}
+              >
+                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Reset to Defaults', { _tags: tags })}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
+                onPress={() => setShowBanReasonsModal(false)}
+              >
+                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Close', { _tags: tags })}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

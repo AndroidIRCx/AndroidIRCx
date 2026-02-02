@@ -329,8 +329,9 @@ export function useTabManager() {
     };
   }, []); // Empty dependencies - use store directly to avoid re-running
 
-  // Compute active tab safely without causing re-renders
-  const activeTab = useTabStore(state => state.getActiveTab());
+  // Compute active tab safely - use direct computation instead of calling getActiveTab()
+  // which internally uses get() and doesn't work correctly inside a Zustand selector
+  const activeTab = useTabStore(state => state.tabs.find(t => t.id === state.activeTabId));
 
   return {
     // State
