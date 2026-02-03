@@ -1,0 +1,550 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://androidircx.app/schemas/service-config.json",
+  "title": "IRC Service Configuration",
+  "description": "Configuration schema for IRC services (NickServ, ChanServ, etc.) and IRCd definitions",
+  "type": "object",
+  "required": [
+    "serviceType",
+    "ircdType",
+    "services",
+    "ircd"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "serviceType": {
+      "type": "string",
+      "enum": [
+        "anope",
+        "atheme",
+        "dalnet",
+        "undernet",
+        "quakenet",
+        "generic"
+      ],
+      "description": "Type of IRC services provider"
+    },
+    "ircdType": {
+      "type": "string",
+      "enum": [
+        "unrealircd",
+        "inspircd",
+        "charybdis",
+        "solanum",
+        "hybrid",
+        "ngircd",
+        "unknown"
+      ],
+      "description": "Type of IRC daemon"
+    },
+    "version": {
+      "type": "string",
+      "description": "Configuration version"
+    },
+    "services": {
+      "type": "object",
+      "description": "Service definitions",
+      "properties": {
+        "nickserv": {
+          "$ref": "#/definitions/serviceDefinition",
+          "description": "Nickname services"
+        },
+        "chanserv": {
+          "$ref": "#/definitions/serviceDefinition",
+          "description": "Channel services"
+        },
+        "hostserv": {
+          "$ref": "#/definitions/serviceDefinition",
+          "description": "Virtual host services"
+        },
+        "operserv": {
+          "$ref": "#/definitions/serviceDefinition",
+          "description": "Operator services"
+        },
+        "botserv": {
+          "$ref": "#/definitions/serviceDefinition",
+          "description": "Bot services"
+        },
+        "memoserv": {
+          "$ref": "#/definitions/serviceDefinition",
+          "description": "Memo services"
+        },
+        "groupserv": {
+          "$ref": "#/definitions/serviceDefinition",
+          "description": "Group services (Atheme)"
+        },
+        "x": {
+          "$ref": "#/definitions/serviceDefinition",
+          "description": "Undernet X service"
+        },
+        "q": {
+          "$ref": "#/definitions/serviceDefinition",
+          "description": "QuakeNet Q service"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ircd": {
+      "$ref": "#/definitions/ircdDefinition",
+      "description": "IRC daemon definition"
+    }
+  },
+  "definitions": {
+    "serviceDefinition": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "nick",
+        "commands"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether this service is enabled"
+        },
+        "nick": {
+          "type": "string",
+          "description": "Service nickname (e.g., 'NickServ', 'X')",
+          "minLength": 1
+        },
+        "host": {
+          "type": "string",
+          "description": "Service hostname (optional)"
+        },
+        "commands": {
+          "type": "array",
+          "description": "Available commands for this service",
+          "items": {
+            "$ref": "#/definitions/serviceCommand"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "serviceCommand": {
+      "type": "object",
+      "required": [
+        "name",
+        "service",
+        "description",
+        "usage",
+        "parameters"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Command name (e.g., 'REGISTER')",
+          "minLength": 1
+        },
+        "aliases": {
+          "type": "array",
+          "description": "Command aliases (deprecated, use completion.suggestAlias)",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "service": {
+          "type": "string",
+          "description": "Service name (e.g., 'NickServ')",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Command description",
+          "minLength": 1
+        },
+        "descriptionSr": {
+          "type": "string",
+          "description": "Command description in Serbian"
+        },
+        "usage": {
+          "type": "string",
+          "description": "Usage syntax",
+          "minLength": 1
+        },
+        "example": {
+          "type": "string",
+          "description": "Example usage"
+        },
+        "minLevel": {
+          "type": "string",
+          "enum": [
+            "user",
+            "op",
+            "halfop",
+            "admin",
+            "founder",
+            "oper"
+          ],
+          "default": "user",
+          "description": "Minimum access level required"
+        },
+        "requiresAuth": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether authentication is required"
+        },
+        "parameters": {
+          "type": "array",
+          "description": "Command parameters",
+          "items": {
+            "$ref": "#/definitions/commandParameter"
+          }
+        },
+        "completion": {
+          "$ref": "#/definitions/commandCompletionConfig",
+          "description": "Completion configuration"
+        }
+      },
+      "additionalProperties": false
+    },
+    "commandParameter": {
+      "type": "object",
+      "required": [
+        "name",
+        "type",
+        "required",
+        "description"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Parameter name",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "channel",
+            "nick",
+            "duration",
+            "enum",
+            "boolean"
+          ],
+          "description": "Parameter data type"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether parameter is required"
+        },
+        "description": {
+          "type": "string",
+          "description": "Parameter description",
+          "minLength": 1
+        },
+        "descriptionSr": {
+          "type": "string",
+          "description": "Parameter description in Serbian"
+        },
+        "enumValues": {
+          "type": "array",
+          "description": "Allowed values for enum type",
+          "items": {
+            "type": "string"
+          }
+        },
+        "completion": {
+          "$ref": "#/definitions/parameterCompletionConfig",
+          "description": "Parameter completion configuration"
+        }
+      },
+      "additionalProperties": false
+    },
+    "commandCompletionConfig": {
+      "type": "object",
+      "properties": {
+        "suggestAlias": {
+          "type": "string",
+          "description": "Suggested alias for quick access (e.g., 'nsregister')",
+          "minLength": 2,
+          "pattern": "^[a-z][a-z0-9]*$"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50,
+          "description": "Priority in suggestions (1-100)"
+        },
+        "context": {
+          "type": "array",
+          "description": "Available contexts",
+          "items": {
+            "type": "string",
+            "enum": [
+              "global",
+              "channel",
+              "query"
+            ]
+          },
+          "default": [
+            "global",
+            "channel"
+          ]
+        },
+        "confirmBeforeExecute": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require confirmation before execute"
+        },
+        "autoExecute": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-execute without waiting for Enter"
+        },
+        "parameterCompletion": {
+          "type": "object",
+          "description": "Per-parameter completion configs",
+          "additionalProperties": {
+            "$ref": "#/definitions/parameterCompletionConfig"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "parameterCompletionConfig": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "enum",
+            "dynamic",
+            "password",
+            "email",
+            "mask",
+            "duration",
+            "boolean"
+          ],
+          "description": "Completion type"
+        },
+        "values": {
+          "type": "array",
+          "description": "Fixed values for enum type",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "channels",
+            "nicks",
+            "bans",
+            "networks",
+            "custom"
+          ],
+          "description": "Dynamic data source"
+        },
+        "mask": {
+          "type": "boolean",
+          "default": false,
+          "description": "Mask password input"
+        },
+        "validate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Validate input"
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum length for strings"
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum length"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Regex pattern for validation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ircdDefinition": {
+      "type": "object",
+      "required": [
+        "userModes",
+        "channelModes",
+        "commands"
+      ],
+      "properties": {
+        "userModes": {
+          "type": "array",
+          "description": "User modes",
+          "items": {
+            "$ref": "#/definitions/userMode"
+          }
+        },
+        "channelModes": {
+          "type": "array",
+          "description": "Channel modes",
+          "items": {
+            "$ref": "#/definitions/channelMode"
+          }
+        },
+        "commands": {
+          "type": "array",
+          "description": "Server commands",
+          "items": {
+            "$ref": "#/definitions/ircdCommand"
+          }
+        },
+        "extendedBans": {
+          "type": "array",
+          "description": "Extended ban types",
+          "items": {
+            "$ref": "#/definitions/extendedBan"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "userMode": {
+      "type": "object",
+      "required": [
+        "mode",
+        "name",
+        "description"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "description": "Mode character",
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "name": {
+          "type": "string",
+          "description": "Mode name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Mode description"
+        },
+        "operOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether mode is oper-only"
+        }
+      },
+      "additionalProperties": false
+    },
+    "channelMode": {
+      "type": "object",
+      "required": [
+        "mode",
+        "type",
+        "name",
+        "description"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "description": "Mode character",
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "list",
+            "param",
+            "set",
+            "prefix"
+          ],
+          "description": "Mode type"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Prefix character (for prefix types)",
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "name": {
+          "type": "string",
+          "description": "Mode name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Mode description"
+        },
+        "parameter": {
+          "type": "string",
+          "description": "Parameter placeholder (for param types)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ircdCommand": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "usage",
+        "operOnly"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Command name",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Command description"
+        },
+        "usage": {
+          "type": "string",
+          "description": "Usage syntax"
+        },
+        "operOnly": {
+          "type": "boolean",
+          "description": "Whether command is oper-only"
+        }
+      },
+      "additionalProperties": false
+    },
+    "extendedBan": {
+      "type": "object",
+      "required": [
+        "prefix",
+        "type",
+        "description",
+        "example"
+      ],
+      "properties": {
+        "prefix": {
+          "type": "string",
+          "description": "Ban prefix (e.g., '~q:', '~n:')"
+        },
+        "type": {
+          "type": "string",
+          "description": "Ban type name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "example": {
+          "type": "string",
+          "description": "Example usage"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

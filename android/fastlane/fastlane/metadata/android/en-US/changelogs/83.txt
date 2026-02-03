@@ -1,0 +1,3 @@
+- Full IRC services support (NickServ, ChanServ, HostServ, OperServ) for Anope, Atheme, DALnet, Undernet X, QuakeNet Q services
+- IRCd support: UnrealIRCd, InspIRCd, Charybdis, Hybrid, ngIRCd
+- Auto-detection of services from server settings

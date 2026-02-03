@@ -1,0 +1,436 @@
+{
+  "$schema": "./service-schema.json",
+  "serviceType": "generic",
+  "ircdType": "unrealircd",
+  "version": "1.0.0",
+  "services": {},
+  "ircd": {
+    "userModes": [
+      {
+        "mode": "i",
+        "name": "invisible",
+        "description": "Invisible to /WHO"
+      },
+      {
+        "mode": "w",
+        "name": "wallops",
+        "description": "Receive wallops"
+      },
+      {
+        "mode": "g",
+        "name": "callerid",
+        "description": "Caller ID mode"
+      },
+      {
+        "mode": "B",
+        "name": "bot",
+        "description": "Marked as bot"
+      },
+      {
+        "mode": "d",
+        "name": "deaf",
+        "description": "Deaf to channel messages"
+      },
+      {
+        "mode": "D",
+        "name": "privdeaf",
+        "description": "Deaf to private messages"
+      },
+      {
+        "mode": "x",
+        "name": "cloak",
+        "description": "Hidden hostname"
+      },
+      {
+        "mode": "z",
+        "name": "ssl",
+        "description": "SSL connection"
+      },
+      {
+        "mode": "r",
+        "name": "registered",
+        "description": "Registered with services"
+      },
+      {
+        "mode": "R",
+        "name": "regonlymsg",
+        "description": "Registered users only PM"
+      },
+      {
+        "mode": "G",
+        "name": "censor",
+        "description": "Censor filter"
+      },
+      {
+        "mode": "H",
+        "name": "hideoper",
+        "description": "Hide oper status",
+        "operOnly": true
+      },
+      {
+        "mode": "p",
+        "name": "hidechans",
+        "description": "Hide channels"
+      },
+      {
+        "mode": "T",
+        "name": "noctcp",
+        "description": "Block CTCPs"
+      },
+      {
+        "mode": "W",
+        "name": "showwhois",
+        "description": "Show when WHOISed",
+        "operOnly": true
+      },
+      {
+        "mode": "q",
+        "name": "nokick",
+        "description": "Unkickable",
+        "operOnly": true
+      },
+      {
+        "mode": "o",
+        "name": "oper",
+        "description": "IRC Operator",
+        "operOnly": true
+      },
+      {
+        "mode": "a",
+        "name": "admin",
+        "description": "Server Admin",
+        "operOnly": true
+      },
+      {
+        "mode": "N",
+        "name": "netadmin",
+        "description": "Network Admin",
+        "operOnly": true
+      }
+    ],
+    "channelModes": [
+      {
+        "mode": "n",
+        "type": "set",
+        "name": "noexternal",
+        "description": "No external messages"
+      },
+      {
+        "mode": "t",
+        "type": "set",
+        "name": "topiclock",
+        "description": "Only ops set topic"
+      },
+      {
+        "mode": "i",
+        "type": "set",
+        "name": "inviteonly",
+        "description": "Invite only"
+      },
+      {
+        "mode": "m",
+        "type": "set",
+        "name": "moderated",
+        "description": "Voiced+ can speak"
+      },
+      {
+        "mode": "M",
+        "type": "set",
+        "name": "regonlyspeak",
+        "description": "Reg only speak"
+      },
+      {
+        "mode": "R",
+        "type": "set",
+        "name": "regonlyjoin",
+        "description": "Reg only join"
+      },
+      {
+        "mode": "p",
+        "type": "set",
+        "name": "private",
+        "description": "Private"
+      },
+      {
+        "mode": "s",
+        "type": "set",
+        "name": "secret",
+        "description": "Secret"
+      },
+      {
+        "mode": "c",
+        "type": "set",
+        "name": "nocolor",
+        "description": "No colors"
+      },
+      {
+        "mode": "C",
+        "type": "set",
+        "name": "noctcp",
+        "description": "No CTCP"
+      },
+      {
+        "mode": "z",
+        "type": "set",
+        "name": "sslonly",
+        "description": "SSL only"
+      },
+      {
+        "mode": "K",
+        "type": "set",
+        "name": "noknock",
+        "description": "No knock"
+      },
+      {
+        "mode": "N",
+        "type": "set",
+        "name": "nonickchange",
+        "description": "No nick changes"
+      },
+      {
+        "mode": "Q",
+        "type": "set",
+        "name": "nokick",
+        "description": "No kicks"
+      },
+      {
+        "mode": "S",
+        "type": "set",
+        "name": "stripcolor",
+        "description": "Strip colors"
+      },
+      {
+        "mode": "O",
+        "type": "set",
+        "name": "operonly",
+        "description": "Oper only",
+        "operOnly": true
+      },
+      {
+        "mode": "P",
+        "type": "set",
+        "name": "permanent",
+        "description": "Permanent"
+      },
+      {
+        "mode": "D",
+        "type": "set",
+        "name": "delayjoin",
+        "description": "Delay join messages"
+      },
+      {
+        "mode": "G",
+        "type": "set",
+        "name": "censor",
+        "description": "Censor"
+      },
+      {
+        "mode": "k",
+        "type": "param",
+        "name": "key",
+        "description": "Channel key"
+      },
+      {
+        "mode": "l",
+        "type": "param",
+        "name": "limit",
+        "description": "User limit"
+      },
+      {
+        "mode": "f",
+        "type": "param",
+        "name": "flood",
+        "description": "Flood protection"
+      },
+      {
+        "mode": "L",
+        "type": "param",
+        "name": "redirect",
+        "description": "Redirect (+l full)"
+      },
+      {
+        "mode": "H",
+        "type": "param",
+        "name": "history",
+        "description": "History for joiners"
+      },
+      {
+        "mode": "b",
+        "type": "list",
+        "name": "ban",
+        "description": "Ban list"
+      },
+      {
+        "mode": "e",
+        "type": "list",
+        "name": "except",
+        "description": "Ban exception"
+      },
+      {
+        "mode": "I",
+        "type": "list",
+        "name": "invex",
+        "description": "Invite exception"
+      },
+      {
+        "mode": "v",
+        "type": "prefix",
+        "prefix": "+",
+        "name": "voice",
+        "description": "Voice"
+      },
+      {
+        "mode": "h",
+        "type": "prefix",
+        "prefix": "%",
+        "name": "halfop",
+        "description": "Half-op"
+      },
+      {
+        "mode": "o",
+        "type": "prefix",
+        "prefix": "@",
+        "name": "op",
+        "description": "Op"
+      },
+      {
+        "mode": "a",
+        "type": "prefix",
+        "prefix": "&",
+        "name": "admin",
+        "description": "Admin"
+      },
+      {
+        "mode": "q",
+        "type": "prefix",
+        "prefix": "~",
+        "name": "owner",
+        "description": "Owner"
+      }
+    ],
+    "commands": [
+      {
+        "name": "OPER",
+        "description": "Become IRC operator",
+        "usage": "OPER <user> <pass>",
+        "operOnly": false
+      },
+      {
+        "name": "REHASH",
+        "description": "Reload config",
+        "usage": "REHASH",
+        "operOnly": true
+      },
+      {
+        "name": "RESTART",
+        "description": "Restart server",
+        "usage": "RESTART",
+        "operOnly": true
+      },
+      {
+        "name": "DIE",
+        "description": "Shutdown server",
+        "usage": "DIE",
+        "operOnly": true
+      },
+      {
+        "name": "KILL",
+        "description": "Kill user",
+        "usage": "KILL <nick> :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "KLINE",
+        "description": "Local ban",
+        "usage": "KLINE <mask> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "GLINE",
+        "description": "Network ban",
+        "usage": "GLINE <mask> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "ZLINE",
+        "description": "IP ban",
+        "usage": "ZLINE <ip> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "SHUN",
+        "description": "Shun user",
+        "usage": "SHUN <mask> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "SAMODE",
+        "description": "Force mode",
+        "usage": "SAMODE <target> <modes>",
+        "operOnly": true
+      },
+      {
+        "name": "SAJOIN",
+        "description": "Force join",
+        "usage": "SAJOIN <nick> <channel>",
+        "operOnly": true
+      },
+      {
+        "name": "SAPART",
+        "description": "Force part",
+        "usage": "SAPART <nick> <channel>",
+        "operOnly": true
+      },
+      {
+        "name": "CHGHOST",
+        "description": "Change host",
+        "usage": "CHGHOST <nick> <host>",
+        "operOnly": true
+      },
+      {
+        "name": "CHGIDENT",
+        "description": "Change ident",
+        "usage": "CHGIDENT <nick> <ident>",
+        "operOnly": true
+      },
+      {
+        "name": "CHGNAME",
+        "description": "Change realname",
+        "usage": "CHGNAME <nick> :<name>",
+        "operOnly": true
+      }
+    ],
+    "extendedBans": [
+      {
+        "prefix": "~q:",
+        "type": "quiet",
+        "description": "Quiet (can join, not speak)",
+        "example": "+b ~q:*!*@spammer"
+      },
+      {
+        "prefix": "~n:",
+        "type": "nick",
+        "description": "No nick changes",
+        "example": "+b ~n:*!*@*.com"
+      },
+      {
+        "prefix": "~c:",
+        "type": "channel",
+        "description": "Ban if on channel",
+        "example": "+b ~c:@#badchan"
+      },
+      {
+        "prefix": "~r:",
+        "type": "realname",
+        "description": "Realname ban",
+        "example": "+b ~r:*bot*"
+      },
+      {
+        "prefix": "~C:",
+        "type": "ctcp",
+        "description": "CTCP block",
+        "example": "+b ~C:*!*@*"
+      }
+    ]
+  }
+}

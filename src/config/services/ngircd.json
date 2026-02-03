@@ -1,0 +1,292 @@
+{
+  "$schema": "./service-schema.json",
+  "serviceType": "generic",
+  "ircdType": "ngircd",
+  "version": "1.0.0",
+  "services": {},
+  "ircd": {
+    "userModes": [
+      {
+        "mode": "i",
+        "name": "invisible",
+        "description": "Invisible"
+      },
+      {
+        "mode": "s",
+        "name": "servernotices",
+        "description": "Server notices"
+      },
+      {
+        "mode": "w",
+        "name": "wallops",
+        "description": "Wallops"
+      },
+      {
+        "mode": "x",
+        "name": "cloak",
+        "description": "Cloaked host"
+      },
+      {
+        "mode": "B",
+        "name": "bot",
+        "description": "Bot"
+      },
+      {
+        "mode": "b",
+        "name": "blockprivate",
+        "description": "Block private msgs"
+      },
+      {
+        "mode": "c",
+        "name": "connnotices",
+        "description": "Connect notices",
+        "operOnly": true
+      },
+      {
+        "mode": "C",
+        "name": "commonchans",
+        "description": "Common chans only"
+      },
+      {
+        "mode": "F",
+        "name": "relaxedflood",
+        "description": "Relaxed flood",
+        "operOnly": true
+      },
+      {
+        "mode": "I",
+        "name": "hidechans",
+        "description": "Hide channels"
+      },
+      {
+        "mode": "q",
+        "name": "protected",
+        "description": "Protected (no kick)"
+      },
+      {
+        "mode": "r",
+        "name": "restricted",
+        "description": "Restricted"
+      },
+      {
+        "mode": "R",
+        "name": "registered",
+        "description": "Registered"
+      },
+      {
+        "mode": "o",
+        "name": "oper",
+        "description": "Oper",
+        "operOnly": true
+      }
+    ],
+    "channelModes": [
+      {
+        "mode": "b",
+        "type": "list",
+        "name": "ban",
+        "description": "Ban"
+      },
+      {
+        "mode": "e",
+        "type": "list",
+        "name": "except",
+        "description": "Exception"
+      },
+      {
+        "mode": "I",
+        "type": "list",
+        "name": "invex",
+        "description": "Invite exception"
+      },
+      {
+        "mode": "i",
+        "type": "set",
+        "name": "inviteonly",
+        "description": "Invite only"
+      },
+      {
+        "mode": "m",
+        "type": "set",
+        "name": "moderated",
+        "description": "Moderated"
+      },
+      {
+        "mode": "n",
+        "type": "set",
+        "name": "noexternal",
+        "description": "No external"
+      },
+      {
+        "mode": "p",
+        "type": "set",
+        "name": "private",
+        "description": "Private"
+      },
+      {
+        "mode": "s",
+        "type": "set",
+        "name": "secret",
+        "description": "Secret"
+      },
+      {
+        "mode": "t",
+        "type": "set",
+        "name": "topiclock",
+        "description": "Topic lock"
+      },
+      {
+        "mode": "r",
+        "type": "set",
+        "name": "registered",
+        "description": "Registered"
+      },
+      {
+        "mode": "M",
+        "type": "set",
+        "name": "regonlyspeak",
+        "description": "Reg only speak"
+      },
+      {
+        "mode": "R",
+        "type": "set",
+        "name": "regonlyjoin",
+        "description": "Reg only join"
+      },
+      {
+        "mode": "z",
+        "type": "set",
+        "name": "sslonly",
+        "description": "SSL only"
+      },
+      {
+        "mode": "N",
+        "type": "set",
+        "name": "nonickchange",
+        "description": "No nick changes"
+      },
+      {
+        "mode": "O",
+        "type": "set",
+        "name": "operonly",
+        "description": "Oper only"
+      },
+      {
+        "mode": "P",
+        "type": "set",
+        "name": "persistent",
+        "description": "Persistent"
+      },
+      {
+        "mode": "Q",
+        "type": "set",
+        "name": "nokick",
+        "description": "No kicks"
+      },
+      {
+        "mode": "V",
+        "type": "set",
+        "name": "noinvites",
+        "description": "No invites"
+      },
+      {
+        "mode": "k",
+        "type": "param",
+        "name": "key",
+        "description": "Key"
+      },
+      {
+        "mode": "l",
+        "type": "param",
+        "name": "limit",
+        "description": "Limit"
+      },
+      {
+        "mode": "v",
+        "type": "prefix",
+        "prefix": "+",
+        "name": "voice",
+        "description": "Voice"
+      },
+      {
+        "mode": "h",
+        "type": "prefix",
+        "prefix": "%",
+        "name": "halfop",
+        "description": "Half-op"
+      },
+      {
+        "mode": "o",
+        "type": "prefix",
+        "prefix": "@",
+        "name": "op",
+        "description": "Op"
+      },
+      {
+        "mode": "a",
+        "type": "prefix",
+        "prefix": "&",
+        "name": "admin",
+        "description": "Admin"
+      },
+      {
+        "mode": "q",
+        "type": "prefix",
+        "prefix": "~",
+        "name": "owner",
+        "description": "Owner"
+      }
+    ],
+    "commands": [
+      {
+        "name": "OPER",
+        "description": "Become oper",
+        "usage": "OPER <user> <pass>",
+        "operOnly": false
+      },
+      {
+        "name": "REHASH",
+        "description": "Rehash",
+        "usage": "REHASH",
+        "operOnly": true
+      },
+      {
+        "name": "RESTART",
+        "description": "Restart",
+        "usage": "RESTART",
+        "operOnly": true
+      },
+      {
+        "name": "DIE",
+        "description": "Die",
+        "usage": "DIE",
+        "operOnly": true
+      },
+      {
+        "name": "KILL",
+        "description": "Kill",
+        "usage": "KILL <nick> :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "KLINE",
+        "description": "Kline",
+        "usage": "KLINE <mask> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "GLINE",
+        "description": "Gline",
+        "usage": "GLINE <mask> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "CHARCONV",
+        "description": "Charset conversion",
+        "usage": "CHARCONV <charset>",
+        "operOnly": false
+      }
+    ],
+    "extendedBans": []
+  }
+}

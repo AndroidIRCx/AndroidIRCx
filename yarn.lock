@@ -2544,32 +2544,12 @@
     fast-xml-parser "^4.4.1"
     picocolors "^1.1.1"
 
-"@react-native-community/cli-config-android@^20.0.0":
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cli-config-android/-/cli-config-android-20.1.0.tgz#238be46bf2674506c8e920aa28284939234fc07c"
-  integrity sha512-3A01ZDyFeCALzzPcwP/fleHoP3sGNq1UX7FzxkTrOFX8RRL9ntXNXQd27E56VU4BBxGAjAJT4Utw8pcOjJceIA==
-  dependencies:
-    "@react-native-community/cli-tools" "20.1.0"
-    fast-glob "^3.3.2"
-    fast-xml-parser "^4.4.1"
-    picocolors "^1.1.1"
-
 "@react-native-community/cli-config-apple@20.1.1":
   version "20.1.1"
   resolved "https://registry.yarnpkg.com/@react-native-community/cli-config-apple/-/cli-config-apple-20.1.1.tgz#d4960f21a01d5bb6dfe00044ba82988b47e816c7"
   integrity sha512-doepJgLJVqeJb5tNoP9hyFIcoZ1OMGO7QN/YMuCCIjbThUQe/J87XdwPol3Qrjr58KRt9xeBVz+kHeW5mtSutw==
   dependencies:
     "@react-native-community/cli-tools" "20.1.1"
-    execa "^5.0.0"
-    fast-glob "^3.3.2"
-    picocolors "^1.1.1"
-
-"@react-native-community/cli-config-apple@^20.0.0":
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cli-config-apple/-/cli-config-apple-20.1.0.tgz#02ee5c553c4b8a061039ca43eb9a99c2f7daf893"
-  integrity sha512-n6JVs8Q3yxRbtZQOy05ofeb1kGtspGN3SgwPmuaqvURF9fsuS7c4/9up2Kp9C+1D2J1remPJXiZLNGOcJvfpOA==
-  dependencies:
-    "@react-native-community/cli-tools" "20.1.0"
     execa "^5.0.0"
     fast-glob "^3.3.2"
     picocolors "^1.1.1"
@@ -2652,22 +2632,6 @@
     serve-static "^1.13.1"
     strict-url-sanitise "0.0.1"
     ws "^6.2.3"
-
-"@react-native-community/cli-tools@20.1.0", "@react-native-community/cli-tools@^20.0.0":
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cli-tools/-/cli-tools-20.1.0.tgz#0046f2ad4826b663c1b9ce5663b6b91830fb51b9"
-  integrity sha512-/YmzHGOkY6Bgrv4OaA1L8rFqsBlQd1EB2/ipAoKPiieV0EcB5PUamUSuNeFU3sBZZTYQCUENwX4wgOHgFUlDnQ==
-  dependencies:
-    "@vscode/sudo-prompt" "^9.0.0"
-    appdirsjs "^1.2.4"
-    execa "^5.0.0"
-    find-up "^5.0.0"
-    launch-editor "^2.9.1"
-    mime "^2.4.1"
-    ora "^5.4.1"
-    picocolors "^1.1.1"
-    prompts "^2.4.2"
-    semver "^7.5.2"
 
 "@react-native-community/cli-tools@20.1.1":
   version "20.1.1"
@@ -4291,10 +4255,10 @@ commander@^12.0.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-12.1.0.tgz#01423b36f501259fdaac4d0e4d60c96c991585d3"
   integrity sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==
 
-commander@^14.0.2:
-  version "14.0.2"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-14.0.2.tgz#b71fd37fe4069e4c3c7c13925252ada4eba14e8e"
-  integrity sha512-TywoWNNRbhoD0BXs1P3ZEScW8W5iKrnbithIl0YH+uCmBd0QpPOA8yc82DS3BIE5Ma6FnBVUsJ7wVUDz4dvOWQ==
+commander@^14.0.3:
+  version "14.0.3"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-14.0.3.tgz#425d79b48f9af82fcd9e4fc1ea8af6c5ec07bbc2"
+  integrity sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==
 
 commander@^2.20.0:
   version "2.20.3"
@@ -5122,7 +5086,7 @@ fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz#3a7d56b559d6cbc3eb512325244e619a65c6c525"
   integrity sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==
 
-fast-glob@^3.2.9, fast-glob@^3.3.2:
+fast-glob@^3.2.9, fast-glob@^3.3.2, fast-glob@^3.3.3:
   version "3.3.3"
   resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.3.3.tgz#d06d585ce8dba90a16b0505c543c3ccfb3aeb818"
   integrity sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==
@@ -7950,17 +7914,16 @@ react-native-battery-optimization-check@^1.0.8:
   resolved "https://registry.yarnpkg.com/react-native-battery-optimization-check/-/react-native-battery-optimization-check-1.0.8.tgz#1592e8662be02ac6dbff06e25523bf1835958a77"
   integrity sha512-OXACVlMho/rmTg3YS2GQ0juGb7YKJTrvUnD7BMDNGpAUm6ykcgkU0i3vML76ZHRYTO1rB5Pdh4re+LeKSvVWsQ==
 
-react-native-bootsplash@7.0.1:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/react-native-bootsplash/-/react-native-bootsplash-7.0.1.tgz#defb26344ccca8da58aa46ebf485e53868d601d4"
-  integrity sha512-EKZYZN1v9U1AKjlbJ5kdlLySP91suGM469Mz9G3eCkBcPKq4lLirINEH2V91okDnboJCNvPN3jErm9zeXSknvQ==
+react-native-bootsplash@7.0.2:
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/react-native-bootsplash/-/react-native-bootsplash-7.0.2.tgz#79d02a25de8daa6c6c7b4896f8ba9ad74861d9f5"
+  integrity sha512-vVJDRjtEtVw99KfMi1ISRhKObOv9MJ8XGjqsYgOGu9MmmczOEMFI2GB9fiSfNEFejPKcRaS5IGKQRunHhCesHw==
   dependencies:
     "@expo/config-plugins" "*"
-    "@react-native-community/cli-config-android" "^20.0.0"
-    "@react-native-community/cli-config-apple" "^20.0.0"
-    "@react-native-community/cli-tools" "^20.0.0"
-    commander "^14.0.2"
+    commander "^14.0.3"
     detect-indent "^6.1.0"
+    fast-glob "^3.3.3"
+    find-up "^5.0.0"
     fs-extra "^11.3.3"
     node-html-parser "^7.0.2"
     picocolors "^1.1.1"
@@ -8039,10 +8002,10 @@ react-native-nfc-manager@^3.17.2:
   resolved "https://registry.yarnpkg.com/react-native-nfc-manager/-/react-native-nfc-manager-3.17.2.tgz#81924946b7fe381bbf85bfb16af90cb05cac4944"
   integrity sha512-0NryP/Iw2hzw4MVH5KCngoRerNUrnRok6VfLrlFcFZRKyTQ7KTgpsdDxCB6cR33qYNyEDrWGBayfAI+ym5gt8Q==
 
-react-native-nitro-modules@^0.33.3:
-  version "0.33.3"
-  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.33.3.tgz#5e7790056838632c1068f59f8b142c90d4440ce7"
-  integrity sha512-lBWMxgoUeOY9+ycwELJReE060nuQbFQNhicL/TN1KIeUxeW0EBo60fXKQ2RefvP73Mbg89WjC0NbsDOvOJ/EEw==
+react-native-nitro-modules@^0.33.4:
+  version "0.33.4"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.33.4.tgz#e1313ec7e595620b4da0470aa56779e4ca5f9ad3"
+  integrity sha512-LiTnm22nfv/MClLxyBBnoYdqqDp3n0i6ReFbnvdR35bYxxpPjvy+UNvIz1R3s4M6V/OByljRH//y4eK+OUU/tw==
 
 react-native-qrcode-svg@^6.3.21:
   version "6.3.21"

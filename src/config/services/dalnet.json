@@ -1,0 +1,555 @@
+{
+  "$schema": "./service-schema.json",
+  "serviceType": "dalnet",
+  "ircdType": "hybrid",
+  "version": "1.0.0",
+  "services": {
+    "nickserv": {
+      "enabled": true,
+      "nick": "NickServ",
+      "commands": [
+        {
+          "name": "IDENTIFY",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Identify to nickname",
+          "usage": "IDENTIFY [nick] <password>",
+          "example": "IDENTIFY mypass",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": false,
+              "description": "Nick"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": true,
+              "description": "Password"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsid",
+            "priority": 95,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "INFO",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Nick info",
+          "usage": "INFO <nick>",
+          "example": "INFO John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsinfo",
+            "priority": 80,
+            "context": [
+              "global"
+            ]
+          }
+        }
+      ]
+    },
+    "chanserv": {
+      "enabled": true,
+      "nick": "ChanServ",
+      "commands": [
+        {
+          "name": "OP",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Op user",
+          "usage": "OP <#channel> <nick>",
+          "example": "OP #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csop",
+            "priority": 85,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "DEOP",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Deop user",
+          "usage": "DEOP <#channel> <nick>",
+          "example": "DEOP #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csdeop",
+            "priority": 80,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "VOICE",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Voice user",
+          "usage": "VOICE <#channel> <nick>",
+          "example": "VOICE #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csvoice",
+            "priority": 75,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "DEVOICE",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Devoice user",
+          "usage": "DEVOICE <#channel> <nick>",
+          "example": "DEVOICE #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csdevoice",
+            "priority": 70,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "SOP",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Manage SOP list",
+          "usage": "SOP <#channel> {ADD|DEL|LIST} <nick>",
+          "example": "SOP #chan ADD John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "action",
+              "type": "enum",
+              "required": true,
+              "description": "Action",
+              "enumValues": [
+                "ADD",
+                "DEL",
+                "LIST"
+              ]
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": false,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "cssop",
+            "priority": 60,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "AOP",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Manage AOP list",
+          "usage": "AOP <#channel> {ADD|DEL|LIST} <nick>",
+          "example": "AOP #chan ADD John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "action",
+              "type": "enum",
+              "required": true,
+              "description": "Action",
+              "enumValues": [
+                "ADD",
+                "DEL",
+                "LIST"
+              ]
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": false,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csaop",
+            "priority": 58,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "VOP",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Manage VOP list",
+          "usage": "VOP <#channel> {ADD|DEL|LIST} <nick>",
+          "example": "VOP #chan ADD John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "action",
+              "type": "enum",
+              "required": true,
+              "description": "Action",
+              "enumValues": [
+                "ADD",
+                "DEL",
+                "LIST"
+              ]
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": false,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csvop",
+            "priority": 56,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "AKICK",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Manage AKICK list",
+          "usage": "AKICK <#channel> {ADD|DEL|LIST} <mask>",
+          "example": "AKICK #chan ADD *@bad.host",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "action",
+              "type": "enum",
+              "required": true,
+              "description": "Action",
+              "enumValues": [
+                "ADD",
+                "DEL",
+                "LIST"
+              ]
+            },
+            {
+              "name": "mask",
+              "type": "string",
+              "required": false,
+              "description": "Mask"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csakick",
+            "priority": 50,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "SET",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Set channel options",
+          "usage": "SET <#channel> <option> <value>",
+          "example": "SET #chan MLOCK +nt",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "option",
+              "type": "enum",
+              "required": true,
+              "description": "Option",
+              "enumValues": [
+                "MLOCK",
+                "KEEPTOPIC",
+                "OPGUARD",
+                "TOPICLOCK",
+                "PRIVATE",
+                "RESTRICTED",
+                "SECURE",
+                "SECUREOPS"
+              ]
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "required": true,
+              "description": "Value"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csset",
+            "priority": 45,
+            "context": [
+              "channel"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "ircd": {
+    "userModes": [
+      {
+        "mode": "i",
+        "name": "invisible",
+        "description": "Invisible"
+      },
+      {
+        "mode": "w",
+        "name": "wallops",
+        "description": "Wallops"
+      },
+      {
+        "mode": "r",
+        "name": "registered",
+        "description": "Registered"
+      },
+      {
+        "mode": "o",
+        "name": "oper",
+        "description": "Oper",
+        "operOnly": true
+      }
+    ],
+    "channelModes": [
+      {
+        "mode": "n",
+        "type": "set",
+        "name": "noexternal",
+        "description": "No external"
+      },
+      {
+        "mode": "t",
+        "type": "set",
+        "name": "topiclock",
+        "description": "Topic lock"
+      },
+      {
+        "mode": "i",
+        "type": "set",
+        "name": "inviteonly",
+        "description": "Invite only"
+      },
+      {
+        "mode": "m",
+        "type": "set",
+        "name": "moderated",
+        "description": "Moderated"
+      },
+      {
+        "mode": "p",
+        "type": "set",
+        "name": "private",
+        "description": "Private"
+      },
+      {
+        "mode": "s",
+        "type": "set",
+        "name": "secret",
+        "description": "Secret"
+      },
+      {
+        "mode": "k",
+        "type": "param",
+        "name": "key",
+        "description": "Key"
+      },
+      {
+        "mode": "l",
+        "type": "param",
+        "name": "limit",
+        "description": "Limit"
+      },
+      {
+        "mode": "b",
+        "type": "list",
+        "name": "ban",
+        "description": "Ban"
+      },
+      {
+        "mode": "v",
+        "type": "prefix",
+        "prefix": "+",
+        "name": "voice",
+        "description": "Voice"
+      },
+      {
+        "mode": "o",
+        "type": "prefix",
+        "prefix": "@",
+        "name": "op",
+        "description": "Op"
+      }
+    ],
+    "commands": [
+      {
+        "name": "OPER",
+        "description": "Become oper",
+        "usage": "OPER <user> <pass>",
+        "operOnly": false
+      },
+      {
+        "name": "REHASH",
+        "description": "Rehash",
+        "usage": "REHASH",
+        "operOnly": true
+      },
+      {
+        "name": "RESTART",
+        "description": "Restart",
+        "usage": "RESTART",
+        "operOnly": true
+      },
+      {
+        "name": "DIE",
+        "description": "Die",
+        "usage": "DIE",
+        "operOnly": true
+      },
+      {
+        "name": "KILL",
+        "description": "Kill",
+        "usage": "KILL <nick> :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "KLINE",
+        "description": "Kline",
+        "usage": "KLINE <mask> :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "GLINE",
+        "description": "Gline",
+        "usage": "GLINE <mask> :<reason>",
+        "operOnly": true
+      }
+    ],
+    "extendedBans": []
+  }
+}

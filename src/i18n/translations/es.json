@@ -8272,5 +8272,8 @@
   },
   "*** Error detecting clones: {error}": {
     "string": "*** Error al detectar clones: {error}"
+  },
+  "*** Sending NickServ IDENTIFY...": {
+    "string": "*** Enviando NickServ IDENTIFY..."
   }
 }

@@ -1,0 +1,2 @@
+- Fixed query messages routing to wrong tabs and duplicate message display
+- Updated dependencies

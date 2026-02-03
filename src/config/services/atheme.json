@@ -1,0 +1,1665 @@
+{
+  "$schema": "./service-schema.json",
+  "serviceType": "atheme",
+  "ircdType": "inspircd",
+  "version": "1.0.0",
+  "services": {
+    "nickserv": {
+      "enabled": true,
+      "nick": "NickServ",
+      "commands": [
+        {
+          "name": "REGISTER",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Register your nickname",
+          "descriptionSr": "Registruje nadimak",
+          "usage": "REGISTER <password> <email>",
+          "example": "REGISTER mypass user@example.com",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "password",
+              "type": "string",
+              "required": true,
+              "description": "Password",
+              "completion": {
+                "type": "password",
+                "mask": true,
+                "minLength": 8
+              }
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "description": "Email",
+              "completion": {
+                "type": "email",
+                "validate": true
+              }
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsregister",
+            "priority": 100,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "IDENTIFY",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Identify to your account",
+          "descriptionSr": "Identifikuje se",
+          "usage": "IDENTIFY [account] <password>",
+          "example": "IDENTIFY mypass",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "account",
+              "type": "nick",
+              "required": false,
+              "description": "Account"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": true,
+              "description": "Password",
+              "completion": {
+                "type": "password",
+                "mask": true
+              }
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsidentify",
+            "priority": 95,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "GHOST",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Disconnect ghost session",
+          "descriptionSr": "Ghost konekcija",
+          "usage": "GHOST <nick> [password]",
+          "example": "GHOST MyNick pass",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": false,
+              "description": "Password"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsghost",
+            "priority": 70,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "REGAIN",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Regain nickname from another user",
+          "descriptionSr": "Vraća nadimak",
+          "usage": "REGAIN <nick> [password]",
+          "example": "REGAIN MyNick pass",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": false,
+              "description": "Password"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsregain",
+            "priority": 75,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "DROP",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Drop account",
+          "descriptionSr": "Briše nalog",
+          "usage": "DROP <nickname> <password>",
+          "example": "DROP MyNick pass",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "nickname",
+              "type": "nick",
+              "required": true,
+              "description": "Nickname"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": true,
+              "description": "Password"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsdrop",
+            "priority": 30,
+            "context": [
+              "global"
+            ],
+            "confirmBeforeExecute": true
+          }
+        },
+        {
+          "name": "INFO",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Show account info",
+          "descriptionSr": "Info o nalogu",
+          "usage": "INFO <nickname>",
+          "example": "INFO John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "nickname",
+              "type": "nick",
+              "required": true,
+              "description": "Nickname"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsinfo",
+            "priority": 80,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "LISTCHANS",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "List channels you have access to",
+          "descriptionSr": "Lista kanala",
+          "usage": "LISTCHANS [nick]",
+          "example": "LISTCHANS",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": false,
+              "description": "Nickname"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nslistchans",
+            "priority": 50,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "SET",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Set account options",
+          "descriptionSr": "Podešavanja",
+          "usage": "SET <option> <value>",
+          "example": "SET EMAIL new@example.com",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "option",
+              "type": "enum",
+              "required": true,
+              "description": "Option",
+              "enumValues": [
+                "ACCOUNTNAME",
+                "EMAIL",
+                "EMAILMEMOS",
+                "ENFORCE",
+                "ENFORCETIME",
+                "HIDEMAIL",
+                "LANGUAGE",
+                "NEVEROP",
+                "NOMEMO",
+                "NOOP",
+                "PASSWORD",
+                "PRIVATE",
+                "PRIVMSG",
+                "PROPERTY",
+                "QUIETCHG"
+              ]
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "required": true,
+              "description": "Value"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsset",
+            "priority": 60,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "CERT",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Manage certificates",
+          "descriptionSr": "Sertifikati",
+          "usage": "CERT {ADD|DEL|LIST} [fingerprint]",
+          "example": "CERT ADD",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "action",
+              "type": "enum",
+              "required": true,
+              "description": "Action",
+              "enumValues": [
+                "ADD",
+                "DEL",
+                "LIST"
+              ]
+            },
+            {
+              "name": "fingerprint",
+              "type": "string",
+              "required": false,
+              "description": "Fingerprint"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nscert",
+            "priority": 40,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "GROUP",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Group current nick to account",
+          "descriptionSr": "Grupiše nadimak",
+          "usage": "GROUP",
+          "example": "GROUP",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [],
+          "completion": {
+            "suggestAlias": "nsgroup",
+            "priority": 55,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "UNGROUP",
+          "aliases": [],
+          "service": "NickServ",
+          "description": "Remove nick from group",
+          "descriptionSr": "Uklanja iz grupe",
+          "usage": "UNGROUP <nick>",
+          "example": "UNGROUP AltNick",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "nsungroup",
+            "priority": 35,
+            "context": [
+              "global"
+            ]
+          }
+        }
+      ]
+    },
+    "chanserv": {
+      "enabled": true,
+      "nick": "ChanServ",
+      "commands": [
+        {
+          "name": "REGISTER",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Register a channel",
+          "descriptionSr": "Registruje kanal",
+          "usage": "REGISTER <#channel>",
+          "example": "REGISTER #mychannel",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csregister",
+            "priority": 90,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "OP",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Give op status",
+          "descriptionSr": "Daje op",
+          "usage": "OP <#channel> [nick]",
+          "example": "OP #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": false,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csop",
+            "priority": 85,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "DEOP",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Remove op status",
+          "descriptionSr": "Uklanja op",
+          "usage": "DEOP <#channel> [nick]",
+          "example": "DEOP #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": false,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csdeop",
+            "priority": 80,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "VOICE",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Give voice",
+          "descriptionSr": "Daje voice",
+          "usage": "VOICE <#channel> [nick]",
+          "example": "VOICE #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": false,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csvoice",
+            "priority": 75,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "DEVOICE",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Remove voice",
+          "descriptionSr": "Uklanja voice",
+          "usage": "DEVOICE <#channel> [nick]",
+          "example": "DEVOICE #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": false,
+              "description": "Nick"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csdevoice",
+            "priority": 70,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "KICK",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Kick user",
+          "descriptionSr": "Izbacuje",
+          "usage": "KICK <#channel> <nick> [reason]",
+          "example": "KICK #chan Spammer",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            },
+            {
+              "name": "reason",
+              "type": "string",
+              "required": false,
+              "description": "Reason"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "cskick",
+            "priority": 65,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "BAN",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Ban user/mask",
+          "descriptionSr": "Banuje",
+          "usage": "BAN <#channel> <nick|mask>",
+          "example": "BAN #chan *!*@bad.host",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "target",
+              "type": "string",
+              "required": true,
+              "description": "Nick or mask"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csban",
+            "priority": 60,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "UNBAN",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Unban user",
+          "descriptionSr": "Uklanja ban",
+          "usage": "UNBAN <#channel> [nick|mask]",
+          "example": "UNBAN #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "target",
+              "type": "string",
+              "required": false,
+              "description": "Nick or mask"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csunban",
+            "priority": 55,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "QUIET",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Quiet user (mute)",
+          "descriptionSr": "Utišava",
+          "usage": "QUIET <#channel> <nick|mask>",
+          "example": "QUIET #chan Spammer",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "target",
+              "type": "string",
+              "required": true,
+              "description": "Nick or mask"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csquiet",
+            "priority": 58,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "UNQUIET",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Unquiet user",
+          "descriptionSr": "Uklanja quiet",
+          "usage": "UNQUIET <#channel> [nick|mask]",
+          "example": "UNQUIET #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "target",
+              "type": "string",
+              "required": false,
+              "description": "Nick or mask"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csunquiet",
+            "priority": 53,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "INVITE",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Invite to channel",
+          "descriptionSr": "Poziva",
+          "usage": "INVITE <#channel>",
+          "example": "INVITE #chan",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csinvite",
+            "priority": 50,
+            "context": [
+              "global",
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "INFO",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Channel info",
+          "descriptionSr": "Info o kanalu",
+          "usage": "INFO <#channel>",
+          "example": "INFO #chan",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csinfo",
+            "priority": 70,
+            "context": [
+              "global",
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "FLAGS",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Manage channel access flags",
+          "descriptionSr": "Upravlja flagovima",
+          "usage": "FLAGS <#channel> [user|hostmask [+/-flags]]",
+          "example": "FLAGS #chan John +oO",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "target",
+              "type": "string",
+              "required": false,
+              "description": "User or mask"
+            },
+            {
+              "name": "flags",
+              "type": "string",
+              "required": false,
+              "description": "Flags (+oO, -v, etc.)"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csflags",
+            "priority": 45,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "ACCESS",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "View channel access list",
+          "descriptionSr": "Access lista",
+          "usage": "ACCESS <#channel> [user]",
+          "example": "ACCESS #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "user",
+              "type": "nick",
+              "required": false,
+              "description": "User"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csaccess",
+            "priority": 46,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "ROLE",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Manage channel roles (Atheme-specific)",
+          "descriptionSr": "Upravlja rolama",
+          "usage": "ROLE <#channel> {ADD|DEL|LIST|SET} [role] [flags]",
+          "example": "ROLE #chan ADD helpers +topic +autovoice",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "action",
+              "type": "enum",
+              "required": true,
+              "description": "Action",
+              "enumValues": [
+                "ADD",
+                "DEL",
+                "LIST",
+                "SET"
+              ]
+            },
+            {
+              "name": "role",
+              "type": "string",
+              "required": false,
+              "description": "Role name"
+            },
+            {
+              "name": "flags",
+              "type": "string",
+              "required": false,
+              "description": "Flags"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csrole",
+            "priority": 42,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "AKICK",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Manage auto-kick list",
+          "descriptionSr": "Auto-kick lista",
+          "usage": "AKICK <#channel> {ADD|DEL|LIST} <nick|mask> [!P|!T <time>] [reason]",
+          "example": "AKICK #chan ADD *@bad.net !T 5d Spammer",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "action",
+              "type": "enum",
+              "required": true,
+              "description": "Action",
+              "enumValues": [
+                "ADD",
+                "DEL",
+                "LIST"
+              ]
+            },
+            {
+              "name": "target",
+              "type": "string",
+              "required": true,
+              "description": "Nick or mask"
+            },
+            {
+              "name": "expiry",
+              "type": "string",
+              "required": false,
+              "description": "Expiry (!P or !T time)"
+            },
+            {
+              "name": "reason",
+              "type": "string",
+              "required": false,
+              "description": "Reason"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csakick",
+            "priority": 38,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "SET",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Set channel options",
+          "descriptionSr": "Podešavanja kanala",
+          "usage": "SET <#channel> <option> <value>",
+          "example": "SET #chan MLOCK +nt-kl",
+          "minLevel": "founder",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "option",
+              "type": "enum",
+              "required": true,
+              "description": "Option",
+              "enumValues": [
+                "ANTIFLOOD",
+                "DESCRIPTION",
+                "EMAIL",
+                "ENTRYMSG",
+                "FANTASY",
+                "FOUNDER",
+                "GUARD",
+                "KEEPTOPIC",
+                "MLOCK",
+                "PREFIX",
+                "PRIVATE",
+                "PUBACL",
+                "RESTRICTED",
+                "SECURE",
+                "TOPICLOCK",
+                "URL",
+                "VERBOSE"
+              ]
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "required": true,
+              "description": "Value"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csset",
+            "priority": 40,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "DROP",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Drop channel registration",
+          "descriptionSr": "Briše kanal",
+          "usage": "DROP <#channel>",
+          "example": "DROP #chan",
+          "minLevel": "founder",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csdrop",
+            "priority": 25,
+            "context": [
+              "channel"
+            ],
+            "confirmBeforeExecute": true
+          }
+        },
+        {
+          "name": "TOPIC",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Set channel topic",
+          "descriptionSr": "Tema kanala",
+          "usage": "TOPIC <#channel> <topic>",
+          "example": "TOPIC #chan Welcome!",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "topic",
+              "type": "string",
+              "required": true,
+              "description": "Topic"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "cstopic",
+            "priority": 62,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "CLEAR",
+          "aliases": [],
+          "service": "ChanServ",
+          "description": "Clear channel settings/users",
+          "descriptionSr": "Čisti kanal",
+          "usage": "CLEAR <#channel> {AKICKS|BANS|FLAGS|USERS} [type]",
+          "example": "CLEAR #chan BANS",
+          "minLevel": "founder",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "target",
+              "type": "enum",
+              "required": true,
+              "description": "What to clear",
+              "enumValues": [
+                "AKICKS",
+                "BANS",
+                "FLAGS",
+                "USERS"
+              ]
+            },
+            {
+              "name": "type",
+              "type": "string",
+              "required": false,
+              "description": "Ban types for BANS"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "csclear",
+            "priority": 35,
+            "context": [
+              "channel"
+            ],
+            "confirmBeforeExecute": true
+          }
+        }
+      ]
+    },
+    "groupserv": {
+      "enabled": true,
+      "nick": "GroupServ",
+      "commands": [
+        {
+          "name": "REGISTER",
+          "aliases": [],
+          "service": "GroupServ",
+          "description": "Register a new group",
+          "descriptionSr": "Registruje grupu",
+          "usage": "REGISTER <!group>",
+          "example": "REGISTER !developers",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "group",
+              "type": "string",
+              "required": true,
+              "description": "Group name (with !)"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "gsregister",
+            "priority": 80,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "INFO",
+          "aliases": [],
+          "service": "GroupServ",
+          "description": "Show group info",
+          "descriptionSr": "Info o grupi",
+          "usage": "INFO <!group>",
+          "example": "INFO !developers",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "group",
+              "type": "string",
+              "required": true,
+              "description": "Group name"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "gsinfo",
+            "priority": 70,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "FLAGS",
+          "aliases": [],
+          "service": "GroupServ",
+          "description": "Manage group member flags",
+          "descriptionSr": "Flagovi grupe",
+          "usage": "FLAGS <!group> [user [+/-flags]]",
+          "example": "FLAGS !developers John +F",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "group",
+              "type": "string",
+              "required": true,
+              "description": "Group"
+            },
+            {
+              "name": "user",
+              "type": "nick",
+              "required": false,
+              "description": "User"
+            },
+            {
+              "name": "flags",
+              "type": "string",
+              "required": false,
+              "description": "Flags"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "gsflags",
+            "priority": 60,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "JOIN",
+          "aliases": [],
+          "service": "GroupServ",
+          "description": "Join an open group",
+          "descriptionSr": "Pridružuje se grupi",
+          "usage": "JOIN <!group>",
+          "example": "JOIN !developers",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "group",
+              "type": "string",
+              "required": true,
+              "description": "Group"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "gsjoin",
+            "priority": 50,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "DROP",
+          "aliases": [],
+          "service": "GroupServ",
+          "description": "Drop group registration",
+          "descriptionSr": "Briše grupu",
+          "usage": "DROP <!group>",
+          "example": "DROP !developers",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "group",
+              "type": "string",
+              "required": true,
+              "description": "Group"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "gsdrop",
+            "priority": 30,
+            "context": [
+              "global"
+            ],
+            "confirmBeforeExecute": true
+          }
+        }
+      ]
+    },
+    "hostserv": {
+      "enabled": true,
+      "nick": "HostServ",
+      "commands": [
+        {
+          "name": "ON",
+          "aliases": [],
+          "service": "HostServ",
+          "description": "Activate vhost",
+          "descriptionSr": "Aktivira vhost",
+          "usage": "ON",
+          "example": "ON",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [],
+          "completion": {
+            "suggestAlias": "hson",
+            "priority": 80,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "OFF",
+          "aliases": [],
+          "service": "HostServ",
+          "description": "Deactivate vhost",
+          "descriptionSr": "Deaktivira vhost",
+          "usage": "OFF",
+          "example": "OFF",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [],
+          "completion": {
+            "suggestAlias": "hsoff",
+            "priority": 75,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "REQUEST",
+          "aliases": [],
+          "service": "HostServ",
+          "description": "Request vhost activation",
+          "descriptionSr": "Zahteva vhost",
+          "usage": "REQUEST <vhost>",
+          "example": "REQUEST my.custom.host",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "vhost",
+              "type": "string",
+              "required": true,
+              "description": "Desired vhost"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "hsrequest",
+            "priority": 60,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "TAKE",
+          "aliases": [],
+          "service": "HostServ",
+          "description": "Take offered vhost",
+          "descriptionSr": "Uzima ponuđeni vhost",
+          "usage": "TAKE <vhost>",
+          "example": "TAKE $account.users.example.net",
+          "minLevel": "user",
+          "requiresAuth": true,
+          "parameters": [
+            {
+              "name": "vhost",
+              "type": "string",
+              "required": true,
+              "description": "Vhost from offer"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "hstake",
+            "priority": 55,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "OFFERLIST",
+          "aliases": [],
+          "service": "HostServ",
+          "description": "Show offered vhosts",
+          "descriptionSr": "Ponuđeni vhost-ovi",
+          "usage": "OFFERLIST",
+          "example": "OFFERLIST",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [],
+          "completion": {
+            "suggestAlias": "hslist",
+            "priority": 50,
+            "context": [
+              "global"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "ircd": {
+    "userModes": [
+      {
+        "mode": "i",
+        "name": "invisible",
+        "description": "Invisible"
+      },
+      {
+        "mode": "w",
+        "name": "wallops",
+        "description": "Receive wallops"
+      },
+      {
+        "mode": "g",
+        "name": "callerid",
+        "description": "Caller ID mode"
+      },
+      {
+        "mode": "B",
+        "name": "bot",
+        "description": "Marked as bot"
+      },
+      {
+        "mode": "d",
+        "name": "deaf",
+        "description": "Deaf to channel messages"
+      },
+      {
+        "mode": "D",
+        "name": "privdeaf",
+        "description": "Deaf to private messages"
+      },
+      {
+        "mode": "x",
+        "name": "cloaked",
+        "description": "Cloaked hostname"
+      },
+      {
+        "mode": "z",
+        "name": "ssl",
+        "description": "SSL connection"
+      },
+      {
+        "mode": "r",
+        "name": "registered",
+        "description": "Registered user"
+      },
+      {
+        "mode": "R",
+        "name": "regonlymsg",
+        "description": "Registered users only PM"
+      },
+      {
+        "mode": "o",
+        "name": "oper",
+        "description": "IRC Operator",
+        "operOnly": true
+      },
+      {
+        "mode": "h",
+        "name": "helpop",
+        "description": "Help operator",
+        "operOnly": true
+      },
+      {
+        "mode": "a",
+        "name": "admin",
+        "description": "Server Admin",
+        "operOnly": true
+      }
+    ],
+    "channelModes": [
+      {
+        "mode": "b",
+        "type": "list",
+        "name": "ban",
+        "description": "Ban list"
+      },
+      {
+        "mode": "e",
+        "type": "list",
+        "name": "except",
+        "description": "Ban exception"
+      },
+      {
+        "mode": "I",
+        "type": "list",
+        "name": "invex",
+        "description": "Invite exception"
+      },
+      {
+        "mode": "q",
+        "type": "list",
+        "name": "quiet",
+        "description": "Quiet list (mute)"
+      },
+      {
+        "mode": "i",
+        "type": "set",
+        "name": "inviteonly",
+        "description": "Invite only"
+      },
+      {
+        "mode": "m",
+        "type": "set",
+        "name": "moderated",
+        "description": "Moderated"
+      },
+      {
+        "mode": "n",
+        "type": "set",
+        "name": "noexternal",
+        "description": "No external messages"
+      },
+      {
+        "mode": "p",
+        "type": "set",
+        "name": "private",
+        "description": "Private"
+      },
+      {
+        "mode": "s",
+        "type": "set",
+        "name": "secret",
+        "description": "Secret"
+      },
+      {
+        "mode": "t",
+        "type": "set",
+        "name": "topiclock",
+        "description": "Topic lock"
+      },
+      {
+        "mode": "r",
+        "type": "set",
+        "name": "registered",
+        "description": "Registered channel"
+      },
+      {
+        "mode": "c",
+        "type": "set",
+        "name": "blockcolor",
+        "description": "Block colors"
+      },
+      {
+        "mode": "C",
+        "type": "set",
+        "name": "noctcp",
+        "description": "No CTCP"
+      },
+      {
+        "mode": "z",
+        "type": "set",
+        "name": "sslonly",
+        "description": "SSL only"
+      },
+      {
+        "mode": "k",
+        "type": "param",
+        "name": "key",
+        "description": "Channel key",
+        "parameter": "<key>"
+      },
+      {
+        "mode": "l",
+        "type": "param",
+        "name": "limit",
+        "description": "User limit",
+        "parameter": "<limit>"
+      },
+      {
+        "mode": "f",
+        "type": "param",
+        "name": "flood",
+        "description": "Flood protection",
+        "parameter": "<settings>"
+      },
+      {
+        "mode": "v",
+        "type": "prefix",
+        "prefix": "+",
+        "name": "voice",
+        "description": "Voice"
+      },
+      {
+        "mode": "h",
+        "type": "prefix",
+        "prefix": "%",
+        "name": "halfop",
+        "description": "Half-op"
+      },
+      {
+        "mode": "o",
+        "type": "prefix",
+        "prefix": "@",
+        "name": "op",
+        "description": "Operator"
+      },
+      {
+        "mode": "a",
+        "type": "prefix",
+        "prefix": "&",
+        "name": "admin",
+        "description": "Admin"
+      },
+      {
+        "mode": "y",
+        "type": "prefix",
+        "prefix": "~",
+        "name": "owner",
+        "description": "Owner"
+      }
+    ],
+    "commands": [
+      {
+        "name": "OPER",
+        "description": "Become oper",
+        "usage": "OPER <user> <pass>",
+        "operOnly": false
+      },
+      {
+        "name": "REHASH",
+        "description": "Rehash config",
+        "usage": "REHASH",
+        "operOnly": true
+      },
+      {
+        "name": "RESTART",
+        "description": "Restart server",
+        "usage": "RESTART",
+        "operOnly": true
+      },
+      {
+        "name": "DIE",
+        "description": "Shutdown server",
+        "usage": "DIE",
+        "operOnly": true
+      },
+      {
+        "name": "KILL",
+        "description": "Kill user",
+        "usage": "KILL <nick> <reason>",
+        "operOnly": true
+      },
+      {
+        "name": "KLINE",
+        "description": "Local ban",
+        "usage": "KLINE <mask> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "GLINE",
+        "description": "Global ban",
+        "usage": "GLINE <mask> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "ZLINE",
+        "description": "IP ban",
+        "usage": "ZLINE <ip> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "ELINE",
+        "description": "Ban exception",
+        "usage": "ELINE <mask> [time] [reason]",
+        "operOnly": true
+      },
+      {
+        "name": "QLINE",
+        "description": "Nick ban",
+        "usage": "QLINE <nick> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "CLEARCHAN",
+        "description": "Clear channel",
+        "usage": "CLEARCHAN <#chan>",
+        "operOnly": true
+      }
+    ],
+    "extendedBans": [
+      {
+        "prefix": "~q:",
+        "type": "quiet",
+        "description": "Quiet",
+        "example": "+b ~q:*!*@host"
+      },
+      {
+        "prefix": "~n:",
+        "type": "nick",
+        "description": "No nick change",
+        "example": "+b ~n:*!*@*"
+      },
+      {
+        "prefix": "~c:",
+        "type": "channel",
+        "description": "Channel ban",
+        "example": "+b ~c:#badchan"
+      },
+      {
+        "prefix": "~r:",
+        "type": "realname",
+        "description": "Realname ban",
+        "example": "+b ~r:*bot*"
+      },
+      {
+        "prefix": "~a:",
+        "type": "account",
+        "description": "Account ban",
+        "example": "+b ~a:baduser"
+      }
+    ]
+  }
+}

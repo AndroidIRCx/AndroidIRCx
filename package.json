@@ -1,6 +1,6 @@
 {
   "name": "androidircx",
-  "version": "1.6.19",
+  "version": "1.6.20",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -38,7 +38,7 @@
     "react-native": "0.83.1",
     "react-native-audio-recorder-player": "^4.5.0",
     "react-native-battery-optimization-check": "^1.0.8",
-    "react-native-bootsplash": "7.0.1",
+    "react-native-bootsplash": "7.0.2",
     "react-native-config": "^1.6.1",
     "react-native-fs": "^2.20.0",
     "react-native-google-mobile-ads": "^16.0.2",
@@ -49,7 +49,7 @@
     "react-native-localize": "^3.6.1",
     "react-native-make": "^1.0.1",
     "react-native-nfc-manager": "^3.17.2",
-    "react-native-nitro-modules": "^0.33.3",
+    "react-native-nitro-modules": "^0.33.4",
     "react-native-qrcode-svg": "^6.3.21",
     "react-native-reanimated": "^4.2.1",
     "react-native-safe-area-context": "^5.6.2",

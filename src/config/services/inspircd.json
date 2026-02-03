@@ -1,0 +1,475 @@
+{
+  "$schema": "./service-schema.json",
+  "serviceType": "generic",
+  "ircdType": "inspircd",
+  "version": "1.0.0",
+  "services": {},
+  "ircd": {
+    "userModes": [
+      {
+        "mode": "i",
+        "name": "invisible",
+        "description": "Invisible"
+      },
+      {
+        "mode": "w",
+        "name": "wallops",
+        "description": "Wallops"
+      },
+      {
+        "mode": "g",
+        "name": "callerid",
+        "description": "Caller ID"
+      },
+      {
+        "mode": "B",
+        "name": "bot",
+        "description": "Bot mode"
+      },
+      {
+        "mode": "d",
+        "name": "deaf",
+        "description": "Deaf"
+      },
+      {
+        "mode": "D",
+        "name": "privdeaf",
+        "description": "Privdeaf"
+      },
+      {
+        "mode": "G",
+        "name": "censor",
+        "description": "Censor"
+      },
+      {
+        "mode": "H",
+        "name": "hideoper",
+        "description": "Hide oper"
+      },
+      {
+        "mode": "I",
+        "name": "hidechans",
+        "description": "Hide channels"
+      },
+      {
+        "mode": "x",
+        "name": "cloak",
+        "description": "Cloaked host"
+      },
+      {
+        "mode": "z",
+        "name": "ssl",
+        "description": "SSL only PMs"
+      },
+      {
+        "mode": "r",
+        "name": "registered",
+        "description": "Registered"
+      },
+      {
+        "mode": "R",
+        "name": "regonlymsg",
+        "description": "Reg only PM"
+      },
+      {
+        "mode": "T",
+        "name": "noctcp",
+        "description": "No CTCP"
+      },
+      {
+        "mode": "S",
+        "name": "stripcolor",
+        "description": "Strip colors"
+      },
+      {
+        "mode": "W",
+        "name": "showwhois",
+        "description": "Show WHOIS"
+      },
+      {
+        "mode": "o",
+        "name": "oper",
+        "description": "Oper",
+        "operOnly": true
+      },
+      {
+        "mode": "h",
+        "name": "helpop",
+        "description": "HelpOp",
+        "operOnly": true
+      },
+      {
+        "mode": "a",
+        "name": "admin",
+        "description": "Admin",
+        "operOnly": true
+      }
+    ],
+    "channelModes": [
+      {
+        "mode": "b",
+        "type": "list",
+        "name": "ban",
+        "description": "Ban"
+      },
+      {
+        "mode": "e",
+        "type": "list",
+        "name": "except",
+        "description": "Exception"
+      },
+      {
+        "mode": "I",
+        "type": "list",
+        "name": "invex",
+        "description": "Invite exception"
+      },
+      {
+        "mode": "g",
+        "type": "list",
+        "name": "filter",
+        "description": "Filter"
+      },
+      {
+        "mode": "X",
+        "type": "list",
+        "name": "exemptchanops",
+        "description": "Exempt chanops"
+      },
+      {
+        "mode": "i",
+        "type": "set",
+        "name": "inviteonly",
+        "description": "Invite only"
+      },
+      {
+        "mode": "m",
+        "type": "set",
+        "name": "moderated",
+        "description": "Moderated"
+      },
+      {
+        "mode": "n",
+        "type": "set",
+        "name": "noexternal",
+        "description": "No external"
+      },
+      {
+        "mode": "p",
+        "type": "set",
+        "name": "private",
+        "description": "Private"
+      },
+      {
+        "mode": "s",
+        "type": "set",
+        "name": "secret",
+        "description": "Secret"
+      },
+      {
+        "mode": "t",
+        "type": "set",
+        "name": "topiclock",
+        "description": "Topic lock"
+      },
+      {
+        "mode": "r",
+        "type": "set",
+        "name": "registered",
+        "description": "Registered"
+      },
+      {
+        "mode": "M",
+        "type": "set",
+        "name": "regonlyspeak",
+        "description": "Reg only speak"
+      },
+      {
+        "mode": "R",
+        "type": "set",
+        "name": "regonlyjoin",
+        "description": "Reg only join"
+      },
+      {
+        "mode": "c",
+        "type": "set",
+        "name": "blockcolor",
+        "description": "Block colors"
+      },
+      {
+        "mode": "C",
+        "type": "set",
+        "name": "noctcp",
+        "description": "No CTCP"
+      },
+      {
+        "mode": "z",
+        "type": "set",
+        "name": "sslonly",
+        "description": "SSL only"
+      },
+      {
+        "mode": "P",
+        "type": "set",
+        "name": "permanent",
+        "description": "Permanent"
+      },
+      {
+        "mode": "A",
+        "type": "set",
+        "name": "allowinvite",
+        "description": "Allow invites"
+      },
+      {
+        "mode": "B",
+        "type": "set",
+        "name": "blockcaps",
+        "description": "Block caps"
+      },
+      {
+        "mode": "d",
+        "type": "set",
+        "name": "delaymsg",
+        "description": "Delay messages"
+      },
+      {
+        "mode": "D",
+        "type": "set",
+        "name": "delayjoin",
+        "description": "Delay join"
+      },
+      {
+        "mode": "N",
+        "type": "set",
+        "name": "nonicks",
+        "description": "No nick changes"
+      },
+      {
+        "mode": "Q",
+        "type": "set",
+        "name": "nokicks",
+        "description": "No kicks"
+      },
+      {
+        "mode": "S",
+        "type": "set",
+        "name": "stripcolor",
+        "description": "Strip colors"
+      },
+      {
+        "mode": "T",
+        "type": "set",
+        "name": "nonotice",
+        "description": "No notices"
+      },
+      {
+        "mode": "u",
+        "type": "set",
+        "name": "auditorium",
+        "description": "Auditorium"
+      },
+      {
+        "mode": "k",
+        "type": "param",
+        "name": "key",
+        "description": "Key"
+      },
+      {
+        "mode": "l",
+        "type": "param",
+        "name": "limit",
+        "description": "Limit"
+      },
+      {
+        "mode": "f",
+        "type": "param",
+        "name": "flood",
+        "description": "Flood"
+      },
+      {
+        "mode": "F",
+        "type": "param",
+        "name": "nickflood",
+        "description": "Nick flood"
+      },
+      {
+        "mode": "j",
+        "type": "param",
+        "name": "joinflood",
+        "description": "Join flood"
+      },
+      {
+        "mode": "L",
+        "type": "param",
+        "name": "redirect",
+        "description": "Redirect"
+      },
+      {
+        "mode": "H",
+        "type": "param",
+        "name": "history",
+        "description": "History"
+      },
+      {
+        "mode": "J",
+        "type": "param",
+        "name": "kicknorejoin",
+        "description": "Kick no rejoin"
+      },
+      {
+        "mode": "K",
+        "type": "param",
+        "name": "knock",
+        "description": "Knock"
+      },
+      {
+        "mode": "v",
+        "type": "prefix",
+        "prefix": "+",
+        "name": "voice",
+        "description": "Voice"
+      },
+      {
+        "mode": "h",
+        "type": "prefix",
+        "prefix": "%",
+        "name": "halfop",
+        "description": "Half-op"
+      },
+      {
+        "mode": "o",
+        "type": "prefix",
+        "prefix": "@",
+        "name": "op",
+        "description": "Op"
+      },
+      {
+        "mode": "a",
+        "type": "prefix",
+        "prefix": "&",
+        "name": "admin",
+        "description": "Admin"
+      },
+      {
+        "mode": "q",
+        "type": "prefix",
+        "prefix": "~",
+        "name": "owner",
+        "description": "Owner"
+      },
+      {
+        "mode": "y",
+        "type": "prefix",
+        "prefix": "*",
+        "name": "operprefix",
+        "description": "Oper prefix"
+      }
+    ],
+    "commands": [
+      {
+        "name": "OPER",
+        "description": "Become oper",
+        "usage": "OPER <user> <pass>",
+        "operOnly": false
+      },
+      {
+        "name": "REHASH",
+        "description": "Rehash",
+        "usage": "REHASH",
+        "operOnly": true
+      },
+      {
+        "name": "RESTART",
+        "description": "Restart",
+        "usage": "RESTART",
+        "operOnly": true
+      },
+      {
+        "name": "DIE",
+        "description": "Die",
+        "usage": "DIE",
+        "operOnly": true
+      },
+      {
+        "name": "KILL",
+        "description": "Kill",
+        "usage": "KILL <nick> :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "KLINE",
+        "description": "Kline",
+        "usage": "KLINE <mask> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "GLINE",
+        "description": "Gline",
+        "usage": "GLINE <mask> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "ZLINE",
+        "description": "Zline",
+        "usage": "ZLINE <ip> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "ELINE",
+        "description": "Eline",
+        "usage": "ELINE <mask> [time] [reason]",
+        "operOnly": true
+      },
+      {
+        "name": "QLINE",
+        "description": "Qline (nick ban)",
+        "usage": "QLINE <nick> [time] :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "CHECK",
+        "description": "Check user",
+        "usage": "CHECK <nick>",
+        "operOnly": true
+      },
+      {
+        "name": "CLEARCHAN",
+        "description": "Clear channel",
+        "usage": "CLEARCHAN <#chan>",
+        "operOnly": true
+      }
+    ],
+    "extendedBans": [
+      {
+        "prefix": "~q:",
+        "type": "quiet",
+        "description": "Quiet",
+        "example": "+b ~q:*!*@host"
+      },
+      {
+        "prefix": "~n:",
+        "type": "nick",
+        "description": "Nick ban",
+        "example": "+b ~n:*!*@*"
+      },
+      {
+        "prefix": "~c:",
+        "type": "channel",
+        "description": "Channel",
+        "example": "+b ~c:#bad"
+      },
+      {
+        "prefix": "~r:",
+        "type": "realname",
+        "description": "Realname",
+        "example": "+b ~r:*bot*"
+      },
+      {
+        "prefix": "~a:",
+        "type": "account",
+        "description": "Account",
+        "example": "+b ~a:baduser"
+      }
+    ]
+  }
+}

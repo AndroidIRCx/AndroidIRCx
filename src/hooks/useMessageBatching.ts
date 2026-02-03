@@ -273,6 +273,29 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
           // Update existing tab
           if (!tabsModified) newTabs = [...newTabs];
           const tab = newTabs[tabIndex];
+          
+          // Check for duplicate messages (local echo vs server echo)
+          // Compare by msgid (IRCv3), or by timestamp + from + text combination
+          const isDuplicate = tab.messages.some(m => {
+            // If both have msgid (IRCv3 message IDs), compare by that
+            if (m.msgid && message.msgid) {
+              return m.msgid === message.msgid;
+            }
+            // Otherwise compare by timestamp + from + text
+            // Allow small timestamp difference (up to 5 seconds) for network latency
+            const timeDiff = Math.abs(m.timestamp - message.timestamp);
+            return timeDiff < 5000 && 
+                   m.from?.toLowerCase() === message.from?.toLowerCase() && 
+                   m.text === message.text;
+          });
+          
+          if (isDuplicate) {
+            if (__DEV__) {
+              console.log('📨 useMessageBatching: Skipping duplicate message', message.text?.substring(0, 50));
+            }
+            continue;
+          }
+          
           //console.log(`📨 useMessageBatching: Adding message to existing tab ${tab.id} (current: ${tab.messages.length}, batchTag: ${message.batchTag || 'none'}, isPlayback: ${message.isPlayback || false})`);
           const newMessages = [...tab.messages, message];
           const perfConfig = performanceService.getConfig();

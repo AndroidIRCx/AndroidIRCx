@@ -1,0 +1,788 @@
+{
+  "$schema": "./service-schema.json",
+  "serviceType": "undernet",
+  "ircdType": "charybdis",
+  "version": "1.0.0",
+  "services": {
+    "x": {
+      "enabled": true,
+      "nick": "X",
+      "host": "channels.undernet.org",
+      "commands": [
+        {
+          "name": "LOGIN",
+          "aliases": [],
+          "service": "X",
+          "description": "Login to X service",
+          "usage": "LOGIN <username> <password>",
+          "example": "LOGIN MyUser MyPass",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "username",
+              "type": "string",
+              "required": true,
+              "description": "Username"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": true,
+              "description": "Password"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xlogin",
+            "priority": 100,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "CHANINFO",
+          "aliases": [],
+          "service": "X",
+          "description": "Channel info",
+          "usage": "CHANINFO <#channel>",
+          "example": "CHANINFO #mychan",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xinfo",
+            "priority": 80,
+            "context": [
+              "global"
+            ]
+          }
+        },
+        {
+          "name": "ACCESS",
+          "aliases": [],
+          "service": "X",
+          "description": "View channel access",
+          "usage": "ACCESS <#channel> [pattern]",
+          "example": "ACCESS #mychan *",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "pattern",
+              "type": "string",
+              "required": false,
+              "description": "Pattern"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xaccess",
+            "priority": 70,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "OP",
+          "aliases": [],
+          "service": "X",
+          "description": "Op user (requires 100 access)",
+          "usage": "OP <#channel> [nick...]",
+          "example": "OP #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nicks",
+              "type": "string",
+              "required": false,
+              "description": "Nicks (space separated)"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xop",
+            "priority": 85,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "DEOP",
+          "aliases": [],
+          "service": "X",
+          "description": "Deop user (requires 100 access)",
+          "usage": "DEOP <#channel> [nick...]",
+          "example": "DEOP #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nicks",
+              "type": "string",
+              "required": false,
+              "description": "Nicks"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xdeop",
+            "priority": 80,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "VOICE",
+          "aliases": [],
+          "service": "X",
+          "description": "Voice user (requires 25 access)",
+          "usage": "VOICE <#channel> [nick...]",
+          "example": "VOICE #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nicks",
+              "type": "string",
+              "required": false,
+              "description": "Nicks"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xvoice",
+            "priority": 75,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "DEVOICE",
+          "aliases": [],
+          "service": "X",
+          "description": "Devoice user (requires 25 access)",
+          "usage": "DEVOICE <#channel> [nick...]",
+          "example": "DEVOICE #chan John",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nicks",
+              "type": "string",
+              "required": false,
+              "description": "Nicks"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xdevoice",
+            "priority": 70,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "KICK",
+          "aliases": [],
+          "service": "X",
+          "description": "Kick user (requires 50 access)",
+          "usage": "KICK <#channel> <nick> [reason]",
+          "example": "KICK #chan Spammer",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "nick",
+              "type": "nick",
+              "required": true,
+              "description": "Nick"
+            },
+            {
+              "name": "reason",
+              "type": "string",
+              "required": false,
+              "description": "Reason"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xkick",
+            "priority": 65,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "BAN",
+          "aliases": [],
+          "service": "X",
+          "description": "Ban user/mask (requires 75 access)",
+          "usage": "BAN <#channel> <mask> <duration> <level> [reason]",
+          "example": "BAN #chan *@bad.host 3h 75",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "mask",
+              "type": "string",
+              "required": true,
+              "description": "Mask"
+            },
+            {
+              "name": "duration",
+              "type": "duration",
+              "required": true,
+              "description": "Duration"
+            },
+            {
+              "name": "level",
+              "type": "number",
+              "required": true,
+              "description": "Access level"
+            },
+            {
+              "name": "reason",
+              "type": "string",
+              "required": false,
+              "description": "Reason"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xban",
+            "priority": 60,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "UNBAN",
+          "aliases": [],
+          "service": "X",
+          "description": "Unban mask (requires 75 access)",
+          "usage": "UNBAN <#channel> <mask>",
+          "example": "UNBAN #chan *@bad.host",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "mask",
+              "type": "string",
+              "required": true,
+              "description": "Mask"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xunban",
+            "priority": 55,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "TOPIC",
+          "aliases": [],
+          "service": "X",
+          "description": "Set topic (requires 50 access)",
+          "usage": "TOPIC <#channel> <topic>",
+          "example": "TOPIC #chan Welcome!",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "topic",
+              "type": "string",
+              "required": true,
+              "description": "Topic"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xtopic",
+            "priority": 62,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "ADDUSER",
+          "aliases": [],
+          "service": "X",
+          "description": "Add user to channel (requires 400 access)",
+          "usage": "ADDUSER <#channel> <username> <access>",
+          "example": "ADDUSER #chan NewUser 100",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "required": true,
+              "description": "Username"
+            },
+            {
+              "name": "access",
+              "type": "number",
+              "required": true,
+              "description": "Access level (0-500)"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xadduser",
+            "priority": 50,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "REMUSER",
+          "aliases": [],
+          "service": "X",
+          "description": "Remove user from channel (requires 400 access)",
+          "usage": "REMUSER <#channel> <username>",
+          "example": "REMUSER #chan OldUser",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "required": true,
+              "description": "Username"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xremuser",
+            "priority": 48,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "MODINFO",
+          "aliases": [],
+          "service": "X",
+          "description": "Modify user access/automode (requires 400 access)",
+          "usage": "MODINFO <#channel> {ACCESS|AUTOMODE} <username> <value>",
+          "example": "MODINFO #chan ACCESS User 200",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "type",
+              "type": "enum",
+              "required": true,
+              "description": "Type",
+              "enumValues": [
+                "ACCESS",
+                "AUTOMODE"
+              ]
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "required": true,
+              "description": "Username"
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "required": true,
+              "description": "New value"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xmodinfo",
+            "priority": 46,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "SET",
+          "aliases": [],
+          "service": "X",
+          "description": "Set channel settings (requires 450-500 access)",
+          "usage": "SET <#channel> <option> <value>",
+          "example": "SET #chan AUTOTOPIC ON",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            },
+            {
+              "name": "option",
+              "type": "enum",
+              "required": true,
+              "description": "Option",
+              "enumValues": [
+                "AUTOTOPIC",
+                "DESCRIPTION",
+                "FLOATLIM",
+                "KEYWORDS",
+                "MODE",
+                "URL",
+                "USERFLAGS",
+                "MASSDEOPPRO",
+                "NOOP",
+                "NOTAKE",
+                "OPLOG",
+                "STRICTOP",
+                "TAKEREVENGE"
+              ]
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "required": true,
+              "description": "Value"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xset",
+            "priority": 45,
+            "context": [
+              "channel"
+            ]
+          }
+        },
+        {
+          "name": "CLEARMODE",
+          "aliases": [],
+          "service": "X",
+          "description": "Clear channel modes (requires 400 access)",
+          "usage": "CLEARMODE <#channel>",
+          "example": "CLEARMODE #chan",
+          "minLevel": "user",
+          "requiresAuth": false,
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "channel",
+              "required": true,
+              "description": "Channel"
+            }
+          ],
+          "completion": {
+            "suggestAlias": "xclearmode",
+            "priority": 40,
+            "context": [
+              "channel"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "ircd": {
+    "userModes": [
+      {
+        "mode": "i",
+        "name": "invisible",
+        "description": "Invisible"
+      },
+      {
+        "mode": "w",
+        "name": "wallops",
+        "description": "Wallops"
+      },
+      {
+        "mode": "g",
+        "name": "callerid",
+        "description": "Caller ID"
+      },
+      {
+        "mode": "D",
+        "name": "deaf",
+        "description": "Deaf"
+      },
+      {
+        "mode": "Q",
+        "name": "noforward",
+        "description": "No channel forwarding"
+      },
+      {
+        "mode": "R",
+        "name": "regonlymsg",
+        "description": "Registered only PM"
+      },
+      {
+        "mode": "Z",
+        "name": "ssl",
+        "description": "SSL only"
+      },
+      {
+        "mode": "o",
+        "name": "oper",
+        "description": "Oper",
+        "operOnly": true
+      }
+    ],
+    "channelModes": [
+      {
+        "mode": "b",
+        "type": "list",
+        "name": "ban",
+        "description": "Ban"
+      },
+      {
+        "mode": "e",
+        "type": "list",
+        "name": "except",
+        "description": "Exception"
+      },
+      {
+        "mode": "I",
+        "type": "list",
+        "name": "invex",
+        "description": "Invite exception"
+      },
+      {
+        "mode": "q",
+        "type": "list",
+        "name": "quiet",
+        "description": "Quiet"
+      },
+      {
+        "mode": "i",
+        "type": "set",
+        "name": "inviteonly",
+        "description": "Invite only"
+      },
+      {
+        "mode": "m",
+        "type": "set",
+        "name": "moderated",
+        "description": "Moderated"
+      },
+      {
+        "mode": "n",
+        "type": "set",
+        "name": "noexternal",
+        "description": "No external"
+      },
+      {
+        "mode": "p",
+        "type": "set",
+        "name": "private",
+        "description": "Private"
+      },
+      {
+        "mode": "s",
+        "type": "set",
+        "name": "secret",
+        "description": "Secret"
+      },
+      {
+        "mode": "t",
+        "type": "set",
+        "name": "topiclock",
+        "description": "Topic lock"
+      },
+      {
+        "mode": "z",
+        "type": "set",
+        "name": "opmoderated",
+        "description": "Op-moderated"
+      },
+      {
+        "mode": "k",
+        "type": "param",
+        "name": "key",
+        "description": "Key"
+      },
+      {
+        "mode": "l",
+        "type": "param",
+        "name": "limit",
+        "description": "Limit"
+      },
+      {
+        "mode": "v",
+        "type": "prefix",
+        "prefix": "+",
+        "name": "voice",
+        "description": "Voice"
+      },
+      {
+        "mode": "h",
+        "type": "prefix",
+        "prefix": "%",
+        "name": "halfop",
+        "description": "Half-op"
+      },
+      {
+        "mode": "o",
+        "type": "prefix",
+        "prefix": "@",
+        "name": "op",
+        "description": "Op"
+      }
+    ],
+    "commands": [
+      {
+        "name": "OPER",
+        "description": "Become oper",
+        "usage": "OPER <user> <pass>",
+        "operOnly": false
+      },
+      {
+        "name": "REHASH",
+        "description": "Rehash",
+        "usage": "REHASH",
+        "operOnly": true
+      },
+      {
+        "name": "DIE",
+        "description": "Die",
+        "usage": "DIE",
+        "operOnly": true
+      },
+      {
+        "name": "KILL",
+        "description": "Kill",
+        "usage": "KILL <nick> :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "KLINE",
+        "description": "Kline",
+        "usage": "KLINE <mask> :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "XLINE",
+        "description": "Xline (realname ban)",
+        "usage": "XLINE <mask> :<reason>",
+        "operOnly": true
+      },
+      {
+        "name": "RESV",
+        "description": "Reserve nick/channel",
+        "usage": "RESV <nick|chan> :<reason>",
+        "operOnly": true
+      }
+    ],
+    "extendedBans": [
+      {
+        "prefix": "~a:",
+        "type": "account",
+        "description": "Account ban",
+        "example": "+b ~a:baduser"
+      },
+      {
+        "prefix": "~c:",
+        "type": "channel",
+        "description": "Channel ban",
+        "example": "+b ~c:#badchan"
+      },
+      {
+        "prefix": "~n:",
+        "type": "nick",
+        "description": "Nick ban",
+        "example": "+b ~n:badnick"
+      },
+      {
+        "prefix": "~r:",
+        "type": "realname",
+        "description": "Realname ban",
+        "example": "+b ~r:*bot*"
+      },
+      {
+        "prefix": "~s:",
+        "type": "server",
+        "description": "Server ban",
+        "example": "+b ~s:bad.server"
+      }
+    ]
+  }
+}

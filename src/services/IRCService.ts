@@ -1243,7 +1243,13 @@ export class IRCService {
           return;
         }
         
-        const channelIdentifier = isChannel ? target : fromNick;
+        // For query messages, determine the correct channel identifier:
+        // - If it's our message (fromNick === currentNick), use target (recipient's tab)
+        // - If it's from someone else, use fromNick (sender's tab)
+        // This ensures both local echo and server echo go to the same tab
+        const channelIdentifier = isChannel 
+          ? target 
+          : (fromNick.toLowerCase() === this.currentNick.toLowerCase() ? target : fromNick);
 
         // Handle old protocol for backward compatibility
         if (msgText.startsWith('!enc-key ')) {

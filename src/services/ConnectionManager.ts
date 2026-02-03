@@ -18,6 +18,8 @@ import { identityProfilesService } from './IdentityProfilesService';
 import { autoReconnectService } from './AutoReconnectService';
 import { ircForegroundService } from './IRCForegroundService';
 import { tx } from '../i18n/transifex';
+import { serviceDetectionService } from './ServiceDetectionService';
+import { serviceCommandProvider } from './ServiceCommandProvider';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -34,6 +36,7 @@ export interface ConnectionContext {
   stsService: STSService;
   commandService: CommandService;
   cleanupFunctions: Array<() => void>;
+  serviceDetectionCleanup?: () => void;
 }
 
 class ConnectionManager {
@@ -243,6 +246,51 @@ class ConnectionManager {
     bouncerService.initialize();
     commandService.initialize();
 
+    // Initialize service detection
+    console.log(`ConnectionManager: Initializing service detection for ${finalId}`);
+    serviceDetectionService.initializeNetwork(finalId);
+    
+    // Subscribe to service detection events
+    const detectionCleanup = serviceDetectionService.onDetection((networkId, result) => {
+      if (networkId === finalId) {
+        console.log(`ConnectionManager: Service detected for ${finalId}:`, result);
+        ircService.addRawMessage(
+          t('*** Detected services: {serviceType} (confidence: {confidence}%)', {
+            serviceType: result.serviceType,
+            confidence: Math.round(result.confidence * 100),
+          }),
+          'server'
+        );
+      }
+    });
+    context.serviceDetectionCleanup = detectionCleanup;
+
+    // Set up 005 ISUPPORT handling for service detection
+    const isupportCleanup = ircService.on('rawMessage', (data: { prefix: string; command: string; params: string[] }) => {
+      if (data.command === '005') {
+        // RPL_ISUPPORT: Parse tokens for service detection
+        const tokens = data.params.slice(1, -1); // Skip nick and trailing
+        serviceDetectionService.processISupport(finalId, tokens);
+        
+        // Look for NETWORK token
+        for (const token of tokens) {
+          if (token.startsWith('NETWORK=')) {
+            const networkName = token.slice(8);
+            serviceDetectionService.processNetworkName(finalId, networkName);
+          }
+        }
+      }
+    });
+    cleanupFunctions.push(isupportCleanup);
+
+    // Handle welcome message (001) for network name detection
+    const welcomeCleanup = ircService.on('welcome', (data: { networkName?: string }) => {
+      if (data.networkName) {
+        serviceDetectionService.processNetworkName(finalId, data.networkName);
+      }
+    });
+    cleanupFunctions.push(welcomeCleanup);
+
     this.connections.set(finalId, context);
     this.setActiveConnection(finalId);
 
@@ -293,6 +341,17 @@ class ConnectionManager {
       } catch (error) {
         console.error(`ConnectionManager: Error running cleanup functions for ${networkId}:`, error);
       }
+
+      // Clean up service detection
+      if (connection.serviceDetectionCleanup) {
+        try {
+          connection.serviceDetectionCleanup();
+        } catch (error) {
+          console.error(`ConnectionManager: Error cleaning up service detection for ${networkId}:`, error);
+        }
+      }
+      serviceDetectionService.cleanupNetwork(networkId);
+      serviceCommandProvider.clearCache(networkId);
 
       // Disconnect IRC service
       connection.ircService.disconnect(message);
