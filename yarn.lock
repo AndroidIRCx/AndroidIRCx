@@ -7976,10 +7976,10 @@ react-native-keychain@^10.0.0:
   resolved "https://registry.yarnpkg.com/react-native-keychain/-/react-native-keychain-10.0.0.tgz#1de6f54d27b2376deaac4d51883c066f53b7be7b"
   integrity sha512-YzPKSAnSzGEJ12IK6CctNLU79T1W15WDrElRQ+1/FsOazGX9ucFPTQwgYe8Dy8jiSEDJKM4wkVa3g4lD2Z+Pnw==
 
-react-native-libsodium@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/react-native-libsodium/-/react-native-libsodium-1.5.0.tgz#72243d711526a189bbabcd49c59b1ca27dc11a5c"
-  integrity sha512-Jrm+s+c6APCcFxgJ4jEXyqadnvEjPW5eMAKOB6KZP4JXgwYHe1crnpCQjXlzIKQMKFfjNC9CWA3GJ2qUtju1kw==
+react-native-libsodium@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/react-native-libsodium/-/react-native-libsodium-1.5.1.tgz#0b15f20ab2bceb7309a920f95e1e986dd983dc13"
+  integrity sha512-i6B8I9cYgUspHEsEG88WKCDkTAyZiz9PMdHoZ5iIpRj+vDnFPkN18yXegvqcRvqKNfDvUbT9359rD27HvhSekQ==
   dependencies:
     "@noble/hashes" "^1.3.2"
     "@types/libsodium-wrappers" "^0.7.13"
