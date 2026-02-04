@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,9 @@ import {
 import { IRCNetworkConfig, IRCServerConfig, settingsService } from '../services/SettingsService';
 import { NetworkSettingsScreen } from './NetworkSettingsScreen';
 import { ServerSettingsScreen } from './ServerSettingsScreen';
+import { ConnectionProfilesScreen } from './ConnectionProfilesScreen';
 import { useT } from '../i18n/transifex';
+import { useTheme } from '../hooks/useTheme';
 
 interface NetworksListScreenProps {
   onSelectNetwork: (network: IRCNetworkConfig, serverId?: string) => void;
@@ -28,9 +30,12 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
   onClose,
 }) => {
   const t = useT();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [networks, setNetworks] = useState<IRCNetworkConfig[]>([]);
   const [showNetworkSettings, setShowNetworkSettings] = useState(false);
   const [showServerSettings, setShowServerSettings] = useState(false);
+  const [showConnectionProfiles, setShowConnectionProfiles] = useState(false);
   const [editingNetworkId, setEditingNetworkId] = useState<string | undefined>();
   const [editingServerId, setEditingServerId] = useState<string | undefined>();
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | undefined>();
@@ -169,67 +174,74 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
               <Text style={styles.addText}>{t('+')}</Text>
             </TouchableOpacity>
           </View>
+          <View style={styles.topActions}>
+            <TouchableOpacity
+              style={styles.topActionButton}
+              onPress={() => setShowConnectionProfiles(true)}>
+              <Text style={styles.topActionText}>{t('Identity Profiles')}</Text>
+            </TouchableOpacity>
+          </View>
 
           <FlatList
-        data={networks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.networkItem}>
-            <TouchableOpacity
-              style={styles.networkHeader}
-              onPress={() => handleConnect(item)}>
-              <View style={styles.networkInfo}>
-                <Text style={styles.networkName}>{item.name}</Text>
-                <Text style={styles.networkDetails}>
-                  {item.nick} • {item.servers?.length || 0} {(item.servers?.length || 0) !== 1 ? t('servers') : t('server')}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => handleEditNetwork(item)}
-                style={styles.editButton}>
-                <Text style={styles.editText}>{t('Edit')}</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-
-            <View style={styles.serversList}>
-              {item.servers && item.servers.map((server) => (
+            data={networks}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.networkItem}>
                 <TouchableOpacity
-                  key={server.id}
-                  style={styles.serverItem}
-                  onPress={() => handleConnect(item, server.id)}>
-                  <View style={styles.serverInfo}>
-                    <Text style={styles.serverName}>
-                      {server.favorite ? '★ ' : ''}
-                      {server.name || server.hostname}
-                    </Text>
-                    <Text style={styles.serverDetails}>
-                      {server.hostname}:{server.port} {server.ssl ? t('(SSL)') : ''}
+                  style={styles.networkHeader}
+                  onPress={() => handleConnect(item)}>
+                  <View style={styles.networkInfo}>
+                    <Text style={styles.networkName}>{item.name}</Text>
+                    <Text style={styles.networkDetails}>
+                      {item.nick} • {item.servers?.length || 0} {(item.servers?.length || 0) !== 1 ? t('servers') : t('server')}
                     </Text>
                   </View>
                   <TouchableOpacity
-                    onPress={() => handleDeleteServer(item, server)}
-                    style={[
-                      styles.serverDeleteButton,
-                      item.servers.length <= 1 && styles.serverDeleteButtonDisabled,
-                    ]}
-                    disabled={item.servers.length <= 1}>
-                    <Text style={styles.deleteText}>{t('Delete')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleEditServer(item.id, server.id)}
-                    style={styles.serverEditButton}>
+                    onPress={() => handleEditNetwork(item)}
+                    style={styles.editButton}>
                     <Text style={styles.editText}>{t('Edit')}</Text>
                   </TouchableOpacity>
                 </TouchableOpacity>
-              ))}
-              <TouchableOpacity
-                style={styles.addServerButton}
-                onPress={() => handleAddServer(item.id)}>
-                <Text style={styles.addServerText}>{t('+ Add Server')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+
+                <View style={styles.serversList}>
+                  {item.servers && item.servers.map((server) => (
+                    <TouchableOpacity
+                      key={server.id}
+                      style={styles.serverItem}
+                      onPress={() => handleConnect(item, server.id)}>
+                      <View style={styles.serverInfo}>
+                        <Text style={styles.serverName}>
+                          {server.favorite ? '★ ' : ''}
+                          {server.name || server.hostname}
+                        </Text>
+                        <Text style={styles.serverDetails}>
+                          {server.hostname}:{server.port} {server.ssl ? t('(SSL)') : ''}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteServer(item, server)}
+                        style={[
+                          styles.serverDeleteButton,
+                          item.servers.length <= 1 && styles.serverDeleteButtonDisabled,
+                        ]}
+                        disabled={item.servers.length <= 1}>
+                        <Text style={styles.deleteText}>{t('Delete')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleEditServer(item.id, server.id)}
+                        style={styles.serverEditButton}>
+                        <Text style={styles.editText}>{t('Edit')}</Text>
+                      </TouchableOpacity>
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity
+                    style={styles.addServerButton}
+                    onPress={() => handleAddServer(item.id)}>
+                    <Text style={styles.addServerText}>{t('+ Add Server')}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           />
         </View>
       </Modal>
@@ -240,6 +252,15 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
           networkId={editingNetworkId}
           onSave={handleSaveNetwork}
           onCancel={() => setShowNetworkSettings(false)}
+          onShowIdentityProfiles={() => setShowConnectionProfiles(true)}
+        />
+      )}
+
+      {/* Connection/Identity Profiles Modal */}
+      {showConnectionProfiles && (
+        <ConnectionProfilesScreen
+          visible={showConnectionProfiles}
+          onClose={() => setShowConnectionProfiles(false)}
         />
       )}
 
@@ -256,10 +277,10 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background || '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
@@ -267,19 +288,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary || '#2196F3',
     borderBottomWidth: 1,
-    borderBottomColor: '#1976D2',
+    borderBottomColor: colors.border || '#1976D2',
   },
   closeButton: {
     padding: 8,
   },
   closeText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary || '#FFFFFF',
     fontSize: 16,
   },
   title: {
-    color: '#FFFFFF',
+    color: colors.onPrimary || '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
   },
@@ -287,13 +308,34 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   addText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary || '#FFFFFF',
     fontSize: 24,
     fontWeight: 'bold',
   },
+  topActions: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border || '#E0E0E0',
+    backgroundColor: colors.surface || '#F7F7F7',
+  },
+  topActionButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: colors.background || '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border || '#E0E0E0',
+    alignSelf: 'flex-start',
+  },
+  topActionText: {
+    color: colors.primary || '#2196F3',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   networkItem: {
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border || '#E0E0E0',
   },
   networkHeader: {
     flexDirection: 'row',
@@ -307,18 +349,18 @@ const styles = StyleSheet.create({
   networkName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text || '#212121',
     marginBottom: 4,
   },
   networkDetails: {
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary || '#757575',
   },
   editButton: {
     padding: 8,
   },
   editText: {
-    color: '#2196F3',
+    color: colors.primary || '#2196F3',
     fontSize: 14,
   },
   serversList: {
@@ -333,7 +375,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingLeft: 16,
     borderLeftWidth: 2,
-    borderLeftColor: '#E0E0E0',
+    borderLeftColor: colors.border || '#E0E0E0',
   },
   serverInfo: {
     flex: 1,
@@ -341,12 +383,12 @@ const styles = StyleSheet.create({
   serverName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#212121',
+    color: colors.text || '#212121',
     marginBottom: 2,
   },
   serverDetails: {
     fontSize: 12,
-    color: '#9E9E9E',
+    color: colors.textSecondary || '#9E9E9E',
   },
   serverEditButton: {
     padding: 8,
@@ -359,7 +401,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   deleteText: {
-    color: '#E53935',
+    color: colors.error || '#E53935',
     fontSize: 14,
   },
   addServerButton: {
@@ -367,7 +409,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
   },
   addServerText: {
-    color: '#2196F3',
+    color: colors.primary || '#2196F3',
     fontSize: 14,
   },
 });

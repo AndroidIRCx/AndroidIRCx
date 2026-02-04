@@ -9,8 +9,8 @@ import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
 import { useT } from '../../../i18n/transifex';
 import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
-import { themeService, Theme } from '../../../services/ThemeService';
-import { layoutService } from '../../../services/LayoutService';
+import { themeService, Theme, ThemeRecommendedSettings } from '../../../services/ThemeService';
+import { layoutService, FontSize } from '../../../services/LayoutService';
 import { settingsService } from '../../../services/SettingsService';
 import { applyTransifexLocale } from '../../../i18n/transifex';
 import { SUPPORTED_LOCALES } from '../../../i18n/config';
@@ -21,6 +21,7 @@ interface AppearanceSectionProps {
   colors: {
     text: string;
     textSecondary: string;
+    textDisabled: string;
     primary: string;
     surface: string;
     border: string;
@@ -130,6 +131,129 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     };
   }, []);
 
+  // Apply theme recommended settings
+  const applyThemeSettings = async (settings: ThemeRecommendedSettings): Promise<void> => {
+    const normalizedBannerPosition = (() => {
+      const pos = settings.bannerPosition;
+      if (!pos) return undefined;
+      switch (pos) {
+        case 'above_header':
+          return 'tabs_above';
+        case 'below_header':
+          return 'tabs_below';
+        case 'bottom':
+          return 'input_below';
+        case 'input_above':
+        case 'input_below':
+        case 'tabs_above':
+        case 'tabs_below':
+          return pos;
+        default:
+          return undefined;
+      }
+    })();
+
+    // Apply layout settings
+    if (settings.userListSize !== undefined) {
+      await layoutService.setUserListSizePx(settings.userListSize);
+    }
+    if (settings.userListNickFontSize !== undefined) {
+      await layoutService.setConfig({ userListNickFontSizePx: settings.userListNickFontSize });
+    }
+    if (settings.nickListTongueSize !== undefined) {
+      await settingsService.setSetting('nicklistTongueSizePx', settings.nickListTongueSize);
+    }
+    if (settings.fontSize !== undefined) {
+      const fontSizeMapping: Record<string, FontSize> = {
+        'small': 'small',
+        'medium': 'medium',
+        'large': 'large',
+        'xlarge': 'custom',
+      };
+      await layoutService.setFontSize(fontSizeMapping[settings.fontSize] || 'medium');
+    }
+    if (settings.messageSpacing !== undefined) {
+      await layoutService.setConfig({ messageSpacing: settings.messageSpacing });
+    }
+    if (settings.messagePadding !== undefined) {
+      await layoutService.setConfig({ messagePadding: settings.messagePadding });
+    }
+    if (settings.navigationBarOffset !== undefined) {
+      await layoutService.setConfig({ navigationBarOffset: settings.navigationBarOffset });
+    }
+    if (settings.tabPosition !== undefined) {
+      await layoutService.setTabPosition(settings.tabPosition);
+    }
+
+    // Display & UI settings
+    if (settings.noticeRouting !== undefined) {
+      await settingsService.setSetting('noticeRouting', settings.noticeRouting);
+    }
+    if (settings.showTimestamps !== undefined) {
+      await settingsService.setSetting('showTimestamps', settings.showTimestamps);
+    }
+    if (settings.groupMessages !== undefined) {
+      await layoutService.setConfig({ messageGroupingEnabled: settings.groupMessages });
+    }
+    if (settings.messageTextAlignment !== undefined) {
+      await layoutService.setConfig({ messageTextAlign: settings.messageTextAlignment });
+    }
+    if (settings.messageTextDirection !== undefined) {
+      await layoutService.setConfig({ messageTextDirection: settings.messageTextDirection });
+    }
+    if (settings.timestampDisplay !== undefined) {
+      // Map 'hover' to 'grouped' for compatibility
+      const displayValue = settings.timestampDisplay === 'hover' ? 'grouped' : settings.timestampDisplay;
+      await layoutService.setConfig({ timestampDisplay: displayValue });
+    }
+    if (settings.timestampFormat !== undefined) {
+      await layoutService.setConfig({ timestampFormat: settings.timestampFormat });
+    }
+    if (normalizedBannerPosition !== undefined) {
+      await settingsService.setSetting('bannerPosition', normalizedBannerPosition);
+    }
+    if (settings.keyboardBehavior !== undefined) {
+      await settingsService.setSetting('keyboardBehavior', settings.keyboardBehavior);
+    }
+  };
+
+  // Handle theme selection with optional settings
+  const handleThemeSelect = async (theme: Theme) => {
+    // If theme has recommended settings, ask user
+    if (theme.recommendedSettings && Object.keys(theme.recommendedSettings).length > 0) {
+      Alert.alert(
+        t('Apply Theme Settings?', { _tags: tags }),
+        t('The "{name}" theme has recommended settings for the best experience. Apply them?', { name: theme.name, _tags: tags }),
+        [
+          {
+            text: t('Theme Only', { _tags: tags }),
+            onPress: async () => {
+              await themeService.setTheme(theme.id);
+              refreshThemes();
+            },
+          },
+          {
+            text: t('Apply All', { _tags: tags }),
+            style: 'default',
+            onPress: async () => {
+              await themeService.setTheme(theme.id);
+              await applyThemeSettings(theme.recommendedSettings!);
+              refreshThemes();
+              Alert.alert(
+                t('Settings Applied', { _tags: tags }),
+                t('Theme and recommended settings have been applied.', { _tags: tags })
+              );
+            },
+          },
+        ]
+      );
+    } else {
+      // No recommended settings, just apply theme
+      await themeService.setTheme(theme.id);
+      refreshThemes();
+    }
+  };
+
   // Export current theme to JSON file
   const handleExportTheme = async () => {
     try {
@@ -207,8 +331,9 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             {
               text: t('Use Now', { _tags: tags }),
               onPress: async () => {
-                await themeService.setTheme(importResult.theme!.id);
-                refreshThemes();
+                if (importResult.theme) {
+                  await handleThemeSelect(importResult.theme);
+                }
               },
             },
           ]
@@ -259,8 +384,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                 : t('Light mode', { _tags: tags }),
             type: 'button' as const,
             onPress: async () => {
-              await themeService.setTheme(theme.id);
-              refreshThemes();
+              await handleThemeSelect(theme);
             },
           })),
           {
@@ -788,7 +912,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     ];
 
     return items;
-  }, [currentTheme, availableThemes, layoutConfig, appLanguage, languageLabels, t, tags, refreshThemes, setAppLanguageFromHook, updateLayoutConfig, onShowThemeEditor, showHeaderSearchButton, showMessageAreaSearchButton, handleExportTheme, handleImportTheme]);
+  }, [currentTheme, availableThemes, layoutConfig, appLanguage, languageLabels, t, tags, refreshThemes, setAppLanguageFromHook, updateLayoutConfig, onShowThemeEditor, showHeaderSearchButton, showMessageAreaSearchButton, handleExportTheme, handleImportTheme, handleThemeSelect]);
 
   const handleSubmenuPress = (itemId: string) => {
     const item = sectionData.find(i => i.id === itemId);

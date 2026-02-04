@@ -22,6 +22,7 @@ import { autoReconnectService } from '../services/AutoReconnectService';
 import { connectionQualityService } from '../services/ConnectionQualityService';
 import { bouncerService } from '../services/BouncerService';
 import { layoutService } from '../services/LayoutService';
+import { banService } from '../services/BanService';
 import { commandService } from '../services/CommandService';
 import { performanceService } from '../services/PerformanceService';
 import { themeService } from '../services/ThemeService';
@@ -105,6 +106,10 @@ export const useStartupServices = () => {
 
   useEffect(() => {
     layoutService.initialize();
+  }, []);
+
+  useEffect(() => {
+    banService.initialize();
   }, []);
 
   useEffect(() => {

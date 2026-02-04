@@ -11,6 +11,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IRCService } from './IRCService';
 import { tx } from '../i18n/transifex';
+import { decodeIfBase64Like } from '../utils/Base64Utils';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -114,7 +115,7 @@ export class UserManagementService {
         const whoisNick = params[1];
         const username = params[2];
         const hostname = params[3];
-        const realname = params[5];
+        const realname = decodeIfBase64Like(params[5] || '');
         this.updateWHOIS({ nick: whoisNick, username, hostname, realname }, network);
         break;
 
@@ -166,7 +167,7 @@ export class UserManagementService {
         const whowasNick = params[1];
         const whowasUser = params[2];
         const whowasHost = params[3];
-        const whowasReal = params[5];
+        const whowasReal = decodeIfBase64Like(params[5] || '');
         this.updateWHOWAS({ nick: whowasNick, username: whowasUser, hostname: whowasHost, realname: whowasReal, lastSeen: Date.now() }, network);
         break;
 
@@ -335,9 +336,13 @@ export class UserManagementService {
    */
   requestWHOWAS(nick: string, network?: string, count?: number): void {
     const net = network || this.currentNetwork;
+    if (!this.ircService) {
+      console.warn('UserManagementService: Cannot send WHOWAS - no IRC service available');
+      return;
+    }
     // this.currentWhowasNick = nick; // No longer needed
     const command = count ? `WHOWAS ${nick} ${count}` : `WHOWAS ${nick}`;
-    this.ircService?.sendCommand(command);
+    this.ircService.sendCommand(command);
   }
 
   /**

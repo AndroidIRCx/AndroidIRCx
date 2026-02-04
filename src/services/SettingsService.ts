@@ -248,6 +248,10 @@ export const NEW_FEATURE_DEFAULTS = {
   showBanMaskPreview: true,    // Show preview in modal
   rememberLastBanType: false,  // Remember last used type
   confirmBeforeKickBan: true,  // Always show modal (default: true)
+
+  // Channel list scroll tab switching
+  channelListScrollSwitchTabs: false,
+  channelListScrollSwitchTabsInverse: false,
 };
 
 class SettingsService {

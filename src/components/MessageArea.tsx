@@ -668,7 +668,11 @@ const MessageItem = React.memo<MessageItemProps>(({
                 <View style={[
                   styles.messageContent,
                   message.text?.includes('\n') ? { flexDirection: 'column' } : null
-                ]}>{renderFormattedParts(formatParts)}</View>
+                ]}>
+                  <Text style={styles.messageText}>
+                    {renderFormattedParts(formatParts)}
+                  </Text>
+                </View>
                 {showImages && parsed.mediaIds.map((mediaId, index) => {
                   // Use the MessageArea's tabId as the primary source for media decryption
                   // This ensures that media in a specific channel/query uses the correct encryption key
@@ -830,9 +834,13 @@ const MessageItem = React.memo<MessageItemProps>(({
               </View>
             )}
           </>
-        ) : formatParts ? (
-          <View style={styles.messageContent}>{renderFormattedParts(formatParts)}</View>
-        ) : (
+          ) : formatParts ? (
+          <View style={styles.messageContent}>
+            <Text style={styles.messageText}>
+              {renderFormattedParts(formatParts)}
+            </Text>
+          </View>
+          ) : (
           <View style={styles.messageContent}>
             {message.type === 'notice' && message.from ? (
               <View style={styles.messageWrapper}>
@@ -2500,6 +2508,11 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   const messageInputHeight = 60;
   const selectionBarBottom = messageInputHeight + bottomInset + 12;
   const selectionToastBottom = selectionBarBottom + 68; // 68px above the selection bar
+  const messageFontSize = layoutService.getFontSizePixels();
+  const messageLineHeight = Math.ceil(messageFontSize * 1.45);
+  const timestampFontSize = Math.max(10, messageFontSize - 2);
+  const timestampLineHeight = Math.ceil(timestampFontSize * 1.35);
+  const groupedMessageOverlap = messageLineHeight >= 18 ? 0 : -4;
 
   return StyleSheet.create({
   wrapper: {
@@ -2521,7 +2534,8 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   emptyText: {
     color: colors.textSecondary,
-    fontSize: layoutService.getFontSizePixels(),
+    fontSize: messageFontSize,
+    lineHeight: messageLineHeight,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   messageContainer: {
@@ -2532,7 +2546,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     paddingHorizontal: layoutConfig.messagePadding || 8,
   },
   groupedMessageContainer: {
-    marginTop: -4,
+    marginTop: groupedMessageOverlap,
     paddingTop: 0,
     marginBottom: 4,
   },
@@ -2549,7 +2563,8 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   timestamp: {
     color: colors.messageTimestamp,
-    fontSize: Math.max(10, layoutService.getFontSizePixels() - 2),
+    fontSize: timestampFontSize,
+    lineHeight: timestampLineHeight,
     marginRight: 8,
     minWidth: 50,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
@@ -2569,14 +2584,16 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   nick: {
     color: colors.messageNick,
-    fontSize: 14,
+    fontSize: messageFontSize,
+    lineHeight: messageLineHeight,
     fontWeight: '600',
     marginRight: 8,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   messageText: {
     color: colors.messageText,
-    fontSize: layoutService.getFontSizePixels(),
+    fontSize: messageFontSize,
+    lineHeight: messageLineHeight,
     flex: 1,
     flexShrink: 1,
     textAlign: layoutConfig.messageTextAlign || 'left',

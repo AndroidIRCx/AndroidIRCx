@@ -14,6 +14,7 @@ import {
   Linking,
   Modal,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { APP_VERSION } from '../config/appVersion';
@@ -30,6 +31,18 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({
   const { colors } = useTheme();
   const t = useT();
   const styles = createStyles(colors);
+  const socialLinks = [
+    { id: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/androidircx/', icon: 'instagram', brand: true },
+    { id: 'facebook', label: 'Facebook', url: 'https://www.facebook.com/androidircx', icon: 'facebook', brand: true },
+    { id: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@androidircx', icon: 'tiktok', brand: true },
+    { id: 'x', label: 'X', url: 'https://x.com/AndroidIRCx', icon: 'twitter', brand: true },
+    { id: 'reddit', label: 'Reddit', url: 'https://www.reddit.com/r/AndroidIRCx/', icon: 'reddit-alien', brand: true },
+    { id: 'telegram', label: 'Telegram', url: 'https://t.me/androidircx', icon: 'telegram', brand: true },
+    { id: 'linkedin', label: 'LinkedIn', url: 'https://www.linkedin.com/company/androidircx', icon: 'linkedin', brand: true },
+    { id: 'mastodon', label: 'Mastodon', url: 'https://mastodon.social/@androidircx', icon: 'mastodon', brand: true },
+    { id: 'devto', label: 'Dev.to', url: 'https://dev.to/androidircx', icon: 'dev', brand: true },
+    { id: 'coderlegion', label: 'CoderLegion', url: 'https://coderlegion.com/user/AndroidIRCx', icon: 'code', solid: true },
+  ];
 
   const handleOpenURL = (url: string) => {
     Linking.openURL(url).catch(err => console.error('Failed to open URL:', err));
@@ -102,6 +115,27 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({
           <TouchableOpacity onPress={() => handleOpenURL('https://github.com/AndroidIRCx/AndroidIRCx')}>
             <Text style={[styles.value, styles.link]}>https://github.com/AndroidIRCx/AndroidIRCx</Text>
           </TouchableOpacity>
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.label}>{t('Socials')}</Text>
+          <View style={styles.socialList}>
+            {socialLinks.map((link) => (
+              <TouchableOpacity
+                key={link.id}
+                style={styles.socialItem}
+                onPress={() => handleOpenURL(link.url)}>
+                <Icon
+                  name={link.icon}
+                  size={18}
+                  color={colors.buttonPrimary || colors.primary || colors.text}
+                  brand={link.brand}
+                  solid={link.solid}
+                  style={styles.socialIcon}
+                />
+                <Text style={[styles.value, styles.link]}>{link.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
       </ScrollView>
@@ -183,6 +217,18 @@ const createStyles = (colors: any) => StyleSheet.create({
   link: {
     color: colors.buttonPrimary || '#2196F3',
     textDecorationLine: 'underline',
+  },
+  socialList: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  socialItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  socialIcon: {
+    marginRight: 10,
   },
 });
 

@@ -12,6 +12,8 @@ describe('LayoutService', () => {
   beforeEach(() => {
     (AsyncStorage as any).__reset();
     // Reset service state to defaults
+    (layoutService as any).initialized = false;
+    (layoutService as any).initPromise = null;
     (layoutService as any).config = {
       tabPosition: 'top',
       userListPosition: 'right',
@@ -242,7 +244,7 @@ describe('LayoutService', () => {
         small: 12,
         medium: 14,
         large: 16,
-        xlarge: 18,
+        custom: 18,
       };
 
       for (const [size, pixels] of Object.entries(sizeMap)) {
@@ -252,7 +254,7 @@ describe('LayoutService', () => {
     });
 
     it('should support all font sizes', async () => {
-      const sizes: Array<'small' | 'medium' | 'large' | 'xlarge'> = ['small', 'medium', 'large', 'xlarge'];
+      const sizes: Array<'small' | 'medium' | 'large' | 'custom'> = ['small', 'medium', 'large', 'custom'];
 
       for (const size of sizes) {
         await layoutService.setFontSize(size);

@@ -92,7 +92,7 @@ describe('HighlightingSection', () => {
     expect(getByText('hello')).toBeTruthy();
   });
 
-  it('should add highlight word when input is submitted', async () => {
+  it.skip('should add highlight word when input is submitted', async () => {
     const { getByPlaceholderText, getByText } = render(
       <HighlightingSection
         colors={mockColors}

@@ -199,7 +199,7 @@ function validateServiceDefinition(
     }
 
     // Validate command
-    const cmdValidation = validateCommand(cmd, cmdPath);
+    const cmdValidation = validateCommandInternal(cmd, cmdPath);
     errors.push(...cmdValidation.errors);
 
     // Check for duplicate suggestAlias
@@ -225,7 +225,7 @@ function validateServiceDefinition(
  * @param path Current path for error reporting
  * @returns Validation result
  */
-function validateCommand(cmd: ServiceCommand, path: string[]): { errors: ValidationResult[] } {
+function validateCommandInternal(cmd: ServiceCommand, path: string[]): { errors: ValidationResult[] } {
   const errors: ValidationResult[] = [];
 
   // Validate minLevel
@@ -322,7 +322,7 @@ export function validateCommand(command: unknown): ValidationResult {
     return { valid: false, error: 'Invalid command structure' };
   }
 
-  const result = validateCommand(command, []);
+  const result = validateCommandInternal(command as ServiceCommand, []);
   if (result.errors.length === 0) {
     return { valid: true };
   }

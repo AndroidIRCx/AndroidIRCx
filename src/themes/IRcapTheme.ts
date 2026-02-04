@@ -1313,4 +1313,27 @@ export const IRCAP_THEME: Theme = {
       }
     ]
   },
+  // Preporučena podešavanja za optimalan izgled IRcap teme
+  recommendedSettings: {
+    // Appearance
+    tabPosition: 'bottom',
+    userListSize: 98,
+    userListNickFontSize: 13,
+    nickListTongueSize: 8,
+    fontSize: 'medium',
+    messageSpacing: 2,
+    messagePadding: 4,
+    navigationBarOffset: 0,
+    
+    // Display & UI
+    noticeRouting: 'server',
+    showTimestamps: true,
+    groupMessages: false,
+    messageTextAlignment: 'left',
+    messageTextDirection: 'auto',
+    timestampDisplay: 'always',
+    timestampFormat: '24h',
+    bannerPosition: 'above_header',
+    keyboardBehavior: 'height',
+  },
 };

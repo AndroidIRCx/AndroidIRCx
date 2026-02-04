@@ -112,8 +112,8 @@ describe('SettingsService', () => {
     await settingsService.deleteServerFromNetwork('custom', 'srv-1');
     await storageCache.flush();
     const afterDelete = await settingsService.getNetwork('custom');
-    // ensureDefaults re-adds a placeholder server when none exist
-    expect(afterDelete?.servers.length).toBeGreaterThanOrEqual(1);
+    // Server should be deleted and no placeholder auto-added (user can add their own)
+    expect(afterDelete?.servers.length).toBe(0);
   });
 
   it('notifies listeners on setting change and supports unsubscribe', async () => {

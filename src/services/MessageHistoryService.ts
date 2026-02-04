@@ -460,6 +460,87 @@ class MessageHistoryService {
   }
 
   /**
+   * Delete a single message by id
+   */
+  async deleteMessageById(network: string, channel: string, messageId: string): Promise<void> {
+    try {
+      const key = this.getStorageKey(network, channel || 'server');
+      const data = await AsyncStorage.getItem(key);
+      if (!data) return;
+      const messages: IRCMessage[] = JSON.parse(data);
+      const filtered = messages.filter(msg => msg.id !== messageId);
+      if (filtered.length === 0) {
+        await storageCache.removeItem(key);
+      } else {
+        await storageCache.setItem(key, filtered);
+      }
+    } catch (error) {
+      console.error('MessageHistoryService: Error deleting message:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * List stored history channels with counts
+   */
+  async listStoredChannels(): Promise<Array<{ network: string; channel: string; count: number; newest?: number; oldest?: number }>> {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const historyKeys = keys.filter(key => key.startsWith(this.STORAGE_PREFIX));
+      if (historyKeys.length === 0) return [];
+
+      const entries = await AsyncStorage.multiGet(historyKeys);
+      const results: Array<{ network: string; channel: string; count: number; newest?: number; oldest?: number }> = [];
+
+      for (const [key, value] of entries) {
+        if (!key || !value) continue;
+        const parsed = this.parseStorageKey(key);
+        if (!parsed) continue;
+        let messages: IRCMessage[] = [];
+        try {
+          messages = JSON.parse(value);
+        } catch {
+          continue;
+        }
+        if (!Array.isArray(messages)) continue;
+        let newest: number | undefined;
+        let oldest: number | undefined;
+        messages.forEach(msg => {
+          if (!oldest || msg.timestamp < oldest) oldest = msg.timestamp;
+          if (!newest || msg.timestamp > newest) newest = msg.timestamp;
+        });
+        results.push({
+          network: parsed.network,
+          channel: parsed.channel,
+          count: messages.length,
+          newest,
+          oldest,
+        });
+      }
+
+      return results;
+    } catch (error) {
+      console.error('MessageHistoryService: Error listing stored channels:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Clear all stored history
+   */
+  async clearAll(): Promise<void> {
+    try {
+      messageHistoryBatching.clearQueue();
+      const keys = await AsyncStorage.getAllKeys();
+      const historyKeys = keys.filter(key => key.startsWith(this.STORAGE_PREFIX));
+      await Promise.all(historyKeys.map(key => storageCache.removeItem(key)));
+    } catch (error) {
+      console.error('MessageHistoryService: Error clearing history:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Cleanup old messages (keep only recent ones)
    */
   private async cleanupOldMessages(key: string): Promise<void> {
@@ -484,6 +565,17 @@ class MessageHistoryService {
     // Sanitize channel name for storage key
     const sanitizedChannel = channel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
     return `${this.STORAGE_PREFIX}${network}:${sanitizedChannel}`;
+  }
+
+  private parseStorageKey(key: string): { network: string; channel: string } | null {
+    if (!key.startsWith(this.STORAGE_PREFIX)) return null;
+    const rest = key.slice(this.STORAGE_PREFIX.length);
+    const idx = rest.indexOf(':');
+    if (idx === -1) return null;
+    return {
+      network: rest.slice(0, idx),
+      channel: rest.slice(idx + 1),
+    };
   }
 
   /**

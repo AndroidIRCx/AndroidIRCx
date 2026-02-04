@@ -10,7 +10,7 @@ import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
 import { useT } from '../../../i18n/transifex';
 import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
 import { layoutService } from '../../../services/LayoutService';
-import { settingsService } from '../../../services/SettingsService';
+import { NEW_FEATURE_DEFAULTS, settingsService } from '../../../services/SettingsService';
 import { RawMessageCategory, RAW_MESSAGE_CATEGORIES, getDefaultRawCategoryVisibility } from '../../../services/IRCService';
 
 interface DisplayUISectionProps {
@@ -80,6 +80,8 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const [useAndroidBottomSafeArea, setUseAndroidBottomSafeArea] = useState(true);
   const [bannerPosition, setBannerPosition] = useState<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>('input_above');
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
+  const [channelListScrollSwitchTabs, setChannelListScrollSwitchTabs] = useState(false);
+  const [channelListScrollSwitchTabsInverse, setChannelListScrollSwitchTabsInverse] = useState(false);
 
   // Load initial state
   useEffect(() => {
@@ -122,6 +124,18 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
 
       const bannerPos = await settingsService.getSetting('bannerPosition', 'input_above');
       setBannerPosition(bannerPos);
+
+      const scrollSwitch = await settingsService.getSetting(
+        'channelListScrollSwitchTabs',
+        NEW_FEATURE_DEFAULTS.channelListScrollSwitchTabs
+      );
+      setChannelListScrollSwitchTabs(scrollSwitch);
+
+      const scrollSwitchInverse = await settingsService.getSetting(
+        'channelListScrollSwitchTabsInverse',
+        NEW_FEATURE_DEFAULTS.channelListScrollSwitchTabsInverse
+      );
+      setChannelListScrollSwitchTabsInverse(scrollSwitchInverse);
     };
     loadSettings();
   }, []);
@@ -179,6 +193,35 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         onValueChange: async (value: boolean | string) => {
           setTabSortAlphabetical(value as boolean);
           await settingsService.setSetting('tabSortAlphabetical', value);
+        },
+      },
+      {
+        id: 'display-channel-list-scroll-switch',
+        title: t('Switch tabs on channel list scroll', { _tags: tags }),
+        description: channelListScrollSwitchTabs
+          ? t('Scroll up/down to change the active tab', { _tags: tags })
+          : t('Scrolling the channel list will not change tabs', { _tags: tags }),
+        type: 'switch',
+        value: channelListScrollSwitchTabs,
+        searchKeywords: ['scroll', 'tabs', 'channel list', 'switch', 'wheel', 'gesture'],
+        onValueChange: async (value: boolean | string) => {
+          const boolValue = Boolean(value);
+          setChannelListScrollSwitchTabs(boolValue);
+          await settingsService.setSetting('channelListScrollSwitchTabs', boolValue);
+        },
+      },
+      {
+        id: 'display-channel-list-scroll-invert',
+        title: t('Invert channel list scroll switching', { _tags: tags }),
+        description: t('Reverse scroll direction for tab switching', { _tags: tags }),
+        type: 'switch',
+        value: channelListScrollSwitchTabsInverse,
+        disabled: !channelListScrollSwitchTabs,
+        searchKeywords: ['scroll', 'invert', 'reverse', 'tabs', 'channel list'],
+        onValueChange: async (value: boolean | string) => {
+          const boolValue = Boolean(value);
+          setChannelListScrollSwitchTabsInverse(boolValue);
+          await settingsService.setSetting('channelListScrollSwitchTabsInverse', boolValue);
         },
       },
       {
@@ -703,6 +746,8 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     keyboardVerticalOffset,
     useAndroidBottomSafeArea,
     bannerPosition,
+    channelListScrollSwitchTabs,
+    channelListScrollSwitchTabsInverse,
     layoutConfig,
     t,
     tags,

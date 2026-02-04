@@ -21,17 +21,22 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
   const [newReason, setNewReason] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadReasons();
   }, []);
 
-  const loadReasons = () => {
+  const loadReasons = async () => {
+    setLoading(true);
+    // Initialize service to load from storage
+    await banService.initialize();
     const loadedReasons = banService.getPredefinedReasons();
     setReasons(loadedReasons);
+    setLoading(false);
   };
 
-  const addReason = () => {
+  const addReason = async () => {
     if (!newReason.trim()) {
       Alert.alert('Error', 'Please enter a reason to add.');
       return;
@@ -44,7 +49,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
 
     const updatedReasons = [...reasons, newReasonObj];
     setReasons(updatedReasons);
-    banService.setPredefinedReasons(updatedReasons);
+    await banService.setPredefinedReasons(updatedReasons);
     setNewReason('');
   };
 
@@ -57,10 +62,10 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             const updatedReasons = reasons.filter(reason => reason.id !== id);
             setReasons(updatedReasons);
-            banService.setPredefinedReasons(updatedReasons);
+            await banService.setPredefinedReasons(updatedReasons);
           },
         },
       ]
@@ -72,7 +77,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
     setEditText(reason.text);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editText.trim()) {
       Alert.alert('Error', 'Please enter a reason text.');
       return;
@@ -83,7 +88,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
     );
     
     setReasons(updatedReasons);
-    banService.setPredefinedReasons(updatedReasons);
+    await banService.setPredefinedReasons(updatedReasons);
     setEditingId(null);
     setEditText('');
   };
@@ -102,30 +107,17 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
         {
           text: 'Reset',
           style: 'destructive',
-          onPress: () => {
-            // Get default reasons (those with isDefault flag or known defaults)
-            const defaultReasons = [
-              { id: 'spam', text: 'Spamming', isDefault: true },
-              { id: 'flood', text: 'Flooding', isDefault: true },
-              { id: 'abuse', text: 'Abusive behavior', isDefault: true },
-              { id: 'advertising', text: 'Advertising', isDefault: true },
-              { id: 'offtopic', text: 'Off-topic', isDefault: true },
-              { id: 'troll', text: 'Trolling', isDefault: true },
-              { id: 'bot', text: 'Unauthorized bot', isDefault: true },
-              { id: 'impersonation', text: 'Impersonation', isDefault: true },
-              { id: 'harassment', text: 'Harassment', isDefault: true },
-              { id: 'language', text: 'Inappropriate language', isDefault: true },
-            ];
-            
+          onPress: async () => {
+            await banService.resetToDefaultReasons();
+            const defaultReasons = banService.getPredefinedReasons();
             setReasons(defaultReasons);
-            banService.setPredefinedReasons(defaultReasons);
           },
         },
       ]
     );
   };
 
-  const moveReasonUp = (index: number) => {
+  const moveReasonUp = async (index: number) => {
     if (index === 0) return; // Already at top
     
     const updatedReasons = [...reasons];
@@ -133,10 +125,10 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
       [updatedReasons[index - 1], updatedReasons[index]];
     
     setReasons(updatedReasons);
-    banService.setPredefinedReasons(updatedReasons);
+    await banService.setPredefinedReasons(updatedReasons);
   };
 
-  const moveReasonDown = (index: number) => {
+  const moveReasonDown = async (index: number) => {
     if (index === reasons.length - 1) return; // Already at bottom
     
     const updatedReasons = [...reasons];
@@ -144,7 +136,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
       [updatedReasons[index + 1], updatedReasons[index]];
     
     setReasons(updatedReasons);
-    banService.setPredefinedReasons(updatedReasons);
+    await banService.setPredefinedReasons(updatedReasons);
   };
 
   const renderReason = ({ item, index }: { item: PredefinedReason; index: number }) => (
@@ -202,6 +194,14 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Predefined Kick/Ban Reasons</Text>
@@ -223,6 +223,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
         renderItem={renderReason}
         keyExtractor={(item) => item.id}
         style={styles.list}
+        scrollEnabled={false}
       />
       
       <TouchableOpacity style={styles.resetButton} onPress={resetToDefaults}>
@@ -237,6 +238,10 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 20,
@@ -343,6 +348,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginTop: 20,
+    marginBottom: 40,
   },
   resetButtonText: {
     color: '#fff',

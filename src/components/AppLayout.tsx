@@ -313,7 +313,7 @@ export function AppLayout({
   const bannerNode = (
     <View style={[
       styles.bannerAdContainer,
-      !bannerVisible && { height: 0, overflow: 'hidden', opacity: 0 }
+      !bannerVisible && styles.bannerAdHidden
     ]}>
       <BannerAd
         unitId={bannerAdService.getBannerAdUnitId()}
@@ -434,6 +434,9 @@ export function AppLayout({
           />
         )}
       </View>
+      {activeTab && showTypingIndicators && typingUsers.get(activeTab.networkId)?.get(activeTab.name) && (
+        <TypingIndicator typingUsers={typingUsers.get(activeTab.networkId)!.get(activeTab.name)!} />
+      )}
       {layoutConfig.tabPosition === 'bottom' && (
         <ChannelTabs
           tabs={tabs}
@@ -443,9 +446,6 @@ export function AppLayout({
           showEncryptionIndicators={showEncryptionIndicators}
           position="bottom"
         />
-      )}
-      {activeTab && showTypingIndicators && typingUsers.get(activeTab.networkId)?.get(activeTab.name) && (
-        <TypingIndicator typingUsers={typingUsers.get(activeTab.networkId)!.get(activeTab.name)!} />
       )}
       {bannerPosition === 'input_above' && bannerNode}
       <MessageInput

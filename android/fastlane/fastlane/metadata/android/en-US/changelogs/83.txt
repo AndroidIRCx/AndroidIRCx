@@ -1,3 +1,6 @@
-- Full IRC services support (NickServ, ChanServ, HostServ, OperServ) for Anope, Atheme, DALnet, Undernet X, QuakeNet Q services
+- Full IRC services support (NickServ, ChanServ, HostServ, OperServ) across major networks
 - IRCd support: UnrealIRCd, InspIRCd, Charybdis, Hybrid, ngIRCd
-- Auto-detection of services from server settings
+- Automatic service detection from server configuration
+- 390+ IRC numeric handlers for full protocol compatibility
+- Context menu icons with translations
+- Identity Profiles available in Network Settings

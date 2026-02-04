@@ -20,6 +20,7 @@ import { ircForegroundService } from './IRCForegroundService';
 import { tx } from '../i18n/transifex';
 import { serviceDetectionService } from './ServiceDetectionService';
 import { serviceCommandProvider } from './ServiceCommandProvider';
+import { AutoAuthService, createAutoAuthService } from './AutoAuthService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -35,8 +36,10 @@ export interface ConnectionContext {
   bouncerService: BouncerService;
   stsService: STSService;
   commandService: CommandService;
+  autoAuthService: AutoAuthService;
   cleanupFunctions: Array<() => void>;
   serviceDetectionCleanup?: () => void;
+  autoAuthCleanup?: () => void;
 }
 
 class ConnectionManager {
@@ -220,6 +223,22 @@ class ConnectionManager {
       }
     }
 
+    // Initialize AutoAuthService
+    console.log(`ConnectionManager: Initializing auto-auth for ${finalId}`);
+    const autoAuthService = createAutoAuthService({
+      networkId: finalId,
+      ircService,
+      authConfig: {
+        nickservPassword: networkConfig.nickservPassword,
+        saslAccount: networkConfig.sasl?.account,
+        saslPassword: networkConfig.sasl?.password,
+        clientCert: connectionConfig.clientCert,
+        saslForce: networkConfig.sasl?.force,
+      },
+      saslAvailable: false, // Will be updated when CAP negotiation completes
+      saslAuthenticated: false,
+    });
+
     const context: ConnectionContext = {
       networkId: finalId,
       ircService,
@@ -232,6 +251,7 @@ class ConnectionManager {
       bouncerService,
       stsService,
       commandService,
+      autoAuthService,
       cleanupFunctions,
     };
 
@@ -245,6 +265,7 @@ class ConnectionManager {
     connectionQualityService.initialize();
     bouncerService.initialize();
     commandService.initialize();
+    autoAuthService.initialize?.();
 
     // Initialize service detection
     console.log(`ConnectionManager: Initializing service detection for ${finalId}`);
@@ -261,6 +282,19 @@ class ConnectionManager {
           }),
           'server'
         );
+        
+        // Trigger auto-authentication when services are detected
+        if (!autoAuthService.isAuthenticated()) {
+          autoAuthService.authenticate().then(authResult => {
+            if (authResult.success) {
+              console.log(`ConnectionManager: Auto-authenticated using ${authResult.method}`);
+            } else if (authResult.error) {
+              console.log(`ConnectionManager: Auto-auth not attempted: ${authResult.error}`);
+            }
+          }).catch(error => {
+            console.error(`ConnectionManager: Auto-auth error:`, error);
+          });
+        }
       }
     });
     context.serviceDetectionCleanup = detectionCleanup;
@@ -290,6 +324,24 @@ class ConnectionManager {
       }
     });
     cleanupFunctions.push(welcomeCleanup);
+
+    // Handle SASL authentication events
+    const saslSuccessCleanup = ircService.on('sasl-success', () => {
+      console.log(`ConnectionManager: SASL authentication successful for ${finalId}`);
+      autoAuthService.updateSaslStatus(ircService.isSaslAvailable(), true);
+    });
+    cleanupFunctions.push(saslSuccessCleanup);
+
+    const saslFailCleanup = ircService.on('sasl-fail', () => {
+      console.log(`ConnectionManager: SASL authentication failed for ${finalId}`);
+      // Trigger fallback authentication if SASL fails
+      if (!autoAuthService.isAuthenticated()) {
+        autoAuthService.authenticate().catch(error => {
+          console.error(`ConnectionManager: Fallback auth error:`, error);
+        });
+      }
+    });
+    cleanupFunctions.push(saslFailCleanup);
 
     this.connections.set(finalId, context);
     this.setActiveConnection(finalId);
@@ -350,6 +402,16 @@ class ConnectionManager {
           console.error(`ConnectionManager: Error cleaning up service detection for ${networkId}:`, error);
         }
       }
+      
+      // Clean up auto-auth service
+      if (connection.autoAuthService) {
+        try {
+          connection.autoAuthService.destroy();
+        } catch (error) {
+          console.error(`ConnectionManager: Error cleaning up auto-auth for ${networkId}:`, error);
+        }
+      }
+      
       serviceDetectionService.cleanupNetwork(networkId);
       serviceCommandProvider.clearCache(networkId);
 

@@ -28,12 +28,14 @@ interface NetworkSettingsScreenProps {
   networkId?: string;
   onSave: (network: IRCNetworkConfig) => void;
   onCancel: () => void;
+  onShowIdentityProfiles?: () => void;
 }
 
 export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   networkId,
   onSave,
   onCancel,
+  onShowIdentityProfiles,
 }) => {
   const t = useT();
   const [name, setName] = useState('');
@@ -224,6 +226,17 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
           </View>
         ) : (
           <ScrollView style={styles.content}>
+            {/* Identity Profiles Button */}
+            {onShowIdentityProfiles && (
+              <TouchableOpacity
+                style={styles.identityProfilesButton}
+                onPress={onShowIdentityProfiles}>
+                <Text style={styles.identityProfilesButtonText}>
+                  {t('Manage Identity Profiles')}
+                </Text>
+              </TouchableOpacity>
+            )}
+
             <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('Basic Information')}</Text>
 
@@ -501,6 +514,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#2196F3',
     borderBottomWidth: 1,
     borderBottomColor: '#1976D2',
+  },
+  identityProfilesButton: {
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+    padding: 14,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#2196F3',
+    alignItems: 'center',
+  },
+  identityProfilesButtonText: {
+    color: '#2196F3',
+    fontSize: 16,
+    fontWeight: '600',
   },
   cancelButton: {
     padding: 8,

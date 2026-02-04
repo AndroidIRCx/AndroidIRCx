@@ -467,7 +467,17 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
             )}
             <TouchableOpacity
               style={styles.button}
-              onPress={() => userService.requestWHOWAS(nick, network)}>
+              onPress={() => {
+                // Get the IRC service for the specific network
+                const irc = (network
+                  ? connectionManager.getConnection(network)?.ircService
+                  : connectionManager.getActiveConnection()?.ircService) || ircService;
+                if (irc && irc.getConnectionStatus()) {
+                  irc.sendCommand(`WHOWAS ${nick}`);
+                } else {
+                  Alert.alert(t('Error'), t('Not connected to server.'));
+                }
+              }}>
               <Text style={styles.buttonText}>{t('WHOWAS (History)')}</Text>
             </TouchableOpacity>
           </View>

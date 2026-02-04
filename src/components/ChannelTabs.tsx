@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
 import { useTheme } from '../hooks/useTheme';
 import { ChannelTab } from '../types';
 import { channelEncryptionSettingsService } from '../services/ChannelEncryptionSettingsService';
+import { NEW_FEATURE_DEFAULTS, settingsService } from '../services/SettingsService';
 
 interface ChannelTabsProps {
   tabs: ChannelTab[];
@@ -35,6 +36,10 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isVertical = position === 'left' || position === 'right';
+  const [scrollSwitchTabsEnabled, setScrollSwitchTabsEnabled] = useState(false);
+  const [scrollSwitchTabsInverse, setScrollSwitchTabsInverse] = useState(false);
+  const lastScrollOffsetRef = useRef(0);
+  const lastSwitchAtRef = useRef(0);
 
   // Track which tabs have "always encrypt" enabled
   const [alwaysEncryptStatus, setAlwaysEncryptStatus] = useState<Record<string, boolean>>({});
@@ -71,6 +76,57 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = ({
     return () => unsubscribe();
   }, [tabs]);
 
+  useEffect(() => {
+    let mounted = true;
+    const loadSettings = async () => {
+      const enabled = await settingsService.getSetting(
+        'channelListScrollSwitchTabs',
+        NEW_FEATURE_DEFAULTS.channelListScrollSwitchTabs
+      );
+      const inverse = await settingsService.getSetting(
+        'channelListScrollSwitchTabsInverse',
+        NEW_FEATURE_DEFAULTS.channelListScrollSwitchTabsInverse
+      );
+      if (mounted) {
+        setScrollSwitchTabsEnabled(enabled);
+        setScrollSwitchTabsInverse(inverse);
+      }
+    };
+    loadSettings();
+    const unsubEnabled = settingsService.onSettingChange<boolean>('channelListScrollSwitchTabs', (value) => {
+      setScrollSwitchTabsEnabled(Boolean(value));
+    });
+    const unsubInverse = settingsService.onSettingChange<boolean>('channelListScrollSwitchTabsInverse', (value) => {
+      setScrollSwitchTabsInverse(Boolean(value));
+    });
+    return () => {
+      mounted = false;
+      unsubEnabled();
+      unsubInverse();
+    };
+  }, []);
+
+  const handleScroll = (offset: number) => {
+    if (!scrollSwitchTabsEnabled || tabs.length === 0) return;
+
+    const now = Date.now();
+    if (now - lastSwitchAtRef.current < 200) return;
+
+    const delta = offset - lastScrollOffsetRef.current;
+    lastScrollOffsetRef.current = offset;
+    if (Math.abs(delta) < 18) return;
+
+    const direction = scrollSwitchTabsInverse ? -delta : delta;
+    const currentIndex = tabs.findIndex(t => t.id === activeTabId);
+    if (currentIndex === -1) return;
+
+    const nextIndex = direction > 0 ? currentIndex + 1 : currentIndex - 1;
+    if (nextIndex < 0 || nextIndex >= tabs.length) return;
+
+    lastSwitchAtRef.current = now;
+    onTabPress(tabs[nextIndex].id);
+  };
+
   return (
     <View style={[
       styles.container,
@@ -82,6 +138,13 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = ({
         horizontal={!isVertical}
         showsHorizontalScrollIndicator={!isVertical}
         showsVerticalScrollIndicator={isVertical}
+        onScroll={(event) => {
+          const offset = isVertical
+            ? event.nativeEvent.contentOffset.y
+            : event.nativeEvent.contentOffset.x;
+          handleScroll(offset);
+        }}
+        scrollEventThrottle={16}
         contentContainerStyle={[
           styles.scrollContent,
           isVertical && styles.scrollContentVertical,

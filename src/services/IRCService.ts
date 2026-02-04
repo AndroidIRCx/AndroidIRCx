@@ -13,6 +13,7 @@ import { protectionService } from './ProtectionService';
 import { useTabStore } from '../stores/tabStore';
 import { tx } from '../i18n/transifex';
 import { APP_VERSION } from '../config/appVersion';
+import { decodeIfBase64Like } from '../utils/Base64Utils';
 
 // Re-export ChannelTab from types for backward compatibility
 export { ChannelTab } from '../types';
@@ -2045,10 +2046,10 @@ export class IRCService {
         this.emit('chghost', chghostNick, newHost);
         break;
 
-      case 'SETNAME': {
-        // IRCv3.2 setname: user changed their realname
-        const setnameNick = this.extractNick(prefix);
-        const newRealname = params[0] || '';
+        case 'SETNAME': {
+          // IRCv3.2 setname: user changed their realname
+          const setnameNick = this.extractNick(prefix);
+          const newRealname = decodeIfBase64Like(params[0] || '');
         this.addMessage({
           type: 'raw',
           text: t('*** {nick} changed realname to: {realname}', { nick: setnameNick, realname: newRealname }),
@@ -2265,6 +2266,188 @@ export class IRCService {
         break;
       }
 
+      case 8: {
+        // RPL_SNOMASK (UnrealIRCd): :server 008 nick +modes :Server notice mask
+        // This is sent after MODE request to show server notice mask settings
+        const modeString = params[1] || '';
+        const description = params.slice(2).join(' ').replace(/^:/, '') || t('Server notice mask');
+
+        // Check if this was a silent MODE request (same as 221)
+        if (this.silentModeNicks.has(this.currentNick.toLowerCase())) {
+          // Don't display - keep it silent (silentModeNicks will be cleared by 221 handler)
+          break;
+        }
+
+        this.addMessage({
+          type: 'raw',
+          text: t('*** [{numeric}] {modes} {description}', { numeric: 8, modes: modeString, description }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 9: {
+        // RPL_STATMEMTOT: Memory statistics
+        const memStats = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Memory: {stats}', { stats: memStats }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      // ========================================
+      // TRACE COMMAND REPLIES (200-210)
+      // ========================================
+
+      case 200: {
+        // RPL_TRACELINK: Link info
+        const traceLink = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: {info}', { info: traceLink }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 201: {
+        // RPL_TRACECONNECTING: Connecting to server
+        const traceConnecting = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: Connecting - {info}', { info: traceConnecting }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 202: {
+        // RPL_TRACEHANDSHAKE: Handshaking
+        const traceHandshake = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: Handshake - {info}', { info: traceHandshake }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 203: {
+        // RPL_TRACEUNKNOWN: Unknown connection
+        const traceUnknown = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: Unknown - {info}', { info: traceUnknown }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 204: {
+        // RPL_TRACEOPERATOR: Operator
+        const traceOper = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: Operator - {info}', { info: traceOper }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 205: {
+        // RPL_TRACEUSER: User
+        const traceUser = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: User - {info}', { info: traceUser }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 206: {
+        // RPL_TRACESERVER: Server
+        const traceServer = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: Server - {info}', { info: traceServer }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 207: {
+        // RPL_TRACESERVICE: Service
+        const traceService = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: Service - {info}', { info: traceService }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 208: {
+        // RPL_TRACENEWTYPE: New type
+        const traceNewType = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: {info}', { info: traceNewType }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 209: {
+        // RPL_TRACECLASS: Class
+        const traceClass = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: Class - {info}', { info: traceClass }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 210: {
+        // RPL_TRACERECONNECT: Reconnect info (rarely used)
+        const traceReconnect = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace: {info}', { info: traceReconnect }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
       // Server stats and info numerics
       case 211:
       case 212:
@@ -2293,6 +2476,19 @@ export class IRCService {
         this.addMessage({
           type: 'raw',
           text: t('*** {label}: {message}', { label: query, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 220: {
+        // RPL_STATSPLINE / RPL_STATSBLINE: P-line or B-line stats
+        const statsPLine = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** [{numeric}] {message}', { numeric: 220, message: statsPLine }),
           timestamp: timestamp,
           isRaw: true,
           rawCategory: 'server'
@@ -2343,6 +2539,136 @@ export class IRCService {
         this.addMessage({
           type: 'raw',
           text: t('*** {message}', { message: uptime }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 240: {
+        // RPL_STATSVLINE: V-line stats
+        const statsVLine = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** [{numeric}] {message}', { numeric: 240, message: statsVLine }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 245: {
+        // RPL_STATSSLINE: S-line stats
+        const statsSLine = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** [{numeric}] {message}', { numeric: 245, message: statsSLine }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 246: {
+        // RPL_STATSPING: Ping stats
+        const statsPing = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** [{numeric}] {message}', { numeric: 246, message: statsPing }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 247: {
+        // RPL_STATSBLINE / RPL_STATSGLINE: G-line or B-line stats
+        const statsGLine = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** [{numeric}] {message}', { numeric: 247, message: statsGLine }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 248: {
+        // RPL_STATSULINE: U-line stats
+        const statsULine = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** [{numeric}] {message}', { numeric: 248, message: statsULine }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 249: {
+        // RPL_STATSDEBUG: Debug stats
+        const statsDebug = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** [{numeric}] {message}', { numeric: 249, message: statsDebug }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 250: {
+        // RPL_STATSCONN: Connection stats / Highest connection count
+        const statsConn = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: statsConn }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 261: {
+        // RPL_TRACELOG: Trace log
+        const traceLog = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Trace Log: {info}', { info: traceLog }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 262: {
+        // RPL_TRACEEND / RPL_ENDOFTRACE: End of TRACE
+        const traceEnd = params.slice(1).join(' ').replace(/^:/, '') || t('End of TRACE');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: traceEnd }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 264: {
+        // RPL_LOCALUSERS: Local users
+        const localUsersMsg = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: localUsersMsg }),
           timestamp: timestamp,
           isRaw: true,
           rawCategory: 'server'
@@ -3478,12 +3804,14 @@ export class IRCService {
       case 903:
         this.saslAuthenticating = false;
         this.addMessage({ type: 'raw', text: t('*** SASL authentication successful'), timestamp: timestamp, isRaw: true, rawCategory: 'auth' });
+        this.emit('sasl-success');
         this.endCAPNegotiation();
         break;
 
       case 904:
         this.saslAuthenticating = false;
         this.addMessage({ type: 'error', text: t('SASL authentication failed'), timestamp: timestamp });
+        this.emit('sasl-fail');
         this.endCAPNegotiation();
         break;
 
@@ -4062,6 +4390,289 @@ export class IRCService {
         break;
       }
 
+      case 276: {
+        // RPL_WHOISCERTFP: :server 276 yournick theirnick :has client certificate fingerprint <fp>
+        const certNick = params[1] || '';
+        const certMessage = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: certNick, message: certMessage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 304: {
+        // RPL_TEXT: Generic server text
+        const textMessage = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: textMessage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 308: {
+        // RPL_WHOISADMIN: :server 308 yournick theirnick :is a Server Administrator
+        const adminNick = params[1] || '';
+        const adminMessage = params.slice(2).join(' ').replace(/^:/, '') || t('is a Server Administrator');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: adminNick, message: adminMessage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 309: {
+        // RPL_WHOISSADMIN: :server 309 yournick theirnick :is a Services Administrator
+        const sadminNick = params[1] || '';
+        const sadminMessage = params.slice(2).join(' ').replace(/^:/, '') || t('is a Services Administrator');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: sadminNick, message: sadminMessage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 316: {
+        // RPL_WHOISPRIVDEAF: :server 316 yournick theirnick :is deaf to channel messages (not receiving)
+        const deafNick = params[1] || '';
+        const deafMessage = params.slice(2).join(' ').replace(/^:/, '') || t('is deaf to private messages');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: deafNick, message: deafMessage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 320: {
+        // RPL_WHOISSPECIAL: :server 320 yournick theirnick :is a special user
+        const specialNick = params[1] || '';
+        const specialMessage = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: specialNick, message: specialMessage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 325: {
+        // RPL_UNIQOPIS: :server 325 yournick #channel nick
+        const uniqChan = params[1] || '';
+        const uniqNick = params[2] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} is the unique operator of {channel}', { nick: uniqNick, channel: uniqChan }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 326: {
+        // RPL_NOCHANPASS: Channel has no password
+        const noChanPass = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: noChanPass }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 327: {
+        // RPL_CHPASSUNKNOWN: Channel password unknown
+        const chPassUnknown = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: chPassUnknown }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 328: {
+        // RPL_CHANNEL_URL: Channel URL
+        const urlChan = params[1] || '';
+        const chanUrl = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {channel} URL: {url}', { channel: urlChan, url: chanUrl }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 334: {
+        // RPL_LISTUSAGE: /LIST command usage help
+        const listUsage = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: listUsage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 336: {
+        // RPL_INVITELIST (alternative) / RPL_WHOISACTUALLY
+        const inviteInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: inviteInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 337: {
+        // RPL_WHOISTEXT: Additional WHOIS text
+        const whoisText337 = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: whoisText337 }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 339: {
+        // RPL_BADCHANPASS: Bad channel password
+        const badChanPassInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: badChanPassInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 340: {
+        // RPL_USERIP: USERIP response
+        const userIpInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** UserIP: {info}', { info: userIpInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 342: {
+        // RPL_SUMMONING: Summoning user
+        const summonNick = params[1] || '';
+        const summonMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Summoning user to IRC');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick}: {message}', { nick: summonNick, message: summonMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 343: {
+        // RPL_OPENINGQUERY: Opening query with service
+        const queryInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: queryInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 344: {
+        // RPL_REOPLIST: Channel reop list entry
+        const reopInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: reopInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 345: {
+        // RPL_ENDOFREOPLIST: End of reop list
+        const endReopInfo = params.slice(1).join(' ').replace(/^:/, '') || t('End of channel reop list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: endReopInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 350: {
+        // RPL_WHOISGATEWAY: User is connected via gateway
+        const gatewayNick = params[1] || '';
+        const gatewayInfo = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: gatewayNick, message: gatewayInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 354: {
+        // RPL_WHOSPCRPL: WHOX extended WHO reply
+        // Format varies based on query flags sent
+        const whoxData = params.slice(1).join(' ') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** WHO: {info}', { info: whoxData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
       case 378: {
         // RPL_WHOISHOST: :server 378 yournick theirnick :is connecting from *@host 1.2.3.4
         const whoisNick = params[1] || '';
@@ -4069,6 +4680,124 @@ export class IRCService {
         this.addMessage({
           type: 'raw',
           text: t('*** {nick} {message}', { nick: whoisNick, message: hostInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 379: {
+        // RPL_WHOISMODES: User modes in WHOIS
+        const modesNick = params[1] || '';
+        const modesInfo = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: modesNick, message: modesInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 380: {
+        // RPL_YOURHELPER: You are a helper
+        const helperInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: helperInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 384: {
+        // RPL_MYPORTIS: DCC port info
+        const portInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: portInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 385: {
+        // RPL_NOTOPERANYMORE: You are no longer an operator
+        const notOperMsg = params.slice(1).join(' ').replace(/^:/, '') || t('You are no longer an IRC operator');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: notOperMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 386: {
+        // RPL_QLIST: Q-line list / Channel owner
+        const qlistInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: qlistInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 387: {
+        // RPL_ENDOFQLIST: End of Q-line list
+        const endQlistInfo = params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: endQlistInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 388: {
+        // RPL_ALIST: A-line list / Channel admin
+        const alistInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: alistInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 389: {
+        // RPL_ENDOFALIST: End of A-line list
+        const endAlistInfo = params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: endAlistInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 390: {
+        // RPL_ENDOFJUPELIST: End of JUPE list
+        const endJupeInfo = params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: endJupeInfo }),
           timestamp: timestamp,
           isRaw: true,
           rawCategory: 'server'
@@ -4177,6 +4906,2486 @@ export class IRCService {
         });
         break;
       }
+
+      // ========================================
+      // HIGH PRIORITY MISSING CODES - START
+      // ========================================
+
+      case 6: {
+        // RPL_MAP: Server map entry
+        const mapEntry = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: mapEntry }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 7: {
+        // RPL_MAPEND: End of server map
+        const mapEnd = params.slice(1).join(' ').replace(/^:/, '') || t('End of /MAP');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: mapEnd }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 10: {
+        // RPL_BOUNCE: Server redirect
+        // Format: :server 010 nick hostname port :info
+        const redirectHost = params[1] || '';
+        const redirectPort = params[2] || '';
+        const redirectInfo = params.slice(3).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Server redirect: {host}:{port} - {info}', {
+            host: redirectHost,
+            port: redirectPort,
+            info: redirectInfo
+          }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 15: {
+        // RPL_MAP: Another map format
+        const mapData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: mapData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 16: {
+        // RPL_MAPMORE: Map continuation
+        const mapMore = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: mapMore }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 17: {
+        // RPL_MAPEND: End of map (alternative)
+        const mapEndAlt = params.slice(1).join(' ').replace(/^:/, '') || t('End of /MAP');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: mapEndAlt }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 18: {
+        // RPL_MAPSTART: Start of map
+        const mapStart = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: mapStart }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 20: {
+        // RPL_CONNECTING: Connecting info
+        const connectInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: connectInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 42: {
+        // RPL_YOURID: Your unique ID
+        const yourId = params[1] || '';
+        const idMessage = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Your unique ID: {id} {message}', { id: yourId, message: idMessage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 43: {
+        // RPL_SAVENICK: Nick saved during netsplit
+        const savedNick = params[1] || '';
+        const saveMessage = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Nick saved: {nick} {message}', { nick: savedNick, message: saveMessage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 263: {
+        // RPL_TRYAGAIN: Command flood protection
+        const tryCommand = params[1] || '';
+        const tryMessage = params.slice(2).join(' ').replace(/^:/, '') || t('Please wait and try again');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {command}: {message}', { command: tryCommand, message: tryMessage }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 364: {
+        // RPL_LINKS: Server link info
+        // Format: :server 364 nick servername hopcount :info
+        const linkServer = params[1] || '';
+        const linkHop = params[2] || '';
+        const linkInfo = params.slice(3).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {server} ({hops} hops): {info}', {
+            server: linkServer,
+            hops: linkHop,
+            info: linkInfo
+          }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 365: {
+        // RPL_ENDOFLINKS: End of /LINKS list
+        const linksMask = params[1] || '*';
+        const linksEndMsg = params.slice(2).join(' ').replace(/^:/, '') || t('End of /LINKS list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: linksEndMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 392: {
+        // RPL_USERSSTART: Start of /USERS list
+        const usersStartMsg = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: usersStartMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 393: {
+        // RPL_USERS: /USERS list entry
+        const usersEntry = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: usersEntry }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 394: {
+        // RPL_ENDOFUSERS: End of /USERS list
+        const usersEndMsg = params.slice(1).join(' ').replace(/^:/, '') || t('End of users');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: usersEndMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 395: {
+        // RPL_NOUSERS: No users logged in
+        const noUsersMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Nobody logged in');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message: noUsersMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 396: {
+        // RPL_HOSTHIDDEN: Your host is now hidden/cloaked
+        const hiddenHost = params[1] || '';
+        const hostHiddenMsg = params.slice(2).join(' ').replace(/^:/, '') || t('is now your hidden host');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {host} {message}', { host: hiddenHost, message: hostHiddenMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 402: {
+        // ERR_NOSUCHSERVER: No such server
+        const noServer = params[1] || '';
+        const noServerMsg = params.slice(2).join(' ').replace(/^:/, '') || t('No such server');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {server}: {message}', { server: noServer, message: noServerMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 408: {
+        // ERR_NOSUCHSERVICE: No such service
+        const noService = params[1] || '';
+        const noServiceMsg = params.slice(2).join(' ').replace(/^:/, '') || t('No such service');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {service}: {message}', { service: noService, message: noServiceMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 409: {
+        // ERR_NOORIGIN: No origin specified
+        const noOriginMsg = params.slice(1).join(' ').replace(/^:/, '') || t('No origin specified');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: noOriginMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 416: {
+        // ERR_TOOMANYMATCHES: Too many matches
+        const tooManyCmd = params[1] || '';
+        const tooManyMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Too many matches');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {command}: {message}', { command: tooManyCmd, message: tooManyMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 417: {
+        // ERR_INPUTTOOLONG: Input line too long
+        const inputTooLongMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Input line was too long');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: inputTooLongMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 424: {
+        // ERR_FILEERROR: Generic file error
+        const fileErrorMsg = params.slice(1).join(' ').replace(/^:/, '') || t('File error');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: fileErrorMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 434: {
+        // ERR_SERVICENAMEINUSE: Service name in use
+        const serviceInUse = params[1] || '';
+        const serviceInUseMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Service name is already in use');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {service}: {message}', { service: serviceInUse, message: serviceInUseMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 435: {
+        // ERR_BANONCHAN: Cannot change nick - banned on channel
+        const bannedNick = params[1] || '';
+        const bannedChan = params[2] || '';
+        const bannedMsg = params.slice(3).join(' ').replace(/^:/, '') || t('Cannot change nickname while banned on channel');
+        this.addMessage({
+          type: 'error',
+          text: t('*** Cannot change nick to {nick} - banned on {channel}: {message}', {
+            nick: bannedNick,
+            channel: bannedChan,
+            message: bannedMsg
+          }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 438: {
+        // ERR_NICKTOOFAST: Nick change too fast
+        const nickTooFastNick = params[1] || '';
+        const nickTooFastMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Nick change too fast. Please wait.');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {nick}: {message}', { nick: nickTooFastNick, message: nickTooFastMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 439: {
+        // ERR_TARGETTOOFAST: Target change too fast
+        const targetTooFast = params[1] || '';
+        const targetTooFastMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Target change too fast. Please wait.');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {target}: {message}', { target: targetTooFast, message: targetTooFastMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 440: {
+        // ERR_SERVICESDOWN: Services are unavailable
+        const servicesDownMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Services are currently unavailable');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: servicesDownMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 444: {
+        // ERR_NOLOGIN: User not logged in
+        const noLoginUser = params[1] || '';
+        const noLoginMsg = params.slice(2).join(' ').replace(/^:/, '') || t('User not logged in');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {user}: {message}', { user: noLoginUser, message: noLoginMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 445: {
+        // ERR_SUMMONDISABLED: SUMMON has been disabled
+        const summonDisabledMsg = params.slice(1).join(' ').replace(/^:/, '') || t('SUMMON has been disabled');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: summonDisabledMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 446: {
+        // ERR_USERSDISABLED: USERS has been disabled
+        const usersDisabledMsg = params.slice(1).join(' ').replace(/^:/, '') || t('USERS has been disabled');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: usersDisabledMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 447: {
+        // ERR_NONICKCHANGE: Cannot change nick
+        const noNickChangeMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Cannot change nickname');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: noNickChangeMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 449: {
+        // ERR_NOTIMPLEMENTED: Command not implemented
+        const notImplCmd = params[1] || '';
+        const notImplMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Command not implemented');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {command}: {message}', { command: notImplCmd, message: notImplMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 452: {
+        // ERR_IDCOLLISION: ID collision
+        const idCollisionMsg = params.slice(1).join(' ').replace(/^:/, '') || t('ID collision');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: idCollisionMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 453: {
+        // ERR_NICKLOST: Nick lost
+        const nickLostMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Nickname lost');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: nickLostMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 455: {
+        // ERR_HOSTILENAME: Erroneous username
+        const hostileMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Invalid username');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: hostileMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 468: {
+        // ERR_ONLYSERVERSCANCHANGE: Only servers can change that mode
+        const onlyServersMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Only servers can change that mode');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: onlyServersMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 469: {
+        // ERR_LINKSET: Link already set
+        const linkSetMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Link with this server is already set');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: linkSetMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 470: {
+        // ERR_LINKCHANNEL: Channel forwarding
+        // Format: :server 470 nick #oldchan #newchan :reason
+        const oldChan = params[1] || '';
+        const newChan = params[2] || '';
+        const forwardReason = params.slice(3).join(' ').replace(/^:/, '') || t('Forwarding to another channel');
+        this.addMessage({
+          type: 'notice',
+          text: t('*** Forwarded from {oldChannel} to {newChannel}: {reason}', {
+            oldChannel: oldChan,
+            newChannel: newChan,
+            reason: forwardReason
+          }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        // Emit event for potential auto-join handling
+        this.emit('channel-forward', oldChan, newChan, forwardReason);
+        break;
+      }
+
+      case 479: {
+        // ERR_BADCHANNAME: Illegal channel name
+        const badChanName = params[1] || '';
+        const badChanMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Illegal channel name');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel: badChanName, message: badChanMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 480: {
+        // ERR_CANNOTKNOCK: Cannot KNOCK on channel
+        const cannotKnockChan = params[1] || '';
+        const cannotKnockMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Cannot knock on channel');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel: cannotKnockChan, message: cannotKnockMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 485: {
+        // ERR_UNIQOPPRIVSNEEDED: Cannot join channel (various reasons)
+        const uniqChan = params[1] || '';
+        const uniqMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Cannot join channel');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel: uniqChan, message: uniqMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 486: {
+        // ERR_NONONREG: You must be registered to message this user
+        const noNonRegTarget = params[1] || '';
+        const noNonRegMsg = params.slice(2).join(' ').replace(/^:/, '') || t('You must identify to a registered nick to message this user');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {target}: {message}', { target: noNonRegTarget, message: noNonRegMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 487: {
+        // ERR_CHANTOOFAST: Cannot join channel - rate limited
+        const chanTooFastChan = params[1] || '';
+        const chanTooFastMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Cannot join channel - rate limited');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel: chanTooFastChan, message: chanTooFastMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 488: {
+        // ERR_TSLESSCHAN: Timestamp error
+        const tsLessChan = params[1] || '';
+        const tsLessMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Timestamp error');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel: tsLessChan, message: tsLessMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 489: {
+        // ERR_SECUREONLYCHAN: Need SSL/TLS to join channel
+        const secureChan = params[1] || '';
+        const secureMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Cannot join channel (+S) - SSL/TLS required');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel: secureChan, message: secureMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 490: {
+        // ERR_NOSWEAR: Message contains forbidden words
+        const noSwearTarget = params[1] || '';
+        const noSwearMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Message blocked');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {target}: {message}', { target: noSwearTarget, message: noSwearMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 492: {
+        // ERR_NOSERVICEHOST: No service host
+        const noServiceHostMsg = params.slice(1).join(' ').replace(/^:/, '') || t('No service host');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: noServiceHostMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 493: {
+        // ERR_NOFEATURE: Feature not available
+        const noFeatureMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Feature not available');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: noFeatureMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 494: {
+        // ERR_BADFEATURE: Bad feature value
+        const badFeatureMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Bad feature value');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: badFeatureMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 495: {
+        // ERR_BADLOGTYPE: Bad log type
+        const badLogMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Bad log type');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: badLogMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 496: {
+        // ERR_BADLOGSYS: Bad log system
+        const badLogSysMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Bad log system');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: badLogSysMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 497: {
+        // ERR_BADLOGVALUE: Bad log value
+        const badLogValMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Bad log value');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: badLogValMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 498: {
+        // ERR_ISOPERLCHAN: Cannot kick channel service
+        const isOperChan = params[1] || '';
+        const isOperMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Cannot kick channel service');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel: isOperChan, message: isOperMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 499: {
+        // ERR_CHANOWNPRIVNEEDED: Channel owner privileges needed
+        const ownPrivChan = params[1] || '';
+        const ownPrivMsg = params.slice(2).join(' ').replace(/^:/, '') || t("You're not the channel owner");
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel: ownPrivChan, message: ownPrivMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 503: {
+        // ERR_GHOSTEDCLIENT: Ghosted client
+        const ghostedMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Message could not be delivered');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: ghostedMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 511: {
+        // ERR_SILELISTFULL: Silence list is full
+        const silenceFullMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Your silence list is full');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: silenceFullMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 512: {
+        // ERR_TOOMANYWATCH: Watch list is full
+        const tooManyWatchMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Maximum size of watch list exceeded');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: tooManyWatchMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 513: {
+        // ERR_BADPING: Bad PING response (used for auth)
+        const badPingMsg = params.slice(1).join(' ').replace(/^:/, '') || t('To connect, type /QUOTE PONG followed by the code');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: badPingMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 514: {
+        // ERR_TOOMANYDCC: Too many DCC connections
+        const tooManyDCCMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Too many DCC connections');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: tooManyDCCMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 521: {
+        // ERR_LISTSYNTAX: Bad list syntax
+        const listSyntaxMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Bad list syntax');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message: listSyntaxMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 524: {
+        // ERR_HELPNOTFOUND: Help not found
+        const helpNotFoundTopic = params[1] || '';
+        const helpNotFoundMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Help not found');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {topic}: {message}', { topic: helpNotFoundTopic, message: helpNotFoundMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 525: {
+        // ERR_INVALIDKEY: Invalid channel key
+        const invalidKeyChan = params[1] || '';
+        const invalidKeyMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Invalid key');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel: invalidKeyChan, message: invalidKeyMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 531: {
+        // ERR_CANNOTSENDTOUSER: Cannot send to user (various reasons)
+        const cannotSendUser = params[1] || '';
+        const cannotSendMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Cannot send to user');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {user}: {message}', { user: cannotSendUser, message: cannotSendMsg }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      // ========================================
+      // HIGH PRIORITY MISSING CODES - END
+      // ========================================
+
+      // ========================================
+      // LOW PRIORITY CODES - START
+      // Extended WATCH numerics (609-619)
+      // ========================================
+
+      case 609: {
+        // RPL_WATCHNICKCHANGE: Someone on WATCH changed nick
+        const oldNick = params[1] || '';
+        const newNick = params[2] || '';
+        const watchUser = params[3] || '';
+        const watchHost = params[4] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {oldNick} changed nick to {newNick} ({user}@{host})', {
+            oldNick,
+            newNick,
+            user: watchUser,
+            host: watchHost,
+          }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 610: {
+        // RPL_ISWATCH: User is being watched (alternative)
+        const watchNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('is being watched');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: watchNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 611: {
+        // RPL_ISNOTWATCH: User is not being watched
+        const watchNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('is not being watched');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: watchNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 612: {
+        // RPL_WATCHCLEAR: Watch list cleared (alternative)
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('WATCH list has been cleared');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 613: {
+        // RPL_WATCHHASITEM: Watch list contains item
+        const watchNick = params[1] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** WATCH list contains {nick}', { nick: watchNick }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 614: {
+        // RPL_WATCHNOLIMIT: Watch list has no limit
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('Your WATCH list has no size limit');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 615: {
+        // RPL_WATCHBEGIN: Beginning of WATCH list
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('Beginning of WATCH list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 616: {
+        // RPL_WATCHEND: End of WATCH list (alternative)
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of WATCH S list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 617: {
+        // RPL_WATCHFAILED: Watch operation failed
+        const watchNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('WATCH operation failed');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick}: {message}', { nick: watchNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 618: {
+        // RPL_DCCINFO: DCC information response
+        const dccInfo = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** DCC: {info}', { info: dccInfo }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 619: {
+        // RPL_ENDOFDCCLIST: End of DCC list
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of DCC list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      // ========================================
+      // Extended WATCH/NOTIFY numerics (620-629)
+      // ========================================
+
+      case 620: {
+        // RPL_DCCLIST: DCC list entry
+        const dccEntry = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** DCC: {entry}', { entry: dccEntry }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 621: {
+        // RPL_DCCALLOW: DCC allow list entry
+        const dccAllowEntry = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** DCC Allow: {entry}', { entry: dccAllowEntry }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 622: {
+        // RPL_ENDOFDCCALLOW: End of DCC allow list
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of DCC allow list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 623: {
+        // RPL_DCCDENIED: DCC denied
+        const dccNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('DCC denied');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick}: {message}', { nick: dccNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 624: {
+        // RPL_DCCALLOWREMOVE: DCC allow removed
+        const dccNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('removed from DCC allow list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: dccNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 625: {
+        // RPL_DCCALLOWADD: DCC allow added
+        const dccNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('added to DCC allow list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: dccNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 626: {
+        // RPL_DCCALLOWEXPIRE: DCC allow entry will expire
+        const dccNick = params[1] || '';
+        const time = params[2] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** DCC allow for {nick} will expire in {time}', { nick: dccNick, time }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 627: {
+        // RPL_NOTIFYACTION: Notify action response
+        const notifyNick = params[1] || '';
+        const action = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** NOTIFY {nick}: {action}', { nick: notifyNick, action }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 628: {
+        // RPL_NOTIFYSET: Notify is set
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('Notify is now set');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 629: {
+        // RPL_NOTIFYREMOVED: Notify removed
+        const notifyNick = params[1] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} removed from notify list', { nick: notifyNick }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      // ========================================
+      // IRCd-specific extended numerics (660-669)
+      // ========================================
+
+      case 660: {
+        // RPL_TRACEROUTE_HOP: Traceroute hop (UnrealIRCd)
+        const hop = params[1] || '';
+        const host = params[2] || '';
+        const time = params[3] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Traceroute hop {hop}: {host} ({time}ms)', { hop, host, time }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 661: {
+        // RPL_TRACEROUTE_START: Traceroute start
+        const target = params[1] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Starting traceroute to {target}', { target }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 662: {
+        // RPL_MODECHANGEWARN: Mode change warning
+        const channel = params[1] || '';
+        const warning = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {channel}: {warning}', { channel, warning }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      case 663: {
+        // RPL_CHANREDIR: Channel redirect notice
+        const oldChan = params[1] || '';
+        const newChan = params[2] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Channel {old} redirects to {new}', { old: oldChan, new: newChan }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      case 664: {
+        // RPL_SERVMODEIS: Server mode is
+        const modes = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Server mode is {modes}', { modes }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 665: {
+        // RPL_OTHERUMODEIS: Other user mode is
+        const otherNick = params[1] || '';
+        const modes = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} has modes: {modes}', { nick: otherNick, modes }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 666: {
+        // RPL_ENDOF_GENERIC: Generic end of list
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 667: {
+        // ERR_TARGCHANGE: Target change too fast
+        const targetNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Target change too fast');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {nick}: {message}', { nick: targetNick, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 668: {
+        // RPL_WHOISSECURE: User is using secure connection (alternative)
+        const secureNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('is using a secure connection');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: secureNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 669: {
+        // RPL_WHOISSPECIAL: User has special status
+        const specialNick = params[1] || '';
+        const status = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick}: {status}', { nick: specialNick, status }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      // ========================================
+      // STARTTLS and Security numerics (672-689)
+      // ========================================
+
+      case 672: {
+        // RPL_WHOISCERTFP: User certificate fingerprint
+        const certNick = params[1] || '';
+        const fingerprint = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} certificate fingerprint: {fp}', { nick: certNick, fp: fingerprint }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 673: {
+        // RPL_UNKNOWNMODES: Unknown modes
+        const modes = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('are unknown modes');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {modes} {message}', { modes, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 674: {
+        // RPL_CANNOTSETMODES: Cannot set modes
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Cannot set modes');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 675: {
+        // RPL_LUSERSTAFF: Staff count
+        const count = params[1] || '0';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('staff members online');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {count} {message}', { count, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 676: {
+        // RPL_TIMEONSERVERIS: Time on server
+        const timeData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Server time: {time}', { time: timeData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 678: {
+        // RPL_WHOISREGNICK: Registered nick (alternative numeric)
+        const regNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('has identified for this nick');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: regNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 679: {
+        // RPL_WHOISHELPOP: User is a Help Operator
+        const helpopNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('is available for help');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: helpopNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 680: {
+        // RPL_ISLOCOP: User is Local Operator
+        const locopNick = params[1] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} is a local operator', { nick: locopNick }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 681: {
+        // RPL_ISSERVADMIN: User is Services Administrator
+        const servadminNick = params[1] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} is a Services Administrator', { nick: servadminNick }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 682: {
+        // RPL_ISNETADMIN: User is Network Administrator
+        const netadminNick = params[1] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} is a Network Administrator', { nick: netadminNick }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 687: {
+        // RPL_YOURSSLCERTFP: Your SSL certificate fingerprint
+        const fingerprint = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Your certificate fingerprint: {fp}', { fp: fingerprint }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'auth'
+        });
+        break;
+      }
+
+      case 688: {
+        // RPL_CREATIONTIME: Channel creation time (alternative)
+        const channel = params[1] || '';
+        const time = parseInt(params[2] || '0', 10);
+        const dateStr = time > 0 ? new Date(time * 1000).toLocaleString() : t('unknown');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {channel} was created on {date}', { channel, date: dateStr }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      case 689: {
+        // RPL_TOPICWHOTIME: Topic set by (alternative)
+        const channel = params[1] || '';
+        const setBy = params[2] || '';
+        const setTime = parseInt(params[3] || '0', 10);
+        const dateStr = setTime > 0 ? new Date(setTime * 1000).toLocaleString() : t('unknown');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {channel} topic was set by {nick} on {date}', {
+            channel,
+            nick: setBy,
+            date: dateStr,
+          }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      // ========================================
+      // IRCd-specific numerics (700-729)
+      // ========================================
+
+      case 700: {
+        // RPL_COMMANDS: Available commands
+        const cmdData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Commands: {data}', { data: cmdData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 701: {
+        // RPL_ENDOFCOMMANDS: End of COMMANDS
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of commands list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 702: {
+        // RPL_MODLIST: Module list entry
+        const module = params[1] || '';
+        const info = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Module: {module} ({info})', { module, info }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 703: {
+        // RPL_ENDOFMODLIST: End of module list
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of module list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 704: {
+        // RPL_HELPSTART: Help topic start
+        const topic = params[1] || '';
+        const helpText = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Help on {topic}: {text}', { topic, text: helpText }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 705: {
+        // RPL_HELPTXT: Help text line
+        const topic = params[1] || '';
+        const helpText = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: helpText || t('(empty help line)'),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 706: {
+        // RPL_ENDOFHELP: End of help
+        const topic = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('End of help');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 707: {
+        // RPL_ETRACE: ETRACE response line
+        const etraceData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** ETRACE: {data}', { data: etraceData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 708: {
+        // RPL_ETRACEFULL: ETRACE full entry
+        const etraceData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** ETRACE: {data}', { data: etraceData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 709: {
+        // RPL_ETRACE_END: End of ETRACE
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of ETRACE');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 710: {
+        // RPL_KNOCK: Someone is knocking
+        const channel = params[1] || '';
+        const knocker = params[2] || '';
+        const message = params.slice(3).join(' ').replace(/^:/, '') || t('has requested an invite');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} is knocking on {channel}: {message}', {
+            nick: knocker,
+            channel,
+            message,
+          }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      case 711: {
+        // RPL_KNOCKDLVR: Knock delivered
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Knock delivered');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      case 712: {
+        // ERR_TOOMANYKNOCK: Too many knocks
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Too many knocks');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 713: {
+        // ERR_CHANOPEN: Channel is not invite only
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Channel is not invite only');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 714: {
+        // ERR_KNOCKONCHAN: Already on channel
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('You are already on that channel');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 715: {
+        // ERR_KNOCKDISABLED: Knock is disabled
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Knock is disabled');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 716: {
+        // RPL_TARGUMODEG: User is in +g mode (caller-id)
+        const targetNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('is in +g mode (server-side ignore)');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: targetNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 717: {
+        // RPL_TARGNOTIFY: Target has been notified
+        const targetNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('has been notified that you messaged them');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}', { nick: targetNick, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 718: {
+        // RPL_UMODEGMSG: Message to user in +g mode
+        const fromNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('is messaging you and you are +g');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {message}. Use /ACCEPT {nick} to receive messages.', {
+            nick: fromNick,
+            message,
+          }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'user'
+        });
+        break;
+      }
+
+      case 720: {
+        // RPL_OMOTDSTART: Oper MOTD start
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('Start of OPER MOTD');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 721: {
+        // RPL_OMOTD: Oper MOTD line
+        const motdLine = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: motdLine,
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 722: {
+        // RPL_ENDOFOMOTD: End of Oper MOTD
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of OPER MOTD');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 723: {
+        // ERR_NOPRIVS: No privileges for command
+        const cmdName = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Insufficient oper privileges');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {command}: {message}', { command: cmdName, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 724: {
+        // RPL_TESTMARK: Test line mark
+        const markData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** TESTMARK: {data}', { data: markData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'debug'
+        });
+        break;
+      }
+
+      case 725: {
+        // RPL_TESTLINE: Test line
+        const testData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** TESTLINE: {data}', { data: testData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'debug'
+        });
+        break;
+      }
+
+      case 726: {
+        // RPL_NOTESTLINE: No test line
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('No matching line found');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'debug'
+        });
+        break;
+      }
+
+      case 727: {
+        // RPL_TESTMASKGECOS: Test mask with GECOS
+        const testData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** TESTMASK: {data}', { data: testData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'debug'
+        });
+        break;
+      }
+
+      case 728: {
+        // RPL_QUIETLIST: Quiet list entry (+q on channel)
+        const channel = params[1] || '';
+        const quietMask = params[3] || '';
+        const setBy = params[4] || '';
+        const setTime = parseInt(params[5] || '0', 10);
+        const dateStr = setTime > 0 ? new Date(setTime * 1000).toLocaleString() : '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {channel} quiet: {mask} (set by {nick}{date})', {
+            channel,
+            mask: quietMask,
+            nick: setBy,
+            date: dateStr ? ` on ${dateStr}` : '',
+          }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      case 729: {
+        // RPL_ENDOFQUIETLIST: End of quiet list
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('End of channel quiet list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      // ========================================
+      // Extended IRCd numerics (740-799)
+      // ========================================
+
+      case 740: {
+        // RPL_RSACHALLENGE2: RSA challenge (alternative)
+        const challenge = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** RSA Challenge: {challenge}', { challenge }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'auth'
+        });
+        break;
+      }
+
+      case 741: {
+        // RPL_ENDOFRSACHALLENGE2: End of RSA challenge
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of RSA challenge');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'auth'
+        });
+        break;
+      }
+
+      case 742: {
+        // ERR_MLOCKRESTRICTED: Mode lock restriction
+        const channel = params[1] || '';
+        const mode = params[2] || '';
+        const message = params.slice(3).join(' ').replace(/^:/, '') || t('Mode cannot be set due to channel mode lock');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {mode} - {message}', { channel, mode, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 743: {
+        // ERR_INVALIDBAN: Invalid ban mask
+        const channel = params[1] || '';
+        const mask = params[2] || '';
+        const message = params.slice(3).join(' ').replace(/^:/, '') || t('Invalid ban mask');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {mask} - {message}', { channel, mask, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 744: {
+        // ERR_TOPICLOCK: Topic is locked
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Topic is locked');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 750: {
+        // RPL_SCANMATCHED: SCAN matched user
+        const matchData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** SCAN matched: {data}', { data: matchData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 751: {
+        // RPL_SCANUMODES: SCAN user modes
+        const scanData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** SCAN modes: {data}', { data: scanData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 752: {
+        // RPL_ETRACEEND: End of ETRACE
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of ETRACE');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 759: {
+        // RPL_ETRACEUSER: ETRACE user entry
+        const etraceData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** ETRACE: {data}', { data: etraceData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 760: {
+        // RPL_WHOISKEYVALUE: WHOIS key-value metadata
+        const whoisNick = params[1] || '';
+        const key = params[2] || '';
+        const value = params.slice(3).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {nick} {key}: {value}', { nick: whoisNick, key, value }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 761: {
+        // RPL_KEYVALUE: Key-value response
+        const target = params[1] || '';
+        const key = params[2] || '';
+        const visibility = params[3] || '';
+        const value = params.slice(4).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {target} {key} ({visibility}): {value}', { target, key, visibility, value }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 762: {
+        // RPL_METADATAEND: End of metadata
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of metadata');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 764: {
+        // ERR_METADATALIMIT: Metadata limit reached
+        const target = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Metadata limit reached');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {target}: {message}', { target, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 765: {
+        // ERR_TARGETINVALID: Invalid metadata target
+        const target = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Invalid target');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {target}: {message}', { target, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 766: {
+        // ERR_NOMATCHINGKEY: No matching metadata key
+        const target = params[1] || '';
+        const key = params[2] || '';
+        this.addMessage({
+          type: 'error',
+          text: t('*** {target}: No matching key {key}', { target, key }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 767: {
+        // ERR_KEYINVALID: Invalid metadata key
+        const key = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Invalid key');
+        this.addMessage({
+          type: 'error',
+          text: t('*** Key {key}: {message}', { key, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 768: {
+        // ERR_KEYNOTSET: Metadata key not set
+        const target = params[1] || '';
+        const key = params[2] || '';
+        this.addMessage({
+          type: 'error',
+          text: t('*** {target}: Key {key} is not set', { target, key }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 769: {
+        // ERR_KEYNOPERMISSION: No permission for metadata key
+        const target = params[1] || '';
+        const key = params[2] || '';
+        this.addMessage({
+          type: 'error',
+          text: t('*** {target}: No permission to access key {key}', { target, key }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 770: {
+        // RPL_XINFO: Extended info (InspIRCd)
+        const xinfoData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** XINFO: {data}', { data: xinfoData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 771: {
+        // RPL_XINFOSTART: Start of XINFO
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('Start of extended info');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 772: {
+        // RPL_XINFOEND: End of XINFO
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of extended info');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      case 900: case 901: case 902: case 905: case 906: case 907: case 908:
+        // These are already handled above - skip duplicate handling
+        break;
+
+      // ========================================
+      // SASL/Auth extension numerics (910-999)
+      // ========================================
+
+      case 910: {
+        // RPL_ACCESSADD: Access entry added
+        const accessData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Access added: {data}', { data: accessData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'auth'
+        });
+        break;
+      }
+
+      case 911: {
+        // RPL_ACCESSDEL: Access entry deleted
+        const accessData = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Access removed: {data}', { data: accessData }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'auth'
+        });
+        break;
+      }
+
+      case 912: {
+        // RPL_ACCESSSTART: Access list start
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('Access list:');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'auth'
+        });
+        break;
+      }
+
+      case 913: {
+        // RPL_ACCESSENTRY: Access list entry
+        const accessEntry = params.slice(1).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Access: {entry}', { entry: accessEntry }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'auth'
+        });
+        break;
+      }
+
+      case 914: {
+        // RPL_ACCESSEND: Access list end
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of access list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'auth'
+        });
+        break;
+      }
+
+      case 915: {
+        // ERR_ACCESSDENIED: Access denied
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('Access denied');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 920: {
+        // RPL_DNSSTART: DNS lookup start
+        const host = params[1] || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** Looking up hostname for {host}...', { host }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'connection'
+        });
+        break;
+      }
+
+      case 921: {
+        // RPL_DNSGOOD: DNS lookup successful
+        const host = params[1] || '';
+        const resolved = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** DNS lookup for {host}: {resolved}', { host, resolved }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'connection'
+        });
+        break;
+      }
+
+      case 922: {
+        // RPL_DNSBAD: DNS lookup failed
+        const host = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('lookup failed');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** DNS lookup for {host}: {message}', { host, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'connection'
+        });
+        break;
+      }
+
+      case 923: {
+        // RPL_DNSEND: DNS lookup complete
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('DNS lookup complete');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'connection'
+        });
+        break;
+      }
+
+      case 936: {
+        // ERR_CENSORED: Message censored
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Your message contained a censored word');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 940: {
+        // RPL_ELISTSTART: Extended LIST start
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('Start of extended channel list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      case 941: {
+        // RPL_ELISTENTRY: Extended LIST entry
+        const channel = params[1] || '';
+        const users = params[2] || '0';
+        const topic = params.slice(3).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {channel} ({users} users): {topic}', { channel, users, topic }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      case 942: {
+        // RPL_ELISTEND: Extended LIST end
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of extended channel list');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'channel'
+        });
+        break;
+      }
+
+      case 972: {
+        // ERR_CANNOTDOCOMMAND: Cannot do command
+        const cmdName = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Cannot execute command');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {command}: {message}', { command: cmdName, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 973: {
+        // ERR_CANNOTCHANGENICK: Cannot change nick
+        const message = params.slice(1).join(' ').replace(/^:/, '') || t('Cannot change nickname');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {message}', { message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 974: {
+        // ERR_CANNOTDEOP: Cannot deop yourself
+        const channel = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('Cannot deop yourself');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {channel}: {message}', { channel, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 975: {
+        // ERR_ISREALSERVICE: Target is a real service
+        const targetNick = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('is a network service');
+        this.addMessage({
+          type: 'error',
+          text: t('*** {nick} {message}', { nick: targetNick, message }),
+          timestamp: timestamp
+        });
+        break;
+      }
+
+      case 998: {
+        // RPL_PONG: PONG response (alternative numeric)
+        const server = params[1] || '';
+        const token = params.slice(2).join(' ').replace(/^:/, '') || '';
+        this.addMessage({
+          type: 'raw',
+          text: t('*** PONG from {server}: {token}', { server, token }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'connection'
+        });
+        break;
+      }
+
+      case 999: {
+        // RPL_ENDOFSTATS: End of stats (alternative)
+        const statsType = params[1] || '';
+        const message = params.slice(2).join(' ').replace(/^:/, '') || t('End of STATS report');
+        this.addMessage({
+          type: 'raw',
+          text: t('*** STATS {type}: {message}', { type: statsType, message }),
+          timestamp: timestamp,
+          isRaw: true,
+          rawCategory: 'server'
+        });
+        break;
+      }
+
+      // ========================================
+      // LOW PRIORITY CODES - END
+      // ========================================
 
       default: {
         // Improved numeric response formatting
@@ -6841,6 +10050,41 @@ export class IRCService {
     }
     this.sendRaw(`@+typing=${status} TAGMSG ${target}`);
     return true;
+  }
+
+  /**
+   * Check if SASL capability is available on this server
+   */
+  isSaslAvailable(): boolean {
+    return this.capAvailable.has('sasl') || this.capEnabledSet.has('sasl');
+  }
+
+  /**
+   * Check if SASL authentication is currently in progress
+   */
+  isSaslAuthenticating(): boolean {
+    return this.saslAuthenticating;
+  }
+
+  /**
+   * Check if SASL EXTERNAL (certificate-based) is being used
+   */
+  isSaslExternal(): boolean {
+    return !!(this.config?.clientCert && this.config?.clientKey);
+  }
+
+  /**
+   * Check if SASL PLAIN (account/password) is being used
+   */
+  isSaslPlain(): boolean {
+    return !!(this.config?.sasl?.account && this.config?.sasl?.password && !this.config?.clientCert);
+  }
+
+  /**
+   * Get SASL account name if configured
+   */
+  getSaslAccount(): string | undefined {
+    return this.config?.sasl?.account;
   }
 }
 

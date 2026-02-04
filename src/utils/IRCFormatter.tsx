@@ -363,9 +363,9 @@ export function formatIRCText(
  * Handles multiline text by splitting on newlines and rendering each line separately
  */
 export function formatIRCTextAsComponent(
-  text: string,
-  baseStyle?: TextStyle
-): React.ReactElement {
+    text: string,
+    baseStyle?: TextStyle
+  ): React.ReactElement {
   if (!text) {
     return <Text style={baseStyle} />;
   }
@@ -398,37 +398,31 @@ export function formatIRCTextAsComponent(
     );
   }
 
-  // Multiline: render each line separately to ensure newlines are displayed
-  // React Native Text component needs explicit newlines or separate Text elements
-  return (
-    <View>
-      {lines.map((line, lineIndex) => {
-        const segments = parseIRCText(line);
-        
-        if (segments.length === 0) {
-          return (
-            <Text key={`line-${lineIndex}`} style={baseStyle}>
-              {line}
-            </Text>
-          );
-        }
-
-        return (
-          <Text key={`line-${lineIndex}`} style={baseStyle}>
-            {segments.map((segment, segmentIndex) => {
+    // Multiline: render inside a single Text to preserve inline flow and lineHeight
+    return (
+      <Text style={baseStyle}>
+        {lines.map((line, lineIndex) => {
+          const segments = parseIRCText(line);
+          const lineContent = segments.length === 0
+            ? line
+            : segments.map((segment, segmentIndex) => {
               const segmentStyle = styleToTextStyle(segment.style);
               return (
                 <Text key={`segment-${lineIndex}-${segmentIndex}`} style={segmentStyle}>
                   {preserveTrailingSpaces(segment.text)}
                 </Text>
               );
-            })}
-          </Text>
-        );
-      })}
-    </View>
-  );
-}
+            });
+          return (
+            <Text key={`line-${lineIndex}`}>
+              {lineContent}
+              {lineIndex < lines.length - 1 ? '\n' : null}
+            </Text>
+          );
+        })}
+      </Text>
+    );
+  }
 
 /**
  * Convert IRC formatted text to plain text (remove all formatting)

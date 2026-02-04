@@ -4,12 +4,14 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useT } from '../i18n/transifex';
 import { ircService, ChannelUser } from '../services/IRCService';
 import { userManagementService } from '../services/UserManagementService';
 import { banService } from '../services/BanService';
+import { serviceCommandProvider } from '../services/ServiceCommandProvider';
+import { ServiceCommand } from '../interfaces/ServiceTypes';
 import { settingsService, NEW_FEATURE_DEFAULTS } from '../services/SettingsService';
 import { useUIStore } from '../stores/uiStore';
 import KickBanModal from './KickBanModal';
@@ -61,6 +63,8 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
   const isIgnored = nick ? userManagementService.isUserIgnored(nick, undefined, undefined, network) : false;
   const [showE2EGroup, setShowE2EGroup] = useState(false);
   const [showCTCPGroup, setShowCTCPGroup] = useState(false);
+  const [showServiceGroup, setShowServiceGroup] = useState(false);
+  const [serviceCommands, setServiceCommands] = useState<Array<{command: ServiceCommand; serviceNick: string}>>([]);
   const [showOpsGroup, setShowOpsGroup] = useState(false);
   const [showUserListGroup, setShowUserListGroup] = useState(false);
   const [showKickBanModal, setShowKickBanModal] = useState(false);
@@ -69,6 +73,8 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
   const [confirmBeforeKickBan, setConfirmBeforeKickBan] = useState<boolean>(true);
   const [defaultBanType, setDefaultBanType] = useState<number>(2);
   const [defaultKickReason, setDefaultKickReason] = useState<string>('Goodbye');
+  const [showKillReasonModal, setShowKillReasonModal] = useState(false);
+  const [killReason, setKillReason] = useState('');
 
   useEffect(() => {
     if (!visible) {
@@ -77,9 +83,29 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
       setShowOpsGroup(false);
       setShowUserListGroup(false);
       setShowKickBanModal(false);
+      setShowKillReasonModal(false);
+      setKillReason('');
       setUserHostInfo(null);
+      setShowServiceGroup(false);
     }
   }, [visible, nick]);
+
+  // Load service commands when menu opens
+  useEffect(() => {
+    if (visible && network) {
+      const commands = serviceCommandProvider.getCommands(network);
+      // Filter commands that can be used on a nick (like INFO, STATUS, etc.)
+      const nickCommands = commands.filter(({ command }) => {
+        const params = command.parameters;
+        return params.some(p => 
+          p.type === 'nick' || 
+          p.name.toLowerCase().includes('nick') ||
+          p.name.toLowerCase().includes('user')
+        );
+      }).slice(0, 8); // Limit to 8 most relevant commands
+      setServiceCommands(nickCommands.map(({ command, serviceNick }) => ({ command, serviceNick })));
+    }
+  }, [visible, network]);
 
   // Load kick/ban settings when menu opens
   useEffect(() => {
@@ -123,6 +149,7 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
     : undefined;
   const isCurrentUserHalfOp = currentUser?.modes.some(mode => ['h', 'o', 'a', 'q'].includes(mode)) || false;
   const isCurrentUserOp = currentUser?.modes.some(mode => ['o', 'a', 'q'].includes(mode)) || false;
+  const canKickBan = isCurrentUserHalfOp || isCurrentUserOp;
 
   // Execute kick/ban directly without modal
   const executeKickBanDirect = (mode: 'kick' | 'ban' | 'kickban', withReason: boolean = false) => {
@@ -163,6 +190,11 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
       executeKickBanDirect(mode, false);
       onClose();
     }
+  };
+
+  const handleKillPress = () => {
+    setKillReason('');
+    setShowKillReasonModal(true);
   };
 
   const styles = useMemo(() => StyleSheet.create({
@@ -371,7 +403,7 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                   </View>
                 </TouchableOpacity>
                 {isServerOper && (
-                  <TouchableOpacity style={styles.contextItem} onPress={() => onAction('kill')}>
+                  <TouchableOpacity style={styles.contextItem} onPress={handleKillPress}>
                     <View style={styles.contextItemWithIcon}>
                       <Icon name="skull" size={14} color="#EF5350" style={styles.contextIcon} />
                       <Text style={[styles.contextText, styles.contextDanger]}>{t('KILL (with reason)')}</Text>
@@ -547,6 +579,10 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                             </View>
                           </TouchableOpacity>
                         )}
+                      </>
+                    )}
+                    {canKickBan && (
+                      <>
                         <TouchableOpacity style={styles.contextItem} onPress={() => handleKickBanPress('kick', false)}>
                           <View style={styles.contextItemWithIcon}>
                             <Icon name="sign-out-alt" size={14} color="#FB8C00" style={styles.contextIcon} />
@@ -579,6 +615,46 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                         </TouchableOpacity>
                       </>
                     )}
+                  </View>
+                )}
+              </>
+            )}
+
+            {/* IRC Service Commands */}
+            {serviceCommands.length > 0 && (
+              <>
+                <View style={styles.contextDivider} />
+                <TouchableOpacity style={styles.contextItem} onPress={() => setShowServiceGroup(prev => !prev)}>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="server" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>
+                      {showServiceGroup ? t('IRC Services v') : t('IRC Services >')}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                {showServiceGroup && (
+                  <View style={styles.contextSubGroup}>
+                    {serviceCommands.map(({ command, serviceNick }) => (
+                      <TouchableOpacity 
+                        key={`${serviceNick}-${command.name}`} 
+                        style={styles.contextItem} 
+                        onPress={() => {
+                          const cmdText = `/${serviceNick} ${command.name} ${nick}`;
+                          activeIrc.sendRaw(`PRIVMSG ${serviceNick} :${command.name} ${nick}`);
+                          onClose();
+                        }}>
+                        <View style={styles.contextItemWithIcon}>
+                          <Icon name="chevron-right" size={14} color={colors.textSecondary} style={styles.contextIcon} />
+                          <Text style={styles.contextText}>{serviceNick} {command.name}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                    <TouchableOpacity style={styles.contextItem} onPress={() => onAction('show_all_commands')}>
+                      <View style={styles.contextItemWithIcon}>
+                        <Icon name="dots-horizontal" size={14} color={colors.primary} style={styles.contextIcon} />
+                        <Text style={[styles.contextText, { color: colors.primary }]}>{t('Show All Commands...')}</Text>
+                      </View>
+                    </TouchableOpacity>
                   </View>
                 )}
               </>
@@ -636,9 +712,9 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
         </View>
       </TouchableOpacity>
 
-      <KickBanModal
-        visible={showKickBanModal}
-        onClose={() => setShowKickBanModal(false)}
+        <KickBanModal
+          visible={showKickBanModal}
+          onClose={() => setShowKickBanModal(false)}
         onConfirm={(options) => {
           console.log('🔥 KickBanModal onConfirm called:', options);
           // Execute kick/ban directly
@@ -686,8 +762,65 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
           accent: colors.primary,
           border: colors.border,
           inputBackground: colors.background,
-        }}
-      />
-    </Modal>
-  );
-};
+          }}
+        />
+        <Modal
+          visible={showKillReasonModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowKillReasonModal(false)}
+        >
+          <TouchableOpacity style={styles.contextOverlay} activeOpacity={1} onPress={() => setShowKillReasonModal(false)}>
+            <View style={styles.contextBox}>
+              <View style={styles.contextHeaderRow}>
+                <View style={styles.contextHeaderText}>
+                  <Text style={styles.contextTitle}>{t('KILL {nick}').replace('{nick}', nick || '')}</Text>
+                  <Text style={styles.contextSubtitle}>{t('Enter reason')}</Text>
+                </View>
+              </View>
+              <View style={{ padding: 12 }}>
+                <TextInput
+                  style={{
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 8,
+                    color: colors.text,
+                    backgroundColor: colors.background,
+                  }}
+                  placeholder={t('Enter reason')}
+                  placeholderTextColor={colors.textSecondary}
+                  value={killReason}
+                  onChangeText={setKillReason}
+                  autoFocus
+                />
+              </View>
+              <View style={[styles.contextFooter, { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }]}>
+                <TouchableOpacity style={styles.contextFooterButton} onPress={() => setShowKillReasonModal(false)}>
+                  <Text style={styles.contextCancel}>{t('Cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.contextFooterButton, { backgroundColor: colors.primary, borderColor: colors.primary }]}
+                  onPress={() => {
+                    const trimmed = killReason.trim();
+                    if (!trimmed) {
+                      Alert.alert(t('Error'), t('Reason is required'));
+                      return;
+                    }
+                    if (nick) {
+                      activeIrc.sendCommand(`KILL ${nick} :${trimmed}`);
+                    }
+                    setShowKillReasonModal(false);
+                    onClose();
+                  }}
+                >
+                  <Text style={{ color: colors.onPrimary || '#fff', fontWeight: '600' }}>{t('Send')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      </Modal>
+    );
+  };

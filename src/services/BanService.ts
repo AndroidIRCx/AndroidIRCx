@@ -2,6 +2,8 @@
  * BanService - Handles ban mask generation and kick/ban operations
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export interface BanMaskType {
   id: number;
   pattern: string;
@@ -20,6 +22,8 @@ export const BAN_MASK_TYPES: BanMaskType[] = [
   { id: 7, pattern: 'nick!*@host', description: 'Ban nick with any user@host', example: 'John!*@192.168.1.1' },
   { id: 8, pattern: 'nick!*user@*.host', description: 'Ban nick with *user@*.domain', example: 'John!*john@*.example.com' },
   { id: 9, pattern: 'nick!*@*.host', description: 'Ban nick with *.domain', example: 'John!*@*.example.com' },
+  { id: 10, pattern: 'nick!*@*', description: 'Ban by nick only (any ident@host)', example: 'John!*@*' },
+  { id: 11, pattern: '*!ident@*', description: 'Ban by ident only (any nick@host)', example: '*!john@*' },
 ];
 
 export interface KickBanOptions {
@@ -40,21 +44,25 @@ export interface PredefinedReason {
   isDefault?: boolean;
 }
 
-class BanService {
-  private predefinedReasons: PredefinedReason[] = [
-    { id: 'spam', text: 'Spamming' },
-    { id: 'flood', text: 'Flooding' },
-    { id: 'abuse', text: 'Abusive behavior' },
-    { id: 'advertising', text: 'Advertising' },
-    { id: 'offtopic', text: 'Off-topic' },
-    { id: 'troll', text: 'Trolling' },
-    { id: 'bot', text: 'Unauthorized bot' },
-    { id: 'impersonation', text: 'Impersonation' },
-    { id: 'harassment', text: 'Harassment' },
-    { id: 'language', text: 'Inappropriate language' },
-  ];
+const STORAGE_KEY = '@AndroidIRCX:banReasons';
+const DEFAULT_REASONS: PredefinedReason[] = [
+  { id: 'spam', text: 'Spamming', isDefault: true },
+  { id: 'flood', text: 'Flooding', isDefault: true },
+  { id: 'abuse', text: 'Abusive behavior', isDefault: true },
+  { id: 'advertising', text: 'Advertising', isDefault: true },
+  { id: 'offtopic', text: 'Off-topic', isDefault: true },
+  { id: 'troll', text: 'Trolling', isDefault: true },
+  { id: 'bot', text: 'Unauthorized bot', isDefault: true },
+  { id: 'impersonation', text: 'Impersonation', isDefault: true },
+  { id: 'harassment', text: 'Harassment', isDefault: true },
+  { id: 'language', text: 'Inappropriate language', isDefault: true },
+];
 
+class BanService {
+  private predefinedReasons: PredefinedReason[] = [...DEFAULT_REASONS];
   private defaultBanType: number = 2;  // *!*@host
+  private initialized = false;
+  private initPromise: Promise<void> | null = null;
 
   /**
    * Generate ban mask from user info
@@ -75,6 +83,8 @@ class BanService {
       case 7: return `${nick}!*@${host}`;
       case 8: return `${nick}!*${processedUser}@${processedHost}`;
       case 9: return `${nick}!*@${processedHost}`;
+      case 10: return `${nick}!*@*`;  // Ban by nick only
+      case 11: return `*!${processedUser}@*`;  // Ban by ident only
       default: return `*!*@${host}`;
     }
   }
@@ -99,20 +109,74 @@ class BanService {
     return '*.' + host;
   }
 
+  /**
+   * Initialize BanService and load saved reasons from storage
+   */
+  async initialize(): Promise<void> {
+    if (this.initialized) {
+      return;
+    }
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    this.initPromise = (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.predefinedReasons = parsed;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load ban reasons from storage:', error);
+        // Keep defaults on error
+      } finally {
+        this.initialized = true;
+        this.initPromise = null;
+      }
+    })();
+
+    return this.initPromise;
+  }
+
+  /**
+   * Save reasons to AsyncStorage
+   */
+  private async saveReasons(): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(this.predefinedReasons));
+    } catch (error) {
+      console.error('Failed to save ban reasons to storage:', error);
+    }
+  }
+
   getPredefinedReasons(): PredefinedReason[] {
     return [...this.predefinedReasons];
   }
 
-  setPredefinedReasons(reasons: PredefinedReason[]): void {
-    this.predefinedReasons = reasons;
+  async setPredefinedReasons(reasons: PredefinedReason[]): Promise<void> {
+    this.predefinedReasons = [...reasons];
+    await this.saveReasons();
   }
 
-  addPredefinedReason(reason: PredefinedReason): void {
+  async addPredefinedReason(reason: PredefinedReason): Promise<void> {
     this.predefinedReasons.push(reason);
+    await this.saveReasons();
   }
 
-  removePredefinedReason(id: string): void {
+  async removePredefinedReason(id: string): Promise<void> {
     this.predefinedReasons = this.predefinedReasons.filter(r => r.id !== id);
+    await this.saveReasons();
+  }
+
+  /**
+   * Reset reasons to defaults
+   */
+  async resetToDefaultReasons(): Promise<void> {
+    this.predefinedReasons = [...DEFAULT_REASONS];
+    await this.saveReasons();
   }
 
   getDefaultBanType(): number {
@@ -120,7 +184,7 @@ class BanService {
   }
 
   setDefaultBanType(type: number): void {
-    if (type >= 0 && type <= 9) {
+    if (type >= 0 && type <= 11) {
       this.defaultBanType = type;
     }
   }

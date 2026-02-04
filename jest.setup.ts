@@ -51,6 +51,111 @@ jest.mock('react-native-bootsplash', () => ({
   setMinimumBackgroundDuration: jest.fn(),
 }));
 
+jest.mock('react-native-keyboard-controller', () => ({
+  KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
+  KeyboardController: {
+    setInputMode: jest.fn(),
+    dismiss: jest.fn(),
+  },
+  KeyboardEvents: {
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+  },
+  useKeyboardController: () => ({
+    setEnabled: jest.fn(),
+  }),
+  useReanimatedKeyboardAnimation: () => ({
+    height: { value: 0 },
+    progress: { value: 0 },
+  }),
+}));
+
+// Mock SettingsScreen hooks
+jest.mock('./src/hooks/useSettingsPremium', () => ({
+  useSettingsPremium: jest.fn(() => ({
+    hasNoAds: false,
+    hasScriptingPro: false,
+    isSupporter: false,
+    adReady: false,
+    adLoading: false,
+    adCooldown: false,
+    cooldownSeconds: 0,
+    adUnitType: 'Primary',
+    showingAd: false,
+    watchAdButtonEnabledForPremium: false,
+    showWatchAdButton: true,
+    setWatchAdButtonEnabledForPremium: jest.fn().mockResolvedValue(undefined),
+    handleWatchAd: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
+jest.mock('./src/hooks/useSettingsSecurity', () => ({
+  useSettingsSecurity: jest.fn(() => ({
+    appLockEnabled: false,
+    appLockMethod: 'none',
+    setAppLockEnabled: jest.fn(),
+    setAppLockMethod: jest.fn(),
+  })),
+}));
+
+jest.mock('./src/hooks/useSettingsAppearance', () => ({
+  useSettingsAppearance: jest.fn(() => ({
+    theme: 'light',
+    setTheme: jest.fn(),
+  })),
+}));
+
+jest.mock('./src/hooks/useSettingsNotifications', () => ({
+  useSettingsNotifications: jest.fn(() => ({
+    notificationEnabled: true,
+    setNotificationEnabled: jest.fn(),
+    refreshNotificationPrefs: jest.fn(),
+  })),
+}));
+
+jest.mock('./src/hooks/useSettingsConnection', () => ({
+  useSettingsConnection: jest.fn(() => ({
+    autoConnect: false,
+    setAutoConnect: jest.fn(),
+  })),
+}));
+
+// Mock native modules that need transformation
+jest.mock('react-native-sound', () => {
+  const mockInstance = {
+    play: jest.fn((callback) => callback && callback(true)),
+    pause: jest.fn(),
+    stop: jest.fn((callback) => callback && callback()),
+    release: jest.fn(),
+    setVolume: jest.fn(),
+    setNumberOfLoops: jest.fn(),
+  };
+  
+  const MockSound = jest.fn().mockImplementation(() => mockInstance);
+  (MockSound as any).setCategory = jest.fn();
+  (MockSound as any).MAIN_BUNDLE = '';
+  (MockSound as any).DOCUMENT = '';
+  (MockSound as any).LIBRARY = '';
+  (MockSound as any).CACHES = '';
+  
+  return {
+    __esModule: true,
+    default: MockSound,
+  };
+});
+
+jest.mock('react-native-fs', () => ({
+  DocumentDirectoryPath: '/mock/documents',
+  LibraryDirectoryPath: '/mock/library',
+  CachesDirectoryPath: '/mock/cache',
+  readDir: jest.fn().mockResolvedValue([]),
+  readFile: jest.fn().mockResolvedValue(''),
+  writeFile: jest.fn().mockResolvedValue(undefined),
+  exists: jest.fn().mockResolvedValue(true),
+  mkdir: jest.fn().mockResolvedValue(undefined),
+  unlink: jest.fn().mockResolvedValue(undefined),
+  downloadFile: jest.fn().mockResolvedValue({ jobId: 1, promise: Promise.resolve({ statusCode: 200 }) }),
+}));
+
 jest.mock('react-native-google-mobile-ads', () => {
   const adapterStatuses = [
     { id: 'dummy', state: 1, latency: 0, initializationState: 'READY' },
@@ -411,6 +516,125 @@ jest.mock('react-native-vector-icons/FontAwesome5', () => {
     default: jest.fn(() => React.createElement('Text', null, 'Icon')),
   };
 });
+
+// Mock ThemeService
+const mockColors = {
+  background: '#FFFFFF',
+  surface: '#FAFAFA',
+  surfaceVariant: '#F5F5F5',
+  surfaceAlt: '#FFFFFF',
+  cardBackground: '#FFFFFF',
+  text: '#212121',
+  textSecondary: '#757575',
+  textDisabled: '#9E9E9E',
+  primary: '#2196F3',
+  primaryDark: '#1976D2',
+  primaryLight: '#64B5F6',
+  onPrimary: '#FFFFFF',
+  secondary: '#FF9800',
+  onSecondary: '#FFFFFF',
+  accent: '#4CAF50',
+  onAccent: '#FFFFFF',
+  success: '#4CAF50',
+  error: '#F44336',
+  warning: '#FF9800',
+  info: '#2196F3',
+  border: '#E0E0E0',
+  borderLight: '#F5F5F5',
+  divider: '#E0E0E0',
+  messageBackground: '#FFFFFF',
+  messageText: '#212121',
+  messageNick: '#1976D2',
+  messageTimestamp: '#9E9E9E',
+  systemMessage: '#757575',
+  noticeMessage: '#FF9800',
+  joinMessage: '#4CAF50',
+  partMessage: '#FF9800',
+  quitMessage: '#F44336',
+  kickMessage: '#F44336',
+  nickMessage: '#1976D2',
+  inviteMessage: '#2196F3',
+  monitorMessage: '#2196F3',
+  topicMessage: '#9C27B0',
+  modeMessage: '#5DADE2',
+  actionMessage: '#9E9E9E',
+  rawMessage: '#757575',
+  ctcpMessage: '#388E3C',
+  inputBackground: '#F5F5F5',
+  inputText: '#212121',
+  inputBorder: '#E0E0E0',
+  inputPlaceholder: '#9E9E9E',
+  buttonPrimary: '#2196F3',
+  buttonPrimaryText: '#FFFFFF',
+  buttonSecondary: '#E0E0E0',
+  buttonSecondaryText: '#212121',
+  buttonDisabled: '#F5F5F5',
+  buttonDisabledText: '#9E9E9E',
+  buttonText: '#FFFFFF',
+  tabActive: '#2196F3',
+  tabInactive: '#F5F5F5',
+  tabActiveText: '#FFFFFF',
+  tabInactiveText: '#757575',
+  tabBorder: '#E0E0E0',
+  modalOverlay: 'rgba(0, 0, 0, 0.5)',
+  modalBackground: '#FFFFFF',
+  modalText: '#212121',
+  userListBackground: '#FAFAFA',
+  userListText: '#212121',
+  userListBorder: '#E0E0E0',
+  userOwner: '#7B1FA2',
+  userAdmin: '#D32F2F',
+  userOp: '#F57C00',
+  userHalfop: '#1976D2',
+  userVoice: '#388E3C',
+  userNormal: '#212121',
+  highlightBackground: 'rgba(33, 150, 243, 0.1)',
+  highlightText: '#FF6F00',
+  selectionBackground: 'rgba(33, 150, 243, 0.12)',
+  overlayBackground: 'rgba(0, 0, 0, 0.5)',
+  codeBackground: '#F5F5F5',
+  codeText: '#212121',
+  linkColor: '#2196F3',
+  mentionColor: '#FF6F00',
+  timestampColor: '#9E9E9E',
+};
+
+const mockTheme = {
+  id: 'light',
+  name: 'Light',
+  isCustom: false,
+  colors: mockColors,
+  messageFormats: {
+    join: '{nick} has joined {channel}',
+    part: '{nick} has left {channel} [{reason}]',
+    quit: '{nick} has quit [{reason}]',
+    kick: '{nick} has kicked {target} from {channel} [{reason}]',
+    nick: '{oldNick} is now known as {newNick}',
+    invite: '{nick} invites you to {channel}',
+    topic: '{nick} changed the topic to: {topic}',
+  },
+};
+
+jest.mock('./src/services/ThemeService', () => ({
+  themeService: {
+    getCurrentTheme: jest.fn().mockReturnValue(mockTheme),
+    onThemeChange: jest.fn().mockReturnValue(jest.fn()),
+    getAllThemes: jest.fn().mockReturnValue([mockTheme]),
+    setTheme: jest.fn(),
+    getMessageFormat: jest.fn().mockReturnValue('{nick} has joined {channel}'),
+    setMessageFormat: jest.fn(),
+    resetMessageFormat: jest.fn(),
+    saveCustomTheme: jest.fn(),
+    deleteCustomTheme: jest.fn(),
+    exportTheme: jest.fn().mockReturnValue('{}'),
+    importTheme: jest.fn().mockReturnValue(mockTheme),
+    getColors: jest.fn().mockReturnValue(mockColors),
+    updateColor: jest.fn(),
+    resetColors: jest.fn(),
+  },
+  LIGHT_THEME: mockTheme,
+  DARK_THEME: { ...mockTheme, id: 'dark', name: 'Dark' },
+}));
 
 jest.mock('react-native-iap', () => ({
   initConnection: jest.fn().mockResolvedValue(true),

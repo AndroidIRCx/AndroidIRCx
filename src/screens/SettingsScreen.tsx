@@ -46,6 +46,7 @@ import { connectionManager } from '../services/ConnectionManager';
 import { ScriptingScreen } from './ScriptingScreen';
 import { ScriptingHelpScreen } from './ScriptingHelpScreen';
 import { BackupScreen } from './BackupScreen';
+import { MessageHistoryViewerScreen } from './MessageHistoryViewerScreen';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { adRewardService } from '../services/AdRewardService';
 import { subscriptionService } from '../services/SubscriptionService';
@@ -202,6 +203,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [backupData, setBackupData] = useState('');
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [showBackupScreen, setShowBackupScreen] = useState(false);
+  const [showHistoryViewer, setShowHistoryViewer] = useState(false);
   const [showKeyManagement, setShowKeyManagement] = useState(false);
   const [showZncSubscription, setShowZncSubscription] = useState(false);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
@@ -980,17 +982,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           style: 'destructive',
           onPress: async () => {
             if (currentNetwork) {
-              await messageHistoryService.deleteNetworkMessages(currentNetwork);
-              Alert.alert(
-                t('Success', { _tags: tags }),
-                t('Message history cleared', { _tags: tags })
-              );
-              loadHistoryStats();
-            }
+                await messageHistoryService.deleteNetworkMessages(currentNetwork);
+                Alert.alert(
+                  t('Success', { _tags: tags }),
+                  t('Message history cleared', { _tags: tags })
+                );
+                loadHistoryStats();
+                dataBackupService.getStorageStats().then(setStorageStats).catch(() => {});
+              }
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
   };
 
   // handleBatteryOptimization now comes from useSettingsNotifications hook
@@ -1444,6 +1447,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           ],
         },
         {
+          id: 'history-viewer',
+          title: t('History Viewer', { _tags: tags }),
+          description: t('Browse saved messages by network and channel', { _tags: tags }),
+          type: 'button' as const,
+          onPress: () => setShowHistoryViewer(true),
+          searchKeywords: ['history', 'logs', 'viewer', 'messages', 'channel', 'private', 'browse'],
+        },
+        {
           id: 'history-clear',
           title: t('Clear History', { _tags: tags }),
           description: t('Delete all stored message history', { _tags: tags }),
@@ -1459,6 +1470,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   style: 'destructive',
                   onPress: async () => {
                     await messageHistoryService.clearAll();
+                    loadHistoryStats();
+                    dataBackupService.getStorageStats().then(setStorageStats).catch(() => {});
                     Alert.alert(
           t('Success', { _tags: tags }),
           t('Message history cleared', { _tags: tags }));
@@ -2742,6 +2755,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <AboutScreen
         visible={showAbout}
         onClose={() => setShowAbout(false)}
+      />
+      <MessageHistoryViewerScreen
+        visible={showHistoryViewer}
+        onClose={() => setShowHistoryViewer(false)}
       />
       <CreditsScreen
         visible={showCredits}

@@ -112,6 +112,17 @@ class MessageHistoryBatching {
   getQueueSize(): number {
     return this.queue.length;
   }
+
+  /**
+   * Clear any queued messages without flushing
+   */
+  clearQueue(): void {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+    this.queue = [];
+  }
 }
 
 export const messageHistoryBatching = new MessageHistoryBatching();

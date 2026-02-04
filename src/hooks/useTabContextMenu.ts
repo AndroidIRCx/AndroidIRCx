@@ -28,6 +28,7 @@ import { serverTabId, sortTabsGrouped } from '../utils/tabUtils';
 import type { ChannelTab } from '../types';
 import { certificateManager } from '../services/CertificateManagerService';
 import { FingerprintFormat } from '../types/certificate';
+import { serviceCommandProvider } from '../services/ServiceCommandProvider';
 
 interface UseTabContextMenuParams {
   activeTabId: string | null;
@@ -85,13 +86,20 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       const svc = tabConnection?.ircService || ircService;
       const currentNick = svc?.getCurrentNick?.() || '';
       if (isTabConnected && currentNick) {
-        svc.sendCommand?.(`MODE ${currentNick}`);
+        // Use silent mode to avoid flooding server tab
+        if (svc.sendSilentMode) {
+          svc.sendSilentMode(currentNick);
+        } else {
+          // Fallback for older versions
+          svc.sendCommand?.(`MODE ${currentNick}`);
+        }
       }
       const isServerOper = typeof svc?.isServerOper === 'function' ? svc.isServerOper() : false;
 
       if (isTabConnected) {
         options.push({
-          text: `Disconnect ${tab.networkId}`,
+          text: t('Disconnect {network}', { network: tab.networkId }),
+          icon: 'lan-disconnect',
           onPress: () => {
             connectionManager.disconnect(tab.networkId);
             setActiveConnectionId(connectionManager.getActiveNetworkId());
@@ -104,6 +112,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         if (networkConfig?.clientCert) {
           options.push({
             text: t('View Certificate Fingerprint'),
+            icon: 'certificate',
             onPress: async () => {
               try {
                 const fingerprint = certificateManager.extractFingerprintFromPem(networkConfig.clientCert!);
@@ -141,6 +150,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
 
           options.push({
             text: t('Share Cert with NickServ'),
+            icon: 'share-variant',
             onPress: async () => {
               try {
                 const fingerprint = certificateManager.extractFingerprintFromPem(networkConfig.clientCert!);
@@ -165,7 +175,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         }
       } else {
         options.push({
-          text: `Connect ${tab.networkId}`,
+          text: t('Connect {network}', { network: tab.networkId }),
+          icon: 'lan-connect',
           onPress: async () => {
             const networkConfig = await getNetworkConfigForId(tab.networkId);
             if (networkConfig) {
@@ -187,27 +198,31 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       }
 
       options.push({
-        text: 'Browse Channels',
+        text: t('Browse Channels'),
+        icon: 'forum-outline',
         onPress: () => {
           setActiveTabId(tab.id);
           useUIStore.getState().setShowChannelList(true);
         },
       });
       options.push({
-        text: 'Close All Channels + PVTS',
+        text: t('Close All Channels + PVTS'),
+        icon: 'close-box-multiple',
         onPress: async () => {
           useUIStore.getState().setShowTabOptionsModal(false);
           await closeAllChannelsAndQueries(tab.networkId);
         },
       });
       options.push({
-        text: 'Connect Another Network',
+        text: t('Connect Another Network'),
+        icon: 'plus-network',
         onPress: () => {
           useUIStore.getState().setShowNetworksList(true);
         },
       });
       options.push({
-        text: 'Rename Server Tab',
+        text: t('Rename Server Tab'),
+        icon: 'rename-box',
         onPress: () => {
           useUIStore.getState().setRenameTargetTabId(tab.id);
           useUIStore.getState().setRenameValue(tab.name);
@@ -216,7 +231,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       });
       if (isServerOper) {
         options.push({
-          text: 'IRCop Commands',
+          text: t('IRCop Commands'),
+          icon: 'shield-account',
           onPress: () => {
             const ircopOptions = [
               { text: 'ADMIN', onPress: () => svc.sendCommand('ADMIN') },
@@ -300,7 +316,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       }
       if (!isPrimaryServer) {
         options.push({
-          text: 'Close Server Tab',
+          text: t('Close Server Tab'),
+          icon: 'close-circle',
           onPress: async () => {
             useUIStore.getState().setShowTabOptionsModal(false);
             if (tabConnection) {
@@ -351,7 +368,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         isBookmarked = false;
       }
       options.push({
-        text: 'Leave Channel',
+        text: t('Leave Channel'),
+        icon: 'exit-to-app',
         onPress: async () => {
           const activeIRCService = getActiveIRCService();
           const partMessage = await settingsService.getSetting('partMessage', DEFAULT_PART_MESSAGE);
@@ -364,9 +382,10 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         },
         style: 'destructive',
       });
-      const channelEncLabel = tab.sendEncrypted ? 'Send Plaintext (Unlock)' : 'Send Encrypted (Lock)';
+      const channelEncLabel = tab.sendEncrypted ? t('Send Plaintext (Unlock)') : t('Send Encrypted (Lock)');
       options.push({
         text: channelEncLabel,
+        icon: tab.sendEncrypted ? 'lock-open' : 'lock',
         onPress: async () => {
           if (!tab.sendEncrypted) {
             const hasKey = await channelEncryptionService.hasChannelKey(tab.name, tab.networkId);
@@ -401,7 +420,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       const hasBundle = await encryptedDMService.isEncryptedForNetwork(network, tab.name);
 
       options.push({
-        text: `Always Encrypt: ${alwaysEncryptEnabled ? 'ON' : 'OFF'}`,
+        text: t('Always Encrypt: {status}', { status: alwaysEncryptEnabled ? 'ON' : 'OFF' }),
+        icon: 'shield-lock',
         onPress: async () => {
           const newValue = await channelEncryptionSettingsService.toggleAlwaysEncrypt(tab.name, tab.networkId);
           if (newValue && !hasBundle) {
@@ -416,7 +436,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       });
 
       options.push({
-        text: 'Close Query',
+        text: t('Close Query'),
+        icon: 'close-circle',
         onPress: async () => {
           const activeIRCService = getActiveIRCService();
           tabService.removeTab(tab.networkId, tab.id);
@@ -437,7 +458,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         style: 'destructive',
       });
       options.push({
-        text: 'Share DM Key',
+        text: t('Share DM Key'),
+        icon: 'key-variant',
         onPress: async () => {
           try {
             const bundle = await encryptedDMService.exportBundle();
@@ -462,7 +484,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         },
       });
       options.push({
-        text: 'Request DM Key',
+        text: t('Request DM Key'),
+        icon: 'key-plus',
         onPress: () => {
           const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
           svc.sendRaw(`PRIVMSG ${tab.name} :!enc-req`);
@@ -475,9 +498,10 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           useUIStore.getState().setShowTabOptionsModal(false);
         },
       });
-      const queryEncLabel = tab.sendEncrypted ? 'Send Plaintext (Unlock)' : 'Send Encrypted (Lock)';
+      const queryEncLabel = tab.sendEncrypted ? t('Send Plaintext (Unlock)') : t('Send Encrypted (Lock)');
       options.push({
         text: queryEncLabel,
+        icon: tab.sendEncrypted ? 'lock-open' : 'lock',
         onPress: async () => {
           if (!tab.sendEncrypted) {
             const network = tab.networkId || '';
@@ -507,7 +531,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         },
       });
       options.push({
-        text: 'WHOIS',
+        text: t('WHOIS'),
+        icon: 'account-search',
         onPress: () => {
           useUIStore.getState().setWhoisNick(tab.name);
           useUIStore.getState().setShowWHOIS(true);
@@ -515,14 +540,16 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         },
       });
       options.push({
-        text: 'Start DCC Chat',
+        text: t('Start DCC Chat'),
+        icon: 'chat',
         onPress: () => {
           dccChatService.initiateChat(getActiveIRCService(), tab.name, tab.networkId);
           useUIStore.getState().setShowTabOptionsModal(false);
         },
       });
       options.push({
-        text: 'Offer DCC Send',
+        text: t('Offer DCC Send'),
+        icon: 'file-send',
         onPress: () => {
           useUIStore.getState().setDccSendTarget({ nick: tab.name, networkId: tab.networkId });
           useUIStore.getState().setShowDccSendModal(true);
@@ -530,7 +557,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         },
       });
       options.push({
-        text: 'WHOWAS',
+        text: t('WHOWAS'),
+        icon: 'history',
         onPress: () => {
           const conn = connectionManager.getConnection(tab.networkId);
           (conn?.ircService || getActiveIRCService()).sendCommand(`WHOWAS ${tab.name}`);
@@ -538,7 +566,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         },
       });
       options.push({
-        text: 'Ignore User',
+        text: t('Ignore User'),
+        icon: 'account-off',
         onPress: async () => {
           const svc = connectionManager.getConnection(tab.networkId)?.userManagementService || getActiveUserManagementService();
           await svc.ignoreUser(tab.name, undefined, tab.networkId);
@@ -548,7 +577,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
 
       // Add blacklist option for queries
       options.push({
-        text: 'Blacklist',
+        text: t('Blacklist'),
+        icon: 'block-helper',
         onPress: () => {
           useUIStore.getState().setShowBlacklist(true);
           useUIStore.getState().setBlacklistTarget({
@@ -563,7 +593,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
     // Option for Channel Settings
     if (tab.type === 'channel') {
       options.push({
-        text: 'Generate Channel Key',
+        text: t('Generate Channel Key'),
+        icon: 'key-plus',
         onPress: async () => {
           try {
             await channelEncryptionService.generateChannelKey(tab.name, tab.networkId);
@@ -584,7 +615,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         },
       });
       options.push({
-        text: 'Channel Settings',
+        text: t('Channel Settings'),
+        icon: 'cog',
         onPress: () => {
           useUIStore.getState().setChannelSettingsTarget(tab.name);
           useUIStore.getState().setChannelSettingsNetwork(tab.networkId);
@@ -597,14 +629,15 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       const hasEncKey = await channelEncryptionService.hasChannelKey(tab.name, tab.networkId);
 
       options.push({
-        text: `Always Encrypt: ${alwaysEncryptEnabled ? 'ON' : 'OFF'}`,
+        text: t('Always Encrypt: {status}', { status: alwaysEncryptEnabled ? 'ON' : 'OFF' }),
+        icon: 'shield-lock',
         onPress: async () => {
           const newValue = await channelEncryptionSettingsService.toggleAlwaysEncrypt(tab.name, tab.networkId);
           if (newValue && !hasEncKey) {
             Alert.alert(
-              'No Encryption Key',
-              'Always-encrypt is now enabled, but no encryption key exists. Generate or request a key to enable encryption.',
-              [{ text: 'OK' }]
+              t('No Encryption Key'),
+              t('Always-encrypt is now enabled, but no encryption key exists. Generate or request a key to enable encryption.'),
+              [{ text: t('OK') }]
             );
           }
           useUIStore.getState().setShowTabOptionsModal(false);
@@ -613,16 +646,17 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
 
       if (!hasEncKey) {
         options.push({
-          text: 'Request Encryption Key',
+          text: t('Request Encryption Key'),
+          icon: 'key-arrow-right',
           onPress: () => {
             useUIStore.getState().setShowTabOptionsModal(false);
             Alert.prompt(
-              'Request Key',
-              'Enter the nickname to request the encryption key from:',
+              t('Request Key'),
+              t('Enter the nickname to request the encryption key from:'),
               [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('Cancel'), style: 'cancel' },
                 {
-                  text: 'Request',
+                  text: t('Request'),
                   onPress: (nick?: string) => {
                     if (nick && nick.trim()) {
                       const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
@@ -645,16 +679,17 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         });
       } else {
         options.push({
-          text: 'Share Encryption Key',
+          text: t('Share Encryption Key'),
+          icon: 'key-variant',
           onPress: () => {
             useUIStore.getState().setShowTabOptionsModal(false);
             Alert.prompt(
-              'Share Key',
-              'Enter the nickname to share the encryption key with:',
+              t('Share Key'),
+              t('Enter the nickname to share the encryption key with:'),
               [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('Cancel'), style: 'cancel' },
                 {
-                  text: 'Share',
+                  text: t('Share'),
                   onPress: (nick?: string) => {
                     if (nick && nick.trim()) {
                       const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
@@ -678,14 +713,16 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       }
 
       options.push({
-        text: isBookmarked ? 'Remove Channel Bookmark' : 'Bookmark Channel',
+        text: isBookmarked ? t('Remove Channel Bookmark') : t('Bookmark Channel'),
+        icon: isBookmarked ? 'bookmark-off' : 'bookmark',
         onPress: async () => {
           await channelNotesService.setBookmarked(tab.networkId, tab.name, !isBookmarked);
           useUIStore.getState().setShowTabOptionsModal(false);
         },
       });
       options.push({
-        text: 'Edit Channel Note',
+        text: t('Edit Channel Note'),
+        icon: 'note-edit',
         onPress: async () => {
           const note = await channelNotesService.getNote(tab.networkId, tab.name);
           useUIStore.getState().setChannelNoteTarget({ networkId: tab.networkId, channel: tab.name });
@@ -694,7 +731,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         },
       });
       options.push({
-        text: 'View Activity Log',
+        text: t('View Activity Log'),
+        icon: 'history',
         onPress: async () => {
           const log = await channelNotesService.getLog(tab.networkId, tab.name);
           useUIStore.getState().setChannelNoteTarget({ networkId: tab.networkId, channel: tab.name });
@@ -705,7 +743,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
 
       // Add blacklist option
       options.push({
-        text: 'Blacklist',
+        text: t('Blacklist'),
+        icon: 'block-helper',
         onPress: () => {
           useUIStore.getState().setShowBlacklist(true);
           useUIStore.getState().setBlacklistTarget({
@@ -715,6 +754,170 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           });
         },
       });
+
+      // IRC Services (ChanServ) commands
+      const channelServiceCommands = serviceCommandProvider.getServiceCommands(tab.networkId, 'chanserv');
+      if (channelServiceCommands.length > 0) {
+        options.push({
+          text: t('IRC Services') + ' >',
+          icon: 'server',
+          onPress: () => {
+            const chanserv = channelServiceCommands[0]?.service || 'ChanServ';
+            const serviceOptions = [
+              {
+                text: t('OP (Give Op)'),
+                icon: 'shield-account',
+                onPress: () => {
+                  const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                  svc.sendRaw(`PRIVMSG ${chanserv} :OP ${tab.name}`);
+                  useUIStore.getState().setShowTabOptionsModal(false);
+                },
+              },
+              {
+                text: t('DEOP (Remove Op)'),
+                icon: 'shield-off',
+                onPress: () => {
+                  const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                  svc.sendRaw(`PRIVMSG ${chanserv} :DEOP ${tab.name}`);
+                  useUIStore.getState().setShowTabOptionsModal(false);
+                },
+              },
+              {
+                text: t('VOICE (Give Voice)'),
+                icon: 'microphone',
+                onPress: () => {
+                  const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                  svc.sendRaw(`PRIVMSG ${chanserv} :VOICE ${tab.name}`);
+                  useUIStore.getState().setShowTabOptionsModal(false);
+                },
+              },
+              {
+                text: t('DEVOICE (Remove Voice)'),
+                icon: 'microphone-off',
+                onPress: () => {
+                  const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                  svc.sendRaw(`PRIVMSG ${chanserv} :DEVOICE ${tab.name}`);
+                  useUIStore.getState().setShowTabOptionsModal(false);
+                },
+              },
+              {
+                text: t('KICK (Remove User)'),
+                icon: 'account-remove',
+                onPress: () => {
+                  Alert.prompt(
+                    t('Kick User'),
+                    t('Enter nickname to kick:'),
+                    [
+                      { text: t('Cancel'), style: 'cancel' },
+                      {
+                        text: t('Kick'),
+                        onPress: (nick?: string) => {
+                          if (nick?.trim()) {
+                            const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                            svc.sendRaw(`PRIVMSG ${chanserv} :KICK ${tab.name} ${nick.trim()}`);
+                          }
+                        },
+                      },
+                    ],
+                    'plain-text'
+                  );
+                },
+              },
+              {
+                text: t('BAN (Ban User)'),
+                icon: 'cancel',
+                onPress: () => {
+                  Alert.prompt(
+                    t('Ban User'),
+                    t('Enter nickname or mask to ban:'),
+                    [
+                      { text: t('Cancel'), style: 'cancel' },
+                      {
+                        text: t('Ban'),
+                        onPress: (mask?: string) => {
+                          if (mask?.trim()) {
+                            const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                            svc.sendRaw(`PRIVMSG ${chanserv} :BAN ${tab.name} ${mask.trim()}`);
+                          }
+                        },
+                      },
+                    ],
+                    'plain-text'
+                  );
+                },
+              },
+              {
+                text: t('UNBAN (Remove Ban)'),
+                icon: 'account-check',
+                onPress: () => {
+                  Alert.prompt(
+                    t('Unban User'),
+                    t('Enter nickname or mask to unban:'),
+                    [
+                      { text: t('Cancel'), style: 'cancel' },
+                      {
+                        text: t('Unban'),
+                        onPress: (mask?: string) => {
+                          if (mask?.trim()) {
+                            const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                            svc.sendRaw(`PRIVMSG ${chanserv} :UNBAN ${tab.name} ${mask.trim()}`);
+                          }
+                        },
+                      },
+                    ],
+                    'plain-text'
+                  );
+                },
+              },
+              {
+                text: t('TOPIC (Set Topic)'),
+                icon: 'text',
+                onPress: () => {
+                  Alert.prompt(
+                    t('Set Topic'),
+                    t('Enter new topic:'),
+                    [
+                      { text: t('Cancel'), style: 'cancel' },
+                      {
+                        text: t('Set'),
+                        onPress: (topic?: string) => {
+                          if (topic !== undefined) {
+                            const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                            svc.sendRaw(`PRIVMSG ${chanserv} :TOPIC ${tab.name} ${topic}`);
+                          }
+                        },
+                      },
+                    ],
+                    'plain-text'
+                  );
+                },
+              },
+              {
+                text: t('INFO (Channel Info)'),
+                icon: 'information',
+                onPress: () => {
+                  const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                  svc.sendRaw(`PRIVMSG ${chanserv} :INFO ${tab.name}`);
+                  useUIStore.getState().setShowTabOptionsModal(false);
+                },
+              },
+              {
+                text: t('AKICK (Auto-kick List)'),
+                icon: 'format-list-bulleted',
+                onPress: () => {
+                  const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
+                  svc.sendRaw(`PRIVMSG ${chanserv} :AKICK ${tab.name} LIST`);
+                  useUIStore.getState().setShowTabOptionsModal(false);
+                },
+              },
+              { text: t('Cancel'), style: 'cancel', onPress: () => {} },
+            ];
+            useUIStore.getState().setTabOptionsTitle(t('IRC Services: {channel}', { channel: tab.name }));
+            useUIStore.getState().setTabOptions(serviceOptions);
+            useUIStore.getState().setShowTabOptionsModal(true);
+          },
+        });
+      }
     }
 
     // Option to add/remove from favorites
@@ -724,7 +927,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
     const isFav = await channelFavoritesService.isFavorite(baseNetworkId, tab.name);
     if (isFav) {
       options.push({
-        text: 'Remove from Favorites',
+        text: t('Remove from Favorites'),
+        icon: 'star-off',
         onPress: async () => {
           await channelFavoritesService.removeFavorite(baseNetworkId, tab.name);
           useUIStore.getState().setShowTabOptionsModal(true);
@@ -732,7 +936,8 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       });
     } else if (tab.type === 'channel') { // Only channels can be favorited
       options.push({
-        text: 'Add to Favorites',
+        text: t('Add to Favorites'),
+        icon: 'star',
         onPress: async () => {
           await channelFavoritesService.addFavorite(baseNetworkId, tab.name);
           useUIStore.getState().setShowTabOptionsModal(true);
@@ -740,9 +945,9 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       });
     }
 
-    options.push({ text: 'Cancel', style: 'cancel', onPress: () => useUIStore.getState().setShowTabOptionsModal(false) });
+    options.push({ text: t('Cancel'), style: 'cancel', onPress: () => useUIStore.getState().setShowTabOptionsModal(false) });
 
-    useUIStore.getState().setTabOptionsTitle(`${tab.type === 'channel' ? 'Channel' : 'Query'}: ${tab.name}`);
+    useUIStore.getState().setTabOptionsTitle(tab.type === 'channel' ? t('Channel: {name}', { name: tab.name }) : t('Query: {name}', { name: tab.name }));
     useUIStore.getState().setTabOptions(options);
     useUIStore.getState().setShowTabOptionsModal(true);
   }, [

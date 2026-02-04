@@ -498,7 +498,7 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
     {
       id: 'default_ban_type',
       title: t('Default Ban Type', { _tags: tags }),
-      description: t('Select the default ban mask type (0-9)', { _tags: tags }),
+      description: t('Select the default ban mask type (0-11)', { _tags: tags }),
       type: 'button',
       onPress: () => setShowBanTypeModal(true),
     },
@@ -861,6 +861,8 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
                 { id: 7, label: '7 - nick!*@host', desc: t('Ban nick with any user@host', { _tags: tags }) },
                 { id: 8, label: '8 - nick!*user@*.host', desc: t('Ban nick with *user@*.domain', { _tags: tags }) },
                 { id: 9, label: '9 - nick!*@*.host', desc: t('Ban nick with *.domain', { _tags: tags }) },
+                { id: 10, label: '10 - nick!*@*', desc: t('Ban by nick only (any ident@host)', { _tags: tags }) },
+                { id: 11, label: '11 - *!ident@*', desc: t('Ban by ident only (any nick@host)', { _tags: tags }) },
               ].map((bt) => (
                 <TouchableOpacity
                   key={bt.id}

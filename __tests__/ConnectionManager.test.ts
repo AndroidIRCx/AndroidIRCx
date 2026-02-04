@@ -11,10 +11,19 @@ jest.mock('../src/services/IRCService', () => {
       connect: jest.fn().mockResolvedValue(undefined),
       addRawMessage: jest.fn(),
       setNetworkId: jest.fn(),
-      on: jest.fn(),
+      setUserManagementService: jest.fn(),
+      on: jest.fn(() => () => {}),
+      onConnectionChange: jest.fn(() => () => {}),
+      onMessage: jest.fn(() => () => {}),
       sendRaw: jest.fn(),
       getConnectionStatus: jest.fn(() => false),
       disconnect: jest.fn(),
+      isSaslAvailable: jest.fn(() => false),
+      isSaslAuthenticating: jest.fn(() => false),
+      isSaslExternal: jest.fn(() => false),
+      isSaslPlain: jest.fn(() => false),
+      getSaslAccount: jest.fn(() => undefined),
+      getCurrentNick: jest.fn(() => 'testnick'),
     })),
   };
 });
@@ -50,6 +59,53 @@ jest.mock('../src/services/STSService', () => ({
 }));
 jest.mock('../src/services/CommandService', () => ({
   CommandService: serviceStub('CommandService'),
+}));
+
+jest.mock('../src/services/AutoAuthService', () => ({
+  createAutoAuthService: jest.fn(() => ({
+    authenticate: jest.fn().mockResolvedValue({ success: true, method: 'nickserv' }),
+    isAuthenticated: jest.fn(() => false),
+    getStatus: jest.fn(() => ({ attempted: false, completed: false, method: 'nickserv' })),
+    updateSaslStatus: jest.fn(),
+    reset: jest.fn(),
+    destroy: jest.fn(),
+  })),
+  AutoAuthService: jest.fn(),
+}));
+
+jest.mock('../src/services/ServiceDetectionService', () => ({
+  serviceDetectionService: {
+    initializeNetwork: jest.fn(),
+    cleanupNetwork: jest.fn(),
+    onDetection: jest.fn(() => () => {}),
+    processISupport: jest.fn(),
+    processNetworkName: jest.fn(),
+    getDetectionResult: jest.fn(() => undefined),
+    getServiceConfig: jest.fn(() => undefined),
+  },
+  ServiceDetectionService: jest.fn(),
+}));
+
+jest.mock('../src/services/ServiceCommandProvider', () => ({
+  serviceCommandProvider: {
+    clearCache: jest.fn(),
+  },
+}));
+
+jest.mock('../src/services/AutoReconnectService', () => ({
+  autoReconnectService: {
+    registerConnection: jest.fn(),
+    unregisterConnection: jest.fn(),
+  },
+}));
+
+jest.mock('../src/services/IRCForegroundService', () => ({
+  ircForegroundService: {
+    isServiceRunning: jest.fn(() => false),
+    start: jest.fn().mockResolvedValue(undefined),
+    stop: jest.fn().mockResolvedValue(undefined),
+    updateNotification: jest.fn().mockResolvedValue(undefined),
+  },
 }));
 
 import { IRCNetworkConfig } from '../src/services/SettingsService';

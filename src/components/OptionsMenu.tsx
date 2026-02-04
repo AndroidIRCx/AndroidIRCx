@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useEffect } from 'react';
-import { Modal, TouchableOpacity, View, Text } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { Modal, TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import { useT } from '../i18n/transifex';
+import { useTheme } from '../hooks/useTheme';
 import { useUIStore } from '../stores/uiStore';
 import { connectionManager } from '../services/ConnectionManager';
 import { sortTabsGrouped } from '../utils/tabUtils';
@@ -41,7 +44,47 @@ export const OptionsMenu: React.FC<OptionsMenuProps> = ({
   setActiveConnectionId,
   styles,
 }) => {
+  const t = useT();
+  const { colors } = useTheme();
   const uiStore = useUIStore.getState();
+  const iconColor = styles?.optionText?.color || colors.text || '#000000';
+  const destructiveColor = styles?.destructiveOption?.color || colors.error || '#EF5350';
+  const localStyles = useMemo(() => StyleSheet.create({
+    menuBox: {
+      backgroundColor: styles?.optionsMenu?.backgroundColor || colors.surface || '#FFFFFF',
+      borderRadius: 12,
+      elevation: 24,
+      width: 300,
+      maxWidth: '92%',
+      padding: 6,
+      overflow: 'hidden',
+      zIndex: 1000,
+      borderWidth: 1,
+      borderColor: colors.border || '#2A2A2A',
+    },
+    optionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+    },
+    optionGroupDivider: {
+      height: 1,
+      backgroundColor: colors.border || '#2A2A2A',
+      marginVertical: 4,
+      opacity: 0.6,
+    },
+    optionText: {
+      color: styles?.optionText?.color || colors.text || '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    optionTextDanger: {
+      color: destructiveColor,
+    },
+  }), [colors, destructiveColor, styles]);
 
   const handleJoinChannel = () => {
     onClose();
@@ -140,68 +183,103 @@ export const OptionsMenu: React.FC<OptionsMenuProps> = ({
           onPress={onClose}
         />
         <View 
-          style={{
-            backgroundColor: styles?.optionsMenu?.backgroundColor || '#FFFFFF',
-            borderRadius: 8,
-            elevation: 24,
-            width: 280,
-            maxWidth: '90%',
-            padding: 0,
-            overflow: 'hidden',
-            zIndex: 1000,
-          }}
+          style={localStyles.menuBox}
           pointerEvents="box-none">
           <View pointerEvents="auto">
             {isConnected ? (
               <>
                 <TouchableOpacity style={styles?.optionItem} onPress={handleJoinChannel}>
-                  <Text style={styles?.optionText}>Join Channel</Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="hashtag" size={14} color={iconColor} />
+                    <Text style={localStyles.optionText}>{t('Join Channel')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles?.optionItem} onPress={handleCloseAllChannels}>
-                  <Text style={styles?.optionText}>Close All Channels</Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="times-circle" size={14} color={iconColor} />
+                    <Text style={localStyles.optionText}>{t('Close All Channels')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles?.optionItem} onPress={handleCloseAllPrivates}>
-                  <Text style={styles?.optionText}>Close All Privates</Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="comment-slash" size={14} color={iconColor} />
+                    <Text style={localStyles.optionText}>{t('Close All Privates')}</Text>
+                  </View>
                 </TouchableOpacity>
+                <View style={localStyles.optionGroupDivider} />
                 <TouchableOpacity style={styles?.optionItem} onPress={handleDisconnect}>
-                  <Text style={[styles?.optionText, styles?.destructiveOption]}>
-                    {`Disconnect ${networkName || ''}`}
-                  </Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="power-off" size={14} color={destructiveColor} />
+                    <Text style={[localStyles.optionText, localStyles.optionTextDanger]}>
+                      {networkName ? t('Disconnect {network}', { network: networkName }) : t('Disconnect')}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles?.optionItem} onPress={handleConnectAnother}>
-                  <Text style={styles?.optionText}>Connect Another Network</Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="network-wired" size={14} color={iconColor} />
+                    <Text style={localStyles.optionText}>{t('Connect Another Network')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles?.optionItem} onPress={handleBrowseChannels}>
-                  <Text style={styles?.optionText}>Browse Channels</Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="list" size={14} color={iconColor} />
+                    <Text style={localStyles.optionText}>{t('Browse Channels')}</Text>
+                  </View>
                 </TouchableOpacity>
               </>
             ) : (
               <>
                 <TouchableOpacity style={styles?.optionItem} onPress={handleConnectDefault}>
-                  <Text style={styles?.optionText}>Connect to Default</Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="plug" size={14} color={iconColor} />
+                    <Text style={localStyles.optionText}>{t('Connect to Default')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles?.optionItem} onPress={handleConnectAnother}>
-                  <Text style={styles?.optionText}>Choose Network</Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="network-wired" size={14} color={iconColor} />
+                    <Text style={localStyles.optionText}>{t('Choose Network')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles?.optionItem} onPress={handleCloseAllChannels}>
-                  <Text style={styles?.optionText}>Close All Channels</Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="times-circle" size={14} color={iconColor} />
+                    <Text style={localStyles.optionText}>{t('Close All Channels')}</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles?.optionItem} onPress={handleCloseAllPrivates}>
-                  <Text style={styles?.optionText}>Close All Privates</Text>
+                  <View style={localStyles.optionRow}>
+                    <Icon name="comment-slash" size={14} color={iconColor} />
+                    <Text style={localStyles.optionText}>{t('Close All Privates')}</Text>
+                  </View>
                 </TouchableOpacity>
               </>
             )}
+            <View style={localStyles.optionGroupDivider} />
             <TouchableOpacity style={styles?.optionItem} onPress={handleDccTransfers}>
-              <Text style={styles?.optionText}>DCC Transfers</Text>
+              <View style={localStyles.optionRow}>
+                <Icon name="exchange-alt" size={14} color={iconColor} />
+                <Text style={localStyles.optionText}>{t('DCC Transfers')}</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity style={styles?.optionItem} onPress={handleToggleRaw}>
-              <Text style={styles?.optionText}>{showRawCommands ? 'Hide RAW' : 'Show RAW'}</Text>
+              <View style={localStyles.optionRow}>
+                <Icon name="terminal" size={14} color={iconColor} />
+                <Text style={localStyles.optionText}>{showRawCommands ? t('Hide RAW') : t('Show RAW')}</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity style={styles?.optionItem} onPress={handleExitApp}>
-              <Text style={[styles?.optionText, styles?.destructiveOption]}>Exit</Text>
+              <View style={localStyles.optionRow}>
+                <Icon name="door-open" size={14} color={destructiveColor} />
+                <Text style={[localStyles.optionText, localStyles.optionTextDanger]}>{t('Exit')}</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity style={styles?.optionItem} onPress={onClose}>
-              <Text style={styles?.optionText}>Cancel</Text>
+              <View style={localStyles.optionRow}>
+                <Icon name="times" size={14} color={iconColor} />
+                <Text style={localStyles.optionText}>{t('Cancel')}</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>

@@ -147,8 +147,19 @@ export const createStyles = (colors: any) => StyleSheet.create({
   bannerAdContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+    minHeight: 50,
+    flexShrink: 0,
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
+  },
+  bannerAdHidden: {
+    height: 0,
+    minHeight: 0,
+    paddingVertical: 0,
+    borderTopWidth: 0,
+    opacity: 0,
+    overflow: 'hidden',
   },
 });

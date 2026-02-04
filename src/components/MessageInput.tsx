@@ -31,11 +31,12 @@ import { MediaPickResult } from '../services/MediaPickerService';
 import { IRC_FORMAT_CODES, stripIRCFormatting } from '../utils/IRCFormatter';
 import { repairMojibake } from '../utils/EncodingUtils';
 import { ColorPalettePicker } from './ColorPalettePicker';
+import { useServiceCommands } from '../hooks/useServiceCommands';
 
 type MessageInputSuggestion = {
   text: string;
   description?: string;
-  source: 'command' | 'alias' | 'history' | 'nick';
+  source: 'command' | 'alias' | 'history' | 'nick' | 'service';
 };
 
 type PendingNickReplacement = {
@@ -421,6 +422,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     };
   }, []);
 
+  // Service commands integration
+  const serviceCommands = useServiceCommands({
+    networkId: network || connectionManager.getActiveNetworkId() || '',
+    currentChannel: tabType === 'channel' ? tabName : undefined,
+  });
+
   const scoreAliasForContext = (command: string): number => {
     // Simple heuristic: prefer channel aliases on channels, user aliases on queries, otherwise neutral
     const lower = command.toLowerCase();
@@ -649,9 +656,26 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         .map(nick => ({ text: nick, source: 'nick' as const }));
     }
 
-    // Merge: commands first, then aliases, then history, then nick matches - dedupe by text
+    // Service command suggestions (from detected IRC services)
+    let serviceMatches: MessageInputSuggestion[] = [];
+    if (text.startsWith('/') && serviceCommands.isDetected) {
+      const query = text.slice(1).toLowerCase();
+      // Only suggest service commands for specific prefixes
+      if (query.startsWith('ns') || query.startsWith('cs') || query.startsWith('hs') || 
+          query.startsWith('os') || query.startsWith('ms') || query.startsWith('bs') ||
+          query.startsWith('msg ') || query.startsWith('/msg ')) {
+        const serviceSuggestions = serviceCommands.getSuggestions(query);
+        serviceMatches = serviceSuggestions.map(s => ({
+          text: s.isAlias ? s.text : `/msg ${s.serviceNick} ${s.text}`,
+          description: s.description,
+          source: 'service' as const,
+        })).slice(0, 4);
+      }
+    }
+
+    // Merge: commands first, then aliases, then service commands, then history, then nick matches - dedupe by text
     const merged: MessageInputSuggestion[] = [];
-    [...commandMatches, ...aliasMatches, ...historyMatches, ...nickMatches].forEach(item => {
+    [...commandMatches, ...aliasMatches, ...serviceMatches, ...historyMatches, ...nickMatches].forEach(item => {
       if (!merged.some(m => m.text.toLowerCase() === item.text.toLowerCase())) {
         merged.push({ text: item.text, description: (item as any).description, source: item.source });
       }

@@ -174,12 +174,41 @@ const cloneMessageFormats = (
   formats?: ThemeMessageFormats,
 ): ThemeMessageFormats | undefined => (formats ? JSON.parse(JSON.stringify(formats)) : undefined);
 
+/**
+ * Preporučena podešavanja koja se primenjuju kada se izabere tema
+ * Ovo omogućava temama da definišu kompletan izgled aplikacije
+ */
+export interface ThemeRecommendedSettings {
+  // Appearance
+  tabPosition?: 'top' | 'bottom';
+  userListSize?: number;
+  userListNickFontSize?: number;
+  nickListTongueSize?: number;
+  fontSize?: 'small' | 'medium' | 'large' | 'xlarge';
+  messageSpacing?: number;
+  messagePadding?: number;
+  navigationBarOffset?: number;
+  
+  // Display & UI
+  noticeRouting?: 'server' | 'active' | 'both';
+  showTimestamps?: boolean;
+  groupMessages?: boolean;
+  messageTextAlignment?: 'left' | 'center' | 'right';
+  messageTextDirection?: 'auto' | 'ltr' | 'rtl';
+  timestampDisplay?: 'always' | 'hover' | 'never';
+  timestampFormat?: '12h' | '24h';
+  bannerPosition?: 'above_header' | 'below_header' | 'bottom' | 'input_above' | 'input_below' | 'tabs_above' | 'tabs_below';
+  keyboardBehavior?: 'height' | 'padding' | 'none';
+}
+
 export interface Theme {
   id: string;
   name: string;
   colors: ThemeColors;
   messageFormats?: ThemeMessageFormats;
   isCustom: boolean;
+  /** Preporučena podešavanja koja se mogu automatski primeniti sa temom */
+  recommendedSettings?: ThemeRecommendedSettings;
 }
 
 
@@ -307,7 +336,26 @@ class ThemeService {
     return this.normalizeThemeColors(this.currentTheme.colors);
   }
 
-  async setTheme(themeId: string): Promise<void> {
+  /**
+   * Vraća preporučena podešavanja za trenutno aktivnu temu
+   */
+  getRecommendedSettings(): ThemeRecommendedSettings | undefined {
+    return this.currentTheme.recommendedSettings;
+  }
+
+  /**
+   * Proverava da li trenutna tema ima preporučena podešavanja
+   */
+  hasRecommendedSettings(): boolean {
+    return !!this.currentTheme.recommendedSettings && 
+           Object.keys(this.currentTheme.recommendedSettings).length > 0;
+  }
+
+  /**
+   * Postavlja temu i opciono vraća preporučena podešavanja za primenu
+   * @returns Preporučena podešavanja za temu (ako postoje)
+   */
+  async setTheme(themeId: string): Promise<ThemeRecommendedSettings | undefined> {
     if (themeId === 'dark') {
       this.currentTheme = this.normalizeTheme(DARK_THEME);
     } else if (themeId === 'light') {
@@ -331,6 +379,9 @@ class ThemeService {
     }
 
     this.notifyListeners();
+    
+    // Vraća preporučena podešavanja koja UI može primeniti
+    return this.currentTheme.recommendedSettings;
   }
 
   getAvailableThemes(): Theme[] {

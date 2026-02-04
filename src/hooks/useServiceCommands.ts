@@ -131,12 +131,12 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
   }, [networkId]);
 
   // Get available channels from store
-  const availableChannels = useTabStore(useCallback(
-    (state) => state.tabs
+  const tabs = useTabStore((state) => state.tabs);
+  const availableChannels = useMemo(() => {
+    return tabs
       .filter(t => t.type === 'channel' && t.networkId === networkId)
-      .map(t => t.name),
-    [networkId]
-  ));
+      .map(t => t.name);
+  }, [tabs, networkId]);
 
   // Update available channels in context
   useEffect(() => {
