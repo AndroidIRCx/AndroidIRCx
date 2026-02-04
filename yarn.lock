@@ -2687,22 +2687,22 @@
   resolved "https://registry.yarnpkg.com/@react-native-documents/picker/-/picker-12.0.1.tgz#ea59796175308be9818dd9e8f14a41145c35042b"
   integrity sha512-vpJKb4t/5bnxe9+gQl+plJfKrrIsmYwANGhNH2B9E1dS1+6FDBzg4Dwmcq4ueaGfkRKEPJ606mJttVEH1ZKZaA==
 
-"@react-native-firebase/app-check@^23.8.5":
-  version "23.8.5"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/app-check/-/app-check-23.8.5.tgz#f31adb9bee94fb569898bf6349943abe065722d0"
-  integrity sha512-2FlhVNchj0KEo9WQUA1MvGZ8lCPnE2H/eRiZGuIY5d2Lm/eZAgdDf1nSDdlPqIoFS7Q6jjvic5Lecew8UT99Kg==
+"@react-native-firebase/app-check@^23.8.6":
+  version "23.8.6"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app-check/-/app-check-23.8.6.tgz#85a01569c9a73428e87c4ee667ee174cbd052ba1"
+  integrity sha512-aWZ0SRAXRHu0CQkJAgS57KgivTqecznAuFgNwANVSr8gdNUj6eeIjbtBjFX2Rs3S8cCoWeUZHHC1P5FvmG9XYQ==
 
-"@react-native-firebase/app@23.8.5":
-  version "23.8.5"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-23.8.5.tgz#a691e924efaf042786b796d4a7ee14e62e03a72f"
-  integrity sha512-kjrnkfhMoYs1wbT+4srONtlK6clM1Vi5WlCg1iQ4q0Jno0ExGTdTrXrCOPWDTGoNhiZGjGVUakirnIcnzYyEyQ==
+"@react-native-firebase/app@23.8.6":
+  version "23.8.6"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-23.8.6.tgz#a31a7cf320f0bcd85c05690c576fce52f4df936e"
+  integrity sha512-oHM/0c5CbMSDLzIAjdQTH2im7Lr1AoajDYyehye9ge6zH/tuhCtwXtkf19zE0MyFsSqd06IoYRfZP7W05D4m+w==
   dependencies:
     firebase "12.8.0"
 
-"@react-native-firebase/crashlytics@23.8.5":
-  version "23.8.5"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/crashlytics/-/crashlytics-23.8.5.tgz#31160b5a74bda9616616901d8eb10377a628f3e5"
-  integrity sha512-3BWzXq2Rc5Wz87nxu5TKy8pJoNv9fwTBUHrZddU0l8Pki32xOEVxKVgyAEOfKHyVtJxCUvu+0cJxs/dzowQTrw==
+"@react-native-firebase/crashlytics@23.8.6":
+  version "23.8.6"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/crashlytics/-/crashlytics-23.8.6.tgz#c1fea06a1b8f19c6c343d867ae877b3dba227390"
+  integrity sha512-xnfMhui3OzpAmON7cpo5NmO3AdJw5j9qhJZHJPWCNXhyZ8RIraoLSYh+SjvvECskctDiV7KbyJpIhaJu1jskFw==
   dependencies:
     stacktrace-js "^2.0.2"
 
@@ -3093,14 +3093,7 @@
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.15.tgz#596a1747233694d50f6ad8a7869fcb6f56cf5841"
   integrity sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==
 
-"@types/libsodium-wrappers-sumo@^0.7.8":
-  version "0.7.8"
-  resolved "https://registry.yarnpkg.com/@types/libsodium-wrappers-sumo/-/libsodium-wrappers-sumo-0.7.8.tgz#33e32b454fb6b340758c9ffdb1f9657e1be058ff"
-  integrity sha512-N2+df4MB/A+W0RAcTw7A5oxKgzD+Vh6Ye7lfjWIi5SdTzVLfHPzxUjhwPqHLO5Ev9fv/+VHl+sUaUuTg4fUPqw==
-  dependencies:
-    "@types/libsodium-wrappers" "*"
-
-"@types/libsodium-wrappers@*", "@types/libsodium-wrappers@^0.7.13":
+"@types/libsodium-wrappers@^0.7.13":
   version "0.7.14"
   resolved "https://registry.yarnpkg.com/@types/libsodium-wrappers/-/libsodium-wrappers-0.7.14.tgz#f688f8d44e46ed61c401f82ff757581655fbcc42"
   integrity sha512-5Kv68fXuXK0iDuUir1WPGw2R9fOZUlYlSAa0ztMcL0s0BfIDTqg9GXz8K30VJpPP3sxWhbolnQma2x+/TfkzDQ==
@@ -3133,10 +3126,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^19.2.10":
-  version "19.2.10"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.10.tgz#f3ea799e6b4cebad6dfd231c238fc9de7652e2d2"
-  integrity sha512-WPigyYuGhgZ/cTPRXB2EwUw+XvsRA3GqHlsP4qteqrnnjDrApbS7MxcGr/hke5iUoeB7E/gQtrs9I37zAJ0Vjw==
+"@types/react@*", "@types/react@^19.2.11":
+  version "19.2.11"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.11.tgz#301b615ec33df67f6b0ba63f2b6aedce46cca0de"
+  integrity sha512-tORuanb01iEzWvMGVGv2ZDhYZVeRMrw453DCSAIn/5yvcSVnMoUMTyf33nQJLahYEnv9xqrTNbgz4qY5EfSh0g==
   dependencies:
     csstype "^3.2.2"
 
@@ -6722,29 +6715,29 @@ levn@^0.4.1:
     prelude-ls "^1.2.1"
     type-check "~0.4.0"
 
-libsodium-sumo@^0.7.16:
-  version "0.7.16"
-  resolved "https://registry.yarnpkg.com/libsodium-sumo/-/libsodium-sumo-0.7.16.tgz#85037acdf9029296373bf2a9f078930a723eedb5"
-  integrity sha512-x6atrz2AdXCJg6G709x9W9TTJRI6/0NcL5dD0l5GGVqNE48UJmDsjO4RUWYTeyXXUpg+NXZ2SHECaZnFRYzwGA==
+libsodium-sumo@^0.8.0:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/libsodium-sumo/-/libsodium-sumo-0.8.2.tgz#6aee0ce5d5f850341327a2990531a71319d86c62"
+  integrity sha512-uMgnjphJ717jLN+jFG1HUgNrK/gOVVfaO1DGZ1Ig/fKLKLVhvaH/sM1I1v784JFvmkJDaczDpi7xSYC4Jvdo1Q==
 
-libsodium-wrappers-sumo@^0.7.13:
-  version "0.7.16"
-  resolved "https://registry.yarnpkg.com/libsodium-wrappers-sumo/-/libsodium-wrappers-sumo-0.7.16.tgz#53838cabe5d99768a3c070bdb65cd0043e0d0bfd"
-  integrity sha512-gR0JEFPeN3831lB9+ogooQk0KH4K5LSMIO5Prd5Q5XYR2wHFtZfPg0eP7t1oJIWq+UIzlU4WVeBxZ97mt28tXw==
+libsodium-wrappers-sumo@^0.8.2:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/libsodium-wrappers-sumo/-/libsodium-wrappers-sumo-0.8.2.tgz#3bc6ef80070d531622ccd41a317b61d32a78a7f2"
+  integrity sha512-wd1xAY++Kr6VMikSaa4EPRAHJmFvNlGWiiwU3Jh3GR1zRYF3/I3vy/wYsr4k3LVsNzwb9sqfEQ4LdVQ6zEebyQ==
   dependencies:
-    libsodium-sumo "^0.7.16"
+    libsodium-sumo "^0.8.0"
 
-libsodium-wrappers@^0.7.13:
-  version "0.7.16"
-  resolved "https://registry.yarnpkg.com/libsodium-wrappers/-/libsodium-wrappers-0.7.16.tgz#abaa065e914562695c6c1d66527c8e72bbbaec15"
-  integrity sha512-Gtr/WBx4dKjvRL1pvfwZqu7gO6AfrQ0u9vFL+kXihtHf6NfkROR8pjYWn98MFDI3jN19Ii1ZUfPR9afGiPyfHg==
+libsodium-wrappers@^0.8.2:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/libsodium-wrappers/-/libsodium-wrappers-0.8.2.tgz#717042fb8ad62e2e4dada53795873a08c98e658c"
+  integrity sha512-VFLmfxkxo+U9q60tjcnSomQBRx2UzlRjKWJqvB4K1pUqsMQg4cu3QXA2nrcsj9A1qRsnJBbi2Ozx1hsiDoCkhw==
   dependencies:
-    libsodium "^0.7.16"
+    libsodium "^0.8.0"
 
-libsodium@^0.7.16:
-  version "0.7.16"
-  resolved "https://registry.yarnpkg.com/libsodium/-/libsodium-0.7.16.tgz#3d4f9d68ed887bb8bf2e76bb3ba231265eae58a0"
-  integrity sha512-3HrzSPuzm6Yt9aTYCDxYEG8x8/6C0+ag655Y7rhhWZM9PT4NpdnbqlzXhGZlDnkgR6MeSTnOt/VIyHLs9aSf+Q==
+libsodium@^0.8.0:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/libsodium/-/libsodium-0.8.2.tgz#eadd168d478729e8f1687da8b78a352c421fa0b1"
+  integrity sha512-TsnGYMoZtpweT+kR+lOv5TVsnJ/9U0FZOsLFzFOMWmxqOAYXjX3fsrPAW+i1LthgDKXJnI9A8dWEanT1tnJKIw==
 
 lighthouse-logger@^1.0.0:
   version "1.4.2"
@@ -7976,16 +7969,15 @@ react-native-keychain@^10.0.0:
   resolved "https://registry.yarnpkg.com/react-native-keychain/-/react-native-keychain-10.0.0.tgz#1de6f54d27b2376deaac4d51883c066f53b7be7b"
   integrity sha512-YzPKSAnSzGEJ12IK6CctNLU79T1W15WDrElRQ+1/FsOazGX9ucFPTQwgYe8Dy8jiSEDJKM4wkVa3g4lD2Z+Pnw==
 
-react-native-libsodium@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/react-native-libsodium/-/react-native-libsodium-1.5.0.tgz#72243d711526a189bbabcd49c59b1ca27dc11a5c"
-  integrity sha512-Jrm+s+c6APCcFxgJ4jEXyqadnvEjPW5eMAKOB6KZP4JXgwYHe1crnpCQjXlzIKQMKFfjNC9CWA3GJ2qUtju1kw==
+react-native-libsodium@^1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/react-native-libsodium/-/react-native-libsodium-1.6.0.tgz#14ed2be5c2f8db0731b43f6f46998f166667ec97"
+  integrity sha512-a6yNoqXUgNSM6ZGC7gY39VGIZwlQHJZZFX3vr3vD6AuDDpsHUSfSBV6XPcr+So/d3GY0OduXWb8nwspIXIR5Ew==
   dependencies:
     "@noble/hashes" "^1.3.2"
     "@types/libsodium-wrappers" "^0.7.13"
-    "@types/libsodium-wrappers-sumo" "^0.7.8"
-    libsodium-wrappers "^0.7.13"
-    libsodium-wrappers-sumo "^0.7.13"
+    libsodium-wrappers "^0.8.2"
+    libsodium-wrappers-sumo "^0.8.2"
 
 react-native-localize@^3.6.1:
   version "3.6.1"
@@ -8002,10 +7994,10 @@ react-native-nfc-manager@^3.17.2:
   resolved "https://registry.yarnpkg.com/react-native-nfc-manager/-/react-native-nfc-manager-3.17.2.tgz#81924946b7fe381bbf85bfb16af90cb05cac4944"
   integrity sha512-0NryP/Iw2hzw4MVH5KCngoRerNUrnRok6VfLrlFcFZRKyTQ7KTgpsdDxCB6cR33qYNyEDrWGBayfAI+ym5gt8Q==
 
-react-native-nitro-modules@^0.33.4:
-  version "0.33.4"
-  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.33.4.tgz#e1313ec7e595620b4da0470aa56779e4ca5f9ad3"
-  integrity sha512-LiTnm22nfv/MClLxyBBnoYdqqDp3n0i6ReFbnvdR35bYxxpPjvy+UNvIz1R3s4M6V/OByljRH//y4eK+OUU/tw==
+react-native-nitro-modules@^0.33.5:
+  version "0.33.5"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.33.5.tgz#d65f2209298c3d2e90f94c36a95a40926d54031f"
+  integrity sha512-qM1xuK6v9blumGCatR2x98vw5Ck/V6r54eDMV7fJkxYKi1qJH44Lf7V/suu90rqDlasO+AcqlHKBgklcjwnYuQ==
 
 react-native-qrcode-svg@^6.3.21:
   version "6.3.21"
@@ -8039,10 +8031,10 @@ react-native-sound@^0.13.0:
   resolved "https://registry.yarnpkg.com/react-native-sound/-/react-native-sound-0.13.0.tgz#ec8a5436ea748c5888dfbef6e39d8a27e97e8aac"
   integrity sha512-SnREzaV0fmpYNuDV1Y8M7FutmaYei0pKBgpldULKKJMkoA3DBv5ppyRxY+oxRQ7HwEpt6LsonrKgM+13GH/tCw==
 
-react-native-svg@^15.15.1:
-  version "15.15.1"
-  resolved "https://registry.yarnpkg.com/react-native-svg/-/react-native-svg-15.15.1.tgz#0b08716f5c389ef8550a73492c985c7b23849d65"
-  integrity sha512-ZUD1xwc3Hwo4cOmOLumjJVoc7lEf9oQFlHnLmgccLC19fNm6LVEdtB+Cnip6gEi0PG3wfvVzskViEtrySQP8Fw==
+react-native-svg@^15.15.2:
+  version "15.15.2"
+  resolved "https://registry.yarnpkg.com/react-native-svg/-/react-native-svg-15.15.2.tgz#75756fd32aa2faff65ecd2cedf40d180130da0b4"
+  integrity sha512-lpaSwA2i+eLvcEdDZyGgMEInQW99K06zjJqfMFblE0yxI0SCN5E4x6in46f0IYi6i3w2t2aaq3oOnyYBe+bo4w==
   dependencies:
     css-select "^5.1.0"
     css-tree "^1.1.3"
