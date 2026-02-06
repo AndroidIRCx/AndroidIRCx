@@ -5,6 +5,16 @@
 
 // Global Jest setup for React Native project to mock native modules used in tests.
 
+const originalConsoleError = console.error;
+console.error = (...args: any[]) => {
+  const combined = args.map(arg => (typeof arg === 'string' ? arg : '')).join(' ');
+  if (combined.includes('was not wrapped in act') &&
+      (combined.includes('VirtualizedList') || combined.includes('AppearanceSection'))) {
+    return;
+  }
+  originalConsoleError(...args);
+};
+
 jest.mock('@react-native-async-storage/async-storage', () => {
   const asyncStore = new Map<string, string>();
   const mock = {
@@ -50,6 +60,18 @@ jest.mock('react-native-bootsplash', () => ({
   setBackgroundColor: jest.fn(),
   setMinimumBackgroundDuration: jest.fn(),
 }));
+
+// Silence VirtualizedList act warnings in tests by rendering as a simple View.
+jest.mock('react-native/Libraries/Lists/VirtualizedList', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const VirtualizedList = ({ children }: { children?: React.ReactNode }) =>
+    React.createElement(View, null, children);
+  return {
+    __esModule: true,
+    default: VirtualizedList,
+  };
+});
 
 jest.mock('react-native-keyboard-controller', () => ({
   KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -99,6 +121,17 @@ jest.mock('./src/hooks/useSettingsSecurity', () => ({
 
 jest.mock('./src/hooks/useSettingsAppearance', () => ({
   useSettingsAppearance: jest.fn(() => ({
+    currentTheme: { id: 'light', name: 'Light' },
+    availableThemes: [],
+    showThemeEditor: false,
+    editingTheme: null,
+    layoutConfig: {},
+    appLanguage: 'en',
+    setShowThemeEditor: jest.fn(),
+    setEditingTheme: jest.fn(),
+    refreshThemes: jest.fn(),
+    setAppLanguage: jest.fn(),
+    updateLayoutConfig: jest.fn(),
     theme: 'light',
     setTheme: jest.fn(),
   })),
@@ -114,6 +147,16 @@ jest.mock('./src/hooks/useSettingsNotifications', () => ({
 
 jest.mock('./src/hooks/useSettingsConnection', () => ({
   useSettingsConnection: jest.fn(() => ({
+    networks: [],
+    autoReconnectConfig: {},
+    rateLimitConfig: {},
+    floodProtectionConfig: {},
+    lagMonitoringConfig: {},
+    connectionStats: {},
+    bouncerConfig: {},
+    bouncerInfo: {},
+    refreshNetworks: jest.fn(),
+    updateBouncerConfig: jest.fn(),
     autoConnect: false,
     setAutoConnect: jest.fn(),
   })),
@@ -442,6 +485,38 @@ jest.mock('react-native-share', () => ({
   },
 }));
 
+jest.mock('react-native-video', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: jest.fn(() => React.createElement('View', null, 'Video')),
+  };
+});
+
+jest.mock('react-native-audio-recorder-player', () => {
+  const mockInstance = {
+    startRecorder: jest.fn().mockResolvedValue('mock-record-path'),
+    stopRecorder: jest.fn().mockResolvedValue(undefined),
+    addRecordBackListener: jest.fn(),
+    removeRecordBackListener: jest.fn(),
+    startPlayer: jest.fn().mockResolvedValue(undefined),
+    stopPlayer: jest.fn().mockResolvedValue(undefined),
+    addPlayBackListener: jest.fn(),
+    removePlayBackListener: jest.fn(),
+  };
+
+  const MockAudioRecorderPlayer = jest.fn().mockImplementation(() => mockInstance);
+
+  return {
+    __esModule: true,
+    default: MockAudioRecorderPlayer,
+    AudioEncoderAndroidType: {},
+    AudioSourceAndroidType: {},
+    AVEncoderAudioQualityIOSType: {},
+    AVEncodingOption: {},
+  };
+});
+
 jest.mock('react-native-nfc-manager', () => ({
   __esModule: true,
   default: {
@@ -510,6 +585,14 @@ jest.mock('@react-native-documents/picker', () => ({
 }));
 
 jest.mock('react-native-vector-icons/FontAwesome5', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: jest.fn(() => React.createElement('Text', null, 'Icon')),
+  };
+});
+
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => {
   const React = require('react');
   return {
     __esModule: true,
@@ -640,6 +723,7 @@ jest.mock('react-native-iap', () => ({
   initConnection: jest.fn().mockResolvedValue(true),
   endConnection: jest.fn().mockResolvedValue(undefined),
   getProducts: jest.fn().mockResolvedValue([]),
+  fetchProducts: jest.fn().mockResolvedValue([]),
   getPurchaseHistory: jest.fn().mockResolvedValue([]),
   getAvailablePurchases: jest.fn().mockResolvedValue([]),
   requestPurchase: jest.fn().mockResolvedValue({}),

@@ -1656,7 +1656,7 @@
     "string": "Clave verificada para {nick}"
   },
   "None": {
-    "string": "Ninguno"
+    "string": "None"
   },
   "Replace DM Key": {
     "string": "Reemplazar Clave DM"
@@ -2283,7 +2283,7 @@
     "string": "Instalar Elementos integrados"
   },
   "Logging": {
-    "string": "Inciando"
+    "string": "Registro"
   },
   "Repository": {
     "string": "Repositorio"
@@ -3579,7 +3579,7 @@
     "string": "*** {nick} ya se encuentra en línea"
   },
   "*** {nick} changed host to {host}": {
-    "string": "*** {nick} cambió su host a {host}"
+    "string": "*** {nick} cambió el host a {host}"
   },
   "*** {nick} changed realname to: {realname}": {
     "string": "*** {nick} cambió el nombre real a: {realname}"
@@ -3717,7 +3717,7 @@
     "string": "*** {nick} ({user}@{host}) * {real} {away} {op} {channel} [{server}]"
   },
   "*** End of WHO list for {channel}": {
-    "string": "*** {channel} Fin de la lista de WHO."
+    "string": "*** {channel} Fin del WHO."
   },
   "No such nick/channel": {
     "string": "No existe ese nick/canal"
@@ -3741,7 +3741,7 @@
     "string": "Nick erróneo"
   },
   "Nickname is already in use: {nick}": {
-    "string": "El nick ya está en uso:{nick}"
+    "string": "El nick ya está en uso: {nick}"
   },
   "*** Trying alternative nickname: {nick}": {
     "string": "*** Intente con un nick alternativo: {nick}"
@@ -4023,7 +4023,7 @@
     "string": "Respuesta del servidor"
   },
   "[{numeric}] {message}": {
-    "string": "[{numeric}]{message}"
+    "string": "[{numeric}] {message}"
   },
   "*** Disconnected from server": {
     "string": "*** Desconectado del servidor"
@@ -4761,10 +4761,10 @@
     "string": "Traducir con relleno"
   },
   "Show Typing Indicators": {
-    "string": "Mostrar Indicadores de Escritura TAGMSG"
+    "string": "Mostrar Indicador de Escritura TAGMSG IRCv3"
   },
   "Display who is typing in the active tab": {
-    "string": "Mostrar quién está escribiendo en la pestaña activa"
+    "string": "Mostrar quién está escribiendo TAGMSG IRCv3 en la pestaña activa"
   },
   "Hide typing indicators": {
     "string": "Ocultar indicador de escritura TAGMSG flood del status"
@@ -6033,7 +6033,7 @@
     "string": "Reproducir sonidos cuando la aplicación está abierta"
   },
   "Play in Background": {
-    "string": "Reproducir en Segundo Plano"
+    "string": "Reproducir en segundo plano"
   },
   "Play sounds when app is minimized": {
     "string": "Reproducir sonidos cuando la aplicación esté minimizada"
@@ -8277,948 +8277,948 @@
     "string": "*** Enviando NickServ IDENTIFY..."
   },
   "IRC Services v": {
-    "string": ""
+    "string": "Servicios de IRC v"
   },
   "IRC Services >": {
-    "string": ""
+    "string": "Servicios de IRC >"
   },
   "Show All Commands...": {
-    "string": ""
+    "string": "Mostrar Todos Los Comandos..."
   },
   "Join Channel": {
-    "string": ""
+    "string": "Entrar al Canal"
   },
   "Close All Channels": {
-    "string": ""
+    "string": "Cerrar Todos Los Canales"
   },
   "Close All Privates": {
-    "string": ""
+    "string": "Cerrar Todos Los Privados"
   },
   "Disconnect {network}": {
-    "string": ""
+    "string": "Desconectar {network}"
   },
   "Disconnect": {
-    "string": ""
+    "string": "Desconectar"
   },
   "Connect Another Network": {
-    "string": ""
+    "string": "Conectar a otra Red"
   },
   "Browse Channels": {
-    "string": ""
+    "string": "Lista de canales"
   },
   "Connect to Default": {
-    "string": ""
+    "string": "Conectar al Servidor Predeterminado"
   },
   "Choose Network": {
-    "string": ""
+    "string": "Elija Red"
   },
   "DCC Transfers": {
-    "string": ""
+    "string": "Transferencias DCC"
   },
   "Hide RAW": {
-    "string": ""
+    "string": "Ocultar RAW"
   },
   "Show RAW": {
-    "string": ""
+    "string": "Mostrar RAW"
   },
   "Usage": {
-    "string": ""
+    "string": "Uso"
   },
   "Example": {
-    "string": ""
+    "string": "Ejemplo"
   },
   "Parameters": {
-    "string": ""
+    "string": "Parámetros"
   },
   "Execute": {
-    "string": ""
+    "string": "Ejecutar"
   },
   "IRC Service Commands": {
-    "string": ""
+    "string": "Comandos de Servicio IRC"
   },
   "Search commands...": {
-    "string": ""
+    "string": "Comandos de búsqueda..."
   },
   "No commands found": {
-    "string": ""
+    "string": "No se encontraron comandos"
   },
   "No service commands available": {
-    "string": ""
+    "string": "No hay comandos de servicio disponibles"
   },
   "commands": {
-    "string": ""
+    "string": "comandos"
   },
   "Auto-detect": {
-    "string": ""
+    "string": "Auto-Detectar"
   },
   "IRC Service Type": {
-    "string": ""
+    "string": "Tipo de Servicio IRC"
   },
   "Select IRC Service": {
-    "string": ""
+    "string": "Seleccione el Servicio IRC"
   },
   "Detected: {service}": {
-    "string": ""
+    "string": "Detectado: {service}"
   },
   "Apply Theme Settings": {
-    "string": ""
+    "string": "Aplicar la Configuración del Tema"
   },
   "This will apply the recommended settings for the {{themeName}} theme. Your current settings will be overwritten.": {
-    "string": ""
+    "string": "Esto aplicará la configuración recomendada para el tema {{themeName}}. Se sobrescribirá su configuración actual."
   },
   "Settings Applied": {
-    "string": ""
+    "string": "Ajustes Aplicados"
   },
   "Theme settings have been applied successfully.": {
-    "string": ""
+    "string": "La configuración del tema se ha aplicado correctamente."
   },
   "Failed to apply theme settings. Please try again.": {
-    "string": ""
+    "string": "Error al aplicar la configuración del tema. Por favor, inténtelo de nuevo."
   },
   "Apply recommended settings for {{themeName}} theme": {
-    "string": ""
+    "string": "Aplicar la configuración recomendada para el tema {{themeName}}"
   },
   "Apply Theme Settings?": {
-    "string": ""
+    "string": "¿Aplicar la Configuración del Tema?"
   },
   "The \"{name}\" theme has recommended settings for the best experience. Apply them?": {
-    "string": ""
+    "string": "El tema \"{name}\" tiene configuraciones recomendadas para la mejor experiencia. ¿Aplicarlos?"
   },
   "Theme Only": {
-    "string": ""
+    "string": "Solo El Tema"
   },
   "Apply All": {
-    "string": ""
+    "string": "Aplicar Todo"
   },
   "Theme and recommended settings have been applied.": {
-    "string": ""
+    "string": "Se ha aplicado el tema y la configuración recomendada."
   },
   "Switch tabs on channel list scroll": {
-    "string": ""
+    "string": "Cambiar pestañas en el desplazamiento de la lista de canales"
   },
   "Scroll up/down to change the active tab": {
-    "string": ""
+    "string": "Desplácese hacia arriba/abajo para cambiar la pestaña activa"
   },
   "Scrolling the channel list will not change tabs": {
-    "string": ""
+    "string": "Desplazarse por la lista de canales no cambiará las pestañas"
   },
   "Invert channel list scroll switching": {
-    "string": ""
+    "string": "Invertir el cambio de desplazamiento de la lista de canales"
   },
   "Reverse scroll direction for tab switching": {
-    "string": ""
+    "string": "Dirección de desplazamiento inversa para cambiar de pestaña"
   },
   "Select the default ban mask type (0-11)": {
-    "string": ""
+    "string": "Seleccione el tipo de máscara de ban por defecto (0-11)"
   },
   "Ban by nick only (any ident@host)": {
-    "string": ""
+    "string": "Ban por nick solo (cualquier ident@host)"
   },
   "Ban by ident only (any nick@host)": {
-    "string": ""
+    "string": "Ban por ident solo (cualquier nick@host)"
   },
   "The \"{{themeName}}\" theme has recommended settings. Would you like to apply them for the best experience?": {
-    "string": ""
+    "string": "El tema \"{{themeName}}\" tiene configuraciones recomendadas. ¿Te gustaría aplicarlas para la mejor experiencia?"
   },
   "Failed to apply theme settings.": {
-    "string": ""
+    "string": "Error al aplicar la configuración del tema."
   },
   "Select Theme": {
-    "string": ""
+    "string": "Seleccionar Tema"
   },
   "Recommended settings available": {
-    "string": ""
+    "string": "Configuraciones recomendadas disponibles"
   },
   "Current theme has recommended settings that can be applied.": {
-    "string": ""
+    "string": "El tema actual tiene configuraciones recomendadas que se pueden aplicar."
   },
   "Not connected to server.": {
-    "string": ""
+    "string": "No conectado al servidor."
   },
   "Connect {network}": {
-    "string": ""
+    "string": "Conectar {network}"
   },
   "Close All Channels + PVTS": {
-    "string": ""
+    "string": "Cerrar Todos los Canales + Privados"
   },
   "Rename Server Tab": {
-    "string": ""
+    "string": "Cambiar Nombre de la Pestaña del Servidor"
   },
   "IRCop Commands": {
-    "string": ""
+    "string": "Comandos de IRCop"
   },
   "Close Server Tab": {
-    "string": ""
+    "string": "Cerrar la Pestaña del Servidor"
   },
   "Leave Channel": {
-    "string": ""
+    "string": "Salir del Canal"
   },
   "Send Plaintext (Unlock)": {
-    "string": ""
+    "string": "Enviar texto sin formato (Desbloquear)"
   },
   "Send Encrypted (Lock)": {
-    "string": ""
+    "string": "Enviar cifrado (Bloquear)"
   },
   "Always Encrypt: {status}": {
-    "string": ""
+    "string": "Cifrar Siempre: {status}"
   },
   "Close Query": {
-    "string": ""
+    "string": "Cerrar Privado"
   },
   "Request DM Key": {
-    "string": ""
+    "string": "Solicitar Clave DM"
   },
   "WHOWAS": {
-    "string": ""
+    "string": "WHOWAS"
   },
   "Generate Channel Key": {
-    "string": ""
+    "string": "Generar Clave de Canal"
   },
   "Request Encryption Key": {
-    "string": ""
+    "string": "Solicitar Clave de Cifrado"
   },
   "Share Encryption Key": {
-    "string": ""
+    "string": "Compartir Clave de Cifrado"
   },
   "Remove Channel Bookmark": {
-    "string": ""
+    "string": "Eliminar Marcador del Canal"
   },
   "Bookmark Channel": {
-    "string": ""
+    "string": "Marcadores del canal"
   },
   "Edit Channel Note": {
-    "string": ""
+    "string": "Editar Nota del Canal"
   },
   "View Activity Log": {
-    "string": ""
+    "string": "Ver Log de Actividad"
   },
   "IRC Services": {
-    "string": ""
+    "string": "Servicios de IRC"
   },
   "OP (Give Op)": {
-    "string": ""
+    "string": "OP (Dar Op)"
   },
   "DEOP (Remove Op)": {
-    "string": ""
+    "string": "DEOP (Sacar Op)"
   },
   "VOICE (Give Voice)": {
-    "string": ""
+    "string": "VOICE (Dar voz)"
   },
   "DEVOICE (Remove Voice)": {
-    "string": ""
+    "string": "DEVOICE (Sacar voz)"
   },
   "KICK (Remove User)": {
-    "string": ""
+    "string": "KICK (Eliminar Usuario)"
   },
   "Kick User": {
-    "string": ""
+    "string": "KICK Usuario"
   },
   "Enter nickname to kick:": {
-    "string": ""
+    "string": "Ingrese el apodo para kick:"
   },
   "BAN (Ban User)": {
-    "string": ""
+    "string": "BAN (Ban Usuario)"
   },
   "Ban User": {
-    "string": ""
+    "string": "BAN Usuario"
   },
   "Enter nickname or mask to ban:": {
-    "string": ""
+    "string": "Ingrese un apodo o máscara para ban:"
   },
   "UNBAN (Remove Ban)": {
-    "string": ""
+    "string": "UNBAN (Eliminar Ban)"
   },
   "Unban User": {
-    "string": ""
+    "string": "UNBAN Usuario"
   },
   "Enter nickname or mask to unban:": {
-    "string": ""
+    "string": "Ingrese un apodo o máscara para eliminar el ban:"
   },
   "Unban": {
-    "string": ""
+    "string": "UNBAN"
   },
   "TOPIC (Set Topic)": {
-    "string": ""
+    "string": "TOPIC (Establecer Topic)"
   },
   "Enter new topic:": {
-    "string": ""
+    "string": "Introducir nuevo topic:"
   },
   "Set": {
-    "string": ""
+    "string": "Establecer"
   },
   "INFO (Channel Info)": {
-    "string": ""
+    "string": "INFO (Información del canal)"
   },
   "AKICK (Auto-kick List)": {
-    "string": ""
+    "string": "AKICK (Lista de Auto-Kick)"
   },
   "IRC Services: {channel}": {
-    "string": ""
+    "string": "Servicios de IRC: {channel}"
   },
   "Remove from Favorites": {
-    "string": ""
+    "string": "Eliminar de Favoritos"
   },
   "Add to Favorites": {
-    "string": ""
+    "string": "Agregar a Favoritos"
   },
   "Channel: {name}": {
-    "string": ""
+    "string": "Canal: {name}"
   },
   "Query: {name}": {
-    "string": ""
+    "string": "Privado: {name}"
   },
   "Socials": {
-    "string": ""
+    "string": "Sociales"
   },
   "Delete Channel History?": {
-    "string": ""
+    "string": "¿Eliminar el Historial de Canales?"
   },
   "This will remove all saved messages for {channel}.": {
-    "string": ""
+    "string": "Esto eliminará todos los mensajes guardados para {channel}."
   },
   "Delete message": {
-    "string": ""
+    "string": "Borrar mensaje"
   },
   "This will remove the selected message from history.": {
-    "string": ""
+    "string": "Esto eliminará el mensaje seleccionado del historial."
   },
   "History Viewer": {
-    "string": ""
+    "string": "Visor de Historial"
   },
   "No stored messages": {
-    "string": ""
+    "string": "No hay mensajes almacenados"
   },
   "Newest first": {
-    "string": ""
+    "string": "Lo más nuevo primero"
   },
   "Oldest first": {
-    "string": ""
+    "string": "El más viejo primero"
   },
   "Delete Channel History": {
-    "string": ""
+    "string": "Eliminar Historial de Canales"
   },
   "Manage Identity Profiles": {
-    "string": ""
+    "string": "Administrar Perfiles de Identidad"
   },
   "Browse saved messages by network and channel": {
-    "string": ""
+    "string": "Examinar los mensajes guardados por red y canal"
   },
   "*** Sending identify to {service}...": {
-    "string": ""
+    "string": "*** Enviando identify a {service}..."
   },
   "*** Authenticating with QuakeNet Q...": {
-    "string": ""
+    "string": "*** Autenticarse con QuakeNet Q..."
   },
   "*** Authenticating with Undernet X...": {
-    "string": ""
+    "string": "*** Autenticación con Undernet X..."
   },
   "*** Detected services: {serviceType} (confidence: {confidence}%)": {
-    "string": ""
+    "string": "*** Servicios detectados: {serviceType} (confianza: {confidence}%)"
   },
   "Server notice mask": {
-    "string": ""
+    "string": "Máscara de aviso del servidor"
   },
   "*** [{numeric}] {modes} {description}": {
-    "string": ""
+    "string": "*** [{numeric}] {modes} {description}"
   },
   "*** Memory: {stats}": {
-    "string": ""
+    "string": "*** Memoria: {stats}"
   },
   "*** Trace: {info}": {
-    "string": ""
+    "string": "*** Trace: {info}"
   },
   "*** Trace: Connecting - {info}": {
-    "string": ""
+    "string": "*** Trace: Conectando - {info}"
   },
   "*** Trace: Handshake - {info}": {
-    "string": ""
+    "string": "*** Trace: Apretón de manos - {info}"
   },
   "*** Trace: Unknown - {info}": {
-    "string": ""
+    "string": "*** Trace: Desconocido - {info}"
   },
   "*** Trace: Operator - {info}": {
-    "string": ""
+    "string": "*** Trace: Operador - {info}"
   },
   "*** Trace: User - {info}": {
-    "string": ""
+    "string": "*** Trace: Usuario - {info}"
   },
   "*** Trace: Server - {info}": {
-    "string": ""
+    "string": "*** Trace: Servidor - {info}"
   },
   "*** Trace: Service - {info}": {
-    "string": ""
+    "string": "*** Trace: Servicio - {info}"
   },
   "*** Trace: Class - {info}": {
-    "string": ""
+    "string": "*** Trace: Clase - {info}"
   },
   "*** Trace Log: {info}": {
-    "string": ""
+    "string": "*** Trace Log: {info}"
   },
   "End of TRACE": {
-    "string": ""
+    "string": "Fin de TRACE."
   },
   "is a Server Administrator": {
-    "string": ""
+    "string": "es un Administrador del Servidor"
   },
   "is a Services Administrator": {
-    "string": ""
+    "string": "es un Administrador de Servicios"
   },
   "is deaf to private messages": {
-    "string": ""
+    "string": "es sordo a los mensajes privados"
   },
   "*** {nick} is the unique operator of {channel}": {
-    "string": ""
+    "string": "*** {nick} es el único operador de {channel}"
   },
   "*** {channel} URL: {url}": {
-    "string": ""
+    "string": "*** {channel} URL: {url}"
   },
   "*** UserIP: {info}": {
-    "string": ""
+    "string": "*** UserIP: {info}"
   },
   "Summoning user to IRC": {
-    "string": ""
+    "string": "Invocando al usuario al IRC"
   },
   "*** {nick}: {message}": {
-    "string": ""
+    "string": "*** {nick}: {message}"
   },
   "End of channel reop list": {
-    "string": ""
+    "string": "Fin de la lista de reop de canales."
   },
   "*** WHO: {info}": {
-    "string": ""
+    "string": "*** WHO: {info}"
   },
   "You are no longer an IRC operator": {
-    "string": ""
+    "string": "Ya no eres un operador de IRC"
   },
   "End of list": {
-    "string": ""
+    "string": "Fin de la lista."
   },
   "End of /MAP": {
-    "string": ""
+    "string": "Fin de /MAP"
   },
   "*** Server redirect: {host}:{port} - {info}": {
-    "string": ""
+    "string": "*** Redirección del servidor: {host}:{port} - {info}"
   },
   "*** Your unique ID: {id} {message}": {
-    "string": ""
+    "string": "*** Su ID único: {id} {message}"
   },
   "*** Nick saved: {nick} {message}": {
-    "string": ""
+    "string": "*** Nick guardado: {nick} {message}"
   },
   "Please wait and try again": {
-    "string": ""
+    "string": "Espere e inténtelo de nuevo"
   },
   "*** {command}: {message}": {
-    "string": ""
+    "string": "*** {command}: {message}"
   },
   "*** {server} ({hops} hops): {info}": {
-    "string": ""
+    "string": "*** {server} ({hops} hops): {info}"
   },
   "End of /LINKS list": {
-    "string": ""
+    "string": "Fin de /LINKS"
   },
   "End of users": {
-    "string": ""
+    "string": "Fin de users"
   },
   "Nobody logged in": {
-    "string": ""
+    "string": "Nadie inició sesión"
   },
   "is now your hidden host": {
-    "string": ""
+    "string": "ahora es tu anfitrión oculto"
   },
   "*** {host} {message}": {
-    "string": ""
+    "string": "*** {host} {message}"
   },
   "No such server": {
-    "string": ""
+    "string": "No existe tal servidor"
   },
   "*** {server}: {message}": {
-    "string": ""
+    "string": "*** {server}: {message}"
   },
   "No such service": {
-    "string": ""
+    "string": "No existe tal servicio"
   },
   "*** {service}: {message}": {
-    "string": ""
+    "string": "*** {service}: {message}"
   },
   "No origin specified": {
-    "string": ""
+    "string": "Sin origen especificado"
   },
   "Too many matches": {
-    "string": ""
+    "string": "Demasiados partidos"
   },
   "Input line was too long": {
-    "string": ""
+    "string": "La línea de entrada era demasiado larga"
   },
   "File error": {
-    "string": ""
+    "string": "Error de archivo"
   },
   "Service name is already in use": {
-    "string": ""
+    "string": "El nombre del servicio ya está en uso"
   },
   "Cannot change nickname while banned on channel": {
-    "string": ""
+    "string": "No se puede cambiar el apodo mientras está baneado en el canal"
   },
   "*** Cannot change nick to {nick} - banned on {channel}: {message}": {
-    "string": ""
+    "string": "*** No se puede cambiar el nick a {nick} - baneado en {channel}: {message}"
   },
   "Nick change too fast. Please wait.": {
-    "string": ""
+    "string": "Cambio de nick demasiado rápido. Espera un momento."
   },
   "Target change too fast. Please wait.": {
-    "string": ""
+    "string": "El objetivo cambia demasiado rápido. Espera un momento."
   },
   "*** {target}: {message}": {
-    "string": ""
+    "string": "*** {target}: {message}"
   },
   "Services are currently unavailable": {
-    "string": ""
+    "string": "Los servicios no están disponibles actualmente"
   },
   "User not logged in": {
-    "string": ""
+    "string": "Usuario no ha iniciado sesión"
   },
   "*** {user}: {message}": {
-    "string": ""
+    "string": "*** {user}: {message}"
   },
   "SUMMON has been disabled": {
-    "string": ""
+    "string": "SUMMON ha sido deshabilitado"
   },
   "USERS has been disabled": {
-    "string": ""
+    "string": "USERS ha sido deshabilitado"
   },
   "Cannot change nickname": {
-    "string": ""
+    "string": "No se puede cambiar el apodo"
   },
   "Command not implemented": {
-    "string": ""
+    "string": "Comando no implementado"
   },
   "ID collision": {
-    "string": ""
+    "string": "ID Colisión"
   },
   "Nickname lost": {
-    "string": ""
+    "string": "Apodo perdido"
   },
   "Invalid username": {
-    "string": ""
+    "string": "Nombre de usuario no válido"
   },
   "Only servers can change that mode": {
-    "string": ""
+    "string": "Solo los servidores pueden cambiar ese modo"
   },
   "Link with this server is already set": {
-    "string": ""
+    "string": "El enlace con este servidor ya está configurado"
   },
   "Forwarding to another channel": {
-    "string": ""
+    "string": "Reenviar a otro canal"
   },
   "*** Forwarded from {oldChannel} to {newChannel}: {reason}": {
-    "string": ""
+    "string": "*** Reenviado de {oldChannel} a {newChannel}: {reason}"
   },
   "Illegal channel name": {
-    "string": ""
+    "string": "Nombre de canal ilegal"
   },
   "*** {channel}: {message}": {
-    "string": ""
+    "string": "*** {channel}: {message}"
   },
   "Cannot knock on channel": {
-    "string": ""
+    "string": "No puede tocar el canal"
   },
   "Cannot join channel": {
-    "string": ""
+    "string": "No se puede unir al canal"
   },
   "You must identify to a registered nick to message this user": {
-    "string": ""
+    "string": "Debes identificarte con un nick registrado para enviarle un mensaje a este usuario"
   },
   "Cannot join channel - rate limited": {
-    "string": ""
+    "string": "No se puede unir al canal - rate limitada"
   },
   "Timestamp error": {
-    "string": ""
+    "string": "Error de Hora"
   },
   "Cannot join channel (+S) - SSL/TLS required": {
-    "string": ""
+    "string": "No se puede unir al canal (+S) - Se requiere SSL/TLS"
   },
   "Message blocked": {
-    "string": ""
+    "string": "Mensaje bloqueado"
   },
   "No service host": {
-    "string": ""
+    "string": "Sin host de servicio"
   },
   "Feature not available": {
-    "string": ""
+    "string": "Característica no disponible"
   },
   "Bad feature value": {
-    "string": ""
+    "string": "Valor de característica incorrecto"
   },
   "Bad log type": {
-    "string": ""
+    "string": "Tipo de log incorrecto"
   },
   "Bad log system": {
-    "string": ""
+    "string": "Sistema de log defectuoso"
   },
   "Bad log value": {
-    "string": ""
+    "string": "Valor de log incorrecto"
   },
   "Cannot kick channel service": {
-    "string": ""
+    "string": "No se puede kickear el canal de servicio"
   },
   "You're not the channel owner": {
-    "string": ""
+    "string": "No eres el propietario del canal"
   },
   "Message could not be delivered": {
-    "string": ""
+    "string": "No se pudo entregar el mensaje"
   },
   "Your silence list is full": {
-    "string": ""
+    "string": "Tu lista de silence está llena"
   },
   "Maximum size of watch list exceeded": {
-    "string": ""
+    "string": "Se ha superado el tamaño máximo de la lista de watch"
   },
   "To connect, type /QUOTE PONG followed by the code": {
-    "string": ""
+    "string": "Para conectarse, escriba /QUOTE PONG seguido del código"
   },
   "Too many DCC connections": {
-    "string": ""
+    "string": "Demasiadas conexiones DCC"
   },
   "Bad list syntax": {
-    "string": ""
+    "string": "Sintaxis de lista incorrecta"
   },
   "Help not found": {
-    "string": ""
+    "string": "Ayuda no encontrada"
   },
   "*** {topic}: {message}": {
-    "string": ""
+    "string": "*** {topic}: {message}"
   },
   "Invalid key": {
-    "string": ""
+    "string": "Clave no válida"
   },
   "Cannot send to user": {
-    "string": ""
+    "string": "No se puede enviar al usuario"
   },
   "*** {oldNick} changed nick to {newNick} ({user}@{host})": {
-    "string": ""
+    "string": "*** {oldNick} es ahora {newNick} ({user}@{host})"
   },
   "is being watched": {
-    "string": ""
+    "string": "está siendo observado"
   },
   "is not being watched": {
-    "string": ""
+    "string": "no está siendo observado"
   },
   "WATCH list has been cleared": {
-    "string": ""
+    "string": "La lista de WATCH ha sido borrada"
   },
   "*** WATCH list contains {nick}": {
-    "string": ""
+    "string": "*** WATCH lista contiene {nick}"
   },
   "Your WATCH list has no size limit": {
-    "string": ""
+    "string": "La lista de WATCH no tiene límite de tamaño"
   },
   "Beginning of WATCH list": {
-    "string": ""
+    "string": "Lista de WATCH"
   },
   "End of WATCH S list": {
-    "string": ""
+    "string": "Fin de la lista WATCH."
   },
   "WATCH operation failed": {
-    "string": ""
+    "string": "Operación de WATCH fallida"
   },
   "*** DCC: {info}": {
-    "string": ""
+    "string": "*** DCC: {info}"
   },
   "End of DCC list": {
-    "string": ""
+    "string": "Fin de la lista DCC."
   },
   "*** DCC: {entry}": {
-    "string": ""
+    "string": "*** DCC: {entry}"
   },
   "*** DCC Allow: {entry}": {
-    "string": ""
+    "string": "*** DCC Permitir: {entry}"
   },
   "End of DCC allow list": {
-    "string": ""
+    "string": "Fin de la lista de permitidos de DCC"
   },
   "DCC denied": {
-    "string": ""
+    "string": "DCC denegado"
   },
   "removed from DCC allow list": {
-    "string": ""
+    "string": "eliminado de la lista de permitidos de DCC"
   },
   "added to DCC allow list": {
-    "string": ""
+    "string": "agregado a la lista de permitidos de DCC"
   },
   "*** DCC allow for {nick} will expire in {time}": {
-    "string": ""
+    "string": "*** La autorización de DCC para {nick} caducará en {time}"
   },
   "*** NOTIFY {nick}: {action}": {
-    "string": ""
+    "string": "*** NOTIFY {nick}: {action}"
   },
   "Notify is now set": {
-    "string": ""
+    "string": "Notify ahora está configurado"
   },
   "*** {nick} removed from notify list": {
-    "string": ""
+    "string": "*** {nick} eliminado de la lista de notify"
   },
   "*** Traceroute hop {hop}: {host} ({time}ms)": {
-    "string": ""
+    "string": "*** Traceroute hop {hop}: {host} ({time}ms)"
   },
   "*** Starting traceroute to {target}": {
-    "string": ""
+    "string": "*** Iniciando traceroute a {target}"
   },
   "*** {channel}: {warning}": {
-    "string": ""
+    "string": "*** {channel}: {warning}"
   },
   "*** Channel {old} redirects to {new}": {
-    "string": ""
+    "string": "*** Canal {old} redirecciona a {new}"
   },
   "*** Server mode is {modes}": {
-    "string": ""
+    "string": "*** El modo de servidor es {modes}"
   },
   "*** {nick} has modes: {modes}": {
-    "string": ""
+    "string": "*** {nick} tiene modos: {modes}"
   },
   "Target change too fast": {
-    "string": ""
+    "string": "Cambio de objetivo demasiado rápido"
   },
   "*** {nick}: {status}": {
-    "string": ""
+    "string": "*** {nick}: {status}"
   },
   "*** {nick} certificate fingerprint: {fp}": {
-    "string": ""
+    "string": "*** {nick} huella dactilar del certificado: {fp}"
   },
   "are unknown modes": {
-    "string": ""
+    "string": "son modos desconocidos"
   },
   "*** {modes} {message}": {
-    "string": ""
+    "string": "*** {modes} {message}"
   },
   "Cannot set modes": {
-    "string": ""
+    "string": "No se puede establecer modos"
   },
   "staff members online": {
-    "string": ""
+    "string": "miembros del personal en línea"
   },
   "*** Server time: {time}": {
-    "string": ""
+    "string": "*** Hora del servidor: {time}"
   },
   "*** {nick} is a local operator": {
-    "string": ""
+    "string": "*** {nick} es un operador local"
   },
   "*** {nick} is a Services Administrator": {
-    "string": ""
+    "string": "*** {nick} es un Administrador de Servicios"
   },
   "*** {nick} is a Network Administrator": {
-    "string": ""
+    "string": "*** {nick} es un Administrador de Red"
   },
   "*** Your certificate fingerprint: {fp}": {
-    "string": ""
+    "string": "*** Su huella digital de certificado: {fp}"
   },
   "*** {channel} topic was set by {nick} on {date}": {
-    "string": ""
+    "string": "*** {channel} topic puesto por {nick} el {date}"
   },
   "*** Commands: {data}": {
-    "string": ""
+    "string": "*** Comandos: {data}"
   },
   "End of commands list": {
-    "string": ""
+    "string": "Fin de la lista de comandos"
   },
   "*** Module: {module} ({info})": {
-    "string": ""
+    "string": "*** Módulo: {module} ({info})"
   },
   "End of module list": {
-    "string": ""
+    "string": "Fin de la lista de módulo."
   },
   "*** Help on {topic}: {text}": {
-    "string": ""
+    "string": "*** Ayuda en {topic}: {text}"
   },
   "(empty help line)": {
-    "string": ""
+    "string": "(línea de ayuda vacía)"
   },
   "End of help": {
-    "string": ""
+    "string": "Fin de ayuda."
   },
   "*** ETRACE: {data}": {
-    "string": ""
+    "string": "*** ETRACE: {data}"
   },
   "End of ETRACE": {
-    "string": ""
+    "string": "Fin de ETRACE."
   },
   "has requested an invite": {
-    "string": ""
+    "string": "ha solicitado una invitación"
   },
   "*** {nick} is knocking on {channel}: {message}": {
-    "string": ""
+    "string": "*** {nick} está llamando en {channel}: {message}"
   },
   "Knock delivered": {
-    "string": ""
+    "string": "Knock entregado"
   },
   "Too many knocks": {
-    "string": ""
+    "string": "Demasiados knock"
   },
   "Channel is not invite only": {
-    "string": ""
+    "string": "El canal no es solo invitados"
   },
   "You are already on that channel": {
-    "string": ""
+    "string": "Ya estás en ese canal"
   },
   "Knock is disabled": {
-    "string": ""
+    "string": "Knock está deshabilitado"
   },
   "is in +g mode (server-side ignore)": {
-    "string": ""
+    "string": "está en modo +g (ignorar del lado del servidor)"
   },
   "has been notified that you messaged them": {
-    "string": ""
+    "string": "se le notificó que usted le envió un mensaje"
   },
   "is messaging you and you are +g": {
-    "string": ""
+    "string": "te está enviando mensajes y tenés +g"
   },
   "*** {nick} {message}. Use /ACCEPT {nick} to receive messages.": {
-    "string": ""
+    "string": "*** {nick} {message}. Uso /ACCEPT {nick} para recibir mensajes."
   },
   "Start of OPER MOTD": {
-    "string": ""
+    "string": "Inicio de OPER MOTD"
   },
   "End of OPER MOTD": {
-    "string": ""
+    "string": "Fin de OPER MOTD."
   },
   "Insufficient oper privileges": {
-    "string": ""
+    "string": "Privilegios oper insuficientes"
   },
   "*** TESTMARK: {data}": {
-    "string": ""
+    "string": "*** TESTMARK: {data}"
   },
   "*** TESTLINE: {data}": {
-    "string": ""
+    "string": "*** TESTLINE: {data}"
   },
   "No matching line found": {
-    "string": ""
+    "string": "No se encontró ninguna línea coincidente"
   },
   "*** TESTMASK: {data}": {
-    "string": ""
+    "string": "*** TESTMASK: {data}"
   },
   "*** {channel} quiet: {mask} (set by {nick}{date})": {
-    "string": ""
+    "string": "*** {channel} quiet: {mask} (establecido por {nick}{date})"
   },
   "End of channel quiet list": {
-    "string": ""
+    "string": "Fin de la lista quiet."
   },
   "*** RSA Challenge: {challenge}": {
-    "string": ""
+    "string": "*** RSA Challenge: {challenge}"
   },
   "End of RSA challenge": {
-    "string": ""
+    "string": "Fin del RSA challenge."
   },
   "Mode cannot be set due to channel mode lock": {
-    "string": ""
+    "string": "El modo no se puede configurar debido al bloqueo del modo de canal"
   },
   "*** {channel}: {mode} - {message}": {
-    "string": ""
+    "string": "*** {channel}: {mode} - {message}"
   },
   "Invalid ban mask": {
-    "string": ""
+    "string": "Máscara de ban no válida"
   },
   "*** {channel}: {mask} - {message}": {
-    "string": ""
+    "string": "*** {channel}: {mask} - {message}"
   },
   "Topic is locked": {
-    "string": ""
+    "string": "El topic está bloqueado"
   },
   "*** SCAN matched: {data}": {
-    "string": ""
+    "string": "*** SCAN coincidió: {data}"
   },
   "*** SCAN modes: {data}": {
-    "string": ""
+    "string": "*** SCAN modos: {data}"
   },
   "*** {nick} {key}: {value}": {
-    "string": ""
+    "string": "*** {nick} {key}: {value}"
   },
   "*** {target} {key} ({visibility}): {value}": {
-    "string": ""
+    "string": "*** {target} {key} ({visibility}): {value}"
   },
   "End of metadata": {
-    "string": ""
+    "string": "Fin de metadata."
   },
   "Metadata limit reached": {
-    "string": ""
+    "string": "Límite de Metadata alcanzado"
   },
   "Invalid target": {
-    "string": ""
+    "string": "Objetivo no válido"
   },
   "*** {target}: No matching key {key}": {
-    "string": ""
+    "string": "*** {target}: Sin clave coincidente {key}"
   },
   "*** Key {key}: {message}": {
-    "string": ""
+    "string": "*** Clave {key}: {message}"
   },
   "*** {target}: Key {key} is not set": {
-    "string": ""
+    "string": "*** {target}: Clave {key} no está configurado"
   },
   "*** {target}: No permission to access key {key}": {
-    "string": ""
+    "string": "*** {target}: Sin permiso para acceder a la clave {key}"
   },
   "*** XINFO: {data}": {
-    "string": ""
+    "string": "*** XINFO: {data}"
   },
   "Start of extended info": {
-    "string": ""
+    "string": "Inicio de la información ampliada"
   },
   "End of extended info": {
-    "string": ""
+    "string": "Fin de la información ampliada."
   },
   "*** Access added: {data}": {
-    "string": ""
+    "string": "*** Acceso agregado: {data}"
   },
   "*** Access removed: {data}": {
-    "string": ""
+    "string": "*** Acceso eliminado: {data}"
   },
   "Access list:": {
-    "string": ""
+    "string": "Lista de acceso:"
   },
   "*** Access: {entry}": {
-    "string": ""
+    "string": "*** Acceso: {entry}"
   },
   "End of access list": {
-    "string": ""
+    "string": "Fin de la lista de acceso"
   },
   "Access denied": {
-    "string": ""
+    "string": "Acceso denegado"
   },
   "*** Looking up hostname for {host}...": {
-    "string": ""
+    "string": "*** Buscando el nombre de host para {host}..."
   },
   "*** DNS lookup for {host}: {resolved}": {
-    "string": ""
+    "string": "*** Búsqueda de DNS para {host}: {resolved}"
   },
   "lookup failed": {
-    "string": ""
+    "string": "búsqueda fallida"
   },
   "*** DNS lookup for {host}: {message}": {
-    "string": ""
+    "string": "*** Búsqueda de DNS para {host}: {message}"
   },
   "DNS lookup complete": {
-    "string": ""
+    "string": "Búsqueda de DNS completa"
   },
   "Your message contained a censored word": {
-    "string": ""
+    "string": "Tu mensaje contenía una palabra censurada"
   },
   "Start of extended channel list": {
-    "string": ""
+    "string": "Inicio de la lista de canales ampliada"
   },
   "End of extended channel list": {
-    "string": ""
+    "string": "Fin de la lista de canales ampliada."
   },
   "Cannot execute command": {
-    "string": ""
+    "string": "No se puede ejecutar el comando"
   },
   "Cannot deop yourself": {
-    "string": ""
+    "string": "No puedes deop a ti mismo"
   },
   "is a network service": {
-    "string": ""
+    "string": "es un servicio de red"
   },
   "*** PONG from {server}: {token}": {
-    "string": ""
+    "string": "*** PONG de {server}: {token}"
   },
   "*** STATS {type}: {message}": {
-    "string": ""
+    "string": "*** STATS {type}: {message}"
   }
 }

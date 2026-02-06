@@ -14,7 +14,7 @@ import * as settingsHelpers from '../../src/utils/settingsHelpers';
 jest.mock('../../src/utils/settingsHelpers');
 jest.mock('../../src/services/SettingsService', () => ({
   settingsService: {
-    getSetting: jest.fn().mockResolvedValue(null),
+    getSetting: jest.fn((key: string, defaultValue: any) => Promise.resolve(defaultValue)),
     setSetting: jest.fn().mockResolvedValue(undefined),
     getAllSettings: jest.fn().mockResolvedValue({}),
     getNetwork: jest.fn().mockResolvedValue(null),
@@ -44,28 +44,140 @@ jest.mock('../../src/services/SettingsService', () => ({
     saveBncConfig: jest.fn().mockResolvedValue(undefined),
     on: jest.fn().mockReturnValue(jest.fn()),
     off: jest.fn(),
+    onSettingChange: jest.fn().mockReturnValue(jest.fn()),
   },
   DEFAULT_PART_MESSAGE: 'Leaving',
   DEFAULT_QUIT_MESSAGE: 'Quit',
   IRCNetworkConfig: class IRCNetworkConfig {},
 }));
-jest.mock('../../src/services/NotificationService');
-jest.mock('../../src/services/BackgroundService');
-jest.mock('../../src/services/MessageHistoryService');
-jest.mock('../../src/services/IRCService');
-jest.mock('../../src/services/ThemeService');
-jest.mock('../../src/services/ConnectionProfilesService');
-jest.mock('../../src/services/BouncerService');
-jest.mock('../../src/services/LayoutService');
-jest.mock('../../src/services/PerformanceService');
-jest.mock('../../src/services/DataBackupService');
-jest.mock('../../src/services/IdentityProfilesService');
-jest.mock('../../src/services/BiometricAuthService');
-jest.mock('../../src/services/SecureStorageService');
-jest.mock('../../src/services/EncryptedDMService');
-jest.mock('../../src/services/ConnectionManager');
-jest.mock('../../src/services/InAppPurchaseService');
-jest.mock('../../src/services/AdRewardService');
+jest.mock('../../src/services/NotificationService', () => ({
+  notificationService: {
+    getPreferences: jest.fn(() => ({ enabled: false })),
+    listChannelPreferences: jest.fn(() => []),
+    checkPermission: jest.fn().mockResolvedValue(true),
+    updatePreferences: jest.fn().mockResolvedValue(undefined),
+    updateChannelPreferences: jest.fn().mockResolvedValue(undefined),
+    removeChannelPreferences: jest.fn().mockResolvedValue(undefined),
+    requestPermission: jest.fn().mockResolvedValue(true),
+  },
+}));
+jest.mock('../../src/services/BackgroundService', () => ({
+  backgroundService: {
+    isBatteryOptimizationEnabled: jest.fn().mockResolvedValue(false),
+    openBatteryOptimizationSettings: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+jest.mock('../../src/services/MessageHistoryService', () => ({
+  messageHistoryService: {
+    getStats: jest.fn().mockResolvedValue({ totalMessages: 0, totalBytes: 0, perNetwork: {} }),
+    exportHistory: jest.fn().mockResolvedValue({}),
+    deleteNetworkMessages: jest.fn().mockResolvedValue(undefined),
+    clearAll: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+jest.mock('../../src/services/IRCService', () => ({
+  ircService: {
+    on: jest.fn().mockReturnValue(jest.fn()),
+    sendRaw: jest.fn(),
+    disconnect: jest.fn(),
+    connect: jest.fn(),
+    getConnectionStatus: jest.fn().mockReturnValue(false),
+    addRawMessage: jest.fn(),
+  },
+  RAW_MESSAGE_CATEGORIES: [
+    { id: 'connection', title: 'Connection', description: '' },
+  ],
+  getDefaultRawCategoryVisibility: () => ({ connection: true }),
+}));
+jest.mock('../../src/services/ThemeService', () => ({
+  themeService: {
+    getCurrentTheme: jest.fn().mockReturnValue({ id: 'light', name: 'Light', colors: {} }),
+    onThemeChange: jest.fn().mockReturnValue(jest.fn()),
+    getColors: jest.fn().mockReturnValue({}),
+    getMessageFormat: jest.fn().mockReturnValue('{nick} has joined {channel}'),
+    getAllThemes: jest.fn().mockReturnValue([]),
+  },
+}));
+jest.mock('../../src/services/ConnectionProfilesService', () => ({
+  connectionProfilesService: {
+    list: jest.fn().mockResolvedValue([]),
+  },
+}));
+jest.mock('../../src/services/BouncerService', () => ({
+  bouncerService: {
+    requestPlayback: jest.fn(),
+  },
+}));
+jest.mock('../../src/services/LayoutService', () => ({
+  layoutService: {
+    getConfig: jest.fn().mockReturnValue({}),
+    setConfig: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+jest.mock('../../src/services/PerformanceService', () => ({
+  performanceService: {
+    getConfig: jest.fn().mockReturnValue({}),
+    setConfig: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+jest.mock('../../src/services/DataBackupService', () => ({
+  dataBackupService: {
+    getStorageStats: jest.fn().mockResolvedValue({ totalMessages: 0, totalBytes: 0 }),
+    exportSettings: jest.fn().mockResolvedValue({}),
+    exportAll: jest.fn().mockResolvedValue({}),
+    importAll: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+jest.mock('../../src/services/IdentityProfilesService', () => ({
+  identityProfilesService: {
+    list: jest.fn().mockResolvedValue([]),
+  },
+}));
+jest.mock('../../src/services/BiometricAuthService', () => ({
+  biometricAuthService: {
+    getBiometryType: jest.fn().mockResolvedValue(null),
+    authenticate: jest.fn().mockResolvedValue(true),
+    enableLock: jest.fn().mockResolvedValue(true),
+    disableLock: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+jest.mock('../../src/services/SecureStorageService', () => ({
+  secureStorageService: {
+    getSecret: jest.fn().mockResolvedValue(null),
+    setSecret: jest.fn().mockResolvedValue(undefined),
+    removeSecret: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+jest.mock('../../src/services/EncryptedDMService', () => ({
+  encryptedDMService: {
+    migrateOldKeysToNetwork: jest.fn().mockResolvedValue(0),
+  },
+}));
+jest.mock('../../src/services/ConnectionManager', () => ({
+  connectionManager: {
+    getAllConnections: jest.fn().mockReturnValue([]),
+    getActiveConnection: jest.fn().mockReturnValue(undefined),
+    getActiveNetworkId: jest.fn().mockReturnValue(null),
+    onConnectionCreated: jest.fn().mockReturnValue(jest.fn()),
+  },
+}));
+jest.mock('../../src/services/InAppPurchaseService', () => ({
+  inAppPurchaseService: {
+    initialize: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+jest.mock('../../src/services/AdRewardService', () => ({
+  adRewardService: {
+    initialize: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+jest.mock('../../src/services/SubscriptionService', () => ({
+  subscriptionService: {
+    registerZncSubscription: jest.fn().mockResolvedValue({ success: false }),
+    refreshAccountStatus: jest.fn().mockResolvedValue(undefined),
+    restorePurchases: jest.fn().mockResolvedValue([]),
+  },
+}));
 
 // Import SettingsScreen after mocks
 const { SettingsScreen } = jest.requireActual('../../src/screens/SettingsScreen');
@@ -94,87 +206,68 @@ describe('SettingsScreen Integration', () => {
   });
 
   it('should render settings screen with all sections', async () => {
-    const { getByText } = render(
+    const { findByText } = render(
       <SettingsScreen visible={true} onClose={mockOnClose} />
     );
 
-    await waitFor(() => {
-      expect(getByText('Settings')).toBeTruthy();
-    });
+    expect(await findByText('Settings')).toBeTruthy();
   });
 
   it('should handle closing the settings screen', async () => {
-    const { getByTestId } = render(
+    const { findByText } = render(
       <SettingsScreen visible={true} onClose={mockOnClose} />
     );
 
-    await waitFor(() => {
-      const closeButton = getByTestId('settings-close-button');
-      fireEvent.press(closeButton);
-      expect(mockOnClose).toHaveBeenCalled();
-    });
+    const closeButton = await findByText('Done');
+    fireEvent.press(closeButton);
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('should handle search functionality', async () => {
-    const { getByPlaceholderText } = render(
+    const { findByPlaceholderText } = render(
       <SettingsScreen visible={true} onClose={mockOnClose} />
     );
 
-    await waitFor(() => {
-      const searchInput = getByPlaceholderText('Search settings...');
-      fireEvent.changeText(searchInput, 'notification');
-      expect(searchInput.props.value).toBe('notification');
-    });
+    const searchInput = await findByPlaceholderText('Search settings...');
+    fireEvent.changeText(searchInput, 'notification');
+    expect(searchInput.props.value).toBe('notification');
   });
 
   it('should render all section components', async () => {
-    const { getByTestId } = render(
+    const { findByText } = render(
       <SettingsScreen visible={true} onClose={mockOnClose} />
     );
 
-    await waitFor(() => {
-      // Check for presence of main settings container
-      expect(getByTestId('settings-screen')).toBeTruthy();
-    });
+    expect(await findByText('Appearance')).toBeTruthy();
+    expect(await findByText('Messages & History')).toBeTruthy();
   });
 
   it('should handle search term clearing', async () => {
-    const { getByPlaceholderText, getByText } = render(
+    const { findByPlaceholderText } = render(
       <SettingsScreen visible={true} onClose={mockOnClose} />
     );
 
-    await waitFor(() => {
-      const searchInput = getByPlaceholderText('Search settings...');
-      fireEvent.changeText(searchInput, 'test search');
-      
-      // Clear the search
-      fireEvent.changeText(searchInput, '');
-      expect(searchInput.props.value).toBe('');
-    });
+    const searchInput = await findByPlaceholderText('Search settings...');
+    fireEvent.changeText(searchInput, 'test search');
+    fireEvent.changeText(searchInput, '');
+    expect(searchInput.props.value).toBe('');
   });
 
   it('should handle section expansion toggle', async () => {
-    const { getByTestId } = render(
+    const { findByText } = render(
       <SettingsScreen visible={true} onClose={mockOnClose} />
     );
 
-    await waitFor(() => {
-      // Find and toggle a section
-      const sectionHeader = getByTestId('settings-section-header');
-      fireEvent.press(sectionHeader);
-      
-      // Verify toggle was called
-      expect(settingsHelpers.toggleSectionExpansion).toHaveBeenCalled();
-    });
+    const sectionHeader = await findByText('Appearance');
+    fireEvent.press(sectionHeader);
+    expect(settingsHelpers.toggleSectionExpansion).toHaveBeenCalled();
   });
 
   it('should maintain state consistency', async () => {
-    const { getByTestId } = render(
+    const { findByText } = render(
       <SettingsScreen visible={true} onClose={mockOnClose} />
     );
 
-    await waitFor(() => {
-      expect(getByTestId('settings-screen')).toBeTruthy();
-    });
+    expect(await findByText('Settings')).toBeTruthy();
   });
 });

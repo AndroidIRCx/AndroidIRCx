@@ -1,7 +1,7 @@
 {
   "name": "AndroidIRCX",
   "displayName": "AndroidIRCX",
-  "version": "1.6.21",
+  "version": "1.7.0",
   "react-native-google-mobile-ads": {
     "android_app_id": "ca-app-pub-5116758828202889~3198641840"
   }
