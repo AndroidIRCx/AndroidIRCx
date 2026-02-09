@@ -686,6 +686,8 @@ This client implements the IRC protocol according to:
 
 **Total**: 27 capabilities requested, 18 major features implemented with graceful fallbacks
 
+---
+
 ## 📄 License
 
 This project is licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later).
@@ -703,11 +705,53 @@ the [GNU General Public License](LICENSE.md) for more details.
 You should have received a copy of the GNU General Public License along with this program. If not,
 see <https://www.gnu.org/licenses/>.
 
+---
+
+## 🤖 AI Usage Disclaimer
+
+This project was built with modern tools, including AI-assisted development.
+
+Like robotics in manufacturing, autopilot systems in agriculture, and autocomplete in software,  
+AI is a tool - no more, no less.
+
+**AI did not build this project on its own.**  
+Every decision, architectural choice, security consideration, and final line of code was reviewed,  
+validated, and maintained by a human engineer with more than 25 years of professional experience.
+
+AI did not replace engineering judgment; it accelerated routine work so more time could be spent
+on  
+architecture, quality, and usability.
+
+If you prefer software created without automation or AI assistance, that choice is fully
+respected.  
+At the same time, refusing tools has never stopped progress - it has only determined who  
+participates in shaping it.
+
+This project exists to contribute something real to open source, with practical value and  
+long-term maintenance. You are welcome to:
+
+- use it or study it
+- fork it or improve it
+- or simply ignore it
+
+All are valid choices.
+
+Builders shape the future in silence. Spectators explain it when the work is already done.
+
+In the end, technology moves forward with or without permission. The only question is who chose to
+be part of it.
+
+Some build loudly. Others build correctly.
+
+Those who recognize the work will understand. Time will explain the rest.
+
+🜂🜃🜂
+
+---
+
 ## 📚 Additional Documentation
 
 - [Debug Notes](DEBUG_NOTES.md) - Troubleshooting guide
-
----
 
 **Note**: This project is in active development. Some features may be incomplete or subject to change.
 
