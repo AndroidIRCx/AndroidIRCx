@@ -172,6 +172,14 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
 
     // Track newly created tabs for scrollback loading
     const newlyCreatedTabs: NewTabInfo[] = [];
+    const messagesToPersist: Array<{ message: IRCMessage; network: string }> = [];
+
+    const shouldPersistMessage = (message: IRCMessage, hasValidNetwork: boolean): boolean => {
+      if (!hasValidNetwork) return false;
+      if (message.isScrollback || message.isPlayback) return false;
+      if (message.isRaw || message.type === 'raw') return false;
+      return true;
+    };
 
     // Process all messages in a single setTabs call
     setTabs(prevTabs => {
@@ -267,6 +275,9 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
                 type: targetTabType,
               });
             }
+            if (shouldPersistMessage(message, hasValidNetwork)) {
+              messagesToPersist.push({ message, network: messageNetwork });
+            }
             tabsModified = true;
           }
         } else {
@@ -309,6 +320,9 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
             messages: messagesFinal,
             hasActivity: tab.id !== activeTabId ? true : tab.hasActivity,
           };
+          if (shouldPersistMessage(message, hasValidNetwork)) {
+            messagesToPersist.push({ message, network: messageNetwork });
+          }
           //console.log(`📨 useMessageBatching: Tab ${tab.id} now has ${messagesFinal.length} messages`);
           tabsModified = true;
         }
@@ -326,6 +340,14 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
       }
       return result;
     });
+
+    if (messagesToPersist.length > 0) {
+      messagesToPersist.forEach(({ message, network }) => {
+        messageHistoryService.saveMessage(message, network).catch(err => {
+          console.error('useMessageBatching: Failed to save message history:', err);
+        });
+      });
+    }
 
     // Queue newly created tabs for scrollback loading
     if (newlyCreatedTabs.length > 0) {

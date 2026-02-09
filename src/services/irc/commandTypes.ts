@@ -59,6 +59,25 @@ export interface CommandHandlerContext {
   emitPart: (channel: string, nick: string) => void;
   emitConnection: (connected: boolean) => void;
   handleKillDisconnect: (reason: string) => void;
+
+  // SASL
+  sendSASLCredentials: () => void;
+  setSaslAuthenticating: (value: boolean) => void;
+
+  // PRIVMSG support
+  sendRaw: (command: string) => void;
+  handleCTCPRequest: (from: string, target: string, command: string, args?: string) => void;
+  isUserIgnored: (nick: string, username?: string, hostname?: string, network?: string) => boolean;
+  evaluateProtectionDecision: (
+    message: { type: string; channel: string; from: string; text: string; timestamp: number; network: string; username?: string; hostname?: string },
+    context: { isActiveTab: boolean; isQueryOpen: boolean; isChannel: boolean; isCtcp: boolean },
+  ) => { kind: string } | null;
+  handleMultilineMessage: (
+    from: string, target: string, text: string, concatTag: string | undefined,
+    otherTags: { timestamp: number; account?: string; msgid?: string; channelContext?: string; replyTo?: string },
+  ) => string | null;
+  getEncryptedDMService: () => any;
+  getChannelEncryptionService: () => any;
 }
 
 /**
@@ -77,6 +96,7 @@ export type CommandHandler = (
     replyTag?: string;
     reactTag?: string;
     typingTag?: string;
+    multilineConcatTag?: string;
   }
 ) => void;
 

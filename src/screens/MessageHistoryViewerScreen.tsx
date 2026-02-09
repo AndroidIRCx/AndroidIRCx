@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -47,11 +47,33 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
   const [selectedEntry, setSelectedEntry] = useState<HistoryEntry | null>(null);
   const [messages, setMessages] = useState<IRCMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [migrating, setMigrating] = useState(false);
+  const [migrationProgress, setMigrationProgress] = useState<{ processed: number; total: number }>({ processed: 0, total: 0 });
+  const [migrationSummary, setMigrationSummary] = useState('');
   const [messageSortOrder, setMessageSortOrder] = useState<'desc' | 'asc'>('desc');
+  const migrationSummaryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadEntries = useCallback(async () => {
     setLoading(true);
     try {
+      setMigrating(true);
+      setMigrationProgress({ processed: 0, total: 0 });
+      const migrationResult = await messageHistoryService.ensureHistoryMigrated((processed, total) => {
+        setMigrationProgress({ processed, total });
+      });
+      if (migrationResult.migrated) {
+        setMigrationSummary(t('Migrated {count} channels.', { count: migrationResult.migratedCount }));
+        if (migrationSummaryTimerRef.current) {
+          clearTimeout(migrationSummaryTimerRef.current);
+        }
+        migrationSummaryTimerRef.current = setTimeout(() => {
+          setMigrationSummary('');
+          migrationSummaryTimerRef.current = null;
+        }, 3693);
+      } else {
+        setMigrationSummary('');
+      }
+      setMigrating(false);
       const list = await messageHistoryService.listStoredChannels();
       const sorted = [...list].sort((a, b) => {
         if (a.network !== b.network) {
@@ -61,6 +83,7 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
       });
       setEntries(sorted);
     } finally {
+      setMigrating(false);
       setLoading(false);
     }
   }, []);
@@ -213,7 +236,24 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
         {loading && (
           <View style={styles.loadingRow}>
             <ActivityIndicator color={colors.primary || '#2196F3'} />
-            <Text style={styles.loadingText}>{t('Loading...')}</Text>
+            <Text style={styles.loadingText}>
+              {migrating
+                ? t('Migrating history... {done}/{total}', {
+                    done: migrationProgress.processed,
+                    total: migrationProgress.total || migrationProgress.processed,
+                  })
+                : t('Loading...')}
+            </Text>
+          </View>
+        )}
+        {!!migrationSummary && !loading && (
+          <View style={styles.migrationSummaryRow}>
+            <Text style={styles.migrationSummaryText}>{migrationSummary}</Text>
+            <TouchableOpacity
+              style={styles.migrationSummaryClose}
+              onPress={() => setMigrationSummary('')}>
+              <Text style={styles.migrationSummaryCloseText}>{t('Close')}</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -336,6 +376,26 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   loadingText: {
     color: colors.textSecondary || '#757575',
+  },
+  migrationSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+  },
+  migrationSummaryText: {
+    color: colors.textSecondary || '#757575',
+    fontSize: 12,
+  },
+  migrationSummaryClose: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+  },
+  migrationSummaryCloseText: {
+    color: colors.buttonPrimary || '#2196F3',
+    fontSize: 12,
+    fontWeight: '600',
   },
   listContent: {
     padding: 12,

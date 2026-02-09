@@ -17,6 +17,10 @@ import { decodeIfBase64Like } from '../utils/Base64Utils';
 import { IRCNumericHandlers } from './irc/IRCNumericHandlers';
 import { IRCCommandHandlers } from './irc/IRCCommandHandlers';
 import { CAPHandlers } from './irc/cap/CAPHandlers';
+import { IRCSendMessageHandlers } from './irc/IRCSendMessageHandlers';
+import { parseCTCP, encodeCTCP, handleCTCPRequest as handleCTCPRequestFn, CTCPContext } from './irc/protocol/CTCPHandlers';
+import { BatchLabelManager } from './irc/protocol/BatchLabelHandlers';
+import { MultilineHandler } from './irc/protocol/MultilineHandler';
 
 // Re-export ChannelTab from types for backward compatibility
 export { ChannelTab } from '../types';
@@ -181,6 +185,7 @@ export class IRCService {
   private isLoggingRaw: boolean = false;
   private numericHandlers: IRCNumericHandlers | null = null;
   private commandHandlers: IRCCommandHandlers | null = null;
+  private sendMessageHandlers: IRCSendMessageHandlers | null = null;
   private capHandlers: CAPHandlers | null = null;
   
   // CAP negotiation state
@@ -213,13 +218,8 @@ export class IRCService {
   private chghost: boolean = false;
   private messageTags: boolean = false;
 
-  // Batch tracking (IRCv3.2)
-  private activeBatches: Map<string, {
-    type: string;
-    params: string[];
-    messages: IRCMessage[];
-    startTime: number;
-  }> = new Map();
+  // Batch/Label manager (IRCv3.2)
+  private batchLabelManager: BatchLabelManager | null = null;
 
   // Clone detection state
   private cloneDetectionActive: boolean = false;
@@ -229,26 +229,12 @@ export class IRCService {
   private cloneDetectionBatchSize: number = 100; // Process 100 users at a time
   private cloneDetectionDelay: number = 100; // ms between batches
 
-  // Labeled-response tracking (IRCv3.2)
-  private pendingLabels: Map<string, {
-    command: string;
-    timestamp: number;
-    callback?: (response: any) => void;
-  }> = new Map();
-  private labelCounter: number = 0;
-  private readonly LABEL_TIMEOUT = 30000; // 30 seconds
-
   // Message deduplication tracking (IRCv3.3 message-ids)
   private seenMessageIds: Set<string> = new Set();
   private readonly MAX_MSGID_CACHE = 1000; // Keep last 1000 message IDs
 
-  // Multiline message tracking (draft/multiline)
-  private multilineBuffers: Map<string, {
-    from: string;
-    parts: string[];
-    timestamp: number;
-  }> = new Map();
-  private readonly MULTILINE_TIMEOUT = 5000; // 5 seconds timeout for multiline assembly
+  // Multiline message handler (draft/multiline)
+  private multilineHandler: MultilineHandler = new MultilineHandler();
 
   // SASL state
   private saslAuthenticating: boolean = false;
@@ -1007,41 +993,50 @@ export class IRCService {
     // Extract multiline concat tag (draft/multiline)
     const multilineConcatTag = tags.get('draft/multiline-concat') || undefined;
 
-    const parts = messageLine.split(' ');
-    if (parts.length === 0) return;
-
-    if (parts[0] === 'PING') {
-      const server = parts[1] || '';
-      this.sendRaw(`PONG ${server}`);
-      return;
-    }
-
     let prefix = '';
     let command = '';
     let params: string[] = [];
-    let startIdx = 0;
 
-    if (parts[0].startsWith(':')) {
-      prefix = parts[0].substring(1);
-      command = parts[1] || '';
-      startIdx = 2;
-    } else {
-      command = parts[0];
-      startIdx = 1;
+    let rest = messageLine;
+    if (rest.startsWith(':')) {
+      const spaceIdx = rest.indexOf(' ');
+      if (spaceIdx === -1) return;
+      prefix = rest.substring(1, spaceIdx);
+      rest = rest.substring(spaceIdx + 1);
     }
-    
-    params = [];
-    let trailingParamFound = false;
-    for (let j = startIdx; j < parts.length; j++) {
-      if (!trailingParamFound && parts[j].startsWith(':')) {
-        trailingParamFound = true;
-        const trailingParam = parts.slice(j).join(' ').substring(1);
-        params.push(trailingParam);
+
+    rest = rest.replace(/^ +/, '');
+    if (!rest) return;
+
+    const commandEnd = rest.indexOf(' ');
+    if (commandEnd === -1) {
+      command = rest;
+      rest = '';
+    } else {
+      command = rest.substring(0, commandEnd);
+      rest = rest.substring(commandEnd + 1);
+    }
+
+    rest = rest.replace(/^ +/, '');
+    while (rest.length > 0) {
+      if (rest.startsWith(':')) {
+        params.push(rest.substring(1));
         break;
       }
-      if (!trailingParamFound) {
-        params.push(parts[j]);
+      const nextSpace = rest.indexOf(' ');
+      if (nextSpace === -1) {
+        params.push(rest);
+        break;
       }
+      params.push(rest.substring(0, nextSpace));
+      rest = rest.substring(nextSpace + 1);
+      rest = rest.replace(/^ +/, '');
+    }
+
+    if (command === 'PING') {
+      const server = params[0] || '';
+      this.sendRaw(server ? `PONG :${server}` : 'PONG');
+      return;
     }
 
     const numeric = parseInt(command, 10);
@@ -1053,7 +1048,7 @@ export class IRCService {
     if (!this.commandHandlers) {
       this.commandHandlers = new IRCCommandHandlers(this as any);
     }
-    if (this.commandHandlers.handle(command, prefix, params, messageTimestamp, {
+    this.commandHandlers.handle(command, prefix, params, messageTimestamp, {
       batchTag,
       accountTag,
       msgidTag,
@@ -1061,299 +1056,8 @@ export class IRCService {
       replyTag,
       reactTag,
       typingTag,
-    })) {
-      return;
-    }
-
-    switch (command) {
-
-      case 'AUTHENTICATE':
-        if (params.length > 0) {
-          if (params[0] === '+') {
-            this.logRaw('IRCService: Server ready for SASL authentication data');
-            this.sendSASLCredentials();
-          } else if (params[0] && params[0] !== '+') {
-            this.logRaw('IRCService: SASL authentication error:', params[0]);
-            this.saslAuthenticating = false;
-          }
-        }
-        return;
-      case 'PRIVMSG':
-        const target = params[0] || '';
-        const fromNick = this.extractNick(prefix);
-        let msgText = params[1] || '';
-
-        // Strip ZNC playback timestamps to allow proper decryption
-        // ZNC adds timestamps like: [HH:MM:SS] text [HH:MM:SS]
-        msgText = msgText.replace(/^\[\d{2}:\d{2}:\d{2}\]\s*/, ''); // Remove leading timestamp
-        msgText = msgText.replace(/\s*\[\d{2}:\d{2}:\d{2}\]$/, ''); // Remove trailing timestamp
-
-        if (!target || target === '*' || target.trim() === '') {
-          return;
-        }
-        
-        const isChannel = target.startsWith('#') || target.startsWith('&') || target.startsWith('+') || target.startsWith('!');
-        
-        if (!isChannel && fromNick === this.currentNick && target === this.currentNick) {
-          return;
-        }
-        
-        // Check if user is ignored (after CTCP handling, before regular message processing)
-        const network = this.getNetworkName();
-        const prefixParts = prefix.split('!');
-        const username = prefixParts[1]?.split('@')[0];
-        const hostname = prefixParts[1]?.split('@')[1];
-        if (this.getUserManagementService().isUserIgnored(fromNick, username, hostname, network)) {
-          // User is ignored, skip this message
-          return;
-        }
-
-        const ctcp = this.parseCTCP(msgText);
-        const protectionContext = this.getProtectionTabContext(target, fromNick, isChannel);
-        const protectionDecision = protectionService.evaluateIncomingMessage({
-          type: 'message',
-          channel: isChannel ? target : fromNick,
-          from: fromNick,
-          text: msgText,
-          timestamp: messageTimestamp,
-          network,
-          username,
-          hostname,
-        }, {
-          isActiveTab: protectionContext.isActiveTab,
-          isQueryOpen: protectionContext.isQueryOpen,
-          isChannel,
-          isCtcp: ctcp.isCTCP,
-        });
-        if (protectionDecision) {
-          this.handleProtectionBlock(protectionDecision.kind, fromNick, username, hostname, isChannel ? target : null);
-          return;
-        }
-
-        if (ctcp.isCTCP && ctcp.command) {
-          this.handleCTCPRequest(fromNick, target, ctcp.command, ctcp.args);
-          return;
-        }
-        
-        // For query messages, determine the correct channel identifier:
-        // - If it's our message (fromNick === currentNick), use target (recipient's tab)
-        // - If it's from someone else, use fromNick (sender's tab)
-        // This ensures both local echo and server echo go to the same tab
-        const channelIdentifier = isChannel 
-          ? target 
-          : (fromNick.toLowerCase() === this.currentNick.toLowerCase() ? target : fromNick);
-
-        // Handle old protocol for backward compatibility
-        if (msgText.startsWith('!enc-key ')) {
-          const network = this.getNetworkName();
-          encryptedDMService.handleIncomingBundleForNetwork(network, fromNick, msgText.substring('!enc-key '.length));
-          return;
-        }
-
-        // New negotiation protocol: key offer (requires acceptance)
-        if (msgText.startsWith('!enc-offer ')) {
-          const network = this.getNetworkName();
-          encryptedDMService.handleKeyOfferForNetwork(network, fromNick, msgText.substring('!enc-offer '.length));
-          return;
-        }
-
-        // Handle key acceptance (they accepted and sent their key)
-        if (msgText.startsWith('!enc-accept ')) {
-          const network = this.getNetworkName();
-          encryptedDMService.handleKeyAcceptanceForNetwork(network, fromNick, msgText.substring('!enc-accept '.length))
-            .then(result => {
-              if (result.status === 'stored') {
-                this.addMessage({
-                  type: 'notice',
-                  text: t('*** {nick} accepted your encryption key. Encrypted chat enabled.', { nick: fromNick }),
-                  timestamp: Date.now(),
-                });
-              } else if (result.status === 'pending') {
-                this.addMessage({
-                  type: 'notice',
-                  text: t('*** {nick} sent a different encryption key. Review and accept the new key to continue encrypted chat.', { nick: fromNick }),
-                  timestamp: Date.now(),
-                });
-              }
-            })
-            .catch(e => console.warn('EncryptedDMService: failed to handle acceptance', e));
-          return;
-        }
-
-        // Handle key rejection
-        if (msgText === '!enc-reject') {
-          this.addMessage({
-            type: 'notice',
-            text: t('*** {nick} rejected your encryption key offer.', { nick: fromNick }),
-            timestamp: Date.now(),
-          });
-          return;
-        }
-
-        // Handle key request (auto-send offer)
-        if (msgText === '!enc-req') {
-          encryptedDMService
-            .exportBundle()
-            .then(bundle => this.sendRaw(`PRIVMSG ${fromNick} :!enc-offer ${JSON.stringify(bundle)}`))
-            .catch(e => console.warn('EncryptedDMService: failed to respond to enc-req', e));
-          return;
-        }
-
-        // Handle encrypted channel messages
-        if (msgText.startsWith('!chanenc-msg ')) {
-          if (!isChannel) {
-            return; // Ignore channel encryption in DMs
-          }
-          let payload: any = null;
-          try {
-            payload = JSON.parse(msgText.substring('!chanenc-msg '.length));
-          } catch (e) {
-            this.addMessage({
-              type: 'error',
-              channel: channelIdentifier,
-              from: fromNick,
-              text: t('🔒 Invalid channel encryption payload'),
-              timestamp: messageTimestamp,
-            });
-            return;
-          }
-
-          channelEncryptionService
-            .decryptMessage(payload, target, this.getNetworkName())
-            .then(plaintext => {
-              this.addMessage({
-                type: 'message',
-                channel: channelIdentifier,
-                from: fromNick,
-                text: t('🔒 {message}', { message: plaintext }),
-                timestamp: messageTimestamp,
-              });
-            })
-            .catch(e => {
-              this.addMessage({
-                type: 'message',
-                channel: channelIdentifier,
-                from: fromNick,
-                text: t('🔒 {message}', {
-                  message: e.message === 'no channel key'
-                    ? t('Missing channel key. Use /chankey request <nick> to get it.')
-                    : t('Decryption failed. If this was sent from v1.6.3+, please update to v1.6.3 or newer.'),
-                }),
-                timestamp: messageTimestamp,
-              });
-            });
-          return;
-        }
-
-        // Handle encrypted channel key sharing (via DM)
-        if (msgText.startsWith('!chanenc-key ')) {
-          const keyData = msgText.substring('!chanenc-key '.length);
-          channelEncryptionService.importChannelKey(keyData, this.getNetworkName())
-            .then(imported => {
-              this.addMessage({
-                type: 'notice',
-                text: t('*** Received channel key for {channel} from {nick}', { channel: imported.channel, nick: fromNick }),
-                timestamp: Date.now(),
-              });
-            })
-            .catch(e => {
-              this.addMessage({
-                type: 'error',
-                text: t('*** Failed to import channel key: {message}', { message: e }),
-                timestamp: Date.now(),
-              });
-            });
-          return;
-        }
-
-        // Handle DM encrypted messages
-        if (msgText.startsWith('!enc-msg ')) {
-          let payload: any = null;
-          try {
-            payload = JSON.parse(msgText.substring('!enc-msg '.length));
-          } catch (e) {
-            this.addMessage({
-              type: 'error',
-              channel: channelIdentifier,
-              from: fromNick,
-              text: t('Invalid encrypted payload'),
-              timestamp: messageTimestamp,
-            });
-            return;
-          }
-
-          const network = this.getNetworkName();
-          encryptedDMService
-            .decryptForNetwork(payload, network, fromNick)
-            .then(plaintext => {
-              this.addMessage({
-                type: 'message',
-                channel: channelIdentifier,
-                from: fromNick,
-                text: t('🔒 {message}', { message: plaintext }),
-                timestamp: messageTimestamp,
-              });
-            })
-            .catch(() => {
-              this.addMessage({
-                type: 'error',
-                channel: channelIdentifier,
-                text: t('Encrypted message from {nick} could not be decrypted. If they are on v1.6.3+, please update to v1.6.3 or newer.', { nick: fromNick }),
-                timestamp: messageTimestamp,
-              });
-            });
-          return;
-        }
-
-        // Handle multiline messages (draft/multiline)
-        const finalText = this.handleMultilineMessage(
-          fromNick,
-          channelIdentifier,
-          msgText,
-          multilineConcatTag,
-          {
-            timestamp: messageTimestamp,
-            account: accountTag,
-            msgid: msgidTag,
-            channelContext: channelContextTag,
-            replyTo: replyTag,
-          }
-        );
-
-        // Only add message if multiline assembly is complete
-        if (finalText !== null) {
-          this.addMessage({
-            type: 'message',
-            channel: channelIdentifier,
-            from: fromNick,
-            text: finalText,
-            timestamp: messageTimestamp,
-            account: accountTag, // IRCv3.2 account-tag
-            msgid: msgidTag, // IRCv3.3 message-ids
-            channelContext: channelContextTag, // draft/channel-context
-            replyTo: replyTag, // draft/reply
-            reactions: reactTag, // draft/react
-            typing: typingTag as 'active' | 'paused' | 'done' | undefined, // +typing
-            username,
-            hostname,
-            target,
-            command: 'PRIVMSG',
-          }, batchTag); // Pass batchTag for IRCv3 batch support (chathistory)
-        }
-        break;
-
-
-      default:
-        const fullMessage = `${prefix ? `:${prefix} ` : ''}${command} ${params.join(' ')}`;
-        this.addMessage({
-          type: 'raw',
-          text: t('*** RAW Command: {message}', { message: fullMessage }),
-          timestamp: messageTimestamp,
-          isRaw: true,
-          rawCategory: 'server',
-        });
-        break;
-    }
+      multilineConcatTag,
+    });
 
     // Handle labeled-response (IRCv3.2) - match responses to commands
     if (labelTag) {
@@ -2275,85 +1979,28 @@ export class IRCService {
   }
 
   private parseCTCP(message: string): { isCTCP: boolean; command?: string; args?: string } {
-    if (!message || !message.startsWith('\x01') || !message.endsWith('\x01')) return { isCTCP: false };
-    const content = message.slice(1, -1);
-    const spaceIndex = content.indexOf(' ');
-    if (spaceIndex === -1) return { isCTCP: true, command: content.toUpperCase() };
-    return { isCTCP: true, command: content.substring(0, spaceIndex).toUpperCase(), args: content.substring(spaceIndex + 1) };
+    return parseCTCP(message);
   }
 
   private encodeCTCP(command: string, args?: string): string {
-    return `\x01${args ? `${command} ${args}` : command}\x01`;
+    return encodeCTCP(command, args);
   }
 
   private handleCTCPRequest(from: string, target: string, command: string, args?: string): void {
-    switch (command) {
-      case 'VERSION':
-        this.sendCTCPResponse(from, 'VERSION', `AndroidIRCX ${APP_VERSION} React Native :https://github.com/AndroidIRCX`);
-        break;
-      case 'TIME':
-        this.sendCTCPResponse(from, 'TIME', new Date().toISOString());
-        break;
-      case 'PING':
-        this.sendCTCPResponse(from, 'PING', args || Date.now().toString());
-        break;
-      case 'ACTION':
-        // ACTION messages are display-only, don't echo them back
-        break;
-      case 'DCC':
-        // DCC requests (SEND, CHAT, etc.) - emit as message for DCC handlers
-        // Reconstruct the CTCP format that dccFileService.parseSendOffer expects
-        this.addMessage({
-          type: 'ctcp',
-          from,
-          text: `\x01DCC ${args || ''}\x01`,
-          channel: target,
-          timestamp: Date.now(),
-        });
-        break;
-      // DCC-related CTCP commands - emit for DCC handlers
-      case 'SLOTS':
-      case 'XDCC':
-      case 'TDCC':
-      case 'RDCC':
-        // SLOTS: File sharing slot availability (e.g., "SLOTS 5 open")
-        // XDCC/TDCC/RDCC: Extended DCC file sharing protocols
-        this.addMessage({
-          type: 'ctcp',
-          from,
-          text: `\x01${command} ${args || ''}\x01`,
-          channel: target,
-          timestamp: Date.now(),
-        });
-        break;
-      // Standard CTCP queries - respond appropriately
-      case 'CLIENTINFO':
-        this.sendCTCPResponse(from, 'CLIENTINFO', 'ACTION DCC PING TIME VERSION CLIENTINFO USERINFO SOURCE FINGER');
-        break;
-      case 'USERINFO':
-        this.sendCTCPResponse(from, 'USERINFO', this.config?.realname || 'AndroidIRCX User');
-        break;
-      case 'SOURCE':
-        this.sendCTCPResponse(from, 'SOURCE', 'https://github.com/AndroidIRCX');
-        break;
-      case 'FINGER':
-        this.sendCTCPResponse(from, 'FINGER', `${this.currentNick} - AndroidIRCX`);
-        break;
-      default:
-        // For any other CTCP command, emit as message so UI can display it
-        this.addMessage({
-          type: 'ctcp',
-          from,
-          text: `\x01${command} ${args || ''}\x01`,
-          channel: target,
-          timestamp: Date.now(),
-        });
-        this.logRaw(`CTCP ${command} from ${from}: ${args || '(no args)'}`);
-    }
-  }
-
-  private sendCTCPResponse(target: string, command: string, args?: string): void {
-    if (this.isConnected) this.sendRaw(`NOTICE ${target} :${this.encodeCTCP(command, args)}`);
+    handleCTCPRequestFn(
+      {
+        sendRaw: (cmd: string) => this.sendRaw(cmd),
+        addMessage: (msg: any) => this.addMessage(msg),
+        logRaw: (msg: string) => this.logRaw(msg),
+        getCurrentNick: () => this.currentNick,
+        getRealname: () => this.config?.realname || '',
+        isConnected: () => this.isConnected,
+      },
+      from,
+      target,
+      command,
+      args,
+    );
   }
 
   sendCTCPRequest(target: string, command: string, args?: string): void {
@@ -2378,9 +2025,6 @@ export class IRCService {
     return this.monitoredNicks.has(nick);
   }
 
-  /**
-   * Handle multiline message assembly (draft/multiline)
-   */
   private handleMultilineMessage(
     from: string,
     target: string,
@@ -2394,242 +2038,46 @@ export class IRCService {
       replyTo?: string;
     }
   ): string | null {
-    // If no concat tag, it's a regular single-line message
-    if (!concatTag) {
-      return text;
-    }
-
-    const bufferKey = `${from}:${target}`;
-
-    // Clean up old buffers (timeout)
-    const now = Date.now();
-    this.multilineBuffers.forEach((buffer, key) => {
-      if (now - buffer.timestamp > this.MULTILINE_TIMEOUT) {
-        this.multilineBuffers.delete(key);
-      }
-    });
-
-    // Get or create buffer for this sender/target pair
-    let buffer = this.multilineBuffers.get(bufferKey);
-    if (!buffer) {
-      buffer = { from, parts: [], timestamp: now };
-      this.multilineBuffers.set(bufferKey, buffer);
-    }
-
-    // Add this part to the buffer
-    buffer.parts.push(text);
-    buffer.timestamp = now;
-
-    // Check if this is the last part (empty concat tag means last part)
-    const isLastPart = concatTag === '';
-
-    if (isLastPart) {
-      // Combine all parts with newlines
-      const fullMessage = buffer.parts.join('\n');
-      this.multilineBuffers.delete(bufferKey);
-      return fullMessage;
-    }
-
-    // Not the last part, return null to indicate we're still buffering
-    return null;
+    return this.multilineHandler.handleMultilineMessage(from, target, text, concatTag, otherTags);
   }
 
-  /**
-   * Handle start of BATCH (IRCv3.2)
-   */
+  private getBatchLabelManager(): BatchLabelManager {
+    if (!this.batchLabelManager) {
+      this.batchLabelManager = new BatchLabelManager({
+        addMessage: (msg: any) => this.addMessage(msg),
+        addRawMessage: (text: string, category: string) => this.addRawMessage(text, category as any),
+        emit: (event: string, ...args: any[]) => this.emit(event, ...args),
+        logRaw: (msg: string) => this.logRaw(msg),
+        sendRaw: (cmd: string) => this.sendRaw(cmd),
+        hasCapability: (cap: string) => this.capEnabledSet.has(cap),
+      });
+    }
+    return this.batchLabelManager;
+  }
+
   private handleBatchStart(refTag: string, type: string, params: string[], timestamp: number): void {
-    this.activeBatches.set(refTag, {
-      type,
-      params,
-      messages: [],
-      startTime: timestamp,
-    });
+    this.getBatchLabelManager().handleBatchStart(refTag, type, params, timestamp);
   }
 
-  /**
-   * Handle end of BATCH (IRCv3.2)
-   */
   private handleBatchEnd(refTag: string, timestamp: number): void {
-    const batch = this.activeBatches.get(refTag);
-    if (!batch) {
-      return;
-    }
-
-    // Process completed batch based on type
-    this.processBatch(refTag, batch, timestamp);
-
-    // Remove batch from active batches
-    this.activeBatches.delete(refTag);
+    this.getBatchLabelManager().handleBatchEnd(refTag, timestamp);
   }
 
-  /**
-   * Process completed batch based on type
-   */
-  private processBatch(
-    refTag: string,
-    batch: { type: string; params: string[]; messages: IRCMessage[]; startTime: number },
-    timestamp: number
-  ): void {
-    const { type, params, messages } = batch;
-
-    switch (type) {
-      case 'netsplit': {
-        // Netsplit: group quit messages
-        const serverNames = params.join(' ');
-        this.addMessage({
-          type: 'raw',
-          text: t('*** Netsplit detected: {servers} ({count} users quit)', {
-            servers: serverNames,
-            count: messages.length,
-          }),
-          timestamp,
-          isRaw: true,
-          rawCategory: 'server',
-        });
-        break;
-      }
-
-      case 'netjoin': {
-        // Netjoin: group join messages after netsplit recovery
-        const serverNames = params.join(' ');
-        this.addMessage({
-          type: 'raw',
-          text: t('*** Netjoin: {servers} ({count} users rejoined)', {
-            servers: serverNames,
-            count: messages.length,
-          }),
-          timestamp,
-          isRaw: true,
-          rawCategory: 'server',
-        });
-        break;
-      }
-
-      case 'chathistory': {
-        // Chat history loaded silently - messages are already in the channel
-        break;
-      }
-
-      case 'cap-notify': {
-        // Capability notification batch
-        this.addRawMessage(
-          t('*** Capability changes ({count} updates)', { count: messages.length }),
-          'server'
-        );
-        break;
-      }
-
-      default: {
-        // Unknown batch type: log for debugging
-        this.addRawMessage(
-          t('*** BATCH END: {type} ({ref}) - {count} messages', {
-            type,
-            ref: refTag,
-            count: messages.length,
-          }),
-          'server'
-        );
-        break;
-      }
-    }
-
-    // Emit batch completion event
-    this.emit('batch-end', refTag, type, messages);
-  }
-
-  /**
-   * Associate message with active batch if batch tag is present
-   */
   private addMessageToBatch(message: IRCMessage, batchTag?: string): void {
     if (!batchTag) return;
-
-    const batch = this.activeBatches.get(batchTag);
-    if (batch) {
-      batch.messages.push(message);
-    }
+    this.getBatchLabelManager().addMessageToBatch(message, batchTag);
   }
 
-  /**
-   * Generate unique label for labeled-response (IRCv3.2)
-   */
-  private generateLabel(): string {
-    this.labelCounter++;
-    const timestamp = Date.now();
-    return `androidircx-${timestamp}-${this.labelCounter}`;
-  }
-
-  /**
-   * Send command with label for tracking response
-   */
   sendRawWithLabel(command: string, callback?: (response: any) => void): string {
-    if (!this.capEnabledSet.has('labeled-response')) {
-      // Fallback: send without label if capability not enabled
-      this.sendRaw(command);
-      return '';
-    }
-
-    const label = this.generateLabel();
-    this.pendingLabels.set(label, {
-      command,
-      timestamp: Date.now(),
-      callback,
-    });
-
-    // Set timeout to cleanup stale labels
-    setTimeout(() => {
-      if (this.pendingLabels.has(label)) {
-        this.logRaw(`IRCService: Label timeout for ${label} (command: ${command})`);
-        this.pendingLabels.delete(label);
-        if (callback) {
-          callback({ error: 'timeout', label, command });
-        }
-      }
-    }, this.LABEL_TIMEOUT);
-
-    // Send command with label tag
-    this.sendRaw(`@label=${label} ${command}`);
-    this.logRaw(`IRCService: Sent labeled command: ${command} (label: ${label})`);
-    return label;
+    return this.getBatchLabelManager().sendRawWithLabel(command, callback);
   }
 
-  /**
-   * Handle response with label tag
-   */
   private handleLabeledResponse(label: string, response: any): void {
-    const pending = this.pendingLabels.get(label);
-    if (!pending) {
-      this.logRaw(`IRCService: Received response for unknown label: ${label}`);
-      return;
-    }
-
-    this.logRaw(`IRCService: Matched labeled response: ${label} (command: ${pending.command})`);
-
-    // Call callback if provided
-    if (pending.callback) {
-      pending.callback(response);
-    }
-
-    // Emit event for labeled response
-    this.emit('labeled-response', label, pending.command, response);
-
-    // Remove from pending labels
-    this.pendingLabels.delete(label);
+    this.getBatchLabelManager().handleLabeledResponse(label, response);
   }
 
-  /**
-   * Clean up all pending labels (on disconnect)
-   */
   private cleanupLabels(): void {
-    const count = this.pendingLabels.size;
-    if (count > 0) {
-      this.logRaw(`IRCService: Cleaning up ${count} pending labels`);
-      this.pendingLabels.forEach((pending, label) => {
-        if (pending.callback) {
-          pending.callback({ error: 'disconnected', label, command: pending.command });
-        }
-      });
-      this.pendingLabels.clear();
-    }
+    this.getBatchLabelManager().cleanupLabels();
   }
 
   partChannel(channel: string, message?: string): void {
@@ -2835,855 +2283,13 @@ export class IRCService {
       const parts = commandText.split(' ');
       const command = parts[0].toUpperCase();
       const args = parts.slice(1);
-      
-      switch (command) {
-        case 'JOIN': if (args.length > 0) this.joinChannel(args[0], args[1]); break;
-        case 'PART': {
-          if (args.length === 0) {
-            const isChannelTarget =
-              target.startsWith('#') || target.startsWith('&') || target.startsWith('+') || target.startsWith('!');
-            if (!isChannelTarget) {
-              this.addMessage({ type: 'error', text: t('Usage: /part <channel> [message]'), timestamp: Date.now() });
-              break;
-            }
-          }
-          this.partChannel(args.length > 0 ? args[0] : target, args.slice(1).join(' '));
-          break;
-        }
-        case 'NICK': if (args.length > 0) this.sendRaw(`NICK ${args[0]}`); break;
-        case 'SETNAME': if (args.length > 0) this.setRealname(args.join(' ')); break;
-        case 'BOT': {
-          const enable = args.length === 0 || args[0].toLowerCase() !== 'off';
-          this.toggleBotMode(enable);
-          break;
-        }
-        case 'QUIT':
-          this.emit('intentional-quit', this.getNetworkName());
-          this.sendRaw(`QUIT :${args.join(' ') || DEFAULT_QUIT_MESSAGE}`);
-          break;
-        case 'WHOIS': if (args.length > 0) this.sendCommand(`WHOIS ${args.join(' ')}`); break;
-        case 'WHOWAS':
-          if (args.length > 0) {
-            const targetNick = args[0];
-            this.lastWhowasTarget = targetNick || null;
-            this.lastWhowasAt = Date.now();
-            if (args.length === 1 && /[\[\]]/.test(targetNick)) {
-              this.sendCommand(`WHOWAS :${targetNick}`);
-            } else {
-              this.sendCommand(`WHOWAS ${args.join(' ')}`);
-            }
-          }
-          break;
-        case 'MSG': case 'QUERY':
-          if (args.length >= 2) {
-            const msgTarget = args[0];
-            const msgText = args.slice(1).join(' ');
-            this.sendRaw(`PRIVMSG ${msgTarget} :${msgText}`);
-            this.addMessage({ type: 'message', channel: msgTarget, from: this.currentNick, text: msgText, timestamp: Date.now(), status: 'sent' });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /{command} <nick|channel> <message>', { command }), timestamp: Date.now() });
-          }
-          break;
-        case 'ME': case 'ACTION':
-          if (args.length > 0) {
-            const actionText = args.join(' ');
-            this.sendRaw(`PRIVMSG ${target} :${this.encodeCTCP('ACTION', actionText)}`);
-            this.addMessage({ type: 'message', channel: target, from: this.currentNick, text: `\x01ACTION ${actionText}\x01`, timestamp: Date.now(), status: 'sent' });
-          }
-          break;
-        case 'MODE': if (args.length > 0) this.sendCommand(`MODE ${args.join(' ')}`); break;
-        case 'TOPIC':
-          const topicChannel = (target.startsWith('#') || target.startsWith('&')) ? target : args[0];
-          const topicText = args.length > 1 ? args.slice(1).join(' ') : (args.length === 1 && !target.startsWith('#') ? args[0] : '');
-          this.sendCommand(topicText ? `TOPIC ${topicChannel} :${topicText}` : `TOPIC ${topicChannel}`);
-          break;
-        case 'KICK':
-          if (args.length >= 1) {
-            const kickChannel = (target.startsWith('#') || target.startsWith('&')) ? target : args[0];
-            const kickUser = args.length > 1 ? args[1] : args[0];
-            const kickReason = args.slice(2).join(' ');
-            this.sendCommand(`KICK ${kickChannel} ${kickUser}${kickReason ? ` :${kickReason}` : ''}`);
-          }
-          break;
-        case 'SHAREKEY': case 'SENDKEY':
-          if (args.length > 0) {
-            const keyTarget = args[0];
-            encryptedDMService.exportBundle().then(bundle => {
-              this.sendRaw(`PRIVMSG ${keyTarget} :!enc-offer ${JSON.stringify(bundle)}`);
-              this.addMessage({ type: 'notice', text: t('*** Encryption key offer sent to {nick}. Waiting for acceptance...', { nick: keyTarget }), timestamp: Date.now() });
-            }).catch(e => {
-              this.addMessage({ type: 'error', text: t('*** Failed to share encryption key: {message}', { message: e.message }), timestamp: Date.now() });
-            });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /sharekey <nick>'), timestamp: Date.now() });
-          }
-          break;
-        case 'REQUESTKEY':
-          if (args.length > 0) {
-            const reqTarget = args[0];
-            this.sendRaw(`PRIVMSG ${reqTarget} :!enc-req`);
-            this.addMessage({ type: 'notice', text: t('*** Encryption key requested from {nick}', { nick: reqTarget }), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /requestkey <nick>'), timestamp: Date.now() });
-          }
-          break;
-        case 'ENCMSG':
-          if (args.length >= 2) {
-            const encTarget = args[0];
-            const encPlaintext = args.slice(1).join(' ');
-            const network = this.getNetworkName();
-            encryptedDMService.encryptForNetwork(encPlaintext, network, encTarget).then(payload => {
-              this.sendRaw(`PRIVMSG ${encTarget} :!enc-msg ${JSON.stringify(payload)}`);
-              this.addMessage({ type: 'message', channel: encTarget, from: this.currentNick, text: t('🔒 {message}', { message: encPlaintext }), timestamp: Date.now(), status: 'sent' });
-            }).catch(e => {
-              this.addMessage({ type: 'error', text: t('*** Encrypted send failed ({message}). Use "Request Encryption Key" from the user menu.', { message: e.message }), timestamp: Date.now() });
-            });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /encmsg <nick> <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'ENC':
-        case 'ENCRYPT':
-          this.addMessage({ type: 'notice', text: t('DM encryption:'), timestamp: Date.now() });
-          this.addMessage({ type: 'notice', text: t('/sharekey <nick>          Offer your DM key'), timestamp: Date.now() });
-          this.addMessage({ type: 'notice', text: t('/requestkey <nick>        Request DM key'), timestamp: Date.now() });
-          this.addMessage({ type: 'notice', text: t('/encmsg <nick> <message>  Send encrypted DM'), timestamp: Date.now() });
-          this.addMessage({ type: 'notice', text: t('Tips: keys must be exchanged first; use /requestkey if not paired.'), timestamp: Date.now() });
-          break;
-        case 'CHANKEY':
-          if (args.length === 0) {
-            this.addMessage({ type: 'error', text: t('Usage: /chankey <generate|share|request|remove|send|help> [args]'), timestamp: Date.now() });
-            break;
-          }
-          const chankeyAction = args[0].toLowerCase();
-          switch (chankeyAction) {
-            case 'help':
-              this.addMessage({ type: 'notice', text: t('Channel encryption:'), timestamp: Date.now() });
-              this.addMessage({ type: 'notice', text: t('/chankey generate          Create key for current channel'), timestamp: Date.now() });
-              this.addMessage({ type: 'notice', text: t('/chankey share <nick>     Send key to a user (in channel)'), timestamp: Date.now() });
-              this.addMessage({ type: 'notice', text: t('/chankey request <nick>   Ask a user for the channel key'), timestamp: Date.now() });
-              this.addMessage({ type: 'notice', text: t('/chankey send <msg>       Send encrypted message to channel'), timestamp: Date.now() });
-              this.addMessage({ type: 'notice', text: t('/chankey remove           Delete stored key for channel'), timestamp: Date.now() });
-              break;
-            case 'generate':
-              if (!target.startsWith('#') && !target.startsWith('&')) {
-                this.addMessage({ type: 'error', text: t('*** Channel key can only be generated in a channel'), timestamp: Date.now() });
-                break;
-              }
-              channelEncryptionService.generateChannelKey(target, this.getNetworkName()).then(() => {
-                this.addMessage({ type: 'notice', text: t('*** Channel encryption key generated for {channel}. Use /chankey share <nick> to share with others.', { channel: target }), timestamp: Date.now() });
-              }).catch(e => {
-                this.addMessage({ type: 'error', text: t('*** Failed to generate channel key: {message}', { message: e.message }), timestamp: Date.now() });
-              });
-              break;
-            case 'send':
-              if (args.length < 2) {
-                this.addMessage({ type: 'error', text: t('Usage: /chankey send <message>'), timestamp: Date.now() });
-                break;
-              }
-              if (!target.startsWith('#') && !target.startsWith('&')) {
-                this.addMessage({ type: 'error', text: t('*** Channel key send must be used from a channel'), timestamp: Date.now() });
-                break;
-              }
-              const encText = args.slice(1).join(' ');
-              channelEncryptionService
-                .encryptMessage(encText, target, this.getNetworkName())
-                .then(payload => {
-                  this.sendRaw(`PRIVMSG ${target} :!chanenc-msg ${JSON.stringify(payload)}`);
-                  this.addMessage({
-                    type: 'message',
-                    channel: target,
-                    from: this.currentNick,
-                    text: t('🔒 {message}', { message: encText }),
-                    timestamp: Date.now(),
-                    status: 'sent',
-                  });
-                })
-                .catch(e => {
-                  this.addMessage({
-                    type: 'error',
-                    text: t('*** Channel encryption send failed: {message}', {
-                      message: e.message === 'no channel key'
-                        ? t('Missing channel key. Use /chankey generate and share first.')
-                        : e.message,
-                    }),
-                    timestamp: Date.now(),
-                  });
-                });
-              break;
-            case 'share':
-              if (args.length < 2) {
-                this.addMessage({ type: 'error', text: t('Usage: /chankey share <nick>'), timestamp: Date.now() });
-                break;
-              }
-              if (!target.startsWith('#') && !target.startsWith('&')) {
-                this.addMessage({ type: 'error', text: t('*** Channel key can only be shared from a channel'), timestamp: Date.now() });
-                break;
-              }
-              const shareTarget = args[1];
-              channelEncryptionService.exportChannelKey(target, this.getNetworkName()).then(keyData => {
-                this.sendRaw(`PRIVMSG ${shareTarget} :!chanenc-key ${keyData}`);
-                this.addMessage({ type: 'notice', text: t('*** Channel key for {channel} shared with {nick}', { channel: target, nick: shareTarget }), timestamp: Date.now() });
-              }).catch(e => {
-                this.addMessage({ type: 'error', text: t('*** Failed to share channel key: {message}. Generate a key first with /chankey generate', { message: e.message }), timestamp: Date.now() });
-              });
-              break;
-            case 'request':
-              if (args.length < 2) {
-                this.addMessage({ type: 'error', text: t('Usage: /chankey request <nick>'), timestamp: Date.now() });
-                break;
-              }
-              if (!target.startsWith('#') && !target.startsWith('&')) {
-                this.addMessage({ type: 'error', text: t('*** Channel key request must be done from a channel'), timestamp: Date.now() });
-                break;
-              }
-              const requestTarget = args[1];
-              this.sendRaw(`PRIVMSG ${requestTarget} :${t('Please share the channel key for {channel} with /chankey share {nick}', { channel: target, nick: this.currentNick })}`);
-              this.addMessage({ type: 'notice', text: t('*** Channel key requested from {nick} for {channel}', { nick: requestTarget, channel: target }), timestamp: Date.now() });
-              break;
-            case 'remove':
-              if (!target.startsWith('#') && !target.startsWith('&')) {
-                this.addMessage({ type: 'error', text: t('*** Channel key can only be removed from a channel'), timestamp: Date.now() });
-                break;
-              }
-              channelEncryptionService.removeChannelKey(target, this.getNetworkName()).then(() => {
-                this.addMessage({ type: 'notice', text: t('*** Channel encryption key removed for {channel}', { channel: target }), timestamp: Date.now() });
-              }).catch(e => {
-                this.addMessage({ type: 'error', text: t('*** Failed to remove channel key: {message}', { message: e.message }), timestamp: Date.now() });
-              });
-              break;
-            default:
-              this.addMessage({ type: 'error', text: t('Usage: /chankey <generate|share|request|remove|send|help> [args]'), timestamp: Date.now() });
-          }
-          break;
-        case 'AWAY':
-          // /away [message] - Set away message (empty message removes away status)
-          const awayMessage = args.join(' ');
-          if (awayMessage) {
-            this.sendRaw(`AWAY :${awayMessage}`);
-            this.addMessage({ type: 'notice', text: t('*** You are now away: {message}', { message: awayMessage }), timestamp: Date.now() });
-          } else {
-            this.sendRaw('AWAY');
-            this.addMessage({ type: 'notice', text: t('*** You are no longer away'), timestamp: Date.now() });
-          }
-          break;
-        case 'BACK':
-          // /back - Remove away status (alias for /away)
-          this.sendRaw('AWAY');
-          this.addMessage({ type: 'notice', text: t('*** You are no longer away'), timestamp: Date.now() });
-          break;
-        case 'INVITE':
-          // /invite <nick> [channel] - Invite user to channel
-          if (args.length >= 1) {
-            const inviteNick = args[0];
-            const inviteChannel = args.length > 1 ? args[1] : (target.startsWith('#') || target.startsWith('&') ? target : '');
-            if (inviteChannel) {
-              this.sendCommand(`INVITE ${inviteNick} ${inviteChannel}`);
-              this.addMessage({ type: 'notice', text: t('*** Invited {nick} to {channel}', { nick: inviteNick, channel: inviteChannel }), timestamp: Date.now() });
-            } else {
-              this.addMessage({ type: 'error', text: t('Usage: /invite <nick> [channel]'), timestamp: Date.now() });
-            }
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /invite <nick> [channel]'), timestamp: Date.now() });
-          }
-          break;
-        case 'LIST':
-          // /list [options] - List channels on server
-          const listArgs = args.length > 0 ? args.join(' ') : '';
-          this.sendCommand(listArgs ? `LIST ${listArgs}` : 'LIST');
-          this.addMessage({ type: 'notice', text: t('*** Requesting channel list...'), timestamp: Date.now() });
-          break;
-        case 'NAMES':
-          // /names [channel] - List users in channel
-          const namesChannel = args.length > 0 ? args[0] : (target.startsWith('#') || target.startsWith('&') ? target : '');
-          if (namesChannel) {
-            this.sendCommand(`NAMES ${namesChannel}`);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /names [channel]'), timestamp: Date.now() });
-          }
-          break;
-        case 'WHO':
-          // /who [mask] - Query user information
-          const whoMask = args.length > 0 ? args.join(' ') : '';
-          this.sendCommand(whoMask ? `WHO ${whoMask}` : 'WHO');
-          break;
-        case 'BAN':
-          // /ban <nick> [channel] - Ban user from channel
-          if (args.length >= 1) {
-            const banNick = args[0];
-            const banChannel = args.length > 1 ? args[1] : (target.startsWith('#') || target.startsWith('&') ? target : '');
-            if (banChannel) {
-              // Try to get user's hostmask for ban, or use nick
-              this.sendCommand(`MODE ${banChannel} +b ${banNick}!*@*`);
-              this.addMessage({ type: 'notice', text: t('*** Banning {nick} from {channel}', { nick: banNick, channel: banChannel }), timestamp: Date.now() });
-            } else {
-              this.addMessage({ type: 'error', text: t('Usage: /ban <nick> [channel]'), timestamp: Date.now() });
-            }
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /ban <nick> [channel]'), timestamp: Date.now() });
-          }
-          break;
-        case 'UNBAN':
-          // /unban <nick|mask> [channel] - Unban user from channel
-          if (args.length >= 1) {
-            const unbanMask = args[0];
-            const unbanChannel = args.length > 1 ? args[1] : (target.startsWith('#') || target.startsWith('&') ? target : '');
-            if (unbanChannel) {
-              this.sendCommand(`MODE ${unbanChannel} -b ${unbanMask}`);
-              this.addMessage({ type: 'notice', text: t('*** Unbanning {mask} from {channel}', { mask: unbanMask, channel: unbanChannel }), timestamp: Date.now() });
-            } else {
-              this.addMessage({ type: 'error', text: t('Usage: /unban <nick|mask> [channel]'), timestamp: Date.now() });
-            }
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /unban <nick|mask> [channel]'), timestamp: Date.now() });
-          }
-          break;
-        case 'KICKBAN':
-          // /kickban <nick> [channel] [reason] - Kick and ban user
-          if (args.length >= 1) {
-            const kbNick = args[0];
-            const kbChannel = args.length > 1 && (args[1].startsWith('#') || args[1].startsWith('&')) ? args[1] : (target.startsWith('#') || target.startsWith('&') ? target : args[1] || '');
-            const kbReason = args.length > 2 ? args.slice(2).join(' ') : (args.length === 2 && !kbChannel.startsWith('#') && !kbChannel.startsWith('&') ? args[1] : '');
-            if (kbChannel && (kbChannel.startsWith('#') || kbChannel.startsWith('&'))) {
-              // Ban first, then kick
-              this.sendCommand(`MODE ${kbChannel} +b ${kbNick}!*@*`);
-              this.sendCommand(`KICK ${kbChannel} ${kbNick}${kbReason ? ` :${kbReason}` : ''}`);
-              this.addMessage({ type: 'notice', text: t('*** Kicking and banning {nick} from {channel}', { nick: kbNick, channel: kbChannel }), timestamp: Date.now() });
-            } else {
-              this.addMessage({ type: 'error', text: t('Usage: /kickban <nick> [channel] [reason]'), timestamp: Date.now() });
-            }
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /kickban <nick> [channel] [reason]'), timestamp: Date.now() });
-          }
-          break;
-        case 'NOTICE':
-          // /notice <target> <message> - Send notice message
-          if (args.length >= 2) {
-            const noticeTarget = args[0];
-            const noticeText = args.slice(1).join(' ');
-            this.sendRaw(`NOTICE ${noticeTarget} :${noticeText}`);
-            this.addMessage({ type: 'notice', channel: noticeTarget, from: this.currentNick, text: noticeText, timestamp: Date.now(), status: 'sent' });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /notice <target> <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'IGNORE':
-          // /ignore <nick|mask> [reason] - Ignore user messages
-          if (args.length >= 1) {
-            const ignoreMask = args[0];
-            const ignoreReason = args.length > 1 ? args.slice(1).join(' ') : undefined;
-            const network = this.getNetworkName();
-            this.getUserManagementService().ignoreUser(ignoreMask, ignoreReason, network).then(() => {
-              this.addMessage({ type: 'notice', text: t('*** Now ignoring {mask}', { mask: ignoreMask }), timestamp: Date.now() });
-            }).catch((e: Error) => {
-              this.addMessage({ type: 'error', text: t('*** Failed to ignore user: {message}', { message: e.message }), timestamp: Date.now() });
-            });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /ignore <nick|mask> [reason]'), timestamp: Date.now() });
-          }
-          break;
-        case 'UNIGNORE':
-          // /unignore <nick|mask> - Stop ignoring user
-          if (args.length >= 1) {
-            const unignoreMask = args[0];
-            const network = this.getNetworkName();
-            this.getUserManagementService().unignoreUser(unignoreMask, network).then(() => {
-              this.addMessage({ type: 'notice', text: t('*** No longer ignoring {mask}', { mask: unignoreMask }), timestamp: Date.now() });
-            }).catch((e: Error) => {
-              this.addMessage({ type: 'error', text: t('*** Failed to unignore user: {message}', { message: e.message }), timestamp: Date.now() });
-            });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /unignore <nick|mask>'), timestamp: Date.now() });
-          }
-          break;
-        case 'CLEAR':
-          // /clear - Clear current tab messages
-          this.emit('clear-tab', target, this.getNetworkName());
-          this.addMessage({ type: 'notice', text: t('*** Messages cleared'), timestamp: Date.now() });
-          break;
-        case 'CLOSE':
-          // /close - Close current tab
-          this.emit('close-tab', target, this.getNetworkName());
-          break;
-        case 'ECHO':
-          // /echo <message> - Display local message (useful for scripts/aliases)
-          if (args.length > 0) {
-            const echoText = args.join(' ');
-            this.addMessage({ type: 'notice', text: echoText, timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /echo <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'AMSG':
-          // /amsg <message> - Send message to all open channels
-          if (args.length > 0) {
-            const amsgText = args.join(' ');
-            this.emit('amsg', amsgText, this.getNetworkName());
-            this.addMessage({ type: 'notice', text: t('*** Sending message to all channels...'), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /amsg <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'AME':
-          // /ame <action> - Send action to all open channels
-          if (args.length > 0) {
-            const ameText = args.join(' ');
-            this.emit('ame', ameText, this.getNetworkName());
-            this.addMessage({ type: 'notice', text: t('*** Sending action to all channels...'), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /ame <action>'), timestamp: Date.now() });
-          }
-          break;
-        case 'ANOTICE':
-          // /anotice <message> - Send notice to all open channels
-          if (args.length > 0) {
-            const anoticeText = args.join(' ');
-            this.emit('anotice', anoticeText, this.getNetworkName());
-            this.addMessage({ type: 'notice', text: t('*** Sending notice to all channels...'), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /anotice <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'LUSERS':
-          // /lusers - Get user statistics
-          this.sendCommand('LUSERS');
-          break;
-        case 'VERSION':
-          // /version [server] - Get server version
-          const versionTarget = args.length > 0 ? args[0] : '';
-          this.sendCommand(versionTarget ? `VERSION ${versionTarget}` : 'VERSION');
-          break;
-        case 'TIME':
-          // /time [server] - Get server time
-          const timeTarget = args.length > 0 ? args[0] : '';
-          this.sendCommand(timeTarget ? `TIME ${timeTarget}` : 'TIME');
-          break;
-        case 'CLONES':
-        case 'DETECTCLONES':
-        case 'CLONESDETECT':
-          // /clones [channel] - Detect clones (users with same host) in channel
-          // /detectclones [channel] - Alias
-          // /clonesdetect [channel] - Alias
-          {
-            const targetChannel = args.length > 0 ? args[0] : target;
-            if (!targetChannel || (!targetChannel.startsWith('#') && !targetChannel.startsWith('&'))) {
-              this.addMessage({
-                type: 'error',
-                text: t('Usage: /clones <channel> - Must be used in a channel or specify a channel'),
-                timestamp: Date.now(),
-              });
-            } else {
-              this.detectClones(targetChannel).then(clones => {
-                if (clones.size === 0) {
-                  this.addMessage({
-                    type: 'notice',
-                    text: t('*** No clones detected in {channel}', { channel: targetChannel }),
-                    timestamp: Date.now(),
-                  });
-                } else {
-                  this.addMessage({
-                    type: 'notice',
-                    text: t('*** Clones detected in {channel}:', { channel: targetChannel }),
-                    timestamp: Date.now(),
-                  });
-                  clones.forEach((nicks, host) => {
-                    this.addMessage({
-                      type: 'notice',
-                      text: t('***   {host}: {nicks}', { host, nicks: nicks.join(', ') }),
-                      timestamp: Date.now(),
-                    });
-                  });
-                }
-              }).catch(error => {
-                this.addMessage({
-                  type: 'error',
-                  text: t('*** Error detecting clones: {error}', { error: error?.message || String(error) }),
-                  timestamp: Date.now(),
-                });
-              });
-            }
-          }
-          break;
-        case 'ADMIN':
-          // /admin [server] - Get server administrator info
-          const adminTarget = args.length > 0 ? args[0] : '';
-          this.sendCommand(adminTarget ? `ADMIN ${adminTarget}` : 'ADMIN');
-          break;
-        case 'LINKS':
-          // /links [mask] - List server links
-          const linksMask = args.length > 0 ? args.join(' ') : '';
-          this.sendCommand(linksMask ? `LINKS ${linksMask}` : 'LINKS');
-          break;
-        case 'STATS':
-          // /stats [query] [server] - Get server statistics
-          const statsQuery = args.length > 0 ? args[0] : '';
-          const statsServer = args.length > 1 ? args[1] : '';
-          if (statsQuery && statsServer) {
-            this.sendCommand(`STATS ${statsQuery} ${statsServer}`);
-          } else if (statsQuery) {
-            this.sendCommand(`STATS ${statsQuery}`);
-          } else {
-            this.sendCommand('STATS');
-          }
-          break;
-        case 'ISON':
-          // /ison <nick1> [nick2] ... - Check if nicks are online
-          if (args.length > 0) {
-            this.sendCommand(`ISON ${args.join(' ')}`);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /ison <nick1> [nick2] ...'), timestamp: Date.now() });
-          }
-          break;
-        case 'MOTD':
-          // /motd - Get message of the day
-          const motdTarget = args.length > 0 ? args[0] : '';
-          this.sendCommand(motdTarget ? `MOTD ${motdTarget}` : 'MOTD');
-          break;
-        case 'PING':
-          // /ping [server] - Ping server (explicit command)
-          const pingTarget = args.length > 0 ? args[0] : '';
-          this.sendCommand(pingTarget ? `PING ${pingTarget}` : 'PING');
-          break;
-        case 'TRACE':
-          // /trace [target] - Trace route to server
-          const traceTarget = args.length > 0 ? args[0] : '';
-          this.sendCommand(traceTarget ? `TRACE ${traceTarget}` : 'TRACE');
-          break;
-        case 'SQUERY':
-          // /squery <service> <message> - Query IRC services
-          if (args.length >= 2) {
-            const service = args[0];
-            const serviceMessage = args.slice(1).join(' ');
-            this.sendRaw(`PRIVMSG ${service} :${serviceMessage}`);
-            this.addMessage({ type: 'notice', channel: service, from: this.currentNick, text: serviceMessage, timestamp: Date.now(), status: 'sent' });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /squery <service> <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'RECONNECT':
-          // /reconnect - Reconnect to current server
-          this.emit('reconnect', this.getNetworkName());
-          this.addMessage({ type: 'notice', text: t('*** Reconnecting to server...'), timestamp: Date.now() });
-          break;
-        case 'SERVER': {
-          // /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-lname name] [-i nick anick email name] [-jn #channel pass] [-sar]
-          try {
-            const serverArgs = this.parseServerCommand(args);
-            this.emit('server-command', serverArgs);
-          } catch (error: any) {
-            this.addMessage({ 
-              type: 'error', 
-              text: error.message || t('Invalid /server command syntax'), 
-              timestamp: Date.now() 
-            });
-          }
-          break;
-        }
-        case 'DISCONNECT':
-          // /disconnect - Disconnect from server (alias for /quit)
-          this.emit('intentional-quit', this.getNetworkName());
-          this.sendRaw(`QUIT :${args.join(' ') || DEFAULT_QUIT_MESSAGE}`);
-          break;
-        case 'ANICK':
-          // /anick <nickname> - Set alternate nickname
-          if (args.length > 0) {
-            // Store alternate nick (could be saved to settings)
-            this.addMessage({ type: 'notice', text: t('*** Alternate nickname set to: {nick}', { nick: args[0] }), timestamp: Date.now() });
-            // Note: Actual alternate nick handling would be in connection logic
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /anick <nickname>'), timestamp: Date.now() });
-          }
-          break;
-        case 'AJINVITE':
-          // /ajinvite [on|off] - Auto-join on invite toggle
-          const ajinviteState = args.length > 0 ? args[0].toLowerCase() : 'toggle';
-          this.emit('ajinvite-toggle', { state: ajinviteState, network: this.getNetworkName() });
-          const isOn = ajinviteState === 'on' || (ajinviteState === 'toggle' && true); // Would check actual state
-          this.addMessage({ type: 'notice', text: t('*** Auto-join on invite: {state}', { state: isOn ? 'ON' : 'OFF' }), timestamp: Date.now() });
-          break;
-        case 'BEEP':
-          // /beep [number] [delay] - Play beep sound
-          const beepCount = args.length > 0 ? parseInt(args[0], 10) || 1 : 1;
-          const beepDelay = args.length > 1 ? parseInt(args[1], 10) || 0 : 0;
-          this.emit('beep', { count: beepCount, delay: beepDelay });
-          this.addMessage({ type: 'notice', text: t('*** Beep!'), timestamp: Date.now() });
-          break;
-        case 'CNOTICE':
-          // /cnotice <nick> <channel> <message> - Channel notice (bypass flood limits)
-          if (args.length >= 3) {
-            const cnoticeNick = args[0];
-            const cnoticeChannel = args[1];
-            const cnoticeMessage = args.slice(2).join(' ');
-            this.sendRaw(`CNOTICE ${cnoticeNick} ${cnoticeChannel} :${cnoticeMessage}`);
-            this.addMessage({ type: 'notice', channel: cnoticeChannel, from: this.currentNick, text: `-> ${cnoticeNick}: ${cnoticeMessage}`, timestamp: Date.now(), status: 'sent' });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /cnotice <nick> <channel> <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'CPRIVMSG':
-          // /cprivmsg <nick> <channel> <message> - Channel privmsg (bypass flood limits)
-          if (args.length >= 3) {
-            const cprivmsgNick = args[0];
-            const cprivmsgChannel = args[1];
-            const cprivmsgMessage = args.slice(2).join(' ');
-            this.sendRaw(`CPRIVMSG ${cprivmsgNick} ${cprivmsgChannel} :${cprivmsgMessage}`);
-            this.addMessage({ type: 'message', channel: cprivmsgChannel, from: this.currentNick, text: `-> ${cprivmsgNick}: ${cprivmsgMessage}`, timestamp: Date.now(), status: 'sent' });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /cprivmsg <nick> <channel> <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'HELP':
-          // /help [command] - Show help for command
-          if (args.length > 0) {
-            const helpCommand = args[0].toLowerCase();
-            this.emit('help', helpCommand);
-            this.addMessage({ type: 'notice', text: t('*** Help for /{command} - Use Settings > Help for full documentation', { command: helpCommand }), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'notice', text: t('*** IRC Commands Help'), timestamp: Date.now() });
-            this.addMessage({ type: 'notice', text: t('*** Use /help <command> for specific command help'), timestamp: Date.now() });
-            this.addMessage({ type: 'notice', text: t('*** Or go to Settings > Help for full documentation'), timestamp: Date.now() });
-          }
-          break;
-        case 'RAW':
-          // /raw <command> - Send raw IRC command (alias for /quote)
-          if (args.length > 0) {
-            const rawCommand = args.join(' ');
-            this.sendRaw(rawCommand);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /raw <command>'), timestamp: Date.now() });
-          }
-          break;
-        case 'DNS':
-          // /dns <hostname> - DNS lookup
-          if (args.length > 0) {
-            const hostname = args[0];
-            this.emit('dns-lookup', hostname);
-            this.addMessage({ type: 'notice', text: t('*** Looking up DNS for {hostname}...', { hostname }), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /dns <hostname>'), timestamp: Date.now() });
-          }
-          break;
-        case 'TIMER':
-          // /timer <name> <delay> <repetitions> <command> - Execute command after delay
-          if (args.length >= 4) {
-            const timerName = args[0];
-            const timerDelay = parseInt(args[1], 10);
-            const timerRepetitions = parseInt(args[2], 10);
-            const timerCommand = args.slice(3).join(' ');
-            if (!isNaN(timerDelay) && !isNaN(timerRepetitions) && timerDelay > 0) {
-              this.emit('timer', { name: timerName, delay: timerDelay, repetitions: timerRepetitions, command: timerCommand });
-              this.addMessage({ type: 'notice', text: t('*** Timer "{name}" set: {delay}ms, {repetitions} repetitions', { name: timerName, delay: timerDelay, repetitions: timerRepetitions }), timestamp: Date.now() });
-            } else {
-              this.addMessage({ type: 'error', text: t('Usage: /timer <name> <delay> <repetitions> <command>'), timestamp: Date.now() });
-            }
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /timer <name> <delay> <repetitions> <command>'), timestamp: Date.now() });
-          }
-          break;
-        case 'WINDOW':
-          // /window [-a] <name> - Window/tab management commands
-          if (args.length > 0) {
-            const windowAction = args[0];
-            if (windowAction === '-a') {
-              // Activate window
-              const windowName = args.length > 1 ? args[1] : '';
-              if (windowName) {
-                this.emit('window-activate', windowName);
-              } else {
-                this.addMessage({ type: 'error', text: t('Usage: /window -a <name>'), timestamp: Date.now() });
-              }
-            } else {
-              // Open/create window
-              this.emit('window-open', windowAction);
-            }
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /window [-a] <name>'), timestamp: Date.now() });
-          }
-          break;
-        case 'FILTER':
-          // /filter [-g] <text> - Filter messages
-          if (args.length > 0) {
-            const filterGlobal = args[0] === '-g';
-            const filterText = filterGlobal ? args.slice(1).join(' ') : args.join(' ');
-            if (filterText) {
-              this.emit('filter', { text: filterText, global: filterGlobal, network: this.getNetworkName() });
-              this.addMessage({ type: 'notice', text: t('*** Filtering messages containing: {text}', { text: filterText }), timestamp: Date.now() });
-            } else {
-              this.addMessage({ type: 'error', text: t('Usage: /filter [-g] <text>'), timestamp: Date.now() });
-            }
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /filter [-g] <text>'), timestamp: Date.now() });
-          }
-          break;
-        case 'WALLOPS':
-          // /wallops <message> - Send wallops message (IRCop)
-          if (args.length > 0) {
-            const wallopsMessage = args.join(' ');
-            this.sendCommand(`WALLOPS :${wallopsMessage}`);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /wallops <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'LOCOPS':
-          // /locops <message> - Send local ops message (IRCop)
-          if (args.length > 0) {
-            const locopsMessage = args.join(' ');
-            this.sendCommand(`LOCOPS :${locopsMessage}`);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /locops <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'GLOBOPS':
-          // /globops <message> - Send global ops message (IRCop)
-          if (args.length > 0) {
-            const globopsMessage = args.join(' ');
-            this.sendCommand(`GLOBOPS :${globopsMessage}`);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /globops <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'ADCHAT':
-          // /adchat <message> - Admin chat (IRCop)
-          if (args.length > 0) {
-            const adchatMessage = args.join(' ');
-            this.sendCommand(`ADCHAT :${adchatMessage}`);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /adchat <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'CHAT':
-          // /chat <service> <message> - Chat with services
-          if (args.length >= 2) {
-            const chatService = args[0];
-            const chatMessage = args.slice(1).join(' ');
-            this.sendRaw(`PRIVMSG ${chatService} :${chatMessage}`);
-            this.addMessage({ type: 'notice', channel: chatService, from: this.currentNick, text: chatMessage, timestamp: Date.now(), status: 'sent' });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /chat <service> <message>'), timestamp: Date.now() });
-          }
-          break;
-        case 'INFO':
-          // /info [server] - Get server information
-          const infoTarget = args.length > 0 ? args[0] : '';
-          this.sendCommand(infoTarget ? `INFO ${infoTarget}` : 'INFO');
-          break;
-        case 'KNOCK':
-          // /knock <channel> [message] - Request invite to invitation-only channel
-          if (args.length >= 1) {
-            const knockChannel = args[0];
-            const knockMessage = args.length > 1 ? args.slice(1).join(' ') : '';
-            this.sendCommand(knockMessage ? `KNOCK ${knockChannel} :${knockMessage}` : `KNOCK ${knockChannel}`);
-            this.addMessage({ type: 'notice', text: t('*** Knock sent to {channel}', { channel: knockChannel }), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /knock <channel> [message]'), timestamp: Date.now() });
-          }
-          break;
-        case 'RULES':
-          // /rules [server] - Get server rules
-          const rulesTarget = args.length > 0 ? args[0] : '';
-          this.sendCommand(rulesTarget ? `RULES ${rulesTarget}` : 'RULES');
-          break;
-        case 'SERVLIST':
-          // /servlist [mask] [type] - List IRC services
-          const servlistMask = args.length > 0 ? args[0] : '';
-          const servlistType = args.length > 1 ? args[1] : '';
-          if (servlistMask && servlistType) {
-            this.sendCommand(`SERVLIST ${servlistMask} ${servlistType}`);
-          } else if (servlistMask) {
-            this.sendCommand(`SERVLIST ${servlistMask}`);
-          } else {
-            this.sendCommand('SERVLIST');
-          }
-          break;
-        case 'USERHOST':
-          // /userhost <nick1> [nick2] ... - Get user host information
-          if (args.length > 0) {
-            this.sendCommand(`USERHOST ${args.join(' ')}`);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /userhost <nick1> [nick2] ...'), timestamp: Date.now() });
-          }
-          break;
-        case 'USERIP':
-          // /userip <nick> - Get user IP address
-          if (args.length > 0) {
-            this.sendCommand(`USERIP ${args[0]}`);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /userip <nick>'), timestamp: Date.now() });
-          }
-          break;
-        case 'USERS':
-          // /users - Get user list (deprecated, rarely used)
-          const usersTarget = args.length > 0 ? args[0] : '';
-          this.sendCommand(usersTarget ? `USERS ${usersTarget}` : 'USERS');
-          break;
-        case 'WATCH':
-          // /watch +nick1 -nick2 ... - Monitor users (legacy protocol)
-          if (args.length > 0) {
-            this.sendCommand(`WATCH ${args.join(' ')}`);
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /watch +nick1 -nick2 ...'), timestamp: Date.now() });
-          }
-          break;
-        case 'OPER':
-          // /oper <nick> <password> - IRCop login
-          if (args.length >= 2) {
-            const operNick = args[0];
-            const operPassword = args[1];
-            this.sendCommand(`OPER ${operNick} ${operPassword}`);
-            this.addMessage({ type: 'notice', text: t('*** Attempting IRCop login...'), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /oper <nick> <password>'), timestamp: Date.now() });
-          }
-          break;
-        case 'REHASH':
-          // /rehash - IRCop rehash server
-          this.sendCommand('REHASH');
-          this.addMessage({ type: 'notice', text: t('*** Requesting server rehash...'), timestamp: Date.now() });
-          break;
-        case 'SQUIT':
-          // /squit <server> [message] - IRCop disconnect server
-          if (args.length >= 1) {
-            const squitServer = args[0];
-            const squitMessage = args.length > 1 ? args.slice(1).join(' ') : '';
-            this.sendCommand(squitMessage ? `SQUIT ${squitServer} :${squitMessage}` : `SQUIT ${squitServer}`);
-            this.addMessage({ type: 'notice', text: t('*** Requesting server disconnect: {server}', { server: squitServer }), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /squit <server> [message]'), timestamp: Date.now() });
-          }
-          break;
-        case 'KILL':
-          // /kill <nick> <reason> - IRCop kill user
-          if (args.length >= 2) {
-            const killNick = args[0];
-            const killReason = args.slice(1).join(' ');
-            this.sendCommand(`KILL ${killNick} :${killReason}`);
-            this.addMessage({ type: 'notice', text: t('*** Killing user: {nick}', { nick: killNick }), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /kill <nick> <reason>'), timestamp: Date.now() });
-          }
-          break;
-        case 'CONNECT':
-          // /connect <server> <port> [remote] - IRCop connect servers
-          if (args.length >= 2) {
-            const connectServer = args[0];
-            const connectPort = args[1];
-            const connectRemote = args.length > 2 ? args[2] : '';
-            if (connectRemote) {
-              this.sendCommand(`CONNECT ${connectServer} ${connectPort} ${connectRemote}`);
-            } else {
-              this.sendCommand(`CONNECT ${connectServer} ${connectPort}`);
-            }
-            this.addMessage({ type: 'notice', text: t('*** Requesting server connection: {server}:{port}', { server: connectServer, port: connectPort }), timestamp: Date.now() });
-          } else {
-            this.addMessage({ type: 'error', text: t('Usage: /connect <server> <port> [remote]'), timestamp: Date.now() });
-          }
-          break;
-        case 'DIE':
-          // /die - IRCop shutdown server
-          this.sendCommand('DIE');
-          this.addMessage({ type: 'notice', text: t('*** Requesting server shutdown...'), timestamp: Date.now() });
-          break;
-        default: this.sendCommand(commandText); break;
+
+      if (!this.sendMessageHandlers) {
+        this.sendMessageHandlers = new IRCSendMessageHandlers(this as any);
+      }
+      if (!this.sendMessageHandlers.handle(command, args, target)) {
+        // Fallback: send as raw IRC command
+        this.sendCommand(commandText);
       }
       return;
     }

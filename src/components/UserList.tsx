@@ -24,6 +24,7 @@ import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 import { ChannelUser } from '../services/IRCService';
 import { ircService } from '../services/IRCService';
 import { userManagementService, BlacklistActionType } from '../services/UserManagementService';
+import { banService } from '../services/BanService';
 import { connectionManager } from '../services/ConnectionManager';
 import { dccChatService } from '../services/DCCChatService';
 import { useTheme } from '../hooks/useTheme';
@@ -90,6 +91,8 @@ export const UserList: React.FC<UserListProps> = ({
   const [showBlacklistActionPicker, setShowBlacklistActionPicker] = useState(false);
   const [blacklistAction, setBlacklistAction] = useState<BlacklistActionType>('ban');
   const [blacklistMaskChoice, setBlacklistMaskChoice] = useState<string>('nick');
+  const [showBlacklistMaskPicker, setShowBlacklistMaskPicker] = useState(false);
+  const [selectedBanMaskTypeId, setSelectedBanMaskTypeId] = useState<number | null>(null);
   const [blacklistReason, setBlacklistReason] = useState('');
   const [blacklistCustomCommand, setBlacklistCustomCommand] = useState('');
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -173,6 +176,26 @@ export const UserList: React.FC<UserListProps> = ({
     }
     return options;
   }, [t]);
+
+  const getBlacklistBanMaskOptions = useCallback((user: ChannelUser) => {
+    const resolveUserHost = (rawHost?: string | null) => {
+      if (!rawHost) {
+        return { user: '*', host: '*' };
+      }
+      if (rawHost.includes('@')) {
+        const [userPart, hostPart] = rawHost.split('@');
+        return { user: userPart || '*', host: hostPart || '*' };
+      }
+      return { user: '*', host: rawHost };
+    };
+    const { user: ident, host } = resolveUserHost(user.host);
+    return banService.getBanMaskTypes().map(type => ({
+      id: type.id,
+      label: `(${type.id}) ${type.pattern}`,
+      mask: banService.generateBanMask(user.nick, ident, host, type.id),
+      description: type.description,
+    }));
+  }, []);
 
   const getBlacklistTemplate = useCallback(async (action: BlacklistActionType, net?: string) => {
     if (!['akill', 'gline', 'shun'].includes(action)) {
@@ -538,6 +561,12 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         try {
           const bundle = await encryptedDMService.exportBundle();
           activeIrc.sendRaw(`PRIVMSG ${selectedUser.nick} :!enc-offer ${JSON.stringify(bundle)}`);
+          activeIrc.addMessage({
+            type: 'system',
+            channel: selectedUser.nick,
+            text: t('*** Encryption key offer sent to {nick}. Waiting for acceptance...', { nick: selectedUser.nick }),
+            timestamp: Date.now(),
+          });
           setActionMessage(t('Enc key offer sent to {nick}').replace('{nick}', selectedUser.nick));
         } catch (e) {
           setActionMessage(t('Failed to share key'));
@@ -545,6 +574,12 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         break;
       case 'enc_request':
         activeIrc.sendRaw(`PRIVMSG ${selectedUser.nick} :!enc-req`);
+        activeIrc.addMessage({
+          type: 'system',
+          channel: selectedUser.nick,
+          text: t('*** Encryption key requested from {nick}', { nick: selectedUser.nick }),
+          timestamp: Date.now(),
+        });
         setActionMessage(t('Requested key from {nick}').replace('{nick}', selectedUser.nick));
         encryptedDMService
           .awaitBundleForNick(selectedUser.nick, 36000)
@@ -733,6 +768,15 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         try {
           const keyData = await channelEncryptionService.exportChannelKey(channelName, network || activeIrc.getNetworkName());
           activeIrc.sendRaw(`PRIVMSG ${selectedUser.nick} :!chanenc-key ${keyData}`);
+          const noticeService = (network || activeIrc.getNetworkName())
+            ? connectionManager.getConnection(network || activeIrc.getNetworkName())?.ircService || activeIrc
+            : activeIrc;
+          noticeService.addMessage({
+            type: 'notice',
+            from: selectedUser.nick,
+            text: t('*** Channel key for {channel} shared with {nick}', { channel: channelName, nick: selectedUser.nick }),
+            timestamp: Date.now(),
+          });
           setActionMessage(t('Shared channel key with {nick}').replace('{nick}', selectedUser.nick));
         } catch (e: any) {
           setActionMessage(e?.message || t('Failed to share channel key'));
@@ -800,6 +844,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         setBlacklistReason('');
         setBlacklistCustomCommand('');
         setBlacklistMaskChoice(selectedUser.host ? 'host' : 'nick');
+        setSelectedBanMaskTypeId(2);
         setShowBlacklistModal(true);
         break;
       case 'kill': {
@@ -1123,6 +1168,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         nick={selectedUser?.nick}
         onClose={() => setShowContextMenu(false)}
         onAction={handleContextMenuAction}
+        actionMessage={actionMessage}
         colors={colors}
         connection={contextConnection}
         network={network}
@@ -1188,19 +1234,14 @@ const getModeColor = (modes?: string[], colors?: any): string => {
             {selectedUser && (
               <>
                 <Text style={styles.blacklistLabel}>{t('Mask')}</Text>
-                {getBlacklistMaskOptions(selectedUser).map(option => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={styles.blacklistOption}
-                    onPress={() => setBlacklistMaskChoice(option.id)}>
-                    <Text style={[
-                      styles.blacklistOptionText,
-                      blacklistMaskChoice === option.id && styles.blacklistOptionTextSelected,
-                    ]}>
-                      {option.label} {option.mask}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                <TouchableOpacity
+                  style={styles.blacklistPicker}
+                  onPress={() => setShowBlacklistMaskPicker(true)}>
+                  <Text style={styles.blacklistPickerText}>
+                    {getBlacklistBanMaskOptions(selectedUser)
+                      .find(opt => opt.id === selectedBanMaskTypeId)?.label || t('Ban mask type (0-11)')}
+                  </Text>
+                </TouchableOpacity>
                 <Text style={styles.blacklistLabel}>{t('Action')}</Text>
                 <TouchableOpacity
                   style={styles.blacklistPicker}
@@ -1236,8 +1277,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                     style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
                     onPress={async () => {
                       if (!selectedUser) return;
-                      const maskOptions = getBlacklistMaskOptions(selectedUser);
-                      const choice = maskOptions.find(opt => opt.id === blacklistMaskChoice) || maskOptions[0];
+                      const banMaskOptions = getBlacklistBanMaskOptions(selectedUser);
+                      const choice = banMaskOptions.find(opt => opt.id === selectedBanMaskTypeId) || banMaskOptions[0];
                       const templateCommand = blacklistAction === 'custom'
                         ? blacklistCustomCommand.trim()
                         : await getBlacklistTemplate(blacklistAction, network);
@@ -1258,6 +1299,45 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                 </View>
               </>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showBlacklistMaskPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowBlacklistMaskPicker(false)}>
+        <View style={styles.blacklistOverlay}>
+          <View style={styles.blacklistModal}>
+            <Text style={styles.blacklistTitle}>{t('Select Ban Mask Type')}</Text>
+            <ScrollView style={styles.blacklistOptionsScroll}>
+              {selectedUser && getBlacklistBanMaskOptions(selectedUser).map(option => (
+                <TouchableOpacity
+                  key={`banmask-${option.id}`}
+                  style={styles.blacklistOption}
+                  onPress={() => {
+                    setSelectedBanMaskTypeId(option.id);
+                    setBlacklistMaskChoice(`banmask_${option.id}`);
+                    setShowBlacklistMaskPicker(false);
+                  }}>
+                  <Text style={[
+                    styles.blacklistOptionText,
+                    selectedBanMaskTypeId === option.id && styles.blacklistOptionTextSelected,
+                  ]}>
+                    {option.label} {option.mask}
+                  </Text>
+                  <Text style={styles.blacklistOptionSubtext}>{option.description}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
+              onPress={() => setShowBlacklistMaskPicker(false)}>
+              <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
+                {t('Close')}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -1692,6 +1772,15 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
   blacklistOptionTextSelected: {
     color: colors.primary || '#2196F3',
     fontWeight: '600',
+  },
+  blacklistOptionSubtext: {
+    fontSize: 12,
+    color: colors.textSecondary || colors.text || '#666666',
+    marginTop: 2,
+  },
+  blacklistOptionsScroll: {
+    maxHeight: 260,
+    marginBottom: 12,
   },
   blacklistPicker: {
     borderWidth: 1,

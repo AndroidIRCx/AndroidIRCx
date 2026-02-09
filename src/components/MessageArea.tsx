@@ -42,6 +42,7 @@ import { highlightService } from '../services/HighlightService';
 import { VideoPlayer } from './VideoPlayer';
 import { AudioPlayer } from './AudioPlayer';
 import { userManagementService, BlacklistActionType } from '../services/UserManagementService';
+import { banService } from '../services/BanService';
 import { dccChatService } from '../services/DCCChatService';
 import { ircService } from '../services/IRCService';
 import { encryptedDMService } from '../services/EncryptedDMService';
@@ -58,7 +59,6 @@ import { queryTabId, sortTabsGrouped } from '../utils/tabUtils';
 import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
 import { useUIStore } from '../stores/uiStore';
-import { banService } from '../services/BanService';
 import KickBanModal from './KickBanModal';
 
 interface MessageAreaProps {
@@ -715,20 +715,23 @@ const MessageItem = React.memo<MessageItemProps>(({
             ) : actionText !== null ? (
               // ACTION (/me) message
               <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
-                <View style={[
-                  styles.messageContent,
-                  message.text?.includes('\n') ? { flexDirection: 'column' } : null
-                ]}>
-                  {!isGrouped && (
-                    <Text style={[styles.messageText, { fontStyle: 'italic', color: actionMessageColor }]}>
-                      * <Text style={styles.nick} onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)} onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}>{message.from}</Text>{' '}
-                    </Text>
-                  )}
-                  {renderTextWithNickActions(
-                    message.text,
-                    StyleSheet.flatten([styles.messageText, { fontStyle: 'italic', color: actionMessageColor }]),
-                    `action-${message.id}`,
-                  )}
+                <View style={styles.messageContent}>
+                  <Text style={[styles.messageTextInline, { fontStyle: 'italic', color: actionMessageColor }]}>
+                    {!isGrouped && (
+                      <Text
+                        style={styles.nick}
+                        onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
+                        onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
+                      >
+                        * {message.from}{' '}
+                      </Text>
+                    )}
+                    {renderTextWithNickActions(
+                      message.text,
+                      StyleSheet.flatten([styles.messageTextInline, { fontStyle: 'italic', color: actionMessageColor }]),
+                      `action-${message.id}`,
+                    )}
+                  </Text>
                 </View>
                 {showImages && parsed.mediaIds.map((mediaId, index) => {
                   // Use the MessageArea's tabId as the primary source for media decryption
@@ -772,26 +775,29 @@ const MessageItem = React.memo<MessageItemProps>(({
             ) : (
               // Regular message
               <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
-                <View style={[
-                  styles.messageContent,
-                  message.text?.includes('\n') ? { flexDirection: 'column' } : null
-                ]}>
-                  {!isGrouped && (
-                    <Text
-                      style={styles.nick}
-                      onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-                      onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-                    >
-                      {message.from}
-                    </Text>
-                  )}
-                  {renderTextWithNickActions(
-                    message.text,
-                    isHighlighted
-                      ? StyleSheet.flatten([styles.messageText, { color: colors.highlightText }])
-                      : styles.messageText,
-                    `msg-${message.id}`,
-                  )}
+                <View style={styles.messageContent}>
+                  <Text
+                    style={isHighlighted
+                      ? StyleSheet.flatten([styles.messageTextInline, { color: colors.highlightText }])
+                      : styles.messageTextInline}
+                  >
+                    {!isGrouped && (
+                      <Text
+                        style={styles.nick}
+                        onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
+                        onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
+                      >
+                        {message.from}{' '}
+                      </Text>
+                    )}
+                    {renderTextWithNickActions(
+                      message.text,
+                      isHighlighted
+                        ? StyleSheet.flatten([styles.messageTextInline, { color: colors.highlightText }])
+                        : styles.messageTextInline,
+                      `msg-${message.id}`,
+                    )}
+                  </Text>
                 </View>
                 {showImages && parsed.mediaIds.map((mediaId, index) => {
                   // Use the MessageArea's tabId as the primary source for media decryption
@@ -844,18 +850,22 @@ const MessageItem = React.memo<MessageItemProps>(({
           <View style={styles.messageContent}>
             {message.type === 'notice' && message.from ? (
               <View style={styles.messageWrapper}>
-                <Text
-                  style={[styles.nick, { color: getMessageColor(message.type) }]}
-                  onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-                  onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-                >
-                  {message.from}
-                </Text>
-                {renderTextWithNickActions(
-                  message.text,
-                  StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }]),
-                  `notice-${message.id}`,
-                )}
+                <View style={styles.messageContent}>
+                  <Text style={StyleSheet.flatten([styles.messageTextInline, { color: getMessageColor(message.type) }])}>
+                    <Text
+                      style={[styles.nick, { color: getMessageColor(message.type) }]}
+                      onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
+                      onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
+                    >
+                      {message.from}{' '}
+                    </Text>
+                    {renderTextWithNickActions(
+                      message.text,
+                      StyleSheet.flatten([styles.messageTextInline, { color: getMessageColor(message.type) }]),
+                      `notice-${message.id}`,
+                    )}
+                  </Text>
+                </View>
               </View>
             ) : message.type === 'topic' ? (
               // Topic messages with clickable links (no preview)
@@ -932,6 +942,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const [showBlacklistActionPicker, setShowBlacklistActionPicker] = useState(false);
   const [blacklistAction, setBlacklistAction] = useState<BlacklistActionType>('ban');
   const [blacklistMaskChoice, setBlacklistMaskChoice] = useState<string>('nick');
+  const [showBlacklistMaskPicker, setShowBlacklistMaskPicker] = useState(false);
+  const [selectedBanMaskTypeId, setSelectedBanMaskTypeId] = useState<number | null>(null);
   const [blacklistReason, setBlacklistReason] = useState('');
   const [blacklistCustomCommand, setBlacklistCustomCommand] = useState('');
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -1128,6 +1140,27 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     return options;
   }, [t]);
 
+  const getBlacklistBanMaskOptions = useCallback((user: ChannelUser | null, nick: string | null) => {
+    const safeNick = nick || '';
+    const resolveUserHost = (rawHost?: string | null) => {
+      if (!rawHost) {
+        return { user: '*', host: '*' };
+      }
+      if (rawHost.includes('@')) {
+        const [userPart, hostPart] = rawHost.split('@');
+        return { user: userPart || '*', host: hostPart || '*' };
+      }
+      return { user: '*', host: rawHost };
+    };
+    const { user: ident, host } = resolveUserHost(user?.host);
+    return banService.getBanMaskTypes().map(type => ({
+      id: type.id,
+      label: `(${type.id}) ${type.pattern}`,
+      mask: banService.generateBanMask(safeNick, ident, host, type.id),
+      description: type.description,
+    }));
+  }, []);
+
   const getBlacklistTemplate = useCallback(async (action: BlacklistActionType, net?: string) => {
     if (!['akill', 'gline', 'shun'].includes(action)) {
       return '';
@@ -1291,12 +1324,24 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         try {
           const bundle = await encryptedDMService.exportBundle();
           activeIrc.sendRaw(`PRIVMSG ${contextNick} :!enc-offer ${JSON.stringify(bundle)}`);
+          activeIrc.addMessage({
+            type: 'system',
+            channel: contextNick,
+            text: t('*** Encryption key offer sent to {nick}. Waiting for acceptance...', { nick: contextNick }),
+            timestamp: Date.now(),
+          });
         } catch {
           Alert.alert(t('Error'), t('Failed to share key'));
         }
         break;
       case 'enc_request':
         activeIrc.sendRaw(`PRIVMSG ${contextNick} :!enc-req`);
+        activeIrc.addMessage({
+          type: 'system',
+          channel: contextNick,
+          text: t('*** Encryption key requested from {nick}', { nick: contextNick }),
+          timestamp: Date.now(),
+        });
         encryptedDMService.awaitBundleForNick(contextNick, 36000).catch(() => {});
         break;
       case 'enc_qr_show_fingerprint':
@@ -1478,6 +1523,15 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           if (!channel) break;
           const keyData = await channelEncryptionService.exportChannelKey(channel, currentNetwork || activeIrc.getNetworkName());
           activeIrc.sendRaw(`PRIVMSG ${contextNick} :!chanenc-key ${keyData}`);
+          const noticeService = currentNetwork
+            ? connectionManager.getConnection(currentNetwork)?.ircService || activeIrc
+            : activeIrc;
+          noticeService.addMessage({
+            type: 'notice',
+            from: contextNick,
+            text: t('*** Channel key for {channel} shared with {nick}', { channel, nick: contextNick }),
+            timestamp: Date.now(),
+          });
         } catch (e: any) {
           Alert.alert(t('Error'), e?.message || t('Failed to share channel key'));
         }
@@ -1541,6 +1595,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         setBlacklistReason('');
         setBlacklistCustomCommand('');
         setBlacklistMaskChoice(selectedUser?.host ? 'host' : 'nick');
+        setSelectedBanMaskTypeId(2);
         setShowBlacklistModal(true);
         break;
       }
@@ -2119,19 +2174,14 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
             {contextNick ? (
               <>
                 <Text style={styles.blacklistLabel}>{t('Mask')}</Text>
-                {getBlacklistMaskOptions(contextUser, contextNick).map(option => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={styles.blacklistOption}
-                    onPress={() => setBlacklistMaskChoice(option.id)}>
-                    <Text style={[
-                      styles.blacklistOptionText,
-                      blacklistMaskChoice === option.id && styles.blacklistOptionTextSelected,
-                    ]}>
-                      {option.label} {option.mask}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                <TouchableOpacity
+                  style={styles.blacklistPicker}
+                  onPress={() => setShowBlacklistMaskPicker(true)}>
+                  <Text style={styles.blacklistPickerText}>
+                    {getBlacklistBanMaskOptions(contextUser, contextNick)
+                      .find(opt => opt.id === selectedBanMaskTypeId)?.label || t('Ban mask type (0-11)')}
+                  </Text>
+                </TouchableOpacity>
                 <Text style={styles.blacklistLabel}>{t('Action')}</Text>
                 <TouchableOpacity
                   style={styles.blacklistPicker}
@@ -2170,8 +2220,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
                         setShowBlacklistModal(false);
                         return;
                       }
-                      const maskOptions = getBlacklistMaskOptions(contextUser, contextNick);
-                      const choice = maskOptions.find(opt => opt.id === blacklistMaskChoice) || maskOptions[0];
+                      const banMaskOptions = getBlacklistBanMaskOptions(contextUser, contextNick);
+                      const choice = banMaskOptions.find(opt => opt.id === selectedBanMaskTypeId) || banMaskOptions[0];
                       const templateCommand = blacklistAction === 'custom'
                         ? blacklistCustomCommand.trim()
                         : await getBlacklistTemplate(blacklistAction, network);
@@ -2191,6 +2241,44 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
                 </View>
               </>
             ) : null}
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={showBlacklistMaskPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBlacklistMaskPicker(false)}>
+        <View style={styles.blacklistOverlay}>
+          <View style={styles.blacklistModal}>
+            <Text style={styles.blacklistTitle}>{t('Select Ban Mask Type')}</Text>
+            <ScrollView style={styles.blacklistOptionsScroll}>
+              {getBlacklistBanMaskOptions(contextUser, contextNick).map(option => (
+                <TouchableOpacity
+                  key={`banmask-${option.id}`}
+                  style={styles.blacklistOption}
+                  onPress={() => {
+                    setSelectedBanMaskTypeId(option.id);
+                    setBlacklistMaskChoice(`banmask_${option.id}`);
+                    setShowBlacklistMaskPicker(false);
+                  }}>
+                  <Text style={[
+                    styles.blacklistOptionText,
+                    selectedBanMaskTypeId === option.id && styles.blacklistOptionTextSelected,
+                  ]}>
+                    {option.label} {option.mask}
+                  </Text>
+                  <Text style={styles.blacklistOptionSubtext}>{option.description}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
+              onPress={() => setShowBlacklistMaskPicker(false)}>
+              <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
+                {t('Close')}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -2599,6 +2687,13 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     textAlign: layoutConfig.messageTextAlign || 'left',
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
+  messageTextInline: {
+    color: colors.messageText,
+    fontSize: messageFontSize,
+    lineHeight: messageLineHeight,
+    textAlign: layoutConfig.messageTextAlign || 'left',
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
   contextOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -2759,6 +2854,16 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     color: colors.primary,
     fontWeight: '600',
     writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistOptionSubtext: {
+    color: colors.textSecondary || colors.text,
+    fontSize: 12,
+    marginTop: 2,
+    writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  blacklistOptionsScroll: {
+    maxHeight: 260,
+    marginBottom: 12,
   },
   blacklistPicker: {
     paddingVertical: 10,

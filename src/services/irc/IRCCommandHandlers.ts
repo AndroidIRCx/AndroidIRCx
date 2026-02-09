@@ -25,6 +25,8 @@ import { joinCommandHandlers } from './commands/JoinCommandHandlers';
 import { partCommandHandlers } from './commands/PartCommandHandlers';
 import { quitCommandHandlers } from './commands/QuitCommandHandlers';
 import { killCommandHandlers } from './commands/KillCommandHandlers';
+import { authenticateCommandHandlers } from './commands/AuthenticateCommandHandlers';
+import { privmsgCommandHandlers } from './commands/PrivmsgCommandHandlers';
 
 /**
  * Interface for the IRCService methods needed by command handlers
@@ -147,6 +149,21 @@ export class IRCCommandHandlers {
       emitPart: (channel: string, nick: string) => (svc as any).emit('part', channel, nick),
       emitConnection: (connected: boolean) => (svc as any).emitConnection(connected),
       handleKillDisconnect: (reason: string) => (svc as any).handleKillDisconnect(reason),
+      sendSASLCredentials: () => (svc as any).sendSASLCredentials(),
+      setSaslAuthenticating: (value: boolean) => { (svc as any).saslAuthenticating = value; },
+      sendRaw: (command: string) => (svc as any).sendRaw(command),
+      handleCTCPRequest: (from: string, target: string, command: string, args?: string) =>
+        (svc as any).handleCTCPRequest(from, target, command, args),
+      isUserIgnored: (nick: string, username?: string, hostname?: string, network?: string) =>
+        (svc as any).getUserManagementService().isUserIgnored(nick, username, hostname, network),
+      evaluateProtectionDecision: (message: any, context: any) => {
+        const protectionService = require('../ProtectionService').protectionService;
+        return protectionService.evaluateIncomingMessage(message, context);
+      },
+      handleMultilineMessage: (from: string, target: string, text: string, concatTag: string | undefined, otherTags: any) =>
+        (svc as any).handleMultilineMessage(from, target, text, concatTag, otherTags),
+      getEncryptedDMService: () => require('../EncryptedDMService').encryptedDMService,
+      getChannelEncryptionService: () => require('../ChannelEncryptionService').channelEncryptionService,
     };
   }
 
@@ -196,6 +213,12 @@ export class IRCCommandHandlers {
     for (const [command, handler] of killCommandHandlers) {
       this.handlers.set(command, handler);
     }
+    for (const [command, handler] of authenticateCommandHandlers) {
+      this.handlers.set(command, handler);
+    }
+    for (const [command, handler] of privmsgCommandHandlers) {
+      this.handlers.set(command, handler);
+    }
   }
 
   /**
@@ -215,6 +238,7 @@ export class IRCCommandHandlers {
       replyTag?: string;
       reactTag?: string;
       typingTag?: string;
+      multilineConcatTag?: string;
     }
   ): boolean {
     const handler = this.handlers.get(command.toUpperCase());
@@ -222,6 +246,9 @@ export class IRCCommandHandlers {
       handler(this.ctx, prefix, params, timestamp, meta);
       return true;
     }
+    // Default: display unhandled commands as raw
+    const fullMessage = `${prefix ? `:${prefix} ` : ''}${command} ${params.join(' ')}`;
+    this.ctx.addRawMessage(`*** RAW Command: ${fullMessage}`, 'server', timestamp);
     return false;
   }
 }

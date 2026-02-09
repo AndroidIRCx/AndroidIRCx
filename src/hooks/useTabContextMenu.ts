@@ -466,7 +466,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
             const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
             svc.sendRaw(`PRIVMSG ${tab.name} :!enc-offer ${JSON.stringify(bundle)}`);
             svc.addMessage({
-              type: 'notice',
+              type: 'system',
               channel: tab.name,
               text: `*** Encryption key offer sent to ${tab.name}. Waiting for acceptance...`,
               timestamp: Date.now(),
@@ -490,7 +490,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
           svc.sendRaw(`PRIVMSG ${tab.name} :!enc-req`);
           svc.addMessage({
-            type: 'notice',
+            type: 'system',
             channel: tab.name,
             text: `*** Encryption key requested from ${tab.name}`,
             timestamp: Date.now(),

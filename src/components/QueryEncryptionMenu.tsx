@@ -232,6 +232,12 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
         try {
           const bundle = await encryptedDMService.exportBundle();
           activeIrc.sendRaw(`PRIVMSG ${nick} :!enc-offer ${JSON.stringify(bundle)}`);
+          activeIrc.addMessage({
+            type: 'system',
+            channel: nick,
+            text: t('*** Encryption key offer sent to {nick}. Waiting for acceptance...', { nick }),
+            timestamp: Date.now(),
+          });
           setActionMessage(t('Enc key offer sent to {nick}', { nick }));
         } catch (e) {
           setActionMessage(t('Failed to share key'));
@@ -239,6 +245,12 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
         break;
       case 'enc_request':
         activeIrc.sendRaw(`PRIVMSG ${nick} :!enc-req`);
+        activeIrc.addMessage({
+          type: 'system',
+          channel: nick,
+          text: t('*** Encryption key requested from {nick}', { nick }),
+          timestamp: Date.now(),
+        });
         setActionMessage(t('Requested key from {nick}', { nick }));
         encryptedDMService
           .awaitBundleForNick(nick, 36000)

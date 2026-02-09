@@ -1,1 +1,7 @@
 Refactoring IRCService.ts & Dependency updates
+- Fix double-space message duplication.
+- Blacklist ban mask picker (0-11) and nick menu feedback banner.
+- Channel/DM key share now posts local notice.
+- Encrypted backup no longer crashes.
+- History saving + legacy migration so stored messages load.
+- Fix double-space duplication and long-nick wrapping hiding messages (#114)

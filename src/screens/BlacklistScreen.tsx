@@ -19,6 +19,7 @@ import {
   BlacklistEntry,
   BlacklistActionType,
 } from '../services/UserManagementService';
+import { banService } from '../services/BanService';
 import { connectionManager } from '../services/ConnectionManager';
 import { settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
@@ -72,6 +73,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
   const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
   const [templates, setTemplates] = useState<BlacklistTemplates>({});
   const [templateNetwork, setTemplateNetwork] = useState<string>('global');
+  const banMaskTypes = banService.getBanMaskTypes();
 
   useEffect(() => {
     if (visible) {
@@ -347,6 +349,10 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                 {'\n'}• {t('nick (match a nick)')}
                 {'\n'}• {t('*!*@host.com (match a host)')}
                 {'\n'}• {t('*!*@*.tor-exit.* (wildcards allowed)')}
+                {'\n\n'}{t('Ban mask types (0-11):')}
+                {banMaskTypes.map(type =>
+                  `\n• ${type.id}: ${type.pattern} — ${type.description}`
+                ).join('')}
               </Text>
               <TextInput
                 style={styles.input}

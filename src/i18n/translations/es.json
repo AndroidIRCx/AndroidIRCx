@@ -2058,7 +2058,7 @@
     "string": "Su nombre real o descripción"
   },
   "Ident / Username": {
-    "string": "Ident / Nombre de usuario"
+    "string": "Ident"
   },
   "Username for ident (optional)": {
     "string": "Nombre de usuario para ident (opcional)"
@@ -2181,7 +2181,7 @@
     "string": "Hooks"
   },
   "• onConnect(networkId)": {
-    "string": "• onConnect(id de red)"
+    "string": "• onConnect(networkId)"
   },
   "• onMessage(msg)": {
     "string": "• onMessage(msg)"
@@ -2217,7 +2217,7 @@
     "string": "• Habilite el loggin para ver las salidas/errores del script, en la pestaña de log."
   },
   "• onCommand can cancel send by returning { cancel: true }.": {
-    "string": "• onCommand puede cancelar el envio, devolviendo { cancel: true }."
+    "string": "• onCommand puede cancelar el envio por devolviendo  { cancel: true }."
   },
   "Cannot Enable Script": {
     "string": "No se puede habilitar el script"
@@ -3438,7 +3438,7 @@
     "string": "Tiempo de espera de conexión"
   },
   "*** Waiting for server registration...": {
-    "string": "***Esperando registro en el servidor..."
+    "string": "*** Esperando registro en el servidor..."
   },
   "Failed to create connection": {
     "string": "No se pudo establecer la conexión"
@@ -3801,7 +3801,7 @@
     "string": "Te has unido a demasiados canales."
   },
   "There was no such nickname": {
-    "string": "No existió tal nick"
+    "string": "No existía tal apodo"
   },
   "Too many targets": {
     "string": "Demasiadas tareas a la vez"
@@ -4074,7 +4074,7 @@
     "string": "Este servidor no admite la REDACCIÓN DE MENSAJES"
   },
   "Usage: /{command} <nick|channel> <message>": {
-    "string": "Uso: /{command}<nick|canal><message>"
+    "string": "Uso: /{command} <nick|canal> <message>"
   },
   "*** Encryption key offer sent to {nick}. Waiting for acceptance...": {
     "string": "*** Clave de cifrado enviada a {nick}. Esperando aceptación..."
@@ -4083,31 +4083,31 @@
     "string": "*** No se pudo compartir la clave de cifrado:{message}"
   },
   "Usage: /sharekey <nick>": {
-    "string": "Uso: /sharekey<nick>"
+    "string": "Uso: /sharekey <nick>"
   },
   "*** Encryption key requested from {nick}": {
     "string": "*** Clave de cifrado solicitada desde {nick}"
   },
   "Usage: /requestkey <nick>": {
-    "string": "Uso: /requestkey <nick> "
+    "string": "Uso: /requestkey <nick>"
   },
   "*** Encrypted send failed ({message}). Use \"Request Encryption Key\" from the user menu.": {
     "string": "*** Envío de cifrado fallido ({message}). Utilice \"Solicitar clave de cifrado\" desde el menú de usuario."
   },
   "Usage: /encmsg <nick> <message>": {
-    "string": "Uso: /encmsg <nick><message>"
+    "string": "Uso: /encmsg <nick> <message>"
   },
   "DM encryption:": {
     "string": "Cifrado DM:"
   },
   "/sharekey <nick>          Offer your DM key": {
-    "string": "/sharekey <nick>Ofrezca su clave DM"
+    "string": "/sharekey <nick> Ofrezca su clave DM"
   },
   "/requestkey <nick>        Request DM key": {
-    "string": "/requestkey <nick>Solicite clave DM"
+    "string": "/requestkey <nick> Solicite clave DM"
   },
   "/encmsg <nick> <message>  Send encrypted DM": {
-    "string": "/encmsg <nick><message>Envíe DM cifrado"
+    "string": "/encmsg <nick> <message> Envíe DM cifrado"
   },
   "Tips: keys must be exchanged first; use /requestkey if not paired.": {
     "string": "Consejos: las claves deben intercambiarse primero; use /requestkey si no están emparejadas."
@@ -4155,7 +4155,7 @@
     "string": "Falta la clave del canal. Usa /chankey para generar y compartir primero."
   },
   "Usage: /chankey share <nick>": {
-    "string": "Uso: /chankey share<nick>"
+    "string": "Uso: /chankey share <nick>"
   },
   "*** Channel key can only be shared from a channel": {
     "string": "*** La clave de canal solo se puede compartir desde el canal"
@@ -4248,7 +4248,7 @@
     "string": "Saluda a los usuarios cuando se unen."
   },
   "Channel Logger": {
-    "string": "Canal Registrado"
+    "string": "Registro de Mensajes del Canal"
   },
   "Logs messages to scripting log buffer.": {
     "string": "Registra mensajes en el búfer de registro de scripting"
@@ -5196,7 +5196,7 @@
     "string": "Uso: /xdcc <bot> <command> [args]"
   },
   "Usage: /dcc <chat|send> <nick> [path] [port]": {
-    "string": "Uso: /dcc <chat/send> <nick>  [path] [port]"
+    "string": "Uso: /dcc <chat|send> <nick>  [path] [port]"
   },
   "Failed to open battery optimization settings. Please enable it manually in system settings.": {
     "string": "Error al abrir la configuración de optimización de la batería. Habilítelo manualmente en la configuración del sistema."
@@ -5712,10 +5712,10 @@
     "string": "• api.sendCTCP(objetivo, tipo, parámetros, id de red)"
   },
   "• api.getChannelUsers(channel, networkId?) — returns string[]": {
-    "string": "• api.getChannelUsers(canal, id de red) — devuelve cadena[]"
+    "string": "• api.getChannelUsers(channel, networkId?) — devuelve cadena[]"
   },
   "• api.getChannels(networkId?) — returns string[]": {
-    "string": "• api.getChannels(id de red) — devuelve cadena[]"
+    "string": "• api.getChannels(networkId?) — devuelve cadena[]"
   },
   "• api.setTimer(name, delayMs, repeat?) — set timer": {
     "string": "• api.setTimer(nombre, delayMs, repetir) — configura el temporizador"
@@ -5727,22 +5727,22 @@
     "string": "• api.getNetworkId() — ID de red actual"
   },
   "• api.isConnected(networkId?) — check connection": {
-    "string": "• api.isConnected(id de red) — comprueba la conexión"
+    "string": "• api.isConnected(networkId?) — comprueba la conexión"
   },
   "Connection Events": {
     "string": "Eventos de conexión"
   },
   "• onConnect(networkId) — when connected": {
-    "string": "• onConnect(id de red) — cuando está conectado"
+    "string": "• onConnect(networkId) — cuando está conectado"
   },
   "• onDisconnect(networkId, reason?) — when disconnected": {
-    "string": "• onDisconnect(id de red, motivo) — Cuando está desconectado"
+    "string": "• onDisconnect(networkId, reason?) — Cuando está desconectado"
   },
   "Message Events": {
     "string": "Eventos de mensajes"
   },
   "• onMessage(msg) — channel/query messages": {
-    "string": "• onMessage(mensaje) — mensajes de canal/privado"
+    "string": "• onMessage(msg) — mensajes de canal/privado"
   },
   "• onNotice(msg) — notice messages": {
     "string": "• onNotice(msg) — mensajes notice"
@@ -5757,34 +5757,34 @@
     "string": "• onJoin(channel, nick, msg) — Usuario ha entrado"
   },
   "• onPart(channel, nick, reason, msg) — user parted": {
-    "string": "• onPart(channel, nick, reason, msg) — El usuario parte"
+    "string": "• onPart(channel, nick, reason, msg) — el usuario sale"
   },
   "• onQuit(nick, reason, msg) — user quit": {
-    "string": "• onQuit(nick, motivo, mensaje) — el usuario sale"
+    "string": "• onQuit(nick, reason, msg) — el usuario cierra"
   },
   "• onNickChange(oldNick, newNick, msg) — nick changed": {
-    "string": "• onNickChange(nickantiguo, nuevonick, mensaje) — nick cambiado"
+    "string": "• onNickChange(oldNick, newNick, msg) — nick cambiado"
   },
   "• onKick(channel, kickedNick, kickerNick, reason, msg) — user kicked": {
-    "string": "• onKick(canal, kickedNick, kickerNick, motivo, mensaje) — usuario pateado"
+    "string": "• onKick(channel, kickedNick, kickerNick, reason, msg) — usuario pateado"
   },
   "• onMode(channel, setterNick, mode, target?, msg) — mode changed": {
-    "string": "• onMode(canal, setterNick, modo, bjetivo, mensaje) — modo cambiado"
+    "string": "• onMode(channel, setterNick, mode, target?, msg) — modo cambiado"
   },
   "• onTopic(channel, topic, setterNick, msg) — topic changed": {
-    "string": "• onTopic(canal, topic, setterNick, mensaje) — tema cambiado"
+    "string": "• onTopic(channel, topic, setterNick, msg) — tema cambiado"
   },
   "• onInvite(channel, inviterNick, msg) — channel invite": {
-    "string": "• onInvite(canal, Nickinvitado, mensaje) — invitación al canal"
+    "string": "• onInvite(channel, inviterNick, msg) — invitación al canal"
   },
   "Other Events": {
     "string": "Otros Eventos"
   },
   "• onRaw(line, direction, msg?) — raw IRC line (in/out)": {
-    "string": "• onRaw(linea, direccion, mensaje) — raw IRC linea (in/out)"
+    "string": "• onRaw(line, direction, msg?) — raw IRC linea (in/out)"
   },
   "• onCommand(text, ctx) — outgoing command": {
-    "string": "• onCommand(texto, ctx) — comando saliente"
+    "string": "• onCommand(text, ctx) — comando saliente"
   },
   "• onTimer(name) — timer fired": {
     "string": "• onTimer(nombre) — temporizador disparado"
@@ -6339,7 +6339,7 @@
     "string": "Responde a solicitudes CTCP de VERSION  y TIME."
   },
   "Channel Guard": {
-    "string": "Guardia de canal"
+    "string": "Protección del Canal"
   },
   "Protects channel from bad words (example).": {
     "string": "Protege el canal de malas palabras (ejemplo)."
@@ -6357,7 +6357,7 @@
     "string": "Registra los cambios de topic en el log de script."
   },
   "Invite Handler": {
-    "string": "Controlador de invites"
+    "string": "Controlador de Invite Auto-Join"
   },
   "Auto-joins channels when invited.": {
     "string": "Auto-joins en canales cuando se le invita."
@@ -6390,7 +6390,7 @@
     "string": "Guarda automáticamente notas sobre los usuarios basado en sus mensajes."
   },
   "Channel Info Tracker": {
-    "string": "Rastreador de información de canal"
+    "string": "Rastreador de Información del Canal"
   },
   "Tracks and logs channel information changes.": {
     "string": "Rastrea y registra los cambios en la información del canal."
@@ -6474,13 +6474,13 @@
     "string": "Realiza un seguimiento de la actividad del usuario en los canales y registra el número de usuarios."
   },
   "Smart CTCP Handler": {
-    "string": "CTCP Inteligente"
+    "string": "Controlador de CTCP Inteligente"
   },
   "Enhanced CTCP handler with logging and custom responses.": {
     "string": "Controlador CTCP mejorado con registro y respuestas personalizadas."
   },
   "Channel Mode Protector": {
-    "string": "Protector de Modo de Canal"
+    "string": "Protector de Modo del Canal"
   },
   "Monitors channel mode changes and logs important ones.": {
     "string": "Supervisa los cambios de modo de canal y registra los importantes."
@@ -6510,7 +6510,7 @@
     "string": "Realiza un seguimiento de los cambios de nick y actualiza las notas del usuario"
   },
   "Quit Tracker": {
-    "string": "Salir del Rastreador"
+    "string": "Rastreador de Quit"
   },
   "Tracks when users quit and logs their reasons.": {
     "string": "Realiza un seguimiento de cuándo los usuarios desconectan y registra sus motivos."
@@ -6522,10 +6522,10 @@
     "string": "Registra todos los eventos de kick con detalles."
   },
   "Invite Logger": {
-    "string": "Invitar a Registrar"
+    "string": "Registro de Invite"
   },
   "Logs all channel invites with user info.": {
-    "string": "Registra todas los invites al canal con información del usuario"
+    "string": "Registra todos los invite al canal con información del usuario"
   },
   "DCC Host/IP Override": {
     "string": "Anulación de host/IP de DCC"
@@ -7269,7 +7269,7 @@
     "string": "Uso: /knock <channel> [mensaje]"
   },
   "Usage: /userhost <nick1> [nick2] ...": {
-    "string": "Uso:  /userhost <nick1> [nick2] ..."
+    "string": "Uso: /userhost <nick1> [nick2] ..."
   },
   "Usage: /userip <nick>": {
     "string": "Uso: /userip <nick>"
@@ -7764,7 +7764,7 @@
     "string": "{count} patrones"
   },
   "Logging in SPAM.log": {
-    "string": "Iniciar sesión en SPAM.log"
+    "string": "Registro en SPAM.log"
   },
   "Check SPAM.log": {
     "string": "Revisar SPAM.log"
@@ -8034,7 +8034,7 @@
     "string": "IRcap (c) Carlos Esteve Cremades, 1997-2026. La inspiración para away, protecciones, estilos de escritura, y el tema IRcap."
   },
   "IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme.": {
-    "string": "Tema de IRcap para AndroidIRCx hecho por la Comunidad 07, basado en el tema original de IRcap."
+    "string": "Tema de IRcap para AndroidIRCx hecho por la Comunidad, basado en el tema original de IRcap."
   },
   "Join message format": {
     "string": "Formato de mensaje join"

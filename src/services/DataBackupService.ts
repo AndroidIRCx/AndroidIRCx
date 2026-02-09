@@ -170,9 +170,8 @@ class DataBackupService {
     // Generate a random nonce
     const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
 
-    // Encrypt the data
-    const encoder = new TextEncoder();
-    const plaintext = encoder.encode(json);
+    // Encrypt the data (avoid TextEncoder to keep RN compatibility)
+    const plaintext = sodium.from_string(json);
     const ciphertext = sodium.crypto_secretbox_easy(plaintext, nonce, key);
 
     // Combine salt + nonce + ciphertext and encode as base64
@@ -232,8 +231,7 @@ class DataBackupService {
       throw new Error(t('Decryption failed - wrong password or corrupted data'));
     }
 
-    const decoder = new TextDecoder();
-    return decoder.decode(plaintext);
+    return sodium.to_string(plaintext);
   }
 
   /**

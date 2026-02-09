@@ -21,6 +21,7 @@ interface NickContextMenuProps {
   nick?: string | null;
   onClose: () => void;
   onAction: (action: string) => void;
+  actionMessage?: string;
   colors: {
     text: string;
     textSecondary: string;
@@ -45,6 +46,7 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
   nick,
   onClose,
   onAction,
+  actionMessage = '',
   colors,
   connection,
   network,
@@ -226,6 +228,21 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
       flex: 1,
       marginRight: 12,
     },
+    contextBanner: {
+      marginHorizontal: 12,
+      marginTop: 10,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    contextBannerText: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      fontWeight: '600',
+    },
     contextTitle: {
       color: colors.text,
       fontSize: 16,
@@ -335,6 +352,11 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
               <Text style={styles.contextCopyText}>{t('Copy nickname')}</Text>
             </TouchableOpacity>
           </View>
+          {!!actionMessage && (
+            <View style={styles.contextBanner}>
+              <Text style={styles.contextBannerText}>{actionMessage}</Text>
+            </View>
+          )}
           <ScrollView style={styles.contextScroll} contentContainerStyle={styles.contextScrollContent}>
             <Text style={styles.contextGroupTitle}>{t('Quick Actions')}</Text>
             <TouchableOpacity style={styles.contextItem} onPress={() => onAction('whois')}>

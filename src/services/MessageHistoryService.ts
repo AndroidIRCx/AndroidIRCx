@@ -46,6 +46,8 @@ class MessageHistoryService {
   private readonly STORAGE_PREFIX = '@AndroidIRCX:history:';
   private readonly MAX_MESSAGES_PER_CHANNEL = 10000; // Limit to prevent storage issues
   private readonly CLEANUP_THRESHOLD = 12000; // Cleanup when exceeding this
+  private migrationInProgress = false;
+  private migrationCompleted = false;
 
   /**
    * Save a message to history (uses batching for better performance)
@@ -101,11 +103,17 @@ class MessageHistoryService {
   async loadMessages(network: string, channel?: string): Promise<IRCMessage[]> {
     try {
       const key = this.getStorageKey(network, channel || 'server');
-      const data = await AsyncStorage.getItem(key);
-      if (data) {
-        return JSON.parse(data);
-      }
-      return [];
+      const data = await storageCache.getItem<IRCMessage[]>(key, {
+        ttl: 5 * 60 * 1000,
+      });
+      if (data) return data;
+
+      // Fallback: some older entries may be stored under legacy MESSAGES_ keys
+      const legacyKey = this.getLegacyStorageKey(network, channel || 'server');
+      const legacyData = await storageCache.getItem<IRCMessage[]>(legacyKey, {
+        ttl: 5 * 60 * 1000,
+      });
+      return legacyData || [];
     } catch (error) {
       console.error('MessageHistoryService: Error loading messages:', error);
       return [];
@@ -487,14 +495,19 @@ class MessageHistoryService {
     try {
       const keys = await AsyncStorage.getAllKeys();
       const historyKeys = keys.filter(key => key.startsWith(this.STORAGE_PREFIX));
-      if (historyKeys.length === 0) return [];
+      const legacyKeys = keys.filter(key => key.startsWith('MESSAGES_'));
+      const allKeys = [...historyKeys, ...legacyKeys];
+      if (allKeys.length === 0) return [];
 
-      const entries = await AsyncStorage.multiGet(historyKeys);
+      const entries = await AsyncStorage.multiGet(allKeys);
       const results: Array<{ network: string; channel: string; count: number; newest?: number; oldest?: number }> = [];
+      const dedupeMap = new Map<string, { network: string; channel: string; count: number; newest?: number; oldest?: number }>();
 
       for (const [key, value] of entries) {
         if (!key || !value) continue;
-        const parsed = this.parseStorageKey(key);
+        const parsed = key.startsWith(this.STORAGE_PREFIX)
+          ? this.parseStorageKey(key)
+          : this.parseLegacyStorageKey(key);
         if (!parsed) continue;
         let messages: IRCMessage[] = [];
         try {
@@ -509,16 +522,21 @@ class MessageHistoryService {
           if (!oldest || msg.timestamp < oldest) oldest = msg.timestamp;
           if (!newest || msg.timestamp > newest) newest = msg.timestamp;
         });
-        results.push({
+        const item = {
           network: parsed.network,
           channel: parsed.channel,
           count: messages.length,
           newest,
           oldest,
-        });
+        };
+        const dedupeKey = `${item.network}:${item.channel}`;
+        const existing = dedupeMap.get(dedupeKey);
+        if (!existing || (existing.count ?? 0) < item.count) {
+          dedupeMap.set(dedupeKey, item);
+        }
       }
 
-      return results;
+      return Array.from(dedupeMap.values());
     } catch (error) {
       console.error('MessageHistoryService: Error listing stored channels:', error);
       return [];
@@ -567,6 +585,11 @@ class MessageHistoryService {
     return `${this.STORAGE_PREFIX}${network}:${sanitizedChannel}`;
   }
 
+  private getLegacyStorageKey(network: string, channel: string): string {
+    const sanitizedChannel = channel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
+    return `MESSAGES_${network}_${sanitizedChannel}`;
+  }
+
   private parseStorageKey(key: string): { network: string; channel: string } | null {
     if (!key.startsWith(this.STORAGE_PREFIX)) return null;
     const rest = key.slice(this.STORAGE_PREFIX.length);
@@ -576,6 +599,89 @@ class MessageHistoryService {
       network: rest.slice(0, idx),
       channel: rest.slice(idx + 1),
     };
+  }
+
+  private parseLegacyStorageKey(key: string): { network: string; channel: string } | null {
+    if (!key.startsWith('MESSAGES_')) return null;
+    const rest = key.slice('MESSAGES_'.length);
+    const idx = rest.indexOf('_');
+    if (idx === -1) return null;
+    return {
+      network: rest.slice(0, idx),
+      channel: rest.slice(idx + 1),
+    };
+  }
+
+  async ensureHistoryMigrated(
+    onProgress?: (processed: number, total: number) => void
+  ): Promise<{ migrated: boolean; total: number; migratedCount: number }> {
+    if (this.migrationCompleted || this.migrationInProgress) {
+      return { migrated: false, total: 0, migratedCount: 0 };
+    }
+    this.migrationInProgress = true;
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const legacyKeys = keys.filter(key => key.startsWith('MESSAGES_'));
+      if (legacyKeys.length === 0) {
+        this.migrationCompleted = true;
+        return { migrated: false, total: 0, migratedCount: 0 };
+      }
+
+      const legacyEntries = await AsyncStorage.multiGet(legacyKeys);
+      const writes: { key: string; value: IRCMessage[] }[] = [];
+      const removes: string[] = [];
+      let migratedCount = 0;
+      let processed = 0;
+      const total = legacyEntries.length;
+
+      for (const [legacyKey, legacyValue] of legacyEntries) {
+        processed++;
+        if (onProgress) {
+          try {
+            onProgress(processed, total);
+          } catch {
+            // ignore progress callback errors
+          }
+        }
+        if (!legacyKey || !legacyValue) continue;
+        const parsed = this.parseLegacyStorageKey(legacyKey);
+        if (!parsed) continue;
+        let messages: IRCMessage[] = [];
+        try {
+          messages = JSON.parse(legacyValue);
+        } catch {
+          continue;
+        }
+        if (!Array.isArray(messages) || messages.length === 0) {
+          removes.push(legacyKey);
+          continue;
+        }
+
+        const newKey = this.getStorageKey(parsed.network, parsed.channel);
+        const existing = await storageCache.getItem<IRCMessage[]>(newKey, { ttl: 0 });
+        const merged = existing ? [...existing, ...messages] : [...messages];
+        const sorted = merged
+          .sort((a, b) => a.timestamp - b.timestamp)
+          .slice(-this.MAX_MESSAGES_PER_CHANNEL);
+        writes.push({ key: newKey, value: sorted });
+        removes.push(legacyKey);
+        migratedCount++;
+      }
+
+      if (writes.length > 0) {
+        await storageCache.setBatch(writes);
+      }
+      if (removes.length > 0) {
+        await storageCache.removeBatch(removes);
+      }
+      this.migrationCompleted = true;
+      return { migrated: migratedCount > 0, total, migratedCount };
+    } catch (error) {
+      console.error('MessageHistoryService: Error migrating legacy history:', error);
+      return { migrated: false, total: 0, migratedCount: 0 };
+    } finally {
+      this.migrationInProgress = false;
+    }
   }
 
   /**

@@ -206,7 +206,6 @@ export const OptionsMenu: React.FC<OptionsMenuProps> = ({
                     <Text style={localStyles.optionText}>{t('Close All Privates')}</Text>
                   </View>
                 </TouchableOpacity>
-                <View style={localStyles.optionGroupDivider} />
                 <TouchableOpacity style={styles?.optionItem} onPress={handleDisconnect}>
                   <View style={localStyles.optionRow}>
                     <Icon name="power-off" size={14} color={destructiveColor} />
@@ -256,7 +255,6 @@ export const OptionsMenu: React.FC<OptionsMenuProps> = ({
                 </TouchableOpacity>
               </>
             )}
-            <View style={localStyles.optionGroupDivider} />
             <TouchableOpacity style={styles?.optionItem} onPress={handleDccTransfers}>
               <View style={localStyles.optionRow}>
                 <Icon name="exchange-alt" size={14} color={iconColor} />
