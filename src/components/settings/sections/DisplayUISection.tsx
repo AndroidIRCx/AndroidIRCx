@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
@@ -82,6 +82,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
   const [channelListScrollSwitchTabs, setChannelListScrollSwitchTabs] = useState(false);
   const [channelListScrollSwitchTabsInverse, setChannelListScrollSwitchTabsInverse] = useState(false);
+  const lastRawVisibilityRef = useRef<Record<RawMessageCategory, boolean> | null>(null);
 
   // Load initial state
   useEffect(() => {
@@ -158,6 +159,17 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   useEffect(() => {
     setShowTypingIndicatorsSetting(propShowTypingIndicators ?? true);
   }, [propShowTypingIndicators]);
+
+  useEffect(() => {
+    if (!onRawCategoryVisibilityChange || !localShowRawCommands) return;
+    const last = lastRawVisibilityRef.current;
+    const isSame = last
+      ? RAW_MESSAGE_CATEGORIES.every(category => last[category.id] === localRawCategoryVisibility[category.id])
+      : false;
+    if (isSame) return;
+    lastRawVisibilityRef.current = localRawCategoryVisibility;
+    onRawCategoryVisibilityChange(localRawCategoryVisibility);
+  }, [localRawCategoryVisibility, localShowRawCommands, onRawCategoryVisibilityChange]);
 
   const sectionData: SettingItemType[] = useMemo(() => {
     const formatBehaviorLabel = (value: string) => {
@@ -261,9 +273,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           onValueChange: (value: boolean | string) => {
             const boolValue = value as boolean;
             setLocalRawCategoryVisibility((prev) => {
-              const updated = { ...prev, [category.id]: boolValue };
-              onRawCategoryVisibilityChange?.(updated);
-              return updated;
+              return { ...prev, [category.id]: boolValue };
             });
           },
         })),
