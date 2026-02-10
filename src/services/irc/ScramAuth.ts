@@ -321,9 +321,6 @@ export async function buildClientFinalMessage(
   // Calculate ClientProof
   const clientProof = xorBytes(clientKey, clientSignature);
   
-  // Calculate ServerKey
-  const serverKey = await hmacSha256(saltedPassword, stringToBytes('Server Key'));
-
   // Build proof
   const proof = base64Encode(clientProof);
   const clientFinalMessage = `${clientFinalMessageWithoutProof},p=${proof}`;
