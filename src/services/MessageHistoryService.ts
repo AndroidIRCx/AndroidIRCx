@@ -84,7 +84,7 @@ class MessageHistoryService {
     // Save each channel's messages using StorageCache for automatic batching
     const promises = Array.from(messagesByChannel.entries()).map(([channel, msgs]) => {
       const key = this.getStorageKey(network, channel);
-      return this.loadMessages(key).then(existing => {
+      return this.loadMessagesByKey(key).then(existing => {
         const combined = [...existing, ...msgs];
         // Limit and sort by timestamp
         const sorted = combined
@@ -563,7 +563,7 @@ class MessageHistoryService {
    */
   private async cleanupOldMessages(key: string): Promise<void> {
     try {
-      const messages = await this.loadMessages(key);
+      const messages = await this.loadMessagesByKey(key);
       if (messages.length > this.MAX_MESSAGES_PER_CHANNEL) {
         // Keep only the most recent messages
         const sorted = messages.sort((a, b) => b.timestamp - a.timestamp);
@@ -593,7 +593,9 @@ class MessageHistoryService {
   private parseStorageKey(key: string): { network: string; channel: string } | null {
     if (!key.startsWith(this.STORAGE_PREFIX)) return null;
     const rest = key.slice(this.STORAGE_PREFIX.length);
-    const idx = rest.indexOf(':');
+    // Network identifiers can contain ':' (e.g. host:port). Channel is sanitized and
+    // cannot contain ':', so the separator is the *last* ':' in the remainder.
+    const idx = rest.lastIndexOf(':');
     if (idx === -1) return null;
     return {
       network: rest.slice(0, idx),
@@ -687,7 +689,7 @@ class MessageHistoryService {
   /**
    * Load messages from storage key (internal helper)
    */
-  private async loadMessages(key: string): Promise<IRCMessage[]> {
+  private async loadMessagesByKey(key: string): Promise<IRCMessage[]> {
     try {
       // Use StorageCache for in-memory caching and faster access
       const data = await storageCache.getItem<IRCMessage[]>(key, {

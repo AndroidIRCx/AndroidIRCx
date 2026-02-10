@@ -1,0 +1,8 @@
+v1.7.1
+- Full STS support implemented
+- Added SASL SCRAM authentication
+- Fixed Blacklist screen
+- Translated Help screen
+- Added missing IRCv3 features
+- Fixed Messages History Viewer
+- Fixed nickname completion when style is enabled and added channel completion

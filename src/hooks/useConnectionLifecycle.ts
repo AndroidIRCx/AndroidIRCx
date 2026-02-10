@@ -27,6 +27,7 @@ import { tabService } from '../services/TabService';
 import { messageHistoryService } from '../services/MessageHistoryService';
 import { serverTabId, channelTabId, queryTabId, noticeTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
 import { useT } from '../i18n/transifex';
+import { stsService } from '../services/STSService';
 import type { ChannelTab } from '../types';
 
 const normalizePattern = (pattern: string) =>
@@ -1224,6 +1225,25 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         });
       });
 
+      // Listen for STS policy updates
+      const unsubscribeStsPolicy = activeIRCService.on('sts-policy', (hostname: string, capValue: string) => {
+        console.log(`STS: Received policy for ${hostname}:`, capValue);
+        const success = stsService.savePolicy(hostname, capValue);
+        if (success) {
+          const policy = stsService.getPolicy(hostname);
+          if (policy) {
+            const expiresIn = Math.floor((policy.expiresAt - Date.now()) / 1000);
+            activeIRCService.addMessage({
+              type: 'raw',
+              text: `*** STS policy saved for ${hostname}: TLS required for ${expiresIn} seconds`,
+              timestamp: Date.now(),
+              isRaw: true,
+              rawCategory: 'connection',
+            });
+          }
+        }
+      });
+
       // Listen for beep command
       const unsubscribeBeep = activeIRCService.on('beep', (options: { count: number; delay: number }) => {
         // Could trigger sound service beep
@@ -1254,6 +1274,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         unsubscribeAme();
         unsubscribeAnotice();
         unsubscribeReconnect();
+        unsubscribeStsPolicy();
         unsubscribeBeep();
         clearInterval(pingInterval);
         unsubscribeRegistered && unsubscribeRegistered();

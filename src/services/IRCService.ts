@@ -21,6 +21,7 @@ import { IRCSendMessageHandlers } from './irc/IRCSendMessageHandlers';
 import { parseCTCP, encodeCTCP, handleCTCPRequest as handleCTCPRequestFn, CTCPContext } from './irc/protocol/CTCPHandlers';
 import { BatchLabelManager } from './irc/protocol/BatchLabelHandlers';
 import { MultilineHandler } from './irc/protocol/MultilineHandler';
+import { stsService, STSPolicy } from './STSService';
 
 // Re-export ChannelTab from types for backward compatibility
 export { ChannelTab } from '../types';
@@ -46,6 +47,7 @@ export interface IRCConnectionConfig {
   sasl?: {
     account: string;
     password: string;
+    mechanism?: 'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS' | 'EXTERNAL';
     force?: boolean;  // Force SASL even if server doesn't advertise capability
   };
 }
@@ -135,6 +137,7 @@ export interface IRCMessage {
   replyTo?: string; // draft/reply: msgid of message being replied to
   reactions?: string; // draft/react: reactions to message (format: msgid;emoji)
   typing?: 'active' | 'paused' | 'done'; // +typing: typing indicator status
+  intent?: string; // +draft/intent: message intent (e.g. ACTION, NOTICE, REPLY)
   username?: string;
   hostname?: string;
   target?: string;
@@ -158,6 +161,7 @@ export interface ChannelUser {
   modes: string[]; // Channel-specific modes: o (op), v (voice), h (halfop), a (admin), q (owner)
   account?: string; // Account name if available
   host?: string; // Hostname if available (from userhost-in-names)
+  ident?: string; // User/ident if available (from userhost-in-names)
 }
 
 interface ChannelTopicInfo {
@@ -238,6 +242,9 @@ export class IRCService {
 
   // SASL state
   private saslAuthenticating: boolean = false;
+  private saslMechanism: string | null = null;
+  private saslState: 'initial' | 'client-first-sent' | 'server-first-received' | 'client-final-sent' | 'complete' = 'initial';
+  private scramAuthService: ScramAuthService | null = null;
 
   // User list tracking
   private channelUsers: Map<string, Map<string, ChannelUser>> = new Map(); // channel -> nick -> user
@@ -503,6 +510,33 @@ export class IRCService {
         // If no network id set by ConnectionManager, fall back to host for identification
         if (!this.networkId) {
           this.networkId = config.host;
+        }
+
+        // Check for STS policy before connecting
+        const stsResult = stsService.checkConnection(config.host, config.port, config.tls === true);
+        if (stsResult.shouldUpgrade) {
+          this.logRaw(`STS: Policy requires upgrade for ${config.host}: ${stsResult.reason}`);
+          this.logRaw(`STS: Upgrading to TLS on port ${stsResult.targetPort}`);
+          
+          // Modify config to use TLS
+          config = {
+            ...config,
+            tls: true,
+            port: stsResult.targetPort,
+          };
+          
+          // Emit event to inform UI about STS upgrade
+          this.emit('sts-upgrade', {
+            host: config.host,
+            originalPort: config.port,
+            newPort: stsResult.targetPort,
+            reason: stsResult.reason,
+          });
+        } else if (stsResult.tlsRequired) {
+          this.logRaw(`STS: Policy requires TLS for ${config.host}`);
+          if (!config.tls) {
+            config = { ...config, tls: true };
+          }
         }
 
         this.emit('pre-connect', config);
@@ -990,6 +1024,9 @@ export class IRCService {
     const reactTag = tags.get('+draft/react') || tags.get('+react') || undefined;
     const typingTag = tags.get('typing') || tags.get('draft/typing') || tags.get('+typing') || undefined;
 
+    // Extract intent tag (draft/intent)
+    const intentTag = tags.get('+draft/intent') || tags.get('+intent') || undefined;
+
     // Extract multiline concat tag (draft/multiline)
     const multilineConcatTag = tags.get('draft/multiline-concat') || undefined;
 
@@ -1057,6 +1094,7 @@ export class IRCService {
       reactTag,
       typingTag,
       multilineConcatTag,
+      intentTag,
     });
 
     // Handle labeled-response (IRCv3.2) - match responses to commands
@@ -1114,7 +1152,7 @@ export class IRCService {
     return output;
   }
 
-  private startSASL(): void {
+  private async startSASL(): Promise<void> {
     const forceSASL = this.config?.sasl?.force === true;
     if (!this.capEnabledSet.has('sasl') && !forceSASL) {
       this.logRaw('IRCService: SASL not enabled on server');
@@ -1123,7 +1161,9 @@ export class IRCService {
 
     if (this.config?.clientCert && this.config?.clientKey) {
       this.logRaw('IRCService: Starting SASL EXTERNAL authentication with cert');
+      this.saslMechanism = 'EXTERNAL';
       this.saslAuthenticating = true;
+      this.saslState = 'initial';
       this.sendRaw('AUTHENTICATE EXTERNAL');
       return;
     }
@@ -1138,26 +1178,111 @@ export class IRCService {
       return;
     }
     
-    this.logRaw(`IRCService: Starting SASL PLAIN authentication for account: ${this.config.sasl.account}`);
+    const mechanism = this.config.sasl.mechanism || 'PLAIN';
+    this.saslMechanism = mechanism;
     this.saslAuthenticating = true;
-    this.sendRaw('AUTHENTICATE PLAIN');
+    this.saslState = 'initial';
+    
+    if (mechanism === 'SCRAM-SHA-256' || mechanism === 'SCRAM-SHA-256-PLUS') {
+      this.logRaw(`IRCService: Starting SASL ${mechanism} authentication for account: ${this.config.sasl.account}`);
+      
+      // Initialize SCRAM auth service
+      this.scramAuthService = new ScramAuthService();
+      
+      // For SCRAM-SHA-256-PLUS, we would need TLS exported keying material
+      // This is not currently available in react-native-tcp-socket
+      const tlsKeyingMaterial = mechanism === 'SCRAM-SHA-256-PLUS' ? undefined : undefined;
+      
+      await this.scramAuthService.init(mechanism, tlsKeyingMaterial);
+      this.sendRaw(`AUTHENTICATE ${mechanism}`);
+    } else {
+      // PLAIN mechanism (default)
+      this.logRaw(`IRCService: Starting SASL PLAIN authentication for account: ${this.config.sasl.account}`);
+      this.sendRaw('AUTHENTICATE PLAIN');
+    }
   }
 
-  private sendSASLCredentials(): void {
+  private async sendSASLCredentials(): Promise<void> {
     if (!this.config?.sasl || !this.saslAuthenticating) return;
     
-    const { account, password } = this.config.sasl;
-    const authString = `${account}\0${account}\0${password}`;
-    const authBase64 = this.base64Encode(authString);
+    const mechanism = this.saslMechanism || 'PLAIN';
     
-    if (authBase64.length > 400) {
-      const chunks = authBase64.match(/.{1,400}/g) || [];
-      chunks.forEach(chunk => {
-        this.sendRaw(`AUTHENTICATE ${chunk}`);
-      });
+    if (mechanism === 'SCRAM-SHA-256' || mechanism === 'SCRAM-SHA-256-PLUS') {
+      // SCRAM authentication - send client-first-message
+      if (this.scramAuthService && this.saslState === 'initial') {
+        const clientFirst = this.scramAuthService.buildClientFirst(this.config.sasl.account);
+        this.saslState = 'client-first-sent';
+        this.sendRaw(`AUTHENTICATE ${clientFirst}`);
+      }
     } else {
-      this.sendRaw(`AUTHENTICATE ${authBase64}`);
+      // PLAIN mechanism (default)
+      const { account, password } = this.config.sasl;
+      const authString = `${account}\0${account}\0${password}`;
+      const authBase64 = this.base64Encode(authString);
+      
+      if (authBase64.length > 400) {
+        const chunks = authBase64.match(/.{1,400}/g) || [];
+        chunks.forEach(chunk => {
+          this.sendRaw(`AUTHENTICATE ${chunk}`);
+        });
+      } else {
+        this.sendRaw(`AUTHENTICATE ${authBase64}`);
+      }
     }
+  }
+
+  /**
+   * Handle SCRAM server-first-message
+   */
+  private async handleScramServerFirst(serverFirstMessage: string): Promise<void> {
+    if (!this.scramAuthService || !this.config?.sasl) {
+      this.logRaw('IRCService: SCRAM not initialized');
+      return;
+    }
+    
+    const result = this.scramAuthService.processServerFirst(serverFirstMessage);
+    if (!result.success) {
+      this.logRaw(`IRCService: SCRAM server-first-message error: ${result.error}`);
+      this.sendRaw('AUTHENTICATE *');
+      this.saslAuthenticating = false;
+      this.saslState = 'initial';
+      return;
+    }
+    
+    this.saslState = 'server-first-received';
+    
+    // Build and send client-final-message
+    try {
+      const clientFinal = await this.scramAuthService.buildClientFinal(this.config.sasl.password);
+      this.saslState = 'client-final-sent';
+      this.sendRaw(`AUTHENTICATE ${clientFinal}`);
+    } catch (e) {
+      this.logRaw(`IRCService: SCRAM client-final error: ${e}`);
+      this.sendRaw('AUTHENTICATE *');
+      this.saslAuthenticating = false;
+      this.saslState = 'initial';
+    }
+  }
+
+  /**
+   * Handle SCRAM server-final-message
+   */
+  private handleScramServerFinal(serverFinalMessage: string): void {
+    if (!this.scramAuthService) {
+      this.logRaw('IRCService: SCRAM not initialized');
+      return;
+    }
+    
+    const result = this.scramAuthService.verifyServerFinal(serverFinalMessage);
+    if (!result.success) {
+      this.logRaw(`IRCService: SCRAM server verification failed: ${result.error}`);
+      // Server will send 904 ERR_SASLFAIL after this
+    } else {
+      this.logRaw('IRCService: SCRAM server signature verified');
+      // Server will send 903 RPL_SASLSUCCESS after this
+    }
+    
+    this.saslState = 'complete';
   }
 
   private handleCAPCommand(params: string[]): void {
@@ -1174,6 +1299,7 @@ export class IRCService {
         getSaslAuthenticating: () => this.saslAuthenticating,
         emit: this.emit.bind(this),
         logRaw: this.logRaw.bind(this),
+        sendRaw: this.sendRaw.bind(this),
         requestCapabilities: this.requestCapabilities.bind(this),
         endCAPNegotiation: this.endCAPNegotiation.bind(this),
         startSASL: this.startSASL.bind(this),
@@ -1240,7 +1366,8 @@ export class IRCService {
       'echo-message', 'multi-prefix', 'invite-notify', 'monitor', 'extended-monitor',
       'cap-notify', 'account-tag', 'setname', 'standard-replies', 'message-ids',
       'bot', 'utf8only', 'chathistory', 'draft/chathistory', 'draft/multiline', 'draft/read-marker',
-      'draft/message-redaction', 'sts'
+      'draft/message-redaction', 'event-playback', 'draft/account-registration',
+      'draft/channel-rename', 'sts'
     ];
     const capsToRequest: string[] = allCapsWeWant.filter(cap => this.capAvailable.has(cap));
     
@@ -1413,12 +1540,13 @@ export class IRCService {
       nick = nick.substring(1);
     }
     
-    let account: string | undefined, host: string | undefined;
+    let account: string | undefined, host: string | undefined, ident: string | undefined;
     if (this.userhostInNames) {
       const exclamation = nick.indexOf('!');
       const at = nick.indexOf('@');
-      if (exclamation !== -1 && at !== -1) {
+      if (exclamation !== -1 && at !== -1 && at > exclamation) {
         const parsedNick = nick.substring(0, exclamation);
+        ident = nick.substring(exclamation + 1, at);
         host = nick.substring(at + 1);
         nick = parsedNick;
         // Note: we don't set account here - account comes from extended-join or account-notify
@@ -1427,7 +1555,7 @@ export class IRCService {
     
     if (!nick || !nick.trim()) return null;
     
-    return { nick: nick.trim(), modes, account, host };
+    return { nick: nick.trim(), modes, account, host, ident };
   }
 
   private updateChannelUserList(channel: string): void {
@@ -2374,12 +2502,20 @@ export class IRCService {
   }
 
   addMessage(message: Omit<IRCMessage, 'id' | 'network'> & { status?: 'pending' | 'sent' }, batchTag?: string): void {
-    const fullMessage: IRCMessage = { 
-      ...message, 
-      id: `${Date.now()}-${Math.random()}`, 
+    const fullMessage: IRCMessage = {
+      ...message,
+      id: `${Date.now()}-${Math.random()}`,
       network: this.getNetworkName(),
-      batchTag 
+      batchTag
     };
+
+    // Mark playback messages from history batches
+    if (batchTag) {
+      const batch = this.getBatchLabelManager().getActiveBatches().get(batchTag);
+      if (batch && (batch.type === 'chathistory' || batch.type === 'history' || batch.type === 'znc.in/playback')) {
+        fullMessage.isPlayback = true;
+      }
+    }
 
     // Add to batch if batch tag is present
     if (batchTag) {

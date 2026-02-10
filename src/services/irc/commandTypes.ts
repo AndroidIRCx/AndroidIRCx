@@ -63,6 +63,10 @@ export interface CommandHandlerContext {
   // SASL
   sendSASLCredentials: () => void;
   setSaslAuthenticating: (value: boolean) => void;
+  getSaslMechanism?: () => string | null;
+  getSaslState?: () => string;
+  handleScramServerFirst?: (message: string) => void;
+  handleScramServerFinal?: (message: string) => void;
 
   // PRIVMSG support
   sendRaw: (command: string) => void;
@@ -97,6 +101,7 @@ export type CommandHandler = (
     reactTag?: string;
     typingTag?: string;
     multilineConcatTag?: string;
+    intentTag?: string;
   }
 ) => void;
 

@@ -536,9 +536,15 @@ class NotificationService {
     }
 
     if (prefs.notifyOnMentions) {
-      // Check if message mentions current nick
-      const mentionPattern = new RegExp(`@?${currentNick}\\b`, 'i');
-      return mentionPattern.test(message.text);
+      // Check if message mentions current nick (escape special regex chars)
+      try {
+        const escapedNick = currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const mentionPattern = new RegExp(`@?${escapedNick}\\b`, 'i');
+        return mentionPattern.test(message.text);
+      } catch (error) {
+        // Fallback to simple includes if regex fails
+        return message.text.toLowerCase().includes(currentNick.toLowerCase());
+      }
     }
 
     return false;

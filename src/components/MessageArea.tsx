@@ -282,6 +282,11 @@ const MessageItem = React.memo<MessageItemProps>(({
   const actionText = useMemo(() => extractActionText(message.text), [message.text, extractActionText]);
   const parsed = useMemo(() => renderMessageParts(message.text, actionText !== null), [message.text, actionText, renderMessageParts]);
 
+  // Escape special regex characters to prevent invalid regex errors
+  const escapeRegExp = useCallback((string: string): string => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }, []);
+
   const isHighlighted = useMemo(() => {
     if (message.type !== 'message') {
       return false;
@@ -292,11 +297,17 @@ const MessageItem = React.memo<MessageItemProps>(({
     }
     // Check if the current user's nick is mentioned as a whole word
     if (currentNick) {
-      const regex = new RegExp(`\\b${currentNick}\\b`, 'i');
-      return regex.test(message.text);
+      try {
+        const escapedNick = escapeRegExp(currentNick);
+        const regex = new RegExp(`\\b${escapedNick}\\b`, 'i');
+        return regex.test(message.text);
+      } catch (error) {
+        // Fallback to simple includes if regex fails
+        return message.text.toLowerCase().includes(currentNick.toLowerCase());
+      }
     }
     return false;
-  }, [message.text, message.type, currentNick]);
+  }, [message.text, message.type, currentNick, escapeRegExp]);
 
   const actionMessageColor = isHighlighted ? colors.highlightText : colors.actionMessage;
 
@@ -1142,17 +1153,9 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
   const getBlacklistBanMaskOptions = useCallback((user: ChannelUser | null, nick: string | null) => {
     const safeNick = nick || '';
-    const resolveUserHost = (rawHost?: string | null) => {
-      if (!rawHost) {
-        return { user: '*', host: '*' };
-      }
-      if (rawHost.includes('@')) {
-        const [userPart, hostPart] = rawHost.split('@');
-        return { user: userPart || '*', host: hostPart || '*' };
-      }
-      return { user: '*', host: rawHost };
-    };
-    const { user: ident, host } = resolveUserHost(user?.host);
+    // Use ident from user object (from userhost-in-names) or fallback to '*'
+    const ident = user?.ident || '*';
+    const host = user?.host || '*';
     return banService.getBanMaskTypes().map(type => ({
       id: type.id,
       label: `(${type.id}) ${type.pattern}`,
@@ -1177,6 +1180,19 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   }, []);
 
   const activeIrc = connection?.ircService || ircService;
+
+  // IMPORTANT: Use the per-connection UserManagementService when available so that adding
+  // blacklist entries/notes from UI is immediately visible in Settings and applied by enforcement.
+  const getUserManagementServiceForNetwork = useCallback(() => {
+    const net = network || activeTab?.networkId;
+    if (net) {
+      const conn = connectionManager.getConnection(net);
+      if (conn?.userManagementService) {
+        return conn.userManagementService;
+      }
+    }
+    return userManagementService;
+  }, [activeTab?.networkId, connectionManager, network]);
 
   const getNetworkForStorage = useCallback((): string => {
     return network || activeIrc.getNetworkName() || 'default';
@@ -2149,9 +2165,9 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
                 onPress={async () => {
                   if (!contextNick) return;
                   if (noteText.trim()) {
-                    await userManagementService.addUserNote(contextNick, noteText.trim(), network);
+                    await getUserManagementServiceForNetwork().addUserNote(contextNick, noteText.trim(), network);
                   } else {
-                    await userManagementService.removeUserNote(contextNick, network);
+                    await getUserManagementServiceForNetwork().removeUserNote(contextNick, network);
                   }
                   setShowNoteModal(false);
                 }}>
@@ -2225,7 +2241,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
                       const templateCommand = blacklistAction === 'custom'
                         ? blacklistCustomCommand.trim()
                         : await getBlacklistTemplate(blacklistAction, network);
-                      await userManagementService.addBlacklistEntry(
+                      await getUserManagementServiceForNetwork().addBlacklistEntry(
                         choice.mask,
                         blacklistAction,
                         blacklistReason.trim() || undefined,
@@ -2866,16 +2882,19 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     marginBottom: 12,
   },
   blacklistPicker: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
     backgroundColor: colors.surfaceVariant || colors.messageBackground,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   blacklistPickerText: {
     color: colors.text,
     fontSize: 14,
+    fontWeight: '500',
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   blacklistInput: {

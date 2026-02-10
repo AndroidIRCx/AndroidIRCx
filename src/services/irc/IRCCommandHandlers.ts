@@ -14,7 +14,6 @@ import { standardCommandHandlers } from './commands/StandardCommandHandlers';
 import { noticeCommandHandlers } from './commands/NoticeCommandHandlers';
 import { serverCommandHandlers } from './commands/ServerCommandHandlers';
 import { userStateCommandHandlers } from './commands/UserStateCommandHandlers';
-import { setnameCommandHandlers } from './commands/SetnameCommandHandlers';
 import { readMarkerCommandHandlers } from './commands/ReadMarkerCommandHandlers';
 import { batchCommandHandlers } from './commands/BatchCommandHandlers';
 import { capCommandHandlers } from './commands/CapCommandHandlers';
@@ -27,6 +26,7 @@ import { quitCommandHandlers } from './commands/QuitCommandHandlers';
 import { killCommandHandlers } from './commands/KillCommandHandlers';
 import { authenticateCommandHandlers } from './commands/AuthenticateCommandHandlers';
 import { privmsgCommandHandlers } from './commands/PrivmsgCommandHandlers';
+import { renameCommandHandlers } from './commands/RenameCommandHandlers';
 
 /**
  * Interface for the IRCService methods needed by command handlers
@@ -151,6 +151,10 @@ export class IRCCommandHandlers {
       handleKillDisconnect: (reason: string) => (svc as any).handleKillDisconnect(reason),
       sendSASLCredentials: () => (svc as any).sendSASLCredentials(),
       setSaslAuthenticating: (value: boolean) => { (svc as any).saslAuthenticating = value; },
+      getSaslMechanism: () => (svc as any).saslMechanism,
+      getSaslState: () => (svc as any).saslState,
+      handleScramServerFirst: (message: string) => (svc as any).handleScramServerFirst(message),
+      handleScramServerFinal: (message: string) => (svc as any).handleScramServerFinal(message),
       sendRaw: (command: string) => (svc as any).sendRaw(command),
       handleCTCPRequest: (from: string, target: string, command: string, args?: string) =>
         (svc as any).handleCTCPRequest(from, target, command, args),
@@ -180,10 +184,7 @@ export class IRCCommandHandlers {
     for (const [command, handler] of userStateCommandHandlers) {
       this.handlers.set(command, handler);
     }
-    for (const [command, handler] of setnameCommandHandlers) {
-      this.handlers.set(command, handler);
-    }
-    for (const [command, handler] of readMarkerCommandHandlers) {
+for (const [command, handler] of readMarkerCommandHandlers) {
       this.handlers.set(command, handler);
     }
     for (const [command, handler] of batchCommandHandlers) {
@@ -219,6 +220,9 @@ export class IRCCommandHandlers {
     for (const [command, handler] of privmsgCommandHandlers) {
       this.handlers.set(command, handler);
     }
+    for (const [command, handler] of renameCommandHandlers) {
+      this.handlers.set(command, handler);
+    }
   }
 
   /**
@@ -239,6 +243,7 @@ export class IRCCommandHandlers {
       reactTag?: string;
       typingTag?: string;
       multilineConcatTag?: string;
+      intentTag?: string;
     }
   ): boolean {
     const handler = this.handlers.get(command.toUpperCase());

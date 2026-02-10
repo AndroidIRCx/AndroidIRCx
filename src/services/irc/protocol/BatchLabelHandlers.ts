@@ -92,6 +92,23 @@ export class BatchLabelManager {
         break;
       }
       case 'chathistory':
+        this.ctx.emit('chathistory-end', { refTag, messages: messages.length, params });
+        break;
+      case 'history':
+        // IRCv3 event-playback batch type
+        this.ctx.emit('event-playback', {
+          refTag,
+          messages: messages.length,
+          params,
+        });
+        break;
+      case 'znc.in/playback':
+        // ZNC specific playback batch
+        this.ctx.emit('bouncer-playback', {
+          refTag,
+          messages: messages.length,
+          params,
+        });
         break;
       case 'cap-notify':
         this.ctx.addRawMessage(

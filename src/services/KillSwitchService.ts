@@ -336,7 +336,7 @@ class KillSwitchService {
                         result.success ? t('Kill Switch Activated') : t('Kill Switch Error'),
                         result.success
                           ? t('All data has been deleted. The app will now close.')
-                          : t('Some errors occurred:\n{errors}').replace('{errors}', result.errors.join('\n')),
+                          : `${t('Some errors occurred:')}\n${result.errors.join('\n')}`,
                         [
                           {
                             text: t('OK'),

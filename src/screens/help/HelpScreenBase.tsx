@@ -13,6 +13,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useT } from '../../i18n/transifex';
 
 interface HelpScreenBaseProps {
   visible: boolean;
@@ -28,6 +29,7 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
   children,
 }) => {
   const { colors } = useTheme();
+  const t = useT();
 
   const styles = StyleSheet.create({
     container: {
@@ -143,7 +145,7 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{title}</Text>
           <TouchableOpacity onPress={onClose} accessibilityLabel="Close help screen">
-            <Text style={styles.closeButton}>Close</Text>
+            <Text style={styles.closeButton}>{t('Close')}</Text>
           </TouchableOpacity>
         </View>
         <ScrollView

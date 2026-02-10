@@ -70,6 +70,19 @@ export const handleCHGHOST: CommandHandler = (ctx, prefix, params, timestamp) =>
   ctx.emit('chghost', chghostNick, newHost);
 };
 
+export const handleSETNAME: CommandHandler = (ctx, prefix, params, timestamp) => {
+  const setnameNick = ctx.extractNick(prefix);
+  const newRealname = ctx.decodeIfBase64Like(params[0] || '');
+  ctx.addMessage({
+    type: 'raw',
+    text: t('*** {nick} changed realname to: {realname}', { nick: setnameNick, realname: newRealname }),
+    timestamp,
+    isRaw: true,
+    rawCategory: 'user',
+  });
+  ctx.emit('setname', setnameNick, newRealname);
+};
+
 export const handleTAGMSG: CommandHandler = (ctx, prefix, params, timestamp, meta) => {
   const tagTarget = params[0] || '';
   const tagFrom = ctx.extractNick(prefix);
@@ -118,5 +131,6 @@ export const userStateCommandHandlers: CommandHandlerRegistry = new Map([
   ['ACCOUNT', handleACCOUNT],
   ['AWAY', handleAWAY],
   ['CHGHOST', handleCHGHOST],
+  ['SETNAME', handleSETNAME],
   ['TAGMSG', handleTAGMSG],
 ]);

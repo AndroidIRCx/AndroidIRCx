@@ -21,6 +21,7 @@ export interface CAPHandlerContext {
 
   emit: (event: string, ...args: any[]) => void;
   logRaw: (message: string) => void;
+  sendRaw: (command: string) => void;
   requestCapabilities: () => void;
   endCAPNegotiation: () => void;
   startSASL: () => void;
@@ -123,14 +124,27 @@ export class CAPHandlers {
       case 'NEW': {
         const newCapsString = actualParams.slice(1).join(' ').replace(/^:/, '');
         const newCaps = newCapsString.split(/\s+/).filter(c => c);
+        const newCapNames: string[] = [];
         newCaps.forEach(cap => {
           const [capName, capValue] = cap.split('=');
           if (capName) {
             this.ctx.capAvailable.add(capName);
+            newCapNames.push(capName);
             this.ctx.logRaw(`IRCService: CAP NEW: ${capName}${capValue ? '='+capValue : ''}`);
           }
         });
         this.ctx.emit('capabilities', Array.from(this.ctx.capAvailable));
+
+        // SASL re-auth: if server newly advertises sasl and we have credentials, re-authenticate
+        if (newCapNames.includes('sasl') && !this.ctx.getSaslAuthenticating()) {
+          const hasSaslConfig = !!this.ctx.config?.sasl?.account && !!this.ctx.config?.sasl?.password;
+          const hasCert = !!(this.ctx.config?.clientCert && this.ctx.config?.clientKey);
+          if (hasSaslConfig || hasCert) {
+            this.ctx.logRaw('IRCService: SASL re-auth: server advertised sasl via CAP NEW, re-authenticating');
+            this.ctx.capRequested.add('sasl');
+            this.ctx.sendRaw('CAP REQ :sasl');
+          }
+        }
         break;
       }
 

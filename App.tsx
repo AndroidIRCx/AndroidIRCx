@@ -327,9 +327,10 @@ function AppContent() {
     
     // Show minimal result if there were errors
     if (!result.success) {
+      const errorsText = result.errors.join('\n');
       Alert.alert(
         t('Kill Switch Error'),
-        t('Some errors occurred:\n{errors}').replace('{errors}', result.errors.join('\n'))
+        `${t('Some errors occurred:')}\n${errorsText}`
       );
     }
   }, [attemptBiometricUnlock, t]);

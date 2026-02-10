@@ -98,6 +98,34 @@ export const handleKICK: SendMessageHandler = (ctx, args, target) => {
   }
 };
 
+export const handleREGISTER: SendMessageHandler = (ctx, args) => {
+  if (!ctx.hasCapability('draft/account-registration')) {
+    ctx.addMessage({
+      type: 'error',
+      text: t('Account registration is not supported by this server'),
+      timestamp: Date.now(),
+    });
+    return;
+  }
+  // Syntax: /register <email|*> <password>
+  //     or: /register <account> <email|*> <password>
+  if (args.length < 2) {
+    ctx.addMessage({
+      type: 'error',
+      text: t('Usage: /register <email|*> <password> OR /register <account> <email|*> <password>'),
+      timestamp: Date.now(),
+    });
+    return;
+  }
+  if (args.length === 2) {
+    // /register <email|*> <password>
+    ctx.sendRaw(`REGISTER * ${args[0]} :${args[1]}`);
+  } else {
+    // /register <account> <email|*> <password>
+    ctx.sendRaw(`REGISTER ${args[0]} ${args[1]} :${args[2]}`);
+  }
+};
+
 export const basicIRCCommands: SendMessageHandlerRegistry = new Map([
   ['JOIN', handleJOIN],
   ['PART', handlePART],
@@ -108,4 +136,5 @@ export const basicIRCCommands: SendMessageHandlerRegistry = new Map([
   ['MODE', handleMODE],
   ['TOPIC', handleTOPIC],
   ['KICK', handleKICK],
+  ['REGISTER', handleREGISTER],
 ]);

@@ -23,6 +23,7 @@ import { banService } from '../services/BanService';
 import { connectionManager } from '../services/ConnectionManager';
 import { settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
+import { useUIStore } from '../stores/uiStore';
 
 interface BlacklistScreenProps {
   visible: boolean;
@@ -75,11 +76,28 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
   const [templateNetwork, setTemplateNetwork] = useState<string>('global');
   const banMaskTypes = banService.getBanMaskTypes();
 
+  // Check for blacklistTarget from NickContextMenu
   useEffect(() => {
     if (visible) {
       loadBlacklistEntries();
       loadAvailableNetworks();
       loadTemplates();
+      
+      // Check if we have a target nick from NickContextMenu
+      const blacklistTarget = useUIStore.getState().blacklistTarget;
+      if (blacklistTarget?.nick) {
+        // Pre-fill the form with the target nick
+        setEditingEntry(null);
+        setNewMask(blacklistTarget.nick);
+        setNewReason('');
+        setNewDuration('0');
+        setNewAction('ban');
+        setNewCommand('');
+        setShowAddModal(true);
+        
+        // Clear the target so it doesn't persist
+        useUIStore.getState().setBlacklistTarget(null);
+      }
     }
   }, [visible, network]);
 

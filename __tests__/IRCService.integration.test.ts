@@ -43,7 +43,7 @@ describe('IRCService connectivity & basic flow', () => {
     tls: false,
     nick: 'tester',
     realname: 'Tester',
-    ident: 'tester',
+    username: 'tester',
     networkId: 'TestNet',
     servers: [{ id: 'srv', hostname: 'irc.test', port: 6667, ssl: false }],
   };

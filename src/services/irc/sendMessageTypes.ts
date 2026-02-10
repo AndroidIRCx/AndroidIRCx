@@ -42,6 +42,9 @@ export interface SendMessageContext {
 
   // Server command parsing
   parseServerCommand: (args: string[]) => any;
+
+  // Capability check
+  hasCapability: (cap: string) => boolean;
 }
 
 /**

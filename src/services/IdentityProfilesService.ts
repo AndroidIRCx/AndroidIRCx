@@ -18,6 +18,7 @@ export interface IdentityProfile {
   ident?: string;
   saslAccount?: string;
   saslPassword?: string;
+  saslMechanism?: 'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS';
   nickservPassword?: string;
   operUser?: string;
   operPassword?: string;

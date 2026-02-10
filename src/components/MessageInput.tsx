@@ -36,7 +36,7 @@ import { useServiceCommands } from '../hooks/useServiceCommands';
 type MessageInputSuggestion = {
   text: string;
   description?: string;
-  source: 'command' | 'alias' | 'history' | 'nick' | 'service';
+  source: 'command' | 'alias' | 'history' | 'nick' | 'channel' | 'service';
 };
 
 type PendingNickReplacement = {
@@ -213,11 +213,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       const normalizedStyle = normalizeNickStyle(nickCompleteStyleId);
       if (/<nick>/i.test(normalizedStyle)) {
         const styled = normalizedStyle.replace(/<nick>/gi, nick);
-        return { display: stripIRCFormatting(styled), styled };
+        // Show plain nick while typing; apply styled version only on submit.
+        return { display: nick, styled };
       }
       if (normalizedStyle.includes('\x08')) {
         const styled = replaceBackspacePlaceholder(normalizedStyle, nick);
-        return { display: stripIRCFormatting(styled), styled };
+        // Show plain nick while typing; apply styled version only on submit.
+        return { display: nick, styled };
       }
     }
 
@@ -225,7 +227,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const sep2 = nickCompleteSeparator2 || '';
     const combined = `${sep1}${nick}${sep2}`;
     const base = combined.trim().length > 0 ? combined : nick;
-    return { display: base, styled: base };
+    // Show plain nick while typing; apply separators/styling only on submit.
+    return { display: nick, styled: base };
   }, [
     nickCompleteEnabled,
     nickCompleteSeparator1,
@@ -620,6 +623,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
     // Nick suggestions (channel users + recent query tabs)
     let nickMatches: MessageInputSuggestion[] = [];
+    // Channel suggestions (open channel tabs for this network)
+    let channelMatches: MessageInputSuggestion[] = [];
     const lastSpaceIndex = text.lastIndexOf(' ');
     const rawToken = lastSpaceIndex === -1 ? text : text.slice(lastSpaceIndex + 1);
     const token = rawToken.startsWith('@') ? rawToken.slice(1) : rawToken;
@@ -656,6 +661,30 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         .map(nick => ({ text: nick, source: 'nick' as const }));
     }
 
+    // Channel completion: for tokens like "#And" (use open channel tabs on current network)
+    // This enables typing e.g. "/csop #And" and selecting "#AndroidIRCx".
+    if (!isCommandToken && rawToken.length >= 2 && (rawToken.startsWith('#') || rawToken.startsWith('&'))) {
+      const networkId = network || connectionManager.getActiveNetworkId();
+      if (networkId) {
+        const tabs = useTabStore.getState().getTabsByNetwork(networkId);
+        const chanSet = new Map<string, string>();
+        tabs
+          .filter(t => t.type === 'channel')
+          .map(t => t.name)
+          .filter(Boolean)
+          .forEach(name => {
+            const lower = name.toLowerCase();
+            if (!chanSet.has(lower)) chanSet.set(lower, name);
+          });
+        const rawLower = rawToken.toLowerCase();
+        channelMatches = Array.from(chanSet.values())
+          .filter(ch => ch.toLowerCase().startsWith(rawLower))
+          .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+          .slice(0, 6)
+          .map(ch => ({ text: ch, source: 'channel' as const }));
+      }
+    }
+
     // Service command suggestions (from detected IRC services)
     let serviceMatches: MessageInputSuggestion[] = [];
     if (text.startsWith('/') && serviceCommands.isDetected) {
@@ -673,9 +702,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       }
     }
 
-    // Merge: commands first, then aliases, then service commands, then history, then nick matches - dedupe by text
+    // Merge: commands first, then aliases, then service commands, then history, then channel, then nick - dedupe by text
     const merged: MessageInputSuggestion[] = [];
-    [...commandMatches, ...aliasMatches, ...serviceMatches, ...historyMatches, ...nickMatches].forEach(item => {
+    [...commandMatches, ...aliasMatches, ...serviceMatches, ...historyMatches, ...channelMatches, ...nickMatches].forEach(item => {
       if (!merged.some(m => m.text.toLowerCase() === item.text.toLowerCase())) {
         merged.push({ text: item.text, description: (item as any).description, source: item.source });
       }
@@ -829,6 +858,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                       }];
                     });
                   }
+                } else if (suggestion.source === 'channel') {
+                  const lastSpaceIndex = message.lastIndexOf(' ');
+                  const before = lastSpaceIndex === -1 ? '' : message.slice(0, lastSpaceIndex + 1);
+                  // Replace only the current token (e.g. "#And") and keep the rest
+                  nextMessage = `${before}${suggestion.text} `;
                 } else {
                   nextMessage = suggestion.text + (suggestion.text.endsWith(' ') ? '' : ' ');
                 }

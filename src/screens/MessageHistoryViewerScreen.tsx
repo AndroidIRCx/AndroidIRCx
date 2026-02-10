@@ -20,6 +20,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import { IRCMessage } from '../services/IRCService';
 import { messageHistoryService } from '../services/MessageHistoryService';
+import { formatIRCTextAsComponent } from '../utils/IRCFormatter';
 
 interface MessageHistoryViewerScreenProps {
   visible: boolean;
@@ -195,7 +196,7 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
         <Text style={styles.messageMeta}>
           {new Date(item.timestamp).toLocaleString()} {item.from ? `· ${item.from}` : ''}
         </Text>
-        <Text style={styles.messageText}>{item.text}</Text>
+        {formatIRCTextAsComponent(item.text, styles.messageText)}
       </View>
       {selectedEntry && (
         <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteMessage(selectedEntry, item)}>

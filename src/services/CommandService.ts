@@ -171,6 +171,8 @@ export class CommandService {
       { alias: 'csdevoice', command: '/msg ChanServ DEVOICE {channel} {nick}', description: 'ChanServ devoice user' },
       { alias: 'csregister', command: '/msg ChanServ REGISTER {channel} {password}', description: 'ChanServ register channel' },
       { alias: 'cspass', command: '/msg ChanServ SET {channel} PASSWORD {password}', description: 'ChanServ set password' },
+      // IRCv3 account registration
+      { alias: 'register', command: '/register {email} {password}', description: 'IRCv3 account registration' },
     ];
 
     defaultAliases.forEach(alias => {

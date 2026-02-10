@@ -11,7 +11,8 @@ Do not open public issues for security reports.
 
 We support security fixes for the latest minor release only.
 
-| Version | Supported |
-|---------|-----------|
-| 1.6.x   | Yes       |
-| < 1.5   | No        |
+| Version         | Supported |
+|-----------------|-----------|
+| 1.7.x           | Yes       |
+| 1.6.20 - 1.6.21 | Yes       |
+| < 1.5           | No        |

@@ -23,6 +23,7 @@ import { CertificateSelectorModal } from '../components/modals/CertificateSelect
 import { CertificateFingerprintModal } from '../components/modals/CertificateFingerprintModal';
 import { certificateManager } from '../services/CertificateManagerService';
 import type { CertificateInfo } from '../types/certificate';
+import { Picker } from '@react-native-picker/picker';
 
 interface NetworkSettingsScreenProps {
   networkId?: string;
@@ -46,6 +47,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const [autoJoinChannels, setAutoJoinChannels] = useState('');
   const [saslAccount, setSaslAccount] = useState('');
   const [saslPassword, setSaslPassword] = useState('');
+  const [saslMechanism, setSaslMechanism] = useState<'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS'>('PLAIN');
   const [clientCert, setClientCert] = useState('');
   const [clientKey, setClientKey] = useState('');
   const [proxyEnabled, setProxyEnabled] = useState(false);
@@ -101,6 +103,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
         setAutoJoinChannels(network.autoJoinChannels?.join(', ') || '');
         setSaslAccount(network.sasl?.account || '');
         setSaslPassword(network.sasl?.password || '');
+        setSaslMechanism(network.sasl?.mechanism || 'PLAIN');
         setClientCert(network.clientCert || '');
         setClientKey(network.clientKey || '');
         setProxyEnabled(network.proxy ? network.proxy.enabled !== false : false);
@@ -186,7 +189,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
         password: proxyPassword.trim() || undefined,
       } : undefined,
       sasl: saslAccount && saslPassword
-        ? { account: saslAccount.trim(), password: saslPassword.trim() }
+        ? { account: saslAccount.trim(), password: saslPassword.trim(), mechanism: saslMechanism }
         : undefined,
       clientCert: clientCert.trim() || undefined,
       clientKey: clientKey.trim() || undefined,
@@ -315,7 +318,23 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('SASL PLAIN (Optional)')}</Text>
+          <Text style={styles.sectionTitle}>{t('SASL Authentication (Optional)')}</Text>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>{t('SASL Mechanism')}</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={saslMechanism}
+                onValueChange={(value) => setSaslMechanism(value)}
+                style={styles.picker}
+              >
+                <Picker.Item label={t('PLAIN - Simple username/password')} value="PLAIN" />
+                <Picker.Item label={t('SCRAM-SHA-256 - Secure challenge-response')} value="SCRAM-SHA-256" />
+                <Picker.Item label={t('SCRAM-SHA-256-PLUS - Channel binding (coming soon)')} value="SCRAM-SHA-256-PLUS" />
+              </Picker>
+            </View>
+          </View>
+
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{t('SASL Account')}</Text>
             <TextInput
@@ -340,6 +359,17 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               autoCapitalize="none"
             />
           </View>
+          
+          {saslMechanism === 'SCRAM-SHA-256' && (
+            <Text style={styles.helpText}>
+              {t('SCRAM-SHA-256 provides better security by using challenge-response authentication. Your password is never sent over the network.')}
+            </Text>
+          )}
+          {saslMechanism === 'SCRAM-SHA-256-PLUS' && (
+            <Text style={styles.helpText}>
+              {t('SCRAM-SHA-256-PLUS with channel binding will be available in a future update. For now, SCRAM-SHA-256 is recommended.')}
+            </Text>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -590,6 +620,21 @@ const styles = StyleSheet.create({
   },
   inputDisabled: {
     opacity: 0.5,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 4,
+    backgroundColor: '#FAFAFA',
+  },
+  picker: {
+    height: 50,
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#757575',
+    fontStyle: 'italic',
+    marginTop: 8,
   },
   multilineInput: {
     height: 120,

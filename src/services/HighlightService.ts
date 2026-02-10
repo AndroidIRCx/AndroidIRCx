@@ -59,12 +59,18 @@ class HighlightService {
 
     for (const word of this.highlightWords) {
       try {
-        const regex = new RegExp(`\b${word}\b`, 'i');
+        // Escape special regex characters in the word
+        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escaped}\\b`, 'i');
         if (regex.test(text)) {
           return true;
         }
       } catch (e) {
         console.error(`Invalid regex for highlight word "${word}":`, e);
+        // Fallback to simple includes
+        if (text.toLowerCase().includes(word.toLowerCase())) {
+          return true;
+        }
       }
     }
 

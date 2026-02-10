@@ -21,6 +21,7 @@ import { identityProfilesService, IdentityProfile } from '../services/IdentityPr
 import { NetworkSettingsScreen } from './NetworkSettingsScreen';
 import { ServerSettingsScreen } from './ServerSettingsScreen';
 import { useT } from '../i18n/transifex';
+import { Picker } from '@react-native-picker/picker';
 
 interface ConnectionProfilesScreenProps {
   visible: boolean;
@@ -52,6 +53,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
   const [editProfileIdent, setEditProfileIdent] = useState('');
   const [editProfileSaslAccount, setEditProfileSaslAccount] = useState('');
   const [editProfileSaslPassword, setEditProfileSaslPassword] = useState('');
+  const [editProfileSaslMechanism, setEditProfileSaslMechanism] = useState<'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS'>('PLAIN');
   const [editProfileNickservPassword, setEditProfileNickservPassword] = useState('');
   const [editProfileOperUser, setEditProfileOperUser] = useState('');
   const [editProfileOperPassword, setEditProfileOperPassword] = useState('');
@@ -236,6 +238,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
     setEditProfileIdent(profile?.ident || '');
     setEditProfileSaslAccount(profile?.saslAccount || '');
     setEditProfileSaslPassword(profile?.saslPassword || '');
+    setEditProfileSaslMechanism(profile?.saslMechanism || 'PLAIN');
     setEditProfileNickservPassword(profile?.nickservPassword || '');
     setEditProfileOperUser(profile?.operUser || '');
     setEditProfileOperPassword(profile?.operPassword || '');
@@ -579,6 +582,21 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                 />
 
                 <Text style={[styles.inputLabel, { color: colors.text }]}>
+                  {t('SASL Mechanism', { _tags: tags })}
+                </Text>
+                <View style={[styles.pickerContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+                  <Picker
+                    selectedValue={editProfileSaslMechanism}
+                    onValueChange={(value) => setEditProfileSaslMechanism(value)}
+                    style={{ color: colors.text }}
+                  >
+                    <Picker.Item label={t('PLAIN', { _tags: tags })} value="PLAIN" />
+                    <Picker.Item label={t('SCRAM-SHA-256', { _tags: tags })} value="SCRAM-SHA-256" />
+                    <Picker.Item label={t('SCRAM-SHA-256-PLUS (coming soon)', { _tags: tags })} value="SCRAM-SHA-256-PLUS" />
+                  </Picker>
+                </View>
+
+                <Text style={[styles.inputLabel, { color: colors.text }]}>
                   {t('SASL Account', { _tags: tags })}
                 </Text>
                 <TextInput
@@ -682,6 +700,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                         ident: editProfileIdent.trim() || undefined,
                         saslAccount: editProfileSaslAccount.trim() || undefined,
                         saslPassword: editProfileSaslPassword || undefined,
+                        saslMechanism: editProfileSaslMechanism,
                         nickservPassword: editProfileNickservPassword || undefined,
                         operUser: editProfileOperUser.trim() || undefined,
                         operPassword: editProfileOperPassword || undefined,
@@ -1036,6 +1055,12 @@ const createStyles = (colors: any) => StyleSheet.create({
     marginBottom: 8,
     minHeight: 100,
     textAlignVertical: 'top',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 8,
+    overflow: 'hidden',
   },
   modalButtons: {
     flexDirection: 'row',
