@@ -90,7 +90,9 @@ export const UserList: React.FC<UserListProps> = ({
   const [showBlacklistModal, setShowBlacklistModal] = useState(false);
   const [showBlacklistActionPicker, setShowBlacklistActionPicker] = useState(false);
   const [blacklistAction, setBlacklistAction] = useState<BlacklistActionType>('ban');
-  const [blacklistMaskChoice, setBlacklistMaskChoice] = useState<string>('nick');
+  // Only the setter is used (we don't read the current choice in this component).
+  const blacklistMaskChoiceState = useState<string>('nick');
+  const setBlacklistMaskChoice = blacklistMaskChoiceState[1];
   const [showBlacklistMaskPicker, setShowBlacklistMaskPicker] = useState(false);
   const [selectedBanMaskTypeId, setSelectedBanMaskTypeId] = useState<number | null>(null);
   const [blacklistReason, setBlacklistReason] = useState('');
@@ -164,18 +166,6 @@ export const UserList: React.FC<UserListProps> = ({
     { id: 'shun', label: t('SHUN') },
     { id: 'custom', label: t('Custom Command') },
   ]), [t]);
-
-  const getBlacklistMaskOptions = useCallback((user: ChannelUser) => {
-    const options: Array<{ id: string; label: string; mask: string }> = [
-      { id: 'nick', label: t('Nick only'), mask: user.nick },
-      { id: 'nick_user_any', label: t('Nick!user@*'), mask: `${user.nick}!*@*` },
-    ];
-    if (user.host) {
-      options.push({ id: 'host', label: t('*!*@host'), mask: `*!*@${user.host}` });
-      options.push({ id: 'nick_host', label: t('Nick!*@host'), mask: `${user.nick}!*@${user.host}` });
-    }
-    return options;
-  }, [t]);
 
   const getBlacklistBanMaskOptions = useCallback((user: ChannelUser) => {
     // Use ident from user object (from userhost-in-names) or fallback to '*'

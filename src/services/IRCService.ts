@@ -21,7 +21,7 @@ import { IRCSendMessageHandlers } from './irc/IRCSendMessageHandlers';
 import { parseCTCP, encodeCTCP, handleCTCPRequest as handleCTCPRequestFn, CTCPContext } from './irc/protocol/CTCPHandlers';
 import { BatchLabelManager } from './irc/protocol/BatchLabelHandlers';
 import { MultilineHandler } from './irc/protocol/MultilineHandler';
-import { stsService, STSPolicy } from './STSService';
+import { stsService } from './STSService';
 
 // Re-export ChannelTab from types for backward compatibility
 export { ChannelTab } from '../types';
