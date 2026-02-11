@@ -2976,17 +2976,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0":
-  version "25.2.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.2.0.tgz#015b7d228470c1dcbfc17fe9c63039d216b4d782"
-  integrity sha512-DZ8VwRFUNzuqJ5khrvwMXHmvPe+zGayJhr2CDNiKB1WBE1ST8Djl00D0IC4vvNmHMdj6DlbYRIaFE7WHjlDl5w==
-  dependencies:
-    undici-types "~7.16.0"
-
-"@types/node@25.2.2":
-  version "25.2.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.2.2.tgz#0ddfe326c326afcb3422d32bfe5eb2938e1cb5db"
-  integrity sha512-BkmoP5/FhRYek5izySdkOneRyXYN35I860MFAGupTdebyE66uZaR+bXLHq8k4DirE5DwQi3NuhvRU1jqTVwUrQ==
+"@types/node@*", "@types/node@25.2.3", "@types/node@>=12.12.47", "@types/node@>=13.7.0":
+  version "25.2.3"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.2.3.tgz#9c18245be768bdb4ce631566c7da303a5c99a7f8"
+  integrity sha512-m0jEgYlYz+mDJZ2+F4v8D1AyQb+QzsNqRuI7xg1VQX/KlKS0qT9r1Mo16yo5F/MtifXFgaofIFsdFMox2SxIbQ==
   dependencies:
     undici-types "~7.16.0"
 
@@ -2997,17 +2990,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*":
-  version "19.2.10"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.10.tgz#f3ea799e6b4cebad6dfd231c238fc9de7652e2d2"
-  integrity sha512-WPigyYuGhgZ/cTPRXB2EwUw+XvsRA3GqHlsP4qteqrnnjDrApbS7MxcGr/hke5iUoeB7E/gQtrs9I37zAJ0Vjw==
-  dependencies:
-    csstype "^3.2.2"
-
-"@types/react@^19.2.13":
-  version "19.2.13"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.13.tgz#7cea30d7f60a01d97e4ece039c04e9056682218a"
-  integrity sha512-KkiJeU6VbYbUOp5ITMIc7kBfqlYkKA5KhEHVrGMmUUMt7NeaZg65ojdPk+FtNrBAOXNVM5QM72jnADjM+XVRAQ==
+"@types/react@*", "@types/react@^19.2.14":
+  version "19.2.14"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.14.tgz#39604929b5e3957e3a6fa0001dafb17c7af70bad"
+  integrity sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==
   dependencies:
     csstype "^3.2.2"
 
@@ -7795,10 +7781,10 @@ react-native-google-mobile-ads@^16.0.2:
     "@iabtcf/core" "^1.5.6"
     use-deep-compare-effect "^1.8.1"
 
-react-native-iap@^14.7.8:
-  version "14.7.8"
-  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-14.7.8.tgz#9ddc77b22603a72f20ac7bfa036c9fa0cb453941"
-  integrity sha512-acp0bGzQ7CFTlzCx7/RPKEzzvq4xLiU+ettVBVfT2wlLX6z2xCDpEMzDevXIuLQY6ae2rm+2+imrDX5mFGHAYw==
+react-native-iap@^14.7.10:
+  version "14.7.10"
+  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-14.7.10.tgz#6a796162a1dcf375476a17b7f4e9fbfa368cbd35"
+  integrity sha512-cbHYZI6mAzvUGsrhP6h0B/1EP+Zp68WxWYSvZz0JlMPLzDncjGPt/AP4o64RQYGvJVfz3e57O3NffKH8ma+g0g==
 
 react-native-is-edge-to-edge@1.2.1, react-native-is-edge-to-edge@^1.2.1:
   version "1.2.1"
@@ -7841,10 +7827,10 @@ react-native-nfc-manager@^3.17.2:
   resolved "https://registry.yarnpkg.com/react-native-nfc-manager/-/react-native-nfc-manager-3.17.2.tgz#81924946b7fe381bbf85bfb16af90cb05cac4944"
   integrity sha512-0NryP/Iw2hzw4MVH5KCngoRerNUrnRok6VfLrlFcFZRKyTQ7KTgpsdDxCB6cR33qYNyEDrWGBayfAI+ym5gt8Q==
 
-react-native-nitro-modules@^0.33.7:
-  version "0.33.7"
-  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.33.7.tgz#eb8104cc19e4242ab325666af24ea6ffc8b1539e"
-  integrity sha512-WepMobWe4j1Ae5GQ5RxYGBdBpJBwzP6zaOxJ7r6nhbY5iyl01DL3Gsh4gk8edzNFRuAh1rvXDAHIipq8SahxeQ==
+react-native-nitro-modules@^0.33.8:
+  version "0.33.8"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.33.8.tgz#846ba2785170bf0beaa0681216f11e8531ea4483"
+  integrity sha512-1BffckbrPpxg6Een1Dj5EvijC9ctxEiEHvCBRiJWEnKKa5c24/JDgjfJFm1GyuaGtH5jlGVUbPzCcbIwiwEtuw==
 
 react-native-qrcode-svg@^6.3.21:
   version "6.3.21"
@@ -7913,10 +7899,10 @@ react-native-vision-camera@^4.7.3:
   resolved "https://registry.yarnpkg.com/react-native-vision-camera/-/react-native-vision-camera-4.7.3.tgz#ed03cedabcaec54774f5aa40e69afa30069924d4"
   integrity sha512-g1/neOyjSqn1kaAa2FxI/qp5KzNvPcF0bnQw6NntfbxH6tm0+8WFZszlgb5OV+iYlB6lFUztCbDtyz5IpL47OA==
 
-react-native-worklets@^0.7.2:
-  version "0.7.2"
-  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.7.2.tgz#acfbfe4f8c7f3b2889e7f394e4fbd7e78e167134"
-  integrity sha512-DuLu1kMV/Uyl9pQHp3hehAlThoLw7Yk2FwRTpzASOmI+cd4845FWn3m2bk9MnjUw8FBRIyhwLqYm2AJaXDXsog==
+react-native-worklets@^0.7.3:
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.7.3.tgz#e561c006b576019feb21888c4acf60261b55ca24"
+  integrity sha512-m/CIUCHvLQulboBn0BtgpsesXjOTeubU7t+V0lCPpBj0t2ExigwqDHoKj3ck7OeErnjgkD27wdAtQCubYATe3g==
   dependencies:
     "@babel/plugin-transform-arrow-functions" "7.27.1"
     "@babel/plugin-transform-class-properties" "7.27.1"
