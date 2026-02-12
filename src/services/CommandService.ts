@@ -279,7 +279,8 @@ export class CommandService {
       command.parameters.forEach((param, index) => {
         const value = args[index] || '';
         const placeholder = `{${param}}`;
-        commandString = commandString.replace(new RegExp(placeholder, 'g'), value);
+        // Use split/join to avoid invalid-regex crashes from custom placeholder text.
+        commandString = commandString.split(placeholder).join(value);
       });
     }
 
