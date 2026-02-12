@@ -215,7 +215,7 @@ class ConnectionManager {
             );
           }
         } catch (error) {
-          console.error(`ConnectionManager: Failed to run identity on-connect commands for ${networkConfig.identityProfileId}:`, error);
+          console.error(`ConnectionManager: Failed to run identity on-connect commands for network ${finalId}:`, error);
         }
       });
       if (motdCommandsCleanup && typeof motdCommandsCleanup === 'function') {
