@@ -3,3 +3,4 @@ v1.7.2
 - Fixed crash caused by invalid dynamic regex patterns in runtime filters/placeholders
 - Improved Android ZNC subscription purchase flow to require a valid offer token
 - Stability improvements for billing and message processing
+- Fixed /me (/action) command

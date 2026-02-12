@@ -738,7 +738,7 @@ const MessageItem = React.memo<MessageItemProps>(({
                       </Text>
                     )}
                     {renderTextWithNickActions(
-                      message.text,
+                      actionText,
                       StyleSheet.flatten([styles.messageTextInline, { fontStyle: 'italic', color: actionMessageColor }]),
                       `action-${message.id}`,
                     )}
