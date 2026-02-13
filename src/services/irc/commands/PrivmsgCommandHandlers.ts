@@ -271,10 +271,15 @@ export const handlePRIVMSG: CommandHandler = (ctx, prefix, params, timestamp, me
     return;
   }
 
-  // Route CTCP requests
+  // Route CTCP requests (but allow ACTION to be displayed as a message)
   if (ctcp.isCTCP && ctcp.command) {
-    ctx.handleCTCPRequest(fromNick, target, ctcp.command, ctcp.args);
-    return;
+    if (ctcp.command === 'ACTION') {
+      // ACTION is a CTCP message that should be displayed as a regular message
+      // Continue processing to add it to the chat
+    } else {
+      ctx.handleCTCPRequest(fromNick, target, ctcp.command, ctcp.args);
+      return;
+    }
   }
 
   // Determine channel identifier for tab routing
