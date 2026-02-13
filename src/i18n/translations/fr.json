@@ -75,7 +75,7 @@
     "string": "l'exportation a échoué "
   },
   "Failed to export history": {
-    "string": ""
+    "string": "Échec de l'exportation de l'historique"
   },
   "Clear Message History": {
     "string": ""
@@ -5511,7 +5511,7 @@
     "string": ""
   },
   "You can always change these channels later in network settings.": {
-    "string": ""
+    "string": "Vous pouvez toujours modifier ces chaînes ultérieurement dans les paramètres réseau."
   },
   "Search by mask or reason...": {
     "string": ""
@@ -5631,10 +5631,10 @@
     "string": ""
   },
   "Support the project": {
-    "string": ""
+    "string": "Soutenez le projet"
   },
   "Manage Your Privacy": {
-    "string": ""
+    "string": "Gérez votre confidentialité"
   },
   "Review Privacy Choices": {
     "string": ""

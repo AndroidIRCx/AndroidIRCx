@@ -945,7 +945,7 @@
     "string": "Reproducción solicitada desde ZNC"
   },
   "Performance": {
-    "string": "Operación"
+    "string": "Rendimiento"
   },
   "Message List Virtualization": {
     "string": "Virtualización de lista de mensajes"
@@ -7086,7 +7086,7 @@
     "string": "Máscara de invitación (e.j., *!*@trusted.host)"
   },
   "Refresh Invite List": {
-    "string": "Actualizar la Lista de Invitaciones"
+    "string": "Actualizar la Lista de Invitados"
   },
   "No invite exceptions": {
     "string": "Sin invitados"
@@ -9240,7 +9240,7 @@
     "string": "SCRAM-SHA-256"
   },
   "SCRAM-SHA-256-PLUS (coming soon)": {
-    "string": "SCRAM-SHA-256-PLUS (próximamente)"
+    "string": "SCRAM-SHA-256-PLUS"
   },
   "help.channel.title": {
     "string": "help.channel.title"
@@ -10659,7 +10659,7 @@
     "string": "SCRAM-SHA-256 - Desafío-respuesta seguro"
   },
   "SCRAM-SHA-256-PLUS - Channel binding (coming soon)": {
-    "string": "SCRAM-SHA-256-PLUS - Enlace de canal (próximamente)"
+    "string": "SCRAM-SHA-256-PLUS - Enlace de canal"
   },
   "SCRAM-SHA-256 provides better security by using challenge-response authentication. Your password is never sent over the network.": {
     "string": "SCRAM-SHA-256 proporciona una mayor seguridad mediante el uso de autenticación desafío-respuesta. Su contraseña nunca se envía a través de la red."
@@ -10818,7 +10818,7 @@
     "string": "¿Qué es un Canal?"
   },
   "IRC channels are group chat rooms where multiple users can communicate.\\nChannel names start with # (e.g., #DBase).": {
-    "string": "Los canales de IRC son salas de chat grupales donde varios usuarios pueden comunicarse.\\nLos nombres empiezan con # (e.j., #Ayuda)."
+    "string": "Los canales de IRC son salas de chat grupales donde varios usuarios pueden comunicarse. Los nombres empiezan con # (e.j., #Ayuda)."
   },
   "Channel Types": {
     "string": "Tipos de Canal"
@@ -10839,7 +10839,7 @@
     "string": "Creando un Canal"
   },
   "Join/Create Channel": {
-    "string": "Unirse/Crear Canal"
+    "string": "Entrar al Canal"
   },
   "If the channel doesn't exist, you'll create it and become the operator.": {
     "string": "Si el canal no existe, se creará y te convertirás en el operador."
@@ -10911,7 +10911,7 @@
     "string": "Límite de usuarios (+l)"
   },
   "Set maximum users:": {
-    "string": "Establecer límite de usuarios máx.:"
+    "string": "Establecer límite de usuarios máximo:"
   },
   "Channel Key (+k)": {
     "string": "Clave del canal (+k)"
@@ -10923,7 +10923,7 @@
     "string": "Moderación"
   },
   "Remove user from channel:": {
-    "string": "Eliminar usuario del canal:"
+    "string": "Patea al usuario del canal:"
   },
   "Prevent user from rejoining:": {
     "string": "Evitar que el usuario haga rejoin:"
@@ -10983,7 +10983,7 @@
     "string": "Documentos de bans con motivos"
   },
   "Growth": {
-    "string": "Growth"
+    "string": "Crecimiento"
   },
   "Set clear, welcoming topic": {
     "string": "Establezca un topic de bienvenida"
@@ -11463,13 +11463,13 @@
     "string": "¿Necesita Más Ayuda?"
   },
   "Join #AndroidIRCX on irc.dbase.in.rs\\nVisit our website: androidircx.com\\nEmail: support@androidircx.com": {
-    "string": "Únase a #AndroidIRCX en irc.dbase.in.rs\\nVisite nuestro sitio web: androidircx.com\\nCorreo electrónico: support@androidircx.com"
+    "string": "Únase a #AndroidIRCX en irc.dbase.in.rs\nVisite nuestro sitio web: androidircx.com\nCorreo: support@androidircx.com"
   },
   "What is E2EE?": {
     "string": "¿Qué es E2EE?"
   },
   "End-to-End Encryption ensures that only you and the recipient can read messages.\\nEven the IRC server cannot decrypt them.": {
-    "string": "El cifrado de extremo-a-extremo garantiza que solo usted y el destinatario puedan leer los mensajes.\\nIncluso el servidor IRC no puede descifrarlos."
+    "string": "El cifrado de extremo-a-extremo garantiza que solo usted y el destinatario puedan leer los mensajes.\nIncluso el servidor IRC no puede descifrarlos."
   },
   "DM (Direct Message) Encryption": {
     "string": "Cifrado DM (Mensaje directo) "
@@ -11772,486 +11772,486 @@
     "string": "Habilite la función multimedia en Configuración"
   },
   "Exchange encryption keys first": {
-    "string": ""
+    "string": "Intercambie claves de cifrado primero"
   },
   "Check internet connection": {
-    "string": ""
+    "string": "Compruebe la conexión a Internet"
   },
   "Check file size (max 50MB)": {
-    "string": ""
+    "string": "Compruebe el tamaño del archivo (máx 50 MB)"
   },
   "Try reducing quality": {
-    "string": ""
+    "string": "Intente reducir la calidad"
   },
   "Check storage space": {
-    "string": ""
+    "string": "Compruebe el espacio de almacenamiento"
   },
   "Try clearing media cache": {
-    "string": ""
+    "string": "Intente borrar la caché de medios"
   },
   "Media appears as 'Encrypted data'": {
-    "string": ""
+    "string": "Los medios aparecen como 'Datos cifrados'"
   },
   "You don't have the decryption key": {
-    "string": ""
+    "string": "No tiene la clave de descifrado"
   },
   "Request key from sender": {
-    "string": ""
+    "string": "Solicitar clave del remitente"
   },
   "Connection Issues": {
-    "string": ""
+    "string": "Problemas de Conexión"
   },
   "Can't Connect to Server": {
-    "string": ""
+    "string": "No se puede conectar al servidor"
   },
   "Symptoms: Connection timeout, \"Unable to connect\"": {
-    "string": ""
+    "string": "Síntomas: Se acabó el tiempo de conexión, \"No se puede conectar\""
   },
   "Solutions:": {
-    "string": ""
+    "string": "Soluciones:"
   },
   "Verify server address is correct": {
-    "string": ""
+    "string": "Verifique que la dirección del servidor sea correcta"
   },
   "Try different port (6667 for non-SSL, 6697 for SSL)": {
-    "string": ""
+    "string": "Pruebe con un puerto diferente (6667 para normal, 6697 para SSL) "
   },
   "Disable VPN/proxy temporarily": {
-    "string": ""
+    "string": "Deshabilitar VPN/proxy temporalmente"
   },
   "Try connecting via mobile data instead of WiFi": {
-    "string": ""
+    "string": "Intente conectarse a través de datos móviles en lugar de WiFi"
   },
   "Disconnects Frequently": {
-    "string": ""
+    "string": "Se Desconecta con Frecuencia"
   },
   "Symptoms: Random disconnections, \"Connection lost\"": {
-    "string": ""
+    "string": "Síntomas: Desconexiones aleatorias, \"Conexión perdida\""
   },
   "Enable auto-reconnect: Settings → Connection & Network → Auto-Reconnect": {
-    "string": ""
+    "string": "Habilitar Auto-Reconectar: ☰ Configuración → Conexión y Red → Reconexión Automática"
   },
   "Adjust auto-reconnect delays: Settings → Connection & Network → Auto-Reconnect": {
-    "string": ""
+    "string": "Ajuste los delays de Auto-Reconectar: ☰ Configuración → Conexión y Red → Reconexión Automática"
   },
   "Check network stability": {
-    "string": ""
+    "string": "Comprobar la estabilidad de la red"
   },
   "Try different server in same network": {
-    "string": ""
+    "string": "Pruebe con un servidor diferente en la misma red"
   },
   "Review lag settings: Settings → Connection & Network → Connection Quality": {
-    "string": ""
+    "string": "Revise la configuración de lag: ☰ Configuración → Conexión y Red → Calidad de la Conexión"
   },
   "SSL/TLS Errors": {
-    "string": ""
+    "string": "Errores de SSL/TLS"
   },
   "Symptoms: \"SSL handshake failed\", \"Certificate error\"": {
-    "string": ""
+    "string": "Síntomas: \"Error de protocolo de enlace SSL\", \"Error de certificado\""
   },
   "Verify server supports SSL on that port (usually 6697)": {
-    "string": ""
+    "string": "Verifique que el servidor admita SSL en ese puerto (generalmente 6697)"
   },
   "Try disabling \"Verify SSL Certificate\" in network settings": {
-    "string": ""
+    "string": "Intente deshabilitar \"Verificar certificado SSL\" en la Configuración de Red"
   },
   "Update to latest app version": {
-    "string": ""
+    "string": "Actualización a la última versión de la aplicación"
   },
   "Check server certificate validity": {
-    "string": ""
+    "string": "Comprobar la validez del certificado del servidor"
   },
   "Authentication Problems": {
-    "string": ""
+    "string": "Problemas de Autenticación"
   },
   "Symptoms: \"Nickname is already in use\"": {
-    "string": ""
+    "string": "Síntomas: \"El apodo ya está en uso\""
   },
   "Try alternate nickname": {
-    "string": ""
+    "string": "Prueba con un apodo alternativo"
   },
   "Wait a few minutes (old session timeout)": {
-    "string": ""
+    "string": "Espere unos minutos (tiempo de espera de la sesión anterior)"
   },
   "Use /msg NickServ GHOST YourNick password": {
-    "string": ""
+    "string": "Uso /msg NickServ GHOST TuNick TuClave"
   },
   "Change nickname: dropdown (▼) → Choose Network → Edit → Nickname": {
-    "string": ""
+    "string": "Cambiar apodo inicial: ( ▼ ) menú desplegable → Elija Red → Editar → Nick revisá los Perfiles también"
   },
   "NickServ Won't Identify": {
-    "string": ""
+    "string": "NickServ No Identificará"
   },
   "Symptoms: \"Password incorrect\", Not identified": {
-    "string": ""
+    "string": "Síntomas: \"Contraseña incorrecta\" , No identificado"
   },
   "Verify password is correct": {
-    "string": ""
+    "string": "Verifique que la contraseña sea correcta"
   },
   "Wait for NickServ notice before identifying": {
-    "string": ""
+    "string": "Espere el aviso de NickServ antes de identificarse"
   },
   "Manually identify: /msg NickServ IDENTIFY password": {
-    "string": ""
+    "string": "Identificar manualmente: /msg NickServ IDENTIFY TuClave"
   },
   "Check if account is suspended": {
-    "string": ""
+    "string": "Comprobar si la cuenta está suspendida"
   },
   "SASL Authentication Failed": {
-    "string": ""
+    "string": "Error de Autenticación SASL"
   },
   "Symptoms: \"SASL authentication failed\"": {
-    "string": ""
+    "string": "Síntomas: \"Error de autenticación SASL\""
   },
   "Verify SASL username and password": {
-    "string": ""
+    "string": "Verifique el nombre de usuario y la contraseña de SASL"
   },
   "Check if SASL is enabled on server": {
-    "string": ""
+    "string": "Compruebe si SASL está habilitado en el servidor"
   },
   "Try plain authentication method": {
-    "string": ""
+    "string": "Pruebe el método de autenticación simple"
   },
   "Ensure nickname matches SASL account": {
-    "string": ""
+    "string": "Asegúrese de que el apodo coincida con la cuenta SASL"
   },
   "Message Issues": {
-    "string": ""
+    "string": "Problemas con los Mensajes"
   },
   "Messages Not Sending": {
-    "string": ""
+    "string": "Mensajes Que No Se Envían"
   },
   "Symptoms: Message appears locally but others don't see it": {
-    "string": ""
+    "string": "Síntomas: aparece el Mensaje de forma local, pero otros no lo ven"
   },
   "Check if you're still connected": {
-    "string": ""
+    "string": "Comprueba si sigues conectado"
   },
   "Verify you're not banned/quieted": {
-    "string": ""
+    "string": "Verifique que no esté baneado/silenciado"
   },
   "Check channel modes (+m moderated)": {
-    "string": ""
+    "string": "Compruebe los modos del canal (+m moderado)"
   },
   "Ensure you have voice (+v) if channel is moderated": {
-    "string": ""
+    "string": "Asegúrese de tener voz (+v) si el canal está moderado"
   },
   "Keyboard Covers Input": {
-    "string": ""
+    "string": "Entrada de cubiertas de teclado"
   },
   "Symptoms: Keyboard overlaps the message input": {
-    "string": ""
+    "string": "Síntomas: el teclado se superpone al mensaje de entrada"
   },
   "Go to Settings \u001a Display & UI \u001a Keyboard Avoiding": {
-    "string": ""
+    "string": "Ir a ☰ Configuración → Pantalla y UI → Ajustar Teclado"
   },
   "Android: try Behavior = Height (default) or Padding": {
-    "string": ""
+    "string": "Android: Pruebe Comportamiento del teclado = Altura (por defecto) o Relleno"
   },
   "iOS: try Behavior = Padding or Position": {
-    "string": ""
+    "string": "iOS: Pruebe Comportamiento del teclado = Relleno o Posición"
   },
   "Adjust Keyboard Vertical Offset (e.g., 16-48)": {
-    "string": ""
+    "string": "Ajuste el Desplazamiento vertical del teclado (e.j., 16-48)"
   },
   "Android: toggle \"Android Bottom Safe Area\" for fullscreen vs. inset": {
-    "string": ""
+    "string": "Android: alternar \"Área Segura Inferior de Android\" para pantalla completa o insertada"
   },
   "Can't See Messages": {
-    "string": ""
+    "string": "No Puedo Ver Los Mensajes"
   },
   "Symptoms: Channel appears empty, no messages visible": {
-    "string": ""
+    "string": "Síntomas: El canal aparece vacío, no hay mensajes visibles"
   },
   "Check Settings → Display & UI → Show Raw Commands": {
-    "string": ""
+    "string": "Verifique ☰ Configuración → Pantalla y UI → Mostrar Comandos Raw y → Categorías Raw"
   },
   "Verify filters in Settings → Messages & History": {
-    "string": ""
+    "string": "Verifique los filtros en ☰ Configuración → Mensajes e Historial"
   },
   "Restart app to reload message history": {
-    "string": ""
+    "string": "Reinicie la aplicación para volver a cargar el historial de mensajes"
   },
   "Check if user is ignored": {
-    "string": ""
+    "string": "Compruebe si el usuario es ignorado"
   },
   "Encrypted Messages Show as Gibberish": {
-    "string": ""
+    "string": "Los Mensajes Cifrados Se Muestran como Gibberish"
   },
   "Symptoms: Messages display as random characters": {
-    "string": ""
+    "string": "Síntomas: Los mensajes se muestran como caracteres aleatorios"
   },
   "Exchange encryption keys with sender": {
-    "string": ""
+    "string": "Intercambie claves de cifrado con el remitente"
   },
   "Request key: /requestkey TheirNick": {
-    "string": ""
+    "string": "Solicitud de Clave: /requestkey ElNick"
   },
   "Verify E2EE is enabled": {
-    "string": ""
+    "string": "Verifique que E2EE esté habilitado"
   },
   "Check Key Management in Settings": {
-    "string": ""
+    "string": "Verifique Administrar claves de cifrado en ☰ Configuración → Seguridad"
   },
   "Channel Problems": {
-    "string": ""
+    "string": "Canal de Problemas"
   },
   "Can't Join Channel": {
-    "string": ""
+    "string": "No Puedo Unirme al Canal"
   },
   "Symptoms: \"Cannot join channel\", Error 473-475": {
-    "string": ""
+    "string": "Síntomas: \"No se puede unir al canal\", Error 473-475"
   },
   "+i (Invite-only): Ask operator for invite": {
-    "string": ""
+    "string": "+i (solo invitados): Solicite una invitación al operador"
   },
   "+k (Key required): Join with password: /join #channel password": {
-    "string": ""
+    "string": "+k (Clave requerida): entra con clave: /join #canal laclave"
   },
   "+l (User limit): Wait for space": {
-    "string": ""
+    "string": "+l (Límite de usuarios): Espere un espacio para entrar"
   },
   "+b (Banned): Ask operator to unban you": {
-    "string": ""
+    "string": "+b (Baneado): Solo un operador te puede desbanear"
   },
   "Can't Send Messages in Channel": {
-    "string": ""
+    "string": "No se pueden Enviar Mensajes en el Canal"
   },
   "Symptoms: Message rejected, channel is quiet": {
-    "string": ""
+    "string": "Síntomas: Mensaje rechazado, canal en silencio"
   },
   "Check if channel is moderated (+m)": {
-    "string": ""
+    "string": "Compruebe si el canal está moderado (+m)"
   },
   "Ask operator for voice (+v)": {
-    "string": ""
+    "string": "Preguntar al operador por voz (+v)"
   },
   "Check if you're banned or quieted": {
-    "string": ""
+    "string": "Comprueba si estás baneado o silenciado"
   },
   "Verify you're still in the channel": {
-    "string": ""
+    "string": "Verifica que sigues en el canal"
   },
   "Channel Won't Stay Open": {
-    "string": ""
+    "string": "El Canal No Permanecerá Abierto"
   },
   "Symptoms: Channel tab closes automatically": {
-    "string": ""
+    "string": "Síntomas: La pestaña del canal se cierra automáticamente"
   },
   "Add it to auto-join: dropdown (▼) → Choose Network → Edit → Auto-Join Channels": {
-    "string": ""
+    "string": "Agregar a Auto-Join: ( ▼ ) menú desplegable → Elija Red → Editar → Auto-Join a Canales"
   },
   "Rejoin channel manually": {
-    "string": ""
+    "string": "Volver a unirse al canal manualmente"
   },
   "Check network connection": {
-    "string": ""
+    "string": "Compruebe la conexión de red"
   },
   "App Performance": {
-    "string": ""
+    "string": "Rendimiento de la Aplicación"
   },
   "App is Slow/Laggy": {
-    "string": ""
+    "string": "La aplicación es Lento/Retrasado"
   },
   "Clear message history cache": {
-    "string": ""
+    "string": "Borrar caché del historial de mensajes"
   },
   "Reduce message batch size: Settings → Performance": {
-    "string": ""
+    "string": "Reducir el tamaño del lote de mensajes: ☰ Configuración → Rendimiento"
   },
   "Disable animated emojis/GIFs": {
-    "string": ""
+    "string": "Deshabilitar emojis/GIF animados"
   },
   "Close unused tabs": {
-    "string": ""
+    "string": "Cerrar pestañas no utilizadas"
   },
   "Restart app": {
-    "string": ""
+    "string": "Reiniciar la aplicación"
   },
   "High Battery Usage": {
-    "string": ""
+    "string": "Alto Uso de la Batería"
   },
   "Disable background service": {
-    "string": ""
+    "string": "Deshabilitar el servicio en segundo plano"
   },
   "Reduce notification frequency": {
-    "string": ""
+    "string": "Reducir la frecuencia de las notificaciones"
   },
   "Use WiFi instead of mobile data": {
-    "string": ""
+    "string": "Usa WiFi en lugar de datos móviles"
   },
   "Enable battery optimization": {
-    "string": ""
+    "string": "Habilitar la optimización de la batería"
   },
   "App Crashes": {
-    "string": ""
+    "string": "La aplicación falla"
   },
   "Update to latest version": {
-    "string": ""
+    "string": "Actualización a la última versión"
   },
   "Clear app cache and data": {
-    "string": ""
+    "string": "Borrar caché y datos de aplicaciones"
   },
   "Restart device": {
-    "string": ""
+    "string": "Reiniciar dispositivo"
   },
   "Report crash with logs to developers": {
-    "string": ""
+    "string": "Informe de fallos con registros a los desarrolladores"
   },
   "Notification Issues": {
-    "string": ""
+    "string": "Problemas de Notificación"
   },
   "Not Receiving Notifications": {
-    "string": ""
+    "string": "No Recibir Notificaciones"
   },
   "Check notification permissions": {
-    "string": ""
+    "string": "Comprobar permisos de notificación"
   },
   "Verify Settings → Notifications → Enabled": {
-    "string": ""
+    "string": "Verificar ☰ Configuración → Notificaciones → Habilitar Notificaciones"
   },
   "Disable battery optimization for app": {
-    "string": ""
+    "string": "Deshabilitar la optimización de la batería para la aplicación"
   },
   "Check Do Not Disturb is off": {
-    "string": ""
+    "string": "La casilla No molestar está desactivada"
   },
   "Re-enable background service": {
-    "string": ""
+    "string": "Vuelva a habilitar el servicio en segundo plano"
   },
   "Too Many Notifications": {
-    "string": ""
+    "string": "Demasiadas Notificaciones"
   },
   "Adjust notification filters": {
-    "string": ""
+    "string": "Ajustar los filtros de notificación"
   },
   "Enable \"Highlights only\" mode": {
-    "string": ""
+    "string": "Habilite el modo \"solo Resaltados\""
   },
   "Mute specific channels": {
-    "string": ""
+    "string": "Silenciar canales específicos"
   },
   "Set quiet hours": {
-    "string": ""
+    "string": "Establezca horas de silencio"
   },
   "Media/File Issues": {
-    "string": ""
+    "string": "Problemas de Medios/Archivos"
   },
   "Can't Send Media": {
-    "string": ""
+    "string": "No se pueden Enviar Medios"
   },
   "Symptoms: Attachment button missing/disabled": {
-    "string": ""
+    "string": "Síntomas: Falta el botón de archivo adjunto/deshabilitado"
   },
   "Verify E2EE is enabled for channel/DM": {
-    "string": ""
+    "string": "Verifique que E2EE esté habilitado para canal/DM"
   },
   "Media Won't Download": {
-    "string": ""
+    "string": "Los Medios No Se Descargarán"
   },
   "Enable auto-download: Settings → Media → Auto-Download Media": {
-    "string": ""
+    "string": "Habilitar la Auto-Descarga: ☰ Configuración → Medios de Comunicación → Descarga automática de Multimedia"
   },
   "Verify storage permission": {
-    "string": ""
+    "string": "Verificar el permiso de almacenamiento"
   },
   "Clear media cache": {
-    "string": ""
+    "string": "Borrar caché de medios"
   },
   "Media Appears Encrypted": {
-    "string": ""
+    "string": "Los Medios Aparecen Encriptados"
   },
   "Request decryption key from sender": {
-    "string": ""
+    "string": "Solicitar clave de descifrado al remitente"
   },
   "Verify E2EE key exchange": {
-    "string": ""
+    "string": "Verifique el intercambio de claves E2EE"
   },
   "Check Security → Manage Encryption Keys": {
-    "string": ""
+    "string": "Comprobar ☰ → Seguridad → Administrar claves de cifrado"
   },
   "Account & Settings": {
-    "string": ""
+    "string": "Cuenta y Configuración"
   },
   "Lost PIN/Password": {
-    "string": ""
+    "string": "PIN/Clave perdido"
   },
   "Use biometric unlock if enabled": {
-    "string": ""
+    "string": "Usar desbloqueo biométrico si está habilitado"
   },
   "Settings → Security → Reset PIN": {
-    "string": ""
+    "string": "☰ Configuración → Seguridad → Restablecer PIN"
   },
   "Backup/restore may help": {
-    "string": ""
+    "string": "Copia de seguridad/restauración puede ayudar"
   },
   "Last resort: Clear app data (loses all data)": {
-    "string": ""
+    "string": "Último recurso: Borrar datos de la aplicación (pierde todos los datos)"
   },
   "Settings Not Saving": {
-    "string": ""
+    "string": "La Configuración No Se Guarda"
   },
   "Check storage permission": {
-    "string": ""
+    "string": "Verifique el permiso de almacenamiento"
   },
   "Verify storage space available": {
-    "string": ""
+    "string": "Verifique el espacio de almacenamiento disponible"
   },
   "Clear app cache": {
-    "string": ""
+    "string": "Borrar caché de aplicaciones"
   },
   "Backup/Restore Failed": {
-    "string": ""
+    "string": "Error de Copia de Seguridad/Restauración"
   },
   "Verify file integrity": {
-    "string": ""
+    "string": "Verificar la integridad de los archivos"
   },
   "Use latest backup file": {
-    "string": ""
+    "string": "Utilice el último archivo de copia de seguridad"
   },
   "Try export/import individually": {
-    "string": ""
+    "string": "Intente exportar/importar individualmente"
   },
   "Still Need Help?": {
-    "string": ""
+    "string": "¿Aún Necesitas Ayuda?"
   },
   "Get Support": {
-    "string": ""
+    "string": "Obtenga Soporte"
   },
   "Join #AndroidIRCX on irc.dbase.in.rs": {
-    "string": ""
+    "string": "Únete a #AndroidIRCX en irc.dbase.in.rs"
   },
   "Email: support@androidircx.com": {
-    "string": ""
+    "string": "Correo: support@androidircx.com"
   },
   "GitHub Issues: github.com/yourrepo/issues": {
-    "string": ""
+    "string": "GitHub Asuntos: github.com/AndroidIRCx/AndroidIRCx/issues"
   },
   "Gather Information": {
-    "string": ""
+    "string": "Recopilar Información"
   },
   "Before reporting, collect:": {
-    "string": ""
+    "string": "Antes de informar, recopile:"
   },
   "App version": {
-    "string": ""
+    "string": "Versión de la Aplicación"
   },
   "Android version": {
-    "string": ""
+    "string": "Versión de Android"
   },
   "Device model": {
-    "string": ""
+    "string": "Modelo del dispositivo"
   },
   "Error message/screenshot": {
-    "string": ""
+    "string": "Mensaje de error/captura de pantalla"
   },
   "Steps to reproduce": {
-    "string": ""
+    "string": "Pasos para reproducirse"
   },
   "Enable Debug Logging:\\nSettings → Development → Enable Console Logging (debug builds only)\\nSend logs with your report.": {
-    "string": ""
+    "string": "Habilite el registro de depuración:\nConfiguración → Desarrollo → Habilite el registro de consola (solo compilaciones de depuración)\nEnviar logs con su informe."
   },
   "Some errors occurred:": {
-    "string": ""
+    "string": "Se produjeron algunos errores:"
   }
 }

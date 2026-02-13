@@ -208,7 +208,8 @@ export const formatSettingDescription = (
   let formatted = template;
   Object.entries(values).forEach(([key, value]) => {
     const placeholder = `{${key}}`;
-    formatted = formatted.replace(new RegExp(placeholder, 'g'), String(value));
+    // Avoid runtime regex errors when placeholder contains regex metacharacters.
+    formatted = formatted.split(placeholder).join(String(value));
   });
   return formatted;
 };

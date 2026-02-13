@@ -673,6 +673,37 @@ describe('PrivmsgCommandHandlers', () => {
     expect(messages).toHaveLength(0);
   });
 
+  it('displays CTCP ACTION as message instead of routing to CTCP handler', () => {
+    const { ctx, messages } = createMockCtx();
+    ctx.parseCTCP.mockReturnValue({ isCTCP: true, command: 'ACTION', args: 'does a dance' });
+
+    handlePRIVMSG(ctx, 'bob!u@h', ['#chan', '\x01ACTION does a dance\x01'], Date.now());
+
+    // ACTION should NOT call handleCTCPRequest - it should display as a message
+    expect(ctx.handleCTCPRequest).not.toHaveBeenCalled();
+    // ACTION should be added as a message
+    expect(messages).toHaveLength(1);
+    expect(messages[0].type).toBe('message');
+    expect(messages[0].from).toBe('bob');
+    expect(messages[0].channel).toBe('#chan');
+    expect(messages[0].text).toBe('\x01ACTION does a dance\x01');
+  });
+
+  it('displays CTCP ACTION in query window', () => {
+    const { ctx, messages } = createMockCtx();
+    ctx.parseCTCP.mockReturnValue({ isCTCP: true, command: 'ACTION', args: 'waves hello' });
+
+    handlePRIVMSG(ctx, 'alice!u@h', ['tester', '\x01ACTION waves hello\x01'], Date.now());
+
+    // ACTION should NOT call handleCTCPRequest
+    expect(ctx.handleCTCPRequest).not.toHaveBeenCalled();
+    // ACTION should be added as a message in query window (channel = sender)
+    expect(messages).toHaveLength(1);
+    expect(messages[0].type).toBe('message');
+    expect(messages[0].from).toBe('alice');
+    expect(messages[0].channel).toBe('alice'); // query window uses sender's nick
+  });
+
   it('ignores empty/invalid targets', () => {
     const { ctx, messages } = createMockCtx();
     handlePRIVMSG(ctx, 'alice!u@h', ['*', 'test'], Date.now());

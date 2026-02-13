@@ -548,6 +548,56 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     }
   };
 
+  const extractOfferToken = (sub: ProductSubscription | null): string | null => {
+    if (!sub) {
+      return null;
+    }
+    const offers =
+      (sub as any).subscriptionOfferDetails ||
+      (sub as any).subscriptionOfferDetailsAndroid ||
+      [];
+    if (!offers.length) {
+      return null;
+    }
+    const selectedOffer = offers.find((o: any) => o.basePlanId === ZNC_BASE_PLAN_ID) || offers[0];
+    if (selectedOffer?.offerToken) {
+      return selectedOffer.offerToken as string;
+    }
+    if (selectedOffer?.pricingPhases?.pricingPhaseList?.length > 0) {
+      const firstPhase = selectedOffer.pricingPhases.pricingPhaseList[0];
+      if (firstPhase?.offerId) {
+        return firstPhase.offerId as string;
+      }
+    }
+    return null;
+  };
+
+  const resolveAndroidOfferToken = async (): Promise<string | null> => {
+    const cached = offerToken || extractOfferToken(subscription);
+    if (cached) {
+      setOfferToken(cached);
+      return cached;
+    }
+
+    try {
+      setRefreshingOffers(true);
+      const products = await RNIap.fetchProducts({ skus: [ZNC_PRODUCT_ID], type: 'subs' });
+      const sub = products.find(
+        (item): item is ProductSubscription => item.id === ZNC_PRODUCT_ID && item.type === 'subs'
+      );
+      const refreshedToken = extractOfferToken(sub || null);
+      if (refreshedToken) {
+        setOfferToken(refreshedToken);
+      }
+      return refreshedToken;
+    } catch (error) {
+      console.error('Failed to refresh subscription offers:', error);
+      return null;
+    } finally {
+      setRefreshingOffers(false);
+    }
+  };
+
   const handlePurchaseNew = async () => {
     if (!iapConnected) {
       Alert.alert(t('Error'), t('Store not available. Please check your connection and try again.'));
@@ -562,86 +612,17 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       return;
     }
 
-    // For Android, ensure we have an offer token before proceeding
+    // For Android, require a resolved offer token before showing purchase confirmation.
+    // Starting a subscription flow without a valid offer token can trigger Billing crashes on some devices.
     if (Platform.OS === 'android') {
-      // If no offer token, try to get it from the subscription we already have
-      if (!offerToken) {
-        try {
-          // Try multiple possible property names for subscription offers on Android
-          let offers = (subscription as any).subscriptionOfferDetails || [];
-          if (!offers || offers.length === 0) {
-            offers = (subscription as any).subscriptionOfferDetailsAndroid || [];
-          }
-
-          const offer = offers.find((o: any) => o.basePlanId === ZNC_BASE_PLAN_ID) || offers[0];
-          if (offer?.offerToken) {
-            setOfferToken(offer.offerToken);
-          } else if (offers.length > 0) {
-            // If there are offers but no offerToken, try to get it from pricing phases
-            for (const o of offers) {
-              if (o.pricingPhases?.pricingPhaseList?.length > 0) {
-                const firstPhase = o.pricingPhases.pricingPhaseList[0];
-                if (firstPhase?.offerId) {
-                  setOfferToken(firstPhase.offerId);
-                  break;
-                }
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Failed to get subscription offers from cached subscription:', error);
-        }
+      const resolvedToken = await resolveAndroidOfferToken();
+      if (!resolvedToken) {
+        Alert.alert(
+          t('Store Error'),
+          t('Subscription offer is not available right now. Please try again in a few moments.')
+        );
+        return;
       }
-
-      // If still no offer token after trying to get it from cached data, try to fetch fresh
-      if (!offerToken) {
-        try {
-          setRefreshingOffers(true);
-
-          // Try to fetch the offers again
-          const products = await RNIap.fetchProducts({ skus: [ZNC_PRODUCT_ID], type: 'subs' });
-          const sub = products.find(
-            (item): item is ProductSubscription => item.id === ZNC_PRODUCT_ID && item.type === 'subs'
-          );
-
-          if (sub) {
-            // Try multiple possible property names for subscription offers on Android
-            let offers = (sub as any).subscriptionOfferDetails || [];
-            if (!offers || offers.length === 0) {
-              offers = (sub as any).subscriptionOfferDetailsAndroid || [];
-            }
-
-            const offer = offers.find((o: any) => o.basePlanId === ZNC_BASE_PLAN_ID) || offers[0];
-            if (offer?.offerToken) {
-              setOfferToken(offer.offerToken);
-            } else if (offers.length > 0) {
-              // If there are offers but no offerToken, try to get it from pricing phases
-              for (const o of offers) {
-                if (o.pricingPhases?.pricingPhaseList?.length > 0) {
-                  const firstPhase = o.pricingPhases.pricingPhaseList[0];
-                  if (firstPhase?.offerId) {
-                    setOfferToken(firstPhase.offerId);
-                    break;
-                  }
-                }
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Failed to refresh subscription offers:', error);
-        } finally {
-          setRefreshingOffers(false);
-        }
-      }
-
-      // If still no offer token after all attempts, show a more user-friendly message
-//       if (!offerToken) {
-//         Alert.alert(
-//           t('Store Error'),
-//           t('Subscription offer is not ready yet. This might be due to a temporary issue with Google Play. Please try again in a moment.')
-//         );
-//         return;
-//       }
     }
 
     setShowUsernameInput(true);
@@ -723,84 +704,22 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
           type: 'subs' as const,
         };
       } else { // Android
-        if (!offerToken) {
-          // Fallback: try to get offer details again if token is missing
-          try {
-            const products = await RNIap.fetchProducts({ skus: [ZNC_PRODUCT_ID], type: 'subs' });
-            const sub = products.find(
-              (item): item is ProductSubscription => item.id === ZNC_PRODUCT_ID && item.type === 'subs'
-            );
-
-            if (sub) {
-              // Try multiple possible property names for subscription offers on Android
-              let offers = (sub as any).subscriptionOfferDetails || [];
-              if (!offers || offers.length === 0) {
-                offers = (sub as any).subscriptionOfferDetailsAndroid || [];
-              }
-
-              const offer = offers.find((o: any) => o.basePlanId === ZNC_BASE_PLAN_ID) || offers[0];
-              if (offer?.offerToken) {
-                setOfferToken(offer.offerToken);
-                // Retry with the newly acquired token
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Brief delay to allow state update
-              } else if (offers.length > 0) {
-                // If there are offers but no offerToken, try to get it from pricing phases
-                for (const o of offers) {
-                  if (o.pricingPhases?.pricingPhaseList?.length > 0) {
-                    const firstPhase = o.pricingPhases.pricingPhaseList[0];
-                    if (firstPhase?.offerId) {
-                      setOfferToken(firstPhase.offerId);
-                      break;
-                    }
-                  }
-                }
-              }
-            }
-          } catch (fetchError) {
-            console.error('Failed to refetch subscription offers:', fetchError);
-          }
-
-          if (!offerToken) {
-            // If still no offer token, try to purchase with just the SKU (some versions support this)
-            console.warn('No offer token available, attempting purchase with SKU only');
-            request = {
-              request: {
-                google: {
-                  skus: [ZNC_PRODUCT_ID],
-                },
-              },
-              type: 'subs' as const,
-            };
-          } else {
-            // Use the token we found
-            request = {
-              request: {
-                google: {
-                  skus: [ZNC_PRODUCT_ID],
-                  subscriptionOffers: [{
-                    sku: ZNC_PRODUCT_ID,
-                    offerToken: offerToken as string,
-                  }],
-                },
-              },
-              type: 'subs' as const,
-            };
-          }
-        } else {
-          // We have an offer token, use it normally
-          request = {
-            request: {
-              google: {
-                skus: [ZNC_PRODUCT_ID],
-                subscriptionOffers: [{
-                  sku: ZNC_PRODUCT_ID,
-                  offerToken: offerToken as string,
-                }],
-              },
-            },
-            type: 'subs' as const,
-          };
+        const resolvedToken = await resolveAndroidOfferToken();
+        if (!resolvedToken) {
+          throw new Error('Missing subscription offer token.');
         }
+        request = {
+          request: {
+            google: {
+              skus: [ZNC_PRODUCT_ID],
+              subscriptionOffers: [{
+                sku: ZNC_PRODUCT_ID,
+                offerToken: resolvedToken,
+              }],
+            },
+          },
+          type: 'subs' as const,
+        };
       }
 
       if (!request) {

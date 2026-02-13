@@ -141,9 +141,27 @@ export class ChannelListService {
    * Filter channel list
    */
   filterChannelList(filter: ChannelListFilter): ChannelListItem[] {
-    // Pre-compile regex patterns outside the loop for performance
-    const namePattern = filter.namePattern ? new RegExp(filter.namePattern, 'i') : null;
-    const topicPattern = filter.topicPattern ? new RegExp(filter.topicPattern, 'i') : null;
+    // Pre-compile regex patterns outside the loop for performance.
+    // If the user enters an invalid regex, fall back to case-insensitive substring match.
+    let namePattern: RegExp | null = null;
+    let topicPattern: RegExp | null = null;
+    const nameFallback = filter.namePattern?.toLowerCase() || null;
+    const topicFallback = filter.topicPattern?.toLowerCase() || null;
+
+    if (filter.namePattern) {
+      try {
+        namePattern = new RegExp(filter.namePattern, 'i');
+      } catch (error) {
+        console.warn('ChannelListService: Invalid name regex pattern:', error);
+      }
+    }
+    if (filter.topicPattern) {
+      try {
+        topicPattern = new RegExp(filter.topicPattern, 'i');
+      } catch (error) {
+        console.warn('ChannelListService: Invalid topic regex pattern:', error);
+      }
+    }
 
     return this.channelList.filter(channel => {
       if (filter.minUsers !== undefined && (channel.userCount === undefined || channel.userCount < filter.minUsers)) {
@@ -152,11 +170,23 @@ export class ChannelListService {
       if (filter.maxUsers !== undefined && (channel.userCount === undefined || channel.userCount > filter.maxUsers)) {
         return false;
       }
-      if (namePattern && !namePattern.test(channel.name)) {
+      if (namePattern) {
+        if (!namePattern.test(channel.name)) {
+          return false;
+        }
+      } else if (nameFallback && !channel.name.toLowerCase().includes(nameFallback)) {
         return false;
       }
-      if (topicPattern && channel.topic && !topicPattern.test(channel.topic)) {
-        return false;
+
+      if (topicPattern) {
+        if (channel.topic && !topicPattern.test(channel.topic)) {
+          return false;
+        }
+      } else if (topicFallback) {
+        const topic = channel.topic?.toLowerCase() || '';
+        if (!topic.includes(topicFallback)) {
+          return false;
+        }
       }
       return true;
     });
