@@ -14,6 +14,7 @@ import {
   Alert,
   ScrollView,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { settingsService, IRCNetworkConfig, IRCServerConfig } from '../services/SettingsService';
@@ -59,6 +60,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
   const [editProfileOperPassword, setEditProfileOperPassword] = useState('');
   const [editProfileOnConnectCommands, setEditProfileOnConnectCommands] = useState('');
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -67,6 +69,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
   }, [visible]);
 
   const loadData = async () => {
+    setIsLoading(true);
     try {
       const [loadedNetworks, loadedProfiles] = await Promise.all([
         settingsService.getAllNetworks(),
@@ -80,6 +83,8 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
         t('Error', { _tags: tags }),
         t('Failed to load networks and profiles', { _tags: tags })
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -244,6 +249,48 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
     setEditProfileOperPassword(profile?.operPassword || '');
     setEditProfileOnConnectCommands((profile?.onConnectCommands || []).join('\n'));
     setShowEditProfileModal(true);
+  };
+
+  const handleDeleteIdentityProfile = (profileId: string) => {
+    const profile = identityProfiles.find(p => p.id === profileId);
+    if (!profile) return;
+
+    Alert.alert(
+      t('Delete', { _tags: tags }),
+      t('Are you sure you want to delete "{name}"? This cannot be undone.', { name: profile.name, _tags: tags }),
+      [
+        { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+        {
+          text: t('Delete', { _tags: tags }),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const allProfiles = await identityProfilesService.list();
+              const fallbackProfile = allProfiles.find(p => p.id !== profile.id);
+              const affectedNetworks = networks.filter(n => n.identityProfileId === profile.id);
+              for (const network of affectedNetworks) {
+                await settingsService.updateNetworkProfile(
+                  network.id,
+                  undefined,
+                  fallbackProfile ? fallbackProfile.id : null
+                );
+              }
+              await identityProfilesService.remove(profile.id);
+              await loadData();
+              setShowEditProfileModal(false);
+              setEditingProfileId(null);
+              setSelectedNetworkForIdentity(null);
+            } catch (error) {
+              console.error('Failed to delete identity profile:', error);
+              Alert.alert(
+                t('Error', { _tags: tags }),
+                t('Failed to delete identity profile', { _tags: tags })
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   const toggleNetworkExpanded = (networkId: string) => {
@@ -470,21 +517,30 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
           </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={networks}
-          renderItem={renderNetworkItem}
-          keyExtractor={(item) => item.id}
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
-          nestedScrollEnabled
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                {t('No networks configured yet. Add a network to get started!', { _tags: tags })}
-              </Text>
-            </View>
-          }
-        />
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+              {t('Loading...', { _tags: tags })}
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={networks}
+            renderItem={renderNetworkItem}
+            keyExtractor={(item) => item.id}
+            style={styles.list}
+            contentContainerStyle={styles.listContent}
+            nestedScrollEnabled
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                  {t('No networks configured yet. Add a network to get started!', { _tags: tags })}
+                </Text>
+              </View>
+            }
+          />
+        )}
 
         {showNetworkEditor && (
           <NetworkSettingsScreen
@@ -681,6 +737,15 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                       Cancel
                     </Text>
                   </TouchableOpacity>
+                  {editingProfileId && (
+                    <TouchableOpacity
+                      style={[styles.modalButton, { backgroundColor: colors.error }]}
+                      onPress={() => handleDeleteIdentityProfile(editingProfileId)}>
+                      <Text style={[styles.modalButtonText, { color: colors.onPrimary }]}>
+                        {t('Delete', { _tags: tags })}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     style={[styles.modalButton, { backgroundColor: colors.buttonPrimary }]}
                     onPress={async () => {
@@ -951,6 +1016,16 @@ const createStyles = (colors: any) => StyleSheet.create({
   emptyText: {
     fontSize: 14,
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 24,
+  },
+  loadingText: {
+    fontSize: 14,
   },
   editButton: {
     padding: 12,

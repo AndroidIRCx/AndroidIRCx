@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tx } from '../i18n/transifex';
 import { identityProfilesService } from './IdentityProfilesService';
 import { settingsService } from './SettingsService';
+import { storageCache } from './StorageCache';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -104,6 +105,10 @@ class DataBackupService {
     if (!parsed || typeof parsed !== 'object' || !parsed.data) {
       throw new Error(t('Invalid backup format'));
     }
+
+    // Prevent stale cache/pending writes from overwriting freshly restored values.
+    await storageCache.clear(false);
+
     const pairs = Object.entries(parsed.data).map(([key, value]) => [key, value] as [string, string | null]);
     await AsyncStorage.multiSet(pairs);
     

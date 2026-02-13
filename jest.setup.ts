@@ -61,6 +61,16 @@ jest.mock('react-native-bootsplash', () => ({
   setMinimumBackgroundDuration: jest.fn(),
 }));
 
+// React Native 0.83 ActivityIndicator jest mock can break when requireActual
+// resolves to an unexpected shape. Keep a local deterministic mock instead.
+jest.mock('react-native/Libraries/Components/ActivityIndicator/ActivityIndicator', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: (props: any) => React.createElement('ActivityIndicator', props, props?.children),
+  };
+});
+
 // Silence VirtualizedList act warnings in tests by rendering as a simple View.
 jest.mock('react-native/Libraries/Lists/VirtualizedList', () => {
   const React = require('react');

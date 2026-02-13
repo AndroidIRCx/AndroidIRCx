@@ -519,9 +519,9 @@ class MediaPickerService {
     name: string;
     mtime?: Date;
   }> {
+    let normalizedUri = uri;
     try {
       // Normalize URI - remove file:// prefix for RNFS operations
-      let normalizedUri = uri;
       if (uri.startsWith('file://')) {
         normalizedUri = uri.replace('file://', '');
       } else if (uri.startsWith('content://')) {

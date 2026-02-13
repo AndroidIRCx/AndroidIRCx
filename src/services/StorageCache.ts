@@ -171,6 +171,15 @@ class StorageCache {
   }
 
   /**
+   * Remove a key from in-memory cache and pending writes without touching AsyncStorage.
+   * Useful when external code writes directly to AsyncStorage and we need to avoid stale cache/pending overwrite.
+   */
+  invalidate(key: string): void {
+    this.cache.delete(key);
+    this.pendingWrites.delete(key);
+  }
+
+  /**
    * Remove multiple items
    */
   async removeBatch(keys: string[]): Promise<void> {

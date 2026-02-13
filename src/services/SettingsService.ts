@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { DEFAULT_PROFILE_ID, identityProfilesService } from './IdentityProfilesService';
+import { identityProfilesService } from './IdentityProfilesService';
 import { secureStorageService } from './SecureStorageService';
 import { storageCache } from './StorageCache';
 import { tx } from '../i18n/transifex';
@@ -59,6 +59,7 @@ export interface IRCNetworkConfig {
 
 const STORAGE_KEY = '@AndroidIRCX:networks';
 const STORAGE_KEY_SETTINGS = '@AndroidIRCX:settings';
+const STORAGE_KEY_DBASE_REMOVED = '@AndroidIRCX:dbaseRemoved';
 const DEFAULT_SERVER_ID = 'dbase-default';
 export const DEFAULT_SERVER: IRCServerConfig = {
   id: DEFAULT_SERVER_ID,
@@ -262,7 +263,7 @@ class SettingsService {
     return { ...DEFAULT_SERVER, favorite: true };
   }
 
-  private buildDefaultNetwork(identityProfileId: string = DEFAULT_PROFILE_ID): IRCNetworkConfig {
+  private buildDefaultNetwork(identityProfileId?: string): IRCNetworkConfig {
     const defaultServer = this.buildDefaultServer();
     const androidircxServer: IRCServerConfig = {
       id: 'androidircx-default',
@@ -288,12 +289,12 @@ class SettingsService {
   }
 
   private async ensureDefaults(networks: IRCNetworkConfig[]): Promise<{ networks: IRCNetworkConfig[]; updated: boolean }> {
-    const defaultProfile = await identityProfilesService.getDefaultProfile();
     let updated = false;
     const hasDBase = networks.some(n => n.name === 'DBase');
+    const dbaseRemovedByUser = (await storageCache.getItem<boolean>(STORAGE_KEY_DBASE_REMOVED, { ttl: 0 })) === true;
     let result = networks.map(n => ({ ...n }));
-    if (!hasDBase) {
-      result = [...result, this.buildDefaultNetwork(defaultProfile.id)];
+    if (!hasDBase && !dbaseRemovedByUser) {
+      result = [...result, this.buildDefaultNetwork()];
       updated = true;
     }
 
@@ -342,14 +343,13 @@ class SettingsService {
         defaultServerId: isDBaseNetwork
           ? (net.defaultServerId || servers[0]?.id || DEFAULT_SERVER_ID)
           : net.defaultServerId,
-        identityProfileId: net.identityProfileId || defaultProfile.id,
-        nick: net.nick || defaultProfile.nick,
-        altNick: net.altNick || defaultProfile.altNick,
-        realname: net.realname || defaultProfile.realname || DEFAULT_IDENTITY.realname,
-        ident: net.ident || defaultProfile.ident || DEFAULT_IDENTITY.ident,
+        identityProfileId: net.identityProfileId,
+        nick: net.nick || DEFAULT_IDENTITY.nick,
+        altNick: net.altNick || DEFAULT_IDENTITY.altNick,
+        realname: net.realname || DEFAULT_IDENTITY.realname,
+        ident: net.ident || DEFAULT_IDENTITY.ident,
       };
       if (
-        patched.identityProfileId !== net.identityProfileId ||
         patched.defaultServerId !== net.defaultServerId ||
         servers.length !== (net.servers?.length || 0) ||
         patched.nick !== net.nick ||
@@ -398,8 +398,8 @@ class SettingsService {
    * This is useful after restoring from backup.
    */
   async reloadNetworks(): Promise<void> {
-    // Clear cache to force reload from storage
-    await storageCache.removeItem(STORAGE_KEY);
+    // Clear in-memory cache only; do not delete persisted networks.
+    storageCache.invalidate(STORAGE_KEY);
     this.networks = [];
     await this.loadNetworks();
   }
@@ -420,6 +420,9 @@ class SettingsService {
     const networks = await this.loadNetworks();
     networks.push(network);
     await this.saveNetworks(networks);
+    if (network.id === 'DBase' || network.name === 'DBase') {
+      await storageCache.setItem(STORAGE_KEY_DBASE_REMOVED, false);
+    }
   }
 
   async updateNetwork(networkId: string, updates: Partial<IRCNetworkConfig>): Promise<void> {
@@ -433,8 +436,12 @@ class SettingsService {
 
   async deleteNetwork(networkId: string): Promise<void> {
     const networks = await this.loadNetworks();
+    const deleted = networks.find(n => n.id === networkId);
     const filtered = networks.filter(n => n.id !== networkId);
     await this.saveNetworks(filtered);
+    if (deleted && (deleted.id === 'DBase' || deleted.name === 'DBase')) {
+      await storageCache.setItem(STORAGE_KEY_DBASE_REMOVED, true);
+    }
   }
 
   async getNetwork(networkId: string): Promise<IRCNetworkConfig | null> {
@@ -462,7 +469,7 @@ class SettingsService {
     }
   }
 
-  async updateNetworkProfile(networkId: string, connectionType?: 'irc' | 'znc' | 'bnc', identityProfileId?: string): Promise<void> {
+  async updateNetworkProfile(networkId: string, connectionType?: 'irc' | 'znc' | 'bnc', identityProfileId?: string | null): Promise<void> {
     try {
       const network = await this.getNetwork(networkId);
       if (network) {
@@ -470,7 +477,7 @@ class SettingsService {
           network.connectionType = connectionType;
         }
         if (identityProfileId !== undefined) {
-          network.identityProfileId = identityProfileId;
+          network.identityProfileId = identityProfileId || undefined;
         }
         await this.updateNetwork(networkId, network);
       }
@@ -562,10 +569,10 @@ class SettingsService {
     const existing = networks.find(n => n.name === 'DBase');
     if (existing) return existing;
 
-    const defaultProfile = await identityProfilesService.getDefaultProfile();
-    const defaultNetwork = this.buildDefaultNetwork(defaultProfile.id);
+    const defaultNetwork = this.buildDefaultNetwork();
     networks.push(defaultNetwork);
     await this.saveNetworks(networks);
+    await storageCache.setItem(STORAGE_KEY_DBASE_REMOVED, false);
     return defaultNetwork;
   }
 

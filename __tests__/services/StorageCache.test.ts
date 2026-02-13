@@ -118,6 +118,20 @@ describe('StorageCache', () => {
     });
   });
 
+  describe('invalidate', () => {
+    it('should remove only in-memory cache entry and keep AsyncStorage value', async () => {
+      await storageCache.setItem('invalidate-key', 'value1');
+      await storageCache.flush();
+
+      expect(storageCache.has('invalidate-key')).toBe(true);
+      storageCache.invalidate('invalidate-key');
+      expect(storageCache.has('invalidate-key')).toBe(false);
+
+      const fromStorage = await AsyncStorage.getItem('invalidate-key');
+      expect(fromStorage).toBe(JSON.stringify('value1'));
+    });
+  });
+
   describe('getBatch', () => {
     it('should retrieve multiple items', async () => {
       await storageCache.setItem('a', 'value-a');

@@ -12,6 +12,7 @@ import {
   FlatList,
   Alert,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { IRCNetworkConfig, IRCServerConfig, settingsService } from '../services/SettingsService';
 import { NetworkSettingsScreen } from './NetworkSettingsScreen';
@@ -39,20 +40,19 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
   const [editingNetworkId, setEditingNetworkId] = useState<string | undefined>();
   const [editingServerId, setEditingServerId] = useState<string | undefined>();
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | undefined>();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     loadNetworks();
   }, []);
 
   const loadNetworks = async () => {
-    const loaded = await settingsService.loadNetworks();
-    if (loaded.length === 0) {
-      // Create default network
-      await settingsService.createDefaultNetwork();
-      const updated = await settingsService.loadNetworks();
-      setNetworks(updated);
-    } else {
+    setIsLoading(true);
+    try {
+      const loaded = await settingsService.loadNetworks();
       setNetworks(loaded);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -182,67 +182,74 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            data={networks}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.networkItem}>
-                <TouchableOpacity
-                  style={styles.networkHeader}
-                  onPress={() => handleConnect(item)}>
-                  <View style={styles.networkInfo}>
-                    <Text style={styles.networkName}>{item.name}</Text>
-                    <Text style={styles.networkDetails}>
-                      {item.nick} • {item.servers?.length || 0} {(item.servers?.length || 0) !== 1 ? t('servers') : t('server')}
-                    </Text>
-                  </View>
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary || '#2196F3'} />
+              <Text style={styles.loadingText}>{t('Loading...', { _tags: 'screen:networks-list,file:NetworksListScreen.tsx,feature:networks' })}</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={networks}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.networkItem}>
                   <TouchableOpacity
-                    onPress={() => handleEditNetwork(item)}
-                    style={styles.editButton}>
-                    <Text style={styles.editText}>{t('Edit')}</Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
-
-                <View style={styles.serversList}>
-                  {item.servers && item.servers.map((server) => (
+                    style={styles.networkHeader}
+                    onPress={() => handleConnect(item)}>
+                    <View style={styles.networkInfo}>
+                      <Text style={styles.networkName}>{item.name}</Text>
+                      <Text style={styles.networkDetails}>
+                        {item.nick} • {item.servers?.length || 0} {(item.servers?.length || 0) !== 1 ? t('servers') : t('server')}
+                      </Text>
+                    </View>
                     <TouchableOpacity
-                      key={server.id}
-                      style={styles.serverItem}
-                      onPress={() => handleConnect(item, server.id)}>
-                      <View style={styles.serverInfo}>
-                        <Text style={styles.serverName}>
-                          {server.favorite ? '★ ' : ''}
-                          {server.name || server.hostname}
-                        </Text>
-                        <Text style={styles.serverDetails}>
-                          {server.hostname}:{server.port} {server.ssl ? t('(SSL)') : ''}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => handleDeleteServer(item, server)}
-                        style={[
-                          styles.serverDeleteButton,
-                          item.servers.length <= 1 && styles.serverDeleteButtonDisabled,
-                        ]}
-                        disabled={item.servers.length <= 1}>
-                        <Text style={styles.deleteText}>{t('Delete')}</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => handleEditServer(item.id, server.id)}
-                        style={styles.serverEditButton}>
-                        <Text style={styles.editText}>{t('Edit')}</Text>
-                      </TouchableOpacity>
+                      onPress={() => handleEditNetwork(item)}
+                      style={styles.editButton}>
+                      <Text style={styles.editText}>{t('Edit')}</Text>
                     </TouchableOpacity>
-                  ))}
-                  <TouchableOpacity
-                    style={styles.addServerButton}
-                    onPress={() => handleAddServer(item.id)}>
-                    <Text style={styles.addServerText}>{t('+ Add Server')}</Text>
                   </TouchableOpacity>
+
+                  <View style={styles.serversList}>
+                    {item.servers && item.servers.map((server) => (
+                      <TouchableOpacity
+                        key={server.id}
+                        style={styles.serverItem}
+                        onPress={() => handleConnect(item, server.id)}>
+                        <View style={styles.serverInfo}>
+                          <Text style={styles.serverName}>
+                            {server.favorite ? '★ ' : ''}
+                            {server.name || server.hostname}
+                          </Text>
+                          <Text style={styles.serverDetails}>
+                            {server.hostname}:{server.port} {server.ssl ? t('(SSL)') : ''}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => handleDeleteServer(item, server)}
+                          style={[
+                            styles.serverDeleteButton,
+                            item.servers.length <= 1 && styles.serverDeleteButtonDisabled,
+                          ]}
+                          disabled={item.servers.length <= 1}>
+                          <Text style={styles.deleteText}>{t('Delete')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => handleEditServer(item.id, server.id)}
+                          style={styles.serverEditButton}>
+                          <Text style={styles.editText}>{t('Edit')}</Text>
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                    ))}
+                    <TouchableOpacity
+                      style={styles.addServerButton}
+                      onPress={() => handleAddServer(item.id)}>
+                      <Text style={styles.addServerText}>{t('+ Add Server')}</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            )}
-          />
+              )}
+            />
+          )}
         </View>
       </Modal>
 
@@ -410,6 +417,17 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   addServerText: {
     color: colors.primary || '#2196F3',
+    fontSize: 14,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  loadingText: {
+    color: colors.textSecondary || '#757575',
     fontSize: 14,
   },
 });

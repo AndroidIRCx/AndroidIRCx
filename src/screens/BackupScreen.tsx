@@ -20,6 +20,7 @@ import { dataBackupService } from '../services/DataBackupService';
 import Clipboard from '@react-native-clipboard/clipboard';
 import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
+import { pick, isErrorWithCode, errorCodes, types } from '@react-native-documents/picker';
 import { useT } from '../i18n/transifex';
 
 interface BackupScreenProps {
@@ -343,6 +344,52 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
     }
   };
 
+  const normalizeFileUri = (uri: string) => (uri.startsWith('file://') ? uri.slice(7) : uri);
+
+  const handleLoadFromFile = async () => {
+    try {
+      const [result] = await pick({
+        type: [types.plainText, 'application/json', 'text/json'],
+        // @ts-ignore - copyTo exists in picker runtime versions we support
+        copyTo: 'documentDirectory',
+      });
+
+      const fileUri = result?.fileCopyUri ?? result?.uri;
+      if (!fileUri) {
+        Alert.alert(t('Error', { _tags: tags }), t('No file selected', { _tags: tags }));
+        return;
+      }
+
+      const content = await RNFS.readFile(normalizeFileUri(fileUri), 'utf8');
+      if (!content.trim()) {
+        Alert.alert(t('Error', { _tags: tags }), t('Selected file is empty', { _tags: tags }));
+        return;
+      }
+
+      try {
+        JSON.parse(content);
+      } catch {
+        Alert.alert(
+          t('Error', { _tags: tags }),
+          t('Selected file is not a valid JSON backup', { _tags: tags })
+        );
+        return;
+      }
+
+      setBackupData(content);
+      Alert.alert(t('Success', { _tags: tags }), t('Backup loaded from file', { _tags: tags }));
+    } catch (error: any) {
+      if (isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED) {
+        return;
+      }
+
+      Alert.alert(
+        t('Error', { _tags: tags }),
+        error instanceof Error ? error.message : t('Failed to load backup file', { _tags: tags })
+      );
+    }
+  };
+
   const handleRestore = async () => {
     try {
       if (!backupData.trim()) {
@@ -630,6 +677,11 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
                 style={styles.footerButton} 
                 onPress={() => setShowPreviewModal(false)}>
                 <Text style={styles.footerButtonText}>{t('Cancel', { _tags: tags })}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.footerButton} onPress={handleLoadFromFile}>
+                <Text style={[styles.footerButtonText, styles.primaryText]}>
+                  {t('Load from File', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
               {backupData && (
                 <>

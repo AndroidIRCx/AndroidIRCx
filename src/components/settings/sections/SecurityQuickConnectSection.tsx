@@ -10,7 +10,6 @@ import { SettingItem } from '../SettingItem';
 import { useSettingsSecurity } from '../../../hooks/useSettingsSecurity';
 import { useT } from '../../../i18n/transifex';
 import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
-import { IRCNetworkConfig } from '../../../services/SettingsService';
 
 interface SecurityQuickConnectSectionProps {
   colors: {
@@ -32,20 +31,15 @@ interface SecurityQuickConnectSectionProps {
     chevron: any;
   };
   settingIcons: Record<string, SettingIcon | undefined>;
-  networks: IRCNetworkConfig[];
-  networkLabel: (networkId: string) => string;
 }
 
 export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionProps> = ({
   colors,
   styles,
   settingIcons,
-  networks,
-  networkLabel,
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:SecurityQuickConnectSection.tsx,feature:settings';
-  const [showQuickConnectModal, setShowQuickConnectModal] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hexInput, setHexInput] = useState('');
 
@@ -79,29 +73,15 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
     killSwitchCustomName,
     killSwitchCustomIcon,
     killSwitchCustomColor,
-    quickConnectNetworkId,
     setKillSwitchEnabledOnHeader,
     setKillSwitchEnabledOnLockScreen,
     setKillSwitchShowWarnings,
     setKillSwitchCustomName,
     setKillSwitchCustomIcon,
     setKillSwitchCustomColor,
-    setQuickConnectNetworkId,
   } = useSettingsSecurity();
 
   const sectionData: SettingItemType[] = [
-    {
-      id: 'quick-connect-network',
-      title: t('Quick Connect Network', { _tags: tags }),
-      description: quickConnectNetworkId
-        ? t('Current: {network}', { network: networkLabel(quickConnectNetworkId), _tags: tags })
-        : t('Tap header to connect to default network', { _tags: tags }),
-      type: 'button',
-      searchKeywords: ['quick', 'connect', 'network', 'header', 'tap', 'default'],
-      onPress: () => {
-        setShowQuickConnectModal(true);
-      },
-    },
     {
       id: 'kill-switch-header',
       title: t('Kill Switch on Header', { _tags: tags }),
@@ -185,68 +165,6 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
           />
         );
       })}
-
-      {/* Quick Connect Network Picker Modal */}
-      <Modal
-        visible={showQuickConnectModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowQuickConnectModal(false)}>
-        <View style={modalStyles.overlay}>
-          <View style={[modalStyles.container, { backgroundColor: colors.surface }]}>
-            <Text style={[modalStyles.title, { color: colors.text }]}>
-              {t('Select Quick Connect Network', { _tags: tags })}
-            </Text>
-            <Text style={[modalStyles.description, { color: colors.textSecondary }]}>
-              {t('Choose which network to connect when tapping the header "Tap to connect" button.', { _tags: tags })}
-            </Text>
-            <ScrollView style={modalStyles.scroll}>
-              <TouchableOpacity
-                style={[modalStyles.item, { borderBottomColor: colors.border }]}
-                onPress={async () => {
-                  await setQuickConnectNetworkId(null);
-                  setShowQuickConnectModal(false);
-                }}>
-                <Text
-                  style={[
-                    modalStyles.itemText,
-                    { color: colors.text },
-                    !quickConnectNetworkId && modalStyles.itemTextSelected,
-                    !quickConnectNetworkId && { color: colors.primary },
-                  ]}>
-                  {t('Use Default', { _tags: tags })}
-                </Text>
-              </TouchableOpacity>
-              {networks.map((net, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  style={[modalStyles.item, { borderBottomColor: colors.border }]}
-                  onPress={async () => {
-                    await setQuickConnectNetworkId(net.id);
-                    setShowQuickConnectModal(false);
-                  }}>
-                  <Text
-                    style={[
-                      modalStyles.itemText,
-                      { color: colors.text },
-                      quickConnectNetworkId === net.id && modalStyles.itemTextSelected,
-                      quickConnectNetworkId === net.id && { color: colors.primary },
-                    ]}>
-                    {net.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={[modalStyles.closeButton, { backgroundColor: colors.primary }]}
-              onPress={() => setShowQuickConnectModal(false)}>
-              <Text style={modalStyles.closeButtonText}>
-                {t('Close', { _tags: tags })}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       {/* Color Picker Modal */}
       <Modal

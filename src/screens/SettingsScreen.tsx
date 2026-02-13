@@ -72,6 +72,7 @@ import { useSettingsConnection } from '../hooks/useSettingsConnection';
 import { useSettingsAppearance } from '../hooks/useSettingsAppearance';
 import { SETTINGS_ICONS } from '../config/settingsIcons';
 import { createStyles } from './SettingsScreen.styles';
+import { useUIStore } from '../stores/uiStore';
 import {
   getSectionIcon,
   filterSettings,
@@ -2095,8 +2096,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             colors={colors}
             styles={styles}
             settingIcons={settingIcons}
-            networks={networks}
-            networkLabel={networkLabel}
           />
         );
       }
@@ -2235,6 +2234,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   settingIcons={settingIcons}
                   currentNetwork={currentNetwork}
                   onShowFirstRunSetup={() => setShowFirstRunSetup(true)}
+                  onShowNetworksList={() => {
+                    useUIStore.getState().setShowSettings(false);
+                    useUIStore.getState().setShowNetworksList(true);
+                  }}
                   onShowConnectionProfiles={() => setShowConnectionProfiles(true)}
                 />
               );

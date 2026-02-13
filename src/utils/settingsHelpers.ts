@@ -107,9 +107,11 @@ export const orderSections = (
   // Define section order by ID - Premium at top for non-paying, at bottom for paying
   const sectionOrderForPremium: string[] = [
     'premium',                    // Premium features first for non-paying users
-    'znc-subscription',
+    'connection-network',
     'appearance',
     'display-ui',
+    'security',
+    'znc-subscription',
     'messages-history',
     'media',
     'notifications',
@@ -117,8 +119,6 @@ export const orderSections = (
     'protection',
     'writing',
     'highlighting',
-    'connection-network',
-    'security',
     'users-services',
     'commands',
     'performance',
@@ -131,8 +131,10 @@ export const orderSections = (
   ];
 
   const sectionOrderForRegular: string[] = [
+    'connection-network',
     'appearance',
     'display-ui',
+    'security',
     'messages-history',
     'media',
     'notifications',
@@ -140,8 +142,6 @@ export const orderSections = (
     'protection',
     'writing',
     'highlighting',
-    'connection-network',
-    'security',
     'users-services',
     'commands',
     'performance',

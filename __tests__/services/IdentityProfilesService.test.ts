@@ -42,8 +42,7 @@ describe('IdentityProfilesService', () => {
   describe('list', () => {
     it('should return empty array initially', async () => {
       const profiles = await identityProfilesService.list();
-      expect(profiles.length).toBeGreaterThan(0); // Default profile should exist
-      expect(profiles.some(p => p.id === DEFAULT_PROFILE_ID)).toBe(true);
+      expect(profiles).toEqual([]);
     });
 
     it('should return copy of profiles array', async () => {
@@ -103,7 +102,7 @@ describe('IdentityProfilesService', () => {
       await identityProfilesService.getDefaultProfile();
 
       const profiles = await identityProfilesService.list();
-      expect(profiles.some(p => p.id === DEFAULT_PROFILE_ID)).toBe(true);
+      expect(profiles.some(p => p.id === DEFAULT_PROFILE_ID)).toBe(false);
     });
   });
 
@@ -272,6 +271,22 @@ describe('IdentityProfilesService', () => {
     it('should handle removing non-existent profile', async () => {
       await expect(identityProfilesService.remove('non-existent')).resolves.not.toThrow();
     });
+
+    it('should allow removing default profile when other profiles exist', async () => {
+      const created = await identityProfilesService.add({
+        name: 'Custom',
+        nick: 'custom',
+      });
+
+      await identityProfilesService.remove(DEFAULT_PROFILE_ID);
+
+      const profiles = await identityProfilesService.list();
+      expect(profiles.some(p => p.id === DEFAULT_PROFILE_ID)).toBe(false);
+      expect(profiles.some(p => p.id === created.id)).toBe(true);
+
+      const fallback = await identityProfilesService.getDefaultProfile();
+      expect(fallback.id).toBe(created.id);
+    });
   });
 
   describe('secret migration', () => {
@@ -302,20 +317,18 @@ describe('IdentityProfilesService', () => {
   });
 
   describe('default profile handling', () => {
-    it('should ensure default profile exists on first load', async () => {
+    it('should not auto-create default profile on first load', async () => {
       const profiles = await identityProfilesService.list();
-
-      const defaultProfile = profiles.find(p => p.id === DEFAULT_PROFILE_ID);
-      expect(defaultProfile).toBeDefined();
+      expect(profiles).toEqual([]);
     });
 
-    it('should not duplicate default profile', async () => {
+    it('should not auto-insert default profile across repeated loads', async () => {
       await identityProfilesService.list();
       await identityProfilesService.list();
 
       const profiles = await identityProfilesService.list();
       const defaultProfiles = profiles.filter(p => p.id === DEFAULT_PROFILE_ID);
-      expect(defaultProfiles.length).toBe(1);
+      expect(defaultProfiles.length).toBe(0);
     });
 
     it('should handle corrupted storage with default profile fallback', async () => {

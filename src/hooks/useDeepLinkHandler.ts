@@ -213,8 +213,8 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
         // No matching network - create temporary config
         logger.info('deeplink', `No matching network, creating temporary config for ${parsed.server}`);
 
-        const defaultProfile = await identityProfilesService.getDefaultProfile();
-        networkToUse = createTempNetworkFromUrl(parsed, defaultProfile);
+        const profiles = await identityProfilesService.list();
+        networkToUse = createTempNetworkFromUrl(parsed, profiles[0]);
         shouldShowTempWarning = true;
       }
 

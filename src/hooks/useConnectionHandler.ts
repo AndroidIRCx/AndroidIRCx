@@ -110,13 +110,10 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
       setSelectedNetworkName(networkToUse.name);
     }
 
-    // Pull the identity profile (default to AndroidIRCX) and apply to the network
+    // Apply identity profile only when explicitly selected; otherwise keep network identity fields.
     if (networkToUse?.identityProfileId) {
       const profiles = await identityProfilesService.list();
       identityProfile = profiles.find(p => p.id === networkToUse!.identityProfileId);
-    }
-    if (!identityProfile) {
-      identityProfile = await identityProfilesService.getDefaultProfile();
     }
     if (identityProfile && networkToUse) {
       networkToUse = {
@@ -443,7 +440,6 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
 
         if (!network) {
           // Create temporary network
-          const defaultProfile = await identityProfilesService.getDefaultProfile();
           // For -m (new window), use unique network name to force new connection
           const networkName = isNewWindow 
             ? `${serverArgs.address} (${Date.now()})`
@@ -451,12 +447,11 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
           network = {
             id: `temp-${Date.now()}`,
             name: networkName,
-            nick: serverArgs.identity?.nick || defaultProfile.nick || 'AndroidIRCX',
-            altNick: serverArgs.identity?.altNick || defaultProfile.altNick || 'AndroidIRCX_',
-            realname: serverArgs.identity?.name || defaultProfile.realname || 'AndroidIRCX User',
-            ident: defaultProfile.ident || 'androidircx',
+            nick: serverArgs.identity?.nick || 'AndroidIRCX',
+            altNick: serverArgs.identity?.altNick || 'AndroidIRCX_',
+            realname: serverArgs.identity?.name || 'AndroidIRCX User',
+            ident: 'androidircx',
             servers: [],
-            identityProfileId: defaultProfile.id,
           };
         } else if (isNewWindow) {
           // For -m (new window), create a new network entry even if it exists

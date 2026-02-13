@@ -371,7 +371,7 @@ describe('useConnectionHandler', () => {
         expect(connectCall[2].nick).toBe('ProfileNick');
       });
 
-      it('should use default profile when network has no profile ID', async () => {
+      it('should use network identity fields when network has no profile ID', async () => {
         const networkNoProfile = { ...defaultNetwork, identityProfileId: undefined };
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -380,10 +380,12 @@ describe('useConnectionHandler', () => {
           await result.current.handleConnect(networkNoProfile);
         });
 
-        expect(mockIdentityProfilesService.getDefaultProfile).toHaveBeenCalled();
+        const connectCall = mockConnectionManager.connect.mock.calls[0];
+        expect(connectCall[2].nick).toBe(networkNoProfile.nick);
+        expect(mockIdentityProfilesService.getDefaultProfile).not.toHaveBeenCalled();
       });
 
-      it('should use default profile when profile ID not found in list', async () => {
+      it('should fallback to network identity when profile ID not found', async () => {
         mockIdentityProfilesService.list.mockResolvedValue([]); // no matching profile
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -392,7 +394,9 @@ describe('useConnectionHandler', () => {
           await result.current.handleConnect(defaultNetwork);
         });
 
-        expect(mockIdentityProfilesService.getDefaultProfile).toHaveBeenCalled();
+        const connectCall = mockConnectionManager.connect.mock.calls[0];
+        expect(connectCall[2].nick).toBe(defaultNetwork.nick);
+        expect(mockIdentityProfilesService.getDefaultProfile).not.toHaveBeenCalled();
       });
 
       it('should apply SASL from identity profile', async () => {

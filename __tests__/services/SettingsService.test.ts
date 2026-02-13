@@ -9,6 +9,7 @@ import { settingsService, DEFAULT_SERVER, NEW_FEATURE_DEFAULTS } from '../../src
 import { storageCache } from '../../src/services/StorageCache';
 import { secureStorageService } from '../../src/services/SecureStorageService';
 import { identityProfilesService } from '../../src/services/IdentityProfilesService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock dependencies
 jest.mock('../../src/services/IdentityProfilesService', () => ({
@@ -199,6 +200,14 @@ describe('SettingsService', () => {
       const networks = await settingsService.loadNetworks();
       expect(networks.some(n => n.id === 'delete-me')).toBe(false);
     });
+
+    it('should allow deleting DBase and keep it deleted', async () => {
+      await settingsService.loadNetworks();
+      await settingsService.deleteNetwork('DBase');
+
+      const networks = await settingsService.loadNetworks();
+      expect(networks.some(n => n.id === 'DBase' || n.name === 'DBase')).toBe(false);
+    });
   });
 
   describe('getNetwork', () => {
@@ -372,6 +381,17 @@ describe('SettingsService', () => {
       
       expect(network.name).toBe('DBase');
     });
+
+    it('should recreate DBase after user deleted it', async () => {
+      await settingsService.loadNetworks();
+      await settingsService.deleteNetwork('DBase');
+
+      const recreated = await settingsService.createDefaultNetwork();
+      expect(recreated.name).toBe('DBase');
+
+      const networks = await settingsService.loadNetworks();
+      expect(networks.some(n => n.id === 'DBase' || n.name === 'DBase')).toBe(true);
+    });
   });
 
   describe('getSetting and setSetting', () => {
@@ -538,6 +558,16 @@ describe('SettingsService', () => {
       
       const networksAfter = await settingsService.getAllNetworks();
       expect(networksAfter.length).toBeGreaterThan(0);
+    });
+
+    it('should not delete persisted networks from AsyncStorage', async () => {
+      await settingsService.loadNetworks();
+      const removeSpy = jest.spyOn(AsyncStorage, 'removeItem');
+
+      await settingsService.reloadNetworks();
+
+      expect(removeSpy).not.toHaveBeenCalledWith('@AndroidIRCX:networks');
+      removeSpy.mockRestore();
     });
   });
 

@@ -17,6 +17,7 @@ import { autoRejoinService } from '../../../services/AutoRejoinService';
 import { autoVoiceService, AutoVoiceConfig } from '../../../services/AutoVoiceService';
 import { channelFavoritesService, ChannelFavorite } from '../../../services/ChannelFavoritesService';
 import { identityProfilesService, IdentityProfile } from '../../../services/IdentityProfilesService';
+import { useSettingsSecurity } from '../../../hooks/useSettingsSecurity';
 import { biometricAuthService } from '../../../services/BiometricAuthService';
 import { secureStorageService } from '../../../services/SecureStorageService';
 import { connectionManager } from '../../../services/ConnectionManager';
@@ -55,6 +56,7 @@ interface ConnectionNetworkSectionProps {
   settingIcons: Record<string, SettingIcon | undefined>;
   currentNetwork?: string;
   onShowFirstRunSetup?: () => void;
+  onShowNetworksList?: () => void;
   onShowConnectionProfiles?: () => void;
 }
 
@@ -66,6 +68,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   settingIcons,
   currentNetwork,
   onShowFirstRunSetup,
+  onShowNetworksList,
   onShowConnectionProfiles,
 }) => {
   const t = useT();
@@ -84,6 +87,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     updateFloodProtectionConfig,
     updateLagMonitoringConfig,
   } = useSettingsConnection();
+  const { quickConnectNetworkId, setQuickConnectNetworkId } = useSettingsSecurity();
 
   // State for various settings
   const [autoConnectFavoriteServer, setAutoConnectFavoriteServer] = useState(false);
@@ -203,6 +207,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   const [showDccExtModal, setShowDccExtModal] = useState(false);
   const [dccExtModalMode, setDccExtModalMode] = useState<'accept' | 'reject' | 'dont_send'>('accept');
   const [newDccExt, setNewDccExt] = useState('');
+  const [showQuickConnectModal, setShowQuickConnectModal] = useState(false);
 
   // Load initial state
   useEffect(() => {
@@ -1038,6 +1043,31 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         onPress: () => onShowFirstRunSetup?.(),
       },
       {
+        id: 'choose-network',
+        title: t('Choose Network', { _tags: tags }),
+        description: t('Open Networks list to choose and manage networks', { _tags: tags }),
+        type: 'button',
+        searchKeywords: ['choose', 'network', 'networks', 'server', 'identity', 'profiles'],
+        onPress: () => {
+          onShowNetworksList?.();
+        },
+      },
+      {
+        id: 'quick-connect-network',
+        title: t('Quick Connect Network', { _tags: tags }),
+        description: quickConnectNetworkId
+          ? t('Current: {network}', {
+              network: networks.find(n => n.id === quickConnectNetworkId)?.name || quickConnectNetworkId,
+              _tags: tags,
+            })
+          : t('Tap header to connect to default network', { _tags: tags }),
+        type: 'button',
+        searchKeywords: ['quick', 'connect', 'network', 'default', 'header', 'choose'],
+        onPress: () => {
+          setShowQuickConnectModal(true);
+        },
+      },
+      {
         id: 'connection-auto-connect-favorite',
         title: t('Auto-Connect to Favorite Server', { _tags: tags }),
         description: t('When opening a network, prefer the server marked as favorite.', { _tags: tags }),
@@ -1820,7 +1850,10 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     handleBiometricLockToggle,
     handlePinLockToggle,
     onShowFirstRunSetup,
+    onShowNetworksList,
     onShowConnectionProfiles,
+    quickConnectNetworkId,
+    setQuickConnectNetworkId,
     t,
     tags,
   ]);
@@ -2013,6 +2046,61 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                   );
                 });
               })()}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Quick Connect Network Picker Modal */}
+      <Modal
+        visible={showQuickConnectModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowQuickConnectModal(false)}>
+        <View style={styles.submenuOverlay}>
+          <View style={[styles.submenuContainer, { maxHeight: '80%' }]}>
+            <View style={styles.submenuHeader}>
+              <Text style={styles.submenuTitle}>{t('Select Quick Connect Network', { _tags: tags })}</Text>
+              <TouchableOpacity onPress={() => setShowQuickConnectModal(false)}>
+                <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              <TouchableOpacity
+                style={styles.submenuItem}
+                onPress={async () => {
+                  await setQuickConnectNetworkId(null);
+                  setShowQuickConnectModal(false);
+                }}>
+                <View style={styles.submenuItemContent}>
+                  <Text
+                    style={[
+                      styles.submenuItemText,
+                      !quickConnectNetworkId && { color: colors.primary, fontWeight: '600' },
+                    ]}>
+                    {t('Use Default', { _tags: tags })}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              {networks.map((net) => (
+                <TouchableOpacity
+                  key={net.id}
+                  style={styles.submenuItem}
+                  onPress={async () => {
+                    await setQuickConnectNetworkId(net.id);
+                    setShowQuickConnectModal(false);
+                  }}>
+                  <View style={styles.submenuItemContent}>
+                    <Text
+                      style={[
+                        styles.submenuItemText,
+                        quickConnectNetworkId === net.id && { color: colors.primary, fontWeight: '600' },
+                      ]}>
+                      {net.name}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
           </View>
         </View>

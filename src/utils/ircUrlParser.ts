@@ -275,7 +275,7 @@ export async function findMatchingNetwork(
  */
 export function createTempNetworkFromUrl(
   parsedUrl: ParsedIRCUrl,
-  defaultProfile: IdentityProfile
+  defaultProfile?: IdentityProfile
 ): IRCNetworkConfig {
   const timestamp = Date.now();
   const networkId = `temp_${timestamp}_${parsedUrl.server}`;
@@ -285,10 +285,10 @@ export function createTempNetworkFromUrl(
   const network: IRCNetworkConfig = {
     id: networkId,
     name: parsedUrl.server,
-    nick: parsedUrl.nick || defaultProfile.nick || 'AndroidIRCX',
-    altNick: parsedUrl.altNick || defaultProfile.altNick || 'AndroidIRCX_',
-    realname: parsedUrl.realname || defaultProfile.realname || 'AndroidIRCX User',
-    ident: parsedUrl.ident || defaultProfile.ident || 'androidircx',
+    nick: parsedUrl.nick || defaultProfile?.nick || 'AndroidIRCX',
+    altNick: parsedUrl.altNick || defaultProfile?.altNick || 'AndroidIRCX_',
+    realname: parsedUrl.realname || defaultProfile?.realname || 'AndroidIRCX User',
+    ident: parsedUrl.ident || defaultProfile?.ident || 'androidircx',
     servers: [
       {
         id: `${networkId}_server`,
@@ -301,7 +301,7 @@ export function createTempNetworkFromUrl(
       },
     ],
     autoJoinChannels: parsedUrl.channel ? [parsedUrl.channel] : [],
-    identityProfileId: defaultProfile.id,
+    identityProfileId: defaultProfile?.id,
   };
 
   return network;

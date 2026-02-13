@@ -66,11 +66,6 @@ class IdentityProfilesService {
         }
         await this.applySecrets();
       }
-      // Ensure the default AndroidIRCX profile always exists
-      if (!this.profiles.find(p => p.id === DEFAULT_PROFILE_ID || p.nick === DEFAULT_PROFILE.nick)) {
-        this.profiles.unshift(DEFAULT_PROFILE);
-        await this.persist();
-      }
     } catch (e) {
       this.profiles = [DEFAULT_PROFILE];
       await this.persist();
@@ -134,9 +129,11 @@ class IdentityProfilesService {
     await this.ensureLoaded();
     const existing = this.profiles.find(p => p.id === DEFAULT_PROFILE_ID);
     if (existing) return existing;
-    // Fallback: ensure default is stored and returned
-    this.profiles.unshift(DEFAULT_PROFILE);
-    await this.persist();
+    // Fallback to first available profile
+    if (this.profiles.length > 0) {
+      return this.profiles[0];
+    }
+    // Last resort for empty storage (in-memory fallback only)
     return DEFAULT_PROFILE;
   }
 
