@@ -60,7 +60,7 @@ export class ConnectionQualityService {
   private floodProtectionConfig: FloodProtectionConfig = {
     enabled: true,
     maxMessagesPerWindow: 10,
-    windowSize: 5000,
+    windowSize: 10000,
     penaltyDelay: 2000,
   };
 

@@ -621,16 +621,16 @@ export class UserManagementService {
   /**
    * Get all ignored users
    */
-  getIgnoredUsers(network?: string): IgnoredUser[] {
-    const net = network || this.currentNetwork;
+  getIgnoredUsers(network?: string | null): IgnoredUser[] {
+    const net = network === null ? undefined : (network || this.currentNetwork);
     const ignored: IgnoredUser[] = [];
-    
+
     for (const [key, user] of this.ignoredUsers.entries()) {
       if (!net || user.network === net) {
         ignored.push(user);
       }
     }
-    
+
     return ignored;
   }
 

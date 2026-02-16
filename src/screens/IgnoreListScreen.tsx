@@ -93,7 +93,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
 
   const loadIgnoredUsers = () => {
     const svc = getUserManagementService();
-    const ignored = svc.getIgnoredUsers(); // Load all networks
+    const ignored = svc.getIgnoredUsers(null); // Load all networks
     setIgnoredUsers(ignored);
   };
 
@@ -113,7 +113,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
     }
   };
 
-  const handleRemoveIgnore = async (mask: string) => {
+  const handleRemoveIgnore = async (mask: string, entryNetwork?: string) => {
     Alert.alert(
       t('Remove from Ignore List'),
       t('Remove {mask}?').replace('{mask}', mask),
@@ -124,7 +124,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
           style: 'destructive',
           onPress: async () => {
             const svc = getUserManagementService();
-            await svc.unignoreUser(mask, network);
+            await svc.unignoreUser(mask, entryNetwork);
             loadIgnoredUsers();
             Alert.alert(t('Success'), t('User removed from ignore list'));
           },
@@ -208,7 +208,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
                 </View>
                 <TouchableOpacity
                   style={styles.removeButton}
-                  onPress={() => handleRemoveIgnore(ignored.mask)}>
+                  onPress={() => handleRemoveIgnore(ignored.mask, ignored.network)}>
                   <Text style={styles.removeButtonText}>{t('Remove')}</Text>
                 </TouchableOpacity>
               </View>

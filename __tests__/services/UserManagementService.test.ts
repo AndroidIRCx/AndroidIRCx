@@ -281,6 +281,29 @@ describe('UserManagementService', () => {
       const network1Ignored = userManagementService.getIgnoredUsers('Network1');
       expect(network1Ignored).toHaveLength(2);
     });
+
+    it('should return all ignored users when passing null', async () => {
+      await userManagementService.ignoreUser('user1', 'Reason 1', 'Network1');
+      await userManagementService.ignoreUser('user2', 'Reason 2', 'Network2');
+
+      const allIgnored = userManagementService.getIgnoredUsers(null);
+      expect(allIgnored).toHaveLength(2);
+    });
+
+    it('should unignore user from a different network than current', async () => {
+      // Add entries on two different networks
+      await userManagementService.ignoreUser('spammer', 'Spam', 'Network1');
+      await userManagementService.ignoreUser('troll', 'Trolling', 'Network2');
+
+      // Remove the Network1 entry by passing its actual network
+      await userManagementService.unignoreUser('spammer', 'Network1');
+
+      // spammer should be gone, troll should remain
+      const allIgnored = userManagementService.getIgnoredUsers(null);
+      expect(allIgnored).toHaveLength(1);
+      expect(allIgnored[0].mask).toBe('troll');
+      expect(userManagementService.isUserIgnored('spammer', undefined, undefined, 'Network1')).toBe(false);
+    });
   });
 
   describe('Blacklist', () => {

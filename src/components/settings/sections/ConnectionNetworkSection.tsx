@@ -1327,9 +1327,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
               {
                 id: 'flood-protection-window',
                 title: t('Window Size (ms)', { _tags: tags }),
-                description: `Window size: ${floodProtectionConfig?.windowSize || 5000}ms`,
+                description: `Window size: ${floodProtectionConfig?.windowSize || 10000}ms`,
                 type: 'input',
-                value: floodProtectionConfig?.windowSize?.toString() || '5000',
+                value: floodProtectionConfig?.windowSize?.toString() || '10000',
                 keyboardType: 'numeric',
                 disabled: !floodProtectionConfig?.enabled,
                 onValueChange: async (value: string | boolean) => {
