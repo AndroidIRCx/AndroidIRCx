@@ -17,6 +17,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 jest.mock('../../src/services/SettingsService', () => ({
   settingsService: {
     loadNetworks: jest.fn().mockResolvedValue([]),
+    getSetting: jest.fn().mockResolvedValue(null),
   },
 }));
 
@@ -145,19 +146,49 @@ describe('useNetworkInitialization', () => {
     expect(mockSetNetworkName).toHaveBeenCalledWith('Test Network');
   });
 
-  it('should prioritize DBase network if available', async () => {
+  it('should prioritize DBase network if no quick connect or favorite is set', async () => {
     require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
       { name: 'Other Network', servers: [{ hostname: 'other.com', port: 6667 }] },
       { name: 'DBase', servers: [{ hostname: 'dbase.com', port: 6667 }] },
     ]);
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(null);
 
     renderHook(() => useNetworkInitialization(defaultProps));
 
-    // Wait for async operations
     await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(mockSetSelectedNetworkName).toHaveBeenCalledWith('DBase');
     expect(mockSetNetworkName).toHaveBeenCalledWith('DBase');
+  });
+
+  it('should prioritize Quick Connect Network over everything', async () => {
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
+      { id: 'DBase', name: 'DBase', servers: [{ hostname: 'dbase.com', port: 6667 }] },
+      { id: 'freenode', name: 'Freenode', servers: [{ hostname: 'chat.freenode.com', port: 6697 }] },
+    ]);
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue('freenode');
+
+    renderHook(() => useNetworkInitialization(defaultProps));
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(mockSetSelectedNetworkName).toHaveBeenCalledWith('Freenode');
+    expect(mockSetNetworkName).toHaveBeenCalledWith('Freenode');
+  });
+
+  it('should prioritize favorite/default server network over DBase', async () => {
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
+      { id: 'DBase', name: 'DBase', servers: [{ hostname: 'dbase.com', port: 6667 }] },
+      { id: 'mynet', name: 'MyNetwork', defaultServerId: 'srv1', servers: [{ id: 'srv1', hostname: 'my.com', port: 6697, favorite: true }] },
+    ]);
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(null);
+
+    renderHook(() => useNetworkInitialization(defaultProps));
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(mockSetSelectedNetworkName).toHaveBeenCalledWith('MyNetwork');
+    expect(mockSetNetworkName).toHaveBeenCalledWith('MyNetwork');
   });
 
   it('should load tabs for the selected network', async () => {

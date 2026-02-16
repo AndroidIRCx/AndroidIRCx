@@ -95,12 +95,17 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
           networkToUse = networks.find(n => n.id === quickConnectNetworkId);
         }
         
-        // Fallback: prefer "DBase" network as default, then first network with servers
+        // Fallback: favorite/default server > DBase > first with servers
         if (!networkToUse) {
-          networkToUse = networks.find(n => n.name === 'DBase' && n.servers && n.servers.length > 0) ||
-            networks.find(n => n.name === 'DBase') ||
-            networks.find(n => n.servers && n.servers.length > 0) ||
-            networks[0];
+          networkToUse = networks.find(n =>
+            n.defaultServerId || n.servers?.some(s => s.favorite)
+          );
+        }
+        if (!networkToUse) {
+          networkToUse = networks.find(n => n.name === 'DBase');
+        }
+        if (!networkToUse) {
+          networkToUse = networks.find(n => n.servers && n.servers.length > 0) || networks[0];
         }
       }
     }

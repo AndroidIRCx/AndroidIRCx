@@ -82,7 +82,6 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
     if (tab.type === 'server') {
       const tabConnection = connectionManager.getConnection(tab.networkId);
       const isTabConnected = !!tabConnection?.ircService.getConnectionStatus();
-      const isPrimaryServer = primaryNetworkId ? tab.networkId === primaryNetworkId : false;
       const svc = tabConnection?.ircService || ircService;
       const currentNick = svc?.getCurrentNick?.() || '';
       if (isTabConnected && currentNick) {
@@ -314,7 +313,10 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           },
         });
       }
-      if (!isPrimaryServer) {
+      // Allow closing server tabs that don't have a favorite/default server
+      const networkConfig = (await settingsService.loadNetworks()).find(n => n.name === tab.networkId || n.id === tab.networkId);
+      const hasFavoriteServer = networkConfig?.servers?.some(s => s.favorite) || !!networkConfig?.defaultServerId;
+      if (!hasFavoriteServer) {
         options.push({
           text: t('Close Server Tab'),
           icon: 'close-circle',

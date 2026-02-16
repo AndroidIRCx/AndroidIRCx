@@ -56,8 +56,22 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
       try {
         const networks = await settingsService.loadNetworks();
         if (networks.length > 0) {
-          const dbaseNetwork = networks.find(n => n.name === 'DBase');
-          const networkToUse = dbaseNetwork || networks.find(n => n.servers && n.servers.length > 0) || networks[0];
+          // Priority: Quick Connect > Favorite/Default server > DBase > first with servers
+          const quickConnectNetworkId = await settingsService.getSetting<string | null>('quickConnectNetworkId', null);
+          let networkToUse = quickConnectNetworkId
+            ? networks.find(n => n.id === quickConnectNetworkId)
+            : undefined;
+          if (!networkToUse) {
+            networkToUse = networks.find(n =>
+              n.defaultServerId || n.servers?.some(s => s.favorite)
+            );
+          }
+          if (!networkToUse) {
+            networkToUse = networks.find(n => n.name === 'DBase');
+          }
+          if (!networkToUse) {
+            networkToUse = networks.find(n => n.servers && n.servers.length > 0) || networks[0];
+          }
           if (networkToUse && networkToUse.name) {
             initialNetworkName = networkToUse.name;
           }

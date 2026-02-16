@@ -21,6 +21,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 jest.mock('../../src/services/SettingsService', () => ({
   settingsService: {
     loadNetworks: jest.fn(async () => []),
+    getSetting: jest.fn(async () => null),
   },
 }));
 const mockSettingsService = jest.requireMock<any>('../../src/services/SettingsService').settingsService;
@@ -136,6 +137,74 @@ describe('useAutoConnectFavorite', () => {
 
     await waitFor(() => {
       expect(mockHandleConnect).toHaveBeenCalledWith(baseNetwork);
+    });
+  });
+
+  it('should connect to Quick Connect Network first and also other favorites', async () => {
+    const dbase = { ...baseNetwork, id: 'DBase', name: 'DBase', servers: [{ ...baseNetwork.servers[0], favorite: true }] };
+    const freenode = { id: 'freenode', name: 'Freenode', nick: 'Nick', realname: 'User', servers: [{ id: 's2', hostname: 'chat.freenode.com', port: 6697, ssl: true, favorite: true }] };
+    mockSettingsService.loadNetworks.mockResolvedValue([dbase, freenode]);
+    mockSettingsService.getSetting.mockResolvedValue('freenode');
+
+    renderHook(() => useAutoConnectFavorite({
+      autoConnectFavoriteServer: true,
+      initialDataLoaded: true,
+      selectedNetworkName: '',
+      handleConnect: mockHandleConnect,
+      autoConnectAttemptedRef,
+    }));
+
+    await waitFor(() => {
+      // Quick Connect (Freenode) first, then other favorites (DBase)
+      expect(mockHandleConnect).toHaveBeenCalledTimes(2);
+      expect(mockHandleConnect).toHaveBeenNthCalledWith(1, freenode);
+      expect(mockHandleConnect).toHaveBeenNthCalledWith(2, dbase);
+    });
+  });
+
+  it('should connect to both startup targets and favorite targets', async () => {
+    const startupNetwork = { ...baseNetwork, id: 'net-1', name: 'StartupNet', connectOnStartup: true };
+    const favNetwork = { id: 'net-2', name: 'FavNet', nick: 'Nick', realname: 'User', servers: [{ id: 's2', hostname: 'irc.fav.com', port: 6697, ssl: true, favorite: true }] };
+    mockSettingsService.loadNetworks.mockResolvedValue([startupNetwork, favNetwork]);
+
+    renderHook(() => useAutoConnectFavorite({
+      autoConnectFavoriteServer: true,
+      initialDataLoaded: true,
+      selectedNetworkName: '',
+      handleConnect: mockHandleConnect,
+      autoConnectAttemptedRef,
+    }));
+
+    await waitFor(() => {
+      // Should connect to BOTH startup network AND favorite network
+      expect(mockHandleConnect).toHaveBeenCalledTimes(2);
+      expect(mockHandleConnect).toHaveBeenCalledWith(startupNetwork);
+      expect(mockHandleConnect).toHaveBeenCalledWith(favNetwork);
+    });
+  });
+
+  it('should not duplicate networks that are both startup and favorite', async () => {
+    const bothNetwork = { 
+      ...baseNetwork, 
+      id: 'net-1', 
+      name: 'BothNet', 
+      connectOnStartup: true,
+      servers: [{ ...baseNetwork.servers[0], favorite: true }]
+    };
+    mockSettingsService.loadNetworks.mockResolvedValue([bothNetwork]);
+
+    renderHook(() => useAutoConnectFavorite({
+      autoConnectFavoriteServer: true,
+      initialDataLoaded: true,
+      selectedNetworkName: '',
+      handleConnect: mockHandleConnect,
+      autoConnectAttemptedRef,
+    }));
+
+    await waitFor(() => {
+      // Should connect only ONCE even though it's both startup and favorite
+      expect(mockHandleConnect).toHaveBeenCalledTimes(1);
+      expect(mockHandleConnect).toHaveBeenCalledWith(bothNetwork);
     });
   });
 
