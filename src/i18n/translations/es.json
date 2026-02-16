@@ -1251,7 +1251,7 @@
     "string": "..."
   },
   "Download": {
-    "string": "Download"
+    "string": "Descargar"
   },
   "Networks & Servers": {
     "string": "Redes y Servidores"
@@ -2073,7 +2073,7 @@
     "string": "#canal1, #canal2"
   },
   "SASL PLAIN (Optional)": {
-    "string": "SASL PLAIN (Opcional)"
+    "string": "SASL PLANO (Opcional)"
   },
   "SASL account name": {
     "string": "Nombre de cuenta SASL"
@@ -2361,7 +2361,7 @@
     "string": "Puerto *"
   },
   "Standard ports: 6667 (plain), 6697 (SSL/TLS)": {
-    "string": "Puertos Estándar: 6667 (plain), 6697 (SSL/TLS)"
+    "string": "Puertos Estándar: 6667 (plano), 6697 (SSL/TLS)"
   },
   "Use SSL/TLS": {
     "string": "Utilice SSL/TLS"
@@ -4344,7 +4344,7 @@
     "string": "Encriptado"
   },
   "Downloading... {progress}%": {
-    "string": "Downloading... {progress}%"
+    "string": "Descargando... {progress}%"
   },
   "Loading encrypted media...": {
     "string": "Cargando medios encriptados..."
@@ -9234,7 +9234,7 @@
     "string": "Mecanismo SASL"
   },
   "PLAIN": {
-    "string": "PLAIN"
+    "string": "PLANO"
   },
   "SCRAM-SHA-256": {
     "string": "SCRAM-SHA-256"
@@ -10653,7 +10653,7 @@
     "string": "SASL Autenticación (Opcional)"
   },
   "PLAIN - Simple username/password": {
-    "string": "PLAIN - Simple username/password"
+    "string": "PLANO - Simple usuario/clave"
   },
   "SCRAM-SHA-256 - Secure challenge-response": {
     "string": "SCRAM-SHA-256 - Desafío-respuesta seguro"
@@ -11358,7 +11358,7 @@
     "string": "Hostname: e.j., irc.dbase.in.rs"
   },
   "Port: 6697 (SSL) or 6667 (plain)": {
-    "string": "Puerto: 6697 (SSL) o 6667 (normal)"
+    "string": "Puerto: 6697 (SSL) o 6667 (plano)"
   },
   "Use SSL/TLS: Recommended": {
     "string": "Usar SSL/TLS: Recomendado"

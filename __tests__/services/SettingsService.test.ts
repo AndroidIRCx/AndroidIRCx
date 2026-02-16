@@ -364,6 +364,49 @@ describe('SettingsService', () => {
     });
   });
 
+  describe('clearDefaultServerForNetwork', () => {
+    it('should persist cleared defaultServerId for DBase network across loadNetworks calls', async () => {
+      await settingsService.loadNetworks();
+
+      // Verify DBase has a default server set initially
+      let network = await settingsService.getNetwork('DBase');
+      expect(network?.defaultServerId).toBeTruthy();
+      const originalDefault = network!.defaultServerId;
+
+      // Clear the default server
+      await settingsService.clearDefaultServerForNetwork('DBase', originalDefault!);
+
+      // Reload networks (this triggers ensureDefaults)
+      await settingsService.loadNetworks();
+
+      // The cleared defaultServerId should stay cleared, not revert back
+      network = await settingsService.getNetwork('DBase');
+      expect(network?.defaultServerId).toBeUndefined();
+    });
+
+    it('should allow setting a different server as default for DBase network', async () => {
+      await settingsService.loadNetworks();
+
+      // Add a new server
+      await settingsService.addServerToNetwork('DBase', {
+        id: 'alt-server',
+        hostname: 'alt.example.com',
+        port: 6667,
+        ssl: false,
+      });
+
+      // Set it as default
+      await settingsService.setDefaultServerForNetwork('DBase', 'alt-server');
+
+      // Reload (triggers ensureDefaults)
+      await settingsService.loadNetworks();
+
+      // Should stay as the user's chosen server
+      const network = await settingsService.getNetwork('DBase');
+      expect(network?.defaultServerId).toBe('alt-server');
+    });
+  });
+
   describe('createDefaultNetwork', () => {
     it('should create DBase network if not exists', async () => {
       // Clear any existing networks

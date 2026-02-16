@@ -339,10 +339,7 @@ class SettingsService {
           // Default to rejecting unauthorized certs unless user explicitly disabled
           rejectUnauthorized: s.rejectUnauthorized !== false,
         })),
-        // Only auto-set defaultServerId for DBase network
-        defaultServerId: isDBaseNetwork
-          ? (net.defaultServerId || servers[0]?.id || DEFAULT_SERVER_ID)
-          : net.defaultServerId,
+        defaultServerId: net.defaultServerId,
         identityProfileId: net.identityProfileId,
         nick: net.nick || DEFAULT_IDENTITY.nick,
         altNick: net.altNick || DEFAULT_IDENTITY.altNick,
