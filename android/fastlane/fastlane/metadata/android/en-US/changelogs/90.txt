@@ -1,0 +1,6 @@
+- Fixed quit message using hardcoded default instead of user settings
+- Add per-category Android notification channels
+- Fixed DBase default server reverting
+- Fixed auto-connect favorites server
+- Fixed deleting ignored members for other networks
+- Default flood protection changed from 10/5s to be 10/10s

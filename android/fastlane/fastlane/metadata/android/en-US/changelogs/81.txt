@@ -1,3 +1,0 @@
-v1.6.19
-- Implemented clone detection to identify duplicate connections
-- Fixed and improved SASL authentication handling

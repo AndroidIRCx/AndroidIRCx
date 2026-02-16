@@ -1,5 +1,0 @@
-v1.6.18
-- Fixed crash when opening query from user context menu
-- Fixed IRCv3 channel history and ZNC playback conflicting
-- Various bug fixes and performance improvements
-- Whois channels are now clickable in modal and raw

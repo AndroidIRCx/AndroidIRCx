@@ -1,2 +1,0 @@
-- Backup & Restore now supports loading JSON directly from file storage (not only paste)
-- Added option to delete DBase network & Identity Profiles

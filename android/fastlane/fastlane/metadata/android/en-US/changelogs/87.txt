@@ -1,2 +1,0 @@
-- Restored previous stable React Native version
-- Fixed handling of /me and /action commands

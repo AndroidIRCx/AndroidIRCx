@@ -1,6 +1,0 @@
-- Full IRC services support (NickServ, ChanServ, HostServ, OperServ) across major networks
-- IRCd support: UnrealIRCd, InspIRCd, Charybdis, Hybrid, ngIRCd
-- Automatic service detection from server configuration
-- 390+ IRC numeric handlers for full protocol compatibility
-- Context menu icons with translations
-- Identity Profiles available in Network Settings
