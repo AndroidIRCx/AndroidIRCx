@@ -19,6 +19,18 @@ import {
   handleREGISTER,
 } from '../../../../src/services/irc/sendCommands/BasicIRCCommands';
 import type { SendMessageHandlerContext } from '../../../../src/services/irc/sendMessageTypes';
+import { settingsService } from '../../../../src/services/SettingsService';
+
+jest.mock('../../../../src/services/SettingsService', () => {
+  const actual = jest.requireActual('../../../../src/services/SettingsService');
+  return {
+    ...actual,
+    settingsService: {
+      ...actual.settingsService,
+      getSetting: jest.fn((key: string, defaultVal: any) => Promise.resolve(defaultVal)),
+    },
+  };
+});
 
 describe('BasicIRCCommands', () => {
   const createMockContext = (): Partial<SendMessageHandlerContext> => ({
@@ -184,20 +196,30 @@ describe('BasicIRCCommands', () => {
   });
 
   describe('handleQUIT', () => {
-    it('should emit intentional-quit event', () => {
-      handleQUIT(ctx, ['Goodbye!']);
+    it('should emit intentional-quit event', async () => {
+      await handleQUIT(ctx, ['Goodbye!'], '');
 
       expect(ctx.emit).toHaveBeenCalledWith('intentional-quit', 'freenode');
     });
 
-    it('should send QUIT command with message', () => {
-      handleQUIT(ctx, ['Goodbye!']);
+    it('should send QUIT command with user-provided message', async () => {
+      await handleQUIT(ctx, ['Goodbye!'], '');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith('QUIT :Goodbye!');
+      expect(settingsService.getSetting).not.toHaveBeenCalled();
     });
 
-    it('should send QUIT with default message if none provided', () => {
-      handleQUIT(ctx, []);
+    it('should read quit message from settings when no args provided', async () => {
+      (settingsService.getSetting as jest.Mock).mockResolvedValueOnce('Custom quit msg');
+
+      await handleQUIT(ctx, [], '');
+
+      expect(settingsService.getSetting).toHaveBeenCalledWith('quitMessage', expect.any(String));
+      expect(ctx.sendRaw).toHaveBeenCalledWith('QUIT :Custom quit msg');
+    });
+
+    it('should use default quit message when settings returns default', async () => {
+      await handleQUIT(ctx, [], '');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith(expect.stringContaining('QUIT :'));
     });

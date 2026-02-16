@@ -14,6 +14,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee, { AndroidImportance, AndroidCategory, EventType } from '@notifee/react-native';
 import { tx } from '../i18n/transifex';
 
+/** Android notification channel IDs for category-based grouping */
+export const NOTIFICATION_CHANNELS = {
+  PRIVATE_MESSAGES: 'private-messages',
+  CHANNEL_MESSAGES: 'channel-messages',
+  NOTICES: 'notices',
+  SERVER: 'server',
+  DCC_TRANSFERS: 'dcc-transfers',
+} as const;
+
 export interface NotificationPreferences {
   enabled: boolean;
   notifyOnMentions: boolean;
@@ -182,14 +191,19 @@ class NotificationService {
         }
       });
 
-      // Create a default channel for Android
-      // This is required for Android 8.0 (Oreo) and above
-      const channelId = await notifee.createChannel({
-        id: 'default',
-        name: t('Default Channel'),
-        importance: AndroidImportance.DEFAULT,
-      });
-      console.log('NotificationService: Default Android channel created:', channelId);
+      // Create Android notification channels for category-based grouping
+      // Required for Android 8.0 (Oreo) and above
+      const channelDefs = [
+        { id: NOTIFICATION_CHANNELS.PRIVATE_MESSAGES, name: t('Private Messages'), importance: AndroidImportance.HIGH },
+        { id: NOTIFICATION_CHANNELS.CHANNEL_MESSAGES, name: t('Channel Messages'), importance: AndroidImportance.DEFAULT },
+        { id: NOTIFICATION_CHANNELS.NOTICES, name: t('Notices'), importance: AndroidImportance.LOW },
+        { id: NOTIFICATION_CHANNELS.SERVER, name: t('Server'), importance: AndroidImportance.LOW },
+        { id: NOTIFICATION_CHANNELS.DCC_TRANSFERS, name: t('DCC Transfers'), importance: AndroidImportance.HIGH },
+      ];
+      for (const def of channelDefs) {
+        await notifee.createChannel(def);
+      }
+      console.log('NotificationService: Android notification channels created');
 
       // If notifications are enabled, check permission
       // If permission is not granted, automatically disable notifications
@@ -353,13 +367,25 @@ class NotificationService {
   }
 
   /**
+   * Resolve the Android notification channel ID based on the IRC target and message type.
+   */
+  private resolveChannelId(channel?: string, messageType?: string): string {
+    if (messageType === 'notice') return NOTIFICATION_CHANNELS.NOTICES;
+    if (messageType === 'error' || messageType === 'system' || messageType === 'monitor') return NOTIFICATION_CHANNELS.SERVER;
+    if (!channel || channel === '*') return NOTIFICATION_CHANNELS.SERVER;
+    if (/^[#&+!]/.test(channel)) return NOTIFICATION_CHANNELS.CHANNEL_MESSAGES;
+    return NOTIFICATION_CHANNELS.PRIVATE_MESSAGES;
+  }
+
+  /**
    * Show a local notification using react-native-notifications
    */
   async showNotification(
     title: string,
     body: string,
     channel: string,
-    network?: string
+    network?: string,
+    messageType?: string
   ): Promise<void> {
     // Check if permission is granted before showing notification
     const hasPermission = await this.checkPermission();
@@ -371,8 +397,7 @@ class NotificationService {
     const notificationId = `irc_notification_${++this.notificationIdCounter}_${Date.now()}`;
 
     try {
-      // Define Android channel ID (default to 'default')
-      const androidChannelId = 'default';
+      const androidChannelId = this.resolveChannelId(channel, messageType);
 
       await notifee.displayNotification({
         id: notificationId,
@@ -411,7 +436,7 @@ class NotificationService {
    * Show notification for a message
    */
   async showMessageNotification(
-    message: { from?: string; text: string; channel?: string },
+    message: { from?: string; text: string; channel?: string; type?: string },
     currentNick: string,
     network?: string
   ): Promise<void> {
@@ -438,7 +463,7 @@ class NotificationService {
       body = t('{from}: {text}', { from: message.from || t('Unknown'), text: message.text || '' });
     }
 
-    await this.showNotification(title, body, channel, network);
+    await this.showNotification(title, body, channel, network, message.type);
   }
 
   /**

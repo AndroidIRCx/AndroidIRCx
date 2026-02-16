@@ -279,6 +279,7 @@ class BackgroundService {
         from: message.from,
         text: message.text,
         channel: message.channel,
+        type: message.type,
       },
       service.getCurrentNick(),
       service.getNetworkName()
@@ -306,7 +307,7 @@ class BackgroundService {
       });
       const body = lastMessage.text || '';
 
-      await notificationService.showNotification(title, body, channelName, networkName);
+      await notificationService.showNotification(title, body, channelName, networkName, lastMessage.type);
       this.lastNotificationTime.set(channelKey, Date.now());
     }
 

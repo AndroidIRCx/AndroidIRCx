@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { dccFileService } from '../services/DCCFileService';
 import { useUIStore } from '../stores/uiStore';
 import notifee from '@notifee/react-native';
+import { NOTIFICATION_CHANNELS } from '../services/NotificationService';
 
 interface UseDccNotificationsProps {
   safeAlert: (title: string, message: string) => void;
@@ -22,7 +23,7 @@ async function sendDccNotification(title: string, body: string) {
   try {
     // Create a channel for DCC notifications if it doesn't exist
     const channelId = await notifee.createChannel({
-      id: 'dcc-transfers',
+      id: NOTIFICATION_CHANNELS.DCC_TRANSFERS,
       name: 'DCC Transfers',
       importance: 4, // HIGH
     });

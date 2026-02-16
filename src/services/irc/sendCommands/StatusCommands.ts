@@ -10,7 +10,7 @@
 
 import { tx } from '../../../i18n/transifex';
 import type { SendMessageHandler, SendMessageHandlerRegistry } from '../sendMessageTypes';
-import { DEFAULT_QUIT_MESSAGE } from '../../SettingsService';
+import { settingsService, DEFAULT_QUIT_MESSAGE } from '../../SettingsService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -38,10 +38,16 @@ export const handleRECONNECT: SendMessageHandler = (ctx) => {
   ctx.addMessage({ type: 'notice', text: t('*** Reconnecting to server...'), timestamp: Date.now() });
 };
 
-export const handleDISCONNECT: SendMessageHandler = (ctx, args) => {
+export const handleDISCONNECT: SendMessageHandler = async (ctx, args) => {
   // /disconnect - Disconnect from server (alias for /quit)
   ctx.emit('intentional-quit', ctx.getNetworkName());
-  ctx.sendRaw(`QUIT :${args.join(' ') || DEFAULT_QUIT_MESSAGE}`);
+  const userArgs = args.join(' ');
+  if (userArgs) {
+    ctx.sendRaw(`QUIT :${userArgs}`);
+  } else {
+    const quitMsg = await settingsService.getSetting('quitMessage', DEFAULT_QUIT_MESSAGE);
+    ctx.sendRaw(`QUIT :${quitMsg}`);
+  }
 };
 
 export const handleSERVER: SendMessageHandler = (ctx, args) => {

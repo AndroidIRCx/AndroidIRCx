@@ -10,7 +10,7 @@
 
 import { tx } from '../../../i18n/transifex';
 import type { SendMessageHandler, SendMessageHandlerRegistry } from '../sendMessageTypes';
-import { DEFAULT_QUIT_MESSAGE } from '../../SettingsService';
+import { settingsService, DEFAULT_QUIT_MESSAGE } from '../../SettingsService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -59,9 +59,15 @@ export const handleBOT: SendMessageHandler = (ctx, args) => {
   ctx.toggleBotMode(enable);
 };
 
-export const handleQUIT: SendMessageHandler = (ctx, args) => {
+export const handleQUIT: SendMessageHandler = async (ctx, args) => {
   ctx.emit('intentional-quit', ctx.getNetworkName());
-  ctx.sendRaw(`QUIT :${args.join(' ') || DEFAULT_QUIT_MESSAGE}`);
+  const userArgs = args.join(' ');
+  if (userArgs) {
+    ctx.sendRaw(`QUIT :${userArgs}`);
+  } else {
+    const quitMsg = await settingsService.getSetting('quitMessage', DEFAULT_QUIT_MESSAGE);
+    ctx.sendRaw(`QUIT :${quitMsg}`);
+  }
 };
 
 export const handleMODE: SendMessageHandler = (ctx, args) => {

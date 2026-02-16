@@ -81,8 +81,10 @@ describe('IRC Send Commands', () => {
       expect(socket.writes.length).toBeGreaterThanOrEqual(0);
     });
 
-    it('/quit sends QUIT with default message', () => {
+    it('/quit sends QUIT with default message', async () => {
       irc.sendMessage('#test', '/quit');
+      jest.useRealTimers();
+      await new Promise(r => setTimeout(r, 10));
       expect(socket.writes.some(w => w.includes('QUIT'))).toBe(true);
     });
 
@@ -159,8 +161,10 @@ describe('IRC Send Commands', () => {
       expect(emitSpy).toHaveBeenCalledWith('reconnect', expect.any(String));
     });
 
-    it('/disconnect sends QUIT', () => {
+    it('/disconnect sends QUIT', async () => {
       irc.sendMessage('#test', '/disconnect');
+      jest.useRealTimers();
+      await new Promise(r => setTimeout(r, 10));
       expect(socket.writes.some(w => w.includes('QUIT'))).toBe(true);
     });
   });

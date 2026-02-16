@@ -41,6 +41,7 @@ jest.mock('@notifee/react-native', () => ({
     onForegroundEvent: jest.fn(),
   },
   AndroidImportance: {
+    LOW: 2,
     DEFAULT: 3,
     HIGH: 4,
   },
@@ -200,14 +201,25 @@ describe('NotificationService', () => {
       expect(prefs.notifyOnMentions).toBe(false);
     });
 
-    it('should create default notification channel', async () => {
+    it('should create all notification channels', async () => {
       await notificationService.initialize();
 
-      expect(notifee.createChannel).toHaveBeenCalledWith({
-        id: 'default',
-        name: 'Default Channel',
-        importance: 3, // AndroidImportance.DEFAULT
-      });
+      expect(notifee.createChannel).toHaveBeenCalledTimes(5);
+      expect(notifee.createChannel).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'private-messages', importance: 4 })
+      );
+      expect(notifee.createChannel).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'channel-messages', importance: 3 })
+      );
+      expect(notifee.createChannel).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'notices' })
+      );
+      expect(notifee.createChannel).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'server' })
+      );
+      expect(notifee.createChannel).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'dcc-transfers', importance: 4 })
+      );
     });
 
     it('should disable notifications if no permission', async () => {
