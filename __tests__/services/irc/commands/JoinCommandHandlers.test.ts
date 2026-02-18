@@ -20,6 +20,7 @@ describe('JoinCommandHandlers', () => {
     sendRaw: jest.fn(),
     extractNick: jest.fn().mockImplementation((prefix: string) => prefix.split('!')[0]),
     runBlacklistCheckForJoin: jest.fn(),
+    runAutoModeCheckForJoin: jest.fn(),
     ensureChannelUsersMap: jest.fn().mockReturnValue(new Map()),
     removeUser: jest.fn(),
     isIgnored: jest.fn().mockReturnValue(false),
@@ -83,6 +84,34 @@ describe('JoinCommandHandlers', () => {
         'host.com',
         '#general'
       );
+    });
+
+    it('should run auto-mode check after blacklist check when other user joins', () => {
+      ctx.getCurrentNick = jest.fn().mockReturnValue('TestUser');
+      ctx.extractNick = jest.fn().mockReturnValue('AutoOpUser');
+      ctx.getUser = jest.fn().mockReturnValue(undefined);
+      ctx.runAutoModeCheckForJoin = jest.fn();
+      
+      handleJOIN(ctx, 'AutoOpUser!~user@host.com', ['#general'], Date.now());
+
+      expect(ctx.runAutoModeCheckForJoin).toHaveBeenCalledWith(
+        'AutoOpUser',
+        '~user',
+        'host.com',
+        '#general'
+      );
+    });
+
+    it('should not run blacklist or auto-mode checks for self join', () => {
+      ctx.getCurrentNick = jest.fn().mockReturnValue('TestUser');
+      ctx.extractNick = jest.fn().mockReturnValue('TestUser');
+      ctx.getUser = jest.fn().mockReturnValue(undefined);
+      ctx.runAutoModeCheckForJoin = jest.fn();
+      
+      handleJOIN(ctx, 'TestUser!~user@host.com', ['#general'], Date.now());
+
+      expect(ctx.runBlacklistCheckForJoin).not.toHaveBeenCalled();
+      expect(ctx.runAutoModeCheckForJoin).not.toHaveBeenCalled();
     });
 
     it('should handle join without extended join capability', () => {

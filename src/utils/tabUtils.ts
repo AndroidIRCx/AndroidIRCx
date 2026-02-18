@@ -33,6 +33,11 @@ export const queryTabId = (network: string, name: string) => `query::${network}:
 export const noticeTabId = (network: string) => `notice::${network}`;
 
 /**
+ * Generate unique ID for notifications tab
+ */
+export const notificationsTabId = (network: string) => `notifications::${network}`;
+
+/**
  * Create a new server tab with default properties
  */
 export const makeServerTab = (network: string): ChannelTab => ({

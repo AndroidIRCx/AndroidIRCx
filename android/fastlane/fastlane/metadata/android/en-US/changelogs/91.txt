@@ -1,0 +1,7 @@
+- User Lists: manage notify, ignore, auto-op/voice/halfop, blacklist
+- Protected users: exempt from bans, ignore, flood protection
+- Notify service: track friends via ISON/MONITOR/WATCH
+- Nicklist: FlashList for large channels, debounced search, chunk loading
+- Swipe gestures: switch tabs or toggle panels
+- WHOIS popup: secure info, modes, oper/admin/helpop
+- CTCP VERSION configurable in Settings with safe fallback

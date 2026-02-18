@@ -8,7 +8,7 @@
  * Extracted from App.tsx to reduce complexity.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Platform, View, useWindowDimensions, TouchableOpacity, PanResponder } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ChannelTabs } from './ChannelTabs';
@@ -137,6 +137,8 @@ export function AppLayout({
   const [bannerPosition, setBannerPosition] = useState<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>('input_above');
   const [nicklistTongueEnabled, setNicklistTongueEnabled] = useState(true);
   const [nicklistTongueSizePx, setNicklistTongueSizePx] = useState(56);
+  const [swipeBehavior, setSwipeBehavior] = useState<'off' | 'switch-tabs' | 'show-panels'>('off');
+  const [swipeInverse, setSwipeInverse] = useState(false);
   const setShowUserList = useUIStore(state => state.setShowUserList);
 
   useEffect(() => {
@@ -178,6 +180,80 @@ export function AppLayout({
       unsubSize();
     };
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    settingsService.getSetting('swipeBehavior', 'off').then(value => {
+      if (mounted) setSwipeBehavior(value as 'off' | 'switch-tabs' | 'show-panels');
+    });
+    settingsService.getSetting('channelListScrollSwitchTabsInverse', false).then(value => {
+      if (mounted) setSwipeInverse(Boolean(value));
+    });
+    const unsub = settingsService.onSettingChange<string>('swipeBehavior', value => {
+      setSwipeBehavior(value as 'off' | 'switch-tabs' | 'show-panels');
+    });
+    const unsubInverse = settingsService.onSettingChange<boolean>('channelListScrollSwitchTabsInverse', value => {
+      setSwipeInverse(Boolean(value));
+    });
+    return () => { mounted = false; unsub(); unsubInverse(); };
+  }, []);
+
+  const swipePanResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => false,
+    onMoveShouldSetPanResponder: (_, gesture) => {
+      if (swipeBehavior === 'off') return false;
+      return Math.abs(gesture.dx) > 30 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 2;
+    },
+    onPanResponderRelease: (_, gesture) => {
+      if (Math.abs(gesture.dx) < 50) return;
+
+      if (swipeBehavior === 'switch-tabs') {
+        const idx = tabs.findIndex(t => t.id === activeTabId);
+        if (idx === -1 || tabs.length === 0) return;
+        // Normal: dx > 0 = right swipe = previous tab
+        // Inverse: dx > 0 = right swipe = next tab
+        const goRight = swipeInverse ? gesture.dx < 0 : gesture.dx > 0;
+        if (goRight) {
+          handleTabPress(tabs[(idx - 1 + tabs.length) % tabs.length].id);
+        } else {
+          handleTabPress(tabs[(idx + 1) % tabs.length].id);
+        }
+      } else if (swipeBehavior === 'show-panels') {
+        const isSideTabs = layoutConfig.tabPosition === 'left' || layoutConfig.tabPosition === 'right';
+        const isTopBottomTabs = !isSideTabs;
+        
+        // Apply inverse if enabled
+        const isRightSwipe = swipeInverse ? gesture.dx < 0 : gesture.dx > 0;
+        const isLeftSwipe = swipeInverse ? gesture.dx > 0 : gesture.dx < 0;
+        
+        if (isSideTabs) {
+          // Tabs on left/right
+          if (isRightSwipe) {
+            // Swipe right → toggle tabs
+            onToggleSideTabs();
+          } else if (isLeftSwipe && activeTab?.type === 'channel') {
+            // Swipe left → toggle nicklist
+            setShowUserList(!showUserList);
+          }
+        } else {
+          // Tabs on top/bottom
+          if (isRightSwipe) {
+            // Swipe right → previous tab
+            const idx = tabs.findIndex(t => t.id === activeTabId);
+            if (idx !== -1 && tabs.length > 0) {
+              handleTabPress(tabs[(idx - 1 + tabs.length) % tabs.length].id);
+            }
+          } else if (isLeftSwipe) {
+            // Swipe left → next tab
+            const idx = tabs.findIndex(t => t.id === activeTabId);
+            if (idx !== -1 && tabs.length > 0) {
+              handleTabPress(tabs[(idx + 1) % tabs.length].id);
+            }
+          }
+        }
+      }
+    },
+  }), [swipeBehavior, swipeInverse, tabs, activeTabId, handleTabPress, sideTabsVisible, onToggleSideTabs, activeTab, showUserList, setShowUserList, layoutConfig.tabPosition]);
 
   const renderUserList = (position: 'left' | 'right' | 'top' | 'bottom') => {
     if (!activeTab || activeTab.type !== 'channel' || !showUserList) {
@@ -392,7 +468,7 @@ export function AppLayout({
           ]}>
           {layoutConfig.userListPosition === 'top' && renderUserList('top')}
           {layoutConfig.userListPosition === 'left' && renderUserList('left')}
-          <View style={styles.messageAreaContainer}>
+          <View {...swipePanResponder.panHandlers} style={styles.messageAreaContainer}>
             <MessageArea
               messages={activeMessages}
               channelUsers={activeUsers}

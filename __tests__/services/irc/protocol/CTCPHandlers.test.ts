@@ -85,11 +85,12 @@ describe('CTCPHandlers', () => {
       getCurrentNick: jest.fn().mockReturnValue('TestUser'),
       getRealname: jest.fn().mockReturnValue('Test Realname'),
       isConnected: jest.fn().mockReturnValue(true),
+      getCtcpVersionMessage: jest.fn().mockResolvedValue('https://github.com/AndroidIRCX'),
     });
 
-    it('should handle VERSION request', () => {
+    it('should handle VERSION request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'VERSION');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'VERSION');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith(
         expect.stringContaining('NOTICE OtherUser :\x01VERSION')
@@ -99,43 +100,63 @@ describe('CTCPHandlers', () => {
       );
     });
 
-    it('should handle TIME request', () => {
+    it('should handle VERSION request with empty custom message', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'TIME');
+      ctx.getCtcpVersionMessage = jest.fn().mockResolvedValue('');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'VERSION');
+
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'NOTICE OtherUser :\x01VERSION AndroidIRCX 1.7.0\x01'
+      );
+    });
+
+    it('should handle VERSION request with custom message', async () => {
+      const ctx = createMockContext();
+      ctx.getCtcpVersionMessage = jest.fn().mockResolvedValue('My Custom Build');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'VERSION');
+
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'NOTICE OtherUser :\x01VERSION AndroidIRCX 1.7.0 My Custom Build\x01'
+      );
+    });
+
+    it('should handle TIME request', async () => {
+      const ctx = createMockContext();
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'TIME');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith(
         expect.stringMatching(/NOTICE OtherUser :\x01TIME .+\x01/)
       );
     });
 
-    it('should handle PING request with args', () => {
+    it('should handle PING request with args', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'PING', '12345');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'PING', '12345');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith(
         'NOTICE OtherUser :\x01PING 12345\x01'
       );
     });
 
-    it('should handle PING request without args', () => {
+    it('should handle PING request without args', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'PING');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'PING');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith(
         expect.stringMatching(/NOTICE OtherUser :\x01PING \d+\x01/)
       );
     });
 
-    it('should handle ACTION request (no response)', () => {
+    it('should handle ACTION request (no response)', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'ACTION', 'dances');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'ACTION', 'dances');
 
       expect(ctx.sendRaw).not.toHaveBeenCalled();
     });
 
-    it('should handle DCC request', () => {
+    it('should handle DCC request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'DCC', 'SEND file.txt 192.168.1.1 1234');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'DCC', 'SEND file.txt 192.168.1.1 1234');
 
       expect(ctx.addMessage).toHaveBeenCalledWith({
         type: 'ctcp',
@@ -146,9 +167,9 @@ describe('CTCPHandlers', () => {
       });
     });
 
-    it('should handle SLOTS request', () => {
+    it('should handle SLOTS request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'SLOTS', '1/2');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'SLOTS', '1/2');
 
       expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
         type: 'ctcp',
@@ -156,9 +177,9 @@ describe('CTCPHandlers', () => {
       }));
     });
 
-    it('should handle XDCC request', () => {
+    it('should handle XDCC request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'XDCC', 'SEND #1');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'XDCC', 'SEND #1');
 
       expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
         type: 'ctcp',
@@ -166,45 +187,45 @@ describe('CTCPHandlers', () => {
       }));
     });
 
-    it('should handle CLIENTINFO request', () => {
+    it('should handle CLIENTINFO request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'CLIENTINFO');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'CLIENTINFO');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith(
         'NOTICE OtherUser :\x01CLIENTINFO ACTION DCC PING TIME VERSION CLIENTINFO USERINFO SOURCE FINGER\x01'
       );
     });
 
-    it('should handle USERINFO request', () => {
+    it('should handle USERINFO request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'USERINFO');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'USERINFO');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith(
         'NOTICE OtherUser :\x01USERINFO Test Realname\x01'
       );
     });
 
-    it('should handle SOURCE request', () => {
+    it('should handle SOURCE request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'SOURCE');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'SOURCE');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith(
         'NOTICE OtherUser :\x01SOURCE https://github.com/AndroidIRCX\x01'
       );
     });
 
-    it('should handle FINGER request', () => {
+    it('should handle FINGER request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'FINGER');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'FINGER');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith(
         'NOTICE OtherUser :\x01FINGER TestUser - AndroidIRCX\x01'
       );
     });
 
-    it('should handle unknown CTCP command', () => {
+    it('should handle unknown CTCP command', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'UNKNOWN', 'args');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'UNKNOWN', 'args');
 
       expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
         type: 'ctcp',
@@ -213,18 +234,18 @@ describe('CTCPHandlers', () => {
       expect(ctx.logRaw).toHaveBeenCalled();
     });
 
-    it('should not send response when not connected', () => {
+    it('should not send response when not connected', async () => {
       const ctx = createMockContext();
       ctx.isConnected.mockReturnValue(false);
       
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'VERSION');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'VERSION');
 
       expect(ctx.sendRaw).not.toHaveBeenCalled();
     });
 
-    it('should handle TDCC request', () => {
+    it('should handle TDCC request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'TDCC', 'args');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'TDCC', 'args');
 
       expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
         type: 'ctcp',
@@ -232,9 +253,9 @@ describe('CTCPHandlers', () => {
       }));
     });
 
-    it('should handle RDCC request', () => {
+    it('should handle RDCC request', async () => {
       const ctx = createMockContext();
-      handleCTCPRequest(ctx, 'OtherUser', '#general', 'RDCC', 'args');
+      await handleCTCPRequest(ctx, 'OtherUser', '#general', 'RDCC', 'args');
 
       expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
         type: 'ctcp',

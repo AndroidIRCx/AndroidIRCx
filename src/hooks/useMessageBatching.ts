@@ -7,7 +7,7 @@ import { useCallback, useRef, useEffect } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { IRCMessage } from '../services/IRCService';
 import { performanceService } from '../services/PerformanceService';
-import { serverTabId, noticeTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
+import { serverTabId, noticeTabId, notificationsTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
 import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
 import { messageHistoryService } from '../services/MessageHistoryService';
@@ -220,6 +220,19 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
             newTabs.push({
               id: targetTabId,
               name: 'Notices',
+              type: 'channel',
+              networkId: messageNetwork,
+              messages: [],
+            });
+            tabsModified = true;
+          }
+          
+          // Ensure notifications tab if needed
+          if (targetTabId === notificationsTabId(messageNetwork) && !newTabs.some(t => t.id === targetTabId)) {
+            if (!tabsModified) newTabs = [...newTabs];
+            newTabs.push({
+              id: targetTabId,
+              name: 'Notifications',
               type: 'channel',
               networkId: messageNetwork,
               messages: [],

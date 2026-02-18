@@ -77,6 +77,7 @@ function createMockCtx(overrides?: Record<string, any>) {
     sendRaw: jest.fn(),
     handleCTCPRequest: jest.fn(),
     isUserIgnored: jest.fn(() => false),
+    isUserProtected: jest.fn(() => false),
     evaluateProtectionDecision: jest.fn(() => null),
     handleMultilineMessage: jest.fn((_f: string, _t: string, text: string) => text),
     getEncryptedDMService: jest.fn(() => ({})),

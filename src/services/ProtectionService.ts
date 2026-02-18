@@ -187,7 +187,29 @@ class ProtectionService {
     };
   }
 
+  /**
+   * Check if a user is protected (exempt from all protections).
+   * This method can be passed a callback from UserManagementService.isUserProtected
+   */
+  private isUserProtectedCallback: ((nick: string, username?: string, hostname?: string, network?: string) => boolean) | null = null;
+
+  /**
+   * Set the callback for checking if a user is protected
+   */
+  setProtectedCheckCallback(
+    callback: (nick: string, username?: string, hostname?: string, network?: string) => boolean
+  ): void {
+    this.isUserProtectedCallback = callback;
+  }
+
   evaluateIncomingMessage(message: IRCMessage, ctx?: ProtectionContext): ProtectionDecision | null {
+    // Skip protection checks for protected users
+    if (this.isUserProtectedCallback && message.from) {
+      if (this.isUserProtectedCallback(message.from, message.username, message.hostname, message.network)) {
+        return null;
+      }
+    }
+    
     const decision = this.computeDecision(message, ctx, true);
     if (decision) {
       this.logSpam(decision.kind, message);
@@ -196,6 +218,12 @@ class ProtectionService {
   }
 
   shouldBlockMessage(message: IRCMessage, opts?: { isActiveTab?: boolean; isQueryOpen?: boolean; isChannel?: boolean; isCtcp?: boolean }): boolean {
+    // Skip protection checks for protected users
+    if (this.isUserProtectedCallback && message.from) {
+      if (this.isUserProtectedCallback(message.from, message.username, message.hostname, message.network)) {
+        return false;
+      }
+    }
     return !!this.computeDecision(message, opts, false);
   }
 

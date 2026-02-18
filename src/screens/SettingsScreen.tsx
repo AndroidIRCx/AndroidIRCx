@@ -94,8 +94,8 @@ interface SettingsScreenProps {
   onShowEncryptionIndicatorsChange?: (value: boolean) => void;
   showTypingIndicators?: boolean;
   onShowTypingIndicatorsChange?: (value: boolean) => void;
-  onShowIgnoreList?: () => void;
   onShowBlacklist?: () => void;
+  onShowUserLists?: () => void;
   onShowPurchaseScreen?: () => void;
 }
 
@@ -113,8 +113,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onShowEncryptionIndicatorsChange,
   showTypingIndicators = true,
   onShowTypingIndicatorsChange,
-  onShowIgnoreList,
   onShowBlacklist,
+  onShowUserLists,
   onShowPurchaseScreen,
 }) => {
   const t = useT();
@@ -1380,7 +1380,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         id: 'appearance-section',
         title: 'appearance-section',
         type: 'custom' as const,
-        searchKeywords: ['theme', 'dark', 'light', 'color', 'style', 'font', 'size'],
+        searchKeywords: ['theme', 'dark', 'light', 'color', 'style', 'font', 'size', 'search', 'header', 'icon', 'message', 'button', 'floating', 'appearance', 'ui', 'language', 'translation', 'bold', 'nicknames'],
       }], // Placeholder - actual rendering handled by component
     },
     {
@@ -1390,7 +1390,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         id: 'display-ui-section',
         title: 'display-ui-section',
         type: 'custom' as const,
-        searchKeywords: ['layout', 'tabs', 'userlist', 'nicklist', 'position', 'top', 'bottom', 'left', 'right'],
+        searchKeywords: ['layout', 'tabs', 'userlist', 'nicklist', 'position', 'top', 'bottom', 'left', 'right', 'scroll', 'swipe', 'switch', 'invert', 'reverse', 'channel list', 'whois', 'display', 'modal', 'popup', 'raw', 'encryption', 'typing', 'banner', 'keyboard'],
       }], // Placeholder - actual rendering handled by component
     },
     {
@@ -1927,34 +1927,147 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           disabled: performanceConfig?.userListGrouping === false,
           searchKeywords: ['user', 'list', 'group', 'threshold', 'auto', 'disable', 'performance'],
         },
+        // User List Type Selection (Modal)
         {
-          id: 'perf-user-virtualization',
-          title: t('User List Virtualization', { _tags: tags }),
-          description: t('Use FlatList for large user lists (non-grouped)', { _tags: tags }),
-          type: 'switch' as const,
-          value: performanceConfig?.userListVirtualization !== false,
-          onValueChange: async (value: boolean) => {
-            await performanceService.setConfig({ userListVirtualization: value });
-            setPerformanceConfig(performanceService.getConfig());
+          id: 'perf-user-list-type',
+          title: t('User List Type', { _tags: tags }),
+          description: t('Currently: {type}', { 
+            type: (() => {
+              const type = performanceConfig?.userListType || 'flashlist';
+              switch(type) {
+                case 'flashlist': return t('FlashList (Fastest)', { _tags: tags });
+                case 'flatlist': return t('FlatList (Virtualized)', { _tags: tags });
+                case 'grouped': return t('Grouped (By Mode)', { _tags: tags });
+                case 'simple': return t('Simple (ScrollView)', { _tags: tags });
+                default: return type;
+              }
+            })(),
+            _tags: tags 
+          }),
+          type: 'button' as const,
+          onPress: () => {
+            Alert.alert(
+              t('Select User List Type', { _tags: tags }),
+              t('Choose rendering method for nicklist:', { _tags: tags }),
+              [
+                {
+                  text: t('FlashList (Fastest)', { _tags: tags }),
+                  onPress: async () => {
+                    await performanceService.setConfig({ userListType: 'flashlist' });
+                    setPerformanceConfig(performanceService.getConfig());
+                  },
+                },
+                {
+                  text: t('FlatList (Virtualized)', { _tags: tags }),
+                  onPress: async () => {
+                    await performanceService.setConfig({ userListType: 'flatlist' });
+                    setPerformanceConfig(performanceService.getConfig());
+                  },
+                },
+                {
+                  text: t('Grouped (By Mode)', { _tags: tags }),
+                  onPress: async () => {
+                    await performanceService.setConfig({ userListType: 'grouped' });
+                    setPerformanceConfig(performanceService.getConfig());
+                  },
+                },
+                {
+                  text: t('Simple (ScrollView)', { _tags: tags }),
+                  onPress: async () => {
+                    await performanceService.setConfig({ userListType: 'simple' });
+                    setPerformanceConfig(performanceService.getConfig());
+                  },
+                },
+                {
+                  text: t('Cancel', { _tags: tags }),
+                  style: 'cancel',
+                },
+              ]
+            );
           },
-          searchKeywords: ['user', 'list', 'virtualization', 'flatlist', 'performance'],
+          searchKeywords: ['user', 'list', 'type', 'flashlist', 'flatlist', 'grouped', 'simple', 'performance'],
         },
+        // Search Debounce
         {
-          id: 'perf-user-virtualization-threshold',
-          title: t('Auto-Virtualize Threshold', { _tags: tags }),
-          description: `Enable virtualization above ${performanceConfig?.userListAutoVirtualizeThreshold || 500} users`,
+          id: 'perf-user-debounce',
+          title: t('Search Debounce', { _tags: tags }),
+          description: `${performanceConfig?.userListSearchDebounceMs || 300}ms delay`,
           type: 'input' as const,
-          value: performanceConfig?.userListAutoVirtualizeThreshold?.toString() || '500',
+          value: performanceConfig?.userListSearchDebounceMs?.toString() || '300',
           keyboardType: 'numeric',
           onValueChange: async (value: string) => {
-            const threshold = parseInt(value, 10);
-            if (!isNaN(threshold) && threshold > 0) {
-              await performanceService.setConfig({ userListAutoVirtualizeThreshold: threshold });
+            const ms = parseInt(value, 10);
+            if (!isNaN(ms) && ms >= 0) {
+              await performanceService.setConfig({ userListSearchDebounceMs: ms });
               setPerformanceConfig(performanceService.getConfig());
             }
           },
-          disabled: performanceConfig?.userListVirtualization === false,
-          searchKeywords: ['user', 'list', 'virtualization', 'threshold', 'auto', 'performance'],
+          searchKeywords: ['search', 'debounce', 'delay', 'user', 'list'],
+        },
+        // Skip Sort Threshold
+        {
+          id: 'perf-user-skip-sort',
+          title: t('Skip Sort Threshold', { _tags: tags }),
+          description: `Disable sorting above ${performanceConfig?.userListSkipSortThreshold || 1000} users`,
+          type: 'input' as const,
+          value: performanceConfig?.userListSkipSortThreshold?.toString() || '1000',
+          keyboardType: 'numeric',
+          onValueChange: async (value: string) => {
+            const threshold = parseInt(value, 10);
+            if (!isNaN(threshold) && threshold >= 0) {
+              await performanceService.setConfig({ userListSkipSortThreshold: threshold });
+              setPerformanceConfig(performanceService.getConfig());
+            }
+          },
+          searchKeywords: ['skip', 'sort', 'threshold', 'user', 'list'],
+        },
+        // Chunk Loading Switch
+        {
+          id: 'perf-user-chunk-loading',
+          title: t('Chunk Loading', { _tags: tags }),
+          description: t('Load users incrementally', { _tags: tags }),
+          type: 'switch' as const,
+          value: performanceConfig?.userListEnableChunkLoading !== false,
+          onValueChange: async (value: boolean) => {
+            await performanceService.setConfig({ userListEnableChunkLoading: value });
+            setPerformanceConfig(performanceService.getConfig());
+          },
+          searchKeywords: ['chunk', 'loading', 'incremental', 'user', 'list'],
+        },
+        // Chunk Size
+        {
+          id: 'perf-user-chunk-size',
+          title: t('Chunk Size', { _tags: tags }),
+          description: `${performanceConfig?.userListChunkSize || 100} users per chunk`,
+          type: 'input' as const,
+          value: performanceConfig?.userListChunkSize?.toString() || '100',
+          keyboardType: 'numeric',
+          disabled: performanceConfig?.userListEnableChunkLoading === false,
+          onValueChange: async (value: string) => {
+            const size = parseInt(value, 10);
+            if (!isNaN(size) && size > 0) {
+              await performanceService.setConfig({ userListChunkSize: size });
+              setPerformanceConfig(performanceService.getConfig());
+            }
+          },
+          searchKeywords: ['chunk', 'size', 'user', 'list'],
+        },
+        // Initial Render Count
+        {
+          id: 'perf-user-initial-render',
+          title: t('Initial Render Count', { _tags: tags }),
+          description: `${performanceConfig?.userListInitialRenderCount || 50} users initially`,
+          type: 'input' as const,
+          value: performanceConfig?.userListInitialRenderCount?.toString() || '50',
+          keyboardType: 'numeric',
+          onValueChange: async (value: string) => {
+            const count = parseInt(value, 10);
+            if (!isNaN(count) && count > 0) {
+              await performanceService.setConfig({ userListInitialRenderCount: count });
+              setPerformanceConfig(performanceService.getConfig());
+            }
+          },
+          searchKeywords: ['initial', 'render', 'count', 'user', 'list'],
         },
       ],
     },
@@ -2282,8 +2395,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   styles={styles}
                   settingIcons={settingIcons}
                   currentNetwork={currentNetwork}
-                  onShowIgnoreList={onShowIgnoreList}
                   onShowBlacklist={onShowBlacklist}
+                  onShowUserLists={onShowUserLists}
                 />
               );
             }

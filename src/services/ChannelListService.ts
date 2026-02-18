@@ -59,9 +59,12 @@ export class ChannelListService {
 
   private setupListeners(): void {
     // Listen for LIST numeric replies
-    this.ircService.on('numeric', (numeric: number, prefix: string, params: string[]) => {
-      this.handleListReply(numeric, params);
-    });
+    // Check if ircService has on method (may not be available in tests)
+    if (this.ircService && typeof this.ircService.on === 'function') {
+      this.ircService.on('numeric', (numeric: number, prefix: string, params: string[]) => {
+        this.handleListReply(numeric, params);
+      });
+    }
   }
 
   /**

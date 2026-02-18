@@ -116,8 +116,8 @@ export const handleNOTICE: CommandHandler = (ctx, prefix, params, timestamp, met
       }
     } else {
       displayText = noticeCTCP.args
-        ? t('CTCP {command} reply: {args}', { command: noticeCTCP.command, args: noticeCTCP.args })
-        : t('CTCP {command} reply', { command: noticeCTCP.command });
+        ? t('CTCP {command} reply from {nick}: {args}', { command: noticeCTCP.command, nick: noticeFrom, args: noticeCTCP.args })
+        : t('CTCP {command} reply from {nick}', { command: noticeCTCP.command, nick: noticeFrom });
     }
   }
 

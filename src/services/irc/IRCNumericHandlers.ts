@@ -259,6 +259,9 @@ export class IRCNumericHandlers {
       incrementNickChangeAttempts: () => { svc.nickChangeAttempts++; },
       setCurrentNick: (nick: string) => { svc.currentNick = nick; },
 
+      // User management service
+      getUserManagementService: () => svc.getUserManagementService(),
+
       // Utility methods
       logRaw: (msg: string) => svc.logRaw(msg),
       sendRaw: (cmd: string) => svc.sendRaw(cmd),

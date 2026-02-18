@@ -21,12 +21,10 @@
 
 mIRC taught a generation how to script. [IRCap](http://ircap.net) by Carlos Esteve Cremades (since
 1997) showed what a truly complete IRC experience could look like. AndroidIRCX carries that spirit
-forward -- open source, built on React Native, and designed so you can learn, hack, extend, and
+      forward - open source, built on React Native, and designed so you can learn, hack, extend, and
 build your own IRC experience from real production code.
 
 ### 📲 Download
-
-**AndroidIRCX is publicly available!**
 
 <p>
   <a href="https://play.google.com/store/apps/details?id=com.androidircx">
@@ -60,11 +58,11 @@ sha256sum -c app-release.apk.sha256
 
 ### 📱 System Requirements
 
-|                 |                       |
-|-----------------|-----------------------|
-| **Minimum**     | Android 7.0+ (API 24) |
-| **Recommended** | Android 11+ (API 30)  |
-| **Target**      | Android 15 (API 36)   |
+| **_Requirements_** | **_Android version_** |
+|--------------------|-----------------------|
+| **Minimum**        | Android 7.0+ (API 24) |
+| **Recommended**    | Android 11+ (API 30)  |
+| **Target**         | Android 15 (API 36)   |
 
 ## 📸 Screenshots
 
@@ -91,31 +89,31 @@ alt="AndroidIRCX screenshot 2"
 
 ## 💡 Why AndroidIRCX?
 
-Back in the day, mIRC wasn't just an IRC client -- it was a platform. Scripts like IRCap turned it
+Back in the day, mIRC wasn't just an IRC client - it was a platform. Scripts like IRCap turned it
 into a complete environment with protection systems, away management, writing styles, and channel
 moderation panels. People learned scripting, built addons, automated bots, and made IRC their own.
 
 **AndroidIRCX is built for that same crowd, but open source and for today's platforms.**
 
-This is a full-featured, production IRC client -- but it's also a **learning platform** and a *
+This is a full-featured, production IRC client - but it's also a **learning platform** and a *
 *framework** you can study, fork, and build on top of:
 
 - **Learn TCP sockets** -- see how raw IRC protocol works over `react-native-tcp-socket`, TLS
   handshakes, proxy tunneling, SOCKS5/Tor
-- **Learn state management** -- 4 Zustand stores, 48 custom hooks, real-world patterns for complex
+- **Learn state management** - 4 Zustand stores, 48 custom hooks, real-world patterns for complex
   React Native apps
-- **Learn cryptography** -- E2E encryption with libsodium (XChaCha20-Poly1305), SCRAM-SHA-256
+- **Learn cryptography** - E2E encryption with libsodium (XChaCha20-Poly1305), SCRAM-SHA-256
   authentication (RFC 7677), X.509 certificate generation
-- **Learn protocol implementation** -- 390+ IRC numeric handlers, full IRCv3 compliance, CAP
+- **Learn protocol implementation** - 390+ IRC numeric handlers, full IRCv3 compliance, CAP
   negotiation, SASL state machines
-- **Learn architecture** -- service-oriented design, EventEmitter patterns, context interfaces,
+- **Learn architecture** - service-oriented design, EventEmitter patterns, context interfaces,
   modular handler extraction
-- **Learn testing** -- 160 test files covering services, hooks, components, stores, and utilities
-- **Learn CI/CD** -- GitHub Actions, Docker-based release builds, automated coverage reports
+- **Learn testing** - 160 test files covering services, hooks, components, stores, and utilities
+- **Learn CI/CD** - GitHub Actions, Docker-based release builds, automated coverage reports
 
 Everything is TypeScript. Everything is documented. Everything is yours to read, modify, and ship.
 
-**This isn't a toy project.** It's a real app on Google Play with real users -- and the entire
+**This isn't a toy project.** It's a real app on Google Play with real users - and the entire
 codebase is GPL-3.0, because the best way to learn is from code that actually works in production.
 
 ---
@@ -520,8 +518,6 @@ yarn pre-push-check   # Must pass type-check + lint
 yarn test             # Must pass all tests
 ```
 
-See the full architecture documentation in `secrets/PROJECT.md` for implementation details.
-
 ---
 
 ## 🔐 Security
@@ -551,7 +547,7 @@ See the full architecture documentation in `secrets/PROJECT.md` for implementati
 
 ## 🎨 Credits & Inspiration
 
-**IRCap** (c) Carlos Esteve Cremades, 1997-2026 -- the legendary mIRC script that inspired
+**IRCap** (c) Carlos Esteve Cremades, 1997-2026 - the legendary mIRC script that inspired
 AndroidIRCX's away system, protection features, writing styles, and the IRcap theme. If you used
 mIRC in the 2000s, you probably know IRCap. Its futuristic design and complete feature set set the
 bar for what an IRC experience should be.
@@ -629,7 +625,15 @@ Those who recognize the work will understand. Time will explain the rest.
 
 ---
 
-**[androidircx.com](https://androidircx.com)**
+<p align="center">
+  <a href="https://AndroidIRCx.com">
+    <img src="https://AndroidIRCx.com/android-icon-192x192.webp" width="64" height="64" alt="AndroidIRCx">
+  </a>
+</p>
+
+<p align="center">
+  <b><a href="https://androidircx.com">AndroidIRCx.com</a></b>
+</p>
 
 ---
 

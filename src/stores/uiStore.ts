@@ -55,6 +55,8 @@ export interface UIState {
   showBlacklist: boolean;
   showWHOIS: boolean;
   whoisNick: string;
+  whoisDisplayMode: 'modal' | 'active' | 'status';
+  swipeBehavior: 'off' | 'switch-tabs' | 'show-panels';
   showQueryEncryptionMenu: boolean;
   showChannelList: boolean;
   showUserList: boolean;
@@ -86,6 +88,17 @@ export interface UIState {
     networkId: string;
     channel?: string;
     nick?: string;
+  } | null;
+
+  // User Lists
+  showUserLists: boolean;
+  userListsInitialTab: 'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'blacklist' | 'other';
+  userListTarget: {
+    listType: 'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'blacklist' | 'other';
+    networkId: string;
+    nick: string;
+    mask?: string;
+    channels?: string[];
   } | null;
 
   // Help Screens
@@ -140,6 +153,8 @@ export interface UIState {
   setShowBlacklist: (show: boolean) => void;
   setShowWHOIS: (show: boolean) => void;
   setWhoisNick: (nick: string) => void;
+  setWhoisDisplayMode: (mode: 'modal' | 'active' | 'status') => void;
+  setSwipeBehavior: (behavior: 'off' | 'switch-tabs' | 'show-panels') => void;
   setShowQueryEncryptionMenu: (show: boolean) => void;
   setShowChannelList: (show: boolean) => void;
   setShowUserList: (show: boolean) => void;
@@ -171,6 +186,17 @@ export interface UIState {
     networkId: string;
     channel?: string;
     nick?: string;
+  } | null) => void;
+
+  // Actions - User Lists
+  setShowUserLists: (show: boolean) => void;
+  setUserListsInitialTab: (tab: 'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'blacklist' | 'other') => void;
+  setUserListTarget: (target: {
+    listType: 'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'blacklist' | 'other';
+    networkId: string;
+    nick: string;
+    mask?: string;
+    channels?: string[];
   } | null) => void;
 
   // Actions - Help Screens
@@ -219,6 +245,8 @@ const initialState = {
   showBlacklist: false,
   showWHOIS: false,
   whoisNick: '',
+  whoisDisplayMode: 'status' as 'modal' | 'active' | 'status',
+  swipeBehavior: 'off' as 'off' | 'switch-tabs' | 'show-panels',
   showQueryEncryptionMenu: false,
   showChannelList: false,
   showUserList: false,
@@ -244,6 +272,9 @@ const initialState = {
   dccSendTarget: null,
   dccSendPath: '',
   blacklistTarget: null,
+  showUserLists: false,
+  userListsInitialTab: 'notify',
+  userListTarget: null,
   showHelpConnection: false,
   showHelpCommands: false,
   showHelpEncryption: false,
@@ -312,6 +343,8 @@ export const useUIStore = create<UIState>()(
       setShowBlacklist: (show) => set({ showBlacklist: show }),
       setShowWHOIS: (show) => set({ showWHOIS: show }),
       setWhoisNick: (nick) => set({ whoisNick: nick }),
+      setWhoisDisplayMode: (mode) => set({ whoisDisplayMode: mode }),
+      setSwipeBehavior: (behavior) => set({ swipeBehavior: behavior }),
       setShowQueryEncryptionMenu: (show) => set({ showQueryEncryptionMenu: show }),
       setShowChannelList: (show) => set({ showChannelList: show }),
       setShowUserList: (show) => set({ showUserList: show }),
@@ -339,6 +372,11 @@ export const useUIStore = create<UIState>()(
 
       // Blacklist
       setBlacklistTarget: (target) => set({ blacklistTarget: target }),
+
+      // User Lists
+      setShowUserLists: (show) => set({ showUserLists: show }),
+      setUserListsInitialTab: (tab) => set({ userListsInitialTab: tab }),
+      setUserListTarget: (target) => set({ userListTarget: target }),
 
       // Help Screens
       setShowHelpConnection: (show) => set({ showHelpConnection: show }),
@@ -398,6 +436,8 @@ export const useUIStore = create<UIState>()(
         hidePartMessages: state.hidePartMessages,
         hideQuitMessages: state.hideQuitMessages,
         hideIrcServiceListenerMessages: state.hideIrcServiceListenerMessages,
+        whoisDisplayMode: state.whoisDisplayMode,
+        swipeBehavior: state.swipeBehavior,
         // NOTE: Modal visibility states are intentionally excluded from persistence
         // They should always start as false on app launch
         blacklistTarget: state.blacklistTarget, // Also exclude blacklistTarget from persistence

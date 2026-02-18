@@ -79,94 +79,95 @@ describe('CTCPHandlers', () => {
           getCurrentNick: jest.fn(() => 'tester'),
           getRealname: jest.fn(() => 'Test User'),
           isConnected: jest.fn(() => true),
+          getCtcpVersionMessage: jest.fn().mockResolvedValue('https://github.com/AndroidIRCX'),
         },
         sent,
         messages,
       };
     }
 
-    it('responds to VERSION with app info', () => {
+    it('responds to VERSION with app info', async () => {
       const { ctx, sent } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'alice', '#chan', 'VERSION');
+      await handleCTCPRequest(ctx, 'alice', '#chan', 'VERSION');
 
       expect(sent).toHaveLength(1);
       expect(sent[0]).toContain('NOTICE alice');
       expect(sent[0]).toContain('AndroidIRCX');
     });
 
-    it('responds to TIME with ISO date', () => {
+    it('responds to TIME with ISO date', async () => {
       const { ctx, sent } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'bob', '#chan', 'TIME');
+      await handleCTCPRequest(ctx, 'bob', '#chan', 'TIME');
 
       expect(sent[0]).toContain('NOTICE bob');
       expect(sent[0]).toMatch(/\d{4}-\d{2}-\d{2}/);
     });
 
-    it('responds to PING by echoing args', () => {
+    it('responds to PING by echoing args', async () => {
       const { ctx, sent } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'carol', '#chan', 'PING', '12345');
+      await handleCTCPRequest(ctx, 'carol', '#chan', 'PING', '12345');
 
       expect(sent[0]).toContain('NOTICE carol');
       expect(sent[0]).toContain('12345');
     });
 
-    it('does not respond to ACTION', () => {
+    it('does not respond to ACTION', async () => {
       const { ctx, sent } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'dan', '#chan', 'ACTION', 'waves');
+      await handleCTCPRequest(ctx, 'dan', '#chan', 'ACTION', 'waves');
 
       expect(sent).toHaveLength(0);
     });
 
-    it('responds to CLIENTINFO', () => {
+    it('responds to CLIENTINFO', async () => {
       const { ctx, sent } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'eve', '#chan', 'CLIENTINFO');
+      await handleCTCPRequest(ctx, 'eve', '#chan', 'CLIENTINFO');
 
       expect(sent[0]).toContain('ACTION');
       expect(sent[0]).toContain('VERSION');
       expect(sent[0]).toContain('PING');
     });
 
-    it('responds to USERINFO with realname', () => {
+    it('responds to USERINFO with realname', async () => {
       const { ctx, sent } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'frank', '#chan', 'USERINFO');
+      await handleCTCPRequest(ctx, 'frank', '#chan', 'USERINFO');
 
       expect(sent[0]).toContain('Test User');
     });
 
-    it('responds to SOURCE with github URL', () => {
+    it('responds to SOURCE with github URL', async () => {
       const { ctx, sent } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'grace', '#chan', 'SOURCE');
+      await handleCTCPRequest(ctx, 'grace', '#chan', 'SOURCE');
 
       expect(sent[0]).toContain('github');
     });
 
-    it('responds to FINGER with nick', () => {
+    it('responds to FINGER with nick', async () => {
       const { ctx, sent } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'hank', '#chan', 'FINGER');
+      await handleCTCPRequest(ctx, 'hank', '#chan', 'FINGER');
 
       expect(sent[0]).toContain('tester');
     });
 
-    it('shows DCC request as ctcp message', () => {
+    it('shows DCC request as ctcp message', async () => {
       const { ctx, messages } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'ivan', '#chan', 'DCC', 'SEND file.txt');
+      await handleCTCPRequest(ctx, 'ivan', '#chan', 'DCC', 'SEND file.txt');
 
       expect(messages[0].type).toBe('ctcp');
       expect(messages[0].text).toContain('DCC');
     });
 
-    it('does not send response when disconnected', () => {
+    it('does not send response when disconnected', async () => {
       const { ctx, sent } = createCTCPCtx();
       ctx.isConnected.mockReturnValue(false);
 
-      handleCTCPRequest(ctx, 'joe', '#chan', 'VERSION');
+      await handleCTCPRequest(ctx, 'joe', '#chan', 'VERSION');
 
       expect(sent).toHaveLength(0);
     });
 
-    it('logs unknown CTCP commands', () => {
+    it('logs unknown CTCP commands', async () => {
       const { ctx, messages } = createCTCPCtx();
-      handleCTCPRequest(ctx, 'kate', '#chan', 'UNKNOWN_CMD', 'data');
+      await handleCTCPRequest(ctx, 'kate', '#chan', 'UNKNOWN_CMD', 'data');
 
       expect(messages[0].type).toBe('ctcp');
       expect(ctx.logRaw).toHaveBeenCalled();

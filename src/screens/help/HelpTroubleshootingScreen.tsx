@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { Text } from 'react-native';
 import { useT } from '../../i18n/transifex';
 import {
   HelpScreenBase,
@@ -259,7 +260,7 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
         <HelpSubsection title={t('Get Support')}>
           <HelpBullet>{t('Join #AndroidIRCX on irc.dbase.in.rs')}</HelpBullet>
           <HelpBullet>{t('Email: support@androidircx.com')}</HelpBullet>
-          <HelpBullet>{t('GitHub Issues: github.com/yourrepo/issues')}</HelpBullet>
+          <HelpBullet>{t('GitHub Issues: https://github.com/AndroidIRCx/AndroidIRCx/issues')}</HelpBullet>
         </HelpSubsection>
 
         <HelpSubsection title={t('Gather Information')}>
@@ -272,7 +273,13 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
         </HelpSubsection>
 
         <HelpInfoBox>
-          {t('Enable Debug Logging:\\nSettings → Development → Enable Console Logging (debug builds only)\\nSend logs with your report.')}
+          <Text style={{ lineHeight: 22 }}>
+            {t('Enable Debug Logging:')}
+            {'\n'}
+            {t('Settings → Development → Enable Console Logging (debug builds only)')}
+            {'\n'}
+            {t('Send logs with your report.')}
+          </Text>
         </HelpInfoBox>
       </HelpSection>
     </HelpScreenBase>

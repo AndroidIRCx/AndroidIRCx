@@ -357,19 +357,6 @@ export const handle493: NumericHandler = (ctx, prefix, params, timestamp) => {
   });
 };
 
-/** 671 RPL_WHOISSECURE */
-export const handle671: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const whoisNick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is using a secure connection');
-  ctx.addMessage({
-    type: 'raw',
-    text: t('*** {nick} {message}', { nick: whoisNick, message }),
-    timestamp,
-    isRaw: true,
-    rawCategory: 'server',
-  });
-};
-
 /**
  * Misc numerics handlers map
  */
@@ -402,5 +389,4 @@ export const miscHandlers: Map<number, NumericHandler> = new Map([
   [408, handle408],
   [417, handle417],
   [493, handle493],
-  [671, handle671],
 ]);

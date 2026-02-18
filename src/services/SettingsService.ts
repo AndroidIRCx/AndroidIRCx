@@ -78,6 +78,7 @@ const DEFAULT_IDENTITY = {
 
 export const DEFAULT_PART_MESSAGE = t('AndroidIRCX - Download from https://androidircx.com');
 export const DEFAULT_QUIT_MESSAGE = t('Goodbye from AndroidIRCX - download it from https://androidircx.com');
+export const DEFAULT_CTCP_VERSION_MESSAGE = 'https://github.com/AndroidIRCX';
 
 // Defaults for upcoming settings (Away/Protection/Writing/DCC/Topic styles).
 // Keep ASCII only; values are placeholders until UI/services consume them.

@@ -15,6 +15,7 @@ import {
   Modal,
   Alert,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import QRCode from 'react-native-qrcode-svg';
 import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
 import Share from 'react-native-share';
@@ -37,6 +38,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { getUserModeDescription } from '../utils/modeDescriptions';
 import { useUIStore } from '../stores/uiStore';
 import { NickContextMenu } from './NickContextMenu';
+import { useDebounce } from '../hooks/useDebounce';
 
 // Note: This function cannot use useT() as it's exported outside the component
 // The translation will be handled where it's called
@@ -218,11 +220,29 @@ const getModeColor = (modes?: string[], colors?: any): string => {
     return colors?.userNormal || colors?.text || '#212121'; // regular user
   };
 
+  // Debounced search query
+  const searchDebounceMs = performanceConfig.userListSearchDebounceMs ?? 300;
+  const debouncedSearchQuery = useDebounce(searchQuery, searchDebounceMs);
+
+  // Chunk loading state
+  const [displayedUserCount, setDisplayedUserCount] = useState(
+    performanceConfig.userListInitialRenderCount ?? 50
+  );
+
+  // User list type from config
+  const userListType = performanceConfig.userListType ?? 'flashlist';
+
+  // Threshold for skip sort
+  const skipSortThreshold = performanceConfig.userListSkipSortThreshold ?? 1000;
+  const shouldSkipSort = users.length > skipSortThreshold;
+
+  // Grouping logic
   const groupingEnabled = performanceConfig.userListGrouping !== false;
   const groupingThreshold = performanceConfig.userListAutoDisableGroupingThreshold || 1000;
-  const groupingActive = groupingEnabled && users.length <= groupingThreshold;
-  const virtualizationEnabled = performanceConfig.userListVirtualization !== false;
-  const virtualizationThreshold = performanceConfig.userListAutoVirtualizeThreshold || 500;
+  
+  // Grouping is active only for 'grouped' type, or auto-disabled for large lists
+  const groupingActive = userListType === 'grouped' || 
+    (userListType !== 'simple' && groupingEnabled && users.length <= groupingThreshold);
 
   // Group users by their highest mode
   const groupedUsers = useMemo(() => {
@@ -270,6 +290,11 @@ const getModeColor = (modes?: string[], colors?: any): string => {
   }, [users]);
 
   const sortedUsers = useMemo(() => {
+    // Skip sort for large lists if enabled
+    if (shouldSkipSort) {
+      return users;
+    }
+
     // Sort by mode priority first, then alphabetically
     const modePriority: { [key: string]: number } = {
       'q': 0, // owner
@@ -297,26 +322,45 @@ const getModeColor = (modes?: string[], colors?: any): string => {
       // Then sort alphabetically by nick
       return a.nick.toLowerCase().localeCompare(b.nick.toLowerCase());
     });
-  }, [users]);
+  }, [users, shouldSkipSort]);
 
   const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim()) return sortedUsers;
-    const query = searchQuery.toLowerCase();
+    if (!debouncedSearchQuery.trim()) return sortedUsers;
+    const query = debouncedSearchQuery.toLowerCase();
     return sortedUsers.filter(user =>
       user.nick.toLowerCase().includes(query) ||
       (user.account && user.account.toLowerCase().includes(query))
     );
-  }, [sortedUsers, searchQuery]);
+  }, [sortedUsers, debouncedSearchQuery]);
 
-  const virtualizationActive = !groupingActive
-    && virtualizationEnabled
-    && filteredUsers.length >= virtualizationThreshold;
+  // Virtualization is active for flashlist and flatlist types
+  const virtualizationActive = !groupingActive && 
+    (userListType === 'flashlist' || userListType === 'flatlist');
 
-  // Filter users based on search query
+  // Chunk loading logic
+  const chunkedUsers = useMemo(() => {
+    if (!performanceConfig.userListEnableChunkLoading) {
+      return filteredUsers;
+    }
+    return filteredUsers.slice(0, displayedUserCount);
+  }, [filteredUsers, displayedUserCount, performanceConfig.userListEnableChunkLoading]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!performanceConfig.userListEnableChunkLoading) return;
+    const chunkSize = performanceConfig.userListChunkSize ?? 100;
+    setDisplayedUserCount(prev => Math.min(prev + chunkSize, filteredUsers.length));
+  }, [filteredUsers.length, performanceConfig.userListEnableChunkLoading, performanceConfig.userListChunkSize]);
+
+  // Reset chunk on channel/search change
+  useEffect(() => {
+    setDisplayedUserCount(performanceConfig.userListInitialRenderCount ?? 50);
+  }, [channelName, debouncedSearchQuery, performanceConfig.userListInitialRenderCount]);
+
+  // Filter users based on debounced search query
   const filteredGroupedUsers = useMemo(() => {
-    if (!searchQuery.trim()) return groupedUsers;
+    if (!debouncedSearchQuery.trim()) return groupedUsers;
     
-    const query = searchQuery.toLowerCase();
+    const query = debouncedSearchQuery.toLowerCase();
     const filtered: { [key: string]: ChannelUser[] } = {
       'q': [],
       'a': [],
@@ -334,15 +378,15 @@ const getModeColor = (modes?: string[], colors?: any): string => {
     });
     
     return filtered;
-  }, [groupedUsers, searchQuery]);
+  }, [groupedUsers, debouncedSearchQuery]);
   
   // Check if there are any users after filtering
   const hasFilteredUsers = useMemo(() => {
     if (!groupingActive) {
-      return filteredUsers.length > 0;
+      return chunkedUsers.length > 0;
     }
     return Object.values(filteredGroupedUsers).some(group => group.length > 0);
-  }, [filteredGroupedUsers, filteredUsers.length, groupingActive]);
+  }, [filteredGroupedUsers, chunkedUsers.length, groupingActive]);
 
   const activeIrc = (network ? connectionManager.getConnection(network)?.ircService : null) || ircService;
   useEffect(() => {
@@ -526,7 +570,12 @@ const getModeColor = (modes?: string[], colors?: any): string => {
     // Keep menu open; show feedback inline
     switch (action) {
       case 'whois':
-        if (onWHOISPress) {
+        // Check if modal mode is enabled
+        const whoisMode = useUIStore.getState().whoisDisplayMode;
+        if (whoisMode === 'modal') {
+          useUIStore.getState().setWhoisNick(selectedUser.nick);
+          useUIStore.getState().setShowWHOIS(true);
+        } else if (onWHOISPress) {
           onWHOISPress(selectedUser.nick);
         } else {
           activeIrc.sendCommand(`WHOIS ${selectedUser.nick}`);
@@ -1023,7 +1072,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
       </View>
 
       {/* User List */}
-      {groupingActive ? (
+      {userListType === 'grouped' ? (
+        // Grouped ScrollView with collapse/expand
         <ScrollView
           style={styles.scrollView}
           keyboardShouldPersistTaps="handled">
@@ -1135,23 +1185,44 @@ const getModeColor = (modes?: string[], colors?: any): string => {
             </>
           )}
         </ScrollView>
-      ) : virtualizationActive ? (
-        <FlatList
+      ) : userListType === 'flashlist' ? (
+        // FlashList - fastest virtualized list
+        <FlashList
           style={styles.scrollView}
-          data={filteredUsers}
+          data={chunkedUsers}
           renderItem={({ item }) => renderUserRow(item)}
           keyExtractor={(item, index) => `${item.nick}-${index}`}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={emptyState}
+          estimatedItemSize={40}
+          initialNumToRender={performanceConfig.userListInitialRenderCount ?? 20}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          removeClippedSubviews={true}
+        />
+      ) : userListType === 'flatlist' ? (
+        // FlatList - virtualized fallback
+        <FlatList
+          style={styles.scrollView}
+          data={chunkedUsers}
+          renderItem={({ item }) => renderUserRow(item)}
+          keyExtractor={(item, index) => `${item.nick}-${index}`}
+          keyboardShouldPersistTaps="handled"
+          ListEmptyComponent={emptyState}
+          initialNumToRender={performanceConfig.userListInitialRenderCount ?? 20}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          removeClippedSubviews={true}
         />
       ) : (
+        // Simple ScrollView
         <ScrollView
           style={styles.scrollView}
           keyboardShouldPersistTaps="handled">
           {!hasFilteredUsers ? (
             emptyState
           ) : (
-            filteredUsers.map((user, index) => renderUserRow(user, `user-${user.nick}-${index}`))
+            chunkedUsers.map((user, index) => renderUserRow(user, `user-${user.nick}-${index}`))
           )}
         </ScrollView>
       )}

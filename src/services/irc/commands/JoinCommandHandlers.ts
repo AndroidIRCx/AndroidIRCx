@@ -43,6 +43,8 @@ export const handleJOIN: CommandHandler = (ctx, prefix, params, timestamp) => {
 
   if (channel && nick && nick !== ctx.getCurrentNick()) {
     ctx.runBlacklistCheckForJoin(nick, joinUsername, joinHostname, channel);
+    // Check auto-op/voice/halfop after blacklist check
+    ctx.runAutoModeCheckForJoin(nick, joinUsername, joinHostname, channel);
   }
 
   if (nick === ctx.getCurrentNick()) {

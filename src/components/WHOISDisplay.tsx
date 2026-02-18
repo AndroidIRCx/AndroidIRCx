@@ -239,7 +239,70 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                     <Text style={styles.infoValue}>{whoisInfo.account}</Text>
                   </View>
                 )}
+                {whoisInfo.modes && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>{t('Modes:')}</Text>
+                    <Text style={styles.infoValue}>{whoisInfo.modes}</Text>
+                  </View>
+                )}
+                {whoisInfo.connectingFrom && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>{t('Connecting from:')}</Text>
+                    <Text style={styles.infoValue}>{whoisInfo.connectingFrom}</Text>
+                  </View>
+                )}
               </View>
+
+              {/* Privileges / Status */}
+              {(whoisInfo.isOper || whoisInfo.isAdmin || whoisInfo.isServicesAdmin || 
+                whoisInfo.isHelpOp || whoisInfo.isRegistered || whoisInfo.isBot || 
+                whoisInfo.specialStatus) && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>{t('Privileges')}</Text>
+                  {whoisInfo.isOper && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>{t('IRC Operator:')}</Text>
+                      <Text style={[styles.infoValue, { color: '#E91E63' }]}>{t('Yes')}</Text>
+                    </View>
+                  )}
+                  {whoisInfo.isAdmin && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>{t('Admin:')}</Text>
+                      <Text style={[styles.infoValue, { color: '#9C27B0' }]}>{t('Yes')}</Text>
+                    </View>
+                  )}
+                  {whoisInfo.isServicesAdmin && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>{t('Services Admin:')}</Text>
+                      <Text style={[styles.infoValue, { color: '#673AB7' }]}>{t('Yes')}</Text>
+                    </View>
+                  )}
+                  {whoisInfo.isHelpOp && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>{t('Help Operator:')}</Text>
+                      <Text style={[styles.infoValue, { color: '#2196F3' }]}>{t('Yes')}</Text>
+                    </View>
+                  )}
+                  {whoisInfo.isRegistered && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>{t('Registered:')}</Text>
+                      <Text style={[styles.infoValue, { color: '#4CAF50' }]}>{t('Yes')}</Text>
+                    </View>
+                  )}
+                  {whoisInfo.isBot && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>{t('Bot:')}</Text>
+                      <Text style={[styles.infoValue, { color: '#FF9800' }]}>{t('Yes')}</Text>
+                    </View>
+                  )}
+                  {whoisInfo.specialStatus && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>{t('Special:')}</Text>
+                      <Text style={styles.infoValue}>{whoisInfo.specialStatus}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
 
               {whoisInfo.server && (
                 <View style={styles.section}>
@@ -271,9 +334,21 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                 </View>
               )}
 
+              {whoisInfo.secure && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>{t('Security')}</Text>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>{t('Connection:')}</Text>
+                    <Text style={[styles.infoValue, { color: '#4CAF50' }]}>
+                      {whoisInfo.secureMessage || t('Secure (SSL/TLS)')}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
               {whoisInfo.idle !== undefined && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>{t('Activity')}</Text>
+                  <Text style={styles.sectionTitle}>{t('Connection Activity')}</Text>
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>{t('Idle:')}</Text>
                     <Text style={styles.infoValue}>
@@ -296,9 +371,9 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                   <Text style={styles.sectionTitle}>{t('Channels')}</Text>
                   <View style={styles.channelsContainer}>
                     {whoisInfo.channels.map((channel, index) => {
-                      // Extract channel name without prefix (@, +, %, etc.)
-                      const cleanChannel = channel.replace(/^[~&@%+]/, '');
-                      const prefix = channel.match(/^[~&@%+]/)?.[0] || '';
+                      // Extract channel name without ALL prefixes (~, &, @, %, +)
+                      const cleanChannel = channel.replace(/^[~&@%+]+/, '');
+                      const prefix = channel.match(/^[~&@%+]+/)?.[0] || '';
                       return (
                         <React.Fragment key={channel}>
                           {index > 0 && <Text style={styles.channelSeparator}>, </Text>}
@@ -380,9 +455,9 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
             )}
           </View>
 
-          {/* Activity */}
+          {/* User Activity Tracking */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('Activity')}</Text>
+            <Text style={styles.sectionTitle}>{t('User Activity')}</Text>
             {activity ? (
               <>
                 <Text style={styles.listItemText}>

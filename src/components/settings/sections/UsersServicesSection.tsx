@@ -34,8 +34,8 @@ interface UsersServicesSectionProps {
   };
   settingIcons: Record<string, SettingIcon | undefined>;
   currentNetwork?: string;
-  onShowIgnoreList?: () => void;
   onShowBlacklist?: () => void;
+  onShowUserLists?: () => void;
 }
 
 export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
@@ -43,8 +43,8 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
   styles,
   settingIcons,
   currentNetwork,
-  onShowIgnoreList,
   onShowBlacklist,
+  onShowUserLists,
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:UsersServicesSection.tsx,feature:settings';
@@ -110,23 +110,6 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
         },
       })),
       {
-        id: 'user-ignore',
-        title: t('Ignore List', { _tags: tags }),
-        description: t('Manage ignored users', { _tags: tags }),
-        type: 'button',
-        searchKeywords: ['ignore', 'list', 'block', 'mute', 'users', 'ban'],
-        onPress: () => {
-          if (onShowIgnoreList) {
-            onShowIgnoreList();
-          } else {
-            Alert.alert(
-              t('Info', { _tags: tags }),
-              t('Ignore list feature coming soon', { _tags: tags })
-            );
-          }
-        },
-      },
-      {
         id: 'user-blacklist',
         title: t('Blacklist', { _tags: tags }),
         description: t('Auto-run actions for matched masks', { _tags: tags }),
@@ -140,6 +123,18 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
               t('Info', { _tags: tags }),
               t('Blacklist feature coming soon', { _tags: tags })
             );
+          }
+        },
+      },
+      {
+        id: 'user-lists',
+        title: t('User Lists', { _tags: tags }),
+        description: t('Manage notify, autoop, autovoice and protected lists', { _tags: tags }),
+        type: 'button',
+        searchKeywords: ['user', 'lists', 'notify', 'autoop', 'autovoice', 'protected', 'autohalfop', 'watch', 'monitor'],
+        onPress: () => {
+          if (onShowUserLists) {
+            onShowUserLists();
           }
         },
       },
@@ -230,8 +225,8 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
     userNotes,
     userAliases,
     currentNetwork,
-    onShowIgnoreList,
     onShowBlacklist,
+    onShowUserLists,
     t,
     tags,
   ]);

@@ -12,6 +12,7 @@ jest.mock('../src/services/IRCService', () => {
       addRawMessage: jest.fn(),
       setNetworkId: jest.fn(),
       setUserManagementService: jest.fn(),
+      setNotifyService: jest.fn(),
       on: jest.fn(() => () => {}),
       onConnectionChange: jest.fn(() => () => {}),
       onMessage: jest.fn(() => () => {}),

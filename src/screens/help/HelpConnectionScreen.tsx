@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { Text } from 'react-native';
 import {
   HelpScreenBase,
   HelpSection,
@@ -118,7 +119,13 @@ export const HelpConnectionScreen: React.FC<HelpConnectionScreenProps> = ({
 
       <HelpSection title={t('Need More Help?')}>
         <HelpInfoBox>
-          {t('Join #AndroidIRCX on irc.dbase.in.rs\\nVisit our website: androidircx.com\\nEmail: support@androidircx.com')}
+          <Text style={{ lineHeight: 22 }}>
+            {t('Join #AndroidIRCX on irc.dbase.in.rs')}
+            {'\n'}
+            {t('Visit our website: androidircx.com')}
+            {'\n'}
+            {t('Email: support@androidircx.com')}
+          </Text>
         </HelpInfoBox>
       </HelpSection>
     </HelpScreenBase>

@@ -241,17 +241,22 @@ export const handlePRIVMSG: CommandHandler = (ctx, prefix, params, timestamp, me
     return;
   }
 
-  // Check if user is ignored
+  // Check if user is ignored (protected users are never ignored)
   const network = ctx.getNetworkName();
   const { username, hostname } = parsePrefix(prefix);
-  if (ctx.isUserIgnored(fromNick, username, hostname, network)) {
+  if (!ctx.isUserProtected(fromNick, username, hostname, network) && 
+      ctx.isUserIgnored(fromNick, username, hostname, network)) {
     return;
   }
 
-  // CTCP and protection checks
+  // CTCP and protection checks (skip for protected users)
   const ctcp = ctx.parseCTCP(msgText);
   const protectionContext = ctx.getProtectionTabContext(target, fromNick, isChannel);
-  const protectionDecision = ctx.evaluateProtectionDecision({
+  
+  // Skip protection checks for protected users
+  const protectionDecision = ctx.isUserProtected(fromNick, username, hostname, network) 
+    ? null 
+    : ctx.evaluateProtectionDecision({
     type: 'message',
     channel: isChannel ? target : fromNick,
     from: fromNick,

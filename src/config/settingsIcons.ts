@@ -38,6 +38,7 @@ export const SETTINGS_ICONS: Record<string, SettingIcon> = {
   'display-send-button': { name: 'paper-plane', solid: false },
   'display-banner-position': { name: 'arrows-alt-v', solid: false },
   'display-keyboard-avoiding': { name: 'keyboard', solid: false },
+  'display-whois': { name: 'id-card', solid: false },
 
   // Connection & Network
   'connection-global-proxy': { name: 'network-wired', solid: false },
@@ -84,6 +85,7 @@ export const SETTINGS_ICONS: Record<string, SettingIcon> = {
   'irc-services-add': { name: 'plus-circle', solid: false },
   'user-ignore': { name: 'user-slash', solid: false },
   'user-blacklist': { name: 'user-times', solid: false },
+  'user-lists': { name: 'address-book', solid: false },
   'user-notes': { name: 'sticky-note', solid: false },
   'user-aliases': { name: 'id-badge', solid: false },
 

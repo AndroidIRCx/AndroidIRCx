@@ -372,6 +372,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                   `\n• ${type.id}: ${type.pattern} — ${type.description}`
                 ).join('')}
               </Text>
+              <Text style={styles.inputLabel}>{t('Mask:')}</Text>
               <TextInput
                 style={styles.input}
                 value={newMask}
@@ -380,6 +381,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                 autoCapitalize="none"
                 autoCorrect={false}
               />
+              <Text style={styles.inputLabel}>{t('Action:')}</Text>
               <TouchableOpacity
                 style={styles.actionPickerButton}
                 onPress={() => setShowActionPicker(true)}>
@@ -387,31 +389,38 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                 <Text style={styles.networkFilterButtonArrow}>▼</Text>
               </TouchableOpacity>
               {newAction === 'custom' && (
-                <TextInput
-                  style={styles.input}
-                  value={newCommand}
-                  onChangeText={setNewCommand}
-                  placeholder={t('Command template (use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration})')}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
+                <>
+                  <Text style={styles.inputLabel}>{t('Command Template:')}</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={newCommand}
+                    onChangeText={setNewCommand}
+                    placeholder={t('Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}')}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </>
               )}
+              <Text style={styles.inputLabel}>{t('Reason:')}</Text>
               <TextInput
                 style={[styles.input, styles.inputMultiline]}
                 value={newReason}
                 onChangeText={setNewReason}
-                placeholder={t('Reason (optional)')}
+                placeholder={t('optional')}
                 multiline
               />
               {['akill', 'gline', 'shun'].includes(newAction) && (
-                <TextInput
-                  style={styles.input}
-                  value={newDuration}
-                  onChangeText={setNewDuration}
-                  placeholder={t('Duration (e.g., 1d, 7d, 1h, 0 for permanent)')}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
+                <>
+                  <Text style={styles.inputLabel}>{t('Duration:')}</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={newDuration}
+                    onChangeText={setNewDuration}
+                    placeholder={t('e.g., 1d, 7d, 1h, 0 for permanent')}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </>
               )}
               <View style={styles.modalButtons}>
                 <TouchableOpacity
@@ -827,6 +836,13 @@ const styles = StyleSheet.create({
     color: '#212121',
     backgroundColor: '#FFFFFF',
     marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#424242',
+    marginBottom: 4,
+    marginTop: 8,
   },
   inputMultiline: {
     minHeight: 60,

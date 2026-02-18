@@ -7476,310 +7476,310 @@
     "string": "Veličina ručice liste korisnika"
   },
   "Insert": {
-    "string": ""
+    "string": "Ubaci"
   },
   "mIRC Colors": {
-    "string": ""
+    "string": "mIRC boje"
   },
   "KILL {nick}": {
-    "string": ""
+    "string": "KILL {nick}"
   },
   "Enter reason": {
-    "string": ""
+    "string": "Unesite razlog"
   },
   "Reason is required": {
-    "string": ""
+    "string": "Razlog je obavezan"
   },
   "Scan this QR to import your key": {
-    "string": ""
+    "string": "Skenirajte ovaj QR da uvezete vaš ključ"
   },
   "Scan to verify fingerprint": {
-    "string": ""
+    "string": "Skenirajte za verifikaciju otiska"
   },
   "No QR payload": {
-    "string": ""
+    "string": "Nema QR sadržaja"
   },
   "Copy QR Payload": {
-    "string": ""
+    "string": "Kopiraj QR sadržaj"
   },
   "Scan Key": {
-    "string": ""
+    "string": "Skeniraj ključ"
   },
   "Insert colors": {
-    "string": ""
+    "string": "Ubaci boje"
   },
   "Clear selection": {
-    "string": ""
+    "string": "Poništi izbor"
   },
   "Copy nickname": {
-    "string": ""
+    "string": "Kopiraj nadimak"
   },
   "User list v": {
-    "string": ""
+    "string": "Lista korisnika v"
   },
   "User list >": {
-    "string": ""
+    "string": "Lista korisnika >"
   },
   "KILL (with reason)": {
-    "string": ""
+    "string": "KILL (sa razlogom)"
   },
   "CTCP + DCC v": {
-    "string": ""
+    "string": "CTCP + DCC v"
   },
   "CTCP + DCC >": {
-    "string": ""
+    "string": "CTCP + DCC >"
   },
   "Change nick to pattern": {
-    "string": ""
+    "string": "Promeni nadimak prema obrascu"
   },
   "Example: <me>^away": {
-    "string": ""
+    "string": "Primer: <ja>^odsutan"
   },
   "Notify away if nick is mentioned": {
-    "string": ""
+    "string": "Obavesti o odsutnosti ako je nadimak pomensnut"
   },
   "DeOp on channels": {
-    "string": ""
+    "string": "Ukloni operatora na kanalima"
   },
   "Announce away status": {
-    "string": ""
+    "string": "Objavi status odsutnosti"
   },
   "Auto-answer": {
-    "string": ""
+    "string": "Automatski odgovor"
   },
   "Disable sounds when away": {
-    "string": ""
+    "string": "Isključi zvukove dok ste odsutni"
   },
   "Multiserver": {
-    "string": ""
+    "string": "Više servera"
   },
   "Apply away to all connected networks": {
-    "string": ""
+    "string": "Primeni odsutnost na sve povezane mreže"
   },
   "Away presets": {
-    "string": ""
+    "string": "Predefinisani statusi odsutnosti"
   },
   "{count} presets": {
-    "string": ""
+    "string": "{count} predefinisanih"
   },
   "Default away reason": {
-    "string": ""
+    "string": "Podrazumevani razlog odsutnosti"
   },
   "Go Away Now": {
-    "string": ""
+    "string": "Postavi odsutnost sada"
   },
   "Send AWAY with default reason": {
-    "string": ""
+    "string": "Pošalji AWAY sa podrazumevanim razlogom"
   },
   "Return (Back)": {
-    "string": ""
+    "string": "Povratak"
   },
   "Clear AWAY status": {
-    "string": ""
+    "string": "Ukloni status odsutnosti"
   },
   "Auto-answer message": {
-    "string": ""
+    "string": "Poruka automatskog odgovora"
   },
   "Auto-answer presets": {
-    "string": ""
+    "string": "Predefinisani automatski odgovori"
   },
   "{count} messages": {
-    "string": ""
+    "string": "{count} poruka"
   },
   "Announce every (min.)": {
-    "string": ""
+    "string": "Objavljuj svakih (min.)"
   },
   "Announce only on channels": {
-    "string": ""
+    "string": "Objavljuj samo na kanalima"
   },
   "Do not announce on channels": {
-    "string": ""
+    "string": "Ne objavljuj na kanalima"
   },
   "Away text": {
-    "string": ""
+    "string": "Tekst odsutnosti"
   },
   "Return text": {
-    "string": ""
+    "string": "Tekst povratka"
   },
   "Auto-away enabled": {
-    "string": ""
+    "string": "Automatska odsutnost omogućena"
   },
   "Auto-away minutes": {
-    "string": ""
+    "string": "Minuti do automatske odsutnosti"
   },
   "Auto-away reason": {
-    "string": ""
+    "string": "Razlog automatske odsutnosti"
   },
   "Minimize to systray": {
-    "string": ""
+    "string": "Minimizuj u sistemsku traku"
   },
   "Away system": {
-    "string": ""
+    "string": "Sistem odsutnosti"
   },
   "Add preset": {
-    "string": ""
+    "string": "Dodaj predefinisano"
   },
   "Colors": {
-    "string": ""
+    "string": "Boje"
   },
   "Add message": {
-    "string": ""
+    "string": "Dodaj poruku"
   },
   "Download Folder": {
-    "string": ""
+    "string": "Fascikla za preuzimanje"
   },
   "Folder picker is not supported on this device.": {
-    "string": ""
+    "string": "Izbor fascikle nije podržan na ovom uređaju."
   },
   "Unable to resolve a folder from the selected file.": {
-    "string": ""
+    "string": "Nije moguće odrediti fasciklu iz izabranog fajla."
   },
   "Failed to pick a folder. Please try again.": {
-    "string": ""
+    "string": "Izbor fascikle nije uspeo. Pokušajte ponovo."
   },
   "Reject": {
-    "string": ""
+    "string": "Odbaci"
   },
   "Don't send": {
-    "string": ""
+    "string": "Ne šalji"
   },
   "2 - Friends/Allowlist": {
-    "string": ""
+    "string": "2 - Prijatelji/lista dozvoljenih"
   },
   "3 - Ops": {
-    "string": ""
+    "string": "3 - Operatori"
   },
   "4 - Auto Op & Notify": {
-    "string": ""
+    "string": "4 - Automatski operator i praćenje"
   },
   "1 - Always ask": {
-    "string": ""
+    "string": "1 - Uvek pitaj"
   },
   "Getting files (auto)": {
-    "string": ""
+    "string": "Preuzimanje fajlova (automatski)"
   },
   "Mode: {mode}": {
-    "string": ""
+    "string": "Režim: {mode}"
   },
   "Auto-Get Mode": {
-    "string": ""
+    "string": "Režim automatskog preuzimanja"
   },
   "Select behavior for incoming files": {
-    "string": ""
+    "string": "Izaberite ponašanje za dolazne fajlove"
   },
   "File type filters": {
-    "string": ""
+    "string": "Filteri tipova fajlova"
   },
   "Accept {accept} / Reject {reject} / Block {block}": {
-    "string": ""
+    "string": "Prihvati {accept} / Odbaci {reject} / Blokiraj {block}"
   },
   "Accept list": {
-    "string": ""
+    "string": "Lista prihvaćenih"
   },
   "{count} items": {
-    "string": ""
+    "string": "{count} stavki"
   },
   "Reject list": {
-    "string": ""
+    "string": "Lista odbačenih"
   },
   "Don't send list": {
-    "string": ""
+    "string": "Lista za blokadu slanja"
   },
   "Auto accept CHAT from": {
-    "string": ""
+    "string": "Automatski prihvati ćaskanje od"
   },
   "Auto Accept Chat": {
-    "string": ""
+    "string": "Automatsko prihvatanje ćaskanja"
   },
   "Select who can auto-start DCC chat": {
-    "string": ""
+    "string": "Izaberite ko može automatski pokrenuti DCC ćaskanje"
   },
   "Auto accept gets from": {
-    "string": ""
+    "string": "Automatski prihvati fajlove od"
   },
   "Auto Accept Gets": {
-    "string": ""
+    "string": "Automatsko prihvatanje fajlova"
   },
   "Select who can auto-send files": {
-    "string": ""
+    "string": "Izaberite ko može automatski slati fajlove"
   },
   "Auto-open viewer": {
-    "string": ""
+    "string": "Automatski otvori preglednik"
   },
   "Close queries when chat opens": {
-    "string": ""
+    "string": "Zatvori upite kada se otvori ćaskanje"
   },
   "Request on fail when receiving": {
-    "string": ""
+    "string": "Zatraži pri neuspehu prijema"
   },
   "Allow DCC by IP": {
-    "string": ""
+    "string": "Dozvoli DCC po IP adresi"
   },
   "Block private/local IPs": {
-    "string": ""
+    "string": "Blokiraj privatne/lokalne IP adrese"
   },
   "Block DCC connections to private (RFC1918) and localhost addresses. This prevents SSRF-like attacks where a malicious user could trick your client into connecting to internal network services.": {
-    "string": ""
+    "string": "Blokiraj DCC konekcije na privatne (RFC1918) i localhost adrese. Ovo sprečava SSRF napade gde bi zlonamerni korisnik mogao navesti vaš klijent da se poveže na interne mrežne servise."
   },
   "Disabling this option allows DCC connections to private network addresses (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). This could allow malicious users to make your device connect to internal network services. Only disable if you understand the risks and need to connect to a local IRC bouncer or similar service.\n\nAre you sure you want to disable this protection?": {
-    "string": ""
+    "string": "Isključivanjem ove opcije dozvoljavate DCC konekcije na privatne mrežne adrese (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). Ovo bi moglo omogućiti zlonamernim korisnicima da vaš uređaj poveže na interne mrežne servise. Isključite samo ako razumete rizike i trebate da se povežete na lokalni IRC bouncer ili sličan servis.\n\nDa li ste sigurni da želite da onemogućite ovu zaštitu?"
   },
   "Disable Protection": {
-    "string": ""
+    "string": "Onemogući zaštitu"
   },
   "Passive DCC": {
-    "string": ""
+    "string": "Pasivni DCC"
   },
   "Reply queue commands": {
-    "string": ""
+    "string": "Komande u redu čekanja za odgovor"
   },
   "Max. speed on sends (KB/s)": {
-    "string": ""
+    "string": "Maks. brzina slanja (KB/s)"
   },
   "Cancel if send speed is above (KB/s)": {
-    "string": ""
+    "string": "Otkaži ako brzina slanja prelazi (KB/s)"
   },
   "Download folder": {
-    "string": ""
+    "string": "Fascikla za preuzimanje"
   },
   "Default app folder": {
-    "string": ""
+    "string": "Podrazumevana fascikla aplikacije"
   },
   "Add extension (e.g. *.zip)": {
-    "string": ""
+    "string": "Dodaj ekstenziju (npr. *.zip)"
   },
   "Tap to remove": {
-    "string": ""
+    "string": "Tapnite za uklanjanje"
   },
   "When open": {
-    "string": ""
+    "string": "Kada je otvoreno"
   },
   "Anti-spam on private messages": {
-    "string": ""
+    "string": "Anti-spam za privatne poruke"
   },
   "Spam keywords list": {
-    "string": ""
+    "string": "Lista ključnih reči za spam"
   },
   "{count} patterns": {
-    "string": ""
+    "string": "{count} obrazaca"
   },
   "Logging in SPAM.log": {
-    "string": ""
+    "string": "Logovanje u SPAM.log"
   },
   "Check SPAM.log": {
-    "string": ""
+    "string": "Proveri SPAM.log"
   },
   "No spam log entries.": {
-    "string": ""
+    "string": "Nema unosa u spam logu."
   },
   "Delete SPAM.log": {
-    "string": ""
+    "string": "Obriši SPAM.log"
   },
   "Anti-spam on channels": {
-    "string": ""
+    "string": "Anti-spam na kanalima"
   },
   "No spam on quits": {
-    "string": ""
+    "string": "Bez spama pri odlasku"
   },
   "CTCP Flood & various": {
     "string": "CTCP poplava i razno"
@@ -8154,7 +8154,7 @@
     "string": "Podrazumevani tip bana"
   },
   "Select the default ban mask type (0-9)": {
-    "string": ""
+    "string": "Izaberite podrazumevani tip maske bana (0-9)"
   },
   "Ban by user@host": {
     "string": "Banuj user@host"
@@ -8214,7 +8214,7 @@
     "string": "Dodaj novi razlog..."
   },
   "Reset to Defaults": {
-    "string": ""
+    "string": "Vrati na podrazumevane vrednosti"
   },
   "Load Scrollback on Join": {
     "string": "Učitaj scrollback pri ulasku"
@@ -8259,31 +8259,31 @@
     "string": "postavlja temu"
   },
   "Usage: /clones <channel> - Must be used in a channel or specify a channel": {
-    "string": ""
+    "string": "Korišćenje: /clones <kanal> - Mora se koristiti u kanalu ili navesti kanal"
   },
   "*** No clones detected in {channel}": {
-    "string": ""
+    "string": "*** Nisu otkriveni klonovi u {channel}"
   },
   "*** Clones detected in {channel}:": {
-    "string": ""
+    "string": "*** Otkriveni klonovi u {channel}:"
   },
   "***   {host}: {nicks}": {
-    "string": ""
+    "string": "***   {host}: {nicks}"
   },
   "*** Error detecting clones: {error}": {
-    "string": ""
+    "string": "*** Greška pri otkrivanju klonova: {error}"
   },
   "*** Sending NickServ IDENTIFY...": {
-    "string": ""
+    "string": "*** Slanje NickServ IDENTIFY..."
   },
   "IRC Services v": {
-    "string": ""
+    "string": "IRC servisi v"
   },
   "IRC Services >": {
-    "string": ""
+    "string": "IRC servisi >"
   },
   "Show All Commands...": {
-    "string": ""
+    "string": "Prikaži sve komande..."
   },
   "Join Channel": {
     "string": "Uđi u kanal"
@@ -8322,76 +8322,76 @@
     "string": "Prikaži RAW"
   },
   "Usage": {
-    "string": ""
+    "string": "Korišćenje"
   },
   "Example": {
-    "string": ""
+    "string": "Primer"
   },
   "Parameters": {
-    "string": ""
+    "string": "Parametri"
   },
   "Execute": {
-    "string": ""
+    "string": "Izvrši"
   },
   "IRC Service Commands": {
-    "string": ""
+    "string": "IRC komande servisa"
   },
   "Search commands...": {
-    "string": ""
+    "string": "Pretraži komande..."
   },
   "No commands found": {
-    "string": ""
+    "string": "Nema pronađenih komandi"
   },
   "No service commands available": {
-    "string": ""
+    "string": "Nema dostupnih servisnih komandi"
   },
   "commands": {
-    "string": ""
+    "string": "komande"
   },
   "Auto-detect": {
-    "string": ""
+    "string": "Automatsko otkrivanje"
   },
   "IRC Service Type": {
-    "string": ""
+    "string": "Tip IRC servisa"
   },
   "Select IRC Service": {
-    "string": ""
+    "string": "Izaberi IRC servis"
   },
   "Detected: {service}": {
-    "string": ""
+    "string": "Otkriveno: {service}"
   },
   "Apply Theme Settings": {
-    "string": ""
+    "string": "Primeni podešavanja teme"
   },
   "This will apply the recommended settings for the {{themeName}} theme. Your current settings will be overwritten.": {
-    "string": ""
+    "string": "Ovo će primeniti preporučena podešavanja za temu {{themeName}}. Vaša trenutna podešavanja će biti prepisana."
   },
   "Settings Applied": {
-    "string": ""
+    "string": "Podešavanja primenjena"
   },
   "Theme settings have been applied successfully.": {
-    "string": ""
+    "string": "Podešavanja teme su uspešno primenjena."
   },
   "Failed to apply theme settings. Please try again.": {
-    "string": ""
+    "string": "Primena podešavanja teme nije uspela. Pokušajte ponovo."
   },
   "Apply recommended settings for {{themeName}} theme": {
-    "string": ""
+    "string": "Primeni preporučena podešavanja za temu {{themeName}}"
   },
   "Apply Theme Settings?": {
-    "string": ""
+    "string": "Primeniti podešavanja teme?"
   },
   "The \"{name}\" theme has recommended settings for the best experience. Apply them?": {
-    "string": ""
+    "string": "Tema \"{name}\" ima preporučena podešavanja za najbolje iskustvo. Primeniti ih?"
   },
   "Theme Only": {
-    "string": ""
+    "string": "Samo tema"
   },
   "Apply All": {
-    "string": ""
+    "string": "Primeni sve"
   },
   "Theme and recommended settings have been applied.": {
-    "string": ""
+    "string": "Tema i preporučena podešavanja su primenjena."
   },
   "Switch tabs on channel list scroll": {
     "string": "Menjaj tabove na skrol liste kanala"
@@ -8418,154 +8418,154 @@
     "string": "Ban po identu (bilo koji nick@host)"
   },
   "The \"{{themeName}}\" theme has recommended settings. Would you like to apply them for the best experience?": {
-    "string": ""
+    "string": "Tema \"{{themeName}}\" ima preporučena podešavanja. Želite li da ih primenite za najbolje iskustvo?"
   },
   "Failed to apply theme settings.": {
-    "string": ""
+    "string": "Primena podešavanja teme nije uspela."
   },
   "Select Theme": {
-    "string": ""
+    "string": "Izaberi temu"
   },
   "Recommended settings available": {
-    "string": ""
+    "string": "Dostupna su preporučena podešavanja"
   },
   "Current theme has recommended settings that can be applied.": {
-    "string": ""
+    "string": "Trenutna tema ima preporučena podešavanja koja se mogu primeniti."
   },
   "Not connected to server.": {
-    "string": ""
+    "string": "Nije povezano sa serverom."
   },
   "Connect {network}": {
-    "string": ""
+    "string": "Poveži {network}"
   },
   "Close All Channels + PVTS": {
-    "string": ""
+    "string": "Zatvori sve kanale i privatne razgovore"
   },
   "Rename Server Tab": {
-    "string": ""
+    "string": "Preimenuj tab servera"
   },
   "IRCop Commands": {
-    "string": ""
+    "string": "IRCop komande"
   },
   "Close Server Tab": {
-    "string": ""
+    "string": "Zatvori tab servera"
   },
   "Leave Channel": {
-    "string": ""
+    "string": "Napusti kanal"
   },
   "Send Plaintext (Unlock)": {
-    "string": ""
+    "string": "Pošalji nešifrovano (otključaj)"
   },
   "Send Encrypted (Lock)": {
-    "string": ""
+    "string": "Pošalji šifrovano (zaključaj)"
   },
   "Always Encrypt: {status}": {
-    "string": ""
+    "string": "Uvek šifruj: {status}"
   },
   "Close Query": {
-    "string": ""
+    "string": "Zatvori upit"
   },
   "Request DM Key": {
-    "string": ""
+    "string": "Zatraži DM ključ"
   },
   "WHOWAS": {
-    "string": ""
+    "string": "WHOWAS"
   },
   "Generate Channel Key": {
-    "string": ""
+    "string": "Generiši ključ kanala"
   },
   "Request Encryption Key": {
-    "string": ""
+    "string": "Zatraži ključ enkripcije"
   },
   "Share Encryption Key": {
-    "string": ""
+    "string": "Podeli ključ enkripcije"
   },
   "Remove Channel Bookmark": {
-    "string": ""
+    "string": "Ukloni oznaku kanala"
   },
   "Bookmark Channel": {
-    "string": ""
+    "string": "Označi kanal"
   },
   "Edit Channel Note": {
-    "string": ""
+    "string": "Uredi belešku kanala"
   },
   "View Activity Log": {
-    "string": ""
+    "string": "Prikaži log aktivnosti"
   },
   "IRC Services": {
-    "string": ""
+    "string": "IRC servisi"
   },
   "OP (Give Op)": {
-    "string": ""
+    "string": "OP (daj operatora)"
   },
   "DEOP (Remove Op)": {
-    "string": ""
+    "string": "DEOP (ukloni operatora)"
   },
   "VOICE (Give Voice)": {
-    "string": ""
+    "string": "VOICE (daj glas)"
   },
   "DEVOICE (Remove Voice)": {
-    "string": ""
+    "string": "DEVOICE (ukloni glas)"
   },
   "KICK (Remove User)": {
-    "string": ""
+    "string": "KICK (izbaci korisnika)"
   },
   "Kick User": {
-    "string": ""
+    "string": "Izbaci korisnika"
   },
   "Enter nickname to kick:": {
-    "string": ""
+    "string": "Unesite nadimak za izbacivanje:"
   },
   "BAN (Ban User)": {
-    "string": ""
+    "string": "BAN (zabrani korisniku)"
   },
   "Ban User": {
-    "string": ""
+    "string": "Zabrani korisniku"
   },
   "Enter nickname or mask to ban:": {
-    "string": ""
+    "string": "Unesite nadimak ili masku za zabranu:"
   },
   "UNBAN (Remove Ban)": {
-    "string": ""
+    "string": "UNBAN (ukloni zabranu)"
   },
   "Unban User": {
-    "string": ""
+    "string": "Ukloni zabranu korisniku"
   },
   "Enter nickname or mask to unban:": {
-    "string": ""
+    "string": "Unesite nadimak ili masku za uklanjanje zabrane:"
   },
   "Unban": {
-    "string": ""
+    "string": "Ukloni zabranu"
   },
   "TOPIC (Set Topic)": {
-    "string": ""
+    "string": "TOPIC (postavi temu)"
   },
   "Enter new topic:": {
-    "string": ""
+    "string": "Unesite novu temu:"
   },
   "Set": {
-    "string": ""
+    "string": "Postavi"
   },
   "INFO (Channel Info)": {
-    "string": ""
+    "string": "INFO (informacije o kanalu)"
   },
   "AKICK (Auto-kick List)": {
-    "string": ""
+    "string": "AKICK (lista automatskog izbacivanja)"
   },
   "IRC Services: {channel}": {
-    "string": ""
+    "string": "IRC servisi: {channel}"
   },
   "Remove from Favorites": {
-    "string": ""
+    "string": "Ukloni iz omiljenih"
   },
   "Add to Favorites": {
-    "string": ""
+    "string": "Dodaj u omiljene"
   },
   "Channel: {name}": {
-    "string": ""
+    "string": "Kanal: {name}"
   },
   "Query: {name}": {
-    "string": ""
+    "string": "Upit: {name}"
   },
   "Socials": {
     "string": "Društvene mreže"
@@ -8598,2872 +8598,2872 @@
     "string": "Obriši istoriju kanala"
   },
   "Manage Identity Profiles": {
-    "string": ""
+    "string": "Upravljaj profilima identiteta"
   },
   "Browse saved messages by network and channel": {
     "string": "Pregled sačuvanih poruka po mreži i kanalu"
   },
   "*** Sending identify to {service}...": {
-    "string": ""
+    "string": "*** Slanje identifikacije servisu {service}..."
   },
   "*** Authenticating with QuakeNet Q...": {
-    "string": ""
+    "string": "*** Autentifikacija sa QuakeNet Q..."
   },
   "*** Authenticating with Undernet X...": {
-    "string": ""
+    "string": "*** Autentifikacija sa Undernet X..."
   },
   "*** Detected services: {serviceType} (confidence: {confidence}%)": {
-    "string": ""
+    "string": "*** Otkriveni servisi: {serviceType} (pouzdanost: {confidence}%)"
   },
   "Server notice mask": {
-    "string": ""
+    "string": "Maska obaveštenja servera"
   },
   "*** [{numeric}] {modes} {description}": {
-    "string": ""
+    "string": "*** [{numeric}] {modes} {description}"
   },
   "*** Memory: {stats}": {
-    "string": ""
+    "string": "*** Memorija: {stats}"
   },
   "*** Trace: {info}": {
-    "string": ""
+    "string": "*** Praćenje: {info}"
   },
   "*** Trace: Connecting - {info}": {
-    "string": ""
+    "string": "*** Praćenje: Povezivanje - {info}"
   },
   "*** Trace: Handshake - {info}": {
-    "string": ""
+    "string": "*** Praćenje: Rukovanje - {info}"
   },
   "*** Trace: Unknown - {info}": {
-    "string": ""
+    "string": "*** Praćenje: Nepoznato - {info}"
   },
   "*** Trace: Operator - {info}": {
-    "string": ""
+    "string": "*** Praćenje: Operator - {info}"
   },
   "*** Trace: User - {info}": {
-    "string": ""
+    "string": "*** Praćenje: Korisnik - {info}"
   },
   "*** Trace: Server - {info}": {
-    "string": ""
+    "string": "*** Praćenje: Server - {info}"
   },
   "*** Trace: Service - {info}": {
-    "string": ""
+    "string": "*** Praćenje: Servis - {info}"
   },
   "*** Trace: Class - {info}": {
-    "string": ""
+    "string": "*** Praćenje: Klasa - {info}"
   },
   "*** Trace Log: {info}": {
-    "string": ""
+    "string": "*** Log praćenja: {info}"
   },
   "End of TRACE": {
-    "string": ""
+    "string": "Kraj TRACE-a"
   },
   "is a Server Administrator": {
-    "string": ""
+    "string": "je administrator servera"
   },
   "is a Services Administrator": {
-    "string": ""
+    "string": "je administrator servisa"
   },
   "is deaf to private messages": {
-    "string": ""
+    "string": "ne prima privatne poruke"
   },
   "*** {nick} is the unique operator of {channel}": {
-    "string": ""
+    "string": "*** {nick} je jedini operator na {channel}"
   },
   "*** {channel} URL: {url}": {
-    "string": ""
+    "string": "*** {channel} URL: {url}"
   },
   "*** UserIP: {info}": {
-    "string": ""
+    "string": "*** UserIP: {info}"
   },
   "Summoning user to IRC": {
-    "string": ""
+    "string": "Pozivanje korisnika na IRC"
   },
   "*** {nick}: {message}": {
-    "string": ""
+    "string": "*** {nick}: {message}"
   },
   "End of channel reop list": {
-    "string": ""
+    "string": "Kraj liste za reop kanala"
   },
   "*** WHO: {info}": {
-    "string": ""
+    "string": "*** WHO: {info}"
   },
   "You are no longer an IRC operator": {
-    "string": ""
+    "string": "Više niste IRC operator"
   },
   "End of list": {
-    "string": ""
+    "string": "Kraj liste"
   },
   "End of /MAP": {
-    "string": ""
+    "string": "Kraj /MAP-a"
   },
   "*** Server redirect: {host}:{port} - {info}": {
-    "string": ""
+    "string": "*** Preusmeravanje servera: {host}:{port} - {info}"
   },
   "*** Your unique ID: {id} {message}": {
-    "string": ""
+    "string": "*** Vaš jedinstveni ID: {id} {message}"
   },
   "*** Nick saved: {nick} {message}": {
-    "string": ""
+    "string": "*** Nadimak sačuvan: {nick} {message}"
   },
   "Please wait and try again": {
-    "string": ""
+    "string": "Sačekajte i pokušajte ponovo"
   },
   "*** {command}: {message}": {
-    "string": ""
+    "string": "*** {command}: {message}"
   },
   "*** {server} ({hops} hops): {info}": {
-    "string": ""
+    "string": "*** {server} ({hops} koraka): {info}"
   },
   "End of /LINKS list": {
-    "string": ""
+    "string": "Kraj liste /LINKS"
   },
   "End of users": {
-    "string": ""
+    "string": "Kraj korisnika"
   },
   "Nobody logged in": {
-    "string": ""
+    "string": "Niko nije prijavljen"
   },
   "is now your hidden host": {
-    "string": ""
+    "string": "je sada vaš skriveni host"
   },
   "*** {host} {message}": {
-    "string": ""
+    "string": "*** {host} {message}"
   },
   "No such server": {
-    "string": ""
+    "string": "Ne postoji takav server"
   },
   "*** {server}: {message}": {
-    "string": ""
+    "string": "*** {server}: {message}"
   },
   "No such service": {
-    "string": ""
+    "string": "Ne postoji takav servis"
   },
   "*** {service}: {message}": {
-    "string": ""
+    "string": "*** {service}: {message}"
   },
   "No origin specified": {
-    "string": ""
+    "string": "Nije naveden izvor"
   },
   "Too many matches": {
-    "string": ""
+    "string": "Previše podudaranja"
   },
   "Input line was too long": {
-    "string": ""
+    "string": "Unos je bio predugačak"
   },
   "File error": {
-    "string": ""
+    "string": "Greška fajla"
   },
   "Service name is already in use": {
-    "string": ""
+    "string": "Ime servisa je već u upotrebi"
   },
   "Cannot change nickname while banned on channel": {
-    "string": ""
+    "string": "Ne možete promeniti nadimak dok ste zabranjeni na kanalu"
   },
   "*** Cannot change nick to {nick} - banned on {channel}: {message}": {
-    "string": ""
+    "string": "*** Nije moguće promeniti nadimak na {nick} - zabranjeni ste na {channel}: {message}"
   },
   "Nick change too fast. Please wait.": {
-    "string": ""
+    "string": "Promena nadimka je prespora. Sačekajte."
   },
   "Target change too fast. Please wait.": {
-    "string": ""
+    "string": "Promena cilja je prespora. Sačekajte."
   },
   "*** {target}: {message}": {
-    "string": ""
+    "string": "*** {target}: {message}"
   },
   "Services are currently unavailable": {
-    "string": ""
+    "string": "Servisi su trenutno nedostupni"
   },
   "User not logged in": {
-    "string": ""
+    "string": "Korisnik nije prijavljen"
   },
   "*** {user}: {message}": {
-    "string": ""
+    "string": "*** {user}: {message}"
   },
   "SUMMON has been disabled": {
-    "string": ""
+    "string": "SUMMON je onemogućen"
   },
   "USERS has been disabled": {
-    "string": ""
+    "string": "USERS je onemogućen"
   },
   "Cannot change nickname": {
-    "string": ""
+    "string": "Nije moguće promeniti nadimak"
   },
   "Command not implemented": {
-    "string": ""
+    "string": "Komanda nije implementirana"
   },
   "ID collision": {
-    "string": ""
+    "string": "Kolizija ID-a"
   },
   "Nickname lost": {
-    "string": ""
+    "string": "Nadimak izgubljen"
   },
   "Invalid username": {
-    "string": ""
+    "string": "Nevažeće korisničko ime"
   },
   "Only servers can change that mode": {
-    "string": ""
+    "string": "Samo serveri mogu promeniti taj mod"
   },
   "Link with this server is already set": {
-    "string": ""
+    "string": "Veza sa ovim serverom je već postavljena"
   },
   "Forwarding to another channel": {
-    "string": ""
+    "string": "Preusmeravanje na drugi kanal"
   },
   "*** Forwarded from {oldChannel} to {newChannel}: {reason}": {
-    "string": ""
+    "string": "*** Preusmereno sa {oldChannel} na {newChannel}: {reason}"
   },
   "Illegal channel name": {
-    "string": ""
+    "string": "Nedozvoljeno ime kanala"
   },
   "*** {channel}: {message}": {
-    "string": ""
+    "string": "*** {channel}: {message}"
   },
   "Cannot knock on channel": {
-    "string": ""
+    "string": "Nije moguće kucati na kanal"
   },
   "Cannot join channel": {
-    "string": ""
+    "string": "Nije moguće ući u kanal"
   },
   "You must identify to a registered nick to message this user": {
-    "string": ""
+    "string": "Morate se identifikovati sa registrovanim nadimkom da biste poslali poruku ovom korisniku"
   },
   "Cannot join channel - rate limited": {
-    "string": ""
+    "string": "Nije moguće ući u kanal - ograničenje brzine"
   },
   "Timestamp error": {
-    "string": ""
+    "string": "Greška vremenske oznake"
   },
   "Cannot join channel (+S) - SSL/TLS required": {
-    "string": ""
+    "string": "Nije moguće ući u kanal (+S) - potreban SSL/TLS"
   },
   "Message blocked": {
-    "string": ""
+    "string": "Poruka blokirana"
   },
   "No service host": {
-    "string": ""
+    "string": "Nema host-a servisa"
   },
   "Feature not available": {
-    "string": ""
+    "string": "Funkcija nije dostupna"
   },
   "Bad feature value": {
-    "string": ""
+    "string": "Nevažeća vrednost funkcije"
   },
   "Bad log type": {
-    "string": ""
+    "string": "Nevažeći tip loga"
   },
   "Bad log system": {
-    "string": ""
+    "string": "Nevažeći sistem logovanja"
   },
   "Bad log value": {
-    "string": ""
+    "string": "Nevažeća vrednost loga"
   },
   "Cannot kick channel service": {
-    "string": ""
+    "string": "Nije moguće izbaciti servis kanala"
   },
   "You're not the channel owner": {
-    "string": ""
+    "string": "Niste vlasnik kanala"
   },
   "Message could not be delivered": {
-    "string": ""
+    "string": "Poruka nije mogla biti isporučena"
   },
   "Your silence list is full": {
-    "string": ""
+    "string": "Vaša lista za ućutkivanje je puna"
   },
   "Maximum size of watch list exceeded": {
-    "string": ""
+    "string": "Prekoračena maksimalna veličina liste za praćenje"
   },
   "To connect, type /QUOTE PONG followed by the code": {
-    "string": ""
+    "string": "Da biste se povezali, ukucajte /QUOTE PONG praćeno kodom"
   },
   "Too many DCC connections": {
-    "string": ""
+    "string": "Previše DCC konekcija"
   },
   "Bad list syntax": {
-    "string": ""
+    "string": "Nevažeća sintaksa liste"
   },
   "Help not found": {
-    "string": ""
+    "string": "Pomoć nije pronađena"
   },
   "*** {topic}: {message}": {
-    "string": ""
+    "string": "*** {topic}: {message}"
   },
   "Invalid key": {
-    "string": ""
+    "string": "Nevažeći ključ"
   },
   "Cannot send to user": {
-    "string": ""
+    "string": "Nije moguće poslati korisniku"
   },
   "*** {oldNick} changed nick to {newNick} ({user}@{host})": {
-    "string": ""
+    "string": "*** {oldNick} promenio nadimak u {newNick} ({user}@{host})"
   },
   "is being watched": {
-    "string": ""
+    "string": "se prati"
   },
   "is not being watched": {
-    "string": ""
+    "string": "se ne prati"
   },
   "WATCH list has been cleared": {
-    "string": ""
+    "string": "Lista WATCH je očišćena"
   },
   "*** WATCH list contains {nick}": {
-    "string": ""
+    "string": "*** Lista WATCH sadrži {nick}"
   },
   "Your WATCH list has no size limit": {
-    "string": ""
+    "string": "Vaša lista WATCH nema ograničenja veličine"
   },
   "Beginning of WATCH list": {
-    "string": ""
+    "string": "Početak liste WATCH"
   },
   "End of WATCH S list": {
-    "string": ""
+    "string": "Kraj liste WATCH S"
   },
   "WATCH operation failed": {
-    "string": ""
+    "string": "Operacija WATCH nije uspela"
   },
   "*** DCC: {info}": {
-    "string": ""
+    "string": "*** DCC: {info}"
   },
   "End of DCC list": {
-    "string": ""
+    "string": "Kraj DCC liste"
   },
   "*** DCC: {entry}": {
-    "string": ""
+    "string": "*** DCC: {entry}"
   },
   "*** DCC Allow: {entry}": {
-    "string": ""
+    "string": "*** DCC dozvola: {entry}"
   },
   "End of DCC allow list": {
-    "string": ""
+    "string": "Kraj liste DCC dozvola"
   },
   "DCC denied": {
-    "string": ""
+    "string": "DCC odbijen"
   },
   "removed from DCC allow list": {
-    "string": ""
+    "string": "uklonjen sa liste DCC dozvola"
   },
   "added to DCC allow list": {
-    "string": ""
+    "string": "dodat na listu DCC dozvola"
   },
   "*** DCC allow for {nick} will expire in {time}": {
-    "string": ""
+    "string": "*** DCC dozvola za {nick} ističe za {time}"
   },
   "*** NOTIFY {nick}: {action}": {
-    "string": ""
+    "string": "*** NOTIFY {nick}: {action}"
   },
   "Notify is now set": {
-    "string": ""
+    "string": "Obaveštenje je sada postavljeno"
   },
   "*** {nick} removed from notify list": {
-    "string": ""
+    "string": "*** {nick} uklonjen sa liste obaveštenja"
   },
   "*** Traceroute hop {hop}: {host} ({time}ms)": {
-    "string": ""
+    "string": "*** Traceroute skok {hop}: {host} ({time}ms)"
   },
   "*** Starting traceroute to {target}": {
-    "string": ""
+    "string": "*** Pokretanje traceroute do {target}"
   },
   "*** {channel}: {warning}": {
-    "string": ""
+    "string": "*** {channel}: {warning}"
   },
   "*** Channel {old} redirects to {new}": {
-    "string": ""
+    "string": "*** Kanal {old} preusmerava na {new}"
   },
   "*** Server mode is {modes}": {
-    "string": ""
+    "string": "*** Mod servera je {modes}"
   },
   "*** {nick} has modes: {modes}": {
-    "string": ""
+    "string": "*** {nick} ima modove: {modes}"
   },
   "Target change too fast": {
-    "string": ""
+    "string": "Promena cilja je prespora"
   },
   "*** {nick}: {status}": {
-    "string": ""
+    "string": "*** {nick}: {status}"
   },
   "*** {nick} certificate fingerprint: {fp}": {
-    "string": ""
+    "string": "*** Otisak sertifikata od {nick}: {fp}"
   },
   "are unknown modes": {
-    "string": ""
+    "string": "su nepoznati modovi"
   },
   "*** {modes} {message}": {
-    "string": ""
+    "string": "*** {modes} {message}"
   },
   "Cannot set modes": {
-    "string": ""
+    "string": "Nije moguće postaviti modove"
   },
   "staff members online": {
-    "string": ""
+    "string": "članova osoblja je online"
   },
   "*** Server time: {time}": {
-    "string": ""
+    "string": "*** Vreme servera: {time}"
   },
   "*** {nick} is a local operator": {
-    "string": ""
+    "string": "*** {nick} je lokalni operator"
   },
   "*** {nick} is a Services Administrator": {
-    "string": ""
+    "string": "*** {nick} je administrator servisa"
   },
   "*** {nick} is a Network Administrator": {
-    "string": ""
+    "string": "*** {nick} je administrator mreže"
   },
   "*** Your certificate fingerprint: {fp}": {
-    "string": ""
+    "string": "*** Otisak vašeg sertifikata: {fp}"
   },
   "*** {channel} topic was set by {nick} on {date}": {
-    "string": ""
+    "string": "*** Temu na {channel} postavio {nick} dana {date}"
   },
   "*** Commands: {data}": {
-    "string": ""
+    "string": "*** Komande: {data}"
   },
   "End of commands list": {
-    "string": ""
+    "string": "Kraj liste komandi"
   },
   "*** Module: {module} ({info})": {
-    "string": ""
+    "string": "*** Modul: {module} ({info})"
   },
   "End of module list": {
-    "string": ""
+    "string": "Kraj liste modula"
   },
   "*** Help on {topic}: {text}": {
-    "string": ""
+    "string": "*** Pomoć za {topic}: {text}"
   },
   "(empty help line)": {
-    "string": ""
+    "string": "(prazna linija pomoći)"
   },
   "End of help": {
-    "string": ""
+    "string": "Kraj pomoći"
   },
   "*** ETRACE: {data}": {
-    "string": ""
+    "string": "*** ETRACE: {data}"
   },
   "End of ETRACE": {
-    "string": ""
+    "string": "Kraj ETRACE-a"
   },
   "has requested an invite": {
-    "string": ""
+    "string": "je zatražio pozivnicu"
   },
   "*** {nick} is knocking on {channel}: {message}": {
-    "string": ""
+    "string": "*** {nick} kuca na {channel}: {message}"
   },
   "Knock delivered": {
-    "string": ""
+    "string": "Kucanje isporučeno"
   },
   "Too many knocks": {
-    "string": ""
+    "string": "Previše kucanja"
   },
   "Channel is not invite only": {
-    "string": ""
+    "string": "Kanal nije samo po pozivu"
   },
   "You are already on that channel": {
-    "string": ""
+    "string": "Već ste na tom kanalu"
   },
   "Knock is disabled": {
-    "string": ""
+    "string": "Kucanje je onemogućeno"
   },
   "is in +g mode (server-side ignore)": {
-    "string": ""
+    "string": "je u +g modu (ignorisanje na strani servera)"
   },
   "has been notified that you messaged them": {
-    "string": ""
+    "string": "je obavešten da ste mu poslali poruku"
   },
   "is messaging you and you are +g": {
-    "string": ""
+    "string": "vam šalje poruke a vi ste u +g modu"
   },
   "*** {nick} {message}. Use /ACCEPT {nick} to receive messages.": {
-    "string": ""
+    "string": "*** {nick} {message}. Koristite /ACCEPT {nick} za primanje poruka."
   },
   "Start of OPER MOTD": {
-    "string": ""
+    "string": "Početak OPER MOTD-a"
   },
   "End of OPER MOTD": {
-    "string": ""
+    "string": "Kraj OPER MOTD-a"
   },
   "Insufficient oper privileges": {
-    "string": ""
+    "string": "Nedovoljne privilegije operatora"
   },
   "*** TESTMARK: {data}": {
-    "string": ""
+    "string": "*** TESTMARK: {data}"
   },
   "*** TESTLINE: {data}": {
-    "string": ""
+    "string": "*** TESTLINE: {data}"
   },
   "No matching line found": {
-    "string": ""
+    "string": "Nije pronađena odgovarajuća linija"
   },
   "*** TESTMASK: {data}": {
-    "string": ""
+    "string": "*** TESTMASK: {data}"
   },
   "*** {channel} quiet: {mask} (set by {nick}{date})": {
-    "string": ""
+    "string": "*** {channel} ućutkivanje: {mask} (postavio {nick}{date})"
   },
   "End of channel quiet list": {
-    "string": ""
+    "string": "Kraj liste ućutkivanja kanala"
   },
   "*** RSA Challenge: {challenge}": {
-    "string": ""
+    "string": "*** RSA izazov: {challenge}"
   },
   "End of RSA challenge": {
-    "string": ""
+    "string": "Kraj RSA izazova"
   },
   "Mode cannot be set due to channel mode lock": {
-    "string": ""
+    "string": "Mod ne može biti postavljen zbog zaključanog moda kanala"
   },
   "*** {channel}: {mode} - {message}": {
-    "string": ""
+    "string": "*** {channel}: {mode} - {message}"
   },
   "Invalid ban mask": {
-    "string": ""
+    "string": "Nevažeća maska zabrane"
   },
   "*** {channel}: {mask} - {message}": {
-    "string": ""
+    "string": "*** {channel}: {mask} - {message}"
   },
   "Topic is locked": {
-    "string": ""
+    "string": "Tema je zaključana"
   },
   "*** SCAN matched: {data}": {
-    "string": ""
+    "string": "*** SCAN pronašao: {data}"
   },
   "*** SCAN modes: {data}": {
-    "string": ""
+    "string": "*** SCAN modovi: {data}"
   },
   "*** {nick} {key}: {value}": {
-    "string": ""
+    "string": "*** {nick} {key}: {value}"
   },
   "*** {target} {key} ({visibility}): {value}": {
-    "string": ""
+    "string": "*** {target} {key} ({visibility}): {value}"
   },
   "End of metadata": {
-    "string": ""
+    "string": "Kraj metapodataka"
   },
   "Metadata limit reached": {
-    "string": ""
+    "string": "Dostignuto ograničenje metapodataka"
   },
   "Invalid target": {
-    "string": ""
+    "string": "Nevažeći cilj"
   },
   "*** {target}: No matching key {key}": {
-    "string": ""
+    "string": "*** {target}: Ne postoji odgovarajući ključ {key}"
   },
   "*** Key {key}: {message}": {
-    "string": ""
+    "string": "*** Ključ {key}: {message}"
   },
   "*** {target}: Key {key} is not set": {
-    "string": ""
+    "string": "*** {target}: Ključ {key} nije postavljen"
   },
   "*** {target}: No permission to access key {key}": {
-    "string": ""
+    "string": "*** {target}: Nema dozvole za pristup ključu {key}"
   },
   "*** XINFO: {data}": {
-    "string": ""
+    "string": "*** XINFO: {data}"
   },
   "Start of extended info": {
-    "string": ""
+    "string": "Početak proširenih informacija"
   },
   "End of extended info": {
-    "string": ""
+    "string": "Kraj proširenih informacija"
   },
   "*** Access added: {data}": {
-    "string": ""
+    "string": "*** Pristup dodat: {data}"
   },
   "*** Access removed: {data}": {
-    "string": ""
+    "string": "*** Pristup uklonjen: {data}"
   },
   "Access list:": {
-    "string": ""
+    "string": "Lista pristupa:"
   },
   "*** Access: {entry}": {
-    "string": ""
+    "string": "*** Pristup: {entry}"
   },
   "End of access list": {
-    "string": ""
+    "string": "Kraj liste pristupa"
   },
   "Access denied": {
-    "string": ""
+    "string": "Pristup odbijen"
   },
   "*** Looking up hostname for {host}...": {
-    "string": ""
+    "string": "*** Traženje hostnamea za {host}..."
   },
   "*** DNS lookup for {host}: {resolved}": {
-    "string": ""
+    "string": "*** DNS pretraga za {host}: {resolved}"
   },
   "lookup failed": {
-    "string": ""
+    "string": "pretraga nije uspela"
   },
   "*** DNS lookup for {host}: {message}": {
-    "string": ""
+    "string": "*** DNS pretraga za {host}: {message}"
   },
   "DNS lookup complete": {
-    "string": ""
+    "string": "DNS pretraga završena"
   },
   "Your message contained a censored word": {
-    "string": ""
+    "string": "Vaša poruka je sadržala zabranjenu reč"
   },
   "Start of extended channel list": {
-    "string": ""
+    "string": "Početak proširene liste kanala"
   },
   "End of extended channel list": {
-    "string": ""
+    "string": "Kraj proširene liste kanala"
   },
   "Cannot execute command": {
-    "string": ""
+    "string": "Nije moguće izvršiti komandu"
   },
   "Cannot deop yourself": {
-    "string": ""
+    "string": "Ne možete sebi ukloniti status operatora"
   },
   "is a network service": {
-    "string": ""
+    "string": "je mrežni servis"
   },
   "*** PONG from {server}: {token}": {
-    "string": ""
+    "string": "*** PONG sa {server}: {token}"
   },
   "*** STATS {type}: {message}": {
-    "string": ""
+    "string": "*** STATS {type}: {message}"
   },
   "Ban mask type (0-11)": {
-    "string": ""
+    "string": "Tip maske zabrane (0-11)"
   },
   "Select Ban Mask Type": {
-    "string": ""
+    "string": "Izaberi tip maske zabrane"
   },
   "Ban mask types (0-11):": {
-    "string": ""
+    "string": "Tipovi maski zabrane (0-11):"
   },
   "SASL Mechanism": {
-    "string": ""
+    "string": "SASL mehanizam"
   },
   "PLAIN": {
-    "string": ""
+    "string": "PLAIN"
   },
   "SCRAM-SHA-256": {
-    "string": ""
+    "string": "SCRAM-SHA-256"
   },
   "SCRAM-SHA-256-PLUS (coming soon)": {
-    "string": ""
+    "string": "SCRAM-SHA-256-PLUS (uskoro)"
   },
   "help.channel.title": {
-    "string": ""
+    "string": "help.channel.title"
   },
   "help.channel.basics": {
-    "string": ""
+    "string": "help.channel.basics"
   },
   "help.channel.whatIsChannel": {
-    "string": ""
+    "string": "help.channel.whatIsChannel"
   },
   "help.channel.whatIsChannel.desc": {
-    "string": ""
+    "string": "help.channel.whatIsChannel.desc"
   },
   "help.channel.types": {
-    "string": ""
+    "string": "help.channel.types"
   },
   "help.channel.types.public": {
-    "string": ""
+    "string": "help.channel.types.public"
   },
   "help.channel.types.private": {
-    "string": ""
+    "string": "help.channel.types.private"
   },
   "help.channel.types.secret": {
-    "string": ""
+    "string": "help.channel.types.secret"
   },
   "help.channel.types.moderated": {
-    "string": ""
+    "string": "help.channel.types.moderated"
   },
   "help.channel.creating": {
-    "string": ""
+    "string": "help.channel.creating"
   },
   "help.channel.creating.joinCreate": {
-    "string": ""
+    "string": "help.channel.creating.joinCreate"
   },
   "help.channel.creating.joinCreate.desc": {
-    "string": ""
+    "string": "help.channel.creating.joinCreate.desc"
   },
   "help.channel.creating.setTopic": {
-    "string": ""
+    "string": "help.channel.creating.setTopic"
   },
   "help.channel.modes": {
-    "string": ""
+    "string": "help.channel.modes"
   },
   "help.channel.modes.userModes": {
-    "string": ""
+    "string": "help.channel.modes.userModes"
   },
   "help.channel.modes.op": {
-    "string": ""
+    "string": "help.channel.modes.op"
   },
   "help.channel.modes.voice": {
-    "string": ""
+    "string": "help.channel.modes.voice"
   },
   "help.channel.modes.halfop": {
-    "string": ""
+    "string": "help.channel.modes.halfop"
   },
   "help.channel.modes.owner": {
-    "string": ""
+    "string": "help.channel.modes.owner"
   },
   "help.channel.modes.admin": {
-    "string": ""
+    "string": "help.channel.modes.admin"
   },
   "help.channel.modes.giveOp": {
-    "string": ""
+    "string": "help.channel.modes.giveOp"
   },
   "help.channel.modes.giveVoice": {
-    "string": ""
+    "string": "help.channel.modes.giveVoice"
   },
   "help.channel.modes.removeOp": {
-    "string": ""
+    "string": "help.channel.modes.removeOp"
   },
   "help.channel.settings": {
-    "string": ""
+    "string": "help.channel.settings"
   },
   "help.channel.settings.moderated": {
-    "string": ""
+    "string": "help.channel.settings.moderated"
   },
   "help.channel.settings.moderated.desc": {
-    "string": ""
+    "string": "help.channel.settings.moderated.desc"
   },
   "help.channel.settings.private": {
-    "string": ""
+    "string": "help.channel.settings.private"
   },
   "help.channel.settings.private.desc": {
-    "string": ""
+    "string": "help.channel.settings.private.desc"
   },
   "help.channel.settings.secret": {
-    "string": ""
+    "string": "help.channel.settings.secret"
   },
   "help.channel.settings.secret.desc": {
-    "string": ""
+    "string": "help.channel.settings.secret.desc"
   },
   "help.channel.settings.inviteOnly": {
-    "string": ""
+    "string": "help.channel.settings.inviteOnly"
   },
   "help.channel.settings.inviteOnly.desc": {
-    "string": ""
+    "string": "help.channel.settings.inviteOnly.desc"
   },
   "help.channel.settings.noExt": {
-    "string": ""
+    "string": "help.channel.settings.noExt"
   },
   "help.channel.settings.noExt.desc": {
-    "string": ""
+    "string": "help.channel.settings.noExt.desc"
   },
   "help.channel.settings.topicLock": {
-    "string": ""
+    "string": "help.channel.settings.topicLock"
   },
   "help.channel.settings.topicLock.desc": {
-    "string": ""
+    "string": "help.channel.settings.topicLock.desc"
   },
   "help.channel.settings.userLimit": {
-    "string": ""
+    "string": "help.channel.settings.userLimit"
   },
   "help.channel.settings.userLimit.desc": {
-    "string": ""
+    "string": "help.channel.settings.userLimit.desc"
   },
   "help.channel.settings.channelKey": {
-    "string": ""
+    "string": "help.channel.settings.channelKey"
   },
   "help.channel.settings.channelKey.desc": {
-    "string": ""
+    "string": "help.channel.settings.channelKey.desc"
   },
   "help.channel.moderation": {
-    "string": ""
+    "string": "help.channel.moderation"
   },
   "help.channel.moderation.kick": {
-    "string": ""
+    "string": "help.channel.moderation.kick"
   },
   "help.channel.moderation.kick.desc": {
-    "string": ""
+    "string": "help.channel.moderation.kick.desc"
   },
   "help.channel.moderation.ban": {
-    "string": ""
+    "string": "help.channel.moderation.ban"
   },
   "help.channel.moderation.ban.desc": {
-    "string": ""
+    "string": "help.channel.moderation.ban.desc"
   },
   "help.channel.moderation.quiet": {
-    "string": ""
+    "string": "help.channel.moderation.quiet"
   },
   "help.channel.moderation.quiet.desc": {
-    "string": ""
+    "string": "help.channel.moderation.quiet.desc"
   },
   "help.channel.moderation.unban": {
-    "string": ""
+    "string": "help.channel.moderation.unban"
   },
   "help.channel.moderation.viewBanList": {
-    "string": ""
+    "string": "help.channel.moderation.viewBanList"
   },
   "help.channel.advanced": {
-    "string": ""
+    "string": "help.channel.advanced"
   },
   "help.channel.advanced.registration": {
-    "string": ""
+    "string": "help.channel.advanced.registration"
   },
   "help.channel.advanced.registration.desc": {
-    "string": ""
+    "string": "help.channel.advanced.registration.desc"
   },
   "help.channel.advanced.accessList": {
-    "string": ""
+    "string": "help.channel.advanced.accessList"
   },
   "help.channel.advanced.accessList.desc": {
-    "string": ""
+    "string": "help.channel.advanced.accessList.desc"
   },
   "help.channel.advanced.autoOp": {
-    "string": ""
+    "string": "help.channel.advanced.autoOp"
   },
   "help.channel.advanced.autoOp.desc": {
-    "string": ""
+    "string": "help.channel.advanced.autoOp.desc"
   },
   "help.channel.bestPractices": {
-    "string": ""
+    "string": "help.channel.bestPractices"
   },
   "help.channel.bestPractices.security": {
-    "string": ""
+    "string": "help.channel.bestPractices.security"
   },
   "help.channel.bestPractices.security.1": {
-    "string": ""
+    "string": "help.channel.bestPractices.security.1"
   },
   "help.channel.bestPractices.security.2": {
-    "string": ""
+    "string": "help.channel.bestPractices.security.2"
   },
   "help.channel.bestPractices.security.3": {
-    "string": ""
+    "string": "help.channel.bestPractices.security.3"
   },
   "help.channel.bestPractices.security.4": {
-    "string": ""
+    "string": "help.channel.bestPractices.security.4"
   },
   "help.channel.bestPractices.moderation": {
-    "string": ""
+    "string": "help.channel.bestPractices.moderation"
   },
   "help.channel.bestPractices.moderation.1": {
-    "string": ""
+    "string": "help.channel.bestPractices.moderation.1"
   },
   "help.channel.bestPractices.moderation.2": {
-    "string": ""
+    "string": "help.channel.bestPractices.moderation.2"
   },
   "help.channel.bestPractices.moderation.3": {
-    "string": ""
+    "string": "help.channel.bestPractices.moderation.3"
   },
   "help.channel.bestPractices.moderation.4": {
-    "string": ""
+    "string": "help.channel.bestPractices.moderation.4"
   },
   "help.channel.bestPractices.growth": {
-    "string": ""
+    "string": "help.channel.bestPractices.growth"
   },
   "help.channel.bestPractices.growth.1": {
-    "string": ""
+    "string": "help.channel.bestPractices.growth.1"
   },
   "help.channel.bestPractices.growth.2": {
-    "string": ""
+    "string": "help.channel.bestPractices.growth.2"
   },
   "help.channel.bestPractices.growth.3": {
-    "string": ""
+    "string": "help.channel.bestPractices.growth.3"
   },
   "help.channel.bestPractices.growth.4": {
-    "string": ""
+    "string": "help.channel.bestPractices.growth.4"
   },
   "help.channel.troubleshooting": {
-    "string": ""
+    "string": "help.channel.troubleshooting"
   },
   "help.channel.troubleshooting.lostOp": {
-    "string": ""
+    "string": "help.channel.troubleshooting.lostOp"
   },
   "help.channel.troubleshooting.lostOp.desc": {
-    "string": ""
+    "string": "help.channel.troubleshooting.lostOp.desc"
   },
   "help.channel.troubleshooting.cantChangeModes": {
-    "string": ""
+    "string": "help.channel.troubleshooting.cantChangeModes"
   },
   "help.channel.troubleshooting.cantChangeModes.desc": {
-    "string": ""
+    "string": "help.channel.troubleshooting.cantChangeModes.desc"
   },
   "help.channel.troubleshooting.userRejoins": {
-    "string": ""
+    "string": "help.channel.troubleshooting.userRejoins"
   },
   "help.channel.troubleshooting.userRejoins.desc": {
-    "string": ""
+    "string": "help.channel.troubleshooting.userRejoins.desc"
   },
   "help.channel.troubleshooting.channelStolen": {
-    "string": ""
+    "string": "help.channel.troubleshooting.channelStolen"
   },
   "help.channel.troubleshooting.channelStolen.desc": {
-    "string": ""
+    "string": "help.channel.troubleshooting.channelStolen.desc"
   },
   "help.commands.title": {
-    "string": ""
+    "string": "help.commands.title"
   },
   "help.commands.basicCommands": {
-    "string": ""
+    "string": "help.commands.basicCommands"
   },
   "help.commands.joinDesc": {
-    "string": ""
+    "string": "help.commands.joinDesc"
   },
   "help.commands.example": {
-    "string": ""
+    "string": "help.commands.example"
   },
   "help.commands.partDesc": {
-    "string": ""
+    "string": "help.commands.partDesc"
   },
   "help.commands.msgDesc": {
-    "string": ""
+    "string": "help.commands.msgDesc"
   },
   "help.commands.queryDesc": {
-    "string": ""
+    "string": "help.commands.queryDesc"
   },
   "help.commands.nickDesc": {
-    "string": ""
+    "string": "help.commands.nickDesc"
   },
   "help.commands.quitDesc": {
-    "string": ""
+    "string": "help.commands.quitDesc"
   },
   "help.commands.channelManagement": {
-    "string": ""
+    "string": "help.commands.channelManagement"
   },
   "help.commands.modeDesc": {
-    "string": ""
+    "string": "help.commands.modeDesc"
   },
   "help.commands.examples": {
-    "string": ""
+    "string": "help.commands.examples"
   },
   "help.commands.topicDesc": {
-    "string": ""
+    "string": "help.commands.topicDesc"
   },
   "help.commands.kickDesc": {
-    "string": ""
+    "string": "help.commands.kickDesc"
   },
   "help.commands.banDesc": {
-    "string": ""
+    "string": "help.commands.banDesc"
   },
   "help.commands.userInfo": {
-    "string": ""
+    "string": "help.commands.userInfo"
   },
   "help.commands.whoisDesc": {
-    "string": ""
+    "string": "help.commands.whoisDesc"
   },
   "help.commands.whowasDesc": {
-    "string": ""
+    "string": "help.commands.whowasDesc"
   },
   "help.commands.clonesDesc": {
-    "string": ""
+    "string": "help.commands.clonesDesc"
   },
   "help.commands.aliases": {
-    "string": ""
+    "string": "help.commands.aliases"
   },
   "help.commands.actionFormatting": {
-    "string": ""
+    "string": "help.commands.actionFormatting"
   },
   "help.commands.meDesc": {
-    "string": ""
+    "string": "help.commands.meDesc"
   },
   "help.commands.actionDesc": {
-    "string": ""
+    "string": "help.commands.actionDesc"
   },
   "help.commands.encryptionCommands": {
-    "string": ""
+    "string": "help.commands.encryptionCommands"
   },
   "help.commands.sharekeyDesc": {
-    "string": ""
+    "string": "help.commands.sharekeyDesc"
   },
   "help.commands.requestkeyDesc": {
-    "string": ""
+    "string": "help.commands.requestkeyDesc"
   },
   "help.commands.encmsgDesc": {
-    "string": ""
+    "string": "help.commands.encmsgDesc"
   },
   "help.commands.chankeyDesc": {
-    "string": ""
+    "string": "help.commands.chankeyDesc"
   },
   "help.commands.advanced": {
-    "string": ""
+    "string": "help.commands.advanced"
   },
   "help.commands.quoteDesc": {
-    "string": ""
+    "string": "help.commands.quoteDesc"
   },
   "help.commands.setnameDesc": {
-    "string": ""
+    "string": "help.commands.setnameDesc"
   },
   "help.commands.botDesc": {
-    "string": ""
+    "string": "help.commands.botDesc"
   },
   "help.commands.registerDesc": {
-    "string": ""
+    "string": "help.commands.registerDesc"
   },
   "help.commands.tabCompletionTip": {
-    "string": ""
+    "string": "help.commands.tabCompletionTip"
   },
   "help.connection.title": {
-    "string": ""
+    "string": "help.connection.title"
   },
   "help.connection.quickStart": {
-    "string": ""
+    "string": "help.connection.quickStart"
   },
   "help.connection.quickStartDesc": {
-    "string": ""
+    "string": "help.connection.quickStartDesc"
   },
   "help.connection.step1": {
-    "string": ""
+    "string": "help.connection.step1"
   },
   "help.connection.step2": {
-    "string": ""
+    "string": "help.connection.step2"
   },
   "help.connection.step3": {
-    "string": ""
+    "string": "help.connection.step3"
   },
   "help.connection.step4": {
-    "string": ""
+    "string": "help.connection.step4"
   },
   "help.connection.detailedGuide": {
-    "string": ""
+    "string": "help.connection.detailedGuide"
   },
   "help.connection.step1Title": {
-    "string": ""
+    "string": "help.connection.step1Title"
   },
   "help.connection.step1Bullet1": {
-    "string": ""
+    "string": "help.connection.step1Bullet1"
   },
   "help.connection.step1Bullet2": {
-    "string": ""
+    "string": "help.connection.step1Bullet2"
   },
   "help.connection.step2Title": {
-    "string": ""
+    "string": "help.connection.step2Title"
   },
   "help.connection.step2Desc": {
-    "string": ""
+    "string": "help.connection.step2Desc"
   },
   "help.connection.step2Bullet1": {
-    "string": ""
+    "string": "help.connection.step2Bullet1"
   },
   "help.connection.step2Bullet2": {
-    "string": ""
+    "string": "help.connection.step2Bullet2"
   },
   "help.connection.step2Bullet3": {
-    "string": ""
+    "string": "help.connection.step2Bullet3"
   },
   "help.connection.step2Bullet4": {
-    "string": ""
+    "string": "help.connection.step2Bullet4"
   },
   "help.connection.step2Bullet5": {
-    "string": ""
+    "string": "help.connection.step2Bullet5"
   },
   "help.connection.step3Title": {
-    "string": ""
+    "string": "help.connection.step3Title"
   },
   "help.connection.step3Desc": {
-    "string": ""
+    "string": "help.connection.step3Desc"
   },
   "help.connection.step3Bullet1": {
-    "string": ""
+    "string": "help.connection.step3Bullet1"
   },
   "help.connection.step3Bullet2": {
-    "string": ""
+    "string": "help.connection.step3Bullet2"
   },
   "help.connection.step3Bullet3": {
-    "string": ""
+    "string": "help.connection.step3Bullet3"
   },
   "help.connection.step3Bullet4": {
-    "string": ""
+    "string": "help.connection.step3Bullet4"
   },
   "help.connection.step3Bullet5": {
-    "string": ""
+    "string": "help.connection.step3Bullet5"
   },
   "help.connection.step4Title": {
-    "string": ""
+    "string": "help.connection.step4Title"
   },
   "help.connection.step4Desc": {
-    "string": ""
+    "string": "help.connection.step4Desc"
   },
   "help.connection.step4Bullet1": {
-    "string": ""
+    "string": "help.connection.step4Bullet1"
   },
   "help.connection.step4Bullet2": {
-    "string": ""
+    "string": "help.connection.step4Bullet2"
   },
   "help.connection.step4Bullet3": {
-    "string": ""
+    "string": "help.connection.step4Bullet3"
   },
   "help.connection.step4Bullet4": {
-    "string": ""
+    "string": "help.connection.step4Bullet4"
   },
   "help.connection.step4Bullet5": {
-    "string": ""
+    "string": "help.connection.step4Bullet5"
   },
   "help.connection.step5Title": {
-    "string": ""
+    "string": "help.connection.step5Title"
   },
   "help.connection.step5Bullet1": {
-    "string": ""
+    "string": "help.connection.step5Bullet1"
   },
   "help.connection.step5Bullet2": {
-    "string": ""
+    "string": "help.connection.step5Bullet2"
   },
   "help.connection.step5Bullet3": {
-    "string": ""
+    "string": "help.connection.step5Bullet3"
   },
   "help.connection.quickTips": {
-    "string": ""
+    "string": "help.connection.quickTips"
   },
   "help.connection.quickTip1": {
-    "string": ""
+    "string": "help.connection.quickTip1"
   },
   "help.connection.quickTip2": {
-    "string": ""
+    "string": "help.connection.quickTip2"
   },
   "help.connection.popularNetworks": {
-    "string": ""
+    "string": "help.connection.popularNetworks"
   },
   "help.connection.dbaseNetwork": {
-    "string": ""
+    "string": "help.connection.dbaseNetwork"
   },
   "help.connection.liberaNetwork": {
-    "string": ""
+    "string": "help.connection.liberaNetwork"
   },
   "help.connection.oftcNetwork": {
-    "string": ""
+    "string": "help.connection.oftcNetwork"
   },
   "help.connection.troubleshooting": {
-    "string": ""
+    "string": "help.connection.troubleshooting"
   },
   "help.connection.connFailed": {
-    "string": ""
+    "string": "help.connection.connFailed"
   },
   "help.connection.connFailedBullet1": {
-    "string": ""
+    "string": "help.connection.connFailedBullet1"
   },
   "help.connection.connFailedBullet2": {
-    "string": ""
+    "string": "help.connection.connFailedBullet2"
   },
   "help.connection.connFailedBullet3": {
-    "string": ""
+    "string": "help.connection.connFailedBullet3"
   },
   "help.connection.connFailedBullet4": {
-    "string": ""
+    "string": "help.connection.connFailedBullet4"
   },
   "help.connection.nickInUse": {
-    "string": ""
+    "string": "help.connection.nickInUse"
   },
   "help.connection.nickInUseBullet1": {
-    "string": ""
+    "string": "help.connection.nickInUseBullet1"
   },
   "help.connection.nickInUseBullet2": {
-    "string": ""
+    "string": "help.connection.nickInUseBullet2"
   },
   "help.connection.nickInUseBullet3": {
-    "string": ""
+    "string": "help.connection.nickInUseBullet3"
   },
   "help.connection.cantJoin": {
-    "string": ""
+    "string": "help.connection.cantJoin"
   },
   "help.connection.cantJoinBullet1": {
-    "string": ""
+    "string": "help.connection.cantJoinBullet1"
   },
   "help.connection.cantJoinBullet2": {
-    "string": ""
+    "string": "help.connection.cantJoinBullet2"
   },
   "help.connection.cantJoinBullet3": {
-    "string": ""
+    "string": "help.connection.cantJoinBullet3"
   },
   "help.connection.needMoreHelp": {
-    "string": ""
+    "string": "help.connection.needMoreHelp"
   },
   "help.connection.supportInfo": {
-    "string": ""
+    "string": "help.connection.supportInfo"
   },
   "help.encryption.title": {
-    "string": ""
+    "string": "help.encryption.title"
   },
   "help.encryption.whatIsE2ee.title": {
-    "string": ""
+    "string": "help.encryption.whatIsE2ee.title"
   },
   "help.encryption.whatIsE2ee.description": {
-    "string": ""
+    "string": "help.encryption.whatIsE2ee.description"
   },
   "help.encryption.dmEncryption.title": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.title"
   },
   "help.encryption.dmEncryption.step1.title": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.step1.title"
   },
   "help.encryption.dmEncryption.step1.description": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.step1.description"
   },
   "help.encryption.dmEncryption.step2.title": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.step2.title"
   },
   "help.encryption.dmEncryption.step2.instruction": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.step2.instruction"
   },
   "help.encryption.dmEncryption.step2.bullet1": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.step2.bullet1"
   },
   "help.encryption.dmEncryption.step2.bullet2": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.step2.bullet2"
   },
   "help.encryption.dmEncryption.step2.bullet3": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.step2.bullet3"
   },
   "help.encryption.dmEncryption.step2.bullet4": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.step2.bullet4"
   },
   "help.encryption.dmEncryption.requestKey.title": {
-    "string": ""
+    "string": "help.encryption.dmEncryption.requestKey.title"
   },
   "help.encryption.channelEncryption.title": {
-    "string": ""
+    "string": "help.encryption.channelEncryption.title"
   },
   "help.encryption.channelEncryption.generateKey.title": {
-    "string": ""
+    "string": "help.encryption.channelEncryption.generateKey.title"
   },
   "help.encryption.channelEncryption.generateKey.description": {
-    "string": ""
+    "string": "help.encryption.channelEncryption.generateKey.description"
   },
   "help.encryption.channelEncryption.shareKey.title": {
-    "string": ""
+    "string": "help.encryption.channelEncryption.shareKey.title"
   },
   "help.encryption.channelEncryption.shareKey.description": {
-    "string": ""
+    "string": "help.encryption.channelEncryption.shareKey.description"
   },
   "help.encryption.channelEncryption.checkStatus.title": {
-    "string": ""
+    "string": "help.encryption.channelEncryption.checkStatus.title"
   },
   "help.encryption.channelEncryption.revokeAccess.title": {
-    "string": ""
+    "string": "help.encryption.channelEncryption.revokeAccess.title"
   },
   "help.encryption.channelEncryption.revokeAccess.description": {
-    "string": ""
+    "string": "help.encryption.channelEncryption.revokeAccess.description"
   },
   "help.encryption.securityBestPractices.title": {
-    "string": ""
+    "string": "help.encryption.securityBestPractices.title"
   },
   "help.encryption.securityBestPractices.do1": {
-    "string": ""
+    "string": "help.encryption.securityBestPractices.do1"
   },
   "help.encryption.securityBestPractices.do2": {
-    "string": ""
+    "string": "help.encryption.securityBestPractices.do2"
   },
   "help.encryption.securityBestPractices.do3": {
-    "string": ""
+    "string": "help.encryption.securityBestPractices.do3"
   },
   "help.encryption.securityBestPractices.do4": {
-    "string": ""
+    "string": "help.encryption.securityBestPractices.do4"
   },
   "help.encryption.securityBestPractices.dont1": {
-    "string": ""
+    "string": "help.encryption.securityBestPractices.dont1"
   },
   "help.encryption.securityBestPractices.dont2": {
-    "string": ""
+    "string": "help.encryption.securityBestPractices.dont2"
   },
   "help.encryption.securityBestPractices.dont3": {
-    "string": ""
+    "string": "help.encryption.securityBestPractices.dont3"
   },
   "help.encryption.securityBestPractices.dont4": {
-    "string": ""
+    "string": "help.encryption.securityBestPractices.dont4"
   },
   "help.encryption.troubleshooting.title": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.title"
   },
   "help.encryption.troubleshooting.gibberish.title": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.gibberish.title"
   },
   "help.encryption.troubleshooting.gibberish.description": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.gibberish.description"
   },
   "help.encryption.troubleshooting.gibberish.solutionLabel": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.gibberish.solutionLabel"
   },
   "help.encryption.troubleshooting.cantDecrypt.title": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.cantDecrypt.title"
   },
   "help.encryption.troubleshooting.cantDecrypt.description": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.cantDecrypt.description"
   },
   "help.encryption.troubleshooting.cantDecrypt.solution": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.cantDecrypt.solution"
   },
   "help.encryption.troubleshooting.noLockIcon.title": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.noLockIcon.title"
   },
   "help.encryption.troubleshooting.noLockIcon.description": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.noLockIcon.description"
   },
   "help.encryption.troubleshooting.noLockIcon.solution": {
-    "string": ""
+    "string": "help.encryption.troubleshooting.noLockIcon.solution"
   },
   "help.encryption.keyManagement.title": {
-    "string": ""
+    "string": "help.encryption.keyManagement.title"
   },
   "help.encryption.keyManagement.description": {
-    "string": ""
+    "string": "help.encryption.keyManagement.description"
   },
   "help.encryption.keyManagement.location": {
-    "string": ""
+    "string": "help.encryption.keyManagement.location"
   },
   "help.media.title": {
-    "string": ""
+    "string": "help.media.title"
   },
   "help.media.overview": {
-    "string": ""
+    "string": "help.media.overview"
   },
   "help.media.overviewDescription": {
-    "string": ""
+    "string": "help.media.overviewDescription"
   },
   "help.media.photoType": {
-    "string": ""
+    "string": "help.media.photoType"
   },
   "help.media.videoType": {
-    "string": ""
+    "string": "help.media.videoType"
   },
   "help.media.voiceType": {
-    "string": ""
+    "string": "help.media.voiceType"
   },
   "help.media.fileType": {
-    "string": ""
+    "string": "help.media.fileType"
   },
   "help.media.requirements": {
-    "string": ""
+    "string": "help.media.requirements"
   },
   "help.media.requirementE2ee": {
-    "string": ""
+    "string": "help.media.requirementE2ee"
   },
   "help.media.requirementKeys": {
-    "string": ""
+    "string": "help.media.requirementKeys"
   },
   "help.media.requirementInternet": {
-    "string": ""
+    "string": "help.media.requirementInternet"
   },
   "help.media.howToSend": {
-    "string": ""
+    "string": "help.media.howToSend"
   },
   "help.media.step1Title": {
-    "string": ""
+    "string": "help.media.step1Title"
   },
   "help.media.step1OpenSettings": {
-    "string": ""
+    "string": "help.media.step1OpenSettings"
   },
   "help.media.step1GoToMedia": {
-    "string": ""
+    "string": "help.media.step1GoToMedia"
   },
   "help.media.step1EnableMedia": {
-    "string": ""
+    "string": "help.media.step1EnableMedia"
   },
   "help.media.step2Title": {
-    "string": ""
+    "string": "help.media.step2Title"
   },
   "help.media.step2OpenChannel": {
-    "string": ""
+    "string": "help.media.step2OpenChannel"
   },
   "help.media.step2TapAttachment": {
-    "string": ""
+    "string": "help.media.step2TapAttachment"
   },
   "help.media.step2SelectPhoto": {
-    "string": ""
+    "string": "help.media.step2SelectPhoto"
   },
   "help.media.step2ChoosePhoto": {
-    "string": ""
+    "string": "help.media.step2ChoosePhoto"
   },
   "help.media.step2AddCaption": {
-    "string": ""
+    "string": "help.media.step2AddCaption"
   },
   "help.media.step2TapSend": {
-    "string": ""
+    "string": "help.media.step2TapSend"
   },
   "help.media.step3Title": {
-    "string": ""
+    "string": "help.media.step3Title"
   },
   "help.media.step3TapAttachment": {
-    "string": ""
+    "string": "help.media.step3TapAttachment"
   },
   "help.media.step3SelectVideo": {
-    "string": ""
+    "string": "help.media.step3SelectVideo"
   },
   "help.media.step3ChooseVideo": {
-    "string": ""
+    "string": "help.media.step3ChooseVideo"
   },
   "help.media.step3PreviewCaption": {
-    "string": ""
+    "string": "help.media.step3PreviewCaption"
   },
   "help.media.step3TapSend": {
-    "string": ""
+    "string": "help.media.step3TapSend"
   },
   "help.media.step4Title": {
-    "string": ""
+    "string": "help.media.step4Title"
   },
   "help.media.step4TapAttachment": {
-    "string": ""
+    "string": "help.media.step4TapAttachment"
   },
   "help.media.step4SelectVoice": {
-    "string": ""
+    "string": "help.media.step4SelectVoice"
   },
   "help.media.step4Record": {
-    "string": ""
+    "string": "help.media.step4Record"
   },
   "help.media.step4PreviewSend": {
-    "string": ""
+    "string": "help.media.step4PreviewSend"
   },
   "help.media.howToReceive": {
-    "string": ""
+    "string": "help.media.howToReceive"
   },
   "help.media.autoDownloadTitle": {
-    "string": ""
+    "string": "help.media.autoDownloadTitle"
   },
   "help.media.autoDownloadDescription": {
-    "string": ""
+    "string": "help.media.autoDownloadDescription"
   },
   "help.media.manualDownloadTitle": {
-    "string": ""
+    "string": "help.media.manualDownloadTitle"
   },
   "help.media.manualDownloadDescription": {
-    "string": ""
+    "string": "help.media.manualDownloadDescription"
   },
   "help.media.manualDownloadStep1": {
-    "string": ""
+    "string": "help.media.manualDownloadStep1"
   },
   "help.media.manualDownloadStep2": {
-    "string": ""
+    "string": "help.media.manualDownloadStep2"
   },
   "help.media.manualDownloadStep3": {
-    "string": ""
+    "string": "help.media.manualDownloadStep3"
   },
   "help.media.viewMediaTitle": {
-    "string": ""
+    "string": "help.media.viewMediaTitle"
   },
   "help.media.viewMediaStep1": {
-    "string": ""
+    "string": "help.media.viewMediaStep1"
   },
   "help.media.viewMediaStep2": {
-    "string": ""
+    "string": "help.media.viewMediaStep2"
   },
   "help.media.viewMediaStep3": {
-    "string": ""
+    "string": "help.media.viewMediaStep3"
   },
   "help.media.viewMediaStep4": {
-    "string": ""
+    "string": "help.media.viewMediaStep4"
   },
   "help.media.settings": {
-    "string": ""
+    "string": "help.media.settings"
   },
   "help.media.mediaQualityTitle": {
-    "string": ""
+    "string": "help.media.mediaQualityTitle"
   },
   "help.media.mediaQualityPath": {
-    "string": ""
+    "string": "help.media.mediaQualityPath"
   },
   "help.media.qualityOriginal": {
-    "string": ""
+    "string": "help.media.qualityOriginal"
   },
   "help.media.qualityHigh": {
-    "string": ""
+    "string": "help.media.qualityHigh"
   },
   "help.media.qualityMedium": {
-    "string": ""
+    "string": "help.media.qualityMedium"
   },
   "help.media.qualityLow": {
-    "string": ""
+    "string": "help.media.qualityLow"
   },
   "help.media.autoDownloadSettingsTitle": {
-    "string": ""
+    "string": "help.media.autoDownloadSettingsTitle"
   },
   "help.media.autoDownloadSettingsPath": {
-    "string": ""
+    "string": "help.media.autoDownloadSettingsPath"
   },
   "help.media.autoDownloadWifiOnly": {
-    "string": ""
+    "string": "help.media.autoDownloadWifiOnly"
   },
   "help.media.autoDownloadWifiMobile": {
-    "string": ""
+    "string": "help.media.autoDownloadWifiMobile"
   },
   "help.media.autoDownloadNever": {
-    "string": ""
+    "string": "help.media.autoDownloadNever"
   },
   "help.media.storageTitle": {
-    "string": ""
+    "string": "help.media.storageTitle"
   },
   "help.media.storagePath": {
-    "string": ""
+    "string": "help.media.storagePath"
   },
   "help.media.storageViewCache": {
-    "string": ""
+    "string": "help.media.storageViewCache"
   },
   "help.media.storageClearCache": {
-    "string": ""
+    "string": "help.media.storageClearCache"
   },
   "help.media.storageSetMaxSize": {
-    "string": ""
+    "string": "help.media.storageSetMaxSize"
   },
   "help.media.privacySecurity": {
-    "string": ""
+    "string": "help.media.privacySecurity"
   },
   "help.media.encryptionTitle": {
-    "string": ""
+    "string": "help.media.encryptionTitle"
   },
   "help.media.encryptionBullet1": {
-    "string": ""
+    "string": "help.media.encryptionBullet1"
   },
   "help.media.encryptionBullet2": {
-    "string": ""
+    "string": "help.media.encryptionBullet2"
   },
   "help.media.encryptionBullet3": {
-    "string": ""
+    "string": "help.media.encryptionBullet3"
   },
   "help.media.metadataTitle": {
-    "string": ""
+    "string": "help.media.metadataTitle"
   },
   "help.media.metadataBullet1": {
-    "string": ""
+    "string": "help.media.metadataBullet1"
   },
   "help.media.metadataBullet2": {
-    "string": ""
+    "string": "help.media.metadataBullet2"
   },
   "help.media.metadataBullet3": {
-    "string": ""
+    "string": "help.media.metadataBullet3"
   },
   "help.media.troubleshooting": {
-    "string": ""
+    "string": "help.media.troubleshooting"
   },
   "help.media.troubleshootNoButtonTitle": {
-    "string": ""
+    "string": "help.media.troubleshootNoButtonTitle"
   },
   "help.media.troubleshootNoButtonBullet1": {
-    "string": ""
+    "string": "help.media.troubleshootNoButtonBullet1"
   },
   "help.media.troubleshootNoButtonBullet2": {
-    "string": ""
+    "string": "help.media.troubleshootNoButtonBullet2"
   },
   "help.media.troubleshootNoButtonBullet3": {
-    "string": ""
+    "string": "help.media.troubleshootNoButtonBullet3"
   },
   "help.media.troubleshootUploadFailedTitle": {
-    "string": ""
+    "string": "help.media.troubleshootUploadFailedTitle"
   },
   "help.media.troubleshootUploadFailedBullet1": {
-    "string": ""
+    "string": "help.media.troubleshootUploadFailedBullet1"
   },
   "help.media.troubleshootUploadFailedBullet2": {
-    "string": ""
+    "string": "help.media.troubleshootUploadFailedBullet2"
   },
   "help.media.troubleshootUploadFailedBullet3": {
-    "string": ""
+    "string": "help.media.troubleshootUploadFailedBullet3"
   },
   "help.media.troubleshootDownloadFailedTitle": {
-    "string": ""
+    "string": "help.media.troubleshootDownloadFailedTitle"
   },
   "help.media.troubleshootDownloadFailedBullet1": {
-    "string": ""
+    "string": "help.media.troubleshootDownloadFailedBullet1"
   },
   "help.media.troubleshootDownloadFailedBullet2": {
-    "string": ""
+    "string": "help.media.troubleshootDownloadFailedBullet2"
   },
   "help.media.troubleshootDownloadFailedBullet3": {
-    "string": ""
+    "string": "help.media.troubleshootDownloadFailedBullet3"
   },
   "help.media.troubleshootEncryptedDataTitle": {
-    "string": ""
+    "string": "help.media.troubleshootEncryptedDataTitle"
   },
   "help.media.troubleshootEncryptedDataBullet1": {
-    "string": ""
+    "string": "help.media.troubleshootEncryptedDataBullet1"
   },
   "help.media.troubleshootEncryptedDataBullet2": {
-    "string": ""
+    "string": "help.media.troubleshootEncryptedDataBullet2"
   },
   "help.troubleshooting.title": {
-    "string": ""
+    "string": "help.troubleshooting.title"
   },
   "help.troubleshooting.connectionIssues": {
-    "string": ""
+    "string": "help.troubleshooting.connectionIssues"
   },
   "help.troubleshooting.cantConnect.title": {
-    "string": ""
+    "string": "help.troubleshooting.cantConnect.title"
   },
   "help.troubleshooting.cantConnect.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.cantConnect.symptoms"
   },
   "help.troubleshooting.solutions": {
-    "string": ""
+    "string": "help.troubleshooting.solutions"
   },
   "help.troubleshooting.cantConnect.checkInternet": {
-    "string": ""
+    "string": "help.troubleshooting.cantConnect.checkInternet"
   },
   "help.troubleshooting.cantConnect.verifyAddress": {
-    "string": ""
+    "string": "help.troubleshooting.cantConnect.verifyAddress"
   },
   "help.troubleshooting.cantConnect.tryDifferentPort": {
-    "string": ""
+    "string": "help.troubleshooting.cantConnect.tryDifferentPort"
   },
   "help.troubleshooting.cantConnect.disableVpn": {
-    "string": ""
+    "string": "help.troubleshooting.cantConnect.disableVpn"
   },
   "help.troubleshooting.cantConnect.checkFirewall": {
-    "string": ""
+    "string": "help.troubleshooting.cantConnect.checkFirewall"
   },
   "help.troubleshooting.cantConnect.tryMobileData": {
-    "string": ""
+    "string": "help.troubleshooting.cantConnect.tryMobileData"
   },
   "help.troubleshooting.disconnects.title": {
-    "string": ""
+    "string": "help.troubleshooting.disconnects.title"
   },
   "help.troubleshooting.disconnects.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.disconnects.symptoms"
   },
   "help.troubleshooting.disconnects.enableAutoReconnect": {
-    "string": ""
+    "string": "help.troubleshooting.disconnects.enableAutoReconnect"
   },
   "help.troubleshooting.disconnects.adjustDelays": {
-    "string": ""
+    "string": "help.troubleshooting.disconnects.adjustDelays"
   },
   "help.troubleshooting.disconnects.checkNetwork": {
-    "string": ""
+    "string": "help.troubleshooting.disconnects.checkNetwork"
   },
   "help.troubleshooting.disconnects.tryDifferentServer": {
-    "string": ""
+    "string": "help.troubleshooting.disconnects.tryDifferentServer"
   },
   "help.troubleshooting.disconnects.reviewLag": {
-    "string": ""
+    "string": "help.troubleshooting.disconnects.reviewLag"
   },
   "help.troubleshooting.sslErrors.title": {
-    "string": ""
+    "string": "help.troubleshooting.sslErrors.title"
   },
   "help.troubleshooting.sslErrors.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.sslErrors.symptoms"
   },
   "help.troubleshooting.sslErrors.verifySsl": {
-    "string": ""
+    "string": "help.troubleshooting.sslErrors.verifySsl"
   },
   "help.troubleshooting.sslErrors.disableVerify": {
-    "string": ""
+    "string": "help.troubleshooting.sslErrors.disableVerify"
   },
   "help.troubleshooting.sslErrors.updateApp": {
-    "string": ""
+    "string": "help.troubleshooting.sslErrors.updateApp"
   },
   "help.troubleshooting.sslErrors.checkCertificate": {
-    "string": ""
+    "string": "help.troubleshooting.sslErrors.checkCertificate"
   },
   "help.troubleshooting.authProblems": {
-    "string": ""
+    "string": "help.troubleshooting.authProblems"
   },
   "help.troubleshooting.nickInUse.title": {
-    "string": ""
+    "string": "help.troubleshooting.nickInUse.title"
   },
   "help.troubleshooting.nickInUse.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.nickInUse.symptoms"
   },
   "help.troubleshooting.nickInUse.tryAlternate": {
-    "string": ""
+    "string": "help.troubleshooting.nickInUse.tryAlternate"
   },
   "help.troubleshooting.nickInUse.waitTimeout": {
-    "string": ""
+    "string": "help.troubleshooting.nickInUse.waitTimeout"
   },
   "help.troubleshooting.nickInUse.useGhost": {
-    "string": ""
+    "string": "help.troubleshooting.nickInUse.useGhost"
   },
   "help.troubleshooting.nickInUse.changeNickname": {
-    "string": ""
+    "string": "help.troubleshooting.nickInUse.changeNickname"
   },
   "help.troubleshooting.nickservIdentify.title": {
-    "string": ""
+    "string": "help.troubleshooting.nickservIdentify.title"
   },
   "help.troubleshooting.nickservIdentify.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.nickservIdentify.symptoms"
   },
   "help.troubleshooting.nickservIdentify.verifyPassword": {
-    "string": ""
+    "string": "help.troubleshooting.nickservIdentify.verifyPassword"
   },
   "help.troubleshooting.nickservIdentify.waitNotice": {
-    "string": ""
+    "string": "help.troubleshooting.nickservIdentify.waitNotice"
   },
   "help.troubleshooting.nickservIdentify.manualIdentify": {
-    "string": ""
+    "string": "help.troubleshooting.nickservIdentify.manualIdentify"
   },
   "help.troubleshooting.nickservIdentify.checkSuspended": {
-    "string": ""
+    "string": "help.troubleshooting.nickservIdentify.checkSuspended"
   },
   "help.troubleshooting.saslFailed.title": {
-    "string": ""
+    "string": "help.troubleshooting.saslFailed.title"
   },
   "help.troubleshooting.saslFailed.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.saslFailed.symptoms"
   },
   "help.troubleshooting.saslFailed.verifyCredentials": {
-    "string": ""
+    "string": "help.troubleshooting.saslFailed.verifyCredentials"
   },
   "help.troubleshooting.saslFailed.checkEnabled": {
-    "string": ""
+    "string": "help.troubleshooting.saslFailed.checkEnabled"
   },
   "help.troubleshooting.saslFailed.tryPlain": {
-    "string": ""
+    "string": "help.troubleshooting.saslFailed.tryPlain"
   },
   "help.troubleshooting.saslFailed.ensureMatch": {
-    "string": ""
+    "string": "help.troubleshooting.saslFailed.ensureMatch"
   },
   "help.troubleshooting.messageIssues": {
-    "string": ""
+    "string": "help.troubleshooting.messageIssues"
   },
   "help.troubleshooting.messagesNotSending.title": {
-    "string": ""
+    "string": "help.troubleshooting.messagesNotSending.title"
   },
   "help.troubleshooting.messagesNotSending.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.messagesNotSending.symptoms"
   },
   "help.troubleshooting.messagesNotSending.checkConnected": {
-    "string": ""
+    "string": "help.troubleshooting.messagesNotSending.checkConnected"
   },
   "help.troubleshooting.messagesNotSending.verifyNotBanned": {
-    "string": ""
+    "string": "help.troubleshooting.messagesNotSending.verifyNotBanned"
   },
   "help.troubleshooting.messagesNotSending.checkModes": {
-    "string": ""
+    "string": "help.troubleshooting.messagesNotSending.checkModes"
   },
   "help.troubleshooting.messagesNotSending.ensureVoice": {
-    "string": ""
+    "string": "help.troubleshooting.messagesNotSending.ensureVoice"
   },
   "help.troubleshooting.keyboardCovers.title": {
-    "string": ""
+    "string": "help.troubleshooting.keyboardCovers.title"
   },
   "help.troubleshooting.keyboardCovers.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.keyboardCovers.symptoms"
   },
   "help.troubleshooting.keyboardCovers.goToSettings": {
-    "string": ""
+    "string": "help.troubleshooting.keyboardCovers.goToSettings"
   },
   "help.troubleshooting.keyboardCovers.androidBehavior": {
-    "string": ""
+    "string": "help.troubleshooting.keyboardCovers.androidBehavior"
   },
   "help.troubleshooting.keyboardCovers.iosBehavior": {
-    "string": ""
+    "string": "help.troubleshooting.keyboardCovers.iosBehavior"
   },
   "help.troubleshooting.keyboardCovers.adjustOffset": {
-    "string": ""
+    "string": "help.troubleshooting.keyboardCovers.adjustOffset"
   },
   "help.troubleshooting.keyboardCovers.toggleSafeArea": {
-    "string": ""
+    "string": "help.troubleshooting.keyboardCovers.toggleSafeArea"
   },
   "help.troubleshooting.cantSeeMessages.title": {
-    "string": ""
+    "string": "help.troubleshooting.cantSeeMessages.title"
   },
   "help.troubleshooting.cantSeeMessages.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.cantSeeMessages.symptoms"
   },
   "help.troubleshooting.cantSeeMessages.checkSettings": {
-    "string": ""
+    "string": "help.troubleshooting.cantSeeMessages.checkSettings"
   },
   "help.troubleshooting.cantSeeMessages.verifyFilters": {
-    "string": ""
+    "string": "help.troubleshooting.cantSeeMessages.verifyFilters"
   },
   "help.troubleshooting.cantSeeMessages.restartApp": {
-    "string": ""
+    "string": "help.troubleshooting.cantSeeMessages.restartApp"
   },
   "help.troubleshooting.cantSeeMessages.checkIgnored": {
-    "string": ""
+    "string": "help.troubleshooting.cantSeeMessages.checkIgnored"
   },
   "help.troubleshooting.encryptedGibberish.title": {
-    "string": ""
+    "string": "help.troubleshooting.encryptedGibberish.title"
   },
   "help.troubleshooting.encryptedGibberish.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.encryptedGibberish.symptoms"
   },
   "help.troubleshooting.encryptedGibberish.exchangeKeys": {
-    "string": ""
+    "string": "help.troubleshooting.encryptedGibberish.exchangeKeys"
   },
   "help.troubleshooting.encryptedGibberish.requestKey": {
-    "string": ""
+    "string": "help.troubleshooting.encryptedGibberish.requestKey"
   },
   "help.troubleshooting.encryptedGibberish.verifyE2ee": {
-    "string": ""
+    "string": "help.troubleshooting.encryptedGibberish.verifyE2ee"
   },
   "help.troubleshooting.encryptedGibberish.checkKeyManagement": {
-    "string": ""
+    "string": "help.troubleshooting.encryptedGibberish.checkKeyManagement"
   },
   "help.troubleshooting.channelProblems": {
-    "string": ""
+    "string": "help.troubleshooting.channelProblems"
   },
   "help.troubleshooting.cantJoinChannel.title": {
-    "string": ""
+    "string": "help.troubleshooting.cantJoinChannel.title"
   },
   "help.troubleshooting.cantJoinChannel.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.cantJoinChannel.symptoms"
   },
   "help.troubleshooting.cantJoinChannel.inviteOnly": {
-    "string": ""
+    "string": "help.troubleshooting.cantJoinChannel.inviteOnly"
   },
   "help.troubleshooting.cantJoinChannel.keyRequired": {
-    "string": ""
+    "string": "help.troubleshooting.cantJoinChannel.keyRequired"
   },
   "help.troubleshooting.cantJoinChannel.userLimit": {
-    "string": ""
+    "string": "help.troubleshooting.cantJoinChannel.userLimit"
   },
   "help.troubleshooting.cantJoinChannel.banned": {
-    "string": ""
+    "string": "help.troubleshooting.cantJoinChannel.banned"
   },
   "help.troubleshooting.cantSendInChannel.title": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendInChannel.title"
   },
   "help.troubleshooting.cantSendInChannel.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendInChannel.symptoms"
   },
   "help.troubleshooting.cantSendInChannel.checkModerated": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendInChannel.checkModerated"
   },
   "help.troubleshooting.cantSendInChannel.askVoice": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendInChannel.askVoice"
   },
   "help.troubleshooting.cantSendInChannel.checkBanned": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendInChannel.checkBanned"
   },
   "help.troubleshooting.cantSendInChannel.verifyInChannel": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendInChannel.verifyInChannel"
   },
   "help.troubleshooting.channelWontStay.title": {
-    "string": ""
+    "string": "help.troubleshooting.channelWontStay.title"
   },
   "help.troubleshooting.channelWontStay.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.channelWontStay.symptoms"
   },
   "help.troubleshooting.channelWontStay.addAutojoin": {
-    "string": ""
+    "string": "help.troubleshooting.channelWontStay.addAutojoin"
   },
   "help.troubleshooting.channelWontStay.rejoinManually": {
-    "string": ""
+    "string": "help.troubleshooting.channelWontStay.rejoinManually"
   },
   "help.troubleshooting.channelWontStay.checkNetwork": {
-    "string": ""
+    "string": "help.troubleshooting.channelWontStay.checkNetwork"
   },
   "help.troubleshooting.appPerformance": {
-    "string": ""
+    "string": "help.troubleshooting.appPerformance"
   },
   "help.troubleshooting.appSlow.title": {
-    "string": ""
+    "string": "help.troubleshooting.appSlow.title"
   },
   "help.troubleshooting.appSlow.clearCache": {
-    "string": ""
+    "string": "help.troubleshooting.appSlow.clearCache"
   },
   "help.troubleshooting.appSlow.reduceBatch": {
-    "string": ""
+    "string": "help.troubleshooting.appSlow.reduceBatch"
   },
   "help.troubleshooting.appSlow.disableAnimated": {
-    "string": ""
+    "string": "help.troubleshooting.appSlow.disableAnimated"
   },
   "help.troubleshooting.appSlow.closeTabs": {
-    "string": ""
+    "string": "help.troubleshooting.appSlow.closeTabs"
   },
   "help.troubleshooting.appSlow.restartApp": {
-    "string": ""
+    "string": "help.troubleshooting.appSlow.restartApp"
   },
   "help.troubleshooting.highBattery.title": {
-    "string": ""
+    "string": "help.troubleshooting.highBattery.title"
   },
   "help.troubleshooting.highBattery.disableBackground": {
-    "string": ""
+    "string": "help.troubleshooting.highBattery.disableBackground"
   },
   "help.troubleshooting.highBattery.reduceNotifications": {
-    "string": ""
+    "string": "help.troubleshooting.highBattery.reduceNotifications"
   },
   "help.troubleshooting.highBattery.useWifi": {
-    "string": ""
+    "string": "help.troubleshooting.highBattery.useWifi"
   },
   "help.troubleshooting.highBattery.enableOptimization": {
-    "string": ""
+    "string": "help.troubleshooting.highBattery.enableOptimization"
   },
   "help.troubleshooting.appCrashes.title": {
-    "string": ""
+    "string": "help.troubleshooting.appCrashes.title"
   },
   "help.troubleshooting.appCrashes.updateApp": {
-    "string": ""
+    "string": "help.troubleshooting.appCrashes.updateApp"
   },
   "help.troubleshooting.appCrashes.clearCache": {
-    "string": ""
+    "string": "help.troubleshooting.appCrashes.clearCache"
   },
   "help.troubleshooting.appCrashes.restartDevice": {
-    "string": ""
+    "string": "help.troubleshooting.appCrashes.restartDevice"
   },
   "help.troubleshooting.appCrashes.reportCrash": {
-    "string": ""
+    "string": "help.troubleshooting.appCrashes.reportCrash"
   },
   "help.troubleshooting.notificationIssues": {
-    "string": ""
+    "string": "help.troubleshooting.notificationIssues"
   },
   "help.troubleshooting.notReceiving.title": {
-    "string": ""
+    "string": "help.troubleshooting.notReceiving.title"
   },
   "help.troubleshooting.notReceiving.checkPermissions": {
-    "string": ""
+    "string": "help.troubleshooting.notReceiving.checkPermissions"
   },
   "help.troubleshooting.notReceiving.verifySettings": {
-    "string": ""
+    "string": "help.troubleshooting.notReceiving.verifySettings"
   },
   "help.troubleshooting.notReceiving.disableBatteryOpt": {
-    "string": ""
+    "string": "help.troubleshooting.notReceiving.disableBatteryOpt"
   },
   "help.troubleshooting.notReceiving.checkDnd": {
-    "string": ""
+    "string": "help.troubleshooting.notReceiving.checkDnd"
   },
   "help.troubleshooting.notReceiving.reenableBackground": {
-    "string": ""
+    "string": "help.troubleshooting.notReceiving.reenableBackground"
   },
   "help.troubleshooting.tooMany.title": {
-    "string": ""
+    "string": "help.troubleshooting.tooMany.title"
   },
   "help.troubleshooting.tooMany.adjustFilters": {
-    "string": ""
+    "string": "help.troubleshooting.tooMany.adjustFilters"
   },
   "help.troubleshooting.tooMany.highlightsOnly": {
-    "string": ""
+    "string": "help.troubleshooting.tooMany.highlightsOnly"
   },
   "help.troubleshooting.tooMany.muteChannels": {
-    "string": ""
+    "string": "help.troubleshooting.tooMany.muteChannels"
   },
   "help.troubleshooting.tooMany.quietHours": {
-    "string": ""
+    "string": "help.troubleshooting.tooMany.quietHours"
   },
   "help.troubleshooting.mediaIssues": {
-    "string": ""
+    "string": "help.troubleshooting.mediaIssues"
   },
   "help.troubleshooting.cantSendMedia.title": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendMedia.title"
   },
   "help.troubleshooting.cantSendMedia.symptoms": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendMedia.symptoms"
   },
   "help.troubleshooting.cantSendMedia.verifyE2ee": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendMedia.verifyE2ee"
   },
   "help.troubleshooting.cantSendMedia.enableMedia": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendMedia.enableMedia"
   },
   "help.troubleshooting.cantSendMedia.exchangeKeys": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendMedia.exchangeKeys"
   },
   "help.troubleshooting.cantSendMedia.checkSize": {
-    "string": ""
+    "string": "help.troubleshooting.cantSendMedia.checkSize"
   },
   "help.troubleshooting.mediaWontDownload.title": {
-    "string": ""
+    "string": "help.troubleshooting.mediaWontDownload.title"
   },
   "help.troubleshooting.mediaWontDownload.checkInternet": {
-    "string": ""
+    "string": "help.troubleshooting.mediaWontDownload.checkInternet"
   },
   "help.troubleshooting.mediaWontDownload.enableAutodownload": {
-    "string": ""
+    "string": "help.troubleshooting.mediaWontDownload.enableAutodownload"
   },
   "help.troubleshooting.mediaWontDownload.verifyStorage": {
-    "string": ""
+    "string": "help.troubleshooting.mediaWontDownload.verifyStorage"
   },
   "help.troubleshooting.mediaWontDownload.clearCache": {
-    "string": ""
+    "string": "help.troubleshooting.mediaWontDownload.clearCache"
   },
   "help.troubleshooting.mediaEncrypted.title": {
-    "string": ""
+    "string": "help.troubleshooting.mediaEncrypted.title"
   },
   "help.troubleshooting.mediaEncrypted.requestKey": {
-    "string": ""
+    "string": "help.troubleshooting.mediaEncrypted.requestKey"
   },
   "help.troubleshooting.mediaEncrypted.verifyExchange": {
-    "string": ""
+    "string": "help.troubleshooting.mediaEncrypted.verifyExchange"
   },
   "help.troubleshooting.mediaEncrypted.checkKeys": {
-    "string": ""
+    "string": "help.troubleshooting.mediaEncrypted.checkKeys"
   },
   "help.troubleshooting.accountSettings": {
-    "string": ""
+    "string": "help.troubleshooting.accountSettings"
   },
   "help.troubleshooting.lostPin.title": {
-    "string": ""
+    "string": "help.troubleshooting.lostPin.title"
   },
   "help.troubleshooting.lostPin.useBiometric": {
-    "string": ""
+    "string": "help.troubleshooting.lostPin.useBiometric"
   },
   "help.troubleshooting.lostPin.resetPin": {
-    "string": ""
+    "string": "help.troubleshooting.lostPin.resetPin"
   },
   "help.troubleshooting.lostPin.backupRestore": {
-    "string": ""
+    "string": "help.troubleshooting.lostPin.backupRestore"
   },
   "help.troubleshooting.lostPin.clearData": {
-    "string": ""
+    "string": "help.troubleshooting.lostPin.clearData"
   },
   "help.troubleshooting.settingsNotSaving.title": {
-    "string": ""
+    "string": "help.troubleshooting.settingsNotSaving.title"
   },
   "help.troubleshooting.settingsNotSaving.checkPermission": {
-    "string": ""
+    "string": "help.troubleshooting.settingsNotSaving.checkPermission"
   },
   "help.troubleshooting.settingsNotSaving.verifySpace": {
-    "string": ""
+    "string": "help.troubleshooting.settingsNotSaving.verifySpace"
   },
   "help.troubleshooting.settingsNotSaving.restartApp": {
-    "string": ""
+    "string": "help.troubleshooting.settingsNotSaving.restartApp"
   },
   "help.troubleshooting.settingsNotSaving.clearCache": {
-    "string": ""
+    "string": "help.troubleshooting.settingsNotSaving.clearCache"
   },
   "help.troubleshooting.backupRestoreFailed.title": {
-    "string": ""
+    "string": "help.troubleshooting.backupRestoreFailed.title"
   },
   "help.troubleshooting.backupRestoreFailed.verifyIntegrity": {
-    "string": ""
+    "string": "help.troubleshooting.backupRestoreFailed.verifyIntegrity"
   },
   "help.troubleshooting.backupRestoreFailed.checkPermission": {
-    "string": ""
+    "string": "help.troubleshooting.backupRestoreFailed.checkPermission"
   },
   "help.troubleshooting.backupRestoreFailed.useLatest": {
-    "string": ""
+    "string": "help.troubleshooting.backupRestoreFailed.useLatest"
   },
   "help.troubleshooting.backupRestoreFailed.tryIndividual": {
-    "string": ""
+    "string": "help.troubleshooting.backupRestoreFailed.tryIndividual"
   },
   "help.troubleshooting.stillNeedHelp": {
-    "string": ""
+    "string": "help.troubleshooting.stillNeedHelp"
   },
   "help.troubleshooting.getSupport.title": {
-    "string": ""
+    "string": "help.troubleshooting.getSupport.title"
   },
   "help.troubleshooting.getSupport.joinChannel": {
-    "string": ""
+    "string": "help.troubleshooting.getSupport.joinChannel"
   },
   "help.troubleshooting.getSupport.email": {
-    "string": ""
+    "string": "help.troubleshooting.getSupport.email"
   },
   "help.troubleshooting.getSupport.github": {
-    "string": ""
+    "string": "help.troubleshooting.getSupport.github"
   },
   "help.troubleshooting.gatherInfo.title": {
-    "string": ""
+    "string": "help.troubleshooting.gatherInfo.title"
   },
   "help.troubleshooting.gatherInfo.beforeReporting": {
-    "string": ""
+    "string": "help.troubleshooting.gatherInfo.beforeReporting"
   },
   "help.troubleshooting.gatherInfo.appVersion": {
-    "string": ""
+    "string": "help.troubleshooting.gatherInfo.appVersion"
   },
   "help.troubleshooting.gatherInfo.androidVersion": {
-    "string": ""
+    "string": "help.troubleshooting.gatherInfo.androidVersion"
   },
   "help.troubleshooting.gatherInfo.deviceModel": {
-    "string": ""
+    "string": "help.troubleshooting.gatherInfo.deviceModel"
   },
   "help.troubleshooting.gatherInfo.errorScreenshot": {
-    "string": ""
+    "string": "help.troubleshooting.gatherInfo.errorScreenshot"
   },
   "help.troubleshooting.gatherInfo.steps": {
-    "string": ""
+    "string": "help.troubleshooting.gatherInfo.steps"
   },
   "help.troubleshooting.debugLogging.info": {
-    "string": ""
+    "string": "help.troubleshooting.debugLogging.info"
   },
   "Migrated {count} channels.": {
-    "string": ""
+    "string": "Migrirano {count} kanala."
   },
   "Migrating history... {done}/{total}": {
-    "string": ""
+    "string": "Migracija istorije... {done}/{total}"
   },
   "SASL Authentication (Optional)": {
-    "string": ""
+    "string": "SASL autentifikacija (opciono)"
   },
   "PLAIN - Simple username/password": {
-    "string": ""
+    "string": "PLAIN - Jednostavno korisničko ime/lozinka"
   },
   "SCRAM-SHA-256 - Secure challenge-response": {
-    "string": ""
+    "string": "SCRAM-SHA-256 - Bezbedni izazov-odgovor"
   },
   "SCRAM-SHA-256-PLUS - Channel binding (coming soon)": {
-    "string": ""
+    "string": "SCRAM-SHA-256-PLUS - Vezivanje kanala (uskoro)"
   },
   "SCRAM-SHA-256 provides better security by using challenge-response authentication. Your password is never sent over the network.": {
-    "string": ""
+    "string": "SCRAM-SHA-256 pruža bolju bezbednost koristeći autentifikaciju izazov-odgovor. Vaša lozinka se nikada ne šalje preko mreže."
   },
   "SCRAM-SHA-256-PLUS with channel binding will be available in a future update. For now, SCRAM-SHA-256 is recommended.": {
-    "string": ""
+    "string": "SCRAM-SHA-256-PLUS sa vezivanjem kanala biće dostupan u budućem ažuriranju. Za sada se preporučuje SCRAM-SHA-256."
   },
   "*** Channel {oldChannel} has been renamed to {newChannel}: {reason}": {
-    "string": ""
+    "string": "*** Kanal {oldChannel} je preименован u {newChannel}: {reason}"
   },
   "*** Channel {oldChannel} has been renamed to {newChannel}": {
-    "string": ""
+    "string": "*** Kanal {oldChannel} je preименован u {newChannel}"
   },
   "*** Account {account} registered successfully: {message}": {
-    "string": ""
+    "string": "*** Nalog {account} je uspešno registrovan: {message}"
   },
   "*** Account {account} requires verification: {message}": {
-    "string": ""
+    "string": "*** Nalog {account} zahteva verifikaciju: {message}"
   },
   "*** REGISTER response: {params}": {
-    "string": ""
+    "string": "*** REGISTER odgovor: {params}"
   },
   "*** {channel} exception list: {mask}": {
-    "string": ""
+    "string": "*** {channel} lista izuzetaka: {mask}"
   },
   "*** {channel} ban: {mask}": {
-    "string": ""
+    "string": "*** {channel} zabrana: {mask}"
   },
   " (set by {nick}": {
-    "string": ""
+    "string": " (postavio {nick}"
   },
   " on {date})": {
-    "string": ""
+    "string": " {date})"
   },
   "*** Link: {server} ({info})": {
-    "string": ""
+    "string": "*** Link: {server} ({info})"
   },
   "*** End of LINKS ({mask})": {
-    "string": ""
+    "string": "*** Kraj LINKS ({mask})"
   },
   "is an unknown mode char": {
-    "string": ""
+    "string": "je nepoznati karakter moda"
   },
   "Cannot join channel (banned)": {
-    "string": ""
+    "string": "Nije moguće ući u kanal (zabranjen)"
   },
   "You need to be identified to join this channel": {
-    "string": ""
+    "string": "Morate biti identifikovani da biste ušli u ovaj kanal"
   },
   "{source} -> {target}: {message}": {
-    "string": ""
+    "string": "{source} -> {target}: {message}"
   },
   "*** WHOWAS {nick}: {info}": {
-    "string": ""
+    "string": "*** WHOWAS {nick}: {info}"
   },
   "End of WHOWAS": {
-    "string": ""
+    "string": "Kraj WHOWAS"
   },
   "is now online": {
-    "string": ""
+    "string": "je sada online"
   },
   "is now offline": {
-    "string": ""
+    "string": "je sada offline"
   },
   "has knocked": {
-    "string": ""
+    "string": "je kucao"
   },
   "Operator MOTD": {
-    "string": ""
+    "string": "Operator MOTD"
   },
   "*** {channel} modes: {modes}": {
-    "string": ""
+    "string": "*** {channel} modovi: {modes}"
   },
   "added to watch list": {
-    "string": ""
+    "string": "dodat na listu praćenja"
   },
   "removed from watch list": {
-    "string": ""
+    "string": "uklonjen sa liste praćenja"
   },
   "*** Watch: {nick} {message}": {
-    "string": ""
+    "string": "*** Praćenje: {nick} {message}"
   },
   "Watch list cleared": {
-    "string": ""
+    "string": "Lista praćenja obrisana"
   },
   "*** Now online: {nicks}": {
-    "string": ""
+    "string": "*** Sada online: {nicks}"
   },
   "*** Now offline: {nicks}": {
-    "string": ""
+    "string": "*** Sada offline: {nicks}"
   },
   "*** Your unique ID: {id}": {
-    "string": ""
+    "string": "*** Vaš jedinstveni ID: {id}"
   },
   "Nick saved": {
-    "string": ""
+    "string": "Nadimak sačuvan"
   },
   "Please wait a while and try again": {
-    "string": ""
+    "string": "Sačekajte malo i pokušajte ponovo"
   },
   "*** {mask} -> {server} {info}": {
-    "string": ""
+    "string": "*** {mask} -> {server} {info}"
   },
   "End of LINKS": {
-    "string": ""
+    "string": "Kraj LINKS"
   },
   "*** {mask}: {message}": {
-    "string": ""
+    "string": "*** {mask}: {message}"
   },
   "Users start": {
-    "string": ""
+    "string": "Korisnici početak"
   },
   "*** {info}": {
-    "string": ""
+    "string": "*** {info}"
   },
   "is an admin": {
-    "string": ""
+    "string": "je administrator"
   },
   "is a services admin": {
-    "string": ""
+    "string": "je administrator servisa"
   },
   "is special": {
-    "string": ""
+    "string": "je poseban"
   },
   "*** {nick} is connecting from {host}": {
-    "string": ""
+    "string": "*** {nick} se povezuje sa {host}"
   },
   "*** {nick} is using modes {modes}": {
-    "string": ""
+    "string": "*** {nick} koristi modove {modes}"
   },
   "*** Users online: {nicks}": {
-    "string": ""
+    "string": "*** Korisnici online: {nicks}"
   },
   "*** {text}": {
-    "string": ""
+    "string": "*** {text}"
   },
   "is a channel operator": {
-    "string": ""
+    "string": "je operator kanala"
   },
   "Account registration is not supported by this server": {
-    "string": ""
+    "string": "Registracija naloga nije podržana na ovom serveru"
   },
   "Usage: /register <email|*> <password> OR /register <account> <email|*> <password>": {
-    "string": ""
+    "string": "Upotreba: /register <email|*> <lozinka> ILI /register <nalog> <email|*> <lozinka>"
   },
   "Usage: /MSG <nick|channel> <message>": {
-    "string": ""
+    "string": "Upotreba: /MSG <nick|kanal> <poruka>"
   },
   "Channel Management Guide": {
-    "string": ""
+    "string": "Vodič za upravljanje kanalima"
   },
   "Channel Basics": {
-    "string": ""
+    "string": "Osnove kanala"
   },
   "What is a Channel?": {
-    "string": ""
+    "string": "Šta je kanal?"
   },
   "IRC channels are group chat rooms where multiple users can communicate.\\nChannel names start with # (e.g., #DBase).": {
-    "string": ""
+    "string": "IRC kanali su grupni prostori za ćaskanje gde više korisnika može komunicirati.\\nIme kanala počinje sa # (npr. #DBase)."
   },
   "Channel Types": {
-    "string": ""
+    "string": "Tipovi kanala"
   },
   "Public Channels - Anyone can join": {
-    "string": ""
+    "string": "Javni kanali - Svako može ući"
   },
   "Private Channels - Require invite": {
-    "string": ""
+    "string": "Privatni kanali - Zahtevaju pozivnicu"
   },
   "Secret Channels - Hidden from channel list": {
-    "string": ""
+    "string": "Tajni kanali - Skriveni sa liste kanala"
   },
   "Moderated Channels - Only voiced users can speak": {
-    "string": ""
+    "string": "Moderisani kanali - Samo korisnici sa glasom mogu da govore"
   },
   "Creating a Channel": {
-    "string": ""
+    "string": "Kreiranje kanala"
   },
   "Join/Create Channel": {
-    "string": ""
+    "string": "Uđi/Kreiraj kanal"
   },
   "If the channel doesn't exist, you'll create it and become the operator.": {
-    "string": ""
+    "string": "Ako kanal ne postoji, kreiraćete ga i postati operator."
   },
   "Set Channel Topic": {
-    "string": ""
+    "string": "Postavi temu kanala"
   },
   "User Modes": {
-    "string": ""
+    "string": "Korisnički modovi"
   },
   "+o (Operator) - Full channel control": {
-    "string": ""
+    "string": "+o (Operator) - Potpuna kontrola kanala"
   },
   "+v (Voice) - Can speak in moderated channels": {
-    "string": ""
+    "string": "+v (Glas) - Može govoriti na moderisanim kanalima"
   },
   "+h (Half-op) - Limited operator powers": {
-    "string": ""
+    "string": "+h (Polu-operator) - Ograničene operatorske moći"
   },
   "+q (Owner) - Channel owner (some networks)": {
-    "string": ""
+    "string": "+q (Vlasnik) - Vlasnik kanala (neke mreže)"
   },
   "+a (Admin) - Channel admin (some networks)": {
-    "string": ""
+    "string": "+a (Admin) - Administrator kanala (neke mreže)"
   },
   "Give Operator Status": {
-    "string": ""
+    "string": "Daj status operatora"
   },
   "Remove Operator": {
-    "string": ""
+    "string": "Ukloni operatora"
   },
   "Moderated (+m)": {
-    "string": ""
+    "string": "Moderisano (+m)"
   },
   "Only ops and voiced users can speak:": {
-    "string": ""
+    "string": "Samo operatori i korisnici sa glasom mogu govoriti:"
   },
   "Private (+p)": {
-    "string": ""
+    "string": "Privatno (+p)"
   },
   "Channel won't appear in /list:": {
-    "string": ""
+    "string": "Kanal se neće pojaviti u /list:"
   },
   "Secret (+s)": {
-    "string": ""
+    "string": "Tajno (+s)"
   },
   "Hide channel completely:": {
-    "string": ""
+    "string": "Sakrij kanal potpuno:"
   },
   "Invite Only (+i)": {
-    "string": ""
+    "string": "Samo na poziv (+i)"
   },
   "Requires invitation to join:": {
-    "string": ""
+    "string": "Zahteva pozivnicu za ulazak:"
   },
   "No External Messages (+n)": {
-    "string": ""
+    "string": "Bez eksternih poruka (+n)"
   },
   "Only members can send messages:": {
-    "string": ""
+    "string": "Samo članovi mogu slati poruke:"
   },
   "Topic Lock (+t)": {
-    "string": ""
+    "string": "Zaključana tema (+t)"
   },
   "Only ops can change topic:": {
-    "string": ""
+    "string": "Samo operatori mogu menjati temu:"
   },
   "User Limit (+l)": {
-    "string": ""
+    "string": "Limit korisnika (+l)"
   },
   "Set maximum users:": {
-    "string": ""
+    "string": "Postavi maksimalan broj korisnika:"
   },
   "Channel Key (+k)": {
-    "string": ""
+    "string": "Ključ kanala (+k)"
   },
   "Set password:": {
-    "string": ""
+    "string": "Postavi lozinku:"
   },
   "Moderation": {
-    "string": ""
+    "string": "Moderacija"
   },
   "Remove user from channel:": {
-    "string": ""
+    "string": "Ukloni korisnika sa kanala:"
   },
   "Prevent user from rejoining:": {
-    "string": ""
+    "string": "Spreči korisnika da se ponovo pridruži:"
   },
   "Quiet/Mute User": {
-    "string": ""
+    "string": "Ućutaj korisnika"
   },
   "Prevent user from speaking:": {
-    "string": ""
+    "string": "Spreči korisnika od govora:"
   },
   "View Ban List": {
-    "string": ""
+    "string": "Prikaži listu zabrana"
   },
   "Advanced Management": {
-    "string": ""
+    "string": "Napredno upravljanje"
   },
   "Channel Registration": {
-    "string": ""
+    "string": "Registracija kanala"
   },
   "Register channel with ChanServ (if available):": {
-    "string": ""
+    "string": "Registruj kanal sa ChanServ-om (ako je dostupno):"
   },
   "Access List": {
-    "string": ""
+    "string": "Lista pristupa"
   },
   "Add user to channel access list:": {
-    "string": ""
+    "string": "Dodaj korisnika na listu pristupa kanala:"
   },
   "Set user to auto-op on join:": {
-    "string": ""
+    "string": "Postavi automatski op korisniku pri ulasku:"
   },
   "Best Practices": {
-    "string": ""
+    "string": "Preporučene prakse"
   },
   "Set +n and +t modes for public channels": {
-    "string": ""
+    "string": "Postavi +n i +t modove za javne kanale"
   },
   "Use +i for private channels": {
-    "string": ""
+    "string": "Koristi +i za privatne kanale"
   },
   "Register your channel with ChanServ": {
-    "string": ""
+    "string": "Registruj kanal sa ChanServ-om"
   },
   "Keep access list updated": {
-    "string": ""
+    "string": "Drži listu pristupa ažurnom"
   },
   "Have at least 2-3 trusted operators": {
-    "string": ""
+    "string": "Imajte najmanje 2-3 poverljiva operatora"
   },
   "Clearly communicate channel rules": {
-    "string": ""
+    "string": "Jasno komunicirajte pravila kanala"
   },
   "Use +q (quiet) before +b (ban) for first offenses": {
-    "string": ""
+    "string": "Koristite +q (ućutkivanje) pre +b (zabrane) za prve prekršaje"
   },
   "Document bans with reasons": {
-    "string": ""
+    "string": "Dokumentujte zabrane sa razlozima"
   },
   "Growth": {
-    "string": ""
+    "string": "Rast"
   },
   "Set clear, welcoming topic": {
-    "string": ""
+    "string": "Postavite jasnu, gostoprimljivu temu"
   },
   "Make channel public (+p/-s) if you want growth": {
-    "string": ""
+    "string": "Napravite kanal javnim (+p/-s) ako želite rast"
   },
   "Promote on social media or forums": {
-    "string": ""
+    "string": "Promovisite na društvenim mrežama ili forumima"
   },
   "Keep conversation active and friendly": {
-    "string": ""
+    "string": "Čuvajte razgovor aktivnim i prijatnim"
   },
   "Troubleshooting": {
-    "string": ""
+    "string": "Rešavanje problema"
   },
   "Lost operator status": {
-    "string": ""
+    "string": "Izgubljen status operatora"
   },
   "If you're the channel founder, ask ChanServ to op you:": {
-    "string": ""
+    "string": "Ako ste osnivač kanala, zamolite ChanServ da vam da op:"
   },
   "Can't change modes": {
-    "string": ""
+    "string": "Nije moguće promeniti modove"
   },
   "You need operator (+o) status.": {
-    "string": ""
+    "string": "Potreban vam je status operatora (+o)."
   },
   "User keeps rejoining after kick": {
-    "string": ""
+    "string": "Korisnik se stalno ponovo pridružuje nakon izbacivanja"
   },
   "Use ban (+b) mode instead.": {
-    "string": ""
+    "string": "Umesto toga koristite mod zabrane (+b)."
   },
   "Channel stolen/taken over": {
-    "string": ""
+    "string": "Kanal ukraden/preuzet"
   },
   "Contact network administrators or register the channel with ChanServ.": {
-    "string": ""
+    "string": "Kontaktirajte administratore mreže ili registrujte kanal sa ChanServ-om."
   },
   "IRC Commands Reference": {
-    "string": ""
+    "string": "Referenca IRC komandi"
   },
   "Basic Commands": {
-    "string": ""
+    "string": "Osnovne komande"
   },
   "Join an IRC channel": {
-    "string": ""
+    "string": "Uđi u IRC kanal"
   },
   "Example: /join #DBase": {
-    "string": ""
+    "string": "Primer: /join #DBase"
   },
   "Example: /part #channel Goodbye!": {
-    "string": ""
+    "string": "Primer: /part #kanal Zbogom!"
   },
   "Example: /msg John Hello there!": {
-    "string": ""
+    "string": "Primer: /msg Jovan Zdravo!"
   },
   "Open private chat window": {
-    "string": ""
+    "string": "Otvori prozor privatnog ćaskanja"
   },
   "Example: /query John": {
-    "string": ""
+    "string": "Primer: /query Jovan"
   },
   "Change your nickname": {
-    "string": ""
+    "string": "Promenite nadimak"
   },
   "Example: /nick MyNewNick": {
-    "string": ""
+    "string": "Primer: /nick MojNoviNadimak"
   },
   "Example: /quit See you later": {
-    "string": ""
+    "string": "Primer: /quit Vidimo se"
   },
   "Change channel modes": {
-    "string": ""
+    "string": "Promenite modove kanala"
   },
   "Examples:\n/mode #channel +m (moderated)\n/mode #channel +o John (give op)\n/mode #channel +b *!*@spam.com (ban)": {
-    "string": ""
+    "string": "Primeri:\n/mode #kanal +m (moderisano)\n/mode #kanal +o Jovan (daj op)\n/mode #kanal +b *!*@spam.com (zabrana)"
   },
   "View or set channel topic": {
-    "string": ""
+    "string": "Prikaži ili postavi temu kanala"
   },
   "Example: /topic Welcome to #DBase!": {
-    "string": ""
+    "string": "Primer: /topic Dobrodošli u #DBase!"
   },
   "Example: /kick Spammer Stop spamming": {
-    "string": ""
+    "string": "Primer: /kick Spamer Prestani sa spamovanjem"
   },
   "Ban (and optionally kick/quiet) a user. Usually used in a channel tab so the channel is implied.": {
-    "string": ""
+    "string": "Zabrani (i opciono izbaci/ućutaj) korisnika. Obično se koristi u tabu kanala gde je kanal podrazumevan."
   },
   "Examples:\n/ban spammer\n/ban -k spammer Stop spamming\n/ban -q spammer\n/ban #channel spammer": {
-    "string": ""
+    "string": "Primeri:\n/ban spamer\n/ban -k spamer Prestani sa spamovanjem\n/ban -q spamer\n/ban #kanal spamer"
   },
   "Tip: Options are client-side helpers. Common ones are -k (kick), -q (quiet), and -u (auto-unban).": {
-    "string": ""
+    "string": "Savet: Opcije su pomoćnici na strani klijenta. Uobičajene su -k (izbaci), -q (ućutaj) i -u (auto-ukloni zabranu)."
   },
   "Remove a ban for a user mask in a channel": {
-    "string": ""
+    "string": "Ukloni zabranu za masku korisnika u kanalu"
   },
   "Example: /unban *!*@spam.com": {
-    "string": ""
+    "string": "Primer: /unban *!*@spam.com"
   },
   "Kick and ban a user in one step": {
-    "string": ""
+    "string": "Izbaci i zabrani korisnika u jednom koraku"
   },
   "Example: /kickban Spammer Stop spamming": {
-    "string": ""
+    "string": "Primer: /kickban Spamer Prestani sa spamovanjem"
   },
   "Invite a user to a channel": {
-    "string": ""
+    "string": "Pozovite korisnika u kanal"
   },
   "Example: /invite FriendNick #DBase": {
-    "string": ""
+    "string": "Primer: /invite NadimakPrijatelja #DBase"
   },
   "Quickly part and rejoin a channel": {
-    "string": ""
+    "string": "Brzo napustite i ponovo se pridružite kanalu"
   },
   "Example: /hop #DBase brb": {
-    "string": ""
+    "string": "Primer: /hop #DBase brb"
   },
   "Get information about user": {
-    "string": ""
+    "string": "Preuzmi informacije o korisniku"
   },
   "Example: /whois John": {
-    "string": ""
+    "string": "Primer: /whois Jovan"
   },
   "Get past information about user": {
-    "string": ""
+    "string": "Preuzmi prošle informacije o korisniku"
   },
   "Example: /whowas OldNick": {
-    "string": ""
+    "string": "Primer: /whowas StariNadimak"
   },
   "Detect clones (users with same hostname) in a channel. Requires userhost-in-names capability.": {
-    "string": ""
+    "string": "Otkrij klonove (korisnike sa istim hostname-om) u kanalu. Zahteva mogućnost userhost-in-names."
   },
   "Example: /clones #channel": {
-    "string": ""
+    "string": "Primer: /clones #kanal"
   },
   "Aliases: /dc, /detectclones, /clonesdetect": {
-    "string": ""
+    "string": "Pseudonimi: /dc, /detectclones, /clonesdetect"
   },
   "Action & Formatting": {
-    "string": ""
+    "string": "Akcija i formatiranje"
   },
   "Example: /me waves hello": {
-    "string": ""
+    "string": "Primer: /me maše pozdrav"
   },
   "Alternative to /me": {
-    "string": ""
+    "string": "Alternativa za /me"
   },
   "Example: /action is away": {
-    "string": ""
+    "string": "Primer: /action je odsutan"
   },
   "Encryption Commands": {
-    "string": ""
+    "string": "Komande za šifrovanje"
   },
   "Example: /sharekey Alice": {
-    "string": ""
+    "string": "Primer: /sharekey Alisa"
   },
   "Example: /requestkey Bob": {
-    "string": ""
+    "string": "Primer: /requestkey Boba"
   },
   "Example: /encmsg Alice Secret message": {
-    "string": ""
+    "string": "Primer: /encmsg Alisa Tajna poruka"
   },
   "Channel encryption management": {
-    "string": ""
+    "string": "Upravljanje enkripcijom kanala"
   },
   "Examples:\n/chankey generate\n/chankey share Nick1,Nick2\n/chankey status": {
-    "string": ""
+    "string": "Primeri:\n/chankey generate\n/chankey share Nadimak1,Nadimak2\n/chankey status"
   },
   "Example: /quote NAMES #channel": {
-    "string": ""
+    "string": "Primer: /quote NAMES #kanal"
   },
   "Alias for /quote (send a raw IRC command)": {
-    "string": ""
+    "string": "Alias za /quote (šalje sirovu IRC komandu)"
   },
   "Example: /raw NAMES #channel": {
-    "string": ""
+    "string": "Primer: /raw NAMES #kanal"
   },
   "Example: /setname John Smith": {
-    "string": ""
+    "string": "Primer: /setname Jovan Petrović"
   },
   "Example: /bot on": {
-    "string": ""
+    "string": "Primer: /bot on"
   },
   "Register an account using IRCv3 account registration (only if supported by the server).": {
-    "string": ""
+    "string": "Registrujte nalog koristeći IRCv3 registraciju naloga (samo ako je podržana na serveru)."
   },
   "Example: /register user@example.com mypassword": {
-    "string": ""
+    "string": "Primer: /register korisnik@primer.com mojazaporka"
   },
   "Alternative syntax that includes an explicit account name": {
-    "string": ""
+    "string": "Alternativna sintaksa koja uključuje eksplicitno ime naloga"
   },
   "Example: /register MyAccount user@example.com mypassword": {
-    "string": ""
+    "string": "Primer: /register MojNalog korisnik@primer.com mojazaporka"
   },
   "Connection & Status": {
-    "string": ""
+    "string": "Konekcija i status"
   },
   "Set an away message (no message clears away status)": {
-    "string": ""
+    "string": "Postavi poruku odsutnosti (bez poruke uklanja status odsutnosti)"
   },
   "Example: /away AFK for 10 minutes": {
-    "string": ""
+    "string": "Primer: /away AFK na 10 minuta"
   },
   "Clear away status (same as /away with no message)": {
-    "string": ""
+    "string": "Ukloni status odsutnosti (isto kao /away bez poruke)"
   },
   "Example: /back": {
-    "string": ""
+    "string": "Primer: /back"
   },
   "Reconnect to the current server": {
-    "string": ""
+    "string": "Ponovo se poveži na trenutni server"
   },
   "Example: /reconnect": {
-    "string": ""
+    "string": "Primer: /reconnect"
   },
   "Disconnect from server (alias for /quit)": {
-    "string": ""
+    "string": "Diskonektuj se od servera (alias za /quit)"
   },
   "Example: /disconnect brb": {
-    "string": ""
+    "string": "Primer: /disconnect brb"
   },
   "Connect to a server using mIRC-compatible /server parameters": {
-    "string": ""
+    "string": "Poveži se na server koristeći mIRC-kompatibilne /server parametre"
   },
   "Example: /server irc.libera.chat 6697": {
-    "string": ""
+    "string": "Primer: /server irc.libera.chat 6697"
   },
   "Tip: In most cases it is easier to add networks/servers via the UI, but /server is useful for quick testing.": {
-    "string": ""
+    "string": "Savet: U većini slučajeva je lakše dodavati mreže/servere putem korisničkog interfejsa, ali /server je koristan za brzo testiranje."
   },
   "Utility Commands": {
-    "string": ""
+    "string": "Pomoćne komande"
   },
   "Clear messages in the current tab": {
-    "string": ""
+    "string": "Obriši poruke u trenutnom tabu"
   },
   "Example: /clear": {
-    "string": ""
+    "string": "Primer: /clear"
   },
   "Close the current tab": {
-    "string": ""
+    "string": "Zatvori trenutni tab"
   },
   "Example: /close": {
-    "string": ""
+    "string": "Primer: /close"
   },
   "Print a local message (useful for scripts/aliases)": {
-    "string": ""
+    "string": "Ispiši lokalnu poruku (korisno za skripte/aliase)"
   },
   "Example: /echo hello": {
-    "string": ""
+    "string": "Primer: /echo zdravo"
   },
   "Show help for a command": {
-    "string": ""
+    "string": "Prikaži pomoć za komandu"
   },
   "Example: /help ban": {
-    "string": ""
+    "string": "Primer: /help ban"
   },
   "Perform a DNS lookup": {
-    "string": ""
+    "string": "Uradi DNS pretragu"
   },
   "Example: /dns irc.libera.chat": {
-    "string": ""
+    "string": "Primer: /dns irc.libera.chat"
   },
   "Run a command later, optionally repeated": {
-    "string": ""
+    "string": "Pokreni komandu kasnije, opciono ponavljano"
   },
   "Example: /timer ping1 5000 1 /raw PING :test": {
-    "string": ""
+    "string": "Primer: /timer ping1 5000 1 /raw PING :test"
   },
   "Open/create a tab or activate an existing tab": {
-    "string": ""
+    "string": "Otvorite/kreirajte tab ili aktivirajte postojeći"
   },
   "Examples:\n/window #DBase\n/window -a #DBase": {
-    "string": ""
+    "string": "Primeri:\n/window #DBase\n/window -a #DBase"
   },
   "Filter messages by text (use -g for global filter)": {
-    "string": ""
+    "string": "Filtrirajte poruke po tekstu (koristite -g za globalni filter)"
   },
   "Examples:\n/filter error\n/filter -g timeout": {
-    "string": ""
+    "string": "Primeri:\n/filter greška\n/filter -g timeout"
   },
   "Ignore messages from a user": {
-    "string": ""
+    "string": "Ignorišite poruke od korisnika"
   },
   "Example: /ignore Spammer spamming": {
-    "string": ""
+    "string": "Primer: /ignore Spamer spamovanje"
   },
   "Stop ignoring a user": {
-    "string": ""
+    "string": "Prestanite ignorisati korisnika"
   },
   "Example: /unignore Spammer": {
-    "string": ""
+    "string": "Primer: /unignore Spamer"
   },
   "Services Shortcuts (Aliases)": {
-    "string": ""
+    "string": "Prečice servisa (pseudonimi)"
   },
   "AndroidIRCX includes convenience aliases that expand into common NickServ/ChanServ commands. These depend on services availability on your network.": {
-    "string": ""
+    "string": "AndroidIRCX uključuje praktične pseudonime koji se proširuju u uobičajene NickServ/ChanServ komande. Zavise od dostupnosti servisa na vašoj mreži."
   },
   "Examples:\n/nsid mypassword\n/nsreg mypassword user@example.com\n/nsghost YourNick mypassword\n/nsrecover YourNick mypassword": {
-    "string": ""
+    "string": "Primeri:\n/nsid mojalozinka\n/nsreg mojalozinka user@example.com\n/nsghost VašNadimak mojalozinka\n/nsrecover VašNadimak mojalozinka"
   },
   "Examples:\n/csop #channel Nick\n/csdeop #channel Nick\n/cvoice #channel Nick\n/csdevoice #channel Nick\n/csregister #channel password\n/cspass #channel newpassword": {
-    "string": ""
+    "string": "Primeri:\n/csop #kanal Nick\n/csdeop #kanal Nick\n/cvoice #kanal Nick\n/csdevoice #kanal Nick\n/csregister #kanal lozinka\n/cspass #kanal novalozinka"
   },
   "Tip: You can also use tab completion to auto-complete commands and nicknames in the message input field.": {
-    "string": ""
+    "string": "Savet: Možete koristiti dopunjavanje tabom za automatsko dopunjavanje komandi i nadimaka u polju za unos poruke."
   },
   "Some commands may require operator privileges or services support on your network.": {
-    "string": ""
+    "string": "Neke komande mogu zahtevati operatorske privilegije ili podršku servisa na vašoj mreži."
   },
   "Follow these simple steps to connect to an IRC server:": {
-    "string": ""
+    "string": "Pratite ove jednostavne korake za povezivanje na IRC server:"
   },
   "1. Tap the dropdown (▼) in the header": {
-    "string": ""
+    "string": "1. Tapnite padajući meni (▼) u zaglavlju"
   },
   "2. Choose \"Choose Network\" (or \"Connect Another Network\")": {
-    "string": ""
+    "string": "2. Izaberite \"Izaberi mrežu\" (ili \"Poveži drugu mrežu\")"
   },
   "3. Tap the [+] button to add a network": {
-    "string": ""
+    "string": "3. Tapnite dugme [+] za dodavanje mreže"
   },
   "4. Save, then tap the network name to connect": {
-    "string": ""
+    "string": "4. Sačuvajte, zatim tapnite ime mreže za povezivanje"
   },
   "Detailed Guide": {
-    "string": ""
+    "string": "Detaljan vodič"
   },
   "Step 1: Open the Networks list": {
-    "string": ""
+    "string": "Korak 1: Otvorite listu mreža"
   },
   "Tap the dropdown (▼) in the header": {
-    "string": ""
+    "string": "Tapnite padajući meni (▼) u zaglavlju"
   },
   "Select \"Choose Network\" (or \"Connect Another Network\" if connected)": {
-    "string": ""
+    "string": "Izaberite \"Izaberi mrežu\" (ili \"Poveži drugu mrežu\" ako ste povezani)"
   },
   "Step 2: Add a network": {
-    "string": ""
+    "string": "Korak 2: Dodajte mrežu"
   },
   "Tap the [+] button in the Networks header to open Network Settings:": {
-    "string": ""
+    "string": "Tapnite dugme [+] u zaglavlju mreža da otvorite Podešavanja mreže:"
   },
   "Network Name: Friendly name (e.g., \"DBase\")": {
-    "string": ""
+    "string": "Ime mreže: Prijatno ime (npr. \"DBase\")"
   },
   "Nickname + Real Name: Required identity fields": {
-    "string": ""
+    "string": "Nadimak + Pravo ime: Obavezna polja identiteta"
   },
   "Alt Nick + Ident: Optional fallbacks": {
-    "string": ""
+    "string": "Alt nadimak + Ident: Opcione alternative"
   },
   "Auto-Join Channels: Optional list like \"#lobby, #help\"": {
-    "string": ""
+    "string": "Automatski kanali: Opciona lista poput \"#lobby, #help\""
   },
   "Save with the [Save] button in the header": {
-    "string": ""
+    "string": "Sačuvajte dugmetom [Sačuvaj] u zaglavlju"
   },
   "Step 3: Add a server (optional)": {
-    "string": ""
+    "string": "Korak 3: Dodajte server (opciono)"
   },
   "In the Networks list, tap \"+ Add Server\" under your network:": {
-    "string": ""
+    "string": "U listi mreža, tapnite \"+ Dodaj server\" ispod vaše mreže:"
   },
   "Hostname: e.g., irc.dbase.in.rs": {
-    "string": ""
+    "string": "Hostname: npr. irc.dbase.in.rs"
   },
   "Port: 6697 (SSL) or 6667 (plain)": {
-    "string": ""
+    "string": "Port: 6697 (SSL) ili 6667 (bez enkripcije)"
   },
   "Use SSL/TLS: Recommended": {
-    "string": ""
+    "string": "Koristi SSL/TLS: Preporučeno"
   },
   "Server Password / Favorite Server: Optional": {
-    "string": ""
+    "string": "Lozinka servera / Omiljeni server: Opciono"
   },
   "Tap [Save]": {
-    "string": ""
+    "string": "Tapnite [Sačuvaj]"
   },
   "Step 4: Set identity profiles (advanced)": {
-    "string": ""
+    "string": "Korak 4: Postavljanje profila identiteta (napredno)"
   },
   "Identity profiles are managed in Settings:": {
-    "string": ""
+    "string": "Profili identiteta se upravljaju u Podešavanjima:"
   },
   "Tap the ☰ menu → Settings": {
-    "string": ""
+    "string": "Tapnite meni ☰ → Podešavanja"
   },
   "Open \"Connection & Network\"": {
-    "string": ""
+    "string": "Otvorite \"Konekcija i mreža\""
   },
   "Tap \"Identity Profiles\"": {
-    "string": ""
+    "string": "Tapnite \"Profili identiteta\""
   },
   "Select a network, then \"+ Add / Edit Identity\"": {
-    "string": ""
+    "string": "Izaberite mrežu, zatim \"+ Dodaj / Uredi identitet\""
   },
   "Save and select the profile for that network": {
-    "string": ""
+    "string": "Sačuvajte i izaberite profil za tu mrežu"
   },
   "Step 5: Connect": {
-    "string": ""
+    "string": "Korak 5: Povežite se"
   },
   "Open the Networks list again (dropdown → \"Choose Network\")": {
-    "string": ""
+    "string": "Otvorite listu mreža ponovo (padajući meni → \"Izaberi mrežu\")"
   },
   "Tap the network name to connect": {
-    "string": ""
+    "string": "Tapnite ime mreže za povezivanje"
   },
   "Or tap a specific server under that network to connect to it": {
-    "string": ""
+    "string": "Ili tapnite određeni server pod tom mrežom za povezivanje"
   },
   "Quick Connect Tips": {
-    "string": ""
+    "string": "Saveti za brzo povezivanje"
   },
   "When disconnected, tap the network name in the header to connect": {
-    "string": ""
+    "string": "Kada ste odspojeni, tapnite ime mreže u zaglavlju za povezivanje"
   },
   "Use dropdown → \"Connect to Default\" for a one-tap connect": {
-    "string": ""
+    "string": "Koristite padajući meni → \"Poveži podrazumevanu\" za jednokratno povezivanje"
   },
   "Popular IRC Networks": {
-    "string": ""
+    "string": "Popularne IRC mreže"
   },
   "DBase IRC (Recommended)": {
-    "string": ""
+    "string": "DBase IRC (Preporučeno)"
   },
   "Libera.Chat": {
-    "string": ""
+    "string": "Libera.Chat"
   },
   "OFTC": {
-    "string": ""
+    "string": "OFTC"
   },
   "Check your internet connection": {
-    "string": ""
+    "string": "Proverite internet konekciju"
   },
   "Verify server address and port": {
-    "string": ""
+    "string": "Proverite adresu servera i port"
   },
   "Try disabling SSL/TLS": {
-    "string": ""
+    "string": "Pokušajte isključiti SSL/TLS"
   },
   "Check if firewall is blocking IRC ports": {
-    "string": ""
+    "string": "Proverite da li zaštitni zid blokira IRC portove"
   },
   "Nickname Already in Use": {
-    "string": ""
+    "string": "Nadimak je već u upotrebi"
   },
   "Use your alternate nickname": {
-    "string": ""
+    "string": "Koristite alternativni nadimak"
   },
   "Register your nickname with NickServ": {
-    "string": ""
+    "string": "Registrujte nadimak sa NickServ-om"
   },
   "Choose a different nickname": {
-    "string": ""
+    "string": "Izaberite drugi nadimak"
   },
   "Can't Join Channels": {
-    "string": ""
+    "string": "Nije moguće ući u kanale"
   },
   "Some channels require registration": {
-    "string": ""
+    "string": "Neki kanali zahtevaju registraciju"
   },
   "Channel may be invite-only (+i mode)": {
-    "string": ""
+    "string": "Kanal može biti samo na poziv (+i mod)"
   },
   "You may be banned from the channel": {
-    "string": ""
+    "string": "Možete biti zabranjeni sa kanala"
   },
   "Need More Help?": {
-    "string": ""
+    "string": "Potrebna vam je dodatna pomoć?"
   },
   "Join #AndroidIRCX on irc.dbase.in.rs\\nVisit our website: androidircx.com\\nEmail: support@androidircx.com": {
-    "string": ""
+    "string": "Pridružite se #AndroidIRCX na irc.dbase.in.rs\\nPosetite naš sajt: androidircx.com\\nEmail: support@androidircx.com"
   },
   "What is E2EE?": {
     "string": ""
@@ -11682,124 +11682,124 @@
     "string": ""
   },
   "Tap image/video to open in full screen": {
-    "string": ""
+    "string": "Tapnite sliku/video za prikaz na celom ekranu"
   },
   "Pinch to zoom images": {
-    "string": ""
+    "string": "Steznite prstima za uvećanje slika"
   },
   "Play/pause videos": {
-    "string": ""
+    "string": "Pusti/pauziraj video"
   },
   "Save to gallery (if enabled)": {
-    "string": ""
+    "string": "Sačuvaj u galeriju (ako je omogućeno)"
   },
   "Settings → Media → Media Quality": {
-    "string": ""
+    "string": "Podešavanja → Mediji → Kvalitet medija"
   },
   "Original - Full quality (larger file)": {
-    "string": ""
+    "string": "Original - Pun kvalitet (veći fajl)"
   },
   "High - 90% quality": {
-    "string": ""
+    "string": "Visok - 90% kvaliteta"
   },
   "Medium - 70% quality": {
-    "string": ""
+    "string": "Srednji - 70% kvaliteta"
   },
   "Low - 50% quality (smaller file)": {
-    "string": ""
+    "string": "Nizak - 50% kvaliteta (manji fajl)"
   },
   "Auto-Download": {
-    "string": ""
+    "string": "Automatsko preuzimanje"
   },
   "Settings → Media → Auto-Download Media": {
-    "string": ""
+    "string": "Podešavanja → Mediji → Automatsko preuzimanje medija"
   },
   "WiFi only (recommended)": {
-    "string": ""
+    "string": "Samo WiFi (preporučeno)"
   },
   "WiFi + Mobile Data": {
-    "string": ""
+    "string": "WiFi + Mobilni podaci"
   },
   "Never (manual only)": {
-    "string": ""
+    "string": "Nikada (samo ručno)"
   },
   "Storage": {
-    "string": ""
+    "string": "Skladište"
   },
   "Settings → Media → Maximum Cache Size / Clear Media Cache": {
-    "string": ""
+    "string": "Podešavanja → Mediji → Maksimalna veličina keša / Obriši keš medija"
   },
   "View cache size": {
-    "string": ""
+    "string": "Prikaži veličinu keša"
   },
   "Clear cache": {
-    "string": ""
+    "string": "Obriši keš"
   },
   "Set max cache size": {
-    "string": ""
+    "string": "Postavi maksimalnu veličinu keša"
   },
   "Privacy & Security": {
-    "string": ""
+    "string": "Privatnost i bezbednost"
   },
   "All media is encrypted with XChaCha20-Poly1305 before upload": {
-    "string": ""
+    "string": "Svi mediji su šifrovani sa XChaCha20-Poly1305 pre slanja"
   },
   "Encryption keys are only shared with authorized recipients": {
-    "string": ""
+    "string": "Ključevi za šifrovanje se dele samo sa ovlašćenim primaocima"
   },
   "Server cannot decrypt media": {
-    "string": ""
+    "string": "Server ne može dešifrovati medije"
   },
   "Metadata": {
-    "string": ""
+    "string": "Metapodaci"
   },
   "Original filename is encrypted": {
-    "string": ""
+    "string": "Originalno ime fajla je šifrovano"
   },
   "EXIF data is stripped from photos": {
-    "string": ""
+    "string": "EXIF podaci su uklanjeni iz fotografija"
   },
   "GPS location is removed": {
-    "string": ""
+    "string": "GPS lokacija je uklonjena"
   },
   "Can't see attachment button": {
-    "string": ""
+    "string": "Ne mogu videti dugme za prilog"
   },
   "Check if channel/DM has encryption enabled (🔒 icon)": {
-    "string": ""
+    "string": "Proverite da li kanal/DM ima omogućeno šifrovanje (ikona 🔒)"
   },
   "Enable media feature in Settings": {
-    "string": ""
+    "string": "Omogućite funkciju medija u Podešavanjima"
   },
   "Exchange encryption keys first": {
-    "string": ""
+    "string": "Prvo razmenite ključeve za šifrovanje"
   },
   "Check internet connection": {
-    "string": ""
+    "string": "Proverite internet konekciju"
   },
   "Check file size (max 50MB)": {
-    "string": ""
+    "string": "Proverite veličinu fajla (maks. 50MB)"
   },
   "Try reducing quality": {
-    "string": ""
+    "string": "Pokušajte smanjiti kvalitet"
   },
   "Check storage space": {
-    "string": ""
+    "string": "Proverite prostor za skladištenje"
   },
   "Try clearing media cache": {
-    "string": ""
+    "string": "Pokušajte obrisati keš medija"
   },
   "Media appears as 'Encrypted data'": {
-    "string": ""
+    "string": "Mediji se prikazuju kao 'Šifrovani podaci'"
   },
   "You don't have the decryption key": {
-    "string": ""
+    "string": "Nemate ključ za dešifrovanje"
   },
   "Request key from sender": {
-    "string": ""
+    "string": "Zatražite ključ od pošiljaoca"
   },
   "Connection Issues": {
-    "string": ""
+    "string": "Problemi s konekcijom"
   },
   "Can't Connect to Server": {
     "string": ""
@@ -12253,5 +12253,398 @@
   },
   "Some errors occurred:": {
     "string": "Došlo je do grešaka:"
+  },
+  "Add to Notify": {
+    "string": ""
+  },
+  "Add to AutoOp": {
+    "string": ""
+  },
+  "Add to AutoVoice": {
+    "string": ""
+  },
+  "Add to Protected": {
+    "string": ""
+  },
+  "Open Networks list to choose and manage networks": {
+    "string": ""
+  },
+  "Invert scroll & swipe direction": {
+    "string": ""
+  },
+  "Reverse direction for tab switching gestures": {
+    "string": ""
+  },
+  "Swipe Behavior": {
+    "string": ""
+  },
+  "Swipe left/right to switch tabs": {
+    "string": ""
+  },
+  "Swipe to show/hide panels": {
+    "string": ""
+  },
+  "Swipe gestures disabled": {
+    "string": ""
+  },
+  "Off": {
+    "string": ""
+  },
+  "No swipe gestures": {
+    "string": ""
+  },
+  "Switch tabs": {
+    "string": ""
+  },
+  "Swipe left/right to switch to next/previous tab": {
+    "string": ""
+  },
+  "Show/hide panels": {
+    "string": ""
+  },
+  "Swipe right for tabs panel, swipe left for nicklist": {
+    "string": ""
+  },
+  "WHOIS Display": {
+    "string": ""
+  },
+  "Show WHOIS in a popup modal": {
+    "string": ""
+  },
+  "Show WHOIS in the active tab": {
+    "string": ""
+  },
+  "Show WHOIS in the status tab": {
+    "string": ""
+  },
+  "Modal (popup)": {
+    "string": ""
+  },
+  "Status tab": {
+    "string": ""
+  },
+  "User Lists": {
+    "string": ""
+  },
+  "Manage notify, autoop, autovoice and protected lists": {
+    "string": ""
+  },
+  "Modes:": {
+    "string": ""
+  },
+  "Connecting from:": {
+    "string": ""
+  },
+  "Privileges": {
+    "string": ""
+  },
+  "IRC Operator:": {
+    "string": ""
+  },
+  "Admin:": {
+    "string": ""
+  },
+  "Services Admin:": {
+    "string": ""
+  },
+  "Help Operator:": {
+    "string": ""
+  },
+  "Registered:": {
+    "string": ""
+  },
+  "Bot:": {
+    "string": ""
+  },
+  "Special:": {
+    "string": ""
+  },
+  "Connection:": {
+    "string": ""
+  },
+  "Secure (SSL/TLS)": {
+    "string": ""
+  },
+  "Connection Activity": {
+    "string": ""
+  },
+  "User Activity": {
+    "string": "Aktivnost korisnika"
+  },
+  "No file selected": {
+    "string": "Nije izabran fajl"
+  },
+  "Selected file is empty": {
+    "string": "Izabrani fajl je prazan"
+  },
+  "Selected file is not a valid JSON backup": {
+    "string": "Izabrani fajl nije validna JSON rezervna kopija"
+  },
+  "Backup loaded from file": {
+    "string": "Rezervna kopija učitana iz fajla"
+  },
+  "Failed to load backup file": {
+    "string": "Učitavanje fajla rezervne kopije nije uspelo"
+  },
+  "Load from File": {
+    "string": "Učitaj iz fajla"
+  },
+  "Mask:": {
+    "string": "Maska:"
+  },
+  "Action:": {
+    "string": "Akcija:"
+  },
+  "Command Template:": {
+    "string": "Šablon komande:"
+  },
+  "Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}": {
+    "string": "Koristite {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}"
+  },
+  "Reason:": {
+    "string": "Razlog:"
+  },
+  "e.g., 1d, 7d, 1h, 0 for permanent": {
+    "string": "npr. 1d, 7d, 1h, 0 za trajno"
+  },
+  "Are you sure you want to delete \"{name}\"? This cannot be undone.": {
+    "string": "Da li ste sigurni da želite obrisati \"{name}\"? Ovo se ne može poništiti."
+  },
+  "Failed to delete identity profile": {
+    "string": "Brisanje profila identiteta nije uspelo"
+  },
+  "IRC channels are group chat rooms where multiple users can communicate.": {
+    "string": "IRC kanali su grupni prostori za ćaskanje gde više korisnika može komunicirati."
+  },
+  "Channel names start with # (e.g., #DBase).": {
+    "string": "Ime kanala počinje sa # (npr. #DBase)."
+  },
+  "Visit our website: androidircx.com": {
+    "string": "Posetite naš sajt: androidircx.com"
+  },
+  "GitHub Issues: https://github.com/AndroidIRCx/AndroidIRCx/issues": {
+    "string": "GitHub Issues: https://github.com/AndroidIRCx/AndroidIRCx/issues"
+  },
+  "Enable Debug Logging:": {
+    "string": "Omogućite debug logovanje:"
+  },
+  "Settings → Development → Enable Console Logging (debug builds only)": {
+    "string": "Podešavanja → Razvoj → Omogući konzolno logovanje (samo debug verzije)"
+  },
+  "Send logs with your report.": {
+    "string": "Pošaljite logove uz prijavu."
+  },
+  "User List Type": {
+    "string": "Tip liste korisnika"
+  },
+  "Currently: {type}": {
+    "string": "Trenutno: {type}"
+  },
+  "FlashList (Fastest)": {
+    "string": "FlashList (Najbrže)"
+  },
+  "FlatList (Virtualized)": {
+    "string": "FlatList (Virtualizovano)"
+  },
+  "Grouped (By Mode)": {
+    "string": "Grupisano (Po modu)"
+  },
+  "Simple (ScrollView)": {
+    "string": "Jednostavno (ScrollView)"
+  },
+  "Select User List Type": {
+    "string": "Izaberite tip liste korisnika"
+  },
+  "Choose rendering method for nicklist:": {
+    "string": "Izaberite metod renderovanja za listu korisnika:"
+  },
+  "Search Debounce": {
+    "string": "Kašnjenje pretrage"
+  },
+  "Skip Sort Threshold": {
+    "string": "Prag preskakanja sortiranja"
+  },
+  "Chunk Loading": {
+    "string": "Učitavanje u delovima"
+  },
+  "Load users incrementally": {
+    "string": "Učitaj korisnike postepeno"
+  },
+  "Chunk Size": {
+    "string": "Veličina dela"
+  },
+  "Initial Render Count": {
+    "string": "Početni broj renderovanja"
+  },
+  "Entry updated": {
+    "string": "Stavka ažurirana"
+  },
+  "Entry added": {
+    "string": "Stavka dodana"
+  },
+  "Failed to save entry": {
+    "string": "Čuvanje stavke nije uspelo"
+  },
+  "Remove Entry": {
+    "string": "Ukloni stavku"
+  },
+  "Entry removed": {
+    "string": "Stavka uklonjena"
+  },
+  "Failed to remove entry": {
+    "string": "Uklanjanje stavke nije uspelo"
+  },
+  "Channels: {channels}": {
+    "string": "Kanali: {channels}"
+  },
+  "Protected": {
+    "string": "Zaštićen"
+  },
+  "No matching entries": {
+    "string": "Nema odgovarajućih stavki"
+  },
+  "No entries in {tab}": {
+    "string": "Nema stavki u {tab}"
+  },
+  "Add users to manage them in this list": {
+    "string": "Dodajte korisnike da njima upravljate u ovoj listi"
+  },
+  "Edit Entry": {
+    "string": "Uredi stavku"
+  },
+  "Add Entry": {
+    "string": "Dodaj stavku"
+  },
+  "nick!user@host (full mask)": {
+    "string": "nick!user@host (puna maska)"
+  },
+  "nick or mask": {
+    "string": "nick ili maska"
+  },
+  "Channels:": {
+    "string": "Kanali:"
+  },
+  "comma-separated, empty for all": {
+    "string": "odvojeno zarezima, prazno za sve"
+  },
+  "optional note": {
+    "string": "opciona beleška"
+  },
+  "Protected (exempt from protections)": {
+    "string": "Zaštićen (izuzet od zaštita)"
+  },
+  "Select from Online Users": {
+    "string": "Izaberite od online korisnika"
+  },
+  "Select Online User": {
+    "string": "Izaberite online korisnika"
+  },
+  "No online users found": {
+    "string": "Nisu pronađeni online korisnici"
+  },
+  "Subscription offer is not available right now. Please try again in a few moments.": {
+    "string": "Ponuda pretplate trenutno nije dostupna. Pokušajte ponovo za nekoliko trenutaka."
+  },
+  "CTCP {command} reply from {nick}: {args}": {
+    "string": "CTCP {command} odgovor od {nick}: {args}"
+  },
+  "CTCP {command} reply from {nick}": {
+    "string": "CTCP {command} odgovor od {nick}"
+  },
+  "{nick} is already in the {list} list": {
+    "string": "{nick} je već u listi {list}"
+  },
+  "*** Added {nick} to {list} list": {
+    "string": "*** {nick} dodat u listu {list}"
+  },
+  "{nick} is not in the {list} list": {
+    "string": "{nick} nije u listi {list}"
+  },
+  "*** Removed {nick} from {list} list": {
+    "string": "*** {nick} uklonjen iz liste {list}"
+  },
+  "Usage: /notify <nick>": {
+    "string": "Upotreba: /notify <nick>"
+  },
+  "Usage: /unnotify <nick>": {
+    "string": "Upotreba: /unnotify <nick>"
+  },
+  "Usage: /autoop <nick> [#channel]": {
+    "string": "Upotreba: /autoop <nick> [#kanal]"
+  },
+  "Usage: /unautoop <nick>": {
+    "string": "Upotreba: /unautoop <nick>"
+  },
+  "Usage: /autovoice <nick> [#channel]": {
+    "string": "Upotreba: /autovoice <nick> [#kanal]"
+  },
+  "Usage: /unautovoice <nick>": {
+    "string": "Upotreba: /unautovoice <nick>"
+  },
+  "Usage: /autohalfop <nick> [#channel]": {
+    "string": "Upotreba: /autohalfop <nick> [#kanal]"
+  },
+  "Usage: /unautohalfop <nick>": {
+    "string": "Upotreba: /unautohalfop <nick>"
+  },
+  "Usage: /protect <nick> [#channel]": {
+    "string": "Upotreba: /protect <nick> [#kanal]"
+  },
+  "{nick} is already protected": {
+    "string": "{nick} je već zaštićen"
+  },
+  "*** Added {nick} to protected list": {
+    "string": "*** {nick} dodat na listu zaštićenih"
+  },
+  "Usage: /unprotect <nick>": {
+    "string": "Upotreba: /unprotect <nick>"
+  },
+  "*** Opening user lists...": {
+    "string": "*** Otvaranje lista korisnika..."
+  },
+  "Private Messages": {
+    "string": "Privatne poruke"
+  },
+  "Channel Messages": {
+    "string": "Poruke kanala"
+  },
+  "Notices": {
+    "string": "Obaveštenja"
+  },
+  "*** {nick} is now online": {
+    "string": "*** {nick} je sada online"
+  },
+  "*** {nick} is now offline": {
+    "string": "*** {nick} je sada offline"
+  },
+  "CTCP VERSION Response": {
+    "string": "CTCP VERSION odgovor"
+  },
+  "Custom suffix for CTCP VERSION responses. Leave empty to send version only.": {
+    "string": "Tekst dodat na VERSION odgovor (npr. 'https://example.com' ili 'React Native'). Ostavite prazno za samo verziju."
+  },
+  "Open Link": {
+    "string": "Otvori link"
+  },
+  "Do you want to open this link in your browser?\n\n{url}": {
+    "string": "Da li želite da otvorite ovaj link u pregledaču?\n\n{url}"
+  },
+  "Open": {
+    "string": "Otvori"
+  },
+  "Confirm Before Opening Links": {
+    "string": "Potvrdi pre otvaranja linkova"
+  },
+  "Ask before opening links in the browser": {
+    "string": "Pitaj pre otvaranja linkova u pregledaču"
+  },
+  "Open links directly without asking": {
+    "string": "Otvori linkove direktno bez pitanja"
+  },
+  "Notify": {
+    "string": "Praćenje"
+  },
+  "{nick} is now online": {
+    "string": "{nick} je sada online"
   }
 }

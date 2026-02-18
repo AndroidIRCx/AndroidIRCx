@@ -12,6 +12,7 @@ import { SettingItem as SettingItemType, SettingIcon } from '../../../types/sett
 import { layoutService } from '../../../services/LayoutService';
 import { NEW_FEATURE_DEFAULTS, settingsService } from '../../../services/SettingsService';
 import { RawMessageCategory, RAW_MESSAGE_CATEGORIES, getDefaultRawCategoryVisibility } from '../../../services/IRCService';
+import { useUIStore } from '../../../stores/uiStore';
 
 interface DisplayUISectionProps {
   colors: {
@@ -68,6 +69,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     propRawCategoryVisibility || getDefaultRawCategoryVisibility()
   );
   const [noticeTarget, setNoticeTarget] = useState<'active' | 'server' | 'notice' | 'private'>('server');
+  const [whoisDisplayMode, setWhoisDisplayMode] = useState<'modal' | 'active' | 'status'>('status');
   const [showEncryptionIndicatorsSetting, setShowEncryptionIndicatorsSetting] = useState(propShowEncryptionIndicators ?? true);
   const [showTypingIndicatorsSetting, setShowTypingIndicatorsSetting] = useState(propShowTypingIndicators ?? true);
   const [showSendButton, setShowSendButton] = useState(true);
@@ -82,6 +84,8 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
   const [channelListScrollSwitchTabs, setChannelListScrollSwitchTabs] = useState(false);
   const [channelListScrollSwitchTabsInverse, setChannelListScrollSwitchTabsInverse] = useState(false);
+  const [swipeBehavior, setSwipeBehavior] = useState<'off' | 'switch-tabs' | 'show-panels'>('off');
+  const [confirmBeforeOpeningLinks, setConfirmBeforeOpeningLinks] = useState(true);
   const lastRawVisibilityRef = useRef<Record<RawMessageCategory, boolean> | null>(null);
 
   // Load initial state
@@ -92,6 +96,9 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
 
       const notice = await settingsService.getSetting('noticeTarget', 'server');
       setNoticeTarget(notice);
+
+      const whoisMode = await settingsService.getSetting('whoisDisplayMode', 'status');
+      setWhoisDisplayMode(whoisMode);
 
       const showEncryption = await settingsService.getSetting('showEncryptionIndicators', true);
       setShowEncryptionIndicatorsSetting(showEncryption);
@@ -137,6 +144,13 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         NEW_FEATURE_DEFAULTS.channelListScrollSwitchTabsInverse
       );
       setChannelListScrollSwitchTabsInverse(scrollSwitchInverse);
+
+      const swipe = await settingsService.getSetting('swipeBehavior', 'off') as 'off' | 'switch-tabs' | 'show-panels';
+      setSwipeBehavior(swipe);
+      useUIStore.getState().setSwipeBehavior(swipe);
+
+      const confirmLinks = await settingsService.getSetting('confirmBeforeOpeningLinks', true);
+      setConfirmBeforeOpeningLinks(confirmLinks);
     };
     loadSettings();
   }, []);
@@ -223,18 +237,69 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         },
       },
       {
-        id: 'display-channel-list-scroll-invert',
-        title: t('Invert channel list scroll switching', { _tags: tags }),
-        description: t('Reverse scroll direction for tab switching', { _tags: tags }),
+        id: 'display-scroll-swipe-invert',
+        title: t('Invert scroll & swipe direction', { _tags: tags }),
+        description: t('Reverse direction for tab switching gestures', { _tags: tags }),
         type: 'switch',
         value: channelListScrollSwitchTabsInverse,
         disabled: !channelListScrollSwitchTabs,
-        searchKeywords: ['scroll', 'invert', 'reverse', 'tabs', 'channel list'],
+        searchKeywords: ['scroll', 'swipe', 'invert', 'reverse', 'tabs', 'direction', 'gesture', 'search'],
         onValueChange: async (value: boolean | string) => {
           const boolValue = Boolean(value);
           setChannelListScrollSwitchTabsInverse(boolValue);
           await settingsService.setSetting('channelListScrollSwitchTabsInverse', boolValue);
         },
+      },
+      {
+        id: 'display-swipe-behavior',
+        title: t('Swipe Behavior', { _tags: tags }),
+        description: (() => {
+          switch (swipeBehavior) {
+            case 'switch-tabs':
+              return t('Swipe left/right to switch tabs', { _tags: tags });
+            case 'show-panels':
+              return t('Swipe to show/hide panels', { _tags: tags });
+            default:
+              return t('Swipe gestures disabled', { _tags: tags });
+          }
+        })(),
+        type: 'submenu',
+        searchKeywords: ['swipe', 'gesture', 'tabs', 'panels', 'nicklist', 'drawer'],
+        submenuItems: [
+          {
+            id: 'swipe-off',
+            title: t('Off', { _tags: tags }),
+            description: t('No swipe gestures', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setSwipeBehavior('off');
+              await settingsService.setSetting('swipeBehavior', 'off');
+              useUIStore.getState().setSwipeBehavior('off');
+            },
+          },
+          {
+            id: 'swipe-switch-tabs',
+            title: t('Switch tabs', { _tags: tags }),
+            description: t('Swipe left/right to switch to next/previous tab', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setSwipeBehavior('switch-tabs');
+              await settingsService.setSetting('swipeBehavior', 'switch-tabs');
+              useUIStore.getState().setSwipeBehavior('switch-tabs');
+            },
+          },
+          {
+            id: 'swipe-show-panels',
+            title: t('Show/hide panels', { _tags: tags }),
+            description: t('Swipe right for tabs panel, swipe left for nicklist', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setSwipeBehavior('show-panels');
+              await settingsService.setSetting('swipeBehavior', 'show-panels');
+              useUIStore.getState().setSwipeBehavior('show-panels');
+            },
+          },
+        ],
       },
       {
         id: 'display-raw',
@@ -330,6 +395,54 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
             onPress: async () => {
               setNoticeTarget('private');
               await settingsService.setSetting('noticeTarget', 'private');
+            },
+          },
+        ],
+      },
+      {
+        id: 'display-whois',
+        title: t('WHOIS Display', { _tags: tags }),
+        description: (() => {
+          switch (whoisDisplayMode) {
+            case 'modal':
+              return t('Show WHOIS in a popup modal', { _tags: tags });
+            case 'active':
+              return t('Show WHOIS in the active tab', { _tags: tags });
+            default:
+              return t('Show WHOIS in the status tab', { _tags: tags });
+          }
+        })(),
+        type: 'submenu',
+        searchKeywords: ['whois', 'display', 'modal', 'popup', 'active', 'status', 'tab'],
+        submenuItems: [
+          {
+            id: 'whois-modal',
+            title: t('Modal (popup)', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setWhoisDisplayMode('modal');
+              await settingsService.setSetting('whoisDisplayMode', 'modal');
+              useUIStore.getState().setWhoisDisplayMode('modal');
+            },
+          },
+          {
+            id: 'whois-active',
+            title: t('Active window', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setWhoisDisplayMode('active');
+              await settingsService.setSetting('whoisDisplayMode', 'active');
+              useUIStore.getState().setWhoisDisplayMode('active');
+            },
+          },
+          {
+            id: 'whois-status',
+            title: t('Status tab', { _tags: tags }),
+            type: 'button' as const,
+            onPress: async () => {
+              setWhoisDisplayMode('status');
+              await settingsService.setSetting('whoisDisplayMode', 'status');
+              useUIStore.getState().setWhoisDisplayMode('status');
             },
           },
         ],
@@ -601,6 +714,21 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         },
       },
       {
+        id: 'display-confirm-links',
+        title: t('Confirm Before Opening Links', { _tags: tags }),
+        description: confirmBeforeOpeningLinks
+          ? t('Ask before opening links in the browser', { _tags: tags })
+          : t('Open links directly without asking', { _tags: tags }),
+        type: 'switch',
+        value: confirmBeforeOpeningLinks,
+        searchKeywords: ['confirm', 'link', 'url', 'open', 'browser', 'warning', 'prompt'],
+        onValueChange: async (value: boolean | string) => {
+          const boolValue = value as boolean;
+          setConfirmBeforeOpeningLinks(boolValue);
+          await settingsService.setSetting('confirmBeforeOpeningLinks', boolValue);
+        },
+      },
+      {
         id: 'display-banner-position',
         title: t('Banner Position', { _tags: tags }),
         description: (() => {
@@ -747,9 +875,11 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     localShowRawCommands,
     localRawCategoryVisibility,
     noticeTarget,
+    whoisDisplayMode,
     showEncryptionIndicatorsSetting,
     showTypingIndicatorsSetting,
     showSendButton,
+    confirmBeforeOpeningLinks,
     keyboardAvoidingEnabled,
     keyboardBehaviorIOS,
     keyboardBehaviorAndroid,
@@ -758,6 +888,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     bannerPosition,
     channelListScrollSwitchTabs,
     channelListScrollSwitchTabsInverse,
+    swipeBehavior,
     layoutConfig,
     t,
     tags,

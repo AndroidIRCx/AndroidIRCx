@@ -780,11 +780,6 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
               {t('Select action when spam/flood is detected', { _tags: tags })}
             </Text>
             <View style={stylesLocal.modalButtonRow}>
-              <TouchableOpacity
-                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary]}
-                onPress={() => setShowIrcopActionModal(false)}>
-                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Cancel', { _tags: tags })}</Text>
-              </TouchableOpacity>
               {['none', 'ban', 'kill', 'kline', 'gline'].map((action) => (
                 <TouchableOpacity
                   key={action}
@@ -800,6 +795,13 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
                   </Text>
                 </TouchableOpacity>
               ))}
+            </View>
+            <View style={[stylesLocal.modalButtonRow, { marginTop: 8 }]}>
+              <TouchableOpacity
+                style={[stylesLocal.modalButton, stylesLocal.modalButtonSecondary, { flex: 1 }]}
+                onPress={() => setShowIrcopActionModal(false)}>
+                <Text style={stylesLocal.modalButtonTextSecondary}>{t('Cancel', { _tags: tags })}</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>

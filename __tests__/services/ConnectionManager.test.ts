@@ -21,6 +21,7 @@ const mockIRCService = {
   disconnect: jest.fn(),
   setNetworkId: jest.fn(),
   setUserManagementService: jest.fn(),
+  setNotifyService: jest.fn(),
   isSaslAvailable: jest.fn().mockReturnValue(false),
 };
 

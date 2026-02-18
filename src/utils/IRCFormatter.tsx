@@ -567,7 +567,8 @@ const URL_PATTERN = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+|ftp:\/\/[^\s<>"{}|\\^`\[\]
 export function formatIRCTextWithLinks(
   text: string,
   baseStyle?: TextStyle,
-  linkColor?: string
+  linkColor?: string,
+  onLinkPress?: (url: string) => void
 ): React.ReactElement {
   if (!text) {
     return <Text style={baseStyle} />;
@@ -607,7 +608,13 @@ export function formatIRCTextWithLinks(
         <Text
           key={`link-${segmentIndex}-${match.index}`}
           style={[segmentStyle, { color: linkColor || '#2196F3', textDecorationLine: 'underline' }]}
-          onPress={() => Linking.openURL(fullUrl).catch(() => {})}
+          onPress={() => {
+            if (onLinkPress) {
+              onLinkPress(fullUrl);
+            } else {
+              Linking.openURL(fullUrl).catch(() => {});
+            }
+          }}
         >
           {url}
         </Text>

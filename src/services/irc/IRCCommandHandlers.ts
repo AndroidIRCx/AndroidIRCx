@@ -131,8 +131,14 @@ export class IRCCommandHandlers {
       },
       runBlacklistCheckForJoin: (nick: string, username?: string, hostname?: string, channel?: string) => {
         const network = (svc as any).getNetworkName();
-        const entry = (svc as any).getUserManagementService()
-          .findMatchingBlacklistEntry(nick, username, hostname, network);
+        const userMgmtService = (svc as any).getUserManagementService();
+        
+        // Skip blacklist action if user is protected
+        if (userMgmtService.isUserProtected(nick, username, hostname, network)) {
+          return;
+        }
+        
+        const entry = userMgmtService.findMatchingBlacklistEntry(nick, username, hostname, network);
         if (entry) {
           (svc as any).runBlacklistAction(entry, {
             nick,
@@ -141,6 +147,42 @@ export class IRCCommandHandlers {
             channel,
             network,
           });
+        }
+      },
+      runAutoModeCheckForJoin: (nick: string, username?: string, hostname?: string, channel?: string) => {
+        if (!channel) return;
+        const network = (svc as any).getNetworkName();
+        const userMgmtService = (svc as any).getUserManagementService();
+        const channelUsers = (svc as any).channelUsers as Map<string, Map<string, { modes: string[] }>>;
+        
+        // Get our own modes in the channel
+        const currentNick = (svc as any).currentNick as string;
+        const usersInChannel = channelUsers.get(channel);
+        const myUser = usersInChannel?.get(currentNick.toLowerCase());
+        const myModes = myUser?.modes || [];
+        
+        const hasOp = myModes.includes('o') || myModes.includes('q') || myModes.includes('a');
+        const hasHalfop = hasOp || myModes.includes('h');
+        const hasVoice = hasHalfop || myModes.includes('v');
+        
+        // Check autoop list
+        const autoOpEntry = userMgmtService.findMatchingUserListEntry('autoop', nick, username, hostname, network, channel);
+        if (autoOpEntry && hasOp) {
+          (svc as any).sendRaw(`MODE ${channel} +o ${nick}`);
+          return;
+        }
+        
+        // Check autohalfop list
+        const autoHalfopEntry = userMgmtService.findMatchingUserListEntry('autohalfop', nick, username, hostname, network, channel);
+        if (autoHalfopEntry && hasOp) {
+          (svc as any).sendRaw(`MODE ${channel} +h ${nick}`);
+          return;
+        }
+        
+        // Check autovoice list
+        const autoVoiceEntry = userMgmtService.findMatchingUserListEntry('autovoice', nick, username, hostname, network, channel);
+        if (autoVoiceEntry && hasVoice) {
+          (svc as any).sendRaw(`MODE ${channel} +v ${nick}`);
         }
       },
       isExtendedJoinEnabled: () => Boolean((svc as any).extendedJoin),
@@ -160,6 +202,8 @@ export class IRCCommandHandlers {
         (svc as any).handleCTCPRequest(from, target, command, args),
       isUserIgnored: (nick: string, username?: string, hostname?: string, network?: string) =>
         (svc as any).getUserManagementService().isUserIgnored(nick, username, hostname, network),
+      isUserProtected: (nick: string, username?: string, hostname?: string, network?: string) =>
+        (svc as any).getUserManagementService().isUserProtected(nick, username, hostname, network),
       evaluateProtectionDecision: (message: any, context: any) => {
         const protectionService = require('../ProtectionService').protectionService;
         return protectionService.evaluateIncomingMessage(message, context);

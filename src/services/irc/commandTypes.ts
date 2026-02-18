@@ -53,6 +53,7 @@ export interface CommandHandlerContext {
   getUser: (channel: string, nick: string) => any | undefined;
   ensureChannelUsersMap: (channel: string) => Map<string, any>;
   runBlacklistCheckForJoin: (nick: string, username?: string, hostname?: string, channel?: string) => void;
+  runAutoModeCheckForJoin: (nick: string, username?: string, hostname?: string, channel?: string) => void;
   isExtendedJoinEnabled: () => boolean;
   emitJoinedChannel: (channel: string) => void;
   addPendingChannelIntro: (channel: string) => void;
@@ -72,6 +73,7 @@ export interface CommandHandlerContext {
   sendRaw: (command: string) => void;
   handleCTCPRequest: (from: string, target: string, command: string, args?: string) => void;
   isUserIgnored: (nick: string, username?: string, hostname?: string, network?: string) => boolean;
+  isUserProtected: (nick: string, username?: string, hostname?: string, network?: string) => boolean;
   evaluateProtectionDecision: (
     message: { type: string; channel: string; from: string; text: string; timestamp: number; network: string; username?: string; hostname?: string },
     context: { isActiveTab: boolean; isQueryOpen: boolean; isChannel: boolean; isCtcp: boolean },

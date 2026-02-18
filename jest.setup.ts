@@ -83,6 +83,16 @@ jest.mock('react-native/Libraries/Lists/VirtualizedList', () => {
   };
 });
 
+// Mock FlashList
+jest.mock('@shopify/flash-list', () => {
+  const React = require('react');
+  const { FlatList } = require('react-native');
+  return {
+    __esModule: true,
+    FlashList: FlatList,
+  };
+});
+
 jest.mock('react-native-keyboard-controller', () => ({
   KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
   KeyboardController: {

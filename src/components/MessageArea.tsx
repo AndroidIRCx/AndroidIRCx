@@ -17,6 +17,7 @@ import {
   PanResponder,
   TextStyle,
   Alert,
+  Linking,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
@@ -167,6 +168,8 @@ const MessageItem = React.memo<MessageItemProps>(({
   layoutWidth,
   messageFormats,
 }) => {
+  const t = useT();
+
   const formatTimestamp = useCallback((timestamp: number): string => {
     const date = new Date(timestamp);
     if (timestampFormat === '24h') {
@@ -410,6 +413,22 @@ const MessageItem = React.memo<MessageItemProps>(({
     return /[\x02\x03\x0F\x16\x1D\x1E\x1F]/.test(text);
   }, []);
 
+  const handleLinkPress = useCallback(async (url: string) => {
+    const confirmOpen = await settingsService.getSetting('confirmBeforeOpeningLinks', true);
+    if (confirmOpen) {
+      Alert.alert(
+        t('Open Link'),
+        t('Do you want to open this link in your browser?\n\n{url}', { url }),
+        [
+          { text: t('Cancel'), style: 'cancel' },
+          { text: t('Open'), onPress: () => Linking.openURL(url) },
+        ]
+      );
+    } else {
+      Linking.openURL(url);
+    }
+  }, [t]);
+
   const renderTextWithNickActions = useCallback((
     text: string,
     baseStyle: TextStyle,
@@ -418,9 +437,9 @@ const MessageItem = React.memo<MessageItemProps>(({
     if (!text) {
       return <Text key={`${keyPrefix}-empty`} style={baseStyle} />;
     }
-    // If the message uses IRC formatting codes, fall back to the existing formatter.
+    // If the message uses IRC formatting codes, use the formatter with clickable links.
     if (containsIrcFormatting(text)) {
-      return React.cloneElement(formatIRCTextAsComponent(text, baseStyle), {
+      return React.cloneElement(formatIRCTextWithLinks(text, baseStyle, colors.primary, handleLinkPress), {
         key: `${keyPrefix}-formatted`,
       });
     }
@@ -438,11 +457,29 @@ const MessageItem = React.memo<MessageItemProps>(({
             );
           }
 
+          // Check for URLs (http/https/ftp)
+          const urlMatch = token.match(/^(.*?)((?:https?|ftp):\/\/[^\s\x07\x00\r\n]+)(.*)$/i);
+          if (urlMatch) {
+            const [, leading, url, trailing] = urlMatch;
+            return (
+              <Text key={`${keyPrefix}-url-${index}`} style={baseStyle}>
+                {leading}
+                <Text style={[styles.nick, { color: colors.primary, textDecorationLine: 'underline' }]} onPress={() => handleLinkPress(url)}>
+                  {url}
+                </Text>
+                {trailing}
+              </Text>
+            );
+          }
+
           // Check for channel names (e.g., #channel, &channel)
           // Channel pattern: starts with # or &, followed by valid channel characters
+          // Also handles status prefixes: ~ (owner), & (admin), @ (op), % (halfop), + (voice)
           const channelMatch = token.match(/^([^#&]*)([#&][^\s,\x07\x00\r\n:]+)(.*)$/);
           if (channelMatch && onChannelPress) {
-            const [, leadingCh, channelName, trailingCh] = channelMatch;
+            const [, leadingCh, rawChannelName, trailingCh] = channelMatch;
+            // Remove ALL status prefixes from channel name
+            const channelName = rawChannelName.replace(/^[~&@%+]+/, '');
             const joinChannel = () => {
               onChannelPress(channelName);
             };
@@ -496,7 +533,7 @@ const MessageItem = React.memo<MessageItemProps>(({
         })}
       </Text>
     );
-  }, [containsIrcFormatting, nickMap, onNickLongPress, onChannelPress, styles.nick, colors.primary]);
+  }, [containsIrcFormatting, nickMap, onNickLongPress, onChannelPress, handleLinkPress, styles.nick, colors.primary]);
 
   const renderFormattedParts = useCallback(
     (parts: MessageFormatPart[]) => {
@@ -621,7 +658,7 @@ const MessageItem = React.memo<MessageItemProps>(({
             <Text style={StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }])}>
               <Text>*** {message.whoisData.nick} is on channels: </Text>
               {message.whoisData.channels.map((channel, index) => {
-                const cleanChannel = channel.replace(/^[~&@%+]/, '');
+                const cleanChannel = channel.replace(/^[~&@%+]+/, '');
                 const prefix = channel.match(/^[~&@%+]/)?.[0] || '';
                 return (
                   <React.Fragment key={channel}>
@@ -665,11 +702,12 @@ const MessageItem = React.memo<MessageItemProps>(({
               })()}
             </Text>
           ) : (
-            formatIRCTextAsComponent(
+            renderTextWithNickActions(
               message.text.startsWith(`:${currentNick}!`)
                 ? message.text.substring(message.text.indexOf(' ') + 1) // Remove the entire :nick!user@host part
                 : message.text,
-              StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }])
+              StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }]),
+              `raw-${message.id}`
             )
           )
         ) : message.type === 'message' ? (
@@ -870,10 +908,11 @@ const MessageItem = React.memo<MessageItemProps>(({
                     >
                       {message.from}{' '}
                     </Text>
-                    {renderTextWithNickActions(
+                    {formatIRCTextWithLinks(
                       message.text,
                       StyleSheet.flatten([styles.messageTextInline, { color: getMessageColor(message.type) }]),
-                      `notice-${message.id}`,
+                      colors.primary,
+                      handleLinkPress
                     )}
                   </Text>
                 </View>
@@ -883,7 +922,8 @@ const MessageItem = React.memo<MessageItemProps>(({
               formatIRCTextWithLinks(
                 message.text,
                 StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }]),
-                colors.primary
+                colors.primary,
+                handleLinkPress
               )
             ) : (
               renderTextWithNickActions(
@@ -1308,9 +1348,17 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     const selectedUser = resolveContextUser(contextNick);
     const currentNetwork = network || activeTab?.networkId || activeIrc.getNetworkName();
     switch (action) {
-      case 'whois':
-        activeIrc.sendCommand(`WHOIS ${contextNick}`);
+      case 'whois': {
+        // Check if modal mode is enabled
+        const whoisMode = useUIStore.getState().whoisDisplayMode;
+        if (whoisMode === 'modal') {
+          useUIStore.getState().setWhoisNick(contextNick);
+          useUIStore.getState().setShowWHOIS(true);
+        } else {
+          activeIrc.sendCommand(`WHOIS ${contextNick}`);
+        }
         break;
+      }
       case 'query': {
         if (!currentNetwork) break;
         const queryId = queryTabId(currentNetwork, contextNick);

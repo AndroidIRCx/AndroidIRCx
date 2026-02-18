@@ -1,6 +1,6 @@
 {
   "name": "androidircx",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -29,6 +29,7 @@
     "@react-native-firebase/crashlytics": "23.8.6",
     "@react-native-picker/picker": "^2.11.4",
     "@react-native/new-app-screen": "0.83.1",
+    "@shopify/flash-list": "^2.2.2",
     "@transifex/native": "^7.1.5",
     "@transifex/react": "^7.1.5",
     "buffer": "^6.0.3",
@@ -95,5 +96,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "resolutions": {
+    "fast-xml-parser": "^5.3.6"
   }
 }

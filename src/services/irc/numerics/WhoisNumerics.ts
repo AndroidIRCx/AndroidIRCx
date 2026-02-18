@@ -11,8 +11,12 @@
 
 import { tx } from '../../../i18n/transifex';
 import type { NumericHandlerContext, NumericHandler } from '../types';
+import { useUIStore } from '../../../stores/uiStore';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
+
+/** Returns true if WHOIS messages should be routed to the active tab */
+const isWhoisActiveMode = () => useUIStore.getState().whoisDisplayMode === 'active';
 
 /** 301 RPL_AWAY - Away message */
 export const handle301: NumericHandler = (ctx, prefix, params, timestamp) => {
@@ -55,12 +59,23 @@ export const handle306: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle307: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
   const message = params.slice(2).join(' ').replace(/^:/, '') || t('has identified for this nick');
+  
+  // Update WHOIS cache
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: whoisNick,
+      isRegistered: true,
+    }, ctx.getNetworkName());
+  }
+  
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -68,12 +83,23 @@ export const handle307: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle308: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
   const message = params.slice(2).join(' ').replace(/^:/, '') || t('is an admin');
+  
+  // Update WHOIS cache
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: whoisNick,
+      isAdmin: true,
+    }, ctx.getNetworkName());
+  }
+  
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -81,12 +107,23 @@ export const handle308: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle309: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
   const message = params.slice(2).join(' ').replace(/^:/, '') || t('is a services admin');
+  
+  // Update WHOIS cache
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: whoisNick,
+      isServicesAdmin: true,
+    }, ctx.getNetworkName());
+  }
+  
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -94,12 +131,23 @@ export const handle309: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle310: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
   const message = params.slice(2).join(' ').replace(/^:/, '') || t('is available for help');
+  
+  // Update WHOIS cache
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: whoisNick,
+      isHelpOp: true,
+    }, ctx.getNetworkName());
+  }
+  
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -120,6 +168,7 @@ export const handle311: NumericHandler = (ctx, prefix, params, timestamp) => {
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -138,6 +187,7 @@ export const handle312: NumericHandler = (ctx, prefix, params, timestamp) => {
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -145,12 +195,23 @@ export const handle312: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle313: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
   const message = params.slice(2).join(' ').replace(/^:/, '') || t('is an IRC operator');
+  
+  // Update WHOIS cache
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: whoisNick,
+      isOper: true,
+    }, ctx.getNetworkName());
+  }
+  
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
     timestamp,
     isRaw: true,
     rawCategory: 'user',
+    whoisActiveTab: isWhoisActiveMode(),
   });
   if (whoisNick && whoisNick === ctx.getCurrentNick()) {
     ctx.addRawMessage(
@@ -212,6 +273,7 @@ export const handle317: NumericHandler = (ctx, prefix, params, timestamp) => {
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -227,6 +289,7 @@ export const handle318: NumericHandler = (ctx, prefix, params, timestamp) => {
     whoisData: {
       nick: whoisNick,
     },
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -245,6 +308,7 @@ export const handle319: NumericHandler = (ctx, prefix, params, timestamp) => {
       nick: whoisNick,
       channels,
     },
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -252,12 +316,23 @@ export const handle319: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle320: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
   const message = params.slice(2).join(' ').replace(/^:/, '') || t('is special');
+  
+  // Update WHOIS cache
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: whoisNick,
+      specialStatus: message,
+    }, ctx.getNetworkName());
+  }
+  
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -274,6 +349,7 @@ export const handle330: NumericHandler = (ctx, prefix, params, timestamp) => {
     timestamp,
     isRaw: true,
     rawCategory: 'user',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -281,12 +357,23 @@ export const handle330: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle335: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
   const message = params.slice(2).join(' ').replace(/^:/, '') || t('is a bot');
+  
+  // Update WHOIS cache
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: whoisNick,
+      isBot: true,
+    }, ctx.getNetworkName());
+  }
+  
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -303,6 +390,7 @@ export const handle338: NumericHandler = (ctx, prefix, params, timestamp) => {
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -322,6 +410,16 @@ export const handle369: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle378: NumericHandler = (ctx, prefix, params, timestamp) => {
   const targetNick = params[1] || '';
   const hostInfo = params.slice(2).join(' ').replace(/^:/, '') || '';
+  
+  // Update WHOIS cache with connecting from info
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: targetNick,
+      connectingFrom: hostInfo,
+    }, ctx.getNetworkName());
+  }
+  
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} is connecting from {host}', {
@@ -331,6 +429,7 @@ export const handle378: NumericHandler = (ctx, prefix, params, timestamp) => {
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -338,6 +437,16 @@ export const handle378: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle379: NumericHandler = (ctx, prefix, params, timestamp) => {
   const targetNick = params[1] || '';
   const modes = params.slice(2).join(' ').replace(/^:/, '') || '';
+  
+  // Update WHOIS cache with modes info
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: targetNick,
+      modes,
+    }, ctx.getNetworkName());
+  }
+  
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} is using modes {modes}', {
@@ -347,6 +456,7 @@ export const handle379: NumericHandler = (ctx, prefix, params, timestamp) => {
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -396,6 +506,32 @@ export const handle316: NumericHandler = (ctx, prefix, params, timestamp) => {
     timestamp,
     isRaw: true,
     rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
+  });
+};
+
+/** 671 RPL_WHOISSECURE - Secure connection (SSL/TLS) */
+export const handle671: NumericHandler = (ctx, prefix, params, timestamp) => {
+  const whoisNick = params[1] || '';
+  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is using a secure connection');
+  
+  // Update WHOIS cache with secure connection info
+  const userMgmt = ctx.getUserManagementService();
+  if (userMgmt && userMgmt.updateWHOIS) {
+    userMgmt.updateWHOIS({
+      nick: whoisNick,
+      secure: true,
+      secureMessage: message,
+    }, ctx.getNetworkName());
+  }
+  
+  ctx.addMessage({
+    type: 'raw',
+    text: t('*** {nick} {message}', { nick: whoisNick, message }),
+    timestamp,
+    isRaw: true,
+    rawCategory: 'server',
+    whoisActiveTab: isWhoisActiveMode(),
   });
 };
 
@@ -428,4 +564,5 @@ export const whoisHandlers: Map<number, NumericHandler> = new Map([
   [369, handle369],
   [378, handle378],
   [379, handle379],
+  [671, handle671],
 ]);

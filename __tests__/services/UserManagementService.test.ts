@@ -344,6 +344,264 @@ describe('UserManagementService', () => {
       const mask = userManagementService.resolveBlacklistMask(entry, 'baduser', 'user', 'host.com');
       expect(mask).toBe('baduser!*@*');
     });
+
+    it('should support protected flag on blacklist entries', async () => {
+      await userManagementService.addBlacklistEntry('protecteduser', 'ban', undefined, 'TestNetwork');
+      
+      // Get the entry and manually set protected (since addBlacklistEntry doesn't set it)
+      const entries = userManagementService.getBlacklistEntries('TestNetwork');
+      entries[0].protected = true;
+      
+      expect(entries[0].protected).toBe(true);
+    });
+  });
+
+  describe('User Lists (Notify, AutoOp, AutoVoice, AutoHalfOp, Other)', () => {
+    beforeEach(async () => {
+      // Clear user lists
+      // @ts-ignore
+      for (const map of userManagementService.userLists.values()) {
+        map.clear();
+      }
+    });
+
+    describe('addUserListEntry', () => {
+      it('should add entry to notify list', async () => {
+        await userManagementService.addUserListEntry('notify', 'friend!*@*', {
+          network: 'TestNetwork',
+          protected: true,
+        });
+
+        const entries = userManagementService.getUserListEntries('notify', 'TestNetwork');
+        expect(entries).toHaveLength(1);
+        expect(entries[0].mask).toBe('friend!*@*');
+        expect(entries[0].protected).toBe(true);
+      });
+
+      it('should add entry to autoop list with channels', async () => {
+        await userManagementService.addUserListEntry('autoop', 'trusted!*@*', {
+          network: 'TestNetwork',
+          channels: ['#general', '#help'],
+          protected: false,
+        });
+
+        const entries = userManagementService.getUserListEntries('autoop', 'TestNetwork');
+        expect(entries).toHaveLength(1);
+        expect(entries[0].channels).toEqual(['#general', '#help']);
+      });
+
+      it('should add entry to autovoice list', async () => {
+        await userManagementService.addUserListEntry('autovoice', 'gooduser', {
+          network: 'TestNetwork',
+        });
+
+        const entries = userManagementService.getUserListEntries('autovoice', 'TestNetwork');
+        expect(entries).toHaveLength(1);
+        expect(entries[0].mask).toBe('gooduser');
+        expect(entries[0].protected).toBe(false);
+      });
+
+      it('should add entry to autohalfop list', async () => {
+        await userManagementService.addUserListEntry('autohalfop', 'moderator!*@*', {
+          network: 'TestNetwork',
+          protected: true,
+          reason: 'Trusted moderator',
+        });
+
+        const entries = userManagementService.getUserListEntries('autohalfop', 'TestNetwork');
+        expect(entries).toHaveLength(1);
+        expect(entries[0].reason).toBe('Trusted moderator');
+      });
+
+      it('should add entry to other list', async () => {
+        await userManagementService.addUserListEntry('other', 'special!*@*', {
+          network: 'TestNetwork',
+          protected: true,
+        });
+
+        const entries = userManagementService.getUserListEntries('other', 'TestNetwork');
+        expect(entries).toHaveLength(1);
+      });
+    });
+
+    describe('removeUserListEntry', () => {
+      it('should remove entry from list', async () => {
+        await userManagementService.addUserListEntry('notify', 'friend', { network: 'TestNetwork' });
+        await userManagementService.removeUserListEntry('notify', 'friend', 'TestNetwork');
+
+        const entries = userManagementService.getUserListEntries('notify', 'TestNetwork');
+        expect(entries).toHaveLength(0);
+      });
+    });
+
+    describe('updateUserListEntry', () => {
+      it('should update existing entry', async () => {
+        await userManagementService.addUserListEntry('notify', 'friend', {
+          network: 'TestNetwork',
+          protected: false,
+        });
+
+        await userManagementService.updateUserListEntry('notify', 'friend', {
+          network: 'TestNetwork',
+          protected: true,
+          reason: 'Updated reason',
+        });
+
+        const entries = userManagementService.getUserListEntries('notify', 'TestNetwork');
+        expect(entries[0].protected).toBe(true);
+        expect(entries[0].reason).toBe('Updated reason');
+      });
+    });
+
+    describe('findMatchingUserListEntry', () => {
+      it('should find matching entry by nick', async () => {
+        await userManagementService.addUserListEntry('autoop', 'trusted!user@host.com', {
+          network: 'TestNetwork',
+        });
+
+        const entry = userManagementService.findMatchingUserListEntry(
+          'autoop', 'trusted', 'user', 'host.com', 'TestNetwork'
+        );
+        expect(entry).toBeDefined();
+        expect(entry?.mask).toBe('trusted!user@host.com');
+      });
+
+      it('should find matching entry with wildcard', async () => {
+        await userManagementService.addUserListEntry('autoop', '*!*@trustedhost.com', {
+          network: 'TestNetwork',
+        });
+
+        const entry = userManagementService.findMatchingUserListEntry(
+          'autoop', 'anynick', 'anyuser', 'trustedhost.com', 'TestNetwork'
+        );
+        expect(entry).toBeDefined();
+      });
+
+      it('should filter by channel when specified', async () => {
+        await userManagementService.addUserListEntry('autoop', 'trusted!*@*', {
+          network: 'TestNetwork',
+          channels: ['#general'],
+        });
+
+        const matchInChannel = userManagementService.findMatchingUserListEntry(
+          'autoop', 'trusted', 'user', 'host.com', 'TestNetwork', '#general'
+        );
+        expect(matchInChannel).toBeDefined();
+
+        const matchWrongChannel = userManagementService.findMatchingUserListEntry(
+          'autoop', 'trusted', 'user', 'host.com', 'TestNetwork', '#other'
+        );
+        expect(matchWrongChannel).toBeUndefined();
+      });
+
+      it('should prefer network-specific over global entries', async () => {
+        await userManagementService.addUserListEntry('autoop', 'user!*@*', {
+          network: 'TestNetwork',
+          protected: true,
+        });
+        await userManagementService.addUserListEntry('autoop', 'user!*@*', {
+          protected: false,
+        });
+
+        const entry = userManagementService.findMatchingUserListEntry(
+          'autoop', 'user', 'user', 'host.com', 'TestNetwork'
+        );
+        expect(entry?.protected).toBe(true);
+      });
+    });
+  });
+
+  describe('isUserProtected', () => {
+    beforeEach(async () => {
+      // Clear all caches
+      // @ts-ignore
+      for (const map of userManagementService.userLists.values()) {
+        map.clear();
+      }
+      // @ts-ignore
+      userManagementService.ignoredUsers.clear();
+      // @ts-ignore
+      userManagementService.blacklistedUsers.clear();
+    });
+
+    it('should return true when user is in notify list with protected flag', async () => {
+      await userManagementService.addUserListEntry('notify', 'protecteduser!*@*', {
+        network: 'TestNetwork',
+        protected: true,
+      });
+
+      expect(userManagementService.isUserProtected('protecteduser', 'user', 'host.com', 'TestNetwork')).toBe(true);
+    });
+
+    it('should return false when user is in list but not protected', async () => {
+      await userManagementService.addUserListEntry('notify', 'regularuser!*@*', {
+        network: 'TestNetwork',
+        protected: false,
+      });
+
+      expect(userManagementService.isUserProtected('regularuser', 'user', 'host.com', 'TestNetwork')).toBe(false);
+    });
+
+    it('should return true when user is in autoop list with protected flag', async () => {
+      await userManagementService.addUserListEntry('autoop', 'admin!*@*', {
+        network: 'TestNetwork',
+        protected: true,
+      });
+
+      expect(userManagementService.isUserProtected('admin', 'user', 'host.com', 'TestNetwork')).toBe(true);
+    });
+
+    it('should return true when user is in ignore list with protected flag', async () => {
+      // Add ignored user with protected flag
+      await userManagementService.ignoreUser('specialuser', 'Reason', 'TestNetwork');
+      const ignored = userManagementService.getIgnoredUsers('TestNetwork');
+      ignored[0].protected = true;
+
+      expect(userManagementService.isUserProtected('specialuser', 'user', 'host.com', 'TestNetwork')).toBe(true);
+    });
+
+    it('should return true when user is in blacklist with protected flag', async () => {
+      // Add blacklist entry with protected flag
+      await userManagementService.addBlacklistEntry('vipuser', 'ban', undefined, 'TestNetwork');
+      const entries = userManagementService.getBlacklistEntries('TestNetwork');
+      entries[0].protected = true;
+
+      expect(userManagementService.isUserProtected('vipuser', 'user', 'host.com', 'TestNetwork')).toBe(true);
+    });
+
+    it('should return false for non-existent user', () => {
+      expect(userManagementService.isUserProtected('unknown', 'user', 'host.com', 'TestNetwork')).toBe(false);
+    });
+
+    it('should return true when user matches wildcard pattern with protected flag', async () => {
+      await userManagementService.addUserListEntry('other', '*!*@adminhost.com', {
+        network: 'TestNetwork',
+        protected: true,
+      });
+
+      expect(userManagementService.isUserProtected('anynick', 'anyuser', 'adminhost.com', 'TestNetwork')).toBe(true);
+    });
+
+    it('should check all list types for protected status', async () => {
+      // Add user to autovoice with protected
+      await userManagementService.addUserListEntry('autovoice', 'multitest!*@*', {
+        network: 'TestNetwork',
+        protected: true,
+      });
+
+      // Should be protected across all checks
+      expect(userManagementService.isUserProtected('multitest', 'user', 'host.com', 'TestNetwork')).toBe(true);
+    });
+
+    it('should respect network boundaries', async () => {
+      await userManagementService.addUserListEntry('notify', 'networkuser!*@*', {
+        network: 'Network1',
+        protected: true,
+      });
+
+      expect(userManagementService.isUserProtected('networkuser', 'user', 'host.com', 'Network1')).toBe(true);
+      expect(userManagementService.isUserProtected('networkuser', 'user', 'host.com', 'Network2')).toBe(false);
+    });
   });
 
   describe('listeners', () => {

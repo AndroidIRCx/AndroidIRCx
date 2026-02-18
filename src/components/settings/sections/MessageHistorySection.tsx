@@ -7,7 +7,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
 import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
-import { settingsService, DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE } from '../../../services/SettingsService';
+import { settingsService, DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, DEFAULT_CTCP_VERSION_MESSAGE } from '../../../services/SettingsService';
 
 interface MessageHistorySectionProps {
   colors: {
@@ -49,6 +49,7 @@ export const MessageHistorySection: React.FC<MessageHistorySectionProps> = ({
   const [hideIrcServiceListenerMessages, setHideIrcServiceListenerMessages] = useState(true);
   const [closePrivateMessage, setClosePrivateMessage] = useState(false);
   const [closePrivateMessageText, setClosePrivateMessageText] = useState('Closing window');
+  const [ctcpVersionMessage, setCtcpVersionMessage] = useState(DEFAULT_CTCP_VERSION_MESSAGE);
 
   // Load initial state
   useEffect(() => {
@@ -76,6 +77,9 @@ export const MessageHistorySection: React.FC<MessageHistorySectionProps> = ({
       
       const closePrivateText = await settingsService.getSetting('closePrivateMessageText', 'Closing window');
       setClosePrivateMessageText(closePrivateText);
+      
+      const ctcpVersion = await settingsService.getSetting('ctcpVersionMessage', DEFAULT_CTCP_VERSION_MESSAGE);
+      setCtcpVersionMessage(ctcpVersion);
     };
     loadSettings();
   }, []);
@@ -190,6 +194,20 @@ export const MessageHistorySection: React.FC<MessageHistorySectionProps> = ({
           await settingsService.setSetting('closePrivateMessageText', strValue);
         },
       },
+      {
+        id: 'messages-ctcp-version',
+        title: t('CTCP VERSION Response', { _tags: tags }),
+        description: t('Custom suffix for CTCP VERSION responses. Leave empty to send version only.', { _tags: tags }),
+        type: 'input',
+        value: ctcpVersionMessage,
+        placeholder: DEFAULT_CTCP_VERSION_MESSAGE,
+        searchKeywords: ['ctcp', 'version', 'response', 'reply', 'client', 'info'],
+        onValueChange: async (value: string | boolean) => {
+          const strValue = value as string;
+          setCtcpVersionMessage(strValue);
+          await settingsService.setSetting('ctcpVersionMessage', strValue);
+        },
+      },
     ];
 
     return items;
@@ -202,6 +220,7 @@ export const MessageHistorySection: React.FC<MessageHistorySectionProps> = ({
     hideIrcServiceListenerMessages,
     closePrivateMessage,
     closePrivateMessageText,
+    ctcpVersionMessage,
     t,
     tags,
   ]);

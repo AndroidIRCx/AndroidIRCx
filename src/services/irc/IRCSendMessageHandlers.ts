@@ -20,6 +20,7 @@ import { operCommands } from './sendCommands/OperCommands';
 import { utilityCommands } from './sendCommands/UtilityCommands';
 import { infoCommands } from './sendCommands/InfoCommands';
 import { channelCommands } from './sendCommands/ChannelCommands';
+import { userListCommands } from './sendCommands/UserListCommands';
 
 /**
  * Interface for the IRCService methods needed by sendMessage handlers
@@ -98,6 +99,7 @@ export class IRCSendMessageHandlers {
       utilityCommands,
       infoCommands,
       channelCommands,
+      userListCommands,
     ];
     for (const registry of registries) {
       for (const [command, handler] of registry) {

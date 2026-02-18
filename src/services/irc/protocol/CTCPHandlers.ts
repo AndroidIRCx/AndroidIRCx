@@ -31,24 +31,30 @@ export interface CTCPContext {
   getCurrentNick: () => string;
   getRealname: () => string;
   isConnected: () => boolean;
+  getCtcpVersionMessage: () => Promise<string>;
 }
 
 /** Handle an incoming CTCP request */
-export function handleCTCPRequest(
+export async function handleCTCPRequest(
   ctx: CTCPContext,
   from: string,
   target: string,
   command: string,
   args?: string,
-): void {
+): Promise<void> {
   const sendResponse = (cmd: string, responseArgs?: string) => {
     if (ctx.isConnected()) ctx.sendRaw(`NOTICE ${from} :${encodeCTCP(cmd, responseArgs)}`);
   };
 
   switch (command) {
-    case 'VERSION':
-      sendResponse('VERSION', `AndroidIRCX ${APP_VERSION} React Native :https://github.com/AndroidIRCX`);
+    case 'VERSION': {
+      const customMessage = await ctx.getCtcpVersionMessage();
+      const versionResponse = customMessage.trim()
+        ? `AndroidIRCX ${APP_VERSION} ${customMessage.trim()}`
+        : `AndroidIRCX ${APP_VERSION}`;
+      sendResponse('VERSION', versionResponse);
       break;
+    }
     case 'TIME':
       sendResponse('TIME', new Date().toISOString());
       break;

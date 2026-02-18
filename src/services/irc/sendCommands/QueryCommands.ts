@@ -9,10 +9,19 @@
  */
 
 import type { SendMessageHandler, SendMessageHandlerRegistry } from '../sendMessageTypes';
+import { useUIStore } from '../../../stores/uiStore';
 
 export const handleWHOIS: SendMessageHandler = (ctx, args) => {
   if (args.length > 0) {
     ctx.sendCommand(`WHOIS ${args.join(' ')}`);
+
+    // Open modal if whoisDisplayMode is 'modal'
+    const mode = useUIStore.getState().whoisDisplayMode;
+    if (mode === 'modal') {
+      const nick = args[0];
+      useUIStore.getState().setWhoisNick(nick);
+      useUIStore.getState().setShowWHOIS(true);
+    }
   }
 };
 

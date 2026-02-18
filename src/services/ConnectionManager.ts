@@ -6,6 +6,7 @@
 import { IRCService, IRCConnectionConfig } from './IRCService';
 import { ChannelManagementService } from './ChannelManagementService';
 import { UserManagementService } from './UserManagementService';
+import { NotifyService } from './NotifyService';
 import { ChannelListService } from './ChannelListService';
 import { AutoRejoinService } from './AutoRejoinService';
 import { AutoVoiceService } from './AutoVoiceService';
@@ -29,6 +30,7 @@ export interface ConnectionContext {
   ircService: IRCService;
   channelManagementService: ChannelManagementService;
   userManagementService: UserManagementService;
+  notifyService: NotifyService;
   channelListService: ChannelListService;
   autoRejoinService: AutoRejoinService;
   autoVoiceService: AutoVoiceService;
@@ -147,6 +149,9 @@ class ConnectionManager {
     const userManagementService = new UserManagementService();
     userManagementService.setIRCService(ircService);
     ircService.setUserManagementService(userManagementService);
+    const notifyService = new NotifyService();
+    notifyService.setIRCService(ircService);
+    ircService.setNotifyService(notifyService);
     const channelListService = new ChannelListService(ircService);
     const autoRejoinService = new AutoRejoinService(ircService);
     const autoVoiceService = new AutoVoiceService(ircService);
@@ -244,6 +249,7 @@ class ConnectionManager {
       ircService,
       channelManagementService,
       userManagementService,
+      notifyService,
       channelListService,
       autoRejoinService,
       autoVoiceService,
@@ -259,6 +265,7 @@ class ConnectionManager {
     console.log(`ConnectionManager: Initializing services for ${finalId}`);
     ircService.addRawMessage(t('*** Initializing services for {networkId}', { networkId: finalId }), 'connection');
     userManagementService.initialize();
+    notifyService.initialize?.();
     channelManagementService.initialize();
     autoRejoinService.initialize();
     autoVoiceService.initialize();

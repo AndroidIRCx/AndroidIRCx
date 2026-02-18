@@ -44,6 +44,7 @@ jest.mock('../../src/services/BouncerService', () => ({
 jest.mock('../../src/utils/tabUtils', () => ({
   serverTabId: jest.fn().mockImplementation((id) => `server-${id}`),
   noticeTabId: jest.fn().mockImplementation((id) => `notices-${id}`),
+  notificationsTabId: jest.fn().mockImplementation((id) => `notifications-${id}`),
   makeServerTab: jest.fn().mockImplementation((id) => ({
     id: `server-${id}`,
     name: id,

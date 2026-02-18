@@ -65,6 +65,8 @@ export function useUIState() {
   const showPurchaseScreen = useUIStore(state => state.showPurchaseScreen);
   const showIgnoreList = useUIStore(state => state.showIgnoreList);
   const showBlacklist = useUIStore(state => state.showBlacklist);
+  const showUserLists = useUIStore(state => state.showUserLists);
+  const userListsInitialTab = useUIStore(state => state.userListsInitialTab);
   const showWHOIS = useUIStore(state => state.showWHOIS);
   const whoisNick = useUIStore(state => state.whoisNick);
   const showQueryEncryptionMenu = useUIStore(state => state.showQueryEncryptionMenu);
@@ -142,6 +144,8 @@ export function useUIState() {
     showPurchaseScreen,
     showIgnoreList,
     showBlacklist,
+    showUserLists,
+    userListsInitialTab,
     showWHOIS,
     whoisNick,
     showQueryEncryptionMenu,

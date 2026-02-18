@@ -28,6 +28,18 @@ export interface WHOISInfo {
   idle?: number; // seconds
   signon?: number; // timestamp
   channels?: string[];
+  secure?: boolean; // using secure connection (SSL/TLS)
+  secureMessage?: string; // secure connection details
+  modes?: string; // user modes (e.g., +iwxzT)
+  connectingFrom?: string; // actual host/IP (RPL_WHOISHOST)
+  // Status flags
+  isOper?: boolean; // IRC Operator (313)
+  isAdmin?: boolean; // Admin status (308)
+  isServicesAdmin?: boolean; // Services admin (309)
+  isHelpOp?: boolean; // Help operator (310)
+  isRegistered?: boolean; // Registered nick (307)
+  isBot?: boolean; // Bot status (335)
+  specialStatus?: string; // Special status message (320)
   network?: string;
   lastUpdated: number;
 }
@@ -62,6 +74,7 @@ export interface IgnoredUser {
   network?: string;
   addedAt: number;
   reason?: string;
+  protected?: boolean;
 }
 
 export type BlacklistActionType =
@@ -83,6 +96,18 @@ export interface BlacklistEntry {
   reason?: string;
   duration?: string; // for gline/akill/shun (e.g., "1d", "7d", "0" for permanent)
   commandTemplate?: string; // for custom action
+  protected?: boolean;
+}
+
+export type UserListType = 'notify' | 'autoop' | 'autovoice' | 'autohalfop' | 'other';
+
+export interface UserListEntry {
+  mask: string;              // "nick!user@host" or "nick" or "*!*@host"
+  network?: string;          // network ID (undefined = global/all networks)
+  channels?: string[];       // channels this applies to (empty = all channels)
+  protected: boolean;        // exempt from blacklist, flood, auto-ignore
+  addedAt: number;
+  reason?: string;           // optional note
 }
 
 export class UserManagementService {
@@ -185,6 +210,13 @@ export class UserManagementService {
   private readonly ALIASES_PREFIX = 'aliases:';
   private readonly IGNORE_PREFIX = 'ignore:';
   private readonly BLACKLIST_PREFIX = 'blacklist:';
+  private readonly USERLIST_PREFIXES: Record<UserListType, string> = {
+    notify: 'notify:',
+    autoop: 'autoop:',
+    autovoice: 'autovoice:',
+    autohalfop: 'autohalfop:',
+    other: 'other:',
+  };
   
   private whoisCache: Map<string, WHOISInfo> = new Map(); // network:nick -> info
   private whowasCache: Map<string, WHOWASInfo[]> = new Map(); // network:nick -> info[]
@@ -192,6 +224,13 @@ export class UserManagementService {
   private userAliases: Map<string, UserAlias> = new Map(); // network:nick -> alias
   private ignoredUsers: Map<string, IgnoredUser> = new Map(); // network:mask -> ignored
   private blacklistedUsers: Map<string, BlacklistEntry> = new Map(); // network:mask -> entry
+  private userLists: Map<UserListType, Map<string, UserListEntry>> = new Map([
+    ['notify', new Map()],
+    ['autoop', new Map()],
+    ['autovoice', new Map()],
+    ['autohalfop', new Map()],
+    ['other', new Map()],
+  ]);
   
   private whoisListeners: ((info: WHOISInfo) => void)[] = [];
   private whowasListeners: ((info: WHOWASInfo) => void)[] = [];
@@ -238,6 +277,16 @@ export class UserManagementService {
           } else if (key.includes(this.BLACKLIST_PREFIX)) {
             const entry: BlacklistEntry = parsed;
             this.blacklistedUsers.set(entry.network ? `${entry.network}:${entry.mask}` : entry.mask, entry);
+          } else {
+            // Check user list types (notify, autoop, autovoice, autohalfop, other)
+            for (const [listType, prefix] of Object.entries(this.USERLIST_PREFIXES)) {
+              if (key.includes(prefix)) {
+                const entry: UserListEntry = parsed;
+                const mapKey = entry.network ? `${entry.network}:${entry.mask}` : entry.mask;
+                this.userLists.get(listType as UserListType)!.set(mapKey, entry);
+                break;
+              }
+            }
           }
         }
       }
@@ -735,6 +784,191 @@ export class UserManagementService {
       return `*!*@${hostname}`;
     }
     return `${nick}!*@*`;
+  }
+
+  // ─── User Lists (Notify, AutoOp, AutoVoice, AutoHalfOp, Other) ───
+
+  /**
+   * Add an entry to a user list
+   */
+  async addUserListEntry(
+    listType: UserListType,
+    mask: string,
+    options?: { network?: string; channels?: string[]; protected?: boolean; reason?: string }
+  ): Promise<void> {
+    const net = options?.network || this.currentNetwork;
+    const key = net ? `${net}:${mask}` : mask;
+
+    const entry: UserListEntry = {
+      mask,
+      network: net || undefined,
+      channels: options?.channels,
+      protected: options?.protected ?? false,
+      addedAt: Date.now(),
+      reason: options?.reason,
+    };
+
+    this.userLists.get(listType)!.set(key, entry);
+    const storageKey = `${this.STORAGE_PREFIX}${this.USERLIST_PREFIXES[listType]}${key}`;
+    await this.saveToStorage(storageKey, entry);
+  }
+
+  /**
+   * Remove an entry from a user list
+   */
+  async removeUserListEntry(listType: UserListType, mask: string, network?: string): Promise<void> {
+    const net = network || this.currentNetwork;
+    const key = net ? `${net}:${mask}` : mask;
+    this.userLists.get(listType)!.delete(key);
+    const storageKey = `${this.STORAGE_PREFIX}${this.USERLIST_PREFIXES[listType]}${key}`;
+    await this.removeFromStorage(storageKey);
+  }
+
+  /**
+   * Update an existing user list entry (replaces it)
+   */
+  async updateUserListEntry(
+    listType: UserListType,
+    mask: string,
+    options: { network?: string; channels?: string[]; protected?: boolean; reason?: string }
+  ): Promise<void> {
+    const net = options.network || this.currentNetwork;
+    const key = net ? `${net}:${mask}` : mask;
+    const existing = this.userLists.get(listType)!.get(key);
+
+    const entry: UserListEntry = {
+      mask,
+      network: net || undefined,
+      channels: options.channels ?? existing?.channels,
+      protected: options.protected ?? existing?.protected ?? false,
+      addedAt: existing?.addedAt ?? Date.now(),
+      reason: options.reason ?? existing?.reason,
+    };
+
+    this.userLists.get(listType)!.set(key, entry);
+    const storageKey = `${this.STORAGE_PREFIX}${this.USERLIST_PREFIXES[listType]}${key}`;
+    await this.saveToStorage(storageKey, entry);
+  }
+
+  /**
+   * Get all entries for a user list, optionally filtered by network
+   */
+  getUserListEntries(listType: UserListType, network?: string): UserListEntry[] {
+    const net = network === null ? undefined : (network || this.currentNetwork);
+    const entries: UserListEntry[] = [];
+    for (const entry of this.userLists.get(listType)!.values()) {
+      if (!net || entry.network === net || !entry.network) {
+        entries.push(entry);
+      }
+    }
+    return entries;
+  }
+
+  /**
+   * Find a matching entry in a user list, with optional channel filtering.
+   * Network-specific entries are preferred over global ones.
+   */
+  findMatchingUserListEntry(
+    listType: UserListType,
+    nick: string,
+    username?: string,
+    hostname?: string,
+    network?: string,
+    channel?: string
+  ): UserListEntry | undefined {
+    const net = network || this.currentNetwork;
+    const allEntries = Array.from(this.userLists.get(listType)!.values());
+
+    const matchesChannel = (entry: UserListEntry): boolean => {
+      if (!entry.channels || entry.channels.length === 0) return true;
+      if (!channel) return true;
+      return entry.channels.some(ch => ch.toLowerCase() === channel.toLowerCase());
+    };
+
+    const pickLatest = (candidates: UserListEntry[]) => {
+      if (!candidates.length) return undefined;
+      return candidates.slice().sort((a, b) => b.addedAt - a.addedAt)[0];
+    };
+
+    // Network-specific first
+    const networkHit = pickLatest(
+      allEntries.filter(e =>
+        e.network === net &&
+        matchesChannel(e) &&
+        this.matchesMaskPattern(nick, username, hostname, e.mask)
+      )
+    );
+    if (networkHit) return networkHit;
+
+    // Global fallback
+    return pickLatest(
+      allEntries.filter(e =>
+        !e.network &&
+        matchesChannel(e) &&
+        this.matchesMaskPattern(nick, username, hostname, e.mask)
+      )
+    );
+  }
+
+  /**
+   * Check if a user is protected in ANY list (user lists, ignore, blacklist).
+   * Returns true if any matching entry across all lists has protected: true.
+   */
+  isUserProtected(nick: string, username?: string, hostname?: string, network?: string): boolean {
+    const net = network || this.currentNetwork;
+
+    // Check all user lists
+    for (const listMap of this.userLists.values()) {
+      for (const entry of listMap.values()) {
+        if (entry.protected && this.entryMatchesUser(entry, nick, username, hostname, net)) {
+          return true;
+        }
+      }
+    }
+
+    // Check ignore list
+    for (const entry of this.ignoredUsers.values()) {
+      if (entry.protected && this.entryMatchesUserForNetwork(entry, nick, username, hostname, net)) {
+        return true;
+      }
+    }
+
+    // Check blacklist
+    for (const entry of this.blacklistedUsers.values()) {
+      if (entry.protected && this.entryMatchesUserForNetwork(entry, nick, username, hostname, net)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if a UserListEntry matches a user for a given network
+   */
+  private entryMatchesUser(
+    entry: UserListEntry,
+    nick: string,
+    username: string | undefined,
+    hostname: string | undefined,
+    network: string
+  ): boolean {
+    if (entry.network && entry.network !== network) return false;
+    return this.matchesMaskPattern(nick, username, hostname, entry.mask);
+  }
+
+  /**
+   * Check if an IgnoredUser or BlacklistEntry matches a user for a given network
+   */
+  private entryMatchesUserForNetwork(
+    entry: { mask: string; network?: string },
+    nick: string,
+    username: string | undefined,
+    hostname: string | undefined,
+    network: string
+  ): boolean {
+    if (entry.network && entry.network !== network) return false;
+    return this.matchesMaskPattern(nick, username, hostname, entry.mask);
   }
 
   private matchesMaskPattern(

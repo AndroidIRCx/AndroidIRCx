@@ -12253,5 +12253,398 @@
   },
   "Some errors occurred:": {
     "string": "Some errors occurred:"
+  },
+  "Add to Notify": {
+    "string": "Add to Notify"
+  },
+  "Add to AutoOp": {
+    "string": "Add to AutoOp"
+  },
+  "Add to AutoVoice": {
+    "string": "Add to AutoVoice"
+  },
+  "Add to Protected": {
+    "string": "Add to Protected"
+  },
+  "Open Networks list to choose and manage networks": {
+    "string": "Open Networks list to choose and manage networks"
+  },
+  "Invert scroll & swipe direction": {
+    "string": "Invert scroll & swipe direction"
+  },
+  "Reverse direction for tab switching gestures": {
+    "string": "Reverse direction for tab switching gestures"
+  },
+  "Swipe Behavior": {
+    "string": "Swipe Behavior"
+  },
+  "Swipe left/right to switch tabs": {
+    "string": "Swipe left/right to switch tabs"
+  },
+  "Swipe to show/hide panels": {
+    "string": "Swipe to show/hide panels"
+  },
+  "Swipe gestures disabled": {
+    "string": "Swipe gestures disabled"
+  },
+  "Off": {
+    "string": "Off"
+  },
+  "No swipe gestures": {
+    "string": "No swipe gestures"
+  },
+  "Switch tabs": {
+    "string": "Switch tabs"
+  },
+  "Swipe left/right to switch to next/previous tab": {
+    "string": "Swipe left/right to switch to next/previous tab"
+  },
+  "Show/hide panels": {
+    "string": "Show/hide panels"
+  },
+  "Swipe right for tabs panel, swipe left for nicklist": {
+    "string": "Swipe right for tabs panel, swipe left for nicklist"
+  },
+  "WHOIS Display": {
+    "string": "WHOIS Display"
+  },
+  "Show WHOIS in a popup modal": {
+    "string": "Show WHOIS in a popup modal"
+  },
+  "Show WHOIS in the active tab": {
+    "string": "Show WHOIS in the active tab"
+  },
+  "Show WHOIS in the status tab": {
+    "string": "Show WHOIS in the status tab"
+  },
+  "Modal (popup)": {
+    "string": "Modal (popup)"
+  },
+  "Status tab": {
+    "string": "Status tab"
+  },
+  "User Lists": {
+    "string": "User Lists"
+  },
+  "Manage notify, autoop, autovoice and protected lists": {
+    "string": "Manage notify, autoop, autovoice and protected lists"
+  },
+  "Modes:": {
+    "string": "Modes:"
+  },
+  "Connecting from:": {
+    "string": "Connecting from:"
+  },
+  "Privileges": {
+    "string": "Privileges"
+  },
+  "IRC Operator:": {
+    "string": "IRC Operator:"
+  },
+  "Admin:": {
+    "string": "Admin:"
+  },
+  "Services Admin:": {
+    "string": "Services Admin:"
+  },
+  "Help Operator:": {
+    "string": "Help Operator:"
+  },
+  "Registered:": {
+    "string": "Registered:"
+  },
+  "Bot:": {
+    "string": "Bot:"
+  },
+  "Special:": {
+    "string": "Special:"
+  },
+  "Connection:": {
+    "string": "Connection:"
+  },
+  "Secure (SSL/TLS)": {
+    "string": "Secure (SSL/TLS)"
+  },
+  "Connection Activity": {
+    "string": "Connection Activity"
+  },
+  "User Activity": {
+    "string": "User Activity"
+  },
+  "No file selected": {
+    "string": "No file selected"
+  },
+  "Selected file is empty": {
+    "string": "Selected file is empty"
+  },
+  "Selected file is not a valid JSON backup": {
+    "string": "Selected file is not a valid JSON backup"
+  },
+  "Backup loaded from file": {
+    "string": "Backup loaded from file"
+  },
+  "Failed to load backup file": {
+    "string": "Failed to load backup file"
+  },
+  "Load from File": {
+    "string": "Load from File"
+  },
+  "Mask:": {
+    "string": "Mask:"
+  },
+  "Action:": {
+    "string": "Action:"
+  },
+  "Command Template:": {
+    "string": "Command Template:"
+  },
+  "Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}": {
+    "string": "Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}"
+  },
+  "Reason:": {
+    "string": "Reason:"
+  },
+  "e.g., 1d, 7d, 1h, 0 for permanent": {
+    "string": "e.g., 1d, 7d, 1h, 0 for permanent"
+  },
+  "Are you sure you want to delete \"{name}\"? This cannot be undone.": {
+    "string": "Are you sure you want to delete \"{name}\"? This cannot be undone."
+  },
+  "Failed to delete identity profile": {
+    "string": "Failed to delete identity profile"
+  },
+  "IRC channels are group chat rooms where multiple users can communicate.": {
+    "string": "IRC channels are group chat rooms where multiple users can communicate."
+  },
+  "Channel names start with # (e.g., #DBase).": {
+    "string": "Channel names start with # (e.g., #DBase)."
+  },
+  "Visit our website: androidircx.com": {
+    "string": "Visit our website: androidircx.com"
+  },
+  "GitHub Issues: https://github.com/AndroidIRCx/AndroidIRCx/issues": {
+    "string": "GitHub Issues: https://github.com/AndroidIRCx/AndroidIRCx/issues"
+  },
+  "Enable Debug Logging:": {
+    "string": "Enable Debug Logging:"
+  },
+  "Settings → Development → Enable Console Logging (debug builds only)": {
+    "string": "Settings → Development → Enable Console Logging (debug builds only)"
+  },
+  "Send logs with your report.": {
+    "string": "Send logs with your report."
+  },
+  "User List Type": {
+    "string": "User List Type"
+  },
+  "Currently: {type}": {
+    "string": "Currently: {type}"
+  },
+  "FlashList (Fastest)": {
+    "string": "FlashList (Fastest)"
+  },
+  "FlatList (Virtualized)": {
+    "string": "FlatList (Virtualized)"
+  },
+  "Grouped (By Mode)": {
+    "string": "Grouped (By Mode)"
+  },
+  "Simple (ScrollView)": {
+    "string": "Simple (ScrollView)"
+  },
+  "Select User List Type": {
+    "string": "Select User List Type"
+  },
+  "Choose rendering method for nicklist:": {
+    "string": "Choose rendering method for nicklist:"
+  },
+  "Search Debounce": {
+    "string": "Search Debounce"
+  },
+  "Skip Sort Threshold": {
+    "string": "Skip Sort Threshold"
+  },
+  "Chunk Loading": {
+    "string": "Chunk Loading"
+  },
+  "Load users incrementally": {
+    "string": "Load users incrementally"
+  },
+  "Chunk Size": {
+    "string": "Chunk Size"
+  },
+  "Initial Render Count": {
+    "string": "Initial Render Count"
+  },
+  "Entry updated": {
+    "string": "Entry updated"
+  },
+  "Entry added": {
+    "string": "Entry added"
+  },
+  "Failed to save entry": {
+    "string": "Failed to save entry"
+  },
+  "Remove Entry": {
+    "string": "Remove Entry"
+  },
+  "Entry removed": {
+    "string": "Entry removed"
+  },
+  "Failed to remove entry": {
+    "string": "Failed to remove entry"
+  },
+  "Channels: {channels}": {
+    "string": "Channels: {channels}"
+  },
+  "Protected": {
+    "string": "Protected"
+  },
+  "No matching entries": {
+    "string": "No matching entries"
+  },
+  "No entries in {tab}": {
+    "string": "No entries in {tab}"
+  },
+  "Add users to manage them in this list": {
+    "string": "Add users to manage them in this list"
+  },
+  "Edit Entry": {
+    "string": "Edit Entry"
+  },
+  "Add Entry": {
+    "string": "Add Entry"
+  },
+  "nick!user@host (full mask)": {
+    "string": "nick!user@host (full mask)"
+  },
+  "nick or mask": {
+    "string": "nick or mask"
+  },
+  "Channels:": {
+    "string": "Channels:"
+  },
+  "comma-separated, empty for all": {
+    "string": "comma-separated, empty for all"
+  },
+  "optional note": {
+    "string": "optional note"
+  },
+  "Protected (exempt from protections)": {
+    "string": "Protected (exempt from protections)"
+  },
+  "Select from Online Users": {
+    "string": "Select from Online Users"
+  },
+  "Select Online User": {
+    "string": "Select Online User"
+  },
+  "No online users found": {
+    "string": "No online users found"
+  },
+  "Subscription offer is not available right now. Please try again in a few moments.": {
+    "string": "Subscription offer is not available right now. Please try again in a few moments."
+  },
+  "CTCP {command} reply from {nick}: {args}": {
+    "string": "CTCP {command} reply from {nick}: {args}"
+  },
+  "CTCP {command} reply from {nick}": {
+    "string": "CTCP {command} reply from {nick}"
+  },
+  "{nick} is already in the {list} list": {
+    "string": "{nick} is already in the {list} list"
+  },
+  "*** Added {nick} to {list} list": {
+    "string": "*** Added {nick} to {list} list"
+  },
+  "{nick} is not in the {list} list": {
+    "string": "{nick} is not in the {list} list"
+  },
+  "*** Removed {nick} from {list} list": {
+    "string": "*** Removed {nick} from {list} list"
+  },
+  "Usage: /notify <nick>": {
+    "string": "Usage: /notify <nick>"
+  },
+  "Usage: /unnotify <nick>": {
+    "string": "Usage: /unnotify <nick>"
+  },
+  "Usage: /autoop <nick> [#channel]": {
+    "string": "Usage: /autoop <nick> [#channel]"
+  },
+  "Usage: /unautoop <nick>": {
+    "string": "Usage: /unautoop <nick>"
+  },
+  "Usage: /autovoice <nick> [#channel]": {
+    "string": "Usage: /autovoice <nick> [#channel]"
+  },
+  "Usage: /unautovoice <nick>": {
+    "string": "Usage: /unautovoice <nick>"
+  },
+  "Usage: /autohalfop <nick> [#channel]": {
+    "string": "Usage: /autohalfop <nick> [#channel]"
+  },
+  "Usage: /unautohalfop <nick>": {
+    "string": "Usage: /unautohalfop <nick>"
+  },
+  "Usage: /protect <nick> [#channel]": {
+    "string": "Usage: /protect <nick> [#channel]"
+  },
+  "{nick} is already protected": {
+    "string": "{nick} is already protected"
+  },
+  "*** Added {nick} to protected list": {
+    "string": "*** Added {nick} to protected list"
+  },
+  "Usage: /unprotect <nick>": {
+    "string": "Usage: /unprotect <nick>"
+  },
+  "*** Opening user lists...": {
+    "string": "*** Opening user lists..."
+  },
+  "Private Messages": {
+    "string": "Private Messages"
+  },
+  "Channel Messages": {
+    "string": "Channel Messages"
+  },
+  "Notices": {
+    "string": "Notices"
+  },
+  "*** {nick} is now online": {
+    "string": "*** {nick} is now online"
+  },
+  "*** {nick} is now offline": {
+    "string": "*** {nick} is now offline"
+  },
+  "CTCP VERSION Response": {
+    "string": "CTCP VERSION Response"
+  },
+  "Custom suffix for CTCP VERSION responses. Leave empty to send version only.": {
+    "string": "Custom suffix for CTCP VERSION responses. Leave empty to send version only."
+  },
+  "Open Link": {
+    "string": "Open Link"
+  },
+  "Do you want to open this link in your browser?\n\n{url}": {
+    "string": "Do you want to open this link in your browser?\n\n{url}"
+  },
+  "Open": {
+    "string": "Open"
+  },
+  "Confirm Before Opening Links": {
+    "string": "Confirm Before Opening Links"
+  },
+  "Ask before opening links in the browser": {
+    "string": "Ask before opening links in the browser"
+  },
+  "Open links directly without asking": {
+    "string": "Open links directly without asking"
+  },
+  "Notify": {
+    "string": "Notify"
+  },
+  "{nick} is now online": {
+    "string": "{nick} is now online"
   }
 }

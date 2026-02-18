@@ -408,12 +408,80 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                   useUIStore.getState().setBlacklistTarget({
                     type: 'nick',
                     networkId: network || '',
-                    nick: nick || '',
+                    nick: nick ?? '',
                   });
                 }}>
                   <View style={styles.contextItemWithIcon}>
                     <Icon name="user-slash" size={14} color={colors.text} style={styles.contextIcon} />
                     <Text style={styles.contextText}>{t('Blacklist Nick')}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.contextItem} onPress={() => {
+                  useUIStore.getState().setUserListsInitialTab('notify');
+                  useUIStore.getState().setUserListTarget({
+                    listType: 'notify',
+                    networkId: network || '',
+                    nick: nick ?? '',
+                    mask: userHostInfo?.user && userHostInfo?.host ? `${nick}!${userHostInfo.user}@${userHostInfo.host}` : (nick ?? ''),
+                    channels: channel ? [channel] : undefined,
+                  });
+                  useUIStore.getState().setShowUserLists(true);
+                  onClose();
+                }}>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="bell" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Add to Notify')}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.contextItem} onPress={() => {
+                  useUIStore.getState().setUserListsInitialTab('autoop');
+                  useUIStore.getState().setUserListTarget({
+                    listType: 'autoop',
+                    networkId: network || '',
+                    nick: nick ?? '',
+                    mask: userHostInfo?.user && userHostInfo?.host ? `${nick}!${userHostInfo.user}@${userHostInfo.host}` : (nick ?? ''),
+                    channels: channel ? [channel] : undefined,
+                  });
+                  useUIStore.getState().setShowUserLists(true);
+                  onClose();
+                }}>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="user-shield" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Add to AutoOp')}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.contextItem} onPress={() => {
+                  useUIStore.getState().setUserListsInitialTab('autovoice');
+                  useUIStore.getState().setUserListTarget({
+                    listType: 'autovoice',
+                    networkId: network || '',
+                    nick: nick ?? '',
+                    mask: userHostInfo?.user && userHostInfo?.host ? `${nick}!${userHostInfo.user}@${userHostInfo.host}` : (nick ?? ''),
+                    channels: channel ? [channel] : undefined,
+                  });
+                  useUIStore.getState().setShowUserLists(true);
+                  onClose();
+                }}>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="microphone" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Add to AutoVoice')}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.contextItem} onPress={() => {
+                  useUIStore.getState().setUserListsInitialTab('other');
+                  useUIStore.getState().setUserListTarget({
+                    listType: 'other',
+                    networkId: network || '',
+                    nick: nick ?? '',
+                    mask: userHostInfo?.user && userHostInfo?.host ? `${nick}!${userHostInfo.user}@${userHostInfo.host}` : (nick ?? ''),
+                    channels: channel ? [channel] : undefined,
+                  });
+                  useUIStore.getState().setShowUserLists(true);
+                  onClose();
+                }}>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="shield-alt" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Add to Protected')}</Text>
                   </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contextItem} onPress={() => onAction('add_note')}>

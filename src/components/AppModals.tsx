@@ -23,6 +23,7 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { PurchaseScreen } from '../screens/PurchaseScreen';
 import { IgnoreListScreen } from '../screens/IgnoreListScreen';
 import { BlacklistScreen } from '../screens/BlacklistScreen';
+import { UserListsScreen } from '../screens/UserListsScreen';
 import { WHOISDisplay } from './WHOISDisplay';
 import { QueryEncryptionMenu } from './QueryEncryptionMenu';
 import { ChannelListScreen } from '../screens/ChannelListScreen';
@@ -125,6 +126,8 @@ export function AppModals({
     showPurchaseScreen,
     showIgnoreList,
     showBlacklist,
+    showUserLists,
+    userListsInitialTab,
     showWHOIS,
     whoisNick,
     showQueryEncryptionMenu,
@@ -256,8 +259,11 @@ export function AppModals({
         onShowEncryptionIndicatorsChange={persistentSetShowEncryptionIndicators}
         showTypingIndicators={showTypingIndicators}
         onShowTypingIndicatorsChange={persistentSetShowTypingIndicators}
-        onShowIgnoreList={() => useUIStore.getState().setShowIgnoreList(true)}
         onShowBlacklist={() => useUIStore.getState().setShowBlacklist(true)}
+        onShowUserLists={() => {
+          useUIStore.getState().setUserListsInitialTab('notify');
+          useUIStore.getState().setShowUserLists(true);
+        }}
         onShowPurchaseScreen={() => useUIStore.getState().setShowPurchaseScreen(true)}
       />
       {showPurchaseScreen && (
@@ -280,6 +286,14 @@ export function AppModals({
           onClose={() => useUIStore.getState().setShowBlacklist(false)}
         />
       )}
+      {showUserLists && (
+        <UserListsScreen
+          visible={showUserLists}
+          network={activeTab?.networkId}
+          initialTab={userListsInitialTab}
+          onClose={() => useUIStore.getState().setShowUserLists(false)}
+        />
+      )}
       {showWHOIS && (
         <WHOISDisplay
           visible={showWHOIS}
@@ -294,7 +308,12 @@ export function AppModals({
             const network = activeTab?.networkId;
             if (network) {
               const connection = connectionManager.getConnection(network);
-              connection?.ircService?.sendRaw(`JOIN ${channel}`);
+              // Ensure channel starts with # and remove any remaining prefixes
+              let cleanChannel = channel.replace(/^[~&@%+]+/, '');
+              if (!cleanChannel.startsWith('#')) {
+                cleanChannel = '#' + cleanChannel;
+              }
+              connection?.ircService?.sendRaw(`JOIN ${cleanChannel}`);
             }
           }}
           onNickPress={(nick) => {

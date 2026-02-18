@@ -183,6 +183,10 @@ export const useStartupServices = () => {
 
   useEffect(() => {
     protectionService.initialize();
+    // Set up protected user check callback
+    protectionService.setProtectedCheckCallback(
+      (nick, username, hostname, network) => userManagementService.isUserProtected(nick, username, hostname, network)
+    );
   }, []);
 
   useEffect(() => {

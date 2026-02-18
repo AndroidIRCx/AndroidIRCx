@@ -230,6 +230,9 @@ jest.mock('../../src/services/ProtectionService', () => ({
     initialize: jest.fn().mockImplementation(() => {
       initializedServices.push('protectionService');
     }),
+    setProtectedCheckCallback: jest.fn().mockImplementation(() => {
+      initializedServices.push('protectionService.setProtectedCheckCallback');
+    }),
   },
 }));
 

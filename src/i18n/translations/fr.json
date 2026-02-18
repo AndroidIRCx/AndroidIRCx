@@ -69,7 +69,7 @@
     "string": "Exportation complète"
   },
   "Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)": {
-    "string": ""
+    "string": "Exportez les caractères {count} au format {format}.\n\n(En production, cela serait enregistré dans un fichier.)"
   },
   "Export Error": {
     "string": "l'exportation a échoué "
@@ -78,208 +78,208 @@
     "string": "Échec de l'exportation de l'historique"
   },
   "Clear Message History": {
-    "string": ""
+    "string": "Effacer l'historique des messages"
   },
   "Are you sure you want to clear all message history? This cannot be undone.": {
-    "string": ""
+    "string": "Êtes-vous sûr de vouloir effacer tout l'historique des messages?\nCette opération ne peut pas être annulée."
   },
   "Clear": {
-    "string": ""
+    "string": "Effacez"
   },
   "Message history cleared": {
-    "string": ""
+    "string": "Historique des messages effacées"
   },
   "Settings backup generated (excludes logs and message history).": {
-    "string": ""
+    "string": "Sauvegarde des paramètres générées (à l'exception des journaux et de l'historique des messages)."
   },
   "Full backup generated (includes all data).": {
-    "string": ""
+    "string": "Sauvegarde complète générée (inclut toutes les données)."
   },
   "Backup Error": {
-    "string": ""
+    "string": "Erreur de sauvegarde"
   },
   "Failed to create backup": {
-    "string": ""
+    "string": "Échec de la création de la sauvegarde"
   },
   "Restore Complete": {
-    "string": ""
+    "string": "Restauration terminée"
   },
   "Restore Error": {
-    "string": ""
+    "string": "Erreur de restauration"
   },
   "Use fingerprint/biometric to unlock": {
-    "string": ""
+    "string": "Utilisez l'empreinte digitale/la biométrie pour déverrouiller"
   },
   "Enter PIN to unlock": {
-    "string": ""
+    "string": "Entrez votre code PIN pour déverrouiller"
   },
   "PIN must be at least 4 digits.": {
-    "string": ""
+    "string": "Le code PIN doit comporter au moins 4 chiffres."
   },
   "PINs do not match.": {
-    "string": ""
+    "string": "Les codes PIN ne correspondent pas."
   },
   "Biometrics unavailable": {
-    "string": ""
+    "string": "Données biométriques indisponibles"
   },
   "Enable a fingerprint/biometric on your device first.": {
-    "string": ""
+    "string": "Activez d'abord la fonction d'empreinte digitale/biométrique sur votre appareil."
   },
   "Unlock passwords": {
-    "string": ""
+    "string": "Déverrouiller les mots de passe"
   },
   "Authentication failed": {
-    "string": ""
+    "string": "Échec de l'authentification"
   },
   "Unable to unlock passwords.": {
-    "string": ""
+    "string": "Impossible de déverrouiller les mots de passe."
   },
   "Biometric setup failed": {
-    "string": ""
+    "string": "Échec de la configuration biométrique"
   },
   "Unable to enable biometric lock for passwords.": {
-    "string": ""
+    "string": "Impossible d'activer le verrouillage biométrique pour les mots de passe."
   },
   "Enable a method": {
-    "string": ""
+    "string": "Activer une méthode"
   },
   "Turn on biometric or PIN for App Lock first.": {
-    "string": ""
+    "string": "Activez d'abord la biométrie ou le code PIN pour le verrouillage des applications."
   },
   "Unable to enable biometric app lock.": {
-    "string": ""
+    "string": "Impossible d'activer le verrouillage biométrique de l'application."
   },
   "Appearance": {
-    "string": ""
+    "string": "Apparence"
   },
   "Theme": {
-    "string": ""
+    "string": "Thème"
   },
   "Custom theme": {
-    "string": ""
+    "string": "Thème personnalisé"
   },
   "Dark mode (default)": {
-    "string": ""
+    "string": "Mode sombre (par défaut)"
   },
   "Light mode": {
-    "string": ""
+    "string": "Mode clair"
   },
   "+ Create New Theme": {
-    "string": ""
+    "string": "+ Créer un nouveau thème"
   },
   "Edit {name}": {
-    "string": ""
+    "string": "Modifier {name}"
   },
   "Delete {name}": {
-    "string": ""
+    "string": "Supprimer {name}"
   },
   "Delete Theme": {
-    "string": ""
+    "string": "Supprimer le thème"
   },
   "Are you sure you want to delete \"{name}\"?": {
-    "string": ""
+    "string": "Êtes-vous sûr de vouloir supprimer \"{name}\" ?"
   },
   "Delete": {
-    "string": ""
+    "string": "Supprimer"
   },
   "Tab Position": {
-    "string": ""
+    "string": "Position de l'onglet"
   },
   "Tabs at {position}": {
-    "string": ""
+    "string": "Onglets à {position}"
   },
   "Select tab position:": {
-    "string": ""
+    "string": "Sélectionnez la position de l'onglet:"
   },
   "Top": {
-    "string": ""
+    "string": "Haut"
   },
   "Bottom": {
-    "string": ""
+    "string": "Bas"
   },
   "Left": {
-    "string": ""
+    "string": "Gauche"
   },
   "Right": {
-    "string": ""
+    "string": "Droite"
   },
   "User List Position": {
-    "string": ""
+    "string": "Position dans la liste des utilisateurs"
   },
   "User list at {position}": {
-    "string": ""
+    "string": "Liste des utilisateurs à {position}"
   },
   "Select user list position:": {
-    "string": ""
+    "string": "Sélectionnez la position dans la liste des utilisateurs:"
   },
   "View Mode": {
-    "string": ""
+    "string": "Mode d'affichage"
   },
   "Current: {mode}": {
-    "string": ""
+    "string": "Actuel: {mode}"
   },
   "Select view mode:": {
-    "string": ""
+    "string": "Sélectionnez le mode d'affichage :"
   },
   "Compact": {
-    "string": ""
+    "string": "Compact"
   },
   "Comfortable": {
-    "string": ""
+    "string": "Confortable"
   },
   "Spacious": {
-    "string": ""
+    "string": "Spacieux"
   },
   "Font Size": {
-    "string": ""
+    "string": "Taille de la police"
   },
   "Current: {size}": {
-    "string": ""
+    "string": "Actuel: {size}"
   },
   "Select font size:": {
-    "string": ""
+    "string": "Sélectionnez la taille de la police :"
   },
   "Small": {
-    "string": ""
+    "string": "Petit"
   },
   "Medium": {
-    "string": ""
+    "string": "Moyen"
   },
   "Large": {
-    "string": ""
+    "string": "Grand"
   },
   "Extra Large": {
-    "string": ""
+    "string": "Très grand"
   },
   "Raw Categories": {
-    "string": ""
+    "string": "Catégories brutes"
   },
   "Choose which raw messages are shown": {
-    "string": ""
+    "string": "Choisissez les messages bruts à afficher"
   },
   "Notice Routing": {
-    "string": ""
+    "string": "Avis d'acheminement"
   },
   "Show notices in the active tab": {
-    "string": ""
+    "string": "Afficher les notifications dans l'onglet actif"
   },
   "Show notices in a Notices tab": {
-    "string": ""
+    "string": "Afficher les notifications dans l'onglet Notifications"
   },
   "Show notices in a private/query tab": {
-    "string": ""
+    "string": "Afficher les notifications dans un onglet privé/requête"
   },
   "Show notices in the server tab": {
-    "string": ""
+    "string": "Afficher les notifications dans l'onglet Serveur"
   },
   "Active window": {
-    "string": ""
+    "string": "Fenêtre active"
   },
   "Server tab": {
-    "string": ""
+    "string": "Onglet Serveur"
   },
   "Notices tab": {
-    "string": ""
+    "string": "Onglet Notifications"
   },
   "Private/query tab": {
     "string": ""
@@ -3006,13 +3006,13 @@
     "string": ""
   },
   "libera": {
-    "string": ""
+    "string": "libera"
   },
   "Server Hostname": {
     "string": ""
   },
   "irc.libera.chat": {
-    "string": ""
+    "string": "irc.libera.chat"
   },
   "Use SSL/TLS (Recommended)": {
     "string": ""
@@ -3123,7 +3123,7 @@
     "string": ""
   },
   "Exchange keys with users to enable encrypted messaging": {
-    "string": ""
+    "string": "Échangez des clés avec les utilisateurs pour activer la messagerie cryptée."
   },
   "Authenticating...": {
     "string": ""
@@ -3153,7 +3153,7 @@
     "string": ""
   },
   "Network:": {
-    "string": ""
+    "string": "Réseau:"
   },
   "Nickname:": {
     "string": ""
@@ -3264,7 +3264,7 @@
     "string": ""
   },
   "You": {
-    "string": ""
+    "string": "Toi"
   },
   "Transfer failed": {
     "string": ""
@@ -3312,10 +3312,10 @@
     "string": ""
   },
   "Yes": {
-    "string": ""
+    "string": "Oui"
   },
   "No": {
-    "string": ""
+    "string": "Non"
   },
   "Crash report fallback": {
     "string": ""
@@ -3336,7 +3336,7 @@
     "string": ""
   },
   "n/a": {
-    "string": ""
+    "string": "sans objet"
   },
   "AndroidIRCX Crash Report": {
     "string": ""
@@ -3345,7 +3345,7 @@
     "string": ""
   },
   "IRC Connected": {
-    "string": ""
+    "string": "IRC connecté"
   },
   "Maintaining connection to {networkName}": {
     "string": ""
@@ -8616,7 +8616,7 @@
     "string": ""
   },
   "Server notice mask": {
-    "string": ""
+    "string": "Masquer la notification du serveur"
   },
   "*** [{numeric}] {modes} {description}": {
     "string": ""
@@ -11889,7 +11889,7 @@
     "string": ""
   },
   "Wait for NickServ notice before identifying": {
-    "string": ""
+    "string": "Attendez la notification de NickServ avant de vous identifier."
   },
   "Manually identify: /msg NickServ IDENTIFY password": {
     "string": ""
@@ -12252,6 +12252,399 @@
     "string": ""
   },
   "Some errors occurred:": {
+    "string": ""
+  },
+  "Add to Notify": {
+    "string": ""
+  },
+  "Add to AutoOp": {
+    "string": ""
+  },
+  "Add to AutoVoice": {
+    "string": ""
+  },
+  "Add to Protected": {
+    "string": ""
+  },
+  "Open Networks list to choose and manage networks": {
+    "string": ""
+  },
+  "Invert scroll & swipe direction": {
+    "string": ""
+  },
+  "Reverse direction for tab switching gestures": {
+    "string": ""
+  },
+  "Swipe Behavior": {
+    "string": ""
+  },
+  "Swipe left/right to switch tabs": {
+    "string": ""
+  },
+  "Swipe to show/hide panels": {
+    "string": ""
+  },
+  "Swipe gestures disabled": {
+    "string": ""
+  },
+  "Off": {
+    "string": ""
+  },
+  "No swipe gestures": {
+    "string": ""
+  },
+  "Switch tabs": {
+    "string": ""
+  },
+  "Swipe left/right to switch to next/previous tab": {
+    "string": ""
+  },
+  "Show/hide panels": {
+    "string": ""
+  },
+  "Swipe right for tabs panel, swipe left for nicklist": {
+    "string": ""
+  },
+  "WHOIS Display": {
+    "string": ""
+  },
+  "Show WHOIS in a popup modal": {
+    "string": ""
+  },
+  "Show WHOIS in the active tab": {
+    "string": ""
+  },
+  "Show WHOIS in the status tab": {
+    "string": ""
+  },
+  "Modal (popup)": {
+    "string": ""
+  },
+  "Status tab": {
+    "string": ""
+  },
+  "User Lists": {
+    "string": ""
+  },
+  "Manage notify, autoop, autovoice and protected lists": {
+    "string": ""
+  },
+  "Modes:": {
+    "string": ""
+  },
+  "Connecting from:": {
+    "string": ""
+  },
+  "Privileges": {
+    "string": ""
+  },
+  "IRC Operator:": {
+    "string": ""
+  },
+  "Admin:": {
+    "string": ""
+  },
+  "Services Admin:": {
+    "string": ""
+  },
+  "Help Operator:": {
+    "string": ""
+  },
+  "Registered:": {
+    "string": ""
+  },
+  "Bot:": {
+    "string": ""
+  },
+  "Special:": {
+    "string": ""
+  },
+  "Connection:": {
+    "string": ""
+  },
+  "Secure (SSL/TLS)": {
+    "string": ""
+  },
+  "Connection Activity": {
+    "string": ""
+  },
+  "User Activity": {
+    "string": ""
+  },
+  "No file selected": {
+    "string": ""
+  },
+  "Selected file is empty": {
+    "string": ""
+  },
+  "Selected file is not a valid JSON backup": {
+    "string": ""
+  },
+  "Backup loaded from file": {
+    "string": ""
+  },
+  "Failed to load backup file": {
+    "string": ""
+  },
+  "Load from File": {
+    "string": ""
+  },
+  "Mask:": {
+    "string": ""
+  },
+  "Action:": {
+    "string": ""
+  },
+  "Command Template:": {
+    "string": ""
+  },
+  "Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}": {
+    "string": ""
+  },
+  "Reason:": {
+    "string": ""
+  },
+  "e.g., 1d, 7d, 1h, 0 for permanent": {
+    "string": ""
+  },
+  "Are you sure you want to delete \"{name}\"? This cannot be undone.": {
+    "string": ""
+  },
+  "Failed to delete identity profile": {
+    "string": ""
+  },
+  "IRC channels are group chat rooms where multiple users can communicate.": {
+    "string": ""
+  },
+  "Channel names start with # (e.g., #DBase).": {
+    "string": ""
+  },
+  "Visit our website: androidircx.com": {
+    "string": ""
+  },
+  "GitHub Issues: https://github.com/AndroidIRCx/AndroidIRCx/issues": {
+    "string": ""
+  },
+  "Enable Debug Logging:": {
+    "string": ""
+  },
+  "Settings → Development → Enable Console Logging (debug builds only)": {
+    "string": ""
+  },
+  "Send logs with your report.": {
+    "string": ""
+  },
+  "User List Type": {
+    "string": ""
+  },
+  "Currently: {type}": {
+    "string": ""
+  },
+  "FlashList (Fastest)": {
+    "string": ""
+  },
+  "FlatList (Virtualized)": {
+    "string": ""
+  },
+  "Grouped (By Mode)": {
+    "string": ""
+  },
+  "Simple (ScrollView)": {
+    "string": ""
+  },
+  "Select User List Type": {
+    "string": ""
+  },
+  "Choose rendering method for nicklist:": {
+    "string": ""
+  },
+  "Search Debounce": {
+    "string": "Recherche anti-rebond"
+  },
+  "Skip Sort Threshold": {
+    "string": "Seuil de tri par saut"
+  },
+  "Chunk Loading": {
+    "string": "Chargement par blocs"
+  },
+  "Load users incrementally": {
+    "string": "Charger les utilisateurs de manière incrémentielle"
+  },
+  "Chunk Size": {
+    "string": "Taille des blocs"
+  },
+  "Initial Render Count": {
+    "string": "Nombre initial de rendu"
+  },
+  "Entry updated": {
+    "string": "Entrée mise à jour"
+  },
+  "Entry added": {
+    "string": "Entrée ajoutée"
+  },
+  "Failed to save entry": {
+    "string": "Échec de l'enregistrement de l'entrée"
+  },
+  "Remove Entry": {
+    "string": "Supprimer l'entrée"
+  },
+  "Entry removed": {
+    "string": "Entrée supprimée"
+  },
+  "Failed to remove entry": {
+    "string": "Échec de la suppression de l'entrée"
+  },
+  "Channels: {channels}": {
+    "string": "Canaux: {channels}"
+  },
+  "Protected": {
+    "string": "Protégé"
+  },
+  "No matching entries": {
+    "string": "Aucune entrée correspondante"
+  },
+  "No entries in {tab}": {
+    "string": "Aucune entrée dans {tab}"
+  },
+  "Add users to manage them in this list": {
+    "string": "Ajoutez des utilisateurs pour les gérer dans cette liste."
+  },
+  "Edit Entry": {
+    "string": "Éditer une entrée"
+  },
+  "Add Entry": {
+    "string": "Ajouter une entrée"
+  },
+  "nick!user@host (full mask)": {
+    "string": "pseudo!utilisateur@hôte (masque complet)"
+  },
+  "nick or mask": {
+    "string": "pseudo ou masque"
+  },
+  "Channels:": {
+    "string": "Canaux:"
+  },
+  "comma-separated, empty for all": {
+    "string": "séparés par des virgules, vide pour tous"
+  },
+  "optional note": {
+    "string": "note facultative"
+  },
+  "Protected (exempt from protections)": {
+    "string": "Protégé (exempté de protections)"
+  },
+  "Select from Online Users": {
+    "string": "Sélectionner parmi les utilisateurs en ligne"
+  },
+  "Select Online User": {
+    "string": "Sélectionner un utilisateur en ligne"
+  },
+  "No online users found": {
+    "string": "Aucun utilisateur en ligne trouvé"
+  },
+  "Subscription offer is not available right now. Please try again in a few moments.": {
+    "string": "L'offre d'abonnement n'est pas disponible pour le moment. Veuillez réessayer dans quelques instants."
+  },
+  "CTCP {command} reply from {nick}: {args}": {
+    "string": ""
+  },
+  "CTCP {command} reply from {nick}": {
+    "string": ""
+  },
+  "{nick} is already in the {list} list": {
+    "string": ""
+  },
+  "*** Added {nick} to {list} list": {
+    "string": ""
+  },
+  "{nick} is not in the {list} list": {
+    "string": ""
+  },
+  "*** Removed {nick} from {list} list": {
+    "string": ""
+  },
+  "Usage: /notify <nick>": {
+    "string": "Utilisation: /notify <nick>"
+  },
+  "Usage: /unnotify <nick>": {
+    "string": "Utilisation: /unnotify <nick>"
+  },
+  "Usage: /autoop <nick> [#channel]": {
+    "string": "Utilisation: /autoop <nick> [#channel]"
+  },
+  "Usage: /unautoop <nick>": {
+    "string": "Utilisation: /unautoop <nick>"
+  },
+  "Usage: /autovoice <nick> [#channel]": {
+    "string": ""
+  },
+  "Usage: /unautovoice <nick>": {
+    "string": ""
+  },
+  "Usage: /autohalfop <nick> [#channel]": {
+    "string": ""
+  },
+  "Usage: /unautohalfop <nick>": {
+    "string": ""
+  },
+  "Usage: /protect <nick> [#channel]": {
+    "string": ""
+  },
+  "{nick} is already protected": {
+    "string": "{nick} est déjà protégé"
+  },
+  "*** Added {nick} to protected list": {
+    "string": "*** Ajouté {nick} à la liste protégée"
+  },
+  "Usage: /unprotect <nick>": {
+    "string": "Utilisation : /unprotect <nick>"
+  },
+  "*** Opening user lists...": {
+    "string": "*** Ouverture des listes d'utilisateurs..."
+  },
+  "Private Messages": {
+    "string": "Messages Privés"
+  },
+  "Channel Messages": {
+    "string": "Messages du Canal"
+  },
+  "Notices": {
+    "string": "Notifications"
+  },
+  "*** {nick} is now online": {
+    "string": "*** {nick} est désormais en ligne"
+  },
+  "*** {nick} is now offline": {
+    "string": "*** {nick} est désormais hors ligne"
+  },
+  "CTCP VERSION Response": {
+    "string": "Réponse CTCP VERSION"
+  },
+  "Custom suffix for CTCP VERSION responses. Leave empty to send version only.": {
+    "string": "Suffixe personnalisé pour les réponses CTCP VERSION. Laissez vide pour envoyer uniquement la version."
+  },
+  "Open Link": {
+    "string": ""
+  },
+  "Do you want to open this link in your browser?\n\n{url}": {
+    "string": ""
+  },
+  "Open": {
+    "string": ""
+  },
+  "Confirm Before Opening Links": {
+    "string": ""
+  },
+  "Ask before opening links in the browser": {
+    "string": ""
+  },
+  "Open links directly without asking": {
+    "string": ""
+  },
+  "Notify": {
+    "string": ""
+  },
+  "{nick} is now online": {
     "string": ""
   }
 }

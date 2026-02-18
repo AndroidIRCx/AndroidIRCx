@@ -19,6 +19,16 @@ export interface PerformanceConfig {
   userListVirtualization: boolean; // Use FlatList for large user lists
   userListAutoDisableGroupingThreshold: number; // Disable grouping above N users
   userListAutoVirtualizeThreshold: number; // Enable virtualization above N users
+  // UserList type selection (for testing)
+  userListType: 'flashlist' | 'flatlist' | 'grouped' | 'simple';
+  // UserList search debounce
+  userListSearchDebounceMs: number;
+  // UserList skip sort threshold
+  userListSkipSortThreshold: number;
+  // UserList chunk loading
+  userListEnableChunkLoading: boolean;
+  userListChunkSize: number;
+  userListInitialRenderCount: number;
 }
 
 class PerformanceService {
@@ -36,6 +46,12 @@ class PerformanceService {
     userListVirtualization: true,
     userListAutoDisableGroupingThreshold: 1000,
     userListAutoVirtualizeThreshold: 500,
+    userListType: 'flashlist',
+    userListSearchDebounceMs: 300,
+    userListSkipSortThreshold: 1000,
+    userListEnableChunkLoading: true,
+    userListChunkSize: 100,
+    userListInitialRenderCount: 50,
   };
 
   private listeners: Array<(config: PerformanceConfig) => void> = [];
@@ -133,6 +149,27 @@ class PerformanceService {
    */
   getCleanupThreshold(): number {
     return this.config.cleanupThreshold;
+  }
+
+  /**
+   * Get user list type
+   */
+  getUserListType(): 'flashlist' | 'flatlist' | 'grouped' | 'simple' {
+    return this.config.userListType;
+  }
+
+  /**
+   * Get user list search debounce ms
+   */
+  getUserListSearchDebounceMs(): number {
+    return this.config.userListSearchDebounceMs;
+  }
+
+  /**
+   * Get user list skip sort threshold
+   */
+  getUserListSkipSortThreshold(): number {
+    return this.config.userListSkipSortThreshold;
   }
 
   /**

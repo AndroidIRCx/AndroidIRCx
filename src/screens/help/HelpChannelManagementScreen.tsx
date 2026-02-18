@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { Text } from 'react-native';
 import {
   HelpScreenBase,
   HelpSection,
@@ -32,7 +33,11 @@ export const HelpChannelManagementScreen: React.FC<HelpChannelManagementScreenPr
       <HelpSection title={t('Channel Basics')}>
         <HelpSubsection title={t('What is a Channel?')}>
           <HelpParagraph>
-            {t('IRC channels are group chat rooms where multiple users can communicate.\\nChannel names start with # (e.g., #DBase).')}
+            <Text>
+              {t('IRC channels are group chat rooms where multiple users can communicate.')}
+              {'\n'}
+              {t('Channel names start with # (e.g., #DBase).')}
+            </Text>
           </HelpParagraph>
         </HelpSubsection>
 

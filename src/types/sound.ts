@@ -12,6 +12,7 @@ export enum SoundEventType {
   JOIN = 'join',
   KICK = 'kick',
   NOTICE = 'notice',
+  NOTIFY = 'notify',
   CTCP = 'ctcp',
   DISCONNECT = 'disconnect',
   LOGIN = 'login',
@@ -69,6 +70,7 @@ export const DEFAULT_SOUNDS: Record<SoundEventType, string> = {
   [SoundEventType.FLOOD]: 'flood.wav',
   [SoundEventType.OP]: 'op.wav',
   [SoundEventType.DEOP]: 'deop.wav',
+  [SoundEventType.NOTIFY]: 'bip.wav',
 };
 
 /** Human-readable labels for sound events */
@@ -87,6 +89,7 @@ export const SOUND_EVENT_LABELS: Record<SoundEventType, string> = {
   [SoundEventType.FLOOD]: 'Flood Protection',
   [SoundEventType.OP]: 'Got Op',
   [SoundEventType.DEOP]: 'Lost Op',
+  [SoundEventType.NOTIFY]: 'Notify Online',
 };
 
 /** Event categories for grouping in settings UI */
@@ -112,6 +115,9 @@ export const SOUND_EVENT_CATEGORIES: Record<string, SoundEventType[]> = {
     SoundEventType.CTCP,
     SoundEventType.RING,
     SoundEventType.FLOOD,
+  ],
+  'Notify': [
+    SoundEventType.NOTIFY,
   ],
 };
 
@@ -158,7 +164,8 @@ export const DEFAULT_SOUND_SETTINGS: SoundSettings = {
                eventType === SoundEventType.PRIVATE_MESSAGE ||
                eventType === SoundEventType.DISCONNECT ||
                eventType === SoundEventType.LOGIN ||
-               eventType === SoundEventType.RING,
+               eventType === SoundEventType.RING ||
+               eventType === SoundEventType.NOTIFY,
       useCustom: false,
       volume: 1.0,
     };

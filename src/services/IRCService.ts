@@ -6,9 +6,10 @@
 import TcpSocket, { TLSSocket } from 'react-native-tcp-socket';
 import { encryptedDMService } from './EncryptedDMService';
 import { channelEncryptionService } from './ChannelEncryptionService';
-import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, ProxyConfig } from './SettingsService';
+import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, DEFAULT_CTCP_VERSION_MESSAGE, ProxyConfig } from './SettingsService';
 import { ircForegroundService } from './IRCForegroundService';
 import { userManagementService, BlacklistEntry } from './UserManagementService';
+import { notifyService } from './NotifyService';
 import { protectionService } from './ProtectionService';
 import { useTabStore } from '../stores/tabStore';
 import { tx } from '../i18n/transifex';
@@ -19,6 +20,7 @@ import { IRCCommandHandlers } from './irc/IRCCommandHandlers';
 import { CAPHandlers } from './irc/cap/CAPHandlers';
 import { IRCSendMessageHandlers } from './irc/IRCSendMessageHandlers';
 import { parseCTCP, encodeCTCP, handleCTCPRequest as handleCTCPRequestFn, CTCPContext } from './irc/protocol/CTCPHandlers';
+import { settingsService } from './SettingsService';
 import { BatchLabelManager } from './irc/protocol/BatchLabelHandlers';
 import { MultilineHandler } from './irc/protocol/MultilineHandler';
 import { stsService } from './STSService';
@@ -154,6 +156,7 @@ export interface IRCMessage {
     nick?: string;
     channels?: string[];
   };
+  whoisActiveTab?: boolean; // Route WHOIS message to active tab instead of server tab
 }
 
 export interface ChannelUser {
@@ -205,6 +208,9 @@ export class IRCService {
 
   // UserManagementService instance (set by ConnectionManager, fallback to global singleton)
   private _userManagementService: typeof userManagementService | null = null;
+  
+  // NotifyService instance
+  private _notifyService: typeof notifyService | null = null;
 
   // Auto-reconnect with exponential backoff
   private autoReconnectEnabled: boolean = true;
@@ -2114,8 +2120,8 @@ export class IRCService {
     return encodeCTCP(command, args);
   }
 
-  private handleCTCPRequest(from: string, target: string, command: string, args?: string): void {
-    handleCTCPRequestFn(
+  private async handleCTCPRequest(from: string, target: string, command: string, args?: string): Promise<void> {
+    await handleCTCPRequestFn(
       {
         sendRaw: (cmd: string) => this.sendRaw(cmd),
         addMessage: (msg: any) => this.addMessage(msg),
@@ -2123,6 +2129,7 @@ export class IRCService {
         getCurrentNick: () => this.currentNick,
         getRealname: () => this.config?.realname || '',
         isConnected: () => this.isConnected,
+        getCtcpVersionMessage: async () => settingsService.getSetting('ctcpVersionMessage', DEFAULT_CTCP_VERSION_MESSAGE),
       },
       from,
       target,
@@ -2448,6 +2455,15 @@ export class IRCService {
 
   getUserManagementService(): typeof userManagementService {
     return this._userManagementService || userManagementService;
+  }
+
+  setNotifyService(svc: typeof notifyService): void {
+    this._notifyService = svc;
+    this._notifyService.setIRCService(this);
+  }
+
+  getNotifyService(): typeof notifyService {
+    return this._notifyService || notifyService;
   }
 
   getConnectionStatus(): boolean {

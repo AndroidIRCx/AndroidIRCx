@@ -25,7 +25,7 @@ import { useTabStore } from '../stores/tabStore';
 import { useUIStore } from '../stores/uiStore';
 import { tabService } from '../services/TabService';
 import { messageHistoryService } from '../services/MessageHistoryService';
-import { serverTabId, channelTabId, queryTabId, noticeTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
+import { serverTabId, channelTabId, queryTabId, noticeTabId, notificationsTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
 import { useT } from '../i18n/transifex';
 import { stsService } from '../services/STSService';
 import type { ChannelTab } from '../types';
@@ -417,10 +417,15 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         let newTabIsEncrypted = false;
 
         if (message.type === 'raw' || message.isRaw) {
+          // WHOIS messages routed to active tab when whoisDisplayMode is 'active'
+          if (message.whoisActiveTab && currentActiveTab && isSameNetworkAsActive) {
+            targetTabId = currentActiveTab.id;
+            targetTabType = currentActiveTab.type;
+          }
           // Raw/system messages should stay on the server tab
           // EXCEPT: connection messages (disconnect, etc.) should follow notice routing if server tab doesn't exist
           // This prevents recreating a closed server tab when user manually closes it
-          if (message.rawCategory === 'connection' && hasValidNetwork) {
+          else if (message.rawCategory === 'connection' && hasValidNetwork) {
             const serverTab = latest.tabsRef.current?.find((t: ChannelTab) => t.id === serverTabId(messageNetwork));
             if (!serverTab) {
               // Server tab doesn't exist (user closed it), follow notice routing instead
@@ -455,6 +460,14 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
             targetTabType = 'query';
             newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(messageNetwork, message.from);
           }
+        } else if (message.type === 'system') {
+          // System messages go to the special Notifications tab
+          // These include notify online/offline messages and other system notifications
+          if (message.channel === 'notifications' && hasValidNetwork) {
+            targetTabId = notificationsTabId(messageNetwork);
+            targetTabType = 'channel';
+          }
+          // Other system messages without specific channel go to server tab
         } else if (message.type === 'nick' && !message.channel) {
           // Nick change messages without a channel should follow notice routing
           // This handles cases where the user changes nick but isn't in any channels

@@ -77,6 +77,7 @@ describe('types/sound', () => {
       SoundEventType.DISCONNECT,
       SoundEventType.LOGIN,
       SoundEventType.RING,
+      SoundEventType.NOTIFY,
     ].sort();
 
     expect(enabled).toEqual(expected);
