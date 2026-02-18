@@ -220,7 +220,6 @@ export function AppLayout({
         }
       } else if (swipeBehavior === 'show-panels') {
         const isSideTabs = layoutConfig.tabPosition === 'left' || layoutConfig.tabPosition === 'right';
-        const isTopBottomTabs = !isSideTabs;
         
         // Apply inverse if enabled
         const isRightSwipe = swipeInverse ? gesture.dx < 0 : gesture.dx > 0;

@@ -333,10 +333,6 @@ const getModeColor = (modes?: string[], colors?: any): string => {
     );
   }, [sortedUsers, debouncedSearchQuery]);
 
-  // Virtualization is active for flashlist and flatlist types
-  const virtualizationActive = !groupingActive && 
-    (userListType === 'flashlist' || userListType === 'flatlist');
-
   // Chunk loading logic
   const chunkedUsers = useMemo(() => {
     if (!performanceConfig.userListEnableChunkLoading) {
