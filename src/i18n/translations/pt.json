@@ -12622,5 +12622,29 @@
   },
   "Custom suffix for CTCP VERSION responses. Leave empty to send version only.": {
     "string": ""
+  },
+  "Open Link": {
+    "string": ""
+  },
+  "Do you want to open this link in your browser?\n\n{url}": {
+    "string": ""
+  },
+  "Open": {
+    "string": ""
+  },
+  "Confirm Before Opening Links": {
+    "string": ""
+  },
+  "Ask before opening links in the browser": {
+    "string": ""
+  },
+  "Open links directly without asking": {
+    "string": ""
+  },
+  "Notify": {
+    "string": ""
+  },
+  "{nick} is now online": {
+    "string": ""
   }
 }

@@ -12255,396 +12255,396 @@
     "string": "Se produjeron algunos errores:"
   },
   "Add to Notify": {
-    "string": ""
+    "string": "Agregar a Notify"
   },
   "Add to AutoOp": {
-    "string": ""
+    "string": "Agregar a Auto-Op"
   },
   "Add to AutoVoice": {
-    "string": ""
+    "string": "Agregar a Auto-Voice"
   },
   "Add to Protected": {
-    "string": ""
+    "string": "Agregar a Protegido"
   },
   "Open Networks list to choose and manage networks": {
-    "string": ""
+    "string": "Abra la lista de redes para elegir y administrar redes"
   },
   "Invert scroll & swipe direction": {
-    "string": ""
+    "string": "Invertir la dirección de desplazamiento y deslizamiento"
   },
   "Reverse direction for tab switching gestures": {
-    "string": ""
+    "string": "Dirección inversa para gestos de cambio de pestaña"
   },
   "Swipe Behavior": {
-    "string": ""
+    "string": "Comportamiento de Deslizamiento"
   },
   "Swipe left/right to switch tabs": {
-    "string": ""
+    "string": "Desliza hacia la izquierda/derecha para cambiar de pestaña"
   },
   "Swipe to show/hide panels": {
-    "string": ""
+    "string": "Deslice el dedo para mostrar/ocultar paneles"
   },
   "Swipe gestures disabled": {
-    "string": ""
+    "string": "Gestos de deslizamiento deshabilitados"
   },
   "Off": {
-    "string": ""
+    "string": "Apagado"
   },
   "No swipe gestures": {
-    "string": ""
+    "string": "Sin gestos de deslizamiento"
   },
   "Switch tabs": {
-    "string": ""
+    "string": "Cambiar pestañas"
   },
   "Swipe left/right to switch to next/previous tab": {
-    "string": ""
+    "string": "Desliza hacia la izquierda/derecha para cambiar a la pestaña siguiente/anterior"
   },
   "Show/hide panels": {
-    "string": ""
+    "string": "Mostrar/ocultar paneles"
   },
   "Swipe right for tabs panel, swipe left for nicklist": {
-    "string": ""
+    "string": "Desliza a la derecha para el panel de pestañas y la izquierda para nicklist"
   },
   "WHOIS Display": {
-    "string": ""
+    "string": "Ver Whois en"
   },
   "Show WHOIS in a popup modal": {
-    "string": ""
+    "string": "Mostrar whois en ventana emergente"
   },
   "Show WHOIS in the active tab": {
-    "string": ""
+    "string": "Mostrar whois en pestaña activa"
   },
   "Show WHOIS in the status tab": {
-    "string": ""
+    "string": "Mostrar whois en la pestaña de servidor"
   },
   "Modal (popup)": {
-    "string": ""
+    "string": "Cuadro de diálogo (ventana emergente)"
   },
   "Status tab": {
-    "string": ""
+    "string": "Pestaña Servidor"
   },
   "User Lists": {
-    "string": ""
+    "string": "Listas de Usuarios"
   },
   "Manage notify, autoop, autovoice and protected lists": {
-    "string": ""
+    "string": "Administrar listas de notify, ignore, autoop, autohalfop, autovoice y protegido"
   },
   "Modes:": {
-    "string": ""
+    "string": "Modos:"
   },
   "Connecting from:": {
-    "string": ""
+    "string": "Conectando desde:"
   },
   "Privileges": {
-    "string": ""
+    "string": "Privilegios"
   },
   "IRC Operator:": {
-    "string": ""
+    "string": "Operador de IRC:"
   },
   "Admin:": {
-    "string": ""
+    "string": "Administrador:"
   },
   "Services Admin:": {
-    "string": ""
+    "string": "Administrador de Servicios:"
   },
   "Help Operator:": {
-    "string": ""
+    "string": "Operador de Ayuda:"
   },
   "Registered:": {
-    "string": ""
+    "string": "Registrado:"
   },
   "Bot:": {
-    "string": ""
+    "string": "Bot:"
   },
   "Special:": {
-    "string": ""
+    "string": "Especial:"
   },
   "Connection:": {
-    "string": ""
+    "string": "Conexión:"
   },
   "Secure (SSL/TLS)": {
-    "string": ""
+    "string": "Seguro (SSL/TLS)"
   },
   "Connection Activity": {
-    "string": ""
+    "string": "Actividad de Conexión"
   },
   "User Activity": {
-    "string": ""
+    "string": "Actividad del Usuario"
   },
   "No file selected": {
-    "string": ""
+    "string": "No hay ningún archivo seleccionado"
   },
   "Selected file is empty": {
-    "string": ""
+    "string": "El archivo seleccionado está vacío"
   },
   "Selected file is not a valid JSON backup": {
-    "string": ""
+    "string": "El archivo seleccionado no es una copia de seguridad JSON válida"
   },
   "Backup loaded from file": {
-    "string": ""
+    "string": "Copia de seguridad cargada desde el archivo"
   },
   "Failed to load backup file": {
-    "string": ""
+    "string": "Error al cargar el archivo de copia de seguridad"
   },
   "Load from File": {
-    "string": ""
+    "string": "Cargar desde Archivo"
   },
   "Mask:": {
-    "string": ""
+    "string": "Máscara:"
   },
   "Action:": {
-    "string": ""
+    "string": "Acción:"
   },
   "Command Template:": {
-    "string": ""
+    "string": "Plantilla de Comando:"
   },
   "Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}": {
-    "string": ""
+    "string": "Uso {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}"
   },
   "Reason:": {
-    "string": ""
+    "string": "Razón:"
   },
   "e.g., 1d, 7d, 1h, 0 for permanent": {
-    "string": ""
+    "string": "e.j., 1d, 7d, 1h, 0 para permanente"
   },
   "Are you sure you want to delete \"{name}\"? This cannot be undone.": {
-    "string": ""
+    "string": "¿Está seguro de que desea eliminar \"{name}\"? Esto no se puede deshacer."
   },
   "Failed to delete identity profile": {
-    "string": ""
+    "string": "Error al eliminar el perfil de identidad"
   },
   "IRC channels are group chat rooms where multiple users can communicate.": {
-    "string": ""
+    "string": "Los canales de IRC son salas de chat grupales donde varios usuarios pueden comunicarse."
   },
   "Channel names start with # (e.g., #DBase).": {
-    "string": ""
+    "string": "Los nombres de los canales comienzan con # (e.j. #Ayuda)."
   },
   "Visit our website: androidircx.com": {
-    "string": ""
+    "string": "Visite nuestro sitio web: androidircx.com"
   },
   "GitHub Issues: https://github.com/AndroidIRCx/AndroidIRCx/issues": {
-    "string": ""
+    "string": "GitHub Preguntas: https://github.com/AndroidIRCx/AndroidIRCx/issues"
   },
   "Enable Debug Logging:": {
-    "string": ""
+    "string": "Habilitar el Registro de Depuración:"
   },
   "Settings → Development → Enable Console Logging (debug builds only)": {
-    "string": ""
+    "string": "Configuración → Desarrollo → Habilitar registro de consola (solo compilaciones de depuración)"
   },
   "Send logs with your report.": {
-    "string": ""
+    "string": "Envíe registros con su informe."
   },
   "User List Type": {
-    "string": ""
+    "string": "Tipo de Lista de Usuarios"
   },
   "Currently: {type}": {
-    "string": ""
+    "string": "Actualmente: {type}"
   },
   "FlashList (Fastest)": {
-    "string": ""
+    "string": "Lista Plana (La más rápida)"
   },
   "FlatList (Virtualized)": {
-    "string": ""
+    "string": "Lista Plana (Virtualizado)"
   },
   "Grouped (By Mode)": {
-    "string": ""
+    "string": "Agrupados (Por Prefijo)"
   },
   "Simple (ScrollView)": {
-    "string": ""
+    "string": "Simple (Vista de desplazamiento)"
   },
   "Select User List Type": {
-    "string": ""
+    "string": "Seleccionar Tipo de Lista de Usuarios"
   },
   "Choose rendering method for nicklist:": {
-    "string": ""
+    "string": "Elija el método de renderizado para nicklist:"
   },
   "Search Debounce": {
-    "string": ""
+    "string": "Búsqueda con retraso"
   },
   "Skip Sort Threshold": {
-    "string": ""
+    "string": "Omitir Umbral de Ordenación"
   },
   "Chunk Loading": {
-    "string": ""
+    "string": "Carga por Fragmentos"
   },
   "Load users incrementally": {
-    "string": ""
+    "string": "Cargue usuarios de forma incremental"
   },
   "Chunk Size": {
-    "string": ""
+    "string": "Tamaño del Fragmento"
   },
   "Initial Render Count": {
-    "string": ""
+    "string": "Recuento de Renderizado Inicial"
   },
   "Entry updated": {
-    "string": ""
+    "string": "Entrada actualizada"
   },
   "Entry added": {
-    "string": ""
+    "string": "Entrada agregada"
   },
   "Failed to save entry": {
-    "string": ""
+    "string": "Error al guardar la entrada"
   },
   "Remove Entry": {
-    "string": ""
+    "string": "Eliminar Entrada"
   },
   "Entry removed": {
-    "string": ""
+    "string": "Entrada eliminada"
   },
   "Failed to remove entry": {
-    "string": ""
+    "string": "Error al eliminar la entrada"
   },
   "Channels: {channels}": {
-    "string": ""
+    "string": "Canales: {channels}"
   },
   "Protected": {
-    "string": ""
+    "string": "Protegido"
   },
   "No matching entries": {
-    "string": ""
+    "string": "No hay entradas coincidentes"
   },
   "No entries in {tab}": {
-    "string": ""
+    "string": "No hay entradas en {tab}"
   },
   "Add users to manage them in this list": {
-    "string": ""
+    "string": "Agregue usuarios para administrarlos en esta lista"
   },
   "Edit Entry": {
-    "string": ""
+    "string": "Editar Entrada"
   },
   "Add Entry": {
-    "string": ""
+    "string": "Agregar Entrada"
   },
   "nick!user@host (full mask)": {
-    "string": ""
+    "string": "nick!user@host (máscara completa)"
   },
   "nick or mask": {
-    "string": ""
+    "string": "nick o máscara"
   },
   "Channels:": {
-    "string": ""
+    "string": "Canales:"
   },
   "comma-separated, empty for all": {
-    "string": ""
+    "string": "separados por comas, vacíos para todos"
   },
   "optional note": {
-    "string": ""
+    "string": "nota opcional"
   },
   "Protected (exempt from protections)": {
-    "string": ""
+    "string": "Protegido (exento de protecciones)"
   },
   "Select from Online Users": {
-    "string": ""
+    "string": "Seleccione entre Usuarios en Línea"
   },
   "Select Online User": {
-    "string": ""
+    "string": "Seleccione Usuario en Línea"
   },
   "No online users found": {
-    "string": ""
+    "string": "No se encontraron usuarios en línea"
   },
   "Subscription offer is not available right now. Please try again in a few moments.": {
-    "string": ""
+    "string": "La oferta de suscripción no está disponible en este momento. Por favor, inténtelo de nuevo en unos momentos."
   },
   "CTCP {command} reply from {nick}: {args}": {
-    "string": ""
+    "string": "CTCP {command} respuesta de {nick}: {args}"
   },
   "CTCP {command} reply from {nick}": {
-    "string": ""
+    "string": "CTCP {command} respuesta de {nick}"
   },
   "{nick} is already in the {list} list": {
-    "string": ""
+    "string": "{nick} ya está en la lista de {list}"
   },
   "*** Added {nick} to {list} list": {
-    "string": ""
+    "string": "*** Agregado {nick} a la lista {list}"
   },
   "{nick} is not in the {list} list": {
-    "string": ""
+    "string": "{nick} no está en la lista de {list}"
   },
   "*** Removed {nick} from {list} list": {
-    "string": ""
+    "string": "*** Eliminado {nick} de la lista {list}"
   },
   "Usage: /notify <nick>": {
-    "string": ""
+    "string": "Uso: /notify <nick>"
   },
   "Usage: /unnotify <nick>": {
-    "string": ""
+    "string": "Uso: /unnotify <nick>"
   },
   "Usage: /autoop <nick> [#channel]": {
-    "string": ""
+    "string": "Uso: /autoop <nick> #canal"
   },
   "Usage: /unautoop <nick>": {
-    "string": ""
+    "string": "Uso: /unautoop <nick>"
   },
   "Usage: /autovoice <nick> [#channel]": {
-    "string": ""
+    "string": "Uso: /autovoice <nick> #canal"
   },
   "Usage: /unautovoice <nick>": {
-    "string": ""
+    "string": "Uso: /unautovoice <nick>"
   },
   "Usage: /autohalfop <nick> [#channel]": {
-    "string": ""
+    "string": "Uso: /autohalfop <nick> #canal"
   },
   "Usage: /unautohalfop <nick>": {
-    "string": ""
+    "string": "Uso: /unautohalfop <nick>"
   },
   "Usage: /protect <nick> [#channel]": {
-    "string": ""
+    "string": "Uso: /protect <nick> #canal"
   },
   "{nick} is already protected": {
-    "string": ""
+    "string": "{nick} ya está protegido"
   },
   "*** Added {nick} to protected list": {
-    "string": ""
+    "string": "*** Agregado {nick} a la lista protegido"
   },
   "Usage: /unprotect <nick>": {
-    "string": ""
+    "string": "Uso: /unprotect <nick>"
   },
   "*** Opening user lists...": {
-    "string": ""
+    "string": "*** Apertura de listas de usuarios..."
   },
   "Private Messages": {
-    "string": ""
+    "string": "Mensajes Privados"
   },
   "Channel Messages": {
-    "string": ""
+    "string": "Mensajes de Canal"
   },
   "Notices": {
-    "string": ""
+    "string": "Notices"
   },
   "*** {nick} is now online": {
-    "string": ""
+    "string": "*** {nick} ya está en línea"
   },
   "*** {nick} is now offline": {
-    "string": ""
+    "string": "*** {nick} ahora está desconectado"
   },
   "CTCP VERSION Response": {
-    "string": ""
+    "string": "CTCP VERSION Respuesta"
   },
   "Custom suffix for CTCP VERSION responses. Leave empty to send version only.": {
-    "string": ""
+    "string": "Sufijo personalizado para la respuesta de CTCP VERSIÓN. Déjelo vacío para enviar solo la versión."
   },
   "Open Link": {
-    "string": ""
+    "string": "Abrir Enlace"
   },
   "Do you want to open this link in your browser?\n\n{url}": {
-    "string": ""
+    "string": "ALERTA: ¿Abrir este enlace en tu navegador?\n\n{url}"
   },
   "Open": {
-    "string": ""
+    "string": "Abrir"
   },
   "Confirm Before Opening Links": {
-    "string": ""
+    "string": "Confirme Antes De Abrir Enlaces"
   },
   "Ask before opening links in the browser": {
-    "string": ""
+    "string": "Preguntar antes de abrir enlaces en el navegador"
   },
   "Open links directly without asking": {
-    "string": ""
+    "string": "Abra enlaces directamente sin preguntar. No recomendado"
   },
   "Notify": {
-    "string": ""
+    "string": "Notify"
   },
   "{nick} is now online": {
-    "string": ""
+    "string": "{nick} ya está en línea"
   }
 }

@@ -29,7 +29,8 @@ import {
 import Clipboard from '@react-native-clipboard/clipboard';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import * as RNIap from 'react-native-iap';
-import type { ProductSubscription, PurchaseError, Purchase, SubscriptionPurchase } from 'react-native-iap';
+import type { ProductSubscription, PurchaseError, Purchase } from 'react-native-iap';
+import { ErrorCode } from 'react-native-iap';
 import {
   subscriptionService,
   ZncAccount,
@@ -280,7 +281,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
       // Load subscription product using fetchProducts with type: 'subs'
       console.log(`Fetching products for SKU: ${ZNC_PRODUCT_ID}`);
-      const products = await RNIap.fetchProducts({ skus: [ZNC_PRODUCT_ID], type: 'subs' });
+      const products = (await RNIap.fetchProducts({ skus: [ZNC_PRODUCT_ID], type: 'subs' })) ?? [];
       console.log('Available products:', products); // Debug logging
 
       // More detailed logging about what was returned
@@ -293,7 +294,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
             title: product.title,
             description: product.description,
             price: product.price,
-            localizedPrice: product.localizedPrice
+            displayPrice: product.displayPrice
           });
         });
       } else {
@@ -431,7 +432,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     }
   };
 
-  const handlePurchaseUpdate = async (purchase: SubscriptionPurchase) => {
+  const handlePurchaseUpdate = async (purchase: Purchase) => {
     if (purchase.productId !== ZNC_PRODUCT_ID) return;
 
     try {
@@ -439,7 +440,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       await RNIap.finishTransaction({ purchase, isConsumable: false });
 
       // Try multiple possible token fields depending on platform
-      let token = purchase.purchaseToken || purchase.transactionReceipt;
+      let token = purchase.purchaseToken;
 
       // On some platforms/versions, the token might be in different fields
       if (!token && (purchase as any).receipt) {
@@ -476,7 +477,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     setPurchasing(false);
     setRegistering(false);
 
-    if (error.code !== 'E_USER_CANCELLED') {
+    if (error.code !== ErrorCode.UserCancelled) {
       Alert.alert(t('Purchase Failed'), error.message || t('Unable to complete purchase.'));
     }
   };
@@ -581,7 +582,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
     try {
       setRefreshingOffers(true);
-      const products = await RNIap.fetchProducts({ skus: [ZNC_PRODUCT_ID], type: 'subs' });
+      const products = (await RNIap.fetchProducts({ skus: [ZNC_PRODUCT_ID], type: 'subs' })) ?? [];
       const sub = products.find(
         (item): item is ProductSubscription => item.id === ZNC_PRODUCT_ID && item.type === 'subs'
       );
@@ -729,7 +730,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       await RNIap.requestPurchase(request);
     } catch (error: any) {
       setPurchasing(false);
-      if (error.code !== 'E_USER_CANCELLED') {
+      if (error.code !== ErrorCode.UserCancelled) {
         Alert.alert(t('Error'), error.message || t('Failed to start purchase.'));
       }
     }
@@ -740,11 +741,9 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     try {
       console.log('ZNC Restore: Fetching purchases from store...');
       
-      // Try both getAvailablePurchases and getPurchaseHistory
-      // getAvailablePurchases returns only active subscriptions
-      // getPurchaseHistory returns all purchases including expired/cancelled ones
+      // Query available purchases and restored purchases and merge unique transactions.
       let purchases: any[] = [];
-      let purchaseHistory: any[] = [];
+      let restoredPurchases: any[] = [];
       
       try {
         purchases = await RNIap.getAvailablePurchases();
@@ -754,19 +753,17 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       }
       
       try {
-        // getPurchaseHistory is available on Android and returns all purchases
-        if (RNIap.getPurchaseHistory && typeof RNIap.getPurchaseHistory === 'function') {
-          purchaseHistory = await RNIap.getPurchaseHistory();
-          console.log('ZNC Restore: Purchase history:', purchaseHistory.length);
-        }
+        await RNIap.restorePurchases();
+        restoredPurchases = (await RNIap.getAvailablePurchases()) ?? [];
+        console.log('ZNC Restore: Restored purchases:', restoredPurchases.length);
       } catch (error) {
-        console.warn('ZNC Restore: Failed to get purchase history:', error);
+        console.warn('ZNC Restore: Failed to restore purchases:', error);
       }
       
       // Combine both lists, removing duplicates by transactionId
       const allPurchases = [...purchases];
       const existingTransactionIds = new Set(purchases.map(p => p.transactionId));
-      purchaseHistory.forEach(p => {
+      restoredPurchases.forEach(p => {
         if (!existingTransactionIds.has(p.transactionId)) {
           allPurchases.push(p);
         }
@@ -879,9 +876,10 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       const serverConfig = subscriptionService.generateServerConfig(selectedAccount, password);
 
       // Check if ZNC server already exists in this network
-      const existingServer = network.servers?.find(
-        s => s.id === serverConfig.id || (s.connectionType === 'znc' && s.username === serverConfig.username)
-      );
+      const existingServer = network.servers?.find((s) => {
+        const current = s as any;
+        return current.id === serverConfig.id || (current.connectionType === 'znc' && current.username === serverConfig.username);
+      });
 
       if (existingServer) {
         Alert.alert(
@@ -1291,7 +1289,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     );
   };
 
-  const displayPrice = subscription?.localizedPrice ||
+  const displayPrice = subscription?.displayPrice ||
     (subscription as any)?.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice ||
     t('Monthly subscription');
 
