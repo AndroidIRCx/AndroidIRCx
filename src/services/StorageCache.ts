@@ -38,6 +38,7 @@ class StorageCache {
   private pendingWrites: Map<string, any> = new Map();
   private writeTimer: NodeJS.Timeout | null = null;
   private readonly WRITE_DEBOUNCE_MS = 2000; // Batch writes every 2 seconds
+  private readonly asyncStorage: any = AsyncStorage as any;
 
   constructor(maxSize: number = 100) {
     this.maxSize = maxSize;
@@ -108,8 +109,9 @@ class StorageCache {
     // Load remaining keys from storage in batch
     if (keysToLoad.length > 0) {
       try {
-        const values = await AsyncStorage.multiGet(keysToLoad);
-        values.forEach(([key, value]) => {
+        const values = await this.readMany(keysToLoad);
+        keysToLoad.forEach(key => {
+          const value = values[key];
           if (value !== null) {
             try {
               const parsed = JSON.parse(value) as T;
@@ -187,7 +189,7 @@ class StorageCache {
       this.cache.delete(key);
       this.pendingWrites.delete(key);
     });
-    await AsyncStorage.multiRemove(keys);
+    await this.removeMany(keys);
   }
 
   /**
@@ -373,16 +375,78 @@ class StorageCache {
     }
 
     try {
-      const pairs: [string, string][] = [];
+      const entries: Record<string, string> = {};
       this.pendingWrites.forEach((value, key) => {
-        pairs.push([key, JSON.stringify(value)]);
+        entries[key] = JSON.stringify(value);
       });
 
-      await AsyncStorage.multiSet(pairs);
+      await this.writeMany(entries);
       this.pendingWrites.clear();
     } catch (error) {
       console.error('StorageCache: Batch write error:', error);
     }
+  }
+
+  /**
+   * PRIVATE: Cross-version read many keys from AsyncStorage.
+   */
+  private async readMany(keys: string[]): Promise<Record<string, string | null>> {
+    if (typeof this.asyncStorage.getMany === 'function') {
+      return await this.asyncStorage.getMany(keys);
+    }
+
+    if (typeof this.asyncStorage.multiGet === 'function') {
+      const pairs: [string, string | null][] = await this.asyncStorage.multiGet(keys);
+      const result: Record<string, string | null> = {};
+      pairs.forEach(([key, value]) => {
+        result[key] = value;
+      });
+      return result;
+    }
+
+    const result: Record<string, string | null> = {};
+    await Promise.all(
+      keys.map(async key => {
+        result[key] = await this.asyncStorage.getItem(key);
+      })
+    );
+    return result;
+  }
+
+  /**
+   * PRIVATE: Cross-version write many keys to AsyncStorage.
+   */
+  private async writeMany(entries: Record<string, string>): Promise<void> {
+    if (typeof this.asyncStorage.setMany === 'function') {
+      await this.asyncStorage.setMany(entries);
+      return;
+    }
+
+    if (typeof this.asyncStorage.multiSet === 'function') {
+      await this.asyncStorage.multiSet(Object.entries(entries));
+      return;
+    }
+
+    await Promise.all(
+      Object.entries(entries).map(([key, value]) => this.asyncStorage.setItem(key, value))
+    );
+  }
+
+  /**
+   * PRIVATE: Cross-version remove many keys from AsyncStorage.
+   */
+  private async removeMany(keys: string[]): Promise<void> {
+    if (typeof this.asyncStorage.removeMany === 'function') {
+      await this.asyncStorage.removeMany(keys);
+      return;
+    }
+
+    if (typeof this.asyncStorage.multiRemove === 'function') {
+      await this.asyncStorage.multiRemove(keys);
+      return;
+    }
+
+    await Promise.all(keys.map(key => this.asyncStorage.removeItem(key)));
   }
 }
 

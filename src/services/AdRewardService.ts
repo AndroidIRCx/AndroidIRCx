@@ -55,6 +55,8 @@ class AdRewardService {
   private adsDisabled: boolean = false; // Disable ads after too many failures
   private appVersion: string = APP_VERSION; // Automatically pulled from app.json
   private lastError: { code: string; message: string } | null = null; // Track last error for special handling
+  private adEventUnsubscribers: Array<() => void> = [];
+  private initialLoadTimeoutId: NodeJS.Timeout | null = null;
 
   async initialize() {
     if (this.initialized) {
@@ -73,6 +75,7 @@ class AdRewardService {
       await this.save();
       logger.info('ad-reward', 'Granted safety bonus of 30m because remaining time was 0');
     }
+
     this.setupRewardedAd();
     this.initialized = true;
     logger.info('ad-reward', `AdRewardService initialized. Current time: ${this.formatTime(this.remainingMs)}`);
@@ -142,6 +145,8 @@ class AdRewardService {
 
   private setupRewardedAd() {
     try {
+      this.cleanupAdListeners();
+
       const adUnitId = REWARDED_AD_UNIT_IDS[this.currentAdUnitIndex];
       const adType = this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
       const mode = USE_TEST_ADS ? '🧪 TEST ADS' : '🚀 PRODUCTION ADS';
@@ -164,7 +169,7 @@ class AdRewardService {
       });
 
       // Load the ad
-      this.rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
+      const onLoadedUnsubscribe = this.rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
         // Clear timeout on successful load
         if (this.loadTimeoutId) {
           clearTimeout(this.loadTimeoutId);
@@ -182,8 +187,9 @@ class AdRewardService {
         console.log(`✅ AD LOADED! (${adType} ad unit) Ready to show. Time taken: ${timeTaken}ms`);
         this.notifyListeners();
       });
+      this.adEventUnsubscribers.push(onLoadedUnsubscribe);
 
-      this.rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, async (reward) => {
+      const onRewardUnsubscribe = this.rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, async (reward) => {
         logger.info('ad-reward', `User earned reward: ${reward.amount} ${reward.type}`);
         console.log(`🎁 Reward earned: ${reward.amount} ${reward.type}`);
         // Use the reward amount from AdMob (configured as 60 = 60 minutes)
@@ -207,8 +213,9 @@ class AdRewardService {
           this.loadAd();
         }, 2000);
       });
+      this.adEventUnsubscribers.push(onRewardUnsubscribe);
 
-      this.rewardedAd.addAdEventListener(AdEventType.ERROR, (error) => {
+      const onErrorUnsubscribe = this.rewardedAd.addAdEventListener(AdEventType.ERROR, (error) => {
         if (this.loadTimeoutId) {
           clearTimeout(this.loadTimeoutId);
           this.loadTimeoutId = null;
@@ -227,10 +234,14 @@ class AdRewardService {
         console.error(`Rewarded ad error (${adType}): ${code} - ${message}`);
         this.handleLoadError();
       });
+      this.adEventUnsubscribers.push(onErrorUnsubscribe);
 
       // Delay ad loading until Activity is ready (fixes null-activity error)
       // Wait for app to be fully mounted and Activity to be available
-      setTimeout(() => {
+      if (this.initialLoadTimeoutId) {
+        clearTimeout(this.initialLoadTimeoutId);
+      }
+      this.initialLoadTimeoutId = setTimeout(() => {
         console.log('🔄 Attempting to load first ad (after Activity ready)...');
         this.loadAd();
       }, 2000); // 2 second delay to ensure Activity is ready
@@ -300,6 +311,24 @@ class AdRewardService {
       }, 5000); // Wait 5 seconds before retrying
       return;
     }
+
+    // Internal errors (including renderer/video SDK failures) should back off longer
+    // to avoid tight retry loops that can destabilize the JS runtime.
+    if (lastError?.code === 'googleMobileAds/internal-error') {
+      this.adLoading = false;
+      this.adLoaded = false;
+      this.cooldownEndTime = Date.now() + 120000; // 2 minutes
+      logger.error('ad-reward', 'Internal ad SDK error. Backing off for 120 seconds before retry.');
+      console.error('⏸️ Internal ad SDK error. Cooling down for 120 seconds...');
+      this.notifyListeners();
+      setTimeout(() => {
+        if (!this.adLoaded && !this.adLoading && !this.adsDisabled) {
+          logger.info('ad-reward', 'Retrying ad load after internal-error cooldown');
+          this.loadAd();
+        }
+      }, 120000);
+      return;
+    }
     
     console.log(`❌ handleLoadError() called. Retry count: ${this.retryCount + 1}/${this.maxRetries}`);
     this.retryCount++;
@@ -357,6 +386,22 @@ class AdRewardService {
       logger.info('ad-reward', `🔄 Retrying ad load in 3 seconds (${this.retryCount}/${this.maxRetries})...`);
       console.log(`🔄 Retrying ad load in 3 seconds... (attempt ${this.retryCount + 1}/${this.maxRetries})`);
       setTimeout(() => this.loadAd(), 3000); // Wait 3 seconds before retry
+    }
+  }
+
+  private cleanupAdListeners() {
+    for (const unsubscribe of this.adEventUnsubscribers) {
+      try {
+        unsubscribe();
+      } catch {
+        // no-op
+      }
+    }
+    this.adEventUnsubscribers = [];
+
+    if (this.initialLoadTimeoutId) {
+      clearTimeout(this.initialLoadTimeoutId);
+      this.initialLoadTimeoutId = null;
     }
   }
 

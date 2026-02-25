@@ -194,4 +194,26 @@ describe('IRCService command helpers', () => {
     const user = (irc as any).channelUsers.get('#chan').get('carol');
     expect(user?.account).toBe('account-name');
   });
+
+  it('assembles multiline messages when final concat tag is empty', () => {
+    const messages: IRCMessage[] = [];
+    irc.onMessage(m => messages.push(m));
+
+    (irc as any).handleIRCMessage('@draft/multiline-concat=concat :alice!u@h PRIVMSG #chan :line 1');
+    (irc as any).handleIRCMessage('@draft/multiline-concat= :alice!u@h PRIVMSG #chan :line 2');
+
+    const assembled = messages.find(m => m.type === 'message' && m.from === 'alice');
+    expect(assembled?.text).toBe('line 1\nline 2');
+  });
+
+  it('does not deduplicate multiline chunks that share the same msgid', () => {
+    const messages: IRCMessage[] = [];
+    irc.onMessage(m => messages.push(m));
+
+    (irc as any).handleIRCMessage('@msgid=mid-42;draft/multiline-concat=concat :alice!u@h PRIVMSG #chan :part A');
+    (irc as any).handleIRCMessage('@msgid=mid-42;draft/multiline-concat= :alice!u@h PRIVMSG #chan :part B');
+
+    const assembled = messages.find(m => m.type === 'message' && m.from === 'alice');
+    expect(assembled?.text).toBe('part A\npart B');
+  });
 });

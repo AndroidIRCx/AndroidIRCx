@@ -38,7 +38,8 @@ describe('NotifyService', () => {
     jest.useFakeTimers();
 
     mockIRCService = {
-      on: jest.fn(),
+      on: jest.fn().mockReturnValue(jest.fn()),
+      onConnectionChange: jest.fn().mockReturnValue(jest.fn()),
       sendRaw: jest.fn(),
       getNetworkName: jest.fn().mockReturnValue('TestNetwork'),
       addRawMessage: jest.fn(),
@@ -81,38 +82,32 @@ describe('NotifyService', () => {
 
   describe('IRC event listeners', () => {
     it('should set up IRC listeners on setIRCService', () => {
+      expect(mockIRCService.onConnectionChange).toHaveBeenCalledWith(expect.any(Function));
       expect(mockIRCService.on).toHaveBeenCalledWith('connected', expect.any(Function));
       expect(mockIRCService.on).toHaveBeenCalledWith('disconnected', expect.any(Function));
       expect(mockIRCService.on).toHaveBeenCalledWith('cap_ack', expect.any(Function));
       expect(mockIRCService.on).toHaveBeenCalledWith('numeric', expect.any(Function));
     });
 
-    it('should handle connection event', () => {
-      const connectedHandler = mockIRCService.on.mock.calls.find(
-        (call: [string, Function]) => call[0] === 'connected'
-      )[1];
+    it('should handle connection change (connected=true)', () => {
+      const connectionChangeHandler = mockIRCService.onConnectionChange.mock.calls[0][0];
 
       (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
         { mask: 'Friend1!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
       ]);
 
-      connectedHandler();
+      connectionChangeHandler(true);
 
       expect(service['isConnected']).toBe(true);
     });
 
-    it('should handle disconnection event', () => {
-      const connectedHandler = mockIRCService.on.mock.calls.find(
-        (call: [string, Function]) => call[0] === 'connected'
-      )[1];
-      const disconnectedHandler = mockIRCService.on.mock.calls.find(
-        (call: [string, Function]) => call[0] === 'disconnected'
-      )[1];
+    it('should handle connection change (connected=false)', () => {
+      const connectionChangeHandler = mockIRCService.onConnectionChange.mock.calls[0][0];
 
       // First connect
-      connectedHandler();
+      connectionChangeHandler(true);
       // Then disconnect
-      disconnectedHandler();
+      connectionChangeHandler(false);
 
       expect(service['isConnected']).toBe(false);
     });

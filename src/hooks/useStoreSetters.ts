@@ -122,6 +122,10 @@ export function useStoreSetters() {
     useUIStore.getState().setAppLockUseBiometric(value);
   }, []);
 
+  const setAppLockAutoBiometricPrompt = useCallback((value: boolean) => {
+    useUIStore.getState().setAppLockAutoBiometricPrompt(value);
+  }, []);
+
   const setAppLockUsePin = useCallback((value: boolean) => {
     useUIStore.getState().setAppLockUsePin(value);
   }, []);
@@ -240,6 +244,7 @@ export function useStoreSetters() {
     // App lock setters
     setAppLockEnabled,
     setAppLockUseBiometric,
+    setAppLockAutoBiometricPrompt,
     setAppLockUsePin,
     setAppLockOnLaunch,
     setAppLockOnBackground,

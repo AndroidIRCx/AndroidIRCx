@@ -30,6 +30,7 @@ export interface NotifyStatus {
 
 export class NotifyService extends EventEmitter {
   private ircService: IRCService | null = null;
+  private ircUnsubscribers: Array<() => void> = [];
   private protocol: NotifyProtocol = null;
   private isonInterval: NodeJS.Timeout | null = null;
   private readonly ISON_INTERVAL_MS = 30000; // 30 seconds for ISON polling
@@ -44,6 +45,7 @@ export class NotifyService extends EventEmitter {
   }
 
   setIRCService(ircService: IRCService): void {
+    this.cleanupIRCListeners();
     this.ircService = ircService;
     this.setupIRCListeners();
   }
@@ -65,20 +67,43 @@ export class NotifyService extends EventEmitter {
   private setupIRCListeners(): void {
     if (!this.ircService) return;
 
-    // Listen for connection events
-    this.ircService.on('connected', () => {
+    const handleConnected = () => {
       this.isConnected = true;
       this.currentNetwork = this.ircService?.getNetworkName() || '';
       this.onConnect();
-    });
+    };
 
-    this.ircService.on('disconnected', () => {
+    const handleDisconnected = () => {
       this.isConnected = false;
       this.clearISONInterval();
-    });
+    };
+
+    // Primary path: IRCService connection change callbacks
+    if (typeof this.ircService.onConnectionChange === 'function') {
+      const offConnectionChange = this.ircService.onConnectionChange((connected: boolean) => {
+        if (connected) {
+          handleConnected();
+        } else {
+          handleDisconnected();
+        }
+      });
+      if (typeof offConnectionChange === 'function') {
+        this.ircUnsubscribers.push(offConnectionChange);
+      }
+    }
+
+    // Backward compatibility: legacy custom events
+    const offConnected = this.ircService.on('connected', handleConnected);
+    if (typeof offConnected === 'function') {
+      this.ircUnsubscribers.push(offConnected);
+    }
+    const offDisconnected = this.ircService.on('disconnected', handleDisconnected);
+    if (typeof offDisconnected === 'function') {
+      this.ircUnsubscribers.push(offDisconnected);
+    }
 
     // Listen for CAP acknowledgments to detect MONITOR support
-    this.ircService.on('cap_ack', (caps: string[]) => {
+    const offCapAck = this.ircService.on('cap_ack', (caps: string[]) => {
       if (caps.includes('monitor')) {
         this.serverSupportsMonitor = true;
         // If we previously subscribed with ISON/WATCH, resubscribe with MONITOR
@@ -88,11 +113,29 @@ export class NotifyService extends EventEmitter {
         }
       }
     });
+    if (typeof offCapAck === 'function') {
+      this.ircUnsubscribers.push(offCapAck);
+    }
 
     // Listen for numeric replies
-    this.ircService.on('numeric', (numeric: number, prefix: string, params: string[], timestamp: number) => {
+    const offNumeric = this.ircService.on('numeric', (numeric: number, prefix: string, params: string[], timestamp: number) => {
       this.handleNumeric(numeric, params, timestamp);
     });
+    if (typeof offNumeric === 'function') {
+      this.ircUnsubscribers.push(offNumeric);
+    }
+  }
+
+  private cleanupIRCListeners(): void {
+    if (this.ircUnsubscribers.length === 0) return;
+    this.ircUnsubscribers.forEach(unsub => {
+      try {
+        unsub();
+      } catch {
+        // no-op
+      }
+    });
+    this.ircUnsubscribers = [];
   }
 
   private handleNumeric(numeric: number, params: string[], timestamp: number): void {
@@ -464,6 +507,7 @@ export class NotifyService extends EventEmitter {
    * Cleanup when service is destroyed
    */
   destroy(): void {
+    this.cleanupIRCListeners();
     this.clearISONInterval();
     this.removeAllListeners();
   }

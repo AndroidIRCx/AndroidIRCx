@@ -56,11 +56,23 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
       try {
         const networks = await settingsService.loadNetworks();
         if (networks.length > 0) {
-          // Priority: Quick Connect > Favorite/Default server > DBase > first with servers
+          // Priority:
+          // 1) Persisted primary network (restore after process death/swipe-away)
+          // 2) Quick Connect
+          // 3) Favorite/default server network
+          // 4) DBase
+          // 5) first with servers
+          const persistedPrimary = (primaryNetworkId || '').trim();
+          let networkToUse = persistedPrimary
+            ? networks.find(n => n.id === persistedPrimary || n.name === persistedPrimary)
+            : undefined;
+
           const quickConnectNetworkId = await settingsService.getSetting<string | null>('quickConnectNetworkId', null);
-          let networkToUse = quickConnectNetworkId
+          if (!networkToUse) {
+            networkToUse = quickConnectNetworkId
             ? networks.find(n => n.id === quickConnectNetworkId)
             : undefined;
+          }
           if (!networkToUse) {
             networkToUse = networks.find(n =>
               n.defaultServerId || n.servers?.some(s => s.favorite)

@@ -298,17 +298,27 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
           if (!tabsModified) newTabs = [...newTabs];
           const tab = newTabs[tabIndex];
           
-          // Check for duplicate messages (local echo vs server echo)
-          // Compare by msgid (IRCv3), or by timestamp + from + text combination
+          // Check for duplicate messages.
+          // We only use text/time dedup for local echo reconciliation; otherwise
+          // legitimate repeated lines can be incorrectly dropped.
           const isDuplicate = tab.messages.some(m => {
             // If both have msgid (IRCv3 message IDs), compare by that
             if (m.msgid && message.msgid) {
               return m.msgid === message.msgid;
             }
-            // Otherwise compare by timestamp + from + text
-            // Allow small timestamp difference (up to 5 seconds) for network latency
+
+            const existingIsLocalEcho = m.status === 'sent' || m.status === 'pending';
+            const incomingIsLocalEcho = message.status === 'sent' || message.status === 'pending';
+            const isLocalEchoReconciliation = existingIsLocalEcho || incomingIsLocalEcho;
+            if (!isLocalEchoReconciliation) {
+              return false;
+            }
+
+            // For local echo reconciliation, compare by timestamp + from + text.
+            // Allow small timestamp difference for network latency.
             const timeDiff = Math.abs(m.timestamp - message.timestamp);
-            return timeDiff < 5000 && 
+            return timeDiff < 8000 &&
+                   m.type === message.type &&
                    m.from?.toLowerCase() === message.from?.toLowerCase() && 
                    m.text === message.text;
           });

@@ -97,6 +97,7 @@ export const SETTINGS_ICONS: Record<string, SettingIcon> = {
   'security-file': { name: 'file-import', solid: false },
   'security-nfc': { name: 'broadcast-tower', solid: false },
   'security-app-lock-biometric': { name: 'fingerprint', solid: false },
+  'security-app-lock-biometric-auto': { name: 'fingerprint', solid: false },
   'security-app-lock-pin': { name: 'th', solid: false },
   'security-app-lock-launch': { name: 'door-open', solid: false },
   'security-app-lock-background': { name: 'shield-alt', solid: false },

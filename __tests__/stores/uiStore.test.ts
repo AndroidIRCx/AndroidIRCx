@@ -47,6 +47,7 @@ describe('uiStore', () => {
       const state = useUIStore.getState();
       expect(state.appLockEnabled).toBe(false);
       expect(state.appLockUseBiometric).toBe(false);
+      expect(state.appLockAutoBiometricPrompt).toBe(false);
       expect(state.appLockUsePin).toBe(false);
       expect(state.appLockOnLaunch).toBe(true);
       expect(state.appLockOnBackground).toBe(true);
@@ -163,6 +164,13 @@ describe('uiStore', () => {
         useUIStore.getState().setAppLockUseBiometric(true);
       });
       expect(useUIStore.getState().appLockUseBiometric).toBe(true);
+    });
+
+    it('should set appLockAutoBiometricPrompt', () => {
+      act(() => {
+        useUIStore.getState().setAppLockAutoBiometricPrompt(true);
+      });
+      expect(useUIStore.getState().appLockAutoBiometricPrompt).toBe(true);
     });
 
     it('should set appLockUsePin', () => {

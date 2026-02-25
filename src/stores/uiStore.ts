@@ -23,6 +23,7 @@ export interface UIState {
   // App lock
   appLockEnabled: boolean;
   appLockUseBiometric: boolean;
+  appLockAutoBiometricPrompt: boolean;
   appLockUsePin: boolean;
   appLockOnLaunch: boolean;
   appLockOnBackground: boolean;
@@ -116,6 +117,7 @@ export interface UIState {
   // Actions - App Lock
   setAppLockEnabled: (enabled: boolean) => void;
   setAppLockUseBiometric: (use: boolean) => void;
+  setAppLockAutoBiometricPrompt: (enabled: boolean) => void;
   setAppLockUsePin: (use: boolean) => void;
   setAppLockOnLaunch: (lock: boolean) => void;
   setAppLockOnBackground: (lock: boolean) => void;
@@ -219,6 +221,7 @@ const initialState = {
   isCheckingFirstRun: true,
   appLockEnabled: false,
   appLockUseBiometric: false,
+  appLockAutoBiometricPrompt: false,
   appLockUsePin: false,
   appLockOnLaunch: true,
   appLockOnBackground: true,
@@ -295,6 +298,7 @@ export const useUIStore = create<UIState>()(
       // App Lock
       setAppLockEnabled: (enabled) => set({ appLockEnabled: enabled }),
       setAppLockUseBiometric: (use) => set({ appLockUseBiometric: use }),
+      setAppLockAutoBiometricPrompt: (enabled) => set({ appLockAutoBiometricPrompt: enabled }),
       setAppLockUsePin: (use) => set({ appLockUsePin: use }),
       setAppLockOnLaunch: (lock) => set({ appLockOnLaunch: lock }),
       setAppLockOnBackground: (lock) => set({ appLockOnBackground: lock }),

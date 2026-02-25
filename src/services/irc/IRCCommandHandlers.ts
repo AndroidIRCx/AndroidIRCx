@@ -154,36 +154,79 @@ export class IRCCommandHandlers {
         const network = (svc as any).getNetworkName();
         const userMgmtService = (svc as any).getUserManagementService();
         const channelUsers = (svc as any).channelUsers as Map<string, Map<string, { modes: string[] }>>;
-        
-        // Get our own modes in the channel
-        const currentNick = (svc as any).currentNick as string;
-        const usersInChannel = channelUsers.get(channel);
-        const myUser = usersInChannel?.get(currentNick.toLowerCase());
-        const myModes = myUser?.modes || [];
-        
-        const hasOp = myModes.includes('o') || myModes.includes('q') || myModes.includes('a');
-        const hasHalfop = hasOp || myModes.includes('h');
-        const hasVoice = hasHalfop || myModes.includes('v');
-        
-        // Check autoop list
-        const autoOpEntry = userMgmtService.findMatchingUserListEntry('autoop', nick, username, hostname, network, channel);
-        if (autoOpEntry && hasOp) {
-          (svc as any).sendRaw(`MODE ${channel} +o ${nick}`);
-          return;
-        }
-        
-        // Check autohalfop list
-        const autoHalfopEntry = userMgmtService.findMatchingUserListEntry('autohalfop', nick, username, hostname, network, channel);
-        if (autoHalfopEntry && hasOp) {
-          (svc as any).sendRaw(`MODE ${channel} +h ${nick}`);
-          return;
-        }
-        
-        // Check autovoice list
-        const autoVoiceEntry = userMgmtService.findMatchingUserListEntry('autovoice', nick, username, hostname, network, channel);
-        if (autoVoiceEntry && hasVoice) {
-          (svc as any).sendRaw(`MODE ${channel} +v ${nick}`);
-        }
+        const retryTimers: Map<string, ReturnType<typeof setTimeout>> = (svc as any)._autoModeRetryTimers
+          || new Map<string, ReturnType<typeof setTimeout>>();
+        (svc as any)._autoModeRetryTimers = retryTimers;
+
+        const retryKey = `${network}:${channel}:${nick.toLowerCase()}`;
+
+        const attemptAutoMode = (allowRetry: boolean) => {
+          // Get our own modes in the channel
+          const currentNick = (svc as any).currentNick as string;
+          const usersInChannel = channelUsers.get(channel);
+          const myUser = usersInChannel?.get(currentNick.toLowerCase());
+          const myModes = myUser?.modes || [];
+          const targetUser = usersInChannel?.get(nick.toLowerCase());
+          const targetModes = targetUser?.modes || [];
+
+          const hasOp = myModes.includes('o') || myModes.includes('q') || myModes.includes('a');
+          const hasHalfop = hasOp || myModes.includes('h');
+          const hasVoice = hasHalfop || myModes.includes('v');
+
+          // Check autoop list
+          const autoOpEntry = userMgmtService.findMatchingUserListEntry('autoop', nick, username, hostname, network, channel);
+          if (autoOpEntry) {
+            if (targetModes.includes('o') || targetModes.includes('q') || targetModes.includes('a')) {
+              return;
+            }
+            if (hasOp) {
+              (svc as any).sendRaw(`MODE ${channel} +o ${nick}`);
+              return;
+            }
+          }
+
+          // Check autohalfop list
+          const autoHalfopEntry = userMgmtService.findMatchingUserListEntry('autohalfop', nick, username, hostname, network, channel);
+          if (autoHalfopEntry) {
+            if (targetModes.includes('h') || targetModes.includes('o') || targetModes.includes('q') || targetModes.includes('a')) {
+              return;
+            }
+            if (hasOp) {
+              (svc as any).sendRaw(`MODE ${channel} +h ${nick}`);
+              return;
+            }
+          }
+
+          // Check autovoice list
+          const autoVoiceEntry = userMgmtService.findMatchingUserListEntry('autovoice', nick, username, hostname, network, channel);
+          if (autoVoiceEntry) {
+            if (targetModes.includes('v') || targetModes.includes('h') || targetModes.includes('o') || targetModes.includes('q') || targetModes.includes('a')) {
+              return;
+            }
+            if (hasVoice) {
+              (svc as any).sendRaw(`MODE ${channel} +v ${nick}`);
+              return;
+            }
+          }
+
+          // If list entry exists but we don't have privileges yet, retry once shortly.
+          // This helps when our op/halfop arrives after JOIN burst.
+          const hasAnyAutoModeEntry = Boolean(autoOpEntry || autoHalfopEntry || autoVoiceEntry);
+          if (allowRetry && hasAnyAutoModeEntry && (svc as any).isConnected === true && !retryTimers.has(retryKey)) {
+            const retryTimer = setTimeout(() => {
+              retryTimers.delete(retryKey);
+              // User might have left before retry
+              const refreshedUsers = channelUsers.get(channel);
+              if (!refreshedUsers?.has(nick.toLowerCase())) {
+                return;
+              }
+              attemptAutoMode(false);
+            }, 1500);
+            retryTimers.set(retryKey, retryTimer);
+          }
+        };
+
+        attemptAutoMode(true);
       },
       isExtendedJoinEnabled: () => Boolean((svc as any).extendedJoin),
       emitJoinedChannel: (channel: string) => (svc as any).emit('joinedChannel', channel),

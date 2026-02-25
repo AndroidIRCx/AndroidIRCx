@@ -33,6 +33,7 @@ export function useAppLock() {
   const appLockOnLaunch = useUIStore(state => state.appLockOnLaunch);
   const appLocked = useUIStore(state => state.appLocked);
   const appLockUseBiometric = useUIStore(state => state.appLockUseBiometric);
+  const appLockAutoBiometricPrompt = useUIStore(state => state.appLockAutoBiometricPrompt);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -50,6 +51,7 @@ export function useAppLock() {
     const usePin = await settingsService.getSetting('appLockUsePin', false);
     const lockOnLaunch = await settingsService.getSetting('appLockOnLaunch', true);
     const lockOnBackground = await settingsService.getSetting('appLockOnBackground', true);
+    const autoBiometricPrompt = await settingsService.getSetting('appLockAutoBiometricPrompt', false);
     const storedPin = await secureStorageService.getSecret(APP_PIN_STORAGE_KEY);
     const pinEnabled = usePin && Boolean(storedPin);
 
@@ -61,6 +63,7 @@ export function useAppLock() {
     store.setAppLockUsePin(pinEnabled);
     store.setAppLockOnLaunch(lockOnLaunch);
     store.setAppLockOnBackground(lockOnBackground);
+    store.setAppLockAutoBiometricPrompt(autoBiometricPrompt);
 
     // Auto-lock on launch if enabled
     if (enabled && lockOnLaunch) {
@@ -274,6 +277,9 @@ export function useAppLock() {
     const unsubPin = settingsService.onSettingChange('appLockUsePin', (v) => {
       useUIStore.getState().setAppLockUsePin(Boolean(v));
     });
+    const unsubAutoBioPrompt = settingsService.onSettingChange('appLockAutoBiometricPrompt', (v) => {
+      useUIStore.getState().setAppLockAutoBiometricPrompt(Boolean(v));
+    });
     const unsubLaunch = settingsService.onSettingChange('appLockOnLaunch', (v) => {
       useUIStore.getState().setAppLockOnLaunch(Boolean(v));
     });
@@ -291,6 +297,7 @@ export function useAppLock() {
       unsubEnabled();
       unsubBio();
       unsubPin();
+      unsubAutoBioPrompt();
       unsubLaunch();
       unsubBackground();
       unsubLockNow();
@@ -386,9 +393,7 @@ export function useAppLock() {
     };
   }, [appLockEnabled, appLockOnBackground, appLockOnLaunch]);
 
-  // Effect: Clean up state when unlocked
-  // NOTE: Auto-trigger biometric has been DISABLED per user request
-  // Biometric unlock now only happens when user manually clicks the button
+  // Effect: Clean up state when unlocked and optionally auto-trigger biometric prompt
   useEffect(() => {
     if (!appLocked) {
       // Reset flags when app is unlocked
@@ -402,9 +407,11 @@ export function useAppLock() {
       return;
     }
 
-    // Auto-trigger has been disabled - biometric only activates when user clicks button
-    // This prevents the biometric prompt from appearing automatically when lock screen shows
-  }, [appLocked]);
+    if (appLockUseBiometric && appLockAutoBiometricPrompt && !biometricAttemptInProgressRef.current) {
+      // Auto-prompt is optional and user-controlled from Security settings.
+      void attemptBiometricUnlock(false);
+    }
+  }, [appLocked, appLockUseBiometric, appLockAutoBiometricPrompt, attemptBiometricUnlock]);
 
   // Effect: Lock on launch if enabled
   useEffect(() => {

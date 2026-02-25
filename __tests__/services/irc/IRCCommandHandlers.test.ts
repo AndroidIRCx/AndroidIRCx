@@ -252,5 +252,39 @@ describe('IRCCommandHandlers', () => {
       expect(mockService.sendRaw).toHaveBeenCalledTimes(1);
       expect(mockService.sendRaw).toHaveBeenCalledWith('MODE #channel +o user');
     });
+
+    it('should retry auto-mode once when our op arrives shortly after join', () => {
+      jest.useFakeTimers();
+      mockService.isConnected = true;
+      mockService.channelUsers.set('#channel', new Map([
+        ['mynick', { nick: 'MyNick', modes: [] }],
+        ['trusted', { nick: 'trusted', modes: [] }],
+      ]));
+
+      (userManagementService.findMatchingUserListEntry as jest.Mock)
+        .mockImplementation((type: string) => {
+          if (type === 'autoop') {
+            return { mask: 'trusted!*@*', protected: false };
+          }
+          return undefined;
+        });
+
+      const ctx = (handlers as any).ctx;
+      ctx.runAutoModeCheckForJoin('trusted', 'user', 'host.com', '#channel');
+
+      // No mode immediately (we are not op yet)
+      expect(mockService.sendRaw).not.toHaveBeenCalled();
+
+      // Gain op before retry timer fires
+      mockService.channelUsers.set('#channel', new Map([
+        ['mynick', { nick: 'MyNick', modes: ['o'] }],
+        ['trusted', { nick: 'trusted', modes: [] }],
+      ]));
+
+      jest.advanceTimersByTime(1600);
+
+      expect(mockService.sendRaw).toHaveBeenCalledWith('MODE #channel +o trusted');
+      jest.useRealTimers();
+    });
   });
 });

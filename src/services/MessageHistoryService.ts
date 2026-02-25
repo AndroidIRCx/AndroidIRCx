@@ -102,18 +102,44 @@ class MessageHistoryService {
    */
   async loadMessages(network: string, channel?: string): Promise<IRCMessage[]> {
     try {
-      const key = this.getStorageKey(network, channel || 'server');
-      const data = await storageCache.getItem<IRCMessage[]>(key, {
-        ttl: 5 * 60 * 1000,
-      });
-      if (data) return data;
+      const requestedChannel = (channel || 'server').trim() || 'server';
+      const normalizedChannel = this.normalizeChannelForStorage(requestedChannel);
+      const keyCandidates = new Set<string>([
+        this.getStorageKey(network, normalizedChannel),
+        this.getLegacyStorageKey(network, normalizedChannel),
+      ]);
 
-      // Fallback: some older entries may be stored under legacy MESSAGES_ keys
-      const legacyKey = this.getLegacyStorageKey(network, channel || 'server');
-      const legacyData = await storageCache.getItem<IRCMessage[]>(legacyKey, {
-        ttl: 5 * 60 * 1000,
-      });
-      return legacyData || [];
+      // Backward compatibility: older builds could store mixed-case channel keys.
+      if (requestedChannel !== normalizedChannel) {
+        const rawSanitized = requestedChannel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
+        keyCandidates.add(`${this.STORAGE_PREFIX}${network}:${rawSanitized}`);
+        keyCandidates.add(`MESSAGES_${network}_${rawSanitized}`);
+      }
+
+      const collected: IRCMessage[] = [];
+      for (const key of keyCandidates) {
+        const data = await storageCache.getItem<IRCMessage[]>(key, {
+          ttl: 5 * 60 * 1000,
+        });
+        if (Array.isArray(data) && data.length > 0) {
+          collected.push(...data);
+        }
+      }
+
+      if (collected.length === 0) {
+        return [];
+      }
+
+      const deduped = new Map<string, IRCMessage>();
+      for (const msg of collected) {
+        const fallbackKey = `ts:${msg.timestamp}|type:${msg.type}|from:${(msg.from || '').toLowerCase()}|channel:${(msg.channel || '').toLowerCase()}|text:${msg.text}`;
+        const dedupeKey = msg.id ? `id:${msg.id}` : fallbackKey;
+        if (!deduped.has(dedupeKey)) {
+          deduped.set(dedupeKey, msg);
+        }
+      }
+
+      return Array.from(deduped.values()).sort((a, b) => a.timestamp - b.timestamp);
     } catch (error) {
       console.error('MessageHistoryService: Error loading messages:', error);
       return [];
@@ -580,14 +606,23 @@ class MessageHistoryService {
    * Get storage key for a network and channel
    */
   private getStorageKey(network: string, channel: string): string {
-    // Sanitize channel name for storage key
-    const sanitizedChannel = channel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
+    // Sanitize and normalize channel name for stable history keys.
+    const normalizedChannel = this.normalizeChannelForStorage(channel);
+    const sanitizedChannel = normalizedChannel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
     return `${this.STORAGE_PREFIX}${network}:${sanitizedChannel}`;
   }
 
   private getLegacyStorageKey(network: string, channel: string): string {
-    const sanitizedChannel = channel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
+    const normalizedChannel = this.normalizeChannelForStorage(channel);
+    const sanitizedChannel = normalizedChannel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
     return `MESSAGES_${network}_${sanitizedChannel}`;
+  }
+
+  private normalizeChannelForStorage(channel: string): string {
+    const trimmed = (channel || 'server').trim();
+    if (!trimmed) return 'server';
+    if (trimmed.toLowerCase() === 'server') return 'server';
+    return trimmed.toLowerCase();
   }
 
   private parseStorageKey(key: string): { network: string; channel: string } | null {

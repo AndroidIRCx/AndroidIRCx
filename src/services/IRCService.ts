@@ -1007,20 +1007,24 @@ export class IRCService {
 
     // Extract msgid tag for message-ids (IRCv3.3)
     const msgidTag = tags.get('msgid') || undefined;
+    const hasMultilineConcatTag = tags.has('draft/multiline-concat');
 
-    // Message deduplication: skip if we've already seen this msgid
-    if (msgidTag && this.seenMessageIds.has(msgidTag)) {
+    // Message deduplication: skip duplicate msgid values, but never for multiline parts.
+    // Some servers reuse the same msgid across all multiline chunks.
+    if (msgidTag && !hasMultilineConcatTag && this.seenMessageIds.has(msgidTag)) {
       this.logRaw(`IRCService: Skipping duplicate message with msgid: ${msgidTag}`);
       return;
     }
 
-    // Track this msgid to prevent duplicates
-    if (msgidTag) {
+    // Track this msgid to prevent duplicates.
+    if (msgidTag && !hasMultilineConcatTag) {
       this.seenMessageIds.add(msgidTag);
       // Prevent unbounded growth - keep only the last MAX_MSGID_CACHE entries
       if (this.seenMessageIds.size > this.MAX_MSGID_CACHE) {
         const firstId = this.seenMessageIds.values().next().value;
-        this.seenMessageIds.delete(firstId);
+        if (firstId) {
+          this.seenMessageIds.delete(firstId);
+        }
       }
     }
 
@@ -1033,8 +1037,11 @@ export class IRCService {
     // Extract intent tag (draft/intent)
     const intentTag = tags.get('+draft/intent') || tags.get('+intent') || undefined;
 
-    // Extract multiline concat tag (draft/multiline)
-    const multilineConcatTag = tags.get('draft/multiline-concat') || undefined;
+    // Extract multiline concat tag (draft/multiline).
+    // Keep empty-string value because it marks the final chunk.
+    const multilineConcatTag = hasMultilineConcatTag
+      ? (tags.get('draft/multiline-concat') ?? '')
+      : undefined;
 
     let prefix = '';
     let command = '';

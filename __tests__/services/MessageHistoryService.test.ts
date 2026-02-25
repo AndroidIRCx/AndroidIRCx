@@ -141,6 +141,27 @@ describe('MessageHistoryService', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('should merge history across channel case variants', async () => {
+      const lowerMessage = { ...mockMessage, id: 'lower', channel: '#general', timestamp: 1000 };
+      const upperMessage = { ...mockMessage, id: 'upper', channel: '#General', timestamp: 2000 };
+
+      (storageCache.getItem as jest.Mock).mockImplementation(async (key: string) => {
+        if (key === '@AndroidIRCX:history:freenode:#general') {
+          return [lowerMessage];
+        }
+        if (key === '@AndroidIRCX:history:freenode:#General') {
+          return [upperMessage];
+        }
+        return null;
+      });
+
+      const result = await messageHistoryService.loadMessages('freenode', '#General');
+
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('lower');
+      expect(result[1].id).toBe('upper');
+    });
   });
 
   describe('loadAllNetworkMessages', () => {

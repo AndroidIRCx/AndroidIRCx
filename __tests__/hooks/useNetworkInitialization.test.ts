@@ -176,6 +176,48 @@ describe('useNetworkInitialization', () => {
     expect(mockSetNetworkName).toHaveBeenCalledWith('Freenode');
   });
 
+  it('should prioritize persisted primary network over Quick Connect', async () => {
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
+      { id: 'DBase', name: 'DBase', servers: [{ hostname: 'dbase.com', port: 6667 }] },
+      { id: 'freenode', name: 'Freenode', servers: [{ hostname: 'chat.freenode.com', port: 6697 }] },
+      { id: 'undernet', name: 'Undernet', servers: [{ hostname: 'irc.undernet.org', port: 6667 }] },
+    ]);
+    // Quick Connect points to freenode, but persisted primary should win
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue('freenode');
+
+    const props = {
+      ...defaultProps,
+      primaryNetworkId: 'undernet',
+    };
+
+    renderHook(() => useNetworkInitialization(props));
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(mockSetSelectedNetworkName).toHaveBeenCalledWith('Undernet');
+    expect(mockSetNetworkName).toHaveBeenCalledWith('Undernet');
+  });
+
+  it('should match persisted primary network by name as well as id', async () => {
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
+      { id: 'freenode', name: 'Freenode', servers: [{ hostname: 'chat.freenode.com', port: 6697 }] },
+      { id: 'undernet', name: 'Undernet', servers: [{ hostname: 'irc.undernet.org', port: 6667 }] },
+    ]);
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue('freenode');
+
+    const props = {
+      ...defaultProps,
+      primaryNetworkId: 'Undernet',
+    };
+
+    renderHook(() => useNetworkInitialization(props));
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(mockSetSelectedNetworkName).toHaveBeenCalledWith('Undernet');
+    expect(mockSetNetworkName).toHaveBeenCalledWith('Undernet');
+  });
+
   it('should prioritize favorite/default server network over DBase', async () => {
     require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
       { id: 'DBase', name: 'DBase', servers: [{ hostname: 'dbase.com', port: 6667 }] },

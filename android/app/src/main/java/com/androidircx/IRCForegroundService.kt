@@ -5,8 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -112,12 +114,16 @@ class IRCForegroundService : Service() {
         val notification = createNotification(title, text)
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                // Use DATA_SYNC type for persistent IRC connections
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val manifestType = resolveManifestForegroundServiceType()
+                android.util.Log.d(
+                    "IRCForegroundService",
+                    "Resolved manifest foregroundServiceType=0x${manifestType.toString(16)}"
+                )
                 startForeground(
                     NOTIFICATION_ID,
                     notification,
-                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                    manifestType
                 )
             } else {
                 startForeground(NOTIFICATION_ID, notification)
@@ -138,6 +144,33 @@ class IRCForegroundService : Service() {
                 e
             )
             stopSelf()
+        }
+    }
+
+    private fun resolveManifestForegroundServiceType(): Int {
+        return try {
+            val component = ComponentName(this, IRCForegroundService::class.java)
+            val serviceInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getServiceInfo(
+                    component,
+                    PackageManager.ComponentInfoFlags.of(0)
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getServiceInfo(component, 0)
+            }
+            val fgsType = serviceInfo.foregroundServiceType
+            if (fgsType == 0) {
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING
+            } else {
+                fgsType
+            }
+        } catch (e: Exception) {
+            android.util.Log.w(
+                "IRCForegroundService",
+                "Unable to resolve manifest foregroundServiceType, falling back to REMOTE_MESSAGING: ${e.message}"
+            )
+            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_REMOTE_MESSAGING
         }
     }
 
@@ -230,7 +263,7 @@ class IRCForegroundService : Service() {
      * The app has a few seconds to stop the service cleanly, otherwise the system
      * will throw ForegroundServiceDidNotStopInTimeException.
      *
-     * The dataSync type has a 6-hour limit per 24-hour period on Android 14+.
+     * The remoteMessaging type is used for chat-style persistent connectivity.
      */
     override fun onTimeout(startId: Int, fgsType: Int) {
         android.util.Log.w(

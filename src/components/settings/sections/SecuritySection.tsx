@@ -62,6 +62,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
   const [allowNfcExchange, setAllowNfcExchange] = useState(true);
   const [appLockEnabled, setAppLockEnabled] = useState(false);
   const [appLockUseBiometric, setAppLockUseBiometric] = useState(false);
+  const [appLockAutoBiometricPrompt, setAppLockAutoBiometricPrompt] = useState(false);
   const [appLockUsePin, setAppLockUsePin] = useState(false);
   const [appLockOnLaunch, setAppLockOnLaunch] = useState(true);
   const [appLockOnBackground, setAppLockOnBackground] = useState(true);
@@ -90,6 +91,9 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
       
       const appLockBio = await settingsService.getSetting('appLockUseBiometric', false);
       setAppLockUseBiometric(appLockBio);
+
+      const appLockAutoBioPrompt = await settingsService.getSetting('appLockAutoBiometricPrompt', false);
+      setAppLockAutoBiometricPrompt(appLockAutoBioPrompt);
       
       const appLockPin = await settingsService.getSetting('appLockUsePin', false);
       setAppLockUsePin(appLockPin);
@@ -323,6 +327,22 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
         onValueChange: handleAppLockPinToggle,
       },
       {
+        id: 'security-app-lock-biometric-auto',
+        title: t('Auto-show Biometric Prompt', { _tags: tags }),
+        description: appLockAutoBiometricPrompt
+          ? t('Automatically shows fingerprint prompt when lock screen opens', { _tags: tags })
+          : t('Fingerprint prompt appears only when you tap the button', { _tags: tags }),
+        type: 'switch',
+        value: appLockAutoBiometricPrompt,
+        disabled: !appLockEnabled || !appLockUseBiometric,
+        searchKeywords: ['app', 'lock', 'biometric', 'fingerprint', 'auto', 'prompt', 'popup'],
+        onValueChange: async (value: string | boolean) => {
+          const boolValue = value as boolean;
+          setAppLockAutoBiometricPrompt(boolValue);
+          await settingsService.setSetting('appLockAutoBiometricPrompt', boolValue);
+        },
+      },
+      {
         id: 'security-app-lock-launch',
         title: t('Lock on Launch', { _tags: tags }),
         description: appLockOnLaunch
@@ -379,6 +399,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
     allowNfcExchange,
     appLockEnabled,
     appLockUseBiometric,
+    appLockAutoBiometricPrompt,
     appLockUsePin,
     appLockOnLaunch,
     appLockOnBackground,

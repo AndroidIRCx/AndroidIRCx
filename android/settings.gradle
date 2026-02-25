@@ -1,12 +1,16 @@
 pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
-extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+def nodeBinary = System.getenv("NODE_BINARY") ?: "node"
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+    ex.autolinkLibrariesFromCommand([nodeBinary, "node_modules/@react-native-community/cli/build/bin.js", "config"])
+}
 dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
         maven { url "https://notifee.github.io/maven" }
         maven { url "../node_modules/@notifee/react-native/android/libs" }
+        maven { url "../node_modules/@react-native-async-storage/async-storage/android/local_repo" }
     }
 }
 rootProject.name = 'AndroidIRCX'

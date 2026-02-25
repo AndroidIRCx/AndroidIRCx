@@ -13,6 +13,7 @@ import { IRCService } from '../../src/services/IRCService';
 const createMockIRCService = (): jest.Mocked<Partial<IRCService>> => ({
   sendRaw: jest.fn(),
   addRawMessage: jest.fn(),
+  getCurrentNick: jest.fn().mockReturnValue('TestNick'),
   isSaslAvailable: jest.fn().mockReturnValue(true),
   isSaslAuthenticating: jest.fn().mockReturnValue(false),
   isSaslExternal: jest.fn().mockReturnValue(false),
@@ -72,6 +73,21 @@ describe('AutoAuthService', () => {
         ircService: mockIRCService as IRCService,
         authConfig: {
           nickservPassword: 'testpass',
+        },
+        saslAvailable: false,
+        saslAuthenticated: false,
+      });
+
+      const method = service.determineBestMethod();
+      expect(method).toBe('nickserv');
+    });
+
+    it('should fallback to nickserv when only sasl password is available and sasl is unavailable', () => {
+      const service = createAutoAuthService({
+        networkId: 'test-network',
+        ircService: mockIRCService as IRCService,
+        authConfig: {
+          saslPassword: 'testpass',
         },
         saslAvailable: false,
         saslAuthenticated: false,
@@ -228,6 +244,26 @@ describe('AutoAuthService', () => {
         'PRIVMSG NickServ :IDENTIFY mypassword'
       );
     });
+
+    it('should fallback to sasl password for NickServ identify', async () => {
+      const service = createAutoAuthService({
+        networkId: 'test-network',
+        ircService: mockIRCService as IRCService,
+        authConfig: {
+          saslPassword: 'saslpass',
+        },
+        saslAvailable: false,
+        saslAuthenticated: false,
+      });
+
+      // @ts-ignore - accessing private method for testing
+      const result = await service.authenticateWithNickServ();
+
+      expect(result.success).toBe(true);
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
+        'PRIVMSG NickServ :IDENTIFY saslpass'
+      );
+    });
   });
 
   describe('authenticateWithQuakeNet', () => {
@@ -261,6 +297,7 @@ describe('AutoAuthService', () => {
         networkId: 'test-network',
         ircService: mockIRCService as IRCService,
         authConfig: {
+          saslAccount: 'myuser',
           nickservPassword: 'mypassword',
         },
         saslAvailable: false,
@@ -275,7 +312,7 @@ describe('AutoAuthService', () => {
         expect.stringContaining('X@channels.undernet.org')
       );
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
-        expect.stringContaining('LOGIN')
+        'PRIVMSG X@channels.undernet.org :LOGIN myuser mypassword'
       );
     });
   });

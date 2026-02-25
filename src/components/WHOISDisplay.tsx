@@ -20,6 +20,8 @@ import { connectionManager } from '../services/ConnectionManager';
 import { userActivityService, UserActivity } from '../services/UserActivityService';
 import { formatIRCTextAsComponent } from '../utils/IRCFormatter';
 import { useT } from '../i18n/transifex';
+import { useTheme } from '../hooks/useTheme';
+import { ThemeColors } from '../services/ThemeService';
 
 interface WHOISDisplayProps {
   visible: boolean;
@@ -39,6 +41,8 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
   onNickPress,
 }) => {
   const t = useT();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [whoisInfo, setWhoisInfo] = useState<WHOISInfo | undefined>();
   const [loading, setLoading] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
@@ -183,6 +187,10 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
   };
 
   const isIgnored = userService.isUserIgnored(nick, undefined, undefined, network);
+  const currentNick = ((network
+    ? connectionManager.getConnection(network)?.ircService
+    : connectionManager.getActiveConnection()?.ircService) || ircService).getCurrentNick();
+  const isSelfWhois = !!currentNick && nick.toLowerCase() === currentNick.toLowerCase();
 
   if (!visible) return null;
 
@@ -262,37 +270,37 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                   {whoisInfo.isOper && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('IRC Operator:')}</Text>
-                      <Text style={[styles.infoValue, { color: '#E91E63' }]}>{t('Yes')}</Text>
+                      <Text style={[styles.infoValue, { color: colors.accent }]}>{t('Yes')}</Text>
                     </View>
                   )}
                   {whoisInfo.isAdmin && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('Admin:')}</Text>
-                      <Text style={[styles.infoValue, { color: '#9C27B0' }]}>{t('Yes')}</Text>
+                      <Text style={[styles.infoValue, { color: colors.secondary }]}>{t('Yes')}</Text>
                     </View>
                   )}
                   {whoisInfo.isServicesAdmin && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('Services Admin:')}</Text>
-                      <Text style={[styles.infoValue, { color: '#673AB7' }]}>{t('Yes')}</Text>
+                      <Text style={[styles.infoValue, { color: colors.primaryDark }]}>{t('Yes')}</Text>
                     </View>
                   )}
                   {whoisInfo.isHelpOp && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('Help Operator:')}</Text>
-                      <Text style={[styles.infoValue, { color: '#2196F3' }]}>{t('Yes')}</Text>
+                      <Text style={[styles.infoValue, { color: colors.info }]}>{t('Yes')}</Text>
                     </View>
                   )}
                   {whoisInfo.isRegistered && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('Registered:')}</Text>
-                      <Text style={[styles.infoValue, { color: '#4CAF50' }]}>{t('Yes')}</Text>
+                      <Text style={[styles.infoValue, { color: colors.success }]}>{t('Yes')}</Text>
                     </View>
                   )}
                   {whoisInfo.isBot && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('Bot:')}</Text>
-                      <Text style={[styles.infoValue, { color: '#FF9800' }]}>{t('Yes')}</Text>
+                      <Text style={[styles.infoValue, { color: colors.warning }]}>{t('Yes')}</Text>
                     </View>
                   )}
                   {whoisInfo.specialStatus && (
@@ -339,7 +347,7 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                   <Text style={styles.sectionTitle}>{t('Security')}</Text>
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>{t('Connection:')}</Text>
-                    <Text style={[styles.infoValue, { color: '#4CAF50' }]}>
+                    <Text style={[styles.infoValue, { color: colors.success }]}>
                       {whoisInfo.secureMessage || t('Secure (SSL/TLS)')}
                     </Text>
                   </View>
@@ -363,6 +371,15 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                       </Text>
                     </View>
                   )}
+                </View>
+              )}
+
+              {whoisInfo.idle === undefined && !isSelfWhois && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>{t('Connection Activity')}</Text>
+                  <Text style={styles.emptyText}>
+                    {t('Idle time was not provided by this server for this user')}
+                  </Text>
                 </View>
               )}
 
@@ -436,6 +453,7 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                   value={noteText}
                   onChangeText={setNoteText}
                   placeholder={t('Enter note about this user')}
+                  placeholderTextColor={colors.textSecondary}
                   multiline
                 />
                 <View style={styles.buttonRow}>
@@ -506,6 +524,7 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                   value={aliasText}
                   onChangeText={setAliasText}
                   placeholder={t('Enter alias for this user')}
+                  placeholderTextColor={colors.textSecondary}
                 />
                 <View style={styles.buttonRow}>
                   <TouchableOpacity
@@ -562,10 +581,10 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   header: {
     flexDirection: 'row',
@@ -573,20 +592,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    backgroundColor: '#F5F5F5',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surfaceVariant,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text,
   },
   closeButton: {
     paddingVertical: 4,
     paddingHorizontal: 8,
   },
   closeButtonText: {
-    color: '#2196F3',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -598,18 +617,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#757575',
+    color: colors.textSecondary,
     fontSize: 14,
   },
   section: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text,
     marginBottom: 12,
   },
   infoRow: {
@@ -619,14 +638,14 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary,
     fontWeight: '500',
     marginRight: 8,
     minWidth: 80,
   },
   infoValue: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
     flex: 1,
   },
   emptyContainer: {
@@ -634,31 +653,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#9E9E9E',
+    color: colors.textSecondary,
     fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 12,
   },
   button: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     padding: 12,
     borderRadius: 4,
     alignItems: 'center',
     marginTop: 8,
   },
   buttonSecondary: {
-    backgroundColor: '#9E9E9E',
+    backgroundColor: colors.buttonSecondary,
   },
   buttonDanger: {
-    backgroundColor: '#F44336',
+    backgroundColor: colors.error,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
   buttonTextWhite: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -667,36 +686,36 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     borderRadius: 4,
     padding: 12,
     fontSize: 14,
-    color: '#212121',
-    backgroundColor: '#FFFFFF',
+    color: colors.text,
+    backgroundColor: colors.inputBackground,
     marginBottom: 8,
     minHeight: 80,
     textAlignVertical: 'top',
   },
   noteText: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
     marginBottom: 8,
     padding: 12,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 4,
   },
   aliasText: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
     marginBottom: 8,
     padding: 12,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 4,
     fontStyle: 'italic',
   },
   listItemText: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
     marginBottom: 6,
   },
   channelsContainer: {
@@ -706,15 +725,15 @@ const styles = StyleSheet.create({
   },
   channelSeparator: {
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary,
   },
   channelText: {
     fontSize: 14,
-    color: '#2196F3',
+    color: colors.primary,
     textDecorationLine: 'underline',
   },
   channelPrefix: {
-    color: '#757575',
+    color: colors.textSecondary,
     textDecorationLine: 'none',
   },
 });

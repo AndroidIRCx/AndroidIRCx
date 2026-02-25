@@ -135,7 +135,7 @@ export class AutoAuthService {
     // Check if we have any credentials
     const hasCredentials = !!(
       this.authConfig.saslAccount ||
-      this.authConfig.nickservPassword ||
+      this.getServicePassword() ||
       this.authConfig.clientCert
     );
 
@@ -232,16 +232,18 @@ export class AutoAuthService {
     // Check for network-specific methods
     const serviceType = this.detectionResult?.serviceType;
 
-    if (serviceType === 'quakenet' && this.authConfig.nickservPassword) {
+    const servicePassword = this.getServicePassword();
+
+    if (serviceType === 'quakenet' && servicePassword) {
       return 'quakenet';
     }
 
-    if (serviceType === 'undernet' && this.authConfig.nickservPassword) {
+    if (serviceType === 'undernet' && servicePassword) {
       return 'undernet';
     }
 
     // Fallback to NickServ IDENTIFY
-    if (this.authConfig.nickservPassword) {
+    if (servicePassword) {
       return 'nickserv';
     }
 
@@ -252,7 +254,7 @@ export class AutoAuthService {
    * Authenticate with NickServ (generic services)
    */
   private async authenticateWithNickServ(): Promise<AuthResult> {
-    const password = this.authConfig.nickservPassword;
+    const password = this.getServicePassword();
     if (!password) {
       return {
         success: false,
@@ -291,7 +293,7 @@ export class AutoAuthService {
    * Authenticate with QuakeNet Q service
    */
   private async authenticateWithQuakeNet(): Promise<AuthResult> {
-    const password = this.authConfig.nickservPassword;
+    const password = this.getServicePassword();
     if (!password) {
       return {
         success: false,
@@ -303,7 +305,9 @@ export class AutoAuthService {
     try {
       // Q auth format: /msg Q@CServe.quakenet.org AUTH <user> <pass>
       // Or just: /msg Q auth <pass> if username matches
-      this.ircService.sendRaw(`PRIVMSG Q@CServe.quakenet.org :AUTH ${password}`);
+      const account = this.getAuthAccount();
+      const authArgs = account ? `${account} ${password}` : password;
+      this.ircService.sendRaw(`PRIVMSG Q@CServe.quakenet.org :AUTH ${authArgs}`);
       this.ircService.addRawMessage(
         t('*** Authenticating with QuakeNet Q...'),
         'auth'
@@ -329,7 +333,7 @@ export class AutoAuthService {
    * Authenticate with Undernet X service
    */
   private async authenticateWithUndernet(): Promise<AuthResult> {
-    const password = this.authConfig.nickservPassword;
+    const password = this.getServicePassword();
     if (!password) {
       return {
         success: false,
@@ -340,7 +344,15 @@ export class AutoAuthService {
 
     try {
       // X auth format: /msg X@channels.undernet.org login <user> <pass>
-      this.ircService.sendRaw(`PRIVMSG X@channels.undernet.org :LOGIN ${password}`);
+      const account = this.getAuthAccount();
+      if (!account) {
+        return {
+          success: false,
+          method: 'undernet',
+          error: 'No account configured',
+        };
+      }
+      this.ircService.sendRaw(`PRIVMSG X@channels.undernet.org :LOGIN ${account} ${password}`);
       this.ircService.addRawMessage(
         t('*** Authenticating with Undernet X...'),
         'auth'
@@ -375,6 +387,14 @@ export class AutoAuthService {
     }
 
     return undefined;
+  }
+
+  private getServicePassword(): string | undefined {
+    return this.authConfig.nickservPassword || this.authConfig.saslPassword;
+  }
+
+  private getAuthAccount(): string | undefined {
+    return this.authConfig.saslAccount || this.ircService.getCurrentNick();
   }
 
   /**

@@ -205,7 +205,7 @@ reply, react, channel-context, rename
 
 |                   |                                                   |
 |-------------------|---------------------------------------------------|
-| **Framework**     | React Native 0.83.1, React 19.2.4                 |
+| **Framework**     | React Native 0.84.0, React 19.2.3                 |
 | **Language**      | TypeScript 5.9.3                                  |
 | **State**         | Zustand 5.0.11                                    |
 | **Networking**    | react-native-tcp-socket (raw TCP/TLS)             |
@@ -311,7 +311,7 @@ AndroidIRCX/
 +-- .github/workflows/  CI/CD (tests + Docker release)
 +-- Dockerfile          Docker-based release builds
 +-- App.tsx             Main component (841 lines)
-+-- package.json        v1.7.5, GPL-3.0-or-later
++-- package.json        v1.8.1, GPL-3.0-or-later
 ```
 
 ---

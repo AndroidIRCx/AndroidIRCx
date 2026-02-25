@@ -46,6 +46,7 @@ export function useUIState() {
   // App lock and banner states from UI store
   const appLockEnabled = useUIStore(state => state.appLockEnabled);
   const appLockUseBiometric = useUIStore(state => state.appLockUseBiometric);
+  const appLockAutoBiometricPrompt = useUIStore(state => state.appLockAutoBiometricPrompt);
   const appLockUsePin = useUIStore(state => state.appLockUsePin);
   const appLockOnLaunch = useUIStore(state => state.appLockOnLaunch);
   const appLockOnBackground = useUIStore(state => state.appLockOnBackground);
@@ -125,6 +126,7 @@ export function useUIState() {
     // App lock state
     appLockEnabled,
     appLockUseBiometric,
+    appLockAutoBiometricPrompt,
     appLockUsePin,
     appLockOnLaunch,
     appLockOnBackground,

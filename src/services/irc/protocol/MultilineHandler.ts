@@ -35,8 +35,9 @@ export class MultilineHandler {
       replyTo?: string;
     }
   ): string | null {
-    // If no concat tag, it's a regular single-line message
-    if (!concatTag) {
+    // Undefined means the tag is absent: regular single-line message.
+    // Empty string means "last part" in draft/multiline.
+    if (concatTag === undefined) {
       return text;
     }
 

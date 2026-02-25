@@ -34,6 +34,7 @@ const mockUIState = {
   hideIrcServiceListenerMessages: true,
   appLockEnabled: false,
   appLockUseBiometric: false,
+  appLockAutoBiometricPrompt: false,
   appLockUsePin: false,
   appLockOnLaunch: false,
   appLockOnBackground: false,
@@ -151,6 +152,7 @@ describe('useUIState', () => {
 
     expect(result.current.appLockEnabled).toBe(false);
     expect(result.current.appLockUseBiometric).toBe(false);
+    expect(result.current.appLockAutoBiometricPrompt).toBe(false);
     expect(result.current.appLockUsePin).toBe(false);
     expect(result.current.appLockOnLaunch).toBe(false);
     expect(result.current.appLockOnBackground).toBe(false);

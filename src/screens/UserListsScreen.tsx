@@ -24,6 +24,8 @@ import {
 import { connectionManager } from '../services/ConnectionManager';
 import { useT } from '../i18n/transifex';
 import { useUIStore } from '../stores/uiStore';
+import { useTheme } from '../hooks/useTheme';
+import { ThemeColors } from '../services/ThemeService';
 
 type ListTab = 'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'other';
 
@@ -50,6 +52,8 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
   onClose,
 }) => {
   const t = useT();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [activeTab, setActiveTab] = useState<ListTab>(initialTab);
   const [entries, setEntries] = useState<UserListEntry[]>([]);
   const [ignoredUsers, setIgnoredUsers] = useState<IgnoredUser[]>([]);
@@ -101,7 +105,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
   const loadAvailableNetworks = () => {
     const networks = connectionManager
       .getAllConnections()
-      .map(conn => conn?.config?.id)
+      .map(conn => conn.networkId)
       .filter((id): id is string => Boolean(id));
     setAvailableNetworks(networks);
   };
@@ -385,7 +389,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder={t('Search by mask or reason...')}
-            placeholderTextColor="#9E9E9E"
+            placeholderTextColor={colors.textSecondary}
           />
           <TouchableOpacity
             style={styles.networkFilterButton}
@@ -439,6 +443,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
                 value={newMask}
                 onChangeText={setNewMask}
                 placeholder={t('nick or mask')}
+                placeholderTextColor={colors.textSecondary}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
@@ -451,6 +456,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
                     value={newChannels}
                     onChangeText={setNewChannels}
                     placeholder={t('comma-separated, empty for all')}
+                    placeholderTextColor={colors.textSecondary}
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
@@ -463,6 +469,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
                 value={newReason}
                 onChangeText={setNewReason}
                 placeholder={t('optional note')}
+                placeholderTextColor={colors.textSecondary}
                 multiline
               />
               
@@ -471,8 +478,8 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
                 <Switch
                   value={isProtected}
                   onValueChange={setIsProtected}
-                  trackColor={{ false: '#E0E0E0', true: '#90CAF9' }}
-                  thumbColor={isProtected ? '#2196F3' : '#FFFFFF'}
+                  trackColor={{ false: colors.border, true: colors.primaryLight }}
+                  thumbColor={isProtected ? colors.primary : colors.surfaceAlt}
                 />
               </View>
               
@@ -605,10 +612,10 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   header: {
     flexDirection: 'row',
@@ -616,13 +623,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    backgroundColor: '#F5F5F5',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surfaceVariant,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text,
   },
   headerActions: {
     flexDirection: 'row',
@@ -630,13 +637,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.success,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 4,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -645,15 +652,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   closeButtonText: {
-    color: '#2196F3',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '500',
   },
   tabContainer: {
     maxHeight: 50,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.surfaceVariant,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   tabContent: {
     flexDirection: 'row',
@@ -666,36 +673,36 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   tabActive: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.primary + '20',
   },
   tabText: {
     fontSize: 14,
-    color: '#616161',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   tabTextActive: {
-    color: '#1976D2',
+    color: colors.primary,
   },
   filterSection: {
     padding: 12,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surfaceVariant,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
     gap: 8,
   },
   searchInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     borderRadius: 4,
     padding: 10,
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
   },
   networkFilterButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     borderRadius: 4,
     padding: 10,
     flexDirection: 'row',
@@ -704,11 +711,11 @@ const styles = StyleSheet.create({
   },
   networkFilterButtonText: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
   },
   networkFilterButtonArrow: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
   },
   content: {
     flex: 1,
@@ -719,12 +726,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#9E9E9E',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   entryItem: {
@@ -733,7 +740,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   entryContent: {
     flex: 1,
@@ -741,60 +748,60 @@ const styles = StyleSheet.create({
   },
   entryMask: {
     fontSize: 16,
-    color: '#212121',
+    color: colors.text,
     fontWeight: '500',
     fontFamily: 'monospace',
     marginBottom: 4,
   },
   entryNetwork: {
     fontSize: 12,
-    color: '#2196F3',
+    color: colors.primary,
     marginBottom: 4,
     fontWeight: '500',
   },
   entryChannels: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   entryProtected: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: colors.success,
     marginBottom: 4,
     fontWeight: '500',
   },
   entryReason: {
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   entryDate: {
     fontSize: 12,
-    color: '#9E9E9E',
+    color: colors.textSecondary,
   },
   entryActions: {
     gap: 8,
     alignItems: 'flex-end',
   },
   editButton: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.primary + '20',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 4,
   },
   editButtonText: {
-    color: '#1976D2',
+    color: colors.primary,
     fontSize: 14,
     fontWeight: '500',
   },
   removeButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: colors.error,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 4,
   },
   removeButtonText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -805,7 +812,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 8,
     padding: 20,
     width: '90%',
@@ -818,29 +825,29 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text,
     marginBottom: 8,
   },
   modalDescription: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 16,
     lineHeight: 18,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     borderRadius: 4,
     padding: 12,
     fontSize: 14,
-    color: '#212121',
-    backgroundColor: '#FFFFFF',
+    color: colors.text,
+    backgroundColor: colors.inputBackground,
     marginBottom: 12,
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#424242',
+    color: colors.text,
     marginBottom: 4,
     marginTop: 8,
   },
@@ -857,17 +864,17 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
   },
   onlineUserButton: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.primary + '20',
     padding: 12,
     borderRadius: 4,
     alignItems: 'center',
     marginBottom: 16,
   },
   onlineUserButtonText: {
-    color: '#1976D2',
+    color: colors.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -890,18 +897,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   modalButtonCancel: {
-    backgroundColor: '#9E9E9E',
+    backgroundColor: colors.buttonSecondary,
   },
   modalButtonPrimary: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
   },
   modalButtonText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
   modalButtonTextPrimary: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   networkPickerScroll: {
     maxHeight: 300,
@@ -910,14 +917,14 @@ const styles = StyleSheet.create({
   networkPickerItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   networkPickerItemText: {
     fontSize: 16,
-    color: '#212121',
+    color: colors.text,
   },
   networkPickerItemTextSelected: {
-    color: '#2196F3',
+    color: colors.primary,
     fontWeight: '600',
   },
   onlineUserList: {
@@ -927,16 +934,16 @@ const styles = StyleSheet.create({
   onlineUserItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   onlineUserNick: {
     fontSize: 16,
-    color: '#212121',
+    color: colors.text,
     fontWeight: '500',
   },
   onlineUserHost: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
     marginTop: 2,
   },
 });

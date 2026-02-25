@@ -52,12 +52,14 @@ const mockStore = {
   appLockOnLaunch: true,
   appLocked: false,
   appLockUseBiometric: false,
+  appLockAutoBiometricPrompt: false,
   appLockUsePin: false,
   appPinEntry: '',
   setAppLocked: jest.fn(),
   setAppUnlockModalVisible: jest.fn(),
   setAppLockEnabled: jest.fn(),
   setAppLockUseBiometric: jest.fn(),
+  setAppLockAutoBiometricPrompt: jest.fn(),
   setAppLockUsePin: jest.fn(),
   setAppLockOnLaunch: jest.fn(),
   setAppLockOnBackground: jest.fn(),
@@ -117,6 +119,7 @@ describe('useAppLock', () => {
     // Should query settings
     expect(settingsService.getSetting).toHaveBeenCalledWith('appLockEnabled', false);
     expect(settingsService.getSetting).toHaveBeenCalledWith('appLockUseBiometric', false);
+    expect(settingsService.getSetting).toHaveBeenCalledWith('appLockAutoBiometricPrompt', false);
     expect(settingsService.getSetting).toHaveBeenCalledWith('appLockUsePin', false);
   });
 
@@ -243,6 +246,7 @@ describe('useAppLock', () => {
 
     expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockEnabled', expect.any(Function));
     expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockUseBiometric', expect.any(Function));
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockAutoBiometricPrompt', expect.any(Function));
     expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockUsePin', expect.any(Function));
     expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockOnLaunch', expect.any(Function));
     expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockOnBackground', expect.any(Function));

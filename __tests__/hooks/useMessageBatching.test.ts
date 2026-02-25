@@ -194,4 +194,125 @@ describe('useMessageBatching', () => {
     expect(newState[0].messages.length).toBe(1);
     expect(newState[0].messages[0].text).toBe('Hello');
   });
+
+  it('should keep legitimate repeated remote messages with same text', () => {
+    const existingTab = {
+      id: 'channel-freenode-#test',
+      name: '#test',
+      type: 'channel',
+      networkId: 'freenode',
+      messages: [
+        {
+          id: 'msg-old',
+          type: 'message',
+          from: 'alice',
+          text: 'ok',
+          timestamp: 1000,
+          channel: '#test',
+        },
+      ],
+      hasActivity: false,
+    };
+
+    const pendingMessagesRef = {
+      current: [
+        {
+          message: {
+            id: 'msg-new',
+            type: 'message',
+            from: 'alice',
+            text: 'ok',
+            timestamp: 3000,
+            channel: '#test',
+          },
+          context: {
+            targetTabId: 'channel-freenode-#test',
+            targetTabType: 'channel',
+            messageNetwork: 'freenode',
+            newTabIsEncrypted: false,
+            hasValidNetwork: true,
+          },
+        },
+      ],
+    };
+
+    const { result } = renderHook(() =>
+      useMessageBatching({
+        pendingMessagesRef,
+        messageBatchTimeoutRef: { current: null },
+        activeTabId: 'tab-1',
+        tabSortAlphabetical: false,
+        setTabs: mockSetTabs,
+      })
+    );
+
+    act(() => {
+      result.current.processBatchedMessages();
+    });
+
+    const setTabsCall = mockSetTabs.mock.calls[0][0];
+    const newState = setTabsCall([existingTab]);
+    expect(newState[0].messages.length).toBe(2);
+  });
+
+  it('should dedupe local echo and server echo copies', () => {
+    const existingTab = {
+      id: 'query-freenode-bob',
+      name: 'bob',
+      type: 'query',
+      networkId: 'freenode',
+      messages: [
+        {
+          id: 'local-echo',
+          type: 'message',
+          from: 'tester',
+          text: 'hello',
+          timestamp: 1000,
+          channel: 'bob',
+          status: 'sent',
+        },
+      ],
+      hasActivity: false,
+    };
+
+    const pendingMessagesRef = {
+      current: [
+        {
+          message: {
+            id: 'server-echo',
+            type: 'message',
+            from: 'tester',
+            text: 'hello',
+            timestamp: 3000,
+            channel: 'bob',
+          },
+          context: {
+            targetTabId: 'query-freenode-bob',
+            targetTabType: 'query',
+            messageNetwork: 'freenode',
+            newTabIsEncrypted: false,
+            hasValidNetwork: true,
+          },
+        },
+      ],
+    };
+
+    const { result } = renderHook(() =>
+      useMessageBatching({
+        pendingMessagesRef,
+        messageBatchTimeoutRef: { current: null },
+        activeTabId: 'tab-1',
+        tabSortAlphabetical: false,
+        setTabs: mockSetTabs,
+      })
+    );
+
+    act(() => {
+      result.current.processBatchedMessages();
+    });
+
+    const setTabsCall = mockSetTabs.mock.calls[0][0];
+    const newState = setTabsCall([existingTab]);
+    expect(newState[0].messages.length).toBe(1);
+  });
 });
