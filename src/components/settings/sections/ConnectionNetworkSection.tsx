@@ -212,6 +212,16 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   const [newDccExt, setNewDccExt] = useState('');
   const [showQuickConnectModal, setShowQuickConnectModal] = useState(false);
 
+  // Refresh favorites
+  const refreshFavorites = useCallback(() => {
+    const favoritesMap = channelFavoritesService.getAllFavorites();
+    const flattened = Array.from(favoritesMap.entries()).flatMap(([networkId, favs]) =>
+      favs.map(fav => ({ ...fav, network: networkId }))
+    );
+    setAllFavorites(flattened);
+    setFavoritesCount(flattened.length);
+  }, []);
+
   // Load initial state
   useEffect(() => {
     const loadSettings = async () => {
@@ -352,16 +362,6 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       subscription.remove();
     };
   }, [passwordsUnlocked]);
-
-  // Refresh favorites
-  const refreshFavorites = useCallback(() => {
-    const favoritesMap = channelFavoritesService.getAllFavorites();
-    const flattened = Array.from(favoritesMap.entries()).flatMap(([networkId, favs]) =>
-      favs.map(fav => ({ ...fav, network: networkId }))
-    );
-    setAllFavorites(flattened);
-    setFavoritesCount(flattened.length);
-  }, []);
 
   const networkLabel = useCallback(
     (networkId: string) => networks.find(n => n.id === networkId)?.name || networkId,

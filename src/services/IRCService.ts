@@ -305,18 +305,14 @@ export class IRCService {
           (result as Promise<unknown>).catch((e) => {
             console.error(
               `Error in IRCService async event listener for ${event} (${listenerName}):`,
-              e,
-              '\nargs:',
-              args
+              e
             );
           });
         }
       } catch (e) {
         console.error(
           `Error in IRCService event listener for ${event} (${listenerName}):`,
-          e,
-          '\nargs:',
-          args
+          e
         );
       }
     });
