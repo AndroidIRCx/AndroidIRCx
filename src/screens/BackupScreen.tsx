@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,14 +14,18 @@ import {
   Modal,
   Alert,
   TextInput,
+  ActivityIndicator,
+  BackHandler,
+  Platform,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { dataBackupService } from '../services/DataBackupService';
 import Clipboard from '@react-native-clipboard/clipboard';
 import RNFS from 'react-native-fs';
-import { Platform } from 'react-native';
 import { pick, isErrorWithCode, errorCodes, types } from '@react-native-documents/picker';
 import { useT } from '../i18n/transifex';
+import { connectionManager } from '../services/ConnectionManager';
+import { messageHistoryBatching } from '../services/MessageHistoryBatching';
 
 interface BackupScreenProps {
   visible: boolean;
@@ -156,6 +160,23 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   const [pendingSelectedKeys, setPendingSelectedKeys] = useState<string[]>([]);
   const [decryptPassword, setDecryptPassword] = useState('');
   const [showDecryptPrompt, setShowDecryptPrompt] = useState(false);
+  const [backupOperation, setBackupOperation] = useState<'idle' | 'generate' | 'save' | 'load' | 'restore' | 'decrypt'>('idle');
+  const [loadedBackupMeta, setLoadedBackupMeta] = useState<{ fileName: string; sizeBytes: number; keyCount?: number } | null>(null);
+  const loadedBackupPayloadRef = useRef('');
+  const [showRestartModal, setShowRestartModal] = useState(false);
+
+  const backupBusy = backupOperation !== 'idle';
+  const backupOperationLabel = backupOperation === 'generate'
+    ? t('Generating backup...', { _tags: tags })
+    : backupOperation === 'save'
+    ? t('Saving backup file...', { _tags: tags })
+    : backupOperation === 'load'
+    ? t('Loading backup file...', { _tags: tags })
+    : backupOperation === 'restore'
+    ? t('Restoring backup...', { _tags: tags })
+    : backupOperation === 'decrypt'
+    ? t('Decrypting backup...', { _tags: tags })
+    : '';
 
   useEffect(() => {
     if (visible) {
@@ -166,6 +187,13 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   const loadStorageStats = async () => {
     const stats = await dataBackupService.getStorageStats();
     setStorageStats(stats);
+  };
+
+  const getRestorePayload = (): string => {
+    if (loadedBackupMeta) {
+      return loadedBackupPayloadRef.current;
+    }
+    return backupData;
   };
 
   const toggleOption = (id: string) => {
@@ -200,6 +228,8 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   };
 
   const generateBackup = async () => {
+    if (backupBusy) return;
+    setBackupOperation('generate');
     try {
       const allKeys = await dataBackupService.getAllKeys();
       const enabledOptions = backupOptions.filter((opt) => opt.enabled);
@@ -244,6 +274,8 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         setShowEncryptionPrompt(true);
       } else {
         // No sensitive data, proceed without encryption prompt
+        setLoadedBackupMeta(null);
+        loadedBackupPayloadRef.current = '';
         setBackupData(data);
         setShowPreviewModal(true);
 
@@ -262,10 +294,14 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         t('Error', { _tags: tags }),
         error instanceof Error ? error.message : t('Failed to generate backup', { _tags: tags })
       );
+    } finally {
+      setBackupOperation('idle');
     }
   };
 
   const handleEncryptionChoice = async (encrypt: boolean) => {
+    if (backupBusy) return;
+    setBackupOperation('generate');
     setShowEncryptionPrompt(false);
 
     if (encrypt && encryptionPassword.trim().length > 0) {
@@ -281,9 +317,12 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
           t('Encryption Failed', { _tags: tags }),
           error instanceof Error ? error.message : t('Failed to encrypt backup', { _tags: tags })
         );
+        setBackupOperation('idle');
         return;
       }
     } else {
+      setLoadedBackupMeta(null);
+      loadedBackupPayloadRef.current = '';
       setBackupData(pendingBackupData);
     }
 
@@ -299,6 +338,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       })
     );
     setPendingSelectedKeys([]);
+    setBackupOperation('idle');
   };
 
   const handleCopyToClipboard = () => {
@@ -317,6 +357,9 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   };
 
   const handleSaveToFile = async () => {
+    if (backupBusy) return;
+    if (!backupData.trim()) return;
+    setBackupOperation('save');
     try {
       const now = new Date();
       const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
@@ -341,12 +384,16 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         t('Error', { _tags: tags }),
         error instanceof Error ? error.message : t('Failed to save backup file', { _tags: tags })
       );
+    } finally {
+      setBackupOperation('idle');
     }
   };
 
   const normalizeFileUri = (uri: string) => (uri.startsWith('file://') ? uri.slice(7) : uri);
 
   const handleLoadFromFile = async () => {
+    if (backupBusy) return;
+    setBackupOperation('load');
     try {
       const [result] = await pick({
         type: [types.plainText, 'application/json', 'text/json'],
@@ -376,8 +423,25 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         return;
       }
 
-      setBackupData(content);
-      Alert.alert(t('Success', { _tags: tags }), t('Backup loaded from file', { _tags: tags }));
+      let keyCount: number | undefined;
+      try {
+        const parsed = JSON.parse(content);
+        keyCount = parsed?.data && typeof parsed.data === 'object' ? Object.keys(parsed.data).length : undefined;
+      } catch {
+        // already validated above
+      }
+
+      setBackupData('');
+      loadedBackupPayloadRef.current = content;
+      setLoadedBackupMeta({
+        fileName: result?.name || t('selected backup file', { _tags: tags }),
+        sizeBytes: content.length,
+        keyCount,
+      });
+      Alert.alert(
+        t('Backup Loaded', { _tags: tags }),
+        t('Backup file loaded successfully. Please wait during restore and do not close the app.', { _tags: tags })
+      );
     } catch (error: any) {
       if (isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED) {
         return;
@@ -387,26 +451,29 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         t('Error', { _tags: tags }),
         error instanceof Error ? error.message : t('Failed to load backup file', { _tags: tags })
       );
+    } finally {
+      setBackupOperation('idle');
     }
   };
 
   const handleRestore = async () => {
     try {
-      if (!backupData.trim()) {
+      const payload = getRestorePayload();
+      if (!payload.trim()) {
         Alert.alert(
           t('Error', { _tags: tags }),
-          t('Please paste backup data first', { _tags: tags })
+          t('Please paste backup data or load a backup file first', { _tags: tags })
         );
         return;
       }
 
       // Check if backup is encrypted
-      if (dataBackupService.isEncryptedBackup(backupData)) {
+      if (dataBackupService.isEncryptedBackup(payload)) {
         setShowDecryptPrompt(true);
         return;
       }
 
-      performRestore(backupData);
+      performRestore(payload);
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
@@ -416,13 +483,15 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   };
 
   const handleDecryptAndRestore = async () => {
+    if (backupBusy) return;
     if (!decryptPassword.trim()) {
       Alert.alert(t('Error', { _tags: tags }), t('Please enter the password', { _tags: tags }));
       return;
     }
 
+    setBackupOperation('decrypt');
     try {
-      const decryptedData = await dataBackupService.decryptBackup(backupData, decryptPassword);
+      const decryptedData = await dataBackupService.decryptBackup(getRestorePayload(), decryptPassword);
       setShowDecryptPrompt(false);
       setDecryptPassword('');
       performRestore(decryptedData);
@@ -431,6 +500,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         t('Decryption Failed', { _tags: tags }),
         t('Wrong password or corrupted data. Please check your password and try again.', { _tags: tags })
       );
+      setBackupOperation('idle');
     }
   };
 
@@ -439,28 +509,53 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       t('Confirm Restore', { _tags: tags }),
       t('This will overwrite existing data. Are you sure?', { _tags: tags }),
       [
-        { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+        {
+          text: t('Cancel', { _tags: tags }),
+          style: 'cancel',
+          onPress: () => setBackupOperation('idle'),
+        },
         {
           text: t('Restore', { _tags: tags }),
           style: 'destructive',
           onPress: async () => {
             try {
+              setBackupOperation('restore');
               await dataBackupService.importAll(dataToRestore);
-              Alert.alert(
-                t('Success', { _tags: tags }),
-                t('Backup restored. Restart app to ensure all data reloads.', { _tags: tags })
-              );
+              setShowRestartModal(true);
               setShowPreviewModal(false);
+              setLoadedBackupMeta(null);
+              loadedBackupPayloadRef.current = '';
               loadStorageStats();
             } catch (error) {
               Alert.alert(
                 t('Error', { _tags: tags }),
                 error instanceof Error ? error.message : t('Invalid backup data', { _tags: tags })
               );
+            } finally {
+              setBackupOperation('idle');
             }
           },
         },
       ]
+    );
+  };
+
+  const handleExitToRestart = async () => {
+    try {
+      await messageHistoryBatching.flushSync().catch(() => {});
+      connectionManager.disconnectAll(t('Restarting after backup restore', { _tags: tags }));
+    } catch {
+      // no-op
+    }
+
+    if (Platform.OS === 'android') {
+      BackHandler.exitApp();
+      return;
+    }
+
+    Alert.alert(
+      t('Restart Required', { _tags: tags }),
+      t('Please close and reopen the app manually to complete restore.', { _tags: tags })
     );
   };
 
@@ -474,10 +569,16 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Backup & Restore', { _tags: tags })}</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <TouchableOpacity disabled={backupBusy} onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
           </TouchableOpacity>
         </View>
+        {backupBusy && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8 }}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={[styles.statsText, { marginLeft: 8 }]}>{backupOperationLabel}</Text>
+          </View>
+        )}
 
         <ScrollView style={styles.content}>
           {/* Storage Stats */}
@@ -522,19 +623,22 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
                   <Text style={styles.optionName}>{option.name}</Text>
                   <Text style={styles.optionDescription}>{option.description}</Text>
                 </View>
-                <Switch value={option.enabled} onValueChange={() => toggleOption(option.id)} />
+                <Switch disabled={backupBusy} value={option.enabled} onValueChange={() => toggleOption(option.id)} />
               </View>
             ))}
           </View>
 
           {/* Action Buttons */}
           <View style={styles.section}>
-            <TouchableOpacity style={styles.primaryButton} onPress={generateBackup}>
+            <TouchableOpacity style={styles.primaryButton} disabled={backupBusy} onPress={generateBackup}>
               <Text style={styles.primaryButtonText}>{t('Generate Backup', { _tags: tags })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.secondaryButton}
+              disabled={backupBusy}
               onPress={() => {
+                setLoadedBackupMeta(null);
+                loadedBackupPayloadRef.current = '';
                 setBackupData('');
                 setShowPreviewModal(true);
               }}>
@@ -597,6 +701,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
           onRequestClose={() => {
             setShowDecryptPrompt(false);
             setDecryptPassword('');
+            setBackupOperation('idle');
           }}>
           <View style={styles.encryptionModalOverlay}>
             <View style={styles.encryptionModalContent}>
@@ -620,6 +725,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
                   onPress={() => {
                     setShowDecryptPrompt(false);
                     setDecryptPassword('');
+                    setBackupOperation('idle');
                   }}>
                   <Text style={styles.encryptionButtonTextSecondary}>
                     {t('Cancel', { _tags: tags })}
@@ -658,18 +764,54 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
 
             <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalContentContainer}>
               <Text style={styles.modalDescription}>
-                {backupData
+                {loadedBackupMeta
+                  ? t('Loaded from file. JSON preview is hidden for large backups. You can restore now.', { _tags: tags })
+                  : backupData
                   ? t('Copy this JSON to save your backup, or save it to a file.', { _tags: tags })
                   : t('Paste your backup JSON here to restore your data.', { _tags: tags })}
               </Text>
-              <TextInput
-                style={styles.backupInput}
-                multiline
-                value={backupData}
-                onChangeText={setBackupData}
-                placeholder={t('Backup JSON appears here...', { _tags: tags })}
-                placeholderTextColor={colors.textSecondary}
-              />
+              {loadedBackupMeta ? (
+                <View style={styles.loadedFileCard}>
+                  <Text style={styles.loadedFileTitle}>{t('Loaded Backup File', { _tags: tags })}</Text>
+                  <Text style={styles.loadedFileText}>
+                    {t('File: {name}', { name: loadedBackupMeta.fileName, _tags: tags })}
+                  </Text>
+                  <Text style={styles.loadedFileText}>
+                    {t('Size: {size} MB', { size: (loadedBackupMeta.sizeBytes / 1024 / 1024).toFixed(2), _tags: tags })}
+                  </Text>
+                  {loadedBackupMeta.keyCount !== undefined && (
+                    <Text style={styles.loadedFileText}>
+                      {t('Items: {count}', { count: loadedBackupMeta.keyCount, _tags: tags })}
+                    </Text>
+                  )}
+                  <Text style={[styles.loadedFileText, { marginTop: 10 }]}>
+                    {t('Please wait while restoring. Do not close the app.', { _tags: tags })}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.secondaryButton}
+                    onPress={() => {
+                      setLoadedBackupMeta(null);
+                      loadedBackupPayloadRef.current = '';
+                    }}>
+                    <Text style={styles.secondaryButtonText}>{t('Switch to Manual JSON Paste', { _tags: tags })}</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TextInput
+                  style={styles.backupInput}
+                  multiline
+                  value={backupData}
+                  onChangeText={(text) => {
+                    if (loadedBackupMeta) {
+                      setLoadedBackupMeta(null);
+                      loadedBackupPayloadRef.current = '';
+                    }
+                    setBackupData(text);
+                  }}
+                  placeholder={t('Backup JSON appears here...', { _tags: tags })}
+                  placeholderTextColor={colors.textSecondary}
+                />
+              )}
             </ScrollView>
 
             <View style={styles.modalFooter}>
@@ -683,7 +825,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
                   {t('Load from File', { _tags: tags })}
                 </Text>
               </TouchableOpacity>
-              {backupData && (
+              {!loadedBackupMeta && backupData && (
                 <>
                   <TouchableOpacity style={styles.footerButton} onPress={handleCopyToClipboard}>
                     <Text style={[styles.footerButtonText, styles.primaryText]}>
@@ -705,6 +847,47 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
             </View>
           </View>
         </Modal>
+
+        <Modal
+          visible={showRestartModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowRestartModal(false)}>
+          <View style={styles.encryptionModalOverlay}>
+            <View style={styles.encryptionModalContent}>
+              <Text style={styles.encryptionModalTitle}>
+                {t('Restore Complete', { _tags: tags })}
+              </Text>
+              <Text style={styles.encryptionModalText}>
+                {t('Backup restored successfully. Please restart the app to reload all restored data.', { _tags: tags })}
+              </Text>
+              <View style={styles.encryptionButtonRow}>
+                <TouchableOpacity
+                  style={[styles.encryptionButton, styles.encryptionButtonSecondary]}
+                  onPress={() => setShowRestartModal(false)}>
+                  <Text style={styles.encryptionButtonTextSecondary}>{t('OK', { _tags: tags })}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.encryptionButton}
+                  onPress={handleExitToRestart}>
+                  <Text style={styles.encryptionButtonText}>{t('Exit to Restart App', { _tags: tags })}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {backupBusy && (
+          <View style={styles.blockingLoaderOverlay}>
+            <View style={styles.blockingLoaderCard}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={styles.blockingLoaderTitle}>{backupOperationLabel}</Text>
+              <Text style={styles.blockingLoaderText}>
+                {t('Please wait... Do not close the app while this operation is in progress.', { _tags: tags })}
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -984,5 +1167,54 @@ const createStyles = (colors: any) =>
       color: colors.text,
       fontSize: 14,
       fontWeight: '500',
+    },
+    loadedFileCard: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 10,
+      backgroundColor: colors.surface,
+      padding: 14,
+      gap: 6,
+    },
+    loadedFileTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    loadedFileText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    blockingLoaderOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 20,
+    },
+    blockingLoaderCard: {
+      width: '100%',
+      maxWidth: 380,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 20,
+      alignItems: 'center',
+    },
+    blockingLoaderTitle: {
+      marginTop: 12,
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      textAlign: 'center',
+    },
+    blockingLoaderText: {
+      marginTop: 8,
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 20,
     },
   });

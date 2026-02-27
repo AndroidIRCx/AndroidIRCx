@@ -13,7 +13,12 @@ import { useUIStore } from '../../../stores/uiStore';
 
 export const handleWHOIS: SendMessageHandler = (ctx, args) => {
   if (args.length > 0) {
-    ctx.sendCommand(`WHOIS ${args.join(' ')}`);
+    if (args.length === 1 && ctx.getWhoisUseDoubleNick()) {
+      const nick = args[0];
+      ctx.sendCommand(`WHOIS ${nick} ${nick}`);
+    } else {
+      ctx.sendCommand(`WHOIS ${args.join(' ')}`);
+    }
 
     // Open modal if whoisDisplayMode is 'modal'
     const mode = useUIStore.getState().whoisDisplayMode;

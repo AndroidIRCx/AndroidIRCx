@@ -555,13 +555,13 @@ describe('tabStore', () => {
       expect(result?.id).toBe('tab2');
     });
 
-    it('should return undefined when no active tab', () => {
+    it('should auto-select first tab when no active tab is set', () => {
       act(() => {
         useTabStore.getState().setTabs([createMockTab('tab1')]);
       });
 
       const result = useTabStore.getState().getActiveTab();
-      expect(result).toBeUndefined();
+      expect(result?.id).toBe('tab1');
     });
 
     it('should return undefined when active tab id not found', () => {

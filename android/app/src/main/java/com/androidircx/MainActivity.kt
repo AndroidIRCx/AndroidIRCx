@@ -29,20 +29,11 @@ class MainActivity : ReactActivity() {
         // Ensure content doesn't draw behind system bars (traditional layout)
         // This works together with android:windowOptOutEdgeToEdgeEnforcement on Android 15+
         WindowCompat.setDecorFitsSystemWindows(window, true)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // Hide app content in Android recents/task snapshots.
+        // Keep app content hidden from screenshots and Android recents/task snapshots.
+        // This avoids lock-screen content leaking in recent-app previews.
         window.setFlags(
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         )
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Re-enable screenshots/screen sharing while app is active.
-        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
     }
 }

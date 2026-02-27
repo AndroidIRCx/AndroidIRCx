@@ -19,6 +19,7 @@ jest.mock('react-native', () => ({
 jest.mock('../../src/services/SettingsService', () => ({
   settingsService: {
     getSetting: jest.fn().mockImplementation((key, defaultValue) => Promise.resolve(defaultValue)),
+    setSetting: jest.fn().mockResolvedValue(undefined),
     onSettingChange: jest.fn().mockReturnValue(jest.fn()),
   },
 }));
@@ -26,6 +27,7 @@ jest.mock('../../src/services/SettingsService', () => ({
 jest.mock('../../src/services/BiometricAuthService', () => ({
   biometricAuthService: {
     isAvailable: jest.fn().mockReturnValue(true),
+    hasEnrolledBiometrics: jest.fn().mockResolvedValue(true),
     authenticate: jest.fn().mockResolvedValue({ success: true }),
     enableLock: jest.fn().mockResolvedValue(true),
     disableLock: jest.fn().mockResolvedValue(true),

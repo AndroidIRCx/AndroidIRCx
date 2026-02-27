@@ -21,6 +21,20 @@ class BiometricAuthService {
     return Boolean(Keychain && (Keychain.getSupportedBiometryType || Keychain.getGenericPassword));
   }
 
+  /**
+   * Returns true only when OS-level biometric enrollment is present.
+   * This is stricter than `isAvailable()` which only checks API/module presence.
+   */
+  async hasEnrolledBiometrics(): Promise<boolean> {
+    if (!Keychain?.getSupportedBiometryType) return false;
+    try {
+      const biometryType = await Keychain.getSupportedBiometryType();
+      return Boolean(biometryType);
+    } catch {
+      return false;
+    }
+  }
+
   async getBiometryType(): Promise<string | null> {
     if (!Keychain?.getSupportedBiometryType) return null;
     try {

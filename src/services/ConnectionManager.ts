@@ -144,13 +144,18 @@ class ConnectionManager {
 
     const ircService = new IRCService();
     ircService.setNetworkId(finalId);  // Set networkId FIRST so all messages have correct network!
+    const manualWhoisDoubleNick = networkConfig.whoisUseDoubleNick === true;
+    const autoDetectWhoisDoubleNick = networkConfig.whoisAutoDetectDoubleNick !== false;
+    ircService.setWhoisUseDoubleNick(manualWhoisDoubleNick);
     ircService.addRawMessage(t('*** Creating new connection for {networkId}', { networkId: finalId }), 'connection');
     const channelManagementService = new ChannelManagementService(ircService);
     const userManagementService = new UserManagementService();
     userManagementService.setIRCService(ircService);
+    userManagementService.setNetwork(finalId);
     ircService.setUserManagementService(userManagementService);
     const notifyService = new NotifyService();
     notifyService.setIRCService(ircService);
+    notifyService.setNetwork(finalId);
     ircService.setNotifyService(notifyService);
     const channelListService = new ChannelListService(ircService);
     const autoRejoinService = new AutoRejoinService(ircService);
@@ -228,6 +233,27 @@ class ConnectionManager {
       }
     }
 
+    // Network-specific post-connect commands (useful for servers without SASL support).
+    const networkPostConnectCommands = (networkConfig.postConnectCommands || [])
+      .map(cmd => cmd?.trim())
+      .filter((cmd): cmd is string => Boolean(cmd));
+    if (networkPostConnectCommands.length > 0) {
+      const postConnectCleanup = ircService.on('motdEnd', () => {
+        try {
+          networkPostConnectCommands.forEach(cmd => ircService.sendRaw(cmd));
+          ircService.addRawMessage(
+            t('*** Executed {count} network post-connect command(s)', { count: networkPostConnectCommands.length }),
+            'connection'
+          );
+        } catch (error) {
+          console.error(`ConnectionManager: Failed to run network post-connect commands for ${finalId}:`, error);
+        }
+      });
+      if (postConnectCleanup && typeof postConnectCleanup === 'function') {
+        cleanupFunctions.push(postConnectCleanup);
+      }
+    }
+
     // Initialize AutoAuthService
     console.log(`ConnectionManager: Initializing auto-auth for ${finalId}`);
     const autoAuthService = createAutoAuthService({
@@ -264,7 +290,7 @@ class ConnectionManager {
     // Initialize services
     console.log(`ConnectionManager: Initializing services for ${finalId}`);
     ircService.addRawMessage(t('*** Initializing services for {networkId}', { networkId: finalId }), 'connection');
-    userManagementService.initialize();
+    await userManagementService.initialize();
     notifyService.initialize?.();
     channelManagementService.initialize();
     autoRejoinService.initialize();
@@ -281,6 +307,11 @@ class ConnectionManager {
     // Subscribe to service detection events
     const detectionCleanup = serviceDetectionService.onDetection((networkId, result) => {
       if (networkId === finalId) {
+        if (autoDetectWhoisDoubleNick && !manualWhoisDoubleNick) {
+          const undernetDetected = result.serviceType === 'undernet';
+          ircService.setWhoisUseDoubleNick(undernetDetected);
+        }
+
         console.log(`ConnectionManager: Service detected for ${finalId}:`, result);
         ircService.addRawMessage(
           t('*** Detected services: {serviceType} (confidence: {confidence}%)', {

@@ -19,10 +19,14 @@ interface QueuedMessage {
 class MessageHistoryBatching {
   private readonly BATCH_SIZE = 10;
   private readonly BATCH_TIMEOUT_MS = 2000; // 2 seconds
+  private readonly RETRY_BASE_DELAY_MS = 3000;
+  private readonly RETRY_MAX_DELAY_MS = 30000;
 
   private queue: QueuedMessage[] = [];
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
+  private retryTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private isFlushing = false;
+  private retryAttempts = 0;
 
   /**
    * Queue a message for batched saving
@@ -34,6 +38,8 @@ class MessageHistoryBatching {
     }
 
     this.queue.push({ message, network });
+    // New traffic indicates link/storage recovered; clear pending retry backoff.
+    this.resetRetryTimer();
 
     // Flush if batch size reached
     if (this.queue.length >= this.BATCH_SIZE) {
@@ -81,15 +87,28 @@ class MessageHistoryBatching {
       });
 
       // Save each network's messages in batch
-      const savePromises = Array.from(messagesByNetwork.entries()).map(([network, messages]) =>
-        messageHistoryService.saveMessages(messages, network).catch(err => {
+      const failedMessages: QueuedMessage[] = [];
+      const savePromises = Array.from(messagesByNetwork.entries()).map(async ([network, messages]) => {
+        try {
+          await messageHistoryService.saveMessages(messages, network);
+        } catch (err) {
           console.error(`MessageHistoryBatching: Error saving batch for ${network}:`, err);
-        })
-      );
+          messages.forEach(message => failedMessages.push({ message, network }));
+        }
+      });
 
       await Promise.all(savePromises);
+
+      if (failedMessages.length > 0) {
+        // Preserve failed messages for retry; prepend so ordering is maintained.
+        this.queue = [...failedMessages, ...this.queue];
+        this.scheduleRetryFlush();
+      } else {
+        this.retryAttempts = 0;
+      }
     } catch (error) {
       console.error('MessageHistoryBatching: Error flushing batch:', error);
+      this.scheduleRetryFlush();
     } finally {
       this.isFlushing = false;
     }
@@ -121,7 +140,33 @@ class MessageHistoryBatching {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
+    this.resetRetryTimer();
     this.queue = [];
+  }
+
+  private scheduleRetryFlush(): void {
+    if (this.retryTimeoutId || this.queue.length === 0) {
+      return;
+    }
+    const delay = Math.min(
+      this.RETRY_BASE_DELAY_MS * Math.pow(2, this.retryAttempts),
+      this.RETRY_MAX_DELAY_MS
+    );
+    this.retryAttempts++;
+    this.retryTimeoutId = setTimeout(() => {
+      this.retryTimeoutId = null;
+      this.flush().catch(err => {
+        console.error('MessageHistoryBatching: Retry flush failed:', err);
+      });
+    }, delay);
+  }
+
+  private resetRetryTimer(): void {
+    if (this.retryTimeoutId) {
+      clearTimeout(this.retryTimeoutId);
+      this.retryTimeoutId = null;
+    }
+    this.retryAttempts = 0;
   }
 }
 

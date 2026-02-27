@@ -183,6 +183,7 @@ export class IRCService {
   private connectionListeners: ((connected: boolean) => void)[] = [];
   private eventListeners: Map<string, Function[]> = new Map();
   private buffer: string = '';
+  private socketTextDecoder: TextDecoder | null = null;
   private registered: boolean = false;
   private currentNick: string = '';
   private altNick: string = '';
@@ -245,6 +246,13 @@ export class IRCService {
 
   // Multiline message handler (draft/multiline)
   private multilineHandler: MultilineHandler = new MultilineHandler();
+  private whoisUseDoubleNick: boolean = false;
+  private keepAliveTimer: NodeJS.Timeout | null = null;
+  private lastInboundActivityAt: number = 0;
+  private keepAliveMissedPongs: number = 0;
+  private readonly KEEPALIVE_IDLE_MS = 120000;
+  private readonly KEEPALIVE_INTERVAL_MS = 60000;
+  private readonly KEEPALIVE_MAX_MISSED_PONGS = 3;
 
   // SASL state
   private saslAuthenticating: boolean = false;
@@ -499,6 +507,42 @@ export class IRCService {
     return null;
   }
 
+  private startKeepAlive(): void {
+    this.stopKeepAlive();
+    this.lastInboundActivityAt = Date.now();
+    this.keepAliveMissedPongs = 0;
+    this.keepAliveTimer = setInterval(() => {
+      if (!this.socket || !this.isConnected || !this.registered) {
+        return;
+      }
+      const now = Date.now();
+      const idleMs = now - this.lastInboundActivityAt;
+      if (idleMs >= this.KEEPALIVE_IDLE_MS) {
+        this.sendRaw(`PING :keepalive-${now}`);
+        this.keepAliveMissedPongs += 1;
+        if (this.keepAliveMissedPongs >= this.KEEPALIVE_MAX_MISSED_PONGS) {
+          this.addRawMessage(
+            t('*** Keepalive timeout: no PONG received, reconnecting socket...'),
+            'connection'
+          );
+          try {
+            this.socket?.destroy();
+          } catch (error: any) {
+            this.logRaw(`IRCService: Error destroying stale socket: ${error?.message || error}`);
+          }
+        }
+      }
+    }, this.KEEPALIVE_INTERVAL_MS);
+  }
+
+  private stopKeepAlive(): void {
+    if (this.keepAliveTimer) {
+      clearInterval(this.keepAliveTimer);
+      this.keepAliveTimer = null;
+    }
+    this.keepAliveMissedPongs = 0;
+  }
+
   connect(config: IRCConnectionConfig): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
@@ -552,6 +596,8 @@ export class IRCService {
         this.config = config;
         this.registered = false;
         this.buffer = '';
+        this.socketTextDecoder =
+          typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8', { fatal: false }) : null;
         
         this.capNegotiating = false;
         this.capEnabled = false;
@@ -616,7 +662,21 @@ export class IRCService {
           }
 
           this.socket.on('data', (data: any) => {
-            const dataStr = typeof data === 'string' ? data : data.toString();
+            let dataStr: string;
+            if (typeof data === 'string') {
+              dataStr = data;
+            } else if (this.socketTextDecoder && data && data.buffer !== undefined) {
+              try {
+                dataStr = this.socketTextDecoder.decode(
+                  data instanceof Uint8Array ? data : new Uint8Array(data),
+                  { stream: true }
+                );
+              } catch {
+                dataStr = data.toString();
+              }
+            } else {
+              dataStr = data.toString();
+            }
             this.buffer += dataStr;
             this.processBuffer();
           });
@@ -671,6 +731,8 @@ export class IRCService {
           this.socket.on('close', () => {
             if (this.manualDisconnect) {
               this.manualDisconnect = false;
+              this.socketTextDecoder = null;
+              this.stopKeepAlive();
               this.isConnected = false;
               this.registered = false;
               this.emitConnection(false);
@@ -684,6 +746,8 @@ export class IRCService {
             this.isConnected = false;
             this.registered = false;
             this.socket = null;
+            this.socketTextDecoder = null;
+            this.stopKeepAlive();
             this.emitConnection(false);
 
             // AutoReconnectService will handle reconnection via connectionChange event
@@ -701,6 +765,7 @@ export class IRCService {
             this.reconnectTimer = null;
           }
           this.emitConnection(true);
+          this.startKeepAlive();
           this.addRawMessage(
             t('*** Connected to {host}:{port}{tls}', {
               host: config.host,
@@ -931,13 +996,21 @@ export class IRCService {
   }
 
   private processBuffer(): void {
+    this.lastInboundActivityAt = Date.now();
     // Support both CRLF and LF line endings from servers/proxies
     const lines = this.buffer.split(/\r?\n/);
     this.buffer = lines.pop() || '';
 
+    if (this.buffer.length > 8192) {
+      this.logRaw(`IRCService: Large partial line buffer detected (${this.buffer.length} chars)`);
+    }
+
     for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed) {
+        if (line.length > 900) {
+          this.logRaw(`IRCService: Long inbound IRC line (${line.length} chars)`);
+        }
         this.addWireMessage('in', trimmed);
         this.handleIRCMessage(line);
       } else {
@@ -1086,6 +1159,11 @@ export class IRCService {
     if (command === 'PING') {
       const server = params[0] || '';
       this.sendRaw(server ? `PONG :${server}` : 'PONG');
+      return;
+    }
+    if (command === 'PONG') {
+      // Accept any PONG as keepalive proof; this recovers from idle timeout drifts.
+      this.keepAliveMissedPongs = 0;
       return;
     }
 
@@ -1820,6 +1898,8 @@ export class IRCService {
 
   disconnect(message?: string): void {
     this.manualDisconnect = true;
+    this.socketTextDecoder = null;
+    this.stopKeepAlive();
     if (this.socket) {
       const socketRef = this.socket;
 
@@ -2454,6 +2534,14 @@ export class IRCService {
 
   setNetworkId(id: string): void {
     this.networkId = id || '';
+  }
+
+  setWhoisUseDoubleNick(enabled: boolean): void {
+    this.whoisUseDoubleNick = Boolean(enabled);
+  }
+
+  getWhoisUseDoubleNick(): boolean {
+    return this.whoisUseDoubleNick;
   }
 
   setUserManagementService(svc: typeof userManagementService): void {

@@ -86,11 +86,10 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
       const nfc = await settingsService.getSetting('securityAllowNfcExchange', true);
       setAllowNfcExchange(nfc);
       
-      const appLock = await settingsService.getSetting('appLockEnabled', false);
-      setAppLockEnabled(appLock);
+      let appLock = await settingsService.getSetting('appLockEnabled', false);
       
       const appLockBio = await settingsService.getSetting('appLockUseBiometric', false);
-      setAppLockUseBiometric(appLockBio);
+      let effectiveAppLockBio = appLockBio;
 
       const appLockAutoBioPrompt = await settingsService.getSetting('appLockAutoBiometricPrompt', false);
       setAppLockAutoBiometricPrompt(appLockAutoBioPrompt);
@@ -104,9 +103,21 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
       const appLockBg = await settingsService.getSetting('appLockOnBackground', true);
       setAppLockOnBackground(appLockBg);
       
-      // Check biometric availability
-      const available = await biometricAuthService.isAvailable();
+      // Require actual biometric enrollment (not only API presence)
+      const available = await biometricAuthService.hasEnrolledBiometrics();
       setBiometricAvailable(available);
+
+      // Safety: if a restore brought biometric setting to true without enrollment, disable it.
+      if (effectiveAppLockBio && !available) {
+        effectiveAppLockBio = false;
+        await settingsService.setSetting('appLockUseBiometric', false);
+      }
+      if (appLock && !effectiveAppLockBio && !appLockPin) {
+        appLock = false;
+        await settingsService.setSetting('appLockEnabled', false);
+      }
+      setAppLockEnabled(appLock);
+      setAppLockUseBiometric(effectiveAppLockBio);
     };
     loadSettings();
   }, []);
@@ -178,13 +189,16 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
 
   const handleAppLockBiometricToggle = async (value: boolean) => {
     if (value) {
-      if (!biometricAvailable) {
+      const enrolled = await biometricAuthService.hasEnrolledBiometrics();
+      if (!enrolled) {
+        setBiometricAvailable(false);
         Alert.alert(
           t('Biometrics unavailable', { _tags: tags }),
           t('Enable a fingerprint/biometric on your device first.', { _tags: tags })
         );
         return;
       }
+      setBiometricAvailable(true);
       // Allow biometric and PIN to be enabled together - don't disable PIN
       // CRITICAL FIX: Pass 'app' scope to match authenticate() scope in useAppLock.ts
       // Without this, credentials are stored in wrong keychain service causing infinite error loop

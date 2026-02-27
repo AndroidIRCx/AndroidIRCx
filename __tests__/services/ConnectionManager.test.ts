@@ -20,6 +20,7 @@ const mockIRCService = {
   connect: jest.fn().mockResolvedValue(undefined),
   disconnect: jest.fn(),
   setNetworkId: jest.fn(),
+  setWhoisUseDoubleNick: jest.fn(),
   setUserManagementService: jest.fn(),
   setNotifyService: jest.fn(),
   isSaslAvailable: jest.fn().mockReturnValue(false),
@@ -114,6 +115,7 @@ jest.mock('../../src/services/UserManagementService', () => ({
   UserManagementService: jest.fn().mockImplementation(() => ({
     initialize: jest.fn(),
     setIRCService: jest.fn(),
+    setNetwork: jest.fn(),
   })),
 }));
 

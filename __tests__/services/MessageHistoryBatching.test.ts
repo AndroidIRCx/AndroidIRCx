@@ -17,7 +17,8 @@ jest.mock('../../src/services/MessageHistoryService', () => ({
 
 describe('MessageHistoryBatching', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    (messageHistoryService.saveMessages as jest.Mock).mockResolvedValue(undefined);
     // Reset batching state
     messageHistoryBatching.clearQueue();
   });

@@ -34,6 +34,9 @@ jest.mock('../../src/hooks/useTheme', () => ({
 
 jest.mock('../../src/i18n/transifex', () => ({
   useT: jest.fn(() => (key: string) => key),
+  tx: {
+    t: (key: string) => key,
+  },
 }));
 
 jest.mock('../../src/services/DataBackupService', () => ({
@@ -86,14 +89,14 @@ describe('BackupScreen', () => {
     const { findByText } = render(<BackupScreen visible={true} onClose={onClose} />);
     fireEvent.press(await findByText('Restore from Backup'));
     fireEvent.press(await findByText('Restore'));
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Please paste backup data first');
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Please paste backup data or load a backup file first');
   });
 
-  it('loads backup JSON from file and fills input', async () => {
+  it('loads backup JSON from file and shows loaded-file metadata card', async () => {
     const json = '{"version":1,"data":{"foo":"bar"}}';
     (RNFS.readFile as jest.Mock).mockResolvedValue(json);
 
-    const { findByText, getByDisplayValue } = render(
+    const { findByText, queryByDisplayValue } = render(
       <BackupScreen visible={true} onClose={onClose} />
     );
     fireEvent.press(await findByText('Restore from Backup'));
@@ -101,9 +104,13 @@ describe('BackupScreen', () => {
 
     await waitFor(() => {
       expect(RNFS.readFile).toHaveBeenCalledWith('/tmp/backup.json', 'utf8');
-      expect(getByDisplayValue(json)).toBeTruthy();
+      expect(queryByDisplayValue(json)).toBeNull();
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Backup Loaded',
+        'Backup file loaded successfully. Please wait during restore and do not close the app.'
+      );
     });
-    expect(Alert.alert).toHaveBeenCalledWith('Success', 'Backup loaded from file');
+    expect(await findByText('Loaded Backup File')).toBeTruthy();
   });
 
   it('shows error when selected file is invalid JSON', async () => {

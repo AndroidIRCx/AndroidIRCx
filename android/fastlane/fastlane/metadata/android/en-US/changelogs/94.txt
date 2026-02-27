@@ -1,0 +1,6 @@
+Stability & security update:
+- Backup/restore UX improved: blocking loader with 'Please wait', no large JSON rendering in input, and a new restart modal (OK / Exit to Restart App).
+- Fixed biometric lockout after restore (checks biometric enrollment before enabling).
+- WHOIS improved: added double-nick option for Undernet with auto network detection.
+- Improved auto op/voice retry, notify reliability, and message-history batch retry.
+- Test suite updated; tests are passing.

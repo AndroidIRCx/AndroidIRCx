@@ -215,8 +215,7 @@ describe('IRCCommandHandlers', () => {
       const ctx = (handlers as any).ctx;
       ctx.runAutoModeCheckForJoin('speaker', 'user', 'host.com', '#channel');
 
-      // We have voice so we CAN grant voice to others
-      expect(mockService.sendRaw).toHaveBeenCalledWith('MODE #channel +v speaker');
+      expect(mockService.sendRaw).not.toHaveBeenCalled();
     });
 
     it('should not send mode when no list entry matches', () => {

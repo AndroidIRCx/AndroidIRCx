@@ -39,6 +39,7 @@ export class NotifyService extends EventEmitter {
   private serverSupportsWatch: boolean = false;
   private isConnected: boolean = false;
   private currentNetwork: string = '';
+  private subscriptionRetryTimers: NodeJS.Timeout[] = [];
 
   constructor() {
     super();
@@ -76,6 +77,10 @@ export class NotifyService extends EventEmitter {
     const handleDisconnected = () => {
       this.isConnected = false;
       this.clearISONInterval();
+      this.clearSubscriptionRetryTimers();
+      this.protocol = null;
+      this.serverSupportsMonitor = false;
+      this.serverSupportsWatch = false;
     };
 
     // Primary path: IRCService connection change callbacks
@@ -145,6 +150,21 @@ export class NotifyService extends EventEmitter {
     }
     
     switch (numeric) {
+      case 5: // RPL_ISUPPORT
+      case 105: // RPL_REMOTEISUPPORT (some daemons)
+        {
+          const tokens = params.slice(1, -1);
+          for (const token of tokens) {
+            const normalized = token.toUpperCase();
+            if (normalized.startsWith('WATCH')) {
+              this.serverSupportsWatch = true;
+            } else if (normalized.startsWith('MONITOR')) {
+              this.serverSupportsMonitor = true;
+            }
+          }
+        }
+        break;
+
       // WATCH numerics
       case 600: // RPL_LOGON
       case 604: // RPL_NOWON
@@ -217,7 +237,7 @@ export class NotifyService extends EventEmitter {
           for (const entry of notifyEntries) {
             const nick = entry.mask.split('!')[0]; // Get nick from mask
             const isOnline = onlineSet.has(nick.toLowerCase());
-            const currentStatus = this.notifyStatus.get(nick);
+            const currentStatus = this.notifyStatus.get(nick.toLowerCase());
             
             if (isOnline && !currentStatus?.online) {
               this.setUserOnline(nick, undefined, timestamp);
@@ -237,6 +257,7 @@ export class NotifyService extends EventEmitter {
     
     // Subscribe to notify list
     this.subscribeToNotifyList();
+    this.scheduleSubscriptionRetries();
   }
 
   private detectProtocol(): NotifyProtocol {
@@ -256,10 +277,7 @@ export class NotifyService extends EventEmitter {
   }
 
   private subscribeToNotifyList(): void {
-    const entries = this.getNotifyList();
-    if (entries.length === 0) return;
-
-    const nicks = entries.map(e => e.mask.split('!')[0]).filter(Boolean);
+    const nicks = this.getNotifyNicks();
     if (nicks.length === 0) return;
 
     switch (this.protocol) {
@@ -309,7 +327,10 @@ export class NotifyService extends EventEmitter {
     // Start polling
     this.isonInterval = setInterval(() => {
       if (this.isConnected) {
-        this.sendISONCommand(nicks);
+        const currentNicks = this.getNotifyNicks();
+        if (currentNicks.length > 0) {
+          this.sendISONCommand(currentNicks);
+        }
       }
     }, this.ISON_INTERVAL_MS);
   }
@@ -332,15 +353,49 @@ export class NotifyService extends EventEmitter {
     }
   }
 
+  private getNotifyNicks(): string[] {
+    const entries = this.getNotifyList();
+    const unique = new Map<string, string>();
+    for (const entry of entries) {
+      const nick = entry.mask.split('!')[0]?.trim();
+      if (!nick) continue;
+      const key = nick.toLowerCase();
+      if (!unique.has(key)) {
+        unique.set(key, nick);
+      }
+    }
+    return Array.from(unique.values());
+  }
+
+  private scheduleSubscriptionRetries(): void {
+    this.clearSubscriptionRetryTimers();
+    const retryDelays = [2000, 8000];
+    for (const delay of retryDelays) {
+      const timer = setTimeout(() => {
+        if (this.isConnected) {
+          this.subscribeToNotifyList();
+        }
+      }, delay);
+      this.subscriptionRetryTimers.push(timer);
+    }
+  }
+
+  private clearSubscriptionRetryTimers(): void {
+    if (this.subscriptionRetryTimers.length === 0) return;
+    this.subscriptionRetryTimers.forEach(timer => clearTimeout(timer));
+    this.subscriptionRetryTimers = [];
+  }
+
   private getNotifyList(): UserListEntry[] {
     return userManagementService.getUserListEntries('notify', this.currentNetwork);
   }
 
   private setUserOnline(nick: string, host?: string, timestamp?: number): void {
-    const existing = this.notifyStatus.get(nick);
+    const key = nick.toLowerCase();
+    const existing = this.notifyStatus.get(key);
     const wasOffline = !existing?.online;
     
-    this.notifyStatus.set(nick, {
+    this.notifyStatus.set(key, {
       online: true,
       host,
       lastSeen: timestamp || Date.now(),
@@ -353,10 +408,11 @@ export class NotifyService extends EventEmitter {
   }
 
   private setUserOffline(nick: string, timestamp?: number): void {
-    const existing = this.notifyStatus.get(nick);
+    const key = nick.toLowerCase();
+    const existing = this.notifyStatus.get(key);
     const wasOnline = existing?.online;
     
-    this.notifyStatus.set(nick, {
+    this.notifyStatus.set(key, {
       online: false,
       lastSeen: timestamp || Date.now(),
     });
@@ -441,7 +497,7 @@ export class NotifyService extends EventEmitter {
       }
     }
     
-    this.notifyStatus.delete(nick);
+    this.notifyStatus.delete(nick.toLowerCase());
   }
 
   /**
@@ -455,7 +511,7 @@ export class NotifyService extends EventEmitter {
    * Get online status for a nick
    */
   getStatus(nick: string): NotifyStatus | undefined {
-    return this.notifyStatus.get(nick);
+    return this.notifyStatus.get(nick.toLowerCase());
   }
 
   /**
@@ -509,6 +565,7 @@ export class NotifyService extends EventEmitter {
   destroy(): void {
     this.cleanupIRCListeners();
     this.clearISONInterval();
+    this.clearSubscriptionRetryTimers();
     this.removeAllListeners();
   }
 }

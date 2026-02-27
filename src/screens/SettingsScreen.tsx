@@ -203,6 +203,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showDataPrivacy, setShowDataPrivacy] = useState(false);
   const [backupData, setBackupData] = useState('');
   const [showBackupModal, setShowBackupModal] = useState(false);
+  const [backupOperation, setBackupOperation] = useState<'idle' | 'export' | 'import' | 'save' | 'copy'>('idle');
   const [showBackupScreen, setShowBackupScreen] = useState(false);
   const [showHistoryViewer, setShowHistoryViewer] = useState(false);
   const [showKeyManagement, setShowKeyManagement] = useState(false);
@@ -1006,7 +1007,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }, 1000); // Delay to allow user to return from settings
   };
 
+  const backupBusy = backupOperation !== 'idle';
+  const backupOperationLabel = backupOperation === 'export'
+    ? t('Generating backup...', { _tags: tags })
+    : backupOperation === 'import'
+    ? t('Restoring backup...', { _tags: tags })
+    : backupOperation === 'save'
+    ? t('Saving backup file...', { _tags: tags })
+    : backupOperation === 'copy'
+    ? t('Copying backup data...', { _tags: tags })
+    : '';
+
   const handleBackupExport = async (settingsOnly: boolean = false) => {
+    if (backupBusy) return;
+    setBackupOperation('export');
     try {
       const data = settingsOnly
         ? await dataBackupService.exportSettings()
@@ -1023,10 +1037,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         t('Backup Error', { _tags: tags }),
         error instanceof Error ? error.message : t('Failed to create backup', { _tags: tags })
       );
+    } finally {
+      setBackupOperation('idle');
     }
   };
 
   const handleBackupImport = async () => {
+    if (backupBusy) return;
+    if (!backupData.trim()) {
+      Alert.alert(
+        t('Restore Error', { _tags: tags }),
+        t('Please paste backup data first', { _tags: tags })
+      );
+      return;
+    }
+    setBackupOperation('import');
     try {
       await dataBackupService.importAll(backupData);
       Alert.alert(
@@ -1041,10 +1066,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         t('Restore Error', { _tags: tags }),
         error instanceof Error ? error.message : t('Invalid backup data', { _tags: tags })
       );
+    } finally {
+      setBackupOperation('idle');
     }
   };
 
   const handleBackupCopyToClipboard = () => {
+    if (backupBusy) return;
+    setBackupOperation('copy');
     try {
       Clipboard.setString(backupData);
       Alert.alert(
@@ -1056,6 +1085,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         t('Error', { _tags: tags }),
         error instanceof Error ? error.message : t('Failed to copy to clipboard', { _tags: tags })
       );
+    } finally {
+      setBackupOperation('idle');
     }
   };
 
@@ -1093,6 +1124,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   const handleBackupSaveToFile = async () => {
+    if (backupBusy) return;
+    if (!backupData.trim()) {
+      Alert.alert(
+        t('Error', { _tags: tags }),
+        t('No backup data to save', { _tags: tags })
+      );
+      return;
+    }
+    setBackupOperation('save');
     try {
       // Generate filename with timestamp
       const now = new Date();
@@ -1132,6 +1172,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         t('Error', { _tags: tags }),
         error instanceof Error ? error.message : t('Failed to save backup file', { _tags: tags })
       );
+    } finally {
+      setBackupOperation('idle');
     }
   };
 
@@ -2697,12 +2739,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           visible={showBackupModal}
           transparent
           animationType="fade"
-          onRequestClose={() => setShowBackupModal(false)}>
+          onRequestClose={() => {
+            if (!backupBusy) setShowBackupModal(false);
+          }}>
           <View style={styles.submenuOverlay}>
             <View style={[styles.submenuContainer, { maxHeight: '80%' }]}>
               <View style={styles.submenuHeader}>
                 <Text style={styles.submenuTitle}>{t('Backup / Restore', { _tags: tags })}</Text>
-                <TouchableOpacity onPress={() => setShowBackupModal(false)}>
+                <TouchableOpacity disabled={backupBusy} onPress={() => setShowBackupModal(false)}>
                   <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
                 </TouchableOpacity>
               </View>
@@ -2717,19 +2761,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   onChangeText={setBackupData}
                   placeholder={t('Backup JSON appears here', { _tags: tags })}
                   placeholderTextColor={colors.textSecondary}
+                  editable={!backupBusy}
                 />
               </ScrollView>
+              {backupBusy && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 8 }}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={[styles.submenuItemDescription, { marginLeft: 8 }]}>
+                    {backupOperationLabel}
+                  </Text>
+                </View>
+              )}
               <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-                <TouchableOpacity onPress={() => setShowBackupModal(false)}>
+                <TouchableOpacity disabled={backupBusy} onPress={() => setShowBackupModal(false)}>
                   <Text style={styles.closeButtonText}>{t('Cancel', { _tags: tags })}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleBackupCopyToClipboard}>
+                <TouchableOpacity disabled={backupBusy} onPress={handleBackupCopyToClipboard}>
                   <Text style={[styles.closeButtonText, { color: colors.primary }]}>{t('Copy to Clipboard', { _tags: tags })}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleBackupSaveToFile}>
+                <TouchableOpacity disabled={backupBusy} onPress={handleBackupSaveToFile}>
                   <Text style={[styles.closeButtonText, { color: colors.primary }]}>{t('Save to File', { _tags: tags })}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleBackupImport}>
+                <TouchableOpacity disabled={backupBusy} onPress={handleBackupImport}>
                   <Text style={styles.closeButtonText}>{t('Restore', { _tags: tags })}</Text>
                 </TouchableOpacity>
               </View>

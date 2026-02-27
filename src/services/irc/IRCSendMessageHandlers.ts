@@ -28,6 +28,7 @@ import { userListCommands } from './sendCommands/UserListCommands';
 interface IRCServiceSendInterface {
   currentNick: string;
   getNetworkName: () => string;
+  getWhoisUseDoubleNick: () => boolean;
   sendRaw: (command: string) => void;
   sendCommand: (command: string) => void;
   addMessage: (message: any) => void;
@@ -61,6 +62,7 @@ export class IRCSendMessageHandlers {
     return {
       getCurrentNick: () => svc.currentNick,
       getNetworkName: () => svc.getNetworkName(),
+      getWhoisUseDoubleNick: () => svc.getWhoisUseDoubleNick(),
       sendRaw: (command: string) => svc.sendRaw(command),
       sendCommand: (command: string) => svc.sendCommand(command),
       addMessage: (message: any) => svc.addMessage(message),

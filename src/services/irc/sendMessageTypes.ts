@@ -12,6 +12,7 @@ export interface SendMessageContext {
   // Current state
   getCurrentNick: () => string;
   getNetworkName: () => string;
+  getWhoisUseDoubleNick: () => boolean;
 
   // Outgoing operations
   sendRaw: (command: string) => void;

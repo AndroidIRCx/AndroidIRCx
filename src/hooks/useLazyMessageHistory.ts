@@ -38,6 +38,16 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
   }, [activeTabId]);
 
   // Force reload history for a specific tab (used when app returns from background)
+  const loadHistoryWithRetry = useCallback(async (networkId: string, channelKey: string) => {
+    const first = await messageHistoryService.loadMessages(networkId, channelKey);
+    if (first.length > 0) {
+      return first;
+    }
+    // Small retry helps when storage write batching lags behind UI state transitions.
+    await new Promise<void>((resolve) => setTimeout(resolve, 250));
+    return messageHistoryService.loadMessages(networkId, channelKey);
+  }, []);
+
   const forceReloadHistory = useCallback(async (tabId: string) => {
     const tabStore = useTabStore.getState();
     // Get fresh tabs state each time to avoid stale data
@@ -69,10 +79,7 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
 
       // Load message history for this tab
       console.log(`useLazyMessageHistory: Force reloading history for tab ${tabId} (${tab.networkId}/${channelKey})`);
-      const history = await messageHistoryService.loadMessages(
-        tab.networkId,
-        channelKey
-      );
+      const history = await loadHistoryWithRetry(tab.networkId, channelKey);
 
       // Get fresh tabs state again before updating (in case tabs changed during async operation)
       currentTabs = tabStore.tabs;
@@ -102,7 +109,7 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
     } catch (error) {
       console.error(`Error force reloading message history for tab ${tabId}:`, error);
     }
-  }, []);
+  }, [loadHistoryWithRetry]);
 
   // Monitor app state changes to reload history when returning from background
   useEffect(() => {
@@ -208,10 +215,7 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
 
         // Load message history for this tab
         console.log(`useLazyMessageHistory: Loading history for tab ${activeTabId} (${activeTab.networkId}/${channelKey})`);
-        const history = await messageHistoryService.loadMessages(
-          activeTab.networkId,
-          channelKey
-        );
+        const history = await loadHistoryWithRetry(activeTab.networkId, channelKey);
 
         // Get fresh tabs state again before updating (in case tabs changed during async operation)
         const freshTabs = tabStore.tabs;
@@ -253,7 +257,7 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
     };
 
     loadHistoryForTab();
-  }, [activeTabId, forceReloadHistory]);
+  }, [activeTabId, forceReloadHistory, loadHistoryWithRetry]);
 
   // Clear loaded cache when tabs change (e.g., on network switch)
   // Subscribe to tabs to detect when they change

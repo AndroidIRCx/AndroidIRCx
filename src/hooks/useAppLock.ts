@@ -47,13 +47,27 @@ export function useAppLock() {
    */
   const loadAppLockSettings = useCallback(async () => {
     const enabled = await settingsService.getSetting('appLockEnabled', false);
-    const useBiometric = await settingsService.getSetting('appLockUseBiometric', false);
+    let useBiometric = await settingsService.getSetting('appLockUseBiometric', false);
     const usePin = await settingsService.getSetting('appLockUsePin', false);
     const lockOnLaunch = await settingsService.getSetting('appLockOnLaunch', true);
     const lockOnBackground = await settingsService.getSetting('appLockOnBackground', true);
     const autoBiometricPrompt = await settingsService.getSetting('appLockAutoBiometricPrompt', false);
     const storedPin = await secureStorageService.getSecret(APP_PIN_STORAGE_KEY);
     const pinEnabled = usePin && Boolean(storedPin);
+
+    // Safety guard for restore/migration edge cases:
+    // never keep biometric app lock enabled when no OS-enrolled biometric exists.
+    if (useBiometric) {
+      const enrolled = await biometricAuthService.hasEnrolledBiometrics();
+      if (!enrolled) {
+        useBiometric = false;
+        await settingsService.setSetting('appLockUseBiometric', false);
+        await biometricAuthService.disableLock('app');
+      }
+    }
+    if (enabled && !useBiometric && !pinEnabled) {
+      await settingsService.setSetting('appLockEnabled', false);
+    }
 
     if (!isMountedRef.current) return;
 
@@ -132,6 +146,18 @@ export function useAppLock() {
     if (!biometricAuthService.isAvailable()) {
       if (isMountedRef.current) {
         store.setAppPinError('Biometric authentication is not available on this device.');
+      }
+      return false;
+    }
+
+    const hasEnrollment = await biometricAuthService.hasEnrolledBiometrics();
+    if (!hasEnrollment) {
+      // Safety fallback: disable broken biometric state to prevent restore lockout loops.
+      await settingsService.setSetting('appLockUseBiometric', false);
+      await biometricAuthService.disableLock('app');
+      if (isMountedRef.current) {
+        store.setAppLockUseBiometric(false);
+        store.setAppPinError('No biometric credential is enrolled on this device. Use PIN unlock.');
       }
       return false;
     }

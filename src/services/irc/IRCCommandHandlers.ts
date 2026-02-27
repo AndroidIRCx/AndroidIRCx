@@ -160,7 +160,7 @@ export class IRCCommandHandlers {
 
         const retryKey = `${network}:${channel}:${nick.toLowerCase()}`;
 
-        const attemptAutoMode = (allowRetry: boolean) => {
+        const attemptAutoMode = (retriesRemaining: number) => {
           // Get our own modes in the channel
           const currentNick = (svc as any).currentNick as string;
           const usersInChannel = channelUsers.get(channel);
@@ -171,7 +171,8 @@ export class IRCCommandHandlers {
 
           const hasOp = myModes.includes('o') || myModes.includes('q') || myModes.includes('a');
           const hasHalfop = hasOp || myModes.includes('h');
-          const hasVoice = hasHalfop || myModes.includes('v');
+          // Voice users cannot usually grant +v; require halfop/op-level grant privileges.
+          const hasVoiceGrant = hasHalfop;
 
           // Check autoop list
           const autoOpEntry = userMgmtService.findMatchingUserListEntry('autoop', nick, username, hostname, network, channel);
@@ -203,7 +204,7 @@ export class IRCCommandHandlers {
             if (targetModes.includes('v') || targetModes.includes('h') || targetModes.includes('o') || targetModes.includes('q') || targetModes.includes('a')) {
               return;
             }
-            if (hasVoice) {
+            if (hasVoiceGrant) {
               (svc as any).sendRaw(`MODE ${channel} +v ${nick}`);
               return;
             }
@@ -212,7 +213,7 @@ export class IRCCommandHandlers {
           // If list entry exists but we don't have privileges yet, retry once shortly.
           // This helps when our op/halfop arrives after JOIN burst.
           const hasAnyAutoModeEntry = Boolean(autoOpEntry || autoHalfopEntry || autoVoiceEntry);
-          if (allowRetry && hasAnyAutoModeEntry && (svc as any).isConnected === true && !retryTimers.has(retryKey)) {
+          if (retriesRemaining > 0 && hasAnyAutoModeEntry && (svc as any).isConnected === true && !retryTimers.has(retryKey)) {
             const retryTimer = setTimeout(() => {
               retryTimers.delete(retryKey);
               // User might have left before retry
@@ -220,13 +221,13 @@ export class IRCCommandHandlers {
               if (!refreshedUsers?.has(nick.toLowerCase())) {
                 return;
               }
-              attemptAutoMode(false);
+              attemptAutoMode(retriesRemaining - 1);
             }, 1500);
             retryTimers.set(retryKey, retryTimer);
           }
         };
 
-        attemptAutoMode(true);
+        attemptAutoMode(3);
       },
       isExtendedJoinEnabled: () => Boolean((svc as any).extendedJoin),
       emitJoinedChannel: (channel: string) => (svc as any).emit('joinedChannel', channel),

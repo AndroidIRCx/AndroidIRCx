@@ -51,13 +51,28 @@ export interface TabState {
 
 const LAST_ACTIVE_TAB_PREFIX = '@AndroidIRCX:lastActiveTab:';
 
+function resolveActiveTabId(tabs: ChannelTab[], preferredId: string): string {
+  if (preferredId && tabs.some((t) => t.id === preferredId)) {
+    return preferredId;
+  }
+  const serverTab = tabs.find((t) => t.type === 'server');
+  if (serverTab) {
+    return serverTab.id;
+  }
+  return tabs[0]?.id || '';
+}
+
 export const useTabStore = create<TabState>((set, get) => ({
   // Initial state
   tabs: [],
   activeTabId: '',
 
   // Actions
-  setTabs: (tabs) => set({ tabs }),
+  setTabs: (tabs) =>
+    set((state) => ({
+      tabs,
+      activeTabId: resolveActiveTabId(tabs, state.activeTabId),
+    })),
 
   setActiveTabId: (id) => {
     set({ activeTabId: id });
@@ -79,9 +94,13 @@ export const useTabStore = create<TabState>((set, get) => ({
     }),
 
   removeTab: (tabId) =>
-    set((state) => ({
-      tabs: state.tabs.filter((t) => t.id !== tabId),
-    })),
+    set((state) => {
+      const nextTabs = state.tabs.filter((t) => t.id !== tabId);
+      return {
+        tabs: nextTabs,
+        activeTabId: resolveActiveTabId(nextTabs, state.activeTabId === tabId ? '' : state.activeTabId),
+      };
+    }),
 
   updateTab: (tabId, updates) =>
     set((state) => ({
@@ -128,8 +147,10 @@ export const useTabStore = create<TabState>((set, get) => ({
   removeTabs: (tabIds) =>
     set((state) => {
       const idsToRemove = new Set(tabIds);
+      const nextTabs = state.tabs.filter((t) => !idsToRemove.has(t.id));
       return {
-        tabs: state.tabs.filter((t) => !idsToRemove.has(t.id)),
+        tabs: nextTabs,
+        activeTabId: resolveActiveTabId(nextTabs, idsToRemove.has(state.activeTabId) ? '' : state.activeTabId),
       };
     }),
 
@@ -189,7 +210,11 @@ export const useTabStore = create<TabState>((set, get) => ({
           // Otherwise use loaded tab (which has empty messages array)
           return loadedTab;
         });
-        return { tabs: [...otherTabs, ...mergedTabs] };
+        const nextTabs = [...otherTabs, ...mergedTabs];
+        return {
+          tabs: nextTabs,
+          activeTabId: resolveActiveTabId(nextTabs, state.activeTabId),
+        };
       });
     } catch (error) {
       console.error(`Failed to load tabs for network ${networkId}:`, error);

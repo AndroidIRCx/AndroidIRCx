@@ -80,6 +80,40 @@ function isNetworkSecureSecret(secretKey: string): boolean {
 }
 
 class DataBackupService {
+  private readonly STORAGE_BATCH_SIZE = 100;
+
+  private async yieldToEventLoop(): Promise<void> {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  }
+
+  private async multiGetInChunks(keys: string[]): Promise<Array<[string, string | null]>> {
+    if (keys.length === 0) return [];
+    const allEntries: Array<[string, string | null]> = [];
+    for (let i = 0; i < keys.length; i += this.STORAGE_BATCH_SIZE) {
+      const chunk = keys.slice(i, i + this.STORAGE_BATCH_SIZE);
+      const entries = await AsyncStorage.multiGet(chunk);
+      allEntries.push(...(entries as Array<[string, string | null]>));
+      await this.yieldToEventLoop();
+    }
+    return allEntries;
+  }
+
+  private async multiSetInChunks(pairs: Array<[string, string]>): Promise<void> {
+    for (let i = 0; i < pairs.length; i += this.STORAGE_BATCH_SIZE) {
+      const chunk = pairs.slice(i, i + this.STORAGE_BATCH_SIZE);
+      await AsyncStorage.multiSet(chunk);
+      await this.yieldToEventLoop();
+    }
+  }
+
+  private async multiRemoveInChunks(keys: string[]): Promise<void> {
+    for (let i = 0; i < keys.length; i += this.STORAGE_BATCH_SIZE) {
+      const chunk = keys.slice(i, i + this.STORAGE_BATCH_SIZE);
+      await AsyncStorage.multiRemove(chunk);
+      await this.yieldToEventLoop();
+    }
+  }
+
   private async getSecureExportEntries(keys?: string[]): Promise<Array<[string, string | null]>> {
     const allSecretKeys = await secureStorageService.getAllSecretKeys();
     const explicitSecureSelections = keys
@@ -135,7 +169,7 @@ class DataBackupService {
    */
   async exportAll(): Promise<string> {
     const keys = await AsyncStorage.getAllKeys();
-    const entries = await AsyncStorage.multiGet(keys);
+    const entries = await this.multiGetInChunks(keys);
     const secureEntries = await this.getSecureExportEntries();
     const payload = this.buildPayload(entries, secureEntries);
     return JSON.stringify(payload);
@@ -162,7 +196,7 @@ class DataBackupService {
       return true;
     });
 
-    const entries = await AsyncStorage.multiGet(filteredKeys);
+    const entries = await this.multiGetInChunks(filteredKeys);
     const secureEntries = await this.getSecureExportEntries();
     const payload = this.buildPayload(entries, secureEntries);
     return JSON.stringify(payload);
@@ -190,10 +224,10 @@ class DataBackupService {
       .map(([key]) => key);
 
     if (setPairs.length > 0) {
-      await AsyncStorage.multiSet(setPairs);
+      await this.multiSetInChunks(setPairs);
     }
     if (removeKeys.length > 0) {
-      await AsyncStorage.multiRemove(removeKeys);
+      await this.multiRemoveInChunks(removeKeys);
     }
 
     const securePairs = Object.entries(parsed.secureData || {});
@@ -228,7 +262,7 @@ class DataBackupService {
    */
   async getStorageStats(): Promise<{ keyCount: number; totalBytes: number }> {
     const keys = await AsyncStorage.getAllKeys();
-    const entries = await AsyncStorage.multiGet(keys);
+    const entries = await this.multiGetInChunks(keys);
     const secureEntries = await this.getSecureExportEntries();
     const totalBytes = entries.reduce((sum, [, value]) => sum + (value ? value.length : 0), 0) +
       secureEntries.reduce((sum, [, value]) => sum + (value ? value.length : 0), 0);
@@ -359,7 +393,7 @@ class DataBackupService {
    */
   async exportKeys(keys: string[]): Promise<string> {
     const asyncKeys = keys.filter(key => !isSecureExportKey(key));
-    const entries = await AsyncStorage.multiGet(asyncKeys);
+    const entries = await this.multiGetInChunks(asyncKeys);
     const secureEntries = await this.getSecureExportEntries(keys);
     const payload = this.buildPayload(entries, secureEntries);
     return JSON.stringify(payload);

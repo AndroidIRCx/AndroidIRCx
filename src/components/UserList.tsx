@@ -1467,8 +1467,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                 <QRCode
                   value={qrPayload}
                   size={260}
-                  backgroundColor="#FFFFFF"
-                  color="#000000"
+                  backgroundColor={colors.surface || '#FFFFFF'}
+                  color={colors.text || '#000000'}
                   ecl="H"
                 />
               ) : null}
@@ -1646,7 +1646,7 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
     gap: 12,
   },
   scanText: {
-    color: '#fff',
+    color: colors.onPrimary || '#fff',
     fontWeight: '600',
   },
   scanClose: {
@@ -1761,10 +1761,10 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
     alignItems: 'center',
   },
   contextMenuWarning: {
-    color: '#FF9800', // Orange for warnings (kick)
+    color: colors.warning || '#FF9800', // Warning actions (kick)
   },
   contextMenuDanger: {
-    color: '#F44336', // Red for dangerous actions (ban, kick+ban)
+    color: colors.error || '#F44336', // Dangerous actions (ban, kick+ban)
   },
   subGroup: {
     paddingLeft: 12,
@@ -1786,7 +1786,7 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
   },
   feedbackText: {
     fontSize: 12,
-    color: '#616161',
+    color: colors.textSecondary || '#616161',
     textAlign: 'center',
   },
   blacklistOverlay: {
@@ -1905,7 +1905,7 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
     color: colors.text || '#212121',
   },
   blacklistButtonTextPrimary: {
-    color: '#FFFFFF',
+    color: colors.onPrimary || '#FFFFFF',
     fontWeight: '600',
   },
   blacklistPickerScroll: {
@@ -1913,7 +1913,7 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
     marginBottom: 8,
   },
   qrModal: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface || '#FFFFFF',
     borderRadius: 12,
     minWidth: 300,
     maxWidth: 360,
@@ -1927,37 +1927,37 @@ const createStyles = (colors: any = {}, panelSizePx: number = 150, nickFontSizeP
   },
   qrModalHeader: {
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface || '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border || '#E0E0E0',
   },
   qrModalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text || '#212121',
     marginBottom: 6,
     textAlign: 'center',
   },
   qrModalSubtitle: {
     fontSize: 13,
-    color: '#757575',
+    color: colors.textSecondary || '#757575',
     textAlign: 'center',
   },
   qrCodeContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface || '#FFFFFF',
   },
   qrModalButton: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface || '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: colors.border || '#E0E0E0',
   },
   qrModalButtonText: {
     fontSize: 15,
-    color: '#2196F3',
+    color: colors.primary || '#2196F3',
     textAlign: 'center',
     fontWeight: '500',
     },
