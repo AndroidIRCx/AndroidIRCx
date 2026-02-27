@@ -55,7 +55,6 @@ export interface IRCNetworkConfig {
   clientCert?: string;
   clientKey?: string;
   connectOnStartup?: boolean;
-  postConnectCommands?: string[];
   // WHOIS format controls for networks like Undernet that require "WHOIS nick nick" for idle time.
   // If auto-detect is true (default), Undernet detection enables double-nick format automatically.
   whoisAutoDetectDoubleNick?: boolean;

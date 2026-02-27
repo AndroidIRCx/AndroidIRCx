@@ -218,7 +218,34 @@ class ConnectionManager {
 
           const commands = (profile.onConnectCommands || []).filter(cmd => !!cmd && cmd.trim().length > 0);
           if (commands.length > 0) {
-            commands.forEach(cmd => ircService.sendRaw(cmd));
+            const commandTarget =
+              ircService.getCurrentNick?.() ||
+              profile.nick ||
+              networkConfig.nick ||
+              finalId;
+            commands.forEach(cmd => {
+              const trimmed = cmd.trim();
+              if (!trimmed) return;
+
+              // Explicit raw commands keep raw semantics.
+              if (/^\/(?:quote|raw)\s+/i.test(trimmed)) {
+                const normalizedRaw = trimmed.replace(/^\/(?:quote|raw)\s+/i, '').trim();
+                if (normalizedRaw) {
+                  ircService.sendRaw(normalizedRaw);
+                }
+                return;
+              }
+
+              // Slash commands should be parsed by IRCService command handlers.
+              // This prevents sending "/whois" literally to the server.
+              if (trimmed.startsWith('/')) {
+                ircService.sendMessage(commandTarget, trimmed);
+                return;
+              }
+
+              // Keep backward compatibility for plain raw lines.
+              ircService.sendRaw(trimmed);
+            });
             ircService.addRawMessage(
               t('*** Executed {count} on-connect command(s) from identity profile', { count: commands.length }),
               'connection'
@@ -230,27 +257,6 @@ class ConnectionManager {
       });
       if (motdCommandsCleanup && typeof motdCommandsCleanup === 'function') {
         cleanupFunctions.push(motdCommandsCleanup);
-      }
-    }
-
-    // Network-specific post-connect commands (useful for servers without SASL support).
-    const networkPostConnectCommands = (networkConfig.postConnectCommands || [])
-      .map(cmd => cmd?.trim())
-      .filter((cmd): cmd is string => Boolean(cmd));
-    if (networkPostConnectCommands.length > 0) {
-      const postConnectCleanup = ircService.on('motdEnd', () => {
-        try {
-          networkPostConnectCommands.forEach(cmd => ircService.sendRaw(cmd));
-          ircService.addRawMessage(
-            t('*** Executed {count} network post-connect command(s)', { count: networkPostConnectCommands.length }),
-            'connection'
-          );
-        } catch (error) {
-          console.error(`ConnectionManager: Failed to run network post-connect commands for ${finalId}:`, error);
-        }
-      });
-      if (postConnectCleanup && typeof postConnectCleanup === 'function') {
-        cleanupFunctions.push(postConnectCleanup);
       }
     }
 

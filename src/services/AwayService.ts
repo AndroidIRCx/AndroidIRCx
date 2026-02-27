@@ -84,20 +84,24 @@ class AwayService {
 
     cleanup.push(ircService.onMessage((message) => this.handleIncomingMessage(networkId, ircService, message)));
     cleanup.push(ircService.on('send-raw', (raw: string) => this.handleOutgoingRaw(networkId, ircService, raw)));
-    cleanup.push(ircService.on('numeric', async (numeric: string, _prefix: string, params: string[]) => {
-      if (numeric === '305') {
-        // RPL_UNAWAY
-        state.isAway = false;
-        state.reason = '';
-        this.stopAnnounceTimer(networkId);
-        await this.restoreNickIfNeeded(networkId, ircService);
-      }
-      if (numeric === '306') {
-        // RPL_NOWAWAY
-        const reason = params.slice(1).join(' ').replace(/^:/, '').trim();
-        state.isAway = true;
-        state.reason = reason || state.reason;
-        this.startAnnounceTimer(networkId, ircService);
+    cleanup.push(ircService.on('numeric', async (numeric: number, _prefix: string, params: string[]) => {
+      try {
+        if (numeric === 305) {
+          // RPL_UNAWAY
+          state.isAway = false;
+          state.reason = '';
+          this.stopAnnounceTimer(networkId);
+          await this.restoreNickIfNeeded(networkId, ircService);
+        }
+        if (numeric === 306) {
+          // RPL_NOWAWAY
+          const reason = params.slice(1).join(' ').replace(/^:/, '').trim();
+          state.isAway = true;
+          state.reason = reason || state.reason;
+          this.startAnnounceTimer(networkId, ircService);
+        }
+      } catch (error) {
+        console.error(`AwayService: Failed to handle numeric ${numeric} for ${networkId}:`, error, params);
       }
     }));
     cleanup.push(ircService.onConnectionChange((connected) => {

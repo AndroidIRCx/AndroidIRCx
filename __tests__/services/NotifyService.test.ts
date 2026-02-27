@@ -25,7 +25,7 @@ jest.mock('../../src/services/SoundService', () => ({
 
 jest.mock('../../src/services/NotificationService', () => ({
   notificationService: {
-    showLocalNotification: jest.fn(),
+    showNotification: jest.fn(),
   },
 }));
 
@@ -135,6 +135,11 @@ describe('NotifyService', () => {
       expect(listener).toHaveBeenCalledWith(expect.objectContaining({
         nick: 'Friend',
         host: 'user@host.com',
+      }));
+      expect(mockIRCService.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'notice',
+        from: 'Friend',
+        text: 'is now online',
       }));
     });
 

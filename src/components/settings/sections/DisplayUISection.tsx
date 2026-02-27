@@ -74,7 +74,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const [showTypingIndicatorsSetting, setShowTypingIndicatorsSetting] = useState(propShowTypingIndicators ?? true);
   const [showSendButton, setShowSendButton] = useState(true);
   const [showColorPickerButton, setShowColorPickerButton] = useState(true);
-  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>('newline');
+  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>('send');
   const [keyboardAvoidingEnabled, setKeyboardAvoidingEnabled] = useState(true);
   const [keyboardBehaviorIOS, setKeyboardBehaviorIOS] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('padding');
   const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('height');
@@ -112,7 +112,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
       const colorPickerButton = await settingsService.getSetting('showColorPickerButton', true);
       setShowColorPickerButton(colorPickerButton);
 
-      const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'newline');
+      const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'send');
       setEnterKeyBehavior(enterBehavior);
 
       const avoidingEnabled = await settingsService.getSetting('keyboardAvoidingEnabled', true);

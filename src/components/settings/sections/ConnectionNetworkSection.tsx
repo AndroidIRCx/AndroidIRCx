@@ -201,7 +201,6 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   const pinResolveRef = React.useRef<((ok: boolean) => void) | null>(null);
   const [whoisAutoDetectDoubleNick, setWhoisAutoDetectDoubleNick] = useState(true);
   const [whoisUseDoubleNick, setWhoisUseDoubleNick] = useState(false);
-  const [postConnectCommandsText, setPostConnectCommandsText] = useState('');
   
   // Submenu state for ConnectionNetworkSection items
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
@@ -287,10 +286,8 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         const currentNetworkConfig = networks.find(n => n.id === currentNetwork);
         const autoDetectWhois = currentNetworkConfig?.whoisAutoDetectDoubleNick !== false;
         const manualWhoisDoubleNick = currentNetworkConfig?.whoisUseDoubleNick === true;
-        const commandsText = (currentNetworkConfig?.postConnectCommands || []).join('\n');
         setWhoisAutoDetectDoubleNick(autoDetectWhois);
         setWhoisUseDoubleNick(manualWhoisDoubleNick);
-        setPostConnectCommandsText(commandsText);
 
         const reconnectEnabled = autoReconnectService.isEnabled(currentNetwork);
         const reconnectConfig = autoReconnectService.getConfig(currentNetwork);
@@ -1596,31 +1593,6 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         ],
       },
       {
-        id: 'connection-post-connect-commands',
-        title: t('Post-connect commands', { _tags: tags }),
-        description: t('Run one IRC command per line after connect (after MOTD)', { _tags: tags }),
-        type: 'input',
-        value: postConnectCommandsText,
-        disabled: !currentNetwork,
-        placeholder: t('/msg NickServ IDENTIFY password', { _tags: tags }),
-        searchKeywords: ['post', 'connect', 'commands', 'sasl', 'login', 'automation', 'motd'],
-        onValueChange: async (value: string | boolean) => {
-          if (!currentNetwork) return;
-          const strValue = value as string;
-          setPostConnectCommandsText(strValue);
-          const network = networks.find(n => n.id === currentNetwork);
-          if (!network) return;
-          const parsedCommands = strValue
-            .split(/\r?\n/)
-            .map(cmd => cmd.trim())
-            .filter(Boolean);
-          await settingsService.updateNetwork(currentNetwork, {
-            ...network,
-            postConnectCommands: parsedCommands,
-          });
-        },
-      },
-      {
         id: 'connection-whois-auto-detect',
         title: t('Auto-detect WHOIS idle format', { _tags: tags }),
         description: whoisAutoDetectDoubleNick
@@ -1918,7 +1890,6 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     pinLockEnabled,
     whoisAutoDetectDoubleNick,
     whoisUseDoubleNick,
-    postConnectCommandsText,
     passwordsUnlocked,
     passwordLockActive,
     passwordUnlockDescription,

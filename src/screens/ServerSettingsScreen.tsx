@@ -22,7 +22,7 @@ import { useT } from '../i18n/transifex';
 interface ServerSettingsScreenProps {
   networkId: string;
   serverId?: string;
-  onSave: (server: IRCServerConfig) => void;
+  onSave: (server: IRCServerConfig) => void | Promise<void>;
   onCancel: () => void;
 }
 
@@ -44,6 +44,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   const [favorite, setFavorite] = useState(false);
   const [isDefaultServer, setIsDefaultServer] = useState(false);
   const [wasDefaultServer, setWasDefaultServer] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (serverId && networkId) {
@@ -86,6 +87,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   };
 
   const handleSave = async () => {
+    if (saving) return;
     if (!hostname.trim()) {
       Alert.alert(t('Error'), t('Please enter a hostname'));
       return;
@@ -117,7 +119,12 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
       await settingsService.clearDefaultServerForNetwork(networkId, server.id);
     }
 
-    onSave(server);
+    try {
+      setSaving(true);
+      await Promise.resolve(onSave(server));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -127,12 +134,19 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
       onRequestClose={onCancel}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
+          <TouchableOpacity onPress={onCancel} style={styles.cancelButton} disabled={saving}>
             <Text style={styles.cancelText}>{t('Cancel')}</Text>
           </TouchableOpacity>
           <Text style={styles.title}>{t('Server Settings')}</Text>
-          <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-            <Text style={styles.saveText}>{t('Save')}</Text>
+          <TouchableOpacity onPress={handleSave} style={styles.saveButton} disabled={saving}>
+            {saving ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ActivityIndicator size="small" color="#fff" />
+                <Text style={[styles.saveText, { marginLeft: 6 }]}>{t('Saving...')}</Text>
+              </View>
+            ) : (
+              <Text style={styles.saveText}>{t('Save')}</Text>
+            )}
           </TouchableOpacity>
         </View>
 

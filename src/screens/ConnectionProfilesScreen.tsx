@@ -61,6 +61,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
   const [editProfileOnConnectCommands, setEditProfileOnConnectCommands] = useState('');
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSavingIdentityProfile, setIsSavingIdentityProfile] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -571,6 +572,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
           transparent
           animationType="slide"
           onRequestClose={() => {
+            if (isSavingIdentityProfile) return;
             setShowEditProfileModal(false);
             setEditingProfileId(null);
             setSelectedNetworkForIdentity(null);
@@ -728,7 +730,9 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
                     style={[styles.modalButton, { backgroundColor: colors.buttonSecondary }]}
+                    disabled={isSavingIdentityProfile}
                     onPress={() => {
+                      if (isSavingIdentityProfile) return;
                       setShowEditProfileModal(false);
                       setEditingProfileId(null);
                       setSelectedNetworkForIdentity(null);
@@ -740,6 +744,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {editingProfileId && (
                     <TouchableOpacity
                       style={[styles.modalButton, { backgroundColor: colors.error }]}
+                      disabled={isSavingIdentityProfile}
                       onPress={() => handleDeleteIdentityProfile(editingProfileId)}>
                       <Text style={[styles.modalButtonText, { color: colors.onPrimary }]}>
                         {t('Delete', { _tags: tags })}
@@ -749,6 +754,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   <TouchableOpacity
                     style={[styles.modalButton, { backgroundColor: colors.buttonPrimary }]}
                     onPress={async () => {
+                      if (isSavingIdentityProfile) return;
                       if (!editProfileName.trim() || !editProfileNick.trim()) {
                         Alert.alert(
                           t('Error', { _tags: tags }),
@@ -776,6 +782,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                       };
 
                       try {
+                        setIsSavingIdentityProfile(true);
                         let savedProfile: IdentityProfile | null = null;
                         if (editingProfileId) {
                           await identityProfilesService.update(editingProfileId, payload);
@@ -791,6 +798,10 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                         if (savedProfile && selectedNetworkForIdentity) {
                           await handleIdentityProfileChange(selectedNetworkForIdentity, savedProfile.id);
                         }
+
+                        setShowEditProfileModal(false);
+                        setEditingProfileId(null);
+                        setSelectedNetworkForIdentity(null);
                       } catch (error) {
                         console.error('Failed to save identity profile:', error);
                         Alert.alert(
@@ -798,13 +809,11 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                           t('Failed to save identity profile', { _tags: tags })
                         );
                       } finally {
-                        setShowEditProfileModal(false);
-                        setEditingProfileId(null);
-                        setSelectedNetworkForIdentity(null);
+                        setIsSavingIdentityProfile(false);
                       }
                     }}>
                     <Text style={[styles.modalButtonText, { color: colors.buttonPrimaryText }]}>
-                      Save
+                      {isSavingIdentityProfile ? t('Saving...', { _tags: tags }) : t('Save', { _tags: tags })}
                     </Text>
                   </TouchableOpacity>
                 </View>

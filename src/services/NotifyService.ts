@@ -425,28 +425,31 @@ export class NotifyService extends EventEmitter {
 
   private showNotifyMessage(nick: string, online: boolean): void {
     if (!this.ircService) return;
-    
+
+    // Emit as NOTICE from the tracked nick so existing notice routing applies
+    // (server/active/notice/private) and nick actions (WHOIS, context menu) work.
     const message = online
-      ? t('*** {nick} is now online', { nick })
-      : t('*** {nick} is now offline', { nick });
-    
-    // Send as system type so it's always visible
+      ? t('is now online')
+      : t('is now offline');
+
     this.ircService.addMessage({
-      type: 'system',
+      type: 'notice',
+      from: nick,
       text: message,
       timestamp: Date.now(),
-      channel: 'notifications', // Special channel for notifications tab
     });
     
     // Play sound for online notification
     if (online) {
       soundService.playSound(SoundEventType.NOTIFY);
       
-      // Show toast notification
-      notificationService.showLocalNotification(
+      // Show local OS notification
+      notificationService.showNotification(
         t('Notify'),
         t('{nick} is now online', { nick }),
-        { type: 'notify', nick, network: this.currentNetwork }
+        nick,
+        this.currentNetwork,
+        'notice'
       );
     }
   }

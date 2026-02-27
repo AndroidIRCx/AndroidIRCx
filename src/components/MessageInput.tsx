@@ -115,7 +115,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const lastActivityRef = useRef(0);
 
   // Enter key behavior state
-  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>('newline');
+  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>('send');
 
   // Load send button setting and subscribe to changes
   useEffect(() => {
@@ -124,7 +124,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       setShowSendButton(enabled);
       const showColors = await settingsService.getSetting('showColorPickerButton', true);
       setShowColorPickerButton(showColors);
-      const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'newline');
+      const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'send');
       setEnterKeyBehavior(enterBehavior);
       const nickEnabled = await settingsService.getSetting('nickCompleteEnabled', false);
       const sep1 = await settingsService.getSetting('nickCompleteSeparator1', '');

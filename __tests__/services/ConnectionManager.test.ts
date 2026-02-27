@@ -17,6 +17,7 @@ const mockIRCService = {
   getConnectionStatus: jest.fn().mockReturnValue(true),
   addRawMessage: jest.fn(),
   sendRaw: jest.fn(),
+  sendMessage: jest.fn(),
   connect: jest.fn().mockResolvedValue(undefined),
   disconnect: jest.fn(),
   setNetworkId: jest.fn(),
@@ -298,6 +299,54 @@ describe('ConnectionManager', () => {
       await connectionManager.connect('test-network', configWithProfile, mockConnectionConfig);
       
       expect(mockIRCService.on).toHaveBeenCalledWith('motdEnd', expect.any(Function));
+    });
+
+    it('should normalize /quote and /raw in identity profile on-connect commands', async () => {
+      const configWithProfile = {
+        ...mockNetworkConfig,
+        identityProfileId: 'profile-1',
+      };
+
+      mockIdentityProfilesService.get.mockResolvedValue({
+        onConnectCommands: ['/quote PASS testpass', '/raw WHOIS Nick Nick', 'PRIVMSG NickServ :IDENTIFY x'],
+      });
+
+      await connectionManager.connect('test-network', configWithProfile, mockConnectionConfig);
+
+      const motdEndHandler = mockIRCService.on.mock.calls.find(
+        (call: [string, Function]) => call[0] === 'motdEnd'
+      )?.[1];
+      expect(typeof motdEndHandler).toBe('function');
+
+      await motdEndHandler?.();
+
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('PASS testpass');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('WHOIS Nick Nick');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('PRIVMSG NickServ :IDENTIFY x');
+    });
+
+    it('should route slash commands from identity profile through sendMessage parser', async () => {
+      const configWithProfile = {
+        ...mockNetworkConfig,
+        identityProfileId: 'profile-1',
+      };
+
+      mockIdentityProfilesService.get.mockResolvedValue({
+        nick: 'ProfileNick',
+        onConnectCommands: ['/whois AndroidIRcxBridge', '/join #AndroidIRCx'],
+      });
+
+      await connectionManager.connect('test-network', configWithProfile, mockConnectionConfig);
+
+      const motdEndHandler = mockIRCService.on.mock.calls.find(
+        (call: [string, Function]) => call[0] === 'motdEnd'
+      )?.[1];
+      expect(typeof motdEndHandler).toBe('function');
+
+      await motdEndHandler?.();
+
+      expect(mockIRCService.sendMessage).toHaveBeenCalledWith('TestUser', '/whois AndroidIRcxBridge');
+      expect(mockIRCService.sendMessage).toHaveBeenCalledWith('TestUser', '/join #AndroidIRCx');
     });
 
     it('should register with AutoReconnectService', async () => {

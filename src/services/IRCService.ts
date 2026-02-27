@@ -291,15 +291,35 @@ export class IRCService {
   }
 
   public emit(event: string, ...args: any[]) {
-      if (this.eventListeners.has(event)) {
-      this.eventListeners.get(event)!.forEach(listener => {
-              try {
-                listener(...args);
-              } catch (e) {
-                console.error(`Error in IRCService event listener for ${event}:`, e);
-              }
+    if (!this.eventListeners.has(event)) {
+      return;
+    }
+    const listeners = this.eventListeners.get(event)!;
+    listeners.forEach((listener, index) => {
+      const listenerName = typeof listener === 'function' && listener.name
+        ? listener.name
+        : `anonymous#${index}`;
+      try {
+        const result = listener(...args);
+        if (result && typeof (result as Promise<unknown>).then === 'function') {
+          (result as Promise<unknown>).catch((e) => {
+            console.error(
+              `Error in IRCService async event listener for ${event} (${listenerName}):`,
+              e,
+              '\nargs:',
+              args
+            );
           });
+        }
+      } catch (e) {
+        console.error(
+          `Error in IRCService event listener for ${event} (${listenerName}):`,
+          e,
+          '\nargs:',
+          args
+        );
       }
+    });
   }
 
   private logRaw(...args: any[]): void {

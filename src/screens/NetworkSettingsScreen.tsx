@@ -27,7 +27,7 @@ import { Picker } from '@react-native-picker/picker';
 
 interface NetworkSettingsScreenProps {
   networkId?: string;
-  onSave: (network: IRCNetworkConfig) => void;
+  onSave: (network: IRCNetworkConfig) => void | Promise<void>;
   onCancel: () => void;
   onShowIdentityProfiles?: () => void;
 }
@@ -57,6 +57,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const [proxyUsername, setProxyUsername] = useState('');
   const [proxyPassword, setProxyPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Certificate modal states
@@ -160,6 +161,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   };
 
   const handleSave = async () => {
+    if (saving) return;
     if (!name.trim() || !nick.trim() || !realname.trim()) {
       Alert.alert(t('Error'), t('Please fill in all required fields (Name, Nick, Realname)'));
       return;
@@ -196,7 +198,12 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
       connectOnStartup: false,
     };
 
-    onSave(network);
+    try {
+      setSaving(true);
+      await Promise.resolve(onSave(network));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -206,12 +213,19 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
       onRequestClose={onCancel}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
+          <TouchableOpacity onPress={onCancel} style={styles.cancelButton} disabled={saving}>
             <Text style={styles.cancelText}>{t('Cancel')}</Text>
           </TouchableOpacity>
           <Text style={styles.title}>{t('Network Settings')}</Text>
-          <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-            <Text style={styles.saveText}>{t('Save')}</Text>
+          <TouchableOpacity onPress={handleSave} style={styles.saveButton} disabled={saving}>
+            {saving ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ActivityIndicator size="small" color="#fff" />
+                <Text style={[styles.saveText, { marginLeft: 6 }]}>{t('Saving...')}</Text>
+              </View>
+            ) : (
+              <Text style={styles.saveText}>{t('Save')}</Text>
+            )}
           </TouchableOpacity>
         </View>
 

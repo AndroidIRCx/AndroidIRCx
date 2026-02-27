@@ -526,7 +526,7 @@ export function AppLayout({
       <MessageInput
         placeholder="Enter a message"
         onSubmit={handleSendMessage}
-        disabled={!isConnected}
+        disabled={!activeTab}
         prefilledMessage={prefillMessage || undefined}
         onPrefillUsed={() => useUIStore.getState().setPrefillMessage(null)}
         bottomInset={bottomInset}
