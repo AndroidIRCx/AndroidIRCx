@@ -177,6 +177,11 @@ export function useAppLock() {
     }
 
     try {
+      if (AppState.currentState !== 'active') {
+        biometricAttemptInProgressRef.current = false;
+        return false;
+      }
+
       console.log('[useAppLock] Attempting biometric authentication with app scope...');
       const result = await biometricAuthService.authenticate(
         'Unlock AndroidIRCX',
@@ -433,7 +438,12 @@ export function useAppLock() {
       return;
     }
 
-    if (appLockUseBiometric && appLockAutoBiometricPrompt && !biometricAttemptInProgressRef.current) {
+    if (
+      appLockUseBiometric
+      && appLockAutoBiometricPrompt
+      && !biometricAttemptInProgressRef.current
+      && AppState.currentState === 'active'
+    ) {
       // Auto-prompt is optional and user-controlled from Security settings.
       void attemptBiometricUnlock(false);
     }

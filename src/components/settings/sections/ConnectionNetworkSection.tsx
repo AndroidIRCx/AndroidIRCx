@@ -74,6 +74,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:ConnectionNetworkSection.tsx,feature:settings';
+  const isMountedRef = useRef(true);
   
   const {
     networks,
@@ -224,20 +225,27 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
 
   // Load initial state
   useEffect(() => {
+    isMountedRef.current = true;
+
     const loadSettings = async () => {
       const autoConnect = await settingsService.getSetting('autoConnectFavoriteServer', false);
+      if (!isMountedRef.current) return;
       setAutoConnectFavoriteServer(autoConnect);
       
       const autoJoin = await settingsService.getSetting('autoJoinFavorites', true);
+      if (!isMountedRef.current) return;
       setAutoJoinFavoritesEnabled(autoJoin);
       
       const lagMethod = await settingsService.getSetting('lagCheckMethod', 'server');
+      if (!isMountedRef.current) return;
       setLagCheckMethod(lagMethod);
       
       const dccRange = await settingsService.getSetting('dccPortRange', { min: 5000, max: 6000 });
+      if (!isMountedRef.current) return;
       setDccMinPort(dccRange.min || 5000);
       setDccMaxPort(dccRange.max || 6000);
       const dccHost = await settingsService.getSetting('dccHostOverride', '');
+      if (!isMountedRef.current) return;
       setDccHostOverride(dccHost);
       setDccAutoGetMode(await settingsService.getSetting('dccAutoGetMode', 'accept'));
       setDccAcceptExts(await settingsService.getSetting('dccAcceptExts', NEW_FEATURE_DEFAULTS.dccAcceptExts));
@@ -274,22 +282,8 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       
       // Check biometric availability
       const available = await biometricAuthService.isAvailable();
+      if (!isMountedRef.current) return;
       setBiometricAvailable(available);
-      
-      // Re-initialize biometric lock if it was enabled (in case app was restarted)
-      if (biometricLock && available) {
-        try {
-          const reEnabled = await biometricAuthService.enableLock();
-          if (!reEnabled) {
-            console.warn('Failed to re-enable biometric lock after app restart');
-            // Don't disable it in settings, but log the warning
-            // PIN fallback will handle it if enabled
-          }
-        } catch (error) {
-          console.error('Error re-enabling biometric lock:', error);
-          // PIN fallback will handle it if enabled
-        }
-      }
       
       // Load network-specific settings
       if (currentNetwork) {
@@ -314,9 +308,15 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       refreshFavorites();
       
       // Load identity profiles
-      identityProfilesService.list().then(setIdentityProfiles).catch(() => {});
+      identityProfilesService.list().then((profiles) => {
+        if (!isMountedRef.current) return;
+        setIdentityProfiles(profiles);
+      }).catch(() => {});
     };
     loadSettings();
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [currentNetwork, networks, refreshFavorites]);
 
   // Track app state for biometric re-initialization
@@ -332,28 +332,10 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       if (prevAppState !== 'active' && nextAppState === 'active') {
         const biometricLock = await settingsService.getSetting('biometricPasswordLock', false);
         const pinLock = await settingsService.getSetting('pinPasswordLock', false);
-        const available = await biometricAuthService.isAvailable();
         
         // Lock passwords again when returning to foreground if lock is active
-        if ((biometricLock || pinLock) && passwordsUnlocked) {
+        if (isMountedRef.current && (biometricLock || pinLock) && passwordsUnlocked) {
           setPasswordsUnlocked(false);
-        }
-        
-        // Re-initialize biometric lock if enabled
-        if (biometricLock && available) {
-          try {
-            console.log('[ConnectionNetworkSection] App returned to foreground, re-initializing biometric lock');
-            const reEnabled = await biometricAuthService.enableLock();
-            if (!reEnabled) {
-              console.warn('[ConnectionNetworkSection] Failed to re-enable biometric lock after returning to foreground');
-              // PIN fallback will handle it if enabled
-            } else {
-              console.log('[ConnectionNetworkSection] Biometric lock re-initialized successfully');
-            }
-          } catch (error) {
-            console.error('[ConnectionNetworkSection] Error re-enabling biometric lock after foreground:', error);
-            // PIN fallback will handle it if enabled
-          }
         }
       }
     });

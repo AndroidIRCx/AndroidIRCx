@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { AppState, Platform } from 'react-native';
+
 // Optional dependency: react-native-keychain. Code guards in case it's missing.
 let Keychain: any = null;
 try {
@@ -15,6 +17,18 @@ try {
 class BiometricAuthService {
   private getService(scope?: string): string | undefined {
     return scope ? `androidircx:${scope}` : undefined;
+  }
+
+  private async waitForPromptStability(): Promise<boolean> {
+    if (AppState.currentState !== 'active') {
+      return false;
+    }
+
+    if (Platform.OS === 'android') {
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+
+    return AppState.currentState === 'active';
   }
 
   isAvailable(): boolean {
@@ -105,6 +119,15 @@ class BiometricAuthService {
       options.service = service;
     }
     try {
+      const promptReady = await this.waitForPromptStability();
+      if (!promptReady) {
+        return {
+          success: false,
+          errorKey: 'Authentication unavailable',
+          errorMessage: 'Biometric prompt is only available while the app is active.',
+        };
+      }
+
       console.log('[BiometricAuthService] Calling getGenericPassword');
       const result = await Keychain.getGenericPassword(options);
       console.log('[BiometricAuthService] getGenericPassword result:', result);
@@ -133,6 +156,14 @@ class BiometricAuthService {
           success: false,
           errorKey: 'User cancelled',
           errorMessage: undefined // User knows they cancelled, no need for error message
+        };
+      }
+
+      if (errorMsg.includes('current activity') || errorMsg.includes('Current activity')) {
+        return {
+          success: false,
+          errorKey: 'Authentication unavailable',
+          errorMessage: 'Biometric prompt is not ready yet. Please try again.',
         };
       }
 

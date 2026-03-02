@@ -95,6 +95,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   const [pinError, setPinError] = useState('');
   const pinResolveRef = useRef<((ok: boolean) => void) | null>(null);
   const PIN_STORAGE_KEY = '@AndroidIRCX:pin-lock';
+  const isMountedRef = useRef(false);
 
   // Refs for IAP listeners
   const purchaseUpdateSubscription = useRef<any>(null);
@@ -102,9 +103,20 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   const pendingUsernameRef = useRef<string>('');
   const pendingPurchaseTokenRef = useRef<string>(''); // For retry when username exists
 
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      const resolve = pinResolveRef.current;
+      pinResolveRef.current = null;
+      if (resolve) resolve(false);
+    };
+  }, []);
+
   const loadPasswordLockState = useCallback(async () => {
     const biometryType = await biometricAuthService.getBiometryType();
     const available = Boolean(biometryType);
+    if (!isMountedRef.current) return;
     setBiometricAvailable(available);
 
     const lockSetting = await settingsService.getSetting('biometricPasswordLock', false);
@@ -121,6 +133,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       await settingsService.setSetting('pinPasswordLock', false);
     }
 
+    if (!isMountedRef.current) return;
     setBiometricLockEnabled(biometricEnabled);
     setPinLockEnabled(pinEnabled);
     setPasswordsUnlocked(!(biometricEnabled || pinEnabled));
@@ -249,6 +262,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
           }
 
           if (offer?.offerToken) {
+            if (!isMountedRef.current) return;
             setOfferToken(offer.offerToken);
           } else if (offers.length > 0) {
             // If there are offers but no offerToken, try to get it from pricing phases
@@ -257,6 +271,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
                 const firstPhase = o.pricingPhases.pricingPhaseList[0];
                 if (firstPhase?.offerId) {
                   // Some implementations put the offer token in the offerId
+                  if (!isMountedRef.current) return;
                   setOfferToken(firstPhase.offerId);
                   break;
                 }
@@ -277,6 +292,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       console.log('Initializing IAP connection...');
       const connectionResult = await RNIap.initConnection();
       console.log('IAP connection result:', connectionResult);
+      if (!isMountedRef.current) return;
       setIapConnected(true);
 
       // Load subscription product using fetchProducts with type: 'subs'
@@ -314,6 +330,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
       if (sub) {
         console.log('Found subscription product:', sub);
+        if (!isMountedRef.current) return;
         setSubscription(sub);
 
         // Get offer token for Android
@@ -349,6 +366,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
           console.log('Selected offer:', offer); // Debug logging
 
           if (offer?.offerToken) {
+            if (!isMountedRef.current) return;
             setOfferToken(offer.offerToken);
             console.log('Set offer token:', offer.offerToken); // Debug logging
           } else if (offers.length > 0) {
@@ -358,6 +376,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
                 const firstPhase = o.pricingPhases.pricingPhaseList[0];
                 if (firstPhase?.offerId) {
                   // Some implementations put the offer token in the offerId
+                  if (!isMountedRef.current) return;
                   setOfferToken(firstPhase.offerId);
                   console.log('Set offer token from pricing phase:', firstPhase.offerId);
                   break;
@@ -393,6 +412,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       purchaseErrorSubscription.current = RNIap.purchaseErrorListener(handlePurchaseError);
     } catch (error) {
       console.error('Failed to initialize IAP:', error);
+      if (!isMountedRef.current) return;
       Alert.alert(
         t('Store Error'),
         t('Failed to connect to the store. Please check your internet connection and try again.')
@@ -404,31 +424,43 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     purchaseUpdateSubscription.current?.remove();
     purchaseErrorSubscription.current?.remove();
     RNIap.endConnection();
-    setIapConnected(false);
+    if (isMountedRef.current) {
+      setIapConnected(false);
+    }
   };
 
   const loadAccounts = async () => {
-    setLoading(true);
+    if (isMountedRef.current) {
+      setLoading(true);
+    }
     try {
       await subscriptionService.initialize();
+      if (!isMountedRef.current) return;
       setAccounts(subscriptionService.getAccounts());
     } catch (error) {
       console.error('Failed to load accounts:', error);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
   const handleRefresh = async () => {
-    setRefreshing(true);
+    if (isMountedRef.current) {
+      setRefreshing(true);
+    }
     try {
       await subscriptionService.refreshAllAccounts();
+      if (!isMountedRef.current) return;
       Alert.alert(t('Refreshed'), t('All account statuses updated.'));
     } catch (error: any) {
       console.error('Failed to refresh accounts:', error);
       Alert.alert(t('Error'), error.message || t('Failed to refresh accounts. Please check your connection.'));
     } finally {
-      setRefreshing(false);
+      if (isMountedRef.current) {
+        setRefreshing(false);
+      }
     }
   };
 
@@ -462,10 +494,12 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       Alert.alert(t('Error'), t('Failed to complete purchase. Please try again.'));
     } finally {
       // Always ensure states are reset to prevent stuck loading states
-      setPurchasing(false);
-      setRegistering(false);
-      setShowUsernameInput(false);
-      setNewUsername('');
+      if (isMountedRef.current) {
+        setPurchasing(false);
+        setRegistering(false);
+        setShowUsernameInput(false);
+        setNewUsername('');
+      }
       pendingUsernameRef.current = '';
     }
   };
@@ -474,8 +508,10 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     if (error.productId !== ZNC_PRODUCT_ID) return;
 
     // Always reset purchasing state to prevent stuck loading state
-    setPurchasing(false);
-    setRegistering(false);
+    if (isMountedRef.current) {
+      setPurchasing(false);
+      setRegistering(false);
+    }
 
     if (error.code !== ErrorCode.UserCancelled) {
       Alert.alert(t('Purchase Failed'), error.message || t('Unable to complete purchase.'));
@@ -484,7 +520,9 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
   const registerAccount = async (purchaseToken: string, username: string) => {
     // Ensure we're in the registering state
-    setRegistering(true);
+    if (isMountedRef.current) {
+      setRegistering(true);
+    }
     try {
       // Validate that we have both required parameters
       if (!purchaseToken || !username) {
@@ -504,6 +542,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
           {
             text: t('Add to Network'),
             onPress: () => {
+              if (!isMountedRef.current) return;
               setSelectedAccount(account);
               setShowNetworkPicker(true);
             },
@@ -864,7 +903,9 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   const handleNetworkSelected = async (network: IRCNetworkConfig) => {
     if (!selectedAccount) return;
 
-    setShowNetworkPicker(false);
+    if (isMountedRef.current) {
+      setShowNetworkPicker(false);
+    }
 
     try {
       // Generate server config

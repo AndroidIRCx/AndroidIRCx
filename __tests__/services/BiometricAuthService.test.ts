@@ -1,56 +1,100 @@
 /**
  * Copyright (c) 2025-2026 Velimir Majstorov
  * SPDX-License-Identifier: GPL-3.0-or-later
- *
- * Tests for BiometricAuthService - Wave 7
  */
 
 describe('BiometricAuthService', () => {
-  // The service uses dynamic require with try-catch
-  // Testing is limited without the actual keychain module
+  const loadService = (appState = 'active', platform: 'android' | 'ios' = 'android', keychainOverrides: Record<string, any> = {}) => {
+    jest.resetModules();
 
-  it('should have service exported', () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    jest.doMock('react-native', () => ({
+      AppState: {
+        currentState: appState,
+      },
+      Platform: {
+        OS: platform,
+      },
+    }));
+
+    jest.doMock('react-native-keychain', () => ({
+      getSupportedBiometryType: jest.fn().mockResolvedValue('Fingerprint'),
+      getGenericPassword: jest.fn().mockResolvedValue({ username: 'androidircx', password: 'unlock' }),
+      setGenericPassword: jest.fn().mockResolvedValue(true),
+      resetGenericPassword: jest.fn().mockResolvedValue(true),
+      ACCESS_CONTROL: {
+        BIOMETRY_CURRENT_SET: 'biometry',
+      },
+      ACCESSIBLE: {
+        WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'device-only',
+      },
+      AUTHENTICATION_TYPE: {
+        DEVICE_PASSCODE_OR_BIOMETRICS: 'device-or-bio',
+        BIOMETRICS: 'bio',
+      },
+      ...keychainOverrides,
+    }), { virtual: true });
+
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return require('../../src/services/BiometricAuthService').biometricAuthService;
+  };
+
+  afterEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+    jest.dontMock('react-native');
+    jest.dontMock('react-native-keychain');
+  });
+
+  it('exports the service', () => {
+    const biometricAuthService = loadService();
     expect(biometricAuthService).toBeDefined();
   });
 
-  it('should have required methods', () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
-    expect(typeof biometricAuthService.isAvailable).toBe('function');
-    expect(typeof biometricAuthService.getBiometryType).toBe('function');
-    expect(typeof biometricAuthService.enableLock).toBe('function');
-    expect(typeof biometricAuthService.disableLock).toBe('function');
-    expect(typeof biometricAuthService.authenticate).toBe('function');
-  });
+  it('returns authentication unavailable when app is not active', async () => {
+    const biometricAuthService = loadService('background');
 
-  it('should check availability', () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
-    // Returns false when keychain is not available
-    const result = biometricAuthService.isAvailable();
-    expect(typeof result).toBe('boolean');
-  });
-
-  it('should return null for biometry type when unavailable', async () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
-    const result = await biometricAuthService.getBiometryType();
-    expect(result).toBeNull();
-  });
-
-  it('should have enableLock method that returns a boolean', async () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
-    const result = await biometricAuthService.enableLock();
-    expect(typeof result).toBe('boolean');
-  });
-
-  it('should not throw when disabling lock', async () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
-    await expect(biometricAuthService.disableLock()).resolves.toBeUndefined();
-  });
-
-  it('should return object from authenticate', async () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
     const result = await biometricAuthService.authenticate('Unlock');
-    expect(typeof result).toBe('object');
-    expect(typeof result.success).toBe('boolean');
+
+    expect(result).toEqual({
+      success: false,
+      errorKey: 'Authentication unavailable',
+      errorMessage: 'Biometric prompt is only available while the app is active.',
+    });
+  });
+
+  it('maps current activity errors to a retryable failure', async () => {
+    const biometricAuthService = loadService('active', 'android', {
+      getGenericPassword: jest.fn().mockRejectedValue(new Error('Not assigned current activity')),
+    });
+
+    const result = await biometricAuthService.authenticate('Unlock');
+
+    expect(result).toEqual({
+      success: false,
+      errorKey: 'Authentication unavailable',
+      errorMessage: 'Biometric prompt is not ready yet. Please try again.',
+    });
+  });
+
+  it('returns success when keychain authentication succeeds', async () => {
+    const biometricAuthService = loadService();
+
+    const result = await biometricAuthService.authenticate('Unlock', 'Authenticate now', 'app');
+
+    expect(result).toEqual({ success: true });
+  });
+
+  it('returns cancelled when keychain reports cancellation', async () => {
+    const biometricAuthService = loadService('active', 'ios', {
+      getGenericPassword: jest.fn().mockRejectedValue(new Error('User cancel')),
+    });
+
+    const result = await biometricAuthService.authenticate('Unlock');
+
+    expect(result).toEqual({
+      success: false,
+      errorKey: 'User cancelled',
+      errorMessage: undefined,
+    });
   });
 });

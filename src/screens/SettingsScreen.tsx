@@ -288,8 +288,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const pinResolveRef = useRef<((ok: boolean) => void) | null>(null);
   const PIN_STORAGE_KEY = '@AndroidIRCX:pin-lock';
   const [consoleEnabled, setConsoleEnabled] = useState(__DEV__ ? consoleManager.getEnabled() : false);
+  const isMountedRef = useRef(false);
 
   // Premium and ad status now managed by useSettingsPremium hook
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      const resolve = pinResolveRef.current;
+      pinResolveRef.current = null;
+      if (resolve) resolve(false);
+    };
+  }, []);
 
 
 
@@ -462,6 +473,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     
     // Continue with existing loadSettings logic
     const biometryType = await biometricAuthService.getBiometryType();
+    if (!isMountedRef.current) return;
     const biometrySupported = Boolean(biometryType);
     setBiometricAvailable(biometrySupported);
     const lockSetting = await settingsService.getSetting('biometricPasswordLock', false);
@@ -500,6 +512,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     // appLanguage now loaded by useSettingsAppearance hook
     setAutoConnectFavoriteServer(await settingsService.getSetting('autoConnectFavoriteServer', false));
     const globalProxy = await settingsService.getSetting('globalProxy', { enabled: false } as any);
+    if (!isMountedRef.current) return;
     if (globalProxy) {
       const enabled = globalProxy.enabled !== undefined ? Boolean(globalProxy.enabled) : true; // legacy configs assumed enabled
       setGlobalProxyEnabled(enabled);
@@ -525,6 +538,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       subscriptionId: '',
       zncUsername: '',
     });
+    if (!isMountedRef.current) return;
     const subscriptionId = zncConfig.subscriptionId || zncSubscriptionIdConst;
     setZncPurchaseToken(zncConfig.purchaseToken || '');
     setZncSubscriptionId(subscriptionId);
@@ -542,6 +556,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       zncPassword: null,
       zncStatus: null,
     });
+    if (!isMountedRef.current) return;
     setZncSubscriptionStatus(zncState.status);
     setZncExpiresAt(zncState.expiresAt);
     setZncPassword(zncState.zncPassword);
@@ -552,6 +567,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const loadHistoryStats = async () => {
     if (currentNetwork) {
       const stats = await messageHistoryService.getStats(currentNetwork);
+      if (!isMountedRef.current) return;
       setHistoryStats(stats);
     }
   };
@@ -569,11 +585,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     // No need to load here - hook handles it
     // Command settings now managed by CommandsSection component
     // Load performance settings
+    if (!isMountedRef.current) return;
     setPerformanceConfig(performanceService.getConfig());
     // Storage stats
-    dataBackupService.getStorageStats().then(setStorageStats).catch(() => {});
+    dataBackupService.getStorageStats().then((stats) => {
+      if (!isMountedRef.current) return;
+      setStorageStats(stats);
+    }).catch(() => {});
     // Identities
-    identityProfilesService.list().then(setIdentityProfiles).catch(() => {});
+    identityProfilesService.list().then((profiles) => {
+      if (!isMountedRef.current) return;
+      setIdentityProfiles(profiles);
+    }).catch(() => {});
   };
 
   const loadZncSubscriptionProduct = useCallback(async () => {
@@ -587,10 +610,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           item.id === zncSubscriptionIdConst && item.type === 'subs'
       );
       if (!subscription) {
+        if (!isMountedRef.current) return;
         setZncOfferToken(null);
         setZncDisplayPrice(null);
         return;
       }
+      if (!isMountedRef.current) return;
       setZncDisplayPrice(subscription.displayPrice || null);
       if (Platform.OS === 'android') {
         const offers = subscription.subscriptionOfferDetailsAndroid || [];
@@ -599,6 +624,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         setZncOfferToken(matchedOffer?.offerToken || null);
       }
     } catch (error) {
+      if (!isMountedRef.current) return;
       setZncOfferToken(null);
       setZncDisplayPrice(null);
     }
