@@ -9,7 +9,9 @@ const originalConsoleError = console.error;
 console.error = (...args: any[]) => {
   const combined = args.map(arg => (typeof arg === 'string' ? arg : '')).join(' ');
   if (combined.includes('was not wrapped in act') &&
-      (combined.includes('VirtualizedList') || combined.includes('AppearanceSection'))) {
+      (combined.includes('VirtualizedList') ||
+        combined.includes('AppearanceSection') ||
+        combined.includes('PrivacyRelayScreen'))) {
     return;
   }
   originalConsoleError(...args);
@@ -60,6 +62,100 @@ jest.mock('react-native-bootsplash', () => ({
   setBackgroundColor: jest.fn(),
   setMinimumBackgroundDuration: jest.fn(),
 }));
+
+jest.mock('react-native-webrtc', () => {
+  const React = require('react');
+
+  class MockMediaStream {
+    id: string;
+
+    constructor() {
+      this.id = 'mock-stream';
+    }
+
+    getTracks() {
+      return [];
+    }
+
+    getAudioTracks() {
+      return [];
+    }
+
+    getVideoTracks() {
+      return [];
+    }
+
+    addTrack() {}
+    removeTrack() {}
+    toURL() {
+      return 'mock-stream-url';
+    }
+    release() {}
+  }
+
+  class MockRTCPeerConnection {
+    localDescription = null;
+    remoteDescription = null;
+    onicecandidate: ((event: any) => void) | null = null;
+    ontrack: ((event: any) => void) | null = null;
+    onconnectionstatechange: (() => void) | null = null;
+    oniceconnectionstatechange: (() => void) | null = null;
+    onsignalingstatechange: (() => void) | null = null;
+    connectionState = 'new';
+    iceConnectionState = 'new';
+    signalingState = 'stable';
+
+    async createOffer() {
+      return { type: 'offer', sdp: 'mock-offer-sdp' };
+    }
+
+    async createAnswer() {
+      return { type: 'answer', sdp: 'mock-answer-sdp' };
+    }
+
+    async setLocalDescription(description: any) {
+      this.localDescription = description;
+    }
+
+    async setRemoteDescription(description: any) {
+      this.remoteDescription = description;
+    }
+
+    async addIceCandidate() {}
+    addTrack() {}
+    close() {}
+  }
+
+  class MockRTCIceCandidate {
+    candidateInfo: any;
+
+    constructor(candidateInfo: any) {
+      this.candidateInfo = candidateInfo;
+    }
+  }
+
+  class MockRTCSessionDescription {
+    type: string;
+    sdp: string;
+
+    constructor(description: any) {
+      this.type = description?.type ?? 'offer';
+      this.sdp = description?.sdp ?? '';
+    }
+  }
+
+  return {
+    RTCView: (props: any) => React.createElement('RTCView', props, props?.children),
+    mediaDevices: {
+      getUserMedia: jest.fn(async () => new MockMediaStream()),
+      enumerateDevices: jest.fn(async () => []),
+    },
+    MediaStream: MockMediaStream,
+    RTCPeerConnection: MockRTCPeerConnection,
+    RTCIceCandidate: MockRTCIceCandidate,
+    RTCSessionDescription: MockRTCSessionDescription,
+  };
+});
 
 // React Native 0.83 ActivityIndicator jest mock can break when requireActual
 // resolves to an unexpected shape. Keep a local deterministic mock instead.

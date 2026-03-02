@@ -48,6 +48,8 @@ class PrivacyRelayService {
     const url = `${API_BASE_URL}${endpoint}`;
     console.log('[PrivacyRelay] API request start:', endpoint, body);
 
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
     try {
       const response = await Promise.race([
         fetch(url, {
@@ -58,7 +60,7 @@ class PrivacyRelayService {
           body: JSON.stringify(body),
         }),
         new Promise<Response>((_, reject) => {
-          setTimeout(() => {
+          timeoutId = setTimeout(() => {
             reject(new Error(`Privacy Relay backend request timed out after ${API_TIMEOUT_MS}ms.`));
           }, API_TIMEOUT_MS);
         }),
@@ -88,6 +90,10 @@ class PrivacyRelayService {
     } catch (error: any) {
       console.log('[PrivacyRelay] API request failed:', endpoint, error?.message || String(error));
       throw error;
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
   }
 

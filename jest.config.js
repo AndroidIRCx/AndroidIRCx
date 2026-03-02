@@ -12,6 +12,7 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'cobertura', 'html'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  forceExit: true,
   testMatch: [
     '**/__tests__/**/*.test.{ts,tsx}',
     '**/__tests__/**/*.{ts,tsx}',

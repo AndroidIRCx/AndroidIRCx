@@ -200,10 +200,17 @@ describe('MediaSettingsService', () => {
   });
 
   it('handles malformed import json', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const result = await mediaSettingsService.importSettings('{broken');
 
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[MediaSettingsService] Import error:',
+      expect.any(Error)
+    );
+
+    errorSpy.mockRestore();
   });
 
   it('returns success from import even if saveSettings swallows storage failure', async () => {
