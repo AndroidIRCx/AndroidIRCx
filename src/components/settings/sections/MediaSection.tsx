@@ -19,6 +19,7 @@ import { useT } from '../../../i18n/transifex';
 import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
 import { mediaSettingsService } from '../../../services/MediaSettingsService';
 import { mediaCacheService } from '../../../services/MediaCacheService';
+import { callMediaProfileService } from '../../../services/CallMediaProfileService';
 
 interface MediaSectionProps {
   colors: {
@@ -59,9 +60,11 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
   const [maxCacheSize, setMaxCacheSize] = useState(250 * 1024 * 1024); // 250MB default
   const [mediaQuality, setMediaQuality] = useState<'original' | 'high' | 'medium' | 'low'>('original');
   const [videoQuality, setVideoQuality] = useState<'4k' | '1080p' | '720p' | '480p'>('1080p');
+  const [callVideoQuality, setCallVideoQuality] = useState<'1440p' | '1080p' | '720p' | '480p'>('720p');
   const [voiceMaxDuration, setVoiceMaxDuration] = useState(180); // 3 minutes default
   const [cacheSize, setCacheSize] = useState(0);
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
+  const [relayEnabled, setRelayEnabled] = useState(false);
 
   // Load initial state
   useEffect(() => {
@@ -86,6 +89,17 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       
       const videoQual = await mediaSettingsService.getVideoQuality();
       setVideoQuality(videoQual);
+
+      const callQuality = await mediaSettingsService.getCallVideoQuality();
+      const capabilityProfile = callMediaProfileService.getCapabilityProfile();
+      setRelayEnabled(capabilityProfile.relayEnabled);
+      const safeCallQuality = capabilityProfile.allowedVideoQualities.includes(callQuality as any)
+        ? callQuality
+        : capabilityProfile.defaultVideoQuality;
+      setCallVideoQuality(safeCallQuality);
+      if (safeCallQuality !== callQuality) {
+        await mediaSettingsService.setCallVideoQuality(safeCallQuality);
+      }
       
       const voiceDuration = await mediaSettingsService.getVoiceMaxDuration();
       setVoiceMaxDuration(voiceDuration);
@@ -158,6 +172,21 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       '720p': '720p',
       '480p': '480p',
     }[videoQuality] || videoQuality;
+
+    const callVideoQualityLabel = {
+      '1440p': '1440p',
+      '1080p': '1080p',
+      '720p': '720p',
+      '480p': '480p',
+    }[callVideoQuality] || callVideoQuality;
+
+    const capabilityProfile = callMediaProfileService.getCapabilityProfile();
+    const callQualityItems = capabilityProfile.allowedVideoQualities.map((quality) => ({
+      id: `call-video-${quality}`,
+      title: quality,
+      type: 'button' as const,
+      onPress: () => setCallVideoQuality(quality),
+    }));
 
     const items: SettingItemType[] = [
       {
@@ -260,6 +289,23 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         ],
       },
       {
+        id: 'call-video-quality',
+        title: t('Live Call Video Quality', { _tags: tags }),
+        description: relayEnabled
+          ? t('Current: {quality} • Privacy Relay unlocks HD and TURN fallback', {
+              quality: callVideoQualityLabel,
+              _tags: tags,
+            })
+          : t('Current: {quality} • Free calls stay direct and max out at 720p', {
+              quality: callVideoQualityLabel,
+              _tags: tags,
+            }),
+        type: 'submenu',
+        disabled: !mediaEnabled,
+        searchKeywords: ['webrtc', 'call', 'video', 'quality', 'relay', 'turn', '720p', '1080p', '1440p', 'hd'],
+        submenuItems: callQualityItems,
+      },
+      {
         id: 'video-quality',
         title: t('Video Recording Quality', { _tags: tags }),
         description: t('Current: {quality}', { quality: videoQualityLabel, _tags: tags }),
@@ -306,8 +352,10 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
     maxCacheSize,
     mediaQuality,
     videoQuality,
+    callVideoQuality,
     voiceMaxDuration,
     cacheSize,
+    relayEnabled,
     t,
     tags,
   ]);
@@ -318,10 +366,11 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       await mediaSettingsService.setMaxCacheSize(maxCacheSize);
       await mediaSettingsService.setMediaQuality(mediaQuality);
       await mediaSettingsService.setVideoQuality(videoQuality);
+      await mediaSettingsService.setCallVideoQuality(callVideoQuality);
       await mediaSettingsService.setVoiceMaxDuration(voiceMaxDuration);
     };
     saveSettings();
-  }, [maxCacheSize, mediaQuality, videoQuality, voiceMaxDuration]);
+  }, [maxCacheSize, mediaQuality, videoQuality, callVideoQuality, voiceMaxDuration]);
 
   const modalStyles = useMemo(() => createModalStyles(colors), [colors]);
   const activeSubmenu = sectionData.find(item => item.id === showSubmenu);

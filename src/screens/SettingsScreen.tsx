@@ -55,6 +55,7 @@ import type { ProductSubscription, Purchase, PurchaseError } from 'react-native-
 import { KeyManagementScreen } from './KeyManagementScreen';
 import { FirstRunSetupScreen } from './FirstRunSetupScreen';
 import { ZncSubscriptionScreen } from './ZncSubscriptionScreen';
+import { PrivacyRelayScreen } from './PrivacyRelayScreen';
 import { PrivacyAdsScreen } from './PrivacyAdsScreen';
 import { DataPrivacyScreen } from './DataPrivacyScreen';
 import { RawMessageCategory, RAW_MESSAGE_CATEGORIES, getDefaultRawCategoryVisibility } from '../services/IRCService';
@@ -208,6 +209,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showHistoryViewer, setShowHistoryViewer] = useState(false);
   const [showKeyManagement, setShowKeyManagement] = useState(false);
   const [showZncSubscription, setShowZncSubscription] = useState(false);
+  const [showPrivacyRelayScreen, setShowPrivacyRelayScreen] = useState(false);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
   const [migrationNetwork, setMigrationNetwork] = useState('');
   const [storageStats, setStorageStats] = useState<{ keyCount: number; totalBytes: number }>({ keyCount: 0, totalBytes: 0 });
@@ -1409,6 +1411,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           icon: { name: 'crown', solid: true },
           onPress: () => onShowPurchaseScreen?.(),
           searchKeywords: ['premium', 'upgrade', 'pro', 'supporter', 'no-ads', 'remove ads', 'unlimited', 'scripting', 'purchase', 'buy'],
+        },
+        {
+          id: 'privacy-relay-subscription',
+          title: t('Privacy Relay for Calls', { _tags: tags }),
+          description: t('Manage TURN relay access on turn.dbase.in.rs for calls that cannot stay direct P2P', { _tags: tags }),
+          type: 'button' as const,
+          icon: { name: 'user-shield', solid: true },
+          onPress: () => setShowPrivacyRelayScreen(true),
+          searchKeywords: ['privacy relay', 'turn', 'webrtc', 'calls', 'subscription', 'relay', 'p2p', 'nat'],
         },
       ],
     },
@@ -2980,6 +2991,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <ZncSubscriptionScreen
         visible={showZncSubscription}
         onClose={() => setShowZncSubscription(false)}
+      />
+      <PrivacyRelayScreen
+        visible={showPrivacyRelayScreen}
+        onClose={() => setShowPrivacyRelayScreen(false)}
       />
 
       <Modal

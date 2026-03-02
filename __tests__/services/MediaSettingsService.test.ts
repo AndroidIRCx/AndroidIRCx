@@ -104,6 +104,7 @@ describe('MediaSettingsService', () => {
           cacheSize: 321,
           mediaQuality: 'low',
           videoQuality: '720p',
+          callVideoQuality: '720p',
           voiceMaxDuration: 15,
         };
         (mediaSettingsService as any).loaded = true;
@@ -132,12 +133,15 @@ describe('MediaSettingsService', () => {
     expect(await mediaSettingsService.getVideoQuality()).toBe('720p');
 
     (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.getCallVideoQuality()).toBe('720p');
+
+    (mediaSettingsService as any).loaded = false;
     expect(await mediaSettingsService.getVoiceMaxDuration()).toBe(15);
 
     (mediaSettingsService as any).loaded = false;
     expect(await mediaSettingsService.exportSettings()).toContain('"cacheSize": 321');
 
-    expect(loadSettingsSpy).toHaveBeenCalledTimes(9);
+    expect(loadSettingsSpy).toHaveBeenCalledTimes(10);
     loadSettingsSpy.mockRestore();
   });
 
@@ -152,6 +156,7 @@ describe('MediaSettingsService', () => {
       cacheSize: 42,
       mediaQuality: 'low',
       videoQuality: '720p',
+      callVideoQuality: '720p',
       voiceMaxDuration: 30,
     };
 
@@ -175,12 +180,14 @@ describe('MediaSettingsService', () => {
         cacheSize: 12345,
         mediaQuality: 'high',
         videoQuality: '720p',
+        callVideoQuality: '1080p',
         voiceMaxDuration: 60,
       })
     );
 
     expect(result.success).toBe(true);
     expect(await mediaSettingsService.getVideoQuality()).toBe('720p');
+    expect(await mediaSettingsService.getCallVideoQuality()).toBe('1080p');
   });
 
   it('rejects invalid import payload', async () => {
@@ -212,6 +219,7 @@ describe('MediaSettingsService', () => {
         cacheSize: 999,
         mediaQuality: 'medium',
         videoQuality: '480p',
+        callVideoQuality: '480p',
         voiceMaxDuration: 12,
       })
     );
@@ -306,6 +314,7 @@ describe('MediaSettingsService', () => {
     await mediaSettingsService.setMaxCacheSize(1024);
     await mediaSettingsService.setMediaQuality('medium');
     await mediaSettingsService.setVideoQuality('480p');
+    await mediaSettingsService.setCallVideoQuality('1080p');
     await mediaSettingsService.setVoiceMaxDuration(45);
 
     expect(await mediaSettingsService.isMediaEnabled()).toBe(false);
@@ -315,6 +324,7 @@ describe('MediaSettingsService', () => {
     expect(await mediaSettingsService.getMaxCacheSize()).toBe(1024);
     expect(await mediaSettingsService.getMediaQuality()).toBe('medium');
     expect(await mediaSettingsService.getVideoQuality()).toBe('480p');
+    expect(await mediaSettingsService.getCallVideoQuality()).toBe('1080p');
     expect(await mediaSettingsService.getVoiceMaxDuration()).toBe(45);
 
     const exported = await mediaSettingsService.exportSettings();
@@ -332,6 +342,7 @@ describe('MediaSettingsService', () => {
       cacheSize: 2048,
       mediaQuality: 'high',
       videoQuality: '4k',
+      callVideoQuality: '720p',
       voiceMaxDuration: 90,
     };
 

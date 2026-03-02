@@ -371,6 +371,18 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                 <Text style={styles.contextText}>{t('Open Query')}</Text>
               </View>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('audio_call')}>
+              <View style={styles.contextItemWithIcon}>
+                <Icon name="phone" size={14} color={colors.text} style={styles.contextIcon} />
+                <Text style={styles.contextText}>{t('Audio Call')}</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('video_call')}>
+              <View style={styles.contextItemWithIcon}>
+                <Icon name="video" size={14} color={colors.text} style={styles.contextIcon} />
+                <Text style={styles.contextText}>{t('Video Call')}</Text>
+              </View>
+            </TouchableOpacity>
             {canMonitor && (
               <TouchableOpacity style={styles.contextItem} onPress={() => onAction('monitor_toggle')}>
                 <View style={styles.contextItemWithIcon}>
@@ -905,7 +917,7 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                     onClose();
                   }}
                 >
-                  <Text style={{ color: colors.onPrimary || '#fff', fontWeight: '600' }}>{t('Send')}</Text>
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>{t('Send')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

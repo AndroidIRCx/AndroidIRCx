@@ -32,6 +32,7 @@ jest.mock('../../../src/services/MediaSettingsService', () => ({
     getMaxCacheSize: jest.fn(),
     getMediaQuality: jest.fn(),
     getVideoQuality: jest.fn(),
+    getCallVideoQuality: jest.fn(),
     getVoiceMaxDuration: jest.fn(),
     setMediaEnabled: jest.fn(),
     setShowEncryptionIndicator: jest.fn(),
@@ -40,7 +41,14 @@ jest.mock('../../../src/services/MediaSettingsService', () => ({
     setMaxCacheSize: jest.fn(),
     setMediaQuality: jest.fn(),
     setVideoQuality: jest.fn(),
+    setCallVideoQuality: jest.fn(),
     setVoiceMaxDuration: jest.fn(),
+  },
+}));
+
+jest.mock('../../../src/services/CallMediaProfileService', () => ({
+  callMediaProfileService: {
+    getCapabilityProfile: jest.fn(),
   },
 }));
 
@@ -75,9 +83,11 @@ jest.mock('../../../src/components/settings/SettingItem', () => ({
 
 import { mediaSettingsService } from '../../../src/services/MediaSettingsService';
 import { mediaCacheService } from '../../../src/services/MediaCacheService';
+import { callMediaProfileService } from '../../../src/services/CallMediaProfileService';
 
 const mockSettings = mediaSettingsService as unknown as Record<string, jest.Mock>;
 const mockCache = mediaCacheService as unknown as Record<string, jest.Mock>;
+const mockCallMediaProfile = callMediaProfileService as unknown as Record<string, jest.Mock>;
 
 describe('MediaSection', () => {
   const colors = {
@@ -110,9 +120,15 @@ describe('MediaSection', () => {
     mockSettings.getMaxCacheSize.mockResolvedValue(250 * 1024 * 1024);
     mockSettings.getMediaQuality.mockResolvedValue('original');
     mockSettings.getVideoQuality.mockResolvedValue('1080p');
+    mockSettings.getCallVideoQuality.mockResolvedValue('720p');
     mockSettings.getVoiceMaxDuration.mockResolvedValue(180);
     mockCache.getCacheSize.mockResolvedValue(1024);
     mockCache.clearCache.mockResolvedValue({ clearedCount: 1, freedSpace: 1024 });
+    mockCallMediaProfile.getCapabilityProfile.mockReturnValue({
+      relayEnabled: false,
+      allowedVideoQualities: ['480p', '720p'],
+      defaultVideoQuality: '720p',
+    });
   });
 
   it('renders media setting entries', async () => {
@@ -207,6 +223,40 @@ describe('MediaSection', () => {
     });
     await waitFor(() => {
       expect(mockSettings.setVideoQuality).toHaveBeenCalledWith('720p');
+    });
+  });
+
+  it('limits live call quality options for free users', async () => {
+    const { getByText, queryByText } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    fireEvent.press(getByText('Live Call Video Quality'));
+    await waitFor(() => {
+      expect(getByText('720p')).toBeTruthy();
+      expect(queryByText('1440p')).toBeNull();
+    });
+  });
+
+  it('shows HD live call quality options for Privacy Relay subscribers', async () => {
+    mockCallMediaProfile.getCapabilityProfile.mockReturnValue({
+      relayEnabled: true,
+      allowedVideoQualities: ['480p', '720p', '1080p', '1440p'],
+      defaultVideoQuality: '1080p',
+    });
+    mockSettings.getCallVideoQuality.mockResolvedValue('1080p');
+
+    const { getByText } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    fireEvent.press(getByText('Live Call Video Quality'));
+    await waitFor(() => {
+      fireEvent.press(getByText('1440p'));
+    });
+
+    await waitFor(() => {
+      expect(mockSettings.setCallVideoQuality).toHaveBeenCalledWith('1440p');
     });
   });
 

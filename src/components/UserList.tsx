@@ -39,6 +39,7 @@ import { getUserModeDescription } from '../utils/modeDescriptions';
 import { useUIStore } from '../stores/uiStore';
 import { NickContextMenu } from './NickContextMenu';
 import { useDebounce } from '../hooks/useDebounce';
+import { webRtcCallService } from '../services/WebRTCCallService';
 
 // Note: This function cannot use useT() as it's exported outside the component
 // The translation will be handled where it's called
@@ -582,6 +583,32 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         // This would open a query window - handled by parent
         if (onUserPress) {
           onUserPress(selectedUser);
+        }
+        break;
+      case 'audio_call':
+        try {
+          await webRtcCallService.startOutgoingCall(
+            network || activeIrc.getNetworkName(),
+            selectedUser.nick,
+            'audio'
+          );
+          setActionMessage(t('Starting audio call with {nick}').replace('{nick}', selectedUser.nick));
+          setShowContextMenu(false);
+        } catch (error: any) {
+          setActionMessage(error?.message || t('Failed to start audio call'));
+        }
+        break;
+      case 'video_call':
+        try {
+          await webRtcCallService.startOutgoingCall(
+            network || activeIrc.getNetworkName(),
+            selectedUser.nick,
+            'video'
+          );
+          setActionMessage(t('Starting video call with {nick}').replace('{nick}', selectedUser.nick));
+          setShowContextMenu(false);
+        } catch (error: any) {
+          setActionMessage(error?.message || t('Failed to start video call'));
         }
         break;
       case 'enc_share':

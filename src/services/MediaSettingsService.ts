@@ -29,6 +29,7 @@ const DEFAULT_SETTINGS: MediaSettings = {
   cacheSize: 250 * 1024 * 1024,      // 250MB cache limit
   mediaQuality: 'original',          // original, high, medium, low
   videoQuality: '1080p',             // 4k, 1080p, 720p, 480p
+  callVideoQuality: '720p',          // 1440p, 1080p, 720p, 480p
   voiceMaxDuration: 180,             // 180 seconds (3 minutes)
 };
 
@@ -40,6 +41,7 @@ export interface MediaSettings {
   cacheSize: number;                 // Cache size limit in bytes
   mediaQuality: 'original' | 'high' | 'medium' | 'low'; // Media upload quality
   videoQuality: '4k' | '1080p' | '720p' | '480p';       // Video recording quality
+  callVideoQuality: '1440p' | '1080p' | '720p' | '480p'; // Live call video quality
   voiceMaxDuration: number;          // Max voice message duration (seconds)
 }
 
@@ -220,6 +222,23 @@ class MediaSettingsService {
    */
   async setVideoQuality(quality: '4k' | '1080p' | '720p' | '480p'): Promise<void> {
     await this.saveSettings({ videoQuality: quality });
+  }
+
+  /**
+   * Get live call video quality
+   */
+  async getCallVideoQuality(): Promise<'1440p' | '1080p' | '720p' | '480p'> {
+    if (!this.loaded) {
+      await this.loadSettings();
+    }
+    return this.settings.callVideoQuality;
+  }
+
+  /**
+   * Set live call video quality
+   */
+  async setCallVideoQuality(quality: '1440p' | '1080p' | '720p' | '480p'): Promise<void> {
+    await this.saveSettings({ callVideoQuality: quality });
   }
 
   /**

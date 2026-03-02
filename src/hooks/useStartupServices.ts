@@ -32,6 +32,7 @@ import { NEW_FEATURE_DEFAULTS, settingsService, DEFAULT_QUIT_MESSAGE } from '../
 import { awayService } from '../services/AwayService';
 import { protectionService } from '../services/ProtectionService';
 import { presetImportService } from '../services/PresetImportService';
+import { webRtcCallService } from '../services/WebRTCCallService';
 
 export const useStartupServices = () => {
   useEffect(() => {
@@ -191,6 +192,10 @@ export const useStartupServices = () => {
 
   useEffect(() => {
     presetImportService.initialize();
+  }, []);
+
+  useEffect(() => {
+    webRtcCallService.initialize();
   }, []);
 
   useEffect(() => {

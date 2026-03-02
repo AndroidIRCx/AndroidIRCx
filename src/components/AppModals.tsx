@@ -42,6 +42,7 @@ import { HelpCommandsScreen } from '../screens/help/HelpCommandsScreen';
 import { HelpEncryptionScreen } from '../screens/help/HelpEncryptionScreen';
 import { HelpMediaScreen } from '../screens/help/HelpMediaScreen';
 import { HelpChannelManagementScreen } from '../screens/help/HelpChannelManagementScreen';
+import { WebRTCCallModal } from './WebRTCCallModal';
 import { channelNotesService } from '../services/ChannelNotesService';
 import { dccFileService } from '../services/DCCFileService';
 import { ChannelTab } from '../types';
@@ -400,6 +401,7 @@ export function AppModals({
         options={tabOptions}
         styles={styles}
       />
+      <WebRTCCallModal />
       {showChannelSettings && channelSettingsTarget && channelSettingsNetwork && (
         <ChannelSettingsScreen
           visible={showChannelSettings}

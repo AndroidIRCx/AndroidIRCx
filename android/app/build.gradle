@@ -43,6 +43,93 @@ tasks.matching { it.name.startsWith("process") && it.name.endsWith("GoogleServic
     dependsOn("copyGoogleServices")
 }
 
+def codegenStubTargets = [
+    "node_modules/react-native-battery-optimization-check/android/build/generated/source/codegen/jni": "BatteryOptimizationCheck",
+    "node_modules/react-native-libsodium/android/build/generated/source/codegen/jni": "Libsodium",
+    "node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni": "NitroModulesSpec",
+    "node_modules/react-native-sound/android/build/generated/source/codegen/jni": "RNSoundSpec",
+]
+
+tasks.register("ensureAutolinkingCodegenStubs") {
+    outputs.upToDateWhen { false }
+    doLast {
+        def appAutolinkingDir = new File(project.buildDir, "generated/autolinking/src/main/jni")
+        if (!appAutolinkingDir.exists()) {
+            appAutolinkingDir.mkdirs()
+        }
+
+        codegenStubTargets.each { relativePath, libraryName ->
+            def targetDir = new File(repoRootDir, relativePath)
+            if (!targetDir.exists()) {
+                targetDir.mkdirs()
+            }
+            def cmakeTargetName = "react_codegen_${libraryName}"
+
+            def headerFile = new File(targetDir, "${libraryName}.h")
+            headerFile.text = """
+#pragma once
+
+#include <memory>
+#include <string>
+
+namespace facebook::react {
+class TurboModule;
+class JavaTurboModule {
+public:
+  struct InitParams;
+};
+
+std::shared_ptr<TurboModule> ${libraryName}_ModuleProvider(
+    const std::string &moduleName,
+    const JavaTurboModule::InitParams &params);
+} // namespace facebook::react
+""".trim() + "\n"
+
+            def appHeaderFile = new File(appAutolinkingDir, "${libraryName}.h")
+            appHeaderFile.text = """
+#pragma once
+
+#include <memory>
+#include <string>
+
+#include <ReactCommon/JavaTurboModule.h>
+
+namespace facebook::react {
+std::shared_ptr<TurboModule> ${libraryName}_ModuleProvider(
+    const std::string &moduleName,
+    const JavaTurboModule::InitParams &params);
+} // namespace facebook::react
+""".trim() + "\n"
+
+            def cppFile = new File(targetDir, "${libraryName}.cpp")
+            cppFile.text = """
+#include "${libraryName}.h"
+
+namespace facebook::react {
+std::shared_ptr<TurboModule> ${libraryName}_ModuleProvider(
+    const std::string &moduleName,
+    const JavaTurboModule::InitParams &params) {
+  return nullptr;
+}
+} // namespace facebook::react
+""".trim() + "\n"
+
+            def cmakeFile = new File(targetDir, "CMakeLists.txt")
+            cmakeFile.text = """
+cmake_minimum_required(VERSION 3.13)
+project(${cmakeTargetName})
+add_library(${cmakeTargetName} STATIC ${libraryName}.cpp)
+""".trim() + "\n"
+        }
+    }
+}
+
+tasks.matching { task ->
+    task.name.startsWith("configureCMake") || task.name.startsWith("buildCMake") || task.name.startsWith("generateAutolinking")
+}.configureEach {
+    dependsOn("ensureAutolinkingCodegenStubs")
+}
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -123,8 +210,8 @@ android {
         applicationId = "com.androidircx"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
-        versionCode = 95
-        versionName = "1.8.3"
+        versionCode = 96
+        versionName = "1.8.4"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
     }
@@ -201,6 +288,7 @@ tasks.register("transifexPull", Exec) {
 
 preBuild.dependsOn("transifexPull")
 preBuild.dependsOn("copyGoogleServices")
+preBuild.dependsOn("ensureAutolinkingCodegenStubs")
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin

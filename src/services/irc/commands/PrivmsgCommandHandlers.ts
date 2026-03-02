@@ -220,6 +220,47 @@ function handleEncryptionProtocol(
   return false;
 }
 
+function handleWebRTCCallProtocol(
+  ctx: CommandHandlerContext,
+  msgText: string,
+  fromNick: string,
+  timestamp: number,
+): boolean {
+  if (fromNick.toLowerCase() === ctx.getCurrentNick().toLowerCase()) {
+    return msgText.startsWith('!webrtc ') || msgText.startsWith('!webrtc-chunk ');
+  }
+
+  if (msgText.startsWith('!webrtc ')) {
+    try {
+      const payload = JSON.parse(msgText.substring('!webrtc '.length));
+      ctx.emit('webrtc-signal', payload, {
+        fromNick,
+        network: ctx.getNetworkName(),
+        timestamp,
+      });
+      return true;
+    } catch {
+      return true;
+    }
+  }
+
+  if (msgText.startsWith('!webrtc-chunk ')) {
+    try {
+      const chunk = JSON.parse(msgText.substring('!webrtc-chunk '.length));
+      ctx.emit('webrtc-signal-chunk', chunk, {
+        fromNick,
+        network: ctx.getNetworkName(),
+        timestamp,
+      });
+      return true;
+    } catch {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /** PRIVMSG - incoming private/channel message */
 export const handlePRIVMSG: CommandHandler = (ctx, prefix, params, timestamp, meta) => {
   const target = params[0] || '';
@@ -292,6 +333,10 @@ export const handlePRIVMSG: CommandHandler = (ctx, prefix, params, timestamp, me
 
   // Handle encryption protocol messages
   if (handleEncryptionProtocol(ctx, msgText, fromNick, target, channelIdentifier, isChannel, timestamp)) {
+    return;
+  }
+
+  if (handleWebRTCCallProtocol(ctx, msgText, fromNick, timestamp)) {
     return;
   }
 

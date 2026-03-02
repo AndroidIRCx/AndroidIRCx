@@ -1,0 +1,375 @@
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/MediaDevices.js b/node_modules/react-native-webrtc/lib/commonjs/MediaDevices.js
+index 10a51e5..1bc9117 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/MediaDevices.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/MediaDevices.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ var _reactNative = require("react-native");
+ var _getDisplayMedia = _interopRequireDefault(require("./getDisplayMedia"));
+ var _getUserMedia = _interopRequireDefault(require("./getUserMedia"));
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/MediaStream.js b/node_modules/react-native-webrtc/lib/commonjs/MediaStream.js
+index 4c9653f..bd09ba5 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/MediaStream.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/MediaStream.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ var _reactNative = require("react-native");
+ var _MediaStreamTrack = _interopRequireDefault(require("./MediaStreamTrack"));
+ var _RTCUtil = require("./RTCUtil");
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/MediaStreamTrack.js b/node_modules/react-native-webrtc/lib/commonjs/MediaStreamTrack.js
+index 65e748b..81873fe 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/MediaStreamTrack.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/MediaStreamTrack.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ var _reactNative = require("react-native");
+ var _EventEmitter = require("./EventEmitter");
+ var _Logger = _interopRequireDefault(require("./Logger"));
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/MediaStreamTrackEvent.js b/node_modules/react-native-webrtc/lib/commonjs/MediaStreamTrackEvent.js
+index c90f7c3..84c4362 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/MediaStreamTrackEvent.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/MediaStreamTrackEvent.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+ /**
+  * @eventClass
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/MessageEvent.js b/node_modules/react-native-webrtc/lib/commonjs/MessageEvent.js
+index a4d4a53..12472b9 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/MessageEvent.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/MessageEvent.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+ /**
+  * @eventClass
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/RTCDataChannel.js b/node_modules/react-native-webrtc/lib/commonjs/RTCDataChannel.js
+index 51fc497..e86c6c9 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/RTCDataChannel.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/RTCDataChannel.js
+@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
+ });
+ exports.default = void 0;
+ var base64 = _interopRequireWildcard(require("base64-js"));
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ var _reactNative = require("react-native");
+ var _EventEmitter = require("./EventEmitter");
+ var _MessageEvent = _interopRequireDefault(require("./MessageEvent"));
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/RTCDataChannelEvent.js b/node_modules/react-native-webrtc/lib/commonjs/RTCDataChannelEvent.js
+index b41a908..fcd86ff 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/RTCDataChannelEvent.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/RTCDataChannelEvent.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+ /**
+  * @eventClass
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/RTCErrorEvent.js b/node_modules/react-native-webrtc/lib/commonjs/RTCErrorEvent.js
+index c62e943..7760832 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/RTCErrorEvent.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/RTCErrorEvent.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+ /**
+  * @brief This class Represents internal error happening on the native side as
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/RTCIceCandidateEvent.js b/node_modules/react-native-webrtc/lib/commonjs/RTCIceCandidateEvent.js
+index b09fa22..41e3744 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/RTCIceCandidateEvent.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/RTCIceCandidateEvent.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+ /**
+  * @eventClass
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/RTCPeerConnection.js b/node_modules/react-native-webrtc/lib/commonjs/RTCPeerConnection.js
+index 621367c..a0bf167 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/RTCPeerConnection.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/RTCPeerConnection.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ var _reactNative = require("react-native");
+ var _EventEmitter = require("./EventEmitter");
+ var _Logger = _interopRequireDefault(require("./Logger"));
+diff --git a/node_modules/react-native-webrtc/lib/commonjs/RTCTrackEvent.js b/node_modules/react-native-webrtc/lib/commonjs/RTCTrackEvent.js
+index 7c4b49e..b5c2401 100644
+--- a/node_modules/react-native-webrtc/lib/commonjs/RTCTrackEvent.js
++++ b/node_modules/react-native-webrtc/lib/commonjs/RTCTrackEvent.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-var _index = require("event-target-shim/index");
++var _index = require("event-target-shim");
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+ /**
+  * @eventClass
+diff --git a/node_modules/react-native-webrtc/lib/module/MediaDevices.js b/node_modules/react-native-webrtc/lib/module/MediaDevices.js
+index 0f2202b..801ec13 100644
+--- a/node_modules/react-native-webrtc/lib/module/MediaDevices.js
++++ b/node_modules/react-native-webrtc/lib/module/MediaDevices.js
+@@ -1,4 +1,4 @@
+-import { EventTarget, defineEventAttribute } from 'event-target-shim/index';
++import { EventTarget, defineEventAttribute } from 'event-target-shim';
+ import { NativeModules } from 'react-native';
+ import getDisplayMedia from './getDisplayMedia';
+ import getUserMedia from './getUserMedia';
+diff --git a/node_modules/react-native-webrtc/lib/module/MediaStream.js b/node_modules/react-native-webrtc/lib/module/MediaStream.js
+index ef850dd..dba129e 100644
+--- a/node_modules/react-native-webrtc/lib/module/MediaStream.js
++++ b/node_modules/react-native-webrtc/lib/module/MediaStream.js
+@@ -1,5 +1,5 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+-import { EventTarget, defineEventAttribute } from 'event-target-shim/index';
++import { EventTarget, defineEventAttribute } from 'event-target-shim';
+ import { NativeModules } from 'react-native';
+ import MediaStreamTrack from './MediaStreamTrack';
+ import { uniqueID } from './RTCUtil';
+diff --git a/node_modules/react-native-webrtc/lib/module/MediaStreamTrack.js b/node_modules/react-native-webrtc/lib/module/MediaStreamTrack.js
+index 82979b4..97eef3c 100644
+--- a/node_modules/react-native-webrtc/lib/module/MediaStreamTrack.js
++++ b/node_modules/react-native-webrtc/lib/module/MediaStreamTrack.js
+@@ -1,5 +1,5 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+-import { EventTarget, Event, defineEventAttribute } from 'event-target-shim/index';
++import { EventTarget, Event, defineEventAttribute } from 'event-target-shim';
+ import { NativeModules } from 'react-native';
+ import { addListener, removeListener } from './EventEmitter';
+ import Logger from './Logger';
+diff --git a/node_modules/react-native-webrtc/lib/module/MediaStreamTrackEvent.js b/node_modules/react-native-webrtc/lib/module/MediaStreamTrackEvent.js
+index c18e565..a3dd6f1 100644
+--- a/node_modules/react-native-webrtc/lib/module/MediaStreamTrackEvent.js
++++ b/node_modules/react-native-webrtc/lib/module/MediaStreamTrackEvent.js
+@@ -1,5 +1,5 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ /**
+  * @eventClass
+  * This event is fired whenever the MediaStreamTrack has changed in any way.
+diff --git a/node_modules/react-native-webrtc/lib/module/MessageEvent.js b/node_modules/react-native-webrtc/lib/module/MessageEvent.js
+index 5edf756..963eff4 100644
+--- a/node_modules/react-native-webrtc/lib/module/MessageEvent.js
++++ b/node_modules/react-native-webrtc/lib/module/MessageEvent.js
+@@ -1,5 +1,5 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ /**
+  * @eventClass
+  * This event is fired whenever the RTCDataChannel send message.
+diff --git a/node_modules/react-native-webrtc/lib/module/RTCDataChannel.js b/node_modules/react-native-webrtc/lib/module/RTCDataChannel.js
+index f166602..81f29d9 100644
+--- a/node_modules/react-native-webrtc/lib/module/RTCDataChannel.js
++++ b/node_modules/react-native-webrtc/lib/module/RTCDataChannel.js
+@@ -1,6 +1,6 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+ import * as base64 from 'base64-js';
+-import { EventTarget, defineEventAttribute } from 'event-target-shim/index';
++import { EventTarget, defineEventAttribute } from 'event-target-shim';
+ import { NativeModules } from 'react-native';
+ import { addListener, removeListener } from './EventEmitter';
+ import MessageEvent from './MessageEvent';
+diff --git a/node_modules/react-native-webrtc/lib/module/RTCDataChannelEvent.js b/node_modules/react-native-webrtc/lib/module/RTCDataChannelEvent.js
+index ed9090f..146a536 100644
+--- a/node_modules/react-native-webrtc/lib/module/RTCDataChannelEvent.js
++++ b/node_modules/react-native-webrtc/lib/module/RTCDataChannelEvent.js
+@@ -1,5 +1,5 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ /**
+  * @eventClass
+  * This event is fired whenever the RTCDataChannel has changed in any way.
+diff --git a/node_modules/react-native-webrtc/lib/module/RTCErrorEvent.js b/node_modules/react-native-webrtc/lib/module/RTCErrorEvent.js
+index e8fd7f7..c0717ba 100644
+--- a/node_modules/react-native-webrtc/lib/module/RTCErrorEvent.js
++++ b/node_modules/react-native-webrtc/lib/module/RTCErrorEvent.js
+@@ -1,5 +1,5 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ /**
+  * @brief This class Represents internal error happening on the native side as
+  * part of asynchronous invocations to synchronous web APIs.
+diff --git a/node_modules/react-native-webrtc/lib/module/RTCIceCandidateEvent.js b/node_modules/react-native-webrtc/lib/module/RTCIceCandidateEvent.js
+index 7c61d79..84fda23 100644
+--- a/node_modules/react-native-webrtc/lib/module/RTCIceCandidateEvent.js
++++ b/node_modules/react-native-webrtc/lib/module/RTCIceCandidateEvent.js
+@@ -1,5 +1,5 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ /**
+  * @eventClass
+  * This event is fired whenever the icecandidate related RTC_EVENTS changed.
+diff --git a/node_modules/react-native-webrtc/lib/module/RTCPeerConnection.js b/node_modules/react-native-webrtc/lib/module/RTCPeerConnection.js
+index 5d6d1c8..d8e5945 100644
+--- a/node_modules/react-native-webrtc/lib/module/RTCPeerConnection.js
++++ b/node_modules/react-native-webrtc/lib/module/RTCPeerConnection.js
+@@ -1,5 +1,5 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+-import { EventTarget, Event, defineEventAttribute } from 'event-target-shim/index';
++import { EventTarget, Event, defineEventAttribute } from 'event-target-shim';
+ import { NativeModules } from 'react-native';
+ import { addListener, removeListener } from './EventEmitter';
+ import Logger from './Logger';
+diff --git a/node_modules/react-native-webrtc/lib/module/RTCTrackEvent.js b/node_modules/react-native-webrtc/lib/module/RTCTrackEvent.js
+index b582ea8..a838057 100644
+--- a/node_modules/react-native-webrtc/lib/module/RTCTrackEvent.js
++++ b/node_modules/react-native-webrtc/lib/module/RTCTrackEvent.js
+@@ -1,5 +1,5 @@
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ /**
+  * @eventClass
+  * This event is fired whenever the Track is changed in PeerConnection.
+diff --git a/node_modules/react-native-webrtc/lib/typescript/MediaDevices.d.ts b/node_modules/react-native-webrtc/lib/typescript/MediaDevices.d.ts
+index eac4e73..6546ec1 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/MediaDevices.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/MediaDevices.d.ts
+@@ -1,4 +1,4 @@
+-import { EventTarget, Event } from 'event-target-shim/index';
++import { EventTarget, Event } from 'event-target-shim';
+ import { Constraints } from './getUserMedia';
+ declare type MediaDevicesEventMap = {
+     devicechange: Event<'devicechange'>;
+diff --git a/node_modules/react-native-webrtc/lib/typescript/MediaStream.d.ts b/node_modules/react-native-webrtc/lib/typescript/MediaStream.d.ts
+index 1a3c0c4..f747948 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/MediaStream.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/MediaStream.d.ts
+@@ -1,4 +1,4 @@
+-import { EventTarget } from 'event-target-shim/index';
++import { EventTarget } from 'event-target-shim';
+ import MediaStreamTrack, { MediaStreamTrackInfo } from './MediaStreamTrack';
+ import MediaStreamTrackEvent from './MediaStreamTrackEvent';
+ declare type MediaStreamEventMap = {
+diff --git a/node_modules/react-native-webrtc/lib/typescript/MediaStreamTrack.d.ts b/node_modules/react-native-webrtc/lib/typescript/MediaStreamTrack.d.ts
+index cc1f652..b43d5c7 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/MediaStreamTrack.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/MediaStreamTrack.d.ts
+@@ -1,4 +1,4 @@
+-import { EventTarget, Event } from 'event-target-shim/index';
++import { EventTarget, Event } from 'event-target-shim';
+ import { MediaTrackConstraints } from './Constraints';
+ declare type MediaStreamTrackState = 'live' | 'ended';
+ export declare type MediaStreamTrackInfo = {
+diff --git a/node_modules/react-native-webrtc/lib/typescript/MediaStreamTrackEvent.d.ts b/node_modules/react-native-webrtc/lib/typescript/MediaStreamTrackEvent.d.ts
+index 18da83f..5f54581 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/MediaStreamTrackEvent.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/MediaStreamTrackEvent.d.ts
+@@ -1,4 +1,4 @@
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ import type MediaStreamTrack from './MediaStreamTrack';
+ declare type MEDIA_STREAM_EVENTS = 'addtrack' | 'removetrack';
+ interface IMediaStreamTrackEventInitDict extends Event.EventInit {
+diff --git a/node_modules/react-native-webrtc/lib/typescript/MessageEvent.d.ts b/node_modules/react-native-webrtc/lib/typescript/MessageEvent.d.ts
+index aa0f6be..1798891 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/MessageEvent.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/MessageEvent.d.ts
+@@ -1,5 +1,5 @@
+ /// <reference types="react-native" />
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ export declare type MessageEventData = string | ArrayBuffer | Blob;
+ declare type MESSAGE_EVENTS = 'message' | 'messageerror';
+ interface IMessageEventInitDict extends Event.EventInit {
+diff --git a/node_modules/react-native-webrtc/lib/typescript/RTCDataChannel.d.ts b/node_modules/react-native-webrtc/lib/typescript/RTCDataChannel.d.ts
+index 82addbe..497f872 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/RTCDataChannel.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/RTCDataChannel.d.ts
+@@ -1,4 +1,4 @@
+-import { EventTarget } from 'event-target-shim/index';
++import { EventTarget } from 'event-target-shim';
+ import MessageEvent from './MessageEvent';
+ import RTCDataChannelEvent from './RTCDataChannelEvent';
+ declare type RTCDataChannelState = 'connecting' | 'open' | 'closing' | 'closed';
+diff --git a/node_modules/react-native-webrtc/lib/typescript/RTCDataChannelEvent.d.ts b/node_modules/react-native-webrtc/lib/typescript/RTCDataChannelEvent.d.ts
+index 5612c63..af3cccf 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/RTCDataChannelEvent.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/RTCDataChannelEvent.d.ts
+@@ -1,4 +1,4 @@
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ import type RTCDataChannel from './RTCDataChannel';
+ declare type DATA_CHANNEL_EVENTS = 'open' | 'message' | 'bufferedamountlow' | 'closing' | 'close' | 'error' | 'datachannel';
+ interface IRTCDataChannelEventInitDict extends Event.EventInit {
+diff --git a/node_modules/react-native-webrtc/lib/typescript/RTCErrorEvent.d.ts b/node_modules/react-native-webrtc/lib/typescript/RTCErrorEvent.d.ts
+index e52d544..40039df 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/RTCErrorEvent.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/RTCErrorEvent.d.ts
+@@ -1,4 +1,4 @@
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ declare type RTCPeerConnectionErrorFunc = 'addTransceiver' | 'getTransceivers' | 'addTrack' | 'removeTrack';
+ /**
+  * @brief This class Represents internal error happening on the native side as
+diff --git a/node_modules/react-native-webrtc/lib/typescript/RTCIceCandidateEvent.d.ts b/node_modules/react-native-webrtc/lib/typescript/RTCIceCandidateEvent.d.ts
+index 518cbd5..3263ce1 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/RTCIceCandidateEvent.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/RTCIceCandidateEvent.d.ts
+@@ -1,4 +1,4 @@
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ import type RTCIceCandidate from './RTCIceCandidate';
+ declare type RTC_ICECANDIDATE_EVENTS = 'icecandidate' | 'icecandidateerror';
+ interface IRTCDataChannelEventInitDict extends Event.EventInit {
+diff --git a/node_modules/react-native-webrtc/lib/typescript/RTCPeerConnection.d.ts b/node_modules/react-native-webrtc/lib/typescript/RTCPeerConnection.d.ts
+index c20fdba..e37cd0d 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/RTCPeerConnection.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/RTCPeerConnection.d.ts
+@@ -1,4 +1,4 @@
+-import { EventTarget, Event } from 'event-target-shim/index';
++import { EventTarget, Event } from 'event-target-shim';
+ import MediaStream from './MediaStream';
+ import MediaStreamTrack from './MediaStreamTrack';
+ import RTCDataChannel from './RTCDataChannel';
+diff --git a/node_modules/react-native-webrtc/lib/typescript/RTCTrackEvent.d.ts b/node_modules/react-native-webrtc/lib/typescript/RTCTrackEvent.d.ts
+index b87c7ae..6738e3f 100644
+--- a/node_modules/react-native-webrtc/lib/typescript/RTCTrackEvent.d.ts
++++ b/node_modules/react-native-webrtc/lib/typescript/RTCTrackEvent.d.ts
+@@ -1,4 +1,4 @@
+-import { Event } from 'event-target-shim/index';
++import { Event } from 'event-target-shim';
+ import MediaStream from './MediaStream';
+ import type MediaStreamTrack from './MediaStreamTrack';
+ import RTCRtpReceiver from './RTCRtpReceiver';
