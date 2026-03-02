@@ -126,6 +126,17 @@ describe('NotificationService', () => {
 
       expect(result).toBe(false);
     });
+
+    it('should use notifee on iOS', async () => {
+      const originalOS = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios' });
+      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+
+      const result = await notificationService.checkPermission();
+
+      expect(result).toBe(true);
+      Object.defineProperty(Platform, 'OS', { value: originalOS });
+    });
   });
 
   describe('requestPermission', () => {
@@ -160,6 +171,27 @@ describe('NotificationService', () => {
 
       expect(result).toBe(false);
     });
+
+    it('should return false if notifee fallback request fails', async () => {
+      const { PermissionsAndroid } = require('react-native');
+      PermissionsAndroid.request.mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+      notifee.requestPermission.mockRejectedValue(new Error('Notifee request failed'));
+
+      const result = await notificationService.requestPermission();
+
+      expect(result).toBe(false);
+    });
+
+    it('should use notifee request path on iOS', async () => {
+      const originalOS = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios' });
+      notifee.requestPermission.mockResolvedValue({ authorizationStatus: 1 });
+
+      const result = await notificationService.requestPermission();
+
+      expect(result).toBe(true);
+      Object.defineProperty(Platform, 'OS', { value: originalOS });
+    });
   });
 
   describe('refreshPermissionStatus', () => {
@@ -183,6 +215,12 @@ describe('NotificationService', () => {
       await notificationService.refreshPermissionStatus();
 
       expect(notificationService.getPreferences().enabled).toBe(false);
+    });
+
+    it('should swallow refresh errors', async () => {
+      jest.spyOn(notificationService, 'checkPermission').mockRejectedValueOnce(new Error('refresh failed'));
+
+      await expect(notificationService.refreshPermissionStatus()).resolves.toBeUndefined();
     });
   });
 
@@ -232,6 +270,58 @@ describe('NotificationService', () => {
 
       expect(notificationService.getPreferences().enabled).toBe(false);
     });
+
+    it('should log when permission exists but notifications remain disabled', async () => {
+      const { PermissionsAndroid } = require('react-native');
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      PermissionsAndroid.check.mockResolvedValue(true);
+      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      (notificationService as any).preferences.enabled = false;
+
+      await notificationService.initialize();
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'NotificationService: Permission granted, notifications can be enabled by user.'
+      );
+      logSpy.mockRestore();
+    });
+
+    it('should handle initialization errors gracefully', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      notifee.createChannel.mockRejectedValueOnce(new Error('create failed'));
+
+      await expect(notificationService.initialize()).resolves.toBeUndefined();
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error initializing notifications:',
+        expect.any(Error)
+      );
+      errorSpy.mockRestore();
+    });
+
+    it('should register foreground handlers for dismissed and pressed notifications', async () => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      const { EventType } = require('@notifee/react-native');
+      let handler: ((event: any) => void) | undefined;
+      notifee.onForegroundEvent.mockImplementation(cb => {
+        handler = cb;
+      });
+
+      await notificationService.initialize();
+
+      handler?.({ type: EventType.DISMISSED, detail: { notification: { id: 'dismissed' } } });
+      handler?.({ type: EventType.PRESS, detail: { notification: { id: 'pressed' } } });
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'NotificationService: User dismissed notification',
+        { id: 'dismissed' }
+      );
+      expect(logSpy).toHaveBeenCalledWith(
+        'NotificationService: User pressed notification',
+        { id: 'pressed' }
+      );
+      logSpy.mockRestore();
+    });
   });
 
   describe('loadPreferences / savePreferences', () => {
@@ -261,6 +351,32 @@ describe('NotificationService', () => {
 
       const stored = await AsyncStorage.getItem('@AndroidIRCX:notificationPreferences');
       expect(stored).toContain('"enabled":false');
+    });
+
+    it('should handle malformed stored preferences', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      await AsyncStorage.setItem('@AndroidIRCX:notificationPreferences', '{broken');
+
+      await expect((notificationService as any).loadPreferences()).resolves.toBeUndefined();
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error loading preferences:',
+        expect.any(Error)
+      );
+      errorSpy.mockRestore();
+    });
+
+    it('should swallow save preference errors', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('save failed'));
+
+      await expect((notificationService as any).savePreferences()).resolves.toBeUndefined();
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error saving preferences:',
+        expect.any(Error)
+      );
+      errorSpy.mockRestore();
     });
   });
 
@@ -296,6 +412,22 @@ describe('NotificationService', () => {
       await notificationService.updatePreferences({ notifyOnMentions: false });
 
       expect(setItemSpy).toHaveBeenCalled();
+    });
+
+    it('should enable notifications when permission verification succeeds', async () => {
+      const { PermissionsAndroid } = require('react-native');
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      PermissionsAndroid.check.mockResolvedValue(true);
+      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      (notificationService as any).preferences.enabled = false;
+
+      await notificationService.updatePreferences({ enabled: true });
+
+      expect(notificationService.getPreferences().enabled).toBe(true);
+      expect(logSpy).toHaveBeenCalledWith(
+        'NotificationService: Permission verified, enabling notifications'
+      );
+      logSpy.mockRestore();
     });
   });
 
@@ -378,6 +510,25 @@ describe('NotificationService', () => {
 
       expect(notifee.displayNotification).not.toHaveBeenCalled();
     });
+
+    it('should log and fallback when display notification fails', async () => {
+      const { PermissionsAndroid } = require('react-native');
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      PermissionsAndroid.check.mockResolvedValue(true);
+      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.displayNotification.mockRejectedValueOnce(new Error('display failed'));
+
+      await notificationService.showNotification('Test Title', 'Test Body', '#general');
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error showing notification:',
+        expect.any(Error)
+      );
+      expect(logSpy).toHaveBeenCalledWith('[Notification] Test Title: Test Body');
+      errorSpy.mockRestore();
+      logSpy.mockRestore();
+    });
   });
 
   describe('showMessageNotification', () => {
@@ -432,6 +583,20 @@ describe('NotificationService', () => {
       notificationService.cancelAllNotifications();
       expect(notifee.cancelAllNotifications).toHaveBeenCalled();
     });
+
+    it('should handle cancel-all errors gracefully', () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      notifee.cancelAllNotifications.mockImplementation(() => {
+        throw new Error('Cancel all failed');
+      });
+
+      expect(() => notificationService.cancelAllNotifications()).not.toThrow();
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error cancelling all notifications:',
+        expect.any(Error)
+      );
+      errorSpy.mockRestore();
+    });
   });
 
   describe('setBadgeCount', () => {
@@ -439,12 +604,40 @@ describe('NotificationService', () => {
       notificationService.setBadgeCount(5);
       expect(notifee.setBadgeCount).toHaveBeenCalledWith(5);
     });
+
+    it('should handle badge count errors gracefully', () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      notifee.setBadgeCount.mockImplementationOnce(() => {
+        throw new Error('Badge failed');
+      });
+
+      expect(() => notificationService.setBadgeCount(5)).not.toThrow();
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error setting badge count:',
+        expect.any(Error)
+      );
+      errorSpy.mockRestore();
+    });
   });
 
   describe('removeAllBadges', () => {
     it('should remove all badges', () => {
       notificationService.removeAllBadges();
       expect(notifee.setBadgeCount).toHaveBeenCalledWith(0);
+    });
+
+    it('should handle remove badge errors gracefully', () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      notifee.setBadgeCount.mockImplementationOnce(() => {
+        throw new Error('Remove badge failed');
+      });
+
+      expect(() => notificationService.removeAllBadges()).not.toThrow();
+      expect(errorSpy).toHaveBeenCalledWith(
+        'NotificationService: Error removing badges:',
+        expect.any(Error)
+      );
+      errorSpy.mockRestore();
     });
   });
 
@@ -553,12 +746,29 @@ describe('NotificationService', () => {
     });
 
     it('should fallback to includes if regex fails', () => {
+      const nick = new String('TestNick') as unknown as string;
+      (nick as any).replace = () => {
+        throw new Error('regex failed');
+      };
+
+      const result = notificationService.shouldNotify(
+        { text: 'Hello TestNick!', channel: '#general', type: 'message' },
+        nick
+      );
+      
+      expect(result).toBe(true);
+    });
+
+    it('should return false when mention and all-messages notifications are both disabled', () => {
+      (notificationService as any).preferences.notifyOnMentions = false;
+      (notificationService as any).preferences.notifyOnAllMessages = false;
+
       const result = notificationService.shouldNotify(
         { text: 'Hello TestNick!', channel: '#general', type: 'message' },
         'TestNick'
       );
-      
-      expect(result).toBe(true);
+
+      expect(result).toBe(false);
     });
   });
 });

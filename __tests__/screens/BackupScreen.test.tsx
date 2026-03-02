@@ -12,6 +12,9 @@ import { BackupScreen } from '../../src/screens/BackupScreen';
 import { dataBackupService } from '../../src/services/DataBackupService';
 import RNFS from 'react-native-fs';
 import { pick, errorCodes } from '@react-native-documents/picker';
+import Clipboard from '@react-native-clipboard/clipboard';
+import { connectionManager } from '../../src/services/ConnectionManager';
+import { messageHistoryBatching } from '../../src/services/MessageHistoryBatching';
 
 jest.mock('../../src/hooks/useTheme', () => ({
   useTheme: jest.fn(() => ({
@@ -53,6 +56,18 @@ jest.mock('../../src/services/DataBackupService', () => ({
   },
 }));
 
+jest.mock('../../src/services/ConnectionManager', () => ({
+  connectionManager: {
+    disconnectAll: jest.fn(),
+  },
+}));
+
+jest.mock('../../src/services/MessageHistoryBatching', () => ({
+  messageHistoryBatching: {
+    flushSync: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 describe('BackupScreen', () => {
   const onClose = jest.fn();
   const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
@@ -60,6 +75,7 @@ describe('BackupScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (RNFS.readFile as jest.Mock).mockResolvedValue('{"version":1,"data":{"k":"v"}}');
+    (RNFS as any).writeFile = jest.fn().mockResolvedValue(undefined);
     (pick as jest.Mock).mockResolvedValue([{ uri: 'file:///tmp/backup.json' }]);
   });
 
@@ -188,6 +204,155 @@ describe('BackupScreen', () => {
     });
 
     expect(dataBackupService.importAll).toHaveBeenCalledWith(plainJson);
+  });
+
+  it('shows alert when trying to generate backup with no options selected', async () => {
+    const { findByText } = render(<BackupScreen visible={true} onClose={onClose} />);
+
+    fireEvent.press(await findByText('Clear All'));
+    fireEvent.press(await findByText('Generate Backup'));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'No Options Selected',
+        'Please select at least one backup option'
+      );
+    });
+  });
+
+  it('handles sensitive backup encryption flow and copy/save actions', async () => {
+    (dataBackupService.checkForSensitiveData as jest.Mock).mockReturnValue({ hasSensitive: true });
+    (dataBackupService.encryptBackup as jest.Mock).mockResolvedValue('{"encrypted":true}');
+
+    const { findByText, findByPlaceholderText } = render(
+      <BackupScreen visible={true} onClose={onClose} />
+    );
+
+    fireEvent.press(await findByText('Generate Backup'));
+    expect(await findByText('Sensitive Data Detected')).toBeTruthy();
+
+    fireEvent.changeText(
+      await findByPlaceholderText('Enter encryption password (optional)'),
+      'secret1'
+    );
+    fireEvent.press(await findByText('Encrypt & Export'));
+
+    await waitFor(() => {
+      expect(dataBackupService.encryptBackup).toHaveBeenCalled();
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Backup Encrypted',
+        'Your backup has been encrypted. Keep your password safe - you will need it to restore this backup.'
+      );
+    });
+
+    fireEvent.press(await findByText('Copy to Clipboard'));
+    expect(Clipboard.setString).toHaveBeenCalledWith('{"encrypted":true}');
+
+    fireEvent.press(await findByText('Save to File'));
+    await waitFor(() => {
+      expect((RNFS as any).writeFile).toHaveBeenCalled();
+    });
+  });
+
+  it('switches loaded file restore mode back to manual paste', async () => {
+    const { findByText, queryByText, findByPlaceholderText } = render(
+      <BackupScreen visible={true} onClose={onClose} />
+    );
+
+    fireEvent.press(await findByText('Restore from Backup'));
+    fireEvent.press(await findByText('Load from File'));
+
+    expect(await findByText('Loaded Backup File')).toBeTruthy();
+    fireEvent.press(await findByText('Switch to Manual JSON Paste'));
+
+    expect(queryByText('Loaded Backup File')).toBeNull();
+    expect(await findByPlaceholderText('Backup JSON appears here...')).toBeTruthy();
+  });
+
+  it('decrypts encrypted backup and restores it after confirmation', async () => {
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(true);
+    (dataBackupService.decryptBackup as jest.Mock).mockResolvedValue('{"version":1,"data":{"z":"x"}}');
+
+    const { findByText, findByPlaceholderText } = render(
+      <BackupScreen visible={true} onClose={onClose} />
+    );
+
+    fireEvent.press(await findByText('Restore from Backup'));
+    fireEvent.changeText(
+      await findByPlaceholderText('Backup JSON appears here...'),
+      '{"encrypted":true}'
+    );
+    fireEvent.press(await findByText('Restore'));
+    fireEvent.changeText(await findByPlaceholderText('Enter decryption password'), 'secret1');
+    fireEvent.press(await findByText('Decrypt & Restore'));
+
+    await waitFor(() => {
+      expect((Alert.alert as jest.Mock).mock.calls.some(call => call[0] === 'Confirm Restore')).toBe(true);
+    });
+
+    const confirmCall = (Alert.alert as jest.Mock).mock.calls.find(call => call[0] === 'Confirm Restore');
+    const buttons = confirmCall?.[2] as Array<{ text: string; onPress?: () => Promise<void> | void }>;
+    const restoreButton = buttons?.find(button => button.text === 'Restore');
+
+    await act(async () => {
+      await restoreButton?.onPress?.();
+    });
+
+    expect(dataBackupService.decryptBackup).toHaveBeenCalledWith('{"encrypted":true}', 'secret1');
+    await waitFor(() => {
+      expect(dataBackupService.importAll).toHaveBeenCalledWith('{"version":1,"data":{"z":"x"}}');
+    });
+  });
+
+  it('runs restart flow after restore completes', async () => {
+    const exitAppSpy = jest
+      .spyOn(require('react-native').BackHandler, 'exitApp')
+      .mockImplementation(jest.fn());
+    const originalPlatform = require('react-native').Platform.OS;
+    Object.defineProperty(require('react-native').Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+    (dataBackupService.isEncryptedBackup as jest.Mock).mockReturnValue(false);
+
+    try {
+      const { findByText, findByPlaceholderText } = render(
+        <BackupScreen visible={true} onClose={onClose} />
+      );
+
+      fireEvent.press(await findByText('Restore from Backup'));
+      fireEvent.changeText(
+        await findByPlaceholderText('Backup JSON appears here...'),
+        '{"version":1,"data":{"k":"v"}}'
+      );
+      fireEvent.press(await findByText('Restore'));
+
+      await waitFor(() => {
+        expect((Alert.alert as jest.Mock).mock.calls.some(call => call[0] === 'Confirm Restore')).toBe(true);
+      });
+
+      const confirmCall = (Alert.alert as jest.Mock).mock.calls.find(call => call[0] === 'Confirm Restore');
+      const buttons = confirmCall?.[2] as Array<{ text: string; onPress?: () => Promise<void> | void }>;
+      const restoreButton = buttons?.find(button => button.text === 'Restore');
+
+      await act(async () => {
+        await restoreButton?.onPress?.();
+      });
+
+      expect(await findByText('Exit to Restart App')).toBeTruthy();
+      fireEvent.press(await findByText('Exit to Restart App'));
+
+      await waitFor(() => {
+        expect(messageHistoryBatching.flushSync).toHaveBeenCalled();
+        expect(connectionManager.disconnectAll).toHaveBeenCalledWith('Restarting after backup restore');
+        expect(exitAppSpy).toHaveBeenCalled();
+      });
+    } finally {
+      Object.defineProperty(require('react-native').Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
   });
 
 });

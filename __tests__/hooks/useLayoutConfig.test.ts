@@ -104,4 +104,56 @@ describe('useLayoutConfig', () => {
       expect(result.current).toEqual(updatedConfig);
     });
   });
+
+  it('should not overwrite a config change received before initialization finishes', async () => {
+    let resolveInit!: () => void;
+    mockLayoutService.initialize.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveInit = resolve;
+        })
+    );
+
+    const afterChangeConfig = {
+      tabPosition: 'bottom',
+      userListPosition: 'left',
+      showUserList: false,
+    };
+
+    const { result } = renderHook(() => useLayoutConfig());
+
+    await act(async () => {
+      configChangeCallback?.(afterChangeConfig);
+    });
+
+    await act(async () => {
+      resolveInit();
+    });
+
+    expect(result.current).toEqual(afterChangeConfig);
+  });
+
+  it('should not update state after unmount when initialization resolves late', async () => {
+    let resolveInit!: () => void;
+    const afterInitConfig = { ...defaultConfig, tabPosition: 'right' };
+    mockLayoutService.initialize.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveInit = resolve;
+        })
+    );
+    mockLayoutService.getConfig
+      .mockReturnValueOnce(defaultConfig)
+      .mockReturnValue(afterInitConfig);
+
+    const { result, unmount } = renderHook(() => useLayoutConfig());
+
+    unmount();
+
+    await act(async () => {
+      resolveInit();
+    });
+
+    expect(result.current).toEqual(defaultConfig);
+  });
 });

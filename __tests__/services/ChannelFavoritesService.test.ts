@@ -98,6 +98,21 @@ describe('ChannelFavoritesService', () => {
 
       expect(listener).toHaveBeenCalledWith('freenode', expect.any(Array));
     });
+
+    it('should log save errors but keep favorite in memory', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const { setItem } = require('@react-native-async-storage/async-storage');
+      setItem.mockRejectedValueOnce(new Error('Save failed'));
+
+      await channelFavoritesService.addFavorite('freenode', '#general');
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to save channel favorites:',
+        expect.any(Error)
+      );
+      expect(channelFavoritesService.isFavorite('freenode', '#general')).toBe(true);
+      consoleSpy.mockRestore();
+    });
   });
 
   describe('Remove Favorite', () => {
@@ -183,6 +198,17 @@ describe('ChannelFavoritesService', () => {
       const targetCalls = listener.mock.calls.filter(c => c[0] === 'dalnet');
       expect(sourceCalls.length).toBeGreaterThan(0);
       expect(targetCalls.length).toBeGreaterThan(0);
+    });
+
+    it('should do nothing when source favorite does not exist', async () => {
+      const listener = jest.fn();
+      channelFavoritesService.onFavoritesChange(listener);
+
+      await channelFavoritesService.moveFavorite('freenode', '#missing', 'dalnet');
+
+      expect(channelFavoritesService.getFavorites('freenode')).toHaveLength(1);
+      expect(channelFavoritesService.getFavorites('dalnet')).toEqual([]);
+      expect(listener).not.toHaveBeenCalled();
     });
   });
 
@@ -338,6 +364,17 @@ describe('ChannelFavoritesService', () => {
 
       expect(listener1).toHaveBeenCalled();
       expect(listener2).toHaveBeenCalled();
+    });
+
+    it('should allow unsubscribe to be called more than once', async () => {
+      const listener = jest.fn();
+      const unsubscribe = channelFavoritesService.onFavoritesChange(listener);
+
+      unsubscribe();
+      unsubscribe();
+      await channelFavoritesService.addFavorite('freenode', '#general');
+
+      expect(listener).not.toHaveBeenCalled();
     });
   });
 });

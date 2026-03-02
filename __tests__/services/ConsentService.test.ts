@@ -8,6 +8,7 @@
 import { consentService } from '../../src/services/ConsentService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AdsConsent, AdsConsentStatus } from 'react-native-google-mobile-ads';
+import { logger } from '../../src/services/Logger';
 
 // Mock logger to avoid noise
 jest.mock('../../src/services/Logger', () => ({
@@ -120,6 +121,46 @@ describe('ConsentService', () => {
       // UMP status is used when not manually accepted
       expect(consentService.getConsentStatus()).toBe(AdsConsentStatus.NOT_REQUIRED);
     });
+
+    it('should log when consent is required and form is available', async () => {
+      const mockRequestInfoUpdate = jest.fn().mockResolvedValue({
+        status: AdsConsentStatus.REQUIRED,
+        isConsentFormAvailable: true,
+      });
+
+      (AdsConsent.requestInfoUpdate as jest.Mock) = mockRequestInfoUpdate;
+
+      await consentService.initialize(false);
+
+      expect(logger.info).toHaveBeenCalledWith(
+        'consent',
+        'Consent required - will show form'
+      );
+    });
+
+    it('should keep loaded saved status when UMP init fails', async () => {
+      await AsyncStorage.setItem('@AndroidIRCX:consentStatus', String(AdsConsentStatus.REQUIRED));
+
+      const mockRequestInfoUpdate = jest.fn().mockRejectedValue(new Error('Network error'));
+      (AdsConsent.requestInfoUpdate as jest.Mock) = mockRequestInfoUpdate;
+
+      await consentService.initialize(false);
+
+      expect(consentService.getConsentStatus()).toBe(AdsConsentStatus.REQUIRED);
+    });
+
+    it('should log when loading saved consent fails', async () => {
+      jest.spyOn(AsyncStorage, 'getItem').mockRejectedValueOnce(new Error('load failed'));
+      const mockRequestInfoUpdate = jest.fn().mockRejectedValue(new Error('ump failed'));
+      (AdsConsent.requestInfoUpdate as jest.Mock) = mockRequestInfoUpdate;
+
+      await consentService.initialize(false);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        'consent',
+        expect.stringContaining('Failed to load saved consent:')
+      );
+    });
   });
 
   describe('acceptConsentManually', () => {
@@ -142,8 +183,30 @@ describe('ConsentService', () => {
       consentService.addListener(listener);
       
       await consentService.acceptConsentManually();
-      
+
       expect(listener).toHaveBeenCalledWith(AdsConsentStatus.NOT_REQUIRED);
+    });
+
+    it('should throw if saving manual consent fails', async () => {
+      jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('save failed'));
+
+      await expect(consentService.acceptConsentManually()).rejects.toThrow('save failed');
+    });
+
+    it('should log when saving consent status fails internally', async () => {
+      jest.spyOn(AsyncStorage, 'setItem')
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('status save failed'))
+        .mockResolvedValueOnce(undefined);
+
+      await consentService.acceptConsentManually();
+
+      expect(logger.error).toHaveBeenCalledWith(
+        'consent',
+        expect.stringContaining('Failed to save consent:')
+      );
+      expect(consentService.isManuallyAccepted()).toBe(true);
+      expect(consentService.getConsentStatus()).toBe(AdsConsentStatus.NOT_REQUIRED);
     });
   });
 
@@ -208,10 +271,30 @@ describe('ConsentService', () => {
       
       (AdsConsent.requestInfoUpdate as jest.Mock) = mockRequestInfoUpdate;
       (AdsConsent.showForm as jest.Mock) = mockShowForm;
-      
+
       const result = await consentService.showConsentFormIfRequired();
       
       expect(result).toBe(false);
+    });
+
+    it('should clear manual consent after required form is completed', async () => {
+      // @ts-ignore
+      consentService.manuallyAccepted = true;
+
+      const mockRequestInfoUpdate = jest.fn().mockResolvedValue({
+        status: AdsConsentStatus.REQUIRED,
+        isConsentFormAvailable: true,
+      });
+      const mockShowForm = jest.fn().mockResolvedValue({
+        status: AdsConsentStatus.OBTAINED,
+      });
+
+      (AdsConsent.requestInfoUpdate as jest.Mock) = mockRequestInfoUpdate;
+      (AdsConsent.showForm as jest.Mock) = mockShowForm;
+
+      await consentService.showConsentFormIfRequired();
+
+      expect(consentService.isManuallyAccepted()).toBe(false);
     });
   });
 
@@ -267,6 +350,18 @@ describe('ConsentService', () => {
       (AdsConsent.showForm as jest.Mock) = mockShowForm;
       
       await expect(consentService.showConsentForm()).rejects.toThrow('MANUAL_CONSENT_ONLY');
+    });
+
+    it('should rethrow other form errors', async () => {
+      const mockRequestInfoUpdate = jest.fn().mockResolvedValue({
+        isConsentFormAvailable: true,
+      });
+      const mockShowForm = jest.fn().mockRejectedValue(new Error('Unexpected form failure'));
+
+      (AdsConsent.requestInfoUpdate as jest.Mock) = mockRequestInfoUpdate;
+      (AdsConsent.showForm as jest.Mock) = mockShowForm;
+
+      await expect(consentService.showConsentForm()).rejects.toThrow('Unexpected form failure');
     });
   });
 
@@ -496,6 +591,18 @@ describe('ConsentService', () => {
       
       // Should not throw
       await expect(consentService.acceptConsentManually()).resolves.not.toThrow();
+    });
+
+    it('should allow unsubscribe to be called more than once', async () => {
+      const listener = jest.fn();
+      const unsubscribe = consentService.addListener(listener);
+
+      unsubscribe();
+      unsubscribe();
+
+      await consentService.acceptConsentManually();
+
+      expect(listener).not.toHaveBeenCalled();
     });
   });
 

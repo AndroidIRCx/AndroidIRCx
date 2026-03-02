@@ -1386,6 +1386,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         },
       ],
     },
+    /*
     {
       id: 'znc-subscription',
       title: zncSubscriptionTitle,
@@ -1415,6 +1416,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         },
       ],
     },
+    */
     {
       id: 'appearance',
       title: t('Appearance', { _tags: tags }),

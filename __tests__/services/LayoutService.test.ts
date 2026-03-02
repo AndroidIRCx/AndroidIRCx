@@ -9,24 +9,37 @@ import { layoutService, LayoutConfig } from '../../src/services/LayoutService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 describe('LayoutService', () => {
+  const defaultConfig = {
+    tabPosition: 'top',
+    userListPosition: 'right',
+    userListSizePx: 150,
+    userListNickFontSizePx: 13,
+    viewMode: 'comfortable',
+    fontSize: 'medium',
+    fontSizeValues: {
+      small: 12,
+      medium: 14,
+      large: 16,
+      custom: 18,
+    },
+    messageSpacing: 4,
+    messagePadding: 8,
+    messageGroupingEnabled: false,
+    messageTextAlign: 'left',
+    messageTextDirection: 'auto',
+    timestampDisplay: 'always',
+    timestampFormat: '24h',
+    showNickColors: true,
+    compactMode: false,
+    navigationBarOffset: 0,
+  } satisfies LayoutConfig;
+
   beforeEach(() => {
     (AsyncStorage as any).__reset();
     // Reset service state to defaults
     (layoutService as any).initialized = false;
     (layoutService as any).initPromise = null;
-    (layoutService as any).config = {
-      tabPosition: 'top',
-      userListPosition: 'right',
-      viewMode: 'comfortable',
-      fontSize: 'medium',
-      messageSpacing: 4,
-      messagePadding: 8,
-      timestampDisplay: 'always',
-      timestampFormat: '24h',
-      showNickColors: true,
-      compactMode: false,
-      navigationBarOffset: 0,
-    };
+    (layoutService as any).config = { ...defaultConfig };
     (layoutService as any).listeners = [];
   });
 
@@ -94,6 +107,60 @@ describe('LayoutService', () => {
 
       const config = layoutService.getConfig();
       expect(config.userListPosition).toBe('right');
+    });
+
+    it('should migrate legacy xlarge font size and missing nested defaults', async () => {
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:layoutConfig',
+        JSON.stringify({
+          fontSize: 'xlarge',
+          compactMode: false,
+          messageGroupingEnabled: undefined,
+        })
+      );
+
+      await layoutService.initialize();
+
+      const config = layoutService.getConfig();
+      expect(config.fontSize).toBe('custom');
+      expect(config.fontSizeValues.custom).toBe(18);
+      expect(config.messageGroupingEnabled).toBe(true);
+      expect(config.messageTextAlign).toBe('left');
+      expect(config.messageTextDirection).toBe('auto');
+    });
+
+    it('should fill in default user list sizing when missing', async () => {
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:layoutConfig',
+        JSON.stringify({
+          userListPosition: 'left',
+        })
+      );
+
+      await layoutService.initialize();
+
+      const config = layoutService.getConfig();
+      expect(config.userListSizePx).toBe(150);
+      expect(config.userListNickFontSizePx).toBe(13);
+    });
+
+    it('should reuse in-flight initialization promise', async () => {
+      let resolveGetItem!: (value: string | null) => void;
+      (AsyncStorage.getItem as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveGetItem = resolve;
+          })
+      );
+
+      const initA = layoutService.initialize();
+      const initB = layoutService.initialize();
+
+      resolveGetItem(null);
+      await Promise.all([initA, initB]);
+
+      expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
+      expect((layoutService as any).initialized).toBe(true);
     });
   });
 
@@ -195,6 +262,22 @@ describe('LayoutService', () => {
         expect(layoutService.getUserListPosition()).toBe(position);
       }
     });
+
+    it('should clamp and floor user list size', async () => {
+      await layoutService.setUserListSizePx(123.9);
+      expect(layoutService.getUserListSizePx()).toBe(123);
+
+      await layoutService.setUserListSizePx(-4);
+      expect(layoutService.getUserListSizePx()).toBe(1);
+    });
+
+    it('should clamp and floor user list nick font size', async () => {
+      await layoutService.setUserListNickFontSizePx(18.7);
+      expect(layoutService.getUserListNickFontSizePx()).toBe(18);
+
+      await layoutService.setUserListNickFontSizePx(0);
+      expect(layoutService.getUserListNickFontSizePx()).toBe(1);
+    });
   });
 
   describe('view mode', () => {
@@ -261,6 +344,14 @@ describe('LayoutService', () => {
         expect(layoutService.getFontSize()).toBe(size);
       }
     });
+
+    it('should clamp custom font size values to 8-30px', async () => {
+      await layoutService.setFontSizeValue('custom', 100);
+      expect(layoutService.getConfig().fontSizeValues.custom).toBe(30);
+
+      await layoutService.setFontSizeValue('small', 1);
+      expect(layoutService.getConfig().fontSizeValues.small).toBe(8);
+    });
   });
 
   describe('message spacing', () => {
@@ -318,6 +409,32 @@ describe('LayoutService', () => {
         await layoutService.setTimestampDisplay(option);
         expect(layoutService.getTimestampDisplay()).toBe(option);
       }
+    });
+  });
+
+  describe('message layout preferences', () => {
+    it('should get and set message grouping', async () => {
+      expect(layoutService.getMessageGroupingEnabled()).toBe(false);
+
+      await layoutService.setMessageGroupingEnabled(true);
+
+      expect(layoutService.getMessageGroupingEnabled()).toBe(true);
+    });
+
+    it('should get and set message text alignment', async () => {
+      expect(layoutService.getMessageTextAlign()).toBe('left');
+
+      await layoutService.setMessageTextAlign('justify');
+
+      expect(layoutService.getMessageTextAlign()).toBe('justify');
+    });
+
+    it('should get and set message text direction', async () => {
+      expect(layoutService.getMessageTextDirection()).toBe('auto');
+
+      await layoutService.setMessageTextDirection('rtl');
+
+      expect(layoutService.getMessageTextDirection()).toBe('rtl');
     });
   });
 

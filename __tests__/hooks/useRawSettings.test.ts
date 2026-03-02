@@ -43,12 +43,14 @@ jest.mock('../../src/stores/uiStore', () => ({
 }));
 
 import { settingsService } from '../../src/services/SettingsService';
+import { getDefaultRawCategoryVisibility } from '../../src/services/IRCService';
 
 describe('useRawSettings', () => {
   const mockSetShowEncryptionIndicators = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUIStore.rawCategoryVisibility = {};
   });
 
   it('should return all setting functions', () => {
@@ -72,6 +74,57 @@ describe('useRawSettings', () => {
 
     expect(mockSetShowRawCommands).toHaveBeenCalledWith(true);
     expect(settingsService.setSetting).toHaveBeenCalledWith('showRawCommands', true);
+  });
+
+  it('should not persist raw category visibility when raw commands are disabled', async () => {
+    const { result } = renderHook(() =>
+      useRawSettings({ setShowEncryptionIndicators: mockSetShowEncryptionIndicators })
+    );
+
+    await act(async () => {
+      await result.current.persistentSetShowRawCommands(false);
+    });
+
+    expect(mockSetShowRawCommands).toHaveBeenCalledWith(false);
+    expect(mockSetRawCategoryVisibility).not.toHaveBeenCalled();
+    expect(settingsService.setSetting).toHaveBeenCalledTimes(1);
+    expect(settingsService.setSetting).toHaveBeenCalledWith('showRawCommands', false);
+  });
+
+  it('should normalize current store raw visibility when enabling raw commands', async () => {
+    mockUIStore.rawCategoryVisibility = {
+      connection: false,
+      server: false,
+    };
+    const defaults = (getDefaultRawCategoryVisibility as jest.Mock).mock.results[0]?.value || {
+      connection: true,
+      messaging: true,
+      channel: true,
+      user: true,
+      server: true,
+    };
+
+    const { result } = renderHook(() =>
+      useRawSettings({ setShowEncryptionIndicators: mockSetShowEncryptionIndicators })
+    );
+
+    await act(async () => {
+      await result.current.persistentSetShowRawCommands(true);
+    });
+
+    expect(mockSetRawCategoryVisibility).toHaveBeenCalledWith({
+      ...defaults,
+      connection: false,
+      server: false,
+    });
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'rawCategoryVisibility',
+      expect.objectContaining({
+        connection: false,
+        server: false,
+        messaging: true,
+      })
+    );
   });
 
   it('should normalize and persist raw category visibility', async () => {

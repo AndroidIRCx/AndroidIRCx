@@ -35,6 +35,26 @@ describe('MediaSettingsService', () => {
     expect(settings.videoQuality).toBe('1080p');
   });
 
+  it('falls back to defaults when loading from storage fails', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(AsyncStorage, 'getItem').mockRejectedValueOnce(new Error('storage failed'));
+
+    const settings = await mediaSettingsService.loadSettings();
+
+    expect(settings).toMatchObject({
+      enabled: true,
+      showEncryptionIndicator: true,
+      autoDownload: true,
+      mediaQuality: 'original',
+    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[MediaSettingsService] Load error:',
+      expect.any(Error)
+    );
+
+    errorSpy.mockRestore();
+  });
+
   it('saves settings and notifies listeners', async () => {
     const listener = jest.fn();
     mediaSettingsService.onSettingsChanged(listener);
@@ -49,6 +69,20 @@ describe('MediaSettingsService', () => {
     );
   });
 
+  it('handles save errors without throwing', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('save failed'));
+
+    await expect(mediaSettingsService.saveSettings({ wifiOnly: true })).resolves.toBeUndefined();
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[MediaSettingsService] Save error:',
+      expect.any(Error)
+    );
+
+    errorSpy.mockRestore();
+  });
+
   it('returns media-enabled state via lazy load', async () => {
     await AsyncStorage.setItem('@MediaSettings', JSON.stringify({ enabled: false }));
     (mediaSettingsService as any).loaded = false;
@@ -56,6 +90,79 @@ describe('MediaSettingsService', () => {
     const enabled = await mediaSettingsService.isMediaEnabled();
 
     expect(enabled).toBe(false);
+  });
+
+  it('lazy-loads all getter wrappers when settings are not loaded', async () => {
+    const loadSettingsSpy = jest
+      .spyOn(mediaSettingsService, 'loadSettings')
+      .mockImplementation(async () => {
+        (mediaSettingsService as any).settings = {
+          enabled: false,
+          showEncryptionIndicator: false,
+          autoDownload: false,
+          wifiOnly: true,
+          cacheSize: 321,
+          mediaQuality: 'low',
+          videoQuality: '720p',
+          voiceMaxDuration: 15,
+        };
+        (mediaSettingsService as any).loaded = true;
+        return (mediaSettingsService as any).settings;
+      });
+
+    (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.isMediaEnabled()).toBe(false);
+
+    (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.shouldShowEncryptionIndicator()).toBe(false);
+
+    (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.getAutoDownload()).toBe(false);
+
+    (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.getWiFiOnly()).toBe(true);
+
+    (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.getMaxCacheSize()).toBe(321);
+
+    (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.getMediaQuality()).toBe('low');
+
+    (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.getVideoQuality()).toBe('720p');
+
+    (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.getVoiceMaxDuration()).toBe(15);
+
+    (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.exportSettings()).toContain('"cacheSize": 321');
+
+    expect(loadSettingsSpy).toHaveBeenCalledTimes(9);
+    loadSettingsSpy.mockRestore();
+  });
+
+  it('returns cached settings without reloading when already loaded', async () => {
+    const getItemSpy = jest.spyOn(AsyncStorage, 'getItem');
+    (mediaSettingsService as any).loaded = true;
+    (mediaSettingsService as any).settings = {
+      enabled: false,
+      showEncryptionIndicator: false,
+      autoDownload: false,
+      wifiOnly: true,
+      cacheSize: 42,
+      mediaQuality: 'low',
+      videoQuality: '720p',
+      voiceMaxDuration: 30,
+    };
+
+    const settings = await mediaSettingsService.getSettings();
+
+    expect(settings).toMatchObject({
+      enabled: false,
+      mediaQuality: 'low',
+      videoQuality: '720p',
+    });
+    expect(getItemSpy).not.toHaveBeenCalled();
   });
 
   it('imports valid settings json', async () => {
@@ -92,6 +199,32 @@ describe('MediaSettingsService', () => {
     expect(result.error).toBeDefined();
   });
 
+  it('returns success from import even if saveSettings swallows storage failure', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('save failed'));
+
+    const result = await mediaSettingsService.importSettings(
+      JSON.stringify({
+        enabled: true,
+        showEncryptionIndicator: false,
+        autoDownload: false,
+        wifiOnly: false,
+        cacheSize: 999,
+        mediaQuality: 'medium',
+        videoQuality: '480p',
+        voiceMaxDuration: 12,
+      })
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[MediaSettingsService] Save error:',
+      expect.any(Error)
+    );
+
+    errorSpy.mockRestore();
+  });
+
   it('resets settings to defaults', async () => {
     await mediaSettingsService.saveSettings({ enabled: false, mediaQuality: 'low' });
     await mediaSettingsService.resetToDefaults();
@@ -109,6 +242,42 @@ describe('MediaSettingsService', () => {
     await mediaSettingsService.saveSettings({ wifiOnly: true });
 
     expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('allows unsubscribe to be called more than once', async () => {
+    const listener = jest.fn();
+    const unsubscribe = mediaSettingsService.onSettingsChanged(listener);
+
+    unsubscribe();
+    unsubscribe();
+
+    await mediaSettingsService.saveSettings({ wifiOnly: true });
+
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('continues notifying listeners when one listener throws', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const badListener = jest.fn(() => {
+      throw new Error('listener failed');
+    });
+    const goodListener = jest.fn();
+
+    mediaSettingsService.onSettingsChanged(badListener);
+    mediaSettingsService.onSettingsChanged(goodListener);
+
+    await mediaSettingsService.saveSettings({ autoDownload: false });
+
+    expect(badListener).toHaveBeenCalled();
+    expect(goodListener).toHaveBeenCalledWith(
+      expect.objectContaining({ autoDownload: false })
+    );
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[MediaSettingsService] Listener error:',
+      expect.any(Error)
+    );
+
+    errorSpy.mockRestore();
   });
 
   it('formats cache size labels', () => {
@@ -150,5 +319,25 @@ describe('MediaSettingsService', () => {
 
     const exported = await mediaSettingsService.exportSettings();
     expect(exported).toContain('"mediaQuality": "medium"');
+  });
+
+  it('exports cached settings without loading from storage again', async () => {
+    const getItemSpy = jest.spyOn(AsyncStorage, 'getItem');
+    (mediaSettingsService as any).loaded = true;
+    (mediaSettingsService as any).settings = {
+      enabled: true,
+      showEncryptionIndicator: true,
+      autoDownload: false,
+      wifiOnly: true,
+      cacheSize: 2048,
+      mediaQuality: 'high',
+      videoQuality: '4k',
+      voiceMaxDuration: 90,
+    };
+
+    const exported = await mediaSettingsService.exportSettings();
+
+    expect(exported).toContain('"videoQuality": "4k"');
+    expect(getItemSpy).not.toHaveBeenCalled();
   });
 });

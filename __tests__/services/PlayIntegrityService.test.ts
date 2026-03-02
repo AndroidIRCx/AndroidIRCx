@@ -9,6 +9,10 @@
 // Create mock module - must be defined before jest.mock
 const mockRequestIntegrityToken = jest.fn();
 const mockIsAvailable = jest.fn();
+const mockAppCheckGetToken = jest.fn();
+const mockAppCheckFactory = jest.fn(() => ({
+  getToken: mockAppCheckGetToken,
+}));
 
 // Mock react-native without requireActual to avoid TurboModule issues
 jest.mock('react-native', () => {
@@ -28,6 +32,14 @@ jest.mock('react-native', () => {
     },
   };
 });
+
+jest.mock(
+  '@react-native-firebase/app-check',
+  () => ({
+    default: mockAppCheckFactory,
+  }),
+  { virtual: true }
+);
 
 // Mock crypto for nonce generation
 const mockCryptoGetRandomValues = jest.fn((array: Uint8Array) => {
@@ -57,8 +69,13 @@ describe('PlayIntegrityService', () => {
     jest.clearAllMocks();
     mockRequestIntegrityToken.mockClear();
     mockIsAvailable.mockClear();
+    mockAppCheckFactory.mockClear();
+    mockAppCheckGetToken.mockClear();
     mockCryptoGetRandomValues.mockClear();
     (global.fetch as jest.Mock).mockClear();
+    const RN = require('react-native');
+    RN.Platform.OS = 'android';
+    (playIntegrityService as any).isAvailable = false;
   });
 
   describe('checkAvailability', () => {
@@ -66,9 +83,31 @@ describe('PlayIntegrityService', () => {
       const result = await playIntegrityService.checkAvailability();
       expect(result).toBe(true);
     });
+
+    it('should return false on non-Android platforms', async () => {
+      const RN = require('react-native');
+      RN.Platform.OS = 'ios';
+
+      const result = await playIntegrityService.checkAvailability();
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('requestIntegrityToken', () => {
+    it('should return Android-only error on iOS', async () => {
+      const RN = require('react-native');
+      RN.Platform.OS = 'ios';
+
+      const result = await playIntegrityService.requestIntegrityToken();
+
+      expect(result).toEqual({
+        token: '',
+        error: 'Play Integrity API is only available on Android',
+      });
+      expect(mockRequestIntegrityToken).not.toHaveBeenCalled();
+    });
+
     it('should request integrity token successfully', async () => {
       const mockToken = 'test_integrity_token_12345';
       mockRequestIntegrityToken.mockResolvedValue({
@@ -93,6 +132,17 @@ describe('PlayIntegrityService', () => {
       expect(result.token).toBe('');
       expect(result.error).toBe(errorMessage);
       expect(mockRequestIntegrityToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use fallback error when rejection has no message', async () => {
+      mockRequestIntegrityToken.mockRejectedValue(undefined);
+
+      const result = await playIntegrityService.requestIntegrityToken();
+
+      expect(result).toEqual({
+        token: '',
+        error: 'Failed to get integrity token',
+      });
     });
 
     it('should generate nonce if not provided', async () => {
@@ -153,6 +203,38 @@ describe('PlayIntegrityService', () => {
 
       expect(result.token).toBe('');
       expect(result.error).toContain('Empty token');
+    });
+
+    it('should return unavailable error when availability check fails', async () => {
+      jest.spyOn(playIntegrityService, 'checkAvailability').mockResolvedValueOnce(false);
+
+      const result = await playIntegrityService.requestIntegrityToken();
+
+      expect(result).toEqual({
+        token: '',
+        error: 'Play Integrity API is not available on this device',
+      });
+      expect(mockRequestIntegrityToken).not.toHaveBeenCalled();
+    });
+
+    it('should handle unexpected nonce generation errors', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const originalGetRandomValues = global.crypto.getRandomValues;
+      global.crypto.getRandomValues = jest.fn(() => {
+        throw new Error('Random failure');
+      }) as any;
+
+      try {
+        const result = await playIntegrityService.requestIntegrityToken();
+
+        expect(result).toEqual({
+          token: '',
+          error: 'Random failure',
+        });
+      } finally {
+        global.crypto.getRandomValues = originalGetRandomValues;
+        consoleSpy.mockRestore();
+      }
     });
   });
 
@@ -261,26 +343,57 @@ describe('PlayIntegrityService', () => {
   });
 
   describe('getSimpleIntegrityStatus', () => {
-    it('should return status object or null', async () => {
-      // Mock console.warn to avoid errors
-      const originalWarn = console.warn;
-      console.warn = jest.fn();
+    it('should return positive flags when App Check token exists', async () => {
+      mockAppCheckGetToken.mockResolvedValueOnce('app-check-token');
+
+      const result = await playIntegrityService.getSimpleIntegrityStatus();
+
+      expect(mockAppCheckFactory).toHaveBeenCalledTimes(1);
+      expect(mockAppCheckGetToken).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({
+        isPlayRecognized: true,
+        meetsBasicIntegrity: true,
+        meetsDeviceIntegrity: true,
+        meetsStrongIntegrity: true,
+        isLicensed: true,
+        hasToken: true,
+      });
+    });
+
+    it('should return false flags when App Check token is empty', async () => {
+      mockAppCheckGetToken.mockResolvedValueOnce('');
+
+      const result = await playIntegrityService.getSimpleIntegrityStatus();
+
+      expect(result).toEqual({
+        isPlayRecognized: false,
+        meetsBasicIntegrity: false,
+        meetsDeviceIntegrity: false,
+        meetsStrongIntegrity: false,
+        isLicensed: false,
+        hasToken: false,
+      });
+    });
+
+    it('should return false flags when App Check throws', async () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      mockAppCheckFactory.mockImplementationOnce(() => {
+        throw new Error('App Check unavailable');
+      });
 
       try {
         const result = await playIntegrityService.getSimpleIntegrityStatus();
 
-        // Should return an object with status fields or null
-        expect(result === null || typeof result === 'object').toBe(true);
-        if (result) {
-          expect(result).toHaveProperty('isPlayRecognized');
-          expect(result).toHaveProperty('meetsBasicIntegrity');
-          expect(result).toHaveProperty('meetsDeviceIntegrity');
-          expect(result).toHaveProperty('meetsStrongIntegrity');
-          expect(result).toHaveProperty('isLicensed');
-          expect(result).toHaveProperty('hasToken');
-        }
+        expect(result).toEqual({
+          isPlayRecognized: false,
+          meetsBasicIntegrity: false,
+          meetsDeviceIntegrity: false,
+          meetsStrongIntegrity: false,
+          isLicensed: false,
+          hasToken: false,
+        });
       } finally {
-        console.warn = originalWarn;
+        warnSpy.mockRestore();
       }
     });
   });

@@ -607,9 +607,9 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
                 style={styles.codeInput}
                 multiline
                 value={JSON.stringify(editing.config || {}, null, 2)}
-                onChangeText={(t) => {
+                onChangeText={(jsonText) => {
                   try {
-                    const parsed = JSON.parse(t || '{}');
+                    const parsed = JSON.parse(jsonText || '{}');
                     setEditing({ ...editing, config: parsed });
                   } catch (err) {
                     Alert.alert(t('Invalid JSON'), String(err));

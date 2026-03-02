@@ -18,25 +18,33 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 describe('PerformanceService', () => {
+  const defaultConfig = {
+    enableVirtualization: true,
+    maxVisibleMessages: 100,
+    messageLoadChunk: 50,
+    enableLazyLoading: true,
+    messageLimit: 1000,
+    enableMessageCleanup: false,
+    cleanupThreshold: 1500,
+    renderOptimization: true,
+    imageLazyLoad: true,
+    userListGrouping: true,
+    userListVirtualization: true,
+    userListAutoDisableGroupingThreshold: 1000,
+    userListAutoVirtualizeThreshold: 500,
+    userListType: 'flashlist',
+    userListSearchDebounceMs: 300,
+    userListSkipSortThreshold: 1000,
+    userListEnableChunkLoading: true,
+    userListChunkSize: 100,
+    userListInitialRenderCount: 50,
+  } satisfies PerformanceConfig;
+
   beforeEach(() => {
     jest.clearAllMocks();
     Object.keys(mockStorage).forEach(key => delete mockStorage[key]);
     // Reset service state
-    (performanceService as any).config = {
-      enableVirtualization: true,
-      maxVisibleMessages: 100,
-      messageLoadChunk: 50,
-      enableLazyLoading: true,
-      messageLimit: 1000,
-      enableMessageCleanup: false,
-      cleanupThreshold: 1500,
-      renderOptimization: true,
-      imageLazyLoad: true,
-      userListGrouping: true,
-      userListVirtualization: true,
-      userListAutoDisableGroupingThreshold: 1000,
-      userListAutoVirtualizeThreshold: 500,
-    };
+    (performanceService as any).config = { ...defaultConfig };
     (performanceService as any).listeners = [];
   });
 
@@ -53,12 +61,16 @@ describe('PerformanceService', () => {
       mockStorage['@AndroidIRCX:performanceConfig'] = JSON.stringify({
         maxVisibleMessages: 200,
         enableVirtualization: false,
+        userListType: 'flatlist',
+        userListSearchDebounceMs: 150,
       });
 
       await performanceService.initialize();
       const config = performanceService.getConfig();
       expect(config.maxVisibleMessages).toBe(200);
       expect(config.enableVirtualization).toBe(false);
+      expect(config.userListType).toBe('flatlist');
+      expect(config.userListSearchDebounceMs).toBe(150);
     });
 
     it('should handle storage errors gracefully', async () => {
@@ -112,6 +124,18 @@ describe('PerformanceService', () => {
     it('should get cleanup threshold', () => {
       expect(performanceService.getCleanupThreshold()).toBe(1500);
     });
+
+    it('should get user list type', () => {
+      expect(performanceService.getUserListType()).toBe('flashlist');
+    });
+
+    it('should get user list search debounce', () => {
+      expect(performanceService.getUserListSearchDebounceMs()).toBe(300);
+    });
+
+    it('should get user list skip sort threshold', () => {
+      expect(performanceService.getUserListSkipSortThreshold()).toBe(1000);
+    });
   });
 
   describe('Config Updates', () => {
@@ -128,11 +152,14 @@ describe('PerformanceService', () => {
       await performanceService.setConfig({
         maxVisibleMessages: 150,
         enableVirtualization: false,
+        userListType: 'simple',
       });
       const config = performanceService.getConfig();
       expect(config.maxVisibleMessages).toBe(150);
       expect(config.enableVirtualization).toBe(false);
+      expect(config.userListType).toBe('simple');
       expect(config.messageLoadChunk).toBe(50); // unchanged
+      expect(config.userListSearchDebounceMs).toBe(300); // unchanged
     });
 
     it('should save config to storage', async () => {

@@ -151,6 +151,34 @@ describe('ErrorReportingService', () => {
       expect(mockCrashlytics.log).toHaveBeenCalledWith(expect.stringContaining('"test":true'));
     });
 
+    it('should redact sensitive keys and values before logging extras', async () => {
+      const error = new Error('Fatal error');
+      const context: ErrorContext = {
+        fatal: true,
+        extras: {
+          password: 'supersecret',
+          tokenInfo: 'token=abc123',
+          nested: {
+            api_key: 'key-123',
+            authHeader: 'Bearer my-token',
+          },
+        },
+      };
+
+      await errorReportingService.report(error, context);
+
+      expect(mockCrashlytics.log).toHaveBeenCalledWith('password: "[REDACTED]"');
+      expect(mockCrashlytics.log).toHaveBeenCalledWith(
+        expect.stringContaining('tokenInfo: "[REDACTED]"')
+      );
+      expect(mockCrashlytics.log).toHaveBeenCalledWith(
+        expect.stringContaining('"api_key":"[REDACTED]"')
+      );
+      expect(mockCrashlytics.log).toHaveBeenCalledWith(
+        expect.stringContaining('"authHeader":"[REDACTED]"')
+      );
+    });
+
     it('should set source attribute when provided', async () => {
       const error = new Error('Fatal error');
       const context: ErrorContext = {
@@ -186,6 +214,17 @@ describe('ErrorReportingService', () => {
       expect(mockCrashlytics.recordError).toHaveBeenCalledWith(expect.objectContaining({
         message: 'Unknown error',
       }));
+    });
+
+    it('should skip mail open when fallback mailto cannot be opened', async () => {
+      mockCrashlytics.recordError.mockRejectedValueOnce(new Error('Crashlytics failed'));
+      (Linking.canOpenURL as jest.Mock).mockResolvedValueOnce(false);
+
+      const error = new Error('Test error');
+      await errorReportingService.report(error, { fatal: true, source: 'test-source' });
+
+      expect(Linking.canOpenURL).toHaveBeenCalled();
+      expect(Linking.openURL).not.toHaveBeenCalled();
     });
 
     it('should handle crashlytics errors with mail fallback', async () => {
@@ -294,6 +333,37 @@ describe('ErrorReportingService', () => {
       await expect(
         errorReportingService.report(error, { fatal: true, extras: { circular } })
       ).resolves.not.toThrow();
+    });
+
+    it('should continue reporting when setAttribute throws for tags and source', async () => {
+      mockCrashlytics.setAttribute
+        .mockImplementationOnce(() => {
+          throw new Error('tag failed');
+        })
+        .mockImplementationOnce(() => {
+          throw new Error('source failed');
+        });
+
+      await errorReportingService.report(new Error('Fatal error'), {
+        fatal: true,
+        source: 'test-source',
+        tags: { env: 'prod' },
+      });
+
+      expect(mockCrashlytics.recordError).toHaveBeenCalled();
+    });
+
+    it('should continue reporting when crashlytics log throws for extras', async () => {
+      mockCrashlytics.log.mockImplementationOnce(() => {
+        throw new Error('log failed');
+      });
+
+      await errorReportingService.report(new Error('Fatal error'), {
+        fatal: true,
+        extras: { note: 'hello' },
+      });
+
+      expect(mockCrashlytics.recordError).toHaveBeenCalled();
     });
   });
 

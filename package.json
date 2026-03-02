@@ -1,6 +1,6 @@
 {
   "name": "androidircx",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -50,10 +50,10 @@
     "react-native-localize": "^3.7.0",
     "react-native-make": "^1.0.1",
     "react-native-nfc-manager": "^3.17.2",
-    "react-native-nitro-modules": "^0.33.8",
+    "react-native-nitro-modules": "^0.34.1",
     "react-native-qrcode-svg": "^6.3.21",
     "react-native-reanimated": "^4.2.2",
-    "react-native-safe-area-context": "^5.6.2",
+    "react-native-safe-area-context": "^5.7.0",
     "react-native-share": "^12.2.5",
     "react-native-sound": "^0.13.0",
     "react-native-svg": "^15.15.3",
@@ -70,9 +70,9 @@
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.0",
     "@babel/runtime": "^7.28.6",
-    "@react-native-community/cli": "20.1.1",
-    "@react-native-community/cli-platform-android": "20.1.1",
-    "@react-native-community/cli-platform-ios": "20.1.1",
+    "@react-native-community/cli": "20.1.2",
+    "@react-native-community/cli-platform-android": "20.1.2",
+    "@react-native-community/cli-platform-ios": "20.1.2",
     "@react-native/babel-preset": "0.84.0",
     "@react-native/eslint-config": "0.84.0",
     "@react-native/metro-config": "0.84.0",
@@ -82,7 +82,7 @@
     "@testing-library/react-native": "^13.3.3",
     "@transifex/cli": "^7.1.5",
     "@types/jest": "^30.0.0",
-    "@types/node": "25.3.0",
+    "@types/node": "25.3.2",
     "@types/node-forge": "^1.3.14",
     "@types/react": "^19.2.14",
     "@types/react-test-renderer": "^19.1.0",
@@ -98,6 +98,6 @@
     "node": ">=20"
   },
   "resolutions": {
-    "fast-xml-parser": "^5.3.6"
+    "fast-xml-parser": "5.3.8"
   }
 }
