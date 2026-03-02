@@ -32,17 +32,20 @@ describe('BiometricAuthService', () => {
         BIOMETRICS: 'bio',
       },
       ...keychainOverrides,
-    }), { virtual: true });
+    }));
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require('../../src/services/BiometricAuthService').biometricAuthService;
+    let biometricAuthService: any;
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      biometricAuthService = require('../../src/services/BiometricAuthService').biometricAuthService;
+    });
+
+    return biometricAuthService;
   };
 
   afterEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
-    jest.dontMock('react-native');
-    jest.dontMock('react-native-keychain');
   });
 
   it('exports the service', () => {
