@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Alert, Text, TouchableOpacity } from 'react-native';
+import { Alert, TouchableOpacity } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ThemeEditorScreen } from '../../src/screens/ThemeEditorScreen';
 

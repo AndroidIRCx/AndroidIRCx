@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Alert, Text, TouchableOpacity } from 'react-native';
+import { Alert, TouchableOpacity } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ConnectionProfilesScreen } from '../../src/screens/ConnectionProfilesScreen';
 

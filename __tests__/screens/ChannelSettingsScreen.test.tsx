@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Alert, Text } from 'react-native';
+import { Alert } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
 const mockChannelInfo = {
@@ -147,7 +147,7 @@ describe('ChannelSettingsScreen', () => {
   });
 
   it('loads settings, applies topic style, and handles list management actions', async () => {
-    const { findByDisplayValue, findByPlaceholderText, findByText, findAllByText, getByText } =
+    const { findByDisplayValue, findByPlaceholderText, findAllByText, getByText } =
       render(
       <ChannelSettingsScreen channel="#chat" network="net1" visible onClose={jest.fn()} />
       );

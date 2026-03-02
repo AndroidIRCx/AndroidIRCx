@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Alert, Text } from 'react-native';
+import { Alert } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { SoundSettingsScreen } from '../../src/screens/SoundSettingsScreen';
 

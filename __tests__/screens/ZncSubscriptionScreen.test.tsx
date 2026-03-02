@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Alert, Text } from 'react-native';
+import { Alert } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
 const mockAccount = {
