@@ -35,6 +35,29 @@ class WebRTCCallService {
   private pendingCandidates: RTCIceCandidate[] = [];
   private signalChunkBuffers = new Map<string, WebRTCCallChunkBuffer>();
 
+  private static generateSecureIdSuffix(length: number): string {
+    const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
+
+    try {
+      const cryptoObj = (globalThis as any).crypto;
+      if (cryptoObj && typeof cryptoObj.getRandomValues === 'function') {
+        const bytes = new Uint8Array(length);
+        cryptoObj.getRandomValues(bytes);
+        let result = '';
+        for (let i = 0; i < bytes.length; i += 1) {
+          // Map each byte to a base36 character.
+          result += alphabet[bytes[i] % alphabet.length];
+        }
+        return result;
+      }
+    } catch {
+      // Fall through to Math.random-based implementation below.
+    }
+
+    // Fallback: preserve previous behavior if crypto is not available.
+    return Math.random().toString(36).slice(2, 2 + length);
+  }
+
   initialize(): void {
     if (this.initialized) {
       return;
@@ -58,7 +81,8 @@ class WebRTCCallService {
         ? ((await mediaSettingsService.getCallVideoQuality()) as CallVideoQuality)
         : '720p'
     );
-    const sessionId = `call-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    //const sessionId = `call-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const sessionId = `call-${Date.now()}-${WebRTCCallService.generateSecureIdSuffix(8)}`;
 
     await this.resetSession();
     useCallStore.getState().setPartial({
