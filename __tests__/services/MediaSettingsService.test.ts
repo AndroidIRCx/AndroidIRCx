@@ -20,6 +20,12 @@ describe('MediaSettingsService', () => {
     expect(settings.enabled).toBe(true);
     expect(settings.showEncryptionIndicator).toBe(true);
     expect(settings.autoDownload).toBe(true);
+    expect(settings.callVideoQuality).toBe('480p');
+    expect(settings.callStunServers).toEqual([
+      'stun:turn.dbase.in.rs:3478',
+      'stun:stun.l.google.com:19302',
+      'stun:stun1.l.google.com:19302',
+    ]);
   });
 
   it('loads and merges stored settings', async () => {
@@ -105,6 +111,7 @@ describe('MediaSettingsService', () => {
           mediaQuality: 'low',
           videoQuality: '720p',
           callVideoQuality: '720p',
+          callStunServers: ['stun:test.example.org:3478'],
           voiceMaxDuration: 15,
         };
         (mediaSettingsService as any).loaded = true;
@@ -136,12 +143,15 @@ describe('MediaSettingsService', () => {
     expect(await mediaSettingsService.getCallVideoQuality()).toBe('720p');
 
     (mediaSettingsService as any).loaded = false;
+    expect(await mediaSettingsService.getCallStunServers()).toEqual(['stun:test.example.org:3478']);
+
+    (mediaSettingsService as any).loaded = false;
     expect(await mediaSettingsService.getVoiceMaxDuration()).toBe(15);
 
     (mediaSettingsService as any).loaded = false;
     expect(await mediaSettingsService.exportSettings()).toContain('"cacheSize": 321');
 
-    expect(loadSettingsSpy).toHaveBeenCalledTimes(10);
+    expect(loadSettingsSpy).toHaveBeenCalledTimes(11);
     loadSettingsSpy.mockRestore();
   });
 
@@ -157,6 +167,7 @@ describe('MediaSettingsService', () => {
       mediaQuality: 'low',
       videoQuality: '720p',
       callVideoQuality: '720p',
+      callStunServers: ['stun:test.example.org:3478'],
       voiceMaxDuration: 30,
     };
 
@@ -181,6 +192,7 @@ describe('MediaSettingsService', () => {
         mediaQuality: 'high',
         videoQuality: '720p',
         callVideoQuality: '1080p',
+        callStunServers: ['stun:test.example.org:3478'],
         voiceMaxDuration: 60,
       })
     );
@@ -227,6 +239,7 @@ describe('MediaSettingsService', () => {
         mediaQuality: 'medium',
         videoQuality: '480p',
         callVideoQuality: '480p',
+        callStunServers: ['stun:test.example.org:3478'],
         voiceMaxDuration: 12,
       })
     );
@@ -322,6 +335,7 @@ describe('MediaSettingsService', () => {
     await mediaSettingsService.setMediaQuality('medium');
     await mediaSettingsService.setVideoQuality('480p');
     await mediaSettingsService.setCallVideoQuality('1080p');
+    await mediaSettingsService.setCallStunServers(['stun:stun.example.org:3478', '']);
     await mediaSettingsService.setVoiceMaxDuration(45);
 
     expect(await mediaSettingsService.isMediaEnabled()).toBe(false);
@@ -332,6 +346,7 @@ describe('MediaSettingsService', () => {
     expect(await mediaSettingsService.getMediaQuality()).toBe('medium');
     expect(await mediaSettingsService.getVideoQuality()).toBe('480p');
     expect(await mediaSettingsService.getCallVideoQuality()).toBe('1080p');
+    expect(await mediaSettingsService.getCallStunServers()).toEqual(['stun:stun.example.org:3478']);
     expect(await mediaSettingsService.getVoiceMaxDuration()).toBe(45);
 
     const exported = await mediaSettingsService.exportSettings();
@@ -350,6 +365,7 @@ describe('MediaSettingsService', () => {
       mediaQuality: 'high',
       videoQuality: '4k',
       callVideoQuality: '720p',
+      callStunServers: ['stun:test.example.org:3478'],
       voiceMaxDuration: 90,
     };
 

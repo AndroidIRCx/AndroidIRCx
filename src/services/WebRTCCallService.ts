@@ -33,7 +33,10 @@ type IrcLike = {
 class WebRTCCallService {
   private static readonly SIGNAL_CHUNK_DELAY_MS = 350;
   private static readonly ICE_GATHER_TIMEOUT_MS = 4000;
+  private static readonly SIGNAL_CHUNK_ASSEMBLY_TIMEOUT_MS = 15000;
   private static readonly OVERLAY_PREFS_KEY = '@AndroidIRCX:callOverlayPrefs';
+  private static readonly NO_PUBLIC_ICE_CANDIDATES_MESSAGE =
+    'No public ICE candidates found, free direct call may fail without Premium relay.';
   private initialized = false;
   private connectionUnsubscribes = new Map<string, Array<() => void>>();
   private peerConnection: RTCPeerConnection | null = null;
@@ -41,6 +44,9 @@ class WebRTCCallService {
   private remoteStream: MediaStream | null = null;
   private pendingCandidates: RTCIceCandidate[] = [];
   private signalChunkBuffers = new Map<string, WebRTCCallChunkBuffer>();
+  private localHasPublicIceCandidates = false;
+  private remoteHasPublicIceCandidates = false;
+  private directRetryAttempted = false;
 
   private static generateSecureIdSuffix(length: number): string {
     const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
@@ -297,6 +303,7 @@ class WebRTCCallService {
   }
 
   private handleSignalChunk(networkId: string, fromNick: string, chunk: any): void {
+    this.cleanupExpiredChunkBuffers(networkId);
     this.log(networkId, 'Received signaling chunk', {
       fromNick,
       transferId: chunk?.id,
@@ -307,11 +314,43 @@ class WebRTCCallService {
     const key = `${networkId}:${fromNick}:${chunk.id}`;
     const buffer = callSignalCodec.appendChunk(this.signalChunkBuffers.get(key), chunk);
     this.signalChunkBuffers.set(key, buffer);
-    const assembled = callSignalCodec.tryAssemble(buffer);
-    if (!assembled) {
+    const progress = callSignalCodec.getChunkProgress(buffer);
+    this.log(networkId, 'Chunk assembly progress', {
+      fromNick,
+      transferId: chunk?.id,
+      sessionId: chunk?.sessionId,
+      received: progress.received,
+      total: progress.total,
+      missing: progress.missing.slice(0, 6),
+      bufferAgeMs: Date.now() - buffer.startedAt,
+    });
+
+    if (progress.received < progress.total) {
       return;
     }
+
+    const assembled = callSignalCodec.tryAssemble(buffer);
+    if (!assembled) {
+      console.error('[WebRTCCall] Failed to assemble completed chunk set', {
+        networkId,
+        fromNick,
+        transferId: chunk?.id,
+        sessionId: chunk?.sessionId,
+        total: progress.total,
+      });
+      this.signalChunkBuffers.delete(key);
+      return;
+    }
+
     this.signalChunkBuffers.delete(key);
+    this.log(networkId, 'Chunked signaling message assembled', {
+      fromNick,
+      transferId: chunk?.id,
+      sessionId: chunk?.sessionId,
+      type: assembled.type,
+      hasSdp: Boolean(assembled.sdp),
+      assembledBytes: assembled.sdp?.length || 0,
+    });
     this.handleSignal(networkId, fromNick, assembled).catch((error) => {
       console.error('[WebRTCCall] Failed to handle chunked signal:', error);
       this.failCall(error instanceof Error ? error.message : 'Failed to handle call signal.');
@@ -395,11 +434,13 @@ class WebRTCCallService {
         await this.peerConnection?.setRemoteDescription(
           new RTCSessionDescription({ type: 'offer', sdp: payload.sdp })
         );
+        this.remoteHasPublicIceCandidates = this.hasPublicCandidateTypes(payload.sdp);
         this.log(networkId, 'Remote offer applied', {
           fromNick,
           sessionId: payload.sessionId,
           sdpLength: payload.sdp.length,
           candidateCount: this.countSdpCandidates(payload.sdp),
+          candidateTypes: this.countCandidateTypes(payload.sdp),
         });
         await this.flushPendingCandidates();
         const answer = await this.peerConnection?.createAnswer();
@@ -408,7 +449,8 @@ class WebRTCCallService {
         }
         await this.peerConnection?.setLocalDescription(answer);
         await this.waitForIceGatheringComplete(networkId, 'answer');
-        const answerSdp = this.peerConnection?.localDescription?.sdp || answer.sdp;
+        const rawAnswerSdp = this.peerConnection?.localDescription?.sdp || answer.sdp;
+        const answerSdp = this.optimizeSdpForSignaling(rawAnswerSdp);
         await this.sendSignal(networkId, fromNick, {
           type: 'answer',
           sessionId: payload.sessionId,
@@ -422,8 +464,10 @@ class WebRTCCallService {
         });
         this.log(networkId, 'Local answer created', {
           sessionId: payload.sessionId,
+          rawSdpLength: rawAnswerSdp.length,
           sdpLength: answerSdp.length,
           candidateCount: this.countSdpCandidates(answerSdp),
+          candidateTypes: this.countCandidateTypes(answerSdp),
         });
         return;
       case 'answer':
@@ -433,11 +477,13 @@ class WebRTCCallService {
         await this.peerConnection?.setRemoteDescription(
           new RTCSessionDescription({ type: 'answer', sdp: payload.sdp })
         );
+        this.remoteHasPublicIceCandidates = this.hasPublicCandidateTypes(payload.sdp);
         this.log(networkId, 'Remote answer applied', {
           fromNick,
           sessionId: payload.sessionId,
           sdpLength: payload.sdp.length,
           candidateCount: this.countSdpCandidates(payload.sdp),
+          candidateTypes: this.countCandidateTypes(payload.sdp),
         });
         await this.flushPendingCandidates();
         useCallStore.getState().setPartial({
@@ -473,17 +519,24 @@ class WebRTCCallService {
     }
   }
 
-  private async createAndSendOffer(networkId: string, peerNick: string, payload: WebRTCCallSignal): Promise<void> {
+  private async createAndSendOffer(
+    networkId: string,
+    peerNick: string,
+    payload: WebRTCCallSignal,
+    options?: { iceRestart?: boolean }
+  ): Promise<void> {
     const offer = await this.peerConnection?.createOffer({
       offerToReceiveAudio: true,
       offerToReceiveVideo: payload.mediaType === 'video',
+      iceRestart: options?.iceRestart === true,
     });
     if (!offer?.sdp) {
       throw new Error('Failed to create WebRTC offer.');
     }
     await this.peerConnection?.setLocalDescription(offer);
     await this.waitForIceGatheringComplete(networkId, 'offer');
-    const offerSdp = this.peerConnection?.localDescription?.sdp || offer.sdp;
+    const rawOfferSdp = this.peerConnection?.localDescription?.sdp || offer.sdp;
+    const offerSdp = this.optimizeSdpForSignaling(rawOfferSdp);
     await this.sendSignal(networkId, peerNick, {
       type: 'offer',
       sessionId: payload.sessionId,
@@ -494,8 +547,11 @@ class WebRTCCallService {
     this.log(networkId, 'Local offer created', {
       peerNick,
       sessionId: payload.sessionId,
+      rawSdpLength: rawOfferSdp.length,
       sdpLength: offerSdp.length,
       candidateCount: this.countSdpCandidates(offerSdp),
+      candidateTypes: this.countCandidateTypes(offerSdp),
+      iceRestart: options?.iceRestart === true,
     });
   }
 
@@ -523,6 +579,7 @@ class WebRTCCallService {
       relayEnabled: rtcConfig.relayEnabled,
       iceServerCount: rtcConfig.iceServers.length,
       iceTransportPolicy: rtcConfig.iceTransportPolicy,
+      stunUrls: rtcConfig.iceServers.flatMap(server => server.urls),
     });
 
     await this.ensureMediaPermissions(mediaType);
@@ -562,6 +619,7 @@ class WebRTCCallService {
         candidateType: this.extractCandidateType(event.candidate?.candidate),
         sdpMid: event.candidate?.sdpMid,
         sdpMLineIndex: event.candidate?.sdpMLineIndex,
+        protocol: this.extractCandidateProtocol(event.candidate?.candidate),
       });
     };
 
@@ -585,13 +643,19 @@ class WebRTCCallService {
       const connectionState = this.peerConnection?.connectionState;
       this.log(networkId, 'Peer connection state changed', { connectionState });
       if (connectionState === 'connected') {
+        this.directRetryAttempted = false;
         useCallStore.getState().setPartial({
           phase: 'connected',
           statusText: rtcConfig.relayEnabled ? 'Connected via secure relay.' : 'Connected directly.',
           usingRelay: rtcConfig.relayEnabled,
         });
       } else if (connectionState === 'failed') {
-        this.failCall('WebRTC connection failed.');
+        if (this.peerConnection?.iceConnectionState === 'failed') {
+          return;
+        }
+        this.handleDirectIceFailure(networkId, rtcConfig.relayEnabled).catch(() => {
+          this.failCall('WebRTC connection failed.');
+        });
       }
     };
 
@@ -599,16 +663,19 @@ class WebRTCCallService {
       const iceState = this.peerConnection?.iceConnectionState;
       this.log(networkId, 'ICE connection state changed', { iceState });
       if (iceState === 'connected' || iceState === 'completed') {
+        this.directRetryAttempted = false;
         useCallStore.getState().setPartial({
           phase: 'connected',
           statusText: rtcConfig.relayEnabled ? 'Media connected with relay support.' : 'Media connected directly.',
         });
       } else if (iceState === 'failed') {
-        this.failCall(
-          rtcConfig.relayEnabled
-            ? 'ICE negotiation failed even with relay.'
-            : 'ICE negotiation failed. TURN relay is available only for Privacy Relay subscribers.'
-        );
+        this.handleDirectIceFailure(networkId, rtcConfig.relayEnabled).catch(() => {
+          this.failCall(
+            rtcConfig.relayEnabled
+              ? 'ICE negotiation failed even with relay.'
+              : 'ICE negotiation failed. TURN relay is available only for Privacy Relay subscribers.'
+          );
+        });
       }
     };
 
@@ -658,6 +725,7 @@ class WebRTCCallService {
         sessionId: signal.sessionId,
         mode: 'single',
         bytes: encoded.length,
+        hasSdp: Boolean(signal.sdp),
       });
       await this.sendIrcPrivmsg(networkId, peerNick, encoded);
       return;
@@ -672,6 +740,8 @@ class WebRTCCallService {
       chunks: chunks.length,
       bytes: encoded.length,
       transferId,
+      averageChunkBytes: Math.round(encoded.length / chunks.length),
+      hasSdp: Boolean(signal.sdp),
     });
     for (const chunk of chunks) {
       await this.sendIrcPrivmsg(networkId, peerNick, chunk);
@@ -729,6 +799,9 @@ class WebRTCCallService {
     this.log(networkId, 'Resetting call session');
     await this.disposePeerResources();
     this.pendingCandidates = [];
+    this.localHasPublicIceCandidates = false;
+    this.remoteHasPublicIceCandidates = false;
+    this.directRetryAttempted = false;
     useCallStore.getState().reset();
     useCallStore.getState().setPartial(overlayPrefs);
   }
@@ -797,7 +870,9 @@ class WebRTCCallService {
           reason,
           iceGatheringState: this.peerConnection?.iceGatheringState,
           candidateCount: this.countSdpCandidates(this.peerConnection?.localDescription?.sdp),
+          candidateTypes: this.countCandidateTypes(this.peerConnection?.localDescription?.sdp),
         });
+        this.localHasPublicIceCandidates = this.hasPublicCandidateTypes(this.peerConnection?.localDescription?.sdp);
         resolve();
       };
 
@@ -819,6 +894,27 @@ class WebRTCCallService {
     return sdp.split(/\r?\n/).filter(line => line.startsWith('a=candidate:')).length;
   }
 
+  private countCandidateTypes(sdp?: string | null): Record<string, number> {
+    if (!sdp) {
+      return {};
+    }
+
+    const counts: Record<string, number> = {};
+    for (const line of sdp.split(/\r?\n/)) {
+      if (!line.startsWith('a=candidate:')) {
+        continue;
+      }
+      const type = this.extractCandidateType(line) || 'unknown';
+      counts[type] = (counts[type] || 0) + 1;
+    }
+    return counts;
+  }
+
+  private hasPublicCandidateTypes(sdp?: string | null): boolean {
+    const counts = this.countCandidateTypes(sdp);
+    return Boolean((counts.srflx || 0) > 0 || (counts.relay || 0) > 0);
+  }
+
   private extractCandidateType(candidate?: string | null): string | null {
     if (!candidate) {
       return null;
@@ -827,8 +923,146 @@ class WebRTCCallService {
     return match?.[1] || null;
   }
 
+  private extractCandidateProtocol(candidate?: string | null): string | null {
+    if (!candidate) {
+      return null;
+    }
+    const parts = candidate.trim().split(/\s+/);
+    return parts.length >= 3 ? parts[2].toLowerCase() : null;
+  }
+
+  private optimizeSdpForSignaling(sdp: string): string {
+    const lines = sdp.split(/\r?\n/);
+    const candidateLines = lines.filter(line => line.startsWith('a=candidate:'));
+    const hasRoutableCandidates = candidateLines.some(line => {
+      const type = this.extractCandidateType(line);
+      return type === 'srflx' || type === 'relay';
+    });
+
+    let keptHostUdpCandidates = 0;
+    const optimizedLines = lines.filter(line => {
+      if (!line) {
+        return false;
+      }
+      if (line === 'a=end-of-candidates' || line === 'a=extmap-allow-mixed') {
+        return false;
+      }
+      if (!line.startsWith('a=candidate:')) {
+        return true;
+      }
+
+      const protocol = this.extractCandidateProtocol(line);
+      const type = this.extractCandidateType(line);
+
+      if (protocol === 'tcp') {
+        return false;
+      }
+
+      if (type === 'host' && hasRoutableCandidates) {
+        keptHostUdpCandidates += 1;
+        return keptHostUdpCandidates <= 2;
+      }
+
+      return true;
+    });
+
+    const optimized = `${optimizedLines.join('\r\n')}\r\n`;
+    console.log('[WebRTCCall] Optimized SDP for signaling', {
+      beforeBytes: sdp.length,
+      afterBytes: optimized.length,
+      removedBytes: sdp.length - optimized.length,
+      beforeCandidates: this.countSdpCandidates(sdp),
+      afterCandidates: this.countSdpCandidates(optimized),
+      beforeCandidateTypes: this.countCandidateTypes(sdp),
+      afterCandidateTypes: this.countCandidateTypes(optimized),
+    });
+    return optimized;
+  }
+
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async handleDirectIceFailure(networkId: string, relayEnabled: boolean): Promise<void> {
+    if (relayEnabled) {
+      await this.failCall('ICE negotiation failed even with relay.');
+      return;
+    }
+
+    if (!this.directRetryAttempted && !this.localHasPublicIceCandidates) {
+      await this.retryDirectConnection(networkId);
+      return;
+    }
+
+    if (!this.localHasPublicIceCandidates) {
+      await this.failCall(WebRTCCallService.NO_PUBLIC_ICE_CANDIDATES_MESSAGE);
+      return;
+    }
+
+    await this.failCall('ICE negotiation failed. TURN relay is available only for Privacy Relay subscribers.');
+  }
+
+  private async retryDirectConnection(networkId: string): Promise<void> {
+    const state = useCallStore.getState();
+    if (!state.sessionId || !state.peerNick) {
+      return;
+    }
+
+    this.directRetryAttempted = true;
+    this.pendingCandidates = [];
+    this.log(networkId, 'Retrying free direct call after missing public ICE candidates', {
+      sessionId: state.sessionId,
+      peerNick: state.peerNick,
+      mediaType: state.mediaType,
+      localHasPublicIceCandidates: this.localHasPublicIceCandidates,
+      remoteHasPublicIceCandidates: this.remoteHasPublicIceCandidates,
+    });
+    console.warn('[WebRTCCall] Free direct call retry started because no public ICE candidates were found', {
+      networkId,
+      sessionId: state.sessionId,
+      peerNick: state.peerNick,
+    });
+
+    try {
+      const peerConnectionAny = this.peerConnection as any;
+      peerConnectionAny?.restartIce?.();
+    } catch {
+      // Ignore unsupported restartIce implementations.
+    }
+
+    useCallStore.getState().setPartial({
+      phase: 'connecting',
+      statusText: 'Retrying direct connection with free STUN servers...',
+      error: null,
+    });
+
+    await this.createAndSendOffer(networkId, state.peerNick, {
+      type: 'offer',
+      sessionId: state.sessionId,
+      mediaType: state.mediaType,
+      quality: state.requestedQuality,
+    }, {
+      iceRestart: true,
+    });
+  }
+
+  private cleanupExpiredChunkBuffers(networkId: string): void {
+    const now = Date.now();
+    for (const [key, buffer] of this.signalChunkBuffers.entries()) {
+      if (now - buffer.updatedAt <= WebRTCCallService.SIGNAL_CHUNK_ASSEMBLY_TIMEOUT_MS) {
+        continue;
+      }
+
+      console.warn('[WebRTCCall] Discarding stale signaling chunk buffer', {
+        networkId,
+        key,
+        ageMs: now - buffer.startedAt,
+        idleMs: now - buffer.updatedAt,
+        received: buffer.parts.size,
+        total: buffer.total,
+      });
+      this.signalChunkBuffers.delete(key);
+    }
   }
 
   private getOverlayPrefsSnapshot(): {

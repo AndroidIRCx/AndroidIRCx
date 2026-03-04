@@ -14,10 +14,23 @@ jest.mock('../../src/services/PrivacyRelayService', () => ({
   },
 }));
 
+jest.mock('../../src/services/MediaSettingsService', () => ({
+  DEFAULT_FREE_CALL_STUN_SERVERS: [
+    'stun:turn.dbase.in.rs:3478',
+    'stun:stun.l.google.com:19302',
+    'stun:stun1.l.google.com:19302',
+  ],
+  mediaSettingsService: {
+    getCallStunServers: jest.fn(),
+  },
+}));
+
 import { callMediaProfileService } from '../../src/services/CallMediaProfileService';
 import { privacyRelayService } from '../../src/services/PrivacyRelayService';
+import { mediaSettingsService } from '../../src/services/MediaSettingsService';
 
 const mockPrivacyRelayService = privacyRelayService as unknown as Record<string, jest.Mock>;
+const mockMediaSettingsService = mediaSettingsService as unknown as Record<string, jest.Mock>;
 
 describe('CallMediaProfileService', () => {
   beforeEach(() => {
@@ -31,6 +44,10 @@ describe('CallMediaProfileService', () => {
       subscription: null,
     });
     mockPrivacyRelayService.getSubscription.mockReturnValue(null);
+    mockMediaSettingsService.getCallStunServers.mockResolvedValue([
+      'stun:turn.dbase.in.rs:3478',
+      'stun:stun.l.google.com:19302',
+    ]);
   });
 
   it('limits free users to direct call profiles up to 720p', async () => {
@@ -41,8 +58,12 @@ describe('CallMediaProfileService', () => {
 
     expect(profile.relayEnabled).toBe(false);
     expect(profile.allowedVideoQualities).toEqual(['480p', '720p']);
-    expect(rtcConfig.selectedVideoPreset.quality).toBe('720p');
-    expect(rtcConfig.iceServers[0].urls).toEqual(['stun:turn.dbase.in.rs:3478']);
+    expect(profile.defaultVideoQuality).toBe('480p');
+    expect(rtcConfig.selectedVideoPreset.quality).toBe('480p');
+    expect(rtcConfig.iceServers[0].urls).toEqual([
+      'stun:turn.dbase.in.rs:3478',
+      'stun:stun.l.google.com:19302',
+    ]);
   });
 
   it('enables TURN-backed HD call profiles for relay subscribers', async () => {
@@ -83,4 +104,3 @@ describe('CallMediaProfileService', () => {
     });
   });
 });
-

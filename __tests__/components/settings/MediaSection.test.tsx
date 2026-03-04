@@ -33,6 +33,7 @@ jest.mock('../../../src/services/MediaSettingsService', () => ({
     getMediaQuality: jest.fn(),
     getVideoQuality: jest.fn(),
     getCallVideoQuality: jest.fn(),
+    getCallStunServers: jest.fn(),
     getVoiceMaxDuration: jest.fn(),
     setMediaEnabled: jest.fn(),
     setShowEncryptionIndicator: jest.fn(),
@@ -42,6 +43,7 @@ jest.mock('../../../src/services/MediaSettingsService', () => ({
     setMediaQuality: jest.fn(),
     setVideoQuality: jest.fn(),
     setCallVideoQuality: jest.fn(),
+    setCallStunServers: jest.fn(),
     setVoiceMaxDuration: jest.fn(),
   },
 }));
@@ -120,14 +122,18 @@ describe('MediaSection', () => {
     mockSettings.getMaxCacheSize.mockResolvedValue(250 * 1024 * 1024);
     mockSettings.getMediaQuality.mockResolvedValue('original');
     mockSettings.getVideoQuality.mockResolvedValue('1080p');
-    mockSettings.getCallVideoQuality.mockResolvedValue('720p');
+    mockSettings.getCallVideoQuality.mockResolvedValue('480p');
+    mockSettings.getCallStunServers.mockResolvedValue([
+      'stun:turn.dbase.in.rs:3478',
+      'stun:stun.l.google.com:19302',
+    ]);
     mockSettings.getVoiceMaxDuration.mockResolvedValue(180);
     mockCache.getCacheSize.mockResolvedValue(1024);
     mockCache.clearCache.mockResolvedValue({ clearedCount: 1, freedSpace: 1024 });
     mockCallMediaProfile.getCapabilityProfile.mockReturnValue({
       relayEnabled: false,
       allowedVideoQualities: ['480p', '720p'],
-      defaultVideoQuality: '720p',
+      defaultVideoQuality: '480p',
     });
   });
 
@@ -274,6 +280,29 @@ describe('MediaSection', () => {
     });
     await waitFor(() => {
       expect(mockSettings.setVideoQuality).toHaveBeenCalledWith('480p');
+    });
+  });
+
+  it('updates free-call STUN servers from submenu input', async () => {
+    const { getByText, getByDisplayValue } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    fireEvent.press(getByText('Free Call STUN Servers'));
+    await waitFor(() => {
+      expect(getByDisplayValue('stun:turn.dbase.in.rs:3478\nstun:stun.l.google.com:19302')).toBeTruthy();
+    });
+
+    fireEvent.changeText(
+      getByDisplayValue('stun:turn.dbase.in.rs:3478\nstun:stun.l.google.com:19302'),
+      'stun:turn.dbase.in.rs:3478\nstun:new.example.org:3478'
+    );
+
+    await waitFor(() => {
+      expect(mockSettings.setCallStunServers).toHaveBeenCalledWith([
+        'stun:turn.dbase.in.rs:3478',
+        'stun:new.example.org:3478',
+      ]);
     });
   });
 

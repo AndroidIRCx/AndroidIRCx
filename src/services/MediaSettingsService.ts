@@ -19,6 +19,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Storage keys
 const SETTINGS_KEY = '@MediaSettings';
+export const DEFAULT_FREE_CALL_STUN_SERVERS = [
+  'stun:turn.dbase.in.rs:3478',
+  'stun:stun.l.google.com:19302',
+  'stun:stun1.l.google.com:19302',
+] as const;
 
 // Default settings
 const DEFAULT_SETTINGS: MediaSettings = {
@@ -29,7 +34,8 @@ const DEFAULT_SETTINGS: MediaSettings = {
   cacheSize: 250 * 1024 * 1024,      // 250MB cache limit
   mediaQuality: 'original',          // original, high, medium, low
   videoQuality: '1080p',             // 4k, 1080p, 720p, 480p
-  callVideoQuality: '720p',          // 1440p, 1080p, 720p, 480p
+  callVideoQuality: '480p',          // 1440p, 1080p, 720p, 480p
+  callStunServers: [...DEFAULT_FREE_CALL_STUN_SERVERS],
   voiceMaxDuration: 180,             // 180 seconds (3 minutes)
 };
 
@@ -42,6 +48,7 @@ export interface MediaSettings {
   mediaQuality: 'original' | 'high' | 'medium' | 'low'; // Media upload quality
   videoQuality: '4k' | '1080p' | '720p' | '480p';       // Video recording quality
   callVideoQuality: '1440p' | '1080p' | '720p' | '480p'; // Live call video quality
+  callStunServers: string[];         // Free-call STUN servers used for direct WebRTC
   voiceMaxDuration: number;          // Max voice message duration (seconds)
 }
 
@@ -239,6 +246,32 @@ class MediaSettingsService {
    */
   async setCallVideoQuality(quality: '1440p' | '1080p' | '720p' | '480p'): Promise<void> {
     await this.saveSettings({ callVideoQuality: quality });
+  }
+
+  /**
+   * Get free-call STUN servers
+   */
+  async getCallStunServers(): Promise<string[]> {
+    if (!this.loaded) {
+      await this.loadSettings();
+    }
+    return Array.isArray(this.settings.callStunServers)
+      ? [...this.settings.callStunServers]
+      : [...DEFAULT_FREE_CALL_STUN_SERVERS];
+  }
+
+  /**
+   * Set free-call STUN servers
+   */
+  async setCallStunServers(servers: string[]): Promise<void> {
+    const sanitized = servers
+      .map(server => server.trim())
+      .filter(Boolean);
+    await this.saveSettings({
+      callStunServers: sanitized.length > 0
+        ? sanitized
+        : [...DEFAULT_FREE_CALL_STUN_SERVERS],
+    });
   }
 
   /**

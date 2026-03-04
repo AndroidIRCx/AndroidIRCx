@@ -61,7 +61,8 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
   const [maxCacheSize, setMaxCacheSize] = useState(250 * 1024 * 1024); // 250MB default
   const [mediaQuality, setMediaQuality] = useState<'original' | 'high' | 'medium' | 'low'>('original');
   const [videoQuality, setVideoQuality] = useState<'4k' | '1080p' | '720p' | '480p'>('1080p');
-  const [callVideoQuality, setCallVideoQuality] = useState<'1440p' | '1080p' | '720p' | '480p'>('720p');
+  const [callVideoQuality, setCallVideoQuality] = useState<'1440p' | '1080p' | '720p' | '480p'>('480p');
+  const [callStunServersText, setCallStunServersText] = useState('');
   const [voiceMaxDuration, setVoiceMaxDuration] = useState(180); // 3 minutes default
   const [cacheSize, setCacheSize] = useState(0);
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
@@ -103,6 +104,9 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       if (safeCallQuality !== callQuality) {
         await mediaSettingsService.setCallVideoQuality(safeCallQuality);
       }
+
+      const stunServers = await mediaSettingsService.getCallStunServers();
+      setCallStunServersText(stunServers.join('\n'));
       
       const voiceDuration = await mediaSettingsService.getVoiceMaxDuration();
       setVoiceMaxDuration(voiceDuration);
@@ -190,6 +194,10 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
     }[callVideoQuality] || callVideoQuality;
 
     const capabilityProfile = callMediaProfileService.getCapabilityProfile();
+    const parsedStunServers = callStunServersText
+      .split(/\r?\n|,/)
+      .map(server => server.trim())
+      .filter(Boolean);
     const callQualityItems = capabilityProfile.allowedVideoQualities.map((quality) => ({
       id: `call-video-${quality}`,
       title: quality,
@@ -305,7 +313,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
               quality: callVideoQualityLabel,
               _tags: tags,
             })
-          : t('Current: {quality} • Free calls stay direct and max out at 720p', {
+          : t('Current: {quality} • Free calls stay direct, default to 480p, and can be raised to 720p', {
               quality: callVideoQualityLabel,
               _tags: tags,
             }),
@@ -313,6 +321,35 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         disabled: !mediaEnabled,
         searchKeywords: ['webrtc', 'call', 'video', 'quality', 'relay', 'turn', '720p', '1080p', '1440p', 'hd'],
         submenuItems: callQualityItems,
+      },
+      {
+        id: 'call-stun-servers',
+        title: t('Free Call STUN Servers', { _tags: tags }),
+        description: relayEnabled
+          ? t('Current fallback list: {count} STUN endpoints. Premium calls still use TURN when needed.', {
+              count: parsedStunServers.length,
+              _tags: tags,
+            })
+          : t('Current fallback list: {count} STUN endpoints for direct free calls. Use one server per line.', {
+              count: parsedStunServers.length,
+              _tags: tags,
+            }),
+        type: 'submenu',
+        disabled: !mediaEnabled,
+        searchKeywords: ['stun', 'ice', 'webrtc', 'call', 'server', 'nat', 'p2p', 'direct'],
+        submenuItems: [
+          {
+            id: 'call-stun-input',
+            title: t('STUN Servers', { _tags: tags }),
+            description: t('One STUN URL per line. Example: stun:stun.l.google.com:19302', { _tags: tags }),
+            type: 'input',
+            value: callStunServersText,
+            placeholder: 'stun:turn.dbase.in.rs:3478',
+            onValueChange: (value: boolean | string) => {
+              setCallStunServersText(String(value));
+            },
+          },
+        ],
       },
       {
         id: 'call-notification',
@@ -392,6 +429,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
     mediaQuality,
     videoQuality,
     callVideoQuality,
+    callStunServersText,
     voiceMaxDuration,
     cacheSize,
     relayEnabled,
@@ -408,10 +446,16 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       await mediaSettingsService.setMediaQuality(mediaQuality);
       await mediaSettingsService.setVideoQuality(videoQuality);
       await mediaSettingsService.setCallVideoQuality(callVideoQuality);
+      await mediaSettingsService.setCallStunServers(
+        callStunServersText
+          .split(/\r?\n|,/)
+          .map(server => server.trim())
+          .filter(Boolean)
+      );
       await mediaSettingsService.setVoiceMaxDuration(voiceMaxDuration);
     };
     saveSettings();
-  }, [maxCacheSize, mediaQuality, videoQuality, callVideoQuality, voiceMaxDuration]);
+  }, [maxCacheSize, mediaQuality, videoQuality, callVideoQuality, callStunServersText, voiceMaxDuration]);
 
   const modalStyles = useMemo(() => createModalStyles(colors), [colors]);
   const activeSubmenu = sectionData.find(item => item.id === showSubmenu);

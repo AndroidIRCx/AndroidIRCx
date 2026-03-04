@@ -7,6 +7,10 @@ import {
   DEFAULT_PRIVACY_RELAY_TURN_SERVER,
   privacyRelayService,
 } from './PrivacyRelayService';
+import {
+  DEFAULT_FREE_CALL_STUN_SERVERS,
+  mediaSettingsService,
+} from './MediaSettingsService';
 import type {
   CallMediaCapabilityProfile,
   CallRtcSessionConfig,
@@ -43,10 +47,10 @@ class CallMediaProfileService {
       relayEnabled: false,
       shouldFetchTurnCredentials: false,
       allowedVideoQualities: ['480p', '720p'],
-      defaultVideoQuality: '720p',
+      defaultVideoQuality: '480p',
       maxBitrate: VIDEO_PRESETS['720p'].maxBitrate,
       notes: [
-        'Free video calls use direct ICE only.',
+        'Free video calls use direct ICE with public STUN discovery.',
         'TURN relay and HD call profiles require Privacy Relay.',
       ],
     };
@@ -78,13 +82,22 @@ class CallMediaProfileService {
     const selectedVideoPreset = this.getVideoPreset(options?.quality);
 
     if (!profile.relayEnabled) {
+      const freeStunServers = await mediaSettingsService.getCallStunServers().catch(() => [
+        ...DEFAULT_FREE_CALL_STUN_SERVERS,
+        ...DEFAULT_PRIVACY_RELAY_TURN_SERVER.stunUrls,
+      ]);
+      const stunUrls = Array.from(new Set([
+        ...freeStunServers,
+        ...DEFAULT_PRIVACY_RELAY_TURN_SERVER.stunUrls,
+      ]));
+
       return {
         relayEnabled: false,
         shouldFetchTurnCredentials: false,
         iceTransportPolicy: 'all',
         iceServers: [
           {
-            urls: [...DEFAULT_PRIVACY_RELAY_TURN_SERVER.stunUrls],
+            urls: stunUrls,
           },
         ],
         selectedVideoPreset,
@@ -118,4 +131,3 @@ class CallMediaProfileService {
 export const callMediaProfileService = new CallMediaProfileService();
 
 export { VIDEO_PRESETS };
-

@@ -21,6 +21,8 @@ export interface WebRTCCallSignalChunk {
 export interface WebRTCCallChunkBuffer {
   total: number;
   parts: Map<number, string>;
+  startedAt: number;
+  updatedAt: number;
 }
 
 export const callSignalCodec = {
@@ -73,10 +75,36 @@ export const callSignalCodec = {
   },
 
   appendChunk(buffer: WebRTCCallChunkBuffer | undefined, chunk: WebRTCCallSignalChunk): WebRTCCallChunkBuffer {
-    const next = buffer || { total: chunk.total, parts: new Map<number, string>() };
+    const now = Date.now();
+    const next = buffer || {
+      total: chunk.total,
+      parts: new Map<number, string>(),
+      startedAt: now,
+      updatedAt: now,
+    };
     next.total = chunk.total;
     next.parts.set(chunk.index, chunk.data);
+    next.updatedAt = now;
     return next;
+  },
+
+  getChunkProgress(buffer: WebRTCCallChunkBuffer): {
+    received: number;
+    total: number;
+    missing: number[];
+  } {
+    const missing: number[] = [];
+    for (let index = 0; index < buffer.total; index += 1) {
+      if (!buffer.parts.has(index)) {
+        missing.push(index);
+      }
+    }
+
+    return {
+      received: buffer.parts.size,
+      total: buffer.total,
+      missing,
+    };
   },
 
   tryAssemble(buffer: WebRTCCallChunkBuffer): WebRTCCallSignal | null {
