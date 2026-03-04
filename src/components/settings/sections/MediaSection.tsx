@@ -20,6 +20,7 @@ import { SettingItem as SettingItemType, SettingIcon } from '../../../types/sett
 import { mediaSettingsService } from '../../../services/MediaSettingsService';
 import { mediaCacheService } from '../../../services/MediaCacheService';
 import { callMediaProfileService } from '../../../services/CallMediaProfileService';
+import { settingsService } from '../../../services/SettingsService';
 
 interface MediaSectionProps {
   colors: {
@@ -65,6 +66,8 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
   const [cacheSize, setCacheSize] = useState(0);
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
   const [relayEnabled, setRelayEnabled] = useState(false);
+  const [showCallNotification, setShowCallNotification] = useState(true);
+  const [callOverlayOnlyOnActiveQuery, setCallOverlayOnlyOnActiveQuery] = useState(false);
 
   // Load initial state
   useEffect(() => {
@@ -103,6 +106,12 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
       
       const voiceDuration = await mediaSettingsService.getVoiceMaxDuration();
       setVoiceMaxDuration(voiceDuration);
+
+      const showCallNotif = await settingsService.getSetting('showCallNotification', true);
+      setShowCallNotification(Boolean(showCallNotif));
+
+      const scopedOverlay = await settingsService.getSetting('callMinimizedOnlyOnActiveQuery', false);
+      setCallOverlayOnlyOnActiveQuery(Boolean(scopedOverlay));
       
       // Load cache size
       const size = await mediaCacheService.getCacheSize();
@@ -306,6 +315,36 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         submenuItems: callQualityItems,
       },
       {
+        id: 'call-notification',
+        title: t('Show Ongoing Call Notification', { _tags: tags }),
+        description: t('Keeps an Android notification visible during active audio and video calls so you can jump back quickly.', { _tags: tags }),
+        type: 'switch',
+        value: showCallNotification,
+        disabled: !mediaEnabled,
+        searchKeywords: ['call', 'notification', 'ongoing', 'webrtc', 'audio', 'video', 'status bar'],
+        onValueChange: async (value: boolean | string) => {
+          const boolValue = value as boolean;
+          setShowCallNotification(boolValue);
+          await settingsService.setSetting('showCallNotification', boolValue);
+        },
+      },
+      {
+        id: 'call-overlay-scope',
+        title: t('Show Minimized Call Only In Active Query', { _tags: tags }),
+        description: callOverlayOnlyOnActiveQuery
+          ? t('Minimized call overlay appears only when you are on the matching query tab. This is optional and off by default.', { _tags: tags })
+          : t('Default behavior: minimized call overlay stays visible everywhere in the app.', { _tags: tags }),
+        type: 'switch',
+        value: callOverlayOnlyOnActiveQuery,
+        disabled: !mediaEnabled,
+        searchKeywords: ['call', 'overlay', 'query', 'minimized', 'pip', 'scope', 'chat', 'webrtc'],
+        onValueChange: async (value: boolean | string) => {
+          const boolValue = value as boolean;
+          setCallOverlayOnlyOnActiveQuery(boolValue);
+          await settingsService.setSetting('callMinimizedOnlyOnActiveQuery', boolValue);
+        },
+      },
+      {
         id: 'video-quality',
         title: t('Video Recording Quality', { _tags: tags }),
         description: t('Current: {quality}', { quality: videoQualityLabel, _tags: tags }),
@@ -356,6 +395,8 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
     voiceMaxDuration,
     cacheSize,
     relayEnabled,
+    showCallNotification,
+    callOverlayOnlyOnActiveQuery,
     t,
     tags,
   ]);

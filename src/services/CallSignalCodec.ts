@@ -8,7 +8,7 @@ import type { WebRTCCallSignal } from '../types/webrtcCall';
 
 const SIGNAL_PREFIX = '!webrtc ';
 const SIGNAL_CHUNK_PREFIX = '!webrtc-chunk ';
-const SIGNAL_CHUNK_SIZE = 220;
+const SIGNAL_CHUNK_SIZE = 300;
 
 export interface WebRTCCallSignalChunk {
   id: string;

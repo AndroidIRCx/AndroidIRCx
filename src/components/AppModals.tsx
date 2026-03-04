@@ -401,7 +401,7 @@ export function AppModals({
         options={tabOptions}
         styles={styles}
       />
-      <WebRTCCallModal />
+      <WebRTCCallModal activeTab={activeTab} />
       {showChannelSettings && channelSettingsTarget && channelSettingsNetwork && (
         <ChannelSettingsScreen
           visible={showChannelSettings}

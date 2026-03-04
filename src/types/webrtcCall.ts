@@ -57,4 +57,8 @@ export interface WebRTCCallContext {
   micMuted: boolean;
   speakerEnabled: boolean;
   cameraEnabled: boolean;
+  minimized: boolean;
+  overlayX: number;
+  overlayY: number;
+  videoOverlayWidth: number;
 }

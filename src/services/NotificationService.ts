@@ -21,7 +21,21 @@ export const NOTIFICATION_CHANNELS = {
   NOTICES: 'notices',
   SERVER: 'server',
   DCC_TRANSFERS: 'dcc-transfers',
+  CALLS: 'calls',
 } as const;
+
+const ONGOING_CALL_NOTIFICATION_ID = 'androidircx-ongoing-call';
+const PENDING_CALL_ACTION_KEY = '@AndroidIRCX:pendingCallNotificationAction';
+export const CALL_NOTIFICATION_ACTIONS = {
+  RETURN: 'call-return',
+  HANGUP: 'call-hangup',
+  DEFAULT: 'default',
+} as const;
+
+type CallNotificationAction =
+  | typeof CALL_NOTIFICATION_ACTIONS.RETURN
+  | typeof CALL_NOTIFICATION_ACTIONS.HANGUP
+  | typeof CALL_NOTIFICATION_ACTIONS.DEFAULT;
 
 export interface NotificationPreferences {
   enabled: boolean;
@@ -56,6 +70,7 @@ class NotificationService {
     channelPreferences: new Map(),
     networkPreferences: new Map(),
   };
+  private callActionListener: ((action: CallNotificationAction) => void | Promise<void>) | null = null;
 
   /**
    * Check if notification permission is granted
@@ -187,6 +202,11 @@ class NotificationService {
             break;
           case EventType.PRESS:
             console.log('NotificationService: User pressed notification', detail.notification);
+            this.handleCallNotificationAction(CALL_NOTIFICATION_ACTIONS.DEFAULT);
+            break;
+          case EventType.ACTION_PRESS:
+            console.log('NotificationService: User pressed notification action', detail.pressAction);
+            this.handleCallNotificationAction((detail.pressAction?.id as CallNotificationAction) || CALL_NOTIFICATION_ACTIONS.DEFAULT);
             break;
         }
       });
@@ -199,6 +219,7 @@ class NotificationService {
         { id: NOTIFICATION_CHANNELS.NOTICES, name: t('Notices'), importance: AndroidImportance.LOW },
         { id: NOTIFICATION_CHANNELS.SERVER, name: t('Server'), importance: AndroidImportance.LOW },
         { id: NOTIFICATION_CHANNELS.DCC_TRANSFERS, name: t('DCC Transfers'), importance: AndroidImportance.HIGH },
+        { id: NOTIFICATION_CHANNELS.CALLS, name: t('Calls'), importance: AndroidImportance.HIGH },
       ];
       for (const def of channelDefs) {
         await notifee.createChannel(def);
@@ -464,6 +485,109 @@ class NotificationService {
     }
 
     await this.showNotification(title, body, channel, network, message.type);
+  }
+
+  async showOngoingCallNotification(options: {
+    peerNick: string;
+    mediaType: 'audio' | 'video';
+    statusText: string;
+    network?: string | null;
+    minimized?: boolean;
+  }): Promise<void> {
+    const hasPermission = await this.checkPermission();
+    if (!hasPermission) {
+      return;
+    }
+
+    const title = options.mediaType === 'video' ? 'Video call in progress' : 'Audio call in progress';
+    const bodyParts = [
+      options.peerNick,
+      options.statusText,
+      options.minimized ? 'Tap to return to call' : 'Call is active',
+    ].filter(Boolean);
+
+    await notifee.displayNotification({
+      id: ONGOING_CALL_NOTIFICATION_ID,
+      title,
+      body: bodyParts.join(' · '),
+      data: {
+        type: 'webrtc-call',
+        peerNick: options.peerNick,
+        network: options.network || '',
+      },
+      android: {
+        channelId: NOTIFICATION_CHANNELS.CALLS,
+        importance: AndroidImportance.HIGH,
+        category: AndroidCategory.CALL,
+        smallIcon: 'ic_launcher',
+        ongoing: true,
+        autoCancel: false,
+        pressAction: {
+          id: CALL_NOTIFICATION_ACTIONS.DEFAULT,
+          launchActivity: 'default',
+        },
+        actions: [
+          {
+            title: 'Return',
+            pressAction: {
+              id: CALL_NOTIFICATION_ACTIONS.RETURN,
+              launchActivity: 'default',
+            },
+          },
+          {
+            title: 'Hang up',
+            pressAction: {
+              id: CALL_NOTIFICATION_ACTIONS.HANGUP,
+              launchActivity: 'default',
+            },
+          },
+        ],
+      },
+      ios: {
+        sound: 'default',
+      },
+    });
+  }
+
+  async cancelOngoingCallNotification(): Promise<void> {
+    try {
+      await notifee.cancelNotification(ONGOING_CALL_NOTIFICATION_ID);
+    } catch (error) {
+      console.error('NotificationService: Error cancelling ongoing call notification:', error);
+    }
+  }
+
+  setCallNotificationActionListener(
+    listener: ((action: CallNotificationAction) => void | Promise<void>) | null
+  ): void {
+    this.callActionListener = listener;
+  }
+
+  async handleCallNotificationAction(action: CallNotificationAction): Promise<void> {
+    if (!this.callActionListener) {
+      await AsyncStorage.setItem(PENDING_CALL_ACTION_KEY, action);
+      return;
+    }
+    try {
+      await this.callActionListener(action);
+      await AsyncStorage.removeItem(PENDING_CALL_ACTION_KEY);
+    } catch (error) {
+      console.error('NotificationService: Error handling call notification action:', error);
+    }
+  }
+
+  async consumePendingCallNotificationAction(): Promise<CallNotificationAction | null> {
+    try {
+      const value = await AsyncStorage.getItem(PENDING_CALL_ACTION_KEY);
+      if (!value) {
+        return null;
+      }
+      await AsyncStorage.removeItem(PENDING_CALL_ACTION_KEY);
+      return value as CallNotificationAction;
+    } catch (error) {
+      console.error('NotificationService: Error consuming pending call action:', error);
+      return null;
+    }
   }
 
   /**

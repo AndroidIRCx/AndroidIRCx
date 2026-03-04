@@ -8,7 +8,13 @@ import { secureStorageService } from './SecureStorageService';
 import { storageCache } from './StorageCache';
 import { tx } from '../i18n/transifex';
 
-const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
+const t = (key: string, params?: Record<string, unknown>) => {
+  const translator = (tx as any)?.t;
+  if (typeof translator === 'function') {
+    return translator(key, params);
+  }
+  return key;
+};
 
 export interface IRCServerConfig {
   id: string;

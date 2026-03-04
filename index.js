@@ -8,6 +8,7 @@ import notifee, { EventType } from '@notifee/react-native';
 import App from './App';
 import { name as appName } from './app.json';
 import consoleManager from './src/utils/consoleManager';
+import { CALL_NOTIFICATION_ACTIONS, notificationService } from './src/services/NotificationService';
 
 // Ensure Buffer is available globally for proxy/DCC code paths (Hermes doesn't polyfill it by default)
 if (!global.Buffer) {
@@ -42,7 +43,13 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
       break;
     case EventType.PRESS:
       console.log('NotificationService: User pressed notification in background', notification);
-      // Handle opening the app to a specific screen if needed
+      await notificationService.handleCallNotificationAction(CALL_NOTIFICATION_ACTIONS.DEFAULT);
+      break;
+    case EventType.ACTION_PRESS:
+      console.log('NotificationService: User pressed notification action in background', detail.pressAction);
+      await notificationService.handleCallNotificationAction(
+        detail.pressAction?.id || CALL_NOTIFICATION_ACTIONS.DEFAULT
+      );
       break;
   }
 });

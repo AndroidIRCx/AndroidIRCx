@@ -25,6 +25,10 @@ interface CallStoreState {
   micMuted: boolean;
   speakerEnabled: boolean;
   cameraEnabled: boolean;
+  minimized: boolean;
+  overlayX: number;
+  overlayY: number;
+  videoOverlayWidth: number;
   setPartial: (updates: Partial<CallStoreState>) => void;
   reset: () => void;
 }
@@ -46,6 +50,10 @@ const initialState = {
   micMuted: false,
   speakerEnabled: true,
   cameraEnabled: true,
+  minimized: false,
+  overlayX: 20,
+  overlayY: 120,
+  videoOverlayWidth: 168,
 };
 
 export const useCallStore = create<CallStoreState>((set) => ({

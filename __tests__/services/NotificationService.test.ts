@@ -47,10 +47,12 @@ jest.mock('@notifee/react-native', () => ({
   },
   AndroidCategory: {
     MESSAGE: 'msg',
+    CALL: 'call',
   },
   EventType: {
     DISMISSED: 2,
     PRESS: 1,
+    ACTION_PRESS: 3,
   },
 }));
 
@@ -242,7 +244,7 @@ describe('NotificationService', () => {
     it('should create all notification channels', async () => {
       await notificationService.initialize();
 
-      expect(notifee.createChannel).toHaveBeenCalledTimes(5);
+      expect(notifee.createChannel).toHaveBeenCalledTimes(6);
       expect(notifee.createChannel).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'private-messages', importance: 4 })
       );
@@ -257,6 +259,9 @@ describe('NotificationService', () => {
       );
       expect(notifee.createChannel).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'dcc-transfers', importance: 4 })
+      );
+      expect(notifee.createChannel).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'calls', importance: 4 })
       );
     });
 
