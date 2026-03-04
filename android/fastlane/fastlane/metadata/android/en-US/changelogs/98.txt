@@ -1,0 +1,4 @@
+New WebRTC audio and video calling with Privacy Relay support.
+Free users now get direct P2P calls with configurable STUN servers, 480p default and optional 720p, smarter signaling, smaller SDP payloads, retry/fallback handling, and clearer connection errors.
+Calls can be minimized with PiP/overlay and ongoing notifications.
+Added return/hang up actions, query restore, overlay sizing, and camera/mic permission prompts before calls.
