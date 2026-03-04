@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { PermissionsAndroid, Platform } from 'react-native';
+import { Alert, Linking, PermissionsAndroid, Platform } from 'react-native';
 import {
   mediaDevices,
   MediaStream,
@@ -105,6 +105,8 @@ class WebRTCCallService {
   }
 
   async startOutgoingCall(networkId: string, peerNick: string, mediaType: CallMediaType): Promise<void> {
+    await this.ensureMediaPermissions(mediaType);
+
     const quality = callMediaProfileService.clampVideoQuality(
       mediaType === 'video'
         ? ((await mediaSettingsService.getCallVideoQuality()) as CallVideoQuality)
@@ -156,6 +158,8 @@ class WebRTCCallService {
     if (!state.sessionId || !state.peerNick || !state.networkId) {
       return;
     }
+
+    await this.ensureMediaPermissions(state.mediaType);
 
     useCallStore.getState().setPartial({
       phase: 'connecting',
@@ -759,11 +763,69 @@ class WebRTCCallService {
       required.push(PermissionsAndroid.PERMISSIONS.CAMERA);
     }
 
-    const results = await PermissionsAndroid.requestMultiple(required);
-    const denied = required.find(permission => results[permission] !== PermissionsAndroid.RESULTS.GRANTED);
-    if (denied) {
-      throw new Error('Camera or microphone permission was denied.');
+    const missingPermissions: string[] = [];
+    for (const permission of required) {
+      const granted = await PermissionsAndroid.check(permission);
+      if (!granted) {
+        missingPermissions.push(permission);
+      }
     }
+
+    if (missingPermissions.length === 0) {
+      return;
+    }
+
+    this.log(useCallStore.getState().networkId, 'Requesting call permissions', {
+      mediaType,
+      missingPermissions,
+    });
+
+    const results = await PermissionsAndroid.requestMultiple(required);
+    const denied = required.filter(permission => results[permission] !== PermissionsAndroid.RESULTS.GRANTED);
+    if (denied.length === 0) {
+      this.log(useCallStore.getState().networkId, 'Call permissions granted', {
+        mediaType,
+      });
+      return;
+    }
+
+    const permanentlyDenied = denied.some(
+      permission => results[permission] === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+    );
+    const needsCamera = denied.includes(PermissionsAndroid.PERMISSIONS.CAMERA);
+    const permissionLabel = needsCamera
+      ? 'camera and microphone'
+      : 'microphone';
+
+    this.log(useCallStore.getState().networkId, 'Call permissions denied', {
+      mediaType,
+      denied,
+      permanentlyDenied,
+      results,
+    });
+
+    if (permanentlyDenied) {
+      Alert.alert(
+        'Permission required',
+        `Android call permissions are disabled for ${permissionLabel}. Open app settings to allow them before starting the call.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Open settings',
+            onPress: () => {
+              Linking.openSettings().catch(() => undefined);
+            },
+          },
+        ]
+      );
+      throw new Error(`Please allow ${permissionLabel} permission in app settings.`);
+    }
+
+    Alert.alert(
+      'Permission required',
+      `This call needs ${permissionLabel} permission before it can start.`
+    );
+    throw new Error(`Call cancelled because ${permissionLabel} permission was denied.`);
   }
 
   private async failCall(message: string): Promise<void> {
