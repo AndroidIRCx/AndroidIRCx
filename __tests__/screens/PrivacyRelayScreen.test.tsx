@@ -20,6 +20,11 @@ const mockPrivacyRelayService = {
 
 const mockPurchaseUpdateSubscription = { remove: jest.fn() };
 const mockPurchaseErrorSubscription = { remove: jest.fn() };
+const mockMediaSettingsService = {
+  hasAutoEnabledNicklistCallActionsFromRelay: jest.fn(),
+  setCallNicklistCallActionsEnabled: jest.fn(),
+  markNicklistCallActionsAutoEnabledFromRelay: jest.fn(),
+};
 
 jest.mock('../../src/i18n/transifex', () => ({
   useT: () => (key: string) => key,
@@ -74,6 +79,10 @@ jest.mock('../../src/services/PrivacyRelayService', () => ({
   },
 }));
 
+jest.mock('../../src/services/MediaSettingsService', () => ({
+  mediaSettingsService: mockMediaSettingsService,
+}));
+
 const { PrivacyRelayScreen } = require('../../src/screens/PrivacyRelayScreen');
 
 describe('PrivacyRelayScreen', () => {
@@ -109,6 +118,9 @@ describe('PrivacyRelayScreen', () => {
       callId: 'test-call-1',
       fetchedAt: '2026-03-02T00:00:00.000Z',
     });
+    mockMediaSettingsService.hasAutoEnabledNicklistCallActionsFromRelay.mockResolvedValue(false);
+    mockMediaSettingsService.setCallNicklistCallActionsEnabled.mockResolvedValue(undefined);
+    mockMediaSettingsService.markNicklistCallActionsAutoEnabledFromRelay.mockResolvedValue(undefined);
   });
 
   it('renders relay info and handles restore flow', async () => {
@@ -128,6 +140,10 @@ describe('PrivacyRelayScreen', () => {
     await waitFor(() => {
       expect(mockPrivacyRelayService.registerPurchaseWithBackend).toHaveBeenCalledWith('restored-token', null);
       expect(mockPrivacyRelayService.fetchTurnCredentials).toHaveBeenCalledWith('restored-token');
+    });
+    await waitFor(() => {
+      expect(mockMediaSettingsService.setCallNicklistCallActionsEnabled).toHaveBeenCalledWith(true);
+      expect(mockMediaSettingsService.markNicklistCallActionsAutoEnabledFromRelay).toHaveBeenCalled();
     });
   });
 });

@@ -25,6 +25,7 @@ import {
   PRIVACY_RELAY_BASE_PLAN_IDS,
   PRIVACY_RELAY_PRODUCT_ID,
 } from '../services/PrivacyRelayService';
+import { mediaSettingsService } from '../services/MediaSettingsService';
 import type { PrivacyRelayTurnCredentials } from '../types/privacyRelay';
 
 interface PrivacyRelayScreenProps {
@@ -111,6 +112,11 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
       setBackendStatus(
         t('TURN credentials loaded. TTL: {ttl}s', { ttl: String(credentials.ttl || 0) })
       );
+      const alreadyAutoEnabled = await mediaSettingsService.hasAutoEnabledNicklistCallActionsFromRelay();
+      if (!alreadyAutoEnabled) {
+        await mediaSettingsService.setCallNicklistCallActionsEnabled(true);
+        await mediaSettingsService.markNicklistCallActionsAutoEnabledFromRelay();
+      }
       syncSubscriptionState();
       return credentials;
     } catch (error) {

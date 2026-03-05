@@ -9,6 +9,7 @@ import {
 } from './PrivacyRelayService';
 import {
   DEFAULT_FREE_CALL_STUN_SERVERS,
+  type CallTurnServerSettings,
   mediaSettingsService,
 } from './MediaSettingsService';
 import type {
@@ -26,6 +27,31 @@ const VIDEO_PRESETS: Record<CallVideoQuality, CallVideoPreset> = {
 };
 
 class CallMediaProfileService {
+  private normalizeStunUrls(urls: string[]): string[] {
+    return Array.from(new Set(urls.map(url => url.trim()).filter(Boolean)));
+  }
+
+  private normalizeTurnSettings(config: CallTurnServerSettings): CallTurnServerSettings {
+    const urls = Array.from(
+      new Set(
+        config.urls
+          .map(url => url.trim())
+          .filter(url => url.startsWith('turn:') || url.startsWith('turns:'))
+      )
+    );
+
+    return {
+      enabled: config.enabled,
+      urls,
+      username: config.username.trim(),
+      credential: config.credential,
+    };
+  }
+
+  private isCustomTurnUsable(config: CallTurnServerSettings): boolean {
+    return config.enabled && config.urls.length > 0 && config.username.length > 0 && config.credential.length > 0;
+  }
+
   getCapabilityProfile(): CallMediaCapabilityProfile {
     const relayState = privacyRelayService.getRelayAccessState();
 
@@ -80,17 +106,45 @@ class CallMediaProfileService {
   }): Promise<CallRtcSessionConfig> {
     const profile = this.getCapabilityProfile();
     const selectedVideoPreset = this.getVideoPreset(options?.quality);
-
-    if (!profile.relayEnabled) {
-      const freeStunServers = await mediaSettingsService.getCallStunServers().catch(() => [
+    const [freeStunServers, rawCustomTurnSettings, forceRelayOnly] = await Promise.all([
+      mediaSettingsService.getCallStunServers().catch(() => [
         ...DEFAULT_FREE_CALL_STUN_SERVERS,
         ...DEFAULT_PRIVACY_RELAY_TURN_SERVER.stunUrls,
-      ]);
-      const stunUrls = Array.from(new Set([
-        ...freeStunServers,
-        ...DEFAULT_PRIVACY_RELAY_TURN_SERVER.stunUrls,
-      ]));
+      ]),
+      mediaSettingsService.getCallTurnServerConfig().catch(() => ({
+        enabled: false,
+        urls: [],
+        username: '',
+        credential: '',
+      })),
+      mediaSettingsService.getCallForceRelayOnly().catch(() => false),
+    ]);
+    const stunUrls = this.normalizeStunUrls([
+      ...freeStunServers,
+      ...DEFAULT_PRIVACY_RELAY_TURN_SERVER.stunUrls,
+    ]);
+    const customTurnSettings = this.normalizeTurnSettings(rawCustomTurnSettings);
 
+    if (this.isCustomTurnUsable(customTurnSettings)) {
+      return {
+        relayEnabled: true,
+        shouldFetchTurnCredentials: false,
+        iceTransportPolicy: forceRelayOnly ? 'relay' : 'all',
+        iceServers: [
+          {
+            urls: customTurnSettings.urls,
+            username: customTurnSettings.username,
+            credential: customTurnSettings.credential,
+          },
+          {
+            urls: stunUrls,
+          },
+        ],
+        selectedVideoPreset,
+      };
+    }
+
+    if (!profile.relayEnabled) {
       return {
         relayEnabled: false,
         shouldFetchTurnCredentials: false,
@@ -121,7 +175,7 @@ class CallMediaProfileService {
     return {
       relayEnabled: true,
       shouldFetchTurnCredentials: true,
-      iceTransportPolicy: 'all',
+      iceTransportPolicy: forceRelayOnly ? 'relay' : 'all',
       iceServers: credentials.iceServers,
       selectedVideoPreset,
     };

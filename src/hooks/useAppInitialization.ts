@@ -16,6 +16,7 @@ import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { bannerAdService } from '../services/BannerAdService';
 import { errorReportingService } from '../services/ErrorReportingService';
 import { soundService } from '../services/SoundService';
+import { privacyRelayService } from '../services/PrivacyRelayService';
 
 // ErrorUtils is available globally in React Native
 declare const ErrorUtils: {
@@ -89,6 +90,16 @@ export function useAppInitialization() {
       }
     };
     initAppCheck();
+
+    const initPrivacyRelay = async () => {
+      try {
+        await privacyRelayService.initialize();
+        console.log('✅ PrivacyRelayService initialized successfully');
+      } catch (error) {
+        console.error('❌ Failed to initialize PrivacyRelayService:', error);
+      }
+    };
+    initPrivacyRelay();
 
     // Initialize consent management and AdMob
     const initAdsWithConsent = async () => {

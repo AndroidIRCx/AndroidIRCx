@@ -25,7 +25,7 @@ export interface CallMediaCapabilityProfile {
 export interface CallRtcSessionConfig {
   relayEnabled: boolean;
   shouldFetchTurnCredentials: boolean;
-  iceTransportPolicy: 'all';
+  iceTransportPolicy: 'all' | 'relay';
   iceServers: Array<{
     urls: string[];
     username?: string;
@@ -33,4 +33,3 @@ export interface CallRtcSessionConfig {
   }>;
   selectedVideoPreset: CallVideoPreset;
 }
-

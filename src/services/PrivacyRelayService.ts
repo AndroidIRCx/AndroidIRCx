@@ -276,24 +276,34 @@ class PrivacyRelayService {
       call_id: callId,
     });
 
-    const firstIceServer = response.ice_servers?.[0];
-    if (!firstIceServer?.username || !firstIceServer?.credential) {
+    const parsedIceServers = (response.ice_servers || [])
+      .map((server) => {
+        const urls = Array.isArray(server.urls)
+          ? server.urls
+          : server.urls
+            ? [server.urls]
+            : [];
+
+        return {
+          urls,
+          username: server.username,
+          credential: server.credential,
+        };
+      })
+      .filter(
+        (server): server is { urls: string[]; username: string; credential: string } =>
+          server.urls.length > 0 && Boolean(server.username) && Boolean(server.credential)
+      );
+
+    if (parsedIceServers.length === 0) {
       throw new Error('Privacy Relay backend did not return valid TURN credentials.');
     }
 
-    const urls = Array.isArray(firstIceServer.urls)
-      ? firstIceServer.urls
-      : firstIceServer.urls
-        ? [firstIceServer.urls]
-        : [];
-
-    if (urls.length === 0) {
-      throw new Error('Privacy Relay backend did not return ICE server URLs.');
-    }
+    const primaryIceServer = parsedIceServers[0];
 
     console.log('[PrivacyRelay] TURN credentials received', {
-      urls,
-      username: firstIceServer.username,
+      urls: parsedIceServers.flatMap(server => server.urls),
+      username: primaryIceServer.username,
       ttl: response.ttl ?? 0,
       relay: response.relay !== false,
     });
@@ -306,17 +316,11 @@ class PrivacyRelayService {
     });
 
     return {
-      iceServers: [
-        {
-          urls,
-          username: firstIceServer.username,
-          credential: firstIceServer.credential,
-        },
-      ],
+      iceServers: parsedIceServers,
       ttl: response.ttl ?? 0,
       relay: response.relay !== false,
-      username: firstIceServer.username,
-      credential: firstIceServer.credential,
+      username: primaryIceServer.username,
+      credential: primaryIceServer.credential,
       deviceId,
       callId,
       fetchedAt: new Date().toISOString(),

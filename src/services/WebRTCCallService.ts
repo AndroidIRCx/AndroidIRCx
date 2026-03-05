@@ -1016,7 +1016,9 @@ class WebRTCCallService {
       const protocol = this.extractCandidateProtocol(line);
       const type = this.extractCandidateType(line);
 
-      if (protocol === 'tcp') {
+      // Keep relay/TURN TCP candidates (e.g. turns:...:5349?transport=tcp),
+      // but still drop non-relay TCP candidates to keep SDP smaller.
+      if (protocol === 'tcp' && type !== 'relay') {
         return false;
       }
 

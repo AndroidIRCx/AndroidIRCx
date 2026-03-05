@@ -34,6 +34,9 @@ jest.mock('../../../src/services/MediaSettingsService', () => ({
     getVideoQuality: jest.fn(),
     getCallVideoQuality: jest.fn(),
     getCallStunServers: jest.fn(),
+    getCallTurnServerConfig: jest.fn(),
+    getCallForceRelayOnly: jest.fn(),
+    getCallNicklistCallActionsEnabled: jest.fn(),
     getVoiceMaxDuration: jest.fn(),
     setMediaEnabled: jest.fn(),
     setShowEncryptionIndicator: jest.fn(),
@@ -44,6 +47,9 @@ jest.mock('../../../src/services/MediaSettingsService', () => ({
     setVideoQuality: jest.fn(),
     setCallVideoQuality: jest.fn(),
     setCallStunServers: jest.fn(),
+    setCallTurnServerConfig: jest.fn(),
+    setCallForceRelayOnly: jest.fn(),
+    setCallNicklistCallActionsEnabled: jest.fn(),
     setVoiceMaxDuration: jest.fn(),
   },
 }));
@@ -127,6 +133,14 @@ describe('MediaSection', () => {
       'stun:turn.dbase.in.rs:3478',
       'stun:stun.l.google.com:19302',
     ]);
+    mockSettings.getCallTurnServerConfig.mockResolvedValue({
+      enabled: false,
+      urls: [],
+      username: '',
+      credential: '',
+    });
+    mockSettings.getCallForceRelayOnly.mockResolvedValue(false);
+    mockSettings.getCallNicklistCallActionsEnabled.mockResolvedValue(false);
     mockSettings.getVoiceMaxDuration.mockResolvedValue(180);
     mockCache.getCacheSize.mockResolvedValue(1024);
     mockCache.clearCache.mockResolvedValue({ clearedCount: 1, freedSpace: 1024 });
@@ -210,6 +224,11 @@ describe('MediaSection', () => {
       <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
     );
 
+    await waitFor(() => {
+      expect(mockSettings.setMediaQuality).toHaveBeenCalledWith('original');
+    });
+    mockSettings.setMediaQuality.mockClear();
+
     fireEvent.press(getByText('Media Quality'));
     await waitFor(() => {
       fireEvent.press(getByText('Low'));
@@ -223,6 +242,11 @@ describe('MediaSection', () => {
     const { getByText } = render(
       <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
     );
+    await waitFor(() => {
+      expect(mockSettings.setVideoQuality).toHaveBeenCalledWith('1080p');
+    });
+    mockSettings.setVideoQuality.mockClear();
+
     fireEvent.press(getByText('Video Recording Quality'));
     await waitFor(() => {
       fireEvent.press(getByText('720p'));
@@ -256,6 +280,11 @@ describe('MediaSection', () => {
       <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
     );
 
+    await waitFor(() => {
+      expect(mockSettings.setCallVideoQuality).toHaveBeenCalledWith('1080p');
+    });
+    mockSettings.setCallVideoQuality.mockClear();
+
     fireEvent.press(getByText('Live Call Video Quality'));
     await waitFor(() => {
       fireEvent.press(getByText('1440p'));
@@ -283,26 +312,91 @@ describe('MediaSection', () => {
     });
   });
 
-  it('updates free-call STUN servers from submenu input', async () => {
-    const { getByText, getByDisplayValue } = render(
+  it('updates free-call STUN servers from list editor', async () => {
+    const { getByText, getByPlaceholderText } = render(
       <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
     );
 
     fireEvent.press(getByText('Free Call STUN Servers'));
     await waitFor(() => {
-      expect(getByDisplayValue('stun:turn.dbase.in.rs:3478\nstun:stun.l.google.com:19302')).toBeTruthy();
+      expect(getByText('stun:turn.dbase.in.rs:3478')).toBeTruthy();
     });
 
-    fireEvent.changeText(
-      getByDisplayValue('stun:turn.dbase.in.rs:3478\nstun:stun.l.google.com:19302'),
-      'stun:turn.dbase.in.rs:3478\nstun:new.example.org:3478'
-    );
+    fireEvent.changeText(getByPlaceholderText('stun:stun.l.google.com:19302'), 'stun:new.example.org:3478');
+    fireEvent.press(getByText('Add'));
 
     await waitFor(() => {
-      expect(mockSettings.setCallStunServers).toHaveBeenCalledWith([
+      expect(mockSettings.setCallStunServers).toHaveBeenLastCalledWith([
         'stun:turn.dbase.in.rs:3478',
+        'stun:stun.l.google.com:19302',
         'stun:new.example.org:3478',
       ]);
+    });
+  });
+
+  it('shows validation for invalid STUN entries and does not add them', async () => {
+    const { getByText, getByPlaceholderText, queryByText } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    fireEvent.press(getByText('Free Call STUN Servers'));
+    await waitFor(() => {
+      expect(getByText('STUN Servers')).toBeTruthy();
+    });
+
+    fireEvent.changeText(getByPlaceholderText('stun:stun.l.google.com:19302'), 'http://bad.example.org');
+    fireEvent.press(getByText('Add'));
+
+    await waitFor(() => {
+      expect(getByText('STUN must start with stun:')).toBeTruthy();
+      expect(queryByText('http://bad.example.org')).toBeNull();
+    });
+  });
+
+  it('updates external TURN config from list editor inputs', async () => {
+    mockSettings.getCallTurnServerConfig.mockResolvedValueOnce({
+      enabled: true,
+      urls: ['turn:relay.example.net:3478?transport=udp'],
+      username: 'relay-user',
+      credential: 'relay-pass',
+    });
+
+    const { getByText, getByPlaceholderText } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    fireEvent.press(getByText('External TURN Server'));
+    await waitFor(() => {
+      expect(getByText('turn:relay.example.net:3478?transport=udp')).toBeTruthy();
+    });
+
+    fireEvent.changeText(getByPlaceholderText('turn:turn.example.com:3478?transport=udp'), 'turns:relay.example.net:5349?transport=tcp');
+    fireEvent.press(getByText('Add'));
+    fireEvent.changeText(getByPlaceholderText('username'), 'relay-user');
+    fireEvent.changeText(getByPlaceholderText('credential'), 'relay-pass');
+
+    await waitFor(() => {
+      expect(mockSettings.setCallTurnServerConfig).toHaveBeenLastCalledWith({
+        enabled: true,
+        urls: [
+          'turn:relay.example.net:3478?transport=udp',
+          'turns:relay.example.net:5349?transport=tcp',
+        ],
+        username: 'relay-user',
+        credential: 'relay-pass',
+      });
+    });
+  });
+
+  it('persists relay-only and nick-menu call action settings from loaded values', async () => {
+    mockSettings.getCallForceRelayOnly.mockResolvedValueOnce(true);
+    mockSettings.getCallNicklistCallActionsEnabled.mockResolvedValueOnce(true);
+
+    render(<MediaSection colors={colors} styles={styles as any} settingIcons={{}} />);
+
+    await waitFor(() => {
+      expect(mockSettings.setCallForceRelayOnly).toHaveBeenCalledWith(true);
+      expect(mockSettings.setCallNicklistCallActionsEnabled).toHaveBeenCalledWith(true);
     });
   });
 
@@ -310,6 +404,11 @@ describe('MediaSection', () => {
     const { getByText } = render(
       <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
     );
+    await waitFor(() => {
+      expect(mockSettings.setVoiceMaxDuration).toHaveBeenCalledWith(180);
+    });
+    mockSettings.setVoiceMaxDuration.mockClear();
+
     fireEvent.press(getByText('Max Voice Message Duration'));
     await waitFor(() => {
       fireEvent.press(getByText('1 minute'));

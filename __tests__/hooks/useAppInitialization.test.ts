@@ -75,6 +75,12 @@ jest.mock('../../src/services/SoundService', () => ({
   },
 }));
 
+jest.mock('../../src/services/PrivacyRelayService', () => ({
+  privacyRelayService: {
+    initialize: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 // Mock React Native's ErrorUtils
 const mockGlobalErrorHandler = jest.fn();
 const mockOriginalHandler = jest.fn();
@@ -113,6 +119,7 @@ describe('useAppInitialization', () => {
     expect(require('../../src/services/BannerAdService').bannerAdService.initialize).toHaveBeenCalled();
     expect(require('../../src/services/ErrorReportingService').errorReportingService.initialize).toHaveBeenCalled();
     expect(require('../../src/services/SoundService').soundService.initialize).toHaveBeenCalled();
+    expect(require('../../src/services/PrivacyRelayService').privacyRelayService.initialize).toHaveBeenCalled();
   });
 
   it('should handle consent form based on first run status', async () => {

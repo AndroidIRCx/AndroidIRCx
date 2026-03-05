@@ -13,6 +13,7 @@ import { banService } from '../services/BanService';
 import { serviceCommandProvider } from '../services/ServiceCommandProvider';
 import { ServiceCommand } from '../interfaces/ServiceTypes';
 import { settingsService, NEW_FEATURE_DEFAULTS } from '../services/SettingsService';
+import { mediaSettingsService } from '../services/MediaSettingsService';
 import { useUIStore } from '../stores/uiStore';
 import KickBanModal from './KickBanModal';
 
@@ -77,6 +78,7 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
   const [defaultKickReason, setDefaultKickReason] = useState<string>('Goodbye');
   const [showKillReasonModal, setShowKillReasonModal] = useState(false);
   const [killReason, setKillReason] = useState('');
+  const [showCallActionsInNickMenu, setShowCallActionsInNickMenu] = useState(false);
 
   useEffect(() => {
     if (!visible) {
@@ -116,9 +118,11 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
         const confirm = await settingsService.getSetting('confirmBeforeKickBan', NEW_FEATURE_DEFAULTS.confirmBeforeKickBan);
         const banType = await settingsService.getSetting('defaultBanType', NEW_FEATURE_DEFAULTS.defaultBanType);
         const reasons = await settingsService.getSetting('predefinedKickReasons', NEW_FEATURE_DEFAULTS.predefinedKickReasons);
+        const showCallActions = await mediaSettingsService.getCallNicklistCallActionsEnabled();
         setConfirmBeforeKickBan(confirm);
         setDefaultBanType(banType);
         setDefaultKickReason(reasons[0] || 'Goodbye');
+        setShowCallActionsInNickMenu(showCallActions);
       };
       loadSettings();
     }
@@ -371,18 +375,22 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                 <Text style={styles.contextText}>{t('Open Query')}</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('audio_call')}>
-              <View style={styles.contextItemWithIcon}>
-                <Icon name="phone" size={14} color={colors.text} style={styles.contextIcon} />
-                <Text style={styles.contextText}>{t('Audio Call')}</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.contextItem} onPress={() => onAction('video_call')}>
-              <View style={styles.contextItemWithIcon}>
-                <Icon name="video" size={14} color={colors.text} style={styles.contextIcon} />
-                <Text style={styles.contextText}>{t('Video Call')}</Text>
-              </View>
-            </TouchableOpacity>
+            {showCallActionsInNickMenu && (
+              <>
+                <TouchableOpacity style={styles.contextItem} onPress={() => onAction('audio_call')}>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="phone" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Audio Call')}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.contextItem} onPress={() => onAction('video_call')}>
+                  <View style={styles.contextItemWithIcon}>
+                    <Icon name="video" size={14} color={colors.text} style={styles.contextIcon} />
+                    <Text style={styles.contextText}>{t('Video Call')}</Text>
+                  </View>
+                </TouchableOpacity>
+              </>
+            )}
             {canMonitor && (
               <TouchableOpacity style={styles.contextItem} onPress={() => onAction('monitor_toggle')}>
                 <View style={styles.contextItemWithIcon}>

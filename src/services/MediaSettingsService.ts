@@ -24,6 +24,7 @@ export const DEFAULT_FREE_CALL_STUN_SERVERS = [
   'stun:stun.l.google.com:19302',
   'stun:stun1.l.google.com:19302',
 ] as const;
+export const DEFAULT_FREE_CALL_TURN_SERVERS = [] as const;
 
 // Default settings
 const DEFAULT_SETTINGS: MediaSettings = {
@@ -36,8 +37,22 @@ const DEFAULT_SETTINGS: MediaSettings = {
   videoQuality: '1080p',             // 4k, 1080p, 720p, 480p
   callVideoQuality: '480p',          // 1440p, 1080p, 720p, 480p
   callStunServers: [...DEFAULT_FREE_CALL_STUN_SERVERS],
+  callTurnEnabled: false,
+  callTurnServers: [...DEFAULT_FREE_CALL_TURN_SERVERS],
+  callTurnUsername: '',
+  callTurnCredential: '',
+  callForceRelayOnly: false,
+  callNicklistCallActionsEnabled: false,
+  callNicklistCallActionsAutoEnabledFromRelay: false,
   voiceMaxDuration: 180,             // 180 seconds (3 minutes)
 };
+
+export interface CallTurnServerSettings {
+  enabled: boolean;
+  urls: string[];
+  username: string;
+  credential: string;
+}
 
 export interface MediaSettings {
   enabled: boolean;                  // Master toggle for entire media feature
@@ -49,6 +64,13 @@ export interface MediaSettings {
   videoQuality: '4k' | '1080p' | '720p' | '480p';       // Video recording quality
   callVideoQuality: '1440p' | '1080p' | '720p' | '480p'; // Live call video quality
   callStunServers: string[];         // Free-call STUN servers used for direct WebRTC
+  callTurnEnabled: boolean;          // Allow custom TURN fallback for calls
+  callTurnServers: string[];         // Custom TURN/ TURNS URLs (one or more)
+  callTurnUsername: string;          // TURN username
+  callTurnCredential: string;        // TURN credential/password
+  callForceRelayOnly: boolean;       // Use only relay candidates when relay is available
+  callNicklistCallActionsEnabled: boolean; // Show Audio/Video Call actions in nick context menu
+  callNicklistCallActionsAutoEnabledFromRelay: boolean; // Internal marker: auto-enabled once after relay purchase
   voiceMaxDuration: number;          // Max voice message duration (seconds)
 }
 
@@ -272,6 +294,98 @@ class MediaSettingsService {
         ? sanitized
         : [...DEFAULT_FREE_CALL_STUN_SERVERS],
     });
+  }
+
+  /**
+   * Get custom TURN settings for calls
+   */
+  async getCallTurnServerConfig(): Promise<CallTurnServerSettings> {
+    if (!this.loaded) {
+      await this.loadSettings();
+    }
+
+    const urls = Array.isArray(this.settings.callTurnServers)
+      ? this.settings.callTurnServers
+        .map(server => server.trim())
+        .filter(Boolean)
+      : [...DEFAULT_FREE_CALL_TURN_SERVERS];
+
+    return {
+      enabled: Boolean(this.settings.callTurnEnabled),
+      urls,
+      username: (this.settings.callTurnUsername || '').trim(),
+      credential: this.settings.callTurnCredential || '',
+    };
+  }
+
+  /**
+   * Set custom TURN settings for calls
+   */
+  async setCallTurnServerConfig(config: Partial<CallTurnServerSettings>): Promise<void> {
+    const current = await this.getCallTurnServerConfig();
+    const next: CallTurnServerSettings = {
+      enabled: typeof config.enabled === 'boolean' ? config.enabled : current.enabled,
+      urls: Array.isArray(config.urls)
+        ? config.urls.map(server => server.trim()).filter(Boolean)
+        : current.urls,
+      username: typeof config.username === 'string' ? config.username.trim() : current.username,
+      credential: typeof config.credential === 'string' ? config.credential : current.credential,
+    };
+
+    await this.saveSettings({
+      callTurnEnabled: next.enabled,
+      callTurnServers: next.urls,
+      callTurnUsername: next.username,
+      callTurnCredential: next.credential,
+    });
+  }
+
+  /**
+   * Get whether relay-only ICE policy is enabled
+   */
+  async getCallForceRelayOnly(): Promise<boolean> {
+    if (!this.loaded) {
+      await this.loadSettings();
+    }
+    return Boolean(this.settings.callForceRelayOnly);
+  }
+
+  /**
+   * Set relay-only ICE policy
+   */
+  async setCallForceRelayOnly(enabled: boolean): Promise<void> {
+    await this.saveSettings({ callForceRelayOnly: Boolean(enabled) });
+  }
+
+  /**
+   * Get whether audio/video call actions are shown in nicklist context menu
+   */
+  async getCallNicklistCallActionsEnabled(): Promise<boolean> {
+    if (!this.loaded) {
+      await this.loadSettings();
+    }
+    return Boolean(this.settings.callNicklistCallActionsEnabled);
+  }
+
+  /**
+   * Set visibility of audio/video call actions in nicklist context menu
+   */
+  async setCallNicklistCallActionsEnabled(enabled: boolean): Promise<void> {
+    await this.saveSettings({ callNicklistCallActionsEnabled: Boolean(enabled) });
+  }
+
+  /**
+   * Internal marker used to auto-enable call actions only once after successful relay activation
+   */
+  async hasAutoEnabledNicklistCallActionsFromRelay(): Promise<boolean> {
+    if (!this.loaded) {
+      await this.loadSettings();
+    }
+    return Boolean(this.settings.callNicklistCallActionsAutoEnabledFromRelay);
+  }
+
+  async markNicklistCallActionsAutoEnabledFromRelay(): Promise<void> {
+    await this.saveSettings({ callNicklistCallActionsAutoEnabledFromRelay: true });
   }
 
   /**
