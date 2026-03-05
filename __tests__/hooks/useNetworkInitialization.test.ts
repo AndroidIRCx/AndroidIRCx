@@ -301,6 +301,33 @@ describe('useNetworkInitialization', () => {
     expect(require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages).toHaveBeenCalledWith('Test Network', 'server');
   });
 
+  it('should continue startup when server tab history loading fails', async () => {
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
+      { name: 'Test Network', servers: [{ hostname: 'test.com', port: 6667 }] }
+    ]);
+    require('../../src/services/TabService').tabService.getTabs.mockResolvedValue([
+      { id: 'server-Test Network', type: 'server', name: 'Test Network', networkId: 'Test Network' }
+    ]);
+    require('../../src/utils/tabUtils').serverTabId.mockReturnValue('server-Test Network');
+    require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages.mockRejectedValueOnce(
+      new Error('history failed')
+    );
+
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    renderHook(() => useNetworkInitialization(defaultProps));
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(mockSetTabs).toHaveBeenCalled();
+    expect(mockSetActiveTabId).toHaveBeenCalledWith('server-Test Network');
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      'Error loading server tab history on startup:',
+      expect.any(Error)
+    );
+
+    mockConsoleError.mockRestore();
+  });
+
   it('should handle errors when loading initial data', async () => {
     require('../../src/services/SettingsService').settingsService.loadNetworks.mockRejectedValue(new Error('Failed to load networks'));
 
@@ -436,6 +463,40 @@ describe('useNetworkInitialization', () => {
     expect(require('../../src/services/TabService').tabService.saveTabs).toHaveBeenCalledWith('Test Network', tabsWithChanges);
 
     // Restore real timers
+    jest.useRealTimers();
+  });
+
+  it('should save tabs per valid network and ignore invalid network ids', async () => {
+    const mixedTabs = [
+      { id: 'a1', type: 'channel', name: '#a', networkId: 'NetA' },
+      { id: 'a2', type: 'query', name: 'nickA', networkId: 'NetA' },
+      { id: 'b1', type: 'channel', name: '#b', networkId: 'NetB' },
+      { id: 'bad1', type: 'channel', name: '#bad', networkId: 'Not connected' },
+      { id: 'bad2', type: 'channel', name: '#bad2', networkId: '' },
+    ];
+
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: mixedTabs,
+    });
+
+    jest.useFakeTimers();
+    renderHook(() =>
+      useNetworkInitialization({
+        ...defaultProps,
+        tabs: mixedTabs,
+      })
+    );
+    jest.advanceTimersByTime(600);
+
+    expect(require('../../src/services/TabService').tabService.saveTabs).toHaveBeenCalledWith(
+      'NetA',
+      mixedTabs.filter(t => t.networkId === 'NetA')
+    );
+    expect(require('../../src/services/TabService').tabService.saveTabs).toHaveBeenCalledWith(
+      'NetB',
+      mixedTabs.filter(t => t.networkId === 'NetB')
+    );
+    expect(require('../../src/services/TabService').tabService.saveTabs).toHaveBeenCalledTimes(2);
     jest.useRealTimers();
   });
 

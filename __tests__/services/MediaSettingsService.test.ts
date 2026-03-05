@@ -423,6 +423,111 @@ describe('MediaSettingsService', () => {
     expect(exported).toContain('"mediaQuality": "medium"');
   });
 
+  it('falls back to default STUN list when only empty STUN entries are saved', async () => {
+    await mediaSettingsService.setCallStunServers(['   ', '']);
+
+    expect(await mediaSettingsService.getCallStunServers()).toEqual([
+      'stun:turn.dbase.in.rs:3478',
+      'stun:stun.l.google.com:19302',
+      'stun:stun1.l.google.com:19302',
+    ]);
+  });
+
+  it('returns default STUN list when stored callStunServers is not an array', async () => {
+    await AsyncStorage.setItem(
+      '@MediaSettings',
+      JSON.stringify({
+        enabled: true,
+        callStunServers: 'stun:not-an-array',
+      })
+    );
+    (mediaSettingsService as any).loaded = false;
+
+    expect(await mediaSettingsService.getCallStunServers()).toEqual([
+      'stun:turn.dbase.in.rs:3478',
+      'stun:stun.l.google.com:19302',
+      'stun:stun1.l.google.com:19302',
+    ]);
+  });
+
+  it('sanitizes TURN config read values (trims urls/username and drops empty urls)', async () => {
+    await AsyncStorage.setItem(
+      '@MediaSettings',
+      JSON.stringify({
+        enabled: true,
+        callTurnEnabled: true,
+        callTurnServers: ['  turn:turn.example.org:3478?transport=udp  ', '', '   '],
+        callTurnUsername: '  relay-user  ',
+        callTurnCredential: 'secret',
+      })
+    );
+    (mediaSettingsService as any).loaded = false;
+
+    expect(await mediaSettingsService.getCallTurnServerConfig()).toEqual({
+      enabled: true,
+      urls: ['turn:turn.example.org:3478?transport=udp'],
+      username: 'relay-user',
+      credential: 'secret',
+    });
+  });
+
+  it('returns empty TURN urls when stored callTurnServers is not an array', async () => {
+    await AsyncStorage.setItem(
+      '@MediaSettings',
+      JSON.stringify({
+        enabled: true,
+        callTurnEnabled: true,
+        callTurnServers: 'turn:not-an-array',
+        callTurnUsername: ' relay-user ',
+        callTurnCredential: 'secret',
+      })
+    );
+    (mediaSettingsService as any).loaded = false;
+
+    expect(await mediaSettingsService.getCallTurnServerConfig()).toEqual({
+      enabled: true,
+      urls: [],
+      username: 'relay-user',
+      credential: 'secret',
+    });
+  });
+
+  it('applies partial TURN updates while preserving existing fields', async () => {
+    await mediaSettingsService.setCallTurnServerConfig({
+      enabled: true,
+      urls: ['turn:old.example.org:3478?transport=udp'],
+      username: 'old-user',
+      credential: 'old-pass',
+    });
+
+    await mediaSettingsService.setCallTurnServerConfig({
+      credential: 'new-pass',
+    });
+
+    expect(await mediaSettingsService.getCallTurnServerConfig()).toEqual({
+      enabled: true,
+      urls: ['turn:old.example.org:3478?transport=udp'],
+      username: 'old-user',
+      credential: 'new-pass',
+    });
+  });
+
+  it('sanitizes TURN urls and username on write', async () => {
+    await mediaSettingsService.setCallTurnServerConfig({
+      enabled: true,
+      urls: ['  turn:turn-a.example.org:3478?transport=udp  ', '', '   '],
+      username: '  relay-user  ',
+      credential: 'secret',
+    });
+
+    expect(await mediaSettingsService.getCallTurnServerConfig()).toEqual({
+      enabled: true,
+      urls: ['turn:turn-a.example.org:3478?transport=udp'],
+      username: 'relay-user',
+      credential: 'secret',
+    });
+  });
+
   it('exports cached settings without loading from storage again', async () => {
     const getItemSpy = jest.spyOn(AsyncStorage, 'getItem');
     (mediaSettingsService as any).loaded = true;

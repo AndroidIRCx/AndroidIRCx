@@ -85,4 +85,20 @@ describe('useHeaderActions', () => {
 
     expect(mockSetShowUserList).toHaveBeenCalledWith(false);
   });
+
+  it('should read latest user list state on each toggle call', () => {
+    const { result } = renderHook(() => useHeaderActions());
+
+    mockUIStore.showUserList = false;
+    act(() => {
+      result.current.handleToggleUserList();
+    });
+    expect(mockSetShowUserList).toHaveBeenCalledWith(true);
+
+    mockUIStore.showUserList = true;
+    act(() => {
+      result.current.handleToggleUserList();
+    });
+    expect(mockSetShowUserList).toHaveBeenLastCalledWith(false);
+  });
 });

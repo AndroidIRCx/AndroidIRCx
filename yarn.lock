@@ -2756,10 +2756,10 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
-"@shopify/flash-list@2.2.3":
-  version "2.2.3"
-  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-2.2.3.tgz#bec9f4c6c781d601e570a6ed7b5eb9c08e5c380c"
-  integrity sha512-2dnModpqd2ebUB1TiaEoMvJH1sqvWc62gXoHxFC54FtZ3Qw1YV+dUObUhA4H5dmPCayHB1O/BKyzhBJnpWLonQ==
+"@shopify/flash-list@2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-2.3.0.tgz#ded45604a38bc0edd49f27e356e1c761bef4018f"
+  integrity sha512-DR7VuN8KJHTYj9zv1/IhpqrMBMQyeeW/DCWCbVQAAkWhHrc6ylIbXOY+qK93CuHABV+dNHXK/3V6p4wCSW/+wA==
 
 "@sideway/address@^4.1.5":
   version "4.1.5"

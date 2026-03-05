@@ -152,6 +152,45 @@ describe('useAppInitialization', () => {
     expect(global.ErrorUtils.setGlobalHandler).toHaveBeenCalled();
   });
 
+  it('should restore original global error handler on unmount', async () => {
+    const { unmount } = renderHook(() => useAppInitialization());
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+    unmount();
+
+    expect(global.ErrorUtils.setGlobalHandler).toHaveBeenLastCalledWith(mockOriginalHandler);
+  });
+
+  it('should report and hide bootsplash for fatal global errors', async () => {
+    renderHook(() => useAppInitialization());
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    const error = new Error('fatal test');
+    mockGlobalErrorHandler(error, true);
+
+    expect(require('../../src/services/ErrorReportingService').errorReportingService.report).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({ fatal: true, source: 'globalErrorHandler' })
+    );
+    expect(require('react-native-bootsplash').hide).toHaveBeenCalledWith({ fade: false });
+    expect(mockOriginalHandler).toHaveBeenCalledWith(error, true);
+  });
+
+  it('should report non-fatal errors without hiding bootsplash', async () => {
+    renderHook(() => useAppInitialization());
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    const error = new Error('non fatal test');
+    mockGlobalErrorHandler(error, false);
+
+    expect(require('../../src/services/ErrorReportingService').errorReportingService.report).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({ fatal: false, source: 'globalErrorHandler' })
+    );
+    expect(require('react-native-bootsplash').hide).not.toHaveBeenCalled();
+    expect(mockOriginalHandler).toHaveBeenCalledWith(error, false);
+  });
+
   it('should handle errors during initialization gracefully', async () => {
     // Mock an error during consent initialization
     require('../../src/services/ConsentService').consentService.initialize.mockRejectedValueOnce(new Error('Consent init failed'));
@@ -169,5 +208,54 @@ describe('useAppInitialization', () => {
     // Check that Firebase app is retrieved and App Check is initialized
     expect(require('@react-native-firebase/app').getApp).toHaveBeenCalled();
     expect(require('@react-native-firebase/app-check').initializeAppCheck).toHaveBeenCalled();
+  });
+
+  it('should skip global error handler setup when ErrorUtils is unavailable', async () => {
+    const originalErrorUtils = (global as any).ErrorUtils;
+    delete (global as any).ErrorUtils;
+
+    expect(() => {
+      renderHook(() => useAppInitialization());
+    }).not.toThrow();
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(require('../../src/services/ErrorReportingService').errorReportingService.initialize).toHaveBeenCalled();
+
+    (global as any).ErrorUtils = originalErrorUtils;
+  });
+
+  it('should handle App Check initialization failure gracefully', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    require('@react-native-firebase/app-check').initializeAppCheck.mockRejectedValueOnce(
+      new Error('app-check failed')
+    );
+
+    expect(() => {
+      renderHook(() => useAppInitialization());
+    }).not.toThrow();
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('❌ App Check initialization failed:', expect.any(Error));
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('should handle PrivacyRelay initialization failures gracefully', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    require('../../src/services/PrivacyRelayService').privacyRelayService.initialize.mockRejectedValueOnce(
+      new Error('relay init failed')
+    );
+
+    expect(() => {
+      renderHook(() => useAppInitialization());
+    }).not.toThrow();
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '❌ Failed to initialize PrivacyRelayService:',
+      expect.any(Error)
+    );
+    consoleErrorSpy.mockRestore();
   });
 });

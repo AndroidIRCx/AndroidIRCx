@@ -7,7 +7,7 @@
 
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useAppExit } from '../../src/hooks/useAppExit';
-import { Platform } from 'react-native';
+import { Platform, BackHandler } from 'react-native';
 
 // Mock services
 jest.mock('../../src/services/SettingsService', () => ({
@@ -193,5 +193,92 @@ describe('useAppExit', () => {
     });
 
     expect(mockDisconnect).toHaveBeenCalledWith(null);
+  });
+
+  it('should exit app on Android after cleanup', async () => {
+    (Platform as any).OS = 'android';
+    const { result } = renderHook(() => useAppExit(defaultProps));
+
+    act(() => {
+      result.current.handleExit();
+    });
+
+    const exitButton = mockSafeAlert.mock.calls[0][2].find(
+      (btn: any) => btn.text === 'Exit'
+    );
+
+    await act(async () => {
+      await exitButton.onPress();
+    });
+
+    expect(BackHandler.exitApp).toHaveBeenCalled();
+  });
+
+  it('should show iOS close-from-switcher message instead of exiting app', async () => {
+    (Platform as any).OS = 'ios';
+    const { result } = renderHook(() => useAppExit(defaultProps));
+
+    act(() => {
+      result.current.handleExit();
+    });
+
+    const exitButton = mockSafeAlert.mock.calls[0][2].find(
+      (btn: any) => btn.text === 'Exit'
+    );
+
+    await act(async () => {
+      await exitButton.onPress();
+    });
+
+    expect(BackHandler.exitApp).not.toHaveBeenCalled();
+    expect(mockSafeAlert).toHaveBeenCalledWith('Disconnected', 'You can now close the app from the app switcher.');
+  });
+
+  it('should continue exit flow when flushSync fails', async () => {
+    (messageHistoryBatching.flushSync as jest.Mock).mockRejectedValueOnce(new Error('flush failed'));
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { result } = renderHook(() => useAppExit(defaultProps));
+    act(() => {
+      result.current.handleExit();
+    });
+
+    const exitButton = mockSafeAlert.mock.calls[0][2].find(
+      (btn: any) => btn.text === 'Exit'
+    );
+
+    await act(async () => {
+      await exitButton.onPress();
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Error flushing message history on exit:',
+      expect.any(Error)
+    );
+    expect(backgroundService.cleanup).toHaveBeenCalled();
+    expect(BackHandler.exitApp).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('should fallback to forced exit when disconnect throws', async () => {
+    mockDisconnect.mockRejectedValueOnce(new Error('disconnect failed'));
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { result } = renderHook(() => useAppExit(defaultProps));
+    act(() => {
+      result.current.handleExit();
+    });
+
+    const exitButton = mockSafeAlert.mock.calls[0][2].find(
+      (btn: any) => btn.text === 'Exit'
+    );
+
+    await act(async () => {
+      await exitButton.onPress();
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error during exit:', expect.any(Error));
+    expect(BackHandler.exitApp).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
   });
 });

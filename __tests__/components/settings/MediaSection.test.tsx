@@ -60,6 +60,13 @@ jest.mock('../../../src/services/CallMediaProfileService', () => ({
   },
 }));
 
+jest.mock('../../../src/services/SettingsService', () => ({
+  settingsService: {
+    getSetting: jest.fn(),
+    setSetting: jest.fn(),
+  },
+}));
+
 jest.mock('../../../src/services/MediaCacheService', () => ({
   mediaCacheService: {
     getCacheSize: jest.fn(),
@@ -92,10 +99,12 @@ jest.mock('../../../src/components/settings/SettingItem', () => ({
 import { mediaSettingsService } from '../../../src/services/MediaSettingsService';
 import { mediaCacheService } from '../../../src/services/MediaCacheService';
 import { callMediaProfileService } from '../../../src/services/CallMediaProfileService';
+import { settingsService } from '../../../src/services/SettingsService';
 
 const mockSettings = mediaSettingsService as unknown as Record<string, jest.Mock>;
 const mockCache = mediaCacheService as unknown as Record<string, jest.Mock>;
 const mockCallMediaProfile = callMediaProfileService as unknown as Record<string, jest.Mock>;
+const mockAppSettings = settingsService as unknown as Record<string, jest.Mock>;
 
 describe('MediaSection', () => {
   const colors = {
@@ -144,6 +153,8 @@ describe('MediaSection', () => {
     mockSettings.getVoiceMaxDuration.mockResolvedValue(180);
     mockCache.getCacheSize.mockResolvedValue(1024);
     mockCache.clearCache.mockResolvedValue({ clearedCount: 1, freedSpace: 1024 });
+    mockAppSettings.getSetting.mockResolvedValue(false);
+    mockAppSettings.setSetting.mockResolvedValue(undefined);
     mockCallMediaProfile.getCapabilityProfile.mockReturnValue({
       relayEnabled: false,
       allowedVideoQualities: ['480p', '720p'],
@@ -353,6 +364,30 @@ describe('MediaSection', () => {
     });
   });
 
+  it('does not add duplicate STUN server entries', async () => {
+    const { getByText, getByPlaceholderText } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    fireEvent.press(getByText('Free Call STUN Servers'));
+    await waitFor(() => {
+      expect(getByText('STUN Servers')).toBeTruthy();
+    });
+
+    fireEvent.changeText(
+      getByPlaceholderText('stun:stun.l.google.com:19302'),
+      'stun:turn.dbase.in.rs:3478'
+    );
+    fireEvent.press(getByText('Add'));
+
+    await waitFor(() => {
+      expect(mockSettings.setCallStunServers).toHaveBeenLastCalledWith([
+        'stun:turn.dbase.in.rs:3478',
+        'stun:stun.l.google.com:19302',
+      ]);
+    });
+  });
+
   it('updates external TURN config from list editor inputs', async () => {
     mockSettings.getCallTurnServerConfig.mockResolvedValueOnce({
       enabled: true,
@@ -397,6 +432,129 @@ describe('MediaSection', () => {
     await waitFor(() => {
       expect(mockSettings.setCallForceRelayOnly).toHaveBeenCalledWith(true);
       expect(mockSettings.setCallNicklistCallActionsEnabled).toHaveBeenCalledWith(true);
+    });
+  });
+
+  it('toggles ongoing call notification and persists app setting', async () => {
+    mockAppSettings.getSetting
+      .mockResolvedValueOnce(true) // showCallNotification
+      .mockResolvedValueOnce(false); // callMinimizedOnlyOnActiveQuery
+
+    const { UNSAFE_getAllByType } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    await waitFor(() => {
+      const switches = UNSAFE_getAllByType(Switch);
+      fireEvent(switches[6], 'valueChange', false);
+    });
+
+    await waitFor(() => {
+      expect(mockAppSettings.setSetting).toHaveBeenCalledWith('showCallNotification', false);
+    });
+  });
+
+  it('toggles active-query minimized call overlay and persists app setting', async () => {
+    mockAppSettings.getSetting
+      .mockResolvedValueOnce(true) // showCallNotification
+      .mockResolvedValueOnce(false); // callMinimizedOnlyOnActiveQuery
+
+    const { UNSAFE_getAllByType } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    await waitFor(() => {
+      const switches = UNSAFE_getAllByType(Switch);
+      fireEvent(switches[7], 'valueChange', true);
+    });
+
+    await waitFor(() => {
+      expect(mockAppSettings.setSetting).toHaveBeenCalledWith('callMinimizedOnlyOnActiveQuery', true);
+    });
+  });
+
+  it('reorders and removes STUN servers from list editor', async () => {
+    const { getByText, getByLabelText } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    fireEvent.press(getByText('Free Call STUN Servers'));
+
+    await waitFor(() => {
+      expect(getByText('stun:turn.dbase.in.rs:3478')).toBeTruthy();
+      expect(getByText('stun:stun.l.google.com:19302')).toBeTruthy();
+    });
+
+    fireEvent.press(getByLabelText('stun-server-down-0'));
+
+    await waitFor(() => {
+      expect(mockSettings.setCallStunServers).toHaveBeenLastCalledWith([
+        'stun:stun.l.google.com:19302',
+        'stun:turn.dbase.in.rs:3478',
+      ]);
+    });
+
+    fireEvent.press(getByLabelText('stun-server-remove-1'));
+
+    await waitFor(() => {
+      expect(mockSettings.setCallStunServers).toHaveBeenLastCalledWith([
+        'stun:stun.l.google.com:19302',
+      ]);
+    });
+  });
+
+  it('shows validation for invalid TURN entry and does not add it', async () => {
+    const { getByText, getByPlaceholderText, queryByText } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    fireEvent.press(getByText('External TURN Server'));
+    await waitFor(() => {
+      expect(getByText('TURN Servers')).toBeTruthy();
+    });
+
+    fireEvent.changeText(
+      getByPlaceholderText('turn:turn.example.com:3478?transport=udp'),
+      'http://bad-turn.example.org'
+    );
+    fireEvent.press(getByText('Add'));
+
+    await waitFor(() => {
+      expect(getByText('TURN must start with turn: or turns:')).toBeTruthy();
+      expect(queryByText('http://bad-turn.example.org')).toBeNull();
+    });
+  });
+
+  it('does not add duplicate TURN server entries', async () => {
+    mockSettings.getCallTurnServerConfig.mockResolvedValueOnce({
+      enabled: true,
+      urls: ['turn:relay.example.net:3478?transport=udp'],
+      username: 'relay-user',
+      credential: 'relay-pass',
+    });
+
+    const { getByText, getByPlaceholderText } = render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+
+    fireEvent.press(getByText('External TURN Server'));
+    await waitFor(() => {
+      expect(getByText('TURN Servers')).toBeTruthy();
+    });
+
+    fireEvent.changeText(
+      getByPlaceholderText('turn:turn.example.com:3478?transport=udp'),
+      'turn:relay.example.net:3478?transport=udp'
+    );
+    fireEvent.press(getByText('Add'));
+
+    await waitFor(() => {
+      expect(mockSettings.setCallTurnServerConfig).toHaveBeenLastCalledWith({
+        enabled: true,
+        urls: ['turn:relay.example.net:3478?transport=udp'],
+        username: 'relay-user',
+        credential: 'relay-pass',
+      });
     });
   });
 

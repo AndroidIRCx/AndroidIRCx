@@ -52,6 +52,8 @@ const mockUIState = {
   showPurchaseScreen: false,
   showIgnoreList: false,
   showBlacklist: false,
+  showUserLists: false,
+  userListsInitialTab: 'ban',
   showWHOIS: false,
   whoisNick: '',
   showQueryEncryptionMenu: false,
@@ -180,6 +182,8 @@ describe('useUIState', () => {
     expect(result.current.showPurchaseScreen).toBe(false);
     expect(result.current.showIgnoreList).toBe(false);
     expect(result.current.showBlacklist).toBe(false);
+    expect(result.current.showUserLists).toBe(false);
+    expect(result.current.userListsInitialTab).toBe('ban');
     expect(result.current.showWHOIS).toBe(false);
     expect(result.current.whoisNick).toBe('');
     expect(result.current.showQueryEncryptionMenu).toBe(false);
@@ -238,14 +242,20 @@ describe('useUIState', () => {
   it('should reflect updated UI state', () => {
     mockUIState.showSettings = true;
     mockUIState.appLocked = true;
+    mockUIState.showUserLists = true;
+    mockUIState.userListsInitialTab = 'quiet';
 
     const { result } = renderHook(() => useUIState());
 
     expect(result.current.showSettings).toBe(true);
     expect(result.current.appLocked).toBe(true);
+    expect(result.current.showUserLists).toBe(true);
+    expect(result.current.userListsInitialTab).toBe('quiet');
 
     // Restore
     mockUIState.showSettings = false;
     mockUIState.appLocked = false;
+    mockUIState.showUserLists = false;
+    mockUIState.userListsInitialTab = 'ban';
   });
 });

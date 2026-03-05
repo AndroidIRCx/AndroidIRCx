@@ -6,10 +6,17 @@
 import { renderHook } from '@testing-library/react-native';
 import { useLazyMessageHistory } from '../../src/hooks/useLazyMessageHistory';
 
+let appStateChangeListener: ((state: string) => void) | null = null;
+
 jest.mock('react-native', () => ({
   AppState: {
     currentState: 'active',
-    addEventListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
+    addEventListener: jest.fn((event: string, listener: (state: string) => void) => {
+      if (event === 'change') {
+        appStateChangeListener = listener;
+      }
+      return { remove: jest.fn() };
+    }),
   },
   InteractionManager: {
     runAfterInteractions: jest.fn((cb) => cb()),
@@ -37,6 +44,7 @@ describe('useLazyMessageHistory', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    appStateChangeListener = null;
     mockStoreState = { tabs: [], setTabs: jest.fn() };
     useTabStore.mockImplementation((selector: any) => selector(mockStoreState));
     useTabStore.getState.mockImplementation(() => mockStoreState);
@@ -53,17 +61,28 @@ describe('useLazyMessageHistory', () => {
   });
 
   it('loads history for active channel tab', async () => {
+    const setTabs = jest.fn((next: any) => {
+      if (typeof next === 'function') {
+        mockStoreState.tabs = next(mockStoreState.tabs);
+      } else {
+        mockStoreState.tabs = next;
+      }
+    });
     mockStoreState = {
       tabs: [{ id: 't1', type: 'channel', name: '#a', networkId: 'net', messages: [] }],
-      setTabs: jest.fn(),
+      setTabs,
     };
     useTabStore.mockImplementation((selector: any) => selector(mockStoreState));
     useTabStore.getState.mockImplementation(() => mockStoreState);
+    loadMessages.mockResolvedValueOnce([{ id: 'h1', text: 'history', timestamp: 1 }]);
 
     renderHook(() => useLazyMessageHistory({ activeTabId: 't1' }));
     await new Promise((r) => setTimeout(r, 0));
 
     expect(loadMessages).toHaveBeenCalledWith('net', '#a');
+    expect(setTabs).toHaveBeenCalled();
+    expect(mockStoreState.tabs[0].messages.length).toBe(1);
+    expect(mockStoreState.tabs[0].messages[0].id).toBe('h1');
   });
 
   it('skips invalid network', async () => {
@@ -93,5 +112,97 @@ describe('useLazyMessageHistory', () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(setTabs).not.toHaveBeenCalled();
+  });
+
+  it('retries history load once when first load returns empty', async () => {
+    const setTabs = jest.fn((next: any) => {
+      if (typeof next === 'function') {
+        mockStoreState.tabs = next(mockStoreState.tabs);
+      } else {
+        mockStoreState.tabs = next;
+      }
+    });
+    mockStoreState = {
+      tabs: [{ id: 't1', type: 'channel', name: '#a', networkId: 'net', messages: [] }],
+      setTabs,
+    };
+    useTabStore.mockImplementation((selector: any) => selector(mockStoreState));
+    useTabStore.getState.mockImplementation(() => mockStoreState);
+    loadMessages.mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: 'h2', text: 'retry-history', timestamp: 2 }]);
+
+    renderHook(() => useLazyMessageHistory({ activeTabId: 't1' }));
+    await new Promise((r) => setTimeout(r, 300));
+
+    expect(loadMessages.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(loadMessages.mock.calls[0]).toEqual(['net', '#a']);
+    expect(loadMessages.mock.calls[1]).toEqual(['net', '#a']);
+  });
+
+  it('reloads active tab history when returning from background with empty tab', async () => {
+    const setTabs = jest.fn((next: any) => {
+      if (typeof next === 'function') {
+        mockStoreState.tabs = next(mockStoreState.tabs);
+      } else {
+        mockStoreState.tabs = next;
+      }
+    });
+    mockStoreState = {
+      tabs: [{ id: 't1', type: 'channel', name: '#a', networkId: 'net', messages: [] }],
+      setTabs,
+    };
+    useTabStore.mockImplementation((selector: any) => selector(mockStoreState));
+    useTabStore.getState.mockImplementation(() => mockStoreState);
+    loadMessages.mockResolvedValue([{ id: 'h3', text: 'from-bg', timestamp: 3 }]);
+
+    renderHook(() => useLazyMessageHistory({ activeTabId: 't1' }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    // Simulate background -> active
+    appStateChangeListener?.('background');
+    appStateChangeListener?.('active');
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(require('react-native').InteractionManager.runAfterInteractions).toHaveBeenCalled();
+    expect(loadMessages).toHaveBeenCalled();
+    expect(setTabs).toHaveBeenCalled();
+  });
+
+  it('skips foreground reload when active tab already has messages', async () => {
+    const setTabs = jest.fn();
+    mockStoreState = {
+      tabs: [{ id: 't1', type: 'channel', name: '#a', networkId: 'net', messages: [{ id: 'm1' }] }],
+      setTabs,
+    };
+    useTabStore.mockImplementation((selector: any) => selector(mockStoreState));
+    useTabStore.getState.mockImplementation(() => mockStoreState);
+
+    renderHook(() => useLazyMessageHistory({ activeTabId: 't1' }));
+    await new Promise((r) => setTimeout(r, 0));
+    loadMessages.mockClear();
+
+    appStateChangeListener?.('background');
+    appStateChangeListener?.('active');
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(loadMessages).not.toHaveBeenCalled();
+    expect(setTabs).not.toHaveBeenCalled();
+  });
+
+  it('handles load errors without crashing', async () => {
+    const setTabs = jest.fn();
+    mockStoreState = {
+      tabs: [{ id: 't1', type: 'channel', name: '#a', networkId: 'net', messages: [] }],
+      setTabs,
+    };
+    useTabStore.mockImplementation((selector: any) => selector(mockStoreState));
+    useTabStore.getState.mockImplementation(() => mockStoreState);
+    loadMessages.mockRejectedValueOnce(new Error('load failed'));
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    expect(() => renderHook(() => useLazyMessageHistory({ activeTabId: 't1' }))).not.toThrow();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
   });
 });

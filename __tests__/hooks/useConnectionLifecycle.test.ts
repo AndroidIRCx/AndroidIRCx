@@ -510,4 +510,121 @@ describe('useConnectionLifecycle', () => {
     // Restore real timers
     jest.useRealTimers();
   });
+
+  it('should handle dns-lookup with empty hostname', async () => {
+    renderHook(() => useConnectionLifecycle(mockParams));
+
+    const dnsCall = require('../../src/services/IRCService').ircService.on.mock.calls.find(
+      (call: any[]) => call[0] === 'dns-lookup'
+    );
+    expect(dnsCall).toBeTruthy();
+
+    const dnsHandler = dnsCall[1];
+    await dnsHandler('   ');
+
+    expect(require('../../src/services/IRCService').ircService.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Usage: /dns <hostname>',
+      })
+    );
+  });
+
+  it('should handle dns-lookup provider failures', async () => {
+    (global as any).fetch = jest.fn().mockRejectedValue(new Error('network down'));
+    renderHook(() => useConnectionLifecycle(mockParams));
+
+    const dnsCall = require('../../src/services/IRCService').ircService.on.mock.calls.find(
+      (call: any[]) => call[0] === 'dns-lookup'
+    );
+    expect(dnsCall).toBeTruthy();
+
+    const dnsHandler = dnsCall[1];
+    await dnsHandler('example.org');
+
+    expect(require('../../src/services/IRCService').ircService.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: '*** DNS lookup failed for {hostname}',
+      })
+    );
+  });
+
+  it('should handle dns-lookup with no records found', async () => {
+    (global as any).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        Status: 0,
+        Answer: [],
+      }),
+    });
+
+    renderHook(() => useConnectionLifecycle(mockParams));
+
+    const dnsCall = require('../../src/services/IRCService').ircService.on.mock.calls.find(
+      (call: any[]) => call[0] === 'dns-lookup'
+    );
+    expect(dnsCall).toBeTruthy();
+
+    const dnsHandler = dnsCall[1];
+    await dnsHandler('example.org');
+
+    expect(require('../../src/services/IRCService').ircService.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'notice',
+        text: '*** No DNS records found for {hostname}',
+      })
+    );
+  });
+
+  it('should handle server-command without address/index', async () => {
+    renderHook(() => useConnectionLifecycle(mockParams));
+
+    const serverCommandCall = require('../../src/services/IRCService').ircService.on.mock.calls.find(
+      (call: any[]) => call[0] === 'server-command'
+    );
+    expect(serverCommandCall).toBeTruthy();
+
+    const serverCommandHandler = serverCommandCall[1];
+    await serverCommandHandler({
+      switches: {},
+      management: {},
+    });
+
+    expect(require('../../src/services/IRCService').ircService.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'No server specified. Use /server <address> [port]',
+      })
+    );
+  });
+
+  it('should handle reconnect event by disconnecting and marking disconnected state', () => {
+    const disconnectMock = jest.fn();
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue({
+      ircService: {
+        disconnect: disconnectMock,
+      },
+    });
+    const setIsConnected = jest.fn();
+
+    renderHook(() =>
+      useConnectionLifecycle({
+        ...mockParams,
+        setIsConnected,
+      })
+    );
+
+    const reconnectCall = require('../../src/services/IRCService').ircService.on.mock.calls.find(
+      (call: any[]) => call[0] === 'reconnect'
+    );
+    expect(reconnectCall).toBeTruthy();
+
+    const reconnectHandler = reconnectCall[1];
+    reconnectHandler('test-network');
+
+    expect(disconnectMock).toHaveBeenCalled();
+    expect(setIsConnected).toHaveBeenCalledWith(false);
+  });
 });
