@@ -5,7 +5,6 @@
 
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Text, TouchableOpacity } from 'react-native';
 import { AboutSection } from '../../../src/components/settings/sections/AboutSection';
 import { AdvancedSection } from '../../../src/components/settings/sections/AdvancedSection';
 import { PremiumSection } from '../../../src/components/settings/sections/PremiumSection';
