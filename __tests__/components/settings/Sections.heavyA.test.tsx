@@ -123,6 +123,70 @@ describe('Heavy sections A', () => {
     expect(mockSetSetting).toHaveBeenCalledWith('autoAwayEnabled', true);
   });
 
+  it('AwaySection updates core system and options values', async () => {
+    const { getByText } = render(
+      <AwaySection colors={colors} styles={styles as any} settingIcons={{}} onClose={jest.fn()} />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('away-nick-pattern')).toBe(true));
+
+    await mockCapturedItems.get('away-nick-pattern').onValueChange('<me>_away');
+    await mockCapturedItems.get('away-disable-sounds').onValueChange(true);
+    await mockCapturedItems.get('away-auto-answer').onValueChange(true);
+    expect(mockSetSetting).toHaveBeenCalledWith('awayNickPattern', '<me>_away');
+    expect(mockSetSetting).toHaveBeenCalledWith('awayDisableSounds', true);
+    expect(mockSetSetting).toHaveBeenCalledWith('awayAutoAnswerEnabled', true);
+
+    fireEvent.press(getByText('Options'));
+    await waitFor(() => expect(mockCapturedItems.has('away-auto-answer-message')).toBe(true));
+
+    await mockCapturedItems.get('away-auto-answer-message').onValueChange('BRB');
+    await mockCapturedItems.get('away-announce-every').onValueChange('15');
+    await mockCapturedItems.get('auto-away-minutes').onValueChange('7');
+    await mockCapturedItems.get('minimize-to-tray').onValueChange(true);
+
+    expect(mockSetSetting).toHaveBeenCalledWith('awayAutoAnswerMessage', 'BRB');
+    expect(mockSetSetting).toHaveBeenCalledWith('awayAnnounceEveryMin', 15);
+    expect(mockSetSetting).toHaveBeenCalledWith('autoAwayMinutes', 7);
+    expect(mockSetSetting).toHaveBeenCalledWith('minimizeToTray', true);
+  });
+
+  it('AwaySection opens away presets entrypoint and persists related fields', async () => {
+    const { getByText } = render(
+      <AwaySection colors={colors} styles={styles as any} settingIcons={{}} onClose={jest.fn()} />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('away-presets')).toBe(true));
+
+    fireEvent.press(getByText('Away presets'));
+
+    await mockCapturedItems.get('away-default-reason').onValueChange('Lunch break');
+    fireEvent.press(getByText('Options'));
+    await waitFor(() => expect(mockCapturedItems.has('auto-away-reason')).toBe(true));
+    await mockCapturedItems.get('auto-away-reason').onValueChange('Lunch break');
+    await mockCapturedItems.get('away-now').onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('awayDefaultReason', 'Lunch break');
+    expect(mockSetSetting).toHaveBeenCalledWith('autoAwayReason', 'Lunch break');
+    expect(mockAwaySet).toHaveBeenCalled();
+  });
+
+  it('AwaySection opens auto-answer presets entrypoint and updates auto-answer fields', async () => {
+    const { getByText } = render(
+      <AwaySection colors={colors} styles={styles as any} settingIcons={{}} onClose={jest.fn()} />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('away-auto-answer-presets')).toBe(false));
+
+    fireEvent.press(getByText('Options'));
+    await waitFor(() => expect(mockCapturedItems.has('away-auto-answer-presets')).toBe(true));
+
+    fireEvent.press(getByText('Auto-answer presets'));
+
+    await mockCapturedItems.get('away-auto-answer-message').onValueChange('AFK updated');
+    await mockCapturedItems.get('away-announce-only').onValueChange('#chat');
+    await mockCapturedItems.get('away-announce-exclude').onValueChange('#offtopic');
+    expect(mockSetSetting).toHaveBeenCalledWith('awayAutoAnswerMessage', 'AFK updated');
+    expect(mockSetSetting).toHaveBeenCalledWith('awayAnnounceOnlyOn', '#chat');
+    expect(mockSetSetting).toHaveBeenCalledWith('awayAnnounceExcludeOn', '#offtopic');
+  });
+
   it('ProtectionSection updates spam/protection settings and spam log action', async () => {
     render(<ProtectionSection colors={colors} styles={styles as any} settingIcons={{}} />);
     await waitFor(() => expect(mockCapturedItems.has('spam-logging')).toBe(true));

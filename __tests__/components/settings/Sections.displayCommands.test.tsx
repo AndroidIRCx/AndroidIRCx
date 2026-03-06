@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { Alert } from 'react-native';
 import { render, waitFor } from '@testing-library/react-native';
 import { DisplayUISection } from '../../../src/components/settings/sections/DisplayUISection';
 import { CommandsSection } from '../../../src/components/settings/sections/CommandsSection';
@@ -15,11 +16,20 @@ const mockUpdateLayoutConfig = jest.fn(async () => undefined);
 const mockSetMessageSpacing = jest.fn(async () => undefined);
 const mockSetMessagePadding = jest.fn(async () => undefined);
 const mockSetNavigationBarOffset = jest.fn(async () => undefined);
+const mockSetTimestampDisplay = jest.fn(async () => undefined);
+const mockSetMessageGroupingEnabled = jest.fn(async () => undefined);
 
 const mockGetAliases = jest.fn(() => []);
 const mockGetCustomCommands = jest.fn(() => []);
 const mockGetHistory = jest.fn(() => []);
 const mockAddAlias = jest.fn(async () => undefined);
+const mockAddCustomCommand = jest.fn(async () => undefined);
+const mockRemoveAlias = jest.fn(async () => undefined);
+const mockRemoveCustomCommand = jest.fn(async () => undefined);
+const mockDeleteHistoryEntry = jest.fn(async () => undefined);
+const mockClearHistory = jest.fn(async () => undefined);
+const mockSetSwipeBehavior = jest.fn();
+const mockSetWhoisDisplayMode = jest.fn();
 
 jest.mock('../../../src/i18n/transifex', () => ({
   useT: () => (key: string) => key,
@@ -67,6 +77,8 @@ jest.mock('../../../src/services/LayoutService', () => ({
     setMessageSpacing: (...args: any[]) => mockSetMessageSpacing(...args),
     setMessagePadding: (...args: any[]) => mockSetMessagePadding(...args),
     setNavigationBarOffset: (...args: any[]) => mockSetNavigationBarOffset(...args),
+    setTimestampDisplay: (...args: any[]) => mockSetTimestampDisplay(...args),
+    setMessageGroupingEnabled: (...args: any[]) => mockSetMessageGroupingEnabled(...args),
   },
 }));
 
@@ -89,7 +101,8 @@ jest.mock('../../../src/services/IRCService', () => ({
 jest.mock('../../../src/stores/uiStore', () => ({
   useUIStore: {
     getState: () => ({
-      setSwipeBehavior: jest.fn(),
+      setSwipeBehavior: (...args: any[]) => mockSetSwipeBehavior(...args),
+      setWhoisDisplayMode: (...args: any[]) => mockSetWhoisDisplayMode(...args),
     }),
   },
 }));
@@ -100,11 +113,11 @@ jest.mock('../../../src/services/CommandService', () => ({
     getCustomCommands: (...args: any[]) => mockGetCustomCommands(...args),
     getHistory: (...args: any[]) => mockGetHistory(...args),
     addAlias: (...args: any[]) => mockAddAlias(...args),
-    removeAlias: jest.fn(async () => undefined),
-    addCustomCommand: jest.fn(async () => undefined),
-    removeCustomCommand: jest.fn(async () => undefined),
-    deleteHistoryEntry: jest.fn(async () => undefined),
-    clearHistory: jest.fn(async () => undefined),
+    removeAlias: (...args: any[]) => mockRemoveAlias(...args),
+    addCustomCommand: (...args: any[]) => mockAddCustomCommand(...args),
+    removeCustomCommand: (...args: any[]) => mockRemoveCustomCommand(...args),
+    deleteHistoryEntry: (...args: any[]) => mockDeleteHistoryEntry(...args),
+    clearHistory: (...args: any[]) => mockClearHistory(...args),
   },
 }));
 
@@ -144,6 +157,7 @@ describe('DisplayUI + Commands sections', () => {
   beforeEach(() => {
     mockCapturedItems.clear();
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
   });
 
   it('DisplayUISection renders and updates settings', async () => {
@@ -162,6 +176,62 @@ describe('DisplayUI + Commands sections', () => {
     await mockCapturedItems.get('display-confirm-links').onValueChange(false);
     expect(mockSetSetting).toHaveBeenCalledWith('tabSortAlphabetical', false);
     expect(mockSetSetting).toHaveBeenCalledWith('confirmBeforeOpeningLinks', false);
+  });
+
+  it('DisplayUISection forwards raw/encryption/typing and submenu callbacks', async () => {
+    const onShowRawCommandsChange = jest.fn();
+    const onRawCategoryVisibilityChange = jest.fn();
+    const onShowEncryptionIndicatorsChange = jest.fn();
+    const onShowTypingIndicatorsChange = jest.fn();
+
+    render(
+      <DisplayUISection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        showRawCommands={false}
+        rawCategoryVisibility={{ join: true, notice: false } as any}
+        onShowRawCommandsChange={onShowRawCommandsChange}
+        onRawCategoryVisibilityChange={onRawCategoryVisibilityChange}
+        showEncryptionIndicators={true}
+        onShowEncryptionIndicatorsChange={onShowEncryptionIndicatorsChange}
+        showTypingIndicators={true}
+        onShowTypingIndicatorsChange={onShowTypingIndicatorsChange}
+      />
+    );
+
+    await waitFor(() => expect(mockCapturedItems.has('display-raw')).toBe(true));
+
+    mockCapturedItems.get('display-raw').onValueChange(true);
+    expect(onShowRawCommandsChange).toHaveBeenCalledWith(true);
+    expect(onRawCategoryVisibilityChange).toHaveBeenCalled();
+
+    await mockCapturedItems.get('display-encryption-icons').onValueChange(false);
+    await mockCapturedItems.get('display-typing-indicators').onValueChange(false);
+    expect(mockSetSetting).toHaveBeenCalledWith('showEncryptionIndicators', false);
+    expect(mockSetSetting).toHaveBeenCalledWith('showTypingIndicators', false);
+    expect(onShowEncryptionIndicatorsChange).toHaveBeenCalledWith(false);
+    expect(onShowTypingIndicatorsChange).toHaveBeenCalledWith(false);
+
+    await mockCapturedItems
+      .get('display-swipe-behavior')
+      .submenuItems.find((x: any) => x.id === 'swipe-switch-tabs')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('swipeBehavior', 'switch-tabs');
+    expect(mockSetSwipeBehavior).toHaveBeenCalledWith('switch-tabs');
+
+    await mockCapturedItems
+      .get('display-whois')
+      .submenuItems.find((x: any) => x.id === 'whois-modal')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('whoisDisplayMode', 'modal');
+    expect(mockSetWhoisDisplayMode).toHaveBeenCalledWith('modal');
+
+    await mockCapturedItems
+      .get('display-notices')
+      .submenuItems.find((x: any) => x.id === 'notice-private')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('noticeTarget', 'private');
   });
 
   it('CommandsSection renders and handles alias add validation path', async () => {
@@ -186,5 +256,83 @@ describe('DisplayUI + Commands sections', () => {
     expect(mockAddAlias).toHaveBeenCalledWith(
       expect.objectContaining({ alias: 'j', command: '/join #test' })
     );
+  });
+
+  it('CommandsSection validates alias input and custom command parameter extraction', async () => {
+    render(<CommandsSection colors={colors} styles={styles as any} settingIcons={{}} />);
+    await waitFor(() => expect(mockCapturedItems.has('commands-aliases')).toBe(true));
+
+    const aliasSubmenu = mockCapturedItems.get('commands-aliases');
+    await aliasSubmenu.submenuItems.find((x: any) => x.id === 'alias-add').onPress();
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Alias name and command are required');
+
+    const customSubmenu = mockCapturedItems.get('commands-custom');
+    customSubmenu.submenuItems.find((x: any) => x.id === 'custom-name-input').onValueChange('greet');
+    customSubmenu.submenuItems
+      .find((x: any) => x.id === 'custom-command-input')
+      .onValueChange('/msg {channel} hello {param1} {param1}');
+
+    await waitFor(() => {
+      expect(
+        mockCapturedItems
+          .get('commands-custom')
+          .submenuItems.find((x: any) => x.id === 'custom-name-input')?.value
+      ).toBe('greet');
+    });
+
+    await mockCapturedItems
+      .get('commands-custom')
+      .submenuItems.find((x: any) => x.id === 'cmd-add')
+      .onPress();
+
+    expect(mockAddCustomCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'greet',
+        command: '/msg {channel} hello {param1} {param1}',
+        parameters: ['channel', 'param1'],
+      })
+    );
+  });
+
+  it('CommandsSection handles history clear/delete and alias/custom delete actions', async () => {
+    mockGetHistory.mockReturnValue([
+      { id: 'h1', command: '/join #a', timestamp: Date.now(), channel: '#a' },
+    ]);
+    mockGetAliases.mockReturnValue([
+      { alias: 'j', command: '/join {channel}', description: 'join fast' },
+    ]);
+    mockGetCustomCommands.mockReturnValue([
+      { name: 'wave', command: '/msg {channel} hi', description: 'wave', parameters: ['channel'] },
+    ]);
+
+    render(<CommandsSection colors={colors} styles={styles as any} settingIcons={{}} />);
+    await waitFor(() => expect(mockCapturedItems.has('commands-history')).toBe(true));
+
+    const historyMenu = mockCapturedItems.get('commands-history');
+    historyMenu.submenuItems.find((x: any) => x.id === 'history-h1').onPress();
+    let args = (Alert.alert as jest.Mock).mock.calls.pop();
+    let deleteButton = args?.[2]?.find((b: any) => String(b.text).includes('Delete'));
+    await deleteButton?.onPress?.();
+    expect(mockDeleteHistoryEntry).toHaveBeenCalledWith('h1');
+
+    historyMenu.submenuItems.find((x: any) => x.id === 'history-clear').onPress();
+    args = (Alert.alert as jest.Mock).mock.calls.pop();
+    const deleteAll = args?.[2]?.find((b: any) => String(b.text).includes('Delete All'));
+    await deleteAll?.onPress?.();
+    expect(mockClearHistory).toHaveBeenCalled();
+
+    const aliasMenu = mockCapturedItems.get('commands-aliases');
+    aliasMenu.submenuItems.find((x: any) => x.id === 'alias-j').onPress();
+    args = (Alert.alert as jest.Mock).mock.calls.pop();
+    deleteButton = args?.[2]?.find((b: any) => String(b.text).includes('Delete'));
+    await deleteButton?.onPress?.();
+    expect(mockRemoveAlias).toHaveBeenCalledWith('j');
+
+    const customMenu = mockCapturedItems.get('commands-custom');
+    customMenu.submenuItems.find((x: any) => x.id === 'cmd-wave').onPress();
+    args = (Alert.alert as jest.Mock).mock.calls.pop();
+    deleteButton = args?.[2]?.find((b: any) => String(b.text).includes('Delete'));
+    await deleteButton?.onPress?.();
+    expect(mockRemoveCustomCommand).toHaveBeenCalledWith('wave');
   });
 });

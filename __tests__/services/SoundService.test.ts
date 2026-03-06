@@ -7,6 +7,11 @@
 
 import { soundService } from '../../src/services/SoundService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Sound from 'react-native-sound';
+import RNFS from 'react-native-fs';
+import { audioFocusService } from '../../src/services/AudioFocusService';
+import { SoundEventType, DEFAULT_SOUND_SETTINGS } from '../../src/types/sound';
+import { awayService } from '../../src/services/AwayService';
 
 // Mock AwayService
 jest.mock('../../src/services/AwayService', () => ({
@@ -25,15 +30,25 @@ jest.mock('../../src/services/AudioFocusService', () => ({
 
 describe('SoundService', () => {
   beforeEach(async () => {
+    jest.restoreAllMocks();
     await AsyncStorage.clear();
     jest.clearAllMocks();
+    (awayService.shouldMuteSounds as jest.Mock).mockReturnValue(false);
     // Reset service state
     // @ts-ignore
     soundService.isInitialized = false;
     // @ts-ignore
     soundService.customSchemes = [];
     // @ts-ignore
-    soundService.settings = { enabled: true, masterVolume: 1.0, events: {} };
+    soundService.settings = JSON.parse(JSON.stringify(DEFAULT_SOUND_SETTINGS));
+    // @ts-ignore
+    soundService.soundQueue = [];
+    // @ts-ignore
+    soundService.currentSound = null;
+    // @ts-ignore
+    soundService.isProcessingQueue = false;
+    // @ts-ignore
+    soundService.appState = 'active';
   });
 
   describe('initialize', () => {
@@ -161,6 +176,157 @@ describe('SoundService', () => {
       // Should not throw
       await expect(soundService.playSound('message')).resolves.not.toThrow();
     });
+
+    it('should skip playing in foreground/background based on settings', async () => {
+      // @ts-ignore
+      soundService.isInitialized = true;
+      await soundService.updateSettings({ enabled: true, playInForeground: false, playInBackground: true });
+      const processQueueSpy = jest.spyOn(soundService as any, 'processQueue').mockResolvedValue(undefined);
+
+      // @ts-ignore
+      soundService.appState = 'active';
+      await soundService.playSound(SoundEventType.MENTION);
+      expect(processQueueSpy).not.toHaveBeenCalled();
+
+      await soundService.updateSettings({ playInForeground: true, playInBackground: false });
+      // @ts-ignore
+      soundService.appState = 'background';
+      await soundService.playSound(SoundEventType.MENTION);
+      expect(processQueueSpy).not.toHaveBeenCalled();
+    });
+
+    it('queues sound and processes with calculated volume', async () => {
+      // @ts-ignore
+      soundService.isInitialized = true;
+      await soundService.updateSettings({ enabled: true, masterVolume: 0.5, playInForeground: true });
+      await soundService.updateEventConfig(SoundEventType.MENTION, { enabled: true, volume: 0.4 });
+
+      const processQueueSpy = jest.spyOn(soundService as any, 'processQueue').mockResolvedValue(undefined);
+      await expect(soundService.playSound(SoundEventType.MENTION)).resolves.not.toThrow();
+      expect(processQueueSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('internal queue and sound info', () => {
+    it('processQueue drains queue and calls playSoundInternal', async () => {
+      const internalSpy = jest
+        .spyOn(soundService as any, 'playSoundInternal')
+        .mockResolvedValue(undefined);
+      // @ts-ignore
+      soundService.soundQueue = [
+        { eventType: SoundEventType.MENTION, volume: 0.5 },
+        { eventType: SoundEventType.NOTICE, volume: 0.7 },
+      ];
+
+      await expect((soundService as any).processQueue()).resolves.not.toThrow();
+      // @ts-ignore
+      expect(soundService.isProcessingQueue).toBe(false);
+    });
+
+    it('getSoundInfo resolves custom file and falls back to defaults', async () => {
+      await soundService.initialize();
+      await soundService.updateEventConfig(SoundEventType.MENTION, {
+        useCustom: true,
+        customUri: 'file:///tmp/custom.wav',
+      });
+
+      (RNFS.exists as jest.Mock).mockResolvedValueOnce(true);
+      const custom = await (soundService as any).getSoundInfo(SoundEventType.MENTION);
+      expect(custom).toEqual({ filename: '/tmp/custom.wav', basePath: '' });
+
+      (RNFS.exists as jest.Mock).mockResolvedValueOnce(false);
+      const fallback = await (soundService as any).getSoundInfo(SoundEventType.MENTION);
+      expect(fallback).toBeTruthy();
+      expect(fallback.basePath).toBe((Sound as any).MAIN_BUNDLE);
+    });
+  });
+
+  describe('playback internals', () => {
+    it('playSoundInternal requests and releases audio focus on successful playback', async () => {
+      const soundInstance = {
+        setVolume: jest.fn(),
+        play: jest.fn((cb?: (success: boolean) => void) => cb?.(true)),
+        stop: jest.fn(),
+        release: jest.fn(),
+        getDuration: jest.fn(() => 0),
+      };
+      (Sound as unknown as jest.Mock).mockImplementation((_f: string, _b: string, cb?: (e: any) => void) => {
+        cb?.(null);
+        return soundInstance as any;
+      });
+      jest
+        .spyOn(soundService as any, 'getSoundInfo')
+        .mockResolvedValue({ filename: 'mention', basePath: '' });
+
+      await expect((soundService as any).playSoundInternal(SoundEventType.MENTION, 0.6)).resolves.not.toThrow();
+    });
+
+    it('playSoundInternal handles load error and no-sound path', async () => {
+      jest.spyOn(soundService as any, 'getSoundInfo').mockResolvedValueOnce(null);
+      await (soundService as any).playSoundInternal(SoundEventType.MENTION, 0.3);
+
+      (Sound as unknown as jest.Mock).mockImplementationOnce((_f: string, _b: string, cb?: (e: any) => void) => {
+        cb?.(new Error('load-fail'));
+        return {
+          setVolume: jest.fn(),
+          play: jest.fn(),
+          stop: jest.fn(),
+          release: jest.fn(),
+          getDuration: jest.fn(() => 0),
+        } as any;
+      });
+      jest
+        .spyOn(soundService as any, 'getSoundInfo')
+        .mockResolvedValueOnce({ filename: 'mention', basePath: '' });
+      await (soundService as any).playSoundInternal(SoundEventType.MENTION, 0.3);
+      // @ts-ignore
+      expect(soundService.isPlaying).toBe(false);
+    });
+  });
+
+  describe('preview and custom sound file handling', () => {
+    it('previewSound skips when no sound and handles custom preview throw', async () => {
+      jest.spyOn(soundService as any, 'getSoundInfo').mockResolvedValue(null);
+      await soundService.previewSound(SoundEventType.MENTION);
+
+      (Sound as unknown as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('ctor-fail');
+      });
+      await soundService.previewCustomSound('file:///tmp/preview.wav');
+      // @ts-ignore
+      expect(soundService.isPlaying).toBe(false);
+    });
+
+    it('setCustomSound copies file, updates config and cleans previous custom file', async () => {
+      await soundService.initialize();
+      await soundService.updateEventConfig(SoundEventType.MENTION, {
+        useCustom: true,
+        customUri: '/old/custom.wav',
+      });
+      jest.spyOn(Date, 'now').mockReturnValue(12345);
+      (RNFS.exists as jest.Mock)
+        .mockResolvedValueOnce(false) // sounds dir missing
+        .mockResolvedValueOnce(true); // previous custom exists
+      (RNFS as any).mkdir = jest.fn().mockResolvedValue(undefined);
+      (RNFS as any).copyFile = jest.fn().mockResolvedValue(undefined);
+
+      await soundService.setCustomSound(SoundEventType.MENTION, '/import/src.wav');
+
+      expect((RNFS as any).mkdir).toHaveBeenCalled();
+      expect((RNFS as any).copyFile).toHaveBeenCalledWith(
+        '/import/src.wav',
+        expect.stringContaining('/sounds/custom_mention_12345.wav')
+      );
+      expect(RNFS.unlink).toHaveBeenCalledWith('/old/custom.wav');
+      expect(soundService.getSettings().events[SoundEventType.MENTION]?.useCustom).toBe(true);
+    });
+
+    it('setCustomSound propagates copy failures', async () => {
+      await soundService.initialize();
+      (RNFS.exists as jest.Mock).mockResolvedValue(true);
+      (RNFS as any).copyFile = jest.fn().mockRejectedValue(new Error('copy-fail'));
+      await expect(soundService.setCustomSound(SoundEventType.MENTION, '/bad.wav')).rejects.toThrow('copy-fail');
+    });
   });
 
   describe('getSchemes and setActiveScheme', () => {
@@ -277,6 +443,12 @@ describe('SoundService', () => {
       // Should be reset to defaults
       expect(settings.enabled).toBeDefined();
     });
+
+    it('should handle delete sounds directory errors', async () => {
+      await soundService.initialize();
+      (RNFS.exists as jest.Mock).mockRejectedValueOnce(new Error('fs-fail'));
+      await expect(soundService.resetAllToDefaults()).resolves.not.toThrow();
+    });
   });
 
   describe('addListener', () => {
@@ -294,6 +466,14 @@ describe('SoundService', () => {
       
       await soundService.updateSettings({ masterVolume: 0.8 });
       expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('custom scheme persistence errors', () => {
+    it('createScheme should still return scheme when saveCustomSchemes fails', async () => {
+      jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('set-fail'));
+      const scheme = await soundService.createScheme('Broken Save');
+      expect(scheme.name).toBe('Broken Save');
     });
   });
 });

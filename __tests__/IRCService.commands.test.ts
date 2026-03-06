@@ -216,4 +216,201 @@ describe('IRCService command helpers', () => {
     const assembled = messages.find(m => m.type === 'message' && m.from === 'alice');
     expect(assembled?.text).toBe('part A\npart B');
   });
+
+  it('setRealname sends SETNAME when capability is enabled and shows error otherwise', () => {
+    const messages: IRCMessage[] = [];
+    irc.onMessage(m => messages.push(m));
+
+    (irc as any).capEnabledSet.add('setname');
+    irc.setRealname('New Realname');
+    expect(socket.writes.some(w => w.includes('SETNAME :New Realname'))).toBe(true);
+
+    (irc as any).capEnabledSet.delete('setname');
+    irc.setRealname('Another Name');
+    expect(messages.some(m => m.type === 'error' && m.text.includes('SETNAME'))).toBe(true);
+  });
+
+  it('toggleBotMode sends MODE when supported and error when unsupported', () => {
+    const messages: IRCMessage[] = [];
+    irc.onMessage(m => messages.push(m));
+
+    (irc as any).capEnabledSet.add('bot');
+    irc.toggleBotMode(true);
+    irc.toggleBotMode(false);
+    expect(socket.writes.some(w => w.includes('MODE tester +B'))).toBe(true);
+    expect(socket.writes.some(w => w.includes('MODE tester -B'))).toBe(true);
+
+    (irc as any).capEnabledSet.delete('bot');
+    irc.toggleBotMode(true);
+    expect(messages.some(m => m.type === 'error' && m.text.includes('BOT mode'))).toBe(true);
+  });
+
+  it('requestChatHistory sends command when supported and emits error when unsupported', () => {
+    const messages: IRCMessage[] = [];
+    irc.onMessage(m => messages.push(m));
+
+    (irc as any).capEnabledSet.add('chathistory');
+    irc.requestChatHistory('#room', 50, 'msgid-1');
+    expect(socket.writes.some(w => w.includes('CHATHISTORY LATEST #room msgid-1 50'))).toBe(true);
+
+    (irc as any).capEnabledSet.delete('chathistory');
+    irc.requestChatHistory('#room');
+    expect(messages.some(m => m.type === 'error' && m.text.includes('CHATHISTORY'))).toBe(true);
+  });
+
+  it('sendReadMarker and redactMessage send capability commands and events', () => {
+    const emitSpy = jest.spyOn(irc as any, 'emit');
+    const messages: IRCMessage[] = [];
+    irc.onMessage(m => messages.push(m));
+
+    (irc as any).capEnabledSet.add('draft/read-marker');
+    irc.sendReadMarker('#room', 123);
+    expect(socket.writes.some(w => w.includes('MARKREAD #room timestamp=123'))).toBe(true);
+    expect(emitSpy).toHaveBeenCalledWith('read-marker-sent', '#room', 123);
+
+    (irc as any).capEnabledSet.add('draft/message-redaction');
+    irc.redactMessage('#room', 'm-1');
+    expect(socket.writes.some(w => w.includes('REDACT #room m-1'))).toBe(true);
+    expect(emitSpy).toHaveBeenCalledWith('message-redacted-sent', '#room', 'm-1');
+
+    (irc as any).capEnabledSet.delete('draft/message-redaction');
+    irc.redactMessage('#room', 'm-2');
+    expect(messages.some(m => m.type === 'error' && m.text.includes('MESSAGE-REDACTION'))).toBe(true);
+  });
+
+  it('sendMessageWithTags and sendReaction include tags and emit local status', () => {
+    const messages: IRCMessage[] = [];
+    const emitSpy = jest.spyOn(irc as any, 'emit');
+    irc.onMessage(m => messages.push(m));
+
+    irc.sendMessageWithTags('#room', 'hello', {
+      channelContext: '#context',
+      replyTo: 'msgid-9',
+      typing: 'active',
+    });
+    expect(
+      socket.writes.some(w =>
+        w.includes('@+draft/channel-context=#context;+draft/reply=msgid-9;+typing=active PRIVMSG #room :hello')
+      )
+    ).toBe(true);
+    expect(messages.some(m => m.channelContext === '#context' && m.replyTo === 'msgid-9' && m.typing === 'active')).toBe(true);
+
+    irc.sendReaction('#room', 'msgid-9', ':+1:');
+    expect(socket.writes.some(w => w.includes('@+draft/react=msgid-9;:+1: TAGMSG #room'))).toBe(true);
+    expect(emitSpy).toHaveBeenCalledWith('reaction-sent', '#room', 'msgid-9', ':+1:');
+  });
+
+  it('sendMultilineMessage handles capability and fallback modes', () => {
+    const messages: IRCMessage[] = [];
+    irc.onMessage(m => messages.push(m));
+
+    (irc as any).capEnabledSet.add('draft/multiline');
+    irc.sendMultilineMessage('#room', 'line1\nline2');
+    expect(socket.writes.some(w => w.includes('@draft/multiline-concat=concat PRIVMSG #room :line1'))).toBe(true);
+    expect(socket.writes.some(w => w.includes('@draft/multiline-concat= PRIVMSG #room :line2'))).toBe(true);
+
+    (irc as any).capEnabledSet.delete('draft/multiline');
+    irc.sendMultilineMessage('#room', 'a\n\nb');
+    expect(socket.writes.some(w => w.includes('PRIVMSG #room :a'))).toBe(true);
+    expect(socket.writes.some(w => w.includes('PRIVMSG #room :b'))).toBe(true);
+    expect(messages.filter(m => m.type === 'message' && m.channel === '#room').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('wraps batch label manager helpers', () => {
+    const mgr = {
+      handleBatchStart: jest.fn(),
+      handleBatchEnd: jest.fn(),
+      addMessageToBatch: jest.fn(),
+      sendRawWithLabel: jest.fn(() => 'lbl-1'),
+      handleLabeledResponse: jest.fn(),
+      cleanupLabels: jest.fn(),
+      getActiveBatches: jest.fn(() => new Map()),
+    };
+    jest.spyOn(irc as any, 'getBatchLabelManager').mockReturnValue(mgr);
+
+    (irc as any).handleBatchStart('ref1', 'chathistory', [], Date.now());
+    (irc as any).handleBatchEnd('ref1', Date.now());
+    (irc as any).addMessageToBatch({ id: '1' }, 'ref1');
+    expect(irc.sendRawWithLabel('PRIVMSG #x :y')).toBe('lbl-1');
+    (irc as any).handleLabeledResponse('lbl-1', { ok: true });
+    (irc as any).cleanupLabels();
+
+    expect(mgr.handleBatchStart).toHaveBeenCalled();
+    expect(mgr.handleBatchEnd).toHaveBeenCalled();
+    expect(mgr.addMessageToBatch).toHaveBeenCalled();
+    expect(mgr.sendRawWithLabel).toHaveBeenCalledWith('PRIVMSG #x :y', undefined);
+    expect(mgr.handleLabeledResponse).toHaveBeenCalledWith('lbl-1', { ok: true });
+    expect(mgr.cleanupLabels).toHaveBeenCalled();
+  });
+
+  it('addMessage marks playback for history batches', () => {
+    const mgr = {
+      getActiveBatches: jest.fn(() => new Map([['b1', { type: 'chathistory' }]])),
+      addMessageToBatch: jest.fn(),
+    };
+    jest.spyOn(irc as any, 'getBatchLabelManager').mockReturnValue(mgr);
+
+    const received: IRCMessage[] = [];
+    irc.onMessage(m => received.push(m));
+    irc.addMessage({ type: 'message', channel: '#r', from: 'alice', text: 'x', timestamp: Date.now() }, 'b1');
+
+    const playbackMsg = received.find(m => m.channel === '#r' && m.text === 'x');
+    expect(playbackMsg?.isPlayback).toBe(true);
+    expect(mgr.addMessageToBatch).toHaveBeenCalled();
+  });
+
+  it('covers network/getter/setter/capability helpers', () => {
+    const userMgmt = { test: 1 } as any;
+    const notify = { setIRCService: jest.fn() } as any;
+
+    irc.setNetworkId('net-1');
+    expect(irc.getNetworkName()).toBe('net-1');
+    (irc as any).config = { host: 'irc.example' };
+    irc.setNetworkId('');
+    expect(irc.getNetworkName()).toBe('irc.example');
+
+    irc.setWhoisUseDoubleNick(true);
+    expect(irc.getWhoisUseDoubleNick()).toBe(true);
+
+    irc.setUserManagementService(userMgmt);
+    expect(irc.getUserManagementService()).toBe(userMgmt);
+
+    irc.setNotifyService(notify);
+    expect(notify.setIRCService).toHaveBeenCalledWith(irc);
+    expect(irc.getNotifyService()).toBe(notify);
+
+    expect(irc.getConnectionStatus()).toBe(true);
+    (irc as any).capEnabledSet.add('typing');
+    expect(irc.hasCapability('typing')).toBe(true);
+    expect(irc.hasTypingCapability()).toBe(true);
+    expect(irc.sendTypingIndicator('#room', 'active')).toBe(true);
+    expect(socket.writes.some(w => w.includes('@+typing=active TAGMSG #room'))).toBe(true);
+
+    (irc as any).isConnected = false;
+    expect(irc.sendTypingIndicator('#room', 'done')).toBe(false);
+  });
+
+  it('covers local address and SASL helper getters', () => {
+    (irc as any).socket = { localAddress: '10.0.0.2' };
+    expect(irc.getLocalAddress()).toBe('10.0.0.2');
+
+    (irc as any).socket = { address: () => ({ address: '10.0.0.3' }) };
+    expect(irc.getLocalAddress()).toBe('10.0.0.3');
+
+    (irc as any).socket = { address: () => { throw new Error('boom'); } };
+    expect(irc.getLocalAddress()).toBeUndefined();
+
+    (irc as any).capAvailable.add('sasl');
+    expect(irc.isSaslAvailable()).toBe(true);
+
+    (irc as any).saslAuthenticating = true;
+    expect(irc.isSaslAuthenticating()).toBe(true);
+
+    (irc as any).config = { clientCert: 'c', clientKey: 'k', sasl: { account: 'a', password: 'p' } };
+    expect(irc.isSaslExternal()).toBe(true);
+
+    (irc as any).config = { sasl: { account: 'alice', password: 'secret' } };
+    expect(irc.isSaslPlain()).toBe(true);
+    expect(irc.getSaslAccount()).toBe('alice');
+  });
 });

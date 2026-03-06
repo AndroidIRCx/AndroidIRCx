@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { Alert } from 'react-native';
 import { render, waitFor } from '@testing-library/react-native';
 import { AppearanceSection } from '../../../src/components/settings/sections/AppearanceSection';
 import { ConnectionNetworkSection } from '../../../src/components/settings/sections/ConnectionNetworkSection';
@@ -15,6 +16,33 @@ const mockSettingsOnChange = jest.fn(() => jest.fn());
 const mockSetAppLanguage = jest.fn(async () => undefined);
 const mockUpdateLayoutConfig = jest.fn(async () => undefined);
 const mockSetQuickConnect = jest.fn(async () => undefined);
+const mockUpdateRateLimitConfig = jest.fn(async () => undefined);
+const mockUpdateFloodProtectionConfig = jest.fn(async () => undefined);
+const mockUpdateLagMonitoringConfig = jest.fn(async () => undefined);
+const mockAutoRejoinSetEnabled = jest.fn();
+const mockAutoVoiceSetConfig = jest.fn();
+const mockAutoReconnectSetConfig = jest.fn(async () => undefined);
+const mockAutoReconnectGetConfig = jest.fn(() => ({
+  enabled: false,
+  maxAttempts: 10,
+  initialDelay: 1000,
+  maxDelay: 60000,
+  backoffMultiplier: 2,
+  rejoinChannels: true,
+  smartReconnect: true,
+  minReconnectInterval: 5000,
+}));
+const mockLayoutSetUserListSizePx = jest.fn(async () => undefined);
+const mockLayoutSetUserListNickFontSizePx = jest.fn(async () => undefined);
+const mockLayoutSetConfig = jest.fn(async () => undefined);
+const mockLayoutSetFontSize = jest.fn(async () => undefined);
+const mockLayoutSetFontSizeValue = jest.fn(async () => undefined);
+const mockLayoutSetTabPosition = jest.fn(async () => undefined);
+const mockLayoutSetUserListPosition = jest.fn(async () => undefined);
+const mockLayoutSetViewMode = jest.fn(async () => undefined);
+const mockLayoutSetMessageSpacing = jest.fn(async () => undefined);
+const mockLayoutSetMessagePadding = jest.fn(async () => undefined);
+const mockLayoutSetNavigationBarOffset = jest.fn(async () => undefined);
 
 jest.mock('../../../src/i18n/transifex', () => ({
   useT: () => (key: string) => key,
@@ -76,9 +104,9 @@ jest.mock('../../../src/hooks/useSettingsConnection', () => ({
     connectionStats: null,
     refreshNetworks: jest.fn(),
     updateAutoReconnectConfig: jest.fn(async () => undefined),
-    updateRateLimitConfig: jest.fn(async () => undefined),
-    updateFloodProtectionConfig: jest.fn(async () => undefined),
-    updateLagMonitoringConfig: jest.fn(async () => undefined),
+    updateRateLimitConfig: (...args: any[]) => mockUpdateRateLimitConfig(...args),
+    updateFloodProtectionConfig: (...args: any[]) => mockUpdateFloodProtectionConfig(...args),
+    updateLagMonitoringConfig: (...args: any[]) => mockUpdateLagMonitoringConfig(...args),
   }),
 }));
 
@@ -113,17 +141,17 @@ jest.mock('../../../src/services/ThemeService', () => ({
 
 jest.mock('../../../src/services/LayoutService', () => ({
   layoutService: {
-    setUserListSizePx: jest.fn(async () => undefined),
-    setUserListNickFontSizePx: jest.fn(async () => undefined),
-    setConfig: jest.fn(async () => undefined),
-    setFontSize: jest.fn(async () => undefined),
-    setFontSizeValue: jest.fn(async () => undefined),
-    setTabPosition: jest.fn(async () => undefined),
-    setUserListPosition: jest.fn(async () => undefined),
-    setViewMode: jest.fn(async () => undefined),
-    setMessageSpacing: jest.fn(async () => undefined),
-    setMessagePadding: jest.fn(async () => undefined),
-    setNavigationBarOffset: jest.fn(async () => undefined),
+    setUserListSizePx: (...args: any[]) => mockLayoutSetUserListSizePx(...args),
+    setUserListNickFontSizePx: (...args: any[]) => mockLayoutSetUserListNickFontSizePx(...args),
+    setConfig: (...args: any[]) => mockLayoutSetConfig(...args),
+    setFontSize: (...args: any[]) => mockLayoutSetFontSize(...args),
+    setFontSizeValue: (...args: any[]) => mockLayoutSetFontSizeValue(...args),
+    setTabPosition: (...args: any[]) => mockLayoutSetTabPosition(...args),
+    setUserListPosition: (...args: any[]) => mockLayoutSetUserListPosition(...args),
+    setViewMode: (...args: any[]) => mockLayoutSetViewMode(...args),
+    setMessageSpacing: (...args: any[]) => mockLayoutSetMessageSpacing(...args),
+    setMessagePadding: (...args: any[]) => mockLayoutSetMessagePadding(...args),
+    setNavigationBarOffset: (...args: any[]) => mockLayoutSetNavigationBarOffset(...args),
   },
 }));
 
@@ -149,8 +177,8 @@ jest.mock('../../../src/i18n/config', () => ({
 jest.mock('../../../src/services/AutoReconnectService', () => ({
   autoReconnectService: {
     isEnabled: jest.fn(() => false),
-    getConfig: jest.fn(() => ({ enabled: false })),
-    setConfig: jest.fn(async () => undefined),
+    getConfig: (...args: any[]) => mockAutoReconnectGetConfig(...args),
+    setConfig: (...args: any[]) => mockAutoReconnectSetConfig(...args),
   },
 }));
 
@@ -163,14 +191,14 @@ jest.mock('../../../src/services/ConnectionQualityService', () => ({
 jest.mock('../../../src/services/AutoRejoinService', () => ({
   autoRejoinService: {
     isEnabled: jest.fn(() => false),
-    setEnabled: jest.fn(),
+    setEnabled: (...args: any[]) => mockAutoRejoinSetEnabled(...args),
   },
 }));
 
 jest.mock('../../../src/services/AutoVoiceService', () => ({
   autoVoiceService: {
     getConfig: jest.fn(() => ({ enabled: false, allUsers: false, operators: false, ircops: false })),
-    setConfig: jest.fn(),
+    setConfig: (...args: any[]) => mockAutoVoiceSetConfig(...args),
   },
 }));
 
@@ -254,6 +282,7 @@ describe('Heavy sections B', () => {
   beforeEach(() => {
     mockCapturedItems.clear();
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
   });
 
   it('AppearanceSection renders and applies one setting callback', async () => {
@@ -271,6 +300,72 @@ describe('Heavy sections B', () => {
     expect(mockSettingsSet).toHaveBeenCalledWith('showHeaderSearchButton', false);
   });
 
+  it('AppearanceSection updates additional UI/layout settings', async () => {
+    render(
+      <AppearanceSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        onShowThemeEditor={jest.fn()}
+        languageLabels={{ en: 'English', sr: 'Serbian' }}
+      />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('message-area-search-button')).toBe(true));
+
+    await mockCapturedItems.get('message-area-search-button').onValueChange(true);
+    await mockCapturedItems.get('layout-navigation-bar-offset').onValueChange('24');
+    await mockCapturedItems.get('layout-message-spacing').onValueChange('12');
+    await mockCapturedItems.get('layout-message-padding').onValueChange('10');
+    await mockCapturedItems.get('layout-nicklist-tongue-enabled').onValueChange(false);
+    await mockCapturedItems.get('layout-nicklist-tongue-size').onValueChange('60');
+
+    expect(mockSettingsSet).toHaveBeenCalledWith('showMessageAreaSearchButton', true);
+    expect(mockSettingsSet).toHaveBeenCalledWith('nicklistTongueEnabled', false);
+    expect(mockSettingsSet).toHaveBeenCalledWith('nicklistTongueSizePx', 60);
+    expect(mockUpdateLayoutConfig).toHaveBeenCalled();
+  });
+
+  it('AppearanceSection handles tab position, user list position, view mode and font submenu actions', async () => {
+    render(
+      <AppearanceSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        onShowThemeEditor={jest.fn()}
+        languageLabels={{ en: 'English', sr: 'Serbian' }}
+      />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('layout-tab-position')).toBe(true));
+
+    await mockCapturedItems
+      .get('layout-tab-position')
+      .submenuItems.find((x: any) => x.id === 'layout-tab-position-left')
+      .onPress();
+    expect(mockLayoutSetTabPosition).toHaveBeenCalledWith('left');
+
+    mockCapturedItems.get('layout-userlist-position').onPress();
+    const userListAlert = (Alert.alert as jest.Mock).mock.calls.find((c: any[]) =>
+      String(c[0]).includes('User List Position')
+    );
+    const rightBtn = userListAlert?.[2]?.find((b: any) => b.text === 'Right');
+    await rightBtn?.onPress?.();
+    expect(mockLayoutSetUserListPosition).toHaveBeenCalledWith('right');
+
+    mockCapturedItems.get('layout-view-mode').onPress();
+    const viewModeAlert = (Alert.alert as jest.Mock).mock.calls.find((c: any[]) =>
+      String(c[0]).includes('View Mode')
+    );
+    const compactBtn = viewModeAlert?.[2]?.find((b: any) => b.text === 'Compact');
+    await compactBtn?.onPress?.();
+    expect(mockLayoutSetViewMode).toHaveBeenCalledWith('compact');
+
+    await mockCapturedItems
+      .get('layout-font-size')
+      .submenuItems.find((x: any) => x.id === 'font-size-large')
+      .onPress();
+    expect(mockLayoutSetFontSize).toHaveBeenCalledWith('large');
+  });
+
   it('ConnectionNetworkSection renders and updates a key setting callback', async () => {
     render(
       <ConnectionNetworkSection
@@ -284,5 +379,96 @@ describe('Heavy sections B', () => {
     await waitFor(() => expect(mockCapturedItems.has('connection-auto-connect-favorite')).toBe(true));
     await mockCapturedItems.get('connection-auto-connect-favorite').onValueChange(true);
     expect(mockSettingsSet).toHaveBeenCalledWith('autoConnectFavoriteServer', true);
+  });
+
+  it('ConnectionNetworkSection handles primary network callbacks and nested quality settings', async () => {
+    const onShowFirstRunSetup = jest.fn();
+    const onShowNetworksList = jest.fn();
+    const onShowConnectionProfiles = jest.fn();
+
+    render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        currentNetwork="net"
+        onShowFirstRunSetup={onShowFirstRunSetup}
+        onShowNetworksList={onShowNetworksList}
+        onShowConnectionProfiles={onShowConnectionProfiles}
+      />
+    );
+
+    await waitFor(() => expect(mockCapturedItems.has('setup-wizard')).toBe(true));
+
+    mockCapturedItems.get('setup-wizard').onPress();
+    mockCapturedItems.get('choose-network').onPress();
+    mockCapturedItems.get('identity-profiles').onPress();
+    expect(onShowFirstRunSetup).toHaveBeenCalled();
+    expect(onShowNetworksList).toHaveBeenCalled();
+    expect(onShowConnectionProfiles).toHaveBeenCalled();
+
+    await mockCapturedItems.get('channel-auto-join-favorites').onValueChange(false);
+    expect(mockSettingsSet).toHaveBeenCalledWith('autoJoinFavorites', false);
+
+    mockCapturedItems.get('channel-auto-rejoin').onValueChange(true);
+    expect(mockAutoRejoinSetEnabled).toHaveBeenCalledWith('net', true);
+
+    await mockCapturedItems
+      .get('connection-quality')
+      .submenuItems.find((x: any) => x.id === 'quality-rate-limit')
+      .submenuItems.find((x: any) => x.id === 'rate-limit-enabled')
+      .onValueChange(true);
+    expect(mockUpdateRateLimitConfig).toHaveBeenCalledWith({ enabled: true });
+
+    await mockCapturedItems
+      .get('connection-quality')
+      .submenuItems.find((x: any) => x.id === 'quality-flood-protection')
+      .submenuItems.find((x: any) => x.id === 'flood-protection-enabled')
+      .onValueChange(true);
+    expect(mockUpdateFloodProtectionConfig).toHaveBeenCalledWith({ enabled: true });
+
+    await mockCapturedItems
+      .get('connection-quality')
+      .submenuItems.find((x: any) => x.id === 'quality-lag-monitoring')
+      .submenuItems.find((x: any) => x.id === 'lag-monitoring-enabled')
+      .onValueChange(true);
+    expect(mockUpdateLagMonitoringConfig).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('ConnectionNetworkSection covers proxy and DCC warning branches', async () => {
+    render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        currentNetwork="net"
+      />
+    );
+
+    await waitFor(() => expect(mockCapturedItems.has('connection-global-proxy')).toBe(true));
+
+    await mockCapturedItems
+      .get('connection-global-proxy')
+      .submenuItems.find((x: any) => x.id === 'proxy-enable')
+      .onValueChange(true);
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'globalProxy',
+      expect.objectContaining({ enabled: true, type: 'socks5' })
+    );
+
+    await mockCapturedItems
+      .get('connection-dcc')
+      .submenuItems.find((x: any) => x.id === 'dcc-block-private-ip')
+      .onValueChange(false);
+    expect(Alert.alert).toHaveBeenCalled();
+
+    const dccAlertArgs = (Alert.alert as jest.Mock).mock.calls.find((call: any[]) =>
+      String(call[0]).includes('Security Warning')
+    );
+    expect(dccAlertArgs).toBeTruthy();
+    const buttons = dccAlertArgs?.[2] || [];
+    const disableButton = buttons.find((b: any) => String(b?.text).includes('Disable Protection'));
+    await disableButton?.onPress?.();
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccBlockPrivateIp', false);
   });
 });
