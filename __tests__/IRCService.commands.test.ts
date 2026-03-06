@@ -3,9 +3,26 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+const mockConnectionManagerGetAllConnections = jest.fn(() => []);
+jest.mock('../src/services/IRCForegroundService', () => ({
+  ircForegroundService: {
+    isServiceRunning: jest.fn(() => false),
+    start: jest.fn(() => Promise.resolve()),
+    updateNotification: jest.fn(() => Promise.resolve()),
+    stop: jest.fn(() => Promise.resolve()),
+  },
+}));
+
+jest.mock('../src/services/ConnectionManager', () => ({
+  connectionManager: {
+    getAllConnections: (...args: any[]) => mockConnectionManagerGetAllConnections(...args),
+  },
+}));
+
 import { IRCService, IRCMessage } from '../src/services/IRCService';
 import { DEFAULT_QUIT_MESSAGE } from '../src/services/SettingsService';
 import { FakeSocket } from '../test-support/FakeSocket';
+const { ircForegroundService: mockFgService } = require('../src/services/IRCForegroundService');
 
 describe('IRCService command helpers', () => {
   let irc: IRCService;
@@ -13,6 +30,7 @@ describe('IRCService command helpers', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
+    jest.clearAllMocks();
     irc = new IRCService();
     socket = new FakeSocket();
     (irc as any).socket = socket;
@@ -412,5 +430,162 @@ describe('IRCService command helpers', () => {
     (irc as any).config = { sasl: { account: 'alice', password: 'secret' } };
     expect(irc.isSaslPlain()).toBe(true);
     expect(irc.getSaslAccount()).toBe('alice');
+  });
+
+  it('covers parseServerCommand for management and connection modes', () => {
+    const management = (irc as any).parseServerCommand([
+      '-sar',
+      'irc.example.net',
+      '-d', 'Desc',
+      '-p', '6667',
+      '-g', 'groupA',
+      '-w', 'passA',
+    ]);
+    expect(management.management.sort).toBe(true);
+    expect(management.management.add).toBe(true);
+    expect(management.management.remove).toBe(true);
+    expect(management.managementOptions.description).toBe('Desc');
+    expect(management.managementOptions.port).toBe(6667);
+    expect(management.managementOptions.group).toBe('groupA');
+    expect(management.managementOptions.password).toBe('passA');
+    expect(management.address).toBe('irc.example.net');
+
+    const parsed = (irc as any).parseServerCommand([
+      '-em',
+      'irc.libera.chat',
+      '+6697',
+      'serverpass',
+      '-l', 'plain', 'secret',
+      '-lname', 'loginUser',
+      '-i', 'nick1', 'nick2', 'mail@example.com', 'Real Name',
+      '-jn', '#chat', 'key123',
+      '-j', '#help',
+    ]);
+    expect(parsed.switches.ssl).toBe(true);
+    expect(parsed.switches.newWindow).toBe(true);
+    expect(parsed.address).toBe('irc.libera.chat');
+    expect(parsed.port).toBe(6697);
+    expect(parsed.password).toBe('serverpass');
+    expect(parsed.login.method).toBe('plain');
+    expect(parsed.login.password).toBe('secret');
+    expect(parsed.login.username).toBe('loginUser');
+    expect(parsed.identity.nick).toBe('nick1');
+    expect(parsed.identity.altNick).toBe('nick2');
+    expect(parsed.joinChannels).toEqual([
+      { channel: '#chat', password: 'key123' },
+      { channel: '#help', password: '' },
+    ]);
+  });
+
+  it('covers channel/user helpers and silent WHO/MODE flows', async () => {
+    (irc as any).channelUsers.set('#room', new Map([
+      ['alice', { nick: 'alice', modes: [] }],
+      ['tester', { nick: 'tester', modes: ['o'] }],
+    ]));
+    expect(irc.getChannels()).toEqual(['#room']);
+    expect(irc.getChannelUsers('#room').map(u => u.nick)).toEqual(['alice', 'tester']);
+
+    const modeListener = jest.fn();
+    const offUserList = irc.onUserListChange(modeListener);
+    (irc as any).emitUserListChange('#room', [{ nick: 'x', modes: [] }]);
+    expect(modeListener).toHaveBeenCalledWith('#room', [{ nick: 'x', modes: [] }]);
+    offUserList();
+
+    (irc as any).updateSelfUserModes('+io-o');
+    expect(irc.getSelfUserModes()).toContain('i');
+
+    (irc as any).handleChannelModeChange('#room', ['+ov', 'Alice', 'tester']);
+    (irc as any).handleChannelModeChange('#room', ['-o', 'tester']);
+    const users = (irc as any).channelUsers.get('#room');
+    expect(users.get('alice').modes).toContain('o');
+
+    const cb = jest.fn();
+    irc.sendSilentWho('Alice', cb);
+    irc.sendSilentMode('Alice');
+    expect((irc as any).silentWhoNicks.has('alice')).toBe(true);
+    expect((irc as any).silentModeNicks.has('alice')).toBe(true);
+
+    (irc as any).socket = { write: jest.fn(() => { throw new Error('closed'); }) };
+    irc.sendSilentWho('Bob', cb);
+    irc.sendSilentMode('Bob');
+    expect((irc as any).silentWhoNicks.has('bob')).toBe(false);
+    expect((irc as any).silentModeNicks.has('bob')).toBe(false);
+  });
+
+  it('covers detectClones batching and clone-detection status', async () => {
+    jest.useRealTimers();
+    (irc as any).cloneDetectionBatchSize = 1;
+    (irc as any).cloneDetectionDelay = 1;
+    (irc as any).cloneDetectionActive = true;
+    expect(irc.isCloneDetectionActive()).toBe(true);
+
+    (irc as any).channelUsers.set('#clone', new Map([
+      ['a', { nick: 'a', modes: [], host: 'h1' }],
+      ['b', { nick: 'b', modes: [], host: 'h1' }],
+      ['c', { nick: 'c', modes: [], host: 'h2' }],
+    ]));
+
+    const clones = await irc.detectClones('#clone');
+    expect(clones.get('h1')).toEqual(['a', 'b']);
+    expect(clones.has('h2')).toBe(false);
+    expect((await irc.detectClones('#missing')).size).toBe(0);
+    jest.useFakeTimers();
+  });
+
+  it('covers auto-reconnect controls and scheduler outcomes', async () => {
+    const msgs: IRCMessage[] = [];
+    irc.onMessage(m => msgs.push(m));
+    (irc as any).config = { host: 'irc.example', port: 6667, nick: 'tester' };
+
+    const connectSpy = jest.spyOn(irc as any, 'connect').mockResolvedValueOnce(undefined);
+    (irc as any).scheduleReconnect();
+    jest.advanceTimersByTime(2200);
+    await Promise.resolve();
+    expect(connectSpy).toHaveBeenCalled();
+
+    (irc as any).setAutoReconnect(false);
+    expect((irc as any).isAutoReconnectEnabled()).toBe(false);
+    (irc as any).reconnectTimer = setTimeout(() => undefined, 1000);
+    (irc as any).cancelReconnect();
+    expect(msgs.some(m => m.text.includes('Auto-reconnect cancelled'))).toBe(true);
+
+    (irc as any).setAutoReconnect(true);
+    const failConnectSpy = jest.spyOn(irc as any, 'connect').mockRejectedValueOnce(new Error('fail-connect'));
+    (irc as any).scheduleReconnect();
+    jest.advanceTimersByTime(2200);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(failConnectSpy).toHaveBeenCalled();
+  });
+
+  it('covers join/request names and emitConnection foreground service branches', async () => {
+    irc.joinChannel('general');
+    irc.requestChannelUsers('#general');
+    expect(socket.writes.some(w => w.includes('JOIN #general'))).toBe(true);
+    expect(socket.writes.some(w => w.includes('NAMES #general'))).toBe(true);
+
+    const connChanges: boolean[] = [];
+    irc.onConnectionChange(v => connChanges.push(v));
+
+    mockConnectionManagerGetAllConnections.mockReturnValue([
+      { networkId: 'n1', ircService: { getConnectionStatus: () => true } },
+      { networkId: 'n2', ircService: { getConnectionStatus: () => true } },
+    ]);
+
+    mockFgService.isServiceRunning.mockReturnValueOnce(false);
+    await (irc as any).emitConnection(true);
+    expect(mockFgService.start).toHaveBeenCalled();
+
+    mockFgService.isServiceRunning.mockReturnValueOnce(true);
+    await (irc as any).emitConnection(true);
+    expect(mockFgService.updateNotification).toHaveBeenCalled();
+
+    await (irc as any).emitConnection(false);
+    expect(mockFgService.updateNotification).toHaveBeenCalled();
+
+    mockConnectionManagerGetAllConnections.mockReturnValue([]);
+    await (irc as any).emitConnection(false);
+    expect(mockFgService.stop).toHaveBeenCalled();
+    expect(connChanges.length).toBeGreaterThan(0);
   });
 });
