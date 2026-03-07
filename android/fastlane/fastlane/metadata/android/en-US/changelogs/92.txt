@@ -1,3 +1,0 @@
-RN upgrade: 0.83.1 -> 0.84.0 (+ RN presets/configs).
-Updated: react-native-iap, reanimated, worklets, @types/node.
-Fixed ZNC subscription flow for new IAP API (purchase/restore, offer token handling).
