@@ -9,7 +9,6 @@ import { soundService } from '../../src/services/SoundService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Sound from 'react-native-sound';
 import RNFS from 'react-native-fs';
-import { audioFocusService } from '../../src/services/AudioFocusService';
 import { SoundEventType, DEFAULT_SOUND_SETTINGS } from '../../src/types/sound';
 import { awayService } from '../../src/services/AwayService';
 
@@ -209,7 +208,7 @@ describe('SoundService', () => {
 
   describe('internal queue and sound info', () => {
     it('processQueue drains queue and calls playSoundInternal', async () => {
-      const internalSpy = jest
+      jest
         .spyOn(soundService as any, 'playSoundInternal')
         .mockResolvedValue(undefined);
       // @ts-ignore
