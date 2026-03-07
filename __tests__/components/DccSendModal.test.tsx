@@ -153,4 +153,166 @@ describe('DccSendModal', () => {
     expect(onChangeFilePath).toHaveBeenCalledWith('');
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('handles content uri by copying file manually', async () => {
+    const onChangeFilePath = jest.fn();
+    mockPick.mockResolvedValue([
+      {
+        uri: 'content://provider/file2',
+        name: 'copy-target.txt',
+      },
+    ]);
+    mockCopyFile.mockResolvedValue(undefined);
+
+    const { getByText } = render(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath=""
+        onChangeFilePath={onChangeFilePath}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('Browse Files'));
+    });
+
+    expect(mockCopyFile).toHaveBeenCalledWith('content://provider/file2', '/doc/copy-target.txt');
+    expect(onChangeFilePath).toHaveBeenCalledWith('/doc/copy-target.txt');
+  });
+
+  it('falls back to read/write when copyFile fails', async () => {
+    const onChangeFilePath = jest.fn();
+    mockPick.mockResolvedValue([
+      {
+        uri: 'content://provider/file3',
+        name: 'fallback.txt',
+      },
+    ]);
+    mockCopyFile.mockRejectedValue(new Error('copy fail'));
+    mockReadFile.mockResolvedValue('YmFzZTY0');
+    mockWriteFile.mockResolvedValue(undefined);
+
+    const { getByText } = render(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath=""
+        onChangeFilePath={onChangeFilePath}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('Browse Files'));
+    });
+
+    expect(mockReadFile).toHaveBeenCalledWith('content://provider/file3', 'base64');
+    expect(mockWriteFile).toHaveBeenCalledWith('/doc/fallback.txt', 'YmFzZTY0', 'base64');
+    expect(onChangeFilePath).toHaveBeenCalledWith('/doc/fallback.txt');
+  });
+
+  it('alerts when copy and fallback both fail', async () => {
+    mockPick.mockResolvedValue([
+      {
+        uri: 'content://provider/file4',
+        name: 'broken.txt',
+      },
+    ]);
+    mockCopyFile.mockRejectedValue(new Error('copy fail'));
+    mockReadFile.mockRejectedValue(new Error('read fail'));
+
+    const { getByText } = render(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath=""
+        onChangeFilePath={jest.fn()}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('Browse Files'));
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not access the selected file. Please try a different file.');
+  });
+
+  it('alerts when selected file cannot be verified', async () => {
+    const onChangeFilePath = jest.fn();
+    mockPick.mockResolvedValue([
+      {
+        uri: 'file:///doc/verify.txt',
+        name: 'verify.txt',
+      },
+    ]);
+    mockExists.mockResolvedValue(false);
+
+    const { getByText } = render(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath=""
+        onChangeFilePath={onChangeFilePath}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('Browse Files'));
+    });
+
+    expect(onChangeFilePath).not.toHaveBeenCalled();
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not access the selected file. Please try again.');
+  });
+
+  it('ignores picker cancellation and alerts on picker errors', async () => {
+    mockPick.mockRejectedValueOnce({ code: 'OPERATION_CANCELED' });
+    mockIsErrorWithCode.mockReturnValueOnce(true);
+
+    const { getByText, rerender } = render(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath=""
+        onChangeFilePath={jest.fn()}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('Browse Files'));
+    });
+    expect(Alert.alert).not.toHaveBeenCalled();
+
+    mockPick.mockRejectedValueOnce(new Error('picker failed'));
+    mockIsErrorWithCode.mockReturnValueOnce(false);
+    rerender(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath=""
+        onChangeFilePath={jest.fn()}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+    await act(async () => {
+      fireEvent.press(getByText('Browse Files'));
+    });
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to select file: picker failed');
+  });
 });

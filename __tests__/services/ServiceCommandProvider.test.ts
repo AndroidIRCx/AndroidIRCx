@@ -8,6 +8,7 @@
 import { serviceCommandProvider, ServiceCommandProvider } from '../../src/services/ServiceCommandProvider';
 import { serviceDetectionService } from '../../src/services/ServiceDetectionService';
 import { CompletionContext, AccessLevel } from '../../src/interfaces/ServiceTypes';
+import * as serviceConfigModule from '../../src/config/services';
 
 describe('ServiceCommandProvider', () => {
   beforeEach(() => {
@@ -238,6 +239,188 @@ describe('ServiceCommandProvider', () => {
         // This test mainly ensures no errors are thrown
         expect(Array.isArray(suggestions)).toBe(true);
       }
+    });
+  });
+
+  describe('buildCommand / parseInput / help', () => {
+    const mockConfig: any = {
+      services: {
+        nickserv: {
+          enabled: true,
+          nick: 'NickServ',
+          commands: [
+            {
+              name: 'REGISTER',
+              description: 'Register nickname',
+              usage: 'REGISTER <password>',
+              example: '/NickServ REGISTER hunter2',
+              minLevel: 'user',
+              parameters: [{ name: 'password', description: 'Account password', required: true }],
+              completion: { priority: 80, suggestAlias: 'nsregister' },
+            },
+            {
+              name: 'DROP',
+              description: 'Drop account',
+              usage: 'DROP <nick>',
+              minLevel: 'admin',
+              parameters: [{ name: 'nick', description: 'Nickname', required: true }],
+              completion: { priority: 10, confirmBeforeExecute: true },
+            },
+            {
+              name: 'WHOAMI',
+              description: 'Show current account',
+              usage: 'WHOAMI',
+              minLevel: 'user',
+              parameters: [],
+              completion: { context: ['global'], priority: 30 },
+            },
+            {
+              name: 'VOICEONLY',
+              description: 'Channel-only command',
+              usage: 'VOICEONLY',
+              minLevel: 'user',
+              parameters: [],
+              completion: { context: ['channel'], priority: 20 },
+            },
+          ],
+        },
+      },
+    };
+
+    let provider: ServiceCommandProvider;
+
+    beforeEach(() => {
+      provider = new ServiceCommandProvider();
+      jest.spyOn(serviceDetectionService, 'getServiceConfig').mockReturnValue(mockConfig);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('buildCommand handles unknown, missing params, confirmation and success', () => {
+      const unknown = provider.buildCommand('net-1', 'UNKNOWN', []);
+      expect(unknown.success).toBe(false);
+      expect(unknown.error).toContain('Unknown command');
+
+      const missing = provider.buildCommand('net-1', 'REGISTER', []);
+      expect(missing.success).toBe(false);
+      expect(missing.error).toContain('Missing required parameters');
+
+      const confirm = provider.buildCommand('net-1', 'DROP', ['alice']);
+      expect(confirm.success).toBe(false);
+      expect(confirm.needsConfirmation).toBe(true);
+
+      const ok = provider.buildCommand('net-1', 'REGISTER', ['hunter2']);
+      expect(ok.success).toBe(true);
+      expect(ok.fullMessage).toBe('/NickServ REGISTER hunter2');
+    });
+
+    it('parseInput handles aliases, direct service nicks and non-service input', () => {
+      expect(provider.parseInput('/nsregister hunter2')).toEqual({
+        isServiceCommand: true,
+        serviceNick: 'NickServ',
+        command: 'REGISTER',
+        args: ['hunter2'],
+      });
+
+      expect(provider.parseInput('/NickServ HELP REGISTER')).toEqual({
+        isServiceCommand: true,
+        serviceNick: 'NickServ',
+        command: 'HELP',
+        args: ['REGISTER'],
+      });
+
+      expect(provider.parseInput('regular text')).toEqual({
+        isServiceCommand: false,
+        args: ['regular', 'text'],
+      });
+
+      expect(provider.parseInput('')).toEqual({
+        isServiceCommand: false,
+        args: [''],
+      });
+    });
+
+    it('getSuggestions applies permission/context/match filters and alias priority sort', () => {
+      const userContext: CompletionContext = {
+        userLevel: 'user',
+        isAuthenticated: true,
+      };
+
+      const globalSuggestions = provider.getSuggestions('net-1', 'reg', userContext);
+      expect(globalSuggestions.some(s => s.text === '/REGISTER')).toBe(true);
+      expect(globalSuggestions.some(s => s.text === '/nsregister' && s.isAlias)).toBe(true);
+      expect(globalSuggestions.some(s => s.text === '/DROP')).toBe(false);
+      expect(globalSuggestions.some(s => s.text === '/VOICEONLY')).toBe(false);
+
+      const channelSuggestions = provider.getSuggestions('net-1', 'voiceonly', {
+        ...userContext,
+        currentChannel: '#chat',
+      });
+      expect(channelSuggestions.some(s => s.text === '/VOICEONLY')).toBe(true);
+
+      const fuzzy = provider.getSuggestions('net-1', 'xxwhoamiyy', userContext);
+      expect(fuzzy.some(s => s.text === '/WHOAMI')).toBe(true);
+
+      const sorted = provider.getSuggestions('net-1', '', userContext);
+      for (let i = 1; i < sorted.length; i++) {
+        expect(sorted[i - 1].priority).toBeGreaterThanOrEqual(sorted[i].priority);
+      }
+    });
+
+    it('getCommandHelp returns formatted details including params and alias', () => {
+      const help = provider.getCommandHelp('net-1', 'REGISTER');
+      expect(help).toContain('NickServ REGISTER');
+      expect(help).toContain('Usage:');
+      expect(help).toContain('Example:');
+      expect(help).toContain('Parameters:');
+      expect(help).toContain('/nsregister');
+
+      const helpWithoutExample = provider.getCommandHelp('net-1', 'WHOAMI')!;
+      expect(helpWithoutExample).not.toContain('Example:');
+
+      expect(provider.getCommandHelp('net-1', 'MISSING')).toBeUndefined();
+    });
+
+    it('parseInput supports all safe alias prefixes', () => {
+      expect(provider.parseInput('/csop #room nick').serviceNick).toBe('ChanServ');
+      expect(provider.parseInput('/hsset host').serviceNick).toBe('HostServ');
+      expect(provider.parseInput('/osrehash').serviceNick).toBe('OperServ');
+      expect(provider.parseInput('/bsassign #chan bot').serviceNick).toBe('BotServ');
+      expect(provider.parseInput('/mssend nick hi').serviceNick).toBe('MemoServ');
+    });
+  });
+
+  describe('getIRCdInfo extra branches', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns undefined when detection is missing or config has no ircd', () => {
+      jest.spyOn(serviceDetectionService, 'getDetectionResult').mockReturnValue(undefined as any);
+      expect(serviceCommandProvider.getIRCdInfo('net-x')).toBeUndefined();
+
+      jest.spyOn(serviceDetectionService, 'getDetectionResult').mockReturnValue({ ircdType: 'any' } as any);
+      jest.spyOn(serviceConfigModule, 'getConfig').mockReturnValue(undefined as any);
+      expect(serviceCommandProvider.getIRCdInfo('net-x')).toBeUndefined();
+    });
+
+    it('maps ircd modes and oper-only commands', () => {
+      jest.spyOn(serviceDetectionService, 'getDetectionResult').mockReturnValue({ ircdType: 'hybrid' } as any);
+      jest.spyOn(serviceConfigModule, 'getConfig').mockReturnValue({
+        ircd: {
+          userModes: [{ mode: 'i', description: 'Invisible' }],
+          channelModes: [{ mode: 'm', description: 'Moderated' }],
+          commands: [{ name: 'REHASH', operOnly: true }, { name: 'MOTD', operOnly: false }],
+        },
+      } as any);
+
+      expect(serviceCommandProvider.getIRCdInfo('net-y')).toEqual({
+        userModes: ['i=Invisible'],
+        channelModes: ['m=Moderated'],
+        operCommands: ['REHASH'],
+      });
     });
   });
 });

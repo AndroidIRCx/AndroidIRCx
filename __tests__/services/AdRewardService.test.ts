@@ -54,6 +54,7 @@ jest.mock('../../src/services/InAppPurchaseService', () => ({
 }));
 
 import { adRewardService } from '../../src/services/AdRewardService';
+import { AdEventType, RewardedAdEventType, RewardedAd } from 'react-native-google-mobile-ads';
 
 describe('AdRewardService', () => {
   beforeEach(() => {
@@ -68,6 +69,13 @@ describe('AdRewardService', () => {
     (adRewardService as any).adsDisabled = false;
     (adRewardService as any).remainingMs = 5 * 60 * 1000;
     (adRewardService as any).usageInterval = null;
+    (adRewardService as any).initialized = false;
+    (adRewardService as any).initialLoadTimeoutId = null;
+    (adRewardService as any).adEventUnsubscribers = [];
+    (adRewardService as any).currentAdUnitIndex = 0;
+    (adRewardService as any).retryCount = 0;
+    (adRewardService as any).consecutiveFailures = 0;
+    (adRewardService as any).lastError = null;
   });
 
   afterEach(() => {
@@ -98,6 +106,7 @@ describe('AdRewardService', () => {
     const loadSpy = jest.spyOn(adRewardService as any, 'loadAd').mockImplementation(() => undefined);
     await expect(adRewardService.manualLoadAd()).resolves.toEqual(expect.objectContaining({ success: true }));
     expect(loadSpy).toHaveBeenCalled();
+    loadSpy.mockRestore();
   });
 
   it('shows rewarded ad and handles not-ready/error paths', async () => {
@@ -151,5 +160,115 @@ describe('AdRewardService', () => {
 
     adRewardService.stopUsageTracking();
     expect(adRewardService.isTracking()).toBe(false);
+  });
+
+  it('initializes, grants initial/version bonuses and starts first ad load timer', async () => {
+    const handlers: Record<string, Function> = {};
+    mockRewardedAd.addAdEventListener.mockImplementation((type: string, cb: Function) => {
+      handlers[type] = cb;
+      return jest.fn();
+    });
+
+    await adRewardService.initialize();
+    expect((adRewardService as any).initialized).toBe(true);
+    expect((adRewardService as any).remainingMs).toBeGreaterThan(0);
+
+    jest.advanceTimersByTime(2001);
+    expect(mockRewardedAd.load).toHaveBeenCalled();
+
+    handlers[RewardedAdEventType.LOADED]?.();
+    expect((adRewardService as any).adLoaded).toBe(true);
+    handlers[RewardedAdEventType.EARNED_REWARD]?.({ amount: 60, type: 'minutes' });
+    jest.advanceTimersByTime(2001);
+    expect(mockRewardedAd.load).toHaveBeenCalledTimes(2);
+  });
+
+  it('loadAd handles timeout and ad error path', () => {
+    (adRewardService as any).adLoaded = false;
+    (adRewardService as any).adLoading = false;
+    (adRewardService as any).rewardedAd = mockRewardedAd;
+    (adRewardService as any).loadAd();
+    jest.advanceTimersByTime(45001);
+    expect((adRewardService as any).adLoading).toBe(false);
+
+    const handlers: Record<string, Function> = {};
+    mockRewardedAd.addAdEventListener.mockImplementation((type: string, cb: Function) => {
+      handlers[type] = cb;
+      return jest.fn();
+    });
+    (adRewardService as any).setupRewardedAd();
+    handlers[AdEventType.ERROR]?.({ code: 'x', message: 'm' });
+    expect((adRewardService as any).adLoading).toBe(false);
+    expect((adRewardService as any).adLoaded).toBe(false);
+  });
+
+  it('handleLoadError covers null-activity, internal-error and fallback/cooldown branches', () => {
+    const setupSpy = jest.spyOn(adRewardService as any, 'setupRewardedAd').mockImplementation(() => undefined);
+    const loadSpy = jest.spyOn(adRewardService as any, 'loadAd').mockImplementation(() => undefined);
+
+    (adRewardService as any).adsDisabled = false;
+    (adRewardService as any).consecutiveFailures = 0;
+    (adRewardService as any).maxRetries = 2;
+    (adRewardService as any).retryCount = 0;
+    (adRewardService as any).currentAdUnitIndex = 0;
+
+    (adRewardService as any).lastError = { code: 'googleMobileAds/null-activity', message: 'na' };
+    (adRewardService as any).handleLoadError();
+    jest.advanceTimersByTime(5001);
+    expect(loadSpy).toHaveBeenCalled();
+
+    (adRewardService as any).lastError = { code: 'googleMobileAds/internal-error', message: 'ie' };
+    (adRewardService as any).handleLoadError();
+    expect((adRewardService as any).isInCooldown()).toBe(true);
+    jest.advanceTimersByTime(120001);
+    expect(loadSpy).toHaveBeenCalled();
+
+    (adRewardService as any).lastError = { code: 'other', message: 'e' };
+    (adRewardService as any).retryCount = 1;
+    (adRewardService as any).currentAdUnitIndex = 0;
+    (adRewardService as any).handleLoadError();
+    expect(setupSpy).toHaveBeenCalled();
+
+    (adRewardService as any).retryCount = 1;
+    (adRewardService as any).currentAdUnitIndex = 1;
+    (adRewardService as any).consecutiveFailures = 9;
+    (adRewardService as any).handleLoadError();
+    expect((adRewardService as any).adsDisabled).toBe(true);
+
+    setupSpy.mockRestore();
+    loadSpy.mockRestore();
+  });
+
+  it('supports debug/admin helpers and listener error guard', async () => {
+    const badListener = jest.fn(() => {
+      throw new Error('listener');
+    });
+    adRewardService.addListener(badListener);
+    (adRewardService as any).notifyListeners();
+    expect(badListener).toHaveBeenCalled();
+
+    await adRewardService.grantTime(1);
+    expect((adRewardService as any).remainingMs).toBeGreaterThan(0);
+    await adRewardService.resetTime();
+    expect((adRewardService as any).remainingMs).toBe(0);
+
+    await adRewardService.simulateFreshInstall();
+    expect((adRewardService as any).remainingMs).toBeGreaterThan(0);
+  });
+
+  it('setupRewardedAd handles createForAdRequest failure and cleanup listeners', () => {
+    const unsubscribeA = jest.fn();
+    const unsubscribeB = jest.fn();
+    (adRewardService as any).adEventUnsubscribers = [unsubscribeA, unsubscribeB];
+    (adRewardService as any).initialLoadTimeoutId = setTimeout(() => undefined, 1000);
+
+    const createSpy = jest.spyOn(RewardedAd, 'createForAdRequest').mockImplementationOnce(() => {
+      throw new Error('create fail');
+    });
+
+    expect(() => (adRewardService as any).setupRewardedAd()).not.toThrow();
+    expect(unsubscribeA).toHaveBeenCalled();
+    expect(unsubscribeB).toHaveBeenCalled();
+    createSpy.mockRestore();
   });
 });

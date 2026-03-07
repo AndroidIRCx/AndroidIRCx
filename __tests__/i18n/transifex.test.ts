@@ -86,6 +86,38 @@ const loadModule = (mocks: Mocks = {}) => {
 };
 
 describe('i18n/transifex', () => {
+  it('initTransifex initializes SDK and preloads bundled translations before dynamic import boundary', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { mod, mockTx, mockSettingsService } = loadModule({
+      token: '',
+      bestLanguageTag: 'SR',
+      bundled: {
+        en: { hello: 'Hello', nested: { string: 'Nested' }, invalid: { nope: 1 } },
+        sr: { zdravo: 'Zdravo' },
+      },
+      appLanguage: 'system',
+    });
+
+    await expect(mod.initTransifex()).rejects.toThrow(
+      'A dynamic import callback was invoked without --experimental-vm-modules'
+    );
+
+    expect(mockTx.init).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token: '',
+        cdsHost: 'https://cds.example',
+      })
+    );
+    expect(mockTx.cache.update).toHaveBeenCalledWith('en', { hello: 'Hello', nested: 'Nested' });
+    expect(mockTx.cache.update).toHaveBeenCalledWith('sr', { zdravo: 'Zdravo' });
+    expect(mockSettingsService.getSetting).not.toHaveBeenCalled();
+    expect(mockTx.setCurrentLocale).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Transifex Native token missing; translations will use source strings.'
+    );
+    warnSpy.mockRestore();
+  });
+
   it('exports tx.t fallback bound to translate', () => {
     const { mod, mockTx } = loadModule();
     expect(typeof mod.tx.t).toBe('function');
@@ -123,6 +155,17 @@ describe('i18n/transifex', () => {
     warnSpy.mockRestore();
   });
 
+  it('applyTransifexLocale skips fetch when explicit preferred locale has bundled translations', async () => {
+    const { mod, mockTx } = loadModule({
+      token: 'token-yes',
+      bundled: { en: { hello: 'Hello' }, sr: { zdravo: 'Zdravo' } },
+    });
+
+    await mod.applyTransifexLocale('SR');
+    expect(mockTx.setCurrentLocale).toHaveBeenCalledWith('sr');
+    expect(mockTx.fetchTranslations).not.toHaveBeenCalled();
+  });
+
   it('listenToLocaleChanges returns noop when localize listener API is unavailable', () => {
     const { mod } = loadModule({ withLocaleApi: false });
     const unsub = mod.listenToLocaleChanges();
@@ -152,6 +195,21 @@ describe('i18n/transifex', () => {
     const changeHandler = addEventListener.mock.calls[0][1];
     expect(() => changeHandler()).not.toThrow();
     await Promise.resolve();
+  });
+
+  it('listenToLocaleChanges ignores system apply when user picked non-system locale', async () => {
+    const { mod, addEventListener, mockTx } = loadModule({
+      token: 'token-yes',
+      appLanguage: 'de',
+    });
+
+    mod.listenToLocaleChanges();
+    const changeHandler = addEventListener.mock.calls[0][1];
+    changeHandler();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockTx.setCurrentLocale).not.toHaveBeenCalled();
   });
 
   it('exports TXProvider/useT bindings', () => {

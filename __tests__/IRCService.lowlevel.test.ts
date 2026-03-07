@@ -427,4 +427,164 @@ describe('IRCService low-level branches', () => {
     await (irc as any).handleCTCPRequest('alice', 'tester', 'VERSION');
     expect(settingsService.getSetting).toHaveBeenCalled();
   });
+
+  it('covers parseServerCommand management and full option parsing', () => {
+    const management = (irc as any).parseServerCommand(['-sar', 'irc.example', '-d', 'Desc', '-p', '6697', '-g', 'grp', '-w', 'pass']);
+    expect(management.management.sort).toBe(true);
+    expect(management.management.add).toBe(true);
+    expect(management.management.remove).toBe(true);
+    expect(management.managementOptions.description).toBe('Desc');
+    expect(management.managementOptions.port).toBe(6697);
+    expect(management.managementOptions.group).toBe('grp');
+    expect(management.managementOptions.password).toBe('pass');
+    expect(management.address).toBe('irc.example');
+
+    const parsed = (irc as any).parseServerCommand([
+      '-emt',
+      '2',
+      '*7000',
+      'serverpass',
+      '-l',
+      'SCRAM',
+      'saslpass',
+      '-lname',
+      'acc',
+      '-i',
+      'nick',
+      'altnick',
+      'mail@example.com',
+      'Real Name',
+      '-jn',
+      '#chan',
+      'key123',
+      '-j',
+      '#plain',
+      'ignored-extra',
+    ]);
+    expect(parsed.switches.ssl).toBe(true);
+    expect(parsed.switches.newWindow).toBe(true);
+    expect(parsed.switches.starttls).toBe(true);
+    expect(parsed.serverIndex).toBe(2);
+    expect(parsed.port).toBe(7000);
+    expect(parsed.password).toBe('serverpass');
+    expect(parsed.login.method).toBe('SCRAM');
+    expect(parsed.login.password).toBe('saslpass');
+    expect(parsed.login.username).toBe('acc');
+    expect(parsed.identity.nick).toBe('nick');
+    expect(parsed.identity.altNick).toBe('altnick');
+    expect(parsed.identity.email).toBe('mail@example.com');
+    expect(parsed.identity.name).toBe('Real Name');
+    expect(parsed.joinChannels).toEqual([
+      { channel: '#chan', password: 'key123' },
+      { channel: '#plain', password: 'ignored-extra' },
+    ]);
+  });
+
+  it('covers sendRaw write failure and silent who/mode failure cleanup', () => {
+    const logSpy = jest.spyOn(irc as any, 'logRaw');
+    const throwSocket = {
+      write: jest.fn(() => {
+        throw new Error('write failed');
+      }),
+      removeAllListeners: jest.fn(),
+      end: jest.fn(),
+      destroy: jest.fn(),
+    };
+    (irc as any).socket = throwSocket;
+
+    irc.sendRaw('PRIVMSG #x :y');
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Unable to send message'));
+    expect(irc.getConnectionStatus()).toBe(false);
+
+    (irc as any).isConnected = true;
+    const cb = jest.fn();
+    irc.sendSilentWho('Alice', cb);
+    expect((irc as any).silentWhoNicks.has('alice')).toBe(false);
+    expect((irc as any).silentWhoCallbacks.has('alice')).toBe(false);
+
+    irc.sendSilentMode('Bob');
+    expect((irc as any).silentModeNicks.has('bob')).toBe(false);
+  });
+
+  it('covers detectClones empty and clone grouping paths', async () => {
+    await expect(irc.detectClones('#missing')).resolves.toEqual(new Map());
+
+    (irc as any).channelUsers.set(
+      '#c',
+      new Map([
+        ['a', { nick: 'a', modes: [], host: 'h1' }],
+        ['b', { nick: 'b', modes: [], host: 'h1' }],
+        ['c', { nick: 'c', modes: [], host: 'h2' }],
+      ]),
+    );
+    (irc as any).cloneDetectionBatchSize = 100;
+    const clones = await irc.detectClones('#c');
+    expect(clones.get('h1')).toEqual(['a', 'b']);
+    expect(clones.has('h2')).toBe(false);
+  });
+
+  it('covers clone status and auto reconnect toggles', () => {
+    (irc as any).cloneDetectionActive = true;
+    expect(irc.isCloneDetectionActive()).toBe(true);
+
+    const clearSpy = jest.spyOn(global, 'clearTimeout');
+    (irc as any).reconnectTimer = setTimeout(() => {}, 1000);
+    (irc as any).reconnectAttempts = 3;
+    irc.setAutoReconnect(false);
+    expect(irc.isAutoReconnectEnabled()).toBe(false);
+    expect((irc as any).reconnectAttempts).toBe(0);
+    expect(clearSpy).toHaveBeenCalled();
+    clearSpy.mockRestore();
+  });
+
+  it('covers requestChannelUsers and channel/user service accessors', () => {
+    const sendRawSpy = jest.spyOn(irc, 'sendRaw');
+    irc.requestChannelUsers('#room');
+    expect(sendRawSpy).toHaveBeenCalledWith('NAMES #room');
+
+    (irc as any).isConnected = false;
+    irc.requestChannelUsers('#room');
+    expect(sendRawSpy).toHaveBeenCalledTimes(1);
+
+    expect(irc.getChannels()).toEqual(expect.any(Array));
+    irc.setNetworkId('Net42');
+    expect(irc.getNetworkName()).toBe('Net42');
+    irc.setWhoisUseDoubleNick(true);
+    expect(irc.getWhoisUseDoubleNick()).toBe(true);
+
+    const mockSvc = { setIRCService: jest.fn() } as any;
+    irc.setNotifyService(mockSvc);
+    expect(mockSvc.setIRCService).toHaveBeenCalledWith(irc);
+    expect(irc.getNotifyService()).toBe(mockSvc);
+  });
+
+  it('covers getLocalAddress variants and disconnect destroy error', () => {
+    (irc as any).socket = { localAddress: '10.0.0.5' };
+    expect(irc.getLocalAddress()).toBe('10.0.0.5');
+
+    (irc as any).socket = { address: () => ({ address: '127.0.0.1' }) };
+    expect(irc.getLocalAddress()).toBe('127.0.0.1');
+
+    (irc as any).socket = {
+      address: () => {
+        throw new Error('no address');
+      },
+    };
+    expect(irc.getLocalAddress()).toBeUndefined();
+
+    const logSpy = jest.spyOn(irc as any, 'logRaw');
+    const badSocket = {
+      write: jest.fn(),
+      removeAllListeners: jest.fn(),
+      end: jest.fn(),
+      destroy: jest.fn(() => {
+        throw new Error('destroy failed');
+      }),
+    };
+    (irc as any).socket = badSocket;
+    (irc as any).isConnected = true;
+    irc.disconnect('bye');
+    jest.advanceTimersByTime(120);
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Socket destroy error'));
+  });
 });

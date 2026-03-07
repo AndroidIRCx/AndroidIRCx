@@ -627,4 +627,192 @@ describe('useConnectionLifecycle', () => {
     expect(disconnectMock).toHaveBeenCalled();
     expect(setIsConnected).toHaveBeenCalledWith(false);
   });
+
+  it('should execute rich event handlers and command branches', async () => {
+    const mockClearTabMessages = jest.fn();
+    const mockRemoveTab = jest.fn();
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      clearTabMessages: mockClearTabMessages,
+      removeTab: mockRemoveTab,
+    });
+
+    const disconnectMock = jest.fn();
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockImplementation((network: string) => {
+      if (network === 'test-network') {
+        return { ircService: { disconnect: disconnectMock } };
+      }
+      return null;
+    });
+
+    require('../../src/services/SettingsService').settingsService.getSetting.mockImplementation(
+      async (key: string, defaultValue: any) => {
+        if (key === 'noticeTarget') return 'notice';
+        if (key === 'dccAutoGetMode') return 'accept';
+        if (key === 'dccAutoGetFrom') return 2;
+        if (key === 'dccAcceptExts') return ['*.txt'];
+        if (key === 'dccRejectExts') return ['*.exe'];
+        if (key === 'dccDontSendExts') return ['*.bat'];
+        return defaultValue;
+      }
+    );
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
+      { id: 'n1', name: 'test-network', servers: [{ id: 's1', hostname: 'irc.test', name: 'irc.test' }] },
+    ]);
+
+    const now = Date.now();
+    const params = {
+      ...mockParams,
+      activeTabId: 'channel-test-network-#test',
+      tabsRef: {
+        current: [
+          { id: 'server-test-network', type: 'server', name: 'test-network', networkId: 'test-network', messages: [] },
+          { id: 'channel-test-network-#test', type: 'channel', name: '#test', networkId: 'test-network', messages: [] },
+          { id: 'query-test-network-bob', type: 'query', name: 'bob', networkId: 'test-network', messages: [] },
+          { id: 'notice-test-network', type: 'notice', name: 'Notice', networkId: 'test-network', messages: [] },
+        ],
+      },
+    };
+
+    renderHook(() => useConnectionLifecycle(params as any));
+
+    const onCalls = require('../../src/services/IRCService').ircService.on.mock.calls;
+    const onMap = new Map<string, Function>();
+    onCalls.forEach((call: any[]) => onMap.set(call[0], call[1]));
+
+    const messageHandler = require('../../src/services/IRCService').ircService.onMessage.mock.calls[0][0];
+    const connectionHandler = require('../../src/services/IRCService').ircService.onConnectionChange.mock.calls[0][0];
+    const userListHandler = require('../../src/services/IRCService').ircService.onUserListChange.mock.calls[0][0];
+
+    (global as any).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        Status: 0,
+        Answer: [
+          { type: 1, data: '1.1.1.1' },
+          { type: 28, data: '2606:4700:4700::1111' },
+        ],
+      }),
+    });
+
+    await connectionHandler(true);
+    await userListHandler('#test', [{ nick: 'alice' }]);
+
+    await onMap.get('typing-indicator')?.('testuser', 'bob', 'active');
+    await onMap.get('clear-tab')?.('#test', 'test-network');
+    await onMap.get('close-tab')?.('#test', 'test-network');
+
+    await onMap.get('server-command')?.({
+      management: { sort: true },
+      switches: {},
+      managementOptions: {},
+    });
+    await onMap.get('server-command')?.({
+      management: { add: true },
+      address: 'irc.added.net',
+      port: 6697,
+      switches: { ssl: true },
+      managementOptions: {},
+    });
+    await onMap.get('server-command')?.({
+      management: { remove: true },
+      address: 'irc.test',
+      switches: {},
+      managementOptions: {},
+    });
+    await onMap.get('server-command')?.({
+      management: {},
+      switches: { disconnectOnly: true },
+      managementOptions: {},
+    });
+
+    await onMap.get('dns-lookup')?.('example.org');
+    await onMap.get('amsg')?.('hello all', 'test-network');
+    await onMap.get('ame')?.('waves', 'test-network');
+    await onMap.get('anotice')?.('notice all', 'test-network');
+    await onMap.get('reconnect')?.('test-network');
+    await onMap.get('sts-policy')?.('irc.example', 'duration=60,port=6697');
+    await onMap.get('beep')?.({ count: 2, delay: 200 });
+    await onMap.get('registered')?.();
+    await onMap.get('motdEnd')?.();
+
+    await messageHandler({
+      type: 'message',
+      from: 'bob',
+      channel: '#test',
+      text: 'hi testuser',
+      timestamp: now,
+      network: 'test-network',
+    });
+
+    expect(mockClearTabMessages).toHaveBeenCalled();
+    expect(mockRemoveTab).toHaveBeenCalled();
+    expect(require('../../src/services/SettingsService').settingsService.addServerToNetwork).toHaveBeenCalled();
+    expect(require('../../src/services/SettingsService').settingsService.saveNetworks).toHaveBeenCalled();
+    expect(require('../../src/services/IRCService').ircService.sendRaw).toHaveBeenCalled();
+    expect(disconnectMock).toHaveBeenCalled();
+    expect(require('../../src/services/OfflineQueueService').offlineQueueService.processQueue).toHaveBeenCalled();
+    expect(require('../../src/services/SoundService').soundService.playSound).toHaveBeenCalled();
+    expect(require('../../src/services/STSService').stsService.savePolicy).toHaveBeenCalled();
+  });
+
+  it('should restore tabs from storage on reconnect when network has no tabs', async () => {
+    const setTabs = jest.fn();
+    const setActiveTabId = jest.fn();
+    require('../../src/services/ConnectionManager').connectionManager.getActiveNetworkId.mockReturnValue('test-network');
+    require('../../src/services/TabService').tabService.getTabs.mockResolvedValue([
+      { id: 'channel-test-network-#room', type: 'channel', name: '#room', networkId: 'test-network' },
+    ]);
+    require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages.mockResolvedValue([
+      { id: 'm1', type: 'notice', text: 'hello', timestamp: Date.now() },
+    ]);
+
+    renderHook(() =>
+      useConnectionLifecycle({
+        ...mockParams,
+        tabsRef: { current: [] },
+        setTabs,
+        setActiveTabId,
+      })
+    );
+
+    const connectionHandler = require('../../src/services/IRCService').ircService.onConnectionChange.mock.calls[0][0];
+    connectionHandler(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(require('../../src/services/TabService').tabService.getTabs).toHaveBeenCalledWith('test-network');
+    expect(setTabs).toHaveBeenCalled();
+    expect(setActiveTabId).toHaveBeenCalledWith('server-test-network');
+  });
+
+  it('should send OPER and NickServ identify on registered/motdEnd when configured', async () => {
+    require('../../src/services/ConnectionManager').connectionManager.getAllConnections.mockReturnValue([]);
+    require('../../src/services/ConnectionManager').connectionManager.getActiveNetworkId.mockReturnValue('test-network');
+    require('../../src/services/SettingsService').settingsService.getNetwork.mockResolvedValue({
+      id: 'test-network',
+      nick: 'NickA',
+      operUser: '',
+      operPassword: 'oper-secret',
+      nickservPassword: 'ns-secret',
+    });
+
+    renderHook(() => useConnectionLifecycle(mockParams));
+    const onCalls = require('../../src/services/IRCService').ircService.on.mock.calls;
+    const registeredCall = onCalls.find((call: any[]) => call[0] === 'registered');
+    const motdCalls = onCalls.filter((call: any[]) => call[0] === 'motdEnd');
+
+    await registeredCall?.[1]?.();
+    for (const call of motdCalls) {
+      await call[1]?.();
+    }
+
+    expect(require('../../src/services/SoundService').soundService.playSound).toHaveBeenCalledWith(
+      require('../../src/types/sound').SoundEventType.LOGIN
+    );
+    expect(require('../../src/services/IRCService').ircService.sendRaw).toHaveBeenCalledWith('OPER testuser oper-secret');
+    expect(require('../../src/services/IRCService').ircService.sendRaw).toHaveBeenCalledWith(
+      'PRIVMSG NickServ :IDENTIFY ns-secret'
+    );
+  });
 });

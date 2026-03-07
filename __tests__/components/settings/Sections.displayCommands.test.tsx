@@ -18,6 +18,9 @@ const mockSetMessagePadding = jest.fn(async () => undefined);
 const mockSetNavigationBarOffset = jest.fn(async () => undefined);
 const mockSetTimestampDisplay = jest.fn(async () => undefined);
 const mockSetMessageGroupingEnabled = jest.fn(async () => undefined);
+const mockSetMessageTextAlign = jest.fn(async () => undefined);
+const mockSetMessageTextDirection = jest.fn(async () => undefined);
+const mockSetTimestampFormat = jest.fn(async () => undefined);
 
 const mockGetAliases = jest.fn(() => []);
 const mockGetCustomCommands = jest.fn(() => []);
@@ -79,6 +82,9 @@ jest.mock('../../../src/services/LayoutService', () => ({
     setNavigationBarOffset: (...args: any[]) => mockSetNavigationBarOffset(...args),
     setTimestampDisplay: (...args: any[]) => mockSetTimestampDisplay(...args),
     setMessageGroupingEnabled: (...args: any[]) => mockSetMessageGroupingEnabled(...args),
+    setMessageTextAlign: (...args: any[]) => mockSetMessageTextAlign(...args),
+    setMessageTextDirection: (...args: any[]) => mockSetMessageTextDirection(...args),
+    setTimestampFormat: (...args: any[]) => mockSetTimestampFormat(...args),
   },
 }));
 
@@ -232,6 +238,148 @@ describe('DisplayUI + Commands sections', () => {
       .submenuItems.find((x: any) => x.id === 'notice-private')
       .onPress();
     expect(mockSetSetting).toHaveBeenCalledWith('noticeTarget', 'private');
+
+    await mockCapturedItems
+      .get('display-notices')
+      .submenuItems.find((x: any) => x.id === 'notice-active')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('noticeTarget', 'active');
+
+    await mockCapturedItems
+      .get('display-notices')
+      .submenuItems.find((x: any) => x.id === 'notice-server')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('noticeTarget', 'server');
+
+    await mockCapturedItems
+      .get('display-notices')
+      .submenuItems.find((x: any) => x.id === 'notice-tab')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('noticeTarget', 'notice');
+
+    await mockCapturedItems
+      .get('display-whois')
+      .submenuItems.find((x: any) => x.id === 'whois-active')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('whoisDisplayMode', 'active');
+    expect(mockSetWhoisDisplayMode).toHaveBeenCalledWith('active');
+
+    await mockCapturedItems
+      .get('display-whois')
+      .submenuItems.find((x: any) => x.id === 'whois-status')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('whoisDisplayMode', 'status');
+    expect(mockSetWhoisDisplayMode).toHaveBeenCalledWith('status');
+  });
+
+  it('DisplayUISection handles alignment, direction, timestamp, keyboard and banner options', async () => {
+    render(
+      <DisplayUISection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        showRawCommands={true}
+        rawCategoryVisibility={{ join: true, notice: false } as any}
+      />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('display-banner-position')).toBe(true));
+
+    await mockCapturedItems
+      .get('message-text-align')
+      .submenuItems.find((x: any) => x.id === 'align-center')
+      .onPress();
+    await mockCapturedItems
+      .get('message-text-align')
+      .submenuItems.find((x: any) => x.id === 'align-right')
+      .onPress();
+    await mockCapturedItems
+      .get('message-text-align')
+      .submenuItems.find((x: any) => x.id === 'align-justify')
+      .onPress();
+    expect(mockSetMessageTextAlign).toHaveBeenCalledWith('center');
+    expect(mockSetMessageTextAlign).toHaveBeenCalledWith('right');
+    expect(mockSetMessageTextAlign).toHaveBeenCalledWith('justify');
+
+    await mockCapturedItems
+      .get('message-text-direction')
+      .submenuItems.find((x: any) => x.id === 'direction-ltr')
+      .onPress();
+    await mockCapturedItems
+      .get('message-text-direction')
+      .submenuItems.find((x: any) => x.id === 'direction-rtl')
+      .onPress();
+    expect(mockSetMessageTextDirection).toHaveBeenCalledWith('ltr');
+    expect(mockSetMessageTextDirection).toHaveBeenCalledWith('rtl');
+
+    await mockCapturedItems
+      .get('layout-timestamp-display')
+      .submenuItems.find((x: any) => x.id === 'timestamp-never')
+      .onPress();
+    await mockCapturedItems
+      .get('layout-timestamp-display')
+      .submenuItems.find((x: any) => x.id === 'timestamp-always')
+      .onPress();
+    expect(mockSetTimestampDisplay).toHaveBeenCalledWith('never');
+    expect(mockSetTimestampDisplay).toHaveBeenCalledWith('always');
+
+    await mockCapturedItems
+      .get('layout-timestamp-format')
+      .submenuItems.find((x: any) => x.id === 'format-12h')
+      .onPress();
+    await mockCapturedItems
+      .get('layout-timestamp-format')
+      .submenuItems.find((x: any) => x.id === 'format-24h')
+      .onPress();
+    expect(mockSetTimestampFormat).toHaveBeenCalledWith('12h');
+    expect(mockSetTimestampFormat).toHaveBeenCalledWith('24h');
+
+    await mockCapturedItems.get('display-send-button').onValueChange(false);
+    await mockCapturedItems
+      .get('display-enter-key-behavior')
+      .submenuItems.find((x: any) => x.id === 'enter-send')
+      .onPress();
+    await mockCapturedItems
+      .get('display-enter-key-behavior')
+      .submenuItems.find((x: any) => x.id === 'enter-newline')
+      .onPress();
+    await mockCapturedItems.get('display-color-picker-button').onValueChange(false);
+    expect(mockSetSetting).toHaveBeenCalledWith('showSendButton', false);
+    expect(mockSetSetting).toHaveBeenCalledWith('enterKeyBehavior', 'send');
+    expect(mockSetSetting).toHaveBeenCalledWith('enterKeyBehavior', 'newline');
+    expect(mockSetSetting).toHaveBeenCalledWith('showColorPickerButton', false);
+
+    await mockCapturedItems
+      .get('display-banner-position')
+      .submenuItems.find((x: any) => x.id === 'banner-pos-input-below')
+      .onPress();
+    await mockCapturedItems
+      .get('display-banner-position')
+      .submenuItems.find((x: any) => x.id === 'banner-pos-tabs-above')
+      .onPress();
+    await mockCapturedItems
+      .get('display-banner-position')
+      .submenuItems.find((x: any) => x.id === 'banner-pos-tabs-below')
+      .onPress();
+    expect(mockSetSetting).toHaveBeenCalledWith('bannerPosition', 'input_below');
+    expect(mockSetSetting).toHaveBeenCalledWith('bannerPosition', 'tabs_above');
+    expect(mockSetSetting).toHaveBeenCalledWith('bannerPosition', 'tabs_below');
+
+    await mockCapturedItems.get('display-keyboard-avoiding').onValueChange(false);
+    await mockCapturedItems
+      .get('display-keyboard-behavior-ios')
+      .submenuItems.find((x: any) => x.id === 'keyboard-behavior-ios-position')
+      .onPress();
+    await mockCapturedItems
+      .get('display-keyboard-behavior-android')
+      .submenuItems.find((x: any) => x.id === 'keyboard-behavior-android-translate-with-padding')
+      .onPress();
+    await mockCapturedItems.get('display-keyboard-offset').onValueChange('42px');
+    await mockCapturedItems.get('display-android-bottom-safe-area').onValueChange(false);
+    expect(mockSetSetting).toHaveBeenCalledWith('keyboardAvoidingEnabled', false);
+    expect(mockSetSetting).toHaveBeenCalledWith('keyboardBehaviorIOS', 'position');
+    expect(mockSetSetting).toHaveBeenCalledWith('keyboardBehaviorAndroid', 'translate-with-padding');
+    expect(mockSetSetting).toHaveBeenCalledWith('keyboardVerticalOffset', 42);
+    expect(mockSetSetting).toHaveBeenCalledWith('useAndroidBottomSafeArea', false);
   });
 
   it('CommandsSection renders and handles alias add validation path', async () => {

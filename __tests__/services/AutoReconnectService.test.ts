@@ -58,6 +58,11 @@ jest.mock('../../src/services/SettingsService', () => ({
 
 import { autoReconnectService, AutoReconnectConfig } from '../../src/services/AutoReconnectService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { connectionManager } from '../../src/services/ConnectionManager';
+import { settingsService } from '../../src/services/SettingsService';
+import { bouncerService } from '../../src/services/BouncerService';
+import { channelFavoritesService } from '../../src/services/ChannelFavoritesService';
+import { ircService } from '../../src/services/IRCService';
 
 describe('AutoReconnectService', () => {
   beforeEach(() => {
@@ -364,6 +369,112 @@ describe('AutoReconnectService', () => {
       
       // Should wait before reconnecting
       expect((autoReconnectService as any).isReconnecting.get('freenode')).toBe(true);
+    });
+  });
+
+  describe('initialize and reconnect internals', () => {
+    it('initializes from storage and registers singleton listeners', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockImplementation(async (key: string) => {
+        if (key === '@AndroidIRCX:connectionStates') {
+          return JSON.stringify({
+            freenode: {
+              network: 'freenode',
+              config: { host: 'irc.test' },
+              channels: ['#a'],
+              reconnectAttempts: 1,
+            },
+          });
+        }
+        if (key === '@AndroidIRCX:autoReconnectConfigs') {
+          return JSON.stringify({
+            freenode: { enabled: true, maxAttempts: 3 },
+          });
+        }
+        return null;
+      });
+
+      await autoReconnectService.initialize();
+      expect(autoReconnectService.getConnectionState('freenode')).toBeDefined();
+      expect(autoReconnectService.getConfig('freenode')?.enabled).toBe(true);
+      expect((ircService.onConnectionChange as jest.Mock)).toHaveBeenCalled();
+      expect((ircService.onMessage as jest.Mock)).toHaveBeenCalled();
+      expect((ircService.on as jest.Mock)).toHaveBeenCalledWith('intentional-quit', expect.any(Function));
+    });
+
+    it('handles initialize storage parse errors gracefully', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('{bad').mockResolvedValueOnce('{bad');
+      await expect(autoReconnectService.initialize()).resolves.toBeUndefined();
+    });
+
+    it('resolveNetworkConfig matches exact and normalized ids', async () => {
+      (settingsService.loadNetworks as jest.Mock).mockResolvedValue([
+        { id: 'freenode', name: 'Freenode' },
+        { id: 'libera', name: 'Libera Chat' },
+      ]);
+      const exact = await (autoReconnectService as any).resolveNetworkConfig('freenode');
+      const normalized = await (autoReconnectService as any).resolveNetworkConfig('libera (2)');
+      expect(exact?.id).toBe('freenode');
+      expect(normalized?.id).toBe('libera');
+    });
+
+    it('attemptReconnect handles missing config/state and fallback singleton path', async () => {
+      (autoReconnectService as any).isReconnecting.set('missing', true);
+      (autoReconnectService as any).attemptReconnect('missing');
+      expect((autoReconnectService as any).isReconnecting.get('missing')).toBe(false);
+
+      await autoReconnectService.setConfig('freenode', {
+        enabled: true,
+        initialDelay: 1,
+        maxDelay: 10,
+        backoffMultiplier: 2,
+      });
+      await autoReconnectService.saveConnectionState('freenode', { host: 'x' } as any, ['#a']);
+      (autoReconnectService as any).attemptReconnect('freenode');
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+      expect((ircService.connect as jest.Mock)).toHaveBeenCalled();
+    });
+
+    it('attemptReconnect uses ConnectionManager when networkConfig exists', async () => {
+      await autoReconnectService.setConfig('net1', { enabled: true, initialDelay: 1 });
+      await autoReconnectService.saveConnectionState('net1', { host: 'x' } as any, [], { id: 'net1', name: 'Net1' } as any);
+
+      (autoReconnectService as any).attemptReconnect('net1');
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+
+      expect((connectionManager.connect as jest.Mock)).toHaveBeenCalledWith(
+        'net1',
+        expect.objectContaining({ id: 'net1' }),
+        expect.any(Object),
+      );
+      expect((connectionManager.setActiveConnection as jest.Mock)).toHaveBeenCalledWith('freenode');
+    });
+
+    it('rejoins via playback or join list branches on successful handleConnected', async () => {
+      await autoReconnectService.setConfig('freenode', { enabled: true, rejoinChannels: true });
+      await autoReconnectService.saveConnectionState(
+        'freenode',
+        { host: 'x' } as any,
+        ['#a', '#b'],
+        { id: 'freenode', name: 'Freenode', autoJoinChannels: ['#a', '#z'] } as any,
+      );
+
+      (bouncerService.getBouncerInfo as jest.Mock).mockReturnValueOnce({ playbackSupported: true });
+      (autoReconnectService as any).handleConnected('freenode');
+      jest.advanceTimersByTime(1001);
+      await Promise.resolve();
+      expect((bouncerService.requestPlayback as jest.Mock)).toHaveBeenCalled();
+
+      const joinChannel = jest.fn();
+      (connectionManager.getConnection as jest.Mock).mockReturnValue({ ircService: { joinChannel } });
+      (settingsService.getSetting as jest.Mock).mockResolvedValueOnce(true);
+      (channelFavoritesService.getFavorites as jest.Mock).mockReturnValue([{ name: '#fav', key: 'k' }]);
+      await (autoReconnectService as any).rejoinChannels('freenode', ['#a', '#b']);
+      jest.runOnlyPendingTimers();
+      expect(joinChannel).toHaveBeenCalledWith('#fav', 'k');
+      expect(joinChannel).toHaveBeenCalledWith('#a', undefined);
+      expect(joinChannel).toHaveBeenCalledWith('#z', undefined);
     });
   });
 });

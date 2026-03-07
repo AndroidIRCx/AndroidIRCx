@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Image } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { LinkPreview } from '../../src/components/LinkPreview';
 
@@ -44,6 +44,18 @@ class MockXHR {
     if (this.onload) this.onload();
   }
   abort() {}
+}
+
+class ErrorXHR extends MockXHR {
+  send() {
+    if (this.onerror) this.onerror();
+  }
+}
+
+class TimeoutXHR extends MockXHR {
+  send() {
+    if (this.ontimeout) this.ontimeout();
+  }
 }
 
 describe('LinkPreview', () => {
@@ -98,5 +110,102 @@ describe('LinkPreview', () => {
       expect(mockDownloadFile).toHaveBeenCalled();
       expect(Alert.alert).toHaveBeenCalledWith('Download complete', 'Saved to /doc/report.pdf');
     });
+  });
+
+  it('handles youtube oembed success and fallback branches', async () => {
+    class YouTubeXHR extends MockXHR {
+      send() {
+        this.responseText = JSON.stringify({ title: 'YT title', thumbnail_url: 'https://yt/thumb.jpg' });
+        if (this.onload) this.onload();
+      }
+    }
+    (global as any).XMLHttpRequest = YouTubeXHR as any;
+
+    const { getByText, rerender } = render(
+      <LinkPreview url="https://www.youtube.com/watch?v=abc123" />
+    );
+
+    await waitFor(() => {
+      expect(getByText('YouTube')).toBeTruthy();
+      expect(getByText('YT title')).toBeTruthy();
+    });
+
+    class YouTubeStatusFailXHR extends MockXHR {
+      status = 500;
+      send() {
+        if (this.onload) this.onload();
+      }
+    }
+    (global as any).XMLHttpRequest = YouTubeStatusFailXHR as any;
+    rerender(<LinkPreview url="https://youtu.be/xyz987" />);
+
+    await waitFor(() => {
+      expect(getByText('YouTube Video xyz987')).toBeTruthy();
+    });
+  });
+
+  it('handles xhr network and timeout metadata failures', async () => {
+    (global as any).XMLHttpRequest = ErrorXHR as any;
+    const { getAllByText, rerender } = render(
+      <LinkPreview url="https://example.org/a" />
+    );
+
+    await waitFor(() => {
+      expect(getAllByText('example.org/a').length).toBeGreaterThan(0);
+    });
+
+    (global as any).XMLHttpRequest = TimeoutXHR as any;
+    rerender(<LinkPreview url="https://example.org/b?x=1" />);
+
+    await waitFor(() => {
+      expect(getAllByText('example.org/b?x=1').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('handles image error, openURL failure and download failure', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (Linking.openURL as jest.Mock).mockRejectedValueOnce(new Error('open-fail'));
+    const rejected = Promise.reject(new Error('net-down'));
+    rejected.catch(() => {});
+    mockDownloadFile.mockReturnValue({
+      promise: rejected,
+    });
+
+    const { getByText, UNSAFE_getByType, UNSAFE_queryAllByType } = render(
+      <LinkPreview url="https://example.com/file.zip" />
+    );
+
+    await waitFor(() => {
+      expect(getByText('Example Page')).toBeTruthy();
+    });
+
+    const image = UNSAFE_getByType(Image);
+    fireEvent(image, 'error');
+    await waitFor(() => {
+      expect(UNSAFE_queryAllByType(Image)).toHaveLength(0);
+    });
+
+    fireEvent.press(getByText('example.com'));
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/file.zip');
+    });
+
+    fireEvent.press(getByText('Download'));
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith('Download failed', 'net-down');
+    });
+
+    errorSpy.mockRestore();
+  });
+
+  it('supports hiding download button and invalid url display fallback', async () => {
+    const { queryByText, getByText } = render(
+      <LinkPreview url="not-a-valid-url" showDownloadButton={false} />
+    );
+
+    await waitFor(() => {
+      expect(getByText('not-a-valid-url')).toBeTruthy();
+    });
+    expect(queryByText('Download')).toBeNull();
   });
 });

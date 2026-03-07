@@ -112,6 +112,59 @@ describe('IRCService command helpers', () => {
     expect(status).toEqual([true]);
   });
 
+  it('updates foreground notification for single and multi-network scenarios', () => {
+    const statuses: boolean[] = [];
+    irc.onConnectionChange(v => statuses.push(v));
+
+    // Single active network, service stopped -> start
+    mockConnectionManagerGetAllConnections.mockReturnValue([
+      { networkId: 'NetA', ircService: { getConnectionStatus: () => true } },
+    ]);
+    (mockFgService.isServiceRunning as jest.Mock).mockReturnValue(false);
+    (irc as any).emitConnection(true);
+    expect(mockFgService.start).toHaveBeenCalled();
+
+    // Multiple active networks, service running -> update
+    mockConnectionManagerGetAllConnections.mockReturnValue([
+      { networkId: 'NetA', ircService: { getConnectionStatus: () => true } },
+      { networkId: 'NetB', ircService: { getConnectionStatus: () => true } },
+      { networkId: 'NetC', ircService: { getConnectionStatus: () => true } },
+      { networkId: 'NetD', ircService: { getConnectionStatus: () => true } },
+    ]);
+    (mockFgService.isServiceRunning as jest.Mock).mockReturnValue(true);
+    (irc as any).emitConnection(true);
+    expect(mockFgService.updateNotification).toHaveBeenCalled();
+
+    // No active connections on disconnect -> stop
+    mockConnectionManagerGetAllConnections.mockReturnValue([]);
+    (irc as any).emitConnection(false);
+    expect(mockFgService.stop).toHaveBeenCalled();
+    expect(statuses).toEqual([true, true, false]);
+  });
+
+  it('covers reconnect scheduler success/failure and cancel flow', async () => {
+    const addRawSpy = jest.spyOn(irc, 'addRawMessage');
+    (irc as any).config = { host: 'irc.example', port: 6667, nick: 'tester' };
+    const connectSpy = jest.spyOn(irc, 'connect').mockResolvedValueOnce(undefined as any);
+
+    (irc as any).scheduleReconnect();
+    jest.advanceTimersByTime(2100);
+    await Promise.resolve();
+    expect(connectSpy).toHaveBeenCalledTimes(1);
+    expect(addRawSpy).toHaveBeenCalledWith(expect.stringContaining('Reconnected successfully'), 'connection');
+
+    connectSpy.mockReset();
+    connectSpy.mockRejectedValueOnce(new Error('boom'));
+    (irc as any).scheduleReconnect();
+    jest.advanceTimersByTime(2100);
+    await Promise.resolve();
+    expect(connectSpy).toHaveBeenCalledTimes(1);
+
+    (irc as any).reconnectTimer = setTimeout(() => {}, 1000);
+    irc.cancelReconnect();
+    expect(addRawSpy).toHaveBeenCalledWith(expect.stringContaining('Auto-reconnect cancelled'), 'connection');
+  });
+
   it('responds to incoming CTCP PING', () => {
     (irc as any).isConnected = true;
     (irc as any).handleIRCMessage(':bob!user@host PRIVMSG tester :\x01PING 123\x01');

@@ -13,6 +13,7 @@ const mockCapturedItems = new Map<string, any>();
 const mockSettingsGet = jest.fn(async (_k: string, d: any) => d);
 const mockSettingsSet = jest.fn(async () => undefined);
 const mockSettingsOnChange = jest.fn(() => jest.fn());
+const mockUpdateNetwork = jest.fn(async () => undefined);
 const mockSetAppLanguage = jest.fn(async () => undefined);
 const mockUpdateLayoutConfig = jest.fn(async () => undefined);
 const mockSetQuickConnect = jest.fn(async () => undefined);
@@ -43,6 +44,20 @@ const mockLayoutSetViewMode = jest.fn(async () => undefined);
 const mockLayoutSetMessageSpacing = jest.fn(async () => undefined);
 const mockLayoutSetMessagePadding = jest.fn(async () => undefined);
 const mockLayoutSetNavigationBarOffset = jest.fn(async () => undefined);
+const mockConnectionStatsGet = jest.fn(() => ({
+  connectionStartTime: Date.now() - 65000,
+  messagesSent: 12,
+  messagesReceived: 34,
+  bytesSent: 2048,
+  bytesReceived: 4096,
+  currentLag: 123,
+  averagePing: 110,
+  minPing: 40,
+  maxPing: 260,
+  lagStatus: 'good',
+}));
+const mockConnectionGet = jest.fn(() => null as any);
+const mockServiceDetectionGet = jest.fn(() => null as any);
 
 jest.mock('../../../src/i18n/transifex', () => ({
   useT: () => (key: string) => key,
@@ -75,7 +90,10 @@ jest.mock('../../../src/components/settings/SettingItem', () => {
 jest.mock('../../../src/hooks/useSettingsAppearance', () => ({
   useSettingsAppearance: () => ({
     currentTheme: { id: 'dark', name: 'Dark' },
-    availableThemes: [{ id: 'dark', name: 'Dark', isCustom: false }],
+    availableThemes: [
+      { id: 'dark', name: 'Dark', isCustom: false },
+      { id: 'custom_ocean', name: 'Ocean', isCustom: true },
+    ],
     layoutConfig: {
       userListPosition: 'left',
       userListSizePx: 150,
@@ -127,6 +145,7 @@ jest.mock('../../../src/services/SettingsService', () => ({
     getSetting: (...args: any[]) => mockSettingsGet(...args),
     setSetting: (...args: any[]) => mockSettingsSet(...args),
     onSettingChange: (...args: any[]) => mockSettingsOnChange(...args),
+    updateNetwork: (...args: any[]) => mockUpdateNetwork(...args),
   },
 }));
 
@@ -184,7 +203,7 @@ jest.mock('../../../src/services/AutoReconnectService', () => ({
 
 jest.mock('../../../src/services/ConnectionQualityService', () => ({
   connectionQualityService: {
-    getStatistics: jest.fn(() => null),
+    getStatistics: (...args: any[]) => mockConnectionStatsGet(...args),
   },
 }));
 
@@ -235,13 +254,13 @@ jest.mock('../../../src/services/SecureStorageService', () => ({
 
 jest.mock('../../../src/services/ConnectionManager', () => ({
   connectionManager: {
-    getConnection: jest.fn(() => null),
+    getConnection: (...args: any[]) => mockConnectionGet(...args),
   },
 }));
 
 jest.mock('../../../src/services/ServiceDetectionService', () => ({
   serviceDetectionService: {
-    getDetectionResult: jest.fn(() => null),
+    getDetectionResult: (...args: any[]) => mockServiceDetectionGet(...args),
   },
 }));
 
@@ -366,6 +385,76 @@ describe('Heavy sections B', () => {
     expect(mockLayoutSetFontSize).toHaveBeenCalledWith('large');
   });
 
+  it('AppearanceSection handles language/theme and input validation branches', async () => {
+    const onShowThemeEditor = jest.fn();
+    render(
+      <AppearanceSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        onShowThemeEditor={onShowThemeEditor}
+        languageLabels={{ en: 'English', sr: 'Serbian' }}
+      />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+
+    await mockCapturedItems
+      .get('app-language')
+      .submenuItems.find((x: any) => x.id === 'language-system')
+      .onPress();
+    await mockCapturedItems
+      .get('app-language')
+      .submenuItems.find((x: any) => x.id === 'language-sr')
+      .onPress();
+    expect(mockSetAppLanguage).toHaveBeenCalledWith('system');
+    expect(mockSetAppLanguage).toHaveBeenCalledWith('sr');
+
+    await mockCapturedItems
+      .get('display-theme')
+      .submenuItems.find((x: any) => x.id === 'theme-new')
+      .onPress();
+    expect(onShowThemeEditor).toHaveBeenCalledWith(undefined);
+
+    await mockCapturedItems
+      .get('display-theme')
+      .submenuItems.find((x: any) => x.id === 'theme-edit-custom_ocean')
+      .onPress();
+    expect(onShowThemeEditor).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'custom_ocean', name: 'Ocean' })
+    );
+
+    mockCapturedItems
+      .get('display-theme')
+      .submenuItems.find((x: any) => x.id === 'theme-delete-custom_ocean')
+      .onPress();
+    expect(Alert.alert).toHaveBeenCalled();
+
+    await mockCapturedItems.get('layout-userlist-size').onValueChange('abc');
+    await mockCapturedItems.get('layout-userlist-size').onValueChange('-1');
+    await mockCapturedItems.get('layout-userlist-size').onValueChange('220');
+    expect(mockLayoutSetUserListSizePx).toHaveBeenCalledWith(220);
+
+    await mockCapturedItems.get('layout-userlist-nick-font-size').onValueChange('zero');
+    await mockCapturedItems.get('layout-userlist-nick-font-size').onValueChange('0');
+    await mockCapturedItems.get('layout-userlist-nick-font-size').onValueChange('15');
+    expect(mockLayoutSetUserListNickFontSizePx).toHaveBeenCalledWith(15);
+
+    await mockCapturedItems.get('layout-userlist-reset-defaults').onPress();
+    expect(mockLayoutSetUserListSizePx).toHaveBeenCalledWith(150);
+    expect(mockLayoutSetUserListNickFontSizePx).toHaveBeenCalledWith(13);
+
+    await mockCapturedItems
+      .get('layout-font-size')
+      .submenuItems.find((x: any) => x.id === 'font-size-custom')
+      .onPress();
+    await mockCapturedItems
+      .get('layout-font-size')
+      .submenuItems.find((x: any) => x.id === 'font-size-value-custom')
+      .onValueChange('19');
+    expect(mockLayoutSetFontSize).toHaveBeenCalledWith('custom');
+    expect(mockLayoutSetFontSizeValue).toHaveBeenCalledWith('custom', 19);
+  });
+
   it('ConnectionNetworkSection renders and updates a key setting callback', async () => {
     render(
       <ConnectionNetworkSection
@@ -471,4 +560,146 @@ describe('Heavy sections B', () => {
     await disableButton?.onPress?.();
     expect(mockSettingsSet).toHaveBeenCalledWith('dccBlockPrivateIp', false);
   });
+
+  it('ConnectionNetworkSection covers auto-reconnect inputs, lag methods and quality stats', async () => {
+    render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        currentNetwork="net"
+      />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('connection-auto-reconnect')).toBe(true));
+
+    const autoReconnect = mockCapturedItems.get('connection-auto-reconnect');
+    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-enabled').onValueChange(true);
+    await autoReconnect
+      .submenuItems.find((x: any) => x.id === 'auto-reconnect-max-attempts')
+      .onValueChange('invalid');
+    await autoReconnect
+      .submenuItems.find((x: any) => x.id === 'auto-reconnect-initial-delay')
+      .onValueChange('2000');
+    await autoReconnect
+      .submenuItems.find((x: any) => x.id === 'auto-reconnect-max-delay')
+      .onValueChange('90000');
+    expect(mockAutoReconnectSetConfig).toHaveBeenCalled();
+    expect(mockUpdateRateLimitConfig).not.toHaveBeenCalledWith(expect.objectContaining({ enabled: 'invalid' }));
+
+    const quality = mockCapturedItems.get('connection-quality');
+    quality.submenuItems.find((x: any) => x.id === 'quality-lag-monitoring').submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-method')
+      .onPress();
+    let args = (Alert.alert as jest.Mock).mock.calls.pop();
+    let ctcpBtn = args?.[2]?.find((b: any) => b.text === 'CTCP Ping');
+    await ctcpBtn?.onPress?.();
+    expect(mockSettingsSet).toHaveBeenCalledWith('lagCheckMethod', 'ctcp');
+
+    quality.submenuItems.find((x: any) => x.id === 'quality-statistics').onPress();
+    args = (Alert.alert as jest.Mock).mock.calls.pop();
+    expect(String(args?.[0])).toContain('Connection Statistics');
+  });
+
+  it('ConnectionNetworkSection covers proxy inputs and whois network update flow', async () => {
+    render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        currentNetwork="net"
+      />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('connection-global-proxy')).toBe(true));
+
+    const proxyMenu = mockCapturedItems.get('connection-global-proxy');
+    await proxyMenu.submenuItems.find((x: any) => x.id === 'proxy-host').onValueChange('proxy.example.com');
+    await proxyMenu.submenuItems.find((x: any) => x.id === 'proxy-port').onValueChange('1080');
+    await proxyMenu.submenuItems.find((x: any) => x.id === 'proxy-username').onValueChange('alice');
+    await proxyMenu.submenuItems.find((x: any) => x.id === 'proxy-password').onValueChange('secret');
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'globalProxy',
+      expect.objectContaining({ host: 'proxy.example.com' })
+    );
+
+    await mockCapturedItems.get('connection-whois-auto-detect').onValueChange(false);
+    await mockCapturedItems.get('connection-whois-double-nick').onValueChange(true);
+    expect(mockUpdateNetwork).toHaveBeenCalled();
+  });
+
+  it('ConnectionNetworkSection covers DCC controls and WHOIS connection-sync branches', async () => {
+    const setWhoisUseDoubleNick = jest.fn();
+    mockConnectionGet.mockReturnValue({
+      ircService: { setWhoisUseDoubleNick },
+    });
+    mockServiceDetectionGet.mockReturnValue({ serviceType: 'undernet' });
+
+    render(
+      <ConnectionNetworkSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        currentNetwork="net"
+      />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('connection-dcc')).toBe(true));
+
+    const dccMenu = mockCapturedItems.get('connection-dcc');
+    dccMenu.submenuItems.find((x: any) => x.id === 'dcc-auto-get-mode').onPress();
+    let args = (Alert.alert as jest.Mock).mock.calls.pop();
+    let rejectBtn = args?.[2]?.find((b: any) => String(b.text).includes('Reject'));
+    await rejectBtn?.onPress?.();
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoGetMode', 'reject');
+
+    dccMenu.submenuItems.find((x: any) => x.id === 'dcc-auto-chat-from').onPress();
+    args = (Alert.alert as jest.Mock).mock.calls.pop();
+    let opsBtn = args?.[2]?.find((b: any) => String(b.text).includes('3 - Ops'));
+    await opsBtn?.onPress?.();
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoChatFrom', 3);
+
+    dccMenu.submenuItems.find((x: any) => x.id === 'dcc-auto-get-from').onPress();
+    args = (Alert.alert as jest.Mock).mock.calls.pop();
+    let autoBtn = args?.[2]?.find((b: any) => String(b.text).includes('4 - Auto Op & Notify'));
+    await autoBtn?.onPress?.();
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoGetFrom', 4);
+
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-min-port').onValueChange('5100');
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-max-port').onValueChange('6200');
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-host-override').onValueChange(' 1.2.3.4 ');
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccPortRange', expect.objectContaining({ min: 5100 }));
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccHostOverride', '1.2.3.4');
+
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-auto-open-viewer').onValueChange(true);
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-close-queries').onValueChange(true);
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-request-on-fail').onValueChange(true);
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-allow-by-ip').onValueChange(true);
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-block-private-ip').onValueChange(true);
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-passive').onValueChange(true);
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-reply-queue').onValueChange(true);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccServeViewerAuto', true);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccCloseQueriesOnChat', true);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccRequestOnFail', true);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccAllowByIp', true);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccBlockPrivateIp', true);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccPassive', true);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccReplyQueueCommands', true);
+
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-send-max-kbps').onValueChange('250');
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-cancel-above-kbps').onValueChange('800');
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccSendMaxKbps', 250);
+    expect(mockSettingsSet).toHaveBeenCalledWith('dccCancelAboveKbps', 800);
+
+    await dccMenu.submenuItems.find((x: any) => x.id === 'dcc-download-folder').onPress();
+    expect(Alert.alert).toHaveBeenCalled();
+
+    // File filter entry buttons (state branches)
+    const filterMenu = dccMenu.submenuItems.find((x: any) => x.id === 'dcc-file-filters');
+    filterMenu.submenuItems.find((x: any) => x.id === 'dcc-accept-exts').onPress();
+    filterMenu.submenuItems.find((x: any) => x.id === 'dcc-reject-exts').onPress();
+    filterMenu.submenuItems.find((x: any) => x.id === 'dcc-dont-send-exts').onPress();
+
+    await mockCapturedItems.get('connection-whois-auto-detect').onValueChange(true);
+    await mockCapturedItems.get('connection-whois-double-nick').onValueChange(false);
+    expect(setWhoisUseDoubleNick).toHaveBeenCalled();
+  });
+
 });

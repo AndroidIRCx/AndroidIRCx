@@ -6,6 +6,7 @@
  */
 
 import { dccChatService, DCCChatSession } from '../../src/services/DCCChatService';
+import TcpSocket from 'react-native-tcp-socket';
 
 // Mock react-native-tcp-socket
 const mockSocket = {
@@ -106,6 +107,56 @@ describe('DCCChatService', () => {
         status: 'pending',
       }));
     });
+
+    it('acceptInvite should connect, attach handlers and append connect/system message', async () => {
+      const listeners: Record<string, Function> = {};
+      const socketWithEvents: any = {
+        write: jest.fn(),
+        destroy: jest.fn(),
+        on: jest.fn((event: string, cb: Function) => {
+          listeners[event] = cb;
+          return socketWithEvents;
+        }),
+      };
+      (TcpSocket.createConnection as jest.Mock).mockImplementation((_opts: any, onConnect: Function) => {
+        onConnect();
+        return socketWithEvents;
+      });
+
+      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const updateListener = jest.fn();
+      const messageListener = jest.fn();
+      dccChatService.onSessionUpdate(updateListener);
+      dccChatService.onMessage(messageListener);
+
+      await dccChatService.acceptInvite(session.id, {
+        sendRaw: jest.fn(),
+        getCurrentNick: jest.fn(() => 'me'),
+      });
+
+      // connected state reached
+      expect(updateListener).toHaveBeenCalledWith(expect.objectContaining({ status: 'connected' }));
+      expect(messageListener).toHaveBeenCalledWith(
+        session.id,
+        expect.objectContaining({ text: '*** DCC CHAT connected' }),
+        expect.any(Object)
+      );
+
+      // incoming data message path
+      listeners.data?.({ toString: () => 'hello\n' });
+      expect(messageListener).toHaveBeenCalledWith(
+        session.id,
+        expect.objectContaining({ text: 'hello' }),
+        expect.any(Object)
+      );
+
+      // error/close handlers mutate status and cleanup socket map
+      listeners.error?.(new Error('socket-fail'));
+      expect(updateListener).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
+      listeners.close?.();
+      expect(updateListener).toHaveBeenCalledWith(expect.objectContaining({ status: 'closed' }));
+      expect((dccChatService as any).sockets.has(session.id)).toBe(false);
+    });
   });
 
   describe('Session Listeners', () => {
@@ -157,6 +208,41 @@ describe('DCCChatService', () => {
       dccChatService.sendMessage(session.id, 'Hello');
 
       expect(mockSocket.write).not.toHaveBeenCalled();
+    });
+
+    it('initiateChat should create server, send CTCP offer, and handle incoming connection', async () => {
+      const listeners: Record<string, Function> = {};
+      const acceptedSocket: any = {
+        write: jest.fn(),
+        destroy: jest.fn(),
+        on: jest.fn((event: string, cb: Function) => {
+          listeners[event] = cb;
+          return acceptedSocket;
+        }),
+      };
+      let onServerConnection: Function | undefined;
+      const mockServerLocal = {
+        listen: jest.fn((_opts: any, cb: Function) => cb()),
+        close: jest.fn(),
+        address: jest.fn().mockReturnValue({ port: 45678, address: '127.0.0.1' }),
+      };
+      (TcpSocket.createServer as jest.Mock).mockImplementation((cb: Function) => {
+        onServerConnection = cb;
+        return mockServerLocal as any;
+      });
+
+      const irc = { sendRaw: jest.fn(), getCurrentNick: jest.fn(() => 'me') };
+      const session = await dccChatService.initiateChat(irc as any, 'Jane', 'freenode');
+
+      expect(session.direction).toBe('outgoing');
+      expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('\x01DCC CHAT chat'));
+
+      onServerConnection?.(acceptedSocket);
+      expect((dccChatService as any).sockets.has(session.id)).toBe(true);
+
+      // outgoing append message from "You"
+      dccChatService.sendMessage(session.id, 'yo');
+      expect(acceptedSocket.write).toHaveBeenCalledWith('yo\n', 'utf8');
     });
   });
 

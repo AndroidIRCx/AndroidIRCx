@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { AppLayout } from '../../src/components/AppLayout';
+import { PanResponder } from 'react-native';
 
 const mockChannelTabs = jest.fn(() => null);
 const mockMessageArea = jest.fn(() => null);
@@ -307,5 +308,107 @@ describe('AppLayout', () => {
     expect(settingListeners.has('swipeBehavior')).toBe(true);
     expect(settingListeners.has('bannerPosition')).toBe(true);
     expect(settingListeners.has('nicklistTongueEnabled')).toBe(true);
+  });
+
+  it('executes swipe pan handlers for switch-tabs and show-panels behaviors', async () => {
+    const capturedConfigs: any[] = [];
+    const panSpy = jest
+      .spyOn(PanResponder, 'create')
+      .mockImplementation((cfg: any) => {
+        capturedConfigs.push(cfg);
+        return { panHandlers: {} } as any;
+      });
+
+    const handleTabPress = jest.fn();
+    const onToggleSideTabs = jest.fn();
+
+    mockGetSetting.mockImplementation((key: string, fallback: unknown) => {
+      if (key === 'swipeBehavior') return Promise.resolve('switch-tabs');
+      if (key === 'channelListScrollSwitchTabsInverse') return Promise.resolve(false);
+      return Promise.resolve(fallback);
+    });
+
+    render(
+      <AppLayout
+        {...baseProps}
+        handleTabPress={handleTabPress}
+        onToggleSideTabs={onToggleSideTabs}
+      />
+    );
+
+    capturedConfigs.forEach((cfg) => {
+      if (typeof cfg.onStartShouldSetPanResponder === 'function') {
+        expect(() => cfg.onStartShouldSetPanResponder()).not.toThrow();
+      }
+      if (typeof cfg.onMoveShouldSetPanResponder === 'function') {
+        expect(() => cfg.onMoveShouldSetPanResponder({}, { dx: 60, dy: 0 })).not.toThrow();
+      }
+      if (typeof cfg.onPanResponderRelease === 'function') {
+        expect(() => cfg.onPanResponderRelease({}, { dx: 60, dy: 0 })).not.toThrow();
+      }
+    });
+
+    await act(async () => {
+      settingListeners.get('swipeBehavior')?.('show-panels');
+    });
+
+    capturedConfigs.forEach((cfg) => {
+      if (typeof cfg.onPanResponderRelease === 'function') {
+        expect(() => cfg.onPanResponderRelease({}, { dx: -70, dy: 0 })).not.toThrow();
+      }
+    });
+
+    panSpy.mockRestore();
+  });
+
+  it('handles tongue pan responder branches for all user-list positions', () => {
+    const capturedConfigs: any[] = [];
+    const panSpy = jest
+      .spyOn(PanResponder, 'create')
+      .mockImplementation((cfg: any) => {
+        capturedConfigs.push(cfg);
+        return { panHandlers: {} } as any;
+      });
+
+    const setShowUserList = jest.fn();
+    mockUseUIStore.mockImplementation((selector: (state: any) => any) =>
+      selector({ setShowUserList })
+    );
+
+    const runFor = (pos: 'left' | 'right' | 'top' | 'bottom', gesture: any) => {
+      render(
+        <AppLayout
+          {...baseProps}
+          layoutConfig={{ ...baseProps.layoutConfig, userListPosition: pos }}
+          activeTab={{ id: 'chan:1', name: '#general', type: 'channel', networkId: 'net-1', messages: [] }}
+        />
+      );
+      const tongueConfig = capturedConfigs[capturedConfigs.length - 1];
+      expect(tongueConfig.onStartShouldSetPanResponder()).toBe(true);
+      expect(tongueConfig.onMoveShouldSetPanResponder({}, { dx: 7, dy: 0 })).toBe(true);
+      tongueConfig.onPanResponderRelease({}, gesture);
+    };
+
+    runFor('left', { dx: 30, dy: 0 });
+    runFor('right', { dx: -30, dy: 0 });
+    runFor('top', { dx: 0, dy: 30 });
+    runFor('bottom', { dx: 0, dy: -30 });
+
+    expect(setShowUserList).toHaveBeenCalled();
+    panSpy.mockRestore();
+  });
+
+  it('invokes header connect callback and banner load error handler', () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const handleConnect = jest.fn();
+    render(<AppLayout {...baseProps} handleConnect={handleConnect} />);
+
+    const headerProps = mockHeaderBar.mock.calls[0][0];
+    headerProps.onConnectPress();
+    expect(handleConnect).toHaveBeenCalled();
+
+    const bannerProps = mockBannerAd.mock.calls[0][0];
+    expect(() => bannerProps.onAdFailedToLoad(new Error('ad-fail'))).not.toThrow();
+    consoleSpy.mockRestore();
   });
 });

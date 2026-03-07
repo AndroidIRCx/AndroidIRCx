@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { NotificationsSection } from '../../../src/components/settings/sections/NotificationsSection';
 
@@ -15,6 +15,7 @@ const mockCheckPermission = jest.fn(async () => true);
 const mockRequestPermission = jest.fn(async () => true);
 const mockListChannelPreferences = jest.fn(() => []);
 const mockUpdateChannelPreferences = jest.fn(async () => undefined);
+const mockRemoveChannelPreferences = jest.fn(async () => undefined);
 
 jest.mock('../../../src/i18n/transifex', () => ({
   useT: () => (key: string) => key,
@@ -55,11 +56,22 @@ jest.mock('../../../src/services/NotificationService', () => ({
     requestPermission: (...args: any[]) => mockRequestPermission(...args),
     listChannelPreferences: (...args: any[]) => mockListChannelPreferences(...args),
     updateChannelPreferences: (...args: any[]) => mockUpdateChannelPreferences(...args),
+    removeChannelPreferences: (...args: any[]) => mockRemoveChannelPreferences(...args),
   },
 }));
 
 jest.mock('../../../src/screens/SoundSettingsScreen', () => ({
-  SoundSettingsScreen: () => null,
+  SoundSettingsScreen: ({ visible, onClose }: any) => {
+    if (!visible) return null;
+    const React = require('react');
+    const { View, Text, TouchableOpacity } = require('react-native');
+    return React.createElement(
+      View,
+      { testID: 'sound-settings' },
+      React.createElement(Text, null, 'Sound Settings Open'),
+      React.createElement(TouchableOpacity, { testID: 'sound-close', onPress: onClose }, React.createElement(Text, null, 'Close Sound'))
+    );
+  },
 }));
 
 const colors = {
@@ -98,6 +110,9 @@ describe('NotificationsSection', () => {
   beforeEach(() => {
     mockCapturedItems.clear();
     jest.clearAllMocks();
+    mockCheckPermission.mockResolvedValue(true);
+    mockRequestPermission.mockResolvedValue(true);
+    mockListChannelPreferences.mockReturnValue([]);
   });
 
   it('refreshes prefs on mount', async () => {
@@ -129,5 +144,69 @@ describe('NotificationsSection', () => {
     await mockCapturedItems.get('notifications-enabled').onValueChange(true);
     expect(alertSpy).toHaveBeenCalled();
     expect(mockUpdateNotificationPrefs).not.toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('enables notifications directly when permission already granted', async () => {
+    render(<NotificationsSection colors={colors} styles={styles as any} settingIcons={{}} />);
+    await waitFor(() => expect(mockCapturedItems.has('notifications-enabled')).toBe(true));
+
+    await mockCapturedItems.get('notifications-enabled').onValueChange(true);
+    expect(mockRequestPermission).not.toHaveBeenCalled();
+    expect(mockUpdateNotificationPrefs).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('updates non-enabled notification toggles without permission flow', async () => {
+    render(<NotificationsSection colors={colors} styles={styles as any} settingIcons={{}} />);
+    await waitFor(() => expect(mockCapturedItems.has('notifications-dnd')).toBe(true));
+
+    await mockCapturedItems.get('notifications-dnd').onValueChange(true);
+    expect(mockCheckPermission).not.toHaveBeenCalled();
+    expect(mockUpdateNotificationPrefs).toHaveBeenCalledWith({ doNotDisturb: true });
+  });
+
+  it('opens per-channel modal, adds channel override and deletes existing override', async () => {
+    mockListChannelPreferences
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([{ channel: '#dev', prefs: { notifyOnAllMessages: true, notifyOnMentions: true, notifyOnPrivateMessages: false, enabled: true, doNotDisturb: false } }]);
+    const { getByText, getByPlaceholderText, queryByText } = render(
+      <NotificationsSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('notifications-per-channel')).toBe(true));
+
+    mockCapturedItems.get('notifications-per-channel').onPress();
+    await waitFor(() => expect(getByText('Per-Channel Notifications')).toBeTruthy());
+    expect(getByText('No channel overrides set.')).toBeTruthy();
+
+    fireEvent.changeText(getByPlaceholderText('#channel'), '#dev');
+    fireEvent.press(getByText('Add'));
+    await waitFor(() =>
+      expect(mockUpdateChannelPreferences).toHaveBeenCalledWith('#dev', {
+        enabled: true,
+        notifyOnMentions: true,
+        notifyOnPrivateMessages: false,
+        notifyOnAllMessages: false,
+        doNotDisturb: false,
+      })
+    );
+
+    await waitFor(() => expect(getByText('#dev')).toBeTruthy());
+    fireEvent.press(getByText('Delete'));
+    expect(mockRemoveChannelPreferences).toHaveBeenCalledWith('#dev');
+
+    fireEvent.press(getByText('Close'));
+    await waitFor(() => expect(queryByText('Per-Channel Notifications')).toBeNull());
+  });
+
+  it('opens and closes sound settings screen', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <NotificationsSection colors={colors} styles={styles as any} settingIcons={{}} />
+    );
+    await waitFor(() => expect(mockCapturedItems.has('notifications-sounds')).toBe(true));
+
+    mockCapturedItems.get('notifications-sounds').onPress();
+    await waitFor(() => expect(getByTestId('sound-settings')).toBeTruthy());
+
+    fireEvent.press(getByTestId('sound-close'));
+    await waitFor(() => expect(queryByTestId('sound-settings')).toBeNull());
   });
 });
