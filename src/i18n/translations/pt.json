@@ -12646,5 +12646,341 @@
   },
   "{nick} is now online": {
     "string": ""
+  },
+  "Audio Call": {
+    "string": ""
+  },
+  "Video Call": {
+    "string": ""
+  },
+  "Auto-detect WHOIS idle format": {
+    "string": ""
+  },
+  "Automatically use \"/WHOIS nick nick\" on networks like Undernet": {
+    "string": ""
+  },
+  "Use manual WHOIS format setting": {
+    "string": ""
+  },
+  "Use /WHOIS nick nick format": {
+    "string": ""
+  },
+  "Enabled for this network (better idle results on Undernet-like servers)": {
+    "string": ""
+  },
+  "Disabled (uses standard /WHOIS nick)": {
+    "string": ""
+  },
+  "Live Call Video Quality": {
+    "string": ""
+  },
+  "Current: {quality} • Privacy Relay unlocks HD and TURN fallback": {
+    "string": ""
+  },
+  "Current: {quality} • Free calls stay direct, default to 480p, and can be raised to 720p": {
+    "string": ""
+  },
+  "Free Call STUN Servers": {
+    "string": ""
+  },
+  "Current fallback list: {count} STUN endpoints. Premium calls still use TURN when needed.": {
+    "string": ""
+  },
+  "Current fallback list: {count} STUN endpoints for direct free calls. Ordered list is used for fallback.": {
+    "string": ""
+  },
+  "External TURN Server": {
+    "string": ""
+  },
+  "Enabled: {count} TURN URL(s), credentials {credentialsState}.": {
+    "string": ""
+  },
+  "set": {
+    "string": ""
+  },
+  "missing": {
+    "string": ""
+  },
+  "Disabled. Configure your own TURN relay if you already have one.": {
+    "string": ""
+  },
+  "Force TURN Relay Only": {
+    "string": ""
+  },
+  "If enabled, WebRTC uses relay candidates only when relay is available (Privacy Relay or external TURN).": {
+    "string": ""
+  },
+  "Show Audio/Video Call In Nick Menu": {
+    "string": ""
+  },
+  "Audio and Video Call actions are visible in user context menu.": {
+    "string": ""
+  },
+  "Audio and Video Call actions are hidden in user context menu.": {
+    "string": ""
+  },
+  "Show Ongoing Call Notification": {
+    "string": ""
+  },
+  "Keeps an Android notification visible during active audio and video calls so you can jump back quickly.": {
+    "string": ""
+  },
+  "Show Minimized Call Only In Active Query": {
+    "string": ""
+  },
+  "Minimized call overlay appears only when you are on the matching query tab. This is optional and off by default.": {
+    "string": ""
+  },
+  "Default behavior: minimized call overlay stays visible everywhere in the app.": {
+    "string": ""
+  },
+  "No STUN servers added yet.": {
+    "string": ""
+  },
+  "No TURN servers added yet.": {
+    "string": ""
+  },
+  "STUN Servers": {
+    "string": ""
+  },
+  "Add multiple STUN URLs. Order is used as fallback priority.": {
+    "string": ""
+  },
+  "STUN must start with stun:": {
+    "string": ""
+  },
+  "Enable External TURN": {
+    "string": ""
+  },
+  "Use your own TURN server for call relay fallback.": {
+    "string": ""
+  },
+  "TURN Servers": {
+    "string": ""
+  },
+  "Add multiple TURN URLs. Order is used as fallback priority.": {
+    "string": ""
+  },
+  "TURN must start with turn: or turns:": {
+    "string": ""
+  },
+  "TURN Username": {
+    "string": ""
+  },
+  "TURN Credential": {
+    "string": ""
+  },
+  "Auto-show Biometric Prompt": {
+    "string": ""
+  },
+  "Automatically shows fingerprint prompt when lock screen opens": {
+    "string": ""
+  },
+  "Fingerprint prompt appears only when you tap the button": {
+    "string": ""
+  },
+  "Starting audio call with {nick}": {
+    "string": ""
+  },
+  "Failed to start audio call": {
+    "string": ""
+  },
+  "Starting video call with {nick}": {
+    "string": ""
+  },
+  "Failed to start video call": {
+    "string": ""
+  },
+  "Idle time was not provided by this server for this user": {
+    "string": ""
+  },
+  "Generating backup...": {
+    "string": ""
+  },
+  "Saving backup file...": {
+    "string": ""
+  },
+  "Loading backup file...": {
+    "string": ""
+  },
+  "Restoring backup...": {
+    "string": ""
+  },
+  "Decrypting backup...": {
+    "string": ""
+  },
+  "selected backup file": {
+    "string": ""
+  },
+  "Backup Loaded": {
+    "string": ""
+  },
+  "Backup file loaded successfully. Please wait during restore and do not close the app.": {
+    "string": ""
+  },
+  "Please paste backup data or load a backup file first": {
+    "string": ""
+  },
+  "Restarting after backup restore": {
+    "string": ""
+  },
+  "Restart Required": {
+    "string": ""
+  },
+  "Please close and reopen the app manually to complete restore.": {
+    "string": ""
+  },
+  "Loaded from file. JSON preview is hidden for large backups. You can restore now.": {
+    "string": ""
+  },
+  "Loaded Backup File": {
+    "string": ""
+  },
+  "File: {name}": {
+    "string": ""
+  },
+  "Size: {size} MB": {
+    "string": ""
+  },
+  "Items: {count}": {
+    "string": ""
+  },
+  "Please wait while restoring. Do not close the app.": {
+    "string": ""
+  },
+  "Switch to Manual JSON Paste": {
+    "string": ""
+  },
+  "Backup restored successfully. Please restart the app to reload all restored data.": {
+    "string": ""
+  },
+  "Exit to Restart App": {
+    "string": ""
+  },
+  "Please wait... Do not close the app while this operation is in progress.": {
+    "string": ""
+  },
+  "Saving...": {
+    "string": ""
+  },
+  "Unavailable": {
+    "string": ""
+  },
+  "Syncing subscription with backend...": {
+    "string": ""
+  },
+  "Fetching TURN credentials from backend...": {
+    "string": ""
+  },
+  "TURN credentials loaded. TTL: {ttl}s": {
+    "string": ""
+  },
+  "Failed to load Privacy Relay subscription.": {
+    "string": ""
+  },
+  "Privacy Relay enabled": {
+    "string": ""
+  },
+  "Relay routing is now available for eligible calls.": {
+    "string": ""
+  },
+  "Failed to complete subscription.": {
+    "string": ""
+  },
+  "Unable to start subscription purchase.": {
+    "string": ""
+  },
+  "Checking existing purchases...": {
+    "string": ""
+  },
+  "Your Privacy Relay subscription was restored.": {
+    "string": ""
+  },
+  "No Privacy Relay subscriptions were found to restore.": {
+    "string": ""
+  },
+  "Unable to restore purchases.": {
+    "string": ""
+  },
+  "No subscription": {
+    "string": ""
+  },
+  "Buy or restore Privacy Relay first.": {
+    "string": ""
+  },
+  "Relay ready": {
+    "string": ""
+  },
+  "TURN credentials were fetched successfully.": {
+    "string": ""
+  },
+  "Relay test failed": {
+    "string": ""
+  },
+  "Unable to fetch TURN credentials.": {
+    "string": ""
+  },
+  "Monthly relay access using turn.dbase.in.rs": {
+    "string": ""
+  },
+  "Yearly relay access using turn.dbase.in.rs": {
+    "string": ""
+  },
+  "Active": {
+    "string": ""
+  },
+  "Subscribe": {
+    "string": ""
+  },
+  "Privacy Relay": {
+    "string": ""
+  },
+  "Subscription active": {
+    "string": ""
+  },
+  "Subscription inactive": {
+    "string": ""
+  },
+  "Relay routing can be offered for calls that need TURN fallback.": {
+    "string": ""
+  },
+  "Direct P2P remains default. TURN relay is only offered to subscribed users.": {
+    "string": ""
+  },
+  "TURN setup": {
+    "string": ""
+  },
+  "Credentials are not embedded in the app. They must be issued by your backend per session.": {
+    "string": ""
+  },
+  "Monthly": {
+    "string": ""
+  },
+  "Yearly": {
+    "string": ""
+  },
+  "Test Relay Credentials": {
+    "string": ""
+  },
+  "Last backend test": {
+    "string": ""
+  },
+  "Copying backup data...": {
+    "string": ""
+  },
+  "No backup data to save": {
+    "string": ""
+  },
+  "Privacy Relay for Calls": {
+    "string": ""
+  },
+  "Manage TURN relay access on turn.dbase.in.rs for calls that cannot stay direct P2P": {
+    "string": ""
+  },
+  "*** Keepalive timeout: no PONG received, reconnecting socket...": {
+    "string": ""
+  },
+  "Calls": {
+    "string": ""
   }
 }

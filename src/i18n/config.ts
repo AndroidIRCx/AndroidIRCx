@@ -19,5 +19,6 @@ export const SUPPORTED_LOCALES = [
   'ru',
   'sr',
   'es',
+  'id'
 ];
 
