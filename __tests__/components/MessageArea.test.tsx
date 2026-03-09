@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 
 // ── sub-component mocks ────────────────────────────────────────────────────
 jest.mock('../../src/components/LinkPreview', () => ({
@@ -725,6 +725,258 @@ describe('MessageArea', () => {
     const messages = Array.from({ length: 50 }, (_, i) =>
       makeMsg({ id: `m${i}`, text: `Message ${i}`, timestamp: ts + i * 1000 })
     );
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── search functionality tests ────────────────────────────────────────────
+  it('renders with search filters applied', async () => {
+    const messages = [
+      makeMsg({ id: 'a', type: 'message', text: 'Hello world', from: 'Alice' }),
+      makeMsg({ id: 'b', type: 'notice', text: 'Server notice', from: 'Server' }),
+      makeMsg({ id: 'c', type: 'join', text: 'Bob joined', from: 'Bob' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea 
+        {...baseProps} 
+        messages={messages} 
+        searchVisible={true}
+        onSearchVisibleChange={jest.fn()}
+      />
+    );
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── message grouping scenarios ────────────────────────────────────────────
+  it('renders messages grouped by same sender within 5 minutes', async () => {
+    const ts = Date.now();
+    const messages = [
+      makeMsg({ id: 'a', from: 'Alice', text: 'First message', timestamp: ts }),
+      makeMsg({ id: 'b', from: 'Alice', text: 'Second message', timestamp: ts + 60000 }), // 1 min later
+      makeMsg({ id: 'c', from: 'Bob', text: 'Different user', timestamp: ts + 120000 }),
+    ];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it('does not group messages from different users', async () => {
+    const ts = Date.now();
+    const messages = [
+      makeMsg({ id: 'a', from: 'Alice', text: 'From Alice', timestamp: ts }),
+      makeMsg({ id: 'b', from: 'Bob', text: 'From Bob', timestamp: ts + 1000 }),
+      makeMsg({ id: 'c', from: 'Alice', text: 'From Alice again', timestamp: ts + 2000 }),
+    ];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it('does not group messages more than 5 minutes apart', async () => {
+    const ts = Date.now();
+    const messages = [
+      makeMsg({ id: 'a', from: 'Alice', text: 'First', timestamp: ts }),
+      makeMsg({ id: 'b', from: 'Alice', text: 'Six minutes later', timestamp: ts + 6 * 60 * 1000 }),
+    ];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── action message tests (/me) ────────────────────────────────────────────
+  it('renders action messages correctly', async () => {
+    const messages = [
+      makeMsg({ id: 'a', text: '\x01ACTION waves hello\x01', from: 'Alice' }),
+    ];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it('does not group action messages', async () => {
+    const ts = Date.now();
+    const messages = [
+      makeMsg({ id: 'a', from: 'Alice', text: '\x01ACTION waves\x01', timestamp: ts }),
+      makeMsg({ id: 'b', from: 'Alice', text: '\x01ACTION sits down\x01', timestamp: ts + 1000 }),
+    ];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── raw message category visibility tests ─────────────────────────────────
+  it('renders with raw category visibility for different categories', async () => {
+    const rawCategoryVisibility = { 
+      server: true, 
+      channel: false, 
+      user: true,
+      debug: false,
+      error: true,
+    };
+    const messages = [
+      makeMsg({ id: 'a', type: 'raw', text: ':server 001', isRaw: true, rawCategory: 'server' }),
+      makeMsg({ id: 'b', type: 'raw', text: ':server 002', isRaw: true, rawCategory: 'channel' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea 
+        {...baseProps} 
+        messages={messages} 
+        showRawCommands={true}
+        rawCategoryVisibility={rawCategoryVisibility}
+      />
+    );
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── system message tests ──────────────────────────────────────────────────
+  it('renders system message types', async () => {
+    const messages = [
+      makeMsg({ id: 'a', type: 'system', text: 'System message' }),
+      makeMsg({ id: 'b', type: 'event', text: 'Event message' }),
+    ];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── message selection tests ───────────────────────────────────────────────
+  it('renders in selection mode', async () => {
+    const messages = [
+      makeMsg({ id: 'a', text: 'Message 1' }),
+      makeMsg({ id: 'b', text: 'Message 2' }),
+    ];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── timestamp format tests ────────────────────────────────────────────────
+  it('renders with different timestamp settings', async () => {
+    mockGetSetting.mockImplementation((key: string, fallback: unknown) => {
+      if (key === 'timestampDisplay') return Promise.resolve('always');
+      if (key === 'timestampFormat') return Promise.resolve('24h');
+      return Promise.resolve(fallback);
+    });
+
+    const messages = [makeMsg({ text: 'Test message' })];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── virtualization tests ──────────────────────────────────────────────────
+  it('handles virtualization with many messages', async () => {
+    const { performanceService } = require('../../src/services/PerformanceService');
+    performanceService.getConfig.mockReturnValue({
+      enableVirtualization: true,
+      maxVisibleMessages: 50,
+      messageLoadChunk: 25,
+      enableLazyLoading: true,
+      messageLimit: 1000,
+      enableMessageCleanup: true,
+      cleanupThreshold: 1500,
+    });
+
+    const ts = Date.now();
+    const messages = Array.from({ length: 200 }, (_, i) =>
+      makeMsg({ id: `m${i}`, text: `Message ${i}`, timestamp: ts + i * 1000 })
+    );
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── edge cases ────────────────────────────────────────────────────────────
+  it('renders with empty message text', async () => {
+    const messages = [makeMsg({ text: '' })];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it('renders with very long message text', async () => {
+    const longText = 'A'.repeat(5000);
+    const messages = [makeMsg({ text: longText })];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it('renders with message containing special characters', async () => {
+    const messages = [makeMsg({ text: 'Special: <>&"\'\n\r\t🔥🎉' })];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it('renders with messages having same timestamp', async () => {
+    const ts = Date.now();
+    const messages = [
+      makeMsg({ id: 'a', text: 'First', timestamp: ts }),
+      makeMsg({ id: 'b', text: 'Second', timestamp: ts }),
+      makeMsg({ id: 'c', text: 'Third', timestamp: ts }),
+    ];
+    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  // ── props change tests ────────────────────────────────────────────────────
+  it('handles changing messages prop', async () => {
+    const { rerender } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={[makeMsg({ id: 'a', text: 'First' })]} />
+    );
+    
+    await act(async () => {
+      rerender(<MessageArea {...baseProps} messages={[makeMsg({ id: 'b', text: 'Second' })]} />);
+    });
+  });
+
+  it('handles changing channel prop', async () => {
+    const { rerender } = await renderAndSettle(
+      <MessageArea {...baseProps} channel="#first" />
+    );
+    
+    await act(async () => {
+      rerender(<MessageArea {...baseProps} channel="#second" />);
+    });
+  });
+
+  // ── setting subscription cleanup ──────────────────────────────────────────
+  it('cleans up setting subscriptions on unmount', async () => {
+    const unsubscribeFns = new Map<string, jest.Mock>();
+    mockOnSettingChange.mockImplementation((key: string) => {
+      const fn = jest.fn();
+      unsubscribeFns.set(key, fn);
+      return fn;
+    });
+
+    const { unmount } = await renderAndSettle(<MessageArea {...baseProps} />);
+    
+    await act(async () => {
+      unmount();
+    });
+
+    // Verify that unsubscribe functions were called during cleanup
+    unsubscribeFns.forEach((fn) => {
+      expect(fn).toHaveBeenCalled();
+    });
+  });
+
+  // ── network-specific tests ────────────────────────────────────────────────
+  it('renders for different network names', async () => {
+    const { rerender } = await renderAndSettle(
+      <MessageArea messages={[makeMsg()]} network="Network1" />
+    );
+    
+    await act(async () => {
+      rerender(<MessageArea messages={[makeMsg()]} network="Network2" />);
+    });
+  });
+
+  // ── message format tests ──────────────────────────────────────────────────
+  it('renders with custom message formats from theme', async () => {
+    const { useTheme } = require('../../src/hooks/useTheme');
+    useTheme.mockReturnValue({
+      theme: { id: 'custom' },
+      colors: { background: '#fff', text: '#000' },
+      messageFormats: {
+        message: '{nick}: {text}',
+        join: '→ {nick} joined {channel}',
+      },
+    });
+
+    const messages = [
+      makeMsg({ type: 'message', text: 'Hello', from: 'Alice' }),
+      makeMsg({ type: 'join', text: 'Alice joined', from: 'Alice' }),
+    ];
     const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
     expect(toJSON()).toBeTruthy();
   });

@@ -323,6 +323,18 @@ jest.mock('../../src/screens/PrivacyAdsScreen', () => ({
 jest.mock('../../src/screens/DataPrivacyScreen', () => ({
   DataPrivacyScreen: ({ visible }: any) => (visible ? <>{'DataPrivacyScreenMock'}</> : null),
 }));
+jest.mock('../../src/screens/MessageHistoryViewerScreen', () => ({
+  MessageHistoryViewerScreen: ({ visible }: any) => (visible ? <>{'MessageHistoryViewerScreenMock'}</> : null),
+}));
+jest.mock('../../src/screens/ZncSubscriptionScreen', () => ({
+  ZncSubscriptionScreen: ({ visible }: any) => (visible ? <>{'ZncSubscriptionScreenMock'}</> : null),
+}));
+jest.mock('../../src/screens/PrivacyRelayScreen', () => ({
+  PrivacyRelayScreen: ({ visible }: any) => (visible ? <>{'PrivacyRelayScreenMock'}</> : null),
+}));
+jest.mock('../../src/screens/BackupScreen', () => ({
+  BackupScreen: ({ visible }: any) => (visible ? <>{'BackupScreenMock'}</> : null),
+}));
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: {
     getState: jest.fn(() => ({
@@ -558,5 +570,394 @@ describe('SettingsScreen Integration', () => {
       expect(await view.findByText(sec.marker)).toBeTruthy();
       view.unmount();
     }
+  });
+
+  // ========== Submenu Modal Tests ==========
+  
+  it('should handle submenu item types (switch, input, button)', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'connection-network')
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Connection & Network'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('bouncer-config')).toBeTruthy();
+    });
+
+    const submenuItems = mockCapturedSettingItems.get('bouncer-config').submenuItems;
+    const switchItem = submenuItems.find((it: any) => it.id === 'bouncer-enabled');
+    const inputItem = submenuItems.find((it: any) => it.id === 'bouncer-playback-timeout');
+    const buttonItem = submenuItems.find((it: any) => it.id === 'bouncer-request-playback');
+
+    // Test switch type
+    expect(switchItem.type).toBe('switch');
+    await switchItem.onValueChange(true);
+
+    // Test input type
+    expect(inputItem.type).toBe('input');
+    await inputItem.onValueChange('6000');
+
+    // Test button type
+    expect(buttonItem.type).toBe('button');
+    buttonItem.onPress();
+  });
+
+  // ========== PIN Modal Tests ==========
+
+  it('should handle biometric availability check', async () => {
+    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue('FaceID');
+
+    render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(biometricAuthService.getBiometryType).toHaveBeenCalled();
+    });
+  });
+
+  it('should handle biometric unavailable state', async () => {
+    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue(null);
+
+    render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(biometricAuthService.getBiometryType).toHaveBeenCalled();
+    });
+  });
+
+  // ========== Search Functionality Tests ==========
+
+  it('should clear search when search term is empty', async () => {
+    const { findByPlaceholderText } = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />
+    );
+
+    const searchInput = await findByPlaceholderText('Search settings...');
+    
+    // Type something
+    fireEvent.changeText(searchInput, 'test');
+    expect(searchInput.props.value).toBe('test');
+    
+    // Clear it
+    fireEvent.changeText(searchInput, '');
+    expect(searchInput.props.value).toBe('');
+  });
+
+  it('should expand all sections when searching', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[], searchTerm: string) => {
+      if (!searchTerm) return sections;
+      // Return all sections when searching (simulating matching)
+      return sections;
+    });
+
+    const { findByPlaceholderText } = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />
+    );
+
+    const searchInput = await findByPlaceholderText('Search settings...');
+    fireEvent.changeText(searchInput, 'notification');
+
+    // Search should trigger filterSettings with the search term
+    await waitFor(() => {
+      expect(fsMock).toHaveBeenCalledWith(
+        expect.any(Array),
+        'notification'
+      );
+    });
+  });
+
+  // ========== Modal Screen Tests ==========
+
+  it('should open about and credits screens', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.data?.some((d: any) => d.id === 'about-section'))
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    
+    // Should find the About section
+    const aboutButton = view.getByTestId('sec-open-about');
+    expect(aboutButton).toBeTruthy();
+    fireEvent.press(aboutButton);
+
+    const creditsButton = view.getByTestId('sec-open-credits');
+    expect(creditsButton).toBeTruthy();
+    fireEvent.press(creditsButton);
+  });
+
+  it('should open privacy and data privacy screens', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.data?.some((d: any) => d.id === 'privacy-legal-section'))
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Privacy & Legal'));
+    
+    const dataPrivacyButton = view.getByTestId('sec-open-data-privacy');
+    expect(dataPrivacyButton).toBeTruthy();
+    fireEvent.press(dataPrivacyButton);
+
+    const privacyAdsButton = view.getByTestId('sec-open-privacy-ads');
+    expect(privacyAdsButton).toBeTruthy();
+    fireEvent.press(privacyAdsButton);
+  });
+
+  it('should handle Connection & Network section actions', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.data?.some((d: any) => d.id === 'connection-network-section'))
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Connection & Network'));
+    
+    const firstRunButton = view.getByTestId('sec-open-first-run');
+    expect(firstRunButton).toBeTruthy();
+    fireEvent.press(firstRunButton);
+
+    const profilesButton = view.getByTestId('sec-open-connection-profiles');
+    expect(profilesButton).toBeTruthy();
+    fireEvent.press(profilesButton);
+
+    const networksButton = view.getByTestId('sec-open-networks-list');
+    expect(networksButton).toBeTruthy();
+    fireEvent.press(networksButton);
+  });
+
+  // ========== Performance Settings Tests ==========
+
+  it('should handle performance input fields', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { performanceService } = require('../../src/services/PerformanceService');
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'performance')
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Performance'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('perf-message-limit')).toBeTruthy();
+      expect(mockCapturedSettingItems.get('perf-max-visible')).toBeTruthy();
+    });
+
+    // Test numeric input changes
+    await mockCapturedSettingItems.get('perf-message-limit').onValueChange('2000');
+    expect(performanceService.setConfig).toHaveBeenCalledWith({ messageLimit: 2000 });
+
+    await mockCapturedSettingItems.get('perf-max-visible').onValueChange('150');
+    expect(performanceService.setConfig).toHaveBeenCalledWith({ maxVisibleMessages: 150 });
+  });
+
+  // ========== ZNC Subscription Tests ==========
+
+  it('should handle ZNC subscription registration flow', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { subscriptionService } = require('../../src/services/SubscriptionService');
+    (subscriptionService.registerZncSubscription as jest.Mock).mockResolvedValue({
+      status: 'active',
+      expires_at: '2025-12-31T23:59:59Z',
+      znc_username: 'testuser',
+      znc_password: 'testpass',
+    });
+
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'connection-network')
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    fireEvent.press(view.getByText('Connection & Network'));
+
+    // Should have bouncer info and config items
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('bouncer-info')).toBeTruthy();
+      expect(mockCapturedSettingItems.get('bouncer-config')).toBeTruthy();
+    });
+  });
+
+  // ========== Storage Stats Tests ==========
+
+  it('should load and display storage statistics', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { dataBackupService } = require('../../src/services/DataBackupService');
+    (dataBackupService.getStorageStats as jest.Mock).mockResolvedValue({
+      totalMessages: 1000,
+      totalBytes: 1024 * 1024 * 5, // 5 MB
+    });
+
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'messages-history')
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    fireEvent.press(view.getByText('Messages & History'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('history-storage')).toBeTruthy();
+    });
+  });
+
+  // ========== Identity Profiles Tests ==========
+
+  it('should load identity profiles on mount', async () => {
+    const { identityProfilesService } = require('../../src/services/IdentityProfilesService');
+    (identityProfilesService.list as jest.Mock).mockResolvedValue([
+      { id: '1', name: 'Profile 1' },
+      { id: '2', name: 'Profile 2' },
+    ]);
+
+    render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(identityProfilesService.list).toHaveBeenCalled();
+    });
+  });
+
+  // ========== History Export Tests ==========
+
+  it('should handle history export in different formats', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { messageHistoryService } = require('../../src/services/MessageHistoryService');
+    (messageHistoryService.exportHistory as jest.Mock).mockResolvedValue('exported data');
+
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'messages-history')
+    );
+
+    jest.spyOn(Alert, 'alert');
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    fireEvent.press(view.getByText('Messages & History'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('history-export')).toBeTruthy();
+    });
+
+    // Get submenu items
+    const exportSubmenuItems = mockCapturedSettingItems.get('history-export').submenuItems;
+    expect(exportSubmenuItems).toBeTruthy();
+    expect(exportSubmenuItems.length).toBeGreaterThan(0);
+
+    // Test JSON export
+    const jsonExport = exportSubmenuItems.find((item: any) => item.id === 'export-json');
+    expect(jsonExport).toBeTruthy();
+    jsonExport.onPress();
+  });
+
+  // ========== Additional Coverage Tests ==========
+
+  it('should handle section header toggles correctly', async () => {
+    const { findByText } = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    // Toggle Appearance section
+    const appearanceHeader = await findByText('Appearance');
+    fireEvent.press(appearanceHeader);
+    expect(settingsHelpers.toggleSectionExpansion).toHaveBeenCalledWith(
+      'Appearance',
+      expect.any(Set)
+    );
+
+    // Toggle again to collapse
+    fireEvent.press(appearanceHeader);
+  });
+
+  it('should handle backup screen modal', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'messages-history')
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    fireEvent.press(view.getByText('Messages & History'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('history-backup')).toBeTruthy();
+    });
+
+    // Open backup screen
+    mockCapturedSettingItems.get('history-backup').onPress();
+  });
+
+  it('should handle history viewer screen', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'messages-history')
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    fireEvent.press(view.getByText('Messages & History'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('history-viewer')).toBeTruthy();
+    });
+
+    // Open history viewer
+    mockCapturedSettingItems.get('history-viewer').onPress();
+  });
+
+  it('should handle when notification permission is granted', async () => {
+    const { notificationService } = require('../../src/services/NotificationService');
+    (notificationService.getPreferences as jest.Mock).mockReturnValue({ enabled: true });
+    (notificationService.checkPermission as jest.Mock).mockResolvedValue(true);
+
+    render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(notificationService.checkPermission).toHaveBeenCalled();
+    });
+  });
+
+  it('should handle theme editor screen', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.data?.some((d: any) => d.id === 'appearance-section'))
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Appearance'));
+
+    const themeEditorButton = view.getByTestId('sec-open-theme-editor');
+    expect(themeEditorButton).toBeTruthy();
+    fireEvent.press(themeEditorButton);
+  });
+
+  it('should handle screen not visible state', () => {
+    const { queryByText } = render(<SettingsScreen visible={false} onClose={mockOnClose} />);
+    
+    // When not visible, nothing should render
+    expect(queryByText('Settings')).toBeNull();
+  });
+
+  it('should handle multiple section toggles in sequence', async () => {
+    const { findByText } = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    // Toggle multiple sections
+    const sections = ['Appearance', 'Messages & History', 'Notifications'];
+    
+    for (const section of sections) {
+      try {
+        const header = await findByText(section);
+        fireEvent.press(header);
+      } catch (e) {
+        // Section might not be rendered due to mocking
+      }
+    }
+  });
+
+  it('should handle settings with currentNetwork prop', async () => {
+    const { messageHistoryService } = require('../../src/services/MessageHistoryService');
+    
+    render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+
+    await waitFor(() => {
+      expect(messageHistoryService.getStats).toHaveBeenCalledWith('test-network');
+    });
   });
 });

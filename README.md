@@ -64,27 +64,6 @@ sha256sum -c app-release.apk.sha256
 | **Recommended**    | Android 11+ (API 30)  |
 | **Target**         | Android 15 (API 36)   |
 
-## 📸 Screenshots
-
-<p align="center">
-  <a
-href="https://cloud.dbase.in.rs/apps/files_sharing/publicpreview/N4nTYTLQy7C5CeH?file=/&fileId=1001705&x=1920&y=1080&a=true&etag=6dc8973fe555cd64a830cebb4bbda42e"
-     target="_blank" rel="noopener noreferrer">
-    <img src="https://cloud.dbase.in.rs/apps/files_sharing/publicpreview/N4nTYTLQy7C5CeH?file=/&fileId=1001705&x=1920&y=1080&a=true&etag=6dc8973fe555cd64a830cebb4bbda42e"
-         alt="AndroidIRCX screenshot 1"
-      />
-  </a>
-
-<a
-href="https://cloud.dbase.in.rs/apps/files_sharing/publicpreview/4SCxyJfXZegfnCg?file=/&fileId=1001307&x=1920&y=1080&a=true&etag=123ba8b16edb14645957781cdc4f8538"
-target="_blank" rel="noopener noreferrer">
-<img
-src="https://cloud.dbase.in.rs/apps/files_sharing/publicpreview/4SCxyJfXZegfnCg?file=/&fileId=1001307&x=1920&y=1080&a=true&etag=123ba8b16edb14645957781cdc4f8538"
-alt="AndroidIRCX screenshot 2"
- />
-</a>
-</p>
-
 ---
 
 ## 💡 Why AndroidIRCX?
