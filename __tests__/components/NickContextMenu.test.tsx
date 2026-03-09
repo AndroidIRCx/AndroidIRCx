@@ -293,7 +293,7 @@ describe('NickContextMenu', () => {
   describe('call actions', () => {
     it('shows call actions when enabled', async () => {
       mockGetCallNicklistCallActionsEnabled.mockResolvedValue(true);
-      const { findByText } = render(<NickContextMenu {...baseProps} />);
+      render(<NickContextMenu {...baseProps} />);
 
       await waitFor(() => {
         expect(mockGetCallNicklistCallActionsEnabled).toHaveBeenCalled();

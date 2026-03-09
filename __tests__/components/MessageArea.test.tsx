@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { act, render, fireEvent } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 
 // ── sub-component mocks ────────────────────────────────────────────────────
 jest.mock('../../src/components/LinkPreview', () => ({

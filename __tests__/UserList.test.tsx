@@ -5,7 +5,7 @@
 
 import React from 'react';
 import TestRenderer, { act } from 'react-test-renderer';
-import { Alert } from 'react-native';
+
 import Clipboard from '@react-native-clipboard/clipboard';
 import { UserList, copyNickToClipboard } from '../src/components/UserList';
 import { ChannelUser } from '../src/services/IRCService';
