@@ -12646,5 +12646,341 @@
   },
   "{nick} is now online": {
     "string": "{nick} je sada online"
+  },
+  "Audio Call": {
+    "string": "Audio poziv"
+  },
+  "Video Call": {
+    "string": "Video poziv"
+  },
+  "Auto-detect WHOIS idle format": {
+    "string": "Auto-detekcija WHOIS idle formata"
+  },
+  "Automatically use \"/WHOIS nick nick\" on networks like Undernet": {
+    "string": ""
+  },
+  "Use manual WHOIS format setting": {
+    "string": "Koristi ručno podešavanje WHOIS formata"
+  },
+  "Use /WHOIS nick nick format": {
+    "string": "Koristi /WHOIS nick nick format"
+  },
+  "Enabled for this network (better idle results on Undernet-like servers)": {
+    "string": "Omogućeno za ovu mrežu (bolji idle rezultati na Undernet-sličnim serverima)"
+  },
+  "Disabled (uses standard /WHOIS nick)": {
+    "string": "Onemogućeno (koristi standardni /WHOIS nick)"
+  },
+  "Live Call Video Quality": {
+    "string": "Kvalitet videa uživo poziva"
+  },
+  "Current: {quality} • Privacy Relay unlocks HD and TURN fallback": {
+    "string": "Trenutno: {quality} • Privacy Relay otključava HD i TURN fallback"
+  },
+  "Current: {quality} • Free calls stay direct, default to 480p, and can be raised to 720p": {
+    "string": "Trenutno: {quality} • Besplatni pozivi ostaju direktni, podrazumevano 480p, mogu se povećati na 720p"
+  },
+  "Free Call STUN Servers": {
+    "string": "STUN serveri za besplatne pozive"
+  },
+  "Current fallback list: {count} STUN endpoints. Premium calls still use TURN when needed.": {
+    "string": "Trenutna fallback lista: {count} STUN endpointa. Premium pozivi i dalje koriste TURN kada je potrebno."
+  },
+  "Current fallback list: {count} STUN endpoints for direct free calls. Ordered list is used for fallback.": {
+    "string": "Trenutna fallback lista: {count} STUN endpointa za direktne besplatne pozive. Poređana lista se koristi za fallback."
+  },
+  "External TURN Server": {
+    "string": "Eksterni TURN server"
+  },
+  "Enabled: {count} TURN URL(s), credentials {credentialsState}.": {
+    "string": "Omogućeno: {count} TURN URL-ova, akreditivi {credentialsState}."
+  },
+  "set": {
+    "string": "postavljeni"
+  },
+  "missing": {
+    "string": "nedostaju"
+  },
+  "Disabled. Configure your own TURN relay if you already have one.": {
+    "string": "Onemogućeno. Konfigurišite sopstveni TURN relay ako već imate jedan."
+  },
+  "Force TURN Relay Only": {
+    "string": "Forsiraj samo TURN Relay"
+  },
+  "If enabled, WebRTC uses relay candidates only when relay is available (Privacy Relay or external TURN).": {
+    "string": "Ako je omogućeno, WebRTC koristi samo relay kandidate kada je relay dostupan (Privacy Relay ili eksterni TURN)."
+  },
+  "Show Audio/Video Call In Nick Menu": {
+    "string": "Prikaži Audio/Video poziv u Nick meniju"
+  },
+  "Audio and Video Call actions are visible in user context menu.": {
+    "string": "Audio i Video poziv akcije su vidljive u kontekstnom meniju korisnika."
+  },
+  "Audio and Video Call actions are hidden in user context menu.": {
+    "string": "Audio i Video poziv akcije su sakrivene u kontekstnom meniju korisnika."
+  },
+  "Show Ongoing Call Notification": {
+    "string": "Prikaži obaveštenje o aktivnom pozivu"
+  },
+  "Keeps an Android notification visible during active audio and video calls so you can jump back quickly.": {
+    "string": "Zadržava Android obaveštenje vidljivo tokom aktivnih audio i video poziva da biste se brzo vratili."
+  },
+  "Show Minimized Call Only In Active Query": {
+    "string": "Prikaži minimizovani poziv samo u aktivnom upitu"
+  },
+  "Minimized call overlay appears only when you are on the matching query tab. This is optional and off by default.": {
+    "string": "Minimizovani poziv se pojavljuje samo kada ste na odgovarajućem tabu upita. Ovo je opciono i isključeno po podrazumevanom."
+  },
+  "Default behavior: minimized call overlay stays visible everywhere in the app.": {
+    "string": "Podrazumevano ponašanje: minimizovani poziv ostaje vidljiv svuda u aplikaciji."
+  },
+  "No STUN servers added yet.": {
+    "string": "Još nema dodatih STUN servera."
+  },
+  "No TURN servers added yet.": {
+    "string": "Još nema dodatih TURN servera."
+  },
+  "STUN Servers": {
+    "string": "STUN serveri"
+  },
+  "Add multiple STUN URLs. Order is used as fallback priority.": {
+    "string": "Dodajte više STUN URL-ova. Redosled se koristi kao fallback prioritet."
+  },
+  "STUN must start with stun:": {
+    "string": "STUN mora počinjati sa stun:"
+  },
+  "Enable External TURN": {
+    "string": "Omogući eksterni TURN"
+  },
+  "Use your own TURN server for call relay fallback.": {
+    "string": "Koristite sopstveni TURN server za fallback poziva."
+  },
+  "TURN Servers": {
+    "string": "TURN serveri"
+  },
+  "Add multiple TURN URLs. Order is used as fallback priority.": {
+    "string": "Dodajte više TURN URL-ova. Redosled se koristi kao fallback prioritet."
+  },
+  "TURN must start with turn: or turns:": {
+    "string": "TURN mora počinjati sa turn: ili turns:"
+  },
+  "TURN Username": {
+    "string": "TURN korisničko ime"
+  },
+  "TURN Credential": {
+    "string": "TURN akreditiv"
+  },
+  "Auto-show Biometric Prompt": {
+    "string": "Auto-prikaži biometrijski prompt"
+  },
+  "Automatically shows fingerprint prompt when lock screen opens": {
+    "string": "Automatski prikazuje prompt za otisak prsta kada se otvori ekran zaključavanja"
+  },
+  "Fingerprint prompt appears only when you tap the button": {
+    "string": "Prompt za otisak prsta se pojavljuje samo kada tapnete dugme"
+  },
+  "Starting audio call with {nick}": {
+    "string": "Započinjanje audio poziva sa {nick}"
+  },
+  "Failed to start audio call": {
+    "string": "Započinjanje audio poziva nije uspelo"
+  },
+  "Starting video call with {nick}": {
+    "string": "Započinjanje video poziva sa {nick}"
+  },
+  "Failed to start video call": {
+    "string": "Započinjanje video poziva nije uspelo"
+  },
+  "Idle time was not provided by this server for this user": {
+    "string": "Vreme neaktivnosti nije dostavljeno od ovog servera za ovog korisnika"
+  },
+  "Generating backup...": {
+    "string": "Generisanje rezervne kopije..."
+  },
+  "Saving backup file...": {
+    "string": "Čuvanje fajla rezervne kopije..."
+  },
+  "Loading backup file...": {
+    "string": "Učitavanje fajla rezervne kopije..."
+  },
+  "Restoring backup...": {
+    "string": "Vraćanje rezervne kopije..."
+  },
+  "Decrypting backup...": {
+    "string": "Dešifrovanje rezervne kopije..."
+  },
+  "selected backup file": {
+    "string": "izabran fajl rezervne kopije"
+  },
+  "Backup Loaded": {
+    "string": "Rezervna kopija učitana"
+  },
+  "Backup file loaded successfully. Please wait during restore and do not close the app.": {
+    "string": "Fajl rezervne kopije uspešno učitan. Molimo sačekajte tokom vraćanja i ne zatvarajte aplikaciju."
+  },
+  "Please paste backup data or load a backup file first": {
+    "string": "Prvo nalepite podatke rezervne kopije ili učitajte fajl rezervne kopije"
+  },
+  "Restarting after backup restore": {
+    "string": "Ponovno pokretanje nakon vraćanja rezervne kopije"
+  },
+  "Restart Required": {
+    "string": "Potrebno ponovno pokretanje"
+  },
+  "Please close and reopen the app manually to complete restore.": {
+    "string": "Molimo zatvorite i ponovo otvorite aplikaciju ručno da biste završili vraćanje."
+  },
+  "Loaded from file. JSON preview is hidden for large backups. You can restore now.": {
+    "string": "Učitano iz fajla. JSON pregled je sakriven za velike rezervne kopije. Možete sada vratiti."
+  },
+  "Loaded Backup File": {
+    "string": "Učitan fajl rezervne kopije"
+  },
+  "File: {name}": {
+    "string": "Fajl: {name}"
+  },
+  "Size: {size} MB": {
+    "string": "Veličina: {size} MB"
+  },
+  "Items: {count}": {
+    "string": "Stavki: {count}"
+  },
+  "Please wait while restoring. Do not close the app.": {
+    "string": "Molimo sačekajte tokom vraćanja. Ne zatvarajte aplikaciju."
+  },
+  "Switch to Manual JSON Paste": {
+    "string": "Prebaci na ručno lepljenje JSON-a"
+  },
+  "Backup restored successfully. Please restart the app to reload all restored data.": {
+    "string": "Rezervna kopija uspešno vraćena. Molimo ponovo pokrenite aplikaciju da biste ponovo učitali sve vraćene podatke."
+  },
+  "Exit to Restart App": {
+    "string": "Izađi da ponovo pokreneš aplikaciju"
+  },
+  "Please wait... Do not close the app while this operation is in progress.": {
+    "string": "Molimo sačekajte... Ne zatvarajte aplikaciju dok je ova operacija u toku."
+  },
+  "Saving...": {
+    "string": "Čuvanje..."
+  },
+  "Unavailable": {
+    "string": "Nedostupno"
+  },
+  "Syncing subscription with backend...": {
+    "string": "Sinhronizacija pretplate sa backend-om..."
+  },
+  "Fetching TURN credentials from backend...": {
+    "string": "Preuzimanje TURN akreditiva sa backend-a..."
+  },
+  "TURN credentials loaded. TTL: {ttl}s": {
+    "string": "TURN akreditivi učitani. TTL: {ttl}s"
+  },
+  "Failed to load Privacy Relay subscription.": {
+    "string": "Učitavanje Privacy Relay pretplate nije uspelo."
+  },
+  "Privacy Relay enabled": {
+    "string": "Privacy Relay omogućen"
+  },
+  "Relay routing is now available for eligible calls.": {
+    "string": "Relay routing je sada dostupan za odgovarajuće pozive."
+  },
+  "Failed to complete subscription.": {
+    "string": "Nije uspelo završiti pretplatu."
+  },
+  "Unable to start subscription purchase.": {
+    "string": "Nije moguće započeti kupovinu pretplate."
+  },
+  "Checking existing purchases...": {
+    "string": "Provera postojećih kupovina..."
+  },
+  "Your Privacy Relay subscription was restored.": {
+    "string": "Vaša Privacy Relay pretplata je vraćena."
+  },
+  "No Privacy Relay subscriptions were found to restore.": {
+    "string": "Nije pronađena Privacy Relay pretplata za vraćanje."
+  },
+  "Unable to restore purchases.": {
+    "string": "Nije moguće vratiti kupovine."
+  },
+  "No subscription": {
+    "string": "Nema pretplate"
+  },
+  "Buy or restore Privacy Relay first.": {
+    "string": "Prvo kupite ili vratite Privacy Relay."
+  },
+  "Relay ready": {
+    "string": "Relay spreman"
+  },
+  "TURN credentials were fetched successfully.": {
+    "string": "TURN akreditivi su uspešno preuzeti."
+  },
+  "Relay test failed": {
+    "string": "Relay test nije uspeo"
+  },
+  "Unable to fetch TURN credentials.": {
+    "string": "Nije moguće preuzeti TURN akreditive."
+  },
+  "Monthly relay access using turn.dbase.in.rs": {
+    "string": "Mesečni relay pristup koristeći turn.dbase.in.rs"
+  },
+  "Yearly relay access using turn.dbase.in.rs": {
+    "string": "Godišnji relay pristup koristeći turn.dbase.in.rs"
+  },
+  "Active": {
+    "string": "Aktivno"
+  },
+  "Subscribe": {
+    "string": "Pretplati se"
+  },
+  "Privacy Relay": {
+    "string": "Privacy Relay"
+  },
+  "Subscription active": {
+    "string": "Pretplata aktivna"
+  },
+  "Subscription inactive": {
+    "string": "Pretplata nije aktivna"
+  },
+  "Relay routing can be offered for calls that need TURN fallback.": {
+    "string": "Relay routing se može ponuditi za pozive koji trebaju TURN fallback."
+  },
+  "Direct P2P remains default. TURN relay is only offered to subscribed users.": {
+    "string": "Direktni P2P ostaje podrazumevan. TURN relay se nudi samo pretplaćenim korisnicima."
+  },
+  "TURN setup": {
+    "string": "TURN podešavanje"
+  },
+  "Credentials are not embedded in the app. They must be issued by your backend per session.": {
+    "string": "Akreditivi nisu ugrađeni u aplikaciju. Moraju biti izdati od strane vašeg backend-a po sesiji."
+  },
+  "Monthly": {
+    "string": "Mesečno"
+  },
+  "Yearly": {
+    "string": "Godišnje"
+  },
+  "Test Relay Credentials": {
+    "string": "Testiraj Relay akreditive"
+  },
+  "Last backend test": {
+    "string": "Poslednji backend test"
+  },
+  "Copying backup data...": {
+    "string": "Kopiranje rezervnih podataka..."
+  },
+  "No backup data to save": {
+    "string": "Nema rezervnih podataka za čuvanje"
+  },
+  "Privacy Relay for Calls": {
+    "string": "Privacy Relay za pozive"
+  },
+  "Manage TURN relay access on turn.dbase.in.rs for calls that cannot stay direct P2P": {
+    "string": "Upravljajte TURN relay pristupom na turn.dbase.in.rs za pozive koji ne mogu ostati direktni P2P"
+  },
+  "*** Keepalive timeout: no PONG received, reconnecting socket...": {
+    "string": "*** Keepalive timeout: nije primljen PONG, ponovo povezivanje socket-a..."
+  },
+  "Calls": {
+    "string": "Pozivi"
   }
 }
