@@ -1139,7 +1139,7 @@ describe('NickContextMenu', () => {
   describe('overlay press', () => {
     it('calls onClose when overlay is pressed', () => {
       const onClose = jest.fn();
-      const { getByTestId, getByText } = render(<NickContextMenu {...baseProps} onClose={onClose} />);
+      const { getByText } = render(<NickContextMenu {...baseProps} onClose={onClose} />);
 
       // The TouchableOpacity with style contextOverlay handles the close
       // We can trigger it via the Close button which is easier to find

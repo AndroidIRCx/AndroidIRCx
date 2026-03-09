@@ -137,14 +137,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const languageLabels = useMemo(
     () => ({
       en: 'English',
-      fr: 'Francais',
+      fr: 'Français',
       de: 'Deutsch',
       it: 'Italiano',
-      pt: 'Portugues',
-      ro: 'Romana',
-      ru: 'Russkiy',
+      pt: 'Português',
+      ro: 'Română',
+      ru: 'Русский',
       sr: 'Srpski',
-      es: 'Espanol',
+      es: 'Español',
+      id: 'Indonesian',
     }),
     []
   );

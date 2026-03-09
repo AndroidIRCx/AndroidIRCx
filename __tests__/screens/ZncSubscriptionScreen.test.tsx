@@ -993,7 +993,7 @@ describe('ZncSubscriptionScreen', () => {
 
     it('navigates to network settings when creating new network', async () => {
       const onNavigateToNetworkSettings = jest.fn();
-      const { findByText, getByText } = render(
+      const { findByText } = render(
         <ZncSubscriptionScreen
           visible
           onClose={jest.fn()}
@@ -1031,7 +1031,7 @@ describe('ZncSubscriptionScreen', () => {
     it('handles pull-to-refresh', async () => {
       mockSubscriptionService.refreshAllAccounts.mockResolvedValue(undefined);
 
-      const { getByTestId, findByText } = render(
+      const { findByText } = render(
         <ZncSubscriptionScreen visible onClose={jest.fn()} />
       );
 
@@ -1122,7 +1122,7 @@ describe('ZncSubscriptionScreen', () => {
     it('disables purchase button when IAP not connected', async () => {
       mockRNIap.initConnection.mockRejectedValue(new Error('Connection failed'));
 
-      const { findByText } = render(<ZncSubscriptionScreen visible onClose={jest.fn()} />);
+      render(<ZncSubscriptionScreen visible onClose={jest.fn()} />);
 
       await waitFor(() => {
         expect(Alert.alert).toHaveBeenCalledWith(
