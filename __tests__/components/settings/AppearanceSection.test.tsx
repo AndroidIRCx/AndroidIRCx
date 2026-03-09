@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Alert, Platform } from 'react-native';
-import { render, waitFor, act } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { AppearanceSection } from '../../../src/components/settings/sections/AppearanceSection';
 
 const mockCapturedItems = new Map<string, any>();

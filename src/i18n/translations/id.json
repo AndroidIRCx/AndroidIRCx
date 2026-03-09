@@ -132,97 +132,97 @@
     "string": "Autentikasi gagal"
   },
   "Unable to unlock passwords.": {
-    "string": ""
+    "string": "Tidak dapat membuka kunci katasandi"
   },
   "Biometric setup failed": {
-    "string": ""
+    "string": "Pengaturan biometrik gagal"
   },
   "Unable to enable biometric lock for passwords.": {
-    "string": ""
+    "string": "Tidak dapat mengaktifkan kunci biometrik untuk katasandi"
   },
   "Enable a method": {
-    "string": ""
+    "string": "Aktifkan metode"
   },
   "Turn on biometric or PIN for App Lock first.": {
-    "string": ""
+    "string": "Aktifkan biometrik atau PIN untuk Kunci Aplikasi terlebih dahulu"
   },
   "Unable to enable biometric app lock.": {
-    "string": ""
+    "string": "Tidak dapat mengaktifkan kunci aplikasi biometrik"
   },
   "Appearance": {
-    "string": ""
+    "string": "Tampilan"
   },
   "Theme": {
-    "string": ""
+    "string": "Tema"
   },
   "Custom theme": {
-    "string": ""
+    "string": "Tema kustom"
   },
   "Dark mode (default)": {
-    "string": ""
+    "string": "Mode gelap (default)"
   },
   "Light mode": {
-    "string": ""
+    "string": "Mode terang"
   },
   "+ Create New Theme": {
-    "string": ""
+    "string": " + Buat Tema Baru"
   },
   "Edit {name}": {
-    "string": ""
+    "string": "Edit {name}"
   },
   "Delete {name}": {
-    "string": ""
+    "string": "Hapus {name}"
   },
   "Delete Theme": {
-    "string": ""
+    "string": "Hapus Tema"
   },
   "Are you sure you want to delete \"{name}\"?": {
-    "string": ""
+    "string": "Apakah Anda yakin ingin menghapus \"{name}\"?"
   },
   "Delete": {
-    "string": ""
+    "string": "Hapus"
   },
   "Tab Position": {
-    "string": ""
+    "string": "Posisi Tab"
   },
   "Tabs at {position}": {
-    "string": ""
+    "string": "Tab di {position}"
   },
   "Select tab position:": {
-    "string": ""
+    "string": "Pilih posisi tab:"
   },
   "Top": {
-    "string": ""
+    "string": "Atas"
   },
   "Bottom": {
-    "string": ""
+    "string": "Bawah"
   },
   "Left": {
-    "string": ""
+    "string": "Kiri"
   },
   "Right": {
-    "string": ""
+    "string": "Kanan"
   },
   "User List Position": {
-    "string": ""
+    "string": "Posisi Daftar Pengguna"
   },
   "User list at {position}": {
-    "string": ""
+    "string": "Daftar pengguna di {position}"
   },
   "Select user list position:": {
-    "string": ""
+    "string": "Pilih posisi daftar pengguna:"
   },
   "View Mode": {
-    "string": ""
+    "string": "Mode Tampilan"
   },
   "Current: {mode}": {
-    "string": ""
+    "string": "Saat ini: {mode}"
   },
   "Select view mode:": {
-    "string": ""
+    "string": "Pilih mode tampilan:"
   },
   "Compact": {
-    "string": ""
+    "string": "Kompak"
   },
   "Comfortable": {
     "string": ""

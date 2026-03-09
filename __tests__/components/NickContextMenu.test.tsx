@@ -432,7 +432,7 @@ describe('NickContextMenu', () => {
     });
 
     it('shows KILL option for server operators', () => {
-      const { getByText, queryByText } = render(
+      const { getByText } = render(
         <NickContextMenu {...baseProps} isServerOper={true} />
       );
 
@@ -1073,7 +1073,7 @@ describe('NickContextMenu', () => {
   // ==================== KILL Modal (Server Oper) ====================
   describe('KILL modal', () => {
     it('opens KILL reason modal when KILL is pressed', () => {
-      const { getByText, queryByText } = render(
+      const { getByText } = render(
         <NickContextMenu {...baseProps} isServerOper={true} />
       );
 

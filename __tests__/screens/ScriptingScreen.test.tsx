@@ -157,7 +157,7 @@ describe('ScriptingScreen', () => {
   });
 
   it('renders script list and allows toggling, deleting and testing a script', async () => {
-    const { findByText, getAllByRole } = render(
+    const { getAllByRole } = render(
       <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
     );
 
@@ -574,7 +574,7 @@ describe('ScriptingScreen', () => {
   });
 
   it('filters logs by script ID and shows no results', async () => {
-    const { findByText, getByPlaceholderText, queryByText } = render(
+    const { getByPlaceholderText, queryByText } = render(
       <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
     );
 
