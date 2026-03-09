@@ -157,7 +157,7 @@ describe('ScriptingScreen', () => {
   });
 
   it('renders script list and allows toggling, deleting and testing a script', async () => {
-    const { getAllByRole } = render(
+    const { findByText, getAllByRole } = render(
       <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
     );
 
@@ -310,7 +310,7 @@ describe('ScriptingScreen', () => {
   });
 
   it('toggles logging on and off', async () => {
-    const { findByText, getAllByRole } = render(
+    const { getAllByRole } = render(
       <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
     );
 
