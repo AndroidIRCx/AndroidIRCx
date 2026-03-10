@@ -1,0 +1,3 @@
+- Added "Load networks from IRC Database" in Networks.
+- Added an info modal for this import option.
+- Added targeted tests to increase coverage.
