@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
   Alert,
   Modal,
   ActivityIndicator,
+  ScrollView,
+  Linking,
 } from 'react-native';
 import { IRCNetworkConfig, IRCServerConfig, settingsService } from '../services/SettingsService';
 import { NetworkSettingsScreen } from './NetworkSettingsScreen';
@@ -20,6 +22,7 @@ import { ServerSettingsScreen } from './ServerSettingsScreen';
 import { ConnectionProfilesScreen } from './ConnectionProfilesScreen';
 import { useT } from '../i18n/transifex';
 import { useTheme } from '../hooks/useTheme';
+import { ircDatabaseImportService } from '../services/IrcDatabaseImportService';
 
 interface NetworksListScreenProps {
   onSelectNetwork: (network: IRCNetworkConfig, serverId?: string) => void;
@@ -37,10 +40,13 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
   const [showNetworkSettings, setShowNetworkSettings] = useState(false);
   const [showServerSettings, setShowServerSettings] = useState(false);
   const [showConnectionProfiles, setShowConnectionProfiles] = useState(false);
+  const [showIrcDatabaseModal, setShowIrcDatabaseModal] = useState(false);
   const [editingNetworkId, setEditingNetworkId] = useState<string | undefined>();
   const [editingServerId, setEditingServerId] = useState<string | undefined>();
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
+  const [isImportingFromIrcDatabase, setIsImportingFromIrcDatabase] = useState(false);
+  const isImportingRef = useRef(false);
 
   useEffect(() => {
     loadNetworks();
@@ -157,6 +163,69 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
     onClose();
   };
 
+  const handleImportFromIrcDatabase = async () => {
+    if (isImportingRef.current) {
+      return;
+    }
+    isImportingRef.current = true;
+    setIsImportingFromIrcDatabase(true);
+    try {
+      const summary = await ircDatabaseImportService.importFromIrcDatabase();
+      await loadNetworks();
+
+      setShowIrcDatabaseModal(false);
+      const totalApplied = summary.importedNetworks + summary.mergedNetworks;
+      if (totalApplied === 0 && summary.failedPersistNetworks === 0) {
+        Alert.alert(
+          t('No new networks imported'),
+          t('No new networks were imported from IRC Database. Existing entries are unchanged.')
+        );
+        return;
+      }
+
+      if (summary.failedPersistNetworks > 0) {
+        Alert.alert(
+          t('Import partially completed'),
+          t('Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Failed to save: {failed}. Skipped unchanged: {skipped}.')
+            .replace('{importedNetworks}', String(summary.importedNetworks))
+            .replace('{importedServers}', String(summary.importedServers))
+            .replace('{mergedNetworks}', String(summary.mergedNetworks))
+            .replace('{mergedServers}', String(summary.mergedServers))
+            .replace('{failed}', String(summary.failedPersistNetworks))
+            .replace('{skipped}', String(summary.skippedExistingNetworks))
+        );
+        return;
+      }
+
+      Alert.alert(
+        t('Import completed'),
+        t('Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Skipped unchanged: {skipped}.')
+          .replace('{importedNetworks}', String(summary.importedNetworks))
+          .replace('{importedServers}', String(summary.importedServers))
+          .replace('{mergedNetworks}', String(summary.mergedNetworks))
+          .replace('{mergedServers}', String(summary.mergedServers))
+          .replace('{skipped}', String(summary.skippedExistingNetworks))
+      );
+    } catch (error: any) {
+      const errorMessage = error?.message ? String(error.message) : t('Unknown error');
+      Alert.alert(
+        t('Import failed'),
+        t('Unable to load data from IRC Database: {error}').replace('{error}', errorMessage)
+      );
+    } finally {
+      setIsImportingFromIrcDatabase(false);
+      isImportingRef.current = false;
+    }
+  };
+
+  const openExternalUrl = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(t('Error'), t('Unable to open link'));
+    }
+  };
+
   return (
     <>
       {/* Networks List Modal */}
@@ -179,6 +248,11 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
               style={styles.topActionButton}
               onPress={() => setShowConnectionProfiles(true)}>
               <Text style={styles.topActionText}>{t('Identity Profiles')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.topActionButton}
+              onPress={() => setShowIrcDatabaseModal(true)}>
+              <Text style={styles.topActionText}>{t('Load networks from IRC Database')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -280,6 +354,87 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
           onCancel={() => setShowServerSettings(false)}
         />
       )}
+
+      <Modal
+        visible={showIrcDatabaseModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => !isImportingFromIrcDatabase && setShowIrcDatabaseModal(false)}>
+        <View style={styles.ircDatabaseOverlay}>
+          <View style={styles.ircDatabaseCard}>
+            <ScrollView style={styles.ircDatabaseScroll} contentContainerStyle={styles.ircDatabaseScrollContent}>
+              <Text style={styles.ircDatabaseTitle}>{t('Load Networks from IRC Database')}</Text>
+              <Text style={styles.ircDatabaseBody}>
+                {t('IRC Database contains networks that explicitly opted in to be publicly discoverable in IRC clients.')}
+              </Text>
+              <Text style={styles.ircDatabaseBody}>
+                {t('AndroidIRCX imports approved presets from:')}
+              </Text>
+              <TouchableOpacity onPress={() => openExternalUrl('https://irc.dbase.in.rs/api/irc/server-presets')}>
+                <Text style={styles.ircDatabaseLink}>https://irc.dbase.in.rs/api/irc/server-presets</Text>
+              </TouchableOpacity>
+              <Text style={styles.ircDatabaseBody}>
+                {t('Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.')}
+              </Text>
+
+              <View style={styles.ircDatabaseFooter}>
+                <Text style={styles.ircDatabaseFooterTitle}>
+                  {t('If your network is not listed and you want inclusion in AndroidIRCX:')}
+                </Text>
+                <TouchableOpacity onPress={() => openExternalUrl('https://irc.dbase.in.rs/register')}>
+                  <Text style={styles.ircDatabaseFooterLine}>https://irc.dbase.in.rs/register</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => openExternalUrl('https://irc.dbase.in.rs/irc/submit-network')}>
+                  <Text style={styles.ircDatabaseFooterLine}>https://irc.dbase.in.rs/irc/submit-network</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => openExternalUrl('https://irc.dbase.in.rs/irc/submit-server')}>
+                  <Text style={styles.ircDatabaseFooterLine}>https://irc.dbase.in.rs/irc/submit-server</Text>
+                </TouchableOpacity>
+                <Text style={styles.ircDatabaseFooterText}>
+                  {t('By submitting your network, you accept:')}
+                </Text>
+                <TouchableOpacity onPress={() => openExternalUrl('https://irc.dbase.in.rs/privacy-policy')}>
+                  <Text style={styles.ircDatabaseFooterLine}>https://irc.dbase.in.rs/privacy-policy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => openExternalUrl('https://irc.dbase.in.rs/terms-of-service')}>
+                  <Text style={styles.ircDatabaseFooterLine}>https://irc.dbase.in.rs/terms-of-service</Text>
+                </TouchableOpacity>
+                <Text style={styles.ircDatabaseFooterText}>
+                  {t('Submission means your network permits IRCDBase bot discovery actions such as /list, /lusers, and joining the most active channel.')}
+                </Text>
+                <Text style={styles.ircDatabaseFooterText}>
+                  {t('Nickname collection via /names is optional and can be disabled in your IRC Database network settings.')}
+                </Text>
+              </View>
+            </ScrollView>
+
+            <View style={styles.ircDatabaseActions}>
+              <TouchableOpacity
+                style={[styles.ircDatabaseButton, styles.ircDatabaseSecondaryButton]}
+                onPress={() => setShowIrcDatabaseModal(false)}
+                disabled={isImportingFromIrcDatabase}>
+                <Text style={styles.ircDatabaseSecondaryButtonText}>{t('Cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.ircDatabaseButton,
+                  styles.ircDatabasePrimaryButton,
+                  isImportingFromIrcDatabase && styles.ircDatabaseButtonDisabled,
+                ]}
+                onPress={handleImportFromIrcDatabase}
+                disabled={isImportingFromIrcDatabase}>
+                {isImportingFromIrcDatabase ? (
+                  <ActivityIndicator size="small" color={colors.onPrimary || '#FFFFFF'} />
+                ) : (
+                  <Text style={styles.ircDatabasePrimaryButtonText}>
+                    {t('Load from IRC Database')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -320,8 +475,11 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontWeight: 'bold',
   },
   topActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 16,
     paddingVertical: 10,
+    gap: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.border || '#E0E0E0',
     backgroundColor: colors.surface || '#F7F7F7',
@@ -429,5 +587,98 @@ const createStyles = (colors: any) => StyleSheet.create({
   loadingText: {
     color: colors.textSecondary || '#757575',
     fontSize: 14,
+  },
+  ircDatabaseOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 16,
+    justifyContent: 'center',
+  },
+  ircDatabaseCard: {
+    backgroundColor: colors.background || '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    maxHeight: '90%',
+  },
+  ircDatabaseScroll: {
+    maxHeight: 420,
+  },
+  ircDatabaseScrollContent: {
+    paddingBottom: 4,
+  },
+  ircDatabaseTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text || '#212121',
+    marginBottom: 12,
+  },
+  ircDatabaseBody: {
+    color: colors.text || '#212121',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  ircDatabaseLink: {
+    color: colors.primary || '#2196F3',
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  ircDatabaseFooter: {
+    marginTop: 8,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.border || '#E0E0E0',
+  },
+  ircDatabaseFooterTitle: {
+    color: colors.text || '#212121',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  ircDatabaseFooterLine: {
+    color: colors.primary || '#2196F3',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  ircDatabaseFooterText: {
+    color: colors.textSecondary || '#757575',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 6,
+  },
+  ircDatabaseActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 14,
+  },
+  ircDatabaseButton: {
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    minWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ircDatabasePrimaryButton: {
+    backgroundColor: colors.primary || '#2196F3',
+  },
+  ircDatabaseSecondaryButton: {
+    borderWidth: 1,
+    borderColor: colors.border || '#E0E0E0',
+    backgroundColor: colors.surface || '#F5F5F5',
+  },
+  ircDatabasePrimaryButtonText: {
+    color: colors.onPrimary || '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  ircDatabaseSecondaryButtonText: {
+    color: colors.text || '#212121',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  ircDatabaseButtonDisabled: {
+    opacity: 0.7,
   },
 });

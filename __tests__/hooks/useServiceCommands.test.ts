@@ -282,7 +282,6 @@ describe('useServiceCommands', () => {
     }));
 
     renderHook(() => useServiceCommands({ networkId: 'freenode', currentChannel: '#a' }));
-    const [, , contextArg] = (serviceCommandProvider.getSuggestions as jest.Mock).mock.calls[0] || [];
     // trigger suggestions call after render
     const hook = renderHook(() => useServiceCommands({ networkId: 'freenode', currentChannel: '#a' }));
     hook.result.current.getSuggestions('REG');

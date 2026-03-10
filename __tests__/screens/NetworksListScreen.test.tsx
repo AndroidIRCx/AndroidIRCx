@@ -104,7 +104,14 @@ jest.mock('../../src/screens/ConnectionProfilesScreen', () => ({
   },
 }));
 
+jest.mock('../../src/services/IrcDatabaseImportService', () => ({
+  ircDatabaseImportService: {
+    importFromIrcDatabase: jest.fn(),
+  },
+}));
+
 const { settingsService } = require('../../src/services/SettingsService');
+const { ircDatabaseImportService } = require('../../src/services/IrcDatabaseImportService');
 
 describe('NetworksListScreen', () => {
   beforeEach(() => {
@@ -133,6 +140,17 @@ describe('NetworksListScreen', () => {
     settingsService.addServerToNetwork.mockResolvedValue(undefined);
     settingsService.updateServerInNetwork.mockResolvedValue(undefined);
     settingsService.deleteServerFromNetwork.mockResolvedValue(undefined);
+    ircDatabaseImportService.importFromIrcDatabase.mockResolvedValue({
+      importedNetworks: 2,
+      importedServers: 3,
+      mergedNetworks: 0,
+      mergedServers: 0,
+      skippedExistingNetworks: 1,
+      skippedInvalidNetworks: 0,
+      skippedInvalidServers: 0,
+      totalApiNetworks: 3,
+      failedPersistNetworks: 0,
+    });
   });
 
   it('loads and renders networks with servers', async () => {
@@ -190,6 +208,138 @@ describe('NetworksListScreen', () => {
     fireEvent.press(await findByText('Identity Profiles'));
 
     expect(await findByText('Mock Connection Profiles')).toBeTruthy();
+  });
+
+  it('opens IRC Database info modal', async () => {
+    const { findByText } = render(
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+    );
+
+    fireEvent.press(await findByText('Load networks from IRC Database'));
+
+    expect(await findByText('Load Networks from IRC Database')).toBeTruthy();
+    expect(await findByText('Load from IRC Database')).toBeTruthy();
+    expect(await findByText('https://irc.dbase.in.rs/api/irc/server-presets')).toBeTruthy();
+    expect(await findByText('https://irc.dbase.in.rs/privacy-policy')).toBeTruthy();
+    expect(await findByText('https://irc.dbase.in.rs/terms-of-service')).toBeTruthy();
+  });
+
+  it('closes IRC Database info modal on cancel', async () => {
+    const { findByText, queryByText } = render(
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+    );
+
+    fireEvent.press(await findByText('Load networks from IRC Database'));
+    expect(await findByText('Load Networks from IRC Database')).toBeTruthy();
+
+    fireEvent.press(await findByText('Cancel'));
+
+    await waitFor(() => {
+      expect(queryByText('Load Networks from IRC Database')).toBeNull();
+    });
+  });
+
+  it('imports networks from IRC Database and refreshes list', async () => {
+    const { findByText } = render(
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+    );
+
+    fireEvent.press(await findByText('Load networks from IRC Database'));
+    fireEvent.press(await findByText('Load from IRC Database'));
+
+    await waitFor(() => {
+      expect(ircDatabaseImportService.importFromIrcDatabase).toHaveBeenCalledTimes(1);
+    });
+    await waitFor(() => {
+      expect(settingsService.loadNetworks).toHaveBeenCalledTimes(2);
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Import completed',
+      expect.stringContaining('Imported: 2 networks (3 servers)')
+    );
+  });
+
+  it('shows import error alert when IRC Database import fails', async () => {
+    ircDatabaseImportService.importFromIrcDatabase.mockRejectedValueOnce(new Error('Network down'));
+    const { findByText } = render(
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+    );
+
+    fireEvent.press(await findByText('Load networks from IRC Database'));
+    fireEvent.press(await findByText('Load from IRC Database'));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Import failed',
+        expect.stringContaining('Network down')
+      );
+    });
+  });
+
+  it('prevents duplicate import action while loading', async () => {
+    let resolveImport: ((value: unknown) => void) | undefined;
+    ircDatabaseImportService.importFromIrcDatabase.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          resolveImport = resolve;
+        })
+    );
+
+    const { findByText, queryByText } = render(
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+    );
+
+    fireEvent.press(await findByText('Load networks from IRC Database'));
+    fireEvent.press(await findByText('Load from IRC Database'));
+    expect(queryByText('Load from IRC Database')).toBeNull();
+
+    fireEvent.press(await findByText('Load networks from IRC Database'));
+    await waitFor(() => {
+      expect(ircDatabaseImportService.importFromIrcDatabase).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      resolveImport?.({
+        importedNetworks: 1,
+        importedServers: 1,
+        mergedNetworks: 0,
+        mergedServers: 0,
+        skippedExistingNetworks: 0,
+        skippedInvalidNetworks: 0,
+        skippedInvalidServers: 0,
+        totalApiNetworks: 1,
+        failedPersistNetworks: 0,
+      });
+    });
+  });
+
+  it('shows partial import alert when some networks fail to persist', async () => {
+    ircDatabaseImportService.importFromIrcDatabase.mockResolvedValueOnce({
+      importedNetworks: 1,
+      importedServers: 1,
+      mergedNetworks: 0,
+      mergedServers: 0,
+      skippedExistingNetworks: 1,
+      skippedInvalidNetworks: 0,
+      skippedInvalidServers: 0,
+      totalApiNetworks: 3,
+      failedPersistNetworks: 1,
+    });
+
+    const { findByText } = render(
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+    );
+
+    fireEvent.press(await findByText('Load networks from IRC Database'));
+    fireEvent.press(await findByText('Load from IRC Database'));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Import partially completed',
+        expect.stringContaining('Failed to save: 1')
+      );
+    });
   });
 
   it('opens add network flow and saves a new network', async () => {
