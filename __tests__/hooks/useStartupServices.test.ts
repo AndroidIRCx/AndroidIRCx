@@ -5,7 +5,7 @@
  * Tests for useStartupServices hook - Wave 4
  */
 
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { useStartupServices } from '../../src/hooks/useStartupServices';
 
 // Track which services were initialized
@@ -244,6 +244,14 @@ jest.mock('../../src/services/PresetImportService', () => ({
   },
 }));
 
+jest.mock('../../src/services/WebRTCCallService', () => ({
+  webRtcCallService: {
+    initialize: jest.fn().mockImplementation(() => {
+      initializedServices.push('webRtcCallService');
+    }),
+  },
+}));
+
 import { themeService } from '../../src/services/ThemeService';
 import { messageReactionsService } from '../../src/services/MessageReactionsService';
 import { channelFavoritesService } from '../../src/services/ChannelFavoritesService';
@@ -261,12 +269,20 @@ import { awayService } from '../../src/services/AwayService';
 import { protectionService } from '../../src/services/ProtectionService';
 import { presetImportService } from '../../src/services/PresetImportService';
 import { backgroundService } from '../../src/services/BackgroundService';
+import { connectionManager } from '../../src/services/ConnectionManager';
+import { ircForegroundService } from '../../src/services/IRCForegroundService';
+import { messageHistoryBatching } from '../../src/services/MessageHistoryBatching';
+import { settingsService } from '../../src/services/SettingsService';
+import RNBootSplash from 'react-native-bootsplash';
+import { BackHandler, DeviceEventEmitter, Platform } from 'react-native';
+import { webRtcCallService } from '../../src/services/WebRTCCallService';
 
 describe('useStartupServices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     initializedServices.length = 0;
     jest.useFakeTimers();
+    (Platform as any).OS = 'android';
   });
 
   afterEach(() => {
@@ -276,6 +292,18 @@ describe('useStartupServices', () => {
   it('should initialize theme service on mount', () => {
     renderHook(() => useStartupServices());
     expect(themeService.initialize).toHaveBeenCalled();
+  });
+
+  it('logs theme initialization errors', () => {
+    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (themeService.initialize as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('theme fail');
+    });
+
+    renderHook(() => useStartupServices());
+
+    expect(errSpy).toHaveBeenCalledWith('Error initializing theme service:', expect.any(Error));
+    errSpy.mockRestore();
   });
 
   it('should initialize message reactions service', () => {
@@ -351,11 +379,131 @@ describe('useStartupServices', () => {
     expect(presetImportService.initialize).toHaveBeenCalled();
   });
 
+  it('should initialize webrtc call service', () => {
+    renderHook(() => useStartupServices());
+    expect(webRtcCallService.initialize).toHaveBeenCalled();
+  });
+
   it('should cleanup background service on unmount', () => {
     const { unmount } = renderHook(() => useStartupServices());
     
     unmount();
 
     expect(backgroundService.cleanup).toHaveBeenCalled();
+  });
+
+  it('handles bootsplash fallback hide paths', async () => {
+    const scripting = require('../../src/services/ScriptingService').scriptingService;
+    (scripting.initialize as jest.Mock).mockResolvedValueOnce(undefined);
+    const hideMock = RNBootSplash.hide as jest.Mock;
+    hideMock
+      .mockRejectedValueOnce(new Error('fade true fail'))
+      .mockResolvedValueOnce(undefined);
+
+    renderHook(() => useStartupServices());
+    await act(async () => {
+      jest.advanceTimersByTime(800);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(200);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(hideMock).toHaveBeenCalledWith({ fade: true });
+    expect(hideMock).toHaveBeenCalledWith({ fade: false });
+  });
+
+  it('handles bootsplash final fallback hide path when all hide attempts fail', async () => {
+    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const scripting = require('../../src/services/ScriptingService').scriptingService;
+    (scripting.initialize as jest.Mock).mockResolvedValueOnce(undefined);
+    const hideMock = RNBootSplash.hide as jest.Mock;
+    hideMock
+      .mockRejectedValueOnce(new Error('fade true fail'))
+      .mockRejectedValueOnce(new Error('fade false fail'))
+      .mockResolvedValueOnce(undefined);
+
+    renderHook(() => useStartupServices());
+    await act(async () => {
+      jest.advanceTimersByTime(900);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(200);
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(200);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(hideMock).toHaveBeenCalledWith({ fade: true });
+    expect(hideMock).toHaveBeenCalledWith({ fade: false });
+    expect(hideMock).toHaveBeenCalledWith();
+    errSpy.mockRestore();
+  });
+
+  it('seeds missing default spam and dcc lists', async () => {
+    const getSettingMock = settingsService.getSetting as jest.Mock;
+    const setSettingMock = settingsService.setSetting as jest.Mock;
+    getSettingMock.mockImplementation((key: string, def: any) => {
+      if (key === 'spamPmKeywords') return Promise.resolve(['spam']);
+      if (key === 'dccAcceptExts') return Promise.resolve(['zip']);
+      if (key === 'dccRejectExts') return Promise.resolve(['exe']);
+      if (key === 'dccDontSendExts') return Promise.resolve(['bat']);
+      return Promise.resolve(def);
+    });
+
+    renderHook(() => useStartupServices());
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(setSettingMock).toHaveBeenCalledWith('spamPmKeywords', ['spam', 'virus']);
+    expect(setSettingMock).toHaveBeenCalledWith('dccAcceptExts', ['zip', 'txt']);
+    expect(setSettingMock).toHaveBeenCalledWith('dccRejectExts', ['exe', 'dll']);
+    expect(setSettingMock).toHaveBeenCalledWith('dccDontSendExts', ['bat', 'cmd']);
+  });
+
+  it('logs errors while seeding default spam and dcc lists', async () => {
+    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (settingsService.getSetting as jest.Mock).mockRejectedValueOnce(new Error('seed fail'));
+
+    renderHook(() => useStartupServices());
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(errSpy).toHaveBeenCalledWith('Error seeding default spam/DCC lists:', expect.any(Error));
+    errSpy.mockRestore();
+  });
+
+  it('registers android foreground disconnect listener and executes quit flow', async () => {
+    renderHook(() => useStartupServices());
+    const cb = (DeviceEventEmitter.addListener as jest.Mock).mock.calls[0][1];
+    (settingsService.getSetting as jest.Mock).mockResolvedValueOnce('Bye');
+
+    await act(async () => {
+      await cb();
+    });
+
+    expect(connectionManager.disconnectAll).toHaveBeenCalledWith('Bye');
+    expect(messageHistoryBatching.flushSync).toHaveBeenCalled();
+    expect(backgroundService.cleanup).toHaveBeenCalled();
+    expect(ircForegroundService.stop).toHaveBeenCalled();
+    expect(BackHandler.exitApp).toHaveBeenCalled();
+  });
+
+  it('does not add foreground disconnect listener on iOS', () => {
+    (Platform as any).OS = 'ios';
+    renderHook(() => useStartupServices());
+    expect(DeviceEventEmitter.addListener).not.toHaveBeenCalledWith(
+      'IRCForegroundServiceDisconnectQuit',
+      expect.any(Function)
+    );
   });
 });

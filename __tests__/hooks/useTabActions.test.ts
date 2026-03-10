@@ -358,6 +358,46 @@ describe('useTabActions', () => {
     expect(mockSetActiveTabId).not.toHaveBeenCalled(); // Should not change active tab
   });
 
+  it('should not join when channel name resolves to empty string', () => {
+    const mockIRCService = {
+      joinChannel: jest.fn(),
+    };
+    mockGetActiveIRCService.mockReturnValue(mockIRCService);
+
+    const propsWithEmptyChannel = {
+      ...defaultProps,
+      channelName: '   ',
+    };
+    const { result } = renderHook(() => useTabActions(propsWithEmptyChannel));
+
+    result.current.handleJoinChannel();
+
+    expect(mockIRCService.joinChannel).not.toHaveBeenCalled();
+  });
+
+  it('should not switch active tab when closed tab had no remaining server tab', async () => {
+    const mockTabs = [
+      { id: 'channel-tab', networkId: 'test-network', type: 'channel', name: '#test' },
+      { id: 'query-tab', networkId: 'test-network', type: 'query', name: 'alice' },
+    ];
+    mockTabsRef.current = mockTabs as any;
+
+    const mockIRCService = {
+      partChannel: jest.fn(),
+    };
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue({
+      ircService: mockIRCService,
+    });
+
+    const { result } = renderHook(() =>
+      useTabActions({ ...defaultProps, activeTabId: 'channel-tab' as any })
+    );
+    await result.current.closeAllChannelsAndQueries('test-network');
+
+    expect(mockSetActiveTabId).not.toHaveBeenCalled();
+    expect(mockSetNetworkName).not.toHaveBeenCalled();
+  });
+
   it('should handle empty tabs gracefully', async () => {
     mockTabsRef.current = [];
 
@@ -424,5 +464,32 @@ describe('useTabActions', () => {
     result.current.handleTabPress('test-tab');
 
     expect(mockConnectionService.getChannelUsers).toHaveBeenCalledWith('#test-channel');
+  });
+
+  it('should store channel users when channel user list is available', () => {
+    const mockTab = {
+      id: 'test-tab',
+      networkId: 'test-network',
+      type: 'channel',
+      name: '#test-channel',
+    };
+    const mockUsers = [{ nick: 'alice' }, { nick: 'bob' }];
+    const mockIRCService = {
+      getChannelUsers: jest.fn().mockReturnValue(mockUsers),
+      requestChannelUsers: jest.fn(),
+    };
+
+    mockGetActiveIRCService.mockReturnValue(mockIRCService);
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [mockTab] });
+
+    const { result } = renderHook(() => useTabActions(defaultProps));
+
+    result.current.handleTabPress('test-tab');
+
+    expect(mockSetChannelUsers).toHaveBeenCalledWith(expect.any(Function));
+    const updater = mockSetChannelUsers.mock.calls[0][0];
+    const updatedMap = updater(new Map());
+    expect(updatedMap.get('#test-channel')).toEqual(mockUsers);
+    expect(mockIRCService.requestChannelUsers).not.toHaveBeenCalled();
   });
 });

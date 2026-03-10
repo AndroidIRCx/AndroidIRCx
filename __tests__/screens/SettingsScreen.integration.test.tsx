@@ -349,10 +349,30 @@ const { SettingsScreen } = jest.requireActual('../../src/screens/SettingsScreen'
 
 describe('SettingsScreen Integration', () => {
   const mockOnClose = jest.fn();
+  const setPremiumHook = (overrides: Record<string, any> = {}) => {
+    const { useSettingsPremium } = require('../../src/hooks/useSettingsPremium');
+    (useSettingsPremium as jest.Mock).mockReturnValue({
+      watchAdButtonEnabledForPremium: false,
+      setWatchAdButtonEnabledForPremium: jest.fn().mockResolvedValue(undefined),
+      hasNoAds: false,
+      hasScriptingPro: false,
+      isSupporter: false,
+      adReady: false,
+      adLoading: false,
+      adCooldown: false,
+      cooldownSeconds: 0,
+      showingAd: false,
+      adUnitType: 'Primary',
+      showWatchAdButton: true,
+      handleWatchAd: jest.fn().mockResolvedValue(undefined),
+      ...overrides,
+    });
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockCapturedSettingItems.clear();
+    setPremiumHook();
     
     // Mock utility functions
     (settingsHelpers.getSectionIcon as jest.Mock).mockReturnValue({ name: 'cog', solid: false });
@@ -959,5 +979,207 @@ describe('SettingsScreen Integration', () => {
     await waitFor(() => {
       expect(messageHistoryService.getStats).toHaveBeenCalledWith('test-network');
     });
+  });
+
+  it('should execute extended performance actions and user list type choices', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { performanceService } = require('../../src/services/PerformanceService');
+    jest.spyOn(Alert, 'alert');
+
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'performance')
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Performance'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('perf-message-limit')).toBeTruthy();
+      expect(mockCapturedSettingItems.get('perf-max-visible')).toBeTruthy();
+    });
+
+    await mockCapturedSettingItems.get('perf-message-limit').onValueChange('1800');
+    await mockCapturedSettingItems.get('perf-max-visible').onValueChange('130');
+
+    const maybeListType = mockCapturedSettingItems.get('perf-user-list-type');
+    if (maybeListType?.onPress) {
+      maybeListType.onPress();
+      const typeCall = (Alert.alert as jest.Mock).mock.calls.find((call: any[]) =>
+        String(call[0]).includes('Select User List Type')
+      );
+      if (typeCall?.[2]) {
+        await typeCall[2].find((btn: any) => String(btn.text).includes('FlashList'))?.onPress?.();
+        await typeCall[2].find((btn: any) => String(btn.text).includes('FlatList'))?.onPress?.();
+        await typeCall[2].find((btn: any) => String(btn.text).includes('Grouped'))?.onPress?.();
+        await typeCall[2].find((btn: any) => String(btn.text).includes('Simple'))?.onPress?.();
+      }
+    }
+
+    expect(performanceService.setConfig).toHaveBeenCalledWith({ messageLimit: 1800 });
+    expect(performanceService.setConfig).toHaveBeenCalledWith({ maxVisibleMessages: 130 });
+  });
+
+  it('should execute premium section actions and open privacy relay screen', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const onShowPurchaseScreen = jest.fn();
+    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'premium'));
+
+    const view = render(
+      <SettingsScreen
+        visible={true}
+        onClose={mockOnClose}
+        onShowPurchaseScreen={onShowPurchaseScreen}
+      />
+    );
+
+    fireEvent.press(view.getByText('💎 Premium'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('premium-upgrade')).toBeTruthy();
+      expect(mockCapturedSettingItems.get('privacy-relay-subscription')).toBeTruthy();
+    });
+
+    mockCapturedSettingItems.get('premium-upgrade').onPress();
+    expect(onShowPurchaseScreen).toHaveBeenCalled();
+
+    mockCapturedSettingItems.get('privacy-relay-subscription').onPress();
+  });
+
+  it('should export history as txt and csv formats from submenu', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { messageHistoryService } = require('../../src/services/MessageHistoryService');
+    (messageHistoryService.exportHistory as jest.Mock).mockResolvedValue('x');
+    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'messages-history'));
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    fireEvent.press(view.getByText('Messages & History'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('history-export')).toBeTruthy();
+    });
+
+    const exportSubmenuItems = mockCapturedSettingItems.get('history-export').submenuItems;
+    exportSubmenuItems.find((item: any) => item.id === 'export-txt')?.onPress?.();
+    exportSubmenuItems.find((item: any) => item.id === 'export-csv')?.onPress?.();
+
+    expect(messageHistoryService.exportHistory).toHaveBeenCalledTimes(2);
+  });
+
+  it('should run additional performance callbacks and ignore invalid numeric inputs', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { performanceService } = require('../../src/services/PerformanceService');
+    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'performance'));
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Performance'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('perf-message-limit')).toBeTruthy();
+    });
+
+    const callIfExists = async (id: string, value: any) => {
+      const item = mockCapturedSettingItems.get(id);
+      if (item?.onValueChange) {
+        await item.onValueChange(value);
+        return true;
+      }
+      return false;
+    };
+
+    const calledVirtualization = await callIfExists('perf-virtualization', false);
+    const calledLazy = await callIfExists('perf-lazy-loading', false);
+    const calledRenderOpt = await callIfExists('perf-render-optimization', false);
+    const calledCleanup = await callIfExists('perf-message-cleanup', false);
+    const calledChunk = await callIfExists('perf-load-chunk', '64');
+    const calledImageLazy = await callIfExists('perf-image-lazy', false);
+    const calledGrouping = await callIfExists('perf-user-grouping', false);
+    const calledGroupingThreshold = await callIfExists('perf-user-grouping-threshold', '1200');
+    const calledDebounce = await callIfExists('perf-user-debounce', '0');
+    const calledSkipSort = await callIfExists('perf-user-skip-sort', '0');
+    const calledChunkLoading = await callIfExists('perf-user-chunk-loading', false);
+    const calledChunkSize = await callIfExists('perf-user-chunk-size', '120');
+    const calledInitialRender = await callIfExists('perf-user-initial-render', '60');
+
+    const callsBeforeInvalid = (performanceService.setConfig as jest.Mock).mock.calls.length;
+    await callIfExists('perf-message-limit', 'abc');
+    await callIfExists('perf-max-visible', '0');
+    await callIfExists('perf-load-chunk', '0');
+    await callIfExists('perf-user-grouping-threshold', '-1');
+    await callIfExists('perf-user-chunk-size', '0');
+    await callIfExists('perf-user-initial-render', '0');
+
+    if (calledVirtualization) expect(performanceService.setConfig).toHaveBeenCalledWith({ enableVirtualization: false });
+    if (calledLazy) expect(performanceService.setConfig).toHaveBeenCalledWith({ enableLazyLoading: false });
+    if (calledRenderOpt) expect(performanceService.setConfig).toHaveBeenCalledWith({ renderOptimization: false });
+    if (calledCleanup) expect(performanceService.setConfig).toHaveBeenCalledWith({ enableMessageCleanup: false });
+    if (calledChunk) expect(performanceService.setConfig).toHaveBeenCalledWith({ messageLoadChunk: 64 });
+    if (calledImageLazy) expect(performanceService.setConfig).toHaveBeenCalledWith({ imageLazyLoad: false });
+    if (calledGrouping) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListGrouping: false });
+    if (calledGroupingThreshold) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListAutoDisableGroupingThreshold: 1200 });
+    if (calledDebounce) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListSearchDebounceMs: 0 });
+    if (calledSkipSort) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListSkipSortThreshold: 0 });
+    if (calledChunkLoading) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListEnableChunkLoading: false });
+    if (calledChunkSize) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListChunkSize: 120 });
+    if (calledInitialRender) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListInitialRenderCount: 60 });
+    expect((performanceService.setConfig as jest.Mock).mock.calls.length).toBe(callsBeforeInvalid);
+  });
+
+  it('should render watch ad button variants and call handleWatchAd', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+
+    const handleWatchAd = jest.fn().mockResolvedValue(undefined);
+    setPremiumHook({
+      showWatchAdButton: true,
+      adReady: false,
+      adLoading: false,
+      adCooldown: false,
+      showingAd: false,
+      handleWatchAd,
+    });
+    let view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Scripting & Ads'));
+    const requestAdText = await view.findByText('Request Ad');
+    fireEvent.press(requestAdText);
+    expect(handleWatchAd).toHaveBeenCalled();
+    view.unmount();
+
+    setPremiumHook({ showWatchAdButton: true, adReady: true, adLoading: false, adCooldown: false, showingAd: false });
+    view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Scripting & Ads'));
+    expect(await view.findByText('Watch Ad (+60 min Scripting & No-Ads)')).toBeTruthy();
+    view.unmount();
+
+    setPremiumHook({ showWatchAdButton: true, adReady: false, adLoading: false, adCooldown: true, cooldownSeconds: 45, showingAd: false });
+    view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Scripting & Ads'));
+    expect(await view.findByText('Cooldown (45s)')).toBeTruthy();
+    view.unmount();
+
+    setPremiumHook({ showWatchAdButton: true, adReady: false, adLoading: true, adCooldown: false, showingAd: false });
+    view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Scripting & Ads'));
+    expect(await view.findByText('Loading Ad...')).toBeTruthy();
+  });
+
+  it('should execute additional bouncer scrollback handlers', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'connection-network')
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Connection & Network'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('bouncer-config')).toBeTruthy();
+    });
+
+    const submenuItems = mockCapturedSettingItems.get('bouncer-config').submenuItems;
+    const byId = (id: string) => submenuItems.find((it: any) => it.id === id);
+
+    await byId('bouncer-load-scrollback').onValueChange(false);
+    await byId('bouncer-scrollback-lines').onValueChange('0'); // invalid branch
+    await byId('bouncer-scrollback-lines').onValueChange('150'); // valid branch
   });
 });

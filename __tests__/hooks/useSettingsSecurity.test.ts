@@ -101,6 +101,34 @@ describe('useSettingsSecurity', () => {
     expect(result.current.killSwitchCustomIcon).toBe('lock');
   });
 
+  it('should update header/lock-screen/warnings via setting change listeners', async () => {
+    const { result } = renderHook(() => useSettingsSecurity());
+
+    await flushPromises();
+
+    act(() => {
+      settingChangeCallbacks['killSwitchEnabledOnHeader']?.(false);
+      settingChangeCallbacks['killSwitchEnabledOnLockScreen']?.(true);
+      settingChangeCallbacks['killSwitchShowWarnings']?.(false);
+    });
+
+    expect(result.current.killSwitchEnabledOnHeader).toBe(false);
+    expect(result.current.killSwitchEnabledOnLockScreen).toBe(true);
+    expect(result.current.killSwitchShowWarnings).toBe(false);
+  });
+
+  it('should update custom color via setting change listener', async () => {
+    const { result } = renderHook(() => useSettingsSecurity());
+
+    await flushPromises();
+
+    act(() => {
+      settingChangeCallbacks['killSwitchCustomColor']?.('#123456');
+    });
+
+    expect(result.current.killSwitchCustomColor).toBe('#123456');
+  });
+
   it('should set kill switch on header', async () => {
     const { result } = renderHook(() => useSettingsSecurity());
 

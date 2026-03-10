@@ -239,4 +239,183 @@ describe('AwayService', () => {
     expect(irc.sendRaw).not.toHaveBeenCalledWith('PRIVMSG #two :away: busy');
     expect(irc.sendRaw).not.toHaveBeenCalledWith('PRIVMSG #three :away: busy');
   });
+
+  it('initialize handles new connection event and setting change callbacks', async () => {
+    const irc = makeIrcService();
+    const createdCallbacks: Array<(networkId: string) => void> = [];
+    const settingCallbacks = new Map<string, (value?: any) => void>();
+
+    mockConnectionManager.getConnection.mockImplementation((networkId: string) =>
+      networkId === 'net-new' ? { networkId, ircService: irc } : null
+    );
+    mockConnectionManager.onConnectionCreated.mockImplementation((cb: (networkId: string) => void) => {
+      createdCallbacks.push(cb);
+      return jest.fn();
+    });
+    mockOnSettingChange.mockImplementation((key: string, cb: (value?: any) => void) => {
+      settingCallbacks.set(key, cb);
+      return jest.fn();
+    });
+
+    awayService.initialize();
+    createdCallbacks[0]('net-new');
+    await Promise.resolve();
+
+    expect(irc.onMessage).toHaveBeenCalled();
+
+    const refreshSpy = jest.spyOn(awayService as any, 'refreshAutoAwayTimers');
+    settingCallbacks.get('autoAwayEnabled')?.();
+    settingCallbacks.get('autoAwayMinutes')?.();
+    expect(refreshSpy).toHaveBeenCalledTimes(2);
+
+    settingCallbacks.get('awayDisableSounds')?.(1);
+    expect((awayService as any).disableSoundsWhenAway).toBe(true);
+  });
+
+  it('handles numeric 305/306 and numeric handler errors', async () => {
+    const irc = makeIrcService();
+    const stopAnnounceTimerSpy = jest.spyOn(awayService as any, 'stopAnnounceTimer');
+    const startAnnounceTimerSpy = jest.spyOn(awayService as any, 'startAnnounceTimer');
+    const restoreNickSpy = jest.spyOn(awayService as any, 'restoreNickIfNeeded').mockResolvedValue(undefined);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    (awayService as any).attachToConnection('net', irc);
+    const state = (awayService as any).ensureState('net');
+    state.reason = 'old';
+    state.isAway = true;
+
+    await irc.handlers.numeric(305, '', [':x']);
+    expect(state.isAway).toBe(false);
+    expect(state.reason).toBe('');
+    expect(stopAnnounceTimerSpy).toHaveBeenCalledWith('net');
+    expect(restoreNickSpy).toHaveBeenCalled();
+
+    await irc.handlers.numeric(306, '', ['ignored', ':new reason']);
+    expect(state.isAway).toBe(true);
+    expect(state.reason).toBe('new reason');
+    expect(startAnnounceTimerSpy).toHaveBeenCalledWith('net', irc);
+
+    restoreNickSpy.mockRejectedValueOnce(new Error('boom'));
+    await irc.handlers.numeric(305, '', []);
+    expect(errorSpy).toHaveBeenCalled();
+
+    restoreNickSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('reacts to connection state changes and clears timers on disconnect', async () => {
+    jest.useFakeTimers();
+    const irc = makeIrcService();
+    (awayService as any).attachToConnection('net', irc);
+    const state = (awayService as any).ensureState('net');
+    state.isAway = true;
+    state.reason = 'busy';
+    state.originalNick = 'Tester';
+    state.pendingAwayNick = 'Tester away';
+    state.autoAwayTimer = setTimeout(() => undefined, 1000) as any;
+    state.announceTimer = setInterval(() => undefined, 1000) as any;
+
+    const scheduleSpy = jest.spyOn(awayService as any, 'scheduleAutoAway').mockResolvedValue(undefined);
+    irc.handlers.onConnectionChange(false);
+    expect(state.isAway).toBe(false);
+    expect(state.reason).toBe('');
+    expect(state.originalNick).toBeUndefined();
+    expect(state.pendingAwayNick).toBeUndefined();
+    expect(state.autoAwayTimer).toBeUndefined();
+    expect(state.announceTimer).toBeUndefined();
+
+    irc.handlers.onConnectionChange(true);
+    expect(scheduleSpy).toHaveBeenCalledWith('net', irc);
+    scheduleSpy.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it('scheduleAutoAway sets timer and executes setAway callback', async () => {
+    const irc = makeIrcService();
+    mockGetSetting.mockImplementation(async (key: string, defaultValue: any) => {
+      if (key === 'autoAwayEnabled') return true;
+      if (key === 'autoAwayMinutes') return 1;
+      return defaultValue;
+    });
+
+    const state = (awayService as any).ensureState('net');
+    state.lastActivityAt = Date.now();
+    await (awayService as any).scheduleAutoAway('net', irc);
+
+    expect(mockGetSetting).toHaveBeenCalledWith('autoAwayEnabled', false);
+    expect(mockGetSetting).toHaveBeenCalledWith('autoAwayMinutes', 0);
+    expect((awayService as any).ensureState('net').autoAwayTimer).toBeDefined();
+  });
+
+  it('getAutoAnswerMessage and getAutoAwayReason use fallback chain', async () => {
+    mockGetSetting.mockImplementation(async (key: string, defaultValue: any) => {
+      if (key === 'awayAutoAnswerMessage') return '   ';
+      if (key === 'awayAutoAnswerMessages') return ['Preset hello'];
+      if (key === 'autoAwayReason') return ' ';
+      if (key === 'awaySelectedPreset') return ' ';
+      if (key === 'awayDefaultReason') return ' ';
+      if (key === 'awayTextAway') return '';
+      return defaultValue;
+    });
+
+    const autoAnswer = await (awayService as any).getAutoAnswerMessage();
+    const autoReason = await (awayService as any).getAutoAwayReason();
+    expect(autoAnswer).toBe('Preset hello');
+    expect(autoReason).toBe('Away');
+  });
+
+  it('applies and restores nick changes with pattern validation', async () => {
+    const irc = makeIrcService();
+    const state = (awayService as any).ensureState('net');
+    mockGetSetting.mockImplementation(async (key: string, defaultValue: any) => {
+      if (key === 'awayNickPattern') return '<me>^away';
+      if (key === 'awayTextAway') return 'gone';
+      return defaultValue;
+    });
+
+    await (awayService as any).applyAwayNick('net', irc);
+    expect(irc.sendRaw).toHaveBeenCalledWith('NICK Testergone');
+    expect(state.originalNick).toBe('Tester');
+    expect(state.pendingAwayNick).toBe('Testergone');
+
+    state.originalNick = 'Tester';
+    state.pendingAwayNick = 'Testergone';
+    await (awayService as any).restoreNickIfNeeded('net', irc);
+    expect(irc.sendRaw).toHaveBeenLastCalledWith('NICK Tester');
+    expect(state.originalNick).toBeUndefined();
+    expect(state.pendingAwayNick).toBeUndefined();
+
+    irc.sendRaw.mockClear();
+    mockGetSetting.mockImplementation(async (key: string, defaultValue: any) => {
+      if (key === 'awayNickPattern') return 'no-placeholder';
+      return defaultValue;
+    });
+    await (awayService as any).applyAwayNick('net', irc);
+    expect(irc.sendRaw).not.toHaveBeenCalled();
+  });
+
+  it('recordActivity updates one network or all networks', async () => {
+    const ircA = makeIrcService();
+    const ircB = makeIrcService();
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(12345);
+    const scheduleSpy = jest.spyOn(awayService as any, 'scheduleAutoAway').mockResolvedValue(undefined);
+
+    mockConnectionManager.getConnection.mockImplementation((id: string) =>
+      id === 'a' ? { networkId: 'a', ircService: ircA } : null
+    );
+    awayService.recordActivity('a');
+    expect((awayService as any).ensureState('a').lastActivityAt).toBe(12345);
+    expect(scheduleSpy).toHaveBeenCalledWith('a', ircA);
+
+    mockConnectionManager.getAllConnections.mockReturnValue([
+      { networkId: 'a', ircService: ircA },
+      { networkId: 'b', ircService: ircB },
+    ]);
+    awayService.recordActivity();
+    expect((awayService as any).ensureState('a').lastActivityAt).toBe(12345);
+    expect((awayService as any).ensureState('b').lastActivityAt).toBe(12345);
+    expect(scheduleSpy).toHaveBeenCalledWith('b', ircB);
+
+    nowSpy.mockRestore();
+  });
 });

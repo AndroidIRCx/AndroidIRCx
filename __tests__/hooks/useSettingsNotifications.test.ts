@@ -63,6 +63,10 @@ describe('useSettingsNotifications', () => {
     (Platform as any).OS = 'android';
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('should return initial notification preferences', () => {
     const { result } = renderHook(() => useSettingsNotifications());
 
@@ -101,6 +105,22 @@ describe('useSettingsNotifications', () => {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     expect(backgroundService.isBatteryOptimizationEnabled).not.toHaveBeenCalled();
+  });
+
+  it('should handle initial battery optimization check errors', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (backgroundService.isBatteryOptimizationEnabled as jest.Mock).mockRejectedValueOnce(
+      new Error('battery-check-failed')
+    );
+
+    renderHook(() => useSettingsNotifications());
+    await flushPromises();
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Failed to check battery optimization:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
   });
 
   it('should update notification preferences', async () => {
@@ -247,6 +267,54 @@ describe('useSettingsNotifications', () => {
     expect(backgroundService.openBatteryOptimizationSettings).toHaveBeenCalled();
 
     jest.useRealTimers();
+  });
+
+  it('should re-check battery optimization status after opening settings', async () => {
+    jest.useFakeTimers();
+    (backgroundService.isBatteryOptimizationEnabled as jest.Mock).mockResolvedValue(false);
+    const { result } = renderHook(() => useSettingsNotifications());
+
+    await act(async () => {
+      await result.current.handleBatteryOptimization();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+
+    expect(backgroundService.isBatteryOptimizationEnabled).toHaveBeenCalled();
+    expect(result.current.batteryOptEnabledStatus).toBe(false);
+    jest.useRealTimers();
+  });
+
+  it('should handle battery optimization re-check errors after timeout', async () => {
+    jest.useFakeTimers();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (backgroundService.isBatteryOptimizationEnabled as jest.Mock).mockResolvedValueOnce(true);
+    (backgroundService.isBatteryOptimizationEnabled as jest.Mock).mockRejectedValueOnce(
+      new Error('recheck-failed')
+    );
+
+    const { result } = renderHook(() => useSettingsNotifications());
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await result.current.handleBatteryOptimization();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Failed to re-check battery optimization:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
   });
 
   it('should show alert when battery optimization settings fail', async () => {

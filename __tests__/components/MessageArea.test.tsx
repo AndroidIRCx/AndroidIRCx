@@ -4,7 +4,10 @@
  */
 
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+
+let mockNickContextMenuProps: any = null;
+let mockKickBanModalProps: any = null;
 
 // ── sub-component mocks ────────────────────────────────────────────────────
 jest.mock('../../src/components/LinkPreview', () => ({
@@ -29,11 +32,17 @@ jest.mock('../../src/components/MessageSearchBar', () => ({
   MessageSearchBar: (_p: any) => null,
 }));
 jest.mock('../../src/components/NickContextMenu', () => ({
-  NickContextMenu: (_p: any) => null,
+  NickContextMenu: (p: any) => {
+    mockNickContextMenuProps = p;
+    return null;
+  },
 }));
 jest.mock('../../src/components/KickBanModal', () => ({
   __esModule: true,
-  default: (_p: any) => null,
+  default: (p: any) => {
+    mockKickBanModalProps = p;
+    return null;
+  },
 }));
 
 // ── third-party library mocks ──────────────────────────────────────────────
@@ -156,20 +165,29 @@ jest.mock('../../src/services/UserManagementService', () => ({
     addToBlacklist: jest.fn(),
     removeFromBlacklist: jest.fn(),
     getBlacklist: jest.fn(() => []),
+    isUserIgnored: jest.fn(() => false),
+    unignoreUser: jest.fn(),
+    ignoreUser: jest.fn(),
+    getUserNote: jest.fn(() => ''),
+    addUserNote: jest.fn(),
+    removeUserNote: jest.fn(),
+    addBlacklistEntry: jest.fn(),
   },
   BlacklistActionType: {},
 }));
 
 jest.mock('../../src/services/BanService', () => ({
   banService: {
-    getBanMaskTypes: jest.fn(() => []),
+    getBanMaskTypes: jest.fn(() => [
+      { id: 2, pattern: '*!*@host', description: 'default mask' },
+    ]),
     generateBanMask: jest.fn(() => '*!*@*'),
     addBan: jest.fn(),
   },
 }));
 
 jest.mock('../../src/services/DCCChatService', () => ({
-  dccChatService: { openChat: jest.fn() },
+  dccChatService: { openChat: jest.fn(), initiateChat: jest.fn() },
 }));
 
 jest.mock('../../src/services/IRCService', () => ({
@@ -190,17 +208,25 @@ jest.mock('../../src/services/EncryptedDMService', () => ({
     parseExternalPayload: jest.fn(),
     getBundleFingerprintForNetwork: jest.fn().mockResolvedValue(null),
     formatFingerprintForDisplay: jest.fn(() => 'fp-display'),
+    exportBundle: jest.fn(async () => ({ bundle: 'test-bundle' })),
+    awaitBundleForNick: jest.fn().mockResolvedValue(undefined),
+    isEncryptedForNetwork: jest.fn().mockResolvedValue(false),
+    getVerificationStatusForNetwork: jest.fn().mockResolvedValue({ fingerprint: null, verified: false }),
+    getVerificationStatus: jest.fn().mockResolvedValue({ fingerprint: null, verified: false }),
+    getSelfFingerprint: jest.fn().mockResolvedValue('self-fp'),
+    setVerifiedForNetwork: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
 jest.mock('../../src/services/ChannelEncryptionService', () => ({
   channelEncryptionService: {
     hasEncryptionKey: jest.fn().mockResolvedValue(false),
+    exportChannelKey: jest.fn().mockResolvedValue('chan-key-data'),
   },
 }));
 
 jest.mock('../../src/services/SoundService', () => ({
-  soundService: { play: jest.fn() },
+  soundService: { play: jest.fn(), playSound: jest.fn() },
 }));
 
 // ── utility mocks ──────────────────────────────────────────────────────────
@@ -321,7 +347,15 @@ jest.mock('../../src/stores/uiStore', () => ({
         setShowQueryEncryptionMenu: jest.fn(),
         setPrefillMessage: jest.fn(),
       }),
-    { getState: () => ({}) }
+    {
+      getState: jest.fn(() => ({
+        whoisDisplayMode: 'tab',
+        setWhoisNick: jest.fn(),
+        setShowWHOIS: jest.fn(),
+        setDccSendTarget: jest.fn(),
+        setShowDccSendModal: jest.fn(),
+      })),
+    }
   ),
 }));
 
@@ -376,6 +410,8 @@ const renderAndSettle = async (ui: React.ReactElement) => {
 describe('MessageArea', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNickContextMenuProps = null;
+    mockKickBanModalProps = null;
 
     mockGetSetting.mockImplementation((_key: string, fallback: unknown) =>
       Promise.resolve(fallback)
@@ -388,6 +424,12 @@ describe('MessageArea', () => {
         getNetworkName: jest.fn(() => 'TestNet'),
         isServerOper: jest.fn(() => false),
         sendRaw: jest.fn(),
+        sendCommand: jest.fn(),
+        sendCTCPRequest: jest.fn(),
+        addMessage: jest.fn(),
+        isMonitoring: jest.fn(() => false),
+        monitorNick: jest.fn(),
+        unmonitorNick: jest.fn(),
       },
     });
   });
@@ -979,5 +1021,330 @@ describe('MessageArea', () => {
     ];
     const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
     expect(toJSON()).toBeTruthy();
+  });
+
+  it('enters selection mode via long press and handles copy/cancel actions', async () => {
+    const messages = [
+      makeMsg({ id: 'sel-1', text: 'Selectable message', from: 'Alice' }),
+    ];
+    const view = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />
+    );
+    const { queryByText, UNSAFE_getAllByType } = view;
+    const { TouchableOpacity } = require('react-native');
+
+    const pressables = UNSAFE_getAllByType(TouchableOpacity).filter((node: any) => typeof node.props.onLongPress === 'function');
+    expect(pressables.length).toBeGreaterThan(0);
+    await act(async () => {
+      pressables[0].props.onLongPress?.();
+    });
+
+    expect(queryByText('1 selected')).toBeTruthy();
+
+    const copyButton = queryByText('Copy');
+    const cancelButton = queryByText('Cancel');
+    expect(copyButton).toBeTruthy();
+    expect(cancelButton).toBeTruthy();
+    await act(async () => {
+      if (copyButton) fireEvent.press(copyButton);
+      if (cancelButton) fireEvent.press(cancelButton);
+    });
+  });
+
+  it('renders non-virtualized branch when virtualization is disabled', async () => {
+    const { performanceService } = require('../../src/services/PerformanceService');
+    performanceService.getConfig.mockReturnValue({
+      enableVirtualization: false,
+      maxVisibleMessages: 100,
+      messageLoadChunk: 50,
+      enableLazyLoading: false,
+      messageLimit: 1000,
+      enableMessageCleanup: false,
+      cleanupThreshold: 1500,
+      renderOptimization: true,
+      imageLazyLoad: true,
+      userListGrouping: true,
+      userListVirtualization: true,
+      userListAutoDisableGroupingThreshold: 1000,
+      userListAutoVirtualizeThreshold: 500,
+      userListType: 'flashlist',
+      userListSearchDebounceMs: 300,
+      userListSkipSortThreshold: 1000,
+      userListEnableChunkLoading: true,
+      userListChunkSize: 100,
+      userListInitialRenderCount: 50,
+    });
+
+    const { toJSON } = await renderAndSettle(
+      <MessageArea
+        {...baseProps}
+        messages={[makeMsg({ id: 'nv-1', text: 'fallback path' })]}
+      />
+    );
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it('opens nick context menu and executes core nick actions', async () => {
+    const messages = [makeMsg({ from: 'Alice', text: 'Hello there' })];
+    const { getAllByText } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />
+    );
+
+    const nickNode = getAllByText(/Alice/)[0];
+    await act(async () => {
+      fireEvent(nickNode, 'onLongPress');
+    });
+
+    expect(mockNickContextMenuProps).toBeTruthy();
+    expect(mockNickContextMenuProps.nick).toBe('Alice');
+
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('whois');
+      await mockNickContextMenuProps.onAction('copy');
+      await mockNickContextMenuProps.onAction('ctcp_ping');
+      await mockNickContextMenuProps.onAction('ctcp_version');
+      await mockNickContextMenuProps.onAction('ctcp_time');
+      await mockNickContextMenuProps.onAction('kick');
+      await mockNickContextMenuProps.onAction('kick_message');
+      await mockNickContextMenuProps.onAction('ban');
+      await mockNickContextMenuProps.onAction('kick_ban');
+    });
+
+    const connection = mockGetConnection.mock.results[0]?.value;
+    const irc = connection?.ircService;
+    expect(irc.sendCommand).toHaveBeenCalledWith('WHOIS Alice');
+    expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'PING', expect.any(String));
+    expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'VERSION');
+    expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'TIME');
+    expect(irc.sendCommand).toHaveBeenCalledWith('KICK #general Alice');
+    expect(irc.sendCommand).toHaveBeenCalledWith('KICK #general Alice :Kicked');
+    expect(irc.sendCommand).toHaveBeenCalledWith('MODE #general +b Alice!*@*');
+  });
+
+  it('executes whois modal branch, query tab creation, ignore toggle, monitor toggle and dcc send', async () => {
+    const { userManagementService } = require('../../src/services/UserManagementService');
+    const { useUIStore } = require('../../src/stores/uiStore');
+    const uiState = {
+      whoisDisplayMode: 'modal',
+      setWhoisNick: jest.fn(),
+      setShowWHOIS: jest.fn(),
+      setDccSendTarget: jest.fn(),
+      setShowDccSendModal: jest.fn(),
+    };
+    (useUIStore.getState as jest.Mock).mockReturnValue(uiState);
+
+    const messages = [makeMsg({ from: 'Alice', text: 'Hello again' })];
+    const { getAllByText } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />
+    );
+
+    await act(async () => {
+      fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+    });
+
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('whois');
+      await mockNickContextMenuProps.onAction('query');
+      await mockNickContextMenuProps.onAction('ignore_toggle');
+      await mockNickContextMenuProps.onAction('monitor_toggle');
+      await mockNickContextMenuProps.onAction('dcc_send');
+    });
+
+    const connection = mockGetConnection.mock.results[0]?.value;
+    const irc = connection?.ircService;
+    expect(uiState.setWhoisNick).toHaveBeenCalledWith('Alice');
+    expect(uiState.setShowWHOIS).toHaveBeenCalledWith(true);
+    expect(mockSetTabs).toHaveBeenCalled();
+    expect(mockSetActiveTabId).toHaveBeenCalled();
+    expect(userManagementService.ignoreUser).toHaveBeenCalledWith('Alice', undefined, 'TestNet');
+    expect(irc.monitorNick).toHaveBeenCalledWith('Alice');
+    expect(uiState.setDccSendTarget).toHaveBeenCalledWith({ nick: 'Alice', networkId: 'TestNet' });
+    expect(uiState.setShowDccSendModal).toHaveBeenCalledWith(true);
+
+    (userManagementService.isUserIgnored as jest.Mock).mockReturnValue(true);
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('ignore_toggle');
+    });
+    expect(userManagementService.unignoreUser).toHaveBeenCalledWith('Alice', 'TestNet');
+  });
+
+  it('executes encryption request/share actions and posts system notices', async () => {
+    const { encryptedDMService } = require('../../src/services/EncryptedDMService');
+    const messages = [makeMsg({ from: 'Alice', text: 'Secure hello' })];
+    const { getAllByText } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />
+    );
+
+    await act(async () => {
+      fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+    });
+
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('enc_request');
+      await mockNickContextMenuProps.onAction('enc_share');
+    });
+
+    const connection = mockGetConnection.mock.results[0]?.value;
+    const irc = connection?.ircService;
+    expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG Alice :!enc-req');
+    expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG Alice :!enc-offer'));
+    expect(irc.addMessage).toHaveBeenCalled();
+    expect(encryptedDMService.awaitBundleForNick).toHaveBeenCalledWith('Alice', 36000);
+  });
+
+  it('opens kick/ban options modal and confirms kick+ban command flow', async () => {
+    const messages = [makeMsg({ from: 'Alice', text: 'Moderation case' })];
+    const { getAllByText } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />
+    );
+
+    await act(async () => {
+      fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+    });
+    await waitFor(() => {
+      expect(mockNickContextMenuProps).toBeTruthy();
+      expect(mockNickContextMenuProps.nick).toBe('Alice');
+    });
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('kick_ban_with_options');
+    });
+
+    expect(mockKickBanModalProps).toBeTruthy();
+    await waitFor(() => {
+      expect(mockKickBanModalProps?.visible).toBe(true);
+    });
+
+    await act(async () => {
+      mockKickBanModalProps.onConfirm({
+        kick: true,
+        ban: true,
+        banType: 2,
+        reason: 'bye',
+        unbanAfterSeconds: 0,
+      });
+    });
+
+    const connection = mockGetConnection.mock.results[0]?.value;
+    const irc = connection?.ircService;
+    expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('MODE #general +b'));
+    expect(irc.sendRaw).toHaveBeenCalledWith('KICK #general Alice :bye');
+  });
+
+  it('handles enc_verify action for missing and existing fingerprints', async () => {
+    const { Alert } = require('react-native');
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const { encryptedDMService } = require('../../src/services/EncryptedDMService');
+    const Clipboard = require('@react-native-clipboard/clipboard');
+
+    const messages = [makeMsg({ from: 'Alice', text: 'Verify me' })];
+    const { getAllByText } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />
+    );
+
+    await act(async () => {
+      fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+    });
+
+    (encryptedDMService.getVerificationStatusForNetwork as jest.Mock).mockResolvedValueOnce({
+      fingerprint: null,
+      verified: false,
+    });
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('enc_verify');
+    });
+    expect(alertSpy).toHaveBeenCalledWith('Verify DM Key', 'No DM key for Alice');
+
+    (encryptedDMService.getVerificationStatusForNetwork as jest.Mock).mockResolvedValueOnce({
+      fingerprint: 'peer-fp',
+      verified: false,
+    });
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('enc_verify');
+    });
+    const verifyCall = alertSpy.mock.calls.find((call: any[]) => call[0] === 'Verify DM Key' && Array.isArray(call[2]));
+    expect(verifyCall).toBeTruthy();
+    const buttons = verifyCall[2];
+    const markVerified = buttons.find((b: any) => String(b.text).includes('Mark Verified'));
+    const copyButton = buttons.find((b: any) => String(b.text).includes('Copy Fingerprints'));
+    await act(async () => {
+      await markVerified.onPress();
+      copyButton.onPress();
+    });
+
+    expect(encryptedDMService.setVerifiedForNetwork).toHaveBeenCalledWith('TestNet', 'Alice', true);
+    expect(Clipboard.setString).toHaveBeenCalled();
+    alertSpy.mockRestore();
+  });
+
+  it('executes channel encryption share and request actions', async () => {
+    const { channelEncryptionService } = require('../../src/services/ChannelEncryptionService');
+    const messages = [makeMsg({ from: 'Alice', text: 'Channel key flow' })];
+    const { getAllByText } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />
+    );
+
+    await act(async () => {
+      fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+    });
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('chan_share');
+      await mockNickContextMenuProps.onAction('chan_request');
+    });
+
+    const connection = mockGetConnection.mock.results[0]?.value;
+    const irc = connection?.ircService;
+    expect(channelEncryptionService.exportChannelKey).toHaveBeenCalledWith('#general', 'TestNet');
+    expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG Alice :!chanenc-key chan-key-data');
+    expect(irc.sendRaw).toHaveBeenCalledWith(
+      'PRIVMSG Alice :Please share the channel key for #general with /chankey share TestNick'
+    );
+  });
+
+  it('opens note and blacklist modals and persists changes', async () => {
+    const { userManagementService } = require('../../src/services/UserManagementService');
+    (userManagementService.getUserNote as jest.Mock).mockReturnValue('existing note');
+
+    const messages = [makeMsg({ from: 'Alice', text: 'Notes and blacklist' })];
+    const view = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />
+    );
+    const { getAllByText, getByPlaceholderText, getByText } = view;
+
+    await act(async () => {
+      fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+    });
+    await waitFor(() => {
+      expect(mockNickContextMenuProps).toBeTruthy();
+      expect(mockNickContextMenuProps.nick).toBe('Alice');
+    });
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('add_note');
+    });
+    await waitFor(() => {
+      expect(getByText('User Note')).toBeTruthy();
+    });
+
+    const noteInput = getByPlaceholderText('Enter note about this user');
+    await act(async () => {
+      fireEvent.changeText(noteInput, 'updated note');
+      fireEvent.press(getByText('Save'));
+    });
+    expect(userManagementService.addUserNote).toHaveBeenCalledWith('Alice', expect.any(String), 'TestNet');
+
+    await act(async () => {
+      fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
+    });
+    await waitFor(() => {
+      expect(mockNickContextMenuProps).toBeTruthy();
+      expect(mockNickContextMenuProps.nick).toBe('Alice');
+    });
+    await act(async () => {
+      await mockNickContextMenuProps.onAction('blacklist');
+    });
+    expect(getByText('Add to Blacklist')).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(getByText('Add'));
+    });
+    expect(userManagementService.addBlacklistEntry).toHaveBeenCalled();
   });
 });

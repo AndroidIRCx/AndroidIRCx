@@ -258,4 +258,18 @@ describe('useAppInitialization', () => {
     );
     consoleErrorSpy.mockRestore();
   });
+
+  it('should warn when not all ad adapters are ready', async () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    require('react-native-google-mobile-ads').default.mockReturnValue({
+      initialize: jest.fn().mockResolvedValue([{ state: 0 }]),
+    });
+
+    renderHook(() => useAppInitialization());
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith('⚠️ WARNING: Not all ad adapters are ready!');
+    expect(consoleWarnSpy).toHaveBeenCalledWith('This could be due to:');
+    consoleWarnSpy.mockRestore();
+  });
 });

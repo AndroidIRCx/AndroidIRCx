@@ -11,11 +11,23 @@ import { UserList, copyNickToClipboard } from '../src/components/UserList';
 import { ChannelUser } from '../src/services/IRCService';
 import { performanceService } from '../src/services/PerformanceService';
 
+let mockNickContextMenuProps: any = null;
+
 // Mock Alert
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
   alert: jest.fn(),
   prompt: jest.fn(),
 }));
+
+jest.mock('../src/components/NickContextMenu', () => {
+  const React = require('react');
+  return {
+    NickContextMenu: (props: any) => {
+      mockNickContextMenuProps = props;
+      return React.createElement('NickContextMenu', props);
+    },
+  };
+});
 
 jest.mock('../src/services/ConnectionManager', () => ({
   connectionManager: {
@@ -108,6 +120,7 @@ jest.mock('../src/services/BanService', () => ({
       { id: 1, pattern: '*!*@host', description: 'Host based' },
       { id: 2, pattern: '*!ident@*', description: 'Ident based' },
     ]),
+    getPredefinedReasons: jest.fn(() => ['Rule violation', 'Spam']),
     generateBanMask: jest.fn((nick: string, ident: string, host: string, typeId: number) => `${nick}!${ident}@${host}`),
   },
 }));
@@ -147,9 +160,49 @@ jest.mock('../src/services/WebRTCCallService', () => ({
   },
 }));
 
+jest.mock('react-native-fs', () => ({
+  CachesDirectoryPath: '/tmp',
+  writeFile: jest.fn(() => Promise.resolve()),
+  readFile: jest.fn(() => Promise.resolve('{"type":"encdm-bundle"}')),
+  exists: jest.fn(() => Promise.resolve(true)),
+  unlink: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn(() => Promise.resolve()),
+  },
+}));
+
+jest.mock('react-native-nfc-manager', () => ({
+  __esModule: true,
+  default: {
+    isSupported: jest.fn(() => Promise.resolve(true)),
+    start: jest.fn(() => Promise.resolve()),
+    requestTechnology: jest.fn(() => Promise.resolve()),
+    writeNdefMessage: jest.fn(() => Promise.resolve()),
+    getTag: jest.fn(() =>
+      Promise.resolve({
+        ndefMessage: [{ payload: 'payload-bytes' }],
+      })
+    ),
+    cancelTechnologyRequest: jest.fn(() => Promise.resolve()),
+  },
+  NfcTech: { Ndef: 'Ndef' },
+  Ndef: {
+    textRecord: jest.fn((value: string) => ({ value })),
+    encodeMessage: jest.fn(() => [1, 2, 3]),
+    text: {
+      decodePayload: jest.fn(() => '{"type":"encdm-bundle","nick":"Alice","bundle":{},"fingerprint":"peer-fp"}'),
+    },
+  },
+}));
+
 describe('UserList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNickContextMenuProps = null;
   });
 
   describe('copyNickToClipboard', () => {
@@ -574,6 +627,498 @@ describe('UserList', () => {
           userTouchable.props.onLongPress();
         });
       }
+    });
+
+    it('handles whois, query and copy actions from context menu', async () => {
+      const timeoutSpy = jest
+        .spyOn(global, 'setTimeout')
+        .mockImplementation(((fn: any) => {
+          if (typeof fn === 'function') fn();
+          return 0 as any;
+        }) as any);
+      const irc = require('../src/services/IRCService').ircService;
+      const onUserPress = jest.fn();
+      const onWHOISPress = jest.fn();
+      (performanceService.getConfig as jest.Mock).mockReturnValue({
+        userListType: 'simple',
+        userListSearchDebounceMs: 0,
+        userListInitialRenderCount: 50,
+        userListEnableChunkLoading: false,
+        userListChunkSize: 100,
+        userListSkipSortThreshold: 1000,
+        userListGrouping: true,
+        userListAutoDisableGroupingThreshold: 1000,
+      });
+      const users: ChannelUser[] = [{ nick: 'Alice', modes: [] }];
+
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList
+            users={users}
+            channelName="#test"
+            network="testnet"
+            onUserPress={onUserPress}
+            onWHOISPress={onWHOISPress}
+          />
+        );
+      });
+
+      const instance = tree!.root;
+      const userTouchable = instance.findAll(
+        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+      )[0];
+      expect(userTouchable).toBeTruthy();
+
+      await act(async () => {
+        userTouchable?.props.onLongPress();
+      });
+
+      expect(mockNickContextMenuProps).toBeTruthy();
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('whois');
+        await mockNickContextMenuProps.onAction('query');
+        await mockNickContextMenuProps.onAction('copy');
+      });
+
+      expect(onWHOISPress).toHaveBeenCalledWith('Alice');
+      expect(onUserPress).toHaveBeenCalledWith(expect.objectContaining({ nick: 'Alice' }));
+      expect(Clipboard.setString).toHaveBeenCalledWith('Alice');
+      expect(irc.sendCommand).not.toHaveBeenCalledWith('WHOIS Alice');
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles monitor, ignore and dcc_send actions', async () => {
+      const timeoutSpy = jest
+        .spyOn(global, 'setTimeout')
+        .mockImplementation(((fn: any) => {
+          if (typeof fn === 'function') fn();
+          return 0 as any;
+        }) as any);
+      const irc = require('../src/services/IRCService').ircService;
+      const uiStore = require('../src/stores/uiStore').useUIStore;
+      const userMgmt = require('../src/services/UserManagementService').userManagementService;
+      const setDccSendTarget = jest.fn();
+      const setShowDccSendModal = jest.fn();
+      uiStore.getState.mockReturnValue({
+        whoisDisplayMode: 'inline',
+        setWhoisNick: jest.fn(),
+        setShowWHOIS: jest.fn(),
+        setDccSendTarget,
+        setShowDccSendModal,
+      });
+      (performanceService.getConfig as jest.Mock).mockReturnValue({
+        userListType: 'simple',
+        userListSearchDebounceMs: 0,
+        userListInitialRenderCount: 50,
+        userListEnableChunkLoading: false,
+        userListChunkSize: 100,
+        userListSkipSortThreshold: 1000,
+        userListGrouping: true,
+        userListAutoDisableGroupingThreshold: 1000,
+      });
+
+      irc.isMonitoring
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true);
+      userMgmt.isUserIgnored
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true);
+
+      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], host: 'example.com' }];
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList users={users} channelName="#test" network="testnet" />
+        );
+      });
+
+      const instance = tree!.root;
+      const userTouchable = instance.findAll(
+        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+      )[0];
+      expect(userTouchable).toBeTruthy();
+
+      await act(async () => {
+        userTouchable?.props.onLongPress();
+      });
+
+      expect(mockNickContextMenuProps).toBeTruthy();
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('monitor_toggle');
+        await mockNickContextMenuProps.onAction('monitor_toggle');
+        await mockNickContextMenuProps.onAction('ignore');
+        await mockNickContextMenuProps.onAction('ignore');
+        await mockNickContextMenuProps.onAction('dcc_send');
+      });
+
+      expect(irc.monitorNick).toHaveBeenCalledWith('Alice');
+      expect(irc.unmonitorNick).toHaveBeenCalledWith('Alice');
+      expect(userMgmt.ignoreUser).toHaveBeenCalled();
+      expect(userMgmt.unignoreUser).toHaveBeenCalledWith('Alice', 'testnet');
+      expect(setDccSendTarget).toHaveBeenCalledWith({ nick: 'Alice', networkId: 'testnet' });
+      expect(setShowDccSendModal).toHaveBeenCalledWith(true);
+      timeoutSpy.mockRestore();
+    });
+
+    it('falls back to direct WHOIS command in inline mode', async () => {
+      const timeoutSpy = jest
+        .spyOn(global, 'setTimeout')
+        .mockImplementation(((fn: any) => {
+          if (typeof fn === 'function') fn();
+          return 0 as any;
+        }) as any);
+      const irc = require('../src/services/IRCService').ircService;
+      (performanceService.getConfig as jest.Mock).mockReturnValue({
+        userListType: 'simple',
+        userListSearchDebounceMs: 0,
+        userListInitialRenderCount: 50,
+        userListEnableChunkLoading: false,
+        userListChunkSize: 100,
+        userListSkipSortThreshold: 1000,
+        userListGrouping: true,
+        userListAutoDisableGroupingThreshold: 1000,
+      });
+      const users: ChannelUser[] = [{ nick: 'Alice', modes: [] }];
+
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList users={users} channelName="#test" network="testnet" />
+        );
+      });
+
+      const instance = tree!.root;
+      const userTouchable = instance.findAll(
+        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+      )[0];
+      expect(userTouchable).toBeTruthy();
+
+      await act(async () => {
+        userTouchable?.props.onLongPress();
+      });
+
+      expect(mockNickContextMenuProps).toBeTruthy();
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('whois');
+      });
+
+      expect(irc.sendCommand).toHaveBeenCalledWith('WHOIS Alice');
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles call, ctcp and operator command actions', async () => {
+      const timeoutSpy = jest
+        .spyOn(global, 'setTimeout')
+        .mockImplementation(((fn: any) => {
+          if (typeof fn === 'function') fn();
+          return 0 as any;
+        }) as any);
+      const irc = require('../src/services/IRCService').ircService;
+      const { webRtcCallService } = require('../src/services/WebRTCCallService');
+      const { dccChatService } = require('../src/services/DCCChatService');
+
+      (performanceService.getConfig as jest.Mock).mockReturnValue({
+        userListType: 'simple',
+        userListSearchDebounceMs: 0,
+        userListInitialRenderCount: 50,
+        userListEnableChunkLoading: false,
+        userListChunkSize: 100,
+        userListSkipSortThreshold: 1000,
+        userListGrouping: true,
+        userListAutoDisableGroupingThreshold: 1000,
+      });
+
+      webRtcCallService.startOutgoingCall
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('audio fail'))
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('video fail'));
+
+      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], host: 'example.com' }];
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList users={users} channelName="#test" network="testnet" />
+        );
+      });
+
+      const instance = tree!.root;
+      const userTouchable = instance.findAll(
+        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+      )[0];
+      expect(userTouchable).toBeTruthy();
+
+      await act(async () => {
+        userTouchable?.props.onLongPress();
+      });
+
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('audio_call');
+        await mockNickContextMenuProps.onAction('audio_call');
+        await mockNickContextMenuProps.onAction('video_call');
+        await mockNickContextMenuProps.onAction('video_call');
+        await mockNickContextMenuProps.onAction('ctcp_ping');
+        await mockNickContextMenuProps.onAction('ctcp_version');
+        await mockNickContextMenuProps.onAction('ctcp_time');
+        await mockNickContextMenuProps.onAction('dcc_chat');
+        await mockNickContextMenuProps.onAction('give_voice');
+        await mockNickContextMenuProps.onAction('take_voice');
+        await mockNickContextMenuProps.onAction('give_halfop');
+        await mockNickContextMenuProps.onAction('take_halfop');
+        await mockNickContextMenuProps.onAction('give_op');
+        await mockNickContextMenuProps.onAction('take_op');
+        await mockNickContextMenuProps.onAction('kick');
+        await mockNickContextMenuProps.onAction('kick_message');
+        await mockNickContextMenuProps.onAction('ban');
+        await mockNickContextMenuProps.onAction('kick_ban');
+        await mockNickContextMenuProps.onAction('kick_ban_message');
+      });
+
+      expect(webRtcCallService.startOutgoingCall).toHaveBeenCalledWith('testnet', 'Alice', 'audio');
+      expect(webRtcCallService.startOutgoingCall).toHaveBeenCalledWith('testnet', 'Alice', 'video');
+      expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'PING', expect.any(String));
+      expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'VERSION');
+      expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'TIME');
+      expect(dccChatService.initiateChat).toHaveBeenCalledWith(irc, 'Alice', 'testnet');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test +v Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test -v Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test +h Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test -h Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test +o Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test -o Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('KICK #test Alice');
+      expect(irc.sendCommand).toHaveBeenCalledWith('KICK #test Alice :Kicked');
+      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test +b *!*@example.com');
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles encryption share/request/qr and channel key actions', async () => {
+      const timeoutSpy = jest
+        .spyOn(global, 'setTimeout')
+        .mockImplementation(((fn: any) => {
+          if (typeof fn === 'function') fn();
+          return 0 as any;
+        }) as any);
+      const irc = require('../src/services/IRCService').ircService;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const { channelEncryptionService } = require('../src/services/ChannelEncryptionService');
+
+      encryptedDMService.exportBundle.mockResolvedValue({ key: 'bundle' });
+      encryptedDMService.awaitBundleForNick
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('timeout'));
+      encryptedDMService.exportFingerprintPayload.mockResolvedValue('fp-payload');
+      encryptedDMService.exportBundlePayload.mockResolvedValue('bundle-payload');
+      channelEncryptionService.exportChannelKey.mockResolvedValue('chan-key-data');
+
+      (performanceService.getConfig as jest.Mock).mockReturnValue({
+        userListType: 'simple',
+        userListSearchDebounceMs: 0,
+        userListInitialRenderCount: 50,
+        userListEnableChunkLoading: false,
+        userListChunkSize: 100,
+        userListSkipSortThreshold: 1000,
+        userListGrouping: true,
+        userListAutoDisableGroupingThreshold: 1000,
+      });
+
+      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], host: 'example.com' }];
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList users={users} channelName="#test" network="testnet" />
+        );
+      });
+
+      const instance = tree!.root;
+      const userTouchable = instance.findAll(
+        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+      )[0];
+
+      await act(async () => {
+        userTouchable?.props.onLongPress();
+      });
+
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_share');
+        await mockNickContextMenuProps.onAction('enc_request');
+        await mockNickContextMenuProps.onAction('enc_request');
+        await mockNickContextMenuProps.onAction('enc_qr_show_fingerprint');
+        await mockNickContextMenuProps.onAction('enc_qr_show_bundle');
+        await mockNickContextMenuProps.onAction('chan_share');
+        await mockNickContextMenuProps.onAction('chan_request');
+      });
+
+      expect(encryptedDMService.exportBundle).toHaveBeenCalled();
+      expect(encryptedDMService.awaitBundleForNick).toHaveBeenCalledWith('Alice', 36000);
+      expect(encryptedDMService.exportFingerprintPayload).toHaveBeenCalledWith('currentUser');
+      expect(encryptedDMService.exportBundlePayload).toHaveBeenCalledWith('currentUser');
+      expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG Alice :!enc-offer'));
+      expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG Alice :!enc-req');
+      expect(channelEncryptionService.exportChannelKey).toHaveBeenCalledWith('#test', 'testnet');
+      expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG Alice :!chanenc-key chan-key-data');
+      expect(irc.sendRaw).toHaveBeenCalledWith(
+        'PRIVMSG Alice :Please share the channel key for #test with /chankey share currentUser'
+      );
+
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles note save and blacklist add flows', async () => {
+      const timeoutSpy = jest
+        .spyOn(global, 'setTimeout')
+        .mockImplementation(((fn: any) => {
+          if (typeof fn === 'function') fn();
+          return 0 as any;
+        }) as any);
+      const userMgmt = require('../src/services/UserManagementService').userManagementService;
+
+      (performanceService.getConfig as jest.Mock).mockReturnValue({
+        userListType: 'simple',
+        userListSearchDebounceMs: 0,
+        userListInitialRenderCount: 50,
+        userListEnableChunkLoading: false,
+        userListChunkSize: 100,
+        userListSkipSortThreshold: 1000,
+        userListGrouping: true,
+        userListAutoDisableGroupingThreshold: 1000,
+      });
+
+      userMgmt.getUserNote.mockReturnValueOnce(null);
+
+      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], ident: 'alice', host: 'example.com' }];
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList users={users} channelName="#test" network="testnet" />
+        );
+      });
+
+      const instance = tree!.root;
+      const userTouchable = instance.findAll(
+        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+      )[0];
+
+      await act(async () => {
+        userTouchable?.props.onLongPress();
+      });
+
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('add_note');
+      });
+
+      const findPressableByLabel = (label: string) => {
+        const pressables = instance.findAll(
+          (node: any) => node?.props && typeof node.props.onPress === 'function'
+        );
+        return pressables.find((node: any) => {
+          try {
+            return node
+              .findAllByType('Text')
+              .some((txt: any) => txt.props?.children === label);
+          } catch {
+            return false;
+          }
+        });
+      };
+
+      const noteInput = instance.findAllByType('TextInput').find(
+        (input: any) => input.props?.placeholder === 'Enter note about this user'
+      );
+      expect(noteInput).toBeTruthy();
+
+      await act(async () => {
+        noteInput?.props.onChangeText('important note');
+      });
+
+      const saveButton = findPressableByLabel('Save');
+      expect(saveButton?.props?.onPress).toBeTruthy();
+
+      await act(async () => {
+        await saveButton?.props.onPress();
+      });
+
+      expect(userMgmt.addUserNote).toHaveBeenCalledWith('Alice', 'important note', 'testnet');
+
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('blacklist');
+      });
+
+      const addButton = findPressableByLabel('Add');
+      expect(addButton?.props?.onPress).toBeTruthy();
+
+      await act(async () => {
+        await addButton?.props.onPress();
+      });
+
+      expect(userMgmt.addBlacklistEntry).toHaveBeenCalled();
+      timeoutSpy.mockRestore();
+    });
+
+    it('handles file/NFC key exchange actions', async () => {
+      const timeoutSpy = jest
+        .spyOn(global, 'setTimeout')
+        .mockImplementation(((fn: any) => {
+          if (typeof fn === 'function') fn();
+          return 0 as any;
+        }) as any);
+      const RNFS = require('react-native-fs');
+      const Share = require('react-native-share').default;
+      const Picker = require('@react-native-documents/picker');
+      const NfcManager = require('react-native-nfc-manager').default;
+      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+
+      Picker.pick.mockResolvedValue([
+        {
+          uri: 'file:///tmp/key.json',
+          fileCopyUri: 'file:///tmp/key-copy.json',
+        },
+      ]);
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValueOnce(null);
+
+      (performanceService.getConfig as jest.Mock).mockReturnValue({
+        userListType: 'simple',
+        userListSearchDebounceMs: 0,
+        userListInitialRenderCount: 50,
+        userListEnableChunkLoading: false,
+        userListChunkSize: 100,
+        userListSkipSortThreshold: 1000,
+        userListGrouping: true,
+        userListAutoDisableGroupingThreshold: 1000,
+      });
+
+      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], host: 'example.com' }];
+      let tree: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        tree = TestRenderer.create(
+          <UserList users={users} channelName="#test" network="testnet" />
+        );
+      });
+
+      const instance = tree!.root;
+      const userTouchable = instance.findAll(
+        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+      )[0];
+
+      await act(async () => {
+        userTouchable?.props.onLongPress();
+      });
+
+      await act(async () => {
+        await mockNickContextMenuProps.onAction('enc_share_file');
+        await mockNickContextMenuProps.onAction('enc_import_file');
+        await mockNickContextMenuProps.onAction('enc_share_nfc');
+        await mockNickContextMenuProps.onAction('enc_receive_nfc');
+      });
+
+      expect(RNFS.writeFile).toHaveBeenCalled();
+      expect(Share.open).toHaveBeenCalled();
+      expect(Picker.pick).toHaveBeenCalled();
+      expect(RNFS.readFile).toHaveBeenCalled();
+      expect(NfcManager.requestTechnology).toHaveBeenCalled();
+      expect(NfcManager.cancelTechnologyRequest).toHaveBeenCalled();
+      timeoutSpy.mockRestore();
     });
   });
 

@@ -156,4 +156,21 @@ describe('useLayoutConfig', () => {
 
     expect(result.current).toEqual(defaultConfig);
   });
+
+  it('should ignore config change callbacks after unmount', async () => {
+    const { result, unmount } = renderHook(() => useLayoutConfig());
+    const initialConfig = result.current;
+
+    unmount();
+
+    await act(async () => {
+      configChangeCallback?.({
+        tabPosition: 'bottom',
+        userListPosition: 'left',
+        showUserList: false,
+      });
+    });
+
+    expect(result.current).toEqual(initialConfig);
+  });
 });

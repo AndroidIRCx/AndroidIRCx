@@ -60,6 +60,7 @@ jest.mock('../../src/stores/tabStore', () => ({
 
 import { serviceDetectionService } from '../../src/services/ServiceDetectionService';
 import { serviceCommandProvider } from '../../src/services/ServiceCommandProvider';
+import { useTabStore } from '../../src/stores/tabStore';
 
 describe('useServiceCommands', () => {
   beforeEach(() => {
@@ -84,6 +85,16 @@ describe('useServiceCommands', () => {
     renderHook(() => useServiceCommands({ networkId: 'freenode' }));
 
     expect(serviceDetectionService.initializeNetwork).toHaveBeenCalledWith('freenode');
+  });
+
+  it('should not initialize network if detection already exists', () => {
+    (serviceDetectionService.getDetectionResult as jest.Mock).mockReturnValue({
+      serviceType: 'anope',
+      networkId: 'freenode',
+      timestamp: Date.now(),
+    });
+    renderHook(() => useServiceCommands({ networkId: 'freenode' }));
+    expect(serviceDetectionService.initializeNetwork).not.toHaveBeenCalled();
   });
 
   it('should subscribe to detection events', () => {
@@ -114,6 +125,28 @@ describe('useServiceCommands', () => {
     expect(result.current.isDetected).toBe(true);
     expect(result.current.detectionResult).toEqual(mockDetectionResult);
     expect(result.current.serviceTypeName).toBe('Anope Services');
+  });
+
+  it('updates detection state only for matching network callback events', () => {
+    const { result } = renderHook(() => useServiceCommands({ networkId: 'freenode' }));
+    expect(result.current.detectionResult).toBeUndefined();
+
+    const incoming = {
+      serviceType: 'atheme',
+      networkId: 'freenode',
+      timestamp: Date.now(),
+    };
+
+    act(() => {
+      mockDetectionCallbacks[0]('othernet', incoming);
+    });
+    expect(result.current.detectionResult).toBeUndefined();
+
+    act(() => {
+      mockDetectionCallbacks[0]('freenode', incoming);
+    });
+    expect(result.current.detectionResult).toEqual(incoming);
+    expect(result.current.isDetected).toBe(true);
   });
 
   it('should return service type names correctly', () => {
@@ -168,6 +201,12 @@ describe('useServiceCommands', () => {
     const found = result.current.findCommand('register');
     expect(serviceCommandProvider.findCommand).toHaveBeenCalledWith('freenode', 'register');
     expect(found).toEqual(mockCommand);
+  });
+
+  it('should return undefined when command is not found', () => {
+    (serviceCommandProvider.findCommand as jest.Mock).mockReturnValue(undefined);
+    const { result } = renderHook(() => useServiceCommands({ networkId: 'freenode' }));
+    expect(result.current.findCommand('missing')).toBeUndefined();
   });
 
   it('should build command', () => {
@@ -228,6 +267,30 @@ describe('useServiceCommands', () => {
     expect(service).toEqual(mockService);
   });
 
+  it('should return empty commands when service has no command list', () => {
+    (serviceDetectionService.getServiceByNick as jest.Mock).mockReturnValue({ nick: 'NickServ' });
+    const { result } = renderHook(() => useServiceCommands({ networkId: 'freenode' }));
+    expect(result.current.getServiceByNick('NickServ')).toEqual({ nick: 'NickServ', commands: [] });
+  });
+
+  it('should include channel context from tab store in suggestions', () => {
+    (useTabStore as jest.Mock).mockImplementation((selector: any) => selector({
+      tabs: [
+        { id: '1', type: 'channel', networkId: 'freenode', name: '#a' },
+        { id: '2', type: 'channel', networkId: 'other', name: '#b' },
+      ],
+    }));
+
+    renderHook(() => useServiceCommands({ networkId: 'freenode', currentChannel: '#a' }));
+    const [, , contextArg] = (serviceCommandProvider.getSuggestions as jest.Mock).mock.calls[0] || [];
+    // trigger suggestions call after render
+    const hook = renderHook(() => useServiceCommands({ networkId: 'freenode', currentChannel: '#a' }));
+    hook.result.current.getSuggestions('REG');
+    const context = (serviceCommandProvider.getSuggestions as jest.Mock).mock.calls.slice(-1)[0][2];
+    expect(context.currentChannel).toBe('#a');
+    expect(context.availableChannels).toEqual(['#a']);
+  });
+
   it('should return IRCd info', () => {
     const { result } = renderHook(() => useServiceCommands({ networkId: 'freenode' }));
 
@@ -275,6 +338,21 @@ describe('useServicesAvailable', () => {
 
     expect(result.current).toBe(true);
   });
+
+  it('updates only when detection callback matches network', () => {
+    const { result } = renderHook(() => useServicesAvailable('freenode'));
+    expect(result.current).toBe(false);
+
+    act(() => {
+      mockDetectionCallbacks[0]('othernet', { serviceType: 'anope' });
+    });
+    expect(result.current).toBe(false);
+
+    act(() => {
+      mockDetectionCallbacks[0]('freenode', { serviceType: 'anope' });
+    });
+    expect(result.current).toBe(true);
+  });
 });
 
 describe('useServiceType', () => {
@@ -302,5 +380,20 @@ describe('useServiceType', () => {
     const { result } = renderHook(() => useServiceType('freenode'));
 
     expect(result.current).toBe('atheme');
+  });
+
+  it('updates type only for matching network events', () => {
+    const { result } = renderHook(() => useServiceType('freenode'));
+    expect(result.current).toBe('unknown');
+
+    act(() => {
+      mockDetectionCallbacks[0]('othernet', { serviceType: 'anope' });
+    });
+    expect(result.current).toBe('unknown');
+
+    act(() => {
+      mockDetectionCallbacks[0]('freenode', { serviceType: 'anope' });
+    });
+    expect(result.current).toBe('anope');
   });
 });

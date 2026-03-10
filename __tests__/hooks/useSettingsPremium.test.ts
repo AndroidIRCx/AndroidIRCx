@@ -10,6 +10,7 @@ jest.unmock('../../src/hooks/useSettingsPremium');
 jest.unmock('../../src/services/AdRewardService');
 
 import { renderHook, act } from '@testing-library/react-hooks';
+import { Alert } from 'react-native';
 import { useSettingsPremium } from '../../src/hooks/useSettingsPremium';
 
 let purchaseListener: (() => void) | null = null;
@@ -209,5 +210,59 @@ describe('useSettingsPremium', () => {
     unmount();
 
     expect(purchaseListener).toBeNull();
+  });
+
+  it('should show failure alert when rewarded ad does not display', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+
+    (adRewardService.getAdStatus as jest.Mock).mockReturnValue({
+      ready: true,
+      loading: false,
+      cooldown: false,
+      cooldownSeconds: 0,
+      adUnitType: 'Primary',
+    });
+    (adRewardService.showRewardedAd as jest.Mock).mockResolvedValue(false);
+
+    jest.useFakeTimers();
+    const { result } = renderHook(() => useSettingsPremium());
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    jest.useRealTimers();
+
+    await act(async () => {
+      await result.current.handleWatchAd();
+    });
+
+    expect(alertSpy).toHaveBeenCalledWith('Ad Failed', 'Could not show the ad. Please try again.');
+    alertSpy.mockRestore();
+  });
+
+  it('should show error alert when rewarded ad throws', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+
+    (adRewardService.getAdStatus as jest.Mock).mockReturnValue({
+      ready: true,
+      loading: false,
+      cooldown: false,
+      cooldownSeconds: 0,
+      adUnitType: 'Primary',
+    });
+    (adRewardService.showRewardedAd as jest.Mock).mockRejectedValue(new Error('boom'));
+
+    jest.useFakeTimers();
+    const { result } = renderHook(() => useSettingsPremium());
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    jest.useRealTimers();
+
+    await act(async () => {
+      await result.current.handleWatchAd();
+    });
+
+    expect(alertSpy).toHaveBeenCalledWith('Error', 'boom');
+    alertSpy.mockRestore();
   });
 });

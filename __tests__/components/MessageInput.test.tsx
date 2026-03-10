@@ -7,15 +7,67 @@ import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
 
 // ── sub-component mocks ────────────────────────────────────────────────────
-jest.mock('../../src/components/MediaUploadModal', () => ({
-  MediaUploadModal: (_p: any) => null,
-}));
-jest.mock('../../src/components/MediaPreviewModal', () => ({
-  MediaPreviewModal: (_p: any) => null,
-}));
-jest.mock('../../src/components/ColorPalettePicker', () => ({
-  ColorPalettePicker: (_p: any) => null,
-}));
+jest.mock('../../src/components/MediaUploadModal', () => {
+  const React = require('react');
+  const { TouchableOpacity, Text } = require('react-native');
+  return {
+    MediaUploadModal: (p: any) =>
+      p.visible
+        ? React.createElement(
+          TouchableOpacity,
+          {
+            onPress: () => p.onMediaSelected({ uri: 'file://picked.jpg', type: 'image/jpeg' }),
+            accessibilityLabel: 'Mock pick media',
+          },
+          React.createElement(Text, null, 'Pick media')
+        )
+        : null,
+  };
+});
+jest.mock('../../src/components/MediaPreviewModal', () => {
+  const React = require('react');
+  const { View, TouchableOpacity, Text } = require('react-native');
+  return {
+    MediaPreviewModal: (p: any) =>
+      p.visible
+        ? React.createElement(
+          View,
+          null,
+          React.createElement(
+            TouchableOpacity,
+            {
+              onPress: () => p.onSendComplete('@media=abc', 'caption'),
+              accessibilityLabel: 'Mock send media',
+            },
+            React.createElement(Text, null, 'Send media')
+          ),
+          React.createElement(
+            TouchableOpacity,
+            {
+              onPress: p.onClose,
+              accessibilityLabel: 'Mock close media preview',
+            },
+            React.createElement(Text, null, 'Close media')
+          )
+        )
+        : null,
+  };
+});
+jest.mock('../../src/components/ColorPalettePicker', () => {
+  const React = require('react');
+  const { TouchableOpacity, Text } = require('react-native');
+  return {
+    ColorPalettePicker: (p: any) =>
+      React.createElement(
+        TouchableOpacity,
+        {
+          onPress: () => p.onInsert('\u000304'),
+          accessibilityLabel: 'Mock insert color',
+        },
+        React.createElement(Text, null, 'Insert mock color')
+      ),
+  };
+});
 
 // ── third-party mocks ──────────────────────────────────────────────────────
 jest.mock('react-native-vector-icons/FontAwesome5', () => {
@@ -128,11 +180,12 @@ jest.mock('../../src/i18n/transifex', () => ({
   useT: jest.fn(() => (key: string, _params?: any) => key),
 }));
 
+const mockServiceCommandsState = {
+  isDetected: false,
+  getSuggestions: jest.fn(() => [] as any[]),
+};
 jest.mock('../../src/hooks/useServiceCommands', () => ({
-  useServiceCommands: jest.fn(() => ({
-    isDetected: false,
-    getSuggestions: jest.fn(() => []),
-  })),
+  useServiceCommands: jest.fn(() => mockServiceCommandsState),
 }));
 
 // ── store mocks ────────────────────────────────────────────────────────────
@@ -156,6 +209,7 @@ jest.mock('../../src/stores/tabStore', () => ({
 
 // ── component import ───────────────────────────────────────────────────────
 import { MessageInput } from '../../src/components/MessageInput';
+import { commandService } from '../../src/services/CommandService';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 const defaultProps = {
@@ -187,6 +241,8 @@ afterAll(() => {
 describe('MessageInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockServiceCommandsState.isDetected = false;
+    mockServiceCommandsState.getSuggestions.mockReturnValue([]);
 
     mockGetSetting.mockImplementation((key: string, fallback: unknown) => {
       // Default enterKeyBehavior to 'send' for submitEditing tests
@@ -713,5 +769,187 @@ describe('MessageInput', () => {
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
+  });
+
+  it('applies nick suggestion replacement style and submits styled text', async () => {
+    const onSubmit = jest.fn();
+    mockGetSetting.mockImplementation((key: string, fallback: unknown) => {
+      if (key === 'nickCompleteEnabled') return Promise.resolve(true);
+      if (key === 'nickCompleteStyleId') return Promise.resolve('<nick>__');
+      return Promise.resolve(fallback);
+    });
+    mockGetConnection.mockReturnValue({
+      ircService: {
+        sendTypingIndicator: jest.fn(),
+        getChannelUsers: jest.fn(() => [{ nick: 'Alice' }]),
+      },
+    });
+
+    const comp = render(
+      <MessageInput
+        {...defaultProps}
+        onSubmit={onSubmit}
+        tabType="channel"
+        tabName="#general"
+        network="TestNet"
+      />
+    );
+    await flushAsync();
+    const input = comp.getByPlaceholderText('Enter a message');
+
+    await act(async () => {
+      fireEvent.changeText(input, 'hello @Al');
+    });
+
+    await act(async () => {
+      fireEvent.press(comp.getByText('Alice'));
+    });
+    expect(input.props.value).toBe('hello @Alice ');
+
+    await act(async () => {
+      fireEvent(input, 'submitEditing');
+    });
+    expect(onSubmit).toHaveBeenCalledWith('hello @Alice__');
+  });
+
+  it('replaces channel token from channel suggestion', async () => {
+    mockGetTabsByNetwork.mockReturnValue([
+      { type: 'channel', name: '#AndroidIRCx' },
+      { type: 'query', name: 'Bob' },
+    ]);
+
+    const comp = render(
+      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+    );
+    await flushAsync();
+    const input = comp.getByPlaceholderText('Enter a message');
+
+    await act(async () => {
+      fireEvent.changeText(input, '/csop #And');
+    });
+
+    await act(async () => {
+      fireEvent.press(comp.getByText('#AndroidIRCx'));
+    });
+    expect(input.props.value).toBe('/csop #AndroidIRCx ');
+  });
+
+  it('uses service command suggestion when services are detected', async () => {
+    mockServiceCommandsState.isDetected = true;
+    mockServiceCommandsState.getSuggestions.mockReturnValue([
+      {
+        text: 'identify hunter2',
+        description: 'NickServ identify',
+        serviceNick: 'NickServ',
+        isAlias: false,
+      },
+    ]);
+
+    const comp = render(
+      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+    );
+    await flushAsync();
+    const input = comp.getByPlaceholderText('Enter a message');
+
+    await act(async () => {
+      fireEvent.changeText(input, '/ns');
+    });
+
+    await act(async () => {
+      fireEvent.press(comp.getByText('/msg NickServ identify hunter2 — NickServ identify'));
+    });
+    expect(input.props.value).toBe('/msg NickServ identify hunter2 ');
+  });
+
+  it('renders alias and history source labels when descriptions are absent', async () => {
+    (commandService.getAliases as jest.Mock).mockReturnValue([
+      { alias: 'ahelp', command: '{channel}', description: '' },
+    ]);
+    (commandService.getHistory as jest.Mock).mockReturnValue([
+      { command: '/ahistory' },
+    ]);
+
+    const comp = render(
+      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+    );
+    await flushAsync();
+    const input = comp.getByPlaceholderText('Enter a message');
+
+    await act(async () => {
+      fireEvent.changeText(input, '/a');
+    });
+    expect(comp.getByText('/ahelp — alias')).toBeTruthy();
+    expect(comp.getByText('/ahistory — recent')).toBeTruthy();
+  });
+
+  it('applies formatting controls for selection and color insert', async () => {
+    const comp = render(<MessageInput {...defaultProps} />);
+    await flushAsync();
+    const input = comp.getByPlaceholderText('Enter a message');
+    const { TouchableOpacity } = require('react-native');
+    const findActionButton = (label: string) =>
+      comp.UNSAFE_getAllByType(TouchableOpacity).find((node: any) => {
+        const children = node.props.children;
+        const textNode = Array.isArray(children) ? children[0] : children;
+        return textNode?.props?.children === label;
+      });
+
+    await act(async () => {
+      fireEvent.changeText(input, 'abc');
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 0, end: 3 } },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.press(comp.getByLabelText('Open color picker'));
+    });
+
+    await act(async () => {
+      fireEvent.press(findActionButton('B'));
+    });
+    expect(input.props.value).toBe('\u0002abc\u0002');
+
+    await act(async () => {
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: input.props.value.length, end: input.props.value.length } },
+      });
+      fireEvent.press(comp.getByLabelText('Mock insert color'));
+    });
+    expect(input.props.value).toContain('\u000304');
+
+    await act(async () => {
+      fireEvent.press(comp.getByText('Close'));
+    });
+  });
+
+  it('handles attachment -> media select -> media send flow', async () => {
+    const onSubmit = jest.fn();
+    mockIsMediaEnabled.mockResolvedValue(true);
+    mockHasEncryptionKey.mockResolvedValue(true);
+
+    const comp = render(
+      <MessageInput
+        {...defaultProps}
+        onSubmit={onSubmit}
+        tabType="channel"
+        tabName="#general"
+        network="TestNet"
+        tabId="channel::TestNet::#general"
+      />
+    );
+    await flushAsync();
+
+    await act(async () => {
+      fireEvent.press(comp.getByLabelText('Attach media'));
+    });
+    await act(async () => {
+      fireEvent.press(comp.getByLabelText('Mock pick media'));
+    });
+    await act(async () => {
+      fireEvent.press(comp.getByLabelText('Mock send media'));
+    });
+
+    expect(onSubmit).toHaveBeenCalledWith('@media=abc caption');
   });
 });
