@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import * as settingsHelpers from '../../src/utils/settingsHelpers';
 import { Alert } from 'react-native';
 

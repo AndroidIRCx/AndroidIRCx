@@ -189,7 +189,7 @@ describe('VideoPlayer', () => {
 
     expect(getByText('Video error: Failed to load video')).toBeTruthy();
 
-    const { UNSAFE_getByType: getFreshByType, getByText: getFreshByText } = render(<VideoPlayer {...defaultProps} />);
+    const { getByText: getFreshByText } = render(<VideoPlayer {...defaultProps} />);
     fireEvent.press(getFreshByText('PiP'));
     expect(mockEnterPictureInPicture).toHaveBeenCalled();
   });
