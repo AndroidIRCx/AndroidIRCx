@@ -116,6 +116,29 @@ describe('JoinChannelModal', () => {
     expect(defaultProps.onJoin).toHaveBeenCalledWith('#test');
   });
 
+  it('should not call onJoin on submit when channel name is whitespace only', () => {
+    const { getByPlaceholderText } = render(
+      <JoinChannelModal {...defaultProps} channelName="   " />
+    );
+    const input = getByPlaceholderText('Enter channel name (e.g., #android)');
+    fireEvent(input, 'submitEditing');
+    expect(defaultProps.onJoin).not.toHaveBeenCalled();
+  });
+
+  it('should disable Join button until trimmed channel name exists', () => {
+    const { UNSAFE_root, rerender } = render(
+      <JoinChannelModal {...defaultProps} channelName="   " />
+    );
+
+    const getDisabledButtons = () =>
+      UNSAFE_root.findAll((node) => typeof node.props?.disabled !== 'undefined');
+
+    expect(getDisabledButtons()[0].props.disabled).toBe(true);
+
+    rerender(<JoinChannelModal {...defaultProps} channelName="#android" />);
+    expect(getDisabledButtons()[0].props.disabled).toBe(false);
+  });
+
   it('should not call onJoin when Join is pressed with empty channel name', () => {
     const { getByText } = render(<JoinChannelModal {...defaultProps} channelName="" />);
     fireEvent.press(getByText('Join'));

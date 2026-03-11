@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { AudioPlayer } from '../../src/components/AudioPlayer';
 
 // Mock react-native-video
@@ -104,13 +104,35 @@ describe('AudioPlayer', () => {
   });
 
   it('should handle onLoad callback', () => {
-    const { UNSAFE_getByType } = render(<AudioPlayer {...defaultProps} />);
+    const { UNSAFE_getByType, UNSAFE_root } = render(<AudioPlayer {...defaultProps} />);
     const video = UNSAFE_getByType('Video');
-    // Simulate load complete
-    video.props.onLoad();
-    // After load, loading should be false but we can't easily test that
-    // without more complex setup
-    expect(video).toBeTruthy();
+
+    act(() => {
+      video.props.onLoad();
+    });
+    expect(UNSAFE_root.findAllByType('ActivityIndicator')).toHaveLength(0);
   });
 
+  it('should show translated error message when playback fails with error string', () => {
+    const { UNSAFE_getByType, getByText, UNSAFE_root } = render(<AudioPlayer {...defaultProps} />);
+    const video = UNSAFE_getByType('Video');
+
+    act(() => {
+      fireEvent(video, 'error', { error: { errorString: 'network failed' } });
+    });
+
+    expect(getByText('Audio error: network failed')).toBeTruthy();
+    expect(UNSAFE_root.findAllByType('Video')).toHaveLength(0);
+  });
+
+  it('should use fallback translated error when playback fails without error string', () => {
+    const { UNSAFE_getByType, getByText } = render(<AudioPlayer {...defaultProps} />);
+    const video = UNSAFE_getByType('Video');
+
+    act(() => {
+      fireEvent(video, 'error', {});
+    });
+
+    expect(getByText('Audio error: Failed to load audio')).toBeTruthy();
+  });
 });

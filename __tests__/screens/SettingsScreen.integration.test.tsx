@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, screen } from '@testing-library/react-native';
 import * as settingsHelpers from '../../src/utils/settingsHelpers';
 import { Alert } from 'react-native';
 
@@ -224,10 +224,17 @@ jest.mock('../../src/components/settings/sections', () => {
     </View>
   );
   return {
-    ScriptingAdsSection: make('ScriptingAdsSection', [
-      { testID: 'sec-open-scripting', label: 'Open Scripting', onPress: undefined },
-      { testID: 'sec-open-scripting-help', label: 'Open Scripting Help', onPress: undefined },
-    ]),
+    ScriptingAdsSection: (props: any) => (
+      <View>
+        <Text>ScriptingAdsSection</Text>
+        <TouchableOpacity testID="sec-open-scripting" onPress={() => props.onShowScripting?.()}>
+          <Text>Open Scripting</Text>
+        </TouchableOpacity>
+        <TouchableOpacity testID="sec-open-scripting-help" onPress={() => props.onShowScriptingHelp?.()}>
+          <Text>Open Scripting Help</Text>
+        </TouchableOpacity>
+      </View>
+    ),
     SecurityQuickConnectSection: make('SecurityQuickConnectSection', []),
     SecuritySection: (props: any) => (
       <View>
@@ -294,46 +301,175 @@ jest.mock('../../src/components/settings/sections', () => {
   };
 });
 jest.mock('../../src/screens/ScriptingScreen', () => ({
-  ScriptingScreen: ({ visible }: any) => (visible ? <>{'ScriptingScreenMock'}</> : null),
+  ScriptingScreen: ({ visible, onClose, onShowPurchaseScreen }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        {'ScriptingScreenMock'}
+        <Text onPress={() => onClose?.()}>ScriptingClose</Text>
+        <Text onPress={() => onShowPurchaseScreen?.()}>ScriptingPurchase</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/ScriptingHelpScreen', () => ({
-  ScriptingHelpScreen: ({ visible }: any) => (visible ? <>{'ScriptingHelpScreenMock'}</> : null),
+  ScriptingHelpScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        {'ScriptingHelpScreenMock'}
+        <Text onPress={() => onClose?.()}>ScriptingHelpClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/KeyManagementScreen', () => ({
-  KeyManagementScreen: ({ visible }: any) => (visible ? <>{'KeyManagementScreenMock'}</> : null),
+  KeyManagementScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        {'KeyManagementScreenMock'}
+        <Text onPress={() => onClose?.()}>KeyManagementClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/FirstRunSetupScreen', () => ({
-  FirstRunSetupScreen: ({ visible }: any) => (visible ? <>{'FirstRunSetupScreenMock'}</> : null),
+  FirstRunSetupScreen: ({ onComplete, onSkip }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return (
+      <>
+        {'FirstRunSetupScreenMock'}
+        <Text onPress={() => onComplete?.({ id: 'net-1' })}>FirstRunComplete</Text>
+        <Text onPress={() => onSkip?.()}>FirstRunSkip</Text>
+      </>
+    );
+  },
 }));
 jest.mock('../../src/screens/ConnectionProfilesScreen', () => ({
-  ConnectionProfilesScreen: ({ visible }: any) => (visible ? <>{'ConnectionProfilesScreenMock'}</> : null),
+  ConnectionProfilesScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        {'ConnectionProfilesScreenMock'}
+        <Text onPress={() => onClose?.()}>ConnectionProfilesClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/ThemeEditorScreen', () => ({
-  ThemeEditorScreen: ({ visible }: any) => (visible ? <>{'ThemeEditorScreenMock'}</> : null),
+  ThemeEditorScreen: ({ visible, onClose, onSave }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        {'ThemeEditorScreenMock'}
+        <Text onPress={() => onClose?.()}>ThemeEditorClose</Text>
+        <Text onPress={() => onSave?.()}>ThemeEditorSave</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/AboutScreen', () => ({
-  AboutScreen: ({ visible }: any) => (visible ? <>{'AboutScreenMock'}</> : null),
+  AboutScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        <Text>AboutScreenMock</Text>
+        <Text onPress={() => onClose?.()}>AboutClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/CreditsScreen', () => ({
-  CreditsScreen: ({ visible }: any) => (visible ? <>{'CreditsScreenMock'}</> : null),
+  CreditsScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        <Text>CreditsScreenMock</Text>
+        <Text onPress={() => onClose?.()}>CreditsClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/PrivacyAdsScreen', () => ({
-  PrivacyAdsScreen: ({ visible }: any) => (visible ? <>{'PrivacyAdsScreenMock'}</> : null),
+  PrivacyAdsScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        <Text>PrivacyAdsScreenMock</Text>
+        <Text onPress={() => onClose?.()}>PrivacyAdsClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/DataPrivacyScreen', () => ({
-  DataPrivacyScreen: ({ visible }: any) => (visible ? <>{'DataPrivacyScreenMock'}</> : null),
+  DataPrivacyScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        <Text>DataPrivacyScreenMock</Text>
+        <Text onPress={() => onClose?.()}>DataPrivacyClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/MessageHistoryViewerScreen', () => ({
-  MessageHistoryViewerScreen: ({ visible }: any) => (visible ? <>{'MessageHistoryViewerScreenMock'}</> : null),
+  MessageHistoryViewerScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        <Text>MessageHistoryViewerScreenMock</Text>
+        <Text onPress={() => onClose?.()}>MessageHistoryViewerClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/ZncSubscriptionScreen', () => ({
-  ZncSubscriptionScreen: ({ visible }: any) => (visible ? <>{'ZncSubscriptionScreenMock'}</> : null),
+  ZncSubscriptionScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        <Text>ZncSubscriptionScreenMock</Text>
+        <Text onPress={() => onClose?.()}>ZncSubscriptionClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/PrivacyRelayScreen', () => ({
-  PrivacyRelayScreen: ({ visible }: any) => (visible ? <>{'PrivacyRelayScreenMock'}</> : null),
+  PrivacyRelayScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        <Text>PrivacyRelayScreenMock</Text>
+        <Text onPress={() => onClose?.()}>PrivacyRelayClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/screens/BackupScreen', () => ({
-  BackupScreen: ({ visible }: any) => (visible ? <>{'BackupScreenMock'}</> : null),
+  BackupScreen: ({ visible, onClose }: any) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? (
+      <>
+        <Text>BackupScreenMock</Text>
+        <Text onPress={() => onClose?.()}>BackupScreenClose</Text>
+      </>
+    ) : null;
+  },
 }));
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: {
@@ -573,6 +709,7 @@ describe('SettingsScreen Integration', () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     const sectionsToValidate = [
       { id: 'notifications', title: 'Notifications', marker: 'NotificationsSection' },
+      { id: 'help', title: '📖 Help & Documentation', marker: 'HelpSection' },
       { id: 'away', title: 'Away', marker: 'AwaySection' },
       { id: 'protection', title: 'Protection', marker: 'ProtectionSection' },
       { id: 'writing', title: 'Writing', marker: 'WritingSection' },
@@ -625,6 +762,28 @@ describe('SettingsScreen Integration', () => {
     buttonItem.onPress();
   });
 
+  it('should open and close submenu modal for bouncer settings', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.id === 'connection-network')
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Connection & Network'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('bouncer-config')).toBeTruthy();
+    });
+
+    fireEvent.press(view.getByTestId('setting-item-bouncer-config'));
+
+    expect(view.getByText('Enable Bouncer Support')).toBeTruthy();
+    expect(view.getByText('Playback Timeout (ms)')).toBeTruthy();
+    expect(view.getByText('Request Playback (ZNC)')).toBeTruthy();
+
+    fireEvent.press(view.getAllByText('Close')[0]);
+  });
+
   // ========== PIN Modal Tests ==========
 
   it('should handle biometric availability check', async () => {
@@ -646,6 +805,62 @@ describe('SettingsScreen Integration', () => {
 
     await waitFor(() => {
       expect(biometricAuthService.getBiometryType).toHaveBeenCalled();
+    });
+  });
+
+  it('should reset biometric password lock when biometrics are unavailable', async () => {
+    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    const { settingsService } = require('../../src/services/SettingsService');
+
+    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue(null);
+    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
+      if (key === 'biometricPasswordLock') return Promise.resolve(true);
+      return Promise.resolve(defaultValue);
+    });
+
+    render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(settingsService.setSetting).toHaveBeenCalledWith('biometricPasswordLock', false);
+    });
+  });
+
+  it('should reset pin lock when configured PIN is missing', async () => {
+    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    const { settingsService } = require('../../src/services/SettingsService');
+    const { secureStorageService } = require('../../src/services/SecureStorageService');
+
+    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue('FaceID');
+    (secureStorageService.getSecret as jest.Mock).mockResolvedValue(null);
+    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
+      if (key === 'pinPasswordLock') return Promise.resolve(true);
+      return Promise.resolve(defaultValue);
+    });
+
+    render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(settingsService.setSetting).toHaveBeenCalledWith('pinPasswordLock', false);
+    });
+  });
+
+  it('should disable pin lock when biometric and pin locks are both enabled', async () => {
+    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    const { settingsService } = require('../../src/services/SettingsService');
+    const { secureStorageService } = require('../../src/services/SecureStorageService');
+
+    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue('FaceID');
+    (secureStorageService.getSecret as jest.Mock).mockResolvedValue('1234');
+    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
+      if (key === 'biometricPasswordLock') return Promise.resolve(true);
+      if (key === 'pinPasswordLock') return Promise.resolve(true);
+      return Promise.resolve(defaultValue);
+    });
+
+    render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+
+    await waitFor(() => {
+      expect(settingsService.setSetting).toHaveBeenCalledWith('pinPasswordLock', false);
     });
   });
 
@@ -705,10 +920,14 @@ describe('SettingsScreen Integration', () => {
     const aboutButton = view.getByTestId('sec-open-about');
     expect(aboutButton).toBeTruthy();
     fireEvent.press(aboutButton);
+    expect(await view.findByText('AboutScreenMock')).toBeTruthy();
+    fireEvent.press(view.getByText('AboutClose'));
 
     const creditsButton = view.getByTestId('sec-open-credits');
     expect(creditsButton).toBeTruthy();
     fireEvent.press(creditsButton);
+    expect(await view.findByText('CreditsScreenMock')).toBeTruthy();
+    fireEvent.press(view.getByText('CreditsClose'));
   });
 
   it('should open privacy and data privacy screens', async () => {
@@ -723,10 +942,14 @@ describe('SettingsScreen Integration', () => {
     const dataPrivacyButton = view.getByTestId('sec-open-data-privacy');
     expect(dataPrivacyButton).toBeTruthy();
     fireEvent.press(dataPrivacyButton);
+    expect(await view.findByText('DataPrivacyScreenMock')).toBeTruthy();
+    fireEvent.press(view.getByText('DataPrivacyClose'));
 
     const privacyAdsButton = view.getByTestId('sec-open-privacy-ads');
     expect(privacyAdsButton).toBeTruthy();
     fireEvent.press(privacyAdsButton);
+    expect(await view.findByText('PrivacyAdsScreenMock')).toBeTruthy();
+    fireEvent.press(view.getByText('PrivacyAdsClose'));
   });
 
   it('should handle Connection & Network section actions', async () => {
@@ -903,6 +1126,8 @@ describe('SettingsScreen Integration', () => {
 
     // Open backup screen
     mockCapturedSettingItems.get('history-backup').onPress();
+    expect(await view.findByText('BackupScreenMock')).toBeTruthy();
+    fireEvent.press(view.getByText('BackupScreenClose'));
   });
 
   it('should handle history viewer screen', async () => {
@@ -920,6 +1145,8 @@ describe('SettingsScreen Integration', () => {
 
     // Open history viewer
     mockCapturedSettingItems.get('history-viewer').onPress();
+    expect(await view.findByText('MessageHistoryViewerScreenMock')).toBeTruthy();
+    fireEvent.press(view.getByText('MessageHistoryViewerClose'));
   });
 
   it('should handle when notification permission is granted', async () => {
@@ -1043,6 +1270,228 @@ describe('SettingsScreen Integration', () => {
     expect(onShowPurchaseScreen).toHaveBeenCalled();
 
     mockCapturedSettingItems.get('privacy-relay-subscription').onPress();
+    expect(await view.findByText('PrivacyRelayScreenMock')).toBeTruthy();
+    fireEvent.press(view.getByText('PrivacyRelayClose'));
+  });
+
+  it('should open scripting and scripting help screens from the section component', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Scripting & Ads'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('advanced-scripts')).toBeTruthy();
+      expect(mockCapturedSettingItems.get('advanced-scripts-help')).toBeTruthy();
+    });
+
+    mockCapturedSettingItems.get('advanced-scripts').onPress();
+
+    mockCapturedSettingItems.get('advanced-scripts-help').onPress();
+  });
+
+  it('should handle scripting help close callback', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Scripting & Ads'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('advanced-scripts-help')).toBeTruthy();
+    });
+
+    mockCapturedSettingItems.get('advanced-scripts-help').onPress();
+    expect(await view.findByText('ScriptingHelpClose')).toBeTruthy();
+    fireEvent.press(view.getByText('ScriptingHelpClose'));
+    await waitFor(() => {
+      expect(view.queryByText('ScriptingHelpClose')).toBeNull();
+    });
+  });
+
+  it('should handle scripting purchase and close callbacks', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const onShowPurchaseScreen = jest.fn();
+    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} onShowPurchaseScreen={onShowPurchaseScreen} />
+    );
+    fireEvent.press(view.getByText('Scripting & Ads'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('advanced-scripts')).toBeTruthy();
+    });
+
+    mockCapturedSettingItems.get('advanced-scripts').onPress();
+    await waitFor(() => {
+      expect(view.getByText('ScriptingPurchase')).toBeTruthy();
+    });
+    fireEvent.press(view.getByText('ScriptingPurchase'));
+    expect(onShowPurchaseScreen).toHaveBeenCalled();
+
+    mockCapturedSettingItems.get('advanced-scripts').onPress();
+    await waitFor(() => {
+      expect(view.getByText('ScriptingClose')).toBeTruthy();
+    });
+    fireEvent.press(view.getByText('ScriptingClose'));
+  });
+
+  it('should open key management and handle migration dialog states', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { connectionManager } = require('../../src/services/ConnectionManager');
+    const { encryptedDMService } = require('../../src/services/EncryptedDMService');
+    jest.spyOn(Alert, 'alert');
+
+    (connectionManager.getAllConnections as jest.Mock).mockReturnValue([
+      { networkId: 'net-a' },
+      { networkId: 'net-b' },
+    ]);
+
+    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'security'));
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Security'));
+
+    fireEvent.press(view.getByTestId('sec-open-key-management'));
+    fireEvent.press(view.getByText('KeyManagementClose'));
+
+    fireEvent.press(view.getByTestId('sec-open-migration'));
+    expect(await view.findByText('Migrate Old Keys')).toBeTruthy();
+
+    (encryptedDMService.migrateOldKeysToNetwork as jest.Mock).mockResolvedValueOnce(2);
+    fireEvent.press(view.getByText('net-a'));
+    fireEvent.press(view.getByText('Migrate'));
+
+    await waitFor(() => {
+      expect(encryptedDMService.migrateOldKeysToNetwork).toHaveBeenCalledWith('net-a');
+    });
+
+    fireEvent.press(view.getByTestId('sec-open-migration'));
+    fireEvent.press(view.getByText('Cancel'));
+    expect(view.queryByText('Migrate Old Keys')).toBeNull();
+
+    (encryptedDMService.migrateOldKeysToNetwork as jest.Mock).mockRejectedValueOnce(new Error('migration failed'));
+    fireEvent.press(view.getByTestId('sec-open-migration'));
+    fireEvent.press(view.getByText('net-b'));
+    fireEvent.press(view.getByText('Migrate'));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith('Migration Error', 'migration failed');
+    });
+  });
+
+  it('should handle theme editor close and save callbacks', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { useSettingsAppearance } = require('../../src/hooks/useSettingsAppearance');
+    const refreshThemes = jest.fn();
+    const setShowThemeEditor = jest.fn();
+    const setEditingTheme = jest.fn();
+
+    (useSettingsAppearance as jest.Mock).mockReturnValue({
+      currentTheme: { id: 'light', name: 'Light' },
+      availableThemes: [],
+      showThemeEditor: false,
+      editingTheme: null,
+      layoutConfig: {},
+      appLanguage: 'en',
+      setShowThemeEditor,
+      setEditingTheme,
+      refreshThemes,
+      setAppLanguage: jest.fn(),
+      updateLayoutConfig: jest.fn(),
+      theme: 'light',
+      setTheme: jest.fn(),
+    });
+
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.data?.some((d: any) => d.id === 'appearance-section'))
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Appearance'));
+    fireEvent.press(view.getByTestId('sec-open-theme-editor'));
+    expect(setShowThemeEditor).toHaveBeenCalledWith(true);
+    expect(setEditingTheme).toHaveBeenCalledWith({ id: 'light' });
+
+    view.unmount();
+
+    (useSettingsAppearance as jest.Mock).mockReturnValue({
+      currentTheme: { id: 'light', name: 'Light' },
+      availableThemes: [],
+      showThemeEditor: true,
+      editingTheme: { id: 'light', name: 'Light' },
+      layoutConfig: {},
+      appLanguage: 'en',
+      setShowThemeEditor,
+      setEditingTheme,
+      refreshThemes,
+      setAppLanguage: jest.fn(),
+      updateLayoutConfig: jest.fn(),
+      theme: 'light',
+      setTheme: jest.fn(),
+    });
+
+    const reopenedView = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(reopenedView.getByText('ThemeEditorClose'));
+    fireEvent.press(reopenedView.getByText('ThemeEditorSave'));
+    expect(refreshThemes).toHaveBeenCalled();
+  });
+
+  it('should handle first run setup complete and skip callbacks', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.data?.some((d: any) => d.id === 'connection-network-section'))
+    );
+
+    let view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Connection & Network'));
+    fireEvent.press(view.getByTestId('sec-open-first-run'));
+    fireEvent.press(view.getByText('FirstRunSkip'));
+    view.unmount();
+
+    view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Connection & Network'));
+    fireEvent.press(view.getByTestId('sec-open-first-run'));
+    fireEvent.press(view.getByText('FirstRunComplete'));
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('should handle connection profiles close callback', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.data?.some((d: any) => d.id === 'connection-network-section'))
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Connection & Network'));
+    fireEvent.press(view.getByTestId('sec-open-connection-profiles'));
+    expect(await view.findByText('ConnectionProfilesClose')).toBeTruthy();
+    fireEvent.press(view.getByText('ConnectionProfilesClose'));
+  });
+
+  it('should route networks list opening through ui store', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const { useUIStore } = require('../../src/stores/uiStore');
+    const setShowSettings = jest.fn();
+    const setShowNetworksList = jest.fn();
+
+    (useUIStore.getState as jest.Mock).mockReturnValue({
+      setShowSettings,
+      setShowNetworksList,
+    });
+
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter((s) => s.data?.some((d: any) => d.id === 'connection-network-section'))
+    );
+
+    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Connection & Network'));
+    fireEvent.press(view.getByTestId('sec-open-networks-list'));
+
+    expect(setShowSettings).toHaveBeenCalledWith(false);
+    expect(setShowNetworksList).toHaveBeenCalledWith(true);
   });
 
   it('should export history as txt and csv formats from submenu', async () => {
@@ -1160,6 +1609,47 @@ describe('SettingsScreen Integration', () => {
     view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
     fireEvent.press(view.getByText('Scripting & Ads'));
     expect(await view.findByText('Loading Ad...')).toBeTruthy();
+  });
+
+  it('should handle premium watch ad button setting state and toggle', async () => {
+    const fsMock = settingsHelpers.filterSettings as jest.Mock;
+    const setWatchAdButtonEnabledForPremium = jest.fn().mockResolvedValue(undefined);
+    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+
+    setPremiumHook({
+      hasNoAds: false,
+      hasScriptingPro: false,
+      isSupporter: false,
+      setWatchAdButtonEnabledForPremium,
+    });
+
+    let view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Scripting & Ads'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('watch-ad-button-premium')).toBeTruthy();
+    });
+
+    expect(mockCapturedSettingItems.get('watch-ad-button-premium').disabled).toBe(true);
+    await mockCapturedSettingItems.get('watch-ad-button-premium').onValueChange(true);
+    expect(setWatchAdButtonEnabledForPremium).toHaveBeenCalledWith(true);
+    view.unmount();
+
+    setPremiumHook({
+      hasNoAds: true,
+      hasScriptingPro: false,
+      isSupporter: false,
+      setWatchAdButtonEnabledForPremium,
+    });
+
+    view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    fireEvent.press(view.getByText('Scripting & Ads'));
+
+    await waitFor(() => {
+      expect(mockCapturedSettingItems.get('watch-ad-button-premium')).toBeTruthy();
+    });
+
+    expect(mockCapturedSettingItems.get('watch-ad-button-premium').disabled).toBe(false);
   });
 
   it('should execute additional bouncer scrollback handlers', async () => {

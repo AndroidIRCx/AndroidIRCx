@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { VideoPlayer } from '../../src/components/VideoPlayer';
 
 // Mock i18n transifex
@@ -155,5 +155,42 @@ describe('VideoPlayer', () => {
     const video = UNSAFE_getByType('video-test');
     const props = JSON.parse(video.props['data-props']);
     expect(props.source.uri).toBe('https://example.com/another-video.mp4');
+  });
+
+  it('should clear loading after video loads', () => {
+    const { UNSAFE_getByType, UNSAFE_root } = render(<VideoPlayer {...defaultProps} />);
+    const video = UNSAFE_getByType('video-test');
+
+    act(() => {
+      fireEvent(video, 'load');
+    });
+
+    expect(UNSAFE_root.findAllByType('ActivityIndicator')).toHaveLength(0);
+  });
+
+  it('should show translated error when video load fails', () => {
+    const { UNSAFE_getByType, getByText } = render(<VideoPlayer {...defaultProps} />);
+    const video = UNSAFE_getByType('video-test');
+
+    act(() => {
+      fireEvent(video, 'error', { error: { errorString: 'codec failed' } });
+    });
+
+    expect(getByText('Video error: codec failed')).toBeTruthy();
+  });
+
+  it('should fall back to default translated error and trigger PiP', () => {
+    const { UNSAFE_getByType, getByText } = render(<VideoPlayer {...defaultProps} />);
+    const video = UNSAFE_getByType('video-test');
+
+    act(() => {
+      fireEvent(video, 'error', {});
+    });
+
+    expect(getByText('Video error: Failed to load video')).toBeTruthy();
+
+    const { UNSAFE_getByType: getFreshByType, getByText: getFreshByText } = render(<VideoPlayer {...defaultProps} />);
+    fireEvent.press(getFreshByText('PiP'));
+    expect(mockEnterPictureInPicture).toHaveBeenCalled();
   });
 });

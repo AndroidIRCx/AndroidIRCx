@@ -163,4 +163,30 @@ describe('DccTransfersMinimizedIndicator', () => {
     // With undefined size, percentage should be 0%
     expect(getByText('1 transfer - 0%')).toBeTruthy();
   });
+
+  it('should call onPress and render computed progress width', () => {
+    const onPress = jest.fn();
+    const transfers = [
+      createMockTransfer({
+        offer: { filename: 'big.zip' },
+        size: 200,
+        bytesReceived: 50,
+      }),
+      createMockTransfer({
+        offer: { filename: 'small.zip' },
+        size: 200,
+        bytesReceived: 50,
+      }),
+    ];
+
+    const { getByText, UNSAFE_root } = render(
+      <DccTransfersMinimizedIndicator {...defaultProps} transfers={transfers} onPress={onPress} />
+    );
+
+    fireEvent.press(getByText('big.zip (+1 more)'));
+    expect(onPress).toHaveBeenCalled();
+
+    const widthNode = UNSAFE_root.find((node) => node.props?.style?.some?.((style: any) => style?.width === '25%'));
+    expect(widthNode).toBeTruthy();
+  });
 });

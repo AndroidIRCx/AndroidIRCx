@@ -52,4 +52,30 @@ describe('ImagePreview', () => {
     const img = UNSAFE_getByType(Image);
     expect(img.props.resizeMode).toBe('contain');
   });
+
+  it('shows modal loading text and clears it when modal image loads', () => {
+    const { UNSAFE_getAllByType, getByText, queryByText } = render(
+      <ImagePreview url="https://example.com/pic.jpg" />
+    );
+
+    fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[0]);
+    expect(getByText('Loading image...')).toBeTruthy();
+
+    fireEvent(UNSAFE_getAllByType(Image)[1], 'load');
+    expect(queryByText('Loading image...')).toBeNull();
+  });
+
+  it('hides modal loader when modal image errors and supports request-close', () => {
+    const { UNSAFE_getAllByType, UNSAFE_getByType, queryByText } = render(
+      <ImagePreview url="https://example.com/pic.jpg" />
+    );
+
+    fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[0]);
+    fireEvent(UNSAFE_getAllByType(Image)[1], 'error');
+    expect(queryByText('Loading image...')).toBeNull();
+
+    const modal = UNSAFE_getByType('Modal');
+    fireEvent(modal, 'requestClose');
+    expect(queryByText('Close')).toBeNull();
+  });
 });

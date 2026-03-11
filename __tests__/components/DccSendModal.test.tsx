@@ -276,6 +276,111 @@ describe('DccSendModal', () => {
     expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not access the selected file. Please try again.');
   });
 
+  it('alerts when file stat verification throws', async () => {
+    mockPick.mockResolvedValue([
+      {
+        uri: 'file:///doc/bad-stat.txt',
+        name: 'bad-stat.txt',
+      },
+    ]);
+    mockExists.mockResolvedValue(true);
+    mockStat.mockRejectedValue(new Error('stat failed'));
+
+    const { getByText } = render(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath=""
+        onChangeFilePath={jest.fn()}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('Browse Files'));
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not verify file access: stat failed');
+  });
+
+  it('shows no-file alert when send handler is invoked without a path', async () => {
+    const { UNSAFE_root } = render(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath=""
+        onChangeFilePath={jest.fn()}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+
+    const disabledSendButton = UNSAFE_root.findAll((node) => node.props?.disabled === true)[0];
+    await act(async () => {
+      await disabledSendButton.props.onPress();
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith('No file selected', 'Please select a file to send');
+  });
+
+  it('prevents duplicate browse actions while a pick is already in progress', async () => {
+    let resolvePick: ((value: any[]) => void) | undefined;
+    mockPick.mockImplementation(
+      () =>
+        new Promise<any[]>(resolve => {
+          resolvePick = resolve;
+        })
+    );
+
+    const { getByText } = render(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath=""
+        onChangeFilePath={jest.fn()}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+
+    fireEvent.press(getByText('Browse Files'));
+    fireEvent.press(getByText('Selecting...'));
+    expect(mockPick).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolvePick?.([]);
+    });
+  });
+
+  it('warns but still closes when cleanup fails', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockExists.mockResolvedValue(true);
+    mockUnlink.mockRejectedValue(new Error('unlink failed'));
+
+    const { getByText } = render(
+      <DccSendModal
+        visible
+        onClose={jest.fn()}
+        targetNick="alice"
+        filePath="/cache/file.txt"
+        onChangeFilePath={jest.fn()}
+        onSend={jest.fn().mockResolvedValue(undefined)}
+        styles={styles}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('Cancel'));
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith('[DccSendModal] Failed to clean up copied file:', expect.any(Error));
+    warnSpy.mockRestore();
+  });
+
   it('ignores picker cancellation and alerts on picker errors', async () => {
     mockPick.mockRejectedValueOnce({ code: 'OPERATION_CANCELED' });
     mockIsErrorWithCode.mockReturnValueOnce(true);

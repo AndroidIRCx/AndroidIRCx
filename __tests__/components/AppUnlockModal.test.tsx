@@ -99,6 +99,13 @@ describe('AppUnlockModal', () => {
     expect(defaultProps.onBiometricUnlock).toHaveBeenCalledWith(true);
   });
 
+  it('should clear pin error before biometric retry', () => {
+    const { getByText } = render(<AppUnlockModal {...defaultProps} pinError="Try again" />);
+    fireEvent.press(getByText('Use Biometrics'));
+    expect(defaultProps.onClearPinError).toHaveBeenCalled();
+    expect(defaultProps.onBiometricUnlock).toHaveBeenCalledWith(true);
+  });
+
   it('should call onPinUnlock when unlock button pressed', () => {
     const { getByText } = render(<AppUnlockModal {...defaultProps} />);
     fireEvent.press(getByText('Unlock'));

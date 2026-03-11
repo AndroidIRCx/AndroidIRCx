@@ -17,6 +17,7 @@ import {
   SettingSubmenuProps,
   CustomSettingProps,
 } from '../../src/types/settings';
+import type { TextInputProps } from 'react-native';
 
 describe('Types - settings', () => {
   describe('SettingIcon interface', () => {
@@ -339,6 +340,42 @@ describe('Types - settings', () => {
       expect(props.styles.input).toBeDefined();
       expect(props.styles.disabledInput).toBeDefined();
     });
+  });
+
+  it('should support the full colors and styles contract used by settings components', () => {
+    const props: SettingComponentProps = {
+      item: {
+        id: 'full-contract',
+        title: 'Full Contract',
+        type: 'custom',
+      },
+      colors: {
+        text: '#111111',
+        textSecondary: '#666666',
+        primary: '#0088ff',
+        surface: '#ffffff',
+        border: '#dddddd',
+        background: '#f5f5f5',
+      },
+      styles: {
+        settingItem: { padding: 4 },
+        settingContent: { flex: 1 },
+        settingTitleRow: { flexDirection: 'row' },
+        settingTitle: { fontWeight: '600' },
+        settingDescription: { color: '#666' },
+        disabledItem: { opacity: 0.5 },
+        disabledText: { color: '#999' },
+        chevron: { marginLeft: 8 },
+        input: { borderWidth: 1 },
+        disabledInput: { opacity: 0.5 },
+        watchAdButton: { padding: 8 },
+        watchAdButtonDisabled: { opacity: 0.4 },
+        watchAdButtonText: { fontSize: 12 },
+      },
+    };
+
+    expect(props.styles.watchAdButtonText).toBeDefined();
+    expect(props.colors.background).toBe('#f5f5f5');
   });
 
   describe('SettingSwitchProps interface', () => {

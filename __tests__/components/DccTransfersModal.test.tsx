@@ -151,4 +151,148 @@ describe('DccTransfersModal', () => {
 
     expect(queryByText('Open File')).toBeNull();
   });
+
+  it('renders minimize action only for active transfers and calls it', () => {
+    const onMinimize = jest.fn();
+    const { getByText, rerender, queryByText } = render(
+      <DccTransfersModal
+        visible
+        onClose={jest.fn()}
+        onMinimize={onMinimize}
+        transfers={[mk({ id: 's1', status: 'sending' })]}
+        onAccept={jest.fn()}
+        onCancel={jest.fn()}
+        styles={styles}
+      />
+    );
+
+    fireEvent.press(getByText('Minimize'));
+    expect(onMinimize).toHaveBeenCalled();
+
+    rerender(
+      <DccTransfersModal
+        visible
+        onClose={jest.fn()}
+        onMinimize={onMinimize}
+        transfers={[mk({ id: 'c1', status: 'completed', filePath: '/doc/file.txt' })]}
+        onAccept={jest.fn()}
+        onCancel={jest.fn()}
+        styles={styles}
+      />
+    );
+
+    expect(queryByText('Minimize')).toBeNull();
+  });
+
+  it('alerts when completed file no longer exists', async () => {
+    mockExists.mockResolvedValue(false);
+    const transfer = mk({
+      id: 'gone',
+      status: 'completed',
+      filePath: '/storage/emulated/0/Download/file.txt',
+      offer: { filename: 'file.txt' },
+    });
+
+    const { getByText } = render(
+      <DccTransfersModal
+        visible
+        onClose={jest.fn()}
+        transfers={[transfer]}
+        onAccept={jest.fn()}
+        onCancel={jest.fn()}
+        styles={styles}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('Open File'));
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'File no longer exists at the saved location');
+  });
+
+  it('alerts with friendly error for Uri/open failures and ignores share cancelation', async () => {
+    const transfer = mk({
+      id: 'uri',
+      status: 'completed',
+      filePath: '/storage/emulated/0/Download/file.mp3',
+      offer: { filename: 'file.mp3' },
+    });
+
+    const { getByText } = render(
+      <DccTransfersModal
+        visible
+        onClose={jest.fn()}
+        transfers={[transfer]}
+        onAccept={jest.fn()}
+        onCancel={jest.fn()}
+        styles={styles}
+      />
+    );
+
+    mockShareOpen.mockRejectedValueOnce(new Error('null object reference Uri'));
+    await act(async () => {
+      fireEvent.press(getByText('Open File'));
+    });
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Could not open file. The file may need to be moved to an accessible location or the app may need to be restarted.',
+    );
+
+    (Alert.alert as jest.Mock).mockClear();
+    mockShareOpen.mockRejectedValueOnce(new Error('User did not share'));
+    await act(async () => {
+      fireEvent.press(getByText('Open File'));
+    });
+    expect(Alert.alert).not.toHaveBeenCalled();
+  });
+
+  it('alerts with a generic open-file message for other share errors', async () => {
+    const transfer = mk({
+      id: 'generic',
+      status: 'completed',
+      filePath: 'relative/path/file.bin',
+      offer: { filename: 'file.bin' },
+    });
+
+    const { getByText } = render(
+      <DccTransfersModal
+        visible
+        onClose={jest.fn()}
+        transfers={[transfer]}
+        onAccept={jest.fn()}
+        onCancel={jest.fn()}
+        styles={styles}
+      />
+    );
+
+    mockShareOpen.mockRejectedValueOnce(new Error('generic failure'));
+    await act(async () => {
+      fireEvent.press(getByText('Open File'));
+    });
+
+    expect(mockShareOpen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: 'file:///relative/path/file.bin',
+        type: 'application/octet-stream',
+      })
+    );
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not open file: generic failure');
+  });
+
+  it('keeps modal content responder active', () => {
+    const { UNSAFE_root } = render(
+      <DccTransfersModal
+        visible
+        onClose={jest.fn()}
+        transfers={[mk({ id: 'p1', status: 'pending' })]}
+        onAccept={jest.fn()}
+        onCancel={jest.fn()}
+        styles={styles}
+      />
+    );
+
+    const responderView = UNSAFE_root.find((node) => typeof node.props?.onStartShouldSetResponder === 'function');
+    expect(responderView.props.onStartShouldSetResponder()).toBe(true);
+  });
 });

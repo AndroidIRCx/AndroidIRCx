@@ -99,6 +99,34 @@ describe('TabOptionsModal', () => {
     expect(getByText('Settings')).toBeTruthy();
   });
 
+  it('should render icon colors for destructive and regular options', () => {
+    const optionsWithIcons = [
+      { text: 'Delete', onPress: jest.fn(), icon: 'delete', style: 'destructive' as const },
+      { text: 'Rename', onPress: jest.fn(), icon: 'pencil' },
+    ];
+    const { UNSAFE_getAllByType } = render(
+      <TabOptionsModal {...defaultProps} options={optionsWithIcons} />
+    );
+
+    const icons = UNSAFE_getAllByType('Icon');
+    expect(icons[0].props.color).toBe('#EF5350');
+    expect(icons[1].props.color).toBe('#333');
+  });
+
+  it('should fall back to default icon colors when colors are omitted', () => {
+    const optionsWithIcons = [
+      { text: 'Delete', onPress: jest.fn(), icon: 'delete', style: 'destructive' as const },
+      { text: 'Rename', onPress: jest.fn(), icon: 'pencil' },
+    ];
+    const { UNSAFE_getAllByType } = render(
+      <TabOptionsModal {...defaultProps} options={optionsWithIcons} colors={undefined} />
+    );
+
+    const icons = UNSAFE_getAllByType('Icon');
+    expect(icons[0].props.color).toBe('#EF5350');
+    expect(icons[1].props.color).toBe('#666');
+  });
+
   it('should handle empty options array', () => {
     const { getByText } = render(
       <TabOptionsModal {...defaultProps} options={[]} />
