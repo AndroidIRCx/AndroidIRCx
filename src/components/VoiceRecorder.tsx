@@ -33,7 +33,7 @@ import AudioRecorderPlayer, {
   AudioSourceAndroidType,
   AVEncoderAudioQualityIOSType,
   OutputFormatAndroidType,
-} from 'react-native-audio-recorder-player';
+} from 'react-native-nitro-sound';
 
 interface VoiceRecorderProps {
   onRecordingComplete: (fileUri: string, duration: number) => void;

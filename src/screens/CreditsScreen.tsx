@@ -38,6 +38,10 @@ const TRANSLATION_CREDITS: LanguageCredits[] = [
     translators: [{ nick: 'munZe' }],
   },
   {
+    language: 'Indonesian',
+    translators: [{ nick: 'Yusbastian Lemon 🇮🇩' }],
+  },
+  {
     language: 'Spanish',
     translators: [{ nick: 'ARGENTIN07 🇦🇷' }, { nick: 'Cubanita83 🇨🇺' }],
   },

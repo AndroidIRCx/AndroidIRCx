@@ -79,15 +79,16 @@ This is a full-featured, production IRC client - but it's also a **learning plat
 
 - **Learn TCP sockets** -- see how raw IRC protocol works over `react-native-tcp-socket`, TLS
   handshakes, proxy tunneling, SOCKS5/Tor
-- **Learn state management** - 4 Zustand stores, 48 custom hooks, real-world patterns for complex
-  React Native apps
+- **Learn state management** - Zustand stores and a large set of custom hooks for complex React
+  Native apps
 - **Learn cryptography** - E2E encryption with libsodium (XChaCha20-Poly1305), SCRAM-SHA-256
   authentication (RFC 7677), X.509 certificate generation
 - **Learn protocol implementation** - 390+ IRC numeric handlers, full IRCv3 compliance, CAP
   negotiation, SASL state machines
 - **Learn architecture** - service-oriented design, EventEmitter patterns, context interfaces,
   modular handler extraction
-- **Learn testing** - 160 test files covering services, hooks, components, stores, and utilities
+- **Learn testing** - extensive Jest coverage across services, hooks, components, stores,
+  utilities, screens, and end-to-end flows
 - **Learn CI/CD** - GitHub Actions, Docker-based release builds, automated coverage reports
 
 Everything is TypeScript. Everything is documented. Everything is yours to read, modify, and ship.
@@ -184,18 +185,19 @@ reply, react, channel-context, rename
 
 |                   |                                                   |
 |-------------------|---------------------------------------------------|
-| **Framework**     | React Native 0.84.0, React 19.2.3                 |
+| **Framework**     | React Native 0.84.1, React 19.2.3                 |
 | **Language**      | TypeScript 5.9.3                                  |
 | **State**         | Zustand 5.0.11                                    |
 | **Networking**    | react-native-tcp-socket (raw TCP/TLS)             |
 | **Encryption**    | libsodium, node-forge, @noble/curves              |
 | **Storage**       | AsyncStorage + Keychain (react-native-keychain)   |
-| **Testing**       | Jest 30.2, Testing Library (160 test files)       |
+| **UI/Lists**      | FlashList, Reanimated, react-native-vector-icons  |
+| **Testing**       | Jest 30.3, Testing Library                        |
 | **CI/CD**         | GitHub Actions, Docker                            |
 | **Notifications** | @notifee/react-native                             |
 | **Media**         | vision-camera, react-native-video, audio-recorder |
 | **i18n**          | Transifex Native (9 languages)                    |
-| **Analytics**     | Firebase Crashlytics, App Check                   |
+| **Analytics**     | Firebase Crashlytics, Firebase App Check          |
 
 ---
 
@@ -204,34 +206,33 @@ reply, react, channel-context, rename
 AndroidIRCX follows a service-oriented architecture with clear separation of concerns:
 
 ```
-App.tsx (841 lines) -- Main UI orchestrator
+App.tsx -- main UI orchestrator
 |
-+-- Zustand Stores (4)
-|   connectionStore, tabStore, uiStore, messageStore
++-- Zustand Stores
+|   connectionStore, tabStore, uiStore, messageStore, callStore
 |
-+-- Custom Hooks (48)
++-- Custom Hooks
 |   Connection lifecycle, tab management, message sending,
-|   encryption, DCC, settings, UI state, and more
+|   encryption, DCC, settings, deep links, ads, UI state, and more
 |
-+-- Components (74 files)
++-- Components
 |   AppLayout, MessageArea, MessageInput, ChannelTabs,
-|   UserList, HeaderBar, 20+ modals, 15 settings sections
+|   UserList, HeaderBar, settings sections, media and certificate modals
 |
-+-- Screens (33 files)
++-- Screens
 |   Settings, network config, theme editor, scripting,
-|   key management, channel list, 7 help screens
+|   key management, privacy, backup, purchases, channel list, help screens
 |
-+-- Services (69 root + 55 IRC modules = 124 files)
-|   IRCService (2,711 lines) -- core protocol handler
-|   irc/ (9,030 lines) -- extracted protocol modules:
-|     18 command handlers, 15 numeric modules (390+ numerics),
-|     10 send-command handlers, SCRAM-SHA-256 auth,
-|     CTCP, batch/label, multiline, CAP negotiation
++-- Services
+|   IRCService -- core protocol handler
+|   irc/ -- extracted protocol modules for commands, numerics,
+|     send commands, SCRAM-SHA-256 auth, CTCP, batch/label,
+|     multiline, and CAP negotiation
 |   ConnectionManager, SettingsService, TabService,
 |   EncryptedDMService, MediaEncryptionService,
-|   ScriptingService, and 60+ more
+|   ScriptingService, WebRTCCallService, and more
 |
-+-- Utils (17 files)
++-- Utils
     IRCFormatter, MessageParser, encodings, tab utils
 ```
 
@@ -252,45 +253,29 @@ App.tsx (841 lines) -- Main UI orchestrator
 ```
 AndroidIRCX/
 +-- src/
-|   +-- components/     74 UI components
-|   |   +-- settings/   15 settings sections + 5 shared widgets
-|   |   +-- modals/     4 certificate/network modals
-|   +-- hooks/          48 custom hooks
-|   +-- screens/        33 screens (+ 7 help screens)
-|   +-- stores/         4 Zustand stores
-|   +-- services/       69 root services
-|   |   +-- irc/        55 extracted IRC protocol modules
-|   |       +-- numerics/     15 numeric handler modules
-|   |       +-- commands/     18 incoming command handlers
-|   |       +-- sendCommands/ 10 outgoing command handlers
-|   |       +-- protocol/     CTCP, batch/label, multiline
-|   |       +-- cap/          CAP negotiation
-|   |       +-- ScramAuth.ts  SCRAM-SHA-256 (RFC 7677)
+|   +-- components/     UI components, settings sections, modals
+|   +-- hooks/          Custom React hooks
+|   +-- screens/        App screens and help screens
+|   +-- stores/         Zustand stores
+|   +-- services/       Core app services
+|   |   +-- irc/        IRC protocol modules, numerics, CAP, send commands
 |   +-- config/         App config + IRCd service detection
 |   +-- themes/         Dark, Light, IRcap
-|   +-- types/          6 type definition files
-|   +-- utils/          17 utility modules
-|   +-- i18n/           10 translation files
+|   +-- types/          Type definitions
+|   +-- utils/          Utility modules
+|   +-- i18n/           Translation resources
 |   +-- core/           ServiceContainer (DI)
 |   +-- interfaces/     Service type interfaces
 |   +-- presets/        IRcap preset definitions
 |
-+-- __tests__/          160 test files
-|   +-- services/       50+ service tests
-|   +-- hooks/          40+ hook tests
-|   +-- components/     15+ component tests
-|   +-- stores/         4 store tests
-|   +-- utils/          14 utility tests
-|
++-- __tests__/          Unit, integration, and journey tests
 +-- android/            Android native code
-+-- scripts/
-|   +-- docker/         Release build scripts
-|   +-- transifex/      Translation sync scripts
-+-- patches/            3 patch-package patches
-+-- .github/workflows/  CI/CD (tests + Docker release)
++-- scripts/            Build and translation scripts
++-- patches/            patch-package patches
++-- .github/workflows/  CI/CD workflows
 +-- Dockerfile          Docker-based release builds
-+-- App.tsx             Main component (841 lines)
-+-- package.json        v1.8.1, GPL-3.0-or-later
++-- App.tsx             Main component
++-- package.json        v1.8.10, GPL-3.0-or-later
 ```
 
 ---
@@ -324,7 +309,7 @@ yarn android
 ### Development Commands
 
 ```bash
-yarn test             # Run all 160 test files
+yarn test             # Run the Jest suite
 yarn type-check       # TypeScript check (tsc --noEmit)
 yarn lint             # ESLint
 yarn pre-push-check   # type-check + lint
@@ -363,7 +348,7 @@ see how IRC protocol lines are parsed from a TCP byte stream.
 
 ### Want to learn real-world React Native architecture?
 
-Look at the hooks in `src/hooks/` -- 48 hooks that extract complex business logic from components.
+Look at the hooks in `src/hooks/` -- they extract complex business logic from components.
 `useConnectionLifecycle.ts` shows how to wire up event listeners for a real-time protocol.
 `useLazyMessageHistory.ts` shows on-demand data loading patterns.
 
@@ -458,7 +443,7 @@ settings.
 
 ### Tests (on every push/PR)
 
-GitHub Actions runs all 160 test files with coverage, uploaded to Codecov.
+GitHub Actions runs the Jest suite with coverage, uploaded to Codecov.
 
 ### Release Builds (Docker)
 
@@ -530,8 +515,8 @@ bar for what an IRC experience should be.
 
 **IRcap theme for AndroidIRCX** by ARGENTIN07, based on the original IRCap theme.
 
-**Translations:** ARGENTIN07 and Cubanita83 (Spanish). See the full credits in the app's Credits
-screen.
+**Translations:** ARGENTIN07 and Cubanita83 (Spanish), Yusbastian Lemon (Indonesian). See the full
+credits in the app's Credits screen.
 
 As an open-source creator, I deeply respect the work of **Linus Torvalds** and **Richard Stallman**
 for the free/open-source software movement. Their vision and persistence were a direct inspiration

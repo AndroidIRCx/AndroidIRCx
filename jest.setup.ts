@@ -608,7 +608,7 @@ jest.mock('react-native-video', () => {
   };
 });
 
-jest.mock('react-native-audio-recorder-player', () => {
+jest.mock('react-native-nitro-sound', () => {
   const mockInstance = {
     startRecorder: jest.fn().mockResolvedValue('mock-record-path'),
     stopRecorder: jest.fn().mockResolvedValue(undefined),

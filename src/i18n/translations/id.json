@@ -2685,424 +2685,424 @@
     "string": "user"
   },
   "users": {
-    "string": ""
+    "string": "users"
   },
   "Search users...": {
-    "string": ""
+    "string": "Cari user..."
   },
   "No users found": {
-    "string": ""
+    "string": "User tidak ditemukan"
   },
   "No users": {
-    "string": ""
+    "string": "Tidak ada user"
   },
   "Account: {account}": {
-    "string": ""
+    "string": "Akun: {account}"
   },
   "Quick Actions": {
-    "string": ""
+    "string": "Quick actions  "
   },
   "Open Query": {
-    "string": ""
+    "string": "Open Query"
   },
   "Copy Nickname": {
-    "string": ""
+    "string": "Copy nick"
   },
   "Encryption": {
-    "string": ""
+    "string": "Enkripsi"
   },
   "E2E Encryption v": {
-    "string": ""
+    "string": "E2E enkripsi v  "
   },
   "E2E Encryption >": {
-    "string": ""
+    "string": "E2E enkripsi >"
   },
   "Share Channel Key": {
-    "string": ""
+    "string": "Share key channel "
   },
   "Request Channel Key": {
-    "string": ""
+    "string": "Request key channel  "
   },
   "CTCP": {
-    "string": ""
+    "string": "CTCP"
   },
   "CTCP v": {
-    "string": ""
+    "string": "CTCP v"
   },
   "CTCP >": {
-    "string": ""
+    "string": "CTCP >"
   },
   "DCC": {
-    "string": ""
+    "string": "DCC"
   },
   "Offer DCC Send": {
-    "string": ""
+    "string": "Offer DCC Send"
   },
   "Operator Controls": {
-    "string": ""
+    "string": "Kontrol operator  "
   },
   "Operator Controls v": {
-    "string": ""
+    "string": "Kontrol operator v "
   },
   "Operator Controls >": {
-    "string": ""
+    "string": "Kontrol operator >"
   },
   "Take Voice": {
-    "string": ""
+    "string": "Cabut voice "
   },
   "Give Voice": {
-    "string": ""
+    "string": "Kasih voice"
   },
   "Take Half-Op": {
-    "string": ""
+    "string": "Cabut half‑op  "
   },
   "Give Half-Op": {
-    "string": ""
+    "string": "Kasih half‑op "
   },
   "Take Op": {
-    "string": ""
+    "string": "Cabut op"
   },
   "Give Op": {
-    "string": ""
+    "string": "Kasih op"
   },
   "Kick": {
-    "string": ""
+    "string": "Kick"
   },
   "Kick (with message)": {
-    "string": ""
+    "string": "Kick (pakai pesan)  "
   },
   "Ban": {
-    "string": ""
+    "string": "Ban"
   },
   "Kick + Ban": {
-    "string": ""
+    "string": "Kick + Ban"
   },
   "Kick + Ban (with message)": {
-    "string": ""
+    "string": "Kick + ban (pakai pesan)  "
   },
   "Video error: {error}": {
-    "string": ""
+    "string": "Error video: {error} "
   },
   "Failed to load video": {
-    "string": ""
+    "string": "Gagal load video"
   },
   "PiP": {
-    "string": ""
+    "string": "PiP"
   },
   "WHOIS Error": {
-    "string": ""
+    "string": "Error WHOIS  "
   },
   "Not connected or not registered yet.": {
-    "string": ""
+    "string": "Belum connect atau belum register  "
   },
   "Note saved": {
-    "string": ""
+    "string": "Note disimpan"
   },
   "Note removed": {
-    "string": ""
+    "string": "Note dihapus"
   },
   "Alias saved": {
-    "string": ""
+    "string": "Alias disimpan"
   },
   "Alias removed": {
-    "string": ""
+    "string": "Alias dihapus"
   },
   "Ignore {nick}?": {
-    "string": ""
+    "string": "Ignore {nick}?  "
   },
   "Ignore": {
-    "string": ""
+    "string": "Ignore"
   },
   "{nick} has been ignored": {
-    "string": ""
+    "string": "{nick} di‑ignore"
   },
   "{nick} is no longer ignored": {
-    "string": ""
+    "string": "{nick} tidak di‑ignore lagi  "
   },
   "WHOIS: {nick}": {
-    "string": ""
+    "string": "WHOIS: {nick} "
   },
   "Loading WHOIS information...": {
-    "string": ""
+    "string": "Loading info WHOIS...  "
   },
   "User Information": {
-    "string": ""
+    "string": "Info user"
   },
   "Real Name:": {
-    "string": ""
+    "string": "Nama asli: "
   },
   "Host:": {
-    "string": ""
+    "string": "Host:"
   },
   "Account:": {
-    "string": ""
+    "string": "Akun:  "
   },
   "Server": {
-    "string": ""
+    "string": "Server"
   },
   "Server:": {
-    "string": ""
+    "string": "Server:"
   },
   "Away:": {
-    "string": ""
+    "string": "Away:"
   },
   "User is away": {
-    "string": ""
+    "string": "User lagi away  "
   },
   "Activity": {
-    "string": ""
+    "string": "Aktivitas"
   },
   "Idle:": {
-    "string": ""
+    "string": "Idle:"
   },
   "{minutes} minutes": {
-    "string": ""
+    "string": "{minutes} menit  "
   },
   "Signed on:": {
-    "string": ""
+    "string": "Signed on:"
   },
   "No WHOIS information available": {
-    "string": ""
+    "string": "Tidak ada info WHOIS "
   },
   "Request WHOIS": {
-    "string": ""
+    "string": "Request WHOIS"
   },
   "User Note": {
-    "string": ""
+    "string": "Catatan user"
   },
   "No note": {
-    "string": ""
+    "string": "Tidak ada catatan"
   },
   "Edit Note": {
-    "string": ""
+    "string": "Edit catatan"
   },
   "Add Note": {
-    "string": ""
+    "string": "Tambah catatan"
   },
   "Enter note about this user": {
-    "string": ""
+    "string": "Masukin catatan tentang user ini"
   },
   "Last action: {action}{channel}": {
-    "string": ""
+    "string": "Aksi terakhir: {action}{channel}"
   },
   "Last seen: {time}": {
-    "string": ""
+    "string": "Terakhir kelihatan: {time} "
   },
   "Context: ": {
-    "string": ""
+    "string": "Context: "
   },
   "No recent activity tracked": {
-    "string": ""
+    "string": "Tidak ada aktivitas terbaru"
   },
   "User Alias": {
-    "string": ""
+    "string": "Alias user  "
   },
   "No alias": {
-    "string": ""
+    "string": "Tidak ada alias"
   },
   "Edit Alias": {
-    "string": ""
+    "string": "Edit alias"
   },
   "Enter alias for this user": {
-    "string": ""
+    "string": "Masukin alias buat user ini  "
   },
   "Actions": {
-    "string": ""
+    "string": "Aksi"
   },
   "WHOWAS (History)": {
-    "string": ""
+    "string": "WHOWAS (History)"
   },
   "Welcome to AndroidIRCX": {
-    "string": ""
+    "string": "Selamat datang di AndroidIRCX"
   },
   "Set Up Your Identity": {
-    "string": ""
+    "string": "Set identitas kamu  "
   },
   "Choose Your Network": {
-    "string": ""
+    "string": "Pilih network  "
   },
   "All Set!": {
-    "string": ""
+    "string": "Beres!"
   },
   "Required": {
-    "string": ""
+    "string": "Wajib"
   },
   "Please enter a nickname": {
-    "string": ""
+    "string": "Masukin nickname"
   },
   "Please enter your real name": {
-    "string": ""
+    "string": "Masukin nama asli"
   },
   "{nick} Profile": {
-    "string": ""
+    "string": "Profil {nick} "
   },
   "Please enter network name and server": {
-    "string": ""
+    "string": "Masukin nama network dan server  "
   },
   "Failed to save network configuration": {
-    "string": ""
+    "string": "Gagal simpan konfigurasi network"
   },
   "AndroidIRCX": {
-    "string": ""
+    "string": "AndroidIRCX"
   },
   "Let's get you connected to IRC": {
-    "string": ""
+    "string": "Yuk connect ke IRC"
   },
   "Multi-network support": {
-    "string": ""
+    "string": "Support multi‑network  "
   },
   "Full IRCv3 compliance (18 capabilities)": {
-    "string": ""
+    "string": "Full compliance IRCv3 (18 capability)  "
   },
   "End-to-end encryption": {
-    "string": ""
+    "string": "Enkripsi end‑to‑end "
   },
   "Real-time typing indicators": {
-    "string": ""
+    "string": "Indikator ngetik real‑time  "
   },
   "Background connections": {
-    "string": ""
+    "string": "Koneksi background"
   },
   "This is how you'll appear to other users on IRC": {
-    "string": ""
+    "string": "Begini tampilan kamu ke user lain di IRC  "
   },
   "Nickname": {
-    "string": ""
+    "string": "Nickname"
   },
   "AndroidIRCX_": {
-    "string": ""
+    "string": "AndroidIRCX_"
   },
   "Used if primary nickname is taken": {
-    "string": ""
+    "string": "Dipakai kalau nickname utama kepakai  "
   },
   "Your Name": {
-    "string": ""
+    "string": "Nama kamu"
   },
   "Username/Ident": {
-    "string": ""
+    "string": "Username/Ident"
   },
   "androidircx": {
-    "string": ""
+    "string": "androidircx"
   },
   "Connect to an IRC server to start chatting": {
-    "string": ""
+    "string": "Connect ke server IRC buat mulai chat  "
   },
   "Recommended Server": {
-    "string": ""
+    "string": "Server rekomendasi  "
   },
   "irc.dbase.in.rs (Port 6697, SSL)": {
-    "string": ""
+    "string": "irc.dbase.in.rs (Port 6697, SSL)"
   },
   "Official AndroidIRCX server with full IRCv3 support": {
-    "string": ""
+    "string": "Server resmi AndroidIRCX dengan full support IRCv3  "
   },
   "Custom Server": {
-    "string": ""
+    "string": "Server custom "
   },
   "Connect to a different IRC network": {
-    "string": ""
+    "string": "Connect ke network IRC lain "
   },
   "Network Name": {
-    "string": ""
+    "string": "Nama network"
   },
   "libera": {
-    "string": ""
+    "string": "libera"
   },
   "Server Hostname": {
-    "string": ""
+    "string": "Server Hostname"
   },
   "irc.libera.chat": {
-    "string": ""
+    "string": "irc.libera.chat"
   },
   "Use SSL/TLS (Recommended)": {
-    "string": ""
+    "string": "Pakai SSL/TLS (disarankan) "
   },
   "You're all set!": {
-    "string": ""
+    "string": "Beres!"
   },
   "Ready to connect to {server} as {nick}": {
-    "string": ""
+    "string": "Siap connect ke {server} sebagai {nick}  "
   },
   "Connect Now": {
-    "string": ""
+    "string": "Connect sekarang "
   },
   "Connect Later": {
-    "string": ""
+    "string": "Connect nanti"
   },
   "Skip": {
-    "string": ""
+    "string": "Skip"
   },
   "Back": {
-    "string": ""
+    "string": "Back"
   },
   "Complete Setup": {
-    "string": ""
+    "string": "Setup selesai"
   },
   "Access Encryption Keys": {
-    "string": ""
+    "string": "Akses key enkripsi  "
   },
   "Authenticate to view and manage your encryption keys": {
-    "string": ""
+    "string": "Autentikasi buat lihat & kelola key enkripsi  "
   },
   "You must authenticate to access encryption keys.": {
-    "string": ""
+    "string": "Kamu harus autentikasi buat akses key enkripsi  "
   },
   "Authentication Failed": {
-    "string": ""
+    "string": "Autentikasi gagal  "
   },
   "Authentication Error": {
-    "string": ""
+    "string": "Autentikasi Error"
   },
   "Failed to authenticate. Please try again.": {
-    "string": ""
+    "string": "Gagal autentikasi. Coba lagi. "
   },
   "Unknown error": {
-    "string": ""
+    "string": "Error tidak dikenal"
   },
   "Failed to load encryption keys: {error}": {
-    "string": ""
+    "string": "Gagal load key enkripsi: {error}  "
   },
   "Delete Encryption Key": {
-    "string": ""
+    "string": "Hapus key enkripsi"
   },
   "Are you sure you want to delete the encryption key for {nick} on {network}?\n\nFingerprint: {fingerprint}\n\nThis cannot be undone.": {
-    "string": ""
+    "string": "Yakin mau hapus key enkripsi untuk {nick} di {network}?Fingerprint: {fingerprint}Aksi ini tidak bisa dibatalin.  "
   },
   "Key deleted successfully": {
-    "string": ""
+    "string": "Key berhasil dihapus"
   },
   "Failed to delete key": {
-    "string": ""
+    "string": "Gagal hapus key  "
   },
   "Key copied to {network}": {
-    "string": ""
+    "string": "Key dicopy ke {network}"
   },
   "Failed to copy key": {
-    "string": ""
+    "string": "Gagal copy key  "
   },
   "Move Key": {
-    "string": ""
+    "string": "Pindahin key"
   },
   "This will move the key from {fromNetwork} to {toNetwork} and delete it from {fromNetwork}.\n\nContinue?": {
-    "string": ""
+    "string": "Ini bakal mindahin key dari {fromNetwork} ke {toNetwork} dan hapus dari {fromNetwork}.Lanjut?  "
   },
   "Move": {
-    "string": ""
+    "string": "Pindah"
   },
   "Key moved to {network}": {
     "string": ""
   },
   "Failed to move key": {
-    "string": ""
+    "string": "Gagal mindahin key  "
   },
   "Failed to update verification status": {
-    "string": ""
+    "string": "Gagal update status verifikasi"
   },
   "Password must be at least 6 characters": {
-    "string": ""
+    "string": "Password minimal 6 karakter"
   },
   "Exported {count} key(s). The encrypted backup has been copied to your clipboard. Save it to a secure location.": {
-    "string": ""
+    "string": "{count} key diexport. Backup terenkripsi dicopy ke clipboard. Simpan di lokasi aman. "
   },
   "Failed to export keys: {error}": {
     "string": ""

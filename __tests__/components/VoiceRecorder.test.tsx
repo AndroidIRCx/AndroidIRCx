@@ -28,7 +28,7 @@ jest.mock('react-native-fs', () => ({
 
 jest.mock('react-native-video', () => 'Video');
 
-jest.mock('react-native-audio-recorder-player', () => ({
+jest.mock('react-native-nitro-sound', () => ({
   __esModule: true,
   default: {
     setSubscriptionDuration: (...args: unknown[]) => mockSetSubscriptionDuration(...args),

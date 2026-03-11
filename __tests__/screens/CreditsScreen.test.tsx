@@ -42,8 +42,10 @@ describe('CreditsScreen', () => {
     expect(getByText('Credits')).toBeTruthy();
     expect(getByText('Translators')).toBeTruthy();
     expect(getByText('English')).toBeTruthy();
+    expect(getByText('Indonesian')).toBeTruthy();
     expect(getByText('Spanish')).toBeTruthy();
     expect(getByText('munZe')).toBeTruthy();
+    expect(getByText('Yusbastian Lemon 🇮🇩')).toBeTruthy();
     expect(getByText('ARGENTIN07 🇦🇷')).toBeTruthy();
     expect(getByText('Help Translate')).toBeTruthy();
     expect(getByText('contact@androidircx.com')).toBeTruthy();
