@@ -160,7 +160,7 @@ const createStyles = (colors: any) => {
     },
     modalContainer: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+      backgroundColor: colors.modalOverlay,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -170,11 +170,11 @@ const createStyles = (colors: any) => {
       right: 20,
       zIndex: 10,
       padding: 10,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: colors.surfaceAlt,
       borderRadius: 20,
     },
     modalCloseText: {
-      color: '#FFFFFF',
+      color: colors.text,
       fontSize: 16,
       fontWeight: 'bold',
     },
@@ -189,7 +189,7 @@ const createStyles = (colors: any) => {
       zIndex: 5,
     },
     modalLoadingText: {
-      color: '#FFFFFF',
+      color: colors.text,
       fontSize: 14,
       marginTop: 12,
     },

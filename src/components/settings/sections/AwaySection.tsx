@@ -18,9 +18,11 @@ interface AwaySectionProps {
     text: string;
     textSecondary: string;
     primary: string;
+    onPrimary?: string;
     surface: string;
     border: string;
     background: string;
+    modalOverlay?: string;
   };
   styles: {
     settingItem: any;
@@ -137,11 +139,11 @@ export const AwaySection: React.FC<AwaySectionProps> = ({
       fontWeight: '600',
     },
     tabTextActive: {
-      color: '#fff',
+      color: colors.onPrimary || colors.text,
     },
     modalContainer: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.6)',
+      backgroundColor: colors.modalOverlay || colors.background,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
@@ -221,7 +223,7 @@ export const AwaySection: React.FC<AwaySectionProps> = ({
       fontWeight: '600',
     },
     selectButtonTextActive: {
-      color: '#fff',
+      color: colors.onPrimary || colors.text,
     },
     editButton: {
       paddingHorizontal: 10,
@@ -252,7 +254,7 @@ export const AwaySection: React.FC<AwaySectionProps> = ({
       backgroundColor: colors.border,
     },
     modalButtonText: {
-      color: '#fff',
+      color: colors.onPrimary || colors.text,
       fontWeight: '600',
     },
     modalButtonTextSecondary: {

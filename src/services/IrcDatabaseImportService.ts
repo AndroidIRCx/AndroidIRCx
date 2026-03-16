@@ -13,21 +13,46 @@ interface IrcDatabaseApiServer {
   hostname?: unknown;
   port?: unknown;
   use_ssl?: unknown;
+  last_scanned_at?: unknown;
 }
 
 interface IrcDatabaseApiNetwork {
   network_name?: unknown;
+  average_users?: unknown;
   server_list?: unknown;
 }
 
 interface IrcDatabaseApiResponse {
   meta?: {
+    description?: unknown;
+    sorted_by?: unknown;
+    generated_at?: unknown;
     pagination?: {
       has_more_pages?: unknown;
       next_page_url?: unknown;
     };
   };
   data?: unknown;
+}
+
+export interface IrcDatabaseCatalogMeta {
+  description: string;
+  sortedBy: string | null;
+  generatedAt: string | null;
+  totalNetworks: number;
+}
+
+export interface IrcDatabaseCatalogEntry {
+  id: string;
+  name: string;
+  averageUsers: number | null;
+  serverCount: number;
+  lastScannedAt: string | null;
+}
+
+export interface IrcDatabaseCatalog {
+  meta: IrcDatabaseCatalogMeta;
+  networks: IrcDatabaseCatalogEntry[];
 }
 
 export interface IrcDatabaseImportSummary {
@@ -87,12 +112,27 @@ const toPort = (value: unknown): number | null => {
 };
 
 class IrcDatabaseImportService {
+  async loadCatalog(
+    fetchImpl: typeof fetch = fetch,
+    options?: { timeoutMs?: number }
+  ): Promise<IrcDatabaseCatalog> {
+    const timeoutMs = options?.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
+    const { records, meta } = await this.fetchCatalogRecords(fetchImpl, timeoutMs);
+
+    return {
+      meta,
+      networks: records
+        .map((record, index) => this.mapCatalogRecord(record, index))
+        .filter((entry): entry is IrcDatabaseCatalogEntry => entry !== null),
+    };
+  }
+
   async importFromIrcDatabase(
     fetchImpl: typeof fetch = fetch,
     options?: { timeoutMs?: number }
   ): Promise<IrcDatabaseImportSummary> {
     const timeoutMs = options?.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
-    const apiNetworks = await this.fetchAllNetworkRecords(fetchImpl, timeoutMs);
+    const { records: apiNetworks } = await this.fetchCatalogRecords(fetchImpl, timeoutMs);
 
     const existingNetworks = await settingsService.loadNetworks();
     const existingNames = new Set(existingNetworks.map(n => normalizeName(n.name)));
@@ -182,13 +222,19 @@ class IrcDatabaseImportService {
     return summary;
   }
 
-  private async fetchAllNetworkRecords(
+  private async fetchCatalogRecords(
     fetchImpl: typeof fetch,
     timeoutMs: number
-  ): Promise<IrcDatabaseApiNetwork[]> {
+  ): Promise<{ records: IrcDatabaseApiNetwork[]; meta: IrcDatabaseCatalogMeta }> {
     const collected: IrcDatabaseApiNetwork[] = [];
     let nextUrl: string | null = IRC_DATABASE_PRESETS_URL;
     let pageGuard = 0;
+    let meta: IrcDatabaseCatalogMeta = {
+      description: '',
+      sortedBy: null,
+      generatedAt: null,
+      totalNetworks: 0,
+    };
 
     while (nextUrl) {
       pageGuard += 1;
@@ -208,13 +254,36 @@ class IrcDatabaseImportService {
       }
       collected.push(...pageData);
 
+      if (!meta.description && typeof json?.meta?.description === 'string') {
+        meta.description = json.meta.description;
+      }
+      if (!meta.sortedBy && typeof json?.meta?.sorted_by === 'string') {
+        meta.sortedBy = json.meta.sorted_by;
+      }
+      if (!meta.generatedAt && typeof json?.meta?.generated_at === 'string') {
+        meta.generatedAt = json.meta.generated_at;
+      }
+      if (!meta.totalNetworks) {
+        const totalRaw = json?.meta?.pagination?.total;
+        meta.totalNetworks =
+          typeof totalRaw === 'number'
+            ? totalRaw
+            : typeof totalRaw === 'string'
+              ? Number(totalRaw) || 0
+              : 0;
+      }
+
       const hasMore = Boolean(json?.meta?.pagination?.has_more_pages);
       const nextPageUrlRaw = json?.meta?.pagination?.next_page_url;
       const nextPageUrl = typeof nextPageUrlRaw === 'string' ? nextPageUrlRaw.trim() : '';
       nextUrl = hasMore && nextPageUrl ? nextPageUrl : null;
     }
 
-    return collected;
+    if (!meta.totalNetworks) {
+      meta.totalNetworks = collected.length;
+    }
+
+    return { records: collected, meta };
   }
 
   private async fetchWithTimeout(
@@ -298,6 +367,39 @@ class IrcDatabaseImportService {
         autoJoinChannels: [],
       },
       skippedInvalidServers,
+    };
+  }
+
+  private mapCatalogRecord(
+    record: IrcDatabaseApiNetwork,
+    index: number
+  ): IrcDatabaseCatalogEntry | null {
+    const name = typeof record?.network_name === 'string' ? record.network_name.trim() : '';
+    if (!name) {
+      return null;
+    }
+
+    const rawServers = Array.isArray(record?.server_list)
+      ? (record.server_list as IrcDatabaseApiServer[])
+      : [];
+    const validScannedTimestamps = rawServers
+      .map(server => (typeof server?.last_scanned_at === 'string' ? server.last_scanned_at.trim() : ''))
+      .filter(Boolean);
+    const lastScannedAt = validScannedTimestamps.sort().at(-1) || null;
+    const averageUsersRaw = record?.average_users;
+    const averageUsers =
+      typeof averageUsersRaw === 'number'
+        ? averageUsersRaw
+        : typeof averageUsersRaw === 'string'
+          ? Number(averageUsersRaw)
+          : null;
+
+    return {
+      id: `catalog-${slugify(name)}-${index}`,
+      name,
+      averageUsers: Number.isFinite(averageUsers as number) ? (averageUsers as number) : null,
+      serverCount: rawServers.length,
+      lastScannedAt,
     };
   }
 

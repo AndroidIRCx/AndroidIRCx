@@ -28,6 +28,8 @@ interface ConnectionNetworkSectionProps {
     text: string;
     textSecondary: string;
     primary: string;
+    onPrimary?: string;
+    error?: string;
     surface: string;
     border: string;
     background: string;
@@ -212,6 +214,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   const [dccExtModalMode, setDccExtModalMode] = useState<'accept' | 'reject' | 'dont_send'>('accept');
   const [newDccExt, setNewDccExt] = useState('');
   const [showQuickConnectModal, setShowQuickConnectModal] = useState(false);
+  const [quickConnectNetworks, setQuickConnectNetworks] = useState(networks);
 
   // Refresh favorites
   const refreshFavorites = useCallback(() => {
@@ -344,6 +347,28 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       subscription.remove();
     };
   }, [passwordsUnlocked]);
+
+  useEffect(() => {
+    setQuickConnectNetworks(networks);
+  }, [networks]);
+
+  const openQuickConnectModal = useCallback(async () => {
+    try {
+      const loadedNetworks = await settingsService.loadNetworks();
+      if (!isMountedRef.current) {
+        return;
+      }
+      setQuickConnectNetworks(loadedNetworks);
+      await refreshNetworks();
+    } catch (error) {
+      console.error('Failed to load quick connect networks:', error);
+      setQuickConnectNetworks(networks);
+    } finally {
+      if (isMountedRef.current) {
+        setShowQuickConnectModal(true);
+      }
+    }
+  }, [networks, refreshNetworks]);
 
   const networkLabel = useCallback(
     (networkId: string) => networks.find(n => n.id === networkId)?.name || networkId,
@@ -1054,9 +1079,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           : t('Tap header to connect to default network', { _tags: tags }),
         type: 'button',
         searchKeywords: ['quick', 'connect', 'network', 'default', 'header', 'choose'],
-        onPress: () => {
-          setShowQuickConnectModal(true);
-        },
+        onPress: openQuickConnectModal,
       },
       {
         id: 'connection-auto-connect-favorite',
@@ -2130,7 +2153,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                   </Text>
                 </View>
               </TouchableOpacity>
-              {networks.map((net) => (
+              {quickConnectNetworks.map((net) => (
                 <TouchableOpacity
                   key={net.id}
                   style={styles.submenuItem}
@@ -2295,7 +2318,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 autoFocus
               />
               {pinError ? (
-                <Text style={[styles.submenuItemDescription, { color: 'red', marginTop: 8 }]}>
+                <Text style={[styles.submenuItemDescription, { color: colors.error, marginTop: 8 }]}>
                   {pinError}
                 </Text>
               ) : null}
@@ -2308,7 +2331,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                   alignItems: 'center',
                 }}
                 onPress={handlePinSubmit}>
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+                <Text style={{ color: colors.onPrimary, fontWeight: 'bold' }}>
                   {pinModalMode === 'confirm' ? t('Confirm', { _tags: tags }) : t('Submit', { _tags: tags })}
                 </Text>
               </TouchableOpacity>

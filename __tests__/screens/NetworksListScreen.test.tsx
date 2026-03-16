@@ -106,6 +106,7 @@ jest.mock('../../src/screens/ConnectionProfilesScreen', () => ({
 
 jest.mock('../../src/services/IrcDatabaseImportService', () => ({
   ircDatabaseImportService: {
+    loadCatalog: jest.fn(),
     importFromIrcDatabase: jest.fn(),
   },
 }));
@@ -215,13 +216,14 @@ describe('NetworksListScreen', () => {
       <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
     );
 
-    fireEvent.press(await findByText('Load networks from IRC Database'));
+    fireEvent.press(await findByText('Reload from IRC Database'));
 
-    expect(await findByText('Load Networks from IRC Database')).toBeTruthy();
-    expect(await findByText('Load from IRC Database')).toBeTruthy();
-    expect(await findByText('https://irc.dbase.in.rs/api/irc/server-presets')).toBeTruthy();
+    expect(await findByText('Reload Networks from IRC Database')).toBeTruthy();
+    expect(await findByText('Update from IRC Database')).toBeTruthy();
+    expect(await findByText('AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.')).toBeTruthy();
     expect(await findByText('https://irc.dbase.in.rs/privacy-policy')).toBeTruthy();
     expect(await findByText('https://irc.dbase.in.rs/terms-of-service')).toBeTruthy();
+    expect(ircDatabaseImportService.loadCatalog).not.toHaveBeenCalled();
   });
 
   it('closes IRC Database info modal on cancel', async () => {
@@ -229,13 +231,13 @@ describe('NetworksListScreen', () => {
       <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
     );
 
-    fireEvent.press(await findByText('Load networks from IRC Database'));
-    expect(await findByText('Load Networks from IRC Database')).toBeTruthy();
+    fireEvent.press(await findByText('Reload from IRC Database'));
+    expect(await findByText('Reload Networks from IRC Database')).toBeTruthy();
 
     fireEvent.press(await findByText('Cancel'));
 
     await waitFor(() => {
-      expect(queryByText('Load Networks from IRC Database')).toBeNull();
+      expect(queryByText('Reload Networks from IRC Database')).toBeNull();
     });
   });
 
@@ -244,8 +246,8 @@ describe('NetworksListScreen', () => {
       <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
     );
 
-    fireEvent.press(await findByText('Load networks from IRC Database'));
-    fireEvent.press(await findByText('Load from IRC Database'));
+    fireEvent.press(await findByText('Reload from IRC Database'));
+    fireEvent.press(await findByText('Update from IRC Database'));
 
     await waitFor(() => {
       expect(ircDatabaseImportService.importFromIrcDatabase).toHaveBeenCalledTimes(1);
@@ -253,6 +255,7 @@ describe('NetworksListScreen', () => {
     await waitFor(() => {
       expect(settingsService.loadNetworks).toHaveBeenCalledTimes(2);
     });
+    expect(ircDatabaseImportService.loadCatalog).not.toHaveBeenCalled();
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Import completed',
@@ -266,8 +269,8 @@ describe('NetworksListScreen', () => {
       <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
     );
 
-    fireEvent.press(await findByText('Load networks from IRC Database'));
-    fireEvent.press(await findByText('Load from IRC Database'));
+    fireEvent.press(await findByText('Reload from IRC Database'));
+    fireEvent.press(await findByText('Update from IRC Database'));
 
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
@@ -290,11 +293,11 @@ describe('NetworksListScreen', () => {
       <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
     );
 
-    fireEvent.press(await findByText('Load networks from IRC Database'));
-    fireEvent.press(await findByText('Load from IRC Database'));
-    expect(queryByText('Load from IRC Database')).toBeNull();
+    fireEvent.press(await findByText('Reload from IRC Database'));
+    fireEvent.press(await findByText('Update from IRC Database'));
+    expect(queryByText('Update from IRC Database')).toBeNull();
 
-    fireEvent.press(await findByText('Load networks from IRC Database'));
+    fireEvent.press(await findByText('Reload from IRC Database'));
     await waitFor(() => {
       expect(ircDatabaseImportService.importFromIrcDatabase).toHaveBeenCalledTimes(1);
     });
@@ -331,8 +334,8 @@ describe('NetworksListScreen', () => {
       <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
     );
 
-    fireEvent.press(await findByText('Load networks from IRC Database'));
-    fireEvent.press(await findByText('Load from IRC Database'));
+    fireEvent.press(await findByText('Reload from IRC Database'));
+    fireEvent.press(await findByText('Update from IRC Database'));
 
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(

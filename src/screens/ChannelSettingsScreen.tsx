@@ -26,6 +26,7 @@ import { getChannelModeDescription } from '../utils/modeDescriptions';
 import { formatIRCTextAsComponent, stripIRCFormatting } from '../utils/IRCFormatter';
 import { repairMojibake } from '../utils/EncodingUtils';
 import { ColorPickerModal } from '../components/ColorPickerModal';
+import { useTheme } from '../hooks/useTheme';
 
 interface ChannelSettingsScreenProps {
   channel: string;
@@ -41,6 +42,7 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   onClose,
 }) => {
   const t = useT();
+  const { colors } = useTheme();
   const [channelInfo, setChannelInfo] = useState<ChannelInfo | undefined>();
   const [topic, setTopic] = useState('');
   const [key, setKey] = useState('');
@@ -60,13 +62,14 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   const [rawModeString, setRawModeString] = useState('');
   const topicPreviewText = topic || t('Topic Preview');
   const pickerColors = {
-    text: '#212121',
-    textSecondary: '#757575',
-    primary: '#2196F3',
-    surface: '#FFFFFF',
-    border: '#E0E0E0',
-    background: '#FFFFFF',
+    text: colors.text,
+    textSecondary: colors.textSecondary,
+    primary: colors.primary,
+    surface: colors.surface,
+    border: colors.border,
+    background: colors.background,
   };
+  const styles = createStyles(colors);
 
   const sanitizeStyleString = (style: string) => {
     const normalized = repairMojibake(style);
@@ -933,7 +936,7 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                 value={topicStyleEditorValue}
                 onChangeText={setTopicStyleEditorValue}
                 placeholder={t('Use <TOPIC>')}
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.inputPlaceholder}
                 multiline
               />
               <View style={styles.editorPreviewBox}>
@@ -971,235 +974,97 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    backgroundColor: '#F5F5F5',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#212121',
-    marginBottom: 4,
-  },
-  channelName: {
-    fontSize: 14,
-    color: '#757575',
-    marginBottom: 8,
-  },
-  closeButton: {
-    alignSelf: 'flex-end',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  closeButtonText: {
-    color: '#2196F3',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  content: {
-    flex: 1,
-  },
-  section: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#212121',
-    marginBottom: 4,
-  },
-  sectionHeader: {
-    marginBottom: 12,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  refreshButton: {
-    backgroundColor: '#E0E0E0',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  refreshButtonText: {
-    color: '#424242',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  sectionDescription: {
-    fontSize: 12,
-    color: '#757575',
-    fontStyle: 'italic',
-    marginTop: 4,
-  },
-  modeLabelContainer: {
-    flex: 1,
-    marginRight: 12,
-  },
-  modeDescription: {
-    fontSize: 11,
-    color: '#9E9E9E',
-    fontStyle: 'italic',
-    marginTop: 2,
-  },
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border, backgroundColor: colors.surface },
+  headerTitle: { fontSize: 20, fontWeight: '600', color: colors.text, marginBottom: 4 },
+  channelName: { fontSize: 14, color: colors.textSecondary, marginBottom: 8 },
+  closeButton: { alignSelf: 'flex-end', paddingVertical: 8, paddingHorizontal: 16 },
+  closeButtonText: { color: colors.primary, fontSize: 16, fontWeight: '500' },
+  content: { flex: 1 },
+  section: { padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 4 },
+  sectionHeader: { marginBottom: 12 },
+  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  refreshButton: { backgroundColor: colors.buttonSecondary, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 4 },
+  refreshButtonText: { color: colors.buttonSecondaryText, fontSize: 12, fontWeight: '500' },
+  sectionDescription: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic', marginTop: 4 },
+  modeLabelContainer: { flex: 1, marginRight: 12 },
+  modeDescription: { fontSize: 11, color: colors.textDisabled, fontStyle: 'italic', marginTop: 2 },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 12,
     fontSize: 14,
-    color: '#212121',
-    backgroundColor: '#FFFFFF',
+    color: colors.inputText,
+    backgroundColor: colors.inputBackground,
     marginBottom: 8,
   },
-  inputRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
-  },
-  inputFlex: {
-    flex: 1,
-  },
-  button: {
-    backgroundColor: '#2196F3',
-    padding: 12,
-    borderRadius: 4,
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  inputRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  inputFlex: { flex: 1 },
+  button: { backgroundColor: colors.buttonPrimary, padding: 12, borderRadius: 4, alignItems: 'center', marginBottom: 8 },
+  buttonText: { color: colors.buttonPrimaryText, fontSize: 14, fontWeight: '500' },
   addButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.accent,
     padding: 12,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 60,
   },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  addButtonText: { color: colors.onAccent, fontSize: 14, fontWeight: '500' },
   modeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
+    borderBottomColor: colors.divider,
   },
-  modeLabel: {
-    fontSize: 14,
-    color: '#212121',
-  },
+  modeLabel: { fontSize: 14, color: colors.text },
   modeString: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
     fontFamily: 'monospace',
     marginBottom: 12,
     padding: 8,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 4,
   },
-  metaText: {
-    fontSize: 12,
-    color: '#757575',
-    fontStyle: 'italic',
-  },
-  listContainer: {
-    marginTop: 8,
-  },
+  metaText: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic' },
+  listContainer: { marginTop: 8 },
   listItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 4,
     marginBottom: 8,
   },
-  listItemText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#212121',
-    fontFamily: 'monospace',
-  },
-  removeButton: {
-    padding: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#F44336',
-    borderRadius: 4,
-  },
-  removeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  emptyText: {
-    fontSize: 12,
-    color: '#9E9E9E',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    padding: 16,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
-  },
-  buttonDanger: {
-    backgroundColor: '#F44336',
-  },
-  statusContainer: {
-    paddingVertical: 8,
-    marginBottom: 8,
-  },
-  statusSuccess: {
-    fontSize: 14,
-    color: '#4CAF50',
-    fontWeight: '500',
-  },
-  statusWarning: {
-    fontSize: 14,
-    color: '#FF9800',
-    fontWeight: '500',
-  },
+  listItemText: { flex: 1, fontSize: 14, color: colors.text, fontFamily: 'monospace' },
+  removeButton: { padding: 6, paddingHorizontal: 12, backgroundColor: colors.error, borderRadius: 4 },
+  removeButtonText: { color: colors.onPrimary, fontSize: 12, fontWeight: '500' },
+  emptyText: { fontSize: 12, color: colors.textDisabled, fontStyle: 'italic', textAlign: 'center', padding: 16 },
+  buttonRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  buttonDanger: { backgroundColor: colors.error },
+  statusContainer: { paddingVertical: 8, marginBottom: 8 },
+  statusSuccess: { fontSize: 14, color: colors.success, fontWeight: '500' },
+  statusWarning: { fontSize: 14, color: colors.warning, fontWeight: '500' },
   topicStylePreview: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     borderRadius: 4,
     padding: 10,
     marginBottom: 8,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.surfaceVariant,
   },
-  topicStylePreviewLabel: {
-    fontSize: 12,
-    color: '#757575',
-    marginBottom: 4,
-  },
-  topicStylePreviewText: {
-    fontSize: 13,
-    color: '#212121',
-  },
+  topicStylePreviewLabel: { fontSize: 12, color: colors.textSecondary, marginBottom: 4 },
+  topicStylePreviewText: { fontSize: 13, color: colors.text },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -1207,107 +1072,54 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 480,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.modalBackground,
     borderRadius: 12,
     padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#212121',
-    marginBottom: 12,
-  },
-  modalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
-  },
+  modalTitle: { fontSize: 16, fontWeight: '600', color: colors.modalText, marginBottom: 12 },
+  modalRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   modalInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 10,
-    color: '#212121',
-    backgroundColor: '#FFFFFF',
+    color: colors.inputText,
+    backgroundColor: colors.inputBackground,
   },
   editorInput: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#212121',
+    color: colors.inputText,
+    backgroundColor: colors.inputBackground,
     minHeight: 140,
     textAlignVertical: 'top',
     marginBottom: 12,
   },
   editorPreviewBox: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     marginBottom: 12,
   },
-  editorPreviewText: {
-    fontSize: 14,
-    color: '#212121',
-  },
-  modalButton: {
-    backgroundColor: '#2196F3',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-  },
-  modalButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  modalListItem: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  modalListRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  modalListItemText: {
-    color: '#212121',
-    fontSize: 13,
-  },
-  modalRemoveButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 4,
-    backgroundColor: '#E0E0E0',
-  },
-  modalRemoveButtonText: {
-    color: '#424242',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  modalButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 12,
-  },
-  modalButtonSecondary: {
-    backgroundColor: '#E0E0E0',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-  },
-  modalButtonSecondaryText: {
-    color: '#424242',
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  editorPreviewText: { fontSize: 14, color: colors.text },
+  modalButton: { backgroundColor: colors.buttonPrimary, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 4 },
+  modalButtonText: { color: colors.buttonPrimaryText, fontSize: 14, fontWeight: '500' },
+  modalListItem: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
+  modalListRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  modalListItemText: { color: colors.text, fontSize: 13 },
+  modalRemoveButton: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 4, backgroundColor: colors.buttonSecondary },
+  modalRemoveButtonText: { color: colors.buttonSecondaryText, fontSize: 12, fontWeight: '600' },
+  modalButtonRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12 },
+  modalButtonSecondary: { backgroundColor: colors.buttonSecondary, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 4 },
+  modalButtonSecondaryText: { color: colors.buttonSecondaryText, fontSize: 14, fontWeight: '500' },
 });
 

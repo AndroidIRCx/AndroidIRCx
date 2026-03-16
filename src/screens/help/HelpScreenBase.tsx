@@ -112,20 +112,20 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
       borderLeftColor: colors.primary,
     },
     warningBox: {
-      backgroundColor: '#ff9800' + '15',
+      backgroundColor: colors.warning + '15',
       padding: 12,
       borderRadius: 8,
       marginVertical: 8,
       borderLeftWidth: 3,
-      borderLeftColor: '#ff9800',
+      borderLeftColor: colors.warning,
     },
     successBox: {
-      backgroundColor: '#4caf50' + '15',
+      backgroundColor: colors.success + '15',
       padding: 12,
       borderRadius: 8,
       marginVertical: 8,
       borderLeftWidth: 3,
-      borderLeftColor: '#4caf50',
+      borderLeftColor: colors.success,
     },
     boxText: {
       fontSize: 14,
@@ -290,12 +290,12 @@ export const HelpWarningBox: React.FC<{ children: React.ReactNode }> = ({ childr
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     warningBox: {
-      backgroundColor: '#ff9800' + '15',
+      backgroundColor: colors.warning + '15',
       padding: 12,
       borderRadius: 8,
       marginVertical: 8,
       borderLeftWidth: 3,
-      borderLeftColor: '#ff9800',
+      borderLeftColor: colors.warning,
     },
     boxText: {
       fontSize: 14,
@@ -315,12 +315,12 @@ export const HelpSuccessBox: React.FC<{ children: React.ReactNode }> = ({ childr
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     successBox: {
-      backgroundColor: '#4caf50' + '15',
+      backgroundColor: colors.success + '15',
       padding: 12,
       borderRadius: 8,
       marginVertical: 8,
       borderLeftWidth: 3,
-      borderLeftColor: '#4caf50',
+      borderLeftColor: colors.success,
     },
     boxText: {
       fontSize: 14,

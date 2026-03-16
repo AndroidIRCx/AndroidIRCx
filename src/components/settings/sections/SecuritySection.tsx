@@ -17,6 +17,8 @@ interface SecuritySectionProps {
     text: string;
     textSecondary: string;
     primary: string;
+    onPrimary?: string;
+    error?: string;
     surface: string;
     border: string;
     background: string;
@@ -473,7 +475,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
                 autoFocus
               />
               {appPinError ? (
-                <Text style={[styles.submenuItemDescription, { color: 'red', marginTop: 8 }]}>
+                <Text style={[styles.submenuItemDescription, { color: colors.error, marginTop: 8 }]}>
                   {appPinError}
                 </Text>
               ) : null}
@@ -486,7 +488,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
                   alignItems: 'center',
                 }}
                 onPress={handleAppPinSubmit}>
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+                <Text style={{ color: colors.onPrimary, fontWeight: 'bold' }}>
                   {appPinModalMode === 'confirm' ? t('Confirm', { _tags: tags }) : t('Submit', { _tags: tags })}
                 </Text>
               </TouchableOpacity>

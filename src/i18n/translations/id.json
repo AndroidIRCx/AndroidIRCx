@@ -252,10 +252,10 @@
     "string": "Sangat Besar"
   },
   "Raw Categories": {
-    "string": "Kategori Mentah"
+    "string": "Kategori Raw "
   },
   "Choose which raw messages are shown": {
-    "string": "Pilih pesan mentah mana yang ditampilkan"
+    "string": "Pilih raw message yang ditampilkan  "
   },
   "Notice Routing": {
     "string": "Pengaturan Notifikasi"
@@ -378,13 +378,13 @@
     "string": "Terima notifikasi untuk pesan"
   },
   "Notify on Mentions": {
-    "string": "Notifikasi saat disebut"
+    "string": "Notifikasi kalau nick disebut "
   },
   "Get notified when someone mentions your nickname": {
     "string": "Dapatkan notifikasi saat seseorang menyebut nama panggilan Anda"
   },
   "Notify on Private Messages": {
-    "string": "Notifikasi untuk pesan pribadi"
+    "string": "Notifikasi kalau ada pesan privat"
   },
   "Get notified for private messages": {
     "string": "Dapatkan notifikasi untuk pesan pribadi"
@@ -429,13 +429,13 @@
     "string": "Hapus"
   },
   "Connection & Network": {
-    "string": "Koneksi & Jaringan"
+    "string": "Koneksi & Network"
   },
   "Auto-Connect to Favorite Server": {
     "string": "Hubungkan otomatis ke server favorit"
   },
   "When opening a network, prefer the server marked as favorite.": {
-    "string": "Saat membuka jaringan, utamakan server yang ditandai sebagai favorit"
+    "string": "Saat buka network, utamakan server yang ditandai sebagai favorit  "
   },
   "Auto-Reconnect": {
     "string": "Sambung ulang otomatis"
@@ -495,7 +495,7 @@
     "string": "Tampilan & Antarmuka"
   },
   "Show Raw Commands": {
-    "string": "Tampilkan perintah mentah"
+    "string": "Tampilkan Raw Commands"
   },
   "Display raw IRC protocol messages": {
     "string": "Tampilkan pesan protokol IRC mentah"
@@ -522,7 +522,7 @@
     "string": "Sembunyikan pesan listener IRCService"
   },
   "Suppress \"*** IRCService: Message listener registered...\" raw logs.": {
-    "string": "Suppress \"* IRCService: Message listener registered...\" raw logs.**→ Sembunyikan log mentah \"*** IRCService: Message listener registered...\""
+    "string": "Suppress \"* IRCService: Message listener registered...\" raw logs.**→ Sembunyikan log raw \"*** IRCService: Message listener registered...\""
   },
   "Max Reconnection Attempts": {
     "string": "Percobaan sambung ulang maksimum"
@@ -690,7 +690,7 @@
     "string": "Channel"
   },
   "{count} favorite across networks": {
-    "string": "{count} favorit di seluruh jaringan"
+    "string": "{count} favorit di seluruh network"
   },
   "{count} favorites across networks": {
     "string": "{count} favorit di seluruh jaringan"
@@ -702,7 +702,7 @@
     "string": "Belum ada favorit"
   },
   "Network: {network}": {
-    "string": "Jaringan: {network}"
+    "string": "Network: {network}"
   },
   "Auto-join": {
     "string": "Join otomatis"
@@ -714,7 +714,7 @@
     "string": "Pindah ke {name}"
   },
   "No other networks available": {
-    "string": "Tidak ada jaringan lain tersedia"
+    "string": "Nggak ada network lain yang tersedia"
   },
   "Delete Favorite": {
     "string": "Hapus Favorit"
@@ -1128,10 +1128,10 @@
     "string": "Gunakan bahasa perangkat"
   },
   "Select Network": {
-    "string": "Pilih jaringan"
+    "string": "Pilih Network"
   },
   "Please select a network to migrate keys to": {
-    "string": "Silakan pilih jaringan untuk memigrasikan kunci"
+    "string": "Pilih network buat migrasi key  "
   },
   "Migration Complete": {
     "string": "Migrasi selesai"
@@ -1155,7 +1155,7 @@
     "string": "Migrasikan kunci lama"
   },
   "Select the network to migrate your old nick-only encryption keys to:": {
-    "string": "Pilih jaringan untuk memigrasikan kunci enkripsi lama (hanya nick) Anda:"
+    "string": "Pilih network buat migrasi key enkripsi lama yang hanya terkait nick. "
   },
   "Migrate": {
     "string": "Migrasikan"
@@ -1224,7 +1224,7 @@
     "string": "Anda sekarang dapat menutup aplikasi dari pengalih aplikasi."
   },
   "Network Not Found": {
-    "string": "Jaringan tidak ditemukan"
+    "string": "Network tidak ditemukan"
   },
   "Cannot find saved configuration for \"{networkId}\". Please configure it first.": {
     "string": "Tidak dapat menemukan konfigurasi tersimpan untuk \"{networkId}\". Silakan konfigurasi terlebih dahulu."
@@ -1254,10 +1254,10 @@
     "string": "Download"
   },
   "Networks & Servers": {
-    "string": "Jaringan & Server"
+    "string": "Network & Server"
   },
   "IRC network configurations and server settings": {
-    "string": "Konfigurasi jaringan IRC dan pengaturan server"
+    "string": "Konfigurasi network IRC dan pengaturan server "
   },
   "App Settings": {
     "string": "Pengaturan aplikasi"
@@ -1374,7 +1374,7 @@
     "string": "JSON cadangan akan muncul di sini..."
   },
   "Failed to load networks and profiles": {
-    "string": "Gagal memuat jaringan dan profil"
+    "string": "Gagal load network dan profil  "
   },
   "Failed to update connection type": {
     "string": "Gagal memperbarui jenis koneksi"
@@ -1611,7 +1611,7 @@
     "string": "Perintah enkripsi channel"
   },
   "Send raw IRC command": {
-    "string": "Kirim perintah IRC mentah"
+    "string": "Kirim raw IRC command"
   },
   "Enter a message": {
     "string": "Ketik pesan"
@@ -3090,7 +3090,7 @@
     "string": "Pindah"
   },
   "Key moved to {network}": {
-    "string": ""
+    "string": "Key dipindah ke {network}"
   },
   "Failed to move key": {
     "string": "Gagal mindahin key  "
@@ -3105,2083 +3105,2083 @@
     "string": "{count} key diexport. Backup terenkripsi dicopy ke clipboard. Simpan di lokasi aman. "
   },
   "Failed to export keys: {error}": {
-    "string": ""
+    "string": "Gagal export key: {error}  "
   },
   "Please provide both backup data and password": {
-    "string": ""
+    "string": "Masukin data backup + password  "
   },
   "Imported {count} key(s) successfully.": {
-    "string": ""
+    "string": "{count} key berhasil diimpor  "
   },
   "Failed to import keys: {error}": {
-    "string": ""
+    "string": "Gagal impor key: {error} "
   },
   "Last seen: {date}": {
-    "string": ""
+    "string": "Terakhir kelihatan: {date}  "
   },
   "No encryption keys found": {
-    "string": ""
+    "string": "Tidak ada key enkripsi "
   },
   "Exchange keys with users to enable encrypted messaging": {
-    "string": ""
+    "string": "Tukar key sama user buat aktifin pesan terenkripsi  "
   },
   "Authenticating...": {
-    "string": ""
+    "string": "Autentikasi...  "
   },
   "Loading keys...": {
-    "string": ""
+    "string": "Loading key...  "
   },
   "Search by nick or network...": {
-    "string": ""
+    "string": "Cari berdasarkan nick atau network... "
   },
   "List View": {
-    "string": ""
+    "string": "Daftar tampilan"
   },
   "Group View": {
-    "string": ""
+    "string": "Tampilan grup  "
   },
   "{count} key{suffix} · {verified} verified": {
-    "string": ""
+    "string": "{count} key{suffix} · {verified} verified  "
   },
   "Export All Keys": {
-    "string": ""
+    "string": "Export semua key"
   },
   "Import Keys": {
-    "string": ""
+    "string": "Impor key "
   },
   "Key Details": {
-    "string": ""
+    "string": "Detail key  "
   },
   "Network:": {
-    "string": ""
+    "string": "Network:"
   },
   "Nickname:": {
-    "string": ""
+    "string": "Nickname:"
   },
   "Fingerprint:": {
-    "string": ""
+    "string": "Fingerprint:"
   },
   "Status:": {
-    "string": ""
+    "string": "Status:"
   },
   "First Seen:": {
-    "string": ""
+    "string": "Pertama kelihatan:  "
   },
   "Last Seen:": {
-    "string": ""
+    "string": "Terakhir kelihatan:  "
   },
   "Mark as Unverified": {
-    "string": ""
+    "string": "Tandai unverified "
   },
   "Mark as Verified": {
-    "string": ""
+    "string": "Tandai verified  "
   },
   "Copy to Network...": {
-    "string": ""
+    "string": "Copy ke network..."
   },
   "Move to Network...": {
-    "string": ""
+    "string": "Pindah ke network...  "
   },
   "Delete Key": {
-    "string": ""
+    "string": "Hapus key "
   },
   "Copy Key to Network": {
-    "string": ""
+    "string": "Copy key ke network  "
   },
   "Copy key for {nick} to another network": {
-    "string": ""
+    "string": "Copy key {nick} ke network lain  "
   },
   "Move Key to Network": {
-    "string": ""
+    "string": "Pindahin key ke network"
   },
   "Move key for {nick} to another network (will delete from {network})": {
-    "string": ""
+    "string": "Pindahin key {nick} ke network lain (hapus dari {network})  "
   },
   "Create an encrypted backup of all {count} encryption key{suffix}.\nEnter a strong password to protect the backup.": {
-    "string": ""
+    "string": "Bikin backup terenkripsi semua {count} key{suffix}.Masukin password kuat buat proteksi backup.  - 1068 Backup password (min 6 characters) → Password backup (min 6 karakter)  "
   },
   "Backup password (min 6 characters)": {
-    "string": ""
+    "string": "Password backup (min 6 karakter)  "
   },
   "Export": {
-    "string": ""
+    "string": "Export"
   },
   "Paste the encrypted backup data and enter the password used during export.": {
-    "string": ""
+    "string": "Paste data backup terenkripsi + password yang dipakai waktu export"
   },
   "Paste backup data here...": {
-    "string": ""
+    "string": "Paste data backup di sini..."
   },
   "Backup password": {
-    "string": ""
+    "string": "Password backup "
   },
   "Import": {
-    "string": ""
+    "string": "Import"
   },
   "Failed to show ad": {
-    "string": ""
+    "string": "Gagal tampilkan ad "
   },
   "Unknown": {
-    "string": ""
+    "string": "Tidak dikenal"
   },
   "{channel} ({count} new message{suffix})": {
-    "string": ""
+    "string": "{channel} ({count} pesan baru{suffix})  "
   },
   "Quick aliases: /zncver, /zncm, /zncplay #chan, /zncclear #chan": {
-    "string": ""
+    "string": "Alias cepat: /zncver, /zncm, /zncplay #chan, /zncclear #chan  "
   },
   "*** Detected bouncer type: {type}{hint}": {
-    "string": ""
+    "string": "Terdeteksi bouncer type: {type}{hint}  "
   },
   "*** Creating new connection for {networkId}": {
-    "string": ""
+    "string": "Bikin koneksi baru untuk {networkId}  "
   },
   "*** Warning: TLS certificate verification is disabled for this server. Enable \"Reject unauthorized certificates\" unless you trust this self-signed/expired cert.": {
-    "string": ""
+    "string": "Warning: verifikasi TLS cert dimatikan untuk server ini. Aktifkan \"Reject unauthorized certificates\" kecuali kamu percaya cert self‑signed/expired.  "
   },
   "*** Executed {count} on-connect command(s) from identity profile": {
-    "string": ""
+    "string": "Eksekusi {count} command on‑connect dari profil identitas  "
   },
   "*** Initializing services for {networkId}": {
-    "string": ""
+    "string": "Init service untuk {networkId} "
   },
   "*** Connecting to IRC server for {networkId}": {
-    "string": ""
+    "string": "Connect ke server IRC {networkId}  "
   },
   "Rate limit exceeded. Please slow down.": {
-    "string": ""
+    "string": "Rate limit lewat. Pelan dikit.  "
   },
   "Not connected": {
-    "string": ""
+    "string": "Tidak connect"
   },
   "Connection closed": {
-    "string": ""
+    "string": "Koneksi ditutup  "
   },
   "Invalid backup format": {
-    "string": ""
+    "string": "Format backup tidak valid  "
   },
   "*** DCC CHAT connected": {
-    "string": ""
+    "string": "DCC CHAT connect"
   },
   "You": {
-    "string": ""
+    "string": "Kamu"
   },
   "Transfer failed": {
-    "string": ""
+    "string": "Transfer gagal"
   },
   "Send failed": {
-    "string": ""
+    "string": "Gagal kirim"
   },
   "Invalid payload": {
-    "string": ""
+    "string": "Payload tidak valid  "
   },
   "Invalid payload type": {
-    "string": ""
+    "string": "Tipe payload tidak valid  "
   },
   "Key changed": {
-    "string": ""
+    "string": "key diganti"
   },
   "Invalid version": {
-    "string": ""
+    "string": "Versi tidak valid"
   },
   "Bad signature": {
-    "string": ""
+    "string": "Signature jelek"
   },
   "Timeout": {
-    "string": ""
+    "string": "Timeout"
   },
   "No pending offer": {
-    "string": ""
+    "string": "tidak ada offer pending"
   },
   "No bundle": {
-    "string": ""
+    "string": "tidak ada bundle"
   },
   "Missing bundle": {
-    "string": ""
+    "string": "Bundle hilang"
   },
   "Public key mismatch": {
-    "string": ""
+    "string": "Public key tidak coock"
   },
   "No key found for {nick} on {network}": {
-    "string": ""
+    "string": "tidak ada key buat {nick} di {network}  "
   },
   "Unsupported backup version": {
-    "string": ""
+    "string": "Versi backup tidak support  "
   },
   "Failed to decrypt backup. Check your password.": {
-    "string": ""
+    "string": "Gagal dekripsi backup. Cek password kamu.  "
   },
   "Yes": {
-    "string": ""
+    "string": "Yes"
   },
   "No": {
-    "string": ""
+    "string": "Tidak"
   },
   "Crash report fallback": {
-    "string": ""
+    "string": "Crash report fallback"
   },
   "Platform: {platform}": {
-    "string": ""
+    "string": "Platform: {platform}"
   },
   "Fatal: {value}": {
-    "string": ""
+    "string": "Fatal: {value}"
   },
   "Source: {source}": {
-    "string": ""
+    "string": "Source: {source}"
   },
   "Message: {message}": {
-    "string": ""
+    "string": "Pesan: {message}"
   },
   "Stack: {stack}": {
-    "string": ""
+    "string": "Stack: {stack}"
   },
   "n/a": {
-    "string": ""
+    "string": "n/a"
   },
   "AndroidIRCX Crash Report": {
-    "string": ""
+    "string": "Laporan crash AndroidIRCX  "
   },
   "Profile with id {id} not found": {
-    "string": ""
+    "string": "Profil dengan id {id}  tidak ketemu"
   },
   "IRC Connected": {
-    "string": ""
+    "string": "IRC connect "
   },
   "Maintaining connection to {networkName}": {
-    "string": ""
+    "string": "Jaga koneksi ke {networkName}  "
   },
   "Connect/disconnect, proxy, and registration flow messages.": {
-    "string": ""
+    "string": "Pesan connect/disconnect, proxy, dan alur registrasi  "
   },
   "Incoming traffic": {
-    "string": ""
+    "string": "Traffic masuk"
   },
   "Raw lines received from the server.": {
-    "string": ""
+    "string": "Raw line diterima dari server  "
   },
   "Outgoing traffic": {
-    "string": ""
+    "string": "Traffic keluar "
   },
   "Raw lines sent to the server.": {
-    "string": ""
+    "string": "Raw line dikirim ke server  "
   },
   "Server notices": {
-    "string": ""
+    "string": "Notice server "
   },
   "MOTD, account/away, and other server-emitted events.": {
-    "string": ""
+    "string": "MOTD, account/away, dan event lain dari server  "
   },
   "Channel notices": {
-    "string": ""
+    "string": "Notice channel"
   },
   "Channel modes, lists, topics, and per-channel system notices.": {
-    "string": ""
+    "string": "Mode channel, list, topik, dan notice sistem per‑channel  "
   },
   "User notices": {
-    "string": ""
+    "string": "Notice user  "
   },
   "User account status, oper, and presence state changes.": {
-    "string": ""
+    "string": "Status akun user, oper, dan perubahan presence state  "
   },
   "Auth & identity": {
-    "string": ""
+    "string": "Auth & identitas"
   },
   "SASL/authentication and nickname negotiation events.": {
-    "string": ""
+    "string": "SASL/authentication and nickname negotiation events."
   },
   "Debug": {
-    "string": ""
+    "string": "Debug"
   },
   "Verbose internal logging and diagnostics.": {
-    "string": ""
+    "string": "Logging internal verbose & diagnostik  "
   },
   "Unknown connection error": {
-    "string": ""
+    "string": "Error koneksi nggak dikenal"
   },
   "*** Socket error [{code}]: {message}": {
-    "string": ""
+    "string": "*** Socket error [{code}]: {message}"
   },
   "Connection error [{code}]: {message}": {
-    "string": ""
+    "string": "Error koneksi [{code}]: {message}  "
   },
   "{message} (Code: {code})": {
-    "string": ""
+    "string": "{message} (Code: {code})"
   },
   "Socket error: {message}": {
-    "string": ""
+    "string": "Error socket: {message}  "
   },
   "*** Connection closed by server": {
-    "string": ""
+    "string": "Koneksi ditutup server  "
   },
   "*** Connected to {host}:{port}{tls}": {
-    "string": ""
+    "string": "Connect ke {host}:{port}{tls}  "
   },
   " (TLS)": {
-    "string": ""
+    "string": " (TLS)"
   },
   "*** TLS handshake completed": {
-    "string": ""
+    "string": "TLS handshake selesai  "
   },
   "Proxy host/port not set": {
-    "string": ""
+    "string": "Proxy host/port belum diset "
   },
   "*** TLS error over proxy: {message}": {
-    "string": ""
+    "string": "Error TLS via proxy: {message}  "
   },
   "TLS handshake failed: {message}": {
-    "string": ""
+    "string": "TLS handshake gagal: {message}"
   },
   "*** Proxy error: {message}": {
-    "string": ""
+    "string": "Error proxy: {message} "
   },
   "Connection timeout": {
-    "string": ""
+    "string": "Koneksi timeout  "
   },
   "*** Waiting for server registration...": {
-    "string": ""
+    "string": "Nunggu registrasi server..."
   },
   "Failed to create connection": {
-    "string": ""
+    "string": "Gagal bikin koneksi"
   },
   "Proxy read timeout": {
-    "string": ""
+    "string": "Proxy read timeout"
   },
   "HTTP proxy CONNECT failed: {status}": {
-    "string": ""
+    "string": "HTTP proxy CONNECT gagal: {status}  "
   },
   "SOCKS5 proxy: invalid version": {
-    "string": ""
+    "string": "SOCKS5 proxy: versi nggak valid  "
   },
   "SOCKS5 proxy: authentication failed": {
-    "string": ""
+    "string": "SOCKS5 proxy: autentikasi gagal"
   },
   "SOCKS5 proxy: no acceptable auth method": {
-    "string": ""
+    "string": "SOCKS5 proxy: nggak ada metode auth yang diterima  "
   },
   "SOCKS5 proxy: connect failed (code {code})": {
-    "string": ""
+    "string": "SOCKS5 proxy: koneksi gagal (kode {code})  "
   },
   "(empty line)": {
-    "string": ""
+    "string": "(baris kosong)  "
   },
   "Connection closed by server": {
-    "string": ""
+    "string": "Koneksi ditutup server  "
   },
   "*** Server error: {message}": {
-    "string": ""
+    "string": "Error server: {message}  "
   },
   "UNKNOWN": {
-    "string": ""
+    "string": "UNKNOWN"
   },
   "*** FAIL {command} [{code}]{context}: {description}": {
-    "string": ""
+    "string": "FAIL {command} [{code}]{context}: {description}  "
   },
   "*** WARN {command} [{code}]{context}: {description}": {
-    "string": ""
+    "string": "WARN {command} [{code}]{context}: {description}  "
   },
   "*** NOTE {command} [{code}]{context}: {description}": {
-    "string": ""
+    "string": "NOTE {command} [{code}]{context}: {description}  "
   },
   "{inviter} invited you to join {channel}": {
-    "string": ""
+    "string": "{inviter} ngundang kamu join {channel}  "
   },
   "*** {nick} accepted your encryption key. Encrypted chat enabled.": {
-    "string": ""
+    "string": "{nick} nerima key enkripsi kamu. Chat terenkripsi aktif.  "
   },
   "*** {nick} sent a different encryption key. Review and accept the new key to continue encrypted chat.": {
-    "string": ""
+    "string": "{nick} kirim key enkripsi beda. Review & terima key baru buat lanjut chat terenkripsi.  "
   },
   "*** {nick} rejected your encryption key offer.": {
-    "string": ""
+    "string": "{nick} nolak offer key enkripsi kamu.  "
   },
   "🔒 Invalid channel encryption payload": {
-    "string": ""
+    "string": "🔒 Payload enkripsi channel nggak valid  "
   },
   "🔒 {message}": {
-    "string": ""
+    "string": "🔒 {message}"
   },
   "Missing channel key. Use /chankey request <nick> to get it.": {
-    "string": ""
+    "string": "Key channel hilang. Pakai /chankey request buat dapetin.  "
   },
   "Decryption failed": {
-    "string": ""
+    "string": "Dekripsi gagal  "
   },
   "*** Received channel key for {channel} from {nick}": {
-    "string": ""
+    "string": "Dapet key channel {channel} dari {nick}  "
   },
   "*** Failed to import channel key: {message}": {
-    "string": ""
+    "string": "Gagal impor key channel: {message}  "
   },
   "Invalid encrypted payload": {
-    "string": ""
+    "string": "Payload terenkripsi nggak valid  "
   },
   "Encrypted message from {nick} could not be decrypted": {
-    "string": ""
+    "string": "Pesan terenkripsi dari {nick} nggak bisa didekripsi  "
   },
   "CTCP PING reply: {latency}ms": {
-    "string": ""
+    "string": "CTCP PING reply: {latency}ms"
   },
   "CTCP PING reply from {nick}": {
-    "string": ""
+    "string": "CTCP PING reply from {nick}"
   },
   "CTCP {command} reply: {args}": {
-    "string": ""
+    "string": "CTCP {command} reply: {args}"
   },
   "CTCP {command} reply": {
-    "string": ""
+    "string": "CTCP {command} reply"
   },
   "{nick} joined {channel}": {
-    "string": ""
+    "string": "{nick} joined {channel}"
   },
   "{nick} ({account}) joined {channel}": {
-    "string": ""
+    "string": "{nick} ({account}) joined {channel}"
   },
   "{nick} left {channel}{message}": {
-    "string": ""
+    "string": "{nick} left {channel}{message}"
   },
   ": {message}": {
-    "string": ""
+    "string": ": {message}"
   },
   "User": {
-    "string": ""
+    "string": "User"
   },
   "{nick} quit{message}": {
-    "string": ""
+    "string": "{nick} quit{message}"
   },
   "Topic: {topic}": {
-    "string": ""
+    "string": "Topik: {topic}  "
   },
   "{oldNick} is now known as {newNick}": {
-    "string": ""
+    "string": "{oldNick} sekarang dikenal sebagai {newNick}  "
   },
   "Someone": {
-    "string": ""
+    "string": "Someone"
   },
   "{by} kicked {target} from {channel}{reason}": {
-    "string": ""
+    "string": "{by} kick {target} dari {channel}{reason}  "
   },
   ": {reason}": {
-    "string": ""
+    "string": ": {reason}"
   },
   "Mode {channel} {modes}": {
-    "string": ""
+    "string": "Mode {channel} {modes}"
   },
   "*** {nick} logged out": {
-    "string": ""
+    "string": "{nick} logout  "
   },
   "*** {nick} logged in as {accountName}": {
-    "string": ""
+    "string": "{nick} login sebagai {accountName}  "
   },
   "*** {nick} is now away: {message}": {
-    "string": ""
+    "string": "{nick} sekarang away: {message}  "
   },
   "*** {nick} is no longer away": {
-    "string": ""
+    "string": "{nick} nggak away lagi  "
   },
   "*** {nick} changed host to {host}": {
-    "string": ""
+    "string": "{nick} ganti host ke {host}  "
   },
   "*** {nick} changed realname to: {realname}": {
-    "string": ""
+    "string": "{nick} ganti realname ke: {realname}  "
   },
   "*** {nick} deleted a message": {
-    "string": ""
+    "string": "{nick} hapus pesan  "
   },
   "*** RAW Command: {message}": {
-    "string": ""
+    "string": "RAW Command: {message}  "
   },
   "*** Welcome to the {network} Network": {
-    "string": ""
+    "string": "Selamat datang di network {network}  "
   },
   "IRC": {
-    "string": ""
+    "string": "IRC"
   },
   "*** {message}": {
-    "string": ""
+    "string": "*** {message}"
   },
   "*** Server: {server} | Version: {version} | User modes: {userModes} | Channel modes: {channelModes}": {
-    "string": ""
+    "string": "*** Server: {server} | Version: {version} | User modes: {userModes} | Channel modes: {channelModes}"
   },
   "*** Server supports: {features}": {
-    "string": ""
+    "string": "Server support: {features}  "
   },
   "*** [{numeric}] {message}": {
-    "string": ""
+    "string": "*** [{numeric}] {message}"
   },
   "End of STATS report": {
-    "string": ""
+    "string": "Akhir laporan STATS  "
   },
   "*** {label}: {message}": {
-    "string": ""
+    "string": "*** {label}: {message}"
   },
   "*** Version: {version} on {server} {comments}": {
-    "string": ""
+    "string": "Versi: {version} di {server} {comments}  "
   },
   "End of INFO": {
-    "string": ""
+    "string": "Akhir INFO"
   },
   "You are now an IRC operator": {
-    "string": ""
+    "string": "Kamu sekarang IRC operator"
   },
   "Rehashing": {
-    "string": ""
+    "string": "Rehashing"
   },
   "You are service": {
-    "string": ""
+    "string": "Kamu adalah service  "
   },
   "*** Time on {server}: {time}": {
-    "string": ""
+    "string": "Waktu di {server}: {time}  "
   },
   "operator(s) online": {
-    "string": ""
+    "string": "operator(s) online"
   },
   "*** {count} {message}": {
-    "string": ""
+    "string": "*** {count} {message}"
   },
   "unknown connection(s)": {
-    "string": ""
+    "string": "Koneksi nggak dikenal(s)"
   },
   "channels formed": {
-    "string": ""
+    "string": "Channel terbentuk"
   },
   "Administrative info": {
-    "string": ""
+    "string": "Info administrasi "
   },
   "Current local users {current}, max {max}": {
-    "string": ""
+    "string": "User lokal sekarang {current}, max {max}  "
   },
   "Current global users {current}, max {max}": {
-    "string": ""
+    "string": "User global sekarang {current}, max {max}  "
   },
   "*** - {server} Message of the Day -": {
-    "string": ""
+    "string": "*** - {server} Message of the Day -"
   },
   "*** End of /MOTD command.": {
-    "string": ""
+    "string": "Akhir command /MOTD  "
   },
   "*** No Message of the Day.": {
-    "string": ""
+    "string": "Nggak ada MOTD "
   },
   "No topic is set.": {
-    "string": ""
+    "string": "Nggak ada topik diset "
   },
   "unknown": {
-    "string": ""
+    "string": "unknown"
   },
   "*** {channel} was created on {date}": {
-    "string": ""
+    "string": "{channel} dibuat pada {date}  "
   },
   "*** You have invited {nick} to {channel}": {
-    "string": ""
+    "string": "Kamu ngundang {nick} ke {channel}  "
   },
   "*** {channel} invite list: {mask}": {
-    "string": ""
+    "string": "List undangan {channel}: {mask}  "
   },
   "*** End of {channel} invite list": {
-    "string": ""
+    "string": "Akhir list undangan {channel}  "
   },
   " by {nick}": {
-    "string": ""
+    "string": "oleh {nick} "
   },
   " on {date}": {
-    "string": ""
+    "string": "pada {date}  "
   },
   "*** {channel} exception list: {mask}{by}{time}": {
-    "string": ""
+    "string": "List pengecualian {channel}: {mask}{by}{time}  "
   },
   "*** End of {channel} exception list": {
-    "string": ""
+    "string": "Akhir list pengecualian {channel}  "
   },
   "*** {channel} ban list: {mask}{by}{time}": {
-    "string": ""
+    "string": "List ban {channel}: {mask}{by}{time}  "
   },
   "*** End of {channel} ban list": {
-    "string": ""
+    "string": "Akhir list ban {channel}  "
   },
   "*** Channel list:": {
-    "string": ""
+    "string": "List channel:  "
   },
   "*** {channel} ({users} users): {topic}": {
-    "string": ""
+    "string": "{channel} ({users} user): {topic}"
   },
   "*** End of channel list": {
-    "string": ""
+    "string": "Akhir list channel"
   },
   " (away)": {
-    "string": ""
+    "string": " (away)"
   },
   " (IRCop)": {
-    "string": ""
+    "string": " (IRCop)"
   },
   "*** WHO {channel}: {nick} ({user}@{host}) [{server}]{away}{op} - {real}": {
-    "string": ""
+    "string": "*** WHO {channel}: {nick} ({user}@{host}) [{server}]{away}{op} - {real}"
   },
   "*** End of WHO list for {channel}": {
-    "string": ""
+    "string": "Akhir WHO list untuk {channel}"
   },
   "No such nick/channel": {
-    "string": ""
+    "string": "Nggak ada nick/channel itu"
   },
   "{label}: {message}": {
-    "string": ""
+    "string": "{label}: {message}"
   },
   "*** WHOWAS has no history for {nick}. If they are online, try /whois {nick}.": {
-    "string": ""
+    "string": "WHOWAS nggak ada history untuk {nick}. Kalau mereka online, coba /whois {nick}. "
   },
   "No such channel": {
-    "string": ""
+    "string": "Nggak ada channel itu  "
   },
   "Cannot send to channel": {
-    "string": ""
+    "string": "Nggak bisa kirim ke channel  "
   },
   "Unknown command": {
-    "string": ""
+    "string": "Command nggak dikenal"
   },
   "Erroneous nickname": {
-    "string": ""
+    "string": "Nickname error  "
   },
   "Nickname is already in use: {nick}": {
-    "string": ""
+    "string": "Nickname udah dipakai: {nick}  "
   },
   "*** Trying alternative nickname: {nick}": {
-    "string": ""
+    "string": "Coba nickname alternatif: {nick} "
   },
   "*** Trying fallback nickname: {nick}": {
-    "string": ""
+    "string": "Coba nickname fallback: {nick}"
   },
   "Password incorrect": {
-    "string": ""
+    "string": "Password salah"
   },
   "Connection blocked or banned": {
-    "string": ""
+    "string": "Koneksi diblokir atau banned"
   },
   "*** Connection blocked: {message}": {
-    "string": ""
+    "string": "Koneksi diblokir: {message}"
   },
   "They aren't on that channel": {
-    "string": ""
+    "string": "Mereka nggak ada di channel itu"
   },
   "{nick} {channel}: {message}": {
-    "string": ""
+    "string": "{nick} {channel}: {message}"
   },
   "You're not on that channel": {
-    "string": ""
+    "string": "Kamu nggak ada di channel itu"
   },
   "Not enough parameters": {
-    "string": ""
+    "string": "Parameter kurang "
   },
   "Cannot join channel (channel is full)": {
-    "string": ""
+    "string": "Nggak bisa join channel (channel penuh)  "
   },
   "is unknown mode char": {
-    "string": ""
+    "string": "Mode char nggak dikenal"
   },
   "Cannot join channel (invite only)": {
-    "string": ""
+    "string": "Nggak bisa join channel (hanya undangan)  "
   },
   "Cannot join channel (you are banned)": {
-    "string": ""
+    "string": "Nggak bisa join channel (kamu dibanned)  "
   },
   "Cannot join channel (bad key)": {
-    "string": ""
+    "string": "Nggak bisa join channel (key salah) "
   },
   "Bad channel mask": {
-    "string": ""
+    "string": "Mask channel salah"
   },
   "Channel doesn't support modes": {
-    "string": ""
+    "string": "Channel nggak support mode"
   },
   "Channel ban list is full": {
-    "string": ""
+    "string": "List ban channel penuh"
   },
   "You're not channel operator": {
-    "string": ""
+    "string": "Kamu bukan operator channel"
   },
   "You have joined too many channels": {
-    "string": ""
+    "string": "Kamu join terlalu banyak channel"
   },
   "There was no such nickname": {
-    "string": ""
+    "string": "Nggak ada nickname itu  "
   },
   "Too many targets": {
-    "string": ""
+    "string": "Target terlalu banyak"
   },
   "No recipient given": {
-    "string": ""
+    "string": "Nggak ada penerima"
   },
   "No text to send": {
-    "string": ""
+    "string": "Nggak ada teks buat dikirim"
   },
   "No toplevel domain specified": {
-    "string": ""
+    "string": "Nggak ada TLD diset"
   },
   "Wildcard in toplevel domain": {
-    "string": ""
+    "string": "Wildcard di TLD"
   },
   "Bad server/host mask": {
-    "string": ""
+    "string": "Mask server/host salah  "
   },
   "No administrative info available": {
-    "string": ""
+    "string": "Nggak ada info administrasi"
   },
   "No nickname given": {
-    "string": ""
+    "string": "Nggak ada nickname"
   },
   "Nickname collision": {
-    "string": ""
+    "string": "Nickname bentrok"
   },
   "Resource temporarily unavailable": {
-    "string": ""
+    "string": "Resource sementara nggak tersedia"
   },
   "is already on channel": {
-    "string": ""
+    "string": "Udah ada di channel"
   },
   "You have not registered": {
-    "string": ""
+    "string": "Kamu belum register"
   },
   "You may not reregister": {
-    "string": ""
+    "string": "Kamu nggak boleh register ulang "
   },
   "Your host isn't among the privileged": {
-    "string": ""
+    "string": "Host kamu bukan yang privileged"
   },
   "You will be banned": {
-    "string": ""
+    "string": "Kamu bakal dibanned"
   },
   "Channel key already set": {
-    "string": ""
+    "string": "Key channel udah diset"
   },
   "Permission denied - You're not an IRC operator": {
-    "string": ""
+    "string": "Akses ditolak – Kamu bukan IRC operator  "
   },
   "You can't kill a server!": {
-    "string": ""
+    "string": "Kamu nggak bisa kill server!  "
   },
   "No O-lines for your host": {
-    "string": ""
+    "string": "Nggak ada O‑lines buat host kamu"
   },
   "Unknown MODE flag": {
-    "string": ""
+    "string": "MODE flag nggak dikenal  "
   },
   "Can't change mode for other users": {
-    "string": ""
+    "string": "Nggak bisa ubah mode user lain"
   },
   "*** SASL authentication successful": {
-    "string": ""
+    "string": "SASL autentikasi sukses"
   },
   "SASL authentication failed": {
-    "string": ""
+    "string": "SASL autentikasi gagal  "
   },
   "You are now logged in as {account}": {
-    "string": ""
+    "string": "Kamu sekarang login sebagai {account}  "
   },
   "You are now logged out": {
-    "string": ""
+    "string": "Kamu sekarang logout  "
   },
   "You must use a nick assigned to you": {
-    "string": ""
+    "string": "Kamu harus pakai nick yang dikasih  "
   },
   "SASL message too long": {
-    "string": ""
+    "string": "Pesan SASL terlalu panjang  "
   },
   "SASL authentication aborted": {
-    "string": ""
+    "string": "SASL autentikasi dibatalkan"
   },
   "You have already authenticated": {
-    "string": ""
+    "string": "Kamu udah autentikasi"
   },
   "are available SASL mechanisms": {
-    "string": ""
+    "string": "Mekanisme SASL tersedia"
   },
   "*** {mechanisms} {message}": {
-    "string": ""
+    "string": "{mechanisms} {message}  "
   },
   "logged online": {
-    "string": ""
+    "string": "logged online  "
   },
   "*** {nick} ({user}@{host}) {message}": {
-    "string": ""
+    "string": "{nick} ({user}@{host}) {message} "
   },
   "logged offline": {
-    "string": ""
+    "string": "logged offline"
   },
   "*** Stopped watching {nick}": {
-    "string": ""
+    "string": "Berhenti watch {nick}"
   },
   "is online": {
-    "string": ""
+    "string": "online"
   },
   "is offline": {
-    "string": ""
+    "string": "offline"
   },
   "*** WATCH list: {list}": {
-    "string": ""
+    "string": "WATCH list: {list}"
   },
   "End of WATCH list": {
-    "string": ""
+    "string": "Akhir WATCH list  "
   },
   "WATCH list cleared": {
-    "string": ""
+    "string": "WATCH list dibersihkan  "
   },
   "*** MONITOR online: {list}": {
-    "string": ""
+    "string": "MONITOR online: {list}  "
   },
   "*** MONITOR offline: {list}": {
-    "string": ""
+    "string": "MONITOR offline: {list}  "
   },
   "*** MONITOR list: {list}": {
-    "string": ""
+    "string": "MONITOR list: {list}"
   },
   "End of MONITOR list": {
-    "string": ""
+    "string": "Akhir MONITOR list  "
   },
   "Monitor list is full": {
-    "string": ""
+    "string": "MONITOR list penuh "
   },
   "{message} (limit: {limit}, tried: {nicks})": {
-    "string": ""
+    "string": "{message} (limit: {limit}, dicoba: {nicks})  "
   },
   "STARTTLS successful": {
-    "string": ""
+    "string": "STARTTLS sukses"
   },
   "STARTTLS failed": {
-    "string": ""
+    "string": "STARTTLS gagal "
   },
   "is away": {
-    "string": ""
+    "string": "lagi away"
   },
   "*** {nick} is away: {message}": {
-    "string": ""
+    "string": "*** {nick} lagi away: {message}"
   },
   "You are no longer marked as being away": {
-    "string": ""
+    "string": "Kamu nggak ditandai away lagi  "
   },
   "You have been marked as being away": {
-    "string": ""
+    "string": "Kamu ditandai lagi away  "
   },
   "*** USERHOST: {data}": {
-    "string": ""
+    "string": "*** USERHOST: {data}"
   },
   "*** Online: {nicks}": {
-    "string": ""
+    "string": "*** Online: {nicks}"
   },
   "*** {nick} is {user}@{host} * {real}": {
-    "string": ""
+    "string": "*** {nick} adalah {user}@{host}  {real} "
   },
   "{hours} hours, {minutes} minutes": {
-    "string": ""
+    "string": "{hours} jam, {minutes} menit  "
   },
   "{seconds} seconds": {
-    "string": ""
+    "string": "{seconds} detik"
   },
   "*** {nick} has been idle {idle}, signed on {date}": {
-    "string": ""
+    "string": "{nick} idle {idle}, login {date} "
   },
   "*** End of WHOIS for {nick}": {
-    "string": ""
+    "string": "Akhir WHOIS untuk {nick}  "
   },
   "*** {nick} is on channels: {channels}": {
-    "string": ""
+    "string": "{nick} ada di channel: {channels} "
   },
   "has identified for this nick": {
-    "string": ""
+    "string": "udah identifikasi untuk nick ini  "
   },
   "*** {nick} {message}": {
-    "string": ""
+    "string": "*** {nick} {message}"
   },
   "is available for help": {
-    "string": ""
+    "string": "tersedia buat bantu"
   },
   "is an IRC operator": {
-    "string": ""
+    "string": "adalah IRC operator  "
   },
   "*** You are now an IRC operator. Quick aliases: /oper /kill /gline /rehash /locops /wallops": {
-    "string": ""
+    "string": "Kamu sekarang IRC operator. Alias cepat: /oper /kill /gline /rehash /locops /wallops "
   },
   "is a bot": {
-    "string": ""
+    "string": "adalah bot  "
   },
   "is using a secure connection": {
-    "string": ""
+    "string": "pakai koneksi aman"
   },
   "*** {nick} was {user}@{host} * {real}": {
-    "string": ""
+    "string": "{nick} adalah {user}@{host}  {real}"
   },
   "*** {nick} using {server} {info}": {
-    "string": ""
+    "string": "{nick} pakai {server} {info}  "
   },
   "*** {nick} is logged in as {account}": {
-    "string": ""
+    "string": "{nick} login sebagai {account} "
   },
   "*** {nick} is actually using host {host}": {
-    "string": ""
+    "string": "{nick} sebenarnya pakai host {host}  "
   },
   "*** End of WHOWAS for {nick}": {
-    "string": ""
+    "string": "Akhir WHOWAS untuk {nick} "
   },
   "Server response": {
-    "string": ""
+    "string": "Respon server  "
   },
   "[{numeric}] {message}": {
-    "string": ""
+    "string": "[{numeric}] {message}"
   },
   "*** Disconnected from server": {
-    "string": ""
+    "string": "Disconnect dari server  "
   },
   "*** Auto-reconnect cancelled": {
-    "string": ""
+    "string": "Auto‑reconnect dibatalin  "
   },
   "*** Reconnecting in {seconds} second{suffix} (attempt {attempt})...": {
-    "string": ""
+    "string": "Reconnect dalam {seconds} detik{suffix} (attempt {attempt})...  "
   },
   "*** Attempting to reconnect...": {
-    "string": ""
+    "string": "Coba reconnect...  "
   },
   "*** Reconnected successfully": {
-    "string": ""
+    "string": "Reconnect sukses  "
   },
   "*** Reconnection failed: {message}": {
-    "string": ""
+    "string": "Reconnect gagal: {message}  "
   },
   "*** BATCH START: {type} ({ref})": {
-    "string": ""
+    "string": "*** BATCH START: {type} ({ref})"
   },
   "*** Netsplit detected: {servers} ({count} users quit)": {
-    "string": ""
+    "string": "Netsplit terdeteksi: {servers} ({count} user quit)  "
   },
   "*** Netjoin: {servers} ({count} users rejoined)": {
-    "string": ""
+    "string": "Netjoin: {servers} ({count} user rejoin)  "
   },
   "*** Loading chat history ({count} messages)": {
-    "string": ""
+    "string": "Loading chat history ({count} pesan)  "
   },
   "*** Capability changes ({count} updates)": {
-    "string": ""
+    "string": "Perubahan capability ({count} update)  "
   },
   "*** BATCH END: {type} ({ref}) - {count} messages": {
-    "string": ""
+    "string": "BATCH END: {type} ({ref}) - {count} pesan  "
   },
   "SETNAME command is not supported by this server": {
-    "string": ""
+    "string": "Command SETNAME nggak disupport server ini  "
   },
   "BOT mode is not supported by this server": {
-    "string": ""
+    "string": "Mode BOT nggak disupport server ini  "
   },
   "CHATHISTORY is not supported by this server": {
-    "string": ""
+    "string": "CHATHISTORY nggak disupport server ini  "
   },
   "MESSAGE-REDACTION is not supported by this server": {
-    "string": ""
+    "string": "MESSAGE‑REDACTION nggak disupport server ini  "
   },
   "Usage: /{command} <nick|channel> <message>": {
-    "string": ""
+    "string": "Usage: /{command} <nick|channel> <message>"
   },
   "*** Encryption key offer sent to {nick}. Waiting for acceptance...": {
-    "string": ""
+    "string": "Offer key enkripsi dikirim ke {nick}. Nunggu diterima...  "
   },
   "*** Failed to share encryption key: {message}": {
-    "string": ""
+    "string": "Gagal share key enkripsi: {message}  "
   },
   "Usage: /sharekey <nick>": {
-    "string": ""
+    "string": "Usage: /sharekey <nick>"
   },
   "*** Encryption key requested from {nick}": {
-    "string": ""
+    "string": "Key enkripsi diminta dari {nick}"
   },
   "Usage: /requestkey <nick>": {
-    "string": ""
+    "string": "Usage: /requestkey <nick>"
   },
   "*** Encrypted send failed ({message}). Use \"Request Encryption Key\" from the user menu.": {
-    "string": ""
+    "string": "Kirim terenkripsi gagal ({message}). Pakai \"Request Encryption Key\" dari menu user."
   },
   "Usage: /encmsg <nick> <message>": {
-    "string": ""
+    "string": "Usage: /encmsg <nick> <message>"
   },
   "DM encryption:": {
-    "string": ""
+    "string": "Enkripsi DM:  "
   },
   "/sharekey <nick>          Offer your DM key": {
-    "string": ""
+    "string": "/sharekey Tawarkan DM key kamu"
   },
   "/requestkey <nick>        Request DM key": {
-    "string": ""
+    "string": "/requestkey Minta DM key  "
   },
   "/encmsg <nick> <message>  Send encrypted DM": {
-    "string": ""
+    "string": "/encmsg Kirim DM terenkripsi"
   },
   "Tips: keys must be exchanged first; use /requestkey if not paired.": {
-    "string": ""
+    "string": "Tips: key harus ditukar dulu; pakai /requestkey kalau belum paired.  "
   },
   "Usage: /chankey <generate|share|request|remove|send|help> [args]": {
-    "string": ""
+    "string": "Usage: /chankey <generate|share|request|remove|send|help> [args]"
   },
   "Channel encryption:": {
-    "string": ""
+    "string": "Enkripsi channel: "
   },
   "/chankey generate          Create key for current channel": {
-    "string": ""
+    "string": "/chankey generate Bikin key buat channel sekarang  "
   },
   "/chankey share <nick>     Send key to a user (in channel)": {
-    "string": ""
+    "string": "/chankey share Kirim key ke user (di channel)  "
   },
   "/chankey request <nick>   Ask a user for the channel key": {
-    "string": ""
+    "string": "/chankey request Minta key channel dari user  "
   },
   "/chankey send <msg>       Send encrypted message to channel": {
-    "string": ""
+    "string": "/chankey send Kirim pesan terenkripsi ke channel  "
   },
   "/chankey remove           Delete stored key for channel": {
-    "string": ""
+    "string": "/chankey remove Hapus key channel yang disimpan  "
   },
   "*** Channel key can only be generated in a channel": {
-    "string": ""
+    "string": "Key channel cuma bisa dibuat di dalam channel  "
   },
   "*** Channel encryption key generated for {channel}. Use /chankey share <nick> to share with others.": {
-    "string": ""
+    "string": "Key enkripsi channel dibuat untuk {channel}. Pakai /chankey share buat dibagi ke yang lain.  "
   },
   "*** Failed to generate channel key: {message}": {
-    "string": ""
+    "string": "Gagal bikin key channel: {message}  "
   },
   "Usage: /chankey send <message>": {
-    "string": ""
+    "string": "Usage: /chankey send <message>"
   },
   "*** Channel key send must be used from a channel": {
-    "string": ""
+    "string": "Kirim key channel harus dari dalam channel  "
   },
   "*** Channel encryption send failed: {message}": {
-    "string": ""
+    "string": "Kirim enkripsi channel gagal: {message}  "
   },
   "Missing channel key. Use /chankey generate and share first.": {
-    "string": ""
+    "string": "Key channel hilang. Pakai /chankey generate lalu share dulu.  "
   },
   "Usage: /chankey share <nick>": {
-    "string": ""
+    "string": "Usage: /chankey share <nick>"
   },
   "*** Channel key can only be shared from a channel": {
-    "string": ""
+    "string": "Key channel cuma bisa dishare dari dalam channel  "
   },
   "*** Channel key for {channel} shared with {nick}": {
-    "string": ""
+    "string": "Key channel {channel} dishare ke {nick}  "
   },
   "*** Failed to share channel key: {message}. Generate a key first with /chankey generate": {
-    "string": ""
+    "string": "Gagal share key channel: {message}. Bikin key dulu pakai /chankey generate  "
   },
   "Usage: /chankey request <nick>": {
-    "string": ""
+    "string": "Usage: /chankey request <nick>"
   },
   "*** Channel key request must be done from a channel": {
-    "string": ""
+    "string": "Request key channel harus dari dalam channel  "
   },
   "Please share the channel key for {channel} with /chankey share {nick}": {
-    "string": ""
+    "string": "Tolong share key channel {channel} pakai /chankey share {nick}  "
   },
   "*** Channel key requested from {nick} for {channel}": {
-    "string": ""
+    "string": "Key channel diminta dari {nick} untuk {channel}  "
   },
   "*** Channel key can only be removed from a channel": {
-    "string": ""
+    "string": "Key channel cuma bisa dihapus dari dalam channel  "
   },
   "*** Channel encryption key removed for {channel}": {
-    "string": ""
+    "string": "Key enkripsi channel dihapus untuk {channel}  "
   },
   "*** Failed to remove channel key: {message}": {
-    "string": ""
+    "string": "Gagal hapus key channel: {message}  "
   },
   "*** {arrow} {line}": {
-    "string": ""
+    "string": "*** {arrow} {line}"
   },
   "IRC server": {
-    "string": ""
+    "string": "IRC server"
   },
   "Connected to {networkName}": {
-    "string": ""
+    "string": "Connect ke {networkName}"
   },
   "AndroidIRCX Message History Export": {
-    "string": ""
+    "string": "Export riwayat pesan AndroidIRCX  "
   },
   "Exported: {timestamp}": {
-    "string": ""
+    "string": "Diexport: {timestamp} "
   },
   "Messages: {count}": {
-    "string": ""
+    "string": "Pesan: {count}  "
   },
   "Timestamp": {
-    "string": ""
+    "string": "Timestamp"
   },
   "Type": {
-    "string": ""
+    "string": "Tipe"
   },
   "Channel": {
-    "string": ""
+    "string": "Channel"
   },
   "From": {
-    "string": ""
+    "string": "Dari"
   },
   "Default Channel": {
-    "string": ""
+    "string": "Default Channel"
   },
   "Message from {name}": {
-    "string": ""
+    "string": "Pesan dari {name}"
   },
   "{from}: {text}": {
-    "string": ""
+    "string": "{from}: {text}"
   },
   "Failed to load scripts: {error}": {
-    "string": ""
+    "string": "Gagal load script: {error}  "
   },
   "No syntax errors detected.": {
-    "string": ""
+    "string": "Nggak ada error sintaks terdeteksi"
   },
   "Cannot enable script: No scripting time available. Please watch an ad to gain 1 hour of scripting time.": {
-    "string": ""
+    "string": "Nggak bisa enable script: waktu scripting habis. Tonton iklan buat dapet 1 jam scripting. "
   },
   "Auto-Op": {
-    "string": ""
+    "string": "Auto-Op"
   },
   "Ops everyone who joins the channel.": {
-    "string": ""
+    "string": "Ops semua user yang join channel. "
   },
   "Welcome Message": {
-    "string": ""
+    "string": "Pesan sambutan "
   },
   "Greets users when they join.": {
-    "string": ""
+    "string": "Sapa user pas join."
   },
   "Channel Logger": {
-    "string": ""
+    "string": "Channel Logger"
   },
   "Logs messages to scripting log buffer.": {
-    "string": ""
+    "string": "Log pesan ke buffer scripting.  "
   },
   "Custom Command Alias": {
-    "string": ""
+    "string": "Alias command custom  "
   },
   "Adds /hello alias as example.": {
-    "string": ""
+    "string": "Tambah alias /hello sebagai contoh.  "
   },
   "Script {name} failed to compile: {error}": {
-    "string": ""
+    "string": "Script {name} gagal compile: {error}  "
   },
   "All scripts disabled: Scripting time expired. Watch an ad to continue.": {
-    "string": ""
+    "string": "Semua script disabled: waktu scripting habis. Tonton iklan buat lanjut.  "
   },
   "Error in script {name} hook {hook}: {error}": {
-    "string": ""
+    "string": "Error di script {name} hook {hook}: {error}  "
   },
   "Test hook {hook} executed": {
-    "string": ""
+    "string": "Test hook {hook} dieksekusi  "
   },
   "Test hook {hook} failed for {name}: {error}": {
-    "string": ""
+    "string": "Test hook {hook} gagal untuk {name}: {error}  "
   },
   "AndroidIRCX - Download from https://androidircx.com": {
-    "string": ""
+    "string": "AndroidIRCX – Download dari https://androidircx.com  "
   },
   "Goodbye from AndroidIRCX - download it from https://androidircx.com": {
-    "string": ""
+    "string": "Goodbye dari AndroidIRCX – download di https://androidircx.com  "
   },
   "Dark": {
-    "string": ""
+    "string": "Dark"
   },
   "Light": {
-    "string": ""
+    "string": "Light"
   },
   "*** UserManagementService initialized": {
-    "string": ""
+    "string": "*** UserManagementService initialized"
   },
   "New WHOIS request for same nick, cancelling previous.": {
-    "string": ""
+    "string": "WHOIS baru untuk nick sama, request sebelumnya dibatalkan  "
   },
   "WHOIS request for {nick} timed out.": {
-    "string": ""
+    "string": "WHOIS request untuk {nick} timeout "
   },
   "WHOIS data for {nick} not found after completion signal.": {
-    "string": ""
+    "string": "WHOIS data untuk {nick} nggak ketemu setelah completion signal  "
   },
   "Kill switch requires PIN or biometric authentication.": {
-    "string": ""
+    "string": "Kill switch butuh PIN atau autentikasi biometrik  "
   },
   "Kill Switch Error": {
-    "string": ""
+    "string": "Kill Switch Error"
   },
   "Some errors occurred:\n{errors}": {
-    "string": ""
+    "string": "Ada error: {errors}"
   },
   "Failed to take photo": {
-    "string": ""
+    "string": "Gagal ambil foto"
   },
   "Camera permission is required to take photos": {
-    "string": ""
+    "string": "Izin kamera dibutuhkan buat ambil foto  "
   },
   "Camera Permission Required": {
-    "string": ""
+    "string": "Izin kamera diperlukan"
   },
   "This app needs access to your camera to take photos.": {
-    "string": ""
+    "string": "App butuh akses kamera buat ambil foto  "
   },
   "Grant Permission": {
-    "string": ""
+    "string": "Kasih izin"
   },
   "Camera not available": {
-    "string": ""
+    "string": "Kamera nggak tersedia"
   },
   "Loading image...": {
-    "string": ""
+    "string": "Loading gambar...  "
   },
   "Failed to load media": {
-    "string": ""
+    "string": "Gagal load media"
   },
   "Audio Message": {
-    "string": ""
+    "string": "Pesan audio"
   },
   "File": {
-    "string": ""
+    "string": "File"
   },
   "Tap to open": {
-    "string": ""
+    "string": "Tap buat buka  "
   },
   "Encrypted": {
-    "string": ""
+    "string": "Encrypted"
   },
   "Downloading... {progress}%": {
-    "string": ""
+    "string": "Downloading... {progress}%"
   },
   "Loading encrypted media...": {
-    "string": ""
+    "string": "Loading media terenkripsi... "
   },
   "Cannot decrypt media: insufficient context. This may happen if the message is viewed outside its original channel or if encryption keys are not available.": {
-    "string": ""
+    "string": "Nggak bisa decrypt media: context kurang. Bisa terjadi kalau pesan dilihat di luar channel asal atau key enkripsi nggak tersedia. "
   },
   "No media selected": {
-    "string": ""
+    "string": "Nggak ada media yang dipilih  "
   },
   "File does not exist. Please select the file again.": {
-    "string": ""
+    "string": "File nggak ada. Pilih lagi.  "
   },
   "Encryption failed": {
-    "string": ""
+    "string": "Enkripsi gagal  "
   },
   "Upload failed": {
-    "string": ""
+    "string": "Upload gagal  "
   },
   "Failed to send media": {
-    "string": ""
+    "string": "Gagal kirim media "
   },
   "Failed to load image preview": {
-    "string": ""
+    "string": "Gagal load preview gambar"
   },
   "Failed to load video preview": {
-    "string": ""
+    "string": "Gagal load preview video"
   },
   "Audio File": {
-    "string": ""
+    "string": "File audio  "
   },
   "Failed to load audio preview": {
-    "string": ""
+    "string": "Gagal load preview audio"
   },
   "Preview Media": {
-    "string": ""
+    "string": "Preview media  "
   },
   "Type:": {
-    "string": ""
+    "string": "Tipe:"
   },
   "Size:": {
-    "string": ""
+    "string": "Ukuran:  "
   },
   "Duration:": {
-    "string": ""
+    "string": "Durasi:  "
   },
   "Dimensions:": {
-    "string": ""
+    "string": "Dimensi:  "
   },
   "Caption (optional)": {
-    "string": ""
+    "string": "Caption (opsional) "
   },
   "Add a caption...": {
-    "string": ""
+    "string": "Tambah caption... "
   },
   "Encrypting and uploading...": {
-    "string": ""
+    "string": "Enkripsi dan upload... "
   },
   "Uploading...": {
-    "string": ""
+    "string": "Uploading..."
   },
   "Sending...": {
-    "string": ""
+    "string": "Sending..."
   },
   "Send": {
-    "string": ""
+    "string": "Kirim"
   },
   "Take Photo": {
-    "string": ""
+    "string": "Ambil foto"
   },
   "Camera Permission": {
-    "string": ""
+    "string": "Izin kamera"
   },
   "Ask Me Later": {
-    "string": ""
+    "string": "Tanya lagi nanti  "
   },
   "Record Video": {
-    "string": ""
+    "string": "Rekam video"
   },
   "This app needs access to your camera to record videos.": {
-    "string": ""
+    "string": "App butuh akses kamera buat rekam video  "
   },
   "Microphone Permission": {
-    "string": ""
+    "string": "Izin mikrofon"
   },
   "This app needs access to your microphone to record videos with audio.": {
-    "string": ""
+    "string": "App butuh akses mikrofon buat rekam video dengan audio  "
   },
   "Photo Library": {
-    "string": ""
+    "string": "Library foto  "
   },
   "Video Library": {
-    "string": ""
+    "string": "Library video"
   },
   "Voice Message": {
-    "string": ""
+    "string": "Pesan suara "
   },
   "This app needs access to your microphone to record voice messages.": {
-    "string": ""
+    "string": "App butuh akses mikrofon buat rekam pesan suara  "
   },
   "Microphone permission is required to record voice messages. Please allow microphone access in app settings.": {
-    "string": ""
+    "string": "Izin mikrofon dibutuhkan buat rekam pesan suara. Aktifkan akses mikrofon di pengaturan aplikasi.  "
   },
   "Failed to request microphone permission. Please check app settings.": {
-    "string": ""
+    "string": "Gagal minta izin mikrofon. Cek setting app.  "
   },
   "File Picker": {
-    "string": ""
+    "string": "File picker "
   },
   "Select Media Source": {
-    "string": ""
+    "string": "Pilih sumber media"
   },
   "Rejoin current channel": {
-    "string": ""
+    "string": "Join ulang channel sekarang"
   },
   "CTCP request": {
-    "string": ""
+    "string": "CTCP request"
   },
   "DCC commands": {
-    "string": ""
+    "string": "DCC commands"
   },
   "XDCC bot commands": {
-    "string": ""
+    "string": "XDCC bot commands"
   },
   "Attach media": {
-    "string": ""
+    "string": "Lampirkan media"
   },
   "Send message": {
-    "string": ""
+    "string": "Kirim pesan"
   },
   "Search messages...": {
-    "string": ""
+    "string": "Cari pesan...  "
   },
   "No results found": {
-    "string": ""
+    "string": "Nggak ada hasil "
   },
   "{count} result(s) found": {
-    "string": ""
+    "string": "{count} hasil(s) ditemukan"
   },
   "Message Types:": {
-    "string": ""
+    "string": "Tipe pesan:  "
   },
   "Copied": {
-    "string": ""
+    "string": "Disalin"
   },
   "Fingerprint copied to clipboard": {
-    "string": ""
+    "string": "Fingerprint disalin ke clipboard"
   },
   "Command copied to clipboard": {
-    "string": ""
+    "string": "Command disalin ke clipboard"
   },
   "Sent": {
-    "string": ""
+    "string": "Terkirim"
   },
   "Fingerprint command sent to {{service}}": {
-    "string": ""
+    "string": "Command fingerprint dikirim ke {{service}}  "
   },
   "Certificate Fingerprint": {
-    "string": ""
+    "string": "Fingerprint sertifikat"
   },
   "Colons": {
-    "string": ""
+    "string": "Colon"
   },
   "Copy Fingerprint": {
-    "string": ""
+    "string": "Salin fingerprint"
   },
   "QR Code": {
-    "string": ""
+    "string": "QR Code"
   },
   "Scan to quickly share your certificate fingerprint": {
-    "string": ""
+    "string": "Scan buat cepat share fingerprint sertifikat  "
   },
   "IRC Service": {
-    "string": ""
+    "string": "IRC Service"
   },
   "Command": {
-    "string": ""
+    "string": "Command"
   },
   "Copy Command": {
-    "string": ""
+    "string": "Salin command  "
   },
   "Send to {{service}}": {
-    "string": ""
+    "string": "Kirim ke {{service}} "
   },
   "How to use": {
-    "string": ""
+    "string": "Cara pakai"
   },
   "1. Copy the command above\n2. Send it to {{service}} on IRC\n3. Your certificate will be associated with your nickname\n4. You can now authenticate using SASL EXTERNAL": {
-    "string": ""
+    "string": "1. Salin command di atas    2. Kirim ke {{service}} di IRC    3. Sertifikat bakal dikaitkan ke nickname kamu    4. Sekarang bisa autentikasi pakai SASL EXTERNAL  "
   },
   "Certificate name is required": {
-    "string": ""
+    "string": "Nama sertifikat diperlukan"
   },
   "Common Name (CN) is required": {
-    "string": ""
+    "string": "Common Name (CN) diperlukan"
   },
   "Validity period must be between 1 and 10 years": {
-    "string": ""
+    "string": "Masa berlaku harus antara 1–10 tahun  "
   },
   "Failed to generate certificate": {
-    "string": ""
+    "string": "Gagal bikin sertifikat"
   },
   "Certificate Generated": {
-    "string": ""
+    "string": "Sertifikat dibuat  "
   },
   "Generate Certificate": {
-    "string": ""
+    "string": "Bikin sertifikat  "
   },
   "Generate a new RSA-2048 self-signed certificate for IRC SASL EXTERNAL authentication.": {
-    "string": ""
+    "string": "Bikin sertifikat RSA-2048 self-signed baru buat autentikasi IRC SASL EXTERNAL  "
   },
   "Certificate Name": {
-    "string": ""
+    "string": "Nama sertifikat  "
   },
   "e.g., My IRC Certificate": {
-    "string": ""
+    "string": "Contoh: My IRC Certificate"
   },
   "A friendly name for this certificate": {
-    "string": ""
+    "string": "Nama gampang buat sertifikat ini"
   },
   "Common Name (CN)": {
-    "string": ""
+    "string": "Common Name (CN)"
   },
   "e.g., nick@irc.network": {
-    "string": ""
+    "string": "Contoh: nick@irc.network"
   },
   "Your nickname or email (used in certificate CN field)": {
-    "string": ""
+    "string": "Nickname atau email kamu (dipakai di field CN sertifikat)  "
   },
   "Validity Period (years)": {
-    "string": ""
+    "string": "Masa berlaku (tahun)  "
   },
   "Certificate validity: 1-10 years": {
-    "string": ""
+    "string": "Sertifikat berlaku: 1–10 tahun"
   },
   "Generating...": {
-    "string": ""
+    "string": "Lagi bikin...  "
   },
   "What is this?": {
-    "string": ""
+    "string": "Apa ini? "
   },
   "Client certificates allow you to authenticate to IRC servers using TLS certificates instead of passwords. This is more secure and supported by many modern IRC networks.": {
-    "string": ""
+    "string": "Sertifikat client bisa dipakai buat autentikasi ke server IRC pakai TLS, bukan password. Lebih aman dan didukung banyak network IRC modern.  "
   },
   "Certificate Generated Successfully!": {
-    "string": ""
+    "string": "Sertifikat berhasil dibuat! "
   },
   "Name:": {
-    "string": ""
+    "string": "Nama:"
   },
   "Common Name:": {
-    "string": ""
+    "string": "Common Name:"
   },
   "Valid From:": {
-    "string": ""
+    "string": "Berlaku mulai:"
   },
   "Valid To:": {
-    "string": ""
+    "string": "Berlaku sampai: "
   },
   "SHA-256 Fingerprint:": {
-    "string": ""
+    "string": "Fingerprint SHA-256: "
   },
   "Next Steps:": {
-    "string": ""
+    "string": "Langkah berikut:  "
   },
   "Configure your IRC network to use this certificate": {
-    "string": ""
+    "string": "Konfigurasi network IRC buat pakai sertifikat ini  "
   },
   "Add the fingerprint to NickServ: /msg NickServ CERT ADD <fingerprint>": {
-    "string": ""
+    "string": "Tambah fingerprint ke NickServ: /msg NickServ CERT ADD  "
   },
   "Connect to IRC server with SASL EXTERNAL enabled": {
-    "string": ""
+    "string": "Connect ke server IRC dengan SASL EXTERNAL aktif  "
   },
   "Generating certificate...": {
-    "string": ""
+    "string": "Lagi bikin sertifikat... "
   },
   "This can take a few seconds on older phones.": {
-    "string": ""
+    "string": "Bisa makan waktu beberapa detik di HP lama  "
   },
   "Failed to load certificates": {
-    "string": ""
+    "string": "Gagal load sertifikat  "
   },
   "Certificate Expired": {
-    "string": ""
+    "string": "Sertifikat kadaluarsa"
   },
   "This certificate has expired. Please generate a new one.": {
-    "string": ""
+    "string": "Sertifikat ini kadaluarsa. Bikin sertifikat baru.  "
   },
   "Certificate not found": {
-    "string": ""
+    "string": "Sertifikat nggak ketemu"
   },
   "Failed to load certificate details": {
-    "string": ""
+    "string": "Gagal load detail sertifikat  "
   },
   "Delete Certificate": {
-    "string": ""
+    "string": "Hapus sertifikat  "
   },
   "Are you sure you want to delete this certificate? This action cannot be undone. You will need to generate a new certificate and re-add it to IRC services.": {
-    "string": ""
+    "string": "Yakin mau hapus sertifikat ini? Aksi ini nggak bisa dibatalin. Kamu harus bikin sertifikat baru dan tambah lagi ke IRC services.  "
   },
   "Certificate deleted": {
-    "string": ""
+    "string": "Sertifikat dihapus"
   },
   "Failed to delete certificate": {
-    "string": ""
+    "string": "Gagal hapus sertifikat "
   },
   "Expired": {
-    "string": ""
+    "string": "Kadaluarsa"
   },
   "Expires Soon": {
-    "string": ""
+    "string": "Segera kadaluarsa "
   },
   "Valid": {
-    "string": ""
+    "string": "Valid"
   },
   "Valid:": {
-    "string": ""
+    "string": "Valid:"
   },
   "No Certificates": {
-    "string": ""
+    "string": "Nggak ada sertifikat "
   },
   "You haven't generated any certificates yet. Generate one to get started.": {
-    "string": ""
+    "string": "Kamu belum bikin sertifikat. Bikin dulu buat mulai.  "
   },
   "Generate New Certificate": {
-    "string": ""
+    "string": "Bikin sertifikat baru"
   },
   "Select Certificate": {
-    "string": ""
+    "string": "Pilih sertifikat"
   },
   "Loading certificates...": {
-    "string": ""
+    "string": "Loading sertifikat... "
   },
   "certificate": {
-    "string": ""
+    "string": "sertifikat"
   },
   "certificates": {
-    "string": ""
+    "string": "sertifikat"
   },
   "New": {
-    "string": ""
+    "string": "Baru"
   },
   "Recommended": {
-    "string": ""
+    "string": "Direkomendasikan"
   },
   "No Networks": {
-    "string": ""
+    "string": "Nggak ada network  "
   },
   "Create a network first to add ZNC to it.": {
-    "string": ""
+    "string": "Bikin network dulu buat tambah ZNC  "
   },
   "Select a network to add your ZNC server to. The ZNC will be automatically configured.": {
-    "string": ""
+    "string": "Pilih network buat tambah server ZNC. ZNC bakal otomatis dikonfigurasi.  "
   },
   "Loading networks...": {
-    "string": ""
+    "string": "Loading networks..."
   },
   "Create New Network": {
-    "string": ""
+    "string": "Bikin network baru"
   },
   "Show Header Search": {
-    "string": ""
+    "string": "Tampilkan pencarian di header"
   },
   "Search icon visible in the header": {
-    "string": ""
+    "string": "Ikon pencarian kelihatan di header"
   },
   "Search icon hidden from the header": {
-    "string": ""
+    "string": "Ikon pencarian disembunyikan dari header  "
   },
   "Show Message Search Button": {
-    "string": ""
+    "string": "Tampilkan tombol pencarian pesan"
   },
   "Floating search button visible in message view": {
-    "string": ""
+    "string": "Tombol pencarian mengambang kelihatan di tampilan pesan  "
   },
   "Floating search button hidden": {
-    "string": ""
+    "string": "Tombol pencarian mengambang disembunyikan  "
   },
   "Alias name and command are required": {
-    "string": ""
+    "string": "Nama alias dan command diperlukan  "
   },
   "Command name and template are required": {
-    "string": ""
+    "string": "Nama command dan template diperlukan  "
   },
   "Use fingerprint/biometric or PIN to unlock": {
-    "string": ""
+    "string": "Pakai fingerprint/biometrik atau PIN buat unlock  "
   },
   "Selected": {
-    "string": ""
+    "string": "Dipilih"
   },
   "Unlock Passwords": {
-    "string": ""
+    "string": "Unlock password"
   },
   "Re-enter PIN": {
-    "string": ""
+    "string": "Masukkan PIN lagi"
   },
   "Confirm": {
-    "string": ""
+    "string": "Konfirmasi"
   },
   "Submit": {
-    "string": ""
+    "string": "Submit"
   },
   "Padding": {
-    "string": ""
+    "string": "Padding"
   },
   "Height": {
-    "string": ""
+    "string": "Tinggi"
   },
   "Position": {
-    "string": ""
+    "string": "Posisi"
   },
   "Translate with padding": {
-    "string": ""
+    "string": "Translate dengan padding"
   },
   "Show Typing Indicators": {
-    "string": ""
+    "string": "Tampilkan indikator mengetik  "
   },
   "Display who is typing in the active tab": {
-    "string": ""
+    "string": "Tampilkan siapa yang lagi ngetik di tab aktif  "
   },
   "Hide typing indicators": {
-    "string": ""
+    "string": "Sembunyikan indikator mengetik"
   },
   "Show Send Button": {
-    "string": ""
+    "string": "Tampilkan tombol kirim"
   },
   "Display send button next to message input": {
-    "string": ""
+    "string": "Tampilkan tombol kirim di samping input pesan  "
   },
   "Hide send button (use Enter key)": {
-    "string": ""
+    "string": "Sembunyikan tombol kirim (pakai Enter)  "
   },
   "Banner Position": {
-    "string": ""
+    "string": "Posisi banner"
   },
   "Banner shown below message input": {
-    "string": ""
+    "string": "Banner ditampilkan di bawah input pesan  "
   },
   "Banner shown above header": {
-    "string": ""
+    "string": "Banner ditampilkan di atas header"
   },
   "Banner shown below header": {
-    "string": ""
+    "string": "Banner ditampilkan di bawah header"
   },
   "Banner shown above message input": {
-    "string": ""
+    "string": "Banner ditampilkan di atas input pesan  "
   },
   "Above message input": {
-    "string": ""
+    "string": "Di atas input pesan "
   },
   "Below message input": {
-    "string": ""
+    "string": "Di bawah input pesan  "
   },
   "Above header": {
-    "string": ""
+    "string": "Di atas header"
   },
   "Below header": {
-    "string": ""
+    "string": "Di bawah header"
   },
   "Keyboard Avoiding": {
-    "string": ""
+    "string": "Keyboard avoiding  "
   },
   "Adjust layout when the keyboard opens": {
-    "string": ""
+    "string": "Sesuaikan layout saat keyboard terbuka  "
   },
   "Keep layout fixed when the keyboard opens": {
-    "string": ""
+    "string": "Layout tetap saat keyboard terbuka  "
   },
   "Keyboard Behavior (iOS)": {
-    "string": ""
+    "string": "Keyboard behavior (iOS)  "
   },
   "Keyboard Behavior (Android)": {
-    "string": ""
+    "string": "Keyboard behavior (Android) "
   },
   "Keyboard Vertical Offset": {
-    "string": ""
+    "string": "Offset vertikal keyboard  "
   },
   "Additional padding in pixels for keyboard avoidance": {
-    "string": ""
+    "string": "Padding tambahan pixels untuk menghindari keyboard "
   },
   "Android Bottom Safe Area": {
-    "string": ""
+    "string": "Safe area bawah Android"
   },
   "Keep spacing above the gesture bar": {
-    "string": ""
+    "string": "Jaga jarak di atas gesture bar"
   },
   "Use full height on Android": {
-    "string": ""
+    "string": "Pakai full height di Android"
   },
   "Troubleshooting Guide": {
-    "string": ""
+    "string": "Panduan troubleshooting"
   },
   "Fix common problems and errors": {
-    "string": ""
+    "string": "Perbaiki masalah dan error umum  "
   },
   "IRC Connection Guide": {
-    "string": ""
+    "string": "Panduan koneksi IRC  "
   },
   "Learn how to connect to IRC servers": {
-    "string": ""
+    "string": "Pelajari cara connect ke server IRC  "
   },
   "Commands Reference": {
-    "string": ""
+    "string": "Referensi command  "
   },
   "List of all IRC commands": {
-    "string": ""
+    "string": "Daftar semua IRC command"
   },
   "Encryption Guide": {
-    "string": ""
+    "string": "Panduan enkripsi"
   },
   "End-to-end encryption for DMs and channels": {
-    "string": ""
+    "string": "Enkripsi end-to-end untuk DM dan channel  "
   },
   "Media Sharing Guide": {
-    "string": ""
+    "string": "Panduan berbagi media"
   },
   "Send encrypted photos, videos, and voice": {
-    "string": ""
+    "string": "Kirim foto, video, dan suara terenkripsi  "
   },
   "Channel Management": {
-    "string": ""
+    "string": "Manajemen channel  "
   },
   "Manage channels, modes, and permissions": {
-    "string": ""
+    "string": "Atur channel, mode, dan permission  "
   },
   "Clear Media Cache": {
-    "string": ""
+    "string": "Hapus cache media  "
   },
   "Are you sure you want to clear all cached media? This will free up storage space but media will need to be downloaded again.": {
-    "string": ""
+    "string": "Yakin mau hapus semua cache media? Ini bakal kosongin storage tapi media harus di-download lagi.  "
   },
   "Cache Cleared": {
-    "string": ""
+    "string": "Cache dihapus"
   },
   "Media cache has been cleared successfully.": {
-    "string": ""
+    "string": "Cache media berhasil dihapus  "
   },
   "Failed to clear cache: {error}": {
-    "string": ""
+    "string": "Gagal hapus cache: {error}  "
   },
   "Original": {
-    "string": ""
+    "string": "Original"
   },
   "High": {
-    "string": ""
+    "string": "High"
   },
   "Low": {
-    "string": ""
+    "string": "Rendah"
   },
   "Enable Encrypted Media Sharing": {
-    "string": ""
+    "string": "Aktifkan berbagi media terenkripsi"
   },
   "Media sharing is enabled. Attachment button (📎) appears on encrypted conversations.": {
-    "string": ""
+    "string": "Berbagi media aktif. Tombol lampiran (📎) muncul di percakapan terenkripsi.  "
   },
   "Media sharing is disabled. Attachment button will not appear.": {
-    "string": ""
+    "string": "Berbagi media nonaktif. Tombol lampiran nggak muncul.  "
   },
   "About Media Sharing": {
-    "string": ""
+    "string": "Tentang berbagi media  "
   },
   "Media sharing works only in encrypted conversations (DMs with key exchange or encrypted channels). All media is automatically encrypted using existing E2E keys.": {
-    "string": ""
+    "string": "Berbagi media cuma jalan di percakapan terenkripsi (DM dengan key exchange atau channel terenkripsi). Semua media otomatis terenkripsi pakai kunci E2E yang ada.  "
   },
   "Show Encryption Indicator": {
-    "string": ""
+    "string": "Tampilkan indikator enkripsi"
   },
   "Display 🔒 icon on media thumbnails to indicate encryption": {
-    "string": ""
+    "string": "Tampilkan ikon 🔒 di thumbnail media buat nunjukin enkripsi  - 2219 Display local message → Tampilkan pesan lokal"
   },
   "Auto-Download Media": {
-    "string": ""
+    "string": "Auto-Download Media"
   },
   "Automatically download media when received": {
-    "string": ""
+    "string": "Media otomatis di-download saat diterima  "
   },
   "WiFi Only Downloads": {
-    "string": ""
+    "string": "Download hanya lewat WiFi"
   },
   "Only download media when connected to WiFi": {
-    "string": ""
+    "string": "Download media cuma kalau tersambung WiFi  "
   },
   "Maximum Cache Size": {
-    "string": ""
+    "string": " Ukuran cache maksimum  "
   },
   "Current cache: {size} / Max: {max}": {
-    "string": ""
+    "string": "Cache sekarang: {size} / Maks: {max}  "
   },
   "Media Quality": {
-    "string": ""
+    "string": "Kualitas media  "
   },
   "Current: {quality}": {
-    "string": ""
+    "string": "Sekarang: {quality}  "
   },
   "Video Recording Quality": {
-    "string": ""
+    "string": "Kualitas rekaman video"
   },
   "Max Voice Message Duration": {
-    "string": ""
+    "string": "Durasi maksimal pesan suara"
   },
   "Current: {duration} seconds": {
-    "string": ""
+    "string": "Sekarang: {duration} detik  "
   },
   "1 minute": {
-    "string": ""
+    "string": "1 menit"
   },
   "3 minutes": {
-    "string": ""
+    "string": "3 menit"
   },
   "5 minutes": {
-    "string": ""
+    "string": "5 menit"
   },
   "Free up storage by clearing cached media files": {
-    "string": ""
+    "string": "Kosongin storage dengan hapus file media cache  "
   },
   "Permission Required": {
-    "string": ""
+    "string": "Izin diperlukan  "
   },
   "Notification permission is required to receive notifications. Please enable it in system settings.": {
-    "string": ""
+    "string": "Izin notifikasi dibutuhkan buat terima notifikasi. Aktifkan di pengaturan sistem.  "
   },
   "Sound Settings": {
-    "string": ""
+    "string": "Pengaturan suara"
   },
   "Configure notification sounds and themes": {
-    "string": ""
+    "string": "Atur suara notifikasi dan tema  "
   },
   "Upgrade to Premium": {
-    "string": ""
+    "string": "Upgrade ke Premium"
   },
   "Unlock unlimited scripting, no ads, and premium features": {
-    "string": ""
+    "string": "Buka scripting tanpa batas, tanpa iklan, dan fitur premium  "
   },
   "My Data & Privacy": {
-    "string": ""
+    "string": "Data & privasi saya"
   },
   "Export or delete your data (GDPR/CCPA rights)": {
-    "string": ""
+    "string": "Ekspor atau hapus data kamu (hak GDPR/CCPA)  "
   },
   "Privacy & Ads": {
-    "string": ""
+    "string": "Privasi & iklan"
   },
   "Manage consent for personalized ads and watch ads for rewards": {
-    "string": ""
+    "string": "Atur consent iklan personal dan tonton iklan untuk reward"
   },
   "Scripts (Scripting Time & No-Ads)": {
-    "string": ""
+    "string": "Scripts (Scripting Time & No-Ads)"
   },
   "Manage IRC scripts and automation. Scripting time is also ad-free time.": {
-    "string": ""
+    "string": "Atur script IRC dan otomatisasi. Waktu scripting juga bebas iklan.  "
   },
   "Show Watch Ad Button (Premium)": {
-    "string": ""
+    "string": "Tampilkan tombol tonton iklan (Premium)  "
   },
   "Enable watch ad button to support the project (you have premium plan)": {
-    "string": ""
+    "string": "Aktifkan tombol tonton iklan untuk dukung project (kamu punya plan premium)  "
   },
   "Always shown for normal users": {
-    "string": ""
+    "string": "Selalu ditampilkan untuk user normal"
   },
   "Watch Ad (+60 min Scripting & No-Ads)": {
-    "string": ""
+    "string": "Tonton iklan (+60 menit scripting & tanpa iklan)  "
   },
   "Quick Connect Network": {
-    "string": ""
+    "string": "Quick Connect Network"
   },
   "Current: {network}": {
-    "string": ""
+    "string": "Current: {network}"
   },
   "Tap header to connect to default network": {
-    "string": ""
+    "string": "Tap header buat connect ke network default  "
   },
   "Kill Switch on Header": {
-    "string": ""
+    "string": "Kill switch di header "
   },
   "Show kill switch button in header": {
-    "string": ""
+    "string": "Tampilkan tombol kill switch di header  "
   },
   "Kill Switch on Lock Screen": {
-    "string": ""
+    "string": "Kill switch di lock screen  "
   },
   "Show kill switch button on app unlock screen": {
-    "string": ""
+    "string": "Tampilkan tombol kill switch di layar unlock app  "
   },
   "Show Kill Switch Warnings": {
-    "string": ""
+    "string": "Tampilkan peringatan kill switch"
   },
   "Show confirmation dialogs before activating kill switch (header only)": {
-    "string": ""
+    "string": "Tampilkan dialog konfirmasi sebelum aktifkan kill switch (header saja)  "
   },
   "Kill Switch Custom Name": {
-    "string": ""
+    "string": "Nama custom untuk tombol kill switch"
   },
   "Custom name for kill switch button (e.g., \"meow meow\" for obfuscation)": {
-    "string": ""
+    "string": "Nama custom untuk tombol kill switch (misalnya \"meow meow\" buat obfuscation) "
   },
   "Enter custom name": {
-    "string": ""
+    "string": "Masukkan nama custom  "
   },
   "Kill Switch Custom Icon": {
-    "string": ""
+    "string": "Ikon custom untuk kill switch"
   },
   "FontAwesome5 icon name (e.g., \"cat\", \"heart\", \"star\")": {
-    "string": ""
+    "string": "Nama ikon FontAwesome5 (misalnya \"cat\", \"heart\", \"star\")  "
   },
   "Enter icon name": {
-    "string": ""
+    "string": "Masukkan nama ikon"
   },
   "Kill Switch Custom Color": {
-    "string": ""
+    "string": "Warna custom kill switch"
   },
   "Tap to choose from preset colors or enter hex code": {
-    "string": ""
+    "string": "Tap untuk pilih warna preset atau masukkan kode hex  "
   },
   "Select Quick Connect Network": {
-    "string": ""
+    "string": "Pilih Quick Connect Network"
   },
   "Choose which network to connect when tapping the header \"Tap to connect\" button.": {
-    "string": ""
+    "string": "Pilih network buat connect saat tap tombol \"Tap to connect\"  "
   },
   "Use Default": {
-    "string": ""
+    "string": "Pakai default  "
   },
   "Choose Color": {
-    "string": ""
+    "string": "Pilih warna  "
   },
   "Current color: {color}": {
-    "string": ""
+    "string": "Warna sekarang: {color}  "
   },
   "Hex Color:": {
-    "string": ""
+    "string": "Warna hex: "
   },
   "Unable to enable biometric lock.": {
-    "string": ""
+    "string": "Nggak bisa aktifkan kunci biometrik"
   },
   "PIN unlock enabled (fallback if biometric fails)": {
-    "string": ""
+    "string": "Unlock PIN aktif (fallback kalau biometrik gagal)  "
   },
   "Use a PIN to unlock (can be used with biometric)": {
-    "string": ""
+    "string": "Pakai PIN buat unlock (bisa dipakai bareng biometrik)  "
   },
   "Failed to save video": {
-    "string": ""
+    "string": "Gagal simpan video"
   },
   "Recording failed": {
-    "string": ""
+    "string": "Rekaman gagal  "
   },
   "Failed to start recording": {
-    "string": ""
+    "string": "Gagal mulai rekaman"
   },
   "Failed to stop recording": {
-    "string": ""
+    "string": "Gagal stop rekaman "
   },
   "Camera and microphone permissions are required to record videos": {
-    "string": ""
+    "string": "Izin kamera dan mikrofon dibutuhkan buat rekam video  "
   },
   "Permissions Required": {
-    "string": ""
+    "string": "Izin diperlukan  "
   },
   "This app needs access to your camera and microphone to record videos.": {
-    "string": ""
+    "string": "App butuh akses kamera dan mikrofon buat rekam video  "
   },
   "Grant Permissions": {
-    "string": ""
+    "string": "Beri izin"
   },
   "Microphone permission": {
-    "string": ""
+    "string": "Izin mikrofon"
   },
   "Ask me later": {
-    "string": ""
+    "string": "Tanya lagi nanti"
   },
   "Microphone permission denied": {
-    "string": ""
+    "string": "Izin mikrofon ditolak  "
   },
   "Recording file not found": {
-    "string": ""
+    "string": "File rekaman nggak ketemu  "
   },
   "Recording file not found. Please record again.": {
-    "string": ""
+    "string": "File rekaman nggak ketemu. Silakan rekam lagi.  "
   },
   "Failed to send recording": {
-    "string": ""
+    "string": "Gagal kirim rekaman"
   },
   "Release to stop recording": {
-    "string": ""
+    "string": "Lepas untuk stop rekaman"
   },
   "max": {
-    "string": ""
+    "string": "maks"
   },
   "Recording complete": {
-    "string": ""
+    "string": "Rekaman selesai  "
   },
   "Stop": {
-    "string": ""
+    "string": "Stop"
   },
   "Hold to record voice message": {
-    "string": ""
+    "string": "Tahan untuk rekam pesan suara"
   },
   "Max duration: {duration} seconds": {
-    "string": ""
+    "string": "Durasi maks: {duration} detik  "
   },
   "Hold to Record": {
-    "string": ""
+    "string": "Tahan untuk rekam"
   },
   "Stop Recording": {
-    "string": ""
+    "string": "Stop rekaman  "
   },
   "*** Reconnected to {network}": {
-    "string": ""
+    "string": "Reconnect ke {network}  "
   },
   "Invalid IRC URL": {
-    "string": ""
+    "string": "IRC URL nggak valid  "
   },
   "The IRC URL format is invalid: {error}\n\nExpected: irc://server/channel": {
-    "string": ""
+    "string": "Format URL IRC invalid: {error} Harusnya: irc://server/channel  "
   },
   "Security Warning": {
-    "string": ""
+    "string": "Peringatan keamanan  "
   },
   "This URL contains a password which is visible in plain text. This is insecure.\n\nServer: {server}\n\nContinue anyway?": {
-    "string": ""
+    "string": "URL ini ada password yang kelihatan plain text. Nggak aman. Server: {server} Tetap lanjut?  "
   },
   "Continue": {
-    "string": ""
+    "string": "Koneksi"
   },
   "Already Connected": {
     "string": ""
   },
   "Already connected to {server}": {
-    "string": ""
+    "string": "Udah connect ke {server} "
   },
   "Connect to IRC Server": {
-    "string": ""
+    "string": "Connect ke server IRC "
   },
   "Connecting to {server}:{port}\n\nThis will create a temporary connection.{channel}\n\nContinue?": {
-    "string": ""
+    "string": "Connect ke {server}:{port} Ini bikin koneksi sementara {channel} Lanjut?  "
   },
   "Connect": {
     "string": ""
@@ -5214,7 +5214,7 @@
     "string": ""
   },
   "Not connected to IRC server": {
-    "string": ""
+    "string": "Nggak connect ke server IRC  "
   },
   "Failed to send certificate fingerprint": {
     "string": ""
@@ -5223,31 +5223,31 @@
     "string": ""
   },
   "Are you sure you want to delete \"{networkName}\"? This cannot be undone.": {
-    "string": ""
+    "string": "Yakin mau hapus \"{networkName}\"? Nggak bisa dibatalin. "
   },
   "Failed to delete network": {
-    "string": ""
+    "string": "Gagal hapus network"
   },
   "Cannot Delete Server": {
-    "string": ""
+    "string": "Nggak bisa hapus server  "
   },
   "Each network must have at least one server.": {
-    "string": ""
+    "string": "Tiap network harus punya minimal satu server.  "
   },
   "Delete Server": {
-    "string": ""
+    "string": "Hapus server  "
   },
   "Are you sure you want to delete \"{serverName}\"?": {
-    "string": ""
+    "string": "Yakin mau hapus \"{serverName}\"?  "
   },
   "Failed to delete server": {
-    "string": ""
+    "string": "Gagal hapus server "
   },
   "Export My Data": {
     "string": ""
   },
   "This will create a JSON file with all your data (messages, settings, networks, etc.). You can then share this file via email, cloud storage, etc.": {
-    "string": ""
+    "string": "Ini bakal bikin file JSON berisi semua data (pesan, setting, network, dll). Bisa dishare via email, cloud storage, dll. "
   },
   "Export Successful": {
     "string": ""
@@ -5274,7 +5274,7 @@
     "string": ""
   },
   "THIS CANNOT BE UNDONE!\n\nThis will permanently delete:\n• All messages\n• All settings\n• All networks\n• All identity profiles\n• Consent preferences\n• Cached data\n\nThe app will restart after deletion. Are you absolutely sure?": {
-    "string": ""
+    "string": "NGGAK BISA DIBATALIN! Ini bakal hapus permanen: • Semua pesan • Semua setting • Semua network • Semua profil identitas • Consent • Cached data App bakal restart setelah penghapusan. Yakin banget?  "
   },
   "DELETE EVERYTHING": {
     "string": ""
@@ -5367,7 +5367,7 @@
     "string": ""
   },
   "Network configurations": {
-    "string": ""
+    "string": "Konfigurasi network  "
   },
   "Identity profiles": {
     "string": ""
@@ -5409,7 +5409,7 @@
     "string": ""
   },
   "Withdraw consent at any time": {
-    "string": ""
+    "string": "Tarik consent kapan saja"
   },
   "Data portability (Export to another service)": {
     "string": ""
@@ -5511,13 +5511,13 @@
     "string": ""
   },
   "You can always change these channels later in network settings.": {
-    "string": ""
+    "string": "Channel bisa diubah kapan saja lewat pengaturan network  "
   },
   "Search by mask or reason...": {
     "string": ""
   },
   "All Networks": {
-    "string": ""
+    "string": "Semua network  "
   },
   "No matching ignored users": {
     "string": ""
@@ -5526,13 +5526,13 @@
     "string": ""
   },
   "Filter by Network": {
-    "string": ""
+    "string": "Filter berdasarkan network"
   },
   "Certificate generated and applied! Don't forget to add the fingerprint to NickServ.": {
     "string": ""
   },
   "Certificate applied to network configuration": {
-    "string": ""
+    "string": "Sertifikat diterapkan ke konfigurasi network  "
   },
   "No certificate configured": {
     "string": ""
@@ -5559,10 +5559,10 @@
     "string": ""
   },
   "You previously accepted our privacy terms. Would you like to withdraw your consent and reset privacy settings?": {
-    "string": ""
+    "string": "Kamu sebelumnya setuju privacy terms. Mau tarik consent dan reset setting privasi?"
   },
   "Withdraw & Reset": {
-    "string": ""
+    "string": "Tarik & Reset  "
   },
   "Failed to show consent form. Please try again.": {
     "string": ""
@@ -5571,7 +5571,7 @@
     "string": ""
   },
   "This will withdraw your consent and reset all privacy preferences. You will need to accept the terms again. Continue?": {
-    "string": ""
+    "string": "Ini bakal tarik consent dan reset semua preferensi privasi. Kamu harus setuju terms lagi. Lanjut?  "
   },
   "Reset & Re-accept": {
     "string": ""
@@ -5640,7 +5640,7 @@
     "string": ""
   },
   "Withdraw consent or reset settings": {
-    "string": ""
+    "string": "Tarik consent atau reset setting "
   },
   "Change your ad personalization preferences": {
     "string": ""
@@ -5781,7 +5781,7 @@
     "string": ""
   },
   "• onRaw(line, direction, msg?) — raw IRC line (in/out)": {
-    "string": ""
+    "string": "• onRaw(line, direction, msg?) — raw IRC line (in/out)"
   },
   "• onCommand(text, ctx) — outgoing command": {
     "string": ""
@@ -5799,7 +5799,7 @@
     "string": ""
   },
   "• onRaw can modify or cancel raw IRC lines.": {
-    "string": ""
+    "string": "• onRaw bisa ubah atau batalin raw IRC line  "
   },
   "• Use timers for periodic tasks, remember to clear on disconnect.": {
     "string": ""
@@ -6261,7 +6261,7 @@
     "string": ""
   },
   "Connected to {count} servers{suffix}": {
-    "string": ""
+    "string": "Connect ke {count} server{suffix} "
   },
   "No file path provided": {
     "string": ""
@@ -6654,7 +6654,7 @@
     "string": ""
   },
   "Display local message": {
-    "string": ""
+    "string": "Tampilkan pesan lokal"
   },
   "Send message to all channels": {
     "string": ""
@@ -6786,7 +6786,7 @@
     "string": ""
   },
   "IRCop connect servers": {
-    "string": ""
+    "string": "IRCop connect server"
   },
   "IRCop shutdown server": {
     "string": ""
@@ -6918,7 +6918,7 @@
     "string": ""
   },
   "Display mIRC color picker next to message input": {
-    "string": ""
+    "string": "Tampilkan mIRC color picker di samping input pesan  "
   },
   "Hide mIRC color picker button": {
     "string": ""
@@ -7224,7 +7224,7 @@
     "string": ""
   },
   "Usage: /raw <command>": {
-    "string": ""
+    "string": "Usage: /raw <command>"
   },
   "*** Looking up DNS for {hostname}...": {
     "string": ""
@@ -7491,16 +7491,16 @@
     "string": ""
   },
   "Scan this QR to import your key": {
-    "string": ""
+    "string": "Scan QR ini buat import key kamu  "
   },
   "Scan to verify fingerprint": {
     "string": ""
   },
   "No QR payload": {
-    "string": ""
+    "string": "Nggak ada payload QR  "
   },
   "Copy QR Payload": {
-    "string": ""
+    "string": "Copy QR Payload"
   },
   "Scan Key": {
     "string": ""
@@ -7536,7 +7536,7 @@
     "string": ""
   },
   "Notify away if nick is mentioned": {
-    "string": ""
+    "string": "Notifikasi saat nick disebut, meskipun status away "
   },
   "DeOp on channels": {
     "string": ""
@@ -7650,7 +7650,7 @@
     "string": ""
   },
   "4 - Auto Op & Notify": {
-    "string": ""
+    "string": "4 - Auto Op & Notify"
   },
   "1 - Always ask": {
     "string": ""
@@ -8064,7 +8064,7 @@
     "string": ""
   },
   "Raw message format": {
-    "string": ""
+    "string": "Format raw message"
   },
   "Error message format": {
     "string": ""
@@ -8109,7 +8109,7 @@
     "string": ""
   },
   "*** RAW Command: PING :example": {
-    "string": ""
+    "string": "*** RAW Command: PING :example"
   },
   "*** Connection error [000]: Example error": {
     "string": ""
@@ -8202,7 +8202,7 @@
     "string": ""
   },
   "Display the ban mask before applying": {
-    "string": ""
+    "string": "Tampilkan ban mask sebelum diterapkan  "
   },
   "Always Confirm Kick/Ban": {
     "string": ""
@@ -8316,10 +8316,10 @@
     "string": ""
   },
   "Hide RAW": {
-    "string": ""
+    "string": "Sembunyikan RAW"
   },
   "Show RAW": {
-    "string": ""
+    "string": "Tampilkan RAW "
   },
   "Usage": {
     "string": ""
@@ -8802,7 +8802,7 @@
     "string": ""
   },
   "Only servers can change that mode": {
-    "string": ""
+    "string": "Cuma server yang bisa ubah mode itu  "
   },
   "Link with this server is already set": {
     "string": ""
@@ -8949,13 +8949,13 @@
     "string": ""
   },
   "*** NOTIFY {nick}: {action}": {
-    "string": ""
+    "string": "*** NOTIFY {nick}: {action}"
   },
   "Notify is now set": {
-    "string": ""
+    "string": "Notify sekarang aktif"
   },
   "*** {nick} removed from notify list": {
-    "string": ""
+    "string": "{nick} dihapus dari daftar notify  "
   },
   "*** Traceroute hop {hop}: {host} ({time}ms)": {
     "string": ""
@@ -11160,10 +11160,10 @@
     "string": ""
   },
   "Alias for /quote (send a raw IRC command)": {
-    "string": ""
+    "string": "Alias untuk /quote (kirim raw IRC command)  "
   },
   "Example: /raw NAMES #channel": {
-    "string": ""
+    "string": "Contoh: /raw NAMES #channel"
   },
   "Example: /setname John Smith": {
     "string": ""
@@ -11217,7 +11217,7 @@
     "string": ""
   },
   "Tip: In most cases it is easier to add networks/servers via the UI, but /server is useful for quick testing.": {
-    "string": ""
+    "string": "Tip: Biasanya lebih gampang tambah network/server lewat UI, tapi /server berguna buat tes cepat  "
   },
   "Utility Commands": {
     "string": ""
@@ -11256,7 +11256,7 @@
     "string": ""
   },
   "Example: /timer ping1 5000 1 /raw PING :test": {
-    "string": ""
+    "string": "Contoh: /timer ping1 5000 1 /raw PING :test  "
   },
   "Open/create a tab or activate an existing tab": {
     "string": ""
@@ -11553,7 +11553,7 @@
     "string": ""
   },
   "Solution: Check Settings → Display & UI → Show Encryption Indicators": {
-    "string": ""
+    "string": "Solusi: Cek Settings → Display & UI → Show Encryption Indicators "
   },
   "Key Management": {
     "string": ""
@@ -11943,7 +11943,7 @@
     "string": ""
   },
   "Go to Settings \u001a Display & UI \u001a Keyboard Avoiding": {
-    "string": ""
+    "string": "Pergi ke Settings → Display & UI → Keyboard Avoiding  "
   },
   "Android: try Behavior = Height (default) or Padding": {
     "string": "Android: coba Behavior = Height (default) atau Padding  "
@@ -11964,7 +11964,7 @@
     "string": ""
   },
   "Check Settings → Display & UI → Show Raw Commands": {
-    "string": ""
+    "string": "Cek Settings → Display & UI → Show Raw Commands  "
   },
   "Verify filters in Settings → Messages & History": {
     "string": ""
@@ -11979,7 +11979,7 @@
     "string": ""
   },
   "Symptoms: Messages display as random characters": {
-    "string": ""
+    "string": "Gejala: Pesan tampil sebagai karakter acak  "
   },
   "Exchange encryption keys with sender": {
     "string": ""
@@ -12255,7 +12255,7 @@
     "string": ""
   },
   "Add to Notify": {
-    "string": ""
+    "string": "Tambah ke Notify"
   },
   "Add to AutoOp": {
     "string": ""
@@ -12306,7 +12306,7 @@
     "string": ""
   },
   "WHOIS Display": {
-    "string": ""
+    "string": "Tampilan WHOIS"
   },
   "Show WHOIS in a popup modal": {
     "string": ""
@@ -12327,7 +12327,7 @@
     "string": ""
   },
   "Manage notify, autoop, autovoice and protected lists": {
-    "string": ""
+    "string": "Kelola notify, autoop, autovoice, dan daftar protected  "
   },
   "Modes:": {
     "string": ""
@@ -12564,10 +12564,10 @@
     "string": ""
   },
   "Usage: /notify <nick>": {
-    "string": ""
+    "string": "Usage: /notify <nick>"
   },
   "Usage: /unnotify <nick>": {
-    "string": ""
+    "string": "Usage: /unnotify <nick>"
   },
   "Usage: /autoop <nick> [#channel]": {
     "string": ""
@@ -12642,7 +12642,7 @@
     "string": ""
   },
   "Notify": {
-    "string": ""
+    "string": "Notify"
   },
   "{nick} is now online": {
     "string": ""
@@ -12666,7 +12666,7 @@
     "string": ""
   },
   "Enabled for this network (better idle results on Undernet-like servers)": {
-    "string": ""
+    "string": "Aktif untuk network ini (hasil idle lebih baik di server mirip Undernet)  "
   },
   "Disabled (uses standard /WHOIS nick)": {
     "string": ""
@@ -12681,7 +12681,7 @@
     "string": ""
   },
   "Free Call STUN Servers": {
-    "string": ""
+    "string": "Free Call STUN Servers"
   },
   "Current fallback list: {count} STUN endpoints. Premium calls still use TURN when needed.": {
     "string": ""
@@ -12735,13 +12735,13 @@
     "string": ""
   },
   "No STUN servers added yet.": {
-    "string": ""
+    "string": "Belum ada STUN server ditambah  "
   },
   "No TURN servers added yet.": {
-    "string": ""
+    "string": "Belum ada TURN server ditambah  "
   },
   "STUN Servers": {
-    "string": ""
+    "string": "STUN Servers"
   },
   "Add multiple STUN URLs. Order is used as fallback priority.": {
     "string": ""
@@ -12756,7 +12756,7 @@
     "string": ""
   },
   "TURN Servers": {
-    "string": ""
+    "string": "TURN Servers"
   },
   "Add multiple TURN URLs. Order is used as fallback priority.": {
     "string": ""

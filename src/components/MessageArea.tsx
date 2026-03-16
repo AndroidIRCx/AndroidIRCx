@@ -209,7 +209,7 @@ const MessageItem = React.memo<MessageItemProps>(({
       case 'topic':
         return colors.topicMessage;
       case 'mode':
-        return colors.modeMessage || '#5DADE2'; // Light blue color for mode messages
+        return colors.modeMessage || colors.info;
       case 'raw':
         return colors.rawMessage || colors.textSecondary;
       case 'ctcp':
@@ -736,7 +736,7 @@ const MessageItem = React.memo<MessageItemProps>(({
                     />
                   ) : (
                     // If tabId is not available, we can't decrypt the media, so show an error or skip
-                    <Text key={`media-${message.id}-${index}`} style={{color: 'red'}}>
+                    <Text key={`media-${message.id}-${index}`} style={{color: colors.error}}>
                       [Encrypted media - unable to decrypt: no tab context]
                     </Text>
                   );
@@ -796,7 +796,7 @@ const MessageItem = React.memo<MessageItemProps>(({
                     />
                   ) : (
                     // If tabId is not available, we can't decrypt the media, so show an error or skip
-                    <Text key={`media-${message.id}-${index}`} style={{color: 'red'}}>
+                    <Text key={`media-${message.id}-${index}`} style={{color: colors.error}}>
                       [Encrypted media - unable to decrypt: no tab context]
                     </Text>
                   );
@@ -862,7 +862,7 @@ const MessageItem = React.memo<MessageItemProps>(({
                     />
                   ) : (
                     // If tabId is not available, we can't decrypt the media, so show an error or skip
-                    <Text key={`media-${message.id}-${index}`} style={{color: 'red'}}>
+                    <Text key={`media-${message.id}-${index}`} style={{color: colors.error}}>
                       [Encrypted media - unable to decrypt: no tab context]
                     </Text>
                   );
@@ -2477,7 +2477,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
             style={styles.searchButton}
             onPress={() => handleSearchVisibleChange(true)}
             activeOpacity={0.7}>
-            <Icon name="search" size={20} color={colors.buttonPrimaryText || '#fff'} />
+            <Icon name="search" size={20} color={colors.buttonPrimaryText} />
           </TouchableOpacity>
         )}
       </View>
@@ -2519,7 +2519,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
             style={styles.searchButton}
             onPress={() => handleSearchVisibleChange(true)}
             activeOpacity={0.7}>
-            <Icon name="search" size={20} color={colors.buttonPrimaryText || '#fff'} />
+            <Icon name="search" size={20} color={colors.buttonPrimaryText} />
           </TouchableOpacity>
         )}
         <NickContextMenu
@@ -2594,7 +2594,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           style={styles.searchButton}
           onPress={() => handleSearchVisibleChange(true)}
           activeOpacity={0.7}>
-          <Icon name="search" size={20} color={colors.buttonPrimaryText || '#fff'} />
+          <Icon name="search" size={20} color={colors.buttonPrimaryText} />
         </TouchableOpacity>
       )}
       <NickContextMenu
@@ -2707,7 +2707,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     borderRadius: 4,
   },
   selectedMessage: {
-    backgroundColor: colors.selectionBackground || 'rgba(33, 150, 243, 0.12)',
+    backgroundColor: colors.selectionBackground,
     borderRadius: 6,
   },
   pendingMessage: {
@@ -2760,7 +2760,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   contextOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -2820,11 +2820,11 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   contextWarning: {
-    color: colors.warning || colors.text,
+    color: colors.warning,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   contextDanger: {
-    color: colors.error || colors.text,
+    color: colors.error,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   contextGroupHeader: {
@@ -2833,7 +2833,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   contextGroupTitle: {
     fontSize: 12,
-    color: colors.textSecondary || colors.text,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
@@ -2852,7 +2852,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   contextSubTitle: {
     fontSize: 11,
-    color: colors.textSecondary || colors.text,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
@@ -2874,21 +2874,21 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   blacklistOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   blacklistModal: {
     width: '90%',
     maxWidth: 420,
-    backgroundColor: colors.surface || colors.messageBackground,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
   },
   noteModal: {
     width: '90%',
     maxWidth: 420,
-    backgroundColor: colors.surface || colors.messageBackground,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
   },
@@ -2901,7 +2901,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   blacklistLabel: {
     fontSize: 12,
-    color: colors.textSecondary || colors.text,
+    color: colors.textSecondary,
     marginTop: 8,
     marginBottom: 6,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
@@ -2920,7 +2920,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   blacklistOptionSubtext: {
-    color: colors.textSecondary || colors.text,
+    color: colors.textSecondary,
     fontSize: 12,
     marginTop: 2,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
@@ -2936,6 +2936,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     borderColor: colors.border,
     borderRadius: 8,
     backgroundColor: colors.surfaceVariant || colors.messageBackground,
+    
     minHeight: 44,
     justifyContent: 'center',
   },
@@ -2993,19 +2994,19 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   blacklistButtonTextPrimary: {
-    color: colors.onPrimary || '#fff',
+    color: colors.onPrimary,
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   blacklistPickerScroll: {
     maxHeight: 220,
   },
   qrModal: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.modalBackground,
     borderRadius: 12,
     minWidth: 300,
     maxWidth: 360,
     width: '90%',
-    shadowColor: '#000',
+    shadowColor: colors.modalOverlay,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -3014,42 +3015,42 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   qrModalHeader: {
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.modalBackground,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   qrModalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.modalText,
     marginBottom: 6,
     textAlign: 'center',
   },
   qrModalSubtitle: {
     fontSize: 13,
-    color: '#757575',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   qrCodeContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.modalBackground,
   },
   qrModalButton: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.modalBackground,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: colors.border,
   },
   qrModalButtonText: {
     fontSize: 15,
-    color: '#2196F3',
+    color: colors.accent,
     textAlign: 'center',
     fontWeight: '500',
   },
   scanContainer: {
-    backgroundColor: '#000',
+    backgroundColor: colors.modalBackground,
     borderRadius: 12,
     overflow: 'hidden',
     width: '90%',
@@ -3058,21 +3059,21 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   },
   scanHeader: {
     padding: 14,
-    backgroundColor: '#111',
+    backgroundColor: colors.surfaceAlt,
   },
   scanTitle: {
-    color: '#fff',
+    color: colors.modalText,
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
   scanText: {
-    color: '#fff',
+    color: colors.modalText,
     textAlign: 'center',
     paddingVertical: 10,
   },
   scanError: {
-    color: '#FF5252',
+    color: colors.error,
     textAlign: 'center',
     paddingVertical: 6,
   },
@@ -3086,7 +3087,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     left: 12,
     right: 12,
     bottom: selectionBarBottom,
-    backgroundColor: colors.surface || colors.messageBackground,
+    backgroundColor: colors.surface,
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 12,
@@ -3094,8 +3095,8 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border || '#ddd',
-    shadowColor: '#000',
+    borderColor: colors.border,
+    shadowColor: colors.modalOverlay,
     shadowOpacity: 0.15,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -3119,14 +3120,14 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     marginLeft: 8,
   },
   selectionButtonText: {
-    color: colors.buttonPrimaryText || '#fff',
+    color: colors.buttonPrimaryText,
     fontWeight: '600',
     writingDirection: layoutConfig.messageTextDirection || 'auto',
   },
   selectionCancelButton: {
     backgroundColor: colors.surfaceAlt || colors.messageBackground,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border || '#ccc',
+    borderColor: colors.border,
   },
   selectionCancelText: {
     color: colors.text,
@@ -3137,7 +3138,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     bottom: selectionToastBottom,
     left: 24,
     right: 24,
-    backgroundColor: colors.surface || 'rgba(0,0,0,0.75)',
+    backgroundColor: colors.surface,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 10,
@@ -3158,7 +3159,7 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.modalOverlay,
     shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },

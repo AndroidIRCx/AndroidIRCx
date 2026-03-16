@@ -17,6 +17,7 @@ import {
 import { userManagementService, IgnoredUser } from '../services/UserManagementService';
 import { connectionManager } from '../services/ConnectionManager';
 import { useT } from '../i18n/transifex';
+import { useTheme } from '../hooks/useTheme';
 
 interface IgnoreListScreenProps {
   visible: boolean;
@@ -30,6 +31,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
   onClose,
 }) => {
   const t = useT();
+  const { colors } = useTheme();
   const [ignoredUsers, setIgnoredUsers] = useState<IgnoredUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<IgnoredUser[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -39,6 +41,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
   const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
   const [showNetworkPicker, setShowNetworkPicker] = useState(false);
   const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
+  const styles = createStyles(colors);
 
   useEffect(() => {
     if (visible) {
@@ -163,7 +166,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder={t('Search by mask or reason...')}
-            placeholderTextColor="#9E9E9E"
+            placeholderTextColor={colors.inputPlaceholder}
           />
           <TouchableOpacity
             style={styles.networkFilterButton}
@@ -236,6 +239,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
                 value={newMask}
                 onChangeText={setNewMask}
                 placeholder={t('nick or mask (e.g., *!*@host.com)')}
+                placeholderTextColor={colors.inputPlaceholder}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
@@ -244,6 +248,7 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
                 value={newReason}
                 onChangeText={setNewReason}
                 placeholder={t('Reason (optional)')}
+                placeholderTextColor={colors.inputPlaceholder}
                 multiline
               />
               <View style={styles.modalButtons}>
@@ -325,10 +330,10 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -336,13 +341,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    backgroundColor: '#F5F5F5',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text,
   },
   headerActions: {
     flexDirection: 'row',
@@ -350,13 +355,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.accent,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 4,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: colors.onAccent,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -365,30 +370,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   closeButtonText: {
-    color: '#2196F3',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '500',
   },
   filterSection: {
     padding: 12,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
     gap: 8,
   },
   searchInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 10,
     fontSize: 14,
-    color: '#212121',
+    color: colors.inputText,
   },
   networkFilterButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 10,
     flexDirection: 'row',
@@ -397,11 +402,11 @@ const styles = StyleSheet.create({
   },
   networkFilterButtonText: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
   },
   networkFilterButtonArrow: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
   },
   content: {
     flex: 1,
@@ -412,12 +417,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#9E9E9E',
+    color: colors.textDisabled,
     textAlign: 'center',
   },
   ignoreItem: {
@@ -426,7 +431,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.divider,
+    backgroundColor: colors.background,
   },
   ignoreContent: {
     flex: 1,
@@ -434,70 +440,72 @@ const styles = StyleSheet.create({
   },
   ignoreMask: {
     fontSize: 16,
-    color: '#212121',
+    color: colors.text,
     fontWeight: '500',
     fontFamily: 'monospace',
     marginBottom: 4,
   },
   ignoreNetwork: {
     fontSize: 12,
-    color: '#2196F3',
+    color: colors.primary,
     marginBottom: 4,
     fontWeight: '500',
   },
   ignoreReason: {
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   ignoreDate: {
     fontSize: 12,
-    color: '#9E9E9E',
+    color: colors.textDisabled,
   },
   removeButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: colors.error,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 4,
   },
   removeButtonText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.modalBackground,
     borderRadius: 8,
     padding: 20,
     width: '90%',
     maxWidth: 400,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.modalText,
     marginBottom: 8,
   },
   modalDescription: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 16,
     lineHeight: 18,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 12,
     fontSize: 14,
-    color: '#212121',
-    backgroundColor: '#FFFFFF',
+    color: colors.inputText,
+    backgroundColor: colors.inputBackground,
     marginBottom: 12,
   },
   inputMultiline: {
@@ -523,18 +531,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   modalButtonCancel: {
-    backgroundColor: '#9E9E9E',
+    backgroundColor: colors.buttonSecondary,
   },
   modalButtonPrimary: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.buttonPrimary,
   },
   modalButtonText: {
-    color: '#FFFFFF',
+    color: colors.buttonSecondaryText,
     fontSize: 14,
     fontWeight: '500',
   },
   modalButtonTextPrimary: {
-    color: '#FFFFFF',
+    color: colors.buttonPrimaryText,
   },
   networkPickerScroll: {
     maxHeight: 300,
@@ -543,14 +551,14 @@ const styles = StyleSheet.create({
   networkPickerItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.divider,
   },
   networkPickerItemText: {
     fontSize: 16,
-    color: '#212121',
+    color: colors.text,
   },
   networkPickerItemTextSelected: {
-    color: '#2196F3',
+    color: colors.primary,
     fontWeight: '600',
   },
 });

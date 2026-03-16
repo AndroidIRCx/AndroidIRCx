@@ -271,7 +271,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={onClose}>
       <View style={[styles.container, { backgroundColor: currentColors.background }]}>
-        <View style={[styles.header, { backgroundColor: currentColors.primary }]}>
+        <View style={[styles.header, { backgroundColor: currentColors.primary, borderBottomColor: currentColors.divider }]}>
           <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
             <Text style={[styles.cancelText, { color: currentColors.onPrimary }]}>{t('Cancel')}</Text>
           </TouchableOpacity>
@@ -350,7 +350,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
           setEditingColor(null);
           setHexInput('');
         }}>
-        <View style={styles.pickerOverlay}>
+        <View style={[styles.pickerOverlay, { backgroundColor: currentColors.modalOverlay }]}>
           <View style={[styles.pickerContainer, { backgroundColor: currentColors.surface }]}>
             <Text style={[styles.pickerTitle, { color: currentColors.text }]}>
               {t('Choose Color')}
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    borderBottomColor: 'transparent',
   },
   cancelButton: {
     padding: 8,
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
   },
   pickerOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },

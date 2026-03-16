@@ -133,12 +133,14 @@ describe('DataBackupService', () => {
   describe('Export Settings', () => {
     it('should exclude message history keys', async () => {
       mockStorage['MESSAGES_freenode_#general'] = 'messages';
+      mockStorage['@AndroidIRCX:history:freenode:#general'] = 'history';
       mockStorage['settings'] = 'settings';
 
       const backup = await dataBackupService.exportSettings();
       const parsed = JSON.parse(backup);
 
       expect(parsed.data['MESSAGES_freenode_#general']).toBeUndefined();
+      expect(parsed.data['@AndroidIRCX:history:freenode:#general']).toBeUndefined();
       expect(parsed.data.settings).toBe('settings');
     });
 
@@ -200,6 +202,16 @@ describe('DataBackupService', () => {
 
     it('should throw on missing data', async () => {
       await expect(dataBackupService.importAll('{"version":1}')).rejects.toThrow('Invalid backup format');
+    });
+
+    it('should throw when data is not an object', async () => {
+      await expect(dataBackupService.importAll('{"version":1,"data":"bad"}')).rejects.toThrow('Invalid backup format');
+    });
+
+    it('should throw when secureData is malformed', async () => {
+      await expect(
+        dataBackupService.importAll('{"version":1,"data":{},"secureData":"bad"}')
+      ).rejects.toThrow('Invalid backup format');
     });
 
     it('should reload services after import', async () => {

@@ -20,6 +20,12 @@ interface ThemeColors {
   accent: string;
   border: string;
   inputBackground: string;
+  inputPlaceholder?: string;
+  error?: string;
+  modalOverlay?: string;
+  onAccent?: string;
+  surface?: string;
+  onPrimary?: string;
 }
 
 interface KickBanModalProps {
@@ -47,6 +53,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
   mode,
   colors,
 }) => {
+  const styles = createStyles(colors);
   const [reason, setReason] = useState('');
   const [selectedBanType, setSelectedBanType] = useState<number>(2);
   
@@ -132,7 +139,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={[styles.centeredView, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+      <View style={[styles.centeredView, { backgroundColor: colors.modalOverlay || 'rgba(0,0,0,0.5)' }]}>
         <View style={[styles.modalView, { backgroundColor: colors.background }]}>
           <Text style={[styles.title, { color: colors.text }]}>
             {mode === 'kick' ? 'Kick' : mode === 'ban' ? 'Ban' : 'Kick/Ban'}: {nick}
@@ -159,6 +166,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
             value={reason}
             onChangeText={setReason}
             placeholder="Enter reason..."
+            placeholderTextColor={colors.inputPlaceholder || colors.border}
             multiline
             numberOfLines={3}
           />
@@ -172,7 +180,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
                 style={[styles.quickReasonButton, { backgroundColor: colors.accent }]}
                 onPress={() => handlePredefinedReasonSelect(reasonItem.text)}
               >
-                <Text style={styles.quickReasonText}>{reasonItem.text}</Text>
+              <Text style={styles.quickReasonText}>{reasonItem.text}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -209,8 +217,8 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
             <Switch
               value={showUnbanTimer}
               onValueChange={setShowUnbanTimer}
-              trackColor={{ false: '#767577', true: colors.accent }}
-              thumbColor={showUnbanTimer ? '#f4f3f4' : '#f4f3f4'}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor={colors.onAccent || colors.background}
             />
           </View>
 
@@ -225,6 +233,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
                 value={unbanTimeValue}
                 onChangeText={setUnbanTimeValue}
                 placeholder="Time"
+                placeholderTextColor={colors.inputPlaceholder || colors.border}
                 keyboardType="numeric"
               />
               
@@ -264,7 +273,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -277,7 +286,7 @@ const styles = StyleSheet.create({
     maxHeight: '90%',
     borderRadius: 10,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: 'transparent',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -319,8 +328,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   quickReasonText: {
-    color: 'white',
     fontSize: 12,
+    color: colors.onAccent || colors.onPrimary || '#FFFFFF',
   },
   pickerContainer: {
     borderWidth: 1,
@@ -329,7 +338,7 @@ const styles = StyleSheet.create({
   },
   previewText: {
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'transparent',
     borderRadius: 5,
     fontFamily: 'monospace',
     fontSize: 12,
@@ -370,7 +379,7 @@ const styles = StyleSheet.create({
     // Specific styles for confirm button
   },
   buttonText: {
-    color: 'white',
+    color: colors.onPrimary || colors.onAccent || '#FFFFFF',
     fontWeight: 'bold',
     textAlign: 'center',
   },

@@ -24,6 +24,7 @@ interface CommandSuggestionsProps {
     text: string;
     textSecondary: string;
     primary: string;
+    onPrimary?: string;
     surface: string;
     border: string;
     background: string;
@@ -78,7 +79,7 @@ export const CommandSuggestions: React.FC<CommandSuggestionsProps> = ({
                       styles.aliasBadge,
                       { backgroundColor: colors.primary },
                     ]}>
-                    <Text style={styles.aliasBadgeText}>{'alias'}</Text>
+                    <Text style={[styles.aliasBadgeText, { color: colors.onPrimary || colors.surface }]}>alias</Text>
                   </View>
                 )}
               </View>
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 4,
-    shadowColor: '#000',
+    shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -145,7 +146,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   aliasBadgeText: {
-    color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '600',
   },

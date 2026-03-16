@@ -17,6 +17,7 @@ import {
 import { tx } from '../../i18n/transifex';
 import { useThemeWithSettings } from '../../hooks/useThemeWithSettings';
 import { Theme } from '../../services/ThemeService';
+import { useTheme } from '../../hooks/useTheme';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -29,8 +30,10 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
   themes,
   onThemeChange,
 }) => {
+  const { colors } = useTheme();
   const { theme: currentTheme, setTheme, hasRecommendedSettings, recommendedSettings } = useThemeWithSettings();
   const [isApplying, setIsApplying] = useState(false);
+  const styles = createStyles(colors);
 
   const handleThemeSelect = async (themeId: string) => {
     const selectedTheme = themes.find(t => t.id === themeId);
@@ -150,15 +153,17 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: colors.background,
   },
   header: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
+    color: colors.text,
   },
   themeItem: {
     flexDirection: 'row',
@@ -166,12 +171,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: colors.surfaceVariant,
   },
   themeItemActive: {
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
+    borderColor: colors.primary,
   },
   themePreview: {
     marginRight: 12,
@@ -183,7 +188,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: colors.border,
   },
   accentPreview: {
     width: 24,
@@ -196,33 +201,34 @@ const styles = StyleSheet.create({
   themeName: {
     fontSize: 16,
     fontWeight: '600',
+    color: colors.text,
   },
   hasSettingsBadge: {
     fontSize: 12,
-    opacity: 0.7,
+    color: colors.textSecondary,
     marginTop: 4,
   },
   selectedIndicator: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
   },
   selectedText: {
-    color: 'white',
+    color: colors.onAccent,
     fontSize: 16,
     fontWeight: 'bold',
   },
   infoBox: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+    backgroundColor: colors.highlightBackground,
     borderRadius: 8,
   },
   infoText: {
     fontSize: 14,
-    opacity: 0.8,
+    color: colors.text,
   },
 });

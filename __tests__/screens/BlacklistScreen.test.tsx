@@ -12,6 +12,38 @@ jest.mock('../../src/i18n/transifex', () => ({
   useT: () => (key: string) => key,
 }));
 
+jest.mock('../../src/hooks/useTheme', () => ({
+  useTheme: () => ({
+    colors: {
+      background: '#121212',
+      surface: '#1E1E1E',
+      surfaceVariant: '#2C2C2C',
+      text: '#FFFFFF',
+      textSecondary: '#B0B0B0',
+      textDisabled: '#666666',
+      primary: '#2196F3',
+      accent: '#4CAF50',
+      onAccent: '#FFFFFF',
+      warning: '#FF9800',
+      error: '#F44336',
+      border: '#333333',
+      divider: '#2A2A2A',
+      inputBackground: '#2C2C2C',
+      inputText: '#FFFFFF',
+      inputBorder: '#333333',
+      inputPlaceholder: '#757575',
+      buttonPrimary: '#2196F3',
+      buttonPrimaryText: '#FFFFFF',
+      buttonSecondary: '#424242',
+      buttonSecondaryText: '#FFFFFF',
+      modalOverlay: 'rgba(0, 0, 0, 0.7)',
+      modalBackground: '#1E1E1E',
+      modalText: '#FFFFFF',
+      onPrimary: '#FFFFFF',
+    },
+  }),
+}));
+
 jest.mock('../../src/services/UserManagementService', () => ({
   userManagementService: {
     getBlacklistEntries: jest.fn(),

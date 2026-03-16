@@ -371,13 +371,13 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
             ? t('Monthly relay access using turn.dbase.in.rs')
             : t('Yearly relay access using turn.dbase.in.rs')}
         </Text>
-        <TouchableOpacity
-          style={[styles.primaryButton, isCurrent && styles.successButton]}
-          onPress={() => !isCurrent && handlePurchase(planId)}
-          disabled={isCurrent || isBusy || (!offer && Platform.OS === 'android')}
-        >
+          <TouchableOpacity
+            style={[styles.primaryButton, isCurrent && styles.successButton]}
+            onPress={() => !isCurrent && handlePurchase(planId)}
+            disabled={isCurrent || isBusy || (!offer && Platform.OS === 'android')}
+          >
           {isBusy ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={colors.onPrimary} />
           ) : (
             <Text style={styles.primaryButtonText}>
               {isCurrent ? t('Active') : t('Subscribe')}
@@ -597,7 +597,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.success || colors.primary,
   },
   primaryButtonText: {
-    color: '#fff',
+    color: colors.onPrimary,
     fontSize: 15,
     fontWeight: '700',
   },

@@ -15,6 +15,7 @@ interface ScriptingAdsSectionProps {
     text: string;
     textSecondary: string;
     primary: string;
+    onPrimary?: string;
     surface: string;
     border: string;
     background: string;
@@ -110,7 +111,7 @@ export const ScriptingAdsSection: React.FC<ScriptingAdsSectionProps> = ({
             disabled={showingAd}
           >
             {showingAd ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.onPrimary} />
             ) : (
               <Text style={styles.watchAdButtonText}>
                 {adReady

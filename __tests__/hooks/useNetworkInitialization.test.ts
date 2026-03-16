@@ -176,13 +176,13 @@ describe('useNetworkInitialization', () => {
     expect(mockSetNetworkName).toHaveBeenCalledWith('Freenode');
   });
 
-  it('should prioritize persisted primary network over Quick Connect', async () => {
+  it('should prioritize Quick Connect over persisted primary network', async () => {
     require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
       { id: 'DBase', name: 'DBase', servers: [{ hostname: 'dbase.com', port: 6667 }] },
       { id: 'freenode', name: 'Freenode', servers: [{ hostname: 'chat.freenode.com', port: 6697 }] },
       { id: 'undernet', name: 'Undernet', servers: [{ hostname: 'irc.undernet.org', port: 6667 }] },
     ]);
-    // Quick Connect points to freenode, but persisted primary should win
+    // Quick Connect is an explicit default and should win over stale persisted primary state
     require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue('freenode');
 
     const props = {
@@ -194,11 +194,11 @@ describe('useNetworkInitialization', () => {
 
     await new Promise(resolve => setTimeout(resolve, 0));
 
-    expect(mockSetSelectedNetworkName).toHaveBeenCalledWith('Undernet');
-    expect(mockSetNetworkName).toHaveBeenCalledWith('Undernet');
+    expect(mockSetSelectedNetworkName).toHaveBeenCalledWith('Freenode');
+    expect(mockSetNetworkName).toHaveBeenCalledWith('Freenode');
   });
 
-  it('should match persisted primary network by name as well as id', async () => {
+  it('should ignore persisted primary network name when Quick Connect is set', async () => {
     require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
       { id: 'freenode', name: 'Freenode', servers: [{ hostname: 'chat.freenode.com', port: 6697 }] },
       { id: 'undernet', name: 'Undernet', servers: [{ hostname: 'irc.undernet.org', port: 6667 }] },
@@ -214,8 +214,8 @@ describe('useNetworkInitialization', () => {
 
     await new Promise(resolve => setTimeout(resolve, 0));
 
-    expect(mockSetSelectedNetworkName).toHaveBeenCalledWith('Undernet');
-    expect(mockSetNetworkName).toHaveBeenCalledWith('Undernet');
+    expect(mockSetSelectedNetworkName).toHaveBeenCalledWith('Freenode');
+    expect(mockSetNetworkName).toHaveBeenCalledWith('Freenode');
   });
 
   it('should prioritize favorite/default server network over DBase', async () => {

@@ -18,9 +18,11 @@ interface WritingSectionProps {
     text: string;
     textSecondary: string;
     primary: string;
+    onPrimary?: string;
     surface: string;
     border: string;
     background: string;
+    modalOverlay?: string;
   };
   styles: {
     settingItem: any;
@@ -175,7 +177,7 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
       fontWeight: '600',
     },
     tabTextActive: {
-      color: '#fff',
+      color: colors.onPrimary || colors.text,
     },
     previewBox: {
       padding: 12,
@@ -191,7 +193,7 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
     },
     modalContainer: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.6)',
+      backgroundColor: colors.modalOverlay || colors.background,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
@@ -305,7 +307,7 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
       backgroundColor: colors.border,
     },
     modalButtonText: {
-      color: '#fff',
+      color: colors.onPrimary || colors.text,
       fontWeight: '600',
     },
     modalButtonTextSecondary: {

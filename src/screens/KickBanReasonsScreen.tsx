@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { banService, PredefinedReason } from '../services/BanService';
+import { useTheme } from '../hooks/useTheme';
 
 interface KickBanReasonsScreenProps {
   navigation: any;
@@ -17,11 +18,13 @@ interface KickBanReasonsScreenProps {
 }
 
 const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation }) => {
+  const { colors } = useTheme();
   const [reasons, setReasons] = useState<PredefinedReason[]>([]);
   const [newReason, setNewReason] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [loading, setLoading] = useState(true);
+  const styles = createStyles(colors);
 
   useEffect(() => {
     loadReasons();
@@ -147,6 +150,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
             style={styles.editInput}
             value={editText}
             onChangeText={setEditText}
+            placeholderTextColor={colors.inputPlaceholder}
             autoFocus
           />
           <View style={styles.editButtons}>
@@ -197,7 +201,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
   if (loading) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <Text>Loading...</Text>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -212,6 +216,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
           value={newReason}
           onChangeText={setNewReason}
           placeholder="Enter new reason..."
+          placeholderTextColor={colors.inputPlaceholder}
         />
         <TouchableOpacity style={styles.addButton} onPress={addReason}>
           <Text style={styles.buttonText}>Add Reason</Text>
@@ -233,21 +238,25 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation 
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingText: {
+    color: colors.text,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    color: colors.text,
   },
   addContainer: {
     flexDirection: 'row',
@@ -256,13 +265,15 @@ const styles = StyleSheet.create({
   addInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: colors.inputBorder,
     borderRadius: 5,
     padding: 10,
     marginRight: 10,
+    backgroundColor: colors.inputBackground,
+    color: colors.inputText,
   },
   addButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.buttonPrimary,
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 5,
@@ -272,9 +283,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   reasonItem: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.border,
     borderRadius: 5,
     padding: 15,
     marginBottom: 10,
@@ -287,6 +298,7 @@ const styles = StyleSheet.create({
   reasonText: {
     flex: 1,
     fontSize: 16,
+    color: colors.text,
   },
   reasonActions: {
     flexDirection: 'row',
@@ -298,16 +310,16 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   moveButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: colors.buttonSecondary,
   },
   editButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.accent,
   },
   deleteButton: {
-    backgroundColor: '#f44336',
+    backgroundColor: colors.error,
   },
   actionButtonText: {
-    color: '#fff',
+    color: colors.onPrimary,
     fontSize: 12,
   },
   editContainer: {
@@ -317,33 +329,35 @@ const styles = StyleSheet.create({
   editInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: colors.inputBorder,
     borderRadius: 5,
     padding: 10,
     marginRight: 10,
+    backgroundColor: colors.inputBackground,
+    color: colors.inputText,
   },
   editButtons: {
     flexDirection: 'row',
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.accent,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 3,
     marginRight: 5,
   },
   cancelButton: {
-    backgroundColor: '#f44336',
+    backgroundColor: colors.error,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 3,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.onPrimary,
     fontWeight: 'bold',
   },
   resetButton: {
-    backgroundColor: '#ff9800',
+    backgroundColor: colors.warning,
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
@@ -351,7 +365,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   resetButtonText: {
-    color: '#fff',
+    color: colors.onPrimary,
     fontWeight: 'bold',
     fontSize: 16,
   },

@@ -89,7 +89,7 @@ export const SettingInput: React.FC<SettingInputProps> = ({
           }}
         />
         {!!item.error && (
-          <Text style={{ color: '#ff5252', marginTop: 4, fontSize: 12 }}>
+          <Text style={{ color: colors.error, marginTop: 4, fontSize: 12 }}>
             {item.error}
           </Text>
         )}

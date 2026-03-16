@@ -37,6 +37,7 @@ describe('SettingsService', () => {
       port: 6697,
       ssl: true,
     });
+    expect(defaultNet?.servers.some(s => s.hostname === 'irc.androidircx.com')).toBe(false);
 
     // Networks should be saved (StorageCache uses multiSet for batched writes)
     const setItemCalls = (AsyncStorage as any).setItem.mock.calls;
@@ -132,6 +133,35 @@ describe('SettingsService', () => {
   it('marks the default server as favorite by default', async () => {
     const networks = await settingsService.loadNetworks();
     const defaultNet = networks.find(n => n.name === 'DBase');
+    expect(defaultNet?.servers[0].favorite).toBe(true);
+  });
+
+  it('removes irc.androidircx.com from the default DBase server list for existing installs', async () => {
+    const baseNetwork: IRCNetworkConfig = {
+      id: 'DBase',
+      name: 'DBase',
+      nick: 'nick',
+      realname: 'Real Name',
+      servers: [
+        {
+          id: 'androidircx-default',
+          hostname: 'irc.androidircx.com',
+          port: 6697,
+          ssl: true,
+          favorite: true,
+        },
+      ],
+      defaultServerId: 'androidircx-default',
+    };
+
+    await AsyncStorage.setItem('@AndroidIRCX:networks', JSON.stringify([baseNetwork]));
+
+    const networks = await settingsService.loadNetworks();
+    const defaultNet = networks.find(n => n.name === 'DBase');
+
+    expect(defaultNet?.servers.some(s => s.hostname === 'irc.androidircx.com')).toBe(false);
+    expect(defaultNet?.servers.some(s => s.hostname === 'irc.dbase.in.rs')).toBe(true);
+    expect(defaultNet?.defaultServerId).toBe(defaultNet?.servers[0].id);
     expect(defaultNet?.servers[0].favorite).toBe(true);
   });
 

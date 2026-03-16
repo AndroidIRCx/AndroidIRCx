@@ -53,8 +53,12 @@ const isFavoritesKey = (key: string) => key.includes('channelFavorites');
 const isNotesKey = (key: string) => key.includes('channelNotes') || key.includes('channelBookmarks') || key.includes('userAlias');
 const isHighlightsKey = (key: string) => key.includes('HIGHLIGHT') || key.includes('notification');
 const isTabsKey = (key: string) => key.startsWith('TABS_');
-const isMessagesKey = (key: string) => key.startsWith('MESSAGES_');
-const isLogsKey = (key: string) => key.includes('log') && !key.includes('login');
+const isMessagesKey = (key: string) =>
+  key.startsWith('MESSAGES_') || key.startsWith('@AndroidIRCX:history:');
+const isLogsKey = (key: string) => {
+  const lowerKey = key.toLowerCase();
+  return key === 'channelLogs' || key.startsWith('channelLogs:') || (lowerKey.includes('log') && !lowerKey.includes('login'));
+};
 
 // Security warning text for sensitive data
 const SENSITIVE_DATA_WARNING = 'This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup.';
@@ -390,21 +394,54 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   };
 
   const normalizeFileUri = (uri: string) => (uri.startsWith('file://') ? uri.slice(7) : uri);
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message?.trim()) {
+      return error.message;
+    }
+    if (error && typeof error === 'object') {
+      const maybeMessage = (error as { message?: unknown; description?: unknown }).message;
+      if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+        return maybeMessage;
+      }
+      const maybeDescription = (error as { description?: unknown }).description;
+      if (typeof maybeDescription === 'string' && maybeDescription.trim()) {
+        return maybeDescription;
+      }
+    }
+    return fallback;
+  };
+
+  const cleanupPickedCopy = async (uri?: string | null) => {
+    if (!uri || !uri.startsWith('file://')) {
+      return;
+    }
+    try {
+      await RNFS.unlink(normalizeFileUri(uri));
+    } catch {
+      // Ignore cleanup errors for picker copies.
+    }
+  };
 
   const handleLoadFromFile = async () => {
     if (backupBusy) return;
     setBackupOperation('load');
+    let pickerCopyUri: string | undefined;
     try {
       const [result] = await pick({
         type: [types.plainText, 'application/json', 'text/json'],
         // @ts-ignore - copyTo exists in picker runtime versions we support
-        copyTo: 'documentDirectory',
+        copyTo: 'cachesDirectory',
       });
 
-      const fileUri = (result as any)?.fileCopyUri ?? result?.uri;
+      pickerCopyUri = (result as any)?.fileCopyUri;
+      let fileUri = pickerCopyUri ?? result?.uri;
       if (!fileUri) {
         Alert.alert(t('Error', { _tags: tags }), t('No file selected', { _tags: tags }));
         return;
+      }
+
+      if (Platform.OS === 'android' && fileUri.startsWith('content://')) {
+        fileUri = pickerCopyUri ?? fileUri;
       }
 
       const content = await RNFS.readFile(normalizeFileUri(fileUri), 'utf8');
@@ -449,9 +486,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
 
       Alert.alert(
         t('Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to load backup file', { _tags: tags })
+        getErrorMessage(error, t('Failed to load backup file', { _tags: tags }))
       );
     } finally {
+      await cleanupPickedCopy(pickerCopyUri);
       setBackupOperation('idle');
     }
   };
@@ -477,7 +515,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to restore backup', { _tags: tags })
+        getErrorMessage(error, t('Failed to restore backup', { _tags: tags }))
       );
     }
   };
@@ -498,7 +536,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
     } catch (error) {
       Alert.alert(
         t('Decryption Failed', { _tags: tags }),
-        t('Wrong password or corrupted data. Please check your password and try again.', { _tags: tags })
+        getErrorMessage(
+          error,
+          t('Wrong password or corrupted data. Please check your password and try again.', { _tags: tags })
+        )
       );
       setBackupOperation('idle');
     }
@@ -529,7 +570,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
             } catch (error) {
               Alert.alert(
                 t('Error', { _tags: tags }),
-                error instanceof Error ? error.message : t('Invalid backup data', { _tags: tags })
+                getErrorMessage(error, t('Invalid backup data', { _tags: tags }))
               );
             } finally {
               setBackupOperation('idle');
@@ -1003,7 +1044,7 @@ const createStyles = (colors: any) =>
       marginBottom: 12,
     },
     primaryButtonText: {
-      color: '#FFFFFF',
+      color: colors.onPrimary,
       fontSize: 16,
       fontWeight: '600',
     },
@@ -1097,7 +1138,7 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 24,
     },
     restoreButtonText: {
-      color: '#FFFFFF',
+      color: colors.onPrimary,
       fontWeight: '600',
     },
     primaryText: {
@@ -1105,7 +1146,7 @@ const createStyles = (colors: any) =>
     },
     encryptionModalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      backgroundColor: colors.modalOverlay,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
@@ -1159,7 +1200,7 @@ const createStyles = (colors: any) =>
       opacity: 0.5,
     },
     encryptionButtonText: {
-      color: '#FFFFFF',
+      color: colors.onPrimary,
       fontSize: 14,
       fontWeight: '600',
     },
@@ -1188,7 +1229,7 @@ const createStyles = (colors: any) =>
     },
     blockingLoaderOverlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: colors.modalOverlay,
       alignItems: 'center',
       justifyContent: 'center',
       padding: 20,

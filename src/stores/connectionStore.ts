@@ -83,12 +83,20 @@ export const useConnectionStore = create<ConnectionState>()(
     }),
     {
       name: 'connection-storage',
+      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState: any) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return persistedState;
+        }
+
+        const { primaryNetworkId, ...rest } = persistedState;
+        return rest;
+      },
       // Only persist specific fields
       partialize: (state) => ({
         networkName: state.networkName,
         selectedNetworkName: state.selectedNetworkName,
-        primaryNetworkId: state.primaryNetworkId,
       }),
     }
   )

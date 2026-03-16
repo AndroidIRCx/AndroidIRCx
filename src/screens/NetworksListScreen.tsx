@@ -252,8 +252,14 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
             <TouchableOpacity
               style={styles.topActionButton}
               onPress={() => setShowIrcDatabaseModal(true)}>
-              <Text style={styles.topActionText}>{t('Load networks from IRC Database')}</Text>
+              <Text style={styles.topActionText}>{t('Reload from IRC Database')}</Text>
             </TouchableOpacity>
+          </View>
+          <View style={styles.apiInfoBanner}>
+            <Text style={styles.apiInfoTitle}>{t('Choose Network')}</Text>
+            <Text style={styles.apiInfoText}>
+              {t('You can add your own networks here, or reload the approved network list from the IRC Database API. Existing networks are kept; missing servers are added.')}
+            </Text>
           </View>
 
           {isLoading ? (
@@ -363,18 +369,15 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
         <View style={styles.ircDatabaseOverlay}>
           <View style={styles.ircDatabaseCard}>
             <ScrollView style={styles.ircDatabaseScroll} contentContainerStyle={styles.ircDatabaseScrollContent}>
-              <Text style={styles.ircDatabaseTitle}>{t('Load Networks from IRC Database')}</Text>
+              <Text style={styles.ircDatabaseTitle}>{t('Reload Networks from IRC Database')}</Text>
               <Text style={styles.ircDatabaseBody}>
                 {t('IRC Database contains networks that explicitly opted in to be publicly discoverable in IRC clients.')}
               </Text>
               <Text style={styles.ircDatabaseBody}>
-                {t('AndroidIRCX imports approved presets from:')}
+                {t('Reload means update: matching networks are skipped, and only missing servers are added to existing networks.')}
               </Text>
-              <TouchableOpacity onPress={() => openExternalUrl('https://irc.dbase.in.rs/api/irc/server-presets')}>
-                <Text style={styles.ircDatabaseLink}>https://irc.dbase.in.rs/api/irc/server-presets</Text>
-              </TouchableOpacity>
               <Text style={styles.ircDatabaseBody}>
-                {t('Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.')}
+                {t('AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.')}
               </Text>
 
               <View style={styles.ircDatabaseFooter}>
@@ -427,7 +430,7 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
                   <ActivityIndicator size="small" color={colors.onPrimary || '#FFFFFF'} />
                 ) : (
                   <Text style={styles.ircDatabasePrimaryButtonText}>
-                    {t('Load from IRC Database')}
+                    {t('Update from IRC Database')}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -497,6 +500,24 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.primary || '#2196F3',
     fontSize: 14,
     fontWeight: '600',
+  },
+  apiInfoBanner: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.surface || '#F7F7F7',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border || '#E0E0E0',
+  },
+  apiInfoTitle: {
+    color: colors.text || '#212121',
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  apiInfoText: {
+    color: colors.textSecondary || '#757575',
+    fontSize: 13,
+    lineHeight: 18,
   },
   networkItem: {
     borderBottomWidth: 1,
@@ -590,7 +611,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   ircDatabaseOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.modalOverlay,
     padding: 16,
     justifyContent: 'center',
   },
@@ -617,11 +638,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 8,
-  },
-  ircDatabaseLink: {
-    color: colors.primary || '#2196F3',
-    fontSize: 13,
-    marginBottom: 10,
   },
   ircDatabaseFooter: {
     marginTop: 8,

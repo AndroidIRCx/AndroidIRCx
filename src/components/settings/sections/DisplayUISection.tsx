@@ -22,6 +22,7 @@ interface DisplayUISectionProps {
     surface: string;
     border: string;
     background: string;
+    modalOverlay?: string;
   };
   styles: {
     settingItem: any;
@@ -930,7 +931,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         transparent
         animationType="slide"
         onRequestClose={() => setShowSubmenu(null)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+        <View style={{ flex: 1, backgroundColor: colors.modalOverlay, justifyContent: 'flex-end' }}>
           <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}>{currentSubmenuItem?.title || t('Options', { _tags: tags })}</Text>

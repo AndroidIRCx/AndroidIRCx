@@ -422,6 +422,7 @@ export function AppModals({
           onAccept={(transferId, filePath) => dccFileService.accept(transferId, getActiveIRCService(), filePath)}
           onCancel={(transferId) => dccFileService.cancel(transferId)}
           styles={styles}
+          colors={colors}
         />
       )}
       {showDccSendModal && dccSendTarget && (

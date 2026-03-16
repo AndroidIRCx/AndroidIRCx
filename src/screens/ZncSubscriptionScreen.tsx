@@ -1155,12 +1155,12 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return '#4CAF50';
+        return colors.success;
       case 'grace':
-        return '#FFA726';
+        return colors.warning;
       case 'expired':
       case 'cancelled':
-        return '#FF5252';
+        return colors.error;
       default:
         return colors.textSecondary;
     }
@@ -1250,7 +1250,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
               style={[styles.actionButton, { backgroundColor: colors.primary }]}
               onPress={() => handleShowCredentials(item)}
             >
-              <Icon name="eye" size={14} color="#FFFFFF" />
+              <Icon name="eye" size={14} color={colors.onPrimary} />
               <Text style={styles.actionButtonText}>{t('Show')}</Text>
             </TouchableOpacity>
           )}
@@ -1258,10 +1258,10 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
           {/* Copy credentials - only when ready and has credentials */}
           {isReady && hasCredentials && (
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#2196F3' }]}
+              style={[styles.actionButton, { backgroundColor: colors.buttonPrimary }]}
               onPress={() => handleCopyCredentials(item)}
             >
-              <Icon name="copy" size={14} color="#FFFFFF" />
+              <Icon name="copy" size={14} color={colors.buttonPrimaryText} />
               <Text style={styles.actionButtonText}>{t('Copy')}</Text>
             </TouchableOpacity>
           )}
@@ -1269,10 +1269,10 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
           {/* Add to network - only for active accounts with credentials */}
           {isActive && hasCredentials && !item.assignedNetworkId && (
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}
+              style={[styles.actionButton, { backgroundColor: colors.accent }]}
               onPress={() => handleAddToNetwork(item)}
             >
-              <Icon name="plus" size={14} color="#FFFFFF" />
+              <Icon name="plus" size={14} color={colors.onAccent} />
               <Text style={styles.actionButtonText}>{t('Add to Network')}</Text>
             </TouchableOpacity>
           )}
@@ -1280,10 +1280,10 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
           {/* Remove from network - when assigned */}
           {item.assignedNetworkId && (
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#FF9800' }]}
+              style={[styles.actionButton, { backgroundColor: colors.warning }]}
               onPress={() => handleRemoveFromNetwork(item)}
             >
-              <Icon name="unlink" size={14} color="#FFFFFF" />
+              <Icon name="unlink" size={14} color={colors.onPrimary} />
               <Text style={styles.actionButtonText}>{t('Unlink')}</Text>
             </TouchableOpacity>
           )}
@@ -1298,10 +1298,10 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
           {/* Delete button - always visible, especially useful for expired accounts */}
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: colors.error || '#FF5252' }]}
+            style={[styles.actionButton, { backgroundColor: colors.error }]}
             onPress={() => handleDeleteAccount(item)}
           >
-            <Icon name="trash" size={14} color="#FFFFFF" />
+            <Icon name="trash" size={14} color={colors.onPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -1387,14 +1387,14 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
             >
               {purchasing || refreshingOffers ? (
                 <>
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={colors.onPrimary} />
                   <Text style={styles.purchaseButtonText}>
                     {purchasing ? t('Creating ZNC Account, Please Wait...') : t('Loading Offers...')}
                   </Text>
                 </>
               ) : (
                 <>
-                  <Icon name="plus-circle" size={18} color="#FFFFFF" />
+                  <Icon name="plus-circle" size={18} color={colors.onPrimary} />
                   <Text style={styles.purchaseButtonText}>
                     {t('Purchase ZNC Account')}
                   </Text>
@@ -1486,7 +1486,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
                 disabled={!newUsername.trim() || registering || purchasing}
               >
                 {(registering || purchasing) ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={colors.onPrimary} />
                 ) : (
                   <Text style={styles.confirmButtonText}>{t('Continue')}</Text>
                 )}
@@ -1527,7 +1527,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
               autoFocus
             />
             {!!pinError && (
-              <Text style={[styles.modalDescription, { color: colors.error || '#FF5252' }]}>
+              <Text style={[styles.modalDescription, { color: colors.error }]}>
                 {pinError}
               </Text>
             )}
@@ -1697,7 +1697,7 @@ const createStyles = (colors: any) =>
     actionButtonText: {
       fontSize: 13,
       fontWeight: '600',
-      color: '#FFFFFF',
+      color: colors.onPrimary,
     },
     footer: {
       padding: 16,
@@ -1715,7 +1715,7 @@ const createStyles = (colors: any) =>
     purchaseButtonText: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#FFFFFF',
+      color: colors.onPrimary,
     },
     footerRow: {
       flexDirection: 'row',
@@ -1745,7 +1745,7 @@ const createStyles = (colors: any) =>
     // Username Modal
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      backgroundColor: colors.modalOverlay,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 24,
@@ -1796,6 +1796,6 @@ const createStyles = (colors: any) =>
     confirmButtonText: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#FFFFFF',
+      color: colors.onPrimary,
     },
   });

@@ -16,6 +16,8 @@ interface DccTransfersMinimizedIndicatorProps {
     text: string;
     primary: string;
     textSecondary: string;
+    onPrimary?: string;
+    modalOverlay?: string;
   };
 }
 
@@ -53,19 +55,19 @@ export const DccTransfersMinimizedIndicator: React.FC<DccTransfersMinimizedIndic
           <Text style={styles.icon}>📥</Text>
         </View>
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: '#fff' }]} numberOfLines={1}>
+          <Text style={[styles.title, { color: colors.onPrimary || colors.text }]} numberOfLines={1}>
             {displayName}
           </Text>
-          <Text style={[styles.subtitle, { color: 'rgba(255,255,255,0.8)' }]}>
+          <Text style={[styles.subtitle, { color: colors.onPrimary || colors.text }]}>
             {activeTransfers.length} transfer{activeTransfers.length > 1 ? 's' : ''} - {overallPercent}%
           </Text>
         </View>
         <View style={styles.progressContainer}>
-          <View style={[styles.progressBar, { backgroundColor: 'rgba(255,255,255,0.3)' }]}>
+          <View style={[styles.progressBar, { backgroundColor: colors.modalOverlay || colors.surface }]}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${overallPercent}%`, backgroundColor: '#fff' }
+                { width: `${overallPercent}%`, backgroundColor: colors.onPrimary || colors.text }
               ]}
             />
           </View>
@@ -83,7 +85,7 @@ const styles = StyleSheet.create({
     left: 16,
     borderRadius: 12,
     elevation: 8,
-    shadowColor: '#000',
+    shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

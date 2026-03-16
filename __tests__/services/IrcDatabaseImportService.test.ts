@@ -261,4 +261,46 @@ describe('IrcDatabaseImportService', () => {
     expect(summary.importedNetworks).toBe(1);
     expect(settingsService.addNetwork).toHaveBeenCalledTimes(1);
   });
+
+  it('loads catalog preview metadata including average users and last scanned time', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        meta: {
+          description: 'Approved and active IRC networks with predefined server entries for clients.',
+          sorted_by: 'average_users_desc',
+          generated_at: '2026-03-12T23:42:01+01:00',
+          pagination: { has_more_pages: false, next_page_url: null, total: 1 },
+        },
+        data: [
+          {
+            network_name: 'Libera',
+            average_users: 32805,
+            server_list: [
+              {
+                hostname: 'irc.libera.chat',
+                port: 6697,
+                use_ssl: true,
+                last_scanned_at: '2026-03-12T00:34:32+01:00',
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    const catalog = await ircDatabaseImportService.loadCatalog(fetchMock as any);
+
+    expect(catalog.meta.description).toContain('Approved and active IRC networks');
+    expect(catalog.meta.sortedBy).toBe('average_users_desc');
+    expect(catalog.meta.generatedAt).toBe('2026-03-12T23:42:01+01:00');
+    expect(catalog.networks).toEqual([
+      expect.objectContaining({
+        name: 'Libera',
+        averageUsers: 32805,
+        serverCount: 1,
+        lastScannedAt: '2026-03-12T00:34:32+01:00',
+      }),
+    ]);
+  });
 });

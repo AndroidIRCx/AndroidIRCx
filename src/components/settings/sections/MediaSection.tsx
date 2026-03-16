@@ -27,9 +27,11 @@ interface MediaSectionProps {
     text: string;
     textSecondary: string;
     primary: string;
+    error?: string;
     surface: string;
     border: string;
     background: string;
+    modalOverlay?: string;
   };
   styles: {
     settingItem: any;
@@ -887,7 +889,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
 const createModalStyles = (colors: any) => StyleSheet.create({
   submenuOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1005,7 +1007,7 @@ const createModalStyles = (colors: any) => StyleSheet.create({
   },
   serverActionButtonDanger: {
     borderWidth: 1,
-    borderColor: '#bf3f3f',
+    borderColor: colors.error,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1013,7 +1015,7 @@ const createModalStyles = (colors: any) => StyleSheet.create({
     marginBottom: 8,
   },
   serverActionTextDanger: {
-    color: '#bf3f3f',
+    color: colors.error,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -1041,7 +1043,7 @@ const createModalStyles = (colors: any) => StyleSheet.create({
   },
   serverInputErrorText: {
     marginTop: 6,
-    color: '#bf3f3f',
+    color: colors.error,
     fontSize: 12,
   },
 });

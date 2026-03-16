@@ -79,8 +79,31 @@ function isNetworkSecureSecret(secretKey: string): boolean {
   );
 }
 
+function isMessageHistoryKey(key: string): boolean {
+  return key.startsWith('MESSAGES_') || key.startsWith('@AndroidIRCX:history:');
+}
+
+function isLogKey(key: string): boolean {
+  const lowerKey = key.toLowerCase();
+  if (key === 'channelLogs' || key.startsWith('channelLogs:')) {
+    return true;
+  }
+  return lowerKey.includes('log') && !lowerKey.includes('login');
+}
+
 class DataBackupService {
   private readonly STORAGE_BATCH_SIZE = 100;
+
+  private getStorageCompat() {
+    return AsyncStorage as typeof AsyncStorage & {
+      multiGet?: (keys: string[]) => Promise<Array<[string, string | null]>>;
+      multiSet?: (pairs: Array<[string, string]>) => Promise<void>;
+      multiRemove?: (keys: string[]) => Promise<void>;
+      getMany?: (keys: string[]) => Promise<Record<string, string | null>>;
+      setMany?: (entries: Record<string, string>) => Promise<void>;
+      removeMany?: (keys: string[]) => Promise<void>;
+    };
+  }
 
   private async yieldToEventLoop(): Promise<void> {
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -88,28 +111,50 @@ class DataBackupService {
 
   private async multiGetInChunks(keys: string[]): Promise<Array<[string, string | null]>> {
     if (keys.length === 0) return [];
+    const storage = this.getStorageCompat();
     const allEntries: Array<[string, string | null]> = [];
     for (let i = 0; i < keys.length; i += this.STORAGE_BATCH_SIZE) {
       const chunk = keys.slice(i, i + this.STORAGE_BATCH_SIZE);
-      const entries = await AsyncStorage.multiGet(chunk);
-      allEntries.push(...(entries as Array<[string, string | null]>));
+      if (typeof storage.multiGet === 'function') {
+        const entries = await storage.multiGet(chunk);
+        allEntries.push(...entries);
+      } else if (typeof storage.getMany === 'function') {
+        const entriesMap = await storage.getMany(chunk);
+        allEntries.push(...chunk.map((key) => [key, entriesMap[key] ?? null] as [string, string | null]));
+      } else {
+        throw new Error('AsyncStorage batch read API is unavailable');
+      }
       await this.yieldToEventLoop();
     }
     return allEntries;
   }
 
   private async multiSetInChunks(pairs: Array<[string, string]>): Promise<void> {
+    const storage = this.getStorageCompat();
     for (let i = 0; i < pairs.length; i += this.STORAGE_BATCH_SIZE) {
       const chunk = pairs.slice(i, i + this.STORAGE_BATCH_SIZE);
-      await AsyncStorage.multiSet(chunk);
+      if (typeof storage.multiSet === 'function') {
+        await storage.multiSet(chunk);
+      } else if (typeof storage.setMany === 'function') {
+        await storage.setMany(Object.fromEntries(chunk));
+      } else {
+        throw new Error('AsyncStorage batch write API is unavailable');
+      }
       await this.yieldToEventLoop();
     }
   }
 
   private async multiRemoveInChunks(keys: string[]): Promise<void> {
+    const storage = this.getStorageCompat();
     for (let i = 0; i < keys.length; i += this.STORAGE_BATCH_SIZE) {
       const chunk = keys.slice(i, i + this.STORAGE_BATCH_SIZE);
-      await AsyncStorage.multiRemove(chunk);
+      if (typeof storage.multiRemove === 'function') {
+        await storage.multiRemove(chunk);
+      } else if (typeof storage.removeMany === 'function') {
+        await storage.removeMany(chunk);
+      } else {
+        throw new Error('AsyncStorage batch remove API is unavailable');
+      }
       await this.yieldToEventLoop();
     }
   }
@@ -184,13 +229,13 @@ class DataBackupService {
     // Filter out logs and message history
     const filteredKeys = keys.filter(key => {
       // Exclude message history
-      if (key.startsWith('MESSAGES_')) return false;
+      if (isMessageHistoryKey(key)) return false;
 
       // Exclude channel logs
       if (key === 'channelLogs' || key.startsWith('channelLogs:')) return false;
 
       // Exclude any other log-related keys
-      if (key.includes('log') && !key.includes('login')) return false;
+      if (isLogKey(key)) return false;
 
       // Include everything else (networks, settings, profiles, etc.)
       return true;
@@ -208,8 +253,24 @@ class DataBackupService {
    */
   async importAll(json: string): Promise<void> {
     const parsed: BackupPayload = JSON.parse(json);
-    if (!parsed || typeof parsed !== 'object' || !parsed.data) {
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      !parsed.data ||
+      typeof parsed.data !== 'object' ||
+      Array.isArray(parsed.data)
+    ) {
       throw new Error(t('Invalid backup format'));
+    }
+
+    if (parsed.secureData !== undefined) {
+      if (
+        parsed.secureData === null ||
+        typeof parsed.secureData !== 'object' ||
+        Array.isArray(parsed.secureData)
+      ) {
+        throw new Error(t('Invalid backup format'));
+      }
     }
 
     // Prevent stale cache/pending writes from overwriting freshly restored values.

@@ -76,6 +76,7 @@ describe('BackupScreen', () => {
     jest.clearAllMocks();
     (RNFS.readFile as jest.Mock).mockResolvedValue('{"version":1,"data":{"k":"v"}}');
     (RNFS as any).writeFile = jest.fn().mockResolvedValue(undefined);
+    (RNFS as any).unlink = jest.fn().mockResolvedValue(undefined);
     (pick as jest.Mock).mockResolvedValue([{ uri: 'file:///tmp/backup.json' }]);
   });
 
@@ -127,6 +128,25 @@ describe('BackupScreen', () => {
       );
     });
     expect(await findByText('Loaded Backup File')).toBeTruthy();
+  });
+
+  it('loads backup JSON from Android picker copy and cleans it up', async () => {
+    (pick as jest.Mock).mockResolvedValue([
+      {
+        uri: 'content://provider/backup.json',
+        fileCopyUri: 'file:///tmp/copied-backup.json',
+        name: 'backup.json',
+      },
+    ]);
+
+    const { findByText } = render(<BackupScreen visible={true} onClose={onClose} />);
+    fireEvent.press(await findByText('Restore from Backup'));
+    fireEvent.press(await findByText('Load from File'));
+
+    await waitFor(() => {
+      expect(RNFS.readFile).toHaveBeenCalledWith('/tmp/copied-backup.json', 'utf8');
+      expect((RNFS as any).unlink).toHaveBeenCalledWith('/tmp/copied-backup.json');
+    });
   });
 
   it('shows error when selected file is invalid JSON', async () => {

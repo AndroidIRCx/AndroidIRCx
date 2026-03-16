@@ -55,6 +55,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -189,7 +190,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     // Image preview
     if (type === 'image' || type === 'gif' || mimeType?.startsWith('image/')) {
       return (
-        <View style={[styles.previewContainer, { height: previewHeight }]}>
+      <View style={[styles.previewContainer, { height: previewHeight }]}>
           <Image
             source={{ uri: displayUri }}
             style={styles.imagePreview}
@@ -226,7 +227,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     // Audio preview
     if (type === 'voice' || mimeType?.startsWith('audio/')) {
       return (
-        <View style={[styles.previewContainer, styles.audioContainer, { height: previewHeight }]}>
+      <View style={[styles.previewContainer, styles.audioContainer, { height: previewHeight }]}>
           <Text style={[styles.audioIcon, { color: colors.text }]}>🎵</Text>
           <Text style={[styles.audioLabel, { color: colors.text }]}>
             {t('Audio File')}
@@ -425,10 +426,10 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+    backgroundColor: colors.accent + '20',
     borderRadius: 12,
   },
   encryptionIcon: {
@@ -480,7 +481,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 16,
-    backgroundColor: '#000',
+    backgroundColor: colors.surfaceAlt || colors.surface,
   },
   imagePreview: {
     width: '100%',
@@ -494,7 +495,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.surfaceVariant,
   },
   audioIcon: {
     fontSize: 64,
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: colors.surfaceVariant,
   },
   fileIcon: {
     fontSize: 72,
@@ -611,6 +612,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sendButtonText: {
-    color: '#FFFFFF',
+    color: colors.onAccent,
   },
 });

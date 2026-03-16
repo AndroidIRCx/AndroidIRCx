@@ -103,6 +103,7 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
   onCancel,
 }) => {
   const t = useT();
+  const styles = createStyles(colors);
   const [formats, setFormats] = useState<ThemeMessageFormats>(getDefaultMessageFormats());
   const [editState, setEditState] = useState<EditState | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -1086,7 +1087,7 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -1151,7 +1152,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,

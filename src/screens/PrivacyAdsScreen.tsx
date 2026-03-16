@@ -292,11 +292,11 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
   const getStatusColor = (status: AdsConsentStatus): string => {
     switch (status) {
       case AdsConsentStatus.OBTAINED:
-        return colors.success || '#4CAF50';
+        return colors.success;
       case AdsConsentStatus.REQUIRED:
-        return colors.warning || '#FF9800';
+        return colors.warning;
       case AdsConsentStatus.NOT_REQUIRED:
-        return colors.info || '#2196F3';
+        return colors.info;
       default:
         return colors.textSecondary;
     }
@@ -347,7 +347,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
                   <Icon
                     name={getStatusIcon(consentStatus)}
                     size={20}
-                    color="#fff"
+                    color={colors.onPrimary}
                     solid
                   />
                 </View>
@@ -429,10 +429,10 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
                 disabled={showingAd}
               >
                 {showingAd ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={colors.onAccent} />
                 ) : (
                   <View style={styles.watchAdButtonContent}>
-                    <Icon name="play-circle" size={24} color="#fff" solid style={{ marginRight: 8 }} />
+                    <Icon name="play-circle" size={24} color={colors.onAccent} solid style={{ marginRight: 8 }} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.watchAdButtonText}>
                         {adReady
@@ -472,7 +472,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.onPrimary} />
               ) : (
                 <>
                   <Text style={styles.buttonText}>
@@ -606,7 +606,7 @@ const createStyles = (colors: any) =>
       marginRight: 12,
     },
     statusIconText: {
-      color: '#fff',
+      color: colors.onPrimary,
       fontSize: 20,
       fontWeight: 'bold',
     },
@@ -662,10 +662,10 @@ const createStyles = (colors: any) =>
       borderColor: colors.border,
     },
     buttonDanger: {
-      backgroundColor: colors.error || '#f44336',
+      backgroundColor: colors.error,
     },
     buttonText: {
-      color: '#fff',
+      color: colors.onPrimary,
       fontSize: 16,
       fontWeight: '600',
       marginBottom: 4,
@@ -677,21 +677,22 @@ const createStyles = (colors: any) =>
       marginBottom: 4,
     },
     buttonTextDanger: {
-      color: '#fff',
+      color: colors.onPrimary,
       fontSize: 16,
       fontWeight: '600',
       marginBottom: 4,
     },
     buttonDescription: {
-      color: 'rgba(255, 255, 255, 0.8)',
+      color: colors.onPrimary,
       fontSize: 12,
+      opacity: 0.8,
     },
     buttonDescriptionSecondary: {
       color: colors.textSecondary,
       fontSize: 12,
     },
     watchAdButton: {
-      backgroundColor: '#4CAF50',
+      backgroundColor: colors.accent,
       borderRadius: 8,
       padding: 16,
       marginBottom: 12,
@@ -707,14 +708,15 @@ const createStyles = (colors: any) =>
       width: '100%',
     },
     watchAdButtonText: {
-      color: '#fff',
+      color: colors.onAccent,
       fontSize: 16,
       fontWeight: '600',
       marginBottom: 4,
     },
     watchAdButtonDescription: {
-      color: 'rgba(255, 255, 255, 0.8)',
+      color: colors.onAccent,
       fontSize: 12,
+      opacity: 0.8,
     },
     infoCard: {
       backgroundColor: colors.cardBackground || colors.surface,

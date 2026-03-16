@@ -80,6 +80,12 @@ interface DccTransfersModalProps {
   onAccept: (transferId: string, filePath: string) => Promise<void>;
   onCancel: (transferId: string) => void;
   styles: any;
+  colors?: {
+    accent: string;
+    success: string;
+    onAccent?: string;
+    text: string;
+  };
 }
 
 export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
@@ -90,7 +96,14 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
   onAccept,
   onCancel,
   styles,
+  colors,
 }) => {
+  const actionColors = colors || {
+    accent: '#2196F3',
+    success: '#4CAF50',
+    onAccent: '#FFFFFF',
+    text: '#FFFFFF',
+  };
   // Count active transfers (downloading or sending)
   const activeTransfers = transfers.filter(t => t.status === 'downloading' || t.status === 'sending');
   const hasActiveTransfers = activeTransfers.length > 0;
@@ -152,8 +165,8 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
               {hasActiveTransfers && onMinimize && (
                 <TouchableOpacity
                   onPress={onMinimize}
-                  style={{ padding: 8, backgroundColor: '#2196F3', borderRadius: 4 }}>
-                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Minimize</Text>
+                  style={{ padding: 8, backgroundColor: actionColors.accent, borderRadius: 4 }}>
+                  <Text style={{ color: actionColors.onAccent || actionColors.text, fontSize: 12, fontWeight: '600' }}>Minimize</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -205,8 +218,8 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
                     {t.status === 'completed' && t.direction === 'incoming' && t.filePath && (
                       <TouchableOpacity
                         onPress={() => handleOpenFile(t)}
-                        style={{ backgroundColor: '#4CAF50', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 4 }}>
-                        <Text style={[styles.optionText, { color: '#fff', fontWeight: '600' }]}>Open File</Text>
+                        style={{ backgroundColor: actionColors.success, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 4 }}>
+                        <Text style={[styles.optionText, { color: actionColors.onAccent || actionColors.text, fontWeight: '600' }]}>Open File</Text>
                       </TouchableOpacity>
                     )}
                   </View>

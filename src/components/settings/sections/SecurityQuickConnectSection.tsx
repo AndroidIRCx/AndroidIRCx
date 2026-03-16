@@ -16,9 +16,11 @@ interface SecurityQuickConnectSectionProps {
     text: string;
     textSecondary: string;
     primary: string;
+    onPrimary?: string;
     surface: string;
     border: string;
     background: string;
+    modalOverlay?: string;
   };
   styles: {
     settingItem: any;
@@ -40,6 +42,8 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:SecurityQuickConnectSection.tsx,feature:settings';
+  const modalStyles = createModalStyles(colors);
+  const colorPickerStyles = createColorPickerStyles(colors);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hexInput, setHexInput] = useState('');
 
@@ -257,10 +261,10 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
   );
 };
 
-const modalStyles = StyleSheet.create({
+const createModalStyles = (colors: any) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -300,18 +304,18 @@ const modalStyles = StyleSheet.create({
     alignItems: 'center',
   },
   closeButtonText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
 });
 
-const colorPickerStyles = StyleSheet.create({
+const createColorPickerStyles = (colors: any) => StyleSheet.create({
   livePreview: {
     alignItems: 'center',
     marginBottom: 16,
     paddingVertical: 12,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
     borderRadius: 8,
   },
   previewButton: {
@@ -321,7 +325,7 @@ const colorPickerStyles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 2,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   previewText: {
     fontSize: 16,
@@ -333,7 +337,7 @@ const colorPickerStyles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
   },
   hexInputContainer: {
     flexDirection: 'row',
@@ -369,13 +373,13 @@ const colorPickerStyles = StyleSheet.create({
     alignItems: 'center',
   },
   colorButtonSelected: {
-    borderColor: '#000',
+    borderColor: colors.text,
   },
   checkmark: {
     fontSize: 24,
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: 'bold',
-    textShadowColor: '#000',
+    textShadowColor: colors.background,
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },

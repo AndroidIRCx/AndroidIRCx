@@ -24,6 +24,7 @@ import { connectionManager } from '../services/ConnectionManager';
 import { settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
 import { useUIStore } from '../stores/uiStore';
+import { useTheme } from '../hooks/useTheme';
 
 interface BlacklistScreenProps {
   visible: boolean;
@@ -57,6 +58,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
   onClose,
 }) => {
   const t = useT();
+  const { colors } = useTheme();
   const [blacklistEntries, setBlacklistEntries] = useState<BlacklistEntry[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<BlacklistEntry[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -75,6 +77,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
   const [templates, setTemplates] = useState<BlacklistTemplates>({});
   const [templateNetwork, setTemplateNetwork] = useState<string>('global');
   const banMaskTypes = banService.getBanMaskTypes();
+  const styles = createStyles(colors);
 
   // Check for blacklistTarget from NickContextMenu
   useEffect(() => {
@@ -280,7 +283,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder={t('Search by mask or reason...')}
-            placeholderTextColor="#9E9E9E"
+            placeholderTextColor={colors.inputPlaceholder}
           />
           <TouchableOpacity
             style={styles.networkFilterButton}
@@ -378,6 +381,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                 value={newMask}
                 onChangeText={setNewMask}
                 placeholder={t('nick or mask (e.g., *!*@host.com)')}
+                placeholderTextColor={colors.inputPlaceholder}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
@@ -396,6 +400,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                     value={newCommand}
                     onChangeText={setNewCommand}
                     placeholder={t('Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}')}
+                    placeholderTextColor={colors.inputPlaceholder}
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
@@ -407,6 +412,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                 value={newReason}
                 onChangeText={setNewReason}
                 placeholder={t('optional')}
+                placeholderTextColor={colors.inputPlaceholder}
                 multiline
               />
               {['akill', 'gline', 'shun'].includes(newAction) && (
@@ -417,6 +423,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                     value={newDuration}
                     onChangeText={setNewDuration}
                     placeholder={t('e.g., 1d, 7d, 1h, 0 for permanent')}
+                    placeholderTextColor={colors.inputPlaceholder}
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
@@ -518,6 +525,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                   }));
                 }}
                 placeholder={getTemplatesForNetwork(templateNetwork).akill || t('AKILL template')}
+                placeholderTextColor={colors.inputPlaceholder}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
@@ -531,6 +539,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                   }));
                 }}
                 placeholder={getTemplatesForNetwork(templateNetwork).gline || t('GLINE template')}
+                placeholderTextColor={colors.inputPlaceholder}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
@@ -544,6 +553,7 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
                   }));
                 }}
                 placeholder={getTemplatesForNetwork(templateNetwork).shun || t('SHUN template')}
+                placeholderTextColor={colors.inputPlaceholder}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
@@ -635,10 +645,11 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
+  StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -646,27 +657,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    backgroundColor: '#F5F5F5',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text,
   },
   headerActions: {
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
   },
+  templatesButton: {
+    backgroundColor: colors.surfaceVariant,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+  },
+  templatesButtonText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '500',
+  },
   addButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.accent,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 4,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: colors.onAccent,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -675,30 +697,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   closeButtonText: {
-    color: '#2196F3',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '500',
   },
   filterSection: {
     padding: 12,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
     gap: 8,
   },
   searchInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 10,
     fontSize: 14,
-    color: '#212121',
+    color: colors.inputText,
   },
   networkFilterButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 10,
     flexDirection: 'row',
@@ -707,11 +729,11 @@ const styles = StyleSheet.create({
   },
   networkFilterButtonText: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
   },
   networkFilterButtonArrow: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
   },
   content: {
     flex: 1,
@@ -722,12 +744,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#9E9E9E',
+    color: colors.textDisabled,
     textAlign: 'center',
   },
   entryItem: {
@@ -736,7 +758,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.divider,
+    backgroundColor: colors.background,
   },
   entryContent: {
     flex: 1,
@@ -744,103 +767,105 @@ const styles = StyleSheet.create({
   },
   entryMask: {
     fontSize: 16,
-    color: '#212121',
+    color: colors.text,
     fontWeight: '500',
     fontFamily: 'monospace',
     marginBottom: 4,
   },
   entryAction: {
     fontSize: 12,
-    color: '#F57C00',
+    color: colors.warning,
     marginBottom: 4,
     fontWeight: '600',
   },
   entryNetwork: {
     fontSize: 12,
-    color: '#2196F3',
+    color: colors.primary,
     marginBottom: 4,
     fontWeight: '500',
   },
   entryReason: {
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   entryCommand: {
     fontSize: 12,
-    color: '#616161',
+    color: colors.textSecondary,
     marginBottom: 4,
     fontFamily: 'monospace',
   },
   entryDate: {
     fontSize: 12,
-    color: '#9E9E9E',
+    color: colors.textDisabled,
   },
   entryActions: {
     gap: 8,
     alignItems: 'flex-end',
   },
   editButton: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.buttonSecondary,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 4,
   },
   editButtonText: {
-    color: '#1976D2',
+    color: colors.buttonSecondaryText,
     fontSize: 14,
     fontWeight: '500',
   },
   removeButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: colors.error,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 4,
   },
   removeButtonText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.modalBackground,
     borderRadius: 8,
     padding: 20,
     width: '90%',
     maxWidth: 420,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.modalText,
     marginBottom: 8,
   },
   modalDescription: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 16,
     lineHeight: 18,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 12,
     fontSize: 14,
-    color: '#212121',
-    backgroundColor: '#FFFFFF',
+    color: colors.inputText,
+    backgroundColor: colors.inputBackground,
     marginBottom: 12,
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#424242',
+    color: colors.text,
     marginBottom: 4,
     marginTop: 8,
   },
@@ -849,9 +874,9 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   actionPickerButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 10,
     flexDirection: 'row',
@@ -861,7 +886,7 @@ const styles = StyleSheet.create({
   },
   actionPickerButtonText: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -882,18 +907,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   modalButtonCancel: {
-    backgroundColor: '#9E9E9E',
+    backgroundColor: colors.buttonSecondary,
   },
   modalButtonPrimary: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.buttonPrimary,
   },
   modalButtonText: {
-    color: '#FFFFFF',
+    color: colors.buttonSecondaryText,
     fontSize: 14,
     fontWeight: '500',
   },
   modalButtonTextPrimary: {
-    color: '#FFFFFF',
+    color: colors.buttonPrimaryText,
   },
   networkPickerScroll: {
     maxHeight: 300,
@@ -902,14 +927,14 @@ const styles = StyleSheet.create({
   networkPickerItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.divider,
   },
   networkPickerItemText: {
     fontSize: 16,
-    color: '#212121',
+    color: colors.text,
   },
   networkPickerItemTextSelected: {
-    color: '#2196F3',
+    color: colors.primary,
     fontWeight: '600',
   },
 });

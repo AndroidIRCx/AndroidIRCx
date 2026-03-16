@@ -24,6 +24,7 @@ import { CertificateFingerprintModal } from '../components/modals/CertificateFin
 import { certificateManager } from '../services/CertificateManagerService';
 import type { CertificateInfo } from '../types/certificate';
 import { Picker } from '@react-native-picker/picker';
+import { useTheme } from '../hooks/useTheme';
 
 interface NetworkSettingsScreenProps {
   networkId?: string;
@@ -39,6 +40,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   onShowIdentityProfiles,
 }) => {
   const t = useT();
+  const { colors } = useTheme();
   const [name, setName] = useState('');
   const [nick, setNick] = useState('');
   const [altNick, setAltNick] = useState('');
@@ -64,6 +66,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const [showCertGenerator, setShowCertGenerator] = useState(false);
   const [showCertSelector, setShowCertSelector] = useState(false);
   const [showCertFingerprint, setShowCertFingerprint] = useState(false);
+  const styles = createStyles(colors);
 
   // Memoized certificate fingerprint - returns null for invalid PEM
   const certFingerprint = useMemo(() => {
@@ -220,7 +223,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
           <TouchableOpacity onPress={handleSave} style={styles.saveButton} disabled={saving}>
             {saving ? (
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.onPrimary} />
                 <Text style={[styles.saveText, { marginLeft: 6 }]}>{t('Saving...')}</Text>
               </View>
             ) : (
@@ -231,7 +234,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#2196F3" />
+            <ActivityIndicator size="large" color={colors.primary} />
             <Text style={styles.loadingText}>{t('Loading...')}</Text>
           </View>
         ) : error ? (
@@ -264,7 +267,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={name}
               onChangeText={setName}
               placeholder={t('e.g., dbase.in.rs')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
             />
           </View>
 
@@ -275,7 +278,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={nick}
               onChangeText={setNick}
               placeholder={t('Your IRC nickname')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               autoCapitalize="none"
             />
           </View>
@@ -287,7 +290,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={altNick}
               onChangeText={setAltNick}
               placeholder={t('Fallback if primary nick is taken')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               autoCapitalize="none"
             />
           </View>
@@ -299,7 +302,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={realname}
               onChangeText={setRealname}
               placeholder={t('Your real name or description')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
             />
           </View>
 
@@ -310,7 +313,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={ident}
               onChangeText={setIdent}
               placeholder={t('Username for ident (optional)')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               autoCapitalize="none"
             />
           </View>
@@ -325,7 +328,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={autoJoinChannels}
               onChangeText={setAutoJoinChannels}
               placeholder={t('#channel1, #channel2')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               autoCapitalize="none"
             />
           </View>
@@ -340,7 +343,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               <Picker
                 selectedValue={saslMechanism}
                 onValueChange={(value) => setSaslMechanism(value)}
-                style={styles.picker}
+                style={[styles.picker, { color: colors.text }]}
               >
                 <Picker.Item label={t('PLAIN - Simple username/password')} value="PLAIN" />
                 <Picker.Item label={t('SCRAM-SHA-256 - Secure challenge-response')} value="SCRAM-SHA-256" />
@@ -356,7 +359,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={saslAccount}
               onChangeText={setSaslAccount}
               placeholder={t('SASL account name')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               autoCapitalize="none"
             />
           </View>
@@ -368,7 +371,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={saslPassword}
               onChangeText={setSaslPassword}
               placeholder={t('SASL password')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               secureTextEntry
               autoCapitalize="none"
             />
@@ -390,7 +393,12 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
           <Text style={styles.sectionTitle}>{t('Proxy (Optional, per network)')}</Text>
           <View style={styles.switchRow}>
             <Text style={styles.label}>{t('Enable proxy (Tor/SOCKS5/HTTP)')}</Text>
-            <Switch value={proxyEnabled} onValueChange={setProxyEnabled} />
+            <Switch
+              value={proxyEnabled}
+              onValueChange={setProxyEnabled}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor={proxyEnabled ? colors.onAccent : colors.surfaceVariant}
+            />
           </View>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{t('Type (socks5, http, tor)')}</Text>
@@ -400,7 +408,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               editable={proxyEnabled}
               onChangeText={setProxyType}
               placeholder={t('tor')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               autoCapitalize="none"
             />
           </View>
@@ -412,7 +420,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               editable={proxyEnabled}
               onChangeText={setProxyHost}
               placeholder={t('127.0.0.1 (Tor default)')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               autoCapitalize="none"
             />
           </View>
@@ -424,7 +432,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               editable={proxyEnabled}
               onChangeText={setProxyPort}
               placeholder={t('9050 for Tor, 1080 for SOCKS5')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               keyboardType="numeric"
             />
           </View>
@@ -436,7 +444,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               editable={proxyEnabled}
               onChangeText={setProxyUsername}
               placeholder={t('optional')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               autoCapitalize="none"
             />
           </View>
@@ -448,7 +456,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               editable={proxyEnabled}
               onChangeText={setProxyPassword}
               placeholder={t('optional')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               secureTextEntry
               autoCapitalize="none"
             />
@@ -495,7 +503,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={clientCert}
               onChangeText={setClientCert}
               placeholder={t('-----BEGIN CERTIFICATE-----...')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               multiline
               autoCapitalize="none"
             />
@@ -508,7 +516,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
               value={clientKey}
               onChangeText={setClientKey}
               placeholder={t('-----BEGIN PRIVATE KEY-----...')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.inputPlaceholder}
               multiline
               autoCapitalize="none"
             />
@@ -544,10 +552,10 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -555,23 +563,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     borderBottomWidth: 1,
-    borderBottomColor: '#1976D2',
+    borderBottomColor: colors.primaryDark,
   },
   identityProfilesButton: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 8,
     padding: 14,
     marginHorizontal: 16,
     marginTop: 16,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#2196F3',
+    borderColor: colors.primary,
     alignItems: 'center',
   },
   identityProfilesButtonText: {
-    color: '#2196F3',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -579,11 +587,11 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   cancelText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 16,
   },
   title: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 18,
     fontWeight: '600',
   },
@@ -591,7 +599,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   saveText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -601,12 +609,12 @@ const styles = StyleSheet.create({
   section: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text,
     marginBottom: 12,
   },
   inputGroup: {
@@ -614,7 +622,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   switchRow: {
@@ -625,28 +633,29 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
     padding: 12,
     fontSize: 14,
-    color: '#212121',
-    backgroundColor: '#FAFAFA',
+    color: colors.inputText,
+    backgroundColor: colors.inputBackground,
   },
   inputDisabled: {
     opacity: 0.5,
+    backgroundColor: colors.buttonDisabled,
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.inputBorder,
     borderRadius: 4,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.inputBackground,
   },
   picker: {
     height: 50,
   },
   helpText: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
     fontStyle: 'italic',
     marginTop: 8,
   },
@@ -663,7 +672,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary,
   },
   errorContainer: {
     flex: 1,
@@ -673,18 +682,18 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    color: '#F44336',
+    color: colors.error,
     marginBottom: 16,
     textAlign: 'center',
   },
   retryButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.buttonPrimary,
     borderRadius: 4,
   },
   retryText: {
-    color: '#FFFFFF',
+    color: colors.buttonPrimaryText,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -695,7 +704,7 @@ const styles = StyleSheet.create({
   },
   certButton: {
     flex: 1,
-    backgroundColor: '#4A9EFF',
+    backgroundColor: colors.buttonPrimary,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -704,10 +713,10 @@ const styles = StyleSheet.create({
   certButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.buttonPrimaryText,
   },
   fingerprintButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.accent,
     marginBottom: 12,
   },
   divider: {
@@ -718,11 +727,11 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.border,
   },
   dividerText: {
     fontSize: 12,
-    color: '#757575',
+    color: colors.textSecondary,
     marginHorizontal: 12,
   },
 });

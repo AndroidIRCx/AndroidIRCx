@@ -17,9 +17,11 @@ interface ProtectionSectionProps {
     text: string;
     textSecondary: string;
     primary: string;
+    onPrimary?: string;
     surface: string;
     border: string;
     background: string;
+    modalOverlay?: string;
   };
   styles: {
     settingItem: any;
@@ -145,11 +147,11 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
       fontWeight: '600',
     },
     tabTextActive: {
-      color: '#fff',
+      color: colors.onPrimary || colors.text,
     },
     modalContainer: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.6)',
+      backgroundColor: colors.modalOverlay || colors.background,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
@@ -236,7 +238,7 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
       backgroundColor: colors.border,
     },
     modalButtonText: {
-      color: '#fff',
+      color: colors.onPrimary || colors.text,
       fontWeight: '600',
     },
     modalButtonTextSecondary: {

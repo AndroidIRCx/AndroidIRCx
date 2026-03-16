@@ -25,7 +25,7 @@ import {identityProfilesService} from '../services/IdentityProfilesService';
 import {consentService} from '../services/ConsentService';
 
 interface FirstRunSetupScreenProps {
-  onComplete: (networkConfig: IRCNetworkConfig) => void;
+  onComplete: (networkConfig?: IRCNetworkConfig | null) => void;
   onSkip?: () => void;
 }
 
@@ -51,7 +51,7 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
   const [username, setUsername] = useState('androidircx');
 
   // Network selection
-  const [useRecommended, setUseRecommended] = useState(true);
+  const [networkMode, setNetworkMode] = useState<'dbase' | 'custom' | 'later'>('dbase');
   const [customNetwork, setCustomNetwork] = useState('');
   const [customServer, setCustomServer] = useState('');
   const [customPort, setCustomPort] = useState('6697');
@@ -117,7 +117,7 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
 
   const handleComplete = async () => {
     try {
-      let finalNetwork: IRCNetworkConfig;
+      let finalNetwork: IRCNetworkConfig | null = null;
 
       // Parse channels from user input
       const parsedChannels = channelsInput
@@ -137,7 +137,7 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
         ident: username.trim() || 'androidircx',
       });
 
-      if (useRecommended) {
+      if (networkMode === 'dbase') {
         // Use existing DBase network, update it with new identity profile
         const existingNetwork = await settingsService.getNetwork('DBase');
 
@@ -170,7 +170,7 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
           });
           finalNetwork = (await settingsService.getNetwork('DBase'))!;
         }
-      } else {
+      } else if (networkMode === 'custom') {
         // Custom network - create new
         if (!customNetwork.trim() || !customServer.trim()) {
           Alert.alert(t('Required'), t('Please enter network name and server'));
@@ -206,13 +206,15 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
 
         await settingsService.addNetwork(network);
         finalNetwork = network;
+      } else {
+        finalNetwork = null;
       }
 
       // Mark first run as complete
       await settingsService.setFirstRunCompleted(true);
 
       // Save the network for later use
-      setSavedNetwork(finalNetwork);
+      setSavedNetwork(finalNetwork || null);
 
       // Show completion step
       setStep('complete');
@@ -223,9 +225,7 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
   };
 
   const handleConnectNow = () => {
-    if (savedNetwork) {
-      onComplete(savedNetwork);
-    }
+    onComplete(savedNetwork);
   };
 
   const handleConnectLater = () => {
@@ -490,18 +490,18 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
       <TouchableOpacity
         style={[
           styles.optionCard,
-          useRecommended && styles.optionCardSelected,
+          networkMode === 'dbase' && styles.optionCardSelected,
         ]}
-        onPress={() => setUseRecommended(true)}>
+        onPress={() => setNetworkMode('dbase')}>
         <View style={styles.optionHeader}>
-          <View style={[styles.radio, useRecommended && styles.radioSelected]}>
-            {useRecommended && <View style={styles.radioInner} />}
+          <View style={[styles.radio, networkMode === 'dbase' && styles.radioSelected]}>
+            {networkMode === 'dbase' && <View style={styles.radioInner} />}
           </View>
           <View style={styles.optionContent}>
-            <Text style={styles.optionTitle}>{t('Recommended Server')}</Text>
+            <Text style={styles.optionTitle}>{t('DBase (Optional Default)')}</Text>
             <Text style={styles.optionValue}>{t('irc.dbase.in.rs (Port 6697, SSL)')}</Text>
             <Text style={styles.optionDescription}>
-              {t('Official AndroidIRCX server with full IRCv3 support')}
+              {t('Use the built-in DBase network now. You can still change or remove it later.')}
             </Text>
           </View>
         </View>
@@ -510,12 +510,12 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
       <TouchableOpacity
         style={[
           styles.optionCard,
-          !useRecommended && styles.optionCardSelected,
+          networkMode === 'custom' && styles.optionCardSelected,
         ]}
-        onPress={() => setUseRecommended(false)}>
+        onPress={() => setNetworkMode('custom')}>
         <View style={styles.optionHeader}>
-          <View style={[styles.radio, !useRecommended && styles.radioSelected]}>
-            {!useRecommended && <View style={styles.radioInner} />}
+          <View style={[styles.radio, networkMode === 'custom' && styles.radioSelected]}>
+            {networkMode === 'custom' && <View style={styles.radioInner} />}
           </View>
           <View style={styles.optionContent}>
             <Text style={styles.optionTitle}>{t('Custom Server')}</Text>
@@ -526,7 +526,26 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
         </View>
       </TouchableOpacity>
 
-      {!useRecommended && (
+      <TouchableOpacity
+        style={[
+          styles.optionCard,
+          networkMode === 'later' && styles.optionCardSelected,
+        ]}
+        onPress={() => setNetworkMode('later')}>
+        <View style={styles.optionHeader}>
+          <View style={[styles.radio, networkMode === 'later' && styles.radioSelected]}>
+            {networkMode === 'later' && <View style={styles.radioInner} />}
+          </View>
+          <View style={styles.optionContent}>
+            <Text style={styles.optionTitle}>{t('Choose Another Server Later')}</Text>
+            <Text style={styles.optionDescription}>
+              {t('Finish setup now and open Choose Network later to add or reload networks from the API list.')}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      {networkMode === 'custom' && (
         <View style={styles.customServerForm}>
           <View style={styles.formGroup}>
             <Text style={styles.label}>
@@ -637,17 +656,21 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
       <Text style={styles.successIcon}>✓</Text>
       <Text style={styles.successTitle}>{t("You're all set!")}</Text>
       <Text style={styles.successMessage}>
-        {t('Ready to connect to {server} as {nick}', {
-          server: useRecommended ? 'irc.dbase.in.rs' : customServer,
-          nick: nickname,
-        })}
+        {savedNetwork
+          ? t('Ready to connect to {server} as {nick}', {
+              server: savedNetwork.servers?.[0]?.hostname || savedNetwork.name,
+              nick: nickname,
+            })
+          : t('Your identity is saved. Open Choose Network to add a server or reload the approved API network list.')}
       </Text>
 
       <View style={styles.completeButtons}>
         <TouchableOpacity
           style={[styles.primaryButton, styles.completeButton]}
           onPress={handleConnectNow}>
-          <Text style={styles.primaryButtonText}>{t('Connect Now')}</Text>
+          <Text style={styles.primaryButtonText}>
+            {savedNetwork ? t('Connect Now') : t('Open Choose Network')}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.secondaryButton, styles.completeButton]}

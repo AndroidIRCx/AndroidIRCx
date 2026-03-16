@@ -212,6 +212,30 @@ describe('FirstRunSetupScreen', () => {
     expect(onSkip).toHaveBeenCalledTimes(1);
   });
 
+  it('allows finishing setup without selecting DBase or a custom server', async () => {
+    const onComplete = jest.fn();
+    const { findByText } = render(
+      <FirstRunSetupScreen onComplete={onComplete} onSkip={jest.fn()} />
+    );
+
+    fireEvent.press(await findByText('Next'));
+    fireEvent.press(await findByText('Accept Privacy Terms & Continue'));
+    fireEvent.press(await findByText('Next'));
+    fireEvent.press(await findByText('Next'));
+
+    fireEvent.press(await findByText('Choose Another Server Later'));
+    fireEvent.press(await findByText('Next'));
+    fireEvent.press(await findByText('Complete Setup'));
+
+    await waitFor(() => {
+      expect(settingsService.setFirstRunCompleted).toHaveBeenCalledWith(true);
+    });
+
+    expect(await findByText('Open Choose Network')).toBeTruthy();
+    fireEvent.press(await findByText('Open Choose Network'));
+    expect(onComplete).toHaveBeenCalledWith(null);
+  });
+
   it('shows manual privacy agreement and accepts consent when no form is required', async () => {
     consentService.showConsentFormIfRequired.mockResolvedValue(false);
 

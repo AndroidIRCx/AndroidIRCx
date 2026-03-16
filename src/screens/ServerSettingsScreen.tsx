@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { IRCServerConfig, settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
+import { useTheme } from '../hooks/useTheme';
 
 interface ServerSettingsScreenProps {
   networkId: string;
@@ -33,6 +34,10 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   onCancel,
 }) => {
   const t = useT();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const mutedTextColor = colors.textMuted || colors.textSecondary || colors.text;
+  const inactiveSwitchThumb = colors.surfaceVariant || colors.border || colors.surface || colors.background;
   const [name, setName] = useState('');
   const [hostname, setHostname] = useState('');
   const [port, setPort] = useState('6697');
@@ -141,7 +146,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
           <TouchableOpacity onPress={handleSave} style={styles.saveButton} disabled={saving}>
             {saving ? (
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.buttonPrimaryText || colors.onAccent || colors.text} />
                 <Text style={[styles.saveText, { marginLeft: 6 }]}>{t('Saving...')}</Text>
               </View>
             ) : (
@@ -152,7 +157,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#2196F3" />
+            <ActivityIndicator size="large" color={colors.buttonPrimary || colors.primary} />
             <Text style={styles.loadingText}>{t('Loading...')}</Text>
           </View>
         ) : error ? (
@@ -174,7 +179,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
               value={name}
               onChangeText={setName}
               placeholder={t('Server display name')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={mutedTextColor}
             />
           </View>
 
@@ -185,7 +190,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
               value={hostname}
               onChangeText={setHostname}
               placeholder={t('irc.example.com')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={mutedTextColor}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -198,7 +203,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
               value={port}
               onChangeText={setPort}
               placeholder={t('6697')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={mutedTextColor}
               keyboardType="numeric"
             />
             <Text style={styles.hint}>{t('Standard ports: 6667 (plain), 6697 (SSL/TLS)')}</Text>
@@ -210,12 +215,12 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
 
           <View style={styles.switchGroup}>
             <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>{t('Use SSL/TLS')}</Text>
+                <Text style={styles.switchLabel}>{t('Use SSL/TLS')}</Text>
               <Switch
                 value={ssl}
                 onValueChange={setSsl}
-                trackColor={{ false: '#E0E0E0', true: '#81C784' }}
-                thumbColor={ssl ? '#4CAF50' : '#F5F5F5'}
+                trackColor={{ false: colors.border, true: colors.success }}
+                thumbColor={ssl ? colors.success : inactiveSwitchThumb}
               />
             </View>
             <Text style={styles.hint}>
@@ -230,8 +235,8 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
                 <Switch
                   value={rejectUnauthorized}
                   onValueChange={setRejectUnauthorized}
-                  trackColor={{ false: '#E0E0E0', true: '#81C784' }}
-                  thumbColor={rejectUnauthorized ? '#4CAF50' : '#F5F5F5'}
+                  trackColor={{ false: colors.border, true: colors.success }}
+                  thumbColor={rejectUnauthorized ? colors.success : inactiveSwitchThumb}
                 />
               </View>
               <Text style={styles.hint}>
@@ -251,7 +256,7 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
               value={password}
               onChangeText={setPassword}
               placeholder={t('Server connection password')}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={mutedTextColor}
               secureTextEntry
               autoCapitalize="none"
             />
@@ -262,12 +267,12 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
 
           <View style={styles.switchGroup}>
             <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>{t('Favorite Server')}</Text>
+                <Text style={styles.switchLabel}>{t('Favorite Server')}</Text>
               <Switch
                 value={favorite}
                 onValueChange={setFavorite}
-                trackColor={{ false: '#E0E0E0', true: '#81C784' }}
-                thumbColor={favorite ? '#4CAF50' : '#F5F5F5'}
+                trackColor={{ false: colors.border, true: colors.success }}
+                thumbColor={favorite ? colors.success : inactiveSwitchThumb}
               />
             </View>
             <Text style={styles.hint}>
@@ -277,12 +282,12 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
 
           <View style={styles.switchGroup}>
             <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>{t('Default Server')}</Text>
+                <Text style={styles.switchLabel}>{t('Default Server')}</Text>
               <Switch
                 value={isDefaultServer}
                 onValueChange={setIsDefaultServer}
-                trackColor={{ false: '#E0E0E0', true: '#81C784' }}
-                thumbColor={isDefaultServer ? '#4CAF50' : '#F5F5F5'}
+                trackColor={{ false: colors.border, true: colors.success }}
+                thumbColor={isDefaultServer ? colors.success : inactiveSwitchThumb}
               />
             </View>
             <Text style={styles.hint}>
@@ -297,10 +302,10 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -308,19 +313,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.buttonPrimary || colors.primary,
     borderBottomWidth: 1,
-    borderBottomColor: '#1976D2',
+    borderBottomColor: colors.border,
   },
   cancelButton: {
     padding: 8,
   },
   cancelText: {
-    color: '#FFFFFF',
+    color: colors.buttonPrimaryText || colors.onAccent || colors.text,
     fontSize: 16,
   },
   title: {
-    color: '#FFFFFF',
+    color: colors.buttonPrimaryText || colors.onAccent || colors.text,
     fontSize: 18,
     fontWeight: '600',
   },
@@ -328,7 +333,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   saveText: {
-    color: '#FFFFFF',
+    color: colors.buttonPrimaryText || colors.onAccent || colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -338,12 +343,13 @@ const styles = StyleSheet.create({
   section: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#212121',
+    color: colors.text,
     marginBottom: 12,
   },
   inputGroup: {
@@ -351,21 +357,21 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     borderRadius: 4,
     padding: 12,
     fontSize: 14,
-    color: '#212121',
-    backgroundColor: '#FAFAFA',
+    color: colors.text,
+    backgroundColor: colors.inputBackground,
   },
   hint: {
     fontSize: 12,
-    color: '#9E9E9E',
+    color: colors.textMuted || colors.textSecondary || colors.text,
     marginTop: 4,
   },
   switchGroup: {
@@ -379,7 +385,7 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 14,
-    color: '#212121',
+    color: colors.text,
     flex: 1,
   },
   loadingContainer: {
@@ -387,32 +393,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: colors.background,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#757575',
+    color: colors.textSecondary,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: colors.background,
   },
   errorText: {
     fontSize: 14,
-    color: '#F44336',
+    color: colors.error,
     marginBottom: 16,
     textAlign: 'center',
   },
   retryButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.buttonPrimary || colors.primary,
     borderRadius: 4,
   },
   retryText: {
-    color: '#FFFFFF',
+    color: colors.buttonPrimaryText || colors.onAccent || colors.text,
     fontSize: 14,
     fontWeight: '600',
   },

@@ -336,7 +336,7 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
           disabled={isPurchased || isPurchasing}
         >
           {isPurchasing ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={colors.buttonPrimaryText} />
           ) : (
             <Text style={styles.purchaseButtonText}>
               {isPurchased ? '✓ Purchased' : 'Purchase'}
@@ -382,14 +382,14 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
 
           <TouchableOpacity
             style={[styles.restoreButton, (restoring || loading) && styles.restoreButtonDisabled]}
-            onPress={() => restorePurchases(true)}
-            disabled={restoring || loading}
-          >
-            {restoring ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.restoreButtonText}>{t('Restore purchases')}</Text>
-            )}
+          onPress={() => restorePurchases(true)}
+          disabled={restoring || loading}
+        >
+          {restoring ? (
+            <ActivityIndicator color={colors.buttonPrimaryText} />
+          ) : (
+            <Text style={styles.restoreButtonText}>{t('Restore purchases')}</Text>
+          )}
           </TouchableOpacity>
 
           <View style={styles.infoSection}>
@@ -479,7 +479,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderRadius: 12,
   },
   recommendedText: {
-    color: '#fff',
+    color: colors.onAccent,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -538,7 +538,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.success,
   },
   purchaseButtonText: {
-    color: '#fff',
+    color: colors.buttonPrimaryText,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -556,7 +556,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     opacity: 0.7,
   },
   restoreButtonText: {
-    color: '#fff',
+    color: colors.buttonPrimaryText,
     fontSize: 14,
     fontWeight: '600',
   },

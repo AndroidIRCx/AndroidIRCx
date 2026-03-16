@@ -20,6 +20,7 @@ interface ColorPickerModalProps {
     surface: string;
     border: string;
     background: string;
+    modalOverlay?: string;
   };
 }
 
@@ -35,7 +36,7 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
   const styles = useMemo(() => StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.6)',
+      backgroundColor: colors.modalOverlay || 'rgba(0,0,0,0.6)',
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
@@ -46,6 +47,8 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
       backgroundColor: colors.surface,
       borderRadius: 12,
       padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     header: {
       flexDirection: 'row',

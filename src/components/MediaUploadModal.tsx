@@ -45,6 +45,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
@@ -447,10 +448,10 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -472,7 +473,7 @@ const styles = StyleSheet.create({
   header: {
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    borderBottomColor: colors.border,
     marginBottom: 16,
   },
   headerText: {
@@ -530,13 +531,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 12,
   },
   loadingContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: colors.surface,
     padding: 24,
     borderRadius: 12,
     alignItems: 'center',
@@ -548,7 +549,7 @@ const styles = StyleSheet.create({
   },
   voiceRecorderOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },

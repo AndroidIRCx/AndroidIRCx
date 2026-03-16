@@ -23,6 +23,14 @@ jest.mock('../../src/services/SettingsService', () => ({
     loadNetworks: jest.fn(),
   },
 }));
+const mockSetShowNetworksList = jest.fn();
+jest.mock('../../src/stores/uiStore', () => ({
+  useUIStore: {
+    getState: jest.fn(() => ({
+      setShowNetworksList: mockSetShowNetworksList,
+    })),
+  },
+}));
 const mockSettingsService = jest.requireMock<any>('../../src/services/SettingsService').settingsService;
 
 describe('useFirstRunSetup', () => {
@@ -32,6 +40,7 @@ describe('useFirstRunSetup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStorage.clear();
+    mockSetShowNetworksList.mockReset();
   });
 
   it('should return handleFirstRunSetupComplete function', () => {
@@ -79,6 +88,21 @@ describe('useFirstRunSetup', () => {
     });
 
     expect(mockSetShowFirstRunSetup).toHaveBeenCalledWith(false);
+    expect(mockHandleConnect).not.toHaveBeenCalled();
+  });
+
+  it('should open Choose Network when setup finishes without a selected network', async () => {
+    const { result } = renderHook(() => useFirstRunSetup({
+      setShowFirstRunSetup: mockSetShowFirstRunSetup,
+      handleConnect: mockHandleConnect,
+    }));
+
+    await act(async () => {
+      await result.current.handleFirstRunSetupComplete(null);
+    });
+
+    expect(mockSetShowFirstRunSetup).toHaveBeenCalledWith(false);
+    expect(mockSetShowNetworksList).toHaveBeenCalledWith(true);
     expect(mockHandleConnect).not.toHaveBeenCalled();
   });
 

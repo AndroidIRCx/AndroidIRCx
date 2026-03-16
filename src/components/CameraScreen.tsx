@@ -35,6 +35,7 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const styles = createStyles(colors);
   const cameraRef = useRef<Camera>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -209,7 +210,7 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
                 onPress={handleTakePhoto}
                 disabled={isCapturing}>
                 {isCapturing ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={colors.onAccent} />
                 ) : (
                   <View style={styles.captureButtonInner} />
                 )}
@@ -222,10 +223,10 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: colors.background,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -242,12 +243,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeButtonText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 24,
     fontWeight: 'bold',
   },
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
-    borderColor: '#FFFFFF',
+    borderColor: colors.onAccent,
   },
   captureButtonDisabled: {
     opacity: 0.6,
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.onAccent,
   },
   permissionContainer: {
     flex: 1,
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   permissionButtonText: {
-    color: '#FFFFFF',
+    color: colors.onAccent,
     fontSize: 16,
     fontWeight: '600',
   },

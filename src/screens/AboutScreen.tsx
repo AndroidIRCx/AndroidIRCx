@@ -36,7 +36,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({
     { id: 'facebook', label: 'Facebook', url: 'https://www.facebook.com/androidircx', icon: 'facebook', brand: true },
     { id: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@androidircx', icon: 'tiktok', brand: true },
     { id: 'x', label: 'X', url: 'https://x.com/AndroidIRCx', icon: 'twitter', brand: true },
-    { id: 'reddit', label: 'Reddit', url: 'https://www.reddit.com/r/AndroidIRCx/', icon: 'reddit-alien', brand: true },
+    { id: 'reddit', label: 'Reddit', url: 'https://www.reddit.com/r/AndroidIRCx', icon: 'reddit-alien', brand: true },
     { id: 'telegram', label: 'Telegram', url: 'https://t.me/androidircx', icon: 'telegram', brand: true },
     { id: 'linkedin', label: 'LinkedIn', url: 'https://www.linkedin.com/company/androidircx', icon: 'linkedin', brand: true },
     { id: 'mastodon', label: 'Mastodon', url: 'https://mastodon.social/@androidircx', icon: 'mastodon', brand: true },
