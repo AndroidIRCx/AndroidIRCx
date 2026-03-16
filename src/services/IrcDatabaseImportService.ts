@@ -183,12 +183,12 @@ class IrcDatabaseImportService {
           const updatedServers = [...(existing.servers || []), ...mergeResult.missingServers];
           await settingsService.updateNetwork(existing.id, {
             servers: updatedServers,
-            defaultServerId: existing.defaultServerId || updatedServers[0]?.id,
+            defaultServerId: existing.defaultServerId,
           });
           const updatedExisting = {
             ...existing,
             servers: updatedServers,
-            defaultServerId: existing.defaultServerId || updatedServers[0]?.id,
+            defaultServerId: existing.defaultServerId,
           };
           existingByName.set(networkNameKey, updatedExisting);
           existingById.set(normalizeName(existing.id), updatedExisting);
@@ -363,7 +363,6 @@ class IrcDatabaseImportService {
         realname: DEFAULT_IDENTITY.realname,
         ident: DEFAULT_IDENTITY.ident,
         servers: mappedServers,
-        defaultServerId: mappedServers[0]?.id,
         autoJoinChannels: [],
       },
       skippedInvalidServers,

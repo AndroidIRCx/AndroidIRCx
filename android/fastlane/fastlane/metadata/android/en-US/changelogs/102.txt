@@ -1,0 +1,5 @@
+New in v1.9.0:
+- Improved first-run setup with better network selection and quick connect behavior.
+- Expanded IRC Database network import details and polished several settings screens.
+- Fixed backup and restore reliability, including Android file loading and AsyncStorage v3 compatibility.
+- Fixed default server override that could make non-default server tabs impossible to close.

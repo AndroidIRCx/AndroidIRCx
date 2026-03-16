@@ -76,7 +76,11 @@ describe('IrcDatabaseImportService', () => {
       expect.objectContaining({
         name: 'Rizon',
         id: expect.stringContaining('ircdb-rizon'),
-        defaultServerId: expect.any(String),
+      })
+    );
+    expect(settingsService.addNetwork).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        defaultServerId: expect.anything(),
       })
     );
   });
@@ -185,6 +189,51 @@ describe('IrcDatabaseImportService', () => {
           expect.objectContaining({ hostname: 'irc.libera.chat', port: 6697 }),
           expect.objectContaining({ hostname: 'irc.eu.libera.chat', port: 6697 }),
         ]),
+      })
+    );
+  });
+
+  it('does not auto-assign a default server when importing or merging API networks', async () => {
+    (settingsService.loadNetworks as jest.Mock).mockResolvedValueOnce([
+      {
+        id: 'libera-custom',
+        name: 'Libera',
+        nick: 'me',
+        realname: 'me',
+        servers: [{ id: 'libera-1', hostname: 'irc.libera.chat', port: 6697, ssl: true }],
+      },
+    ]);
+
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            network_name: 'Libera',
+            server_list: [
+              { hostname: 'irc.libera.chat', port: 6697, use_ssl: true },
+              { hostname: 'irc.eu.libera.chat', port: 6697, use_ssl: true },
+            ],
+          },
+          {
+            network_name: 'Rizon',
+            server_list: [{ hostname: 'irc.rizon.net', port: 6697, use_ssl: true }],
+          },
+        ],
+      }),
+    });
+
+    await ircDatabaseImportService.importFromIrcDatabase(fetchMock as any);
+
+    expect(settingsService.updateNetwork).toHaveBeenCalledWith(
+      'libera-custom',
+      expect.objectContaining({
+        defaultServerId: undefined,
+      })
+    );
+    expect(settingsService.addNetwork).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        defaultServerId: expect.anything(),
       })
     );
   });

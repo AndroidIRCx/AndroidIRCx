@@ -305,6 +305,7 @@ class SettingsService {
 
       // For DBase network, ensure default servers exist; for user networks, keep their servers as-is
       let servers = net.servers || [];
+      const hadNoServers = servers.length === 0;
 
       if (isDBaseNetwork) {
         // For DBase network, ensure only the built-in DBase server is present by default
@@ -327,11 +328,13 @@ class SettingsService {
         }
       }
 
-      const fallbackDefaultServerId = servers[0]?.id;
-      const defaultServerId =
-        net.defaultServerId && servers.some(s => s.id === net.defaultServerId)
-          ? net.defaultServerId
-          : fallbackDefaultServerId;
+      const hasValidDefaultServerId =
+        typeof net.defaultServerId === 'string' && servers.some(s => s.id === net.defaultServerId);
+      const defaultServerId = hasValidDefaultServerId
+        ? net.defaultServerId
+        : typeof net.defaultServerId === 'string' || hadNoServers
+          ? servers[0]?.id
+          : undefined;
 
       const patched: IRCNetworkConfig = {
         ...net,
