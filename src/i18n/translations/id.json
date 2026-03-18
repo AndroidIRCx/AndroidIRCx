@@ -4578,7 +4578,7 @@
     "string": "Masa berlaku (tahun)  "
   },
   "Certificate validity: 1-10 years": {
-    "string": "Sertifikat berlaku: 1–10 tahun"
+    "string": "Sertifikat berlaku: 1-10 tahun"
   },
   "Generating...": {
     "string": "Lagi bikin...  "
@@ -5172,7 +5172,7 @@
     "string": "Koneksi"
   },
   "Already Connected": {
-    "string": ""
+    "string": "Sudah terkoneksi"
   },
   "Already connected to {server}": {
     "string": "Udah connect ke {server} "
@@ -5184,43 +5184,43 @@
     "string": "Connect ke {server}:{port} Ini bikin koneksi sementara {channel} Lanjut?  "
   },
   "Connect": {
-    "string": ""
+    "string": "Koneksi"
   },
   "Failed to process IRC URL: {error}": {
-    "string": ""
+    "string": "Gagal proses IRC URL: {error} "
   },
   "Usage: /ctcp <nick> <command> [args]": {
-    "string": ""
+    "string": "Usage: /ctcp <nick> <command> [args]"
   },
   "Usage: /xdcc <bot> <command> [args]": {
-    "string": ""
+    "string": "Usage: /xdcc <bot> <command> [args]"
   },
   "Usage: /dcc <chat|send> <nick> [path] [port]": {
-    "string": ""
+    "string": "Usage: /dcc <chat|send> <nick> [path] [port]"
   },
   "Failed to open battery optimization settings. Please enable it manually in system settings.": {
-    "string": ""
+    "string": "Gagal buka pengaturan optimasi baterai. Aktifkan manual di sistem.  "
   },
   "View Certificate Fingerprint": {
-    "string": ""
+    "string": "Lihat fingerprint sertifikat"
   },
   "Failed to extract certificate fingerprint": {
-    "string": ""
+    "string": "Gagal ekstrak fingerprint sertifikat  "
   },
   "Share Cert with NickServ": {
-    "string": ""
+    "string": "Share sertifikat ke NickServ  "
   },
   "Certificate fingerprint sent to NickServ": {
-    "string": ""
+    "string": "Fingerprint sertifikat dikirim ke NickServ  "
   },
   "Not connected to IRC server": {
     "string": "Nggak connect ke server IRC  "
   },
   "Failed to send certificate fingerprint": {
-    "string": ""
+    "string": "Gagal kirim fingerprint sertifikat"
   },
   "Version 1.6.9": {
-    "string": ""
+    "string": "Version 1.6.9"
   },
   "Are you sure you want to delete \"{networkName}\"? This cannot be undone.": {
     "string": "Yakin mau hapus \"{networkName}\"? Nggak bisa dibatalin. "
@@ -5244,319 +5244,319 @@
     "string": "Gagal hapus server "
   },
   "Export My Data": {
-    "string": ""
+    "string": "Ekspor data saya"
   },
   "This will create a JSON file with all your data (messages, settings, networks, etc.). You can then share this file via email, cloud storage, etc.": {
     "string": "Ini bakal bikin file JSON berisi semua data (pesan, setting, network, dll). Bisa dishare via email, cloud storage, dll. "
   },
   "Export Successful": {
-    "string": ""
+    "string": "Ekspor berhasil  "
   },
   "Your data has been exported. Would you like to share it?": {
-    "string": ""
+    "string": "Data kamu sudah diekspor. Mau dibagikan?  "
   },
   "Not Now": {
-    "string": ""
+    "string": "Nanti saja "
   },
   "File saved to: {path}": {
-    "string": ""
+    "string": "File disimpan di: {path}  "
   },
   "Export Failed": {
-    "string": ""
+    "string": "Ekspor gagal  "
   },
   "Failed to export data: {error}": {
-    "string": ""
+    "string": "Gagal ekspor data: {error}  "
   },
   "An error occurred while exporting data.": {
-    "string": ""
+    "string": "Ada error saat ekspor data.  "
   },
   "⚠️ Delete All My Data": {
-    "string": ""
+    "string": "⚠️ Hapus semua data saya"
   },
   "THIS CANNOT BE UNDONE!\n\nThis will permanently delete:\n• All messages\n• All settings\n• All networks\n• All identity profiles\n• Consent preferences\n• Cached data\n\nThe app will restart after deletion. Are you absolutely sure?": {
     "string": "NGGAK BISA DIBATALIN! Ini bakal hapus permanen: • Semua pesan • Semua setting • Semua network • Semua profil identitas • Consent • Cached data App bakal restart setelah penghapusan. Yakin banget?  "
   },
   "DELETE EVERYTHING": {
-    "string": ""
+    "string": "HAPUS SEMUA "
   },
   "Final Confirmation": {
-    "string": ""
+    "string": "Konfirmasi terakhir  "
   },
   "Are you really sure? This will delete ALL your data permanently.": {
-    "string": ""
+    "string": "Yakin banget? Ini bakal hapus SEMUA data kamu permanen.  "
   },
   "Yes, Delete Everything": {
-    "string": ""
+    "string": "Ya, hapus semua  "
   },
   "Data Deleted": {
-    "string": ""
+    "string": "Data dihapus "
   },
   "All your data has been permanently deleted:\n\n{deletedList}\n\nThe app will restart and show the first-run setup again.": {
-    "string": ""
+    "string": "Semua data kamu sudah dihapus permanen:{deletedList}App bakal restart dan tampilkan setup awal lagi.  "
   },
   "Partial Deletion": {
-    "string": ""
+    "string": "Penghapusan sebagian  "
   },
   "Some data could not be deleted.\n\nDeleted:\n{deletedList}\n\nFailed:\n{failedList}\n\nErrors:\n{errorDetails}\n\nPlease check logs for details.": {
-    "string": ""
+    "string": "Beberapa data nggak bisa dihapus.Dihapus:{deletedList}Gagal:{failedList}Error:{errorDetails}Cek log untuk detail.  "
   },
   "Critical error during data deletion: {error}\n\nPlease check the console logs for details.": {
-    "string": ""
+    "string": "Error kritis saat hapus data: {error}Cek console log untuk detail.  "
   },
   "Setting Updated": {
-    "string": ""
+    "string": "Setting diperbarui "
   },
   "Crash reporting has been disabled. New crashes will not be collected.": {
-    "string": ""
+    "string": "Crash reporting dimatikan. Crash baru nggak akan dikumpulkan.  "
   },
   "Crash reporting has been enabled. This helps improve app stability.": {
-    "string": ""
+    "string": "Crash reporting diaktifkan. Ini bantu tingkatkan stabilitas app.  "
   },
   "Failed to update crash reporting setting.": {
-    "string": ""
+    "string": "Gagal update setting crash reporting.  "
   },
   "DATA COLLECTED": {
-    "string": ""
+    "string": "DATA DIKUMPULKAN"
   },
   "Storage Used": {
-    "string": ""
+    "string": "Storage terpakai"
   },
   "Ad Consent": {
-    "string": ""
+    "string": "Consent iklan  "
   },
   "This shows data stored locally on your device. Third-party services (Google AdMob, Firebase) may have their own data retention policies.": {
-    "string": ""
+    "string": "Ini nunjukkin data yang disimpan lokal di device kamu. Layanan pihak ketiga (Google AdMob, Firebase) bisa punya kebijakan retensi data sendiri.  "
   },
   "PRIVACY CONTROLS": {
-    "string": ""
+    "string": "KONTROL PRIVASI  "
   },
   "Crash Reporting": {
-    "string": ""
+    "string": "Crash reporting"
   },
   "Send anonymous crash reports to help improve app stability": {
-    "string": ""
+    "string": "Kirim crash report anonim buat tingkatkan stabilitas app  "
   },
   "When disabled, crash reports will not be collected. This may make it harder to fix bugs you encounter.": {
-    "string": ""
+    "string": "Kalau dimatikan, crash report nggak dikumpulkan. Bisa bikin susah perbaiki bug"
   },
   "YOUR RIGHTS (GDPR/CCPA)": {
-    "string": ""
+    "string": "HAK KAMU (GDPR/CCPA)  "
   },
   "Download all your data in JSON format": {
-    "string": ""
+    "string": "Download semua data kamu dalam format JSON  "
   },
   "Delete All My Data": {
-    "string": ""
+    "string": "Hapus semua data saya "
   },
   "Permanently erase all your data (cannot be undone)": {
-    "string": ""
+    "string": "Hapus permanen semua data kamu (nggak bisa dibatalin)  "
   },
   "🚨 KILL SWITCH 🚨": {
-    "string": ""
+    "string": "🚨 KILL SWITCH 🚨"
   },
   "EMERGENCY: Delete EVERYTHING including certs, logs, secure storage. Keyboard shortcut: Ctrl+Shift+K": {
-    "string": ""
+    "string": "DARURAT: Hapus SEMUA termasuk cert, log, secure storage. Shortcut keyboard: Ctrl+Shift+K"
   },
   "IMPORTANT INFORMATION": {
-    "string": ""
+    "string": "INFORMASI PENTING  "
   },
   "What gets exported?": {
-    "string": ""
+    "string": "Apa yang diekspor?  "
   },
   "All messages (including DMs)": {
-    "string": ""
+    "string": "Semua pesan (termasuk DM)  "
   },
   "Network configurations": {
     "string": "Konfigurasi network  "
   },
   "Identity profiles": {
-    "string": ""
+    "string": "Profil identitas"
   },
   "Settings and preferences": {
-    "string": ""
+    "string": "Setting dan preferensi  "
   },
   "Consent status": {
-    "string": ""
+    "string": "Status consent  "
   },
   "What gets deleted?": {
-    "string": ""
+    "string": "Apa yang dihapus?  "
   },
   "All local data (messages, settings, etc.)": {
-    "string": ""
+    "string": "Semua data lokal (pesan, setting, dll.)  "
   },
   "Consent preferences (will be asked again)": {
-    "string": ""
+    "string": "Preferensi consent (akan ditanya lagi)  "
   },
   "Cached files": {
-    "string": ""
+    "string": "File cache"
   },
   "Note: Data already sent to Google (AdMob, Crashlytics) cannot be deleted via this app, but will be automatically deleted per their retention policies (14-90 days).": {
-    "string": ""
+    "string": "Catatan: Data yang sudah dikirim ke Google (AdMob, Crashlytics) tidak bisa dihapus lewat app ini, tapi otomatis dihapus sesuai kebijakan retensi mereka (14-90 hari)."
   },
   "Your Privacy Rights": {
-    "string": ""
+    "string": "Hak privasi kamu"
   },
   "Under GDPR and CCPA, you have the right to:": {
-    "string": ""
+    "string": "Berdasarkan GDPR dan CCPA, kamu berhak untuk:  "
   },
   "Access your data (Export)": {
-    "string": ""
+    "string": "Akses data kamu (Ekspor) "
   },
   "Delete your data (Right to be forgotten)": {
-    "string": ""
+    "string": "Hapus data kamu (Hak untuk dilupakan)  "
   },
   "Opt-out of data collection": {
-    "string": ""
+    "string": "Tolak pengumpulan data"
   },
   "Withdraw consent at any time": {
     "string": "Tarik consent kapan saja"
   },
   "Data portability (Export to another service)": {
-    "string": ""
+    "string": "Portabilitas data (Ekspor ke layanan lain)  "
   },
   "Choose Your Channels": {
-    "string": ""
+    "string": "Pilih channel kamu"
   },
   "Privacy Agreement": {
-    "string": ""
+    "string": "Perjanjian privasi"
   },
   "By clicking Accept, you agree to:\n\n• Collection of device info, IP address, and location for ads\n• Use of Google Mobile Ads (personalized or non-personalized)\n• Our Privacy Policy and Terms\n\nYou can change these settings anytime in Settings > Privacy & Ads.": {
-    "string": ""
+    "string": "Dengan klik Accept, kamu setuju untuk:\n• Pengumpulan info device, alamat IP, dan lokasi untuk iklan\n• Pemakaian Google Mobile Ads (personal atau non-personal)\n• Kebijakan Privasi dan Terms kami\n\nKamu bisa ubah setting ini kapan saja di Settings > Privacy & Ads."
   },
   "Read Privacy Policy": {
-    "string": ""
+    "string": "Baca kebijakan privasi"
   },
   "Failed to open privacy policy.": {
-    "string": ""
+    "string": "Gagal buka kebijakan privasi. "
   },
   "Accept & Continue": {
-    "string": ""
+    "string": "Terima & lanjut"
   },
   "Failed to save consent. Please try again.": {
-    "string": ""
+    "string": "Gagal simpan consent. Coba lagi.  "
   },
   "AndroidIRCX is free to use, supported by ads": {
-    "string": ""
+    "string": "AndroidIRCX gratis dipakai, didukung iklan  "
   },
   "What We Collect": {
-    "string": ""
+    "string": "Apa yang kami kumpulkan"
   },
   "To provide free features, we use Google Mobile Ads which may collect:": {
-    "string": ""
+    "string": "Untuk fitur gratis, kami pakai Google Mobile Ads yang bisa kumpulkan: "
   },
   "Device information": {
-    "string": ""
+    "string": "Info device  "
   },
   "IP address and location": {
-    "string": ""
+    "string": "Alamat IP dan lokasi"
   },
   "Ad interaction data": {
-    "string": ""
+    "string": "Data interaksi iklan"
   },
   "Your Choices": {
-    "string": ""
+    "string": "Pilihan kamu"
   },
   "You can choose personalized ads (better rewards) or non-personalized ads (more privacy).": {
-    "string": ""
+    "string": "Kamu bisa pilih iklan personal (reward lebih bagus) atau non-personal (lebih privasi). "
   },
   "You can change this anytime in Settings.": {
-    "string": ""
+    "string": "Bisa diubah kapan saja di Settings.  "
   },
   "Important": {
-    "string": ""
+    "string": "Penting"
   },
   "You must accept our privacy terms to use this app. Click the button below to review and accept.": {
-    "string": ""
+    "string": "Kamu harus terima syarat privasi untuk pakai app ini. Klik tombol di bawah buat review dan terima. "
   },
   "Accepted": {
-    "string": ""
+    "string": "Diterima"
   },
   "You have accepted the privacy terms. You can change settings anytime in Settings.": {
-    "string": ""
+    "string": "Kamu sudah terima syarat privasi. Bisa ubah kapan saja di Settings.  "
   },
   "Privacy Terms Accepted": {
-    "string": ""
+    "string": "Syarat privasi diterima "
   },
   "Accept Privacy Terms & Continue": {
-    "string": ""
+    "string": "Terima syarat privasi & lanjut"
   },
   "You can review or change in Settings": {
-    "string": ""
+    "string": "Bisa review atau ubah di Settings  "
   },
   "Tap to review and accept (required to continue)": {
-    "string": ""
+    "string": "Tap untuk review dan terima (wajib lanjut)  "
   },
   "📄 Read Full Privacy Policy": {
-    "string": ""
+    "string": "📄 Baca kebijakan privasi lengkap"
   },
   "We comply with GDPR, CCPA, and other privacy laws. Your data is protected.": {
-    "string": ""
+    "string": "Kami patuh GDPR, CCPA, dan hukum privasi lain. Data kamu dilindungi. "
   },
   "Which channels do you want to join automatically?": {
-    "string": ""
+    "string": "Channel mana yang mau join otomatis?  "
   },
   "#channel1, #channel2, #channel3": {
-    "string": ""
+    "string": "#channel1, #channel2, #channel3"
   },
   "Enter channel names separated by commas. Channels should start with # or &": {
-    "string": ""
+    "string": "Masukkan nama channel dipisah koma. Channel harus mulai dengan # atau &  "
   },
   "Popular Channels": {
-    "string": ""
+    "string": "Channel populer"
   },
   "Default channels": {
-    "string": ""
+    "string": "Channel default"
   },
   "Main channel only": {
-    "string": ""
+    "string": "Hanya channel utama"
   },
   "You can always change these channels later in network settings.": {
     "string": "Channel bisa diubah kapan saja lewat pengaturan network  "
   },
   "Search by mask or reason...": {
-    "string": ""
+    "string": "Cari pakai mask atau reason... "
   },
   "All Networks": {
     "string": "Semua network  "
   },
   "No matching ignored users": {
-    "string": ""
+    "string": "Nggak ada user terabaikan yang cocok"
   },
   "Try different filters": {
-    "string": ""
+    "string": "Coba filter lain"
   },
   "Filter by Network": {
     "string": "Filter berdasarkan network"
   },
   "Certificate generated and applied! Don't forget to add the fingerprint to NickServ.": {
-    "string": ""
+    "string": "Sertifikat dibuat dan diterapkan! Jangan lupa tambahkan fingerprint ke NickServ. "
   },
   "Certificate applied to network configuration": {
     "string": "Sertifikat diterapkan ke konfigurasi network  "
   },
   "No certificate configured": {
-    "string": ""
+    "string": "Nggak ada sertifikat dikonfigurasi"
   },
   "Generate New": {
-    "string": ""
+    "string": "Buat baru "
   },
   "Select Existing": {
-    "string": ""
+    "string": "Pilih yang ada "
   },
   "View Fingerprint": {
-    "string": ""
+    "string": "Lihat fingerprint "
   },
   "or enter manually": {
-    "string": ""
+    "string": "atau masukkan manual "
   },
   "Privacy Settings Updated": {
-    "string": ""
+    "string": "Setting privasi diperbarui"
   },
   "Your privacy preferences have been saved.": {
-    "string": ""
+    "string": "Preferensi privasi kamu sudah disimpan.  "
   },
   "Change Privacy Settings": {
-    "string": ""
+    "string": "Ubah setting privasi"
   },
   "You previously accepted our privacy terms. Would you like to withdraw your consent and reset privacy settings?": {
     "string": "Kamu sebelumnya setuju privacy terms. Mau tarik consent dan reset setting privasi?"
@@ -5565,25 +5565,25 @@
     "string": "Tarik & Reset  "
   },
   "Failed to show consent form. Please try again.": {
-    "string": ""
+    "string": "Gagal tampilkan form consent. Coba lagi.  "
   },
   "Reset Privacy Settings": {
-    "string": ""
+    "string": "Reset setting privasi  "
   },
   "This will withdraw your consent and reset all privacy preferences. You will need to accept the terms again. Continue?": {
     "string": "Ini bakal tarik consent dan reset semua preferensi privasi. Kamu harus setuju terms lagi. Lanjut?  "
   },
   "Reset & Re-accept": {
-    "string": ""
+    "string": "Reset & terima lagi "
   },
   "Privacy terms accepted. Your settings have been updated.": {
-    "string": ""
+    "string": "Syarat privasi diterima. Setting kamu sudah diperbarui.  "
   },
   "Failed to reset consent. Please try again.": {
-    "string": ""
+    "string": "Gagal reset consent. Coba lagi.  "
   },
   "Current Status": {
-    "string": ""
+    "string": "Status Saat Ini"
   },
   "You have consented to personalized ads based on your interests.": {
     "string": ""

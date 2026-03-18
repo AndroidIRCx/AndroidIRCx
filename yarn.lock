@@ -933,10 +933,10 @@
     "@babel/helper-create-regexp-features-plugin" "^7.28.5"
     "@babel/helper-plugin-utils" "^7.28.6"
 
-"@babel/preset-env@^7.29.0":
-  version "7.29.0"
-  resolved "https://registry.yarnpkg.com/@babel/preset-env/-/preset-env-7.29.0.tgz#c55db400c515a303662faaefd2d87e796efa08d0"
-  integrity sha512-fNEdfc0yi16lt6IZo2Qxk3knHVdfMYX33czNb4v8yWhemoBhibCpQK/uYHtSKIiO+p/zd3+8fYVXhQdOVV608w==
+"@babel/preset-env@^7.29.2":
+  version "7.29.2"
+  resolved "https://registry.yarnpkg.com/@babel/preset-env/-/preset-env-7.29.2.tgz#5a173f22c7d8df362af1c9fe31facd320de4a86c"
+  integrity sha512-DYD23veRYGvBFhcTY1iUvJnDNpuqNd/BzBwCvzOTKUnJjKg5kpUBh3/u9585Agdkgj+QuygG7jLfOPWMa2KVNw==
   dependencies:
     "@babel/compat-data" "^7.29.0"
     "@babel/helper-compilation-targets" "^7.28.6"
@@ -1029,10 +1029,15 @@
     "@babel/plugin-transform-modules-commonjs" "^7.27.1"
     "@babel/plugin-transform-typescript" "^7.27.1"
 
-"@babel/runtime@^7.12.5", "@babel/runtime@^7.25.0", "@babel/runtime@^7.28.6":
+"@babel/runtime@^7.12.5", "@babel/runtime@^7.25.0":
   version "7.28.6"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.28.6.tgz#d267a43cb1836dc4d182cce93ae75ba954ef6d2b"
   integrity sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA==
+
+"@babel/runtime@^7.29.2":
+  version "7.29.2"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.29.2.tgz#9a6e2d05f4b6692e1801cd4fb176ad823930ed5e"
+  integrity sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==
 
 "@babel/template@^7.25.0", "@babel/template@^7.28.6", "@babel/template@^7.3.3":
   version "7.28.6"
@@ -7905,18 +7910,18 @@ react-native-fs@^2.20.0:
     base-64 "^0.1.0"
     utf8 "^3.0.0"
 
-react-native-google-mobile-ads@^16.2.2:
-  version "16.2.2"
-  resolved "https://registry.yarnpkg.com/react-native-google-mobile-ads/-/react-native-google-mobile-ads-16.2.2.tgz#0e31c8562dcd8de2b38a5df83afbaaf50fe57761"
-  integrity sha512-PHLTJikmlH3ZEPkPRU0ehiwjw28TrQtZFpmasSdN62Wv0uojqsmXGIB3OcYbMNvc1PD0Jg5ao+5pdH4k2/bsyA==
+react-native-google-mobile-ads@^16.3.0:
+  version "16.3.0"
+  resolved "https://registry.yarnpkg.com/react-native-google-mobile-ads/-/react-native-google-mobile-ads-16.3.0.tgz#a689e6c2cfd0bb92004ddaaa71710043ba18b214"
+  integrity sha512-YzUbCCi7UFVVWZpxVsCbab8euSUzUtwvlouimjqqfja8LexY3KT07fL6+kKsmhCa7v4R1xnHEFfEmeMWRSzcGA==
   dependencies:
     "@iabtcf/core" "^1.5.6"
     use-deep-compare-effect "^1.8.1"
 
-react-native-iap@14.7.14:
-  version "14.7.14"
-  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-14.7.14.tgz#6e4af4816661c1730a11847aede214fb4767b6ec"
-  integrity sha512-2J7sk9DahhzSAYpNweAIrmFrviUemoAf24nAt+OHhlSXNyShlyBEQVr+lJzHfR4bx+G80SN8t8Sfsn5rt0rt6w==
+react-native-iap@14.7.17:
+  version "14.7.17"
+  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-14.7.17.tgz#b4b7efa99030707e5844b91897bfad394bf08873"
+  integrity sha512-0ZJYITTBcVZVDXGm4QS+ivIETxFS5fy4Nxk60/9NgoJVUuPXgEaDPPn4PUXixSWBhlkYVVpufCUy7pPXDIqctw==
 
 react-native-is-edge-to-edge@1.2.1, react-native-is-edge-to-edge@^1.2.1:
   version "1.2.1"
@@ -7959,15 +7964,15 @@ react-native-nfc-manager@^3.17.2:
   resolved "https://registry.yarnpkg.com/react-native-nfc-manager/-/react-native-nfc-manager-3.17.2.tgz#81924946b7fe381bbf85bfb16af90cb05cac4944"
   integrity sha512-0NryP/Iw2hzw4MVH5KCngoRerNUrnRok6VfLrlFcFZRKyTQ7KTgpsdDxCB6cR33qYNyEDrWGBayfAI+ym5gt8Q==
 
-react-native-nitro-modules@0.31.10:
-  version "0.31.10"
-  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.31.10.tgz#d21907327200d5761ba6cf328dec36b1516bc270"
-  integrity sha512-hcvjTu9YJE9fMmnAUvhG8CxvYLpOuMQ/2eyi/S6GyrecezF6Rmk/uRQEL6v09BRFWA/xRVZNQVulQPS+2HS3mQ==
+react-native-nitro-modules@0.35.2:
+  version "0.35.2"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.35.2.tgz#75fbcd42a73d93540c0069d42098d9dc6c12ea7e"
+  integrity sha512-97cZcCh3ZAuWAfutel2Q3qLfc45XXh7F9Ei5tEjahP0kV3q8hQelwLIulKXmjN+f0JI5Zf/wCsfwwdVWYU2tKA==
 
-react-native-nitro-sound@^0.2.10:
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/react-native-nitro-sound/-/react-native-nitro-sound-0.2.10.tgz#6d54259b216565ef418fb7f1e25a7590b05c1a1d"
-  integrity sha512-hzTk74gbGqIms7jnKG0rQzNj/eI118Zcw3a9+lnXi+TLRzIuhqvEehKImvfa1NdyqA+oi9eZAsIQTtvnlKbb9w==
+react-native-nitro-sound@^0.2.12:
+  version "0.2.12"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-sound/-/react-native-nitro-sound-0.2.12.tgz#6806e59690f517e0987457ae2d92b6191eece16e"
+  integrity sha512-186xM1O0q+qqgvJ5xwu6NglodDs0b4bVGsUOwZ8xaQATGsf0hjqvrbeI1+1nacpz5u6wA2cFP0fzVLKUlItd2A==
   dependencies:
     "@react-native-community/slider" "^5.0.1"
 
