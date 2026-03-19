@@ -36,7 +36,12 @@ import { AboutScreen } from './AboutScreen';
 import { CreditsScreen } from './CreditsScreen';
 import { bouncerService, BouncerConfig } from '../services/BouncerService';
 import { layoutService, LayoutConfig, ViewMode, FontSize } from '../services/LayoutService';
-import { performanceService, PerformanceConfig } from '../services/PerformanceService';
+import {
+  performanceService,
+  PerformanceConfig,
+  DEBUG_LOG_CATEGORIES,
+  DebugLogCategory,
+} from '../services/PerformanceService';
 import { dataBackupService } from '../services/DataBackupService';
 import { identityProfilesService, IdentityProfile } from '../services/IdentityProfilesService';
 import { biometricAuthService } from '../services/BiometricAuthService';
@@ -134,6 +139,58 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const premiumTitle = t('💎 Premium', { _tags: tags });
   const zncSubscriptionTitle = t('ZNC Subscription', { _tags: tags });
   const connectionTitle = t('Connection & Network', { _tags: tags });
+  const debugLogLabelMap: Record<DebugLogCategory, string> = {
+    appInitialization: 'Log App Initialization',
+    appState: 'Log App State',
+    autoConnect: 'Log Auto Connect',
+    channelTabs: 'Log Channel Tabs',
+    connectionLifecycle: 'Log Connection Lifecycle',
+    headerActions: 'Log Header Actions',
+    lazyMessageHistory: 'Log Lazy Message History',
+    messageArea: 'Log Message Area',
+    messageBatching: 'Log Message Batching',
+    tabContextMenu: 'Log Tab Context Menu',
+  };
+  const developmentDebugLogItems = __DEV__
+    ? ([
+        {
+          id: 'debug-category-logging-enabled',
+          title: t('Enable Category Debug Logging', { _tags: tags }),
+          description: consoleEnabled
+            ? t('Enable optional debug logs by category in development builds', { _tags: tags })
+            : t('Requires console logging to be enabled', { _tags: tags }),
+          type: 'switch' as const,
+          value: performanceConfig?.debugLoggingEnabled === true,
+          disabled: !consoleEnabled,
+          onValueChange: async (value: boolean) => {
+            await performanceService.setConfig({ debugLoggingEnabled: value });
+            setPerformanceConfig(performanceService.getConfig());
+          },
+          searchKeywords: ['debug', 'developer', 'logging', 'logs', 'troubleshooting', 'development'],
+        },
+        ...DEBUG_LOG_CATEGORIES.map((category) => ({
+          id: `debug-category-${category}`,
+          title: t(debugLogLabelMap[category], { _tags: tags }),
+          description: consoleEnabled
+            ? t(`Enable ${debugLogLabelMap[category].toLowerCase()} traces`, { _tags: tags })
+            : t('Requires console logging to be enabled', { _tags: tags }),
+          type: 'switch' as const,
+          value: performanceConfig?.debugLogCategories?.[category] === true,
+          disabled: !consoleEnabled || performanceConfig?.debugLoggingEnabled !== true,
+          onValueChange: async (value: boolean) => {
+            const current = performanceService.getConfig();
+            await performanceService.setConfig({
+              debugLogCategories: {
+                ...current.debugLogCategories,
+                [category]: value,
+              },
+            });
+            setPerformanceConfig(performanceService.getConfig());
+          },
+          searchKeywords: ['debug', 'developer', 'logging', 'logs', category],
+        })),
+      ] as any[])
+    : [];
   const languageLabels = useMemo(
     () => ({
       en: 'English',
@@ -2230,9 +2287,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 onValueChange: async (value: boolean) => {
                   setConsoleEnabled(value);
                   await consoleManager.setEnabled(value);
+                  if (!value && performanceConfig?.debugLoggingEnabled === true) {
+                    await performanceService.setConfig({ debugLoggingEnabled: false });
+                    setPerformanceConfig(performanceService.getConfig());
+                  }
                 },
                 searchKeywords: ['console', 'logging', 'log', 'debug', 'development', 'dev'],
               },
+              ...developmentDebugLogItems,
             ],
           },
         ]

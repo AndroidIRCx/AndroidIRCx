@@ -5,6 +5,21 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export const DEBUG_LOG_CATEGORIES = [
+  'appInitialization',
+  'appState',
+  'autoConnect',
+  'channelTabs',
+  'connectionLifecycle',
+  'headerActions',
+  'lazyMessageHistory',
+  'messageArea',
+  'messageBatching',
+  'tabContextMenu',
+] as const;
+
+export type DebugLogCategory = typeof DEBUG_LOG_CATEGORIES[number];
+
 export interface PerformanceConfig {
   enableVirtualization: boolean; // Use FlatList instead of ScrollView
   maxVisibleMessages: number; // Max messages to render at once (default: 100)
@@ -29,6 +44,8 @@ export interface PerformanceConfig {
   userListEnableChunkLoading: boolean;
   userListChunkSize: number;
   userListInitialRenderCount: number;
+  debugLoggingEnabled: boolean;
+  debugLogCategories: Record<DebugLogCategory, boolean>;
 }
 
 class PerformanceService {
@@ -52,10 +69,41 @@ class PerformanceService {
     userListEnableChunkLoading: true,
     userListChunkSize: 100,
     userListInitialRenderCount: 50,
+    debugLoggingEnabled: false,
+    debugLogCategories: {
+      appInitialization: false,
+      appState: false,
+      autoConnect: false,
+      channelTabs: false,
+      connectionLifecycle: false,
+      headerActions: false,
+      lazyMessageHistory: false,
+      messageArea: false,
+      messageBatching: false,
+      tabContextMenu: false,
+    },
   };
 
   private listeners: Array<(config: PerformanceConfig) => void> = [];
   private readonly STORAGE_KEY = '@AndroidIRCX:performanceConfig';
+
+  private mergeConfig(updates?: Partial<PerformanceConfig>): PerformanceConfig {
+    if (!updates) {
+      return {
+        ...this.config,
+        debugLogCategories: { ...this.config.debugLogCategories },
+      };
+    }
+
+    return {
+      ...this.config,
+      ...updates,
+      debugLogCategories: {
+        ...this.config.debugLogCategories,
+        ...(updates.debugLogCategories || {}),
+      },
+    };
+  }
 
   /**
    * Initialize performance service
@@ -65,7 +113,7 @@ class PerformanceService {
       const stored = await AsyncStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const data = JSON.parse(stored);
-        this.config = { ...this.config, ...data };
+        this.config = this.mergeConfig(data);
       }
     } catch (error) {
       console.error('Failed to load performance config:', error);
@@ -80,10 +128,21 @@ class PerformanceService {
   }
 
   /**
+   * Check whether debug logging is enabled for a category.
+   */
+  isDebugLoggingEnabled(category: DebugLogCategory): boolean {
+    return (
+      __DEV__ &&
+      this.config.debugLoggingEnabled &&
+      this.config.debugLogCategories[category] === true
+    );
+  }
+
+  /**
    * Update config
    */
   async setConfig(updates: Partial<PerformanceConfig>): Promise<void> {
-    this.config = { ...this.config, ...updates };
+    this.config = this.mergeConfig(updates);
     await this.saveConfig();
     this.notifyListeners();
   }

@@ -61,6 +61,7 @@ import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
 import { useUIStore } from '../stores/uiStore';
 import KickBanModal from './KickBanModal';
+import { debugLogger } from '../services/DebugLogger';
 
 interface MessageAreaProps {
   messages: IRCMessage[];
@@ -1014,6 +1015,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const selectionMode = selectedMessageIds.size > 0;
   const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
+  const isAtBottomRef = useRef(true);
   const device = useCameraDevice('back');
   const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } = useCameraPermission();
   const scanHandledRef = useRef(false);
@@ -1143,18 +1145,18 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     };
   }, []);
 
+  const connection = network ? connectionManager.getConnection(network) : null;
+  const activeIrc = connection?.ircService || ircService;
+  const currentNick = connection?.ircService.getCurrentNick() || '';
+  const setTabs = useTabStore(state => state.setTabs);
+  const setActiveTabId = useTabStore(state => state.setActiveTabId);
+  const getTabById = useTabStore(state => state.getTabById);
+  const currentTabNetworkId = tabId ? getTabById(tabId)?.networkId : undefined;
+
   useEffect(() => {
     const oper = typeof activeIrc?.isServerOper === 'function' ? activeIrc.isServerOper() : false;
     setIsServerOper(oper);
   }, [activeIrc]);
-
-  const connection = network ? connectionManager.getConnection(network) : null;
-  const currentNick = connection?.ircService.getCurrentNick() || '';
-  const tabs = useTabStore(state => state.tabs);
-  const setTabs = useTabStore(state => state.setTabs);
-  const setActiveTabId = useTabStore(state => state.setActiveTabId);
-  const getTabById = useTabStore(state => state.getTabById);
-  const activeTab = tabId ? getTabById(tabId) : undefined;
   const resolveContextUser = useCallback((nick: string | null) => {
     if (!nick || !channel) return null;
     if (channelUsers && channelUsers.length > 0) {
@@ -1219,12 +1221,10 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     return (local?.[action] || global?.[action] || base[action] || '') as string;
   }, []);
 
-  const activeIrc = connection?.ircService || ircService;
-
   // IMPORTANT: Use the per-connection UserManagementService when available so that adding
   // blacklist entries/notes from UI is immediately visible in Settings and applied by enforcement.
   const getUserManagementServiceForNetwork = useCallback(() => {
-    const net = network || activeTab?.networkId;
+    const net = network || currentTabNetworkId;
     if (net) {
       const conn = connectionManager.getConnection(net);
       if (conn?.userManagementService) {
@@ -1232,7 +1232,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       }
     }
     return userManagementService;
-  }, [activeTab?.networkId, connectionManager, network]);
+  }, [currentTabNetworkId, network]);
 
   const getNetworkForStorage = useCallback((): string => {
     return network || activeIrc.getNetworkName() || 'default';
@@ -1346,7 +1346,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const handleNickAction = useCallback(async (action: string) => {
     if (!contextNick) return;
     const selectedUser = resolveContextUser(contextNick);
-    const currentNetwork = network || activeTab?.networkId || activeIrc.getNetworkName();
+    const currentNetwork = network || currentTabNetworkId || activeIrc.getNetworkName();
     switch (action) {
       case 'whois': {
         // Check if modal mode is enabled
@@ -1362,7 +1362,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       case 'query': {
         if (!currentNetwork) break;
         const queryId = queryTabId(currentNetwork, contextNick);
-        const existingTab = tabs.find(t => t.id === queryId && t.type === 'query');
+        const currentTabs = useTabStore.getState().tabs;
+        const existingTab = currentTabs.find(t => t.id === queryId && t.type === 'query');
         if (existingTab) {
           setActiveTabId(existingTab.id);
         } else {
@@ -1375,7 +1376,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
             messages: [],
             isEncrypted,
           };
-          setTabs(sortTabsGrouped([...tabs, newQueryTab], tabSortAlphabetical));
+          setTabs(sortTabsGrouped([...currentTabs, newQueryTab], tabSortAlphabetical));
           soundService.playSound(SoundEventType.RING);
           setActiveTabId(newQueryTab.id);
         }
@@ -1754,9 +1755,9 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     setShowContextMenu(false);
   }, [
     activeIrc,
-    activeTab,
     channel,
     contextNick,
+    currentTabNetworkId,
     getNetworkForStorage,
     handleExternalPayload,
     hasCameraPermission,
@@ -1766,7 +1767,6 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     setActiveTabId,
     setTabs,
     tabSortAlphabetical,
-    tabs,
     t,
   ]);
 
@@ -2016,8 +2016,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         try {
           flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
         } catch (error) {
-          // Silently catch scroll errors to prevent crashes
-          console.warn('Failed to scroll to offset:', error);
+          debugLogger.warn('messageArea', 'Failed to scroll to offset', error);
         }
       }, 100);
     }
@@ -2027,7 +2026,11 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const handleScroll = useCallback((event: any) => {
     const { contentOffset } = event.nativeEvent;
     const offsetFromBottom = contentOffset?.y ?? 0;
-    setIsAtBottom(offsetFromBottom <= 100); // Consider "at bottom" if within 100px from new messages
+    const nextIsAtBottom = offsetFromBottom <= 100;
+    if (nextIsAtBottom !== isAtBottomRef.current) {
+      isAtBottomRef.current = nextIsAtBottom;
+      setIsAtBottom(nextIsAtBottom);
+    }
   }, []);
 
   // Handle end reached (top of list) - load more old messages
@@ -2183,6 +2186,40 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     if (!searchVisible || !searchFilters.searchTerm.trim()) return undefined;
     return displayMessages.length;
   }, [searchVisible, searchFilters.searchTerm, displayMessages.length]);
+
+  const listExtraData = useMemo(() => ({
+    containerWidth,
+    selectionMode,
+    selectedCount: selectedMessageIds.size,
+    currentNick,
+    timestampDisplay: layoutState.timestampDisplay,
+    timestampFormat: layoutState.timestampFormat,
+    showImages: perfConfig.imageLazyLoad !== false,
+    messageFormats: theme.messageFormats,
+  }), [
+    containerWidth,
+    currentNick,
+    layoutState.timestampDisplay,
+    layoutState.timestampFormat,
+    perfConfig.imageLazyLoad,
+    selectedMessageIds.size,
+    selectionMode,
+    theme.messageFormats,
+  ]);
+
+  const initialRenderCount = useMemo(() => {
+    if (!perfConfig.enableVirtualization) {
+      return Math.min(reversedMessages.length, 24);
+    }
+    return Math.min(reversedMessages.length, Math.max(16, Math.min(perfConfig.maxVisibleMessages, 24)));
+  }, [perfConfig.enableVirtualization, perfConfig.maxVisibleMessages, reversedMessages.length]);
+
+  const batchRenderCount = useMemo(() => {
+    if (!perfConfig.enableVirtualization) {
+      return 12;
+    }
+    return Math.max(8, Math.min(perfConfig.messageLoadChunk, 16));
+  }, [perfConfig.enableVirtualization, perfConfig.messageLoadChunk]);
 
   const blacklistModals = (
     <>
@@ -2511,15 +2548,15 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           data={reversedMessages}
           renderItem={renderItem}
           keyExtractor={getItemKey}
-          extraData={containerWidth}
+          extraData={listExtraData}
           inverted // Show newest at bottom
           onScroll={handleScroll}
           scrollEventThrottle={16}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.5}
-          initialNumToRender={perfConfig.maxVisibleMessages}
-          maxToRenderPerBatch={perfConfig.messageLoadChunk}
-          windowSize={10}
+          initialNumToRender={initialRenderCount}
+          maxToRenderPerBatch={batchRenderCount}
+          windowSize={7}
           removeClippedSubviews={false}
           maintainVisibleContentPosition={{ autoscrollToTopThreshold: 50, minIndexForVisible: 1 }}
           style={styles.container}
@@ -2591,10 +2628,13 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           data={reversedMessages}
           renderItem={renderItem}
           keyExtractor={getItemKey}
-          extraData={containerWidth}
+          extraData={listExtraData}
           inverted
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          initialNumToRender={initialRenderCount}
+          maxToRenderPerBatch={batchRenderCount}
+          windowSize={5}
           maintainVisibleContentPosition={{ autoscrollToTopThreshold: 50, minIndexForVisible: 1 }}
           removeClippedSubviews={false}
           style={styles.container}

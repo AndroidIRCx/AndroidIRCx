@@ -7,6 +7,7 @@ import { useEffect, useRef } from 'react';
 import { settingsService } from '../services/SettingsService';
 import { connectionManager } from '../services/ConnectionManager';
 import { IRCNetworkConfig } from '../services/SettingsService';
+import { debugLogger } from '../services/DebugLogger';
 
 interface UseAutoConnectFavoriteProps {
   autoConnectFavoriteServer: boolean;
@@ -104,7 +105,11 @@ export function useAutoConnectFavorite({
           autoConnectAttemptedRef.current.add(target.name);
           toConnect.push(target);
         }
-        console.log(`AutoConnect: Connecting to ${toConnect.length} networks: ${toConnect.map(t => t.name).join(', ')}`);
+        debugLogger.debug(
+          'autoConnect',
+          `Connecting to ${toConnect.length} networks`,
+          toConnect.map(t => t.name).join(', ')
+        );
         // Fire all connections in parallel so state changes from one don't block others
         await Promise.all(toConnect.map(target => handleConnectRef.current(target)));
       } catch (err) {

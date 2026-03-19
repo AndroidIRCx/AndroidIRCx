@@ -29,6 +29,7 @@ import { serverTabId, channelTabId, queryTabId, noticeTabId, notificationsTabId,
 import { useT } from '../i18n/transifex';
 import { stsService } from '../services/STSService';
 import type { ChannelTab } from '../types';
+import { debugLogger } from '../services/DebugLogger';
 
 const normalizePattern = (pattern: string) =>
   pattern.trim().toLowerCase();
@@ -189,7 +190,10 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
     // Update timestamp when isConnected becomes true or network changes
     if (isConnected || networkName !== prevNetworkRef.current) {
       if (networkName !== prevNetworkRef.current) {
-        console.log(`useConnectionLifecycle: Network changed from ${prevNetworkRef.current} to ${networkName}, re-setting up listeners`);
+        debugLogger.debug(
+          'connectionLifecycle',
+          `Network changed from ${prevNetworkRef.current} to ${networkName}, re-setting up listeners`
+        );
         prevNetworkRef.current = networkName;
       }
       setConnectionCheckTimestamp(Date.now());
@@ -200,27 +204,23 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
   // This handles the case where auto-reconnect creates a new IRCService instance
   // and we need to re-attach all event listeners to the new instance
   useEffect(() => {
-    console.log('useConnectionLifecycle: Setting up connection-created listener');
+    debugLogger.debug('connectionLifecycle', 'Setting up connection-created listener');
     const cleanup = connectionManager.onConnectionCreated((networkId: string) => {
-      console.log(`useConnectionLifecycle: Received connection-created event for ${networkId}, forcing listener re-setup`);
+      debugLogger.debug('connectionLifecycle', `Received connection-created event for ${networkId}, forcing listener re-setup`);
       setConnectionCheckTimestamp(Date.now());
     });
 
     return () => {
-      console.log('useConnectionLifecycle: Cleaning up connection-created listener');
+      debugLogger.debug('connectionLifecycle', 'Cleaning up connection-created listener');
       cleanup();
     };
   }, []);
 
   useEffect(() => {
-    if (__DEV__) {
-      console.log('App: Setting up IRC listeners (isConnected:', isConnected, ')');
-    }
+    debugLogger.debug('connectionLifecycle', 'Setting up IRC listeners', isConnected);
 
     const connectionTargets = connectionManager.getAllConnections();
-    if (__DEV__) {
-      console.log('📡 ConnectionManager has', connectionTargets.length, 'connections');
-    }
+    debugLogger.debug('connectionLifecycle', 'ConnectionManager connections', connectionTargets.length);
 
     const listenerTargets = connectionTargets.length > 0
       ? connectionTargets.map(ctx => ({
@@ -236,9 +236,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         managed: false,
       }];
 
-    if (__DEV__) {
-      console.log('📡 Setting up listeners for', listenerTargets.length, 'targets:', listenerTargets.map(t => t.id));
-    }
+    debugLogger.debug('connectionLifecycle', 'Setting up listeners for targets', listenerTargets.map(t => t.id));
 
     // Sync initial connection state in case connect events happened before listeners attached
     const anyConnected = listenerTargets.some(t => t.ircService.getConnectionStatus());
@@ -590,7 +588,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
 
         latest.messageBatchTimeoutRef.current = setTimeout(() => {
           if (__DEV__) {
-            console.log('⏰ Batch timeout triggered, processing', latest.pendingMessagesRef.current.length, 'messages');
+            debugLogger.debug('connectionLifecycle', 'Batch timeout triggered, processing messages', latest.pendingMessagesRef.current.length);
           }
           latest.safeSetState(() => {
             latest.processBatchedMessages();
@@ -681,7 +679,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
               })();
             } else {
               // Tabs already exist (reconnect after disconnect/kill)
-              console.log(`useConnectionLifecycle: Reconnected to ${currentConnectionId}, tabs already exist`);
+              debugLogger.debug('connectionLifecycle', `Reconnected to ${currentConnectionId}, tabs already exist`);
               latest.safeSetState(() => {
                 latest.setTabs(prev => {
                   const exists = prev.some(t => t.id === serverId);
@@ -1240,7 +1238,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
 
       // Listen for STS policy updates
       const unsubscribeStsPolicy = activeIRCService.on('sts-policy', (hostname: string, capValue: string) => {
-        console.log(`STS: Received policy for ${hostname}:`, capValue);
+        debugLogger.debug('connectionLifecycle', `STS: Received policy for ${hostname}`, capValue);
         const success = stsService.savePolicy(hostname, capValue);
         if (success) {
           const policy = stsService.getPolicy(hostname);
@@ -1261,7 +1259,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
       const unsubscribeBeep = activeIRCService.on('beep', (options: { count: number; delay: number }) => {
         // Could trigger sound service beep
         // For now, just log
-        console.log('Beep requested:', options);
+        debugLogger.debug('connectionLifecycle', 'Beep requested', options);
       });
 
       // Simulate ping (in real implementation, measure actual ping)
@@ -1298,7 +1296,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
 
     return () => {
       if (__DEV__) {
-        console.log('App: Cleaning up IRC listeners');
+        debugLogger.debug('connectionLifecycle', 'Cleaning up IRC listeners');
       }
       unsubscribers.forEach(fn => fn());
 

@@ -12,6 +12,7 @@ import { useConnectionStore } from '../stores/connectionStore';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
 import { notificationService } from '../services/NotificationService';
 import type { ChannelTab } from '../types';
+import { debugLogger } from '../services/DebugLogger';
 
 interface PendingAlertPayload {
   title: string;
@@ -76,14 +77,14 @@ export const useAppStateEffects = (params: UseAppStateEffectsParams) => {
         // The lazy loading hook will handle loading messages for tabs that need them
         if (currentNetworkId && currentTabs.length === 0) {
           try {
-            console.log('?? App became active, reloading tabs from storage for network:', currentNetworkId);
+            debugLogger.debug('appState', 'Reloading tabs from storage after app activation', currentNetworkId);
             const loadedTabs = await tabService.getTabs(currentNetworkId);
             // Double-check tabs are still missing before updating (race condition protection)
             const finalTabs = useTabStore.getState().tabs;
             if (finalTabs.length === 0 && loadedTabs && loadedTabs.length > 0) {
               // Use loadTabsFromStorage instead of setTabs to preserve any existing messages
               useTabStore.getState().loadTabsFromStorage(currentNetworkId);
-              console.log('? Reloaded', loadedTabs.length, 'tabs from storage');
+              debugLogger.debug('appState', 'Reloaded tabs from storage', loadedTabs.length);
             }
           } catch (error) {
             console.error('? Failed to reload tabs from storage:', error);

@@ -10,7 +10,7 @@
  * - Query tab options (close, DM encryption, WHOIS, DCC, ignore)
  */
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { Alert } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -29,6 +29,14 @@ import type { ChannelTab } from '../types';
 import { certificateManager } from '../services/CertificateManagerService';
 import { FingerprintFormat } from '../types/certificate';
 import { serviceCommandProvider } from '../services/ServiceCommandProvider';
+import { debugLogger } from '../services/DebugLogger';
+
+interface TabOption {
+  text: string;
+  onPress: () => void;
+  style?: 'cancel' | 'destructive';
+  icon?: string;
+}
 
 interface UseTabContextMenuParams {
   activeTabId: string | null;
@@ -75,8 +83,39 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
     ircService,
   } = params;
 
-  const handleTabLongPress = useCallback(async (tab: ChannelTab) => {
-    const options: { text: string; onPress: () => void; style?: 'cancel' | 'destructive' }[] = [];
+  const tabOptionsRequestIdRef = useRef(0);
+
+  const handleTabLongPress = useCallback((tab: ChannelTab) => {
+    const requestId = ++tabOptionsRequestIdRef.current;
+    const updateTabOptionsModal = (
+      title: string,
+      options: TabOption[],
+    ) => {
+      if (requestId !== tabOptionsRequestIdRef.current) {
+        return;
+      }
+      useUIStore.getState().setTabOptionsTitle(title);
+      useUIStore.getState().setTabOptions(options);
+      useUIStore.getState().setShowTabOptionsModal(true);
+    };
+
+    updateTabOptionsModal(
+      tab.type === 'server' ? `Server: ${tab.networkId}` : `${tab.type === 'channel' ? t('Channel') : t('Query')}: ${tab.name}`,
+      [
+        { text: t('Loading...'), icon: 'progress-clock', onPress: () => {} },
+        { text: t('Cancel'), style: 'cancel', onPress: () => useUIStore.getState().setShowTabOptionsModal(false) },
+      ],
+    );
+
+    void (async () => {
+      debugLogger.debug('tabContextMenu', 'Building tab context menu', {
+        tabId: tab.id,
+        tabType: tab.type,
+        tabName: tab.name,
+        networkId: tab.networkId,
+      });
+
+    const options: TabOption[] = [];
     let isBookmarked = false;
 
     if (tab.type === 'server') {
@@ -115,6 +154,9 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
             onPress: async () => {
               try {
                 const fingerprint = certificateManager.extractFingerprintFromPem(networkConfig.clientCert!);
+                if (!fingerprint) {
+                  throw new Error('Missing certificate fingerprint');
+                }
                 const formatted = certificateManager.formatFingerprint(
                   fingerprint,
                   FingerprintFormat.COLON_SEPARATED_UPPER
@@ -153,6 +195,9 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
             onPress: async () => {
               try {
                 const fingerprint = certificateManager.extractFingerprintFromPem(networkConfig.clientCert!);
+                if (!fingerprint) {
+                  throw new Error('Missing certificate fingerprint');
+                }
                 const formatted = certificateManager.formatFingerprint(
                   fingerprint,
                   FingerprintFormat.COLON_SEPARATED_UPPER
@@ -233,7 +278,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           text: t('IRCop Commands'),
           icon: 'shield-account',
           onPress: () => {
-            const ircopOptions = [
+            const ircopOptions: TabOption[] = [
               { text: 'ADMIN', onPress: () => svc.sendCommand('ADMIN') },
               { text: 'INFO', onPress: () => svc.sendCommand('INFO') },
               { text: 'VERSION', onPress: () => svc.sendCommand('VERSION') },
@@ -307,9 +352,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
               },
               { text: 'Cancel', style: 'cancel', onPress: () => {} },
             ];
-            useUIStore.getState().setTabOptionsTitle(`IRCop: ${tab.networkId}`);
-            useUIStore.getState().setTabOptions(ircopOptions);
-            useUIStore.getState().setShowTabOptionsModal(true);
+            updateTabOptionsModal(`IRCop: ${tab.networkId}`, ircopOptions);
           },
         });
       }
@@ -355,9 +398,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
         onPress: () => {},
         style: 'cancel',
       });
-      useUIStore.getState().setTabOptionsTitle(`Server: ${tab.networkId}`);
-      useUIStore.getState().setTabOptions(options);
-      useUIStore.getState().setShowTabOptionsModal(true);
+      updateTabOptionsModal(`Server: ${tab.networkId}`, options);
       return;
     }
 
@@ -765,7 +806,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           icon: 'server',
           onPress: () => {
             const chanserv = channelServiceCommands[0]?.service || 'ChanServ';
-            const serviceOptions = [
+            const serviceOptions: TabOption[] = [
               {
                 text: t('OP (Give Op)'),
                 icon: 'shield-account',
@@ -914,9 +955,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
               },
               { text: t('Cancel'), style: 'cancel', onPress: () => {} },
             ];
-            useUIStore.getState().setTabOptionsTitle(t('IRC Services: {channel}', { channel: tab.name }));
-            useUIStore.getState().setTabOptions(serviceOptions);
-            useUIStore.getState().setShowTabOptionsModal(true);
+            updateTabOptionsModal(t('IRC Services: {channel}', { channel: tab.name }), serviceOptions);
           },
         });
       }
@@ -949,9 +988,22 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
 
     options.push({ text: t('Cancel'), style: 'cancel', onPress: () => useUIStore.getState().setShowTabOptionsModal(false) });
 
-    useUIStore.getState().setTabOptionsTitle(tab.type === 'channel' ? t('Channel: {name}', { name: tab.name }) : t('Query: {name}', { name: tab.name }));
-    useUIStore.getState().setTabOptions(options);
-    useUIStore.getState().setShowTabOptionsModal(true);
+    updateTabOptionsModal(
+      tab.type === 'channel'
+        ? t('Channel: {name}', { name: tab.name })
+        : t('Query: {name}', { name: tab.name }),
+      options,
+    );
+    })().catch((error) => {
+      debugLogger.warn('tabContextMenu', 'Failed to build tab context menu', error);
+      updateTabOptionsModal(
+        t('Options'),
+        [
+          { text: t('Failed to load options'), icon: 'alert-circle-outline', onPress: () => {} },
+          { text: t('Close'), style: 'cancel', onPress: () => useUIStore.getState().setShowTabOptionsModal(false) },
+        ],
+      );
+    });
   }, [
     activeTabId,
     getNetworkConfigForId,
@@ -969,6 +1021,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
     setActiveConnectionId,
     tabSortAlphabetical,
     ircService,
+    t,
   ]);
 
   return { handleTabLongPress };

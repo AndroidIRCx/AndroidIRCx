@@ -480,29 +480,12 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
           {scripts.length === 0 ? (
             <Text style={styles.subtitle}>{t('No scripts installed.')}</Text>
           ) : (
-            scripts.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardHeaderText}>
-                    <Text style={styles.title}>{item.name}</Text>
-                    <Text style={styles.subtitle}>{item.id}</Text>
-                    {item.description ? <Text style={styles.subtitle}>{item.description}</Text> : null}
-                  </View>
-                  <Switch value={item.enabled} onValueChange={(v) => toggleScript(item.id, v)} />
-                </View>
-                <View style={styles.row}>
-                  <TouchableOpacity style={styles.button} onPress={() => handleEdit(item)}>
-                    <Text style={styles.buttonText}>{t('Edit')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.button, styles.danger]} onPress={() => removeScript(item.id)}>
-                    <Text style={[styles.buttonText, styles.dangerText]}>{t('Delete')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.button} onPress={() => handleTestHook(item.id, 'onMessage')}>
-                    <Text style={styles.buttonText}>{t('Test')}</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))
+            <FlatList
+              data={scripts}
+              keyExtractor={(item) => item.id}
+              renderItem={renderScript}
+              scrollEnabled={false}
+            />
           )}
 
           <View style={styles.logHeader}>

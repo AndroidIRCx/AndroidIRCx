@@ -13,6 +13,7 @@ import { SoundEventType } from '../types/sound';
 import { messageHistoryService } from '../services/MessageHistoryService';
 import { bouncerService } from '../services/BouncerService';
 import type { ChannelTab } from '../types';
+import { debugLogger } from '../services/DebugLogger';
 
 interface MessageBatchItem {
   message: IRCMessage;
@@ -132,7 +133,7 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
               scrollbackLoaded: true,
             };
 
-            console.log(`📜 Loaded ${uniqueScrollback.length} scrollback messages for ${tabInfo.channelName}`);
+            debugLogger.debug('messageBatching', `Loaded ${uniqueScrollback.length} scrollback messages`, tabInfo.channelName);
             return newTabs;
           });
         }
@@ -157,18 +158,14 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
 
   const processBatchedMessages = useCallback(() => {
     const batch = pendingMessagesRef.current;
-    if (__DEV__) {
-      console.log('🔄 processBatchedMessages called, batch size:', batch.length);
-    }
+    debugLogger.debug('messageBatching', 'processBatchedMessages called', batch.length);
     if (batch.length === 0) return;
 
     // Clear the queue
     pendingMessagesRef.current = [];
     messageBatchTimeoutRef.current = null;
 
-    if (__DEV__) {
-      console.log('🔄 Processing batch of', batch.length, 'messages');
-    }
+    debugLogger.debug('messageBatching', 'Processing batch', batch.length);
 
     // Track newly created tabs for scrollback loading
     const newlyCreatedTabs: NewTabInfo[] = [];
@@ -183,17 +180,13 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
 
     // Process all messages in a single setTabs call
     setTabs(prevTabs => {
-      if (__DEV__) {
-        console.log('📝 setTabs called, current tabs:', prevTabs.length);
-      }
+      debugLogger.debug('messageBatching', 'setTabs called with current tabs', prevTabs.length);
       let newTabs = prevTabs;
       let tabsModified = false;
 
       for (const { message, context } of batch) {
         if (!context) {
-          if (__DEV__) {
-            console.warn('useMessageBatching: Skipping message without context', message);
-          }
+          debugLogger.warn('messageBatching', 'Skipping message without context', message);
           continue;
         }
 
@@ -324,9 +317,7 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
           });
           
           if (isDuplicate) {
-            if (__DEV__) {
-              console.log('📨 useMessageBatching: Skipping duplicate message', message.text?.substring(0, 50));
-            }
+            debugLogger.debug('messageBatching', 'Skipping duplicate message', message.text?.substring(0, 50));
             continue;
           }
           
@@ -352,9 +343,7 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
       }
 
       if (!tabsModified) {
-        if (__DEV__) {
-          console.log('⚠️ No tabs modified, returning prevTabs');
-        }
+        debugLogger.debug('messageBatching', 'No tabs modified, returning previous tabs');
         return prevTabs;
       }
       const result = newTabs.length === prevTabs.length ? newTabs : sortTabsGrouped(newTabs, tabSortAlphabetical);

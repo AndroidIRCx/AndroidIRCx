@@ -17,6 +17,7 @@ import { bannerAdService } from '../services/BannerAdService';
 import { errorReportingService } from '../services/ErrorReportingService';
 import { soundService } from '../services/SoundService';
 import { privacyRelayService } from '../services/PrivacyRelayService';
+import { debugLogger } from '../services/DebugLogger';
 
 // ErrorUtils is available globally in React Native
 declare const ErrorUtils: {
@@ -44,12 +45,12 @@ export function useAppInitialization() {
     // Debug mode uses debug provider (no Play Integrity required)
     const initAppCheck = async () => {
       try {
-        console.log('🔐 Initializing Firebase App Check...');
+        debugLogger.debug('appInitialization', 'Initializing Firebase App Check');
         const app = getApp();
-        console.log('✅ Firebase app instance obtained');
+        debugLogger.debug('appInitialization', 'Firebase app instance obtained');
         
         const rnfbProvider = new ReactNativeFirebaseAppCheckProvider();
-        console.log('✅ ReactNativeFirebaseAppCheckProvider created');
+        debugLogger.debug('appInitialization', 'ReactNativeFirebaseAppCheckProvider created');
         
         const providerConfig = {
           android: {
@@ -64,16 +65,16 @@ export function useAppInitialization() {
           },
         };
         
-        console.log('🔧 Configuring App Check provider:', JSON.stringify(providerConfig, null, 2));
+        debugLogger.debug('appInitialization', 'Configuring App Check provider', providerConfig);
         rnfbProvider.configure(providerConfig);
-        console.log('✅ Provider configured');
+        debugLogger.debug('appInitialization', 'App Check provider configured');
         
-        console.log('🚀 Initializing App Check...');
+        debugLogger.debug('appInitialization', 'Initializing App Check');
         await initializeAppCheck(app, {
           provider: rnfbProvider,
           isTokenAutoRefreshEnabled: true,
         });
-        console.log('✅ App Check initialized successfully');
+        debugLogger.debug('appInitialization', 'App Check initialized successfully');
       } catch (error: any) {
         console.error('❌ App Check initialization failed:', error);
         console.error('Error details:', {
@@ -94,7 +95,7 @@ export function useAppInitialization() {
     const initPrivacyRelay = async () => {
       try {
         await privacyRelayService.initialize();
-        console.log('✅ PrivacyRelayService initialized successfully');
+        debugLogger.debug('appInitialization', 'PrivacyRelayService initialized successfully');
       } catch (error) {
         console.error('❌ Failed to initialize PrivacyRelayService:', error);
       }
@@ -105,9 +106,9 @@ export function useAppInitialization() {
     const initAdsWithConsent = async () => {
       try {
         // Step 1: Initialize UMP SDK for consent (GDPR/CCPA compliance)
-        console.log('🔐 Initializing consent management...');
+        debugLogger.debug('appInitialization', 'Initializing consent management');
         await consentService.initialize(__DEV__); // Enable debug mode in development
-        console.log('✅ Consent service initialized');
+        debugLogger.debug('appInitialization', 'Consent service initialized');
 
         // Step 2: Show consent form if required (first launch in EEA/UK)
         // Skip showing consent form on first run - it will be shown in FirstRunSetupScreen
@@ -115,47 +116,41 @@ export function useAppInitialization() {
         if (!isFirstRun) {
           await consentService.showConsentFormIfRequired();
         } else {
-          console.log('⏭️ Skipping consent form - will be shown in first run setup');
+          debugLogger.debug('appInitialization', 'Skipping consent form on first run');
         }
 
         // Step 3: Initialize AdMob after consent is handled
-        console.log('🚀 Starting AdMob initialization...');
+        debugLogger.debug('appInitialization', 'Starting AdMob initialization');
         const adapterStatuses = await MobileAds().initialize();
-        console.log('✅ AdMob initialized successfully');
-        console.log('Adapter statuses:', JSON.stringify(adapterStatuses, null, 2));
+        debugLogger.debug('appInitialization', 'AdMob initialized successfully', adapterStatuses);
 
         // Check if adapters are ready
         const allReady = adapterStatuses.every((adapter: any) => adapter.state === 1);
         if (!allReady) {
-          console.warn('⚠️ WARNING: Not all ad adapters are ready!');
-          console.warn('This could be due to:');
-          console.warn('  - New ad units (wait up to 24 hours)');
-          console.warn('  - Network connectivity issues');
-          console.warn('  - Google Play Services not updated');
-          console.warn('  - Ad units not approved in AdMob console');
+          debugLogger.warn('appInitialization', 'Not all AdMob adapters are ready');
         } else {
-          console.log('✅ All ad adapters ready!');
+          debugLogger.debug('appInitialization', 'All AdMob adapters ready');
         }
 
         // Step 4: Initialize AdRewardService after consent & AdMob are ready
-        console.log('🔄 Initializing AdRewardService...');
+        debugLogger.debug('appInitialization', 'Initializing AdRewardService');
         await adRewardService.initialize();
-        console.log('✅ AdRewardService initialized successfully');
+        debugLogger.debug('appInitialization', 'AdRewardService initialized successfully');
 
         // Step 5: Initialize InAppPurchaseService
-        console.log('🔄 Initializing InAppPurchaseService...');
+        debugLogger.debug('appInitialization', 'Initializing InAppPurchaseService');
         await inAppPurchaseService.initialize();
-        console.log('✅ InAppPurchaseService initialized successfully');
+        debugLogger.debug('appInitialization', 'InAppPurchaseService initialized successfully');
 
         // Step 6: Initialize BannerAdService
-        console.log('🔄 Initializing BannerAdService...');
+        debugLogger.debug('appInitialization', 'Initializing BannerAdService');
         await bannerAdService.initialize();
-        console.log('✅ BannerAdService initialized successfully');
+        debugLogger.debug('appInitialization', 'BannerAdService initialized successfully');
 
         // Step 7: Initialize SoundService
-        console.log('🔄 Initializing SoundService...');
+        debugLogger.debug('appInitialization', 'Initializing SoundService');
         await soundService.initialize();
-        console.log('✅ SoundService initialized successfully');
+        debugLogger.debug('appInitialization', 'SoundService initialized successfully');
       } catch (error) {
         console.error('❌ Failed to initialize ads with consent:', error);
         console.error('Error details:', JSON.stringify(error, null, 2));

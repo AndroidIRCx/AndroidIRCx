@@ -5940,7 +5940,7 @@
     "string": "ZNC bikin kamu tetap konek 24/7 dengan playback pesan  "
   },
   "ZNC is an IRC bouncer that keeps you connected 24/7. Features include:\n\n- Always-on connection\n- Message playback when you reconnect\n- Multiple network support\n- Automatic configuration\n\nPrimarily intended for DBase network. Use on other networks at your own risk.": {
-    "string": "ZNC adalah IRC bouncer yang bikin kamu tetap konek 24/7. Fitur:- Koneksi selalu aktif- Playback pesan saat reconnect- Support multi-network- Konfigurasi otomatisUtamanya untuk network DBase. Pakai di network lain risiko ditanggung sendiri.  "
+    "string": "ZNC adalah IRC bouncer yang bikin kamu tetap konek 24/7. Fitur:\n- Koneksi selalu aktif\n- Playback pesan saat reconnect\n- Support multi-network\n- Konfigurasi otomatis\n\nUtamanya untuk network DBase. Pakai di network lain risiko ditanggung sendiri.  "
   },
   "Messages & History": {
     "string": "Pesan & riwayat  "
@@ -6051,7 +6051,7 @@
     "string": "Error store"
   },
   "ZNC subscription product (znc) is not available in the store. This may be because:\n• You're not in the test group\n• The app signing certificate doesn't match Play Console\n• The subscription is not published to your region\n• You need to join the beta/testing program": {
-    "string": "Produk langganan ZNC (znc) nggak tersedia di store. Bisa jadi karena:• Kamu bukan bagian test group• Sertifikat signing app nggak cocok dengan Play Console• Langganan belum dipublikasikan di region kamu• Kamu perlu join program beta/testing  "
+    "string": "Produk langganan ZNC (znc) nggak tersedia di store. Bisa jadi karena:\n• Kamu bukan bagian test group\n• Sertifikat signing app nggak cocok dengan Play Console\n• Langganan belum dipublikasikan di region kamu\n• Kamu perlu join program beta/testing  "
   },
   "Failed to connect to the store. Please check your internet connection and try again.": {
     "string": ""
