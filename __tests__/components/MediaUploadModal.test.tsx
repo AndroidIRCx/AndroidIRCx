@@ -397,10 +397,16 @@ describe('MediaUploadModal', () => {
 
   it('handles onRequestClose for nested voice modal', async () => {
     mockVoiceRecorderControl.mode = 'idle';
-    const { getByText, UNSAFE_getAllByType } = render(<MediaUploadModal {...baseProps} />);
+    const { getByText, UNSAFE_getByProps } = render(<MediaUploadModal {...baseProps} />);
     fireEvent.press(getByText('Voice Message'));
-    const modals = UNSAFE_getAllByType(Modal);
-    fireEvent(modals[1], 'requestClose');
+    const voiceModal = await waitFor(() =>
+      UNSAFE_getByProps({
+        visible: true,
+        transparent: true,
+        animationType: 'slide',
+      })
+    );
+    fireEvent(voiceModal, 'requestClose');
 
     await waitFor(() => {
       expect(baseProps.onMediaSelected).not.toHaveBeenCalled();

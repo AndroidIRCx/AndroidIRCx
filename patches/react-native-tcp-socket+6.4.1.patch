@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-tcp-socket/android/src/main/java/com/asterinet/react/tcpsocket/TcpSocketModule.java b/node_modules/react-native-tcp-socket/android/src/main/java/com/asterinet/react/tcpsocket/TcpSocketModule.java
-index 8bc7b1d..d4b53f9 100644
+index 121edb4..2581f2b 100644
 --- a/node_modules/react-native-tcp-socket/android/src/main/java/com/asterinet/react/tcpsocket/TcpSocketModule.java
 +++ b/node_modules/react-native-tcp-socket/android/src/main/java/com/asterinet/react/tcpsocket/TcpSocketModule.java
-@@ -140,7 +140,17 @@ public class TcpSocketModule extends ReactContextBaseJavaModule {
+@@ -140,7 +140,16 @@ public class TcpSocketModule extends ReactContextBaseJavaModule {
          executorService.execute(new Runnable() {
              @Override
              public void run() {
