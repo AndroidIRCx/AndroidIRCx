@@ -873,7 +873,10 @@ describe('ConnectionNetworkSection', () => {
       />
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true));
+    await waitFor(() => {
+      expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true);
+      expect(mockCapturedItems.get('connection-biometric-lock').disabled).toBe(false);
+    });
 
     await mockCapturedItems.get('connection-biometric-lock').onValueChange(true);
     expect(mockBiometricEnableLock).toHaveBeenCalled();
@@ -914,7 +917,10 @@ describe('ConnectionNetworkSection', () => {
       />
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true));
+    await waitFor(() => {
+      expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true);
+      expect(mockCapturedItems.get('connection-biometric-lock').disabled).toBe(false);
+    });
 
     await mockCapturedItems.get('connection-biometric-lock').onValueChange(false);
     expect(mockBiometricDisableLock).toHaveBeenCalled();
