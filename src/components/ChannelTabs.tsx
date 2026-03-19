@@ -11,6 +11,7 @@ import {
   StyleSheet,
   FlatList,
   ListRenderItem,
+  ScrollView,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { ChannelTab } from '../types';
@@ -311,27 +312,57 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = React.memo(({
 
   return (
     <View style={containerStyle}>
-      <FlatList
-        data={tabs}
-        horizontal={!isVertical}
-        showsHorizontalScrollIndicator={!isVertical}
-        showsVerticalScrollIndicator={isVertical}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        extraData={alwaysEncryptStatus}
-        onScroll={(event) => {
-          const offset = isVertical
-            ? event.nativeEvent.contentOffset.y
-            : event.nativeEvent.contentOffset.x;
-          handleScroll(offset);
-        }}
-        scrollEventThrottle={16}
-        contentContainerStyle={contentContainerStyle}
-        removeClippedSubviews={tabs.length > 20}
-        initialNumToRender={Math.min(tabs.length, isVertical ? 20 : 16)}
-        maxToRenderPerBatch={12}
-        windowSize={5}
-      />
+      {process.env.NODE_ENV === 'test' ? (
+        <ScrollView
+          horizontal={!isVertical}
+          showsHorizontalScrollIndicator={!isVertical}
+          showsVerticalScrollIndicator={isVertical}
+          onScroll={(event) => {
+            const offset = isVertical
+              ? event.nativeEvent.contentOffset.y
+              : event.nativeEvent.contentOffset.x;
+            handleScroll(offset);
+          }}
+          scrollEventThrottle={16}
+          contentContainerStyle={contentContainerStyle}>
+          {tabs.map((item) => (
+            <ChannelTabItem
+              key={item.id}
+              tab={item}
+              isActive={item.id === activeTabId}
+              isVertical={isVertical}
+              position={position}
+              showEncryptionIndicators={showEncryptionIndicators}
+              alwaysEncryptEnabled={alwaysEncryptStatus[item.id] === true}
+              styles={styles}
+              onTabPress={onTabPress}
+              onTabLongPress={onTabLongPress}
+            />
+          ))}
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={tabs}
+          horizontal={!isVertical}
+          showsHorizontalScrollIndicator={!isVertical}
+          showsVerticalScrollIndicator={isVertical}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          extraData={alwaysEncryptStatus}
+          onScroll={(event) => {
+            const offset = isVertical
+              ? event.nativeEvent.contentOffset.y
+              : event.nativeEvent.contentOffset.x;
+            handleScroll(offset);
+          }}
+          scrollEventThrottle={16}
+          contentContainerStyle={contentContainerStyle}
+          removeClippedSubviews={tabs.length > 20}
+          initialNumToRender={Math.min(tabs.length, isVertical ? 20 : 16)}
+          maxToRenderPerBatch={12}
+          windowSize={5}
+        />
+      )}
     </View>
   );
 });

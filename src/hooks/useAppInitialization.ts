@@ -127,6 +127,12 @@ export function useAppInitialization() {
         // Check if adapters are ready
         const allReady = adapterStatuses.every((adapter: any) => adapter.state === 1);
         if (!allReady) {
+          console.warn('⚠️ WARNING: Not all ad adapters are ready!');
+          console.warn('This could be due to:');
+          console.warn('1. Network connectivity issues');
+          console.warn('2. AdMob account/app approval pending');
+          console.warn('3. Some mediation adapters not configured');
+          console.warn('4. Running in emulator/test environment');
           debugLogger.warn('appInitialization', 'Not all AdMob adapters are ready');
         } else {
           debugLogger.debug('appInitialization', 'All AdMob adapters ready');

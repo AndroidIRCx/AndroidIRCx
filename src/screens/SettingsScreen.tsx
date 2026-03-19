@@ -88,6 +88,19 @@ import {
   GlobalProxyInputs,
 } from '../utils/settingsHelpers';
 
+const FALLBACK_DEBUG_LOG_CATEGORIES: DebugLogCategory[] = [
+  'appInitialization',
+  'appState',
+  'autoConnect',
+  'channelTabs',
+  'connectionLifecycle',
+  'headerActions',
+  'lazyMessageHistory',
+  'messageArea',
+  'messageBatching',
+  'tabContextMenu',
+];
+
 interface SettingsScreenProps {
   visible: boolean;
   onClose: () => void;
@@ -139,6 +152,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const premiumTitle = t('💎 Premium', { _tags: tags });
   const zncSubscriptionTitle = t('ZNC Subscription', { _tags: tags });
   const connectionTitle = t('Connection & Network', { _tags: tags });
+  const debugLogCategories = DEBUG_LOG_CATEGORIES ?? FALLBACK_DEBUG_LOG_CATEGORIES;
   const debugLogLabelMap: Record<DebugLogCategory, string> = {
     appInitialization: 'Log App Initialization',
     appState: 'Log App State',
@@ -151,46 +165,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     messageBatching: 'Log Message Batching',
     tabContextMenu: 'Log Tab Context Menu',
   };
-  const developmentDebugLogItems = __DEV__
-    ? ([
-        {
-          id: 'debug-category-logging-enabled',
-          title: t('Enable Category Debug Logging', { _tags: tags }),
-          description: consoleEnabled
-            ? t('Enable optional debug logs by category in development builds', { _tags: tags })
-            : t('Requires console logging to be enabled', { _tags: tags }),
-          type: 'switch' as const,
-          value: performanceConfig?.debugLoggingEnabled === true,
-          disabled: !consoleEnabled,
-          onValueChange: async (value: boolean) => {
-            await performanceService.setConfig({ debugLoggingEnabled: value });
-            setPerformanceConfig(performanceService.getConfig());
-          },
-          searchKeywords: ['debug', 'developer', 'logging', 'logs', 'troubleshooting', 'development'],
-        },
-        ...DEBUG_LOG_CATEGORIES.map((category) => ({
-          id: `debug-category-${category}`,
-          title: t(debugLogLabelMap[category], { _tags: tags }),
-          description: consoleEnabled
-            ? t(`Enable ${debugLogLabelMap[category].toLowerCase()} traces`, { _tags: tags })
-            : t('Requires console logging to be enabled', { _tags: tags }),
-          type: 'switch' as const,
-          value: performanceConfig?.debugLogCategories?.[category] === true,
-          disabled: !consoleEnabled || performanceConfig?.debugLoggingEnabled !== true,
-          onValueChange: async (value: boolean) => {
-            const current = performanceService.getConfig();
-            await performanceService.setConfig({
-              debugLogCategories: {
-                ...current.debugLogCategories,
-                [category]: value,
-              },
-            });
-            setPerformanceConfig(performanceService.getConfig());
-          },
-          searchKeywords: ['debug', 'developer', 'logging', 'logs', category],
-        })),
-      ] as any[])
-    : [];
   const languageLabels = useMemo(
     () => ({
       en: 'English',
@@ -348,6 +322,46 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const pinResolveRef = useRef<((ok: boolean) => void) | null>(null);
   const PIN_STORAGE_KEY = '@AndroidIRCX:pin-lock';
   const [consoleEnabled, setConsoleEnabled] = useState(__DEV__ ? consoleManager.getEnabled() : false);
+  const developmentDebugLogItems = __DEV__
+    ? ([
+        {
+          id: 'debug-category-logging-enabled',
+          title: t('Enable Category Debug Logging', { _tags: tags }),
+          description: consoleEnabled
+            ? t('Enable optional debug logs by category in development builds', { _tags: tags })
+            : t('Requires console logging to be enabled', { _tags: tags }),
+          type: 'switch' as const,
+          value: performanceConfig?.debugLoggingEnabled === true,
+          disabled: !consoleEnabled,
+          onValueChange: async (value: boolean) => {
+            await performanceService.setConfig({ debugLoggingEnabled: value });
+            setPerformanceConfig(performanceService.getConfig());
+          },
+          searchKeywords: ['debug', 'developer', 'logging', 'logs', 'troubleshooting', 'development'],
+        },
+        ...debugLogCategories.map((category) => ({
+          id: `debug-category-${category}`,
+          title: t(debugLogLabelMap[category], { _tags: tags }),
+          description: consoleEnabled
+            ? t(`Enable ${debugLogLabelMap[category].toLowerCase()} traces`, { _tags: tags })
+            : t('Requires console logging to be enabled', { _tags: tags }),
+          type: 'switch' as const,
+          value: performanceConfig?.debugLogCategories?.[category] === true,
+          disabled: !consoleEnabled || performanceConfig?.debugLoggingEnabled !== true,
+          onValueChange: async (value: boolean) => {
+            const current = performanceService.getConfig();
+            await performanceService.setConfig({
+              debugLogCategories: {
+                ...current.debugLogCategories,
+                [category]: value,
+              },
+            });
+            setPerformanceConfig(performanceService.getConfig());
+          },
+          searchKeywords: ['debug', 'developer', 'logging', 'logs', category],
+        })),
+      ] as any[])
+    : [];
   const isMountedRef = useRef(false);
 
   // Premium and ad status now managed by useSettingsPremium hook

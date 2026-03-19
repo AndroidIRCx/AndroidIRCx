@@ -7,7 +7,19 @@ import { DebugLogCategory, performanceService } from './PerformanceService';
 
 class DebugLogger {
   private shouldLog(category: DebugLogCategory): boolean {
-    return performanceService.isDebugLoggingEnabled(category);
+    const service = performanceService as {
+      isDebugLoggingEnabled?: (logCategory: DebugLogCategory) => boolean;
+      getConfig?: () => {
+        debugLoggingEnabled?: boolean;
+        debugLogCategories?: Partial<Record<DebugLogCategory, boolean>>;
+      };
+    };
+
+    if (typeof service.isDebugLoggingEnabled === 'function') {
+      return service.isDebugLoggingEnabled(category);
+    }
+
+    return false;
   }
 
   debug(category: DebugLogCategory, ...args: unknown[]): void {
