@@ -339,6 +339,8 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
     </View>
   );
 
+  if (!visible) return null;
+
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.container}>

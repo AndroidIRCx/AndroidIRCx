@@ -1336,6 +1336,8 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
   const styles = createStyles(colors);
 
+  if (!visible) return null;
+
   return (
     <>
       <Modal visible={visible} animationType="slide" onRequestClose={onClose}>

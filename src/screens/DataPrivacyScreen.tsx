@@ -249,6 +249,8 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
     }
   };
 
+  if (!visible) return null;
+
   return (
     <Modal
       visible={visible}

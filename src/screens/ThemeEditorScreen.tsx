@@ -264,6 +264,8 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
     '#C084FC',
   ];
 
+  if (!visible) return null;
+
   return (
     <Modal
       visible={visible}

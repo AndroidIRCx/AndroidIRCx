@@ -206,6 +206,8 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
     </View>
   );
 
+  if (!visible) return null;
+
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={styles.container}>

@@ -489,6 +489,8 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
     );
   };
 
+  if (!visible) return null;
+
   return (
     <Modal
       visible={visible}
