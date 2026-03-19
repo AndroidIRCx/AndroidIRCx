@@ -1,0 +1,3 @@
+New in v1.9.1:
+- Crashlytics logs found some bugs/crashes that we fixed (in Settings screens, components and some modals)
+- Improved overall performance and responsiveness by optimizing tab interactions, rendering, and logging, resulting in a faster and smoother user experience
