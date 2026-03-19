@@ -1269,6 +1269,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
         ignoreActionId="ignore"
       />
 
+      {showNoteModal && (
       <Modal
         visible={showNoteModal}
         transparent
@@ -1310,7 +1311,9 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           </View>
         </View>
       </Modal>
+      )}
 
+      {showBlacklistModal && (
       <Modal
         visible={showBlacklistModal}
         transparent
@@ -1390,7 +1393,9 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           </View>
         </View>
       </Modal>
+      )}
 
+      {showBlacklistMaskPicker && (
       <Modal
         visible={showBlacklistMaskPicker}
         transparent
@@ -1429,7 +1434,9 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           </View>
         </View>
       </Modal>
+      )}
 
+      {showBlacklistActionPicker && (
       <Modal
         visible={showBlacklistActionPicker}
         transparent
@@ -1469,6 +1476,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           </View>
         </View>
       </Modal>
+      )}
+      {showKeyQr && (
       <Modal
         visible={showKeyQr}
         transparent
@@ -1511,6 +1520,8 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           </View>
         </TouchableOpacity>
       </Modal>
+      )}
+      {showKeyScan && (
       <Modal
         visible={showKeyScan}
         transparent
@@ -1541,6 +1552,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           </View>
         </View>
       </Modal>
+      )}
     </View>
   );
 };

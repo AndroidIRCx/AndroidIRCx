@@ -2186,6 +2186,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
   const blacklistModals = (
     <>
+      {showNoteModal && (
       <Modal
         visible={showNoteModal}
         transparent
@@ -2227,6 +2228,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           </View>
         </View>
       </Modal>
+      )}
+      {showBlacklistModal && (
       <Modal
         visible={showBlacklistModal}
         transparent
@@ -2308,6 +2311,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           </View>
         </View>
       </Modal>
+      )}
+      {showBlacklistMaskPicker && (
       <Modal
         visible={showBlacklistMaskPicker}
         transparent
@@ -2346,6 +2351,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           </View>
         </View>
       </Modal>
+      )}
+      {showBlacklistActionPicker && (
       <Modal
         visible={showBlacklistActionPicker}
         transparent
@@ -2385,6 +2392,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           </View>
         </View>
       </Modal>
+      )}
+      {showKeyQr && (
       <Modal
         visible={showKeyQr}
         transparent
@@ -2425,6 +2434,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           </View>
         </TouchableOpacity>
       </Modal>
+      )}
+      {showKeyScan && (
       <Modal
         visible={showKeyScan}
         transparent
@@ -2455,6 +2466,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           </View>
         </TouchableOpacity>
       </Modal>
+      )}
     </>
   );
 

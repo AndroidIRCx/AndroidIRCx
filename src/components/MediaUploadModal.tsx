@@ -350,100 +350,106 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
       </View>
 
       {/* Voice Recorder Modal - Always render but control visibility */}
-      <Modal
-        visible={showVoiceRecorder}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowVoiceRecorder(false)}
-        statusBarTranslucent={false}>
-        <View style={styles.voiceRecorderOverlay}>
-          <View style={[styles.voiceRecorderContainer, { backgroundColor: colors.surface }]}>
-            <VoiceRecorder
-              onRecordingComplete={async (fileUri, duration) => {
-                setShowVoiceRecorder(false);
-                
-                // Normalize URI - ensure it's in correct format
-                let normalizedUri = fileUri;
-                if (!fileUri.startsWith('file://') && !fileUri.startsWith('content://')) {
-                  normalizedUri = Platform.OS === 'android' ? `file://${fileUri}` : `file://${fileUri}`;
-                }
-                
-                onMediaSelected({
-                  success: true,
-                  uri: normalizedUri,
-                  type: 'voice',
-                  duration,
-                  mimeType: 'audio/m4a',
-                });
-                onClose();
-              }}
-              onCancel={() => setShowVoiceRecorder(false)}
-            />
+      {showVoiceRecorder && (
+        <Modal
+          visible={showVoiceRecorder}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowVoiceRecorder(false)}
+          statusBarTranslucent={false}>
+          <View style={styles.voiceRecorderOverlay}>
+            <View style={[styles.voiceRecorderContainer, { backgroundColor: colors.surface }]}>
+              <VoiceRecorder
+                onRecordingComplete={async (fileUri, duration) => {
+                  setShowVoiceRecorder(false);
+                  
+                  // Normalize URI - ensure it's in correct format
+                  let normalizedUri = fileUri;
+                  if (!fileUri.startsWith('file://') && !fileUri.startsWith('content://')) {
+                    normalizedUri = Platform.OS === 'android' ? `file://${fileUri}` : `file://${fileUri}`;
+                  }
+                  
+                  onMediaSelected({
+                    success: true,
+                    uri: normalizedUri,
+                    type: 'voice',
+                    duration,
+                    mimeType: 'audio/m4a',
+                  });
+                  onClose();
+                }}
+                onCancel={() => setShowVoiceRecorder(false)}
+              />
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
 
       {/* Camera Screen Modal - Always render but control visibility */}
-      <CameraScreen
-        visible={showCameraScreen}
-        onClose={() => setShowCameraScreen(false)}
-        onPhotoTaken={(fileUri) => {
-          setShowCameraScreen(false);
-          // Get file info
-          mediaPickerService.getFileInfo(fileUri).then((fileInfo) => {
-            onMediaSelected({
-              success: true,
-              uri: fileUri,
-              type: 'image',
-              mimeType: 'image/jpeg',
-              size: fileInfo.size,
+      {showCameraScreen && (
+        <CameraScreen
+          visible={showCameraScreen}
+          onClose={() => setShowCameraScreen(false)}
+          onPhotoTaken={(fileUri) => {
+            setShowCameraScreen(false);
+            // Get file info
+            mediaPickerService.getFileInfo(fileUri).then((fileInfo) => {
+              onMediaSelected({
+                success: true,
+                uri: fileUri,
+                type: 'image',
+                mimeType: 'image/jpeg',
+                size: fileInfo.size,
+              });
+              onClose();
+            }).catch((err) => {
+              console.error('[MediaUploadModal] Get file info error:', err);
+              // Still proceed with the file URI even if we can't get info
+              onMediaSelected({
+                success: true,
+                uri: fileUri,
+                type: 'image',
+                mimeType: 'image/jpeg',
+              });
+              onClose();
             });
-            onClose();
-          }).catch((err) => {
-            console.error('[MediaUploadModal] Get file info error:', err);
-            // Still proceed with the file URI even if we can't get info
-            onMediaSelected({
-              success: true,
-              uri: fileUri,
-              type: 'image',
-              mimeType: 'image/jpeg',
-            });
-            onClose();
-          });
-        }}
-      />
+          }}
+        />
+      )}
 
       {/* Video Recorder Screen Modal - Always render but control visibility */}
-      <VideoRecorderScreen
-        visible={showVideoRecorder}
-        onClose={() => setShowVideoRecorder(false)}
-        onVideoRecorded={(fileUri, duration) => {
-          setShowVideoRecorder(false);
-          // Get file info
-          mediaPickerService.getFileInfo(fileUri).then((fileInfo) => {
-            onMediaSelected({
-              success: true,
-              uri: fileUri,
-              type: 'video',
-              mimeType: 'video/mp4',
-              size: fileInfo.size,
-              duration,
+      {showVideoRecorder && (
+        <VideoRecorderScreen
+          visible={showVideoRecorder}
+          onClose={() => setShowVideoRecorder(false)}
+          onVideoRecorded={(fileUri, duration) => {
+            setShowVideoRecorder(false);
+            // Get file info
+            mediaPickerService.getFileInfo(fileUri).then((fileInfo) => {
+              onMediaSelected({
+                success: true,
+                uri: fileUri,
+                type: 'video',
+                mimeType: 'video/mp4',
+                size: fileInfo.size,
+                duration,
+              });
+              onClose();
+            }).catch((err) => {
+              console.error('[MediaUploadModal] Get file info error:', err);
+              // Still proceed with the file URI even if we can't get info
+              onMediaSelected({
+                success: true,
+                uri: fileUri,
+                type: 'video',
+                mimeType: 'video/mp4',
+                duration,
+              });
+              onClose();
             });
-            onClose();
-          }).catch((err) => {
-            console.error('[MediaUploadModal] Get file info error:', err);
-            // Still proceed with the file URI even if we can't get info
-            onMediaSelected({
-              success: true,
-              uri: fileUri,
-              type: 'video',
-              mimeType: 'video/mp4',
-              duration,
-            });
-            onClose();
-          });
-        }}
-      />
+          }}
+        />
+      )}
     </Modal>
   );
 };

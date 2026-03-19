@@ -549,79 +549,83 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
         </TouchableOpacity>
       </Modal>
 
-      <Modal
-        visible={showKeyQr}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowKeyQr(false)}>
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowKeyQr(false)}>
-          <View style={styles.qrModal}>
-            <View style={styles.qrModalHeader}>
-              <Text style={styles.qrModalTitle}>
-                {qrType === 'bundle' ? t('Share Key Bundle') : t('Fingerprint QR')}
-              </Text>
-              <Text style={styles.qrModalSubtitle}>
-                {qrType === 'bundle'
-                  ? t('Scan to import encryption key')
-                  : t('Scan to verify out-of-band')}
-              </Text>
+      {showKeyQr && (
+        <Modal
+          visible={showKeyQr}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowKeyQr(false)}>
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowKeyQr(false)}>
+            <View style={styles.qrModal}>
+              <View style={styles.qrModalHeader}>
+                <Text style={styles.qrModalTitle}>
+                  {qrType === 'bundle' ? t('Share Key Bundle') : t('Fingerprint QR')}
+                </Text>
+                <Text style={styles.qrModalSubtitle}>
+                  {qrType === 'bundle'
+                    ? t('Scan to import encryption key')
+                    : t('Scan to verify out-of-band')}
+                </Text>
+              </View>
+              <View style={styles.qrCodeContainer}>
+                {qrPayload ? (
+                  <QRCode
+                    value={qrPayload}
+                    size={260}
+                    backgroundColor="#FFFFFF"
+                    color="#000000"
+                    ecl="H"
+                  />
+                ) : null}
+              </View>
+              <TouchableOpacity
+                style={styles.qrModalButton}
+                onPress={() => {
+                  if (qrPayload) Clipboard.setString(qrPayload);
+                  setActionMessage(t('QR payload copied'));
+                }}>
+                <Text style={styles.qrModalButtonText}>{t('Copy Payload')}</Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.qrCodeContainer}>
-              {qrPayload ? (
-                <QRCode
-                  value={qrPayload}
-                  size={260}
-                  backgroundColor="#FFFFFF"
-                  color="#000000"
-                  ecl="H"
-                />
-              ) : null}
-            </View>
-            <TouchableOpacity
-              style={styles.qrModalButton}
-              onPress={() => {
-                if (qrPayload) Clipboard.setString(qrPayload);
-                setActionMessage(t('QR payload copied'));
-              }}>
-              <Text style={styles.qrModalButtonText}>{t('Copy Payload')}</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+          </TouchableOpacity>
+        </Modal>
+      )}
 
-      <Modal
-        visible={showKeyScan}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowKeyScan(false)}>
-        <View style={styles.scanContainer}>
-          {device && hasCameraPermission ? (
-            <Camera
-              style={StyleSheet.absoluteFill}
-              device={device}
-              isActive={showKeyScan}
-              codeScanner={codeScanner}
-            />
-          ) : (
-            <View style={styles.scanFallback}>
-              <Text style={styles.menuText}>
-                {scanError || t('Camera unavailable')}
-              </Text>
+      {showKeyScan && (
+        <Modal
+          visible={showKeyScan}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowKeyScan(false)}>
+          <View style={styles.scanContainer}>
+            {device && hasCameraPermission ? (
+              <Camera
+                style={StyleSheet.absoluteFill}
+                device={device}
+                isActive={showKeyScan}
+                codeScanner={codeScanner}
+              />
+            ) : (
+              <View style={styles.scanFallback}>
+                <Text style={styles.menuText}>
+                  {scanError || t('Camera unavailable')}
+                </Text>
+              </View>
+            )}
+            <View style={styles.scanOverlay}>
+              <Text style={styles.scanText}>{t('Scan a fingerprint QR')}</Text>
+              <TouchableOpacity
+                style={styles.scanClose}
+                onPress={() => setShowKeyScan(false)}>
+                <Text style={styles.menuText}>{t('Close')}</Text>
+              </TouchableOpacity>
             </View>
-          )}
-          <View style={styles.scanOverlay}>
-            <Text style={styles.scanText}>{t('Scan a fingerprint QR')}</Text>
-            <TouchableOpacity
-              style={styles.scanClose}
-              onPress={() => setShowKeyScan(false)}>
-              <Text style={styles.menuText}>{t('Close')}</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </>
   );
 };

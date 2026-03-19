@@ -5586,472 +5586,472 @@
     "string": "Status Saat Ini"
   },
   "You have consented to personalized ads based on your interests.": {
-    "string": ""
+    "string": "Kamu sudah kasih consent untuk iklan personal sesuai minat.  "
   },
   "Your consent is required to show ads.": {
-    "string": ""
+    "string": "Consent kamu dibutuhkan untuk tampilkan iklan  "
   },
   "Consent not required in your region.": {
-    "string": ""
+    "string": "Consent nggak diperlukan di region kamu  "
   },
   "Using non-personalized ads only.": {
-    "string": ""
+    "string": "Pakai iklan non-personal saja  "
   },
   "AndroidIRCX uses Google Mobile Ads to provide free features. Google may collect:": {
-    "string": ""
+    "string": "AndroidIRCX pakai Google Mobile Ads untuk fitur gratis. Google bisa kumpulkan:  "
   },
   "Device information (model, OS version)": {
-    "string": ""
+    "string": "Info device (model, versi OS) "
   },
   "IP address and approximate location": {
-    "string": ""
+    "string": "Alamat IP dan lokasi perkiraan  "
   },
   "Usage analytics": {
-    "string": ""
+    "string": "Analitik penggunaan"
   },
   "Ad Types": {
-    "string": ""
+    "string": "Jenis iklan"
   },
   "Personalized Ads": {
-    "string": ""
+    "string": "Iklan personal"
   },
   "Ads tailored to your interests based on your activity. May provide better rewards.": {
-    "string": ""
+    "string": "Iklan sesuai minat kamu berdasarkan aktivitas. Bisa kasih reward lebih bagus.  "
   },
   "Non-Personalized Ads": {
-    "string": ""
+    "string": "Iklan non-personal"
   },
   "Generic ads not based on your activity. More privacy, potentially lower rewards.": {
-    "string": ""
+    "string": "Iklan umum, nggak berdasarkan aktivitas. Lebih privasi, reward mungkin lebih kecil."
   },
   "Support & Rewards": {
-    "string": ""
+    "string": "Dukungan & reward  "
   },
   "You have a premium plan. Watching ads helps support the project development.": {
-    "string": ""
+    "string": "Kamu punya plan premium. Nonton iklan bantu dukung pengembangan project.  "
   },
   "Support the project": {
-    "string": ""
+    "string": "Dukung project  "
   },
   "Manage Your Privacy": {
-    "string": ""
+    "string": "Atur privasi kamu "
   },
   "Review Privacy Choices": {
-    "string": ""
+    "string": "Review pilihan privasi"
   },
   "Withdraw consent or reset settings": {
     "string": "Tarik consent atau reset setting "
   },
   "Change your ad personalization preferences": {
-    "string": ""
+    "string": "Ubah preferensi iklan personal kamu  "
   },
   "Learn how we protect your data": {
-    "string": ""
+    "string": "Pelajari cara kami lindungi data kamu  "
   },
   "Compliance": {
-    "string": ""
+    "string": "Kepatuhan"
   },
   "AndroidIRCX complies with:": {
-    "string": ""
+    "string": "AndroidIRCX patuh pada:"
   },
   "GDPR (EU, EEA, UK, Switzerland)": {
-    "string": ""
+    "string": "GDPR (EU, EEA, UK, Switzerland)"
   },
   "CCPA (California)": {
-    "string": ""
+    "string": "CCPA (California)"
   },
   "Other US state privacy laws": {
-    "string": ""
+    "string": "Hukum privasi negara bagian AS lain"
   },
   "You have the right to:": {
-    "string": ""
+    "string": "Kamu berhak untuk:  "
   },
   "Access your data": {
-    "string": ""
+    "string": "Akses data kamu"
   },
   "Request data deletion": {
-    "string": ""
+    "string": "Minta penghapusan data"
   },
   "Opt out of personalized ads": {
-    "string": ""
+    "string": "Tolak iklan personal  "
   },
   "Purchase Successful": {
-    "string": ""
+    "string": "Pembelian berhasil  "
   },
   "Thank you for your purchase!": {
-    "string": ""
+    "string": "Terima kasih atas pembelian kamu!"
   },
   "Purchase Failed": {
-    "string": ""
+    "string": "Pembelian gagal  "
   },
   "Please try again later.": {
-    "string": ""
+    "string": "Silakan coba lagi nanti  "
   },
   "Failed to load products. Please try again later.": {
-    "string": ""
+    "string": "Gagal load produk. Coba lagi nanti.  "
   },
   "Restore complete": {
-    "string": ""
+    "string": "Restore selesai"
   },
   "Your purchases have been restored.": {
-    "string": ""
+    "string": "Pembelian kamu sudah direstore.  "
   },
   "Restore failed": {
-    "string": ""
+    "string": "Restore gagal  "
   },
   "Loading products...": {
-    "string": ""
+    "string": "Loading produk...  "
   },
   "Restore purchases": {
-    "string": ""
+    "string": "Restore pembelian"
   },
   "• api.sendNotice(target, text, networkId?)": {
-    "string": ""
+    "string": "• api.sendNotice(target, text, networkId?)  "
   },
   "• api.sendCTCP(target, type, params?, networkId?)": {
-    "string": ""
+    "string": "• api.sendCTCP(target, type, params?, networkId?)"
   },
   "• api.getChannelUsers(channel, networkId?) — returns string[]": {
-    "string": ""
+    "string": "• api.getChannelUsers(channel, networkId?) — returns string[]"
   },
   "• api.getChannels(networkId?) — returns string[]": {
-    "string": ""
+    "string": "• api.getChannels(networkId?) — returns string[]"
   },
   "• api.setTimer(name, delayMs, repeat?) — set timer": {
-    "string": ""
+    "string": "• api.setTimer(name, delayMs, repeat?) — set timer"
   },
   "• api.clearTimer(name) — clear timer": {
-    "string": ""
+    "string": "• api.clearTimer(name) — clear timer"
   },
   "• api.getNetworkId() — current network ID": {
-    "string": ""
+    "string": "• api.getNetworkId() — network ID sekarang  "
   },
   "• api.isConnected(networkId?) — check connection": {
-    "string": ""
+    "string": "• api.isConnected(networkId?) — cek koneksi  "
   },
   "Connection Events": {
-    "string": ""
+    "string": "Event koneksi  "
   },
   "• onConnect(networkId) — when connected": {
-    "string": ""
+    "string": "• onConnect(networkId) — saat terkoneksi  "
   },
   "• onDisconnect(networkId, reason?) — when disconnected": {
-    "string": ""
+    "string": "• onDisconnect(networkId, reason?) — saat disconnect  "
   },
   "Message Events": {
-    "string": ""
+    "string": "Event pesan"
   },
   "• onMessage(msg) — channel/query messages": {
-    "string": ""
+    "string": "• onMessage(msg) — pesan channel/query  "
   },
   "• onNotice(msg) — notice messages": {
-    "string": ""
+    "string": "• onNotice(msg) — pesan notice"
   },
   "• onCTCP(type, from, text, msg) — CTCP requests": {
-    "string": ""
+    "string": "• onCTCP(type, from, text, msg) — request CTCP  "
   },
   "Channel Events": {
-    "string": ""
+    "string": "Event channel "
   },
   "• onJoin(channel, nick, msg) — user joined": {
-    "string": ""
+    "string": "• onJoin(channel, nick, msg) — user join  "
   },
   "• onPart(channel, nick, reason, msg) — user parted": {
-    "string": ""
+    "string": "• onPart(channel, nick, reason, msg) — user keluar  "
   },
   "• onQuit(nick, reason, msg) — user quit": {
-    "string": ""
+    "string": "• onQuit(nick, reason, msg) — user quit  "
   },
   "• onNickChange(oldNick, newNick, msg) — nick changed": {
-    "string": ""
+    "string": "• onNickChange(oldNick, newNick, msg) — nick berubah  "
   },
   "• onKick(channel, kickedNick, kickerNick, reason, msg) — user kicked": {
-    "string": ""
+    "string": "• onKick(channel, kickedNick, kickerNick, reason, msg) — user di-kick  "
   },
   "• onMode(channel, setterNick, mode, target?, msg) — mode changed": {
-    "string": ""
+    "string": "• onMode(channel, setterNick, mode, target?, msg) — mode berubah  "
   },
   "• onTopic(channel, topic, setterNick, msg) — topic changed": {
-    "string": ""
+    "string": "• onTopic(channel, topic, setterNick, msg) — topik berubah  "
   },
   "• onInvite(channel, inviterNick, msg) — channel invite": {
-    "string": ""
+    "string": "• onInvite(channel, inviterNick, msg) — undangan channel  "
   },
   "Other Events": {
-    "string": ""
+    "string": "Even Lain"
   },
   "• onRaw(line, direction, msg?) — raw IRC line (in/out)": {
     "string": "• onRaw(line, direction, msg?) — raw IRC line (in/out)"
   },
   "• onCommand(text, ctx) — outgoing command": {
-    "string": ""
+    "string": "• onCommand(text, ctx) — command keluar  "
   },
   "• onTimer(name) — timer fired": {
-    "string": ""
+    "string": "• onTimer(name) — timer jalan  "
   },
   "CTCP Responder": {
-    "string": ""
+    "string": "Responder CTCP"
   },
   "Timer Example": {
-    "string": ""
+    "string": "Contoh timer  "
   },
   "Kick Protection": {
-    "string": ""
+    "string": "Proteksi kick  "
   },
   "• onRaw can modify or cancel raw IRC lines.": {
     "string": "• onRaw bisa ubah atau batalin raw IRC line  "
   },
   "• Use timers for periodic tasks, remember to clear on disconnect.": {
-    "string": ""
+    "string": "• Pakai timer untuk tugas periodik, ingat clear saat disconnect.  "
   },
   "• Check api.isConnected() before sending commands.": {
-    "string": ""
+    "string": "• Cek api.isConnected() sebelum kirim command.  "
   },
   "Scripting Time & No-Ads Remaining:": {
-    "string": ""
+    "string": "Scripting Time & No-Ads tersisa:"
   },
   "Scripting Time & No-Ads Active": {
-    "string": ""
+    "string": "Scripting Time & No-Ads aktif  "
   },
   "When ON: Time counts down, scripts can run, no banner ads": {
-    "string": ""
+    "string": "Saat ON: waktu countdown, script bisa jalan, tanpa banner ads  "
   },
   "Unlimited scripting: Toggle enables/disables no-ads mode": {
-    "string": ""
+    "string": "Unlimited scripting: toggle aktif/nonaktif mode tanpa iklan  "
   },
   "Upgrade to Unlimited Scripting & No-Ads": {
-    "string": ""
+    "string": "Upgrade ke Unlimited Scripting & No-Ads  "
   },
   "No scripting time available. Watch an ad to gain 60 minutes of scripting time and no-ads. Scripts will be automatically disabled when time runs out.": {
-    "string": ""
+    "string": "Nggak ada waktu scripting. Tonton iklan buat dapat 60 menit scripting & tanpa iklan. Script otomatis nonaktif kalau waktu habis.  "
   },
   "Scripts run with full access to your local IRC data. Only install scripts you trust and avoid running scripts from unknown sources.": {
-    "string": ""
+    "string": "Script jalan dengan akses penuh ke data IRC lokal. Hanya install script yang kamu percaya dan hindari script dari sumber nggak jelas.  "
   },
   "Default Server": {
-    "string": ""
+    "string": "Server default  "
   },
   "Set as default server for \"Tap to connect\" header. This server will be used when tapping the network name in the header.": {
-    "string": ""
+    "string": "Set sebagai server default untuk header \"Tap to connect\". Server ini dipakai saat tap nama network di header.  "
   },
   "📖 Help & Documentation": {
-    "string": ""
+    "string": "📖 Bantuan & dokumentasi"
   },
   "Scripting & Ads": {
-    "string": ""
+    "string": "Scripting & iklan  "
   },
   "💎 Premium": {
-    "string": ""
+    "string": "💎 Premium"
   },
   "ZNC Subscription": {
-    "string": ""
+    "string": "Langganan ZNC  "
   },
   "Purchase Error": {
-    "string": ""
+    "string": "Error pembelian  "
   },
   "Missing purchase token from Google Play.": {
-    "string": ""
+    "string": "Token pembelian dari Google Play hilang.  "
   },
   "Not available": {
-    "string": ""
+    "string": "Nggak tersedia"
   },
   "Missing Credentials": {
-    "string": ""
+    "string": "Kredensial hilang  "
   },
   "Register your subscription to get ZNC credentials first.": {
-    "string": ""
+    "string": "Daftarkan langganan kamu dulu untuk dapat kredensial ZNC.  "
   },
   "Connection Error": {
-    "string": ""
+    "string": "Error koneksi"
   },
   "ZNC server configuration is missing.": {
-    "string": ""
+    "string": "Konfigurasi server ZNC hilang. "
   },
   "DBase is not connected. Open Networks and connect to DBase to use ZNC.": {
-    "string": ""
+    "string": "DBase nggak terkoneksi. Buka Networks dan konek ke DBase untuk pakai ZNC.  "
   },
   "Reconnecting to ZNC...": {
-    "string": ""
+    "string": "Reconnect ke ZNC... "
   },
   "Connected": {
-    "string": ""
+    "string": "Terkoneksi"
   },
   "Reconnected to ZNC for DBase.": {
-    "string": ""
+    "string": "Reconnect ke ZNC untuk DBase.  "
   },
   "Connection Failed": {
-    "string": ""
+    "string": "Koneksi gagal "
   },
   "Unable to reconnect to ZNC.": {
-    "string": ""
+    "string": "Nggak bisa reconnect ke ZNC."
   },
   "Missing Information": {
-    "string": ""
+    "string": "Info hilang "
   },
   "Please enter a ZNC username.": {
-    "string": ""
+    "string": "Masukkan username ZNC.  "
   },
   "Please complete the purchase first.": {
-    "string": ""
+    "string": "Selesaikan pembelian dulu.  "
   },
   "ZNC Ready": {
-    "string": ""
+    "string": "ZNC siap"
   },
   "ZNC server added to DBase network.": {
-    "string": ""
+    "string": "Server ZNC ditambahkan ke network DBase.  "
   },
   "Subscription Updated": {
-    "string": ""
+    "string": "Langganan diperbarui"
   },
   "Status: {status}": {
-    "string": ""
+    "string": "Status: {status}"
   },
   "Subscription Error": {
-    "string": ""
+    "string": "Error langganan  "
   },
   "Unable to register subscription.": {
-    "string": ""
+    "string": "Nggak bisa register langganan  "
   },
   "Purchase Required": {
-    "string": ""
+    "string": "Pembelian diperlukan  "
   },
   "Not registered": {
-    "string": ""
+    "string": "Belum terdaftar"
   },
   "Price: {price}": {
-    "string": ""
+    "string": "Harga: {price}  "
   },
   "Monthly subscription via Google Play": {
-    "string": ""
+    "string": "Langganan bulanan via Google Play  "
   },
   "Remove ads, unlimited scripting, and more": {
-    "string": ""
+    "string": "Hilangkan iklan, scripting tanpa batas, dan lainnya  "
   },
   "Manage ZNC Accounts": {
-    "string": ""
+    "string": "Kelola akun ZNC"
   },
   "Purchase, manage, and configure ZNC bouncer accounts": {
-    "string": ""
+    "string": "Beli, kelola, dan konfigurasi akun ZNC bouncer  "
   },
   "About ZNC Service": {
-    "string": ""
+    "string": "Tentang layanan ZNC"
   },
   "ZNC keeps you connected 24/7 with message playback": {
-    "string": ""
+    "string": "ZNC bikin kamu tetap konek 24/7 dengan playback pesan  "
   },
   "ZNC is an IRC bouncer that keeps you connected 24/7. Features include:\n\n- Always-on connection\n- Message playback when you reconnect\n- Multiple network support\n- Automatic configuration\n\nPrimarily intended for DBase network. Use on other networks at your own risk.": {
-    "string": ""
+    "string": "ZNC adalah IRC bouncer yang bikin kamu tetap konek 24/7. Fitur:- Koneksi selalu aktif- Playback pesan saat reconnect- Support multi-network- Konfigurasi otomatisUtamanya untuk network DBase. Pakai di network lain risiko ditanggung sendiri.  "
   },
   "Messages & History": {
-    "string": ""
+    "string": "Pesan & riwayat  "
   },
   "Media": {
-    "string": ""
+    "string": "Media"
   },
   "User List Grouping": {
-    "string": ""
+    "string": "Pengelompokan user list"
   },
   "Group users by status (ops/voice/etc.)": {
-    "string": ""
+    "string": "Kelompokkan user berdasarkan status (ops/voice/dll.)  "
   },
   "Auto-Disable Grouping Threshold": {
-    "string": ""
+    "string": "Ambang auto-disable grouping  "
   },
   "User List Virtualization": {
-    "string": ""
+    "string": "Virtualisasi user list"
   },
   "Use FlatList for large user lists (non-grouped)": {
-    "string": ""
+    "string": "Pakai FlatList untuk user list besar (non-grouped)  "
   },
   "Auto-Virtualize Threshold": {
-    "string": ""
+    "string": "Ambang auto-virtualisasi  "
   },
   "Privacy & Legal": {
-    "string": ""
+    "string": "Privacy & Legal"
   },
   "Development": {
-    "string": ""
+    "string": "Development"
   },
   "Enable Console Logging": {
-    "string": ""
+    "string": "Aktifkan console logging "
   },
   "Toggle console.log output in development": {
-    "string": ""
+    "string": "Toggle output console.log di development "
   },
   "Use this sound?": {
     "string": ""
   },
   "Do you want to use this sound for {event}?": {
-    "string": ""
+    "string": "Mau pakai suara ini untuk {event}?  "
   },
   "Use": {
-    "string": ""
+    "string": "pakai"
   },
   "Failed to select sound file.": {
-    "string": ""
+    "string": "Gagal pilih file suara."
   },
   "Reset to Default": {
-    "string": ""
+    "string": "Reset ke default"
   },
   "Reset {event} sound to default?": {
-    "string": ""
+    "string": "Reset suara {event} ke default?  "
   },
   "Reset": {
-    "string": ""
+    "string": "Reset"
   },
   "Reset All Sounds": {
-    "string": ""
+    "string": "Reset semua suara  "
   },
   "This will reset all sound settings to defaults. Continue?": {
-    "string": ""
+    "string": "Ini bakal reset semua setting suara ke default. Lanjut?  "
   },
   "Reset All": {
-    "string": ""
+    "string": "Reset Semua"
   },
   "Custom sound": {
-    "string": ""
+    "string": "Suara custom "
   },
   "No sound": {
-    "string": ""
+    "string": "Tanpa suara"
   },
   "Enable Sounds": {
-    "string": ""
+    "string": "Aktifkan suara"
   },
   "Master switch for all notification sounds": {
-    "string": ""
+    "string": "Master switch untuk semua suara notifikasi  "
   },
   "Master Volume": {
-    "string": ""
+    "string": "Volume utama"
   },
   "Playback": {
-    "string": ""
+    "string": "Playback"
   },
   "Play in Foreground": {
-    "string": ""
+    "string": "Putar di foreground  "
   },
   "Play sounds when app is open": {
-    "string": ""
+    "string": "Putar suara saat app terbuka"
   },
   "Play in Background": {
-    "string": ""
+    "string": "Putar di background"
   },
   "Play sounds when app is minimized": {
-    "string": ""
+    "string": "Putar suara saat app diminimalkan  "
   },
   "Sound Scheme": {
-    "string": ""
+    "string": "Skema suara"
   },
   "Event Sounds": {
-    "string": ""
+    "string": "Suara event"
   },
   "Reset All to Defaults": {
-    "string": ""
+    "string": "Reset semua ke default "
   },
   "Store Error": {
-    "string": ""
+    "string": "Error store"
   },
   "ZNC subscription product (znc) is not available in the store. This may be because:\n• You're not in the test group\n• The app signing certificate doesn't match Play Console\n• The subscription is not published to your region\n• You need to join the beta/testing program": {
-    "string": ""
+    "string": "Produk langganan ZNC (znc) nggak tersedia di store. Bisa jadi karena:• Kamu bukan bagian test group• Sertifikat signing app nggak cocok dengan Play Console• Langganan belum dipublikasikan di region kamu• Kamu perlu join program beta/testing  "
   },
   "Failed to connect to the store. Please check your internet connection and try again.": {
     "string": ""
