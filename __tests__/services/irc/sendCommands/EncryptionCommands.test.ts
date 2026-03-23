@@ -197,6 +197,14 @@ describe('EncryptionCommands', () => {
       type: 'error',
       text: expect.stringContaining('Missing channel key'),
     }));
+
+    channelEncryptionService.encryptMessage.mockRejectedValueOnce(new Error('broken payload'));
+    handleCHANKEY(ctx, ['send', 'third'], '#dbase');
+    await flushPromises();
+    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'error',
+      text: expect.stringContaining('broken payload'),
+    }));
   });
 
   it('handles CHANKEY share success and errors', async () => {

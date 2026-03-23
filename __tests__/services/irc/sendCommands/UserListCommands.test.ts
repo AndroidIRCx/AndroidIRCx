@@ -31,6 +31,18 @@ jest.mock('../../../../src/services/UserManagementService', () => ({
   },
 }));
 
+const mockSetUserListsInitialTab = jest.fn();
+const mockSetShowUserLists = jest.fn();
+
+jest.mock('../../../../src/stores/uiStore', () => ({
+  useUIStore: {
+    getState: () => ({
+      setUserListsInitialTab: mockSetUserListsInitialTab,
+      setShowUserLists: mockSetShowUserLists,
+    }),
+  },
+}));
+
 describe('UserListCommands', () => {
   let ctx: any;
   let addMessageMock: jest.Mock;
@@ -40,6 +52,7 @@ describe('UserListCommands', () => {
   let getUserListEntriesMock: jest.Mock;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     addMessageMock = jest.fn();
     addUserListEntryMock = jest.fn().mockResolvedValue(undefined);
     removeUserListEntryMock = jest.fn().mockResolvedValue(undefined);
@@ -205,6 +218,15 @@ describe('UserListCommands', () => {
   });
 
   describe('handleUNAUTOOP', () => {
+    it('should show error when no nick provided', async () => {
+      await handleUNAUTOOP(ctx, []);
+
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Usage'),
+      }));
+    });
+
     it('should remove nick from autoop list', async () => {
       getUserListEntriesMock.mockReturnValue([
         { mask: 'TrustedUser!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
@@ -217,6 +239,15 @@ describe('UserListCommands', () => {
   });
 
   describe('handleAUTOVOICE', () => {
+    it('should show error when no nick provided', async () => {
+      await handleAUTOVOICE(ctx, []);
+
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Usage'),
+      }));
+    });
+
     it('should add nick to autovoice list', async () => {
       await handleAUTOVOICE(ctx, ['Speaker']);
 
@@ -241,6 +272,15 @@ describe('UserListCommands', () => {
   });
 
   describe('handleUNAUTOVOICE', () => {
+    it('should show error when no nick provided', async () => {
+      await handleUNAUTOVOICE(ctx, []);
+
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Usage'),
+      }));
+    });
+
     it('should remove nick from autovoice list', async () => {
       getUserListEntriesMock.mockReturnValue([
         { mask: 'Speaker!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
@@ -253,6 +293,15 @@ describe('UserListCommands', () => {
   });
 
   describe('handleAUTOHALFOP', () => {
+    it('should show error when no nick provided', async () => {
+      await handleAUTOHALFOP(ctx, []);
+
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Usage'),
+      }));
+    });
+
     it('should add nick to autohalfop list', async () => {
       await handleAUTOHALFOP(ctx, ['Moderator']);
 
@@ -265,6 +314,15 @@ describe('UserListCommands', () => {
   });
 
   describe('handleUNAUTOHALFOP', () => {
+    it('should show error when no nick provided', async () => {
+      await handleUNAUTOHALFOP(ctx, []);
+
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Usage'),
+      }));
+    });
+
     it('should remove nick from autohalfop list', async () => {
       getUserListEntriesMock.mockReturnValue([
         { mask: 'Moderator!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
@@ -354,22 +412,29 @@ describe('UserListCommands', () => {
   });
 
   describe('handleUSERLISTS', () => {
-    it('should exist as a handler', () => {
-      expect(handleUSERLISTS).toBeDefined();
-      expect(typeof handleUSERLISTS).toBe('function');
-    });
-
-    it('should show notice when called', () => {
+    it('should default to notify tab for empty args', () => {
       handleUSERLISTS(ctx, []);
 
+      expect(mockSetUserListsInitialTab).toHaveBeenCalledWith('notify');
+      expect(mockSetShowUserLists).toHaveBeenCalledWith(true);
       expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
         type: 'notice',
         text: expect.stringContaining('Opening'),
       }));
     });
 
-    // Note: Testing the UI store interaction would require more complex mocking
-    // of the dynamic require in the handler. The core functionality is tested above.
+    it('should open a requested valid tab', () => {
+      handleUSERLISTS(ctx, ['blacklist']);
+
+      expect(mockSetUserListsInitialTab).toHaveBeenCalledWith('blacklist');
+      expect(mockSetShowUserLists).toHaveBeenCalledWith(true);
+    });
+
+    it('should fall back to notify for invalid tab names', () => {
+      handleUSERLISTS(ctx, ['totally-invalid']);
+
+      expect(mockSetUserListsInitialTab).toHaveBeenCalledWith('notify');
+    });
   });
 
   describe('Mask handling', () => {

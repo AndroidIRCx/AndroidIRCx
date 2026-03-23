@@ -13,6 +13,12 @@ describe('PrivmsgCommandHandlers', () => {
   let isUserIgnoredMock: jest.Mock;
   let isUserProtectedMock: jest.Mock;
   let evaluateProtectionDecisionMock: jest.Mock;
+  let consoleWarnSpy: jest.SpyInstance;
+
+  const flushPromises = async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  };
 
   beforeEach(() => {
     addMessageMock = jest.fn();
@@ -45,7 +51,14 @@ describe('PrivmsgCommandHandlers', () => {
         importChannelKey: jest.fn().mockResolvedValue({ channel: '#test' }),
       }),
       sendRaw: jest.fn(),
+      emit: jest.fn(),
     };
+
+    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
   });
 
   describe('Module exports', () => {
@@ -194,6 +207,83 @@ describe('PrivmsgCommandHandlers', () => {
       expect(addMessageMock).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'message' }));
     });
 
+    it('should handle !enc-offer messages', () => {
+      const handleOfferMock = jest.fn();
+      ctx.getEncryptedDMService.mockReturnValue({
+        handleKeyOfferForNetwork: handleOfferMock,
+      });
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!enc-offer {"key":"value"}'], Date.now());
+
+      expect(handleOfferMock).toHaveBeenCalledWith('TestNetwork', 'User', '{"key":"value"}');
+    });
+
+    it('should handle !enc-accept stored and pending statuses', async () => {
+      const acceptMock = jest.fn()
+        .mockResolvedValueOnce({ status: 'stored' })
+        .mockResolvedValueOnce({ status: 'pending' });
+      ctx.getEncryptedDMService.mockReturnValue({
+        handleKeyAcceptanceForNetwork: acceptMock,
+      });
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!enc-accept {"key":"value"}'], Date.now());
+      await flushPromises();
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'notice',
+        text: expect.stringContaining('accepted your encryption key'),
+      }));
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!enc-accept {"key":"other"}'], Date.now());
+      await flushPromises();
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'notice',
+        text: expect.stringContaining('different encryption key'),
+      }));
+    });
+
+    it('should warn when !enc-accept processing fails', async () => {
+      ctx.getEncryptedDMService.mockReturnValue({
+        handleKeyAcceptanceForNetwork: jest.fn().mockRejectedValue(new Error('accept failed')),
+      });
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!enc-accept {"key":"value"}'], Date.now());
+      await flushPromises();
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'EncryptedDMService: failed to handle acceptance',
+        expect.any(Error),
+      );
+    });
+
+    it('should handle !enc-reject messages', () => {
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!enc-reject'], Date.now());
+
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'notice',
+        text: expect.stringContaining('rejected your encryption key offer'),
+      }));
+    });
+
+    it('should handle !enc-req success and failure', async () => {
+      const exportBundleMock = jest.fn()
+        .mockResolvedValueOnce({ pub: 'bundle' })
+        .mockRejectedValueOnce(new Error('export failed'));
+      ctx.getEncryptedDMService.mockReturnValue({
+        exportBundle: exportBundleMock,
+      });
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!enc-req'], Date.now());
+      await flushPromises();
+      expect(ctx.sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG User :!enc-offer '));
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!enc-req'], Date.now());
+      await flushPromises();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'EncryptedDMService: failed to respond to enc-req',
+        expect.any(Error),
+      );
+    });
+
     it('should handle !enc-msg messages', async () => {
       const decryptMock = jest.fn().mockResolvedValue('secret message');
       ctx.getEncryptedDMService.mockReturnValue({
@@ -208,6 +298,26 @@ describe('PrivmsgCommandHandlers', () => {
       expect(decryptMock).toHaveBeenCalled();
     });
 
+    it('should handle invalid and undecryptable !enc-msg payloads', async () => {
+      const decryptMock = jest.fn().mockRejectedValue(new Error('cannot decrypt'));
+      ctx.getEncryptedDMService.mockReturnValue({
+        decryptForNetwork: decryptMock,
+      });
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!enc-msg {bad-json'], Date.now());
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'error',
+        text: 'Invalid encrypted payload',
+      }));
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!enc-msg {"data":"encrypted"}'], Date.now());
+      await flushPromises();
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('could not be decrypted'),
+      }));
+    });
+
     it('should handle !chanenc-msg messages', async () => {
       const decryptMock = jest.fn().mockResolvedValue('channel secret');
       ctx.getChannelEncryptionService.mockReturnValue({
@@ -219,6 +329,89 @@ describe('PrivmsgCommandHandlers', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       expect(decryptMock).toHaveBeenCalled();
+    });
+
+    it('should handle invalid, ignored-DM and failed !chanenc-msg payloads', async () => {
+      const decryptMock = jest.fn()
+        .mockRejectedValueOnce(new Error('no channel key'))
+        .mockRejectedValueOnce(new Error('broken'));
+      ctx.getChannelEncryptionService.mockReturnValue({
+        decryptMessage: decryptMock,
+      });
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['#channel', '!chanenc-msg {bad-json'], Date.now());
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'error',
+        text: '🔒 Invalid channel encryption payload',
+      }));
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!chanenc-msg {"data":"encrypted"}'], Date.now());
+      expect(decryptMock).not.toHaveBeenCalled();
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['#channel', '!chanenc-msg {"data":"encrypted"}'], Date.now());
+      await flushPromises();
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'message',
+        text: expect.stringContaining('Missing channel key'),
+      }));
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['#channel', '!chanenc-msg {"data":"encrypted"}'], Date.now());
+      await flushPromises();
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'message',
+        text: expect.stringContaining('Decryption failed'),
+      }));
+    });
+
+    it('should import channel keys and surface import failures', async () => {
+      const importChannelKeyMock = jest.fn()
+        .mockResolvedValueOnce({ channel: '#secret' })
+        .mockRejectedValueOnce('bad key');
+      ctx.getChannelEncryptionService.mockReturnValue({
+        importChannelKey: importChannelKeyMock,
+      });
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!chanenc-key abc123'], Date.now());
+      await flushPromises();
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'notice',
+        text: expect.stringContaining('#secret'),
+      }));
+
+      handlePRIVMSG(ctx, 'User!user@host.com', ['MyNick', '!chanenc-key broken'], Date.now());
+      await flushPromises();
+      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Failed to import channel key'),
+      }));
+    });
+  });
+
+  describe('WebRTC protocol handling', () => {
+    it('should emit parsed webrtc payloads and swallow invalid ones', () => {
+      const ts = Date.now();
+
+      handlePRIVMSG(ctx, 'Peer!user@host.com', ['MyNick', '!webrtc {"sdp":"offer"}'], ts);
+      expect(ctx.emit).toHaveBeenCalledWith('webrtc-signal', { sdp: 'offer' }, expect.objectContaining({
+        fromNick: 'Peer',
+        network: 'TestNetwork',
+        timestamp: ts,
+      }));
+
+      handlePRIVMSG(ctx, 'Peer!user@host.com', ['MyNick', '!webrtc {bad-json'], ts);
+      expect(addMessageMock).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'message', text: expect.stringContaining('webrtc') }));
+    });
+
+    it('should emit parsed webrtc chunks and ignore self echoes', () => {
+      ctx.getCurrentNick.mockReturnValue('MyNick');
+
+      handlePRIVMSG(ctx, 'Peer!user@host.com', ['MyNick', '!webrtc-chunk {"part":1}'], Date.now());
+      expect(ctx.emit).toHaveBeenCalledWith('webrtc-signal-chunk', { part: 1 }, expect.any(Object));
+
+      ctx.emit.mockClear();
+      handlePRIVMSG(ctx, 'MyNick!user@host.com', ['OtherNick', '!webrtc {"sdp":"loop"}'], Date.now());
+      expect(ctx.emit).not.toHaveBeenCalled();
+      expect(addMessageMock).not.toHaveBeenCalled();
     });
   });
 
@@ -239,6 +432,43 @@ describe('PrivmsgCommandHandlers', () => {
         expect.objectContaining({ text: 'Hello world' }),
         undefined
       );
+    });
+
+    it('should skip addMessage when multiline assembly is incomplete and forward meta tags', () => {
+      const ts = Date.now();
+      ctx.handleMultilineMessage.mockReturnValueOnce(null);
+
+      handlePRIVMSG(
+        ctx,
+        'User!user@host.com',
+        ['+channel', '[12:34:56] message body [23:45:56]'],
+        ts,
+        {
+          multilineConcatTag: 'draft-1',
+          accountTag: 'account',
+          msgidTag: 'msg-1',
+          channelContextTag: 'ctx',
+          replyTag: 'reply-1',
+          reactTag: { smile: ['User'] },
+          typingTag: 'active',
+          batchTag: 'batch-1',
+        },
+      );
+
+      expect(ctx.handleMultilineMessage).toHaveBeenCalledWith(
+        'User',
+        '+channel',
+        'message body',
+        'draft-1',
+        expect.objectContaining({
+          timestamp: ts,
+          account: 'account',
+          msgid: 'msg-1',
+          channelContext: 'ctx',
+          replyTo: 'reply-1',
+        }),
+      );
+      expect(addMessageMock).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'message' }), 'batch-1');
     });
   });
 });

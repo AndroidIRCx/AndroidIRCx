@@ -129,6 +129,12 @@ describe('ChannelOpsCommands', () => {
       expect(ctx.sendCommand).toHaveBeenCalledWith('KICK #general badnick :Flooding');
     });
 
+    it('ignores a second non-channel arg when current target is already a channel', () => {
+      handleKICKBAN(ctx, ['badnick', 'Flooding'], '#general');
+      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #general +b badnick!*@*');
+      expect(ctx.sendCommand).toHaveBeenCalledWith('KICK #general badnick');
+    });
+
     it('adds error when no args', () => {
       handleKICKBAN(ctx, [], '#general');
       expect(ctx.sendCommand).not.toHaveBeenCalled();

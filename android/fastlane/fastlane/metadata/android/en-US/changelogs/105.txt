@@ -1,2 +1,5 @@
 New in v1.9.2:
-- Resolved Dependabot alerts for flatted and fast-xml-parser
+- Bump the app version to 1.9.2 and add the release changelog.
+- Resolve transitive flatted and fast-xml-parser alerts in yarn.lock.
+- Persist the react-native-libsodium Windows CMake path fix.
+- Refreshed Indonesian translation.

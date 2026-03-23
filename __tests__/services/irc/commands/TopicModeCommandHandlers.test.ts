@@ -10,7 +10,15 @@ import {
 } from '../../../../src/services/irc/commands/TopicModeCommandHandlers';
 
 jest.mock('../../../../src/i18n/transifex', () => ({
-  tx: { t: (key: string) => key },
+  tx: {
+    t: (key: string, params?: Record<string, unknown>) => {
+      if (!params) return key;
+      return Object.entries(params).reduce(
+        (acc, [paramKey, value]) => acc.replace(`{${paramKey}}`, String(value)),
+        key,
+      );
+    },
+  },
 }));
 
 describe('TopicModeCommandHandlers', () => {
@@ -144,6 +152,14 @@ describe('TopicModeCommandHandlers', () => {
       expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('&local', ['+m']);
     });
 
+    it('handles + and ! channel prefixes', () => {
+      handleMODE(ctx, 'oper!oper@host', ['+modeless', '+m'], Date.now());
+      handleMODE(ctx, 'oper!oper@host', ['!safechan', '+m'], Date.now());
+
+      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('+modeless', ['+m']);
+      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('!safechan', ['+m']);
+    });
+
     it('adds message for mode with mode params', () => {
       handleMODE(ctx, 'oper!oper@host', ['#general', '+o', 'nick'], Date.now());
       const call = ctx.addMessage.mock.calls[0][0];
@@ -155,6 +171,51 @@ describe('TopicModeCommandHandlers', () => {
     it('handles MODE with no params', () => {
       handleMODE(ctx, 'server', [], Date.now());
       expect(ctx.addMessage).toHaveBeenCalled();
+    });
+
+    it('colorizes added and removed channel privilege/list modes', () => {
+      handleMODE(ctx, 'oper!oper@host', ['#general', '+ovhqabeI-k', 'nick', 'other'], Date.now());
+
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0304o\x0F'),
+      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0309v\x0F'),
+      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0308h\x0F'),
+      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0306q\x0F'),
+      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0307a\x0F'),
+      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0304b\x0F'),
+      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0307e\x0F'),
+      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0303I\x0F'),
+      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0314-\x0F'),
+      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        text: expect.stringContaining('\x0314k\x0F'),
+      }));
+    });
+
+    it('treats empty modeChannel as user mode change without updating self modes', () => {
+      handleMODE(ctx, 'server', ['', '+i'], Date.now());
+
+      expect(ctx.updateSelfUserModes).not.toHaveBeenCalled();
+      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'raw',
+        channel: undefined,
+      }));
     });
   });
 });

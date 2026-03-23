@@ -47,8 +47,21 @@ describe('CreditsScreen', () => {
     expect(getByText('munZe')).toBeTruthy();
     expect(getByText('Yusbastian Lemon 🇮🇩')).toBeTruthy();
     expect(getByText('ARGENTIN07 🇦🇷')).toBeTruthy();
+    expect(getByText('Cubanita83 🇨🇺')).toBeTruthy();
+    expect(getByText('IRcap Credits')).toBeTruthy();
+    expect(
+      getByText(
+        'IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiration for away, protections, writing styles, and the IRcap theme.'
+      )
+    ).toBeTruthy();
+    expect(
+      getByText(
+        'IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme.'
+      )
+    ).toBeTruthy();
     expect(getByText('Help Translate')).toBeTruthy();
     expect(getByText('contact@androidircx.com')).toBeTruthy();
+    expect(getByText('Thank you to all contributors!')).toBeTruthy();
   });
 
   it('calls onClose when close button is pressed', () => {

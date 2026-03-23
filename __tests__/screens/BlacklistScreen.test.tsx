@@ -162,6 +162,24 @@ describe('BlacklistScreen', () => {
     expect(queryByText('bad!*@*')).toBeNull();
   });
 
+  it('filters entries by selected network and resets back to all networks', async () => {
+    const { findAllByText, findByText, queryByText } = render(
+      <BlacklistScreen visible onClose={jest.fn()} />
+    );
+
+    fireEvent.press(await findByText('All Networks'));
+    fireEvent.press(await findByText('net-b'));
+
+    expect(await findByText('proxy!*@*')).toBeTruthy();
+    expect(queryByText('bad!*@*')).toBeNull();
+
+    fireEvent.press(await findByText('net-b'));
+    const allNetworkButtons = await findAllByText('All Networks');
+    fireEvent.press(allNetworkButtons[allNetworkButtons.length - 1]);
+
+    expect(await findByText('bad!*@*')).toBeTruthy();
+  });
+
   it('adds a new ban entry', async () => {
     const { findByText, findByPlaceholderText } = render(
       <BlacklistScreen visible onClose={jest.fn()} />
@@ -190,6 +208,51 @@ describe('BlacklistScreen', () => {
     expect(Alert.alert).toHaveBeenCalledWith('Success', 'User added to blacklist');
   });
 
+  it('prefills add modal from blacklist target and clears the target', async () => {
+    const setBlacklistTarget = jest.fn();
+    useUIStore.getState.mockReturnValue({
+      blacklistTarget: { nick: 'TargetNick' },
+      setBlacklistTarget,
+    });
+
+    const { findByDisplayValue, findByText } = render(
+      <BlacklistScreen visible onClose={jest.fn()} />
+    );
+
+    expect(await findByText('Add to Blacklist')).toBeTruthy();
+    expect(await findByDisplayValue('TargetNick')).toBeTruthy();
+    expect(setBlacklistTarget).toHaveBeenCalledWith(null);
+  });
+
+  it('edits an entry, replaces the old mask, and saves the new one', async () => {
+    const { findAllByText, findByPlaceholderText, findByText } = render(
+      <BlacklistScreen visible onClose={jest.fn()} />
+    );
+
+    const editButtons = await findAllByText('Edit');
+    fireEvent.press(editButtons[0]);
+    fireEvent.changeText(
+      await findByPlaceholderText('nick or mask (e.g., *!*@host.com)'),
+      'worse!*@*'
+    );
+    fireEvent.changeText(await findByPlaceholderText('optional'), 'updated reason');
+    fireEvent.press(await findByText('Save'));
+
+    await waitFor(() => {
+      expect(userManagementService.removeBlacklistEntry).toHaveBeenCalledWith('bad!*@*', 'net-a');
+      expect(userManagementService.addBlacklistEntry).toHaveBeenCalledWith(
+        'worse!*@*',
+        'ban',
+        'updated reason',
+        'net-a',
+        undefined,
+        '0'
+      );
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith('Success', 'Blacklist entry updated');
+  });
+
   it('validates missing custom command', async () => {
     const { findAllByText, findByText, findByPlaceholderText } = render(
       <BlacklistScreen visible onClose={jest.fn()} />
@@ -209,6 +272,39 @@ describe('BlacklistScreen', () => {
       'Custom command is required for this action.'
     );
     expect(userManagementService.addBlacklistEntry).not.toHaveBeenCalled();
+  });
+
+  it('supports selecting a custom action and saving a command template', async () => {
+    const { findAllByText, findByPlaceholderText, findByText } = render(
+      <BlacklistScreen visible onClose={jest.fn()} />
+    );
+
+    fireEvent.press(await findByText('+ Add'));
+    fireEvent.changeText(
+      await findByPlaceholderText('nick or mask (e.g., *!*@host.com)'),
+      'custom!*@*'
+    );
+    const banLabels = await findAllByText('Ban');
+    fireEvent.press(banLabels[banLabels.length - 1]);
+    const customActionLabels = await findAllByText('Custom Command');
+    fireEvent.press(customActionLabels[customActionLabels.length - 1]);
+    fireEvent.changeText(
+      await findByPlaceholderText('Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}'),
+      'KLINE {mask} :{reason}'
+    );
+    fireEvent.changeText(await findByPlaceholderText('optional'), 'custom reason');
+    fireEvent.press(await findByText('Add'));
+
+    await waitFor(() => {
+      expect(userManagementService.addBlacklistEntry).toHaveBeenCalledWith(
+        'custom!*@*',
+        'custom',
+        'custom reason',
+        undefined,
+        'KLINE {mask} :{reason}',
+        '0'
+      );
+    });
   });
 
   it('removes an entry after confirmation', async () => {

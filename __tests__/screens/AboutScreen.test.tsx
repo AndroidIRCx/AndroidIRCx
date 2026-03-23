@@ -57,7 +57,18 @@ describe('AboutScreen', () => {
     expect(getByText('Version 1.2.3')).toBeTruthy();
     expect(getByText('AndroidIRCX')).toBeTruthy();
     expect(getByText('Velimir Majstorov')).toBeTruthy();
+    expect(getByText('irc.DBase.in.rs - IRC Database Network')).toBeTruthy();
+    expect(getByText('munZe')).toBeTruthy();
+    expect(getByText('contact@androidircx.com')).toBeTruthy();
     expect(getByText('Instagram')).toBeTruthy();
+    expect(getByText('Facebook')).toBeTruthy();
+    expect(getByText('TikTok')).toBeTruthy();
+    expect(getByText('X')).toBeTruthy();
+    expect(getByText('Reddit')).toBeTruthy();
+    expect(getByText('Telegram')).toBeTruthy();
+    expect(getByText('LinkedIn')).toBeTruthy();
+    expect(getByText('Mastodon')).toBeTruthy();
+    expect(getByText('Dev.to')).toBeTruthy();
     expect(getByText('CoderLegion')).toBeTruthy();
   });
 
@@ -75,16 +86,36 @@ describe('AboutScreen', () => {
     const { getByText } = render(<AboutScreen visible onClose={jest.fn()} />);
 
     fireEvent.press(getByText('Velimir Majstorov'));
+    fireEvent.press(getByText('contact@androidircx.com'));
     fireEvent.press(getByText('https://irc.dbase.in.rs'));
     fireEvent.press(getByText('https://androidircx.com'));
     fireEvent.press(getByText('https://github.com/AndroidIRCx/AndroidIRCx'));
+    fireEvent.press(getByText('Instagram'));
+    fireEvent.press(getByText('Facebook'));
+    fireEvent.press(getByText('TikTok'));
+    fireEvent.press(getByText('X'));
+    fireEvent.press(getByText('Reddit'));
     fireEvent.press(getByText('Telegram'));
+    fireEvent.press(getByText('LinkedIn'));
+    fireEvent.press(getByText('Mastodon'));
+    fireEvent.press(getByText('Dev.to'));
+    fireEvent.press(getByText('CoderLegion'));
 
     expect(openURLSpy).toHaveBeenNthCalledWith(1, 'https://majstorov.info/en/about');
-    expect(openURLSpy).toHaveBeenNthCalledWith(2, 'https://irc.dbase.in.rs');
-    expect(openURLSpy).toHaveBeenNthCalledWith(3, 'https://androidircx.com');
-    expect(openURLSpy).toHaveBeenNthCalledWith(4, 'https://github.com/AndroidIRCx/AndroidIRCx');
-    expect(openURLSpy).toHaveBeenNthCalledWith(5, 'https://t.me/androidircx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(2, 'mailto:contact@androidircx.com');
+    expect(openURLSpy).toHaveBeenNthCalledWith(3, 'https://irc.dbase.in.rs');
+    expect(openURLSpy).toHaveBeenNthCalledWith(4, 'https://androidircx.com');
+    expect(openURLSpy).toHaveBeenNthCalledWith(5, 'https://github.com/AndroidIRCx/AndroidIRCx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(6, 'https://www.instagram.com/androidircx/');
+    expect(openURLSpy).toHaveBeenNthCalledWith(7, 'https://www.facebook.com/androidircx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(8, 'https://www.tiktok.com/@androidircx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(9, 'https://x.com/AndroidIRCx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(10, 'https://www.reddit.com/r/AndroidIRCx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(11, 'https://t.me/androidircx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(12, 'https://www.linkedin.com/company/androidircx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(13, 'https://mastodon.social/@androidircx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(14, 'https://dev.to/androidircx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(15, 'https://coderlegion.com/user/AndroidIRCx');
   });
 
   it('logs linking errors when opening a url fails', async () => {

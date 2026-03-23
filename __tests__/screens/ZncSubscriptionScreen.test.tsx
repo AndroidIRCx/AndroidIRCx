@@ -909,6 +909,50 @@ describe('ZncSubscriptionScreen', () => {
       const storedPin = await mockSecureStorageService.getSecret('@AndroidIRCX:pin-lock');
       expect(storedPin).toBeNull();
     });
+
+    it('shows error when PIN is no longer stored at submit time', async () => {
+      mockBiometricAuthService.authenticate.mockResolvedValue({ success: false, errorMessage: 'Failed' });
+      mockSettingsService.getSetting.mockImplementation((key: string) => {
+        if (key === 'biometricPasswordLock' || key === 'pinPasswordLock') return Promise.resolve(true);
+        return Promise.resolve(false);
+      });
+      mockBiometricAuthService.getBiometryType.mockResolvedValue('Fingerprint');
+      mockSecureStorageService.getSecret
+        .mockResolvedValueOnce('1234')
+        .mockResolvedValueOnce(null);
+
+      const { findByPlaceholderText, findByText } = render(
+        <ZncSubscriptionScreen visible onClose={jest.fn()} />
+      );
+
+      fireEvent.press(await findByText('Show'));
+      const pinInput = await findByPlaceholderText('PIN');
+      fireEvent.changeText(pinInput, '1234');
+      fireEvent.press(await findByText('Confirm'));
+
+      expect(await findByText('No PIN is set.')).toBeTruthy();
+    });
+
+    it('shows validation error for incorrect PIN', async () => {
+      mockBiometricAuthService.authenticate.mockResolvedValue({ success: false, errorMessage: 'Failed' });
+      mockSettingsService.getSetting.mockImplementation((key: string) => {
+        if (key === 'biometricPasswordLock' || key === 'pinPasswordLock') return Promise.resolve(true);
+        return Promise.resolve(false);
+      });
+      mockBiometricAuthService.getBiometryType.mockResolvedValue('Fingerprint');
+      mockSecureStorageService.getSecret.mockResolvedValue('1234');
+
+      const { findByPlaceholderText, findByText } = render(
+        <ZncSubscriptionScreen visible onClose={jest.fn()} />
+      );
+
+      fireEvent.press(await findByText('Show'));
+      const pinInput = await findByPlaceholderText('PIN');
+      fireEvent.changeText(pinInput, '9999');
+      fireEvent.press(await findByText('Confirm'));
+
+      expect(await findByText('Incorrect PIN.')).toBeTruthy();
+    });
   });
 
   // ==========================================
@@ -1131,6 +1175,7 @@ describe('ZncSubscriptionScreen', () => {
         );
       });
     });
+
   });
 
   // ==========================================
@@ -1284,6 +1329,17 @@ describe('ZncSubscriptionScreen', () => {
         expect(mockRNIap.purchaseUpdatedListener).toHaveBeenCalled();
         expect(mockRNIap.purchaseErrorListener).toHaveBeenCalled();
       });
+    });
+
+    it('removes store listeners and ends connection on unmount', async () => {
+      const { unmount, findByText } = render(<ZncSubscriptionScreen visible onClose={jest.fn()} />);
+
+      await findByText('ZNC Subscription');
+      unmount();
+
+      expect(mockPurchaseUpdateSubscription.remove).toHaveBeenCalled();
+      expect(mockPurchaseErrorSubscription.remove).toHaveBeenCalled();
+      expect(mockRNIap.endConnection).toHaveBeenCalled();
     });
   });
 
