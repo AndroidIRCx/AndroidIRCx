@@ -11,3 +11,36 @@ index 49282df..5c51395 100644
  
  android {
    ndkVersion getExtOrDefault("ndkVersion")
+diff --git a/node_modules/react-native-libsodium/android/CMakeLists.txt b/node_modules/react-native-libsodium/android/CMakeLists.txt
+index ee66a97..66163fe 100644
+--- a/node_modules/react-native-libsodium/android/CMakeLists.txt
++++ b/node_modules/react-native-libsodium/android/CMakeLists.txt
+@@ -1,14 +1,16 @@
+ cmake_minimum_required(VERSION 3.4.1)
++project(libsodium-react-native)
+ 
+ set (CMAKE_VERBOSE_MAKEFILE ON)
+ set (CMAKE_CXX_STANDARD 20)
++file(TO_CMAKE_PATH "${NODE_MODULES_DIR}" NODE_MODULES_DIR_CMAKE)
+ 
+ # add directories to "include" search paths
+ include_directories(
+             ../cpp
+-            "${NODE_MODULES_DIR}/react-native/React"
+-            "${NODE_MODULES_DIR}/react-native/React/Base"
+-            "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
++            "${NODE_MODULES_DIR_CMAKE}/react-native/React"
++            "${NODE_MODULES_DIR_CMAKE}/react-native/React/Base"
++            "${NODE_MODULES_DIR_CMAKE}/react-native/ReactCommon/jsi"
+ )
+ 
+ # set the base libsodium build directory
+@@ -33,7 +35,7 @@ set_target_properties( sodium PROPERTIES IMPORTED_LOCATION ${LIBSODIUM_BUILD_DIR
+ # which will be built from the listed source files
+ add_library(libsodium
+   SHARED
+-  "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi/jsi/jsi.cpp"
++  "${NODE_MODULES_DIR_CMAKE}/react-native/ReactCommon/jsi/jsi/jsi.cpp"
+   ../cpp/react-native-libsodium.cpp
+   ../cpp/react-native-libsodium.h
+   cpp-adapter.cpp

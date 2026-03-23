@@ -6054,145 +6054,145 @@
     "string": "Produk langganan ZNC (znc) nggak tersedia di store. Bisa jadi karena:\n• Kamu bukan bagian test group\n• Sertifikat signing app nggak cocok dengan Play Console\n• Langganan belum dipublikasikan di region kamu\n• Kamu perlu join program beta/testing  "
   },
   "Failed to connect to the store. Please check your internet connection and try again.": {
-    "string": ""
+    "string": "Gagal konek ke store. Cek koneksi internet lalu coba lagi.  "
   },
   "Refreshed": {
-    "string": ""
+    "string": "Direset ulang  "
   },
   "All account statuses updated.": {
-    "string": ""
+    "string": "Semua status akun diperbarui.  "
   },
   "Failed to refresh accounts. Please check your connection.": {
-    "string": ""
+    "string": "Gagal refresh akun. Cek koneksi kamu.  "
   },
   "Failed to complete purchase. Please try again.": {
-    "string": ""
+    "string": "Gagal selesaikan pembelian. Coba lagi.  "
   },
   "Unable to complete purchase.": {
-    "string": ""
+    "string": "Nggak bisa selesaikan pembelian.  "
   },
   "Your ZNC account has been created successfully! Username: {username}": {
-    "string": ""
+    "string": "Akun ZNC kamu berhasil dibuat! Username: {username}  "
   },
   "Add to Network": {
-    "string": ""
+    "string": "Tambah ke network "
   },
   "Username Taken": {
-    "string": ""
+    "string": "Username sudah dipakai"
   },
   "This username already exists on our ZNC server. Please choose a different username.": {
-    "string": ""
+    "string": "Username ini sudah ada di server ZNC kami. Pilih username lain.  "
   },
   "Try Again": {
-    "string": ""
+    "string": "Coba lagi"
   },
   "Registration Failed": {
-    "string": ""
+    "string": "Registrasi gagal"
   },
   "Unable to register ZNC account.": {
-    "string": ""
+    "string": "Nggak bisa registrasi akun ZNC. "
   },
   "Store not available. Please check your connection and try again.": {
-    "string": ""
+    "string": "Store nggak tersedia. Cek koneksi lalu coba lagi.  "
   },
   "Subscription product is not available in the store. This may be due to store configuration or testing environment.": {
-    "string": ""
+    "string": "Produk langganan nggak tersedia di store. Bisa karena konfigurasi store atau environment testing.  "
   },
   "Please enter a username.": {
-    "string": ""
+    "string": "Masukkan username.  "
   },
   "Username can only contain letters, numbers, underscore and dash.": {
-    "string": ""
+    "string": "Username cuma boleh huruf, angka, underscore, dan dash.  "
   },
   "Username must be between 3 and 20 characters.": {
-    "string": ""
+    "string": "Username harus 3–20 karakter.  "
   },
   "You already have an account with this username.": {
-    "string": ""
+    "string": "Kamu sudah punya akun dengan username ini.  "
   },
   "Failed to start purchase.": {
-    "string": ""
+    "string": "Gagal mulai pembelian.  "
   },
   "No Purchases": {
-    "string": ""
+    "string": "Nggak ada pembelian"
   },
   "No ZNC subscriptions found to restore.": {
-    "string": ""
+    "string": "Nggak ada langganan ZNC untuk direstore.  "
   },
   "No valid subscriptions found to restore.": {
-    "string": ""
+    "string": "Nggak ada langganan valid untuk direstore.  "
   },
   "Restored": {
-    "string": ""
+    "string": "Direstore"
   },
   "{count} subscription(s) restored successfully.": {
-    "string": ""
+    "string": "{count} langganan berhasil direstore.  "
   },
   "Failed to restore purchases.": {
-    "string": ""
+    "string": "Gagal restore pembelian. "
   },
   "Account credentials not ready. Please refresh status first.": {
-    "string": ""
+    "string": "Kredensial akun belum siap. Refresh status dulu.  "
   },
   "Credentials not available.": {
-    "string": ""
+    "string": "Kredensial nggak tersedia. "
   },
   "Server Exists": {
-    "string": ""
+    "string": "Server sudah ada"
   },
   "This ZNC account is already configured in {network}. Do you want to update it?": {
-    "string": ""
+    "string": "Akun ZNC ini sudah dikonfigurasi di {network}. Mau update?  "
   },
   "Update": {
-    "string": ""
+    "string": "Update"
   },
   "Failed to add ZNC to network.": {
-    "string": ""
+    "string": "Gagal tambah ZNC ke network."
   },
   "ZNC server added to {network}. You can now connect using the ZNC server.": {
-    "string": ""
+    "string": "Server ZNC ditambahkan ke {network}. Sekarang bisa konek pakai server ZNC.  "
   },
   "Failed to save network configuration.": {
-    "string": ""
+    "string": "Gagal simpan konfigurasi network.  "
   },
   "ZNC server configuration updated.": {
-    "string": ""
+    "string": "Konfigurasi server ZNC diperbarui.  "
   },
   "Failed to update network configuration.": {
-    "string": ""
+    "string": "Gagal update konfigurasi network.  "
   },
   "Credentials copied to clipboard.": {
-    "string": ""
+    "string": "Kredensial disalin ke clipboard.  "
   },
   "Account status updated.": {
-    "string": ""
+    "string": "Status akun diperbarui."
   },
   "Could not refresh account status. Account may not exist.": {
-    "string": ""
+    "string": "Nggak bisa refresh status akun. Akun mungkin nggak ada.  "
   },
   "Failed to refresh account status. Please check your connection.": {
-    "string": ""
+    "string": "Gagal refresh status akun. Cek koneksi kamu.  "
   },
   "Remove from Network": {
-    "string": ""
+    "string": "Hapus dari network "
   },
   "Remove ZNC server from {network}? This will not cancel your subscription.": {
-    "string": ""
+    "string": "Hapus server ZNC dari {network}? Ini nggak akan batalkan langganan kamu.  "
   },
   "Removed": {
-    "string": ""
+    "string": "Dihapus"
   },
   "ZNC server removed from network.": {
-    "string": ""
+    "string": "Server ZNC dihapus dari network."
   },
   "Failed to remove from network.": {
-    "string": ""
+    "string": "Gagal hapus dari network."
   },
   "ZNC Credentials": {
-    "string": ""
+    "string": "Kredensial ZNC  "
   },
   "Delete Account": {
-    "string": ""
+    "string": "Hapus Akun"
   },
   "Delete this ZNC account from your local storage? This will NOT cancel your subscription - you can restore it later using \"Restore Purchases\".": {
     "string": ""

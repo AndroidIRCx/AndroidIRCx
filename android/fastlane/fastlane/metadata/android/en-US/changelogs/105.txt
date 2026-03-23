@@ -1,0 +1,2 @@
+New in v1.9.2:
+- Resolved Dependabot alerts for flatted and fast-xml-parser

@@ -1,6 +1,6 @@
 {
   "name": "androidircx",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -99,6 +99,7 @@
     "node": ">=20"
   },
   "resolutions": {
-    "fast-xml-parser": "5.3.8"
+    "fast-xml-parser": "5.5.7",
+    "flatted": "3.4.2"
   }
 }
