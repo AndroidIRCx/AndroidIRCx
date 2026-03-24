@@ -118,7 +118,7 @@ class EncryptedDMService {
     const combined = new Uint8Array(idBytes.length + encBytes.length);
     combined.set(idBytes, 0);
     combined.set(encBytes, idBytes.length);
-    const digest = sodium.crypto_generichash(16, combined);
+    const digest = sodium.crypto_generichash(16, '', combined);
     return this.toHex(digest);
   }
 
@@ -668,7 +668,7 @@ class EncryptedDMService {
   private async deriveKey(theirEncPubB64: string) {
     const self = await this.getOrCreateIdentity();
     const shared = x25519.getSharedSecret(this.fromB64(self.encPriv), this.fromB64(theirEncPubB64));
-    return sodium.crypto_generichash(32, shared);
+    return sodium.crypto_generichash(32, '', shared);
   }
 
   async getMessageKeyForNetwork(network: string, nick: string): Promise<Uint8Array> {
@@ -725,7 +725,7 @@ class EncryptedDMService {
         this.fromB64(msg.nonce),
         key,
       );
-    } catch (error) {
+    } catch {
       plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
         null,
         this.fromB64(msg.cipher),
@@ -778,7 +778,7 @@ class EncryptedDMService {
         this.fromB64(msg.nonce),
         key,
       );
-    } catch (error) {
+    } catch {
       plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
         null,
         this.fromB64(msg.cipher),

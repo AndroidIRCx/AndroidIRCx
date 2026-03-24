@@ -45,9 +45,7 @@ export interface CommandHandlerContext {
   getChannelUsers: (channel: string) => Map<string, any> | undefined;
   updateChannelUserList: (channel: string) => void;
   getAllChannelUsers: () => Map<string, Map<string, any>>;
-  getCurrentNick: () => string;
   setCurrentNick: (nick: string) => void;
-  getNetworkName: () => string;
   hasUser: (channel: string, nick: string) => boolean;
   setUser: (channel: string, nick: string, user: any) => void;
   getUser: (channel: string, nick: string) => any | undefined;

@@ -31,7 +31,7 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
   onThemeChange,
 }) => {
   const { colors } = useTheme();
-  const { theme: currentTheme, setTheme, hasRecommendedSettings, recommendedSettings } = useThemeWithSettings();
+  const { theme: currentTheme, setTheme, hasRecommendedSettings } = useThemeWithSettings();
   const [isApplying, setIsApplying] = useState(false);
   const styles = createStyles(colors);
 

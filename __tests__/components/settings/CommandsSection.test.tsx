@@ -6,8 +6,7 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { render } from '@testing-library/react-native';
 import { CommandsSection } from '../../../src/components/settings/sections/CommandsSection';
 import { commandService } from '../../../src/services/CommandService';
 

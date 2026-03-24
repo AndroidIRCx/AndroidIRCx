@@ -51,7 +51,7 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
     const activeCommandService = getActiveCommandService();
     // Use direct store access to avoid infinite loop
     const currentTabs = useTabStore.getState().tabs;
-    const activeTab = currentTabs.find((tab) => tab.id === activeTabId) || currentTabs.find(t => t.type === 'server') || currentTabs[0];
+    const activeTab = currentTabs.find((tab) => tab.id === activeTabId) || currentTabs.find(tabItem => tabItem.type === 'server') || currentTabs[0];
 
     // Don't send messages if no valid tab exists
     if (!activeTab) {
@@ -272,13 +272,13 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
           network: activeTab.networkId,
         };
         setTabs(prev =>
-          prev.map(t =>
-            t.id === activeTab.id
+          prev.map(tabItem =>
+            tabItem.id === activeTab.id
               ? {
-                  ...t,
-                  messages: [...t.messages, dccMessage],
+                  ...tabItem,
+                  messages: [...tabItem.messages, dccMessage],
                 }
-              : t
+              : tabItem
           )
         );
         // Save DCC message to history
@@ -351,8 +351,8 @@ export const useMessageSending = (params: UseMessageSendingParams) => {
         return;
       }
       try {
-        const network = activeTab.networkId || activeIRCService.getNetworkName();
-        const payload = await encryptedDMService.encryptForNetwork(commandToSend, network, activeTab.name);
+        const encryptedNetworkId = activeTab.networkId || activeIRCService.getNetworkName();
+        const payload = await encryptedDMService.encryptForNetwork(commandToSend, encryptedNetworkId, activeTab.name);
         activeIRCService.sendRaw(`PRIVMSG ${activeTab.name} :!enc-msg ${JSON.stringify(payload)}`);
         const sentMessage: IRCMessage = {
           id: `msg-${Date.now()}-${Math.random()}`,

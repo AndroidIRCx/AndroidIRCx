@@ -5,7 +5,7 @@
  * Tests for ConnectionProfilesService
  */
 
-import { connectionProfilesService, ConnectionProfile, ProfileTemplate } from '../../src/services/ConnectionProfilesService';
+import { connectionProfilesService, ProfileTemplate } from '../../src/services/ConnectionProfilesService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock transifex

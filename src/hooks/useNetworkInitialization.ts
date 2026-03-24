@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { settingsService } from '../services/SettingsService';
 import { tabService } from '../services/TabService';
@@ -152,7 +152,17 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
       }
     };
     loadInitialData().finally(() => setInitialDataLoaded(true));
-  }, [isCheckingFirstRun, showFirstRunSetup]);
+  }, [
+    isCheckingFirstRun,
+    showFirstRunSetup,
+    primaryNetworkId,
+    setActiveTabId,
+    setInitialDataLoaded,
+    setNetworkName,
+    setPrimaryNetworkId,
+    setSelectedNetworkName,
+    setTabs,
+  ]);
 
   // Clean up invalid tabs from state - run only on mount to avoid infinite loops
   useEffect(() => {
@@ -177,7 +187,7 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
       );
       setTabs(validTabs);
     }
-  }, []); // Run only on mount to prevent infinite loops
+  }, [setTabs]); // Run on mount; setter is stable
 
   // Save tabs whenever they change - debounced to avoid infinite loops
   useEffect(() => {

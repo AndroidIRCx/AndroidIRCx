@@ -30,6 +30,7 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
 }) => {
   const { colors } = useTheme();
   const t = useT();
+  const scrollContentStyle = { paddingBottom: 24 };
 
   const styles = StyleSheet.create({
     container: {
@@ -150,7 +151,7 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
         </View>
         <ScrollView
           style={styles.content}
-          contentContainerStyle={{ paddingBottom: 24 }}
+          contentContainerStyle={scrollContentStyle}
           showsVerticalScrollIndicator={true}
         >
           {children}

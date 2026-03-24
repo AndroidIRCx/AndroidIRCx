@@ -12,13 +12,14 @@ import { tx } from '../i18n/transifex';
 import { useTabStore } from '../stores/tabStore';
 import { highlightService } from './HighlightService';
 import { channelNotesService } from './ChannelNotesService';
-import { messageHistoryService } from './MessageHistoryService';
+import { messageHistoryService, type MessageHistoryStats } from './MessageHistoryService';
 import { themeService } from './ThemeService';
 import { connectionQualityService } from './ConnectionQualityService';
 import { settingsService } from './SettingsService';
 
 import { APP_VERSION } from '../config/appVersion';
 
+/* eslint-disable no-useless-escape -- Script examples and regex literals intentionally use escaped character classes. */
 type HookResult = void | string | { command?: string; cancel?: boolean };
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
@@ -47,7 +48,7 @@ interface ScriptHooks {
   onQuit?: (nick: string, reason: string, message: IRCMessage) => void;
   onNickChange?: (oldNick: string, newNick: string, message: IRCMessage) => void;
   onKick?: (channel: string, kickedNick: string, kickerNick: string, reason: string, message: IRCMessage) => void;
-  onMode?: (channel: string, setterNick: string, mode: string, target?: string, message: IRCMessage) => void;
+  onMode?: (channel: string, setterNick: string, mode: string, target: string | undefined, message: IRCMessage) => void;
   onTopic?: (channel: string, topic: string, setterNick: string, message: IRCMessage) => void;
   onInvite?: (channel: string, inviterNick: string, message: IRCMessage) => void;
   onCTCP?: (type: string, from: string, text: string, message: IRCMessage) => void;
@@ -109,7 +110,7 @@ class ScriptingService {
   }
 
   async save() {
-    const plain: ScriptConfig[] = this.scripts.map(({ hooks, ...rest }) => rest);
+    const plain: ScriptConfig[] = this.scripts.map(({ hooks: _hooks, ...rest }) => rest);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(plain));
   }
 
@@ -175,21 +176,24 @@ class ScriptingService {
     try {
       // Syntax check only; do not execute hooks
       // eslint-disable-next-line no-new-func
-      new Function('api', `
+      const factory = new Function('api', `
         "use strict";
         const exports = {};
         const module = { exports };
         ${code}
         return module.exports || exports;
       `);
-      return { ok: true, message: t('No syntax errors detected.') };
+      if (factory) {
+        return { ok: true, message: t('No syntax errors detected.') };
+      }
+      return { ok: false, message: t('Unexpected syntax check failure.') };
     } catch (error: any) {
       return { ok: false, message: String(error?.message || error) };
     }
   }
 
   list(): ScriptConfig[] {
-    return this.scripts.map(({ hooks, ...rest }) => rest);
+    return this.scripts.map(({ hooks: _hooks, ...rest }) => rest);
   }
 
   listRepository(): ScriptConfig[] {
@@ -198,7 +202,7 @@ class ScriptingService {
 
   async add(script: ScriptConfig) {
     this.scripts = this.scripts.filter(s => s.id !== script.id);
-    const withDefault = { enabled: false, ...script };
+    const withDefault = { ...script, enabled: script.enabled ?? false };
     this.scripts.push(this.compile(withDefault as ScriptConfig));
     await this.save();
   }
@@ -1042,6 +1046,7 @@ class ScriptingService {
     if (!script.enabled) return safeScript;
     try {
       const api = this.makeApi(script);
+      // eslint-disable-next-line no-new-func
       const factory = new Function('api', `
         "use strict";
         const exports = {};
@@ -1180,12 +1185,12 @@ class ScriptingService {
 
       // Tab management
       getTabs: () => {
-        return useTabStore.getState().tabs.map(t => ({
-          id: t.id,
-          name: t.name,
-          type: t.type,
-          networkId: t.networkId,
-          hasActivity: t.hasActivity,
+        return useTabStore.getState().tabs.map(tab => ({
+          id: tab.id,
+          name: tab.name,
+          type: tab.type,
+          networkId: tab.networkId,
+          hasActivity: tab.hasActivity,
         }));
       },
       getActiveTab: () => {
@@ -1214,7 +1219,7 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         if (!conn) return null;
         try {
-          return await conn.userManagementService.getWHOISInfo(n, net) || null;
+          return conn.userManagementService.getWHOIS(n, net) || null;
         } catch {
           return null;
         }
@@ -1240,7 +1245,7 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         if (!conn) return;
         try {
-          await conn.userManagementService.setUserNote(n, note.substring(0, 1000), net);
+          await conn.userManagementService.addUserNote(n, note.substring(0, 1000), net);
         } catch (e) {
           this.addLog({ level: 'error', message: `Failed to set user note: ${e}`, scriptId: script.id });
         }
@@ -1266,7 +1271,7 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         if (!conn) return;
         try {
-          await conn.userManagementService.setUserAlias(n, alias.substring(0, 50), net);
+          await conn.userManagementService.addUserAlias(n, alias.substring(0, 50), net);
         } catch (e) {
           this.addLog({ level: 'error', message: `Failed to set user alias: ${e}`, scriptId: script.id });
         }
@@ -1279,7 +1284,7 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         if (!conn) return false;
         try {
-          return conn.userManagementService.isIgnored(n, net);
+          return conn.userManagementService.isUserIgnored(n, undefined, undefined, net);
         } catch {
           return false;
         }
@@ -1375,7 +1380,24 @@ class ScriptingService {
         const net = this.validateNetworkId(networkId);
         if (!net) return null;
         try {
-          return await messageHistoryService.getStatistics(net) || null;
+          const messages = await messageHistoryService.searchMessages({ network: net });
+          const stats: MessageHistoryStats = {
+            totalMessages: messages.length,
+            channelCount: 0,
+            messagesByChannel: new Map(),
+            messagesByUser: new Map(),
+            oldestMessage: messages[0]?.timestamp,
+            newestMessage: messages[messages.length - 1]?.timestamp,
+          };
+          messages.forEach((message) => {
+            const channel = message.channel || 'server';
+            stats.messagesByChannel.set(channel, (stats.messagesByChannel.get(channel) || 0) + 1);
+            if (message.from) {
+              stats.messagesByUser.set(message.from, (stats.messagesByUser.get(message.from) || 0) + 1);
+            }
+          });
+          stats.channelCount = stats.messagesByChannel.size;
+          return stats;
         } catch {
           return null;
         }
@@ -1388,7 +1410,7 @@ class ScriptingService {
         const safeKeys = ['nick', 'username', 'realname', 'partMessage', 'quitMessage'];
         if (!safeKeys.includes(key)) return null;
         try {
-          return await settingsService.getSetting(key);
+          return await settingsService.getSetting(key, null);
         } catch {
           return null;
         }
@@ -1398,9 +1420,21 @@ class ScriptingService {
       getTheme: () => {
         try {
           const theme = themeService.getCurrentTheme();
+          const background = theme.colors.background.replace('#', '');
+          const normalizedHex = background.length === 3
+            ? background.split('').map((char) => char + char).join('')
+            : background;
+          const rgb = normalizedHex.length >= 6
+            ? {
+                r: parseInt(normalizedHex.slice(0, 2), 16),
+                g: parseInt(normalizedHex.slice(2, 4), 16),
+                b: parseInt(normalizedHex.slice(4, 6), 16),
+              }
+            : { r: 0, g: 0, b: 0 };
+          const luminance = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
           return {
             name: theme.name,
-            isDark: theme.isDark,
+            isDark: luminance < 0.5,
           };
         } catch {
           return null;
@@ -1426,7 +1460,7 @@ class ScriptingService {
           clearTimeout(this.timers.get(timerId)!);
         }
         const timer = setTimeout(() => {
-          this.runHook('onTimer', (h) => {
+          this.runHook('onTimer', (_hooks) => {
             const scriptHook = this.scripts.find(s => s.id === script.id)?.hooks;
             scriptHook?.onTimer?.(name);
           });
@@ -1455,14 +1489,14 @@ class ScriptingService {
       getAllNetworks: () => {
         return connectionManager.getAllConnections().map(c => ({
           networkId: c.networkId,
-          isConnected: c.isConnected,
+          isConnected: c.ircService.getConnectionStatus(),
         }));
       },
       isConnected: (networkId?: string): boolean => {
         const net = this.validateNetworkId(networkId);
         if (!net) return false;
         const conn = connectionManager.getConnection(net);
-        return conn?.ircService.isConnected || false;
+        return conn?.ircService.getConnectionStatus() || false;
       },
 
       // Storage helpers (script-specific)

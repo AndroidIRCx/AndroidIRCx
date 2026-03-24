@@ -4,8 +4,10 @@
  */
 
 describe('irc/index', () => {
-  it('currently throws on duplicate re-export names', () => {
-    expect(() => require('../../../src/services/irc/index')).toThrow();
+  it('exports the irc service modules without duplicate re-export errors', () => {
+    const ircModule = require('../../../src/services/irc/index');
+    expect(ircModule).toBeDefined();
+    expect(typeof ircModule).toBe('object');
   });
 });
 

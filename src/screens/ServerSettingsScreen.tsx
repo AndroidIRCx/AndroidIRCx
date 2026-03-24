@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -34,10 +34,13 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   onCancel,
 }) => {
   const t = useT();
+  const tRef = useRef(t);
+  tRef.current = t;
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const mutedTextColor = colors.textMuted || colors.textSecondary || colors.text;
-  const inactiveSwitchThumb = colors.surfaceVariant || colors.border || colors.surface || colors.background;
+  const themeColors = colors as typeof colors & { textMuted?: string; surfaceVariant?: string };
+  const mutedTextColor = themeColors.textMuted || colors.textSecondary || colors.text;
+  const inactiveSwitchThumb = themeColors.surfaceVariant || colors.border || colors.surface || colors.background;
   const [name, setName] = useState('');
   const [hostname, setHostname] = useState('');
   const [port, setPort] = useState('6697');
@@ -50,19 +53,9 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   const [isDefaultServer, setIsDefaultServer] = useState(false);
   const [wasDefaultServer, setWasDefaultServer] = useState(false);
   const [saving, setSaving] = useState(false);
+  const translate = useCallback((key: string) => tRef.current(key), []);
 
-  useEffect(() => {
-    if (serverId && networkId) {
-      loadServer();
-    } else {
-      // Default values for new server
-      setPort('6697');
-      setSsl(true);
-      setRejectUnauthorized(false);
-    }
-  }, [serverId, networkId]);
-
-  const loadServer = async () => {
+  const loadServer = useCallback(async () => {
     if (!serverId || !networkId) return;
     setLoading(true);
     setError(null);
@@ -77,30 +70,41 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
         setRejectUnauthorized(server.rejectUnauthorized !== false);
         setPassword(server.password || '');
         setFavorite(Boolean(server.favorite));
-        const isDefault = network.defaultServerId === serverId;
+        const isDefault = network?.defaultServerId === serverId;
         setIsDefaultServer(isDefault);
         setWasDefaultServer(isDefault);
       } else {
-        setError(t('Server not found'));
+        setError(translate('Server not found'));
       }
     } catch (err) {
-      setError(t('Failed to load server'));
+      setError(translate('Failed to load server'));
       console.error('Error loading server:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [networkId, serverId, translate]);
+
+  useEffect(() => {
+    if (serverId && networkId) {
+      loadServer();
+    } else {
+      // Default values for new server
+      setPort('6697');
+      setSsl(true);
+      setRejectUnauthorized(false);
+    }
+  }, [serverId, networkId, loadServer]);
 
   const handleSave = async () => {
     if (saving) return;
     if (!hostname.trim()) {
-      Alert.alert(t('Error'), t('Please enter a hostname'));
+      Alert.alert(translate('Error'), translate('Please enter a hostname'));
       return;
     }
 
     const portNum = parseInt(port, 10);
     if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
-      Alert.alert(t('Error'), t('Please enter a valid port number (1-65535)'));
+      Alert.alert(translate('Error'), translate('Please enter a valid port number (1-65535)'));
       return;
     }
 
@@ -110,7 +114,6 @@ export const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
       hostname: hostname.trim(),
       port: portNum,
       ssl: ssl,
-      rejectUnauthorized: rejectUnauthorized,
       password: password.trim() || undefined,
       favorite,
       rejectUnauthorized: rejectUnauthorized !== false,
@@ -371,7 +374,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleShe
   },
   hint: {
     fontSize: 12,
-    color: colors.textMuted || colors.textSecondary || colors.text,
+    color: (colors as typeof colors & { textMuted?: string }).textMuted || colors.textSecondary || colors.text,
     marginTop: 4,
   },
   switchGroup: {

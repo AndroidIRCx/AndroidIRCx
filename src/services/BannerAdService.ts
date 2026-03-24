@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import { logger } from './Logger';
 import { consentService } from './ConsentService';
 import { inAppPurchaseService } from './InAppPurchaseService';

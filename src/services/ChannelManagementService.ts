@@ -66,7 +66,7 @@ export class ChannelManagementService {
     this.ircService.on('topic', (channel: string, topic: string, setBy: string) => this.updateTopic(channel, topic, setBy));
     this.ircService.on('channelMode', (channel: string, modeString: string, modeParams: string[]) => this.updateModes(channel, modeString, modeParams));
     this.ircService.on('clear-channel', (channel: string) => this.clearChannel(channel));
-    this.ircService.on('numeric', (numeric: number, prefix: string, params: string[], timestamp: number) => {
+    this.ircService.on('numeric', (numeric: number, prefix: string, params: string[], _timestamp: number) => {
         if (numeric === 324) { // RPL_CHANNELMODEIS - Response to MODE #channel query
             const channel = params[1] || '';
             const modeString = params[2] || '';

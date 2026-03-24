@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+/* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
+
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { Alert, Modal, View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SettingItem } from '../SettingItem';
@@ -173,9 +175,9 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
     setAppLockUsePin(true);
     setAppLockEnabled(true);
     closeAppPinModal(true);
-  }, [APP_PIN_STORAGE_KEY, appPinEntry, appPinModalMode, appPinSetupValue, closeAppPinModal, t, tags]);
+  }, [appPinEntry, appPinModalMode, appPinSetupValue, closeAppPinModal, t, tags]);
 
-  const handleAppLockToggle = async (value: boolean) => {
+  const handleAppLockToggle = useCallback(async (value: boolean) => {
     if (value) {
       if (!appLockUseBiometric && !appLockUsePin) {
         Alert.alert(
@@ -187,9 +189,9 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
     }
     await settingsService.setSetting('appLockEnabled', value);
     setAppLockEnabled(value);
-  };
+  }, [appLockUseBiometric, appLockUsePin, t, tags]);
 
-  const handleAppLockBiometricToggle = async (value: boolean) => {
+  const handleAppLockBiometricToggle = useCallback(async (value: boolean) => {
     if (value) {
       const enrolled = await biometricAuthService.hasEnrolledBiometrics();
       if (!enrolled) {
@@ -227,9 +229,9 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
       await settingsService.setSetting('appLockEnabled', false);
       setAppLockEnabled(false);
     }
-  };
+  }, [appLockUsePin, t, tags]);
 
-  const handleAppLockPinToggle = async (value: boolean) => {
+  const handleAppLockPinToggle = useCallback(async (value: boolean) => {
     if (value) {
       // Allow PIN and biometric to be enabled together - don't disable biometric
       const setupSuccess = await requestAppPinSetup();
@@ -247,7 +249,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
       await settingsService.setSetting('appLockEnabled', false);
       setAppLockEnabled(false);
     }
-  };
+  }, [appLockUseBiometric, requestAppPinSetup]);
 
   const sectionData: SettingItemType[] = useMemo(() => {
     const items: SettingItemType[] = [
@@ -313,7 +315,9 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
         type: 'switch',
         value: appLockEnabled,
         searchKeywords: ['app', 'lock', 'enable', 'disable', 'security', 'protect', 'privacy'],
-        onValueChange: handleAppLockToggle,
+        onValueChange: (value: string | boolean) => {
+          handleAppLockToggle(Boolean(value)).catch(() => {});
+        },
       },
       {
         id: 'security-app-lock-biometric',
@@ -327,7 +331,9 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
         value: appLockUseBiometric,
         disabled: !biometricAvailable,
         searchKeywords: ['biometric', 'fingerprint', 'face', 'unlock', 'authentication', 'touch', 'id'],
-        onValueChange: handleAppLockBiometricToggle,
+        onValueChange: (value: string | boolean) => {
+          handleAppLockBiometricToggle(Boolean(value)).catch(() => {});
+        },
       },
       {
         id: 'security-app-lock-pin',
@@ -340,7 +346,9 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
         type: 'switch',
         value: appLockUsePin,
         searchKeywords: ['pin', 'password', 'unlock', 'code', 'numeric', 'passcode', 'number'],
-        onValueChange: handleAppLockPinToggle,
+        onValueChange: (value: string | boolean) => {
+          handleAppLockPinToggle(Boolean(value)).catch(() => {});
+        },
       },
       {
         id: 'security-app-lock-biometric-auto',

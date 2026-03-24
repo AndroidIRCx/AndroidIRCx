@@ -40,6 +40,8 @@ interface RelayOffer {
 }
 
 const emptyOffers: RelayOffer[] = [];
+const getPurchaseReceipt = (purchase: Purchase): string =>
+  purchase.purchaseToken || ((purchase as Purchase & { transactionReceipt?: string }).transactionReceipt ?? '');
 
 export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
   visible,
@@ -182,10 +184,10 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
           console.log('[PrivacyRelayScreen] purchaseUpdatedListener fired', {
             productId: purchase.productId,
             transactionId: (purchase as any).transactionId,
-            hasPurchaseToken: Boolean(purchase.purchaseToken || purchase.transactionReceipt),
+            hasPurchaseToken: Boolean(getPurchaseReceipt(purchase)),
           });
           await RNIap.finishTransaction({ purchase, isConsumable: false });
-          const purchaseToken = purchase.purchaseToken || purchase.transactionReceipt || '';
+          const purchaseToken = getPurchaseReceipt(purchase);
           if (!purchaseToken) {
             throw new Error('Missing purchase token for Privacy Relay subscription.');
           }
@@ -302,18 +304,18 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
         relay: relayPurchases.length,
       });
       const restoredPurchase = relayPurchases.find(
-        purchase => Boolean(purchase.purchaseToken || purchase.transactionReceipt)
+        purchase => Boolean(getPurchaseReceipt(purchase))
       );
       const restored = await privacyRelayService.restoreFromPurchaseTokens(
         relayPurchases.map(purchase => ({
-          purchaseToken: purchase.purchaseToken || purchase.transactionReceipt || '',
+          purchaseToken: getPurchaseReceipt(purchase),
           basePlanId: subscription?.basePlanId || null,
         }))
       );
 
       if (restoredPurchase) {
         await syncPurchaseWithBackend(
-          restoredPurchase.purchaseToken || restoredPurchase.transactionReceipt || '',
+          getPurchaseReceipt(restoredPurchase),
           subscription?.basePlanId || null
         );
       }

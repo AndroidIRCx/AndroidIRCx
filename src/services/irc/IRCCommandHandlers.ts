@@ -32,7 +32,7 @@ import { renameCommandHandlers } from './commands/RenameCommandHandlers';
  * Interface for the IRCService methods needed by command handlers
  */
 interface IRCServiceCommandInterface {
-  addMessage: (message: any) => void;
+  addMessage: (message: any, batchTag?: string) => void;
   addRawMessage: (text: string, category: string, timestamp?: number) => void;
   emit: (event: string, ...args: any[]) => void;
   extractNick: (prefix: string) => string;
@@ -56,10 +56,6 @@ interface IRCServiceCommandInterface {
   updateSelfUserModes: (modeString: string) => void;
   channelUsers: Map<string, Map<string, any>>;
   updateChannelUserList: (channel: string) => void;
-  currentNick: string;
-  getNetworkName: () => string;
-  getUserManagementService: () => any;
-  runBlacklistAction: (entry: any, context: any) => void;
 }
 
 export class IRCCommandHandlers {
@@ -106,9 +102,7 @@ export class IRCCommandHandlers {
       getChannelUsers: (channel: string) => (svc as any).channelUsers?.get(channel),
       updateChannelUserList: (channel: string) => (svc as any).updateChannelUserList(channel),
       getAllChannelUsers: () => (svc as any).channelUsers,
-      getCurrentNick: () => (svc as any).currentNick,
       setCurrentNick: (nick: string) => { (svc as any).currentNick = nick; },
-      getNetworkName: () => (svc as any).getNetworkName(),
       hasUser: (channel: string, nick: string) => {
         const users = (svc as any).channelUsers?.get(channel);
         return users ? users.has(nick.toLowerCase()) : false;

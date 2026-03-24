@@ -115,7 +115,7 @@ describe('Presets - IRcapPresets', () => {
     });
 
     it('all preset values should be non-empty strings', () => {
-      Object.entries(IRCAP_PRESETS_BASE64).forEach(([key, value]) => {
+      Object.entries(IRCAP_PRESETS_BASE64).forEach(([_key, value]) => {
         expect(typeof value).toBe('string');
         expect(value.length).toBeGreaterThan(0);
       });

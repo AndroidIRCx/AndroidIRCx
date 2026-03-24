@@ -61,6 +61,9 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   // Track raw mode string for modes not represented by toggles
   const [rawModeString, setRawModeString] = useState('');
   const topicPreviewText = topic || t('Topic Preview');
+  const topicStylesScrollStyle = { maxHeight: 260 };
+  const topicStylesPreviewWrapStyle = { flex: 1 };
+  const topicSelectScrollStyle = { maxHeight: 300 };
   const pickerColors = {
     text: colors.text,
     textSecondary: colors.textSecondary,
@@ -853,13 +856,13 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                   <Text style={styles.modalButtonText}>{t('Add style')}</Text>
                 </TouchableOpacity>
               </View>
-              <ScrollView style={{ maxHeight: 260 }}>
+                <ScrollView style={topicStylesScrollStyle}>
                 {topicStyles.map((styleText, index) => (
                   <View
                     key={`${styleText}-${index}`}
                     style={styles.modalListItem}>
                     <View style={styles.modalListRow}>
-                      <View style={{ flex: 1 }}>
+                      <View style={topicStylesPreviewWrapStyle}>
                         {renderTopicStylePreview(styleText, styles.modalListItemText, topicPreviewText)}
                       </View>
                       <TouchableOpacity
@@ -893,7 +896,7 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>{t('Select Topic Style')}</Text>
-              <ScrollView style={{ maxHeight: 300 }}>
+                <ScrollView style={topicSelectScrollStyle}>
                 {topicStyles.map((styleText, index) => (
                   <TouchableOpacity
                     key={`${styleText}-${index}`}

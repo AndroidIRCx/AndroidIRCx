@@ -161,8 +161,8 @@ describe('useUISettings', () => {
   it('should update hideJoinMessages via setting change listener', () => {
     renderHook(() => useUISettings(defaultProps));
 
-    if (settingChangeCallbacks['hideJoinMessages']) {
-      settingChangeCallbacks['hideJoinMessages'](true);
+    if (settingChangeCallbacks.hideJoinMessages) {
+      settingChangeCallbacks.hideJoinMessages(true);
     }
 
     expect(mockStore.setHideJoinMessages).toHaveBeenCalledWith(true);
@@ -171,8 +171,8 @@ describe('useUISettings', () => {
   it('should update hidePartMessages via setting change listener', () => {
     renderHook(() => useUISettings(defaultProps));
 
-    if (settingChangeCallbacks['hidePartMessages']) {
-      settingChangeCallbacks['hidePartMessages'](true);
+    if (settingChangeCallbacks.hidePartMessages) {
+      settingChangeCallbacks.hidePartMessages(true);
     }
 
     expect(mockStore.setHidePartMessages).toHaveBeenCalledWith(true);
@@ -181,8 +181,8 @@ describe('useUISettings', () => {
   it('should update hideQuitMessages via setting change listener', () => {
     renderHook(() => useUISettings(defaultProps));
 
-    if (settingChangeCallbacks['hideQuitMessages']) {
-      settingChangeCallbacks['hideQuitMessages'](false);
+    if (settingChangeCallbacks.hideQuitMessages) {
+      settingChangeCallbacks.hideQuitMessages(false);
     }
 
     expect(mockStore.setHideQuitMessages).toHaveBeenCalledWith(false);
@@ -191,8 +191,8 @@ describe('useUISettings', () => {
   it('should update hideIrcServiceListenerMessages via listener', () => {
     renderHook(() => useUISettings(defaultProps));
 
-    if (settingChangeCallbacks['hideIrcServiceListenerMessages']) {
-      settingChangeCallbacks['hideIrcServiceListenerMessages'](true);
+    if (settingChangeCallbacks.hideIrcServiceListenerMessages) {
+      settingChangeCallbacks.hideIrcServiceListenerMessages(true);
     }
 
     expect(mockStore.setHideIrcServiceListenerMessages).toHaveBeenCalledWith(true);
@@ -201,8 +201,8 @@ describe('useUISettings', () => {
   it('should update showTypingIndicators via listener', () => {
     renderHook(() => useUISettings(defaultProps));
 
-    if (settingChangeCallbacks['showTypingIndicators']) {
-      settingChangeCallbacks['showTypingIndicators'](false);
+    if (settingChangeCallbacks.showTypingIndicators) {
+      settingChangeCallbacks.showTypingIndicators(false);
     }
 
     expect(mockStore.setShowTypingIndicators).toHaveBeenCalledWith(false);
@@ -211,8 +211,8 @@ describe('useUISettings', () => {
   it('should update autoConnectFavoriteServer via listener', () => {
     renderHook(() => useUISettings(defaultProps));
 
-    if (settingChangeCallbacks['autoConnectFavoriteServer']) {
-      settingChangeCallbacks['autoConnectFavoriteServer'](true);
+    if (settingChangeCallbacks.autoConnectFavoriteServer) {
+      settingChangeCallbacks.autoConnectFavoriteServer(true);
     }
 
     expect(mockSetAutoConnectFavoriteServer).toHaveBeenCalledWith(true);

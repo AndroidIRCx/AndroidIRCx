@@ -6,7 +6,6 @@
 import { useEffect } from 'react';
 import { initializeAppCheck } from '@react-native-firebase/app-check';
 import { getApp } from '@react-native-firebase/app';
-import { ReactNativeFirebaseAppCheckProvider } from '@react-native-firebase/app-check';
 import MobileAds from 'react-native-google-mobile-ads';
 import RNBootSplash from 'react-native-bootsplash';
 import { consentService } from '../services/ConsentService';
@@ -49,7 +48,13 @@ export function useAppInitialization() {
         const app = getApp();
         debugLogger.debug('appInitialization', 'Firebase app instance obtained');
         
-        const rnfbProvider = new ReactNativeFirebaseAppCheckProvider();
+        const AppCheckModule = require('@react-native-firebase/app-check') as {
+          ReactNativeFirebaseAppCheckProvider: new () => {
+            configure: (config: unknown) => void;
+            getToken: () => Promise<unknown>;
+          };
+        };
+        const rnfbProvider = new AppCheckModule.ReactNativeFirebaseAppCheckProvider();
         debugLogger.debug('appInitialization', 'ReactNativeFirebaseAppCheckProvider created');
         
         const providerConfig = {
@@ -73,7 +78,7 @@ export function useAppInitialization() {
         await initializeAppCheck(app, {
           provider: rnfbProvider,
           isTokenAutoRefreshEnabled: true,
-        });
+        } as any);
         debugLogger.debug('appInitialization', 'App Check initialized successfully');
       } catch (error: any) {
         console.error('❌ App Check initialization failed:', error);

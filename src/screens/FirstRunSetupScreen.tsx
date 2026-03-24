@@ -158,7 +158,7 @@ export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
           finalNetwork = updated!;
         } else {
           // Shouldn't happen, but create DBase network if it doesn't exist
-          const network = await settingsService.createDefaultNetwork();
+          await settingsService.createDefaultNetwork();
           await settingsService.updateNetwork('DBase', {
             nick: nickname.trim(),
             altNick: altNick.trim() || `${nickname.trim()}_`,

@@ -4,8 +4,10 @@
  */
 
 describe('irc/numerics/index', () => {
-  it('currently throws on duplicate re-export names', () => {
-    expect(() => require('../../../../src/services/irc/numerics/index')).toThrow();
+  it('exports numerics modules without duplicate re-export errors', () => {
+    const numericsModule = require('../../../../src/services/irc/numerics/index');
+    expect(numericsModule).toBeDefined();
+    expect(typeof numericsModule).toBe('object');
   });
 });
 

@@ -54,32 +54,26 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
   const [importPassword, setImportPassword] = useState('');
   const [importData, setImportData] = useState('');
 
-  // Biometric Authentication
-  useEffect(() => {
-    if (visible && !authenticated) {
-      handleAuthentication();
+  const loadKeys = useCallback(async () => {
+    try {
+      console.log('[KeyManagement] Loading keys from service...');
+      const allKeys = await encryptedDMService.listAllKeys();
+      console.log('[KeyManagement] Loaded keys:', allKeys.length, 'keys');
+      setKeys(allKeys);
+
+      console.log('[KeyManagement] Loading available networks...');
+      const connections = connectionManager.getAllConnections();
+      const networks = connections.map(conn => conn.networkId);
+      console.log('[KeyManagement] Available networks:', networks);
+      setAvailableNetworks(networks);
+    } catch (error) {
+      console.error('[KeyManagement] Failed to load keys:', error);
+      const message = error instanceof Error ? error.message : t('Unknown error');
+      Alert.alert(t('Error'), t('Failed to load encryption keys: {error}', { error: message }));
     }
-  }, [visible]);
+  }, [t]);
 
-  // Reset authentication state when modal closes
-  useEffect(() => {
-    if (!visible) {
-      setAuthenticated(false);
-      setLoading(true);
-    }
-  }, [visible]);
-
-  // Cleanup temporary auth credentials when screen closes
-  useEffect(() => {
-    return () => {
-      // Clean up the temporary keymanagement credentials when component unmounts
-      biometricAuthService.disableLock('keymanagement').catch(err => {
-        console.warn('[KeyManagement] Failed to cleanup auth lock:', err);
-      });
-    };
-  }, []);
-
-  const handleAuthentication = async () => {
+  const handleAuthentication = useCallback(async () => {
     setLoading(true);
     try {
       console.log('[KeyManagement] Starting authentication...');
@@ -121,7 +115,7 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
         console.log('[KeyManagement] Keys loaded successfully');
         setLoading(false);
       } else {
-        console.log('[KeyManagement] Auth failed:', result.error);
+        console.log('[KeyManagement] Auth failed:', result.errorMessage || result.errorKey);
         setLoading(false);
         const errorMessage = result.errorMessage
           || (result.errorKey ? t(result.errorKey) : t('You must authenticate to access encryption keys.'));
@@ -140,28 +134,31 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
         [{ text: t('OK'), onPress: onClose }]
       );
     }
-  };
+  }, [loadKeys, onClose, t]);
 
-  // Load encryption keys
-  const loadKeys = async () => {
-    try {
-      console.log('[KeyManagement] Loading keys from service...');
-      const allKeys = await encryptedDMService.listAllKeys();
-      console.log('[KeyManagement] Loaded keys:', allKeys.length, 'keys');
-      setKeys(allKeys);
-
-      // Get available networks from connection manager
-      console.log('[KeyManagement] Loading available networks...');
-      const connections = connectionManager.getAllConnections();
-      const networks = connections.map(conn => conn.networkId);
-      console.log('[KeyManagement] Available networks:', networks);
-      setAvailableNetworks(networks);
-    } catch (error) {
-      console.error('[KeyManagement] Failed to load keys:', error);
-      const message = error instanceof Error ? error.message : t('Unknown error');
-      Alert.alert(t('Error'), t('Failed to load encryption keys: {error}', { error: message }));
+  // Biometric Authentication
+  useEffect(() => {
+    if (visible && !authenticated) {
+      handleAuthentication();
     }
-  };
+  }, [visible, authenticated, handleAuthentication]);
+
+  // Reset authentication state when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setAuthenticated(false);
+      setLoading(true);
+    }
+  }, [visible]);
+
+  // Cleanup temporary auth credentials when screen closes
+  useEffect(() => {
+    return () => {
+      biometricAuthService.disableLock('keymanagement').catch(() => {
+        console.warn('[KeyManagement] Failed to cleanup auth lock');
+      });
+    };
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -215,7 +212,7 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
               await loadKeys();
               setShowKeyDetails(false);
               Alert.alert(t('Success'), t('Key deleted successfully'));
-            } catch (error) {
+            } catch {
               Alert.alert(t('Error'), t('Failed to delete key'));
             }
           },
@@ -237,7 +234,7 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
       setShowCopyDialog(false);
       setShowKeyDetails(false);
       Alert.alert(t('Success'), t('Key copied to {network}', { network: toNetwork }));
-    } catch (error) {
+    } catch {
       Alert.alert(t('Error'), t('Failed to copy key'));
     }
   };
@@ -269,7 +266,7 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
               setShowMoveDialog(false);
               setShowKeyDetails(false);
               Alert.alert(t('Success'), t('Key moved to {network}', { network: toNetwork }));
-            } catch (error) {
+            } catch {
               Alert.alert(t('Error'), t('Failed to move key'));
             }
           },
@@ -290,7 +287,7 @@ export const KeyManagementScreen: React.FC<KeyManagementScreenProps> = ({
       );
       await loadKeys();
       setSelectedKey({ ...selectedKey, verified: newVerified });
-    } catch (error) {
+    } catch {
       Alert.alert(t('Error'), t('Failed to update verification status'));
     }
   };

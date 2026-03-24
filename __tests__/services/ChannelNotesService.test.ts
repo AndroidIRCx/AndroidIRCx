@@ -78,8 +78,8 @@ describe('ChannelNotesService', () => {
     it('should persist notes to storage', async () => {
       await channelNotesService.setNote('freenode', '#general', 'Persistent note');
       
-      expect(mockStorage['channelNotes']).toBeDefined();
-      const stored = JSON.parse(mockStorage['channelNotes']);
+      expect(mockStorage.channelNotes).toBeDefined();
+      const stored = JSON.parse(mockStorage.channelNotes);
       expect(stored['freenode::#general']).toBe('Persistent note');
     });
   });
@@ -106,8 +106,8 @@ describe('ChannelNotesService', () => {
     it('should persist bookmarks to storage', async () => {
       await channelNotesService.setBookmarked('freenode', '#general', true);
       
-      expect(mockStorage['channelBookmarks']).toBeDefined();
-      const stored = JSON.parse(mockStorage['channelBookmarks']);
+      expect(mockStorage.channelBookmarks).toBeDefined();
+      const stored = JSON.parse(mockStorage.channelBookmarks);
       expect(stored).toContain('freenode::#general');
     });
 
@@ -155,8 +155,8 @@ describe('ChannelNotesService', () => {
       const entry: ChannelLogEntry = { timestamp: 1234567890, text: 'Log entry' };
       await channelNotesService.addLogEntry('freenode', '#general', entry);
       
-      expect(mockStorage['channelLogs']).toBeDefined();
-      const stored = JSON.parse(mockStorage['channelLogs']);
+      expect(mockStorage.channelLogs).toBeDefined();
+      const stored = JSON.parse(mockStorage.channelLogs);
       expect(stored['freenode::#general']).toHaveLength(1);
     });
 
@@ -197,7 +197,7 @@ describe('ChannelNotesService', () => {
       });
       await channelNotesService.clearLog('freenode', '#general');
       
-      const stored = JSON.parse(mockStorage['channelLogs']);
+      const stored = JSON.parse(mockStorage.channelLogs);
       expect(stored['freenode::#general']).toBeUndefined();
     });
   });
@@ -205,9 +205,9 @@ describe('ChannelNotesService', () => {
   describe('ensureLoaded', () => {
     it('should load data from storage on first access', async () => {
       // Pre-populate storage
-      mockStorage['channelNotes'] = JSON.stringify({ 'freenode::#general': 'Loaded note' });
-      mockStorage['channelBookmarks'] = JSON.stringify(['freenode::#general']);
-      mockStorage['channelLogs'] = JSON.stringify({
+      mockStorage.channelNotes = JSON.stringify({ 'freenode::#general': 'Loaded note' });
+      mockStorage.channelBookmarks = JSON.stringify(['freenode::#general']);
+      mockStorage.channelLogs = JSON.stringify({
         'freenode::#general': [{ timestamp: 1234567890, text: 'Loaded log' }],
       });
       

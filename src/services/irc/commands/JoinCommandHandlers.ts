@@ -31,7 +31,7 @@ export const handleJOIN: CommandHandler = (ctx, prefix, params, timestamp) => {
   }
 
   if (channel && nick) {
-    const usersMap = ctx.ensureChannelUsersMap(channel);
+    ctx.ensureChannelUsersMap(channel);
     const existingUser = ctx.getUser(channel, nick);
     if (existingUser) {
       if (account) existingUser.account = account;

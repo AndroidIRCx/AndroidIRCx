@@ -5,7 +5,6 @@
  * Tests for IRCFormatter - 100% coverage target
  */
 
-import React from 'react';
 import { Text } from 'react-native';
 import {
   IRC_STANDARD_COLOR_MAP,

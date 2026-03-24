@@ -10,6 +10,10 @@ export const createStyles = (colors: any) => StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  fallbackContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   contentArea: {
     flex: 1,
     flexDirection: 'column',

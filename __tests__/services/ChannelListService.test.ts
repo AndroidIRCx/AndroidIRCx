@@ -163,7 +163,7 @@ describe('ChannelListService', () => {
     });
 
     it('should load cached list from storage', async () => {
-      mockStorage['CHANNEL_LIST_CACHE'] = JSON.stringify({
+      mockStorage.CHANNEL_LIST_CACHE = JSON.stringify({
         freenode: [{ name: '#general', userCount: 50, topic: 'Cached' }],
       });
 

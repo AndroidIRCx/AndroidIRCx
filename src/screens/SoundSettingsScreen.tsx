@@ -43,6 +43,7 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const footerSpacerStyle = { height: 40 };
 
   const {
     settings,
@@ -108,8 +109,9 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
         copyTo: 'documentDirectory',
       });
 
-      const fileUri = result?.fileCopyUri ?? result?.uri;
-      const shouldCleanupCopy = Boolean(result?.fileCopyUri);
+      const pickedResult = result as typeof result & { fileCopyUri?: string };
+      const fileUri = pickedResult?.fileCopyUri ?? pickedResult?.uri;
+      const shouldCleanupCopy = Boolean(pickedResult?.fileCopyUri);
 
       if (fileUri) {
         // Preview the sound first
@@ -119,7 +121,7 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
         const handleDismiss = () => {
           stopSound();
           if (shouldCleanupCopy) {
-            void cleanupPickedCopy(result?.fileCopyUri);
+            cleanupPickedCopy(pickedResult?.fileCopyUri).catch(() => null);
           }
         };
 
@@ -138,7 +140,7 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
                 await stopSound();
                 await setCustomSound(eventType, normalizeFileUri(fileUri));
                 if (shouldCleanupCopy) {
-                  await cleanupPickedCopy(result?.fileCopyUri);
+                  await cleanupPickedCopy(pickedResult?.fileCopyUri);
                 }
               },
             },
@@ -466,7 +468,7 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
           )}
 
           {/* Footer spacing */}
-          <View style={{ height: 40 }} />
+          <View style={footerSpacerStyle} />
         </ScrollView>
       </View>
     </Modal>

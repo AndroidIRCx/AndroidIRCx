@@ -8,9 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Optional dependency: react-native-keychain. Code guards in case it's missing.
 let Keychain: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   Keychain = require('react-native-keychain');
-} catch (e) {
+} catch {
   // Optional; fallback to AsyncStorage with warning.
 }
 
@@ -108,7 +107,7 @@ class SecureStorageService {
         await Keychain.resetInternetCredentials(key);
         // Remove from index
         await this.removeFromIndex(key);
-      } catch (e) {
+      } catch {
         // ignore
       }
     }

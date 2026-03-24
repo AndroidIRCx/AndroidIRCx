@@ -83,7 +83,7 @@ const removeFromList = async (
   
   // Try to find and remove the entry
   const entries = userMgmt.getUserListEntries(listType, network);
-  const matchingEntry = entries.find(e => 
+  const matchingEntry = entries.find((e: { mask: string }) => 
     e.mask.toLowerCase() === mask.toLowerCase() || 
     e.mask.toLowerCase().startsWith(nick.toLowerCase() + '!')
   );

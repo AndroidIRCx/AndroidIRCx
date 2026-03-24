@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import TcpSocket, { TLSSocket } from 'react-native-tcp-socket';
-import { encryptedDMService } from './EncryptedDMService';
-import { channelEncryptionService } from './ChannelEncryptionService';
+import TcpSocket from 'react-native-tcp-socket';
+import type TLSSocket from 'react-native-tcp-socket/lib/types/TLSSocket';
 import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, DEFAULT_CTCP_VERSION_MESSAGE, ProxyConfig } from './SettingsService';
 import { ircForegroundService } from './IRCForegroundService';
 import { userManagementService, BlacklistEntry } from './UserManagementService';
@@ -13,20 +12,20 @@ import { notifyService } from './NotifyService';
 import { protectionService } from './ProtectionService';
 import { useTabStore } from '../stores/tabStore';
 import { tx } from '../i18n/transifex';
-import { APP_VERSION } from '../config/appVersion';
-import { decodeIfBase64Like } from '../utils/Base64Utils';
 import { IRCNumericHandlers } from './irc/IRCNumericHandlers';
 import { IRCCommandHandlers } from './irc/IRCCommandHandlers';
 import { CAPHandlers } from './irc/cap/CAPHandlers';
 import { IRCSendMessageHandlers } from './irc/IRCSendMessageHandlers';
-import { parseCTCP, encodeCTCP, handleCTCPRequest as handleCTCPRequestFn, CTCPContext } from './irc/protocol/CTCPHandlers';
+import { parseCTCP, encodeCTCP, handleCTCPRequest as handleCTCPRequestFn } from './irc/protocol/CTCPHandlers';
 import { settingsService } from './SettingsService';
 import { BatchLabelManager } from './irc/protocol/BatchLabelHandlers';
 import { MultilineHandler } from './irc/protocol/MultilineHandler';
 import { stsService } from './STSService';
+import { ScramAuthService } from './irc/ScramAuth';
 
+/* eslint-disable no-bitwise, no-control-regex, no-useless-escape, no-return-assign -- IRC protocol parsing and framing intentionally use low-level bitwise and regex patterns. */
 // Re-export ChannelTab from types for backward compatibility
-export { ChannelTab } from '../types';
+export type { ChannelTab } from '../types';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -814,7 +813,7 @@ export class IRCService {
               await this.establishProxyTunnel(proxy, config);
               if (config.tls) {
                 this.logRaw('IRCService: Upgrading proxy connection to TLS...');
-                this.socket = new TLSSocket(this.socket, tlsOptions);
+                this.socket = new TcpSocket.TLSSocket(this.socket, tlsOptions) as TLSSocket;
                 // Wait for TLS handshake to complete before attaching IRC listeners
                 const handleTLSError = (err: any) => {
                   const msg = err?.message || String(err);
@@ -1439,7 +1438,7 @@ export class IRCService {
     }
   }
 
-  private handleKillDisconnect(reason: string): void {
+  private handleKillDisconnect(_reason: string): void {
     const currentNick = this.getCurrentNick();
     this.logRaw(`IRCService: KILL received for ${currentNick}, disconnecting and triggering auto-reconnect`);
     this.isConnected = false;
@@ -1562,7 +1561,7 @@ export class IRCService {
           : activeTab.type === 'query' && activeTab.name.toLowerCase() === fromNick.toLowerCase())
       : false;
     const isQueryOpen = tabs.some(
-      t => t.networkId === networkId && t.type === 'query' && t.name.toLowerCase() === fromNick.toLowerCase(),
+      tab => tab.networkId === networkId && tab.type === 'query' && tab.name.toLowerCase() === fromNick.toLowerCase(),
     );
     return { isActiveTab: tabMatchesTarget, isQueryOpen };
   }
@@ -1700,13 +1699,6 @@ export class IRCService {
 
     const topicInfo = this.channelTopics.get(channel);
     if (!topicInfo || !topicInfo.topic) return; // Wait until we have the topic to show intro
-
-    const { total } = this.getChannelUserCounts(channel);
-    const setBy = topicInfo.setBy || t('unknown');
-    const setAtDisplay = topicInfo.setAt
-      ? new Date((topicInfo.setAt || 0) * 1000).toString()
-      : t('unknown');
-    const modesDisplay = topicInfo.modes || t('unknown');
 
     const lines = [
       t('Topic: {topic}', { topic: topicInfo.topic }),

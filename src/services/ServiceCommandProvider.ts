@@ -10,15 +10,11 @@ import {
   ServiceCommand,
   ServiceConfig,
   ServiceDefinition,
-  CommandParameter,
   AccessLevel,
   CompletionContext,
-  IRCServiceType,
-  IRCdType,
-  DetectionResult,
 } from '../interfaces/ServiceTypes';
 import { serviceDetectionService } from './ServiceDetectionService';
-import { allConfigs, getConfig } from '../config/services';
+import { getConfig } from '../config/services';
 
 /** Command search result */
 export interface CommandSearchResult {

@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
-  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '../hooks/useTheme';

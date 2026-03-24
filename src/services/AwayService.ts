@@ -138,7 +138,7 @@ class AwayService {
     });
   }
 
-  private async scheduleAutoAway(networkId: string, ircService: IRCService): Promise<void> {
+  private async scheduleAutoAway(networkId: string, _ircService: IRCService): Promise<void> {
     const state = this.ensureState(networkId);
     if (state.autoAwayTimer) {
       clearTimeout(state.autoAwayTimer);

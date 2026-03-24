@@ -13,6 +13,15 @@ import { awayService } from '../../../services/AwayService';
 import { formatIRCTextAsComponent, stripIRCFormatting } from '../../../utils/IRCFormatter';
 import { ColorPickerModal } from '../../ColorPickerModal';
 
+const uiStyles = StyleSheet.create({
+  scrollMaxHeight260: {
+    maxHeight: 260,
+  },
+  fullFlex: {
+    flex: 1,
+  },
+});
+
 interface AwaySectionProps {
   colors: {
     text: string;
@@ -420,7 +429,7 @@ export const AwaySection: React.FC<AwaySectionProps> = ({
     awayPresets.length,
     awaySelectedPreset,
     awayDefaultReason,
-    autoAwayReason,
+    onClose,
     t,
     tags,
   ]);
@@ -666,13 +675,13 @@ export const AwaySection: React.FC<AwaySectionProps> = ({
                 </Text>
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ maxHeight: 260 }}>
+            <ScrollView style={uiStyles.scrollMaxHeight260}>
               {awayPresets.map((preset, idx) => (
                 <View
                   key={`${preset}-${idx}`}
                   style={stylesLocal.presetItem}>
                   <View style={stylesLocal.presetRow}>
-                    <View style={{ flex: 1 }}>
+                      <View style={uiStyles.fullFlex}>
                       {renderPresetPreview(preset)}
                       {stripIRCFormatting(preset) !== preset && (
                         <Text style={stylesLocal.presetTextMuted}>
@@ -805,13 +814,13 @@ export const AwaySection: React.FC<AwaySectionProps> = ({
                 </Text>
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ maxHeight: 260 }}>
+            <ScrollView style={uiStyles.scrollMaxHeight260}>
               {awayAutoAnswerMessages.map((preset, idx) => (
                 <View
                   key={`${preset}-${idx}`}
                   style={stylesLocal.presetItem}>
                   <View style={stylesLocal.presetRow}>
-                    <View style={{ flex: 1 }}>
+                      <View style={uiStyles.fullFlex}>
                       <Text style={stylesLocal.presetText}>{preset}</Text>
                     </View>
                     <TouchableOpacity

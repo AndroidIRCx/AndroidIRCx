@@ -9,11 +9,8 @@
 import type {
   ServiceConfig,
   ServiceCommand,
-  CommandParameter,
   ConfigValidationResult,
   ValidationResult,
-  IRCServiceType,
-  IRCdType,
 } from '../interfaces/ServiceTypes';
 import {
   isIRCServiceType,

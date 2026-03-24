@@ -410,7 +410,6 @@ export class ConnectionQualityService {
    * Get current statistics
    */
   getStatistics(): ConnectionStatistics {
-    const uptime = Date.now() - this.statistics.connectionStartTime;
     return {
       ...this.statistics,
       connectionStartTime: this.statistics.connectionStartTime,

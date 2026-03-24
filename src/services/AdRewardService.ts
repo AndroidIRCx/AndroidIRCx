@@ -7,7 +7,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AdEventType, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
 import { logger } from './Logger';
 import { consentService } from './ConsentService';
-import { bannerAdService } from './BannerAdService';
 import { inAppPurchaseService } from './InAppPurchaseService';
 
 import { APP_VERSION } from '../config/appVersion';
@@ -176,15 +175,15 @@ class AdRewardService {
           this.loadTimeoutId = null;
         }
 
-        const adType = this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
+        const adPlacement = this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
         this.adLoaded = true;
         this.adLoading = false;
         this.retryCount = 0; // Reset retry count on success
         this.consecutiveFailures = 0; // Reset failure count on success
         this.adsDisabled = false; // Re-enable ads on success
         const timeTaken = Date.now() - this.loadAttemptTime;
-        logger.info('ad-reward', `✅ Rewarded ad loaded successfully in ${timeTaken}ms (${adType})`);
-        console.log(`✅ AD LOADED! (${adType} ad unit) Ready to show. Time taken: ${timeTaken}ms`);
+        logger.info('ad-reward', `✅ Rewarded ad loaded successfully in ${timeTaken}ms (${adPlacement})`);
+        console.log(`✅ AD LOADED! (${adPlacement} ad unit) Ready to show. Time taken: ${timeTaken}ms`);
         this.notifyListeners();
       });
       this.adEventUnsubscribers.push(onLoadedUnsubscribe);
@@ -221,7 +220,7 @@ class AdRewardService {
           this.loadTimeoutId = null;
         }
 
-        const adType = this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
+        const adPlacement = this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
         this.adLoading = false;
         this.adLoaded = false;
         const code = (error as any)?.code ?? 'unknown';
@@ -230,8 +229,8 @@ class AdRewardService {
         // Store error for handleLoadError to check
         this.lastError = { code, message };
         
-        logger.error('ad-reward', `Rewarded ad error (${adType}): ${code} - ${message}`);
-        console.error(`Rewarded ad error (${adType}): ${code} - ${message}`);
+        logger.error('ad-reward', `Rewarded ad error (${adPlacement}): ${code} - ${message}`);
+        console.error(`Rewarded ad error (${adPlacement}): ${code} - ${message}`);
         this.handleLoadError();
       });
       this.adEventUnsubscribers.push(onErrorUnsubscribe);

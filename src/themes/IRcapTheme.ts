@@ -4,7 +4,7 @@
  */
 
 import { tx } from '../i18n/transifex';
-import { Theme, ThemeColors, ThemeMessageFormats } from '../services/ThemeService';
+import { Theme } from '../services/ThemeService';
 
 const t = (key: string) => tx.t(key);
 

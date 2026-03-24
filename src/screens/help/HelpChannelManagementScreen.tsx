@@ -12,8 +12,6 @@ import {
   HelpParagraph,
   HelpBullet,
   HelpCode,
-  HelpInfoBox,
-  HelpWarningBox,
 } from './HelpScreenBase';
 import { useT } from '../../i18n/transifex';
 

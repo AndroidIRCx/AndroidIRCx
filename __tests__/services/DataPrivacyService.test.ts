@@ -44,6 +44,9 @@ describe('DataPrivacyService', () => {
         multiRemove: jest.fn(async (keys: string[]) => {
           keys.forEach((k) => mockStorage.delete(k));
         }),
+        removeMany: jest.fn(async (keys: string[]) => {
+          keys.forEach((k) => mockStorage.delete(k));
+        }),
       },
     }));
 

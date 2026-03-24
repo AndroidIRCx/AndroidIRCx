@@ -21,23 +21,9 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { NumericHandlerContext, NumericHandler } from '../types';
+import type { NumericHandler } from '../types';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
-
-/** Helper to create simple trace handlers */
-const createTraceHandler = (label: string): NumericHandler => {
-  return (ctx, prefix, params, timestamp) => {
-    const info = params.slice(1).join(' ').replace(/^:/, '') || '';
-    ctx.addMessage({
-      type: 'raw',
-      text: t(`*** Trace: ${label} - {info}`, { info }),
-      timestamp,
-      isRaw: true,
-      rawCategory: 'server',
-    });
-  };
-};
 
 /** 200 RPL_TRACELINK */
 export const handle200: NumericHandler = (ctx, prefix, params, timestamp) => {

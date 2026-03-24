@@ -8,7 +8,6 @@ import RNFS from 'react-native-fs';
 import { Alert, BackHandler, Platform } from 'react-native';
 import { connectionManager } from './ConnectionManager';
 import { secureStorageService } from './SecureStorageService';
-import { dataPrivacyService } from './DataPrivacyService';
 import { settingsService, DEFAULT_PART_MESSAGE } from './SettingsService';
 import { useTabStore } from '../stores/tabStore';
 import { logger } from './Logger';
@@ -82,7 +81,7 @@ class KillSwitchService {
           const conn = connectionManager.getConnection(networkId);
           const ircService = conn?.ircService;
           
-          if (ircService && ircService.isConnected) {
+          if (ircService && ircService.getConnectionStatus()) {
             for (const tab of networkTabs) {
               try {
                 if (tab.type === 'channel') {
@@ -90,8 +89,8 @@ class KillSwitchService {
                   logger.warn('killswitch', `Parted from channel: ${tab.name} on ${networkId}`);
                 }
                 // Queries don't need parting, they're just closed
-              } catch (e) {
-                logger.error('killswitch', `Failed to part from ${tab.name}: ${String(e)}`);
+              } catch (error) {
+                logger.error('killswitch', `Failed to part from ${tab.name}: ${String(error)}`);
               }
             }
           }
@@ -128,7 +127,7 @@ class KillSwitchService {
         for (const key of secretKeys) {
           try {
             await secureStorageService.removeSecret(key);
-          } catch (e) {
+          } catch {
             // Continue even if individual key fails
           }
         }
@@ -151,12 +150,12 @@ class KillSwitchService {
         logger.warn('killswitch', `Found ${keys.length} storage keys to delete`);
         
         // Delete EVERYTHING - no exceptions
-        await AsyncStorage.multiRemove(keys);
+        await AsyncStorage.removeMany(keys);
         
         // Also try to clear everything as a fallback
         try {
           await AsyncStorage.clear();
-        } catch (e) {
+        } catch {
           // Some platforms might not support clear()
         }
         
@@ -186,13 +185,13 @@ class KillSwitchService {
                 } else if (file.isDirectory()) {
                   await RNFS.unlink(file.path); // Recursive delete
                 }
-              } catch (e) {
+              } catch {
                 // Continue even if individual file fails
               }
             }
           }
-        } catch (e) {
-          logger.error('killswitch', `Cache deletion error: ${String(e)}`);
+        } catch (error) {
+          logger.error('killswitch', `Cache deletion error: ${String(error)}`);
         }
 
         // Delete document directory (logs, certs, backups, etc.)
@@ -213,13 +212,13 @@ class KillSwitchService {
                     file.name.includes('backup')) {
                   await RNFS.unlink(file.path);
                 }
-              } catch (e) {
+              } catch {
                 // Continue even if individual file fails
               }
             }
           }
-        } catch (e) {
-          logger.error('killswitch', `Document directory deletion error: ${String(e)}`);
+        } catch (error) {
+          logger.error('killswitch', `Document directory deletion error: ${String(error)}`);
         }
 
         // Delete temporary directory
@@ -231,13 +230,13 @@ class KillSwitchService {
             for (const file of tempFiles) {
               try {
                 await RNFS.unlink(file.path);
-              } catch (e) {
+              } catch {
                 // Continue even if individual file fails
               }
             }
           }
-        } catch (e) {
-          logger.error('killswitch', `Temp directory deletion error: ${String(e)}`);
+        } catch (error) {
+          logger.error('killswitch', `Temp directory deletion error: ${String(error)}`);
         }
 
         result.deletedItems.fileSystem = true;

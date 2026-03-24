@@ -93,7 +93,7 @@ describe('HighlightingSection', () => {
   });
 
   it.skip('should add highlight word when input is submitted', async () => {
-    const { getByPlaceholderText, getByText } = render(
+    const { getByPlaceholderText } = render(
       <HighlightingSection
         colors={mockColors}
         styles={mockStyles}

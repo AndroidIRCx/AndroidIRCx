@@ -4,11 +4,10 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getApp } from '@react-native-firebase/app';
 import { getCrashlytics, setCrashlyticsCollectionEnabled } from '@react-native-firebase/crashlytics';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { settingsService } from './SettingsService';
 import { messageHistoryService } from './MessageHistoryService';
 import { identityProfilesService } from './IdentityProfilesService';
@@ -212,7 +211,7 @@ class DataPrivacyService {
         );
 
         logger.info('privacy', `Deleting ${keysToDelete.length} keys (keeping ${keys.length - keysToDelete.length} essential keys)`);
-        await AsyncStorage.multiRemove(keysToDelete);
+        await AsyncStorage.removeMany(keysToDelete);
         result.deletedItems.settings = true;
         logger.info('privacy', '✓ AsyncStorage cleared successfully');
       } catch (error) {
@@ -287,8 +286,7 @@ class DataPrivacyService {
    */
   async setCrashlyticsOptOut(optOut: boolean): Promise<void> {
     try {
-      const app = getApp();
-      const crashlyticsInstance = getCrashlytics(app);
+      const crashlyticsInstance = getCrashlytics();
       await setCrashlyticsCollectionEnabled(crashlyticsInstance, !optOut);
       await AsyncStorage.setItem('@AndroidIRCX:crashlytics_opt_out', String(optOut));
       logger.info('privacy', `Crashlytics collection ${optOut ? 'disabled' : 'enabled'}`);
@@ -305,9 +303,9 @@ class DataPrivacyService {
     try {
       const value = await AsyncStorage.getItem('@AndroidIRCX:crashlytics_opt_out');
       return value === 'true';
-    } catch (error) {
-      return false;
-    }
+      } catch {
+        return false;
+      }
   }
 
   /**
@@ -331,7 +329,7 @@ class DataPrivacyService {
       try {
         // This is an approximation - would need to count all messages
         messagesCount = 0; // messageHistoryService doesn't expose count method
-      } catch (error) {
+      } catch {
         messagesCount = 0;
       }
 
@@ -347,7 +345,7 @@ class DataPrivacyService {
           }
         }
         storageSize = `${(totalSize / 1024).toFixed(2)} KB`;
-      } catch (error) {
+      } catch {
         storageSize = 'Unknown';
       }
 
@@ -420,13 +418,16 @@ class DataPrivacyService {
         // Get messages for each channel
         for (const channel of channels) {
           try {
-            const messages = await messageHistoryService.getMessages(network.id, channel, 1000);
+            const messages = await messageHistoryService.searchMessages({
+              network: network.id,
+              channel,
+            });
             allMessages.push({
               network: network.id,
               channel,
               messages,
             });
-          } catch (error) {
+          } catch {
             // Skip channels that don't have messages
           }
         }

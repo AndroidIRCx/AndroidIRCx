@@ -6,7 +6,6 @@
  */
 
 import { serviceDetectionService, ServiceDetectionService } from '../../src/services/ServiceDetectionService';
-import { IRCServiceType, IRCdType } from '../../src/interfaces/ServiceTypes';
 
 describe('ServiceDetectionService', () => {
   let localService: ServiceDetectionService;

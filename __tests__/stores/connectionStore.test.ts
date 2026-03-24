@@ -5,7 +5,7 @@
  * Tests for connectionStore - 100% coverage target
  */
 
-import { useConnectionStore, ConnectionState } from '../../src/stores/connectionStore';
+import { useConnectionStore } from '../../src/stores/connectionStore';
 
 // Mock Zustand persist middleware
 jest.mock('zustand/middleware', () => ({

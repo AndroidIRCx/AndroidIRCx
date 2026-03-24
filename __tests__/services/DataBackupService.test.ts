@@ -70,9 +70,9 @@ const mockSodium = {
   crypto_secretbox_NONCEBYTES: 24,
   crypto_secretbox_easy: jest.fn(() => new Uint8Array([1, 2, 3])),
   crypto_secretbox_open_easy: jest.fn(() => new Uint8Array([1, 2, 3])),
-  from_string: jest.fn((s: string) => new TextEncoder().encode(s)),
+  from_string: jest.fn((_s: string) => new TextEncoder().encode(_s)),
   to_string: jest.fn((a: Uint8Array) => new TextDecoder().decode(a)),
-  from_base64: jest.fn((s: string) => new Uint8Array([1, 2, 3])),
+  from_base64: jest.fn((_s: string) => new Uint8Array([1, 2, 3])),
   to_base64: jest.fn(() => 'base64encoded'),
   crypto_pwhash_OPSLIMIT_INTERACTIVE: 2,
   crypto_pwhash_MEMLIMIT_INTERACTIVE: 65536,
@@ -90,8 +90,8 @@ describe('DataBackupService', () => {
 
   describe('Export All', () => {
     it('should export all data', async () => {
-      mockStorage['key1'] = 'value1';
-      mockStorage['key2'] = 'value2';
+      mockStorage.key1 = 'value1';
+      mockStorage.key2 = 'value2';
       mockSecureStorage['net1:server:s1'] = 'server-pass';
 
       const backup = await dataBackupService.exportAll();
@@ -112,7 +112,7 @@ describe('DataBackupService', () => {
     });
 
     it('should include null values', async () => {
-      mockStorage['key1'] = null as any;
+      mockStorage.key1 = null as any;
 
       const backup = await dataBackupService.exportAll();
       const parsed = JSON.parse(backup);
@@ -121,7 +121,7 @@ describe('DataBackupService', () => {
     });
 
     it('should omit secureData when no secure entries exist', async () => {
-      mockStorage['key1'] = 'value1';
+      mockStorage.key1 = 'value1';
 
       const backup = await dataBackupService.exportAll();
       const parsed = JSON.parse(backup);
@@ -134,7 +134,7 @@ describe('DataBackupService', () => {
     it('should exclude message history keys', async () => {
       mockStorage['MESSAGES_freenode_#general'] = 'messages';
       mockStorage['@AndroidIRCX:history:freenode:#general'] = 'history';
-      mockStorage['settings'] = 'settings';
+      mockStorage.settings = 'settings';
 
       const backup = await dataBackupService.exportSettings();
       const parsed = JSON.parse(backup);
@@ -145,9 +145,9 @@ describe('DataBackupService', () => {
     });
 
     it('should exclude channel logs', async () => {
-      mockStorage['channelLogs'] = 'logs';
+      mockStorage.channelLogs = 'logs';
       mockStorage['channelLogs:network'] = 'logs';
-      mockStorage['settings'] = 'settings';
+      mockStorage.settings = 'settings';
 
       const backup = await dataBackupService.exportSettings();
       const parsed = JSON.parse(backup);
@@ -158,8 +158,8 @@ describe('DataBackupService', () => {
     });
 
     it('should include keys with "log" but not "login"', async () => {
-      mockStorage['loginTime'] = 'time';
-      mockStorage['applog'] = 'logs';
+      mockStorage.loginTime = 'time';
+      mockStorage.applog = 'logs';
 
       const backup = await dataBackupService.exportSettings();
       const parsed = JSON.parse(backup);
@@ -169,7 +169,7 @@ describe('DataBackupService', () => {
     });
 
     it('should include secure entries in settings export', async () => {
-      mockStorage['settings'] = 'settings';
+      mockStorage.settings = 'settings';
       mockSecureStorage['net1:saslPassword'] = 'sasl-pass';
 
       const backup = await dataBackupService.exportSettings();
@@ -191,8 +191,8 @@ describe('DataBackupService', () => {
 
       await dataBackupService.importAll(backup);
 
-      expect(mockStorage['key1']).toBe('value1');
-      expect(mockStorage['key2']).toBe('value2');
+      expect(mockStorage.key1).toBe('value1');
+      expect(mockStorage.key2).toBe('value2');
       expect(mockSecureStorage['net1:server:s1']).toBe('server-pass');
     });
 
@@ -242,7 +242,7 @@ describe('DataBackupService', () => {
     });
 
     it('should remove async keys when payload value is null', async () => {
-      mockStorage['toRemove'] = 'old';
+      mockStorage.toRemove = 'old';
       const backup = JSON.stringify({
         version: 1,
         data: { toRemove: null },
@@ -250,7 +250,7 @@ describe('DataBackupService', () => {
 
       await dataBackupService.importAll(backup);
 
-      expect(mockStorage['toRemove']).toBeUndefined();
+      expect(mockStorage.toRemove).toBeUndefined();
     });
 
     it('should remove secure keys when secureData value is null', async () => {
@@ -275,15 +275,15 @@ describe('DataBackupService', () => {
 
       await dataBackupService.importAll(backup);
 
-      expect(mockStorage['key1']).toBe('value1');
+      expect(mockStorage.key1).toBe('value1');
       expect(mockSecureStorage['not-secure-prefix']).toBeUndefined();
     });
   });
 
   describe('Storage Stats', () => {
     it('should return storage stats', async () => {
-      mockStorage['key1'] = 'value1';
-      mockStorage['key2'] = 'value2';
+      mockStorage.key1 = 'value1';
+      mockStorage.key2 = 'value2';
       mockSecureStorage['net1:server:s1'] = 'abcd';
 
       const stats = await dataBackupService.getStorageStats();
@@ -293,7 +293,7 @@ describe('DataBackupService', () => {
     });
 
     it('should handle null values', async () => {
-      mockStorage['key1'] = null as any;
+      mockStorage.key1 = null as any;
       mockSecureStorage['net1:server:s1'] = null as any;
 
       const stats = await dataBackupService.getStorageStats();
@@ -305,8 +305,8 @@ describe('DataBackupService', () => {
 
   describe('Get All Keys', () => {
     it('should return all keys', async () => {
-      mockStorage['key1'] = 'value1';
-      mockStorage['key2'] = 'value2';
+      mockStorage.key1 = 'value1';
+      mockStorage.key2 = 'value2';
       mockSecureStorage['net1:saslPassword'] = 'secret';
 
       const keys = await dataBackupService.getAllKeys();
@@ -367,9 +367,9 @@ describe('DataBackupService', () => {
 
   describe('Export Keys', () => {
     it('should export specific keys', async () => {
-      mockStorage['key1'] = 'value1';
-      mockStorage['key2'] = 'value2';
-      mockStorage['key3'] = 'value3';
+      mockStorage.key1 = 'value1';
+      mockStorage.key2 = 'value2';
+      mockStorage.key3 = 'value3';
 
       const backup = await dataBackupService.exportKeys(['key1', 'key2']);
       const parsed = JSON.parse(backup);
@@ -380,7 +380,7 @@ describe('DataBackupService', () => {
     });
 
     it('should include null values for missing keys', async () => {
-      mockStorage['key1'] = 'value1';
+      mockStorage.key1 = 'value1';
 
       const backup = await dataBackupService.exportKeys(['key1', 'missing']);
       const parsed = JSON.parse(backup);

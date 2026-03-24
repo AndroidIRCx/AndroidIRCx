@@ -71,7 +71,6 @@ interface UseConnectionLifecycleParams {
   messageBatchTimeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   pendingMessagesRef: React.MutableRefObject<Array<{message: IRCMessage, context: any}>>;
   motdCompleteRef: React.MutableRefObject<Set<string>>;
-  isMountedRef: React.MutableRefObject<boolean>;
   handleServerConnect?: (serverArgs: any, activeIRCService: any) => Promise<void>;
 }
 
@@ -101,7 +100,6 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
     messageBatchTimeoutRef,
     pendingMessagesRef,
     motdCompleteRef,
-    isMountedRef,
     handleServerConnect,
   } = params;
 
@@ -236,10 +234,10 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         managed: false,
       }];
 
-    debugLogger.debug('connectionLifecycle', 'Setting up listeners for targets', listenerTargets.map(t => t.id));
+    debugLogger.debug('connectionLifecycle', 'Setting up listeners for targets', listenerTargets.map(listenerTarget => listenerTarget.id));
 
     // Sync initial connection state in case connect events happened before listeners attached
-    const anyConnected = listenerTargets.some(t => t.ircService.getConnectionStatus());
+    const anyConnected = listenerTargets.some(listenerTarget => listenerTarget.ircService.getConnectionStatus());
     latestRef.current.setIsConnected(anyConnected);
     const currentConnectionId = connectionManager.getActiveNetworkId();
     if (currentConnectionId) {
@@ -443,7 +441,8 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
                   targetTabType = 'channel';
                 }
               }
-              // If noticeTargetPref is 'server' or no valid routing found, stay on default server tab (will be created)
+              // If noticeTargetPref is 'server' or no valid routing found, keep server target.
+              // Message batching will now avoid recreating a missing server tab.
             }
           }
         } else if (message.type === 'notice') {
@@ -604,41 +603,45 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
           ? connections.some(c => c.ircService.getConnectionStatus())
           : connected;
         latest.safeSetState(() => latest.setIsConnected(anyConn));
-        const currentConnectionId = connectionManager.getActiveNetworkId();
-        latest.safeSetState(() => latest.setActiveConnectionId(currentConnectionId));
+        const activeConnectionId = connectionManager.getActiveNetworkId();
+        latest.safeSetState(() => latest.setActiveConnectionId(activeConnectionId));
         if (connected) {
           offlineQueueService.processQueue();
           // Keep using the logical network id for UI/tab grouping
-          if (currentConnectionId) {
-            latest.safeSetState(() => latest.setNetworkName(currentConnectionId));
+          if (activeConnectionId) {
+            latest.safeSetState(() => latest.setNetworkName(activeConnectionId));
           }
-          if (currentConnectionId) {
-            const serverId = serverTabId(currentConnectionId);
+          if (activeConnectionId) {
+            const serverId = serverTabId(activeConnectionId);
             // Load tabs from storage if they don't exist (e.g., after reconnect)
-            const existingTabs = latest.tabsRef.current.filter(t => t.networkId === currentConnectionId);
+            const existingTabs = latest.tabsRef.current.filter(tabItem => tabItem.networkId === activeConnectionId);
             if (existingTabs.length === 0) {
               // No tabs for this network, load from storage
+              if (!currentConnectionId) {
+                return;
+              }
+              const currentNetworkId = currentConnectionId;
               (async () => {
                 try {
-                  const loadedTabs = await tabService.getTabs(currentConnectionId);
+                  const loadedTabs = await tabService.getTabs(activeConnectionId);
                   const normalizedTabs = loadedTabs
                     .filter(tab => tab.networkId !== 'Not connected' && tab.name !== 'Not connected')
                     .map(tab => ({
                       ...tab,
-                      networkId: tab.networkId || currentConnectionId,
-                      id: tab.id.includes('::') ? tab.id : (tab.type === 'server' ? serverTabId(currentConnectionId) : tab.id),
+                      networkId: tab.networkId || activeConnectionId,
+                      id: tab.id.includes('::') ? tab.id : (tab.type === 'server' ? serverTabId(activeConnectionId) : tab.id),
                     }));
                   const withServerTab = normalizedTabs.some(t => t.type === 'server') 
                     ? normalizedTabs 
-                    : [makeServerTab(currentConnectionId), ...normalizedTabs];
+                    : [makeServerTab(currentNetworkId), ...normalizedTabs];
                   
                   // Load server tab history
-                  const initialServerTabId = serverTabId(currentConnectionId);
+                  const initialServerTabId = serverTabId(currentNetworkId);
                   let serverTabHistory: IRCMessage[] = [];
                   const serverTab = withServerTab.find(t => t.id === initialServerTabId);
                   if (serverTab) {
                     try {
-                      serverTabHistory = await messageHistoryService.loadMessages(currentConnectionId, 'server');
+                      serverTabHistory = await messageHistoryService.loadMessages(currentNetworkId, 'server');
                     } catch (err) {
                       console.error('Error loading server tab history on reconnect:', err);
                     }
@@ -653,7 +656,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
                   
                   latest.safeSetState(() => {
                     latest.setTabs(prev => sortTabsGrouped([
-                      ...prev.filter(t => t.networkId !== currentConnectionId),
+                      ...prev.filter(t => t.networkId !== currentNetworkId),
                       ...tabsWithHistory,
                     ], latest.tabSortAlphabetical));
                     if (!latest.activeTabId || !latest.tabsRef.current.some(t => t.id === latest.activeTabId)) {
@@ -668,7 +671,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
                       const exists = prev.some(t => t.id === serverId);
                       const updated = exists
                         ? prev
-                        : sortTabsGrouped([...prev, makeServerTab(currentConnectionId)], latest.tabSortAlphabetical);
+                        : sortTabsGrouped([...prev, makeServerTab(currentNetworkId)], latest.tabSortAlphabetical);
                       return updated;
                     });
                     if (!latest.activeTabId || !latest.tabsRef.current.some(t => t.id === latest.activeTabId)) {
@@ -678,24 +681,29 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
                 }
               })();
             } else {
+              if (!currentConnectionId) {
+                return;
+              }
+              const currentNetworkId = currentConnectionId;
               // Tabs already exist (reconnect after disconnect/kill)
-              debugLogger.debug('connectionLifecycle', `Reconnected to ${currentConnectionId}, tabs already exist`);
+              debugLogger.debug('connectionLifecycle', `Reconnected to ${currentNetworkId}, tabs already exist`);
               latest.safeSetState(() => {
                 latest.setTabs(prev => {
                   const exists = prev.some(t => t.id === serverId);
                   const updated = exists
                     ? prev
-                    : sortTabsGrouped([...prev, makeServerTab(currentConnectionId)], latest.tabSortAlphabetical);
+                    : sortTabsGrouped([...prev, makeServerTab(currentNetworkId)], latest.tabSortAlphabetical);
                   return updated;
                 });
               });
               // Add reconnection message to server tab
               const reconnectMessage: IRCMessage = {
+                id: `reconnect-${Date.now()}`,
                 type: 'system',
-                text: latest.t('*** Reconnected to {network}').replace('{network}', currentConnectionId),
+                text: latest.t('*** Reconnected to {network}').replace('{network}', currentNetworkId),
                 timestamp: Date.now(),
                 channel: 'server',
-                network: currentConnectionId,
+                network: currentNetworkId,
               };
               latest.pendingMessagesRef.current.push({
                 message: reconnectMessage,
@@ -871,13 +879,13 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
       });
 
       // Listen for typing indicators
-      const unsubscribeTyping = activeIRCService.on('typing-indicator', (target: string, nick: string, status: 'active' | 'paused' | 'done') => {
+      const unsubscribeTyping = activeIRCService.on('typing-indicator', (targetName: string, nick: string, status: 'active' | 'paused' | 'done') => {
         const latest = latestRef.current;
         const currentNick = activeIRCService.getCurrentNick?.() || '';
         const resolvedTarget =
-          currentNick && target && target.toLowerCase() === currentNick.toLowerCase()
+          currentNick && targetName && targetName.toLowerCase() === currentNick.toLowerCase()
             ? nick
-            : target;
+            : targetName;
         latest.safeSetState(() => {
           // Use message store to update typing status
           latest.setTypingUser(targetNetworkId, resolvedTarget, nick, { status, timestamp: Date.now() });
@@ -889,12 +897,12 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         const latest = latestRef.current;
         const currentTabs = latest.tabsRef.current;
         // Find tab by target (channel name or nick)
-        const tabToClear = currentTabs.find(t => {
-          if (t.networkId === network) {
+        const tabToClear = currentTabs.find(tabItem => {
+          if (tabItem.networkId === network) {
             if (target.startsWith('#') || target.startsWith('&')) {
-              return t.type === 'channel' && t.name.toLowerCase() === target.toLowerCase();
+              return tabItem.type === 'channel' && tabItem.name.toLowerCase() === target.toLowerCase();
             } else {
-              return (t.type === 'query' || t.type === 'notice') && t.name.toLowerCase() === target.toLowerCase();
+              return (tabItem.type === 'query' || tabItem.type === 'notice') && tabItem.name.toLowerCase() === target.toLowerCase();
             }
           }
           return false;
@@ -916,12 +924,12 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         const latest = latestRef.current;
         const currentTabs = latest.tabsRef.current;
         // Find tab by target (channel name or nick)
-        const tabToClose = currentTabs.find(t => {
-          if (t.networkId === network) {
+        const tabToClose = currentTabs.find(tabItem => {
+          if (tabItem.networkId === network) {
             if (target.startsWith('#') || target.startsWith('&')) {
-              return t.type === 'channel' && t.name.toLowerCase() === target.toLowerCase();
+              return tabItem.type === 'channel' && tabItem.name.toLowerCase() === target.toLowerCase();
             } else {
-              return (t.type === 'query' || t.type === 'notice') && t.name.toLowerCase() === target.toLowerCase();
+              return (tabItem.type === 'query' || tabItem.type === 'notice') && tabItem.name.toLowerCase() === target.toLowerCase();
             }
           }
           return false;
@@ -935,13 +943,13 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
             // Remove tab
             useTabStore.getState().removeTab(tabToClose.id);
             // Save tabs
-            const remainingTabs = currentTabs.filter(t => t.id !== tabToClose.id);
-            tabService.saveTabs(network, remainingTabs.filter(t => t.networkId === network)).catch(err => {
+            const remainingTabs = currentTabs.filter(tabItem => tabItem.id !== tabToClose.id);
+            tabService.saveTabs(network, remainingTabs.filter(tabItem => tabItem.networkId === network)).catch(err => {
               console.error('Failed to save tabs after close:', err);
             });
             // Switch to another tab if this was active
             if (tabToClose.id === latest.activeTabId) {
-              const serverTab = remainingTabs.find(t => t.networkId === network && t.type === 'server');
+              const serverTab = remainingTabs.find(tabItem => tabItem.networkId === network && tabItem.type === 'server');
               const nextTab = serverTab || remainingTabs[0];
               if (nextTab) {
                 latest.setActiveTabId(nextTab.id);
@@ -1311,5 +1319,5 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
         latestRef.current.processBatchedMessages();
       }
     };
-  }, [isConnected, connectionCheckTimestamp]); // Re-setup listeners when connection state changes or new connections detected!
+  }, [isConnected, connectionCheckTimestamp, handleServerConnect]); // Re-setup listeners when connection state changes or new connections detected!
 };

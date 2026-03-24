@@ -90,7 +90,8 @@ export const useConnectionStore = create<ConnectionState>()(
           return persistedState;
         }
 
-        const { primaryNetworkId, ...rest } = persistedState;
+        const rest = { ...persistedState };
+        delete rest.primaryNetworkId;
         return rest;
       },
       // Only persist specific fields

@@ -159,7 +159,7 @@ class ChannelEncryptionService {
         this.fromB64(msg.nonce),
         key,
       );
-    } catch (error) {
+    } catch {
       plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
         null,
         this.fromB64(msg.cipher),

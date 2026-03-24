@@ -95,7 +95,7 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
       if (visibleRef.current) {
         setWhoisInfo(freshInfo);
       }
-    } catch (error) {
+    } catch {
       if (!visibleRef.current) return;
       // If request failed and we don't have cached data, try to get whatever is in cache
       if (!cachedInfo || !cachedInfo.realname) {

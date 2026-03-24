@@ -80,6 +80,12 @@ interface MessageAreaProps {
   onSearchVisibleChange?: (visible: boolean) => void;
 }
 
+type BlacklistTemplateKey = 'akill' | 'gline' | 'shun';
+type BlacklistTemplateMap = Partial<Record<BlacklistTemplateKey, string>>;
+type BlacklistTemplatesSetting = {
+  global?: BlacklistTemplateMap;
+} & Record<string, BlacklistTemplateMap | undefined>;
+
 interface MessageItemProps {
   message: IRCMessage;
   channelUsers?: ChannelUser[];
@@ -120,16 +126,20 @@ const applyMessageFormatStyle = (
   if (formatStyle.italic) {
     textStyle.fontStyle = 'italic';
   }
+  const decorationSet = new Set(
+    textStyle.textDecorationLine && textStyle.textDecorationLine !== 'none'
+      ? textStyle.textDecorationLine.split(' ')
+      : []
+  );
   if (formatStyle.underline) {
-    textStyle.textDecorationLine = textStyle.textDecorationLine
-      ? `${textStyle.textDecorationLine} underline`
-      : 'underline';
+    decorationSet.add('underline');
   }
   if (formatStyle.strikethrough) {
-    textStyle.textDecorationLine = textStyle.textDecorationLine
-      ? `${textStyle.textDecorationLine} line-through`
-      : 'line-through';
+    decorationSet.add('line-through');
   }
+  textStyle.textDecorationLine = decorationSet.size > 0
+    ? Array.from(decorationSet).join(' ') as NonNullable<TextStyle['textDecorationLine']>
+    : textStyle.textDecorationLine;
   if (formatStyle.color) {
     textStyle.color = formatStyle.color;
   }
@@ -144,6 +154,18 @@ const applyMessageFormatStyle = (
 
   return textStyle;
 };
+
+const IRC_FORMATTING_CHARS = [
+  String.fromCharCode(0x02),
+  String.fromCharCode(0x03),
+  String.fromCharCode(0x0F),
+  String.fromCharCode(0x16),
+  String.fromCharCode(0x1D),
+  String.fromCharCode(0x1E),
+  String.fromCharCode(0x1F),
+];
+const IRC_BEL = String.fromCharCode(0x07);
+const IRC_NUL = String.fromCharCode(0x00);
 
 // Memoized message item component for performance
 const MessageItem = React.memo<MessageItemProps>(({
@@ -305,7 +327,7 @@ const MessageItem = React.memo<MessageItemProps>(({
         const escapedNick = escapeRegExp(currentNick);
         const regex = new RegExp(`\\b${escapedNick}\\b`, 'i');
         return regex.test(message.text);
-      } catch (error) {
+      } catch {
         // Fallback to simple includes if regex fails
         return message.text.toLowerCase().includes(currentNick.toLowerCase());
       }
@@ -392,13 +414,15 @@ const MessageItem = React.memo<MessageItemProps>(({
           : colors.messageText
       : getMessageColor(message.type);
 
-  const baseLineStyle = StyleSheet.flatten([styles.messageText, { color: baseLineColor }]);
-  const inlineBaseStyle: TextStyle = {
-    ...baseLineStyle,
-    flex: undefined,
-    flexGrow: undefined,
-    flexShrink: undefined,
-  };
+  const inlineBaseStyle = useMemo<TextStyle>(() => {
+    const baseLineStyle = StyleSheet.flatten([styles.messageText, { color: baseLineColor }]) as TextStyle;
+    return {
+      ...baseLineStyle,
+      flex: undefined,
+      flexGrow: undefined,
+      flexShrink: undefined,
+    };
+  }, [baseLineColor, styles.messageText]);
 
   const nickMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -411,7 +435,7 @@ const MessageItem = React.memo<MessageItemProps>(({
 
   const containsIrcFormatting = useCallback((text: string | undefined | null): boolean => {
     if (!text) return false;
-    return /[\x02\x03\x0F\x16\x1D\x1E\x1F]/.test(text);
+    return IRC_FORMATTING_CHARS.some(char => text.includes(char));
   }, []);
 
   const handleLinkPress = useCallback(async (url: string) => {
@@ -459,13 +483,20 @@ const MessageItem = React.memo<MessageItemProps>(({
           }
 
           // Check for URLs (http/https/ftp)
-          const urlMatch = token.match(/^(.*?)((?:https?|ftp):\/\/[^\s\x07\x00\r\n]+)(.*)$/i);
+          const urlMatch = token.match(/^(.*?)((?:https?|ftp):\/\/[^\s]+)(.*)$/i);
           if (urlMatch) {
             const [, leading, url, trailing] = urlMatch;
+            if (url.includes(IRC_BEL) || url.includes(IRC_NUL)) {
+              return (
+                <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
+                  {token}
+                </Text>
+              );
+            }
             return (
               <Text key={`${keyPrefix}-url-${index}`} style={baseStyle}>
                 {leading}
-                <Text style={[styles.nick, { color: colors.primary, textDecorationLine: 'underline' }]} onPress={() => handleLinkPress(url)}>
+                <Text style={styles.linkText} onPress={() => handleLinkPress(url)}>
                   {url}
                 </Text>
                 {trailing}
@@ -476,7 +507,7 @@ const MessageItem = React.memo<MessageItemProps>(({
           // Check for channel names (e.g., #channel, &channel)
           // Channel pattern: starts with # or &, followed by valid channel characters
           // Also handles status prefixes: ~ (owner), & (admin), @ (op), % (halfop), + (voice)
-          const channelMatch = token.match(/^([^#&]*)([#&][^\s,\x07\x00\r\n:]+)(.*)$/);
+          const channelMatch = token.match(/^([^#&]*)([#&][^\s,:]+)(.*)$/);
           if (channelMatch && onChannelPress) {
             const [, leadingCh, rawChannelName, trailingCh] = channelMatch;
             // Remove ALL status prefixes from channel name
@@ -487,7 +518,7 @@ const MessageItem = React.memo<MessageItemProps>(({
             return (
               <Text key={`${keyPrefix}-channel-${index}`} style={baseStyle}>
                 {leadingCh}
-                <Text style={[styles.nick, { color: colors.primary }]} onPress={joinChannel}>
+                <Text style={styles.linkText} onPress={joinChannel}>
                   {channelName}
                 </Text>
                 {trailingCh}
@@ -496,7 +527,7 @@ const MessageItem = React.memo<MessageItemProps>(({
           }
 
           // Extract a potential nick while preserving surrounding punctuation.
-          const match = token.match(/^([^A-Za-z0-9_`^\\\-\[\]{}|]*)(@?[A-Za-z0-9_`^\\\-\[\]{}|]+)([^A-Za-z0-9_`^\\\-\[\]{}|]*)$/);
+          const match = token.match(new RegExp('^([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)(@?[A-Za-z0-9_`^\\\\-\\]\\[{}|]+)([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)$'));
           if (!match) {
             return (
               <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
@@ -534,7 +565,7 @@ const MessageItem = React.memo<MessageItemProps>(({
         })}
       </Text>
     );
-  }, [containsIrcFormatting, nickMap, onNickLongPress, onChannelPress, handleLinkPress, styles.nick, colors.primary]);
+  }, [containsIrcFormatting, nickMap, onNickLongPress, onChannelPress, handleLinkPress, styles.nick, styles.linkText, colors.primary]);
 
   const renderFormattedParts = useCallback(
     (parts: MessageFormatPart[]) => {
@@ -625,6 +656,8 @@ const MessageItem = React.memo<MessageItemProps>(({
       message.text,
       message.timestamp,
       message.from,
+      message.oldNick,
+      message.newNick,
       message.target,
       message.topic,
       message.username,
@@ -658,16 +691,16 @@ const MessageItem = React.memo<MessageItemProps>(({
             // Render WHOIS channels with clickable links
             <Text style={StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }])}>
               <Text>*** {message.whoisData.nick} is on channels: </Text>
-              {message.whoisData.channels.map((channel, index) => {
-                const cleanChannel = channel.replace(/^[~&@%+]+/, '');
-                const prefix = channel.match(/^[~&@%+]/)?.[0] || '';
+              {message.whoisData.channels.map((channelNameWithPrefix, index) => {
+                const cleanChannel = channelNameWithPrefix.replace(/^[~&@%+]+/, '');
+                const prefix = channelNameWithPrefix.match(/^[~&@%+]/)?.[0] || '';
                 return (
-                  <React.Fragment key={channel}>
+                  <React.Fragment key={channelNameWithPrefix}>
                     {index > 0 && <Text>, </Text>}
                     {prefix && <Text>{prefix}</Text>}
                     {onChannelPress ? (
                       <Text
-                        style={{ color: colors.primary, textDecorationLine: 'underline' }}
+                        style={styles.linkText}
                         onPress={() => onChannelPress(cleanChannel)}
                       >
                         {cleanChannel}
@@ -689,7 +722,7 @@ const MessageItem = React.memo<MessageItemProps>(({
                     {parts[0]}
                     {onNickPress ? (
                       <Text
-                        style={{ color: colors.primary, textDecorationLine: 'underline' }}
+                        style={styles.linkText}
                         onPress={() => onNickPress(message.whoisData!.nick!)}
                       >
                         {message.whoisData.nick}
@@ -715,10 +748,10 @@ const MessageItem = React.memo<MessageItemProps>(({
           <>
             {formatParts ? (
               <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
-                <View style={[
-                  styles.messageContent,
-                  message.text?.includes('\n') ? { flexDirection: 'column' } : null
-                ]}>
+                  <View style={[
+                    styles.messageContent,
+                    message.text?.includes('\n') ? styles.messageContentColumn : null
+                  ]}>
                   <Text style={styles.messageText}>
                     {renderFormattedParts(formatParts)}
                   </Text>
@@ -766,7 +799,7 @@ const MessageItem = React.memo<MessageItemProps>(({
               // ACTION (/me) message
               <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
                 <View style={styles.messageContent}>
-                  <Text style={[styles.messageTextInline, { fontStyle: 'italic', color: actionMessageColor }]}>
+                    <Text style={[styles.messageTextInline, styles.messageTextItalic, { color: actionMessageColor }]}>
                     {!isGrouped && (
                       <Text
                         style={styles.nick}
@@ -778,7 +811,7 @@ const MessageItem = React.memo<MessageItemProps>(({
                     )}
                     {renderTextWithNickActions(
                       actionText,
-                      StyleSheet.flatten([styles.messageTextInline, { fontStyle: 'italic', color: actionMessageColor }]),
+                      StyleSheet.flatten([styles.messageTextInline, styles.messageTextItalic, { color: actionMessageColor }]),
                       `action-${message.id}`,
                     )}
                   </Text>
@@ -993,7 +1026,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const [showBlacklistModal, setShowBlacklistModal] = useState(false);
   const [showBlacklistActionPicker, setShowBlacklistActionPicker] = useState(false);
   const [blacklistAction, setBlacklistAction] = useState<BlacklistActionType>('ban');
-  const [blacklistMaskChoice, setBlacklistMaskChoice] = useState<string>('nick');
+  const [, setBlacklistMaskChoice] = useState<string>('nick');
   const [showBlacklistMaskPicker, setShowBlacklistMaskPicker] = useState(false);
   const [selectedBanMaskTypeId, setSelectedBanMaskTypeId] = useState<number | null>(null);
   const [blacklistReason, setBlacklistReason] = useState('');
@@ -1023,7 +1056,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     codeTypes: ['qr'],
     onCodeScanned: (codes) => {
       if (!showKeyScan || scanHandledRef.current) return;
-      const code = codes[0]?.value || codes[0]?.rawValue;
+      const code = codes[0]?.value;
       if (!code) return;
       scanHandledRef.current = true;
       setShowKeyScan(false);
@@ -1037,9 +1070,11 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 3 || Math.abs(gesture.dy) > 3,
       onPanResponderGrant: () => {
+        const selectionBarX = selectionBarPan.x as Animated.Value & { __getValue?: () => number };
+        const selectionBarY = selectionBarPan.y as Animated.Value & { __getValue?: () => number };
         selectionBarPan.setOffset({
-          x: selectionBarPan.x.__getValue(),
-          y: selectionBarPan.y.__getValue(),
+          x: selectionBarX.__getValue?.() ?? 0,
+          y: selectionBarY.__getValue?.() ?? 0,
         });
         selectionBarPan.setValue({ x: 0, y: 0 });
       },
@@ -1162,9 +1197,9 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     if (channelUsers && channelUsers.length > 0) {
       return channelUsers.find(user => user.nick.toLowerCase() === nick.toLowerCase()) || null;
     }
-    const activeIrc: any = connection?.ircService || ircService;
-    if (typeof activeIrc.getChannelUsers !== 'function') return null;
-    const users = activeIrc.getChannelUsers(channel) as ChannelUser[];
+    const contextIrc: any = connection?.ircService || ircService;
+    if (typeof contextIrc.getChannelUsers !== 'function') return null;
+    const users = contextIrc.getChannelUsers(channel) as ChannelUser[];
     return users.find(user => user.nick.toLowerCase() === nick.toLowerCase()) || null;
   }, [channel, channelUsers, connection]);
 
@@ -1179,19 +1214,6 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     { id: 'shun', label: t('SHUN') },
     { id: 'custom', label: t('Custom Command') },
   ]), [t]);
-
-  const getBlacklistMaskOptions = useCallback((user: ChannelUser | null, nick: string | null) => {
-    const safeNick = nick || '';
-    const options: Array<{ id: string; label: string; mask: string }> = [
-      { id: 'nick', label: t('Nick only'), mask: safeNick },
-      { id: 'nick_user_any', label: t('Nick!user@*'), mask: `${safeNick}!*@*` },
-    ];
-    if (user?.host) {
-      options.push({ id: 'host', label: t('*!*@host'), mask: `*!*@${user.host}` });
-      options.push({ id: 'nick_host', label: t('Nick!*@host'), mask: `${safeNick}!*@${user.host}` });
-    }
-    return options;
-  }, [t]);
 
   const getBlacklistBanMaskOptions = useCallback((user: ChannelUser | null, nick: string | null) => {
     const safeNick = nick || '';
@@ -1210,7 +1232,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     if (!['akill', 'gline', 'shun'].includes(action)) {
       return '';
     }
-    const stored = await settingsService.getSetting('blacklistTemplates', {});
+    const stored = await settingsService.getSetting<BlacklistTemplatesSetting>('blacklistTemplates', {});
     const base = {
       akill: 'PRIVMSG OperServ :AKILL ADD {usermask} {reason}',
       gline: 'GLINE {hostmask} :{reason}',
@@ -1218,7 +1240,10 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     };
     const global = stored?.global || {};
     const local = net && stored?.[net] ? stored[net] : {};
-    return (local?.[action] || global?.[action] || base[action] || '') as string;
+    if (action === 'custom' || action === 'ban' || action === 'ignore' || action === 'kick_ban' || action === 'kill' || action === 'os_kill') {
+      return '';
+    }
+    return local[action] || global[action] || base[action] || '';
   }, []);
 
   // IMPORTANT: Use the per-connection UserManagementService when available so that adding
@@ -1363,7 +1388,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         if (!currentNetwork) break;
         const queryId = queryTabId(currentNetwork, contextNick);
         const currentTabs = useTabStore.getState().tabs;
-        const existingTab = currentTabs.find(t => t.id === queryId && t.type === 'query');
+        const existingTab = currentTabs.find(item => item.id === queryId && item.type === 'query');
         if (existingTab) {
           setActiveTabId(existingTab.id);
         } else {
@@ -1433,7 +1458,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         break;
       case 'enc_qr_scan':
         try {
-          const permission = hasCameraPermission || (await requestCameraPermission()) === 'authorized';
+          const permission = Boolean(hasCameraPermission || await requestCameraPermission());
           if (!permission) {
             Alert.alert(t('Error'), t('Camera permission denied'));
             break;
@@ -1474,7 +1499,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
             mode: 'import',
           });
           if (result.length === 0) return;
-          const picker = result[0];
+          const picker = result[0] as (typeof result)[number] & { fileCopyUri?: string | null };
           const uri = picker.fileCopyUri || picker.uri;
           const path = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
           const shouldCleanupCopy = Boolean(picker.fileCopyUri);
@@ -1511,7 +1536,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           await NfcManager.requestTechnology(NfcTech.Ndef);
           const bytes = Ndef.encodeMessage([Ndef.textRecord(payload)]);
           if (bytes) {
-            await NfcManager.writeNdefMessage(bytes);
+            await (NfcManager as typeof NfcManager & { writeNdefMessage: (message: number[]) => Promise<void> }).writeNdefMessage(bytes);
           }
         } catch {
           Alert.alert(t('Error'), t('Failed to share via NFC'));
@@ -1530,7 +1555,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           await NfcManager.requestTechnology(NfcTech.Ndef);
           const tag = await NfcManager.getTag();
           const ndefMessage = tag?.ndefMessage?.[0];
-          const payload = ndefMessage ? Ndef.text.decodePayload(ndefMessage.payload) : null;
+          const payload = ndefMessage ? Ndef.text.decodePayload(new Uint8Array(ndefMessage.payload as number[])) : null;
           if (!payload) {
             Alert.alert(t('Error'), t('No NFC payload'));
             break;
@@ -1738,7 +1763,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         if (channel && contextNick) {
           setKickBanTarget({
             nick: contextNick,
-            user: selectedUser?.username,
+            user: selectedUser?.ident,
             host: selectedUser?.host,
           });
           setKickBanMode(
@@ -1770,7 +1795,13 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     t,
   ]);
 
-  const handleKickBanConfirm = useCallback((options) => {
+  const handleKickBanConfirm = useCallback((options: {
+    reason: string;
+    banType: number;
+    kick: boolean;
+    ban: boolean;
+    unbanAfterSeconds?: number;
+  }) => {
     if (!channel || !kickBanTarget) return;
 
     const banMask = banService.generateBanMask(
@@ -1816,7 +1847,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   }, []);
 
   // Listen for highlight word changes to trigger re-render
-  const [highlightWords, setHighlightWords] = useState(highlightService.getHighlightWords());
+  const [, setHighlightWords] = useState(highlightService.getHighlightWords());
   useEffect(() => {
     const unsubscribe = highlightService.onHighlightWordsChange(() => {
       setHighlightWords(highlightService.getHighlightWords());
@@ -1943,12 +1974,6 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
       return { ...message, isGrouped };
     });
-
-//     if (__DEV__) {
-//       console.log(`📺 MessageArea: Final displayMessages: ${grouped.length} messages for tab ${tabId}`);
-//     }
-    
-    return grouped;
   }, [
     messages,
     showRawCommands,
@@ -2045,7 +2070,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       // Optionally load from history
       if (channel && network && newCount >= displayMessages.length) {
         // Load older messages from history
-        messageHistoryService.loadMessages(network, channel).then(historyMessages => {
+        messageHistoryService.loadMessages(network, channel).then(() => {
           // This would need to be integrated with the message state in App.tsx
           // For now, we just track that we've loaded all available messages
         }).catch(err => {
@@ -2053,7 +2078,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         });
       }
     }
-  }, [perfConfig.enableLazyLoading, loadedMessageCount, displayMessages.length, channel, network]);
+  }, [perfConfig.enableLazyLoading, perfConfig.messageLoadChunk, loadedMessageCount, displayMessages.length, channel, network]);
 
   const handleCopySelected = useCallback(() => {
     if (!selectedMessageIds.size) return;
@@ -2082,20 +2107,20 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       : t('Copied {count} messages').replace('{count}', sorted.length.toString());
     setCopyStatus(message);
     setTimeout(() => setCopyStatus(''), 1500);
-  }, [selectedMessageIds, displayMessages, layoutState.timestampFormat]);
+  }, [selectedMessageIds, displayMessages, layoutState.timestampFormat, t]);
 
   // Render message item
-  const renderItem = useCallback(({ item }: { item: IRCMessage }) => {
+  const renderItem = useCallback(({ item: messageItem }: { item: IRCMessage }) => {
     return (
       <MessageItem
-        message={item}
+        message={messageItem}
         channelUsers={channelUsers}
         timestampDisplay={layoutState.timestampDisplay}
         timestampFormat={layoutState.timestampFormat}
-        colors={colors}
-        styles={styles}
-        currentNick={currentNick}
-        isGrouped={item.isGrouped || false}
+      colors={colors}
+      styles={styles}
+      currentNick={currentNick}
+      isGrouped={messageItem.isGrouped || false}
         onNickLongPress={(nick) => {
           setContextNick(nick);
           setContextUser(resolveContextUser(nick));
@@ -2118,7 +2143,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           const queryId = `query:${network}:${nick.toLowerCase()}`;
           const tabStore = useTabStore.getState();
           const currentTabs = tabStore.tabs;
-          const existingTab = currentTabs.find(t => t.id === queryId && t.type === 'query');
+          const existingTab = currentTabs.find(item => item.id === queryId && item.type === 'query');
           if (existingTab) {
             tabStore.setActiveTabId(existingTab.id);
           } else {
@@ -2135,7 +2160,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         }}
         onLongPressMessage={handleMessageLongPress}
         onPressMessage={handleMessagePress}
-        isSelected={selectedMessageIds.has(item.id)}
+        isSelected={selectedMessageIds.has(messageItem.id)}
         selectionMode={selectionMode}
         showImages={perfConfig.imageLazyLoad !== false}
         network={network}
@@ -2163,6 +2188,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     containerWidth,
     theme.messageFormats,
     activeIrc,
+    tabSortAlphabetical,
+    channelUsers,
   ]);
 
   // Get item key
@@ -2489,8 +2516,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
               {scanError ? <Text style={styles.scanError}>{scanError}</Text> : null}
             </View>
             {device ? (
-              <Camera
-                style={{ flex: 1 }}
+                <Camera
+                style={styles.cameraFlex}
                 device={device}
                 isActive={showKeyScan}
                 codeScanner={codeScanner}
@@ -2781,10 +2808,16 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     flex: 1,
     flexWrap: 'wrap',
   },
+  messageContentColumn: {
+    flexDirection: 'column',
+  },
   linkText: {
     color: colors.primary,
     textDecorationLine: 'underline',
     writingDirection: layoutConfig.messageTextDirection || 'auto',
+  },
+  messageTextItalic: {
+    fontStyle: 'italic',
   },
   nick: {
     color: colors.messageNick,
@@ -3170,6 +3203,9 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
     borderRadius: 8,
     backgroundColor: colors.primary,
     marginLeft: 8,
+  },
+  cameraFlex: {
+    flex: 1,
   },
   selectionButtonText: {
     color: colors.buttonPrimaryText,

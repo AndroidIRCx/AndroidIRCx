@@ -7,10 +7,6 @@
 
 import { renderHook } from '@testing-library/react-native';
 import { useConnectionLifecycle } from '../../src/hooks/useConnectionLifecycle';
-import { useTabStore } from '../../src/stores/tabStore';
-import { useUIStore } from '../../src/stores/uiStore';
-import { connectionManager } from '../../src/services/ConnectionManager';
-import { ircService } from '../../src/services/IRCService';
 
 // Mock all services used in the backup data journey
 jest.mock('../../src/services/ConnectionManager', () => ({
@@ -36,7 +32,6 @@ jest.mock('../../src/services/IRCService', () => ({
     getCurrentNick: jest.fn().mockReturnValue('testuser'),
     addMessage: jest.fn(),
     sendRaw: jest.fn(),
-    partChannel: jest.fn(),
     emit: jest.fn(),
     connect: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
@@ -403,7 +398,7 @@ describe('backupData Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate backing up settings
-    const settings = await require('../../src/services/SettingsService').settingsService.loadSettings();
+    await require('../../src/services/SettingsService').settingsService.loadSettings();
     
     // Verify that settings were loaded
     expect(mockLoadSettings).toHaveBeenCalled();
@@ -422,7 +417,7 @@ describe('backupData Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate backing up networks
-    const networks = await require('../../src/services/SettingsService').settingsService.loadNetworks();
+    await require('../../src/services/SettingsService').settingsService.loadNetworks();
     
     // Verify that networks were loaded
     expect(mockLoadNetworks).toHaveBeenCalled();
@@ -441,7 +436,7 @@ describe('backupData Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate backing up tabs for a network
-    const tabs = await require('../../src/services/TabService').tabService.getTabs('test-network');
+    await require('../../src/services/TabService').tabService.getTabs('test-network');
     
     // Verify that tabs were loaded
     expect(mockGetTabs).toHaveBeenCalledWith('test-network');
@@ -460,7 +455,7 @@ describe('backupData Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate backing up message history
-    const messages = await require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages('test-network', 'server');
+    await require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages('test-network', 'server');
     
     // Verify that messages were loaded
     expect(mockLoadMessages).toHaveBeenCalledWith('test-network', 'server');

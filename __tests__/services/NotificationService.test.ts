@@ -751,10 +751,12 @@ describe('NotificationService', () => {
     });
 
     it('should fallback to includes if regex fails', () => {
-      const nick = new String('TestNick') as unknown as string;
-      (nick as any).replace = () => {
-        throw new Error('regex failed');
-      };
+      const nick = {
+        replace: () => {
+          throw new Error('regex failed');
+        },
+        toLowerCase: () => 'testnick',
+      } as unknown as string;
 
       const result = notificationService.shouldNotify(
         { text: 'Hello TestNick!', channel: '#general', type: 'message' },

@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
 import { Alert, Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { FirstRunSetupScreen } from '../../src/screens/FirstRunSetupScreen';
@@ -29,7 +28,6 @@ jest.mock('../../src/hooks/useTheme', () => ({
 }));
 
 jest.mock('react-native-vector-icons/FontAwesome5', () => {
-  const React = require('react');
   const { Text } = require('react-native');
   return ({ name }: any) => <Text>{name}</Text>;
 });

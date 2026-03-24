@@ -5,7 +5,6 @@
 
 import React, { useMemo } from 'react';
 import { SettingItem } from '../SettingItem';
-import { useT } from '../../../i18n/transifex';
 import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
 
 interface AdvancedSectionProps {
@@ -37,9 +36,6 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
   styles,
   settingIcons,
 }) => {
-  const t = useT();
-  const tags = 'screen:settings,file:AdvancedSection.tsx,feature:settings';
-
   // Note: DCC Settings are now in ConnectionNetworkSection
   // This section can be expanded with additional advanced settings in the future
   const sectionData: SettingItemType[] = useMemo(() => {
@@ -48,7 +44,7 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
     ];
 
     return items;
-  }, [t, tags]);
+  }, []);
 
   // If no items, return null to hide the section
   if (sectionData.length === 0) {

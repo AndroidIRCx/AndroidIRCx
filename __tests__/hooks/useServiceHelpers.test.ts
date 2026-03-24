@@ -49,7 +49,6 @@ jest.mock('../../src/stores/tabStore', () => ({
 }));
 
 jest.mock('../../src/utils/tabUtils', () => ({
-  makeServerTab: jest.fn().mockReturnValue({ id: 'server-test', type: 'server', name: 'test', networkId: 'test' }),
   serverTabId: jest.fn().mockReturnValue('server-test'),
   sortTabsGrouped: jest.fn().mockImplementation((tabs) => tabs),
 }));
@@ -68,12 +67,6 @@ describe('useServiceHelpers', () => {
     
     // Set default mock implementations
     require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [] });
-    require('../../src/utils/tabUtils').makeServerTab.mockReturnValue({ 
-      id: 'server-test', 
-      type: 'server', 
-      name: 'test', 
-      networkId: 'test' 
-    });
     require('../../src/utils/tabUtils').serverTabId.mockReturnValue('server-test');
     require('../../src/utils/tabUtils').sortTabsGrouped.mockImplementation((tabs) => tabs);
     require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([]);
@@ -119,28 +112,14 @@ describe('useServiceHelpers', () => {
     );
   });
 
-  it('should create new server tab if it does not exist', () => {
+  it('should not create a missing server tab when appending a server message', () => {
     require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [] });
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
     result.current.appendServerMessage('test', 'Test message');
 
-    expect(mockSetTabs).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: 'server-test',
-          type: 'server',
-          messages: expect.arrayContaining([
-            expect.objectContaining({
-              text: 'Test message',
-              type: 'raw',
-              isRaw: true,
-            })
-          ])
-        })
-      ])
-    );
+    expect(mockSetTabs).not.toHaveBeenCalled();
   });
 
   it('should not append server message for invalid network ID', () => {

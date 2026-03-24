@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Text, TextStyle, Linking, View } from 'react-native';
+import { Text, TextStyle, Linking } from 'react-native';
 
 /**
  * IRC color codes mapping (0-15)
@@ -316,8 +316,8 @@ function styleToTextStyle(style: FormatStyle, baseStyle?: TextStyle): TextStyle 
     textStyle.fontStyle = 'italic';
   }
   if (style.strikethrough) {
-    textStyle.textDecorationLine = textStyle.textDecorationLine
-      ? `${textStyle.textDecorationLine} line-through`
+    textStyle.textDecorationLine = textStyle.textDecorationLine === 'underline'
+      ? 'underline line-through'
       : 'line-through';
   }
 
@@ -557,7 +557,10 @@ export function formatIRCDebug(text: string): string {
 /**
  * URL regex pattern for detecting links
  */
-const URL_PATTERN = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+|ftp:\/\/[^\s<>"{}|\\^`\[\]]+|www\.[^\s<>"{}|\\^`\[\]]+)/gi;
+const URL_PATTERN = new RegExp(
+  '(https?:\\/\\/[^\\s<>"{}|\\\\^`\\[\\]]+|ftp:\\/\\/[^\\s<>"{}|\\\\^`\\[\\]]+|www\\.[^\\s<>"{}|\\\\^`\\[\\]]+)',
+  'gi'
+);
 
 /**
  * Format IRC text with clickable URLs (plain links, no preview)
@@ -589,6 +592,10 @@ export function formatIRCTextWithLinks(
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
     const urlRegex = new RegExp(URL_PATTERN.source, 'gi');
+    const linkStyle = {
+      color: linkColor || '#2196F3',
+      textDecorationLine: 'underline' as const,
+    };
     let match;
 
     while ((match = urlRegex.exec(segmentText)) !== null) {
@@ -607,7 +614,7 @@ export function formatIRCTextWithLinks(
       parts.push(
         <Text
           key={`link-${segmentIndex}-${match.index}`}
-          style={[segmentStyle, { color: linkColor || '#2196F3', textDecorationLine: 'underline' }]}
+          style={[segmentStyle, linkStyle]}
           onPress={() => {
             if (onLinkPress) {
               onLinkPress(fullUrl);

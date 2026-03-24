@@ -8,7 +8,7 @@
  * Extracted from App.tsx to reduce complexity.
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Modal } from 'react-native';
 import { useUIStore } from '../stores/uiStore';
 import { useTabStore } from '../stores/tabStore';
@@ -291,7 +291,7 @@ export function AppModals({
         <UserListsScreen
           visible={showUserLists}
           network={activeTab?.networkId}
-          initialTab={userListsInitialTab}
+          initialTab={userListsInitialTab === 'blacklist' ? 'other' : userListsInitialTab}
           onClose={() => useUIStore.getState().setShowUserLists(false)}
         />
       )}

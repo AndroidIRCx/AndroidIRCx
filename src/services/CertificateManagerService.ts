@@ -21,6 +21,7 @@ import {
   FingerprintFormat,
 } from '../types/certificate';
 
+/* eslint-disable no-bitwise -- Certificate fingerprints and DER parsing intentionally use bit operations. */
 // Storage keys
 const CERT_INDEX_KEY = 'certs:index';
 const CERT_KEY_PREFIX = 'cert:';
@@ -111,6 +112,9 @@ class CertificateManagerService {
 
       // Calculate fingerprint
       const fingerprint = this.getFingerprint(pemCert);
+      if (!fingerprint) {
+        throw new Error('Failed to calculate certificate fingerprint');
+      }
 
       // Create certificate info
       const id = this.generateUUID();

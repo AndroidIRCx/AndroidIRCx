@@ -196,7 +196,6 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
   const tags = 'feature:link-preview,file:LinkPreview.tsx,component:LinkPreview';
   const [metadata, setMetadata] = useState<LinkMetadata | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
@@ -388,10 +387,6 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
       setDownloading(false);
     }
   };
-
-  if (error) {
-    return null;
-  }
 
   return (
     <TouchableOpacity

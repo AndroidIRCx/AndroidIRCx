@@ -1,6 +1,6 @@
 {
   "name": "androidircx",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -37,7 +37,6 @@
     "prismjs": "^1.30.0",
     "react": "19.2.3",
     "react-native": "0.84.1",
-    "react-native-nitro-sound": "^0.2.12",
     "react-native-battery-optimization-check": "^1.0.8",
     "react-native-bootsplash": "7.1.0",
     "react-native-config": "^1.6.1",
@@ -51,6 +50,7 @@
     "react-native-make": "^1.0.1",
     "react-native-nfc-manager": "^3.17.2",
     "react-native-nitro-modules": "0.35.2",
+    "react-native-nitro-sound": "^0.2.12",
     "react-native-qrcode-svg": "^6.3.21",
     "react-native-reanimated": "^4.2.3",
     "react-native-safe-area-context": "^5.7.0",
@@ -88,7 +88,7 @@
     "@types/react": "^19.2.14",
     "@types/react-test-renderer": "^19.1.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
-    "eslint": "^10.0.3",
+    "eslint": "^9.39.1",
     "jest": "^30.3.0",
     "patch-package": "^8.0.1",
     "prettier": "3.8.1",

@@ -4,7 +4,7 @@
  */
 
 import { IRCService, IRCConnectionConfig, IRCMessage } from '../src/services/IRCService';
-import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, settingsService } from '../src/services/SettingsService';
+import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE } from '../src/services/SettingsService';
 import { FakeSocket } from '../test-support/FakeSocket';
 
 jest.mock('react-native-tcp-socket', () => {

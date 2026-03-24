@@ -56,19 +56,6 @@ export const BackgroundBatterySection: React.FC<BackgroundBatterySectionProps> =
     setLocalBatteryOptStatus(batteryOptEnabledStatus);
   }, [batteryOptEnabledStatus]);
 
-  const handleBatteryOptimizationWrapper = async () => {
-    await handleBatteryOptimization();
-    // After returning from settings, re-check the status to update UI
-    setTimeout(async () => {
-      try {
-        const isIgnoring = await backgroundService.isIgnoringBatteryOptimizations();
-        setLocalBatteryOptStatus(!isIgnoring);
-      } catch (error) {
-        console.error('Failed to refresh battery optimization status:', error);
-      }
-    }, 1000); // Delay to allow user to return from settings
-  };
-
   const sectionData: SettingItemType[] = useMemo(() => {
     const items: SettingItemType[] = [
       {
@@ -98,7 +85,17 @@ export const BackgroundBatterySection: React.FC<BackgroundBatterySectionProps> =
         description: t('Configure battery optimization for this app', { _tags: tags }),
         type: 'button',
         searchKeywords: ['battery', 'settings', 'optimization', 'configure', 'power', 'whitelist'],
-        onPress: handleBatteryOptimizationWrapper,
+        onPress: async () => {
+          await handleBatteryOptimization();
+          setTimeout(async () => {
+            try {
+              const isOptimized = await backgroundService.isBatteryOptimizationEnabled();
+              setLocalBatteryOptStatus(isOptimized);
+            } catch (error) {
+              console.error('Failed to refresh battery optimization status:', error);
+            }
+          }, 1000);
+        },
       },
     ];
 
@@ -107,7 +104,7 @@ export const BackgroundBatterySection: React.FC<BackgroundBatterySectionProps> =
     backgroundEnabled,
     localBatteryOptStatus,
     setBackgroundEnabled,
-    handleBatteryOptimizationWrapper,
+    handleBatteryOptimization,
     t,
     tags,
   ]);

@@ -6,7 +6,6 @@
  */
 
 import {
-  MircPresetEntry,
   decodeMircPresetBase64,
   splitPresetLines,
   parseGenericPresets,

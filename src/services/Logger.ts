@@ -98,23 +98,18 @@ class Logger {
       const line = `${prefix} ${sanitizedMessage}`;
       switch (level) {
         case 'debug':
-          // eslint-disable-next-line no-console
           console.debug(line);
           break;
         case 'info':
-          // eslint-disable-next-line no-console
           console.info(line);
           break;
         case 'warn':
-          // eslint-disable-next-line no-console
           console.warn(line);
           break;
         case 'error':
-          // eslint-disable-next-line no-console
           console.error(line);
           break;
         default:
-          // eslint-disable-next-line no-console
           console.log(line);
       }
     }

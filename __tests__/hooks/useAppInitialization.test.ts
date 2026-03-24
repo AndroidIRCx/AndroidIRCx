@@ -107,7 +107,7 @@ describe('useAppInitialization', () => {
   });
 
   it('should initialize all services on mount', async () => {
-    const { result } = renderHook(() => useAppInitialization());
+    renderHook(() => useAppInitialization());
 
     // Wait for useEffect to run
     await new Promise(resolve => setTimeout(resolve, 0));

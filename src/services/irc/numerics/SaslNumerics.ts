@@ -19,13 +19,12 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { NumericHandlerContext, NumericHandler } from '../types';
+import type { NumericHandler } from '../types';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 /** 900 RPL_LOGGEDIN - Logged in to account */
 export const handle900: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const accountInfo = params[1] || '';
   const account = params[2] || '';
   const message = params.slice(3).join(' ').replace(/^:/, '') || t('You are now logged in as {account}', { account });
   ctx.addMessage({

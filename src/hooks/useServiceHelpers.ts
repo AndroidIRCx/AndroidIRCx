@@ -14,7 +14,7 @@ import { connectionQualityService } from '../services/ConnectionQualityService';
 import { channelManagementService } from '../services/ChannelManagementService';
 import { useTabStore } from '../stores/tabStore';
 import type { ChannelTab } from '../types';
-import { makeServerTab, serverTabId, sortTabsGrouped } from '../utils/tabUtils';
+import { serverTabId, sortTabsGrouped } from '../utils/tabUtils';
 
 interface UseServiceHelpersParams {
   setTabs: (updater: ChannelTab[] | ((prev: ChannelTab[]) => ChannelTab[])) => void;
@@ -48,9 +48,6 @@ export const useServiceHelpers = (params: UseServiceHelpersParams) => {
     if (existingServer) {
       const updated = currentTabs.map(t => t.id === serverId ? { ...t, messages: [...t.messages, msg] } : t);
       setTabs(sortTabsGrouped(updated, tabSortAlphabetical));
-    } else {
-      const newServerTab = { ...makeServerTab(networkId), messages: [msg] };
-      setTabs(sortTabsGrouped([...currentTabs, newServerTab], tabSortAlphabetical));
     }
   }, [setTabs, tabSortAlphabetical]);
 

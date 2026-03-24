@@ -17,7 +17,7 @@ interface KickBanReasonsScreenProps {
   route: any;
 }
 
-const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = ({ navigation }) => {
+const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = () => {
   const { colors } = useTheme();
   const [reasons, setReasons] = useState<PredefinedReason[]>([]);
   const [newReason, setNewReason] = useState('');

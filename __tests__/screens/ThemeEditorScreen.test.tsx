@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
 import { Alert, TouchableOpacity } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ThemeEditorScreen } from '../../src/screens/ThemeEditorScreen';

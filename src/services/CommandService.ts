@@ -387,7 +387,9 @@ export class CommandService {
   getHistory(limit?: number): CommandHistoryEntry[] {
     if (this.commandHistory.some(entry => !entry.id)) {
       this.commandHistory = this.normalizeHistory(this.commandHistory);
-      void this.saveHistory();
+      this.saveHistory().catch(() => {
+        // History normalization should not fail reads.
+      });
     }
     if (limit) {
       return this.commandHistory.slice(0, limit);
@@ -510,7 +512,8 @@ export class CommandService {
    * Handle /certfp command - Display certificate fingerprint
    */
   private handleCertFpCommand(): string | null {
-    if (!this.currentNetworkCert) {
+    const currentNetworkCert = this.currentNetworkCert;
+    if (!currentNetworkCert) {
       this.onLocalMessage?.(
         '*** Error: No certificate configured for this network.\n' +
         '*** Configure one in Network Settings (SASL EXTERNAL section).'
@@ -519,7 +522,10 @@ export class CommandService {
     }
 
     try {
-      const fingerprint = certificateManager.extractFingerprintFromPem(this.currentNetworkCert);
+      const fingerprint = certificateManager.extractFingerprintFromPem(currentNetworkCert);
+      if (!fingerprint) {
+        throw new Error('Invalid certificate fingerprint');
+      }
       const formatted = certificateManager.formatFingerprint(
         fingerprint,
         FingerprintFormat.COLON_SEPARATED_UPPER
@@ -551,7 +557,8 @@ export class CommandService {
    * @param args - [service] optional, defaults to NickServ
    */
   private handleCertAddCommand(args: string[]): string | null {
-    if (!this.currentNetworkCert) {
+    const currentNetworkCert = this.currentNetworkCert;
+    if (!currentNetworkCert) {
       this.onLocalMessage?.(
         '*** Error: No certificate configured for this network.\n' +
         '*** Configure one in Network Settings (SASL EXTERNAL section).'
@@ -562,7 +569,10 @@ export class CommandService {
     const service = args[0] || 'NickServ';
 
     try {
-      const fingerprint = certificateManager.extractFingerprintFromPem(this.currentNetworkCert);
+      const fingerprint = certificateManager.extractFingerprintFromPem(currentNetworkCert);
+      if (!fingerprint) {
+        throw new Error('Invalid certificate fingerprint');
+      }
       const formatted = certificateManager.formatFingerprint(
         fingerprint,
         FingerprintFormat.COLON_SEPARATED_UPPER
@@ -604,7 +614,7 @@ export class CommandService {
     }
 
     // Parse command arguments
-    const { switches, targetChannel, target, banType, message } = this.parseBanCommand(args, channel);
+    const { switches, targetChannel, target, message } = this.parseBanCommand(args, channel);
 
     // Validate channel
     if (!targetChannel) {

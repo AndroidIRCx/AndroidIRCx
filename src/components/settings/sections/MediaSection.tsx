@@ -12,7 +12,7 @@
  * - Quality settings
  */
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { Alert, View, Text, TouchableOpacity, Switch, Modal, ScrollView, TextInput, StyleSheet } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
@@ -154,7 +154,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
     loadSettings();
   }, []);
 
-  const handleClearCache = async () => {
+  const handleClearCache = useCallback(async () => {
     Alert.alert(
       t('Clear Media Cache', { _tags: tags }),
       t('Are you sure you want to clear all cached media? This will free up storage space but media will need to be downloaded again.', { _tags: tags }),
@@ -185,7 +185,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
         },
       ]
     );
-  };
+  }, [t, tags]);
 
   const formatCacheSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -520,6 +520,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
     callTurnEnabled,
     callTurnServers,
     callTurnUsername,
+    handleClearCache,
     callTurnCredential,
     callForceRelayOnly,
     callNicklistCallActionsEnabled,
@@ -641,7 +642,7 @@ export const MediaSection: React.FC<MediaSectionProps> = ({
           item={item}
           colors={colors}
           styles={styles}
-          settingIcons={settingIcons}
+          icon={(typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id]}
           onPress={(itemId) => {
             if (item.type === 'submenu') {
               setShowSubmenu(itemId);

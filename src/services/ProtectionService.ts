@@ -105,9 +105,39 @@ class ProtectionService {
     this.subscribeSettings();
   }
 
+  private asBoolean(value: unknown, fallback: boolean): boolean {
+    return typeof value === 'boolean' ? value : fallback;
+  }
+
+  private asString(value: unknown, fallback: string): string {
+    return typeof value === 'string' ? value : fallback;
+  }
+
+  private asStringArray(value: unknown, fallback: string[]): string[] {
+    return Array.isArray(value) && value.every(item => typeof item === 'string')
+      ? value
+      : fallback;
+  }
+
+  private asSpamMode(value: unknown, fallback: SpamMode): SpamMode {
+    return value === 'when_open' || value === 'always' ? value : fallback;
+  }
+
+  private asIrcopAction(
+    value: unknown,
+    fallback: ProtectionSettings['protIrcopAction']
+  ): ProtectionSettings['protIrcopAction'] {
+    return value === 'none' || value === 'ban' || value === 'kill' || value === 'kline' || value === 'gline'
+      ? value
+      : fallback;
+  }
+
   private async loadSettings(): Promise<void> {
-    this.settings.spamPmMode = await settingsService.getSetting('spamPmMode', 'when_open');
-    this.settings.spamPmKeywords = await settingsService.getSetting('spamPmKeywords', [
+    this.settings.spamPmMode = this.asSpamMode(
+      await settingsService.getSetting('spamPmMode', this.settings.spamPmMode),
+      this.settings.spamPmMode
+    );
+    this.settings.spamPmKeywords = this.asStringArray(await settingsService.getSetting('spamPmKeywords', [
       '*entra*#*',
       '*www.*',
       '*http*',
@@ -129,46 +159,46 @@ class ProtectionService {
       '*goo.gl*',
       '*t.co*',
       '*click*here*',
-    ]);
-    this.settings.spamChannelEnabled = await settingsService.getSetting('spamChannelEnabled', false);
-    this.settings.spamNoSpamOnQuits = await settingsService.getSetting('spamNoSpamOnQuits', false);
-    this.settings.spamLoggingEnabled = await settingsService.getSetting('spamLoggingEnabled', false);
-    this.settings.protCtcpFlood = await settingsService.getSetting('protCtcpFlood', false);
-    this.settings.protTextFlood = await settingsService.getSetting('protTextFlood', false);
-    this.settings.protDccFlood = await settingsService.getSetting('protDccFlood', false);
-    this.settings.protQueryFlood = await settingsService.getSetting('protQueryFlood', false);
-    this.settings.protDosAttacks = await settingsService.getSetting('protDosAttacks', false);
-    this.settings.protAntiDeopEnabled = await settingsService.getSetting('protAntiDeopEnabled', false);
-    this.settings.protAntiDeopUseChanserv = await settingsService.getSetting('protAntiDeopUseChanserv', false);
-    this.settings.protExcludeTokens = await settingsService.getSetting('protExcludeTokens', '');
-    this.settings.protEnforceSilence = await settingsService.getSetting('protEnforceSilence', false);
-    this.settings.protBlockTsunamis = await settingsService.getSetting('protBlockTsunamis', false);
-    this.settings.protTextFloodNet = await settingsService.getSetting('protTextFloodNet', false);
-    this.settings.protIrcopAction = await settingsService.getSetting('protIrcopAction', 'none');
-    this.settings.protIrcopReason = await settingsService.getSetting('protIrcopReason', 'Auto protection: spam/flood');
-    this.settings.protIrcopDuration = await settingsService.getSetting('protIrcopDuration', '1h');
+    ]), this.settings.spamPmKeywords);
+    this.settings.spamChannelEnabled = this.asBoolean(await settingsService.getSetting('spamChannelEnabled', this.settings.spamChannelEnabled), this.settings.spamChannelEnabled);
+    this.settings.spamNoSpamOnQuits = this.asBoolean(await settingsService.getSetting('spamNoSpamOnQuits', this.settings.spamNoSpamOnQuits), this.settings.spamNoSpamOnQuits);
+    this.settings.spamLoggingEnabled = this.asBoolean(await settingsService.getSetting('spamLoggingEnabled', this.settings.spamLoggingEnabled), this.settings.spamLoggingEnabled);
+    this.settings.protCtcpFlood = this.asBoolean(await settingsService.getSetting('protCtcpFlood', this.settings.protCtcpFlood), this.settings.protCtcpFlood);
+    this.settings.protTextFlood = this.asBoolean(await settingsService.getSetting('protTextFlood', this.settings.protTextFlood), this.settings.protTextFlood);
+    this.settings.protDccFlood = this.asBoolean(await settingsService.getSetting('protDccFlood', this.settings.protDccFlood), this.settings.protDccFlood);
+    this.settings.protQueryFlood = this.asBoolean(await settingsService.getSetting('protQueryFlood', this.settings.protQueryFlood), this.settings.protQueryFlood);
+    this.settings.protDosAttacks = this.asBoolean(await settingsService.getSetting('protDosAttacks', this.settings.protDosAttacks), this.settings.protDosAttacks);
+    this.settings.protAntiDeopEnabled = this.asBoolean(await settingsService.getSetting('protAntiDeopEnabled', this.settings.protAntiDeopEnabled), this.settings.protAntiDeopEnabled);
+    this.settings.protAntiDeopUseChanserv = this.asBoolean(await settingsService.getSetting('protAntiDeopUseChanserv', this.settings.protAntiDeopUseChanserv), this.settings.protAntiDeopUseChanserv);
+    this.settings.protExcludeTokens = this.asString(await settingsService.getSetting('protExcludeTokens', this.settings.protExcludeTokens), this.settings.protExcludeTokens);
+    this.settings.protEnforceSilence = this.asBoolean(await settingsService.getSetting('protEnforceSilence', this.settings.protEnforceSilence), this.settings.protEnforceSilence);
+    this.settings.protBlockTsunamis = this.asBoolean(await settingsService.getSetting('protBlockTsunamis', this.settings.protBlockTsunamis), this.settings.protBlockTsunamis);
+    this.settings.protTextFloodNet = this.asBoolean(await settingsService.getSetting('protTextFloodNet', this.settings.protTextFloodNet), this.settings.protTextFloodNet);
+    this.settings.protIrcopAction = this.asIrcopAction(await settingsService.getSetting('protIrcopAction', this.settings.protIrcopAction), this.settings.protIrcopAction);
+    this.settings.protIrcopReason = this.asString(await settingsService.getSetting('protIrcopReason', this.settings.protIrcopReason), this.settings.protIrcopReason);
+    this.settings.protIrcopDuration = this.asString(await settingsService.getSetting('protIrcopDuration', this.settings.protIrcopDuration), this.settings.protIrcopDuration);
   }
 
   private subscribeSettings(): void {
-    settingsService.onSettingChange('spamPmMode', value => (this.settings.spamPmMode = value));
-    settingsService.onSettingChange('spamPmKeywords', value => (this.settings.spamPmKeywords = value));
-    settingsService.onSettingChange('spamChannelEnabled', value => (this.settings.spamChannelEnabled = value));
-    settingsService.onSettingChange('spamNoSpamOnQuits', value => (this.settings.spamNoSpamOnQuits = value));
-    settingsService.onSettingChange('spamLoggingEnabled', value => (this.settings.spamLoggingEnabled = value));
-    settingsService.onSettingChange('protCtcpFlood', value => (this.settings.protCtcpFlood = value));
-    settingsService.onSettingChange('protTextFlood', value => (this.settings.protTextFlood = value));
-    settingsService.onSettingChange('protDccFlood', value => (this.settings.protDccFlood = value));
-    settingsService.onSettingChange('protQueryFlood', value => (this.settings.protQueryFlood = value));
-    settingsService.onSettingChange('protDosAttacks', value => (this.settings.protDosAttacks = value));
-    settingsService.onSettingChange('protAntiDeopEnabled', value => (this.settings.protAntiDeopEnabled = value));
-    settingsService.onSettingChange('protAntiDeopUseChanserv', value => (this.settings.protAntiDeopUseChanserv = value));
-    settingsService.onSettingChange('protExcludeTokens', value => (this.settings.protExcludeTokens = value));
-    settingsService.onSettingChange('protEnforceSilence', value => (this.settings.protEnforceSilence = value));
-    settingsService.onSettingChange('protBlockTsunamis', value => (this.settings.protBlockTsunamis = value));
-    settingsService.onSettingChange('protTextFloodNet', value => (this.settings.protTextFloodNet = value));
-    settingsService.onSettingChange('protIrcopAction', value => (this.settings.protIrcopAction = value));
-    settingsService.onSettingChange('protIrcopReason', value => (this.settings.protIrcopReason = value));
-    settingsService.onSettingChange('protIrcopDuration', value => (this.settings.protIrcopDuration = value));
+    settingsService.onSettingChange('spamPmMode', value => (this.settings.spamPmMode = this.asSpamMode(value, this.settings.spamPmMode)));
+    settingsService.onSettingChange('spamPmKeywords', value => (this.settings.spamPmKeywords = this.asStringArray(value, this.settings.spamPmKeywords)));
+    settingsService.onSettingChange('spamChannelEnabled', value => (this.settings.spamChannelEnabled = this.asBoolean(value, this.settings.spamChannelEnabled)));
+    settingsService.onSettingChange('spamNoSpamOnQuits', value => (this.settings.spamNoSpamOnQuits = this.asBoolean(value, this.settings.spamNoSpamOnQuits)));
+    settingsService.onSettingChange('spamLoggingEnabled', value => (this.settings.spamLoggingEnabled = this.asBoolean(value, this.settings.spamLoggingEnabled)));
+    settingsService.onSettingChange('protCtcpFlood', value => (this.settings.protCtcpFlood = this.asBoolean(value, this.settings.protCtcpFlood)));
+    settingsService.onSettingChange('protTextFlood', value => (this.settings.protTextFlood = this.asBoolean(value, this.settings.protTextFlood)));
+    settingsService.onSettingChange('protDccFlood', value => (this.settings.protDccFlood = this.asBoolean(value, this.settings.protDccFlood)));
+    settingsService.onSettingChange('protQueryFlood', value => (this.settings.protQueryFlood = this.asBoolean(value, this.settings.protQueryFlood)));
+    settingsService.onSettingChange('protDosAttacks', value => (this.settings.protDosAttacks = this.asBoolean(value, this.settings.protDosAttacks)));
+    settingsService.onSettingChange('protAntiDeopEnabled', value => (this.settings.protAntiDeopEnabled = this.asBoolean(value, this.settings.protAntiDeopEnabled)));
+    settingsService.onSettingChange('protAntiDeopUseChanserv', value => (this.settings.protAntiDeopUseChanserv = this.asBoolean(value, this.settings.protAntiDeopUseChanserv)));
+    settingsService.onSettingChange('protExcludeTokens', value => (this.settings.protExcludeTokens = this.asString(value, this.settings.protExcludeTokens)));
+    settingsService.onSettingChange('protEnforceSilence', value => (this.settings.protEnforceSilence = this.asBoolean(value, this.settings.protEnforceSilence)));
+    settingsService.onSettingChange('protBlockTsunamis', value => (this.settings.protBlockTsunamis = this.asBoolean(value, this.settings.protBlockTsunamis)));
+    settingsService.onSettingChange('protTextFloodNet', value => (this.settings.protTextFloodNet = this.asBoolean(value, this.settings.protTextFloodNet)));
+    settingsService.onSettingChange('protIrcopAction', value => (this.settings.protIrcopAction = this.asIrcopAction(value, this.settings.protIrcopAction)));
+    settingsService.onSettingChange('protIrcopReason', value => (this.settings.protIrcopReason = this.asString(value, this.settings.protIrcopReason)));
+    settingsService.onSettingChange('protIrcopDuration', value => (this.settings.protIrcopDuration = this.asString(value, this.settings.protIrcopDuration)));
   }
 
   getActionConfig(): Pick<ProtectionSettings, 'protEnforceSilence' | 'protIrcopAction' | 'protIrcopReason' | 'protIrcopDuration'> {

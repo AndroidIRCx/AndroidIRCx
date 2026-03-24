@@ -3,26 +3,26 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-const en = require('./en.json') as Record<string, string>;
-const fr = require('./fr.json') as Record<string, string>;
-const de = require('./de.json') as Record<string, string>;
-const it = require('./it.json') as Record<string, string>;
-const pt = require('./pt.json') as Record<string, string>;
-const ro = require('./ro.json') as Record<string, string>;
-const ru = require('./ru.json') as Record<string, string>;
-const sr = require('./sr.json') as Record<string, string>;
-const es = require('./es.json') as Record<string, string>;
-const id = require('./id.json') as Record<string, string>;
+import enJson from './en.json';
+import frJson from './fr.json';
+import deJson from './de.json';
+import itJson from './it.json';
+import ptJson from './pt.json';
+import roJson from './ro.json';
+import ruJson from './ru.json';
+import srJson from './sr.json';
+import esJson from './es.json';
+import idJson from './id.json';
 
-export const bundledTranslations: Record<string, Record<string, string>> = {
-  en,
-  fr,
-  de,
-  it,
-  pt,
-  ro,
-  ru,
-  sr,
-  es,
-  id,
+export const bundledTranslations: Record<string, Record<string, unknown>> = {
+  en: enJson,
+  fr: frJson,
+  de: deJson,
+  it: itJson,
+  pt: ptJson,
+  ro: roJson,
+  ru: ruJson,
+  sr: srJson,
+  es: esJson,
+  id: idJson,
 };

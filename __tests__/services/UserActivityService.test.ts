@@ -5,7 +5,7 @@
  * Tests for UserActivityService - 100% coverage target
  */
 
-import { userActivityService, UserActivity } from '../../src/services/UserActivityService';
+import { userActivityService } from '../../src/services/UserActivityService';
 
 describe('UserActivityService', () => {
   beforeEach(() => {
@@ -52,7 +52,6 @@ describe('UserActivityService', () => {
     });
 
     it('should update existing activity', async () => {
-      const before = Date.now();
       userActivityService.recordEvent('TestUser', 'freenode', 'JOIN', { channel: '#general' });
       
       await new Promise(resolve => setTimeout(resolve, 10));

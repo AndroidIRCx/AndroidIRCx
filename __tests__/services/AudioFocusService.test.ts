@@ -8,8 +8,6 @@
 import { NativeModules, Platform } from 'react-native';
 
 describe('AudioFocusService', () => {
-  let AudioFocusService: typeof import('../../src/services/AudioFocusService').audioFocusService;
-  
   const mockRequestTransientFocus = jest.fn().mockResolvedValue(true);
   const mockReleaseFocus = jest.fn();
 

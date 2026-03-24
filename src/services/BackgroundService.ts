@@ -24,7 +24,7 @@ import { IRCService, IRCMessage, ircService } from './IRCService';
 import { notificationService } from './NotificationService';
 import { messageHistoryService } from './MessageHistoryService';
 import { settingsService } from './SettingsService';
-import { RequestDisableOptimization, BatteryOptEnabled, OpenOptimizationSettings } from "react-native-battery-optimization-check";
+import { BatteryOptEnabled, OpenOptimizationSettings } from "react-native-battery-optimization-check";
 import { connectionManager } from './ConnectionManager';
 import { tx } from '../i18n/transifex';
 
@@ -290,17 +290,17 @@ class BackgroundService {
    * Process queued notifications (called periodically or when app comes to foreground)
    */
   async processNotificationQueue(): Promise<void> {
-    const t = (key: string, params?: Record<string, unknown>) => {
-      const translator = (tx as any)?.t;
-      return typeof translator === 'function' ? translator(key, params) : key;
+    const translate = (key: string, params?: Record<string, unknown>) => {
+      const rawTranslator = (tx as any)?.t;
+      return typeof rawTranslator === 'function' ? rawTranslator(key, params) : key;
     };
     for (const [channelKey, messages] of this.notificationQueue.entries()) {
       if (messages.length === 0) continue;
       const count = messages.length;
       const lastMessage = messages[messages.length - 1];
-      const channelName = lastMessage.channel || t('Unknown');
+      const channelName = lastMessage.channel || translate('Unknown');
       const networkName = lastMessage.network || 'unknown';
-      const title = t('{channel} ({count} new message{suffix})', {
+      const title = translate('{channel} ({count} new message{suffix})', {
         channel: channelName,
         count,
         suffix: count > 1 ? 's' : '',
@@ -365,8 +365,8 @@ class BackgroundService {
       return this.backgroundConnectionEnabled && activeConnection.ircService.getConnectionStatus();
     }
     // Fallback to singleton mode
-    const { ircService } = require('./IRCService');
-    return this.backgroundConnectionEnabled && ircService.getConnectionStatus();
+    const { ircService: fallbackIrcService } = require('./IRCService');
+    return this.backgroundConnectionEnabled && fallbackIrcService.getConnectionStatus();
   }
 
   /**
@@ -430,4 +430,3 @@ class BackgroundService {
 }
 
 export const backgroundService = new BackgroundService();
-

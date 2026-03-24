@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
 import { Alert, Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { NetworksListScreen } from '../../src/screens/NetworksListScreen';
@@ -50,7 +49,6 @@ jest.mock('../../src/services/SettingsService', () => ({
 
 jest.mock('../../src/screens/NetworkSettingsScreen', () => ({
   NetworkSettingsScreen: ({ networkId, onSave, onCancel }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return (
       <>
@@ -74,7 +72,6 @@ jest.mock('../../src/screens/NetworkSettingsScreen', () => ({
 
 jest.mock('../../src/screens/ServerSettingsScreen', () => ({
   ServerSettingsScreen: ({ networkId, serverId, onSave, onCancel }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return (
       <>
@@ -98,7 +95,6 @@ jest.mock('../../src/screens/ServerSettingsScreen', () => ({
 
 jest.mock('../../src/screens/ConnectionProfilesScreen', () => ({
   ConnectionProfilesScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? <Text onPress={onClose}>Mock Connection Profiles</Text> : null;
   },

@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
 import { Alert } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
@@ -98,7 +97,6 @@ jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 
 jest.mock('react-native-vector-icons/FontAwesome5', () => {
   return ({ name }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return <Text>{name}</Text>;
   };
@@ -132,7 +130,6 @@ jest.mock('../../src/components/modals/NetworkPickerModal', () => ({
     if (!visible) {
       return null;
     }
-    const React = require('react');
     const { Text } = require('react-native');
     return (
       <>

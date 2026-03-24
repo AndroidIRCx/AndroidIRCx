@@ -17,6 +17,7 @@ import {
   ActivityIndicator,
   BackHandler,
   Platform,
+  type ViewStyle,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { dataBackupService } from '../services/DataBackupService';
@@ -181,6 +182,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
     : backupOperation === 'decrypt'
     ? t('Decrypting backup...', { _tags: tags })
     : '';
+  const backupBusyRowStyle: ViewStyle = { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8 };
+  const backupBusyLabelStyle = { marginLeft: 8 };
+  const encryptionPromptStyle = { marginTop: 12, fontWeight: '600' as const };
+  const restoreNoticeStyle = { marginTop: 10 };
 
   useEffect(() => {
     if (visible) {
@@ -615,9 +620,9 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
           </TouchableOpacity>
         </View>
         {backupBusy && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8 }}>
+          <View style={backupBusyRowStyle}>
             <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={[styles.statsText, { marginLeft: 8 }]}>{backupOperationLabel}</Text>
+            <Text style={[styles.statsText, backupBusyLabelStyle]}>{backupOperationLabel}</Text>
           </View>
         )}
 
@@ -702,7 +707,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
               <Text style={styles.encryptionModalText}>
                 {t(SENSITIVE_DATA_WARNING, { _tags: tags })}
               </Text>
-              <Text style={[styles.encryptionModalText, { marginTop: 12, fontWeight: '600' }]}>
+              <Text style={[styles.encryptionModalText, encryptionPromptStyle]}>
                 {t('Do you want to encrypt this backup?', { _tags: tags })}
               </Text>
               <TextInput
@@ -825,7 +830,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
                       {t('Items: {count}', { count: loadedBackupMeta.keyCount, _tags: tags })}
                     </Text>
                   )}
-                  <Text style={[styles.loadedFileText, { marginTop: 10 }]}>
+                  <Text style={[styles.loadedFileText, restoreNoticeStyle]}>
                     {t('Please wait while restoring. Do not close the app.', { _tags: tags })}
                   </Text>
                   <TouchableOpacity

@@ -17,7 +17,6 @@ import { bannerAdService } from '../services/BannerAdService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 
 export function useBannerAds() {
-  const scriptingTimeMs = useUIStore(state => state.scriptingTimeMs);
   const [isScriptingTracking, setIsScriptingTracking] = useState(false);
   const [hasNoAds, setHasNoAds] = useState(false);
 

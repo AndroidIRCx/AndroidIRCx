@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Switch, TextInput, Modal, ScrollView, Alert, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Switch, TextInput, Modal, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { scriptingService, ScriptConfig, ScriptLogEntry } from '../services/ScriptingService';
 import { adRewardService } from '../services/AdRewardService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
@@ -24,6 +24,16 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
   const { colors } = useTheme();
   const t = useT();
   const styles = createStyles(colors);
+  const masterToggleContentStyle = { flex: 1, marginRight: 12 };
+  const titleSpacingStyle = { marginBottom: 4 };
+  const compactSubtitleStyle = { fontSize: 12 };
+  const italicSubtitleStyle = { fontSize: 11, marginTop: 4, fontStyle: 'italic' as const };
+  const fallbackSubtitleStyle = { marginBottom: 8, fontStyle: 'italic' as const };
+  const spacerStyle = { width: 16 };
+  const accentBlueBorderStyle = { borderLeftColor: '#2196F3' };
+  const accentBlueTextStyle = { color: '#2196F3' };
+  const accentOrangeBorderStyle = { borderLeftColor: '#FF9800' };
+  const accentOrangeTextStyle = { color: '#FF9800' };
   const [scripts, setScripts] = useState<ScriptConfig[]>([]);
   const [loggingEnabled, setLoggingEnabled] = useState<boolean>(scriptingService.isLoggingEnabled());
   const [logs, setLogs] = useState<ScriptLogEntry[]>([]);
@@ -43,8 +53,6 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
   const [adUnitType, setAdUnitType] = useState<string>('Primary');
   const [scriptingTimeActive, setScriptingTimeActive] = useState<boolean>(false);
   const highlightScrollRef = useRef<ScrollView | null>(null);
-  const { width, height } = useWindowDimensions();
-  const isLandscape = width > height;
 
   const refresh = useCallback(async () => {
     await scriptingService.initialize();
@@ -181,13 +189,6 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
     setScripts(scriptingService.list());
   };
 
-  const installFromRepo = async (id: string) => {
-    const item = repo.find(r => r.id === id);
-    if (!item) return;
-    await scriptingService.add(item);
-    setScripts(scriptingService.list());
-  };
-
   const handleSaveScript = async () => {
     if (!editing) return;
     await scriptingService.remove(editing.id);
@@ -234,7 +235,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
     Alert.alert(result.ok ? t('Lint Passed') : t('Syntax Error'), result.message);
   };
   
-  const highlightPartsFallback = (code: string) => {
+  const highlightPartsFallback = useCallback((code: string) => {
     const parts: { text: string; style: any }[] = [];
     const regex = /(\/\/.*$|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\b(function|const|let|var|return|if|else|for|while|switch|case|break|continue|new|class|extends|import|from|export|default|async|await|try|catch|throw)\b|\b\d+(\.\d+)?\b)/gm;
     let lastIndex = 0;
@@ -259,9 +260,9 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
       parts.push({ text: code.slice(lastIndex), style: styles.codeText });
     }
     return parts;
-  };
+  }, [styles]);
 
-  const highlightParts = (code: string) => {
+  const highlightParts = useCallback((code: string) => {
     try {
       const grammar = Prism.languages.javascript;
       if (!grammar) return highlightPartsFallback(code);
@@ -287,7 +288,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
           return;
         }
         if (Array.isArray(token)) {
-          token.forEach(t => pushToken(t, inheritedStyle));
+        token.forEach(childToken => pushToken(childToken, inheritedStyle));
           return;
         }
         const nextStyle = tokenStyle(token.type) || inheritedStyle;
@@ -300,11 +301,11 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
     } catch {
       return highlightPartsFallback(code);
     }
-  };
+  }, [highlightPartsFallback, styles]);
 
   const highlightedCode = useMemo(
     () => (showHighlight ? highlightParts(editing?.code ?? '') : []),
-    [editing?.code, showHighlight]
+    [editing?.code, showHighlight, highlightParts]
   );
 
   const filteredLogs = logFilter ? logs.filter(l => l.scriptId === logFilter) : logs;
@@ -365,15 +366,15 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
 
           {/* Master Toggle for Scripting Time / No-Ads Mode */}
           <View style={[styles.masterToggleContainer, { backgroundColor: scriptingTimeActive ? colors.primary + '10' : colors.surface }]}>
-            <View style={{ flex: 1, marginRight: 12 }}>
-              <Text style={[styles.timeLabel, { marginBottom: 4 }]}>
+            <View style={masterToggleContentStyle}>
+              <Text style={[styles.timeLabel, titleSpacingStyle]}>
                 {scriptingTimeActive ? '✅ ' : ''}{t('Scripting Time & No-Ads Active')}
               </Text>
-              <Text style={[styles.subtitle, { fontSize: 12 }]}>
+              <Text style={[styles.subtitle, compactSubtitleStyle]}>
                 {t('When ON: Time counts down, scripts can run, no banner ads')}
               </Text>
               {hasUnlimitedScripting && (
-                <Text style={[styles.subtitle, { fontSize: 11, marginTop: 4, fontStyle: 'italic' }]}>
+                <Text style={[styles.subtitle, italicSubtitleStyle]}>
                   {t('Unlimited scripting: Toggle enables/disables no-ads mode')}
                 </Text>
               )}
@@ -388,7 +389,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
             />
           </View>
           {adUnitType === 'Fallback' && (
-            <Text style={[styles.subtitle, { marginBottom: 8, fontStyle: 'italic' }]}>
+            <Text style={[styles.subtitle, fallbackSubtitleStyle]}>
               {t('Using fallback ad unit')}
             </Text>
           )}
@@ -434,21 +435,21 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
             </View>
           )}
           {!adReady && !adLoading && !adCooldown && (
-            <View style={[styles.warningBox, { backgroundColor: '#2196F3' + '20', borderLeftColor: '#2196F3' }]}>
-              <Text style={[styles.warningText, { color: '#2196F3' }]}>
+            <View style={[styles.warningBox, { backgroundColor: '#2196F3' + '20' }, accentBlueBorderStyle]}>
+              <Text style={[styles.warningText, accentBlueTextStyle]}>
                 {t('Tap "Request Ad" to load an ad from Google. First load may take a few moments.')}
               </Text>
             </View>
           )}
           {adCooldown && (
-            <View style={[styles.warningBox, { backgroundColor: '#FF9800' + '20', borderLeftColor: '#FF9800' }]}>
-              <Text style={[styles.warningText, { color: '#FF9800' }]}>
+            <View style={[styles.warningBox, { backgroundColor: '#FF9800' + '20' }, accentOrangeBorderStyle]}>
+              <Text style={[styles.warningText, accentOrangeTextStyle]}>
                 {t('Ads temporarily unavailable. The app works fine without them. Retrying in {cooldownSeconds}s...').replace('{cooldownSeconds}', cooldownSeconds.toString())}
               </Text>
             </View>
           )}
-          <View style={[styles.warningBox, { backgroundColor: '#2196F3' + '20', borderLeftColor: '#2196F3' }]}>
-            <Text style={[styles.warningText, { color: '#2196F3' }]}>
+          <View style={[styles.warningBox, { backgroundColor: '#2196F3' + '20' }, accentBlueBorderStyle]}>
+            <Text style={[styles.warningText, accentBlueTextStyle]}>
               {t('Scripts run with full access to your local IRC data. Only install scripts you trust and avoid running scripts from unknown sources.')}
             </Text>
           </View>
@@ -501,7 +502,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
               placeholder={t('script id')}
               placeholderTextColor={colors.textSecondary}
               value={logFilter || ''}
-              onChangeText={(t) => setLogFilter(t || null)}
+              onChangeText={(value) => setLogFilter(value || null)}
             />
           </View>
           <ScrollView style={styles.logBox} nestedScrollEnabled={true}>
@@ -529,7 +530,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
               <TextInput
                 style={styles.input}
                 value={editing.name}
-                onChangeText={(t) => setEditing({ ...editing, name: t })}
+                onChangeText={(value) => setEditing({ ...editing, name: value })}
               />
               <View style={styles.switchRow}>
                 <Text style={styles.subtitle}>{t('Enabled')}</Text>
@@ -540,7 +541,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
                   thumbColor={editing.enabled ? '#fff' : colors.textSecondary}
                   style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
                 />
-                <View style={{ width: 16 }} />
+                <View style={spacerStyle} />
                 <Text style={styles.subtitle}>{t('Highlight')}</Text>
                 <Switch 
                   value={showHighlight} 
@@ -573,7 +574,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
                   style={[styles.codeInput, showHighlight && styles.codeInputOverlay]}
                   multiline
                   value={editing.code}
-                  onChangeText={(t) => setEditing({ ...editing, code: t })}
+                  onChangeText={(value) => setEditing({ ...editing, code: value })}
                   onScroll={
                     showHighlight
                       ? (e) => {
@@ -582,9 +583,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
                         }
                       : undefined
                   }
-                  scrollEventThrottle={16}
                   selectionColor={colors.primary}
-                  caretColor={colors.primary}
                 />
               </View>
               <Text style={styles.label}>{t('Config (JSON)')}</Text>

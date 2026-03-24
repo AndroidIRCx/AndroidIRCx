@@ -7,7 +7,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Switch,
@@ -15,27 +14,21 @@ import {
   Modal,
   Alert,
   SectionList,
-  PermissionsAndroid,
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import type { TextStyle, ViewStyle } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import RNFS from 'react-native-fs';
 import { notificationService, NotificationPreferences } from '../services/NotificationService';
-import { backgroundService } from '../services/BackgroundService';
 import { messageHistoryService, ExportOptions } from '../services/MessageHistoryService';
-import { ircService } from '../services/IRCService';
-import { themeService, Theme } from '../services/ThemeService';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeEditorScreen } from './ThemeEditorScreen';
-import { connectionProfilesService } from '../services/ConnectionProfilesService';
 import { ConnectionProfilesScreen } from './ConnectionProfilesScreen';
-import { settingsService, IRCNetworkConfig, DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE } from '../services/SettingsService';
+import { settingsService, DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE } from '../services/SettingsService';
 import { AboutScreen } from './AboutScreen';
 import { CreditsScreen } from './CreditsScreen';
-import { bouncerService, BouncerConfig } from '../services/BouncerService';
-import { layoutService, LayoutConfig, ViewMode, FontSize } from '../services/LayoutService';
+import { bouncerService } from '../services/BouncerService';
 import {
   performanceService,
   PerformanceConfig,
@@ -43,7 +36,7 @@ import {
   DebugLogCategory,
 } from '../services/PerformanceService';
 import { dataBackupService } from '../services/DataBackupService';
-import { identityProfilesService, IdentityProfile } from '../services/IdentityProfilesService';
+import { identityProfilesService } from '../services/IdentityProfilesService';
 import { biometricAuthService } from '../services/BiometricAuthService';
 import { secureStorageService } from '../services/SecureStorageService';
 import { encryptedDMService } from '../services/EncryptedDMService';
@@ -52,8 +45,6 @@ import { ScriptingScreen } from './ScriptingScreen';
 import { ScriptingHelpScreen } from './ScriptingHelpScreen';
 import { BackupScreen } from './BackupScreen';
 import { MessageHistoryViewerScreen } from './MessageHistoryViewerScreen';
-import { inAppPurchaseService } from '../services/InAppPurchaseService';
-import { adRewardService } from '../services/AdRewardService';
 import { subscriptionService } from '../services/SubscriptionService';
 import * as RNIap from 'react-native-iap';
 import type { ProductSubscription, Purchase, PurchaseError } from 'react-native-iap';
@@ -63,9 +54,8 @@ import { ZncSubscriptionScreen } from './ZncSubscriptionScreen';
 import { PrivacyRelayScreen } from './PrivacyRelayScreen';
 import { PrivacyAdsScreen } from './PrivacyAdsScreen';
 import { DataPrivacyScreen } from './DataPrivacyScreen';
-import { RawMessageCategory, RAW_MESSAGE_CATEGORIES, getDefaultRawCategoryVisibility } from '../services/IRCService';
-import { applyTransifexLocale, useT } from '../i18n/transifex';
-import { SUPPORTED_LOCALES } from '../i18n/config';
+import { RawMessageCategory, getDefaultRawCategoryVisibility } from '../services/IRCService';
+import { useT } from '../i18n/transifex';
 import consoleManager from '../utils/consoleManager';
 import { SettingItem as SettingItemComponent } from '../components/settings/SettingItem';
 import { SettingsSectionHeader } from '../components/settings/SettingsSectionHeader';
@@ -87,6 +77,7 @@ import {
   toggleSectionExpansion,
   GlobalProxyInputs,
 } from '../utils/settingsHelpers';
+import type { ZncAccount } from '../types/znc';
 
 const FALLBACK_DEBUG_LOG_CATEGORIES: DebugLogCategory[] = [
   'appInitialization',
@@ -100,6 +91,8 @@ const FALLBACK_DEBUG_LOG_CATEGORIES: DebugLogCategory[] = [
   'messageBatching',
   'tabContextMenu',
 ];
+const getPurchaseReceipt = (purchase: Purchase): string =>
+  purchase.purchaseToken || ((purchase as Purchase & { transactionReceipt?: string }).transactionReceipt ?? '');
 
 interface SettingsScreenProps {
   visible: boolean;
@@ -150,7 +143,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const helpTitle = t('📖 Help & Documentation', { _tags: tags });
   const scriptingAdsTitle = t('Scripting & Ads', { _tags: tags });
   const premiumTitle = t('💎 Premium', { _tags: tags });
-  const zncSubscriptionTitle = t('ZNC Subscription', { _tags: tags });
+  const _zncSubscriptionTitle = t('ZNC Subscription', { _tags: tags });
   const connectionTitle = t('Connection & Network', { _tags: tags });
   const debugLogCategories = DEBUG_LOG_CATEGORIES ?? FALLBACK_DEBUG_LOG_CATEGORIES;
   const debugLogLabelMap: Record<DebugLogCategory, string> = {
@@ -196,11 +189,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const connectionSettings = useSettingsConnection();
   const {
     networks,
-    autoReconnectConfig,
-    rateLimitConfig,
-    floodProtectionConfig,
-    lagMonitoringConfig,
-    connectionStats,
     bouncerConfig,
     bouncerInfo,
     refreshNetworks,
@@ -208,23 +196,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   } = connectionSettings;
   const [localShowRawCommands, setLocalShowRawCommands] = useState(showRawCommands);
   const [localRawCategoryVisibility, setLocalRawCategoryVisibility] = useState<Record<RawMessageCategory, boolean>>(getDefaultRawCategoryVisibility());
-  const [historyStats, setHistoryStats] = useState<any>(null);
-  const [exportFormat, setExportFormat] = useState<'json' | 'txt' | 'csv'>('json');
+  const [, setHistoryStats] = useState<any>(null);
+  const [exportFormat] = useState<'json' | 'txt' | 'csv'>('json');
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
   // Use hooks for appearance settings
   const appearanceSettings = useSettingsAppearance();
   const {
-    currentTheme,
-    availableThemes,
     showThemeEditor,
     editingTheme,
-    layoutConfig,
-    appLanguage,
     setShowThemeEditor,
     setEditingTheme,
     refreshThemes,
-    setAppLanguage: setAppLanguageFromHook,
-    updateLayoutConfig,
   } = appearanceSettings;
   const [showConnectionProfiles, setShowConnectionProfiles] = useState(false);
   // Networks and connection configs now come from useSettingsConnection hook (see above)
@@ -245,7 +227,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
   const [migrationNetwork, setMigrationNetwork] = useState('');
   const [storageStats, setStorageStats] = useState<{ keyCount: number; totalBytes: number }>({ keyCount: 0, totalBytes: 0 });
-  const [identityProfiles, setIdentityProfiles] = useState<IdentityProfile[]>([]);
+  const [, setIdentityProfiles] = useState<any[]>([]);
   const [showScripting, setShowScripting] = useState(false);
   const [showScriptingHelp, setShowScriptingHelp] = useState(false);
   const [showChannelNotifModal, setShowChannelNotifModal] = useState(false);
@@ -260,7 +242,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   // Security settings now come from useSettingsSecurity hook (see above)
   // Use hooks for premium and security settings
   const premiumSettings = useSettingsPremium();
-  const securitySettings = useSettingsSecurity();
+  useSettingsSecurity();
   
   // Extract values from hooks for backward compatibility
   const {
@@ -274,21 +256,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     adCooldown,
     cooldownSeconds,
     showingAd,
-    adUnitType,
     showWatchAdButton,
     handleWatchAd,
   } = premiumSettings;
-  
-  const {
-    killSwitchEnabledOnHeader,
-    killSwitchEnabledOnLockScreen,
-    killSwitchShowWarnings,
-    quickConnectNetworkId,
-    setKillSwitchEnabledOnHeader,
-    setKillSwitchEnabledOnLockScreen,
-    setKillSwitchShowWarnings,
-    setQuickConnectNetworkId,
-  } = securitySettings;
   
   const [zncPurchaseToken, setZncPurchaseToken] = useState('');
   const [zncSubscriptionId, setZncSubscriptionId] = useState(zncSubscriptionIdConst);
@@ -297,22 +267,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [zncExpiresAt, setZncExpiresAt] = useState<string | null>(null);
   const [zncPassword, setZncPassword] = useState<string | null>(null);
   const [zncAccountStatus, setZncAccountStatus] = useState<string | null>(null);
-  const [zncRegistering, setZncRegistering] = useState(false);
+  const [, setZncRegistering] = useState(false);
   const [zncOfferToken, setZncOfferToken] = useState<string | null>(null);
   const [zncDisplayPrice, setZncDisplayPrice] = useState<string | null>(null);
-  const [zncPurchasing, setZncPurchasing] = useState(false);
+  const [, setZncPurchasing] = useState(false);
   const zncUsernameRef = useRef('');
 
-  const [autoConnectFavoriteServer, setAutoConnectFavoriteServer] = useState(false);
+  const [, setAutoConnectFavoriteServer] = useState(false);
   const [showFirstRunSetup, setShowFirstRunSetup] = useState(false);
-  const [tabSortAlphabetical, setTabSortAlphabetical] = useState(true);
+  const [, setTabSortAlphabetical] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showEncryptionIndicatorsSetting, setShowEncryptionIndicatorsSetting] = useState(showEncryptionIndicators);
-  const [showTypingIndicatorsSetting, setShowTypingIndicatorsSetting] = useState(showTypingIndicators);
+  const [showTypingIndicatorsSetting] = useState(showTypingIndicators);
   // appLanguage now comes from useSettingsAppearance hook (see above)
   const [biometricLockEnabled, setBiometricLockEnabled] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
-  const [passwordsUnlocked, setPasswordsUnlocked] = useState(true);
+  const [, setPasswordsUnlocked] = useState(true);
   const [pinLockEnabled, setPinLockEnabled] = useState(false);
   const [pinModalVisible, setPinModalVisible] = useState(false);
   const [pinModalMode, setPinModalMode] = useState<'unlock' | 'setup' | 'confirm'>('unlock');
@@ -384,40 +354,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   // handleWatchAd now comes from useSettingsPremium hook
   // DCC settings now managed by ConnectionNetworkSection
-  const [noticeTarget, setNoticeTarget] = useState<'active' | 'server' | 'notice' | 'private'>('server');
+  const [, setNoticeTarget] = useState<'active' | 'server' | 'notice' | 'private'>('server');
 
   // Configurable messages
-  const [partMessage, setPartMessage] = useState(DEFAULT_PART_MESSAGE);
-  const [quitMessage, setQuitMessage] = useState(DEFAULT_QUIT_MESSAGE);
-  const [hideJoinMessages, setHideJoinMessages] = useState(false);
-  const [hidePartMessages, setHidePartMessages] = useState(false);
-  const [hideQuitMessages, setHideQuitMessages] = useState(false);
-  const [hideIrcServiceListenerMessages, setHideIrcServiceListenerMessages] = useState(true);
-  const [closePrivateMessage, setClosePrivateMessage] = useState(false);
-  const [closePrivateMessageText, setClosePrivateMessageText] = useState('Closing window');
+  const [, setPartMessage] = useState('');
+  const [, setQuitMessage] = useState('');
+  const [, setHideJoinMessages] = useState(false);
+  const [, setHidePartMessages] = useState(false);
+  const [, setHideQuitMessages] = useState(false);
+  const [, setHideIrcServiceListenerMessages] = useState(true);
+  const [, setClosePrivateMessage] = useState(false);
+  const [, setClosePrivateMessageText] = useState('Closing window');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set([aboutTitle]));
   const prevAboutTitleRef = useRef(aboutTitle);
-  const [lagCheckMethod, setLagCheckMethod] = useState<'ctcp' | 'server'>('server');
+  const [, setLagCheckMethod] = useState<'ctcp' | 'server'>('server');
   const sectionListRef = useRef<SectionList>(null);
   // DCC submenu items now managed by ConnectionNetworkSection
-
-  useEffect(() => {
-    if (visible) {
-      loadSettings();
-      loadHistoryStats();
-      setLocalShowRawCommands(showRawCommands);
-      setLocalRawCategoryVisibility({
-        ...getDefaultRawCategoryVisibility(),
-        ...(rawCategoryVisibility || {}),
-      });
-      setShowEncryptionIndicatorsSetting(showEncryptionIndicators);
-      refreshThemes();
-    loadChannelSettings();
-
-    // Statistics are now managed by useSettingsConnection hook
-    // No need for periodic updates here - hook handles it
-    }
-  }, [visible, showRawCommands, showEncryptionIndicators, currentNetwork, rawCategoryVisibility]);
 
   useEffect(() => {
     zncUsernameRef.current = zncUsername;
@@ -461,91 +413,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     };
     
     checkNotificationPermission();
-  }, [visible, tags, t]);
+  }, [visible, tags, t, updateNotificationPrefs]);
 
-  useEffect(() => {
-    if (!visible) return;
-
-    let purchaseUpdateSubscription: any;
-    let purchaseErrorSubscription: any;
-    let cancelled = false;
-
-    const setupIap = async () => {
-      try {
-        await initZncIap();
-      } catch (error) {
-        if (!cancelled) {
-          console.error('Error initializing ZNC IAP:', error);
-        }
-      }
-    };
-
-    setupIap();
-
-    purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
-      async (purchase: Purchase) => {
-        if (purchase.productId !== zncSubscriptionIdConst) {
-          return;
-        }
-        setZncPurchasing(false);
-        const token = purchase.purchaseToken || purchase.transactionReceipt || '';
-        if (!token) {
-          Alert.alert(
-            t('Purchase Error', { _tags: tags }),
-            t('Missing purchase token from Google Play.', { _tags: tags })
-          );
-          return;
-        }
-
-        try {
-          await RNIap.finishTransaction({ purchase, isConsumable: false });
-        } catch (error) {
-          console.error('Error finishing ZNC transaction:', error);
-        }
-
-        setZncPurchaseToken(token);
-        await persistZncConfig({
-          purchaseToken: token,
-          subscriptionId: zncSubscriptionIdConst,
-          zncUsername: zncUsernameRef.current,
-        });
-        await registerZncSubscriptionWithToken(token, zncUsernameRef.current);
-      }
-    );
-
-    purchaseErrorSubscription = RNIap.purchaseErrorListener(
-      (error: PurchaseError) => {
-        if (error.productId && error.productId !== zncSubscriptionIdConst) {
-          return;
-        }
-        setZncPurchasing(false);
-        if (error.code !== 'E_USER_CANCELLED') {
-          Alert.alert(
-            t('Purchase Failed', { _tags: tags }),
-            error.message || t('Please try again later.', { _tags: tags })
-          );
-        }
-      }
-    );
-
-    return () => {
-      cancelled = true;
-      if (purchaseUpdateSubscription) {
-        purchaseUpdateSubscription.remove();
-      }
-      if (purchaseErrorSubscription) {
-        purchaseErrorSubscription.remove();
-      }
-    };
-  }, [visible, initZncIap, registerZncSubscriptionWithToken, tags, t, zncSubscriptionIdConst]);
-
-  // Supporter status now managed by useSettingsPremium hook - no local state needed
-
-  const loadSettings = async () => {
-    // Load kill switch and quick connect settings
+  const loadSettings = useCallback(async () => {
     // Security and premium settings now loaded by hooks
-    
-    // Continue with existing loadSettings logic
     const biometryType = await biometricAuthService.getBiometryType();
     if (!isMountedRef.current) return;
     const biometrySupported = Boolean(biometryType);
@@ -636,17 +507,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setZncPassword(zncState.zncPassword);
     setZncAccountStatus(zncState.zncStatus);
     // autoJoinFavoritesEnabled now managed by ConnectionNetworkSection component
-  };
+  }, [refreshNotificationPrefs]);
 
-  const loadHistoryStats = async () => {
+  const loadHistoryStats = useCallback(async () => {
     if (currentNetwork) {
       const stats = await messageHistoryService.getStats(currentNetwork);
       if (!isMountedRef.current) return;
       setHistoryStats(stats);
     }
-  };
+  }, [currentNetwork]);
 
-  const loadChannelSettings = async () => {
+  const loadChannelSettings = useCallback(async () => {
     await refreshNetworks();
 
     // Connection-related settings (auto-reconnect, auto-voice, auto-rejoin, connection quality, etc.)
@@ -671,14 +542,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       if (!isMountedRef.current) return;
       setIdentityProfiles(profiles);
     }).catch(() => {});
-  };
+  }, [refreshNetworks]);
 
   const loadZncSubscriptionProduct = useCallback(async () => {
     try {
-      const products = await RNIap.fetchProducts({
+      const products = (await RNIap.fetchProducts({
         skus: [zncSubscriptionIdConst],
         type: 'subs',
-      });
+      })) ?? [];
       const subscription = products.find(
         (item): item is ProductSubscription =>
           item.id === zncSubscriptionIdConst && item.type === 'subs'
@@ -692,12 +563,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       if (!isMountedRef.current) return;
       setZncDisplayPrice(subscription.displayPrice || null);
       if (Platform.OS === 'android') {
-        const offers = subscription.subscriptionOfferDetailsAndroid || [];
+        const offers = ((subscription as ProductSubscription & {
+          subscriptionOfferDetailsAndroid?: Array<{ basePlanId?: string; offerToken?: string }>;
+        }).subscriptionOfferDetailsAndroid) || [];
         const matchedOffer =
-          offers.find(offer => offer.basePlanId === zncBasePlanId) || offers[0];
+          offers.find((offer: { basePlanId?: string; offerToken?: string }) => offer.basePlanId === zncBasePlanId) || offers[0];
         setZncOfferToken(matchedOffer?.offerToken || null);
       }
-    } catch (error) {
+    } catch {
       if (!isMountedRef.current) return;
       setZncOfferToken(null);
       setZncDisplayPrice(null);
@@ -738,8 +611,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
     
     try {
-      const networks = await settingsService.loadNetworks();
-      let dbaseNetwork = networks.find(n => n.id === 'DBase' || n.name === 'DBase') || null;
+      const loadedNetworks = await settingsService.loadNetworks();
+      let dbaseNetwork = loadedNetworks.find(n => n.id === 'DBase' || n.name === 'DBase') || null;
       if (!dbaseNetwork) {
         dbaseNetwork = await settingsService.createDefaultNetwork();
       }
@@ -774,7 +647,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   }, []);
 
-  const connectNowToZnc = async () => {
+  const _connectNowToZnc = async () => {
     if (!zncUsername || !zncPassword) {
       Alert.alert(
         t('Missing Credentials', { _tags: tags }),
@@ -784,8 +657,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
 
     await applyZncServerToDBase(zncUsername, zncPassword);
-    const networks = await settingsService.loadNetworks();
-    const dbaseNetwork = networks.find(n => n.id === 'DBase' || n.name === 'DBase');
+    const loadedNetworks = await settingsService.loadNetworks();
+    const dbaseNetwork = loadedNetworks.find(n => n.id === 'DBase' || n.name === 'DBase');
     const zncServer = dbaseNetwork?.servers.find(s => s.id === 'znc-subscription') || dbaseNetwork?.servers.find(s => s.hostname === 'irc.androidircx.com' && s.port === 16786);
 
     if (!dbaseNetwork || !zncServer) {
@@ -837,7 +710,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   };
 
-  const startZncPurchase = async () => {
+  const _startZncPurchase = async () => {
     const username = zncUsername.trim();
     if (!username) {
       Alert.alert(
@@ -934,18 +807,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       // Persist the purchase token even if username is empty
       await persistZncConfig({ purchaseToken: trimmedToken, subscriptionId, zncUsername: trimmedUsername });
 
-      const response = await subscriptionService.registerZncSubscription({
+      const response: ZncAccount = await subscriptionService.registerZncSubscription({
         purchaseToken: trimmedToken,
         subscriptionId,
         zncUsername: trimmedUsername || '', // Pass empty string if username is not provided
       });
 
       // Use the username from the response if available, otherwise fall back to the one we sent
-      const effectiveUsername = response.znc_username || trimmedUsername;
+      const effectiveUsername = response.zncUsername || trimmedUsername;
       setZncSubscriptionStatus(response.status || null);
-      setZncExpiresAt(response.expires_at || null);
-      setZncPassword(response.znc_password || null);
-      setZncAccountStatus(response.znc_status || null);
+      setZncExpiresAt(response.expiresAt || null);
+      setZncPassword(response.zncPassword || null);
+      setZncAccountStatus(response.provisioningStatus || null);
 
       // Only update the UI username if we have a valid one
       if (effectiveUsername) {
@@ -955,13 +828,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
       await settingsService.setSetting('zncSubscriptionState', {
         status: response.status || null,
-        expiresAt: response.expires_at || null,
-        zncPassword: response.znc_password || null,
-        zncStatus: response.znc_status || null,
+        expiresAt: response.expiresAt || null,
+        zncPassword: response.zncPassword || null,
+        zncStatus: response.provisioningStatus || null,
       });
 
-      if ((response.status === 'active' || response.status === 'grace') && response.znc_username && response.znc_password) {
-        await applyZncServerToDBase(response.znc_username, response.znc_password);
+      if ((response.status === 'active' || response.status === 'grace') && response.zncUsername && response.zncPassword) {
+        await applyZncServerToDBase(response.zncUsername, response.zncPassword);
         Alert.alert(
           t('ZNC Ready', { _tags: tags }),
           t('ZNC server added to DBase network.', { _tags: tags })
@@ -982,7 +855,93 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   }, [applyZncServerToDBase, persistZncConfig, tags, t, zncSubscriptionIdConst]);
 
-  const registerZncSubscription = async () => {
+  useEffect(() => {
+    if (!visible) return;
+
+    let purchaseUpdateSubscription: any;
+    let purchaseErrorSubscription: any;
+    let cancelled = false;
+
+    const setupIap = async () => {
+      try {
+        await initZncIap();
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Error initializing ZNC IAP:', error);
+        }
+      }
+    };
+
+    setupIap();
+
+    purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
+      async (purchase: Purchase) => {
+        if (purchase.productId !== zncSubscriptionIdConst) {
+          return;
+        }
+        setZncPurchasing(false);
+        const token = getPurchaseReceipt(purchase);
+        if (!token) {
+          Alert.alert(
+            t('Purchase Error', { _tags: tags }),
+            t('Missing purchase token from Google Play.', { _tags: tags })
+          );
+          return;
+        }
+
+        try {
+          await RNIap.finishTransaction({ purchase, isConsumable: false });
+        } catch (error) {
+          console.error('Error finishing ZNC transaction:', error);
+        }
+
+        setZncPurchaseToken(token);
+        await persistZncConfig({
+          purchaseToken: token,
+          subscriptionId: zncSubscriptionIdConst,
+          zncUsername: zncUsernameRef.current,
+        });
+        await registerZncSubscriptionWithToken(token, zncUsernameRef.current);
+      }
+    );
+
+    purchaseErrorSubscription = RNIap.purchaseErrorListener(
+      (error: PurchaseError) => {
+        if (error.productId && error.productId !== zncSubscriptionIdConst) {
+          return;
+        }
+        setZncPurchasing(false);
+        if (String(error.code) !== 'E_USER_CANCELLED') {
+          Alert.alert(
+            t('Purchase Failed', { _tags: tags }),
+            error.message || t('Please try again later.', { _tags: tags })
+          );
+        }
+      }
+    );
+
+    return () => {
+      cancelled = true;
+      if (purchaseUpdateSubscription) {
+        purchaseUpdateSubscription.remove();
+      }
+      if (purchaseErrorSubscription) {
+        purchaseErrorSubscription.remove();
+      }
+    };
+  }, [
+    visible,
+    initZncIap,
+    persistZncConfig,
+    registerZncSubscriptionWithToken,
+    tags,
+    t,
+    zncSubscriptionIdConst,
+  ]);
+
+  // Supporter status now managed by useSettingsPremium hook - no local state needed
+
+  const _registerZncSubscription = async () => {
     const purchaseToken = zncPurchaseToken.trim();
 
     if (!purchaseToken) {
@@ -999,7 +958,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     await registerZncSubscriptionWithToken(purchaseToken, username);
   };
 
-  const buildGlobalProxyConfig = (overrides?: Partial<GlobalProxyInputs>) => {
+  const _buildGlobalProxyConfig = (overrides?: Partial<GlobalProxyInputs>) => {
     const inputs: GlobalProxyInputs = {
       enabled: globalProxyEnabled,
       type: globalProxyType,
@@ -1012,17 +971,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   // Helper function to get network label
-  const networkLabel = useCallback((networkId: string): string => {
+  const _networkLabel = useCallback((networkId: string): string => {
     const network = networks.find(n => n.id === networkId);
     return network?.name || networkId;
   }, [networks]);
 
-  const persistGlobalProxy = async (overrides?: Partial<GlobalProxyInputs>) => {
-    const cfg = buildGlobalProxyConfig(overrides);
+  const _persistGlobalProxy = async (overrides?: Partial<GlobalProxyInputs>) => {
+    const cfg = _buildGlobalProxyConfig(overrides);
     await settingsService.setSetting('globalProxy', cfg);
   };
 
-  const handleNotificationChange = async (key: keyof NotificationPreferences, value: boolean) => {
+  const _handleNotificationChange = async (key: keyof NotificationPreferences, value: boolean) => {
     // If enabling notifications, check and request permission first
     if (key === 'enabled' && value) {
       const hasPermission = await notificationService.checkPermission();
@@ -1041,9 +1000,64 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     await updateNotificationPrefs({ [key]: value });
   };
 
-  const handleBackgroundConnectionChange = async (value: boolean) => {
+  const _handleBackgroundConnectionChange = async (value: boolean) => {
     await setBackgroundEnabledFromHook(value);
   };
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    loadSettings();
+    loadHistoryStats();
+    refreshThemes();
+    loadChannelSettings();
+  }, [
+    currentNetwork,
+    loadChannelSettings,
+    loadHistoryStats,
+    loadSettings,
+    refreshThemes,
+    visible,
+  ]);
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    setLocalShowRawCommands(prev =>
+      prev === showRawCommands ? prev : showRawCommands
+    );
+  }, [showRawCommands, visible]);
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    const nextVisibility = {
+      ...getDefaultRawCategoryVisibility(),
+      ...(rawCategoryVisibility || {}),
+    };
+
+    setLocalRawCategoryVisibility(prev => {
+      const categories = Object.keys(nextVisibility) as RawMessageCategory[];
+      const hasChanges = categories.some(category => prev[category] !== nextVisibility[category]);
+      return hasChanges ? nextVisibility : prev;
+    });
+  }, [rawCategoryVisibility, visible]);
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    setShowEncryptionIndicatorsSetting(prev =>
+      prev === showEncryptionIndicators ? prev : showEncryptionIndicators
+    );
+  }, [showEncryptionIndicators, visible]);
 
   const handleExportHistory = async () => {
     try {
@@ -1073,7 +1087,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   };
 
-  const handleClearHistory = () => {
+  const _handleClearHistory = () => {
     Alert.alert(
       t('Clear Message History', { _tags: tags }),
       t('Are you sure you want to clear all message history? This cannot be undone.', { _tags: tags }),
@@ -1099,12 +1113,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   // handleBatteryOptimization now comes from useSettingsNotifications hook
-  const handleBatteryOptimizationWrapper = async () => {
+  const _handleBatteryOptimizationWrapper = async () => {
     await handleBatteryOptimization();
-    // After returning from settings, re-check the status to update UI
-    setTimeout(async () => {
-      setBatteryOptEnabledStatus(await backgroundService.isBatteryOptimizationEnabled());
-    }, 1000); // Delay to allow user to return from settings
   };
 
   const backupBusy = backupOperation !== 'idle';
@@ -1118,7 +1128,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     ? t('Copying backup data...', { _tags: tags })
     : '';
 
-  const handleBackupExport = async (settingsOnly: boolean = false) => {
+  const _handleBackupExport = async (settingsOnly: boolean = false) => {
     if (backupBusy) return;
     setBackupOperation('export');
     try {
@@ -1278,7 +1288,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   const passwordLockActive = biometricLockEnabled || pinLockEnabled;
-  const passwordUnlockDescription = biometricLockEnabled
+  const _passwordUnlockDescription = biometricLockEnabled
     ? t('Use fingerprint/biometric to unlock', { _tags: tags })
     : t('Enter PIN to unlock', { _tags: tags });
 
@@ -1360,7 +1370,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   // App lock functions now handled by SecuritySection component
 
-  const unlockPasswords = useCallback(async (): Promise<boolean> => {
+  const _unlockPasswords = async (): Promise<boolean> => {
     if (!passwordLockActive) {
       setPasswordsUnlocked(true);
       return true;
@@ -1394,9 +1404,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
     setPasswordsUnlocked(true);
     return true;
-  }, [biometricAvailable, biometricLockEnabled, passwordLockActive, pinLockEnabled, requestPinUnlock, t]);
+  };
 
-  const handleBiometricLockToggle = async (value: boolean) => {
+  const _handleBiometricLockToggle = async (value: boolean) => {
     if (value) {
       if (!biometricAvailable) {
         Alert.alert(
@@ -1429,7 +1439,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setPasswordsUnlocked(true);
   };
 
-  const handlePinLockToggle = async (value: boolean) => {
+  const _handlePinLockToggle = async (value: boolean) => {
     if (value) {
       if (biometricLockEnabled) {
         await biometricAuthService.disableLock();
@@ -1448,27 +1458,56 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   // App lock functions now handled by SecuritySection component
 
   const lastSearchTermRef = useRef('');
-  useEffect(() => {
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) {
-      lastSearchTermRef.current = '';
-      return;
-    }
-    // Expand all sections while searching, but don't auto-open or scroll.
-    setExpandedSections(new Set(filteredSections.map(s => s.title)));
-    if (term !== lastSearchTermRef.current) {
-      setShowSubmenu(null);
-      lastSearchTermRef.current = term;
-    }
-  }, [searchTerm, filteredSections]);
-
   // Icon mapping now handled by utility function
-  const zncStatusLabel = zncSubscriptionStatus || t('Not registered', { _tags: tags });
-  const zncExpiresLabel = formatZncExpiresAt(zncExpiresAt);
-  const zncAccountLabel = zncAccountStatus || t('Not available', { _tags: tags });
-  const zncPurchaseDescription = zncDisplayPrice
+  const _zncStatusLabel = zncSubscriptionStatus || t('Not registered', { _tags: tags });
+  const _zncExpiresLabel = formatZncExpiresAt(zncExpiresAt);
+  const _zncAccountLabel = zncAccountStatus || t('Not available', { _tags: tags });
+  const _zncPurchaseDescription = zncDisplayPrice
     ? t('Price: {price}', { price: zncDisplayPrice, _tags: tags })
     : t('Monthly subscription via Google Play', { _tags: tags });
+
+  notificationPrefs;
+  backgroundEnabled;
+  batteryOptEnabledStatus;
+  _zncSubscriptionTitle;
+  _connectNowToZnc;
+  _startZncPurchase;
+  _registerZncSubscription;
+  _networkLabel;
+  _persistGlobalProxy;
+  _handleNotificationChange;
+  _handleBackgroundConnectionChange;
+  _handleClearHistory;
+  _handleBatteryOptimizationWrapper;
+  _handleBackupExport;
+  _passwordUnlockDescription;
+  _unlockPasswords;
+  _handleBiometricLockToggle;
+  _handlePinLockToggle;
+  _zncStatusLabel;
+  _zncExpiresLabel;
+  _zncAccountLabel;
+  _zncPurchaseDescription;
+
+  const pinModalContainerStyle: ViewStyle = { maxHeight: '60%' };
+  const backupModalContainerStyle: ViewStyle = { maxHeight: '80%' };
+  const modalSectionPaddingStyle: ViewStyle = { paddingHorizontal: 16, paddingVertical: 12 };
+  const modalActionRowStyle: ViewStyle = { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, padding: 16, paddingTop: 0 };
+  const backupBusyRowStyle: ViewStyle = { flexDirection: 'row', alignItems: 'center', paddingTop: 8 };
+  const backupBusyLabelStyle: TextStyle = { marginLeft: 8 };
+  const backupInputStyle: TextStyle = {
+    minHeight: 200,
+    textAlignVertical: 'top',
+    backgroundColor: colors.surface,
+    color: colors.text,
+    borderColor: colors.border,
+  };
+  const backupActionRowStyle: ViewStyle = { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 12, flexWrap: 'wrap' };
+  const channelNotifSectionPaddingStyle: ViewStyle = { paddingHorizontal: 16, paddingVertical: 12 };
+  const channelNotifActionRowStyle: ViewStyle = { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 };
+  const channelNotifOuterRowStyle: ViewStyle = { alignItems: 'flex-end' };
+  const channelNotifInnerRowStyle: ViewStyle = { flexDirection: 'row', alignItems: 'center' };
+  const identityDeleteSpacingStyle: ViewStyle = { marginTop: 4 };
 
   const sections = [
     {
@@ -1498,7 +1537,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     /*
     {
       id: 'znc-subscription',
-      title: zncSubscriptionTitle,
+      title: _zncSubscriptionTitle,
       data: [
         {
           id: 'znc-manage-subscriptions',
@@ -1565,7 +1604,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             const stats = await messageHistoryService.getStats();
             Alert.alert(
               'Message History Statistics',
-              `Total Messages: ${stats.totalMessages}\nChannels: ${stats.channelCount}\nOldest Message: ${new Date(stats.oldestMessage).toLocaleString()}\nNewest Message: ${new Date(stats.newestMessage).toLocaleString()}`
+              `Total Messages: ${stats.totalMessages}\nChannels: ${stats.channelCount}\nOldest Message: ${stats.oldestMessage ? new Date(stats.oldestMessage).toLocaleString() : 'N/A'}\nNewest Message: ${stats.newestMessage ? new Date(stats.newestMessage).toLocaleString() : 'N/A'}`
             );
           },
           searchKeywords: ['history', 'statistics', 'stats', 'messages', 'count', 'total'],
@@ -2335,13 +2374,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     },
   ];
 
-  const orderedSections = useMemo(() => {
-    return orderSections(sections, isSupporter, hasNoAds, hasScriptingPro);
-  }, [sections, isSupporter, hasNoAds, hasScriptingPro]);
-
-  const filteredSections = useMemo(() => {
-    return filterSettings(orderedSections, searchTerm);
-  }, [orderedSections, searchTerm]);
+  const orderedSections = orderSections(sections, isSupporter, hasNoAds, hasScriptingPro);
+  const filteredSections = filterSettings(orderedSections, searchTerm);
 
   const renderSettingItem = (item: SettingItem, sectionTitle?: string) => {
     const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
@@ -2378,8 +2412,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             styles={styles}
             settingIcons={settingIcons}
             onShowKeyManagement={() => setShowKeyManagement(true)}
-            onShowMigrationDialog={(networkId) => {
-              setMigrationNetwork(networkId);
+            onShowMigrationDialog={() => {
+              setMigrationNetwork(currentNetwork || '');
               setShowMigrationDialog(true);
             }}
           />
@@ -2419,8 +2453,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             colors={colors}
             styles={styles}
             settingIcons={settingIcons}
-            onShowThemeEditor={(theme) => {
-              setEditingTheme(theme);
+            onShowThemeEditor={(selectedTheme) => {
+              setEditingTheme(selectedTheme);
               setShowThemeEditor(true);
             }}
             languageLabels={languageLabels}
@@ -2609,21 +2643,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
 
     return (
-      <SettingItemComponent
-        key={item.id}
-        item={item}
-        icon={itemIcon}
-        colors={colors}
-        styles={styles}
-        onPress={(itemId) => {
-          if (item.type === 'submenu') {
-            setShowSubmenu(itemId);
-          }
-        }}
-        onValueChange={(itemId, value) => {
-          // Value change is handled by item.onValueChange in SettingItem component
-        }}
-      />
+        <SettingItemComponent
+          key={item.id}
+          item={item}
+          icon={itemIcon}
+          colors={colors}
+          styles={styles}
+          onPress={(_itemId) => {
+            if (item.type === 'submenu') {
+              setShowSubmenu(_itemId);
+            }
+          }}
+          onValueChange={(_itemId, _value) => {
+            // Value change is handled by item.onValueChange in SettingItem component
+          }}
+        />
     );
   };
 
@@ -2631,6 +2665,58 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     const newExpandedSections = toggleSectionExpansion(sectionTitle, expandedSections);
     setExpandedSections(newExpandedSections);
   };
+
+  const renderSectionListItem = (info: { item?: SettingItem; section?: { title?: string } } | null) => {
+    if (!info?.item) {
+      return null;
+    }
+    return renderSettingItem(info.item, info.section?.title);
+  };
+
+  const renderSectionListHeader = (info: { section?: { id?: string; title?: string } } | null) => {
+    const id = info?.section?.id;
+    const title = info?.section?.title;
+    if (!id || !title) {
+      return null;
+    }
+
+    const iconInfo = getSectionIcon(id);
+    return (
+      <SettingsSectionHeader
+        title={title}
+        icon={iconInfo ? { name: iconInfo.name, solid: Boolean(iconInfo.solid) } : undefined}
+        isExpanded={expandedSections.has(title)}
+        onToggle={() => toggleSection(title)}
+        colors={colors}
+        styles={styles}
+      />
+    );
+  };
+
+  useEffect(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) {
+      lastSearchTermRef.current = '';
+      return;
+    }
+
+    const nextExpandedTitles = filteredSections.map(section => section.title);
+    setExpandedSections(prev => {
+      if (
+        prev.size === nextExpandedTitles.length &&
+        nextExpandedTitles.every(title => prev.has(title))
+      ) {
+        return prev;
+      }
+
+      return new Set(nextExpandedTitles);
+    });
+
+    if (term !== lastSearchTermRef.current) {
+      setShowSubmenu(null);
+      lastSearchTermRef.current = term;
+    }
+  }, [searchTerm, filteredSections]);
 
   const displaySections = useMemo(() => {
     if (searchTerm.trim()) {
@@ -2689,21 +2775,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <SectionList
           ref={sectionListRef as any}
           sections={displaySections as any}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, section }) => renderSettingItem(item, section.title)}
-          renderSectionHeader={({ section: { id, title } }) => {
-            const iconInfo = getSectionIcon(id);
-            return (
-              <SettingsSectionHeader
-                title={title}
-                icon={iconInfo}
-                isExpanded={expandedSections.has(title)}
-                onToggle={() => toggleSection(title)}
-                colors={colors}
-                styles={styles}
-              />
-            );
-          }}
+          keyExtractor={(item) => item?.id ?? 'missing-setting-item'}
+          renderItem={renderSectionListItem}
+          renderSectionHeader={renderSectionListHeader}
           style={styles.list}
           contentContainerStyle={styles.listContent}
         />
@@ -2810,14 +2884,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           animationType="fade"
           onRequestClose={() => closePinModal(false)}>
           <View style={styles.submenuOverlay}>
-            <View style={[styles.submenuContainer, { maxHeight: '60%' }]}>
+            <View style={[styles.submenuContainer, pinModalContainerStyle]}>
               <View style={styles.submenuHeader}>
                 <Text style={styles.submenuTitle}>{pinModalTitle}</Text>
                 <TouchableOpacity onPress={() => closePinModal(false)}>
                   <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
                 </TouchableOpacity>
               </View>
-              <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+              <View style={modalSectionPaddingStyle}>
                 <Text style={styles.submenuItemDescription}>{pinModalDescription}</Text>
                 <TextInput
                   style={[
@@ -2839,7 +2913,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <Text style={[styles.submenuItemDescription, { color: colors.error }]}>{pinError}</Text>
                 )}
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, padding: 16, paddingTop: 0 }}>
+              <View style={modalActionRowStyle}>
                 <TouchableOpacity onPress={() => closePinModal(false)}>
                   <Text style={styles.closeButtonText}>{t('Cancel', { _tags: tags })}</Text>
                 </TouchableOpacity>
@@ -2859,7 +2933,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             if (!backupBusy) setShowBackupModal(false);
           }}>
           <View style={styles.submenuOverlay}>
-            <View style={[styles.submenuContainer, { maxHeight: '80%' }]}>
+            <View style={[styles.submenuContainer, backupModalContainerStyle]}>
               <View style={styles.submenuHeader}>
                 <Text style={styles.submenuTitle}>{t('Backup / Restore', { _tags: tags })}</Text>
                 <TouchableOpacity disabled={backupBusy} onPress={() => setShowBackupModal(false)}>
@@ -2871,7 +2945,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   {t('Copy this JSON to back up. To restore, paste backup JSON and tap Restore.', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.submenuInput, { minHeight: 200, textAlignVertical: 'top', backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[styles.submenuInput, backupInputStyle]}
                   multiline
                   value={backupData}
                   onChangeText={setBackupData}
@@ -2881,14 +2955,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 />
               </ScrollView>
               {backupBusy && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 8 }}>
+                <View style={backupBusyRowStyle}>
                   <ActivityIndicator size="small" color={colors.primary} />
-                  <Text style={[styles.submenuItemDescription, { marginLeft: 8 }]}>
+                  <Text style={[styles.submenuItemDescription, backupBusyLabelStyle]}>
                     {backupOperationLabel}
                   </Text>
                 </View>
               )}
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
+              <View style={backupActionRowStyle}>
                 <TouchableOpacity disabled={backupBusy} onPress={() => setShowBackupModal(false)}>
                   <Text style={styles.closeButtonText}>{t('Cancel', { _tags: tags })}</Text>
                 </TouchableOpacity>
@@ -2911,14 +2985,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           animationType="slide"
           onRequestClose={() => setShowChannelNotifModal(false)}>
           <View style={styles.submenuOverlay}>
-            <View style={[styles.submenuContainer, { maxHeight: '80%' }]}>
+            <View style={[styles.submenuContainer, backupModalContainerStyle]}>
               <View style={styles.submenuHeader}>
                 <Text style={styles.submenuTitle}>{t('Per-Channel Notifications', { _tags: tags })}</Text>
                 <TouchableOpacity onPress={() => setShowChannelNotifModal(false)}>
                   <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
                 </TouchableOpacity>
               </View>
-              <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+              <View style={channelNotifSectionPaddingStyle}>
                 <Text style={styles.submenuItemDescription}>
                   {t('Add a channel to override global notification settings.', { _tags: tags })}
                 </Text>
@@ -2933,7 +3007,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   onChangeText={setNewChannelNotif}
                   autoCapitalize="none"
                 />
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+                <View style={channelNotifActionRowStyle}>
                   <TouchableOpacity
                     onPress={async () => {
                       const chan = newChannelNotif.trim();
@@ -2964,8 +3038,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                         {prefs.doNotDisturb ? t(' • DND', { _tags: tags }) : ''}
                       </Text>
                     </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={channelNotifOuterRowStyle}>
+                      <View style={channelNotifInnerRowStyle}>
                         <Text style={styles.submenuItemDescription}>{t('All', { _tags: tags })}</Text>
                         <Switch
                           value={prefs.notifyOnAllMessages}
@@ -2975,7 +3049,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                           }}
                         />
                       </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <View style={channelNotifInnerRowStyle}>
                         <Text style={styles.submenuItemDescription}>{t('Mentions', { _tags: tags })}</Text>
                         <Switch
                           value={prefs.notifyOnMentions}
@@ -2990,7 +3064,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                           await notificationService.removeChannelPreferences(channel);
                           refreshChannelNotifList();
                         }}>
-                        <Text style={[styles.identityDeleteText, { marginTop: 4 }]}>{t('Delete', { _tags: tags })}</Text>
+                        <Text style={[styles.identityDeleteText, identityDeleteSpacingStyle]}>{t('Delete', { _tags: tags })}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -3146,7 +3220,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           animationType="slide"
           onRequestClose={() => setShowFirstRunSetup(false)}>
           <FirstRunSetupScreen
-            onComplete={async (networkConfig) => {
+            onComplete={async (_networkConfig) => {
               console.log('First run setup completed from settings');
               setShowFirstRunSetup(false);
               onClose(); // Close settings screen

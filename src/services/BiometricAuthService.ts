@@ -8,9 +8,8 @@ import { AppState, Platform } from 'react-native';
 // Optional dependency: react-native-keychain. Code guards in case it's missing.
 let Keychain: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   Keychain = require('react-native-keychain');
-} catch (e) {
+} catch {
   // Optional; biometric locking will be unavailable.
 }
 
@@ -85,7 +84,7 @@ class BiometricAuthService {
     const service = this.getService(scope);
     try {
       await Keychain.resetGenericPassword(service ? { service } : undefined);
-    } catch (e) {
+    } catch {
       // ignore
     }
   }

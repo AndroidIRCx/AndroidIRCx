@@ -128,7 +128,7 @@ describe('PurchaseScreen', () => {
     fireEvent.press(await findByText('Restore purchases'));
 
     await waitFor(() => {
-      expect(inAppPurchaseService.processPurchase).toHaveBeenCalledWith('remove_ads', 'receipt-1');
+      expect(inAppPurchaseService.processPurchase).toHaveBeenCalledWith('remove_ads', 'token-1');
     });
     expect(Alert.alert).toHaveBeenCalledWith('Restore complete', 'Your purchases have been restored.');
   });
@@ -184,7 +184,7 @@ describe('PurchaseScreen', () => {
     });
 
     expect(mockRNIap.finishTransaction).toHaveBeenCalled();
-    expect(inAppPurchaseService.processPurchase).toHaveBeenCalledWith('remove_ads', 'receipt-123');
+    expect(inAppPurchaseService.processPurchase).toHaveBeenCalledWith('remove_ads', 'token-123');
     expect(Alert.alert).toHaveBeenCalledWith('Purchase Successful', 'Thank you for your purchase!', [{ text: 'OK' }]);
   });
 

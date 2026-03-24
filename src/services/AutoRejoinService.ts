@@ -49,7 +49,7 @@ export class AutoRejoinService {
    */
   destroy(): void {
     // Clear all pending timers
-    this.rejoinTimers.forEach((timer, channel) => {
+    this.rejoinTimers.forEach(timer => {
       clearTimeout(timer);
     });
     this.rejoinTimers.clear();

@@ -10,9 +10,7 @@
 import { IRCService } from './IRCService';
 import { serviceDetectionService } from './ServiceDetectionService';
 import {
-  IRCServiceType,
   DetectionResult,
-  ServiceCommand,
 } from '../interfaces/ServiceTypes';
 import { tx } from '../i18n/transifex';
 

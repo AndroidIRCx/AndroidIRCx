@@ -82,7 +82,7 @@ export function getAllServiceNicks(): string[] {
           nicks.push(service.nick.toLowerCase());
         }
         if (service.aliases) {
-          nicks.push(...service.aliases.map(a => a.toLowerCase()));
+          nicks.push(...service.aliases.map((a: string) => a.toLowerCase()));
         }
       });
     }
@@ -109,7 +109,7 @@ export function getServiceTypeByNick(nick: string): string | undefined {
       for (const service of Object.values(config.services)) {
         const serviceNicks = [
           service.nick?.toLowerCase(),
-          ...(service.aliases?.map(a => a.toLowerCase()) || []),
+          ...(service.aliases?.map((a: string) => a.toLowerCase()) || []),
         ].filter(Boolean);
         
         if (serviceNicks.includes(lowerNick)) {

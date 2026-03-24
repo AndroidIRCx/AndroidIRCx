@@ -9,6 +9,7 @@ export type TabPosition = 'top' | 'bottom' | 'left' | 'right';
 export type UserListPosition = 'left' | 'right' | 'top' | 'bottom';
 export type ViewMode = 'compact' | 'comfortable' | 'spacious';
 export type FontSize = 'small' | 'medium' | 'large' | 'custom';
+export type LayoutType = 'compact' | 'default' | 'relaxed' | 'custom';
 
 export interface LayoutConfig {
   tabPosition: TabPosition;

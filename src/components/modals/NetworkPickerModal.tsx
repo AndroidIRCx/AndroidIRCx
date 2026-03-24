@@ -8,7 +8,7 @@
  * Shows list of existing networks with option to create new.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -47,13 +47,7 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
   const [networks, setNetworks] = useState<IRCNetworkConfig[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (visible) {
-      loadNetworks();
-    }
-  }, [visible]);
-
-  const loadNetworks = async () => {
+  const loadNetworks = useCallback(async () => {
     setLoading(true);
     try {
       const loadedNetworks = await settingsService.loadNetworks();
@@ -69,7 +63,13 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [recommendedNetworkId]);
+
+  useEffect(() => {
+    if (visible) {
+      loadNetworks();
+    }
+  }, [visible, loadNetworks]);
 
   const getNetworkIcon = (network: IRCNetworkConfig) => {
     // Check if network has ZNC server configured
@@ -196,7 +196,7 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (_colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,

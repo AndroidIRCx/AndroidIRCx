@@ -8,9 +8,7 @@
 
 import { connectionManager } from '../../src/services/ConnectionManager';
 import { settingsService } from '../../src/services/SettingsService';
-import { identityProfilesService } from '../../src/services/IdentityProfilesService';
 import { parseIRCUrl, findMatchingNetwork } from '../../src/utils/ircUrlParser';
-import { logger } from '../../src/services/Logger';
 
 // Mock dependencies
 jest.mock('../../src/services/ConnectionManager', () => ({
@@ -25,26 +23,6 @@ jest.mock('../../src/services/SettingsService', () => ({
   },
 }));
 
-jest.mock('../../src/services/IdentityProfilesService', () => ({
-  identityProfilesService: {
-    getDefaultProfile: jest.fn(() =>
-      Promise.resolve({
-        id: 'default',
-        nick: 'TestUser',
-        altNick: 'TestUser_',
-        realname: 'Test User',
-        ident: 'testuser',
-      })
-    ),
-  },
-}));
-
-jest.mock('../../src/services/Logger', () => ({
-  logger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-}));
 
 describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
   beforeEach(() => {

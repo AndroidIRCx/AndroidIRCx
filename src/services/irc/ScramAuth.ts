@@ -15,6 +15,7 @@
 
 import sodium from 'react-native-libsodium';
 
+/* eslint-disable no-bitwise, no-div-regex, dot-notation -- SCRAM math and RFC-aligned parsing intentionally use these low-level operations. */
 // Text encoder for string/bytes conversion
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -48,7 +49,7 @@ async function hmacSha256(key: Uint8Array, data: Uint8Array): Promise<Uint8Array
   // If key is longer than block size, hash it
   let keyBlock = key;
   if (key.length > blockSize) {
-    keyBlock = sodium.crypto_hash_sha256(key);
+    keyBlock = sodium.crypto_generichash(32, '', key);
   }
   
   // Pad key to block size
@@ -68,14 +69,14 @@ async function hmacSha256(key: Uint8Array, data: Uint8Array): Promise<Uint8Array
   const innerData = new Uint8Array(ipad.length + data.length);
   innerData.set(ipad);
   innerData.set(data, ipad.length);
-  const innerHash = sodium.crypto_hash_sha256(innerData);
+  const innerHash = sodium.crypto_generichash(32, '', innerData);
   
   // Outer hash: H(opad || innerHash)
   const outerData = new Uint8Array(opad.length + innerHash.length);
   outerData.set(opad);
   outerData.set(innerHash, opad.length);
   
-  return sodium.crypto_hash_sha256(outerData);
+  return sodium.crypto_generichash(32, '', outerData);
 }
 
 /**
@@ -313,7 +314,7 @@ export async function buildClientFinalMessage(
   const clientKey = await hmacSha256(saltedPassword, stringToBytes('Client Key'));
   
   // Calculate StoredKey
-  const storedKey = sodium.crypto_hash_sha256(clientKey);
+  const storedKey = sodium.crypto_generichash(32, '', clientKey);
   
   // Calculate ClientSignature
   const clientSignature = await hmacSha256(storedKey, stringToBytes(authMessage));

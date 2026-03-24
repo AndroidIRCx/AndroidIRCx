@@ -107,7 +107,7 @@ jest.mock('../src/services/EncryptedDMService', () => ({
     formatFingerprintForDisplay: jest.fn((fp: string) => fp),
     setVerifiedForNetwork: jest.fn(() => Promise.resolve()),
     acceptExternalBundleForNetwork: jest.fn(() => Promise.resolve()),
-    parseExternalPayload: jest.fn((raw: string) => ({ type: 'encdm-bundle', nick: 'test', bundle: {}, fingerprint: 'fp' })),
+    parseExternalPayload: jest.fn((_raw: string) => ({ type: 'encdm-bundle', nick: 'test', bundle: {}, fingerprint: 'fp' })),
     verifyBundle: jest.fn(),
     awaitBundleForNick: jest.fn(() => Promise.resolve()),
   },
@@ -121,7 +121,7 @@ jest.mock('../src/services/BanService', () => ({
       { id: 2, pattern: '*!ident@*', description: 'Ident based' },
     ]),
     getPredefinedReasons: jest.fn(() => ['Rule violation', 'Spam']),
-    generateBanMask: jest.fn((nick: string, ident: string, host: string, typeId: number) => `${nick}!${ident}@${host}`),
+    generateBanMask: jest.fn((nick: string, ident: string, host: string, _typeId: number) => `${nick}!${ident}@${host}`),
   },
 }));
 

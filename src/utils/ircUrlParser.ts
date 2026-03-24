@@ -4,7 +4,7 @@
  */
 
 import { IRCNetworkConfig, settingsService } from '../services/SettingsService';
-import { identityProfilesService, IdentityProfile } from '../services/IdentityProfilesService';
+import { IdentityProfile } from '../services/IdentityProfilesService';
 
 /**
  * Parsed IRC URL structure
@@ -186,10 +186,10 @@ export function parseIRCUrl(url: string): ParsedIRCUrl {
 
   // Extract query parameters (nick, altNick, realname, ident)
   // Query params override URL auth nick if both are present
-  const queryNick = queryParams['nick'];
-  const queryAltNick = queryParams['altnick'] || queryParams['alt_nick'];
-  const queryRealname = queryParams['realname'] || queryParams['real_name'];
-  const queryIdent = queryParams['ident'];
+  const queryNick = queryParams.nick;
+  const queryAltNick = queryParams.altnick || queryParams.alt_nick;
+  const queryRealname = queryParams.realname || queryParams.real_name;
+  const queryIdent = queryParams.ident;
 
   // Success!
   return {

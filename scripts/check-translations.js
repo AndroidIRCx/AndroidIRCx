@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 
 function usage() {
   console.error('Usage: node scripts/check-translations.js <file>');
@@ -25,7 +24,7 @@ while ((match = regex.exec(text)) !== null) {
   try {
     const value = JSON.parse(`"${sanitized}"`);
     keys.add(value);
-  } catch (err) {
+  } catch {
     keys.add(literal);
   }
 }

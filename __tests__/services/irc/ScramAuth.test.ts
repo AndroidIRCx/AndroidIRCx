@@ -21,6 +21,10 @@ jest.mock('react-native-libsodium', () => {
       const digest = crypto.createHash('sha256').update(Buffer.from(toBytes(data))).digest();
       return new Uint8Array(digest);
     },
+    crypto_generichash: (outLen: number, _key: string, data: Uint8Array | number[] | Buffer) => {
+      const digest = crypto.createHash('sha256').update(Buffer.from(toBytes(data))).digest();
+      return new Uint8Array(digest.slice(0, outLen));
+    },
     to_base64: (bytes: Uint8Array | number[] | Buffer) =>
       Buffer.from(toBytes(bytes)).toString('base64'),
     from_base64: (str: string) => new Uint8Array(Buffer.from(str, 'base64')),

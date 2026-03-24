@@ -7,37 +7,26 @@
 
 import { AutoRejoinService } from '../../src/services/AutoRejoinService';
 
-// Mock IRCService
 const mockOn = jest.fn().mockReturnValue(jest.fn());
 const mockGetNetworkName = jest.fn().mockReturnValue('freenode');
 const mockGetCurrentNick = jest.fn().mockReturnValue('TestUser');
 const mockJoinChannel = jest.fn();
 
-jest.mock('../../src/services/IRCService', () => ({
-  IRCService: jest.fn().mockImplementation(() => ({
-    on: mockOn,
-    getNetworkName: mockGetNetworkName,
-    getCurrentNick: mockGetCurrentNick,
-    joinChannel: mockJoinChannel,
-  })),
-  ircService: {
-    on: mockOn,
-    getNetworkName: mockGetNetworkName,
-    getCurrentNick: mockGetCurrentNick,
-    joinChannel: mockJoinChannel,
-  },
-}));
-
 describe('AutoRejoinService', () => {
   let service: AutoRejoinService;
+  let ircService: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { AutoRejoinService } = require('../../src/services/AutoRejoinService');
-    const { ircService } = require('../../src/services/IRCService');
+    ircService = {
+      on: mockOn,
+      getNetworkName: mockGetNetworkName,
+      getCurrentNick: mockGetCurrentNick,
+      joinChannel: mockJoinChannel,
+    };
     service = new AutoRejoinService(ircService);
   });
 
@@ -69,29 +58,29 @@ describe('AutoRejoinService', () => {
       service.setConfig('freenode', { enabled: true, delay: 5000 });
       service.handleKick('#general');
       
-      expect(service['rejoinTimers'].size).toBe(1);
+      expect(service.rejoinTimers.size).toBe(1);
       
       service.destroy();
       
-      expect(service['rejoinTimers'].size).toBe(0);
+      expect(service.rejoinTimers.size).toBe(0);
     });
 
     it('should remove event listeners', () => {
       service.initialize();
       const cleanupMock = jest.fn();
-      service['cleanupFunctions'].push(cleanupMock);
+      service.cleanupFunctions.push(cleanupMock);
       
       service.destroy();
       
       expect(cleanupMock).toHaveBeenCalled();
-      expect(service['cleanupFunctions'].length).toBe(0);
+      expect(service.cleanupFunctions.length).toBe(0);
     });
 
     it('should handle cleanup errors gracefully', () => {
       const errorCleanup = jest.fn().mockImplementation(() => {
         throw new Error('Cleanup failed');
       });
-      service['cleanupFunctions'].push(errorCleanup);
+      service.cleanupFunctions.push(errorCleanup);
       
       expect(() => service.destroy()).not.toThrow();
       expect(console.error).toHaveBeenCalledWith(
@@ -106,16 +95,16 @@ describe('AutoRejoinService', () => {
       
       service.destroy();
       
-      expect(service['kickedChannels'].size).toBe(0);
-      expect(service['rejoinAttempts'].size).toBe(0);
-      expect(service['manuallyLeftChannels'].size).toBe(0);
+      expect(service.kickedChannels.size).toBe(0);
+      expect(service.rejoinAttempts.size).toBe(0);
+      expect(service.manuallyLeftChannels.size).toBe(0);
     });
   });
 
   describe('handleKick', () => {
     it('should not rejoin if manually left', () => {
       service.setConfig('freenode', { enabled: true });
-      service['manuallyLeftChannels'].add('#general');
+      service.manuallyLeftChannels.add('#general');
       
       service.handleKick('#general');
       
@@ -186,11 +175,11 @@ describe('AutoRejoinService', () => {
       service.setConfig('freenode', { enabled: true, delay: 5000 });
       
       service.handleKick('#general');
-      const firstTimer = service['rejoinTimers'].get('#general');
+      const firstTimer = service.rejoinTimers.get('#general');
       
       // Kick again before timer fires
       service.handleKick('#general');
-      const secondTimer = service['rejoinTimers'].get('#general');
+      const secondTimer = service.rejoinTimers.get('#general');
       
       expect(firstTimer).not.toBe(secondTimer);
     });
@@ -200,7 +189,7 @@ describe('AutoRejoinService', () => {
       
       service.handleKick('#general');
       
-      expect(service['kickedChannels'].has('#general')).toBe(true);
+      expect(service.kickedChannels.has('#general')).toBe(true);
     });
 
     it('should increment rejoin attempts', () => {
@@ -209,7 +198,7 @@ describe('AutoRejoinService', () => {
       service.handleKick('#general');
       jest.advanceTimersByTime(2000);
       
-      expect(service['rejoinAttempts'].get('#general')).toBe(1);
+      expect(service.rejoinAttempts.get('#general')).toBe(1);
     });
 
     it('should use custom max attempts', () => {
@@ -234,22 +223,22 @@ describe('AutoRejoinService', () => {
       service.setConfig('freenode', { enabled: true, delay: 5000 });
       service.handleKick('#general');
       
-      expect(service['rejoinTimers'].has('#general')).toBe(true);
+      expect(service.rejoinTimers.has('#general')).toBe(true);
       
       service.handleJoin('#general');
       
-      expect(service['rejoinTimers'].has('#general')).toBe(false);
+      expect(service.rejoinTimers.has('#general')).toBe(false);
     });
 
     it('should clear kicked status', () => {
       service.setConfig('freenode', { enabled: true });
       service.handleKick('#general');
       
-      expect(service['kickedChannels'].has('#general')).toBe(true);
+      expect(service.kickedChannels.has('#general')).toBe(true);
       
       service.handleJoin('#general');
       
-      expect(service['kickedChannels'].has('#general')).toBe(false);
+      expect(service.kickedChannels.has('#general')).toBe(false);
     });
 
     it('should clear rejoin attempts', () => {
@@ -259,51 +248,51 @@ describe('AutoRejoinService', () => {
       
       service.handleJoin('#general');
       
-      expect(service['rejoinAttempts'].has('#general')).toBe(false);
+      expect(service.rejoinAttempts.has('#general')).toBe(false);
     });
 
     it('should clear manually left status', () => {
-      service['manuallyLeftChannels'].add('#general');
+      service.manuallyLeftChannels.add('#general');
       
       service.handleJoin('#general');
       
-      expect(service['manuallyLeftChannels'].has('#general')).toBe(false);
+      expect(service.manuallyLeftChannels.has('#general')).toBe(false);
     });
   });
 
   describe('handlePart', () => {
     it('should track manual part for current nick', () => {
-      service['handlePart']('#general', 'TestUser');
+      service.handlePart('#general', 'TestUser');
       
-      expect(service['manuallyLeftChannels'].has('#general')).toBe(true);
+      expect(service.manuallyLeftChannels.has('#general')).toBe(true);
     });
 
     it('should not track part for other nicks', () => {
-      service['handlePart']('#general', 'OtherUser');
+      service.handlePart('#general', 'OtherUser');
       
-      expect(service['manuallyLeftChannels'].has('#general')).toBe(false);
+      expect(service.manuallyLeftChannels.has('#general')).toBe(false);
     });
 
     it('should clear kicked status on manual part', () => {
-      service['kickedChannels'].add('#general');
+      service.kickedChannels.add('#general');
       
-      service['handlePart']('#general', 'TestUser');
+      service.handlePart('#general', 'TestUser');
       
-      expect(service['kickedChannels'].has('#general')).toBe(false);
+      expect(service.kickedChannels.has('#general')).toBe(false);
     });
 
     it('should clear rejoin attempts on manual part', () => {
-      service['rejoinAttempts'].set('#general', 3);
+      service.rejoinAttempts.set('#general', 3);
       
-      service['handlePart']('#general', 'TestUser');
+      service.handlePart('#general', 'TestUser');
       
-      expect(service['rejoinAttempts'].has('#general')).toBe(false);
+      expect(service.rejoinAttempts.has('#general')).toBe(false);
     });
 
     it('should handle null nick', () => {
-      service['handlePart']('#general', null as any);
+      service.handlePart('#general', null as any);
       
-      expect(service['manuallyLeftChannels'].has('#general')).toBe(false);
+      expect(service.manuallyLeftChannels.has('#general')).toBe(false);
     });
   });
 

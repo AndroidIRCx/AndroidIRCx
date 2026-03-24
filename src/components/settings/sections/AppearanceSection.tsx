@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useMemo, useState, useEffect } from 'react';
+/* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
+
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { Alert, Modal, View, Text, TouchableOpacity, ScrollView, TextInput, Platform } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
@@ -81,7 +83,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     setUserListSizeError('');
     setUserListNickFontInput(String(layoutConfig.userListNickFontSizePx ?? 13));
     setUserListNickFontError('');
-  }, [layoutConfig?.userListSizePx, layoutConfig?.userListNickFontSizePx]);
+  }, [layoutConfig]);
 
   useEffect(() => {
     let mounted = true;
@@ -133,7 +135,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   }, []);
 
   // Apply theme recommended settings
-  const applyThemeSettings = async (settings: ThemeRecommendedSettings): Promise<void> => {
+  const applyThemeSettings = useCallback(async (settings: ThemeRecommendedSettings): Promise<void> => {
     const normalizedBannerPosition = (() => {
       const pos = settings.bannerPosition;
       if (!pos) return undefined;
@@ -216,10 +218,10 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     if (settings.keyboardBehavior !== undefined) {
       await settingsService.setSetting('keyboardBehavior', settings.keyboardBehavior);
     }
-  };
+  }, []);
 
   // Handle theme selection with optional settings
-  const handleThemeSelect = async (theme: Theme) => {
+  const handleThemeSelect = useCallback(async (theme: Theme) => {
     // If theme has recommended settings, ask user
     if (theme.recommendedSettings && Object.keys(theme.recommendedSettings).length > 0) {
       Alert.alert(
@@ -253,10 +255,10 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       await themeService.setTheme(theme.id);
       refreshThemes();
     }
-  };
+  }, [applyThemeSettings, refreshThemes, t, tags]);
 
   // Export current theme to JSON file
-  const handleExportTheme = async () => {
+  const handleExportTheme = useCallback(async () => {
     try {
       const jsonData = themeService.exportCurrentTheme();
       if (!jsonData) {
@@ -290,10 +292,10 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         error instanceof Error ? error.message : t('Failed to export theme', { _tags: tags })
       );
     }
-  };
+  }, [currentTheme.name, t, tags]);
 
   // Import theme from JSON file
-  const handleImportTheme = async () => {
+  const handleImportTheme = useCallback(async () => {
     try {
       const [result] = await pick({
         type: ['application/json'],
@@ -364,7 +366,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         );
       }
     }
-  };
+  }, [handleThemeSelect, refreshThemes, t, tags]);
 
   const sectionData: SettingItemType[] = useMemo(() => {
     const items: SettingItemType[] = [
@@ -396,7 +398,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               onShowThemeEditor(undefined);
             },
           },
-          ...availableThemes.filter(t => t.isCustom).map(theme => ({
+          ...availableThemes.filter(themeItem => themeItem.isCustom).map(theme => ({
             id: `theme-edit-${theme.id}`,
             title: t('Edit {name}', { name: theme.name, _tags: tags }),
             type: 'button' as const,
@@ -404,7 +406,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               onShowThemeEditor(theme);
             },
           })),
-          ...availableThemes.filter(t => t.isCustom).map(theme => ({
+          ...availableThemes.filter(themeItem => themeItem.isCustom).map(theme => ({
             id: `theme-delete-${theme.id}`,
             title: t('Delete {name}', { name: theme.name, _tags: tags }),
             type: 'button' as const,
@@ -913,7 +915,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     ];
 
     return items;
-  }, [currentTheme, availableThemes, layoutConfig, appLanguage, languageLabels, t, tags, refreshThemes, setAppLanguageFromHook, updateLayoutConfig, onShowThemeEditor, showHeaderSearchButton, showMessageAreaSearchButton, handleExportTheme, handleImportTheme, handleThemeSelect]);
+  }, [currentTheme, availableThemes, layoutConfig, appLanguage, languageLabels, t, tags, refreshThemes, setAppLanguageFromHook, updateLayoutConfig, onShowThemeEditor, showHeaderSearchButton, showMessageAreaSearchButton, handleExportTheme, handleImportTheme, handleThemeSelect, userListSizeInput, userListSizeError, userListNickFontInput, userListNickFontError, nicklistTongueEnabled, nicklistTongueSizeInput, nicklistTongueSizeError]);
 
   const handleSubmenuPress = (itemId: string) => {
     const item = sectionData.find(i => i.id === itemId);

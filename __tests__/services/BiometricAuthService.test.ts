@@ -47,7 +47,6 @@ describe('BiometricAuthService', () => {
 
     let biometricAuthService: any;
     jest.isolateModules(() => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       biometricAuthService = require('../../src/services/BiometricAuthService').biometricAuthService;
     });
 

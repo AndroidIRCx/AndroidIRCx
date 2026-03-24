@@ -32,7 +32,7 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { NumericHandlerContext, NumericHandler } from '../types';
+import type { NumericHandler } from '../types';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -192,7 +192,6 @@ export const handle368: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 364 RPL_LINKS */
 export const handle364: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const mask = params[1] || '';
   const server = params[2] || '';
   const info = params.slice(3).join(' ').replace(/^:/, '') || '';
   ctx.addMessage({

@@ -5,7 +5,7 @@
  * Tests for STSService - Wave 7
  */
 
-import { stsService, STSPolicy } from '../../src/services/STSService';
+import { stsService } from '../../src/services/STSService';
 
 // Mock AsyncStorage
 const mockStorage: Record<string, string> = {};
@@ -172,13 +172,11 @@ describe('STSService', () => {
     it('should return undefined and delete expired policy', () => {
       // Create a policy that expires immediately
       stsService.savePolicy('irc.example.com', 'duration=1');
-
-      // Wait for expiration
-      jest.advanceTimersByTime(2000);
+      const storedPolicy = (stsService as any).policies.get('irc.example.com');
+      storedPolicy.expiresAt = Date.now() - 1;
 
       // Policy should be expired
-      const policy = stsService.getPolicy('irc.example.com');
-      // Note: This might pass depending on timing
+      expect(stsService.getPolicy('irc.example.com')).toBeUndefined();
     });
   });
 

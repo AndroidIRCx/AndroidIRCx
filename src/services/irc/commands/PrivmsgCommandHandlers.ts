@@ -120,7 +120,7 @@ function handleEncryptionProtocol(
     let payload: any = null;
     try {
       payload = JSON.parse(msgText.substring('!chanenc-msg '.length));
-    } catch (e) {
+    } catch {
       ctx.addMessage({
         type: 'error',
         channel: channelIdentifier,
@@ -184,7 +184,7 @@ function handleEncryptionProtocol(
     let payload: any = null;
     try {
       payload = JSON.parse(msgText.substring('!enc-msg '.length));
-    } catch (e) {
+    } catch {
       ctx.addMessage({
         type: 'error',
         channel: channelIdentifier,

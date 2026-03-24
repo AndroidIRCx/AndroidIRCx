@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -63,13 +63,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingIdentityProfile, setIsSavingIdentityProfile] = useState(false);
 
-  useEffect(() => {
-    if (visible) {
-      loadData();
-    }
-  }, [visible]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [loadedNetworks, loadedProfiles] = await Promise.all([
@@ -87,7 +81,13 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    if (visible) {
+      loadData();
+    }
+  }, [visible, loadData]);
 
   const handleConnectionTypeChange = async (networkId: string, connectionType: 'irc' | 'znc' | 'bnc') => {
     try {
@@ -425,7 +425,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('+ Add Server', { _tags: tags })}
                 </Text>
               </TouchableOpacity>
-              {item.servers.map((server, index) => (
+              {item.servers.map((server) => (
                 <View key={server.id} style={styles.serverItem}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.serverName}>

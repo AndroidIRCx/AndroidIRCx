@@ -72,7 +72,7 @@ describe('KillSwitchService', () => {
 
     mockGetConnection.mockReturnValue({
       ircService: {
-        isConnected: true,
+        getConnectionStatus: () => true,
         partChannel: jest.fn(),
       },
     });
@@ -98,7 +98,7 @@ describe('KillSwitchService', () => {
     });
     mockGetConnection.mockReturnValue({
       ircService: {
-        isConnected: true,
+        getConnectionStatus: () => true,
         partChannel,
       },
     });

@@ -259,7 +259,7 @@ class MediaCacheService {
           }
           clearedCount++;
           freedSpace += entry.size;
-        } catch (error) {
+        } catch {
           console.error('[MediaCacheService] Failed to delete file:', entry.filePath);
         }
       }

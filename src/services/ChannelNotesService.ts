@@ -41,7 +41,7 @@ class ChannelNotesService {
       if (logsRaw) {
         this.logs = JSON.parse(logsRaw);
       }
-    } catch (e) {
+    } catch {
       // Swallow errors; defaults are fine
     } finally {
       this.initialized = true;

@@ -105,15 +105,13 @@ export function WebRTCCallModal({ activeTab }: WebRTCCallModalProps) {
     }).catch(() => undefined);
 
     return () => {
-      if (phase === 'idle' || phase === 'ended' || phase === 'error') {
-        notificationService.cancelOngoingCallNotification().catch(() => undefined);
-      }
+      notificationService.cancelOngoingCallNotification().catch(() => undefined);
     };
   }, [mediaType, minimized, networkId, peerNick, phase, showCallNotification, statusText]);
 
   const visible = phase !== 'idle';
   const modalVisible = visible && !minimized;
-  const canMinimize = phase !== 'incoming' && phase !== 'idle' && phase !== 'ended' && phase !== 'error';
+  const canMinimize = phase === 'outgoing' || phase === 'connecting' || phase === 'connected';
 
   const activeQueryMatchesPeer = Boolean(
     activeTab &&
@@ -153,7 +151,7 @@ export function WebRTCCallModal({ activeTab }: WebRTCCallModalProps) {
       const nextY = clamp(dragStartRef.current.y + gestureState.dy, OVERLAY_MARGIN, maxOverlayY);
       webRtcCallService.snapOverlayToEdge(window.width, overlayWidth, nextY);
     },
-  }), [boundedX, boundedY, maxOverlayX, maxOverlayY, minimized]);
+  }), [boundedX, boundedY, maxOverlayX, maxOverlayY, minimized, overlayWidth, window.width]);
 
   const resizeResponder = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => minimized && mediaType === 'video',
@@ -449,7 +447,7 @@ export function WebRTCCallModal({ activeTab }: WebRTCCallModalProps) {
       fontWeight: '700',
       marginTop: 4,
     },
-  }), [mediaType, overlayHeight, overlayWidth, usingRelay, window.width]);
+  }), [mediaType, overlayHeight, overlayWidth, usingRelay]);
 
   const renderFullscreenStage = () => (
     <View style={styles.stage}>

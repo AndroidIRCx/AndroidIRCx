@@ -12,9 +12,7 @@ import {
   HelpSubsection,
   HelpParagraph,
   HelpBullet,
-  HelpCode,
   HelpInfoBox,
-  HelpWarningBox,
 } from './HelpScreenBase';
 
 interface HelpTroubleshootingScreenProps {
@@ -27,6 +25,7 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
   onClose,
 }) => {
   const t = useT();
+  const infoBoxTextStyle = { lineHeight: 22 };
 
   return (
     <HelpScreenBase visible={visible} onClose={onClose} title={t('Troubleshooting Guide')}>
@@ -273,7 +272,7 @@ export const HelpTroubleshootingScreen: React.FC<HelpTroubleshootingScreenProps>
         </HelpSubsection>
 
         <HelpInfoBox>
-          <Text style={{ lineHeight: 22 }}>
+          <Text style={infoBoxTextStyle}>
             {t('Enable Debug Logging:')}
             {'\n'}
             {t('Settings → Development → Enable Console Logging (debug builds only)')}

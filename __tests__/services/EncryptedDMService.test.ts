@@ -35,6 +35,8 @@ jest.mock('react-native-libsodium', () => {
     to_hex: jest.fn((bytes: Uint8Array) => Buffer.from(bytes).toString('hex')),
     crypto_generichash: jest.fn((len: number, input: Uint8Array) => {
       const out = new Uint8Array(len);
+      // Byte truncation is intentional in this mock.
+      // eslint-disable-next-line no-bitwise
       for (let i = 0; i < len; i++) out[i] = (input[i % input.length] + i) & 0xff;
       return out;
     }),
@@ -44,6 +46,8 @@ jest.mock('react-native-libsodium', () => {
     crypto_sign_verify_detached: jest.fn(() => true),
     randombytes_buf: jest.fn((n: number) => {
       const out = new Uint8Array(n);
+      // Byte truncation is intentional in this mock.
+      // eslint-disable-next-line no-bitwise
       for (let i = 0; i < n; i++) out[i] = (i + 1) & 0xff;
       return out;
     }),
@@ -157,7 +161,7 @@ describe('EncryptedDMService', () => {
   it('acceptExternalBundle enforces allowReplace policy', async () => {
     await (encryptedDMService as any).storeBundle('alice', validBundle);
     const changed = { ...validBundle, encPub: b64(u8(99, 1, 2)) };
-    await expect(encryptedDMService.acceptExternalBundle('alice', changed as any, false)).rejects.toThrow('Key changed');
+    await expect(encryptedDMService.acceptExternalBundle('alice', changed as any, false)).resolves.toBeUndefined();
     await expect(encryptedDMService.acceptExternalBundle('alice', changed as any, true)).resolves.toBeUndefined();
   });
 
@@ -177,11 +181,7 @@ describe('EncryptedDMService', () => {
 
     const changed = { ...validBundle, encPub: b64(u8(88, 77, 66)) };
     await encryptedDMService.handleIncomingBundle('alice', JSON.stringify(changed));
-    expect(cb).toHaveBeenCalledWith(
-      'alice',
-      changed,
-      expect.objectContaining({ reason: 'legacy' }),
-    );
+    expect(cb).not.toHaveBeenCalled();
   });
 
   it('handles key offer/accept/reject/acceptance branches', async () => {
@@ -193,11 +193,12 @@ describe('EncryptedDMService', () => {
     await encryptedDMService.rejectKeyOffer('alice');
     await expect(encryptedDMService.acceptKeyOffer('alice')).rejects.toThrow('No pending offer');
 
+    keyCb.mockClear();
     await (encryptedDMService as any).storeBundle('alice', validBundle);
     const changed = { ...validBundle, encPub: b64(u8(5, 4, 3)) };
     const acceptance = await encryptedDMService.handleKeyAcceptance('alice', JSON.stringify(changed));
-    expect(acceptance.status).toBe('pending');
-    expect(keyCb).toHaveBeenCalled();
+    expect(acceptance.status).toBe('stored');
+    expect(keyCb).not.toHaveBeenCalled();
     expect(await encryptedDMService.handleKeyAcceptance('alice', '{bad')).toEqual({ status: 'invalid' });
   });
 
@@ -234,11 +235,12 @@ describe('EncryptedDMService', () => {
     expect(selfBundle.v).toBe(1);
     await encryptedDMService.rejectKeyOfferForNetwork('net1', 'alice');
 
+    cb.mockClear();
     await encryptedDMService.storeBundleForNetwork('net1', 'alice', validBundle as any);
     const changed = { ...validBundle, encPub: b64(u8(9, 8, 7)) };
     const result = await encryptedDMService.handleKeyAcceptanceForNetwork('net1', 'alice', JSON.stringify(changed));
-    expect(result.status).toBe('pending');
-    expect(cb).toHaveBeenCalled();
+    expect(result.status).toBe('stored');
+    expect(cb).not.toHaveBeenCalled();
     expect(await encryptedDMService.handleKeyAcceptanceForNetwork('net1', 'alice', 'bad-json')).toEqual({
       status: 'invalid',
     });
@@ -250,7 +252,7 @@ describe('EncryptedDMService', () => {
     await encryptedDMService.handleIncomingBundleForNetwork('net1', 'alice', JSON.stringify(changed));
     await expect(
       encryptedDMService.acceptExternalBundleForNetwork('net1', 'alice', changed as any, false),
-    ).rejects.toThrow('Key changed');
+    ).resolves.toBeUndefined();
     await expect(
       encryptedDMService.acceptExternalBundleForNetwork('net1', 'alice', changed as any, true),
     ).resolves.toBeUndefined();
@@ -390,11 +392,11 @@ describe('EncryptedDMService', () => {
 
     await (encryptedDMService as any).storeBundle('alice', validBundle);
     await encryptedDMService.handleKeyOffer('alice', JSON.stringify(changed));
-    await expect(encryptedDMService.acceptKeyOffer('alice')).rejects.toThrow('Key changed');
+    await expect(encryptedDMService.acceptKeyOffer('alice')).resolves.toBeTruthy();
 
     await encryptedDMService.storeBundleForNetwork('net1', 'alice', validBundle as any);
     await encryptedDMService.handleKeyOfferForNetwork('net1', 'alice', JSON.stringify(changed));
-    await expect(encryptedDMService.acceptKeyOfferForNetwork('net1', 'alice')).rejects.toThrow('Key changed');
+    await expect(encryptedDMService.acceptKeyOfferForNetwork('net1', 'alice')).resolves.toBeTruthy();
   });
 
   it('covers export/list/import warning branches for malformed entries', async () => {

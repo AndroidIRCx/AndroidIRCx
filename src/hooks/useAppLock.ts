@@ -445,7 +445,9 @@ export function useAppLock() {
       && AppState.currentState === 'active'
     ) {
       // Auto-prompt is optional and user-controlled from Security settings.
-      void attemptBiometricUnlock(false);
+      attemptBiometricUnlock(false).catch(() => {
+        // Auto-prompt failures are already handled by the unlock flow.
+      });
     }
   }, [appLocked, appLockUseBiometric, appLockAutoBiometricPrompt, attemptBiometricUnlock]);
 

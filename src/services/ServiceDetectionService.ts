@@ -273,7 +273,7 @@ export class ServiceDetectionService {
     
     const lowerNick = nick.toLowerCase();
     
-    for (const [name, service] of Object.entries(config.services)) {
+    for (const [, service] of Object.entries(config.services)) {
       if (service.nick.toLowerCase() === lowerNick) {
         return service;
       }
@@ -294,7 +294,7 @@ export class ServiceDetectionService {
     
     const commands: Array<{ service: string; command: string; description: string }> = [];
     
-    for (const [serviceName, service] of Object.entries(config.services)) {
+    for (const [, service] of Object.entries(config.services)) {
       if (service.enabled && service.commands) {
         for (const cmd of service.commands) {
           commands.push({
@@ -478,8 +478,6 @@ export class ServiceDetectionService {
     // Check for service nicks in tokens
     const nickserv = tokens.get('NICKSERV');
     const chanserv = tokens.get('CHANSERV');
-    const hostserv = tokens.get('HOSTSERV');
-
     if (nickserv || chanserv) {
       // Has services, try to identify which type
       if (tokens.has('NICKSERV') && tokens.has('CHANSERV') && !tokens.has('X')) {

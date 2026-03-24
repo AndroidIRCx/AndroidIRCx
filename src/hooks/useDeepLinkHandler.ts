@@ -17,7 +17,6 @@ interface UseDeepLinkHandlerParams {
   handleJoinChannel: (channel?: string, key?: string) => void;
   isAppLocked: boolean;
   isFirstRunComplete: boolean;
-  activeConnectionId: string | null;
   tabs: ChannelTab[];
   safeAlert: typeof Alert.alert;
   t: (key: string, options?: any) => string;
@@ -43,7 +42,6 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
     handleJoinChannel,
     isAppLocked,
     isFirstRunComplete,
-    activeConnectionId,
     tabs,
     safeAlert,
     t,
@@ -56,57 +54,6 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
   // Track setTimeout IDs for cleanup to prevent memory leaks
   const timeoutIdsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const lastProcessedTimeRef = useRef<number>(0);
-
-  /**
-   * Process a deep link URL
-   */
-  const processDeepLink = useCallback(async (url: string) => {
-    if (!url) return;
-
-    logger.info('deeplink', `Processing IRC URL: ${url}`);
-
-    // Parse the URL
-    const parsed = parseIRCUrl(url);
-
-    if (!parsed.isValid) {
-      safeAlert(
-        t('Invalid IRC URL'),
-        t('The IRC URL format is invalid: {error}\n\nExpected: irc://server/channel', {
-          error: parsed.error || 'Unknown error',
-        }),
-        [{ text: t('OK'), style: 'cancel' }]
-      );
-      logger.error('deeplink', `Invalid IRC URL: ${parsed.error}`);
-      return;
-    }
-
-    const displayName = getUrlDisplayName(parsed);
-    logger.info('deeplink', `Parsed URL: ${displayName}`);
-
-    // Security warning if password is in URL
-    if (parsed.password) {
-      safeAlert(
-        t('Security Warning'),
-        t('This URL contains a password which is visible in plain text. This is insecure.\n\nServer: {server}\n\nContinue anyway?', {
-          server: displayName,
-        }),
-        [
-          { text: t('Cancel'), style: 'cancel' },
-          {
-            text: t('Continue'),
-            onPress: () => {
-              // Continue processing after warning
-              processDeepLinkAfterWarning(parsed);
-            },
-          },
-        ]
-      );
-      return;
-    }
-
-    // Process without warning
-    await processDeepLinkAfterWarning(parsed);
-  }, [handleConnect, handleJoinChannel, activeConnectionId, tabs, safeAlert, t]);
 
   /**
    * Process deep link after security warnings (if any)
@@ -311,6 +258,57 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
   }, [handleConnect, handleJoinChannel, tabs, safeAlert, t]);
 
   /**
+   * Process a deep link URL
+   */
+  const processDeepLink = useCallback(async (url: string) => {
+    if (!url) return;
+
+    logger.info('deeplink', `Processing IRC URL: ${url}`);
+
+    // Parse the URL
+    const parsed = parseIRCUrl(url);
+
+    if (!parsed.isValid) {
+      safeAlert(
+        t('Invalid IRC URL'),
+        t('The IRC URL format is invalid: {error}\n\nExpected: irc://server/channel', {
+          error: parsed.error || 'Unknown error',
+        }),
+        [{ text: t('OK'), style: 'cancel' }]
+      );
+      logger.error('deeplink', `Invalid IRC URL: ${parsed.error}`);
+      return;
+    }
+
+    const displayName = getUrlDisplayName(parsed);
+    logger.info('deeplink', `Parsed URL: ${displayName}`);
+
+    // Security warning if password is in URL
+    if (parsed.password) {
+      safeAlert(
+        t('Security Warning'),
+        t('This URL contains a password which is visible in plain text. This is insecure.\n\nServer: {server}\n\nContinue anyway?', {
+          server: displayName,
+        }),
+        [
+          { text: t('Cancel'), style: 'cancel' },
+          {
+            text: t('Continue'),
+            onPress: () => {
+              // Continue processing after warning
+              processDeepLinkAfterWarning(parsed);
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    // Process without warning
+    await processDeepLinkAfterWarning(parsed);
+  }, [processDeepLinkAfterWarning, safeAlert, t]);
+
+  /**
    * Handle incoming URL with queueing for locked/first-run states
    */
   const handleUrl = useCallback(async (url: string | null) => {
@@ -381,14 +379,15 @@ export const useDeepLinkHandler = (params: UseDeepLinkHandlerParams) => {
       logger.info('deeplink', `Received URL: ${event.url}`);
       handleUrl(event.url);
     });
+    const timeoutIds = timeoutIdsRef.current;
 
     return () => {
       subscription.remove();
       // Clean up any pending timeouts to prevent memory leaks
-      timeoutIdsRef.current.forEach(timeoutId => {
+      timeoutIds.forEach(timeoutId => {
         clearTimeout(timeoutId);
       });
-      timeoutIdsRef.current.clear();
+      timeoutIds.clear();
     };
   }, [handleUrl]);
 };

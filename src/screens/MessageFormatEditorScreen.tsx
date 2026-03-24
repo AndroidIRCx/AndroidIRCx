@@ -63,6 +63,7 @@ const applyPreviewStyle = (baseStyle: TextStyle, formatStyle?: MessageFormatStyl
   }
 
   const textStyle: TextStyle = { ...baseStyle };
+  const decoration = new Set<string>();
 
   if (formatStyle.bold) {
     textStyle.fontWeight = 'bold';
@@ -71,14 +72,10 @@ const applyPreviewStyle = (baseStyle: TextStyle, formatStyle?: MessageFormatStyl
     textStyle.fontStyle = 'italic';
   }
   if (formatStyle.underline) {
-    textStyle.textDecorationLine = textStyle.textDecorationLine
-      ? `${textStyle.textDecorationLine} underline`
-      : 'underline';
+    decoration.add('underline');
   }
   if (formatStyle.strikethrough) {
-    textStyle.textDecorationLine = textStyle.textDecorationLine
-      ? `${textStyle.textDecorationLine} line-through`
-      : 'line-through';
+    decoration.add('line-through');
   }
   if (formatStyle.color) {
     textStyle.color = formatStyle.color;
@@ -90,6 +87,10 @@ const applyPreviewStyle = (baseStyle: TextStyle, formatStyle?: MessageFormatStyl
     const prevColor = textStyle.color;
     textStyle.color = textStyle.backgroundColor;
     textStyle.backgroundColor = prevColor;
+  }
+
+  if (decoration.size > 0) {
+    textStyle.textDecorationLine = Array.from(decoration).join(' ') as TextStyle['textDecorationLine'];
   }
 
   return textStyle;

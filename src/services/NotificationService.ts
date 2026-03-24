@@ -49,15 +49,6 @@ export interface NotificationPreferences {
   networkPreferences: Map<string, NotificationPreferences>;
 }
 
-interface NotificationData {
-  id: string;
-  title: string;
-  body: string;
-  channel: string;
-  network?: string;
-  timestamp: number;
-}
-
 class NotificationService {
   private notificationIdCounter: number = 0;
   private readonly STORAGE_KEY = '@AndroidIRCX:notificationPreferences';
@@ -439,11 +430,10 @@ class NotificationService {
           // sound: 'default', // Requires sound file in res/raw
           // vibrate: true,
         },
-        ios: {
-          sound: 'default',
-          badge: 1,
-        }
-      });
+      ios: {
+        sound: 'default',
+      }
+    });
       
       console.log(`NotificationService: Notification sent - ${title}: ${body}`);
     } catch (error) {
@@ -690,7 +680,7 @@ class NotificationService {
         const escapedNick = currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const mentionPattern = new RegExp(`@?${escapedNick}\\b`, 'i');
         return mentionPattern.test(message.text);
-      } catch (error) {
+      } catch {
         // Fallback to simple includes if regex fails
         return message.text.toLowerCase().includes(currentNick.toLowerCase());
       }

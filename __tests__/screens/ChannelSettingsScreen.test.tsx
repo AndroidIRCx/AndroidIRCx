@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
 import { Alert } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 
@@ -96,7 +95,6 @@ jest.mock('../../src/utils/modeDescriptions', () => ({
 
 jest.mock('../../src/utils/IRCFormatter', () => ({
   formatIRCTextAsComponent: jest.fn((value: string) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return <Text>{value}</Text>;
   }),
@@ -112,7 +110,6 @@ jest.mock('../../src/components/ColorPickerModal', () => ({
     if (!visible) {
       return null;
     }
-    const React = require('react');
     const { Text } = require('react-native');
     return (
       <>

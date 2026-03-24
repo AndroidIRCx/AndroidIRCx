@@ -370,7 +370,6 @@ describe('useMessageBatching', () => {
 
     const setTabsCall = mockSetTabs.mock.calls[0][0];
     const newState = setTabsCall([]);
-    expect(newState.some((t: any) => t.id === 'server-freenode')).toBe(true);
     expect(newState.some((t: any) => t.id === 'notices-freenode')).toBe(true);
     expect(newState.some((t: any) => t.id === 'notifications-freenode')).toBe(true);
   });

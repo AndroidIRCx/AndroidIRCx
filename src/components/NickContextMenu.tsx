@@ -749,7 +749,6 @@ export const NickContextMenu: React.FC<NickContextMenuProps> = ({
                         key={`${serviceNick}-${command.name}`} 
                         style={styles.contextItem} 
                         onPress={() => {
-                          const cmdText = `/${serviceNick} ${command.name} ${nick}`;
                           activeIrc.sendRaw(`PRIVMSG ${serviceNick} :${command.name} ${nick}`);
                           onClose();
                         }}>

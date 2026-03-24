@@ -109,14 +109,14 @@ describe('ServiceCommandProvider', () => {
         isAuthenticated: false,
       };
       
-      const suggestions = serviceCommandProvider.getSuggestions('test-network', 'ns', context);
+      const suggestions = serviceCommandProvider.getSuggestions('test-network', 'register', context);
       expect(Array.isArray(suggestions)).toBe(true);
       
-      // Should include nick-related commands
-      const hasNickServ = suggestions.some(s => 
-        s.text.toLowerCase().includes('nick') || 
+      // Should include NickServ register-related suggestions
+      expect(suggestions.some(s => 
+        s.text.toLowerCase().includes('register') || 
         s.serviceNick?.toLowerCase().includes('nickserv')
-      );
+      )).toBe(true);
       
       // Note: This may fail if detection didn't complete, that's OK
       if (suggestions.length > 0) {

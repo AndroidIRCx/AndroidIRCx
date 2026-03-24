@@ -26,6 +26,7 @@ export const HelpConnectionScreen: React.FC<HelpConnectionScreenProps> = ({
   onClose,
 }) => {
   const t = useT();
+  const needMoreHelpTextStyle = { lineHeight: 22 };
 
   return (
     <HelpScreenBase visible={visible} onClose={onClose} title={t('IRC Connection Guide')}>
@@ -119,7 +120,7 @@ export const HelpConnectionScreen: React.FC<HelpConnectionScreenProps> = ({
 
       <HelpSection title={t('Need More Help?')}>
         <HelpInfoBox>
-          <Text style={{ lineHeight: 22 }}>
+          <Text style={needMoreHelpTextStyle}>
             {t('Join #AndroidIRCX on irc.dbase.in.rs')}
             {'\n'}
             {t('Visit our website: androidircx.com')}

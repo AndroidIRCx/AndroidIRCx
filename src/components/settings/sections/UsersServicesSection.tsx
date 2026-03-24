@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+/* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { Alert, Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SettingItem } from '../SettingItem';
@@ -298,7 +300,7 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
                       }}
                       disabled={subItem.disabled}
                       style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: subItem.disabled ? 0.5 : 1 }}>
-                      <Text style={{ color: subItem.disabled ? colors.textDisabled : colors.text, fontSize: 16 }}>{subItem.title}</Text>
+                      <Text style={{ color: subItem.disabled ? colors.textSecondary : colors.text, fontSize: 16 }}>{subItem.title}</Text>
                       {subItem.description && <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 4 }}>{subItem.description}</Text>}
                     </TouchableOpacity>
                   );

@@ -3,11 +3,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import TcpSocket, { Socket, Server } from 'react-native-tcp-socket';
+import TcpSocket from 'react-native-tcp-socket';
+import type Socket from 'react-native-tcp-socket/lib/types/Socket';
+import type Server from 'react-native-tcp-socket/lib/types/Server';
 import type { IRCService } from './IRCService';
 import { tx } from '../i18n/transifex';
 import { settingsService } from './SettingsService';
 
+/* eslint-disable no-bitwise, no-control-regex -- DCC file transfer framing intentionally uses bitwise IP conversion and CTCP control bytes. */
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 /**
@@ -181,7 +184,7 @@ class DCCFileService {
       if (startOffset > 0 && transfer.offer.size && startOffset < transfer.offer.size) {
         irc.sendRaw(`PRIVMSG ${transfer.peerNick} :\x01DCC RESUME ${transfer.offer.filename} ${transfer.offer.port} ${startOffset}\x01`);
       }
-    } catch (_) {
+    } catch {
       // ignore if file doesn't exist
     }
 
@@ -197,7 +200,7 @@ class DCCFileService {
       try {
         const RNFS = require('react-native-fs');
         await RNFS.appendFile(downloadPath, data.toString('base64'), 'base64');
-      } catch (e) {
+      } catch {
         // fallthrough; still count bytes
       }
       transferState.bytesReceived += data.length;
@@ -289,7 +292,7 @@ class DCCFileService {
     let decodedPath = filePath;
     try {
       decodedPath = decodeURIComponent(filePath);
-    } catch (e) {
+    } catch {
       // Use original if decode fails
     }
     console.log('[DCCFileService] Decoded path:', decodedPath);

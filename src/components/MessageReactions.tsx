@@ -9,8 +9,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Modal,
-  ScrollView,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { messageReactionsService, MessageReactions } from '../services/MessageReactionsService';
@@ -21,8 +19,6 @@ interface MessageReactionsProps {
   onReactionPress?: (emoji: string) => void;
 }
 
-const COMMON_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '🎉'];
-
 export const MessageReactionsComponent: React.FC<MessageReactionsProps> = ({
   messageId,
   currentUserNick,
@@ -31,7 +27,6 @@ export const MessageReactionsComponent: React.FC<MessageReactionsProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [reactions, setReactions] = useState<MessageReactions | null>(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     // Load initial reactions
@@ -58,10 +53,6 @@ export const MessageReactionsComponent: React.FC<MessageReactionsProps> = ({
     if (onReactionPress) {
       onReactionPress(emoji);
     }
-  };
-
-  const handleAddReaction = () => {
-    setShowEmojiPicker(true);
   };
 
   if (!reactions || reactions.reactions.length === 0) {

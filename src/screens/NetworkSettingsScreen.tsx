@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -49,7 +49,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const [autoJoinChannels, setAutoJoinChannels] = useState('');
   const [saslAccount, setSaslAccount] = useState('');
   const [saslPassword, setSaslPassword] = useState('');
-  const [saslMechanism, setSaslMechanism] = useState<'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS'>('PLAIN');
+  const [saslMechanism, setSaslMechanism] = useState<'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS' | 'EXTERNAL'>('PLAIN');
   const [clientCert, setClientCert] = useState('');
   const [clientKey, setClientKey] = useState('');
   const [proxyEnabled, setProxyEnabled] = useState(false);
@@ -74,25 +74,7 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
     return certificateManager.extractFingerprintFromPem(clientCert);
   }, [clientCert]);
 
-  useEffect(() => {
-    if (networkId) {
-      loadNetwork();
-    } else {
-      // New network - set defaults
-      setNick('AndroidIRCX');
-      setAltNick('AndroidIRCX_');
-      setRealname('AndroidIRCX User');
-      setIdent('androidircx');
-      setProxyEnabled(false);
-      setProxyType('tor');
-      setProxyHost('127.0.0.1');
-      setProxyPort('9050');
-      setProxyUsername('');
-      setProxyPassword('');
-    }
-  }, [networkId]);
-
-  const loadNetwork = async () => {
+  const loadNetwork = useCallback(async () => {
     if (!networkId) return;
     setLoading(true);
     setError(null);
@@ -131,7 +113,25 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [networkId, t]);
+
+  useEffect(() => {
+    if (networkId) {
+      loadNetwork();
+    } else {
+      // New network - set defaults
+      setNick('AndroidIRCX');
+      setAltNick('AndroidIRCX_');
+      setRealname('AndroidIRCX User');
+      setIdent('androidircx');
+      setProxyEnabled(false);
+      setProxyType('tor');
+      setProxyHost('127.0.0.1');
+      setProxyPort('9050');
+      setProxyUsername('');
+      setProxyPassword('');
+    }
+  }, [networkId, loadNetwork]);
 
   // Certificate handlers
   const handleCertificateGenerated = (cert: CertificateInfo) => {

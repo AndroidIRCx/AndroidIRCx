@@ -10,7 +10,7 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { NumericHandlerContext, NumericHandler } from '../types';
+import type { NumericHandler } from '../types';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -124,7 +124,7 @@ export const handle352: NumericHandler = (ctx, prefix, params, timestamp) => {
 };
 
 /** 353 RPL_NAMREPLY */
-export const handle353: NumericHandler = (ctx, prefix, params, timestamp) => {
+export const handle353: NumericHandler = (ctx, prefix, params, _timestamp) => {
   const namesChannel = params[2] || '';
   const namesList = params.slice(3).join(' ').replace(/^:/, '');
   if (!namesChannel || !namesList) return;

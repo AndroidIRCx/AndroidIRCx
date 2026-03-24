@@ -51,7 +51,7 @@ export const useSettingsConnection = (): UseSettingsConnectionReturn => {
       const loadedNetworks = await settingsService.loadNetworks();
       setNetworks(loadedNetworks);
       
-      const reconnectConfig = autoReconnectService.getConfig();
+      const reconnectConfig = loadedNetworks[0] ? autoReconnectService.getConfig(loadedNetworks[0].id) ?? null : null;
       setAutoReconnectConfig(reconnectConfig);
       
       const rateLimit = connectionQualityService.getRateLimitConfig();

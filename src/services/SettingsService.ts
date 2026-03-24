@@ -52,6 +52,8 @@ export interface IRCNetworkConfig {
   sasl?: {
     account: string;
     password: string;
+    mechanism?: 'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS' | 'EXTERNAL';
+    force?: boolean;
   };
   nickservPassword?: string;
   operUser?: string;
@@ -714,7 +716,7 @@ class SettingsService {
         ...net,
         nickservPassword: nickservPassword || undefined,
         operPassword: operPassword || undefined,
-        sasl: net.sasl ? { ...net.sasl, password: saslPassword || undefined } : net.sasl,
+        sasl: net.sasl ? { ...net.sasl, password: saslPassword ?? net.sasl.password } : net.sasl,
         clientCert: clientCert || undefined,
         clientKey: clientKey || undefined,
         proxy: net.proxy ? { ...net.proxy, password: proxyPassword || undefined } : net.proxy,

@@ -27,14 +27,13 @@
 import { ircService } from '../src/services/IRCService';
 
 describe('IRCService Command Handlers', () => {
-  let addMessageSpy: jest.SpyInstance;
   let emitSpy: jest.SpyInstance;
   let messages: any[];
 
   beforeEach(() => {
     messages = [];
 
-    addMessageSpy = jest.spyOn(ircService as any, 'addMessage').mockImplementation((msg: any) => {
+    jest.spyOn(ircService as any, 'addMessage').mockImplementation((msg: any) => {
       messages.push(msg);
     });
 
@@ -404,11 +403,9 @@ describe('IRCService Command Handlers', () => {
 
   describe('Channel Commands', () => {
     let sendCommandSpy: jest.SpyInstance;
-    let sendRawSpy: jest.SpyInstance;
 
     beforeEach(() => {
       sendCommandSpy = jest.spyOn(ircService as any, 'sendCommand').mockImplementation(() => {});
-      sendRawSpy = jest.spyOn(ircService as any, 'sendRaw').mockImplementation(() => {});
     });
 
     it('/mode - sends mode command', () => {

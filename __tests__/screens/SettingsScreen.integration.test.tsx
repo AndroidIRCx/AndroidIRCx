@@ -6,7 +6,6 @@
  * Tests the overall functionality and component integration
  */
 
-import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import * as settingsHelpers from '../../src/utils/settingsHelpers';
 import { Alert } from 'react-native';
@@ -16,7 +15,6 @@ const mockCapturedSettingItems = new Map<string, any>();
 // Mocks are defined in jest.setup.ts
 jest.mock('../../src/utils/settingsHelpers');
 jest.mock('../../src/components/settings/SettingItem', () => {
-  const React = require('react');
   const { TouchableOpacity, Text, View } = require('react-native');
   return {
     SettingItem: ({ item, onPress }: any) => {
@@ -211,9 +209,8 @@ jest.mock('../../src/services/SubscriptionService', () => ({
   },
 }));
 jest.mock('../../src/components/settings/sections', () => {
-  const React = require('react');
   const { View, Text, TouchableOpacity } = require('react-native');
-  const make = (name: string, buttons: Array<{ testID: string; label: string; onPress?: () => void }>) => (props: any) => (
+  const make = (name: string, buttons: Array<{ testID: string; label: string; onPress?: () => void }>) => (_props: any) => (
     <View>
       <Text>{name}</Text>
       {buttons.map((btn) => (
@@ -302,7 +299,6 @@ jest.mock('../../src/components/settings/sections', () => {
 });
 jest.mock('../../src/screens/ScriptingScreen', () => ({
   ScriptingScreen: ({ visible, onClose, onShowPurchaseScreen }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -315,7 +311,6 @@ jest.mock('../../src/screens/ScriptingScreen', () => ({
 }));
 jest.mock('../../src/screens/ScriptingHelpScreen', () => ({
   ScriptingHelpScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -327,7 +322,6 @@ jest.mock('../../src/screens/ScriptingHelpScreen', () => ({
 }));
 jest.mock('../../src/screens/KeyManagementScreen', () => ({
   KeyManagementScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -339,7 +333,6 @@ jest.mock('../../src/screens/KeyManagementScreen', () => ({
 }));
 jest.mock('../../src/screens/FirstRunSetupScreen', () => ({
   FirstRunSetupScreen: ({ onComplete, onSkip }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return (
       <>
@@ -352,7 +345,6 @@ jest.mock('../../src/screens/FirstRunSetupScreen', () => ({
 }));
 jest.mock('../../src/screens/ConnectionProfilesScreen', () => ({
   ConnectionProfilesScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -364,7 +356,6 @@ jest.mock('../../src/screens/ConnectionProfilesScreen', () => ({
 }));
 jest.mock('../../src/screens/ThemeEditorScreen', () => ({
   ThemeEditorScreen: ({ visible, onClose, onSave }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -377,7 +368,6 @@ jest.mock('../../src/screens/ThemeEditorScreen', () => ({
 }));
 jest.mock('../../src/screens/AboutScreen', () => ({
   AboutScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -389,7 +379,6 @@ jest.mock('../../src/screens/AboutScreen', () => ({
 }));
 jest.mock('../../src/screens/CreditsScreen', () => ({
   CreditsScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -401,7 +390,6 @@ jest.mock('../../src/screens/CreditsScreen', () => ({
 }));
 jest.mock('../../src/screens/PrivacyAdsScreen', () => ({
   PrivacyAdsScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -413,7 +401,6 @@ jest.mock('../../src/screens/PrivacyAdsScreen', () => ({
 }));
 jest.mock('../../src/screens/DataPrivacyScreen', () => ({
   DataPrivacyScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -425,7 +412,6 @@ jest.mock('../../src/screens/DataPrivacyScreen', () => ({
 }));
 jest.mock('../../src/screens/MessageHistoryViewerScreen', () => ({
   MessageHistoryViewerScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -437,7 +423,6 @@ jest.mock('../../src/screens/MessageHistoryViewerScreen', () => ({
 }));
 jest.mock('../../src/screens/ZncSubscriptionScreen', () => ({
   ZncSubscriptionScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -449,7 +434,6 @@ jest.mock('../../src/screens/ZncSubscriptionScreen', () => ({
 }));
 jest.mock('../../src/screens/PrivacyRelayScreen', () => ({
   PrivacyRelayScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -461,7 +445,6 @@ jest.mock('../../src/screens/PrivacyRelayScreen', () => ({
 }));
 jest.mock('../../src/screens/BackupScreen', () => ({
   BackupScreen: ({ visible, onClose }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -1192,7 +1175,7 @@ describe('SettingsScreen Integration', () => {
       try {
         const header = await findByText(section);
         fireEvent.press(header);
-      } catch (e) {
+      } catch {
         // Section might not be rendered due to mocking
       }
     }

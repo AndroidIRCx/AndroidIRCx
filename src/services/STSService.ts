@@ -90,12 +90,12 @@ export class STSService {
         const [key, value] = trimmed.split('=');
         result[key.trim()] = value.trim();
       } else if (trimmed === 'preload') {
-        result['preload'] = 'true';
+      result.preload = 'true';
       }
     }
     
     // Validate required fields
-    if (!result['duration']) {
+    if (!result.duration) {
       console.error('STS: Missing required "duration" field in cap value:', capValue);
       return null;
     }
@@ -183,8 +183,8 @@ export class STSService {
       return false;
     }
 
-    const duration = parseInt(parsed['duration'], 10);
-    const port = parsed['port'] ? parseInt(parsed['port'], 10) : null;
+    const duration = parseInt(parsed.duration, 10);
+    const port = parsed.port ? parseInt(parsed.port, 10) : null;
 
     if (isNaN(duration) || duration < 0) {
       console.error(`STS: Invalid duration in policy for ${hostname}:`, duration);
@@ -209,7 +209,7 @@ export class STSService {
       port,
       duration,
       expiresAt: Date.now() + duration * 1000,
-      preload: parsed['preload'] === 'true',
+      preload: parsed.preload === 'true',
     };
 
     this.policies.set(hostname.toLowerCase(), newPolicy);

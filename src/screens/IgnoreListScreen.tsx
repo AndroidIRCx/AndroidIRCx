@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -43,26 +43,15 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
   const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
   const styles = createStyles(colors);
 
-  useEffect(() => {
-    if (visible) {
-      loadIgnoredUsers();
-      loadAvailableNetworks();
-    }
-  }, [visible, network]);
-
-  useEffect(() => {
-    filterUsers();
-  }, [ignoredUsers, searchQuery, selectedNetwork]);
-
-  const loadAvailableNetworks = () => {
+  const loadAvailableNetworks = useCallback(() => {
     const networks = connectionManager
       .getAllConnections()
-      .map(conn => conn?.config?.id)
+      .map(conn => conn.networkId)
       .filter((id): id is string => Boolean(id));
     setAvailableNetworks(networks);
-  };
+  }, []);
 
-  const filterUsers = () => {
+  const filterUsers = useCallback(() => {
     let filtered = [...ignoredUsers];
 
     // Filter by network
@@ -81,9 +70,9 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
     }
 
     setFilteredUsers(filtered);
-  };
+  }, [ignoredUsers, searchQuery, selectedNetwork]);
 
-  const getUserManagementService = () => {
+  const getUserManagementService = useCallback(() => {
     // Use connection-specific service if available, otherwise fallback to singleton
     if (network) {
       const conn = connectionManager.getConnection(network);
@@ -92,13 +81,24 @@ export const IgnoreListScreen: React.FC<IgnoreListScreenProps> = ({
       }
     }
     return userManagementService;
-  };
+  }, [network]);
 
-  const loadIgnoredUsers = () => {
+  const loadIgnoredUsers = useCallback(() => {
     const svc = getUserManagementService();
     const ignored = svc.getIgnoredUsers(null); // Load all networks
     setIgnoredUsers(ignored);
-  };
+  }, [getUserManagementService]);
+
+  useEffect(() => {
+    if (visible) {
+      loadIgnoredUsers();
+      loadAvailableNetworks();
+    }
+  }, [visible, network, loadIgnoredUsers, loadAvailableNetworks]);
+
+  useEffect(() => {
+    filterUsers();
+  }, [filterUsers]);
 
   const handleAddIgnore = async () => {
     if (newMask.trim()) {

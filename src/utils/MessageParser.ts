@@ -5,6 +5,7 @@
  * Message parsing utilities for detecting links, images, and emojis
  */
 
+/* eslint-disable no-useless-escape -- URL and IRC-style character classes need explicit escaping in these regexes. */
 export interface ParsedMessagePart {
   type: 'text' | 'url' | 'image' | 'emoji' | 'media';
   content: string;
@@ -206,7 +207,7 @@ export function parseMessage(text: string): ParsedMessagePart[] {
   }
   
   // Find image URLs first (they're also URLs)
-  let imageMatch;
+  let imageMatch: RegExpExecArray | null;
   const imageRegex = new RegExp(IMAGE_PATTERN.source, 'gi');
   while ((imageMatch = imageRegex.exec(text)) !== null) {
     allMatches.push({
@@ -217,19 +218,20 @@ export function parseMessage(text: string): ParsedMessagePart[] {
   }
 
   // Find regular URLs (excluding images)
-  let urlMatch;
+  let urlMatch: RegExpExecArray | null;
   const urlRegex = new RegExp(URL_PATTERN.source, 'gi');
   while ((urlMatch = urlRegex.exec(text)) !== null) {
+    const currentUrlMatch = urlMatch;
     // Check if this URL is already captured as an image or media tag
     const alreadyCaptured = allMatches.some(m =>
-      m.index === urlMatch.index && m.content === urlMatch[0]
+      m.index === currentUrlMatch.index && m.content === currentUrlMatch[0]
     );
 
     if (!alreadyCaptured) {
-      const isImage = isImageUrl(urlMatch[0]);
+      const isImage = isImageUrl(currentUrlMatch[0]);
       allMatches.push({
-        index: urlMatch.index,
-        content: urlMatch[0],
+        index: currentUrlMatch.index,
+        content: currentUrlMatch[0],
         type: isImage ? 'image' : 'url',
       });
     }

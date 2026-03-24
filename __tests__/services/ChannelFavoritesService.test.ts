@@ -5,7 +5,7 @@
  * Tests for ChannelFavoritesService - Wave 6
  */
 
-import { channelFavoritesService, ChannelFavorite } from '../../src/services/ChannelFavoritesService';
+import { channelFavoritesService } from '../../src/services/ChannelFavoritesService';
 
 // Mock AsyncStorage
 const mockStorage: Record<string, string> = {};

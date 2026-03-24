@@ -183,7 +183,7 @@ describe('Config - settingsIcons', () => {
     describe('About icons', () => {
       it('should have about icons', () => {
         expect(SETTINGS_ICONS['about-app']).toBeDefined();
-        expect(SETTINGS_ICONS['credits']).toBeDefined();
+        expect(SETTINGS_ICONS.credits).toBeDefined();
       });
 
       it('should have correct about-app icon', () => {
@@ -201,7 +201,7 @@ describe('Config - settingsIcons', () => {
     });
 
     it('should have all icons with name and solid properties', () => {
-      Object.entries(SETTINGS_ICONS).forEach(([key, icon]) => {
+      Object.entries(SETTINGS_ICONS).forEach(([_key, icon]) => {
         expect(icon).toHaveProperty('name');
         expect(icon).toHaveProperty('solid');
         expect(typeof icon.name).toBe('string');

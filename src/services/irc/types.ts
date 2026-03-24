@@ -122,15 +122,11 @@ export interface NumericHandlerContext {
   getAltNick: () => string | null;
   getNickChangeAttempts: () => number;
   incrementNickChangeAttempts: () => void;
-  setCurrentNick: (nick: string) => void;
 
   // User management service
   getUserManagementService: () => any;
 
   // Utility methods
-  logRaw: (message: string) => void;
-  sendRaw: (command: string) => void;
-  addRawMessage: (text: string, category: string) => void;
   disconnect: (reason?: string) => void;
 
   // Capabilities

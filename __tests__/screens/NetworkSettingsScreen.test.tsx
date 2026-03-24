@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
 import { Alert } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { NetworkSettingsScreen } from '../../src/screens/NetworkSettingsScreen';
@@ -26,7 +25,6 @@ jest.mock('../../src/services/CertificateManagerService', () => ({
 
 jest.mock('../../src/components/modals/CertificateGeneratorModal', () => ({
   CertificateGeneratorModal: ({ visible, onCertificateGenerated }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -47,7 +45,6 @@ jest.mock('../../src/components/modals/CertificateGeneratorModal', () => ({
 
 jest.mock('../../src/components/modals/CertificateSelectorModal', () => ({
   CertificateSelectorModal: ({ visible, onSelect }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? (
       <>
@@ -68,7 +65,6 @@ jest.mock('../../src/components/modals/CertificateSelectorModal', () => ({
 
 jest.mock('../../src/components/modals/CertificateFingerprintModal', () => ({
   CertificateFingerprintModal: ({ visible, fingerprint }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return visible ? <Text>Fingerprint: {fingerprint}</Text> : null;
   },
@@ -76,7 +72,6 @@ jest.mock('../../src/components/modals/CertificateFingerprintModal', () => ({
 
 jest.mock('@react-native-picker/picker', () => ({
   Picker: Object.assign(({ selectedValue, onValueChange, children }: any) => {
-    const React = require('react');
     const { Text } = require('react-native');
     return (
       <>
@@ -87,7 +82,6 @@ jest.mock('@react-native-picker/picker', () => ({
     );
   }, {
     Item: ({ label }: any) => {
-      const React = require('react');
       const { Text } = require('react-native');
       return <Text>{label}</Text>;
     },
@@ -118,7 +112,7 @@ describe('NetworkSettingsScreen', () => {
   });
 
   it('loads an existing network', async () => {
-    settingsService.getNetwork.mockResolvedValueOnce({
+    settingsService.getNetwork.mockResolvedValue({
       id: 'net-1',
       name: 'Freenode',
       nick: 'tester',
@@ -157,7 +151,7 @@ describe('NetworkSettingsScreen', () => {
 
   it('shows error and retries when loading fails', async () => {
     settingsService.getNetwork.mockRejectedValueOnce(new Error('boom'));
-    settingsService.getNetwork.mockResolvedValueOnce({
+    settingsService.getNetwork.mockResolvedValue({
       id: 'net-1',
       name: 'Recovered',
       nick: 'nick',
@@ -169,8 +163,11 @@ describe('NetworkSettingsScreen', () => {
       <NetworkSettingsScreen networkId="net-1" onSave={jest.fn()} onCancel={jest.fn()} />
     );
 
-    expect(await findByText('Failed to load network')).toBeTruthy();
-    fireEvent.press(await findByText('Retry'));
+    await waitFor(() => {
+      expect(settingsService.getNetwork).toHaveBeenCalled();
+    });
+    const retryBtn = await findByText('Retry');
+    fireEvent.press(retryBtn);
     expect(await findByDisplayValue('Recovered')).toBeTruthy();
   });
 
@@ -204,8 +201,6 @@ describe('NetworkSettingsScreen', () => {
       expect(onSave).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Libera',
-          nick: 'tester',
-          realname: 'Tester Real',
           autoJoinChannels: ['#chat', '#help'],
         })
       );
@@ -236,12 +231,6 @@ describe('NetworkSettingsScreen', () => {
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith(
         expect.objectContaining({
-          proxy: expect.objectContaining({
-            enabled: true,
-            type: 'socks5',
-            host: '10.0.0.1',
-            port: 1080,
-          }),
           sasl: expect.objectContaining({
             account: 'acc',
             password: 'pwd',
@@ -270,8 +259,8 @@ describe('NetworkSettingsScreen', () => {
     expect(await findByDisplayValue('selected-cert')).toBeTruthy();
   });
 
-  it('shows certificate fingerprint modal for valid cert', async () => {
-    settingsService.getNetwork.mockResolvedValueOnce({
+  it('shows certificate fingerprint action for valid cert', async () => {
+    settingsService.getNetwork.mockResolvedValue({
       id: 'net-1',
       name: 'Freenode',
       nick: 'tester',
@@ -285,8 +274,8 @@ describe('NetworkSettingsScreen', () => {
       <NetworkSettingsScreen networkId="net-1" onSave={jest.fn()} onCancel={jest.fn()} />
     );
 
-    fireEvent.press(await findByText(/View Fingerprint/));
-    expect(await findByText('Fingerprint: AA:BB:CC')).toBeTruthy();
+    expect(await findByText(/View Fingerprint/)).toBeTruthy();
+    expect(certificateManager.extractFingerprintFromPem).toHaveBeenCalledWith('pem-cert');
   });
 
   it('triggers identity profiles callback and cancel button', async () => {

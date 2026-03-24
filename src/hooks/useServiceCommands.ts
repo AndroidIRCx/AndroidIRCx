@@ -165,17 +165,17 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
   const availableCommands = useMemo(() => {
     const commands = serviceCommandProvider.getCommands(networkId);
     return commands.map(c => c.command);
-  }, [networkId, detectionResult]);
+  }, [networkId]);
 
   // Get safe aliases
   const safeAliases = useMemo(() => {
     return serviceCommandProvider.getSafeAliases(networkId);
-  }, [networkId, detectionResult]);
+  }, [networkId]);
 
   // Get IRCd info
   const ircdInfo = useMemo(() => {
     return serviceCommandProvider.getIRCdInfo(networkId);
-  }, [networkId, detectionResult]);
+  }, [networkId]);
 
   // Callback: Get suggestions
   const getSuggestions = useCallback((query: string): CommandSuggestion[] => {

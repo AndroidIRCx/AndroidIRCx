@@ -232,7 +232,7 @@ class MediaDownloadService {
         if (exists) {
           await RNFS.unlink(tempPath);
         }
-      } catch (cleanupError) {
+      } catch {
         // Ignore cleanup errors
       }
 
@@ -307,8 +307,6 @@ class MediaDownloadService {
       }
 
       // Check if downloadable (HEAD request to check if exists)
-      const downloadUrl = `${API_BASE_URL}/media/download/${mediaId}`;
-
       // Note: RNFS doesn't support HEAD requests directly
       // For now, we'll assume it's available if not cached
       // A proper implementation would need a native module or fetch API
@@ -332,7 +330,7 @@ class MediaDownloadService {
         for (const file of files) {
           try {
             await RNFS.unlink(file.path);
-          } catch (error) {
+          } catch {
             console.warn('[MediaDownloadService] Failed to delete temp file:', file.path);
           }
         }

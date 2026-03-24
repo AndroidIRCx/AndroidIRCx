@@ -7,10 +7,6 @@
 
 import { renderHook } from '@testing-library/react-native';
 import { useConnectionLifecycle } from '../../src/hooks/useConnectionLifecycle';
-import { useTabStore } from '../../src/stores/tabStore';
-import { useUIStore } from '../../src/stores/uiStore';
-import { connectionManager } from '../../src/services/ConnectionManager';
-import { ircService } from '../../src/services/IRCService';
 
 // Mock all services used in the backup/restore flow
 jest.mock('../../src/services/ConnectionManager', () => ({
@@ -34,7 +30,6 @@ jest.mock('../../src/services/IRCService', () => ({
     getCurrentNick: jest.fn().mockReturnValue('testuser'),
     addMessage: jest.fn(),
     sendRaw: jest.fn(),
-    partChannel: jest.fn(),
     emit: jest.fn(),
   },
   ChannelUser: {}
@@ -442,7 +437,7 @@ describe('backupRestoreFlow Integration Test', () => {
     require('../../src/services/MessageHistoryService').messageHistoryService.deleteMessages.mockImplementation(mockDeleteMessages);
 
     // Simulate backing up message history
-    const messages = await require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages('test-network', 'server');
+    await require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages('test-network', 'server');
     
     // Verify that messages were loaded
     expect(mockLoadMessages).toHaveBeenCalledWith('test-network', 'server');

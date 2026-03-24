@@ -13,7 +13,6 @@ import { useEffect, useRef, useCallback } from 'react';
 import { AppState, AppStateStatus, InteractionManager } from 'react-native';
 import { messageHistoryService } from '../services/MessageHistoryService';
 import { useTabStore } from '../stores/tabStore';
-import { ChannelTab } from '../types';
 import { debugLogger } from '../services/DebugLogger';
 
 interface UseLazyMessageHistoryParams {
@@ -271,5 +270,5 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
         loadedTabsRef.current.delete(tabId);
       }
     });
-  }, [tabs.length]); // Only re-run when tab count changes
+  }, [tabs]); // Re-run when tab identities change
 }

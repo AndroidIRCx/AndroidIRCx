@@ -147,7 +147,7 @@ export const ChannelTabs: React.FC<ChannelTabsProps> = React.memo(({
     }
 
     let cancelled = false;
-    void Promise.all(
+    Promise.all(
       missingTabs.map(async (tab) => {
         const cacheKey = getEncryptCacheKey(tab);
         const alwaysEncrypt = await channelEncryptionSettingsService.getAlwaysEncrypt(tab.name, tab.networkId);

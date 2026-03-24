@@ -9,7 +9,6 @@ import {
   HelpSection,
   HelpSubsection,
   HelpParagraph,
-  HelpBullet,
   HelpCode,
   HelpInfoBox,
   HelpWarningBox,

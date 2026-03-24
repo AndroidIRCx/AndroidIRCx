@@ -30,7 +30,7 @@ import {
 import Video from 'react-native-video';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
-import { MediaPickResult, MediaType } from '../services/MediaPickerService';
+import { MediaPickResult } from '../services/MediaPickerService';
 import { mediaEncryptionService } from '../services/MediaEncryptionService';
 import { mediaUploadService } from '../services/MediaUploadService';
 import { mediaSettingsService } from '../services/MediaSettingsService';

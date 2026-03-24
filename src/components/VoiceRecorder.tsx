@@ -13,7 +13,7 @@
  * - Auto-stop after max duration (from settings)
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,8 @@ import Video from 'react-native-video';
 import AudioRecorderPlayer, {
   AudioEncoderAndroidType,
   AudioSourceAndroidType,
+  type AudioSet,
+  type AVEncodingOption,
   AVEncoderAudioQualityIOSType,
   OutputFormatAndroidType,
 } from 'react-native-nitro-sound';
@@ -88,13 +90,13 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     return granted === PermissionsAndroid.RESULTS.GRANTED;
   };
 
-  const getAudioSet = () => ({
+  const getAudioSet = (): AudioSet => ({
     AudioSourceAndroid: AudioSourceAndroidType.MIC,
     OutputFormatAndroid: OutputFormatAndroidType.MPEG_4,
     AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
     AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
-    AVEncodingOptionIOS: 'aac',
-    AVFormatIDKeyIOS: 'aac',
+    AVEncodingOptionIOS: 'aac' as AVEncodingOption,
+    AVFormatIDKeyIOS: 'aac' as AVEncodingOption,
     AVNumberOfChannelsKeyIOS: 1,
     AVSampleRateKeyIOS: 44100,
   });
@@ -191,7 +193,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   // Start waveform animation
-  const startWaveformAnimation = () => {
+  const startWaveformAnimation = useCallback(() => {
     waveformAnimationRef.current = Animated.loop(
       Animated.sequence([
         Animated.timing(waveformAnimRef, {
@@ -207,15 +209,15 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       ])
     );
     waveformAnimationRef.current.start();
-  };
+  }, [waveformAnimRef]);
 
   // Stop waveform animation
-  const stopWaveformAnimation = () => {
+  const stopWaveformAnimation = useCallback(() => {
     if (waveformAnimationRef.current) {
       waveformAnimationRef.current.stop();
       waveformAnimRef.setValue(0);
     }
-  };
+  }, [waveformAnimRef]);
 
   // Play preview
   const playPreview = () => {
@@ -223,11 +225,6 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     setState('playing');
     // Note: Actual playback would use audioRecorderPlayer
     // For now, we'll use react-native-video for playback
-  };
-
-  // Stop preview
-  const stopPreview = () => {
-    setState('recorded');
   };
 
   // Delete recording
@@ -278,20 +275,20 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   // Cleanup on unmount
   useEffect(() => {
+    const recorder = recorderRef.current;
     return () => {
-      recorderRef.current.removeRecordBackListener();
-      recorderRef.current.stopRecorder().catch(() => {});
+      recorder.removeRecordBackListener();
+      recorder.stopRecorder().catch(() => {});
       stopWaveformAnimation();
       if (recordingUri) {
         RNFS.unlink(recordingUri).catch(() => {});
       }
     };
-  }, []);
+  }, [recordingUri, stopWaveformAnimation]);
 
   // Render waveform bars
   const renderWaveform = () => {
     const bars = Array.from({ length: 20 }, (_, i) => {
-      const delay = i * 50;
       const scale = waveformAnimRef.interpolate({
         inputRange: [0, 1],
         outputRange: [0.3, 1],
@@ -348,7 +345,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             <Video
               source={{ uri: `file://${recordingUri}` }}
               controls
-              paused={state !== 'playing'}
+              paused={false}
               style={styles.audioPlayer}
             />
           )}
@@ -356,9 +353,9 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           <View style={styles.recordedActions}>
             <TouchableOpacity
               style={[styles.actionButton, styles.playButton]}
-              onPress={state === 'playing' ? stopPreview : playPreview}>
+              onPress={playPreview}>
               <Text style={styles.actionButtonText}>
-                {state === 'playing' ? t('Stop') : t('Play')}
+                {t('Play')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity

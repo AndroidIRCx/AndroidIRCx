@@ -28,7 +28,7 @@ import { useTabStore } from '../stores/tabStore';
 import { MediaUploadModal } from './MediaUploadModal';
 import { MediaPreviewModal } from './MediaPreviewModal';
 import { MediaPickResult } from '../services/MediaPickerService';
-import { IRC_FORMAT_CODES, stripIRCFormatting } from '../utils/IRCFormatter';
+import { IRC_FORMAT_CODES } from '../utils/IRCFormatter';
 import { repairMojibake } from '../utils/EncodingUtils';
 import { ColorPalettePicker } from './ColorPalettePicker';
 import { useServiceCommands } from '../hooks/useServiceCommands';
@@ -124,8 +124,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       setShowSendButton(enabled);
       const showColors = await settingsService.getSetting('showColorPickerButton', true);
       setShowColorPickerButton(showColors);
-      const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'send');
-      setEnterKeyBehavior(enterBehavior);
+      const enterBehavior = await settingsService.getSetting<'send' | 'newline'>('enterKeyBehavior', 'send');
+      setEnterKeyBehavior(enterBehavior === 'newline' ? 'newline' : 'send');
       const nickEnabled = await settingsService.getSetting('nickCompleteEnabled', false);
       const sep1 = await settingsService.getSetting('nickCompleteSeparator1', '');
       const sep2 = await settingsService.getSetting('nickCompleteSeparator2', '');
@@ -289,7 +289,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     checkAttachmentButton();
   }, [network, tabId, tabType, tabName]);
 
-  const sendTypingIndicator = (status: 'active' | 'paused' | 'done') => {
+  const sendTypingIndicator = useCallback((status: 'active' | 'paused' | 'done') => {
     if (!tabName || tabType === 'server' || disabled) return;
 
     const activeNetworkId = connectionManager.getActiveNetworkId();
@@ -300,7 +300,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
     // Only send typing indicator if server supports it (has typing capability)
     connection.ircService.sendTypingIndicator(tabName, status);
-  };
+  }, [disabled, tabName, tabType]);
 
   const applyPendingNickReplacements = useCallback((value: string) => {
     if (pendingNickReplacements.length === 0) return value;
@@ -423,7 +423,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, []);
+  }, [sendTypingIndicator]);
 
   // Service commands integration
   const serviceCommands = useServiceCommands({

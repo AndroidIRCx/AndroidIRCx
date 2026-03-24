@@ -16,24 +16,9 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { NumericHandlerContext, NumericHandler } from '../types';
+import type { NumericHandler } from '../types';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
-
-/** Generic stats handler for multiple numerics */
-const createGenericStatsHandler = (): NumericHandler => {
-  return (ctx, prefix, params, timestamp) => {
-    // Get the numeric from the context - we'll pass it through params
-    const statsData = params.slice(1).join(' ').replace(/^:/, '') || '';
-    ctx.addMessage({
-      type: 'raw',
-      text: statsData ? `*** ${statsData}` : '***',
-      timestamp,
-      isRaw: true,
-      rawCategory: 'server',
-    });
-  };
-};
 
 /** Generic stats handler with numeric in output */
 const createNumericStatsHandler = (numeric: number): NumericHandler => {

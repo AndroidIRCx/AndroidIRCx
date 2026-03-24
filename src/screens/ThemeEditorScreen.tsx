@@ -31,8 +31,9 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   theme,
   onClose,
   onSave,
-}) => {
+  }) => {
   const t = useT();
+  const selectedSwatchStyle = { borderColor: themeService.getColors().primary, borderWidth: 2 };
   const [themeName, setThemeName] = useState('');
   const [colors, setColors] = useState<ThemeColors>(themeService.getColors());
   const [messageFormats, setMessageFormats] = useState<ThemeMessageFormats | undefined>(undefined);
@@ -402,7 +403,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
                     style={[
                       styles.pickerSwatch,
                       { backgroundColor: value },
-                      value === colorValue && { borderColor: currentColors.primary, borderWidth: 2 },
+                      value === colorValue && selectedSwatchStyle,
                     ]}
                     onPress={() => {
                       setHexInput(value);

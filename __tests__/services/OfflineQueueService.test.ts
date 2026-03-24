@@ -6,7 +6,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { offlineQueueService, QueuedMessage } from '../../src/services/OfflineQueueService';
+import { offlineQueueService } from '../../src/services/OfflineQueueService';
 
 // Mock the dependencies
 jest.mock('../../src/services/IRCService', () => ({

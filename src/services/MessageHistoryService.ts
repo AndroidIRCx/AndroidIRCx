@@ -29,6 +29,7 @@ export interface MessageHistoryFilter {
 
 export interface MessageHistoryStats {
   totalMessages: number;
+  channelCount: number;
   messagesByChannel: Map<string, number>;
   messagesByUser: Map<string, number>;
   oldestMessage?: number;
@@ -282,6 +283,7 @@ class MessageHistoryService {
       
       const stats: MessageHistoryStats = {
         totalMessages: messages.length,
+        channelCount: 0,
         messagesByChannel: new Map(),
         messagesByUser: new Map(),
       };
@@ -316,12 +318,14 @@ class MessageHistoryService {
       
       stats.oldestMessage = oldest;
       stats.newestMessage = newest;
+      stats.channelCount = stats.messagesByChannel.size;
       
       return stats;
     } catch (error) {
       console.error('MessageHistoryService: Error getting stats:', error);
       return {
         totalMessages: 0,
+        channelCount: 0,
         messagesByChannel: new Map(),
         messagesByUser: new Map(),
       };
@@ -525,8 +529,8 @@ class MessageHistoryService {
       const allKeys = [...historyKeys, ...legacyKeys];
       if (allKeys.length === 0) return [];
 
-      const entries = await AsyncStorage.multiGet(allKeys);
-      const results: Array<{ network: string; channel: string; count: number; newest?: number; oldest?: number }> = [];
+      const entriesMap = await AsyncStorage.getMany(allKeys);
+      const entries = allKeys.map((key) => [key, entriesMap[key] ?? null] as [string, string | null]);
       const dedupeMap = new Map<string, { network: string; channel: string; count: number; newest?: number; oldest?: number }>();
 
       for (const [key, value] of entries) {
@@ -664,7 +668,8 @@ class MessageHistoryService {
         return { migrated: false, total: 0, migratedCount: 0 };
       }
 
-      const legacyEntries = await AsyncStorage.multiGet(legacyKeys);
+      const legacyEntriesMap = await AsyncStorage.getMany(legacyKeys);
+      const legacyEntries = legacyKeys.map((key) => [key, legacyEntriesMap[key] ?? null] as [string, string | null]);
       const writes: { key: string; value: IRCMessage[] }[] = [];
       const removes: string[] = [];
       let migratedCount = 0;
@@ -730,6 +735,7 @@ class MessageHistoryService {
       const data = await storageCache.getItem<IRCMessage[]>(key, {
         ttl: 5 * 60 * 1000, // Cache for 5 minutes
       });
+
       if (data) {
         return data;
       }

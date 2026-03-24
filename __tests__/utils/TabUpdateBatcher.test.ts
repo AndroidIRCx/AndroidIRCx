@@ -11,7 +11,7 @@ jest.mock('../../src/services/TabService', () => ({
   },
 }));
 
-import { TabUpdateBatcher, SaveCallback } from '../../src/utils/TabUpdateBatcher';
+import { TabUpdateBatcher } from '../../src/utils/TabUpdateBatcher';
 import { ChannelTab } from '../../src/types';
 import { tabService } from '../../src/services/TabService';
 
@@ -242,7 +242,7 @@ describe('TabUpdateBatcher', () => {
 
     it('should execute saves in parallel for multiple networks', async () => {
       const savePromises: Promise<void>[] = [];
-      mockSaveCallback.mockImplementation((networkId) => {
+      mockSaveCallback.mockImplementation(() => {
         const promise = new Promise<void>(resolve => setTimeout(resolve, 50));
         savePromises.push(promise);
         return promise;

@@ -26,20 +26,18 @@
  * - Extended (609-629, 660-689, 700-772, 910-999)
  */
 
-import { ircService, IRCMessage } from '../src/services/IRCService';
+import { ircService } from '../src/services/IRCService';
 
 describe('IRCService Numeric Handlers', () => {
-  let addMessageSpy: jest.SpyInstance;
-  let addRawMessageSpy: jest.SpyInstance;
   let emitSpy: jest.SpyInstance;
   let messages: any[];
 
   beforeEach(() => {
     messages = [];
-    addMessageSpy = jest.spyOn(ircService as any, 'addMessage').mockImplementation((msg: any) => {
+    jest.spyOn(ircService as any, 'addMessage').mockImplementation((msg: any) => {
       messages.push(msg);
     });
-    addRawMessageSpy = jest.spyOn(ircService as any, 'addRawMessage').mockImplementation((text: string, category: string) => {
+    jest.spyOn(ircService as any, 'addRawMessage').mockImplementation((text: string, category: string) => {
       messages.push({ type: 'raw', text, rawCategory: category, isRaw: true });
     });
     emitSpy = jest.spyOn(ircService as any, 'emit').mockImplementation(() => {});

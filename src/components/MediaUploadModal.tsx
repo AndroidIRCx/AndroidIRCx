@@ -54,7 +54,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
 
   const handleAction = async (
     action: string,
-    handler: () => Promise<MediaPickResult> | void
+    handler: () => Promise<MediaPickResult | void> | void
   ) => {
     try {
       setLoading(true);

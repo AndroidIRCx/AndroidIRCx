@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -25,26 +25,44 @@ import {
 } from '../services/InAppPurchaseService';
 import { useT } from '../i18n/transifex';
 import * as RNIap from 'react-native-iap';
-import type { Product, ProductPurchase, PurchaseError } from 'react-native-iap';
+import type { Product, Purchase, PurchaseError } from 'react-native-iap';
 
 interface PurchaseScreenProps {
   visible: boolean;
   onClose: () => void;
 }
 
+type ProductListItem = {
+  id: string;
+  displayPrice?: string | null;
+  price?: string | number | null;
+};
+
 const skuList = [PRODUCT_REMOVE_ADS, PRODUCT_PRO_UNLIMITED, PRODUCT_SUPPORTER_PRO];
+const getPurchaseReceipt = (purchase: Purchase): string =>
+  purchase.purchaseToken || ((purchase as Purchase & { transactionReceipt?: string }).transactionReceipt ?? '');
 
 export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose }) => {
   const t = useT();
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const tRef = useRef(t);
   const [hasRemoveAds, setHasRemoveAds] = useState(false);
   const [hasProUnlimited, setHasProUnlimited] = useState(false);
   const [hasSupporterPro, setHasSupporterPro] = useState(false);
   const [purchasing, setPurchasing] = useState<string | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState(false);
+
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
+  const translate = useCallback(
+    (key: string) => tRef.current(key),
+    []
+  );
 
   const withTimeout = async <T,>(
     promise: Promise<T>,
@@ -68,6 +86,41 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
   };
 
   // Initialize IAP and fetch products
+  const restorePurchases = useCallback(async (showFeedback: boolean = false) => {
+    try {
+      setRestoring(true);
+      console.log('Restoring purchases...');
+      const purchases = await RNIap.getAvailablePurchases();
+      console.log('Available purchases:', purchases);
+
+      for (const purchase of purchases) {
+        if (skuList.includes(purchase.productId)) {
+          await inAppPurchaseService.processPurchase(
+            purchase.productId,
+            getPurchaseReceipt(purchase)
+          );
+        }
+      }
+
+      if (showFeedback) {
+        Alert.alert(
+          translate('Restore complete'),
+          translate('Your purchases have been restored.')
+        );
+      }
+    } catch (error) {
+      console.error('Error restoring purchases:', error);
+      if (showFeedback) {
+        Alert.alert(
+          translate('Restore failed'),
+          translate('Please try again later.')
+        );
+      }
+    } finally {
+      setRestoring(false);
+    }
+  }, [translate]);
+
   useEffect(() => {
     let purchaseUpdateSubscription: any;
     let purchaseErrorSubscription: any;
@@ -85,9 +138,12 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
         console.log('IAP connection initialized');
 
         // Get products from Google Play
-        const availableProducts = await RNIap.fetchProducts({ skus: skuList, type: 'in-app' });
-        console.log('Available products:', availableProducts);
-        setProducts(availableProducts);
+        const availableProducts = (await RNIap.fetchProducts({ skus: skuList, type: 'in-app' })) ?? [];
+        const inAppProducts = availableProducts.filter(
+          (product): product is Product => product.type === 'in-app'
+        );
+        console.log('Available products:', inAppProducts);
+        setProducts(inAppProducts);
         setLoading(false);
 
         // Restore purchases on mount
@@ -95,12 +151,11 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
 
         // Listen for purchase updates
         purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(
-          async (purchase: ProductPurchase) => {
+          async (purchase: Purchase) => {
             console.log('Purchase updated:', purchase);
-            const receipt = purchase.transactionReceipt;
-            const token = purchase.purchaseToken || '';
+            const receipt = getPurchaseReceipt(purchase);
             const hasProof =
-              Platform.OS === 'android' ? Boolean(token || receipt) : Boolean(receipt);
+              Platform.OS === 'android' ? Boolean(receipt) : Boolean(receipt);
 
             if (hasProof) {
               setPurchasing(null);
@@ -115,21 +170,21 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
                 // Process the purchase in our service
                 await inAppPurchaseService.processPurchase(
                   purchase.productId,
-                  receipt || token
+                  receipt
                 );
 
                 setPurchasing(null);
                 Alert.alert(
-                  t('Purchase Successful'),
-                  t('Thank you for your purchase!'),
+                  translate('Purchase Successful'),
+                  translate('Thank you for your purchase!'),
                   [{ text: 'OK' }]
                 );
               } catch (error) {
                 console.error('Error finishing transaction:', error);
                 setPurchasing(null);
                 Alert.alert(
-                  t('Purchase Failed'),
-                  t('Please try again later.')
+                  translate('Purchase Failed'),
+                  translate('Please try again later.')
                 );
               }
             } else {
@@ -144,10 +199,10 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
           (error: PurchaseError) => {
             console.error('Purchase error:', error);
             setPurchasing(null);
-            if (error.code !== 'E_USER_CANCELLED') {
+            if (String(error.code) !== 'E_USER_CANCELLED') {
               Alert.alert(
-                t('Purchase Failed'),
-                error.message || t('Please try again later.')
+                translate('Purchase Failed'),
+                error.message || translate('Please try again later.')
               );
             }
           }
@@ -156,8 +211,8 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
         console.error('Error initializing IAP:', error);
         setLoading(false);
         Alert.alert(
-          t('Error'),
-          t('Failed to load products. Please try again later.')
+          translate('Error'),
+          translate('Failed to load products. Please try again later.')
         );
       }
     };
@@ -176,7 +231,7 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
       }
       RNIap.endConnection().catch(() => null);
     };
-  }, [visible, t]);
+  }, [restorePurchases, translate, visible]);
 
   // Update purchase state
   useEffect(() => {
@@ -190,41 +245,6 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
     const unsubscribe = inAppPurchaseService.addListener(updatePurchaseState);
     return unsubscribe;
   }, []);
-
-  const restorePurchases = async (showFeedback: boolean = false) => {
-    try {
-      setRestoring(true);
-      console.log('Restoring purchases...');
-      const purchases = await RNIap.getAvailablePurchases();
-      console.log('Available purchases:', purchases);
-
-      for (const purchase of purchases) {
-        if (skuList.includes(purchase.productId)) {
-          await inAppPurchaseService.processPurchase(
-            purchase.productId,
-            purchase.transactionReceipt || purchase.purchaseToken || ''
-          );
-        }
-      }
-
-      if (showFeedback) {
-        Alert.alert(
-          t('Restore complete'),
-          t('Your purchases have been restored.')
-        );
-      }
-    } catch (error) {
-      console.error('Error restoring purchases:', error);
-      if (showFeedback) {
-        Alert.alert(
-          t('Restore failed'),
-          t('Please try again later.')
-        );
-      }
-    } finally {
-      setRestoring(false);
-    }
-  };
 
   const handlePurchase = async (productId: string) => {
     setPurchasing(productId);
@@ -270,7 +290,7 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
       setPurchasing(null);
 
       // Don't show error if user cancelled
-      if (error.code !== 'E_USER_CANCELLED') {
+      if (String(error.code) !== 'E_USER_CANCELLED') {
         Alert.alert(
           t('Purchase Failed'),
           error.message || t('Please try again later.')

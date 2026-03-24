@@ -222,12 +222,11 @@ describe('useAppLock', () => {
       const { result } = renderHook(() => useAppLock());
 
       // Start first attempt
-      let firstResult: boolean | undefined;
       let secondResult: boolean | undefined;
 
       await act(async () => {
         // Fire both attempts simultaneously
-        const promise1 = result.current.attemptBiometricUnlock().then(r => { firstResult = r; });
+        const promise1 = result.current.attemptBiometricUnlock();
         const promise2 = result.current.attemptBiometricUnlock().then(r => { secondResult = r; });
         
         jest.advanceTimersByTime(100);

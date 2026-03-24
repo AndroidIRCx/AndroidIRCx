@@ -56,7 +56,7 @@ class TabService {
       // Filter out any "Not connected" tabs before saving
       const tabsToSave = tabs
         .filter(tab => tab.name !== 'Not connected' && tab.networkId !== 'Not connected')
-        .map(({ messages, ...rest }) => rest);
+        .map(({ messages: _messages, ...rest }) => rest);
 
       // Use StorageCache for automatic write batching (2s debounce)
       await storageCache.setItem(key, tabsToSave);

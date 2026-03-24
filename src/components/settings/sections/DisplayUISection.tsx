@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+/* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
+
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { SettingItem } from '../SettingItem';
@@ -88,6 +90,20 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const [swipeBehavior, setSwipeBehavior] = useState<'off' | 'switch-tabs' | 'show-panels'>('off');
   const [confirmBeforeOpeningLinks, setConfirmBeforeOpeningLinks] = useState(true);
   const lastRawVisibilityRef = useRef<Record<RawMessageCategory, boolean> | null>(null);
+  const isNoticeTarget = (value: string): value is 'active' | 'server' | 'notice' | 'private' =>
+    ['active', 'server', 'notice', 'private'].includes(value);
+  const isWhoisDisplayMode = (value: string): value is 'modal' | 'active' | 'status' =>
+    ['modal', 'active', 'status'].includes(value);
+  const isEnterKeyBehavior = (value: string): value is 'send' | 'newline' =>
+    ['send', 'newline'].includes(value);
+  const isKeyboardBehavior = (
+    value: string
+  ): value is 'padding' | 'height' | 'position' | 'translate-with-padding' =>
+    ['padding', 'height', 'position', 'translate-with-padding'].includes(value);
+  const isBannerPosition = (
+    value: string
+  ): value is 'input_above' | 'input_below' | 'tabs_above' | 'tabs_below' =>
+    ['input_above', 'input_below', 'tabs_above', 'tabs_below'].includes(value);
 
   // Load initial state
   useEffect(() => {
@@ -96,10 +112,10 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
       setTabSortAlphabetical(sortTabs);
 
       const notice = await settingsService.getSetting('noticeTarget', 'server');
-      setNoticeTarget(notice);
+      setNoticeTarget(isNoticeTarget(notice) ? notice : 'server');
 
       const whoisMode = await settingsService.getSetting('whoisDisplayMode', 'status');
-      setWhoisDisplayMode(whoisMode);
+      setWhoisDisplayMode(isWhoisDisplayMode(whoisMode) ? whoisMode : 'status');
 
       const showEncryption = await settingsService.getSetting('showEncryptionIndicators', true);
       setShowEncryptionIndicatorsSetting(showEncryption);
@@ -114,16 +130,16 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
       setShowColorPickerButton(colorPickerButton);
 
       const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'send');
-      setEnterKeyBehavior(enterBehavior);
+      setEnterKeyBehavior(isEnterKeyBehavior(enterBehavior) ? enterBehavior : 'send');
 
       const avoidingEnabled = await settingsService.getSetting('keyboardAvoidingEnabled', true);
       setKeyboardAvoidingEnabled(avoidingEnabled);
 
       const behaviorIOS = await settingsService.getSetting('keyboardBehaviorIOS', 'padding');
-      setKeyboardBehaviorIOS(behaviorIOS);
+      setKeyboardBehaviorIOS(isKeyboardBehavior(behaviorIOS) ? behaviorIOS : 'padding');
 
       const behaviorAndroid = await settingsService.getSetting('keyboardBehaviorAndroid', 'height');
-      setKeyboardBehaviorAndroid(behaviorAndroid);
+      setKeyboardBehaviorAndroid(isKeyboardBehavior(behaviorAndroid) ? behaviorAndroid : 'height');
 
       const offsetValue = await settingsService.getSetting('keyboardVerticalOffset', 0);
       setKeyboardVerticalOffset(String(offsetValue));
@@ -132,7 +148,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
       setUseAndroidBottomSafeArea(androidSafeArea);
 
       const bannerPos = await settingsService.getSetting('bannerPosition', 'input_above');
-      setBannerPosition(bannerPos);
+      setBannerPosition(isBannerPosition(bannerPos) ? bannerPos : 'input_above');
 
       const scrollSwitch = await settingsService.getSetting(
         'channelListScrollSwitchTabs',
@@ -878,6 +894,8 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     noticeTarget,
     whoisDisplayMode,
     showEncryptionIndicatorsSetting,
+    showColorPickerButton,
+    enterKeyBehavior,
     showTypingIndicatorsSetting,
     showSendButton,
     confirmBeforeOpeningLinks,
@@ -972,7 +990,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
                       }}
                       disabled={subItem.disabled}
                       style={{ paddingVertical: 8, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: subItem.disabled ? 0.5 : 1 }}>
-                      <Text style={{ color: subItem.disabled ? colors.textDisabled : colors.text, fontSize: 15 }}>{subItem.title}</Text>
+                      <Text style={{ color: subItem.disabled ? colors.textSecondary : colors.text, fontSize: 15 }}>{subItem.title}</Text>
                       {subItem.description && (
                         <Text style={{ color: colors.textSecondary, fontSize: 11, marginTop: 2, lineHeight: 14 }} numberOfLines={2}>
                           {subItem.description}

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -80,6 +80,55 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
   const styles = createStyles(colors);
 
   // Check for blacklistTarget from NickContextMenu
+  const loadAvailableNetworks = useCallback(() => {
+    const networks = connectionManager
+      .getAllConnections()
+      .map(conn => conn.networkId)
+      .filter((id): id is string => Boolean(id));
+    setAvailableNetworks(networks);
+  }, []);
+
+  const loadTemplates = useCallback(async () => {
+    const stored = await settingsService.getSetting('blacklistTemplates', {});
+    setTemplates(stored || {});
+  }, []);
+
+  const filterEntries = useCallback(() => {
+    let filtered = [...blacklistEntries];
+
+    if (selectedNetwork) {
+      filtered = filtered.filter(entry => entry.network === selectedNetwork);
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        entry =>
+          entry.mask.toLowerCase().includes(query) ||
+          (entry.reason && entry.reason.toLowerCase().includes(query)) ||
+          (entry.commandTemplate && entry.commandTemplate.toLowerCase().includes(query))
+      );
+    }
+
+    setFilteredEntries(filtered);
+  }, [blacklistEntries, searchQuery, selectedNetwork]);
+
+  const getUserManagementService = useCallback(() => {
+    if (network) {
+      const conn = connectionManager.getConnection(network);
+      if (conn?.userManagementService) {
+        return conn.userManagementService;
+      }
+    }
+    return userManagementService;
+  }, [network]);
+
+  const loadBlacklistEntries = useCallback(() => {
+    const svc = getUserManagementService();
+    const entries = svc.getBlacklistEntries();
+    setBlacklistEntries(entries);
+  }, [getUserManagementService]);
+
   useEffect(() => {
     if (visible) {
       loadBlacklistEntries();
@@ -102,66 +151,17 @@ export const BlacklistScreen: React.FC<BlacklistScreenProps> = ({
         useUIStore.getState().setBlacklistTarget(null);
       }
     }
-  }, [visible, network]);
+  }, [visible, network, loadBlacklistEntries, loadAvailableNetworks, loadTemplates]);
 
   useEffect(() => {
     filterEntries();
-  }, [blacklistEntries, searchQuery, selectedNetwork]);
-
-  const loadAvailableNetworks = () => {
-    const networks = connectionManager
-      .getAllConnections()
-      .map(conn => conn?.config?.id)
-      .filter((id): id is string => Boolean(id));
-    setAvailableNetworks(networks);
-  };
-
-  const loadTemplates = async () => {
-    const stored = await settingsService.getSetting('blacklistTemplates', {});
-    setTemplates(stored || {});
-  };
-
-  const filterEntries = () => {
-    let filtered = [...blacklistEntries];
-
-    if (selectedNetwork) {
-      filtered = filtered.filter(entry => entry.network === selectedNetwork);
-    }
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        entry =>
-          entry.mask.toLowerCase().includes(query) ||
-          (entry.reason && entry.reason.toLowerCase().includes(query)) ||
-          (entry.commandTemplate && entry.commandTemplate.toLowerCase().includes(query))
-      );
-    }
-
-    setFilteredEntries(filtered);
-  };
-
-  const getUserManagementService = () => {
-    if (network) {
-      const conn = connectionManager.getConnection(network);
-      if (conn?.userManagementService) {
-        return conn.userManagementService;
-      }
-    }
-    return userManagementService;
-  };
-
-  const loadBlacklistEntries = () => {
-    const svc = getUserManagementService();
-    const entries = svc.getBlacklistEntries();
-    setBlacklistEntries(entries);
-  };
+  }, [filterEntries]);
 
   const getTemplatesForNetwork = (netId?: string | null) => {
     const key = netId || 'global';
     return {
       ...DEFAULT_TEMPLATES,
-      ...(templates['global'] || {}),
+      ...(templates.global || {}),
       ...(templates[key] || {}),
     };
   };

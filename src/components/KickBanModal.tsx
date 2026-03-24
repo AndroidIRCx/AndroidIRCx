@@ -11,8 +11,14 @@ import {
   Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { BAN_MASK_TYPES, banService, PredefinedReason } from '../services/BanService';
+import { BAN_MASK_TYPES, banService } from '../services/BanService';
 import { settingsService, NEW_FEATURE_DEFAULTS } from '../services/SettingsService';
+
+const stylesLocal = {
+  subtitleEmphasis: { fontStyle: 'italic' as const, opacity: 0.7 },
+  labelSpacing: { marginTop: 15 },
+  pickerSpacing: { marginLeft: 10 },
+} as const;
 
 interface ThemeColors {
   background: string;
@@ -150,7 +156,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
               Host: {userHost}
             </Text>
           ) : (
-            <Text style={[styles.subtitle, { color: colors.text, fontStyle: 'italic', opacity: 0.7 }]}>
+            <Text style={[styles.subtitle, stylesLocal.subtitleEmphasis, { color: colors.text }]}>
               Fetching user info...
             </Text>
           )}
@@ -172,7 +178,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
           />
 
           {/* Quick Reasons */}
-          <Text style={[styles.label, { color: colors.text, marginTop: 15 }]}>Quick Reasons:</Text>
+          <Text style={[styles.label, stylesLocal.labelSpacing, { color: colors.text }]}>Quick Reasons:</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickReasonsContainer}>
             {predefinedReasons.map((reasonItem) => (
               <TouchableOpacity
@@ -186,7 +192,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
           </ScrollView>
 
           {/* Ban Type Selector */}
-          <Text style={[styles.label, { color: colors.text, marginTop: 15 }]}>Ban Type:</Text>
+          <Text style={[styles.label, stylesLocal.labelSpacing, { color: colors.text }]}>Ban Type:</Text>
           <View style={[styles.pickerContainer, { borderColor: colors.border }]}>
             <Picker
               selectedValue={selectedBanType}
@@ -206,7 +212,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
           {/* Ban Mask Preview */}
           {banMaskPreview && (
             <>
-              <Text style={[styles.label, { color: colors.text, marginTop: 15 }]}>Ban Mask Preview:</Text>
+              <Text style={[styles.label, stylesLocal.labelSpacing, { color: colors.text }]}>Ban Mask Preview:</Text>
               <Text style={[styles.previewText, { color: colors.text }]}>{banMaskPreview}</Text>
             </>
           )}
@@ -237,7 +243,7 @@ const KickBanModal: React.FC<KickBanModalProps> = ({
                 keyboardType="numeric"
               />
               
-              <View style={[styles.pickerContainer, { borderColor: colors.border, marginLeft: 10 }]}>
+              <View style={[styles.pickerContainer, stylesLocal.pickerSpacing, { borderColor: colors.border }]}>
                 <Picker
                   selectedValue={unbanTimeUnit}
                   onValueChange={(itemValue) => setUnbanTimeUnit(itemValue)}

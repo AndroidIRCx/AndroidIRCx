@@ -7,7 +7,7 @@ import { useCallback, useRef, useEffect } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { IRCMessage } from '../services/IRCService';
 import { performanceService } from '../services/PerformanceService';
-import { serverTabId, noticeTabId, notificationsTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
+import { noticeTabId, notificationsTabId, sortTabsGrouped } from '../utils/tabUtils';
 import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
 import { messageHistoryService } from '../services/MessageHistoryService';
@@ -198,15 +198,7 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
           hasValidNetwork,
         } = context;
 
-        // Ensure server tab exists
         if (hasValidNetwork) {
-          const serverId = serverTabId(messageNetwork);
-          if (!newTabs.some(t => t.id === serverId)) {
-            if (!tabsModified) newTabs = [...newTabs];
-            newTabs.push(makeServerTab(messageNetwork));
-            tabsModified = true;
-          }
-
           // Ensure notices tab if needed
           if (targetTabId === noticeTabId(messageNetwork) && !newTabs.some(t => t.id === targetTabId)) {
             if (!tabsModified) newTabs = [...newTabs];
@@ -257,6 +249,9 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
         if (tabIndex === -1) {
           // Create new tab
           if (hasValidNetwork) {
+            if (targetTabType === 'server') {
+              continue;
+            }
             if (!tabsModified) newTabs = [...newTabs];
             const channelName = message.channel || message.from || targetTabId;
             //console.log(`📨 useMessageBatching: Creating new tab ${targetTabId} with message (batchTag: ${message.batchTag || 'none'})`);

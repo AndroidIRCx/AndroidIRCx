@@ -16,7 +16,7 @@
  * - react-native-fs for file info
  */
 
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { Camera } from 'react-native-vision-camera';
 import RNFS from 'react-native-fs';
 import { Platform, PermissionsAndroid } from 'react-native';
 
@@ -32,8 +32,8 @@ try {
   pickFunction = pickerModule.pick || DocumentPicker?.pick;
   DocumentPickerTypes = pickerModule.types || DocumentPicker?.types;
   isCancelFunction = pickerModule.isCancel || DocumentPicker?.isCancel;
-} catch (e) {
-  console.warn('[MediaPickerService] DocumentPicker not available:', e);
+} catch (error) {
+  console.warn('[MediaPickerService] DocumentPicker not available:', error);
 }
 
 // Check if DocumentPicker is available
@@ -533,9 +533,9 @@ class MediaPickerService {
             size: stat.size,
             isFile: stat.isFile(),
             name: stat.name || 'unknown',
-            mtime: stat.mtime,
+            mtime: stat.mtime ? new Date(stat.mtime) : undefined,
           };
-        } catch (err) {
+        } catch {
           // Content URIs might not be accessible via RNFS
           console.warn('[MediaPickerService] Cannot stat content URI, returning basic info');
           return {
@@ -551,7 +551,7 @@ class MediaPickerService {
         size: stat.size,
         isFile: stat.isFile(),
         name: stat.name || 'unknown',
-        mtime: stat.mtime,
+        mtime: stat.mtime ? new Date(stat.mtime) : undefined,
       };
     } catch (error) {
       console.error('[MediaPickerService] Get file info error:', error);
@@ -563,10 +563,10 @@ class MediaPickerService {
             size: stat.size,
             isFile: stat.isFile(),
             name: stat.name || 'unknown',
-            mtime: stat.mtime,
+            mtime: stat.mtime ? new Date(stat.mtime) : undefined,
           };
-        } catch (err2) {
-          console.error('[MediaPickerService] Get file info error (retry):', err2);
+        } catch (retryError) {
+          console.error('[MediaPickerService] Get file info error (retry):', retryError);
         }
       }
       return {
@@ -636,7 +636,7 @@ class MediaPickerService {
         
         // Request permission if not granted
         const cameraPermission = await Camera.requestCameraPermission();
-        return cameraPermission === 'granted' || cameraPermission === 'authorized';
+        return cameraPermission === 'granted';
       }
       return true; // iOS permissions handled in Info.plist
     } catch (error) {
@@ -662,7 +662,7 @@ class MediaPickerService {
         
         // Request permission if not granted
         const micPermission = await Camera.requestMicrophonePermission();
-        return micPermission === 'granted' || micPermission === 'authorized';
+        return micPermission === 'granted';
       }
       return true; // iOS permissions handled in Info.plist
     } catch (error) {
@@ -678,7 +678,7 @@ class MediaPickerService {
     try {
       const devices = await Camera.getAvailableCameraDevices();
       return devices.length > 0;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -711,7 +711,7 @@ class MediaPickerService {
       }
 
       return { valid: true };
-    } catch (error) {
+    } catch {
       return { valid: false, error: 'Cannot access file' };
     }
   }

@@ -91,7 +91,7 @@ class ConsentService {
         this.consentStatus = AdsConsentStatus.NOT_REQUIRED;
         logger.info('consent', 'Loaded manual consent acceptance');
       } else if (savedStatus) {
-        this.consentStatus = parseInt(savedStatus) as AdsConsentStatus;
+        this.consentStatus = parseInt(savedStatus, 10) as unknown as AdsConsentStatus;
         logger.info('consent', `Loaded saved consent status: ${this.consentStatus}`);
       }
     } catch (error) {
@@ -224,7 +224,7 @@ class ConsentService {
     try {
       logger.info('consent', 'Resetting consent...');
       await AdsConsent.reset();
-      await AsyncStorage.multiRemove([STORAGE_KEY, CONSENT_STATUS_KEY, MANUAL_CONSENT_KEY]);
+      await AsyncStorage.removeMany([STORAGE_KEY, CONSENT_STATUS_KEY, MANUAL_CONSENT_KEY]);
       this.consentStatus = AdsConsentStatus.UNKNOWN;
       this.manuallyAccepted = false;
       this.notifyListeners();

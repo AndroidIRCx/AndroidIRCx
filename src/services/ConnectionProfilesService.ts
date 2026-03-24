@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { IRCNetworkConfig, IRCServerConfig } from './SettingsService';
+import { IRCNetworkConfig } from './SettingsService';
 import { tx } from '../i18n/transifex';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
@@ -281,7 +281,7 @@ class ConnectionProfilesService {
    * Get templates by category
    */
   getTemplatesByCategory(category: string): ProfileTemplate[] {
-    return this.TEMPLATES.filter(t => t.category === category).map(template => this.localizeTemplate(template));
+    return this.TEMPLATES.filter(template => template.category === category).map(template => this.localizeTemplate(template));
   }
 
   /**

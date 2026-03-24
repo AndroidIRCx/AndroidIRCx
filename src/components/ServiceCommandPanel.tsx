@@ -21,6 +21,12 @@ import { useT } from '../i18n/transifex';
 import { ServiceCommand } from '../interfaces/ServiceTypes';
 import { serviceCommandProvider } from '../services/ServiceCommandProvider';
 
+const stylesLocal = {
+  boldText: { fontWeight: '600' as const },
+  overlay: { backgroundColor: 'rgba(0,0,0,0.5)' },
+  filterTextActive: { color: '#FFF' },
+} as const;
+
 interface ServiceCommandPanelProps {
   visible: boolean;
   onClose: () => void;
@@ -165,10 +171,10 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                 size={14}
                 color={colors.textSecondary}
               />
-              <Text style={[styles.detailText, { color: colors.text }]}>
-                <Text style={{ fontWeight: '600' }}>{t('Usage')}:</Text>{' '}
-                {command.usage}
-              </Text>
+                <Text style={[styles.detailText, { color: colors.text }]}>
+                  <Text style={stylesLocal.boldText}>{t('Usage')}:</Text>{' '}
+                  {command.usage}
+                </Text>
             </View>
 
             {command.example && (
@@ -179,7 +185,7 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                   color={colors.textSecondary}
                 />
                 <Text style={[styles.detailText, { color: colors.text }]}>
-                  <Text style={{ fontWeight: '600' }}>{t('Example')}:</Text>{' '}
+                  <Text style={stylesLocal.boldText}>{t('Example')}:</Text>{' '}
                   {command.example}
                 </Text>
               </View>
@@ -193,7 +199,7 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                   color={colors.textSecondary}
                 />
                 <Text style={[styles.detailText, { color: colors.text }]}>
-                  <Text style={{ fontWeight: '600' }}>{t('Parameters')}:</Text>{' '}
+                  <Text style={stylesLocal.boldText}>{t('Parameters')}:</Text>{' '}
                   {command.parameters
                     .map(p => `${p.name}${p.required ? '' : '?'}`)
                     .join(', ')}
@@ -224,7 +230,7 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
       transparent
       animationType="slide"
       onRequestClose={onClose}>
-      <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+      <View style={[styles.overlay, stylesLocal.overlay]}>
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
@@ -275,7 +281,7 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                 <Text
                   style={[
                     styles.filterText,
-                    { color: selectedService === null ? '#FFF' : colors.text },
+                    selectedService === null ? stylesLocal.filterTextActive : { color: colors.text },
                   ]}>
                   {t('All')}
                 </Text>
@@ -294,10 +300,7 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                   <Text
                     style={[
                       styles.filterText,
-                      {
-                        color:
-                          selectedService === name ? '#FFF' : colors.text,
-                      },
+                      selectedService === name ? stylesLocal.filterTextActive : { color: colors.text },
                     ]}>
                     {name}
                   </Text>

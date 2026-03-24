@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+/* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, StyleSheet } from 'react-native';
 import { SettingItem } from '../SettingItem';
@@ -83,7 +85,6 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
   const [defaultBanType, setDefaultBanType] = useState<number>(2);
   const [predefinedKickReasons, setPredefinedKickReasons] = useState<string[]>([]);
   const [showBanMaskPreview, setShowBanMaskPreview] = useState<boolean>(true);
-  const [rememberLastBanType, setRememberLastBanType] = useState<boolean>(false);
   const [confirmBeforeKickBan, setConfirmBeforeKickBan] = useState<boolean>(true);
   const [showBanReasonsModal, setShowBanReasonsModal] = useState(false);
   const [newBanReason, setNewBanReason] = useState('');
@@ -117,7 +118,6 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
       setDefaultBanType(await settingsService.getSetting('defaultBanType', NEW_FEATURE_DEFAULTS.defaultBanType));
       setPredefinedKickReasons(await settingsService.getSetting('predefinedKickReasons', NEW_FEATURE_DEFAULTS.predefinedKickReasons));
       setShowBanMaskPreview(await settingsService.getSetting('showBanMaskPreview', NEW_FEATURE_DEFAULTS.showBanMaskPreview));
-      setRememberLastBanType(await settingsService.getSetting('rememberLastBanType', NEW_FEATURE_DEFAULTS.rememberLastBanType));
       setConfirmBeforeKickBan(await settingsService.getSetting('confirmBeforeKickBan', NEW_FEATURE_DEFAULTS.confirmBeforeKickBan));
     };
     load();
@@ -550,7 +550,6 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
     protIrcopAction,
     protIrcopReason,
     protIrcopDuration,
-    defaultBanType,
     predefinedKickReasons.length,
     showBanMaskPreview,
     confirmBeforeKickBan,

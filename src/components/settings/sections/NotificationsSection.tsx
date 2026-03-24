@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+/* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
+
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { Alert, Modal, View, Text, TextInput, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { SettingItem } from '../SettingItem';

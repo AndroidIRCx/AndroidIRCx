@@ -135,30 +135,29 @@ export const ChannelListScreen: React.FC<ChannelListScreenProps> = ({
     return filtered;
   }, [channels, debouncedSearchQuery, filter, sortBy, ascending, listService]);
 
-  const handleJoin = (channel: ChannelListItem) => {
-    const favorite = channelFavoritesService.isFavorite(network || '', channel.name);
+  const handleJoin = useCallback((channel: ChannelListItem) => {
     const favoriteData = network
       ? channelFavoritesService.getFavorites(network).find(f => f.name === channel.name)
       : undefined;
-    
+
     onJoinChannel(channel.name, favoriteData?.key);
     onClose();
-  };
+  }, [network, onClose, onJoinChannel]);
 
-  const handleToggleFavorite = async (channel: ChannelListItem) => {
+  const handleToggleFavorite = useCallback(async (channel: ChannelListItem) => {
     if (!network) return;
-    
+
     // Normalize network ID to base network name to ensure favorites are stored per base network
     // "DBase (1)" -> "DBase", "DBase (2)" -> "DBase", "DBase" -> "DBase"
     const baseNetworkId = network.replace(/\s+\(\d+\)$/, '');
-    
+
     const isFavorite = channelFavoritesService.isFavorite(baseNetworkId, channel.name);
     if (isFavorite) {
       await channelFavoritesService.removeFavorite(baseNetworkId, channel.name);
     } else {
       await channelFavoritesService.addFavorite(baseNetworkId, channel.name);
     }
-  };
+  }, [network]);
 
   const renderChannelItem = useCallback(({ item }: { item: ChannelListItem }) => {
     const isFavorite = network ? channelFavoritesService.isFavorite(network, item.name) : false;
@@ -184,10 +183,10 @@ export const ChannelListScreen: React.FC<ChannelListScreenProps> = ({
         </View>
       </TouchableOpacity>
     );
-  }, [network, styles, t]);
+  }, [network, styles, t, handleJoin, handleToggleFavorite]);
 
   // Optimize FlatList rendering with getItemLayout for fixed-height items
-  const getItemLayout = useCallback((data: ChannelListItem[] | null | undefined, index: number) => ({
+  const getItemLayout = useCallback((_data: ArrayLike<ChannelListItem> | null | undefined, index: number) => ({
     length: 76, // Approximate item height (padding + content)
     offset: 76 * index,
     index,

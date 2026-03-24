@@ -5,7 +5,7 @@
  * Tests for DCCChatService - Wave 6
  */
 
-import { dccChatService, DCCChatSession } from '../../src/services/DCCChatService';
+import { dccChatService } from '../../src/services/DCCChatService';
 import TcpSocket from 'react-native-tcp-socket';
 
 // Mock react-native-tcp-socket
@@ -330,6 +330,7 @@ describe('DCCChatService', () => {
       const session1 = dccChatService.handleIncomingInvite('John1', 'freenode', '127.0.0.1', 12345);
       const session2 = dccChatService.handleIncomingInvite('John2', 'freenode', '127.0.0.1', 12346);
 
+      expect(session1.id).not.toBe(session2.id);
       expect((dccChatService as any).idCounter).toBe(1);
     });
   });

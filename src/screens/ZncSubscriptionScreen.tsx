@@ -40,7 +40,7 @@ import {
   isZncAccountReady,
   formatZncExpiry,
 } from '../services/SubscriptionService';
-import { settingsService, IRCNetworkConfig, IRCServerConfig } from '../services/SettingsService';
+import { settingsService, IRCNetworkConfig } from '../services/SettingsService';
 import { biometricAuthService } from '../services/BiometricAuthService';
 import { secureStorageService } from '../services/SecureStorageService';
 import { NetworkPickerModal } from '../components/modals/NetworkPickerModal';
@@ -60,6 +60,8 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
+  const refreshButtonStyle = { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border };
+  const deleteButtonStyle = { backgroundColor: colors.error };
 
   // Accounts state
   const [accounts, setAccounts] = useState<ZncAccount[]>([]);
@@ -139,6 +141,280 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     setPasswordsUnlocked(!(biometricEnabled || pinEnabled));
   }, []);
 
+  const loadAccounts = useCallback(async () => {
+    if (isMountedRef.current) {
+      setLoading(true);
+    }
+    try {
+      await subscriptionService.initialize();
+      if (!isMountedRef.current) return;
+      setAccounts(subscriptionService.getAccounts());
+    } catch (error) {
+      console.error('Failed to load accounts:', error);
+    } finally {
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  const cleanupIap = useCallback(() => {
+    purchaseUpdateSubscription.current?.remove();
+    purchaseErrorSubscription.current?.remove();
+    RNIap.endConnection();
+    if (isMountedRef.current) {
+      setIapConnected(false);
+    }
+  }, []);
+
+  const handlePurchaseError = useCallback((error: PurchaseError) => {
+    if (error.productId !== ZNC_PRODUCT_ID) return;
+
+    // Always reset purchasing state to prevent stuck loading state
+    if (isMountedRef.current) {
+      setPurchasing(false);
+      setRegistering(false);
+    }
+
+    if (error.code !== ErrorCode.UserCancelled) {
+      Alert.alert(t('Purchase Failed'), error.message || t('Unable to complete purchase.'));
+    }
+  }, [t]);
+
+  const registerAccount = useCallback(async (purchaseToken: string, username: string) => {
+    // Ensure we're in the registering state
+    if (isMountedRef.current) {
+      setRegistering(true);
+    }
+    try {
+      // Validate that we have both required parameters
+      if (!purchaseToken || !username) {
+        throw new Error('Missing required information for registration');
+      }
+
+      const account = await subscriptionService.registerZncSubscription({
+        purchaseToken,
+        subscriptionId: ZNC_PRODUCT_ID,
+        zncUsername: username,
+      });
+
+      Alert.alert(
+        t('Success'),
+        t('Your ZNC account has been created successfully! Username: {username}', { username: account.zncUsername }),
+        [
+          {
+            text: t('Add to Network'),
+            onPress: () => {
+              if (!isMountedRef.current) return;
+              setSelectedAccount(account);
+              setShowNetworkPicker(true);
+            },
+          },
+          { text: t('Later'), style: 'cancel' },
+        ]
+      );
+    } catch (error: any) {
+      // Check for username already exists error
+      const errorMessage = error.message || '';
+      if (errorMessage.includes('znc_username_exists') || errorMessage.includes('already exists')) {
+        Alert.alert(
+          t('Username Taken'),
+          t('This username already exists on our ZNC server. Please choose a different username.'),
+          [
+            {
+              text: t('Try Again'),
+              onPress: () => {
+                // Re-open username input with the purchase token saved
+                pendingUsernameRef.current = '';
+                setNewUsername('');
+                setShowUsernameInput(true);
+                // Save the purchase token for retry
+                pendingPurchaseTokenRef.current = purchaseToken;
+              },
+            },
+            {
+              text: t('Cancel'),
+              style: 'cancel',
+              onPress: () => {
+                // Clear the pending token if user cancels
+                pendingPurchaseTokenRef.current = '';
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert(t('Registration Failed'), error.message || t('Unable to register ZNC account.'));
+      }
+    } finally {
+      // Ensure registering state is always reset to prevent stuck loading
+      setRegistering(false);
+    }
+  }, [t]);
+
+  const handlePurchaseUpdate = useCallback(async (purchase: Purchase) => {
+    if (purchase.productId !== ZNC_PRODUCT_ID) return;
+
+    try {
+      // Finish the transaction
+      await RNIap.finishTransaction({ purchase, isConsumable: false });
+
+      // Try multiple possible token fields depending on platform
+      let token = purchase.purchaseToken;
+
+      // On some platforms/versions, the token might be in different fields
+      if (!token && (purchase as any).receipt) {
+        token = (purchase as any).receipt;
+      }
+      if (!token && (purchase as any).data) {
+        token = (purchase as any).data;
+      }
+
+      if (token && pendingUsernameRef.current) {
+        // Register with backend
+        await registerAccount(token, pendingUsernameRef.current);
+      } else {
+        console.error('No purchase token or username found:', { token: !!token, username: !!pendingUsernameRef.current }, purchase);
+        throw new Error('Purchase token or username not available');
+      }
+    } catch (error) {
+      console.error('Failed to process purchase:', error);
+      Alert.alert(t('Error'), t('Failed to complete purchase. Please try again.'));
+    } finally {
+      // Always ensure states are reset to prevent stuck loading states
+      if (isMountedRef.current) {
+        setPurchasing(false);
+        setRegistering(false);
+        setShowUsernameInput(false);
+        setNewUsername('');
+      }
+      pendingUsernameRef.current = '';
+    }
+  }, [registerAccount, t]);
+
+  const initializeIap = useCallback(async () => {
+    try {
+      console.log('Initializing IAP connection...');
+      const connectionResult = await RNIap.initConnection();
+      console.log('IAP connection result:', connectionResult);
+      if (!isMountedRef.current) return;
+      setIapConnected(true);
+
+      // Load subscription product using fetchProducts with type: 'subs'
+      console.log(`Fetching products for SKU: ${ZNC_PRODUCT_ID}`);
+      const products = (await RNIap.fetchProducts({ skus: [ZNC_PRODUCT_ID], type: 'subs' })) ?? [];
+      console.log('Available products:', products); // Debug logging
+
+      // More detailed logging about what was returned
+      if (products && products.length > 0) {
+        console.log('Product details:');
+        products.forEach((product, index) => {
+          console.log(`Product ${index + 1}:`, {
+            id: product.id,
+            type: product.type,
+            title: product.title,
+            description: product.description,
+            price: product.price,
+            displayPrice: product.displayPrice
+          });
+        });
+      } else {
+        console.warn('No products returned from store');
+        // Check if we can get available purchases as an alternative
+        try {
+          const availablePurchases = await RNIap.getAvailablePurchases();
+          console.log('Available purchases (for debugging):', availablePurchases.length);
+        } catch (purchasesErr) {
+          console.warn('Could not fetch available purchases:', purchasesErr);
+        }
+      }
+
+      const sub = products.find(
+        (item): item is ProductSubscription => item.id === ZNC_PRODUCT_ID && item.type === 'subs'
+      );
+
+      if (sub) {
+        console.log('Found subscription product:', sub);
+        if (!isMountedRef.current) return;
+        setSubscription(sub);
+
+        // Get offer token for Android
+        if (Platform.OS === 'android') {
+          // Wait a bit to ensure offer details are fully loaded
+          await new Promise(resolve => setTimeout(resolve, 1500));
+
+          // Try multiple possible property names for subscription offers on Android
+          let offers = (sub as any).subscriptionOfferDetails || [];
+          if (!offers || offers.length === 0) {
+            offers = (sub as any).subscriptionOfferDetailsAndroid || [];
+          }
+          if (!offers || offers.length === 0) {
+            // Sometimes the offers are nested differently
+            const rawDetails = (sub as any).oneTimePurchaseOfferDetailsAndroid;
+            if (rawDetails?.recurrenceMode) {
+              // If there's a one-time purchase offer, we might need to handle differently
+              console.log('Found one-time purchase details instead of subscription offers:', rawDetails);
+            }
+            console.log('Checking for offers in different properties...');
+          }
+
+          console.log('Subscription offers:', offers); // Debug logging
+
+          // Look for the specific base plan, or use the first available offer
+          let offer = offers.find((o: any) => o.basePlanId === ZNC_BASE_PLAN_ID);
+          if (!offer && offers.length > 0) {
+            // Use the first offer as fallback if specific base plan not found
+            offer = offers[0];
+            console.log('Using fallback offer:', offer);
+          }
+
+          console.log('Selected offer:', offer); // Debug logging
+
+          if (offer?.offerToken) {
+            if (!isMountedRef.current) return;
+            setOfferToken(offer.offerToken);
+            console.log('Set offer token:', offer.offerToken); // Debug logging
+          } else if (offers.length > 0) {
+            // If there are offers but no offerToken, try to get it from pricing phases
+            for (const o of offers) {
+              if (o.pricingPhases?.pricingPhaseList?.length > 0) {
+                const firstPhase = o.pricingPhases.pricingPhaseList[0];
+                if (firstPhase?.offerId) {
+                  // Some implementations put the offer token in the offerId
+                  if (!isMountedRef.current) return;
+                  setOfferToken(firstPhase.offerId);
+                  console.log('Set offer token from pricing phase:', firstPhase.offerId);
+                  break;
+                }
+              }
+            }
+          }
+
+          console.log('Offer token resolution complete');
+        }
+      } else {
+        console.error('ZNC subscription product not found in store');
+        console.log('Available SKUs in response:', products.map(p => p.id));
+
+        // Show alert to user about the missing product
+        Alert.alert(
+          t('Store Error'),
+          t('ZNC subscription product (znc) is not available in the store. This may be because:\n• You\'re not in the test group\n• The app signing certificate doesn\'t match Play Console\n• The subscription is not published to your region\n• You need to join the beta/testing program')
+        );
+      }
+
+      // Set up purchase listeners
+      purchaseUpdateSubscription.current = RNIap.purchaseUpdatedListener(handlePurchaseUpdate);
+      purchaseErrorSubscription.current = RNIap.purchaseErrorListener(handlePurchaseError);
+    } catch (error) {
+      console.error('Failed to initialize IAP:', error);
+      if (!isMountedRef.current) return;
+      Alert.alert(
+        t('Store Error'),
+        t('Failed to connect to the store. Please check your internet connection and try again.')
+      );
+    }
+  }, [handlePurchaseError, handlePurchaseUpdate, t]);
+
   // Initialize IAP and load accounts
   useEffect(() => {
     if (visible) {
@@ -154,7 +430,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
         cleanupIap();
       };
     }
-  }, [visible, loadPasswordLockState]);
+  }, [visible, loadPasswordLockState, initializeIap, loadAccounts, cleanupIap]);
 
   const closePinModal = useCallback((ok: boolean) => {
     setPinModalVisible(false);
@@ -287,165 +563,6 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     }
   }, [visible, iapConnected, subscription]);
 
-  const initializeIap = async () => {
-    try {
-      console.log('Initializing IAP connection...');
-      const connectionResult = await RNIap.initConnection();
-      console.log('IAP connection result:', connectionResult);
-      if (!isMountedRef.current) return;
-      setIapConnected(true);
-
-      // Load subscription product using fetchProducts with type: 'subs'
-      console.log(`Fetching products for SKU: ${ZNC_PRODUCT_ID}`);
-      const products = (await RNIap.fetchProducts({ skus: [ZNC_PRODUCT_ID], type: 'subs' })) ?? [];
-      console.log('Available products:', products); // Debug logging
-
-      // More detailed logging about what was returned
-      if (products && products.length > 0) {
-        console.log('Product details:');
-        products.forEach((product, index) => {
-          console.log(`Product ${index + 1}:`, {
-            id: product.id,
-            type: product.type,
-            title: product.title,
-            description: product.description,
-            price: product.price,
-            displayPrice: product.displayPrice
-          });
-        });
-      } else {
-        console.warn('No products returned from store');
-        // Check if we can get available purchases as an alternative
-        try {
-          const availablePurchases = await RNIap.getAvailablePurchases();
-          console.log('Available purchases (for debugging):', availablePurchases.length);
-        } catch (purchasesErr) {
-          console.warn('Could not fetch available purchases:', purchasesErr);
-        }
-      }
-
-      const sub = products.find(
-        (item): item is ProductSubscription => item.id === ZNC_PRODUCT_ID && item.type === 'subs'
-      );
-
-      if (sub) {
-        console.log('Found subscription product:', sub);
-        if (!isMountedRef.current) return;
-        setSubscription(sub);
-
-        // Get offer token for Android
-        if (Platform.OS === 'android') {
-          // Wait a bit to ensure offer details are fully loaded
-          await new Promise(resolve => setTimeout(resolve, 1500));
-
-          // Try multiple possible property names for subscription offers on Android
-          let offers = (sub as any).subscriptionOfferDetails || [];
-          if (!offers || offers.length === 0) {
-            offers = (sub as any).subscriptionOfferDetailsAndroid || [];
-          }
-          if (!offers || offers.length === 0) {
-            // Sometimes the offers are nested differently
-            const rawDetails = (sub as any).oneTimePurchaseOfferDetailsAndroid;
-            if (rawDetails?.recurrenceMode) {
-              // If there's a one-time purchase offer, we might need to handle differently
-              console.log('Found one-time purchase details instead of subscription offers:', rawDetails);
-            }
-            console.log('Checking for offers in different properties...');
-          }
-
-          console.log('Subscription offers:', offers); // Debug logging
-
-          // Look for the specific base plan, or use the first available offer
-          let offer = offers.find((o: any) => o.basePlanId === ZNC_BASE_PLAN_ID);
-          if (!offer && offers.length > 0) {
-            // Use the first offer as fallback if specific base plan not found
-            offer = offers[0];
-            console.log('Using fallback offer:', offer);
-          }
-
-          console.log('Selected offer:', offer); // Debug logging
-
-          if (offer?.offerToken) {
-            if (!isMountedRef.current) return;
-            setOfferToken(offer.offerToken);
-            console.log('Set offer token:', offer.offerToken); // Debug logging
-          } else if (offers.length > 0) {
-            // If there are offers but no offerToken, try to get it from pricing phases
-            for (const o of offers) {
-              if (o.pricingPhases?.pricingPhaseList?.length > 0) {
-                const firstPhase = o.pricingPhases.pricingPhaseList[0];
-                if (firstPhase?.offerId) {
-                  // Some implementations put the offer token in the offerId
-                  if (!isMountedRef.current) return;
-                  setOfferToken(firstPhase.offerId);
-                  console.log('Set offer token from pricing phase:', firstPhase.offerId);
-                  break;
-                }
-              }
-            }
-          }
-
-          if (!offerToken) {
-            console.warn('No offer token found, offers:', offers);
-            // Show alert to user about the issue
-//             Alert.alert(
-//               t('Store Error'),
-//               t('Subscription is not available at the moment. This may be due to store configuration in Google Play. The subscription might not have active pricing plans configured.')
-//             );
-          } else {
-            console.log('Successfully set offer token:', offerToken);
-          }
-        }
-      } else {
-        console.error('ZNC subscription product not found in store');
-        console.log('Available SKUs in response:', products.map(p => p.id));
-
-        // Show alert to user about the missing product
-        Alert.alert(
-          t('Store Error'),
-          t('ZNC subscription product (znc) is not available in the store. This may be because:\n• You\'re not in the test group\n• The app signing certificate doesn\'t match Play Console\n• The subscription is not published to your region\n• You need to join the beta/testing program')
-        );
-      }
-
-      // Set up purchase listeners
-      purchaseUpdateSubscription.current = RNIap.purchaseUpdatedListener(handlePurchaseUpdate);
-      purchaseErrorSubscription.current = RNIap.purchaseErrorListener(handlePurchaseError);
-    } catch (error) {
-      console.error('Failed to initialize IAP:', error);
-      if (!isMountedRef.current) return;
-      Alert.alert(
-        t('Store Error'),
-        t('Failed to connect to the store. Please check your internet connection and try again.')
-      );
-    }
-  };
-
-  const cleanupIap = () => {
-    purchaseUpdateSubscription.current?.remove();
-    purchaseErrorSubscription.current?.remove();
-    RNIap.endConnection();
-    if (isMountedRef.current) {
-      setIapConnected(false);
-    }
-  };
-
-  const loadAccounts = async () => {
-    if (isMountedRef.current) {
-      setLoading(true);
-    }
-    try {
-      await subscriptionService.initialize();
-      if (!isMountedRef.current) return;
-      setAccounts(subscriptionService.getAccounts());
-    } catch (error) {
-      console.error('Failed to load accounts:', error);
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
-    }
-  };
-
   const handleRefresh = async () => {
     if (isMountedRef.current) {
       setRefreshing(true);
@@ -461,130 +578,6 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
       if (isMountedRef.current) {
         setRefreshing(false);
       }
-    }
-  };
-
-  const handlePurchaseUpdate = async (purchase: Purchase) => {
-    if (purchase.productId !== ZNC_PRODUCT_ID) return;
-
-    try {
-      // Finish the transaction
-      await RNIap.finishTransaction({ purchase, isConsumable: false });
-
-      // Try multiple possible token fields depending on platform
-      let token = purchase.purchaseToken;
-
-      // On some platforms/versions, the token might be in different fields
-      if (!token && (purchase as any).receipt) {
-        token = (purchase as any).receipt;
-      }
-      if (!token && (purchase as any).data) {
-        token = (purchase as any).data;
-      }
-
-      if (token && pendingUsernameRef.current) {
-        // Register with backend
-        await registerAccount(token, pendingUsernameRef.current);
-      } else {
-        console.error('No purchase token or username found:', { token: !!token, username: !!pendingUsernameRef.current }, purchase);
-        throw new Error('Purchase token or username not available');
-      }
-    } catch (error) {
-      console.error('Failed to process purchase:', error);
-      Alert.alert(t('Error'), t('Failed to complete purchase. Please try again.'));
-    } finally {
-      // Always ensure states are reset to prevent stuck loading states
-      if (isMountedRef.current) {
-        setPurchasing(false);
-        setRegistering(false);
-        setShowUsernameInput(false);
-        setNewUsername('');
-      }
-      pendingUsernameRef.current = '';
-    }
-  };
-
-  const handlePurchaseError = (error: PurchaseError) => {
-    if (error.productId !== ZNC_PRODUCT_ID) return;
-
-    // Always reset purchasing state to prevent stuck loading state
-    if (isMountedRef.current) {
-      setPurchasing(false);
-      setRegistering(false);
-    }
-
-    if (error.code !== ErrorCode.UserCancelled) {
-      Alert.alert(t('Purchase Failed'), error.message || t('Unable to complete purchase.'));
-    }
-  };
-
-  const registerAccount = async (purchaseToken: string, username: string) => {
-    // Ensure we're in the registering state
-    if (isMountedRef.current) {
-      setRegistering(true);
-    }
-    try {
-      // Validate that we have both required parameters
-      if (!purchaseToken || !username) {
-        throw new Error('Missing required information for registration');
-      }
-
-      const account = await subscriptionService.registerZncSubscription({
-        purchaseToken,
-        subscriptionId: ZNC_PRODUCT_ID,
-        zncUsername: username,
-      });
-
-      Alert.alert(
-        t('Success'),
-        t('Your ZNC account has been created successfully! Username: {username}', { username: account.zncUsername }),
-        [
-          {
-            text: t('Add to Network'),
-            onPress: () => {
-              if (!isMountedRef.current) return;
-              setSelectedAccount(account);
-              setShowNetworkPicker(true);
-            },
-          },
-          { text: t('Later'), style: 'cancel' },
-        ]
-      );
-    } catch (error: any) {
-      // Check for username already exists error
-      const errorMessage = error.message || '';
-      if (errorMessage.includes('znc_username_exists') || errorMessage.includes('already exists')) {
-        Alert.alert(
-          t('Username Taken'),
-          t('This username already exists on our ZNC server. Please choose a different username.'),
-          [
-            {
-              text: t('Try Again'),
-              onPress: () => {
-                // Re-open username input with the purchase token saved
-                pendingUsernameRef.current = '';
-                setNewUsername('');
-                setShowUsernameInput(true);
-                // Save the purchase token for retry
-                pendingPurchaseTokenRef.current = purchaseToken;
-              },
-            },
-            {
-              text: t('Cancel'),
-              style: 'cancel',
-              onPress: () => {
-                // Clear the pending token if user cancels
-                pendingPurchaseTokenRef.current = '';
-              },
-            },
-          ]
-        );
-      } else {
-        Alert.alert(t('Registration Failed'), error.message || t('Unable to register ZNC account.'));
-      }
-    } finally {
-      // Ensure registering state is always reset to prevent stuck loading
-      setRegistering(false);
     }
   };
 
@@ -1290,7 +1283,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
           {/* Refresh button */}
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+            style={[styles.actionButton, refreshButtonStyle]}
             onPress={() => handleRefreshAccount(item)}
           >
             <Icon name="sync" size={14} color={colors.text} />
@@ -1298,7 +1291,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
           {/* Delete button - always visible, especially useful for expired accounts */}
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: colors.error }]}
+            style={[styles.actionButton, deleteButtonStyle]}
             onPress={() => handleDeleteAccount(item)}
           >
             <Icon name="trash" size={14} color={colors.onPrimary} />

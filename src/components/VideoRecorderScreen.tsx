@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  ActivityIndicator,
   Platform,
 } from 'react-native';
 import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
@@ -103,9 +102,9 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
             setIsRecording(false);
           }
         },
-        onRecordingError: (error) => {
-          console.error('[VideoRecorderScreen] Recording error:', error);
-          setError(error.message || t('Recording failed'));
+        onRecordingError: (recordingError) => {
+          console.error('[VideoRecorderScreen] Recording error:', recordingError);
+          setError(recordingError.message || t('Recording failed'));
           setIsRecording(false);
         },
       });

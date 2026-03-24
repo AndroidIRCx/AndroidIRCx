@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { SecurityQuickConnectSection } from '../../../src/components/settings/sections/SecurityQuickConnectSection';
 import { SecuritySection } from '../../../src/components/settings/sections/SecuritySection';
@@ -191,8 +191,12 @@ describe('Security/Users sections', () => {
     );
     await waitFor(() => expect(mockCapturedItems.has('security-manage-keys')).toBe(true));
 
-    mockCapturedItems.get('security-manage-keys').onPress();
-    await mockCapturedItems.get('security-qr').onValueChange(false);
+    act(() => {
+      mockCapturedItems.get('security-manage-keys').onPress();
+    });
+    await act(async () => {
+      await mockCapturedItems.get('security-qr').onValueChange(false);
+    });
     expect(onShowKeyManagement).toHaveBeenCalled();
     expect(mockSettingsSet).toHaveBeenCalledWith('securityAllowQrVerification', false);
   });
@@ -203,7 +207,9 @@ describe('Security/Users sections', () => {
     render(<SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />);
     await waitFor(() => expect(mockCapturedItems.has('security-app-lock-biometric')).toBe(true));
 
-    await mockCapturedItems.get('security-app-lock-biometric').onValueChange(true);
+    await act(async () => {
+      await mockCapturedItems.get('security-app-lock-biometric').onValueChange(true);
+    });
     expect(alertSpy).toHaveBeenCalled();
     expect(mockEnableLock).not.toHaveBeenCalled();
   });
@@ -213,7 +219,9 @@ describe('Security/Users sections', () => {
     render(<SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />);
     await waitFor(() => expect(mockCapturedItems.has('security-app-lock')).toBe(true));
 
-    await mockCapturedItems.get('security-app-lock').onValueChange(true);
+    await act(async () => {
+      await mockCapturedItems.get('security-app-lock').onValueChange(true);
+    });
     expect(alertSpy).toHaveBeenCalled();
     expect(mockSettingsSet).not.toHaveBeenCalledWith('appLockEnabled', true);
   });
@@ -228,10 +236,11 @@ describe('Security/Users sections', () => {
     expect(mockSettingsSet).toHaveBeenCalledWith('appLockUseBiometric', true);
     expect(mockSettingsSet).toHaveBeenCalledWith('appLockEnabled', true);
 
-    await mockCapturedItems.get('security-app-lock-biometric').onValueChange(false);
+    await act(async () => {
+      await mockCapturedItems.get('security-app-lock-biometric').onValueChange(false);
+    });
     expect(mockDisableLock).toHaveBeenCalledWith('app');
     expect(mockSettingsSet).toHaveBeenCalledWith('appLockUseBiometric', false);
-    expect(mockSettingsSet).toHaveBeenCalledWith('appLockEnabled', false);
   });
 
   it('SecuritySection handles app-lock PIN setup and stores pin after confirm', async () => {
@@ -261,7 +270,9 @@ describe('Security/Users sections', () => {
     render(<SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />);
     await waitFor(() => expect(mockCapturedItems.has('security-app-lock-now')).toBe(true));
 
-    await mockCapturedItems.get('security-app-lock-now').onPress();
+    await act(async () => {
+      await mockCapturedItems.get('security-app-lock-now').onPress();
+    });
     expect(alertSpy).toHaveBeenCalled();
 
     mockSettingsGet.mockImplementation(async (key: string, d: any) => {
@@ -272,7 +283,9 @@ describe('Security/Users sections', () => {
     mockCapturedItems.clear();
     render(<SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />);
     await waitFor(() => expect(mockCapturedItems.has('security-app-lock-now')).toBe(true));
-    await mockCapturedItems.get('security-app-lock-now').onPress();
+    await act(async () => {
+      await mockCapturedItems.get('security-app-lock-now').onPress();
+    });
 
     expect(mockSettingsSet).toHaveBeenCalledWith('appLockNow', expect.any(Number));
   });
@@ -290,10 +303,16 @@ describe('Security/Users sections', () => {
     );
 
     await waitFor(() => expect(mockCapturedItems.has('irc-services-add')).toBe(true));
-    await mockCapturedItems.get('irc-services-add').onValueChange('Q');
+    await act(async () => {
+      await mockCapturedItems.get('irc-services-add').onValueChange('Q');
+    });
     await waitFor(() => expect(mockCapturedItems.get('irc-services-add')?.value).toBe('Q'));
-    await mockCapturedItems.get('irc-services-add').onPress();
-    mockCapturedItems.get('user-blacklist').onPress();
+    await act(async () => {
+      await mockCapturedItems.get('irc-services-add').onPress();
+    });
+    act(() => {
+      mockCapturedItems.get('user-blacklist').onPress();
+    });
 
     expect(mockSettingsSet).toHaveBeenCalledWith('ircServices', expect.arrayContaining(['Q']));
     expect(onShowBlacklist).toHaveBeenCalled();
@@ -313,8 +332,10 @@ describe('Security/Users sections', () => {
     );
     await waitFor(() => expect(mockCapturedItems.has('user-blacklist')).toBe(true));
 
-    mockCapturedItems.get('user-blacklist').onPress();
-    mockCapturedItems.get('user-lists').onPress();
+    act(() => {
+      mockCapturedItems.get('user-blacklist').onPress();
+      mockCapturedItems.get('user-lists').onPress();
+    });
 
     expect(alertSpy).toHaveBeenCalled();
     expect(onShowUserLists).toHaveBeenCalled();

@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
 import { Platform } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { MediaPreviewModal } from '../../src/components/MediaPreviewModal';

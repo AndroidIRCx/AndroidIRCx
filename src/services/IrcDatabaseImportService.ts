@@ -30,6 +30,7 @@ interface IrcDatabaseApiResponse {
     pagination?: {
       has_more_pages?: unknown;
       next_page_url?: unknown;
+      total?: unknown;
     };
   };
   data?: unknown;

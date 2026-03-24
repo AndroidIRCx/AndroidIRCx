@@ -13,16 +13,13 @@
  * - Encryption indicator (🔒) if enabled
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Linking,
-  Platform,
 } from 'react-native';
 import Video from 'react-native-video';
 import Share from 'react-native-share';
@@ -45,6 +42,40 @@ type MediaInfo = {
   type: 'image' | 'video' | 'audio' | 'file';
   uri: string;
   mimeType?: string;
+};
+
+const detectMediaType = async (filePath: string, mimeType?: string): Promise<'image' | 'video' | 'audio' | 'file'> => {
+  try {
+    if (mimeType) {
+      if (mimeType.startsWith('image/')) {
+        return 'image';
+      }
+      if (mimeType.startsWith('video/')) {
+        return 'video';
+      }
+      if (mimeType.startsWith('audio/')) {
+        return 'audio';
+      }
+    }
+
+    const extension = filePath.split('.').pop()?.toLowerCase();
+
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(extension || '')) {
+      return 'image';
+    }
+
+    if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(extension || '')) {
+      return 'video';
+    }
+
+    if (['mp3', 'wav', 'ogg', 'm4a', 'aac'].includes(extension || '')) {
+      return 'audio';
+    }
+
+    return 'file';
+  } catch {
+    return 'file';
+  }
 };
 
 export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
@@ -79,11 +110,7 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
     checkEncryptionIndicator();
   }, []);
 
-  useEffect(() => {
-    loadMedia();
-  }, [mediaId, network, tabId, retryCount]);
-
-  const loadMedia = async () => {
+  const loadMedia = useCallback(async () => {
     try {
       // Check if tabId is available before attempting to download
       if (!tabId) {
@@ -145,43 +172,11 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
       setError(err.message || t('Failed to load media'));
       setState('error');
     }
-  };
+  }, [mediaId, network, tabId, t]);
 
-  const detectMediaType = async (filePath: string, mimeType?: string): Promise<'image' | 'video' | 'audio' | 'file'> => {
-    try {
-      // First try to detect from MIME type if available
-      if (mimeType) {
-        if (mimeType.startsWith('image/')) {
-          return 'image';
-        }
-        if (mimeType.startsWith('video/')) {
-          return 'video';
-        }
-        if (mimeType.startsWith('audio/')) {
-          return 'audio';
-        }
-      }
-
-      // Fallback to extension detection
-      const extension = filePath.split('.').pop()?.toLowerCase();
-
-      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(extension || '')) {
-        return 'image';
-      }
-
-      if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(extension || '')) {
-        return 'video';
-      }
-
-      if (['mp3', 'wav', 'ogg', 'm4a', 'aac'].includes(extension || '')) {
-        return 'audio';
-      }
-
-      return 'file';
-    } catch {
-      return 'file';
-    }
-  };
+  useEffect(() => {
+    loadMedia();
+  }, [loadMedia, retryCount]);
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
@@ -238,10 +233,10 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
                   url: mediaInfo.uri,
                   type: mediaInfo.mimeType || 'application/octet-stream',
                 });
-              } catch (error: any) {
+              } catch (shareError: any) {
                 // Share dialog was cancelled or failed
-                if (error.message !== 'User did not share') {
-                  console.error('[MediaMessageDisplay] Error opening file:', error);
+                if (shareError.message !== 'User did not share') {
+                  console.error('[MediaMessageDisplay] Error opening file:', shareError);
                 }
               }
             }}>

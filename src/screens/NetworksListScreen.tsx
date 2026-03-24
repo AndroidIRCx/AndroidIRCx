@@ -93,7 +93,7 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
       }
       await loadNetworks();
       setShowNetworkSettings(false);
-    } catch (error) {
+    } catch {
       Alert.alert(t('Error'), t('Failed to save network'));
     }
   };
@@ -109,27 +109,9 @@ export const NetworksListScreen: React.FC<NetworksListScreenProps> = ({
       }
       await loadNetworks();
       setShowServerSettings(false);
-    } catch (error) {
+    } catch {
       Alert.alert(t('Error'), t('Failed to save server'));
     }
-  };
-
-  const handleDeleteNetwork = (network: IRCNetworkConfig) => {
-    Alert.alert(
-      t('Delete Network'),
-      t('Are you sure you want to delete "{networkName}"?').replace('{networkName}', network.name),
-      [
-        { text: t('Cancel'), style: 'cancel' },
-        {
-          text: t('Delete'),
-          style: 'destructive',
-          onPress: async () => {
-            await settingsService.deleteNetwork(network.id);
-            await loadNetworks();
-          },
-        },
-      ]
-    );
   };
 
   const handleDeleteServer = (network: IRCNetworkConfig, server: IRCServerConfig) => {

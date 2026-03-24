@@ -40,7 +40,7 @@ export class ChannelListService {
       if (raw) {
         this.cachedLists = JSON.parse(raw);
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
   }
@@ -48,7 +48,7 @@ export class ChannelListService {
   private async saveCache() {
     try {
       await AsyncStorage.setItem('CHANNEL_LIST_CACHE', JSON.stringify(this.cachedLists));
-    } catch (e) {
+    } catch {
       // ignore
     }
   }

@@ -11,20 +11,10 @@ import {
   StatusBar,
   View,
   Alert,
-  TextInput,
-  Modal,
-  Text,
-  TouchableOpacity,
   AppState,
   LogBox,
 } from 'react-native';
 import { createStyles } from './App.styles';
-
-// ErrorUtils is available globally in React Native
-declare const ErrorUtils: {
-  getGlobalHandler: () => ((error: Error, isFatal?: boolean) => void) | null;
-  setGlobalHandler: (handler: (error: Error, isFatal?: boolean) => void) => void;
-};
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import {
   SafeAreaProvider,
@@ -32,32 +22,11 @@ import {
 } from 'react-native-safe-area-context';
 import { AppLayout } from './src/components/AppLayout';
 import { AppModals } from './src/components/AppModals';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ircService, IRCMessage, IRCConnectionConfig, ChannelUser, RawMessageCategory } from './src/services/IRCService';
-import { settingsService, IRCNetworkConfig, IRCServerConfig, DEFAULT_SERVER, DEFAULT_PART_MESSAGE } from './src/services/SettingsService';
-import { connectionManager } from './src/services/ConnectionManager';
-import { messageHistoryService } from './src/services/MessageHistoryService';
-import { biometricAuthService } from './src/services/BiometricAuthService';
+import { ircService, IRCMessage, ChannelUser } from './src/services/IRCService';
+import { settingsService } from './src/services/SettingsService';
 import { secureStorageService } from './src/services/SecureStorageService';
-import { errorReportingService } from './src/services/ErrorReportingService';
-import { logger } from './src/services/Logger';
-import { adRewardService } from './src/services/AdRewardService';
-import { bannerAdService } from './src/services/BannerAdService';
-import { inAppPurchaseService } from './src/services/InAppPurchaseService';
-import { consentService } from './src/services/ConsentService';
-import { encryptedDMService } from './src/services/EncryptedDMService';
-import { channelEncryptionService } from './src/services/ChannelEncryptionService';
-import { channelEncryptionSettingsService } from './src/services/ChannelEncryptionSettingsService';
-import { ChannelTab } from './src/types';
 import { useTheme } from './src/hooks/useTheme';
-import { tabService } from './src/services/TabService';
-import { userActivityService } from './src/services/UserActivityService';
-import { channelNotesService, ChannelLogEntry } from './src/services/ChannelNotesService';
-import { offlineQueueService } from './src/services/OfflineQueueService';
 import { dccFileService } from './src/services/DCCFileService';
-import { identityProfilesService, IdentityProfile } from './src/services/IdentityProfilesService';
-import { getApp } from '@react-native-firebase/app';
-import { initializeAppCheck, ReactNativeFirebaseAppCheckProvider } from '@react-native-firebase/app-check';
 import { initTransifex, listenToLocaleChanges, TXProvider, tx, useT } from './src/i18n/transifex';
 
 // Zustand stores and custom hooks
@@ -102,14 +71,6 @@ import { useAppInitialization } from './src/hooks/useAppInitialization';
 import { useLazyMessageHistory } from './src/hooks/useLazyMessageHistory';
 import { useDeepLinkHandler } from './src/hooks/useDeepLinkHandler';
 import { killSwitchService } from './src/services/KillSwitchService';
-import {
-  serverTabId,
-  channelTabId,
-  queryTabId,
-  noticeTabId,
-  makeServerTab,
-  sortTabsGrouped,
-} from './src/utils/tabUtils';
 import { getActiveTabSafe } from './src/utils/activeTabUtils';
 
 // Suppress noisy pooled synthetic event warnings that can appear in dev logging
@@ -177,16 +138,8 @@ function AppContent() {
     typingUsers,
     appLockEnabled,
     appLockUseBiometric,
-    appLockUsePin,
-    appLockOnLaunch,
-    appLockOnBackground,
     appLocked,
-    appUnlockModalVisible,
-    appPinEntry,
-    appPinError,
     bannerVisible,
-    scriptingTimeMs,
-    adFreeTimeMs,
   } = uiState;
 
   // Get all store setters from hook
@@ -202,29 +155,9 @@ function AppContent() {
     setShowFirstRunSetup,
     setIsCheckingFirstRun,
     setShowTypingIndicators,
-    setHidePartMessages,
-    setHideQuitMessages,
-    setHideIrcServiceListenerMessages,
     setTypingUser,
-    removeTypingUser,
-    clearTypingForTarget,
-    cleanupStaleTyping,
-    setAppLockEnabled,
-    setAppLockUseBiometric,
-    setAppLockUsePin,
-    setAppLockOnLaunch,
-    setAppLockOnBackground,
     setAppLocked,
     setAppUnlockModalVisible,
-    setAppPinEntry,
-    setAppPinError,
-    setBannerVisible,
-    setScriptingTimeMs,
-    setAdFreeTimeMs,
-    setChannelName,
-    setChannelNoteValue,
-    setRenameValue,
-    setDccSendPath,
   } = setters;
 
   const tabsRef = useRef(tabs);
@@ -503,7 +436,35 @@ function AppContent() {
     dccSendTarget,
     dccSendPath,
   } = uiState;
-
+  showChannelModal;
+  channelName;
+  showNetworksList;
+  showSettings;
+  showPurchaseScreen;
+  showIgnoreList;
+  showWHOIS;
+  whoisNick;
+  showQueryEncryptionMenu;
+  showChannelList;
+  showChannelSettings;
+  channelSettingsTarget;
+  channelSettingsNetwork;
+  showOptionsMenu;
+  showRenameModal;
+  renameTargetTabId;
+  renameValue;
+  showTabOptionsModal;
+  tabOptionsTitle;
+  tabOptions;
+  showChannelNoteModal;
+  channelNoteTarget;
+  channelNoteValue;
+  showChannelLogModal;
+  channelLogEntries;
+  showDccTransfers;
+  showDccSendModal;
+  dccSendTarget;
+  dccSendPath;
 
   // Get active tab with safe fallback
   const activeTab = getActiveTabSafe(tabs, activeTabId, activeConnectionId, primaryNetworkId, networkName);
@@ -517,8 +478,6 @@ function AppContent() {
     getActiveIRCService,
     getActiveUserManagementService,
     getActiveCommandService,
-    getActiveConnectionQualityService,
-    getActiveChannelManagementService,
     normalizeNetworkId,
     getNetworkConfigForId,
   } = useServiceHelpers({ setTabs, tabSortAlphabetical });
@@ -636,7 +595,6 @@ function AppContent() {
     handleJoinChannel,
     isAppLocked: appLocked,
     isFirstRunComplete: !showFirstRunSetup && !isCheckingFirstRun,
-    activeConnectionId,
     tabs,
     safeAlert,
     t,
@@ -684,7 +642,6 @@ function AppContent() {
     messageBatchTimeoutRef,
     pendingMessagesRef,
     motdCompleteRef,
-    isMountedRef,
     handleServerConnect,
   });
 
@@ -734,7 +691,7 @@ function AppContent() {
     activeTab?.networkId ||
     activeConnectionId ||
     (networkName !== 'Not connected' ? networkName : undefined) ||
-    tabs.find(t => t.type === 'server')?.networkId;
+    tabs.find(tab => tab.type === 'server')?.networkId;
   const showSideTabsToggle = layoutConfig?.tabPosition === 'left' || layoutConfig?.tabPosition === 'right';
 
   // User list action handlers
@@ -748,7 +705,7 @@ function AppContent() {
 
   // Wait for UI to be ready to prevent Fabric crashes
   if (!uiReady) {
-    return <View style={{ flex: 1, backgroundColor: colors.background }} />;
+    return <View style={styles.fallbackContainer} />;
   }
 
   return (

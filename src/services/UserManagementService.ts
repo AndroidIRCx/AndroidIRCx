@@ -126,12 +126,12 @@ export class UserManagementService {
     if (!this.ircService) return;
 
     // Listen for WHOIS/WHOWAS numeric replies
-    this.ircService.on('numeric', (numeric: number, prefix: string, params: string[], timestamp: number) => {
-      this.handleNumericReply(numeric, prefix, params, timestamp);
+    this.ircService.on('numeric', (numeric: number, prefix: string, params: string[], _timestamp: number) => {
+      this.handleNumericReply(numeric, prefix, params, _timestamp);
     });
   }
 
-  private handleNumericReply(numeric: number, prefix: string, params: string[], timestamp: number): void {
+  private handleNumericReply(numeric: number, prefix: string, params: string[], _timestamp: number): void {
     const network = this.ircService?.getNetworkName() || this.currentNetwork;
 
     switch (numeric) {
@@ -153,7 +153,7 @@ export class UserManagementService {
 
       case 313: // RPL_WHOISOPERATOR
         const operNick = params[1];
-        this.updateWHOIS({ nick: operNick, isOperator: true }, network);
+        this.updateWHOIS({ nick: operNick, isOper: true }, network);
         break;
 
       case 317: // RPL_WHOISIDLE
@@ -193,7 +193,7 @@ export class UserManagementService {
         const whowasUser = params[2];
         const whowasHost = params[3];
         const whowasReal = decodeIfBase64Like(params[5] || '');
-        this.updateWHOWAS({ nick: whowasNick, username: whowasUser, hostname: whowasHost, realname: whowasReal, lastSeen: Date.now() }, network);
+        this.updateWHOWAS({ nick: whowasNick, username: whowasUser, hostname: whowasHost, realname: whowasReal }, network);
         break;
 
       case 369: // RPL_ENDOFWHOWAS
@@ -384,7 +384,6 @@ export class UserManagementService {
    * Request WHOWAS information
    */
   requestWHOWAS(nick: string, network?: string, count?: number): void {
-    const net = network || this.currentNetwork;
     if (!this.ircService) {
       console.warn('UserManagementService: Cannot send WHOWAS - no IRC service available');
       return;
@@ -561,7 +560,7 @@ export class UserManagementService {
    */
   getNickFromAlias(alias: string, network?: string): string | undefined {
     const net = network || this.currentNetwork;
-    for (const [key, userAlias] of this.userAliases.entries()) {
+    for (const [_key, userAlias] of this.userAliases.entries()) {
       if (userAlias.alias === alias && (!net || userAlias.network === net)) {
         return userAlias.nick;
       }
@@ -652,7 +651,7 @@ export class UserManagementService {
         }
       } else if (mask.includes('@')) {
         // Host mask: *!*@host
-        const [maskUser, maskHost] = mask.split('@');
+        const [, maskHost] = mask.split('@');
         if (maskHost === '*' || (hostname && hostname.includes(maskHost))) {
           return true;
         }
@@ -674,7 +673,7 @@ export class UserManagementService {
     const net = network === null ? undefined : (network || this.currentNetwork);
     const ignored: IgnoredUser[] = [];
 
-    for (const [key, user] of this.ignoredUsers.entries()) {
+    for (const [_key, user] of this.ignoredUsers.entries()) {
       if (!net || user.network === net) {
         ignored.push(user);
       }

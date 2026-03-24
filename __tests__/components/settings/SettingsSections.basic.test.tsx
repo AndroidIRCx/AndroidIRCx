@@ -19,7 +19,7 @@ const mockSetSetting = jest.fn(async () => undefined);
 const mockGetSetting = jest.fn(async (_key: string, def: any) => def);
 const mockSetBackgroundEnabled = jest.fn(async () => undefined);
 const mockHandleBatteryOptimization = jest.fn(async () => undefined);
-const mockIsIgnoringBatteryOptimizations = jest.fn(async () => false);
+const mockIsBatteryOptimizationEnabled = jest.fn(async () => false);
 const mockSetWatchAdButtonEnabledForPremium = jest.fn(async () => undefined);
 const mockHandleWatchAd = jest.fn();
 const mockUIStore = {
@@ -77,7 +77,7 @@ jest.mock('../../../src/hooks/useSettingsNotifications', () => ({
 
 jest.mock('../../../src/services/BackgroundService', () => ({
   backgroundService: {
-    isIgnoringBatteryOptimizations: (...args: any[]) => mockIsIgnoringBatteryOptimizations(...args),
+    isBatteryOptimizationEnabled: (...args: any[]) => mockIsBatteryOptimizationEnabled(...args),
   },
 }));
 
@@ -209,7 +209,7 @@ describe('Settings Sections Basic', () => {
 
     expect(mockSetBackgroundEnabled).toHaveBeenCalledWith(false);
     expect(mockHandleBatteryOptimization).toHaveBeenCalled();
-    expect(mockIsIgnoringBatteryOptimizations).toHaveBeenCalled();
+    expect(mockIsBatteryOptimizationEnabled).toHaveBeenCalled();
     jest.useRealTimers();
   });
 

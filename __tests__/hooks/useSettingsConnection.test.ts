@@ -12,7 +12,7 @@
 // real implementation, so we need to lift that stub before importing.
 jest.unmock('../../src/hooks/useSettingsConnection');
 
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { useSettingsConnection } from '../../src/hooks/useSettingsConnection';
 
 // ─── Mocks ─────────────────────────────────────────────

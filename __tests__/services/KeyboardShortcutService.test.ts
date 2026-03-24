@@ -120,7 +120,6 @@ describe('KeyboardShortcutService', () => {
       const callback = jest.fn();
       service.registerShortcut('command+t', callback);
       
-      const handleKeyDown = mockAddListener.mock.calls[0][1];
       // command normalizes to cmd, but the native event would have metaKey (not mocked here)
       // We just verify it registers without error
       expect(() => service.registerShortcut('command+t', callback)).not.toThrow();

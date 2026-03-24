@@ -8,23 +8,18 @@
  * Re-exports all numeric handler modules
  */
 
-export * from './RegistrationNumerics';
-export * from './TraceNumerics';
-export * from './LusersNumerics';
-export * from './MotdNumerics';
-export * from './StatsNumerics';
-export * from './ChannelNumerics';
-export * from './WhoisNumerics';
-export * from './ErrorNumerics';
-export * from './VersionInfoNumerics';
-export * from './MonitorNumerics';
-export * from './StarttlsNumerics';
-export * from './SaslNumerics';
-export * from './ExtendedNumerics';
-export * from './MiscNumerics';
-export * from './StatefulChannelNumerics';
-
-// TODO: Export more handlers as they are extracted:
-// export * from './SaslNumerics';
-// export * from './MonitorNumerics';
-// export * from './ExtendedNumerics';
+export { registrationHandlers } from './RegistrationNumerics';
+export { traceHandlers } from './TraceNumerics';
+export { lusersHandlers } from './LusersNumerics';
+export { motdHandlers } from './MotdNumerics';
+export { statsHandlers } from './StatsNumerics';
+export { channelHandlers } from './ChannelNumerics';
+export { whoisHandlers } from './WhoisNumerics';
+export { errorHandlers } from './ErrorNumerics';
+export { versionInfoHandlers } from './VersionInfoNumerics';
+export { monitorHandlers } from './MonitorNumerics';
+export { starttlsHandlers } from './StarttlsNumerics';
+export { saslHandlers } from './SaslNumerics';
+export { extendedHandlers } from './ExtendedNumerics';
+export { miscHandlers } from './MiscNumerics';
+export { statefulChannelHandlers } from './StatefulChannelNumerics';

@@ -231,7 +231,7 @@ class MediaEncryptionService {
         // For content URIs, try to read directly (exists check might not work)
         try {
           // Try reading a small chunk to verify file exists
-          await RNFS.readFile(normalizedUri, 'base64', 0, 1);
+          await RNFS.read(normalizedUri, 1, 0, 'base64');
           fileExists = true;
           actualUri = normalizedUri;
         } catch (err) {
@@ -399,8 +399,8 @@ class MediaEncryptionService {
         }
         
         // Verify file was written
-        const fileExists = await RNFS.exists(tempPath);
-        if (!fileExists) {
+        const outputFileExists = await RNFS.exists(tempPath);
+        if (!outputFileExists) {
           throw new Error('File was not created after write operation');
         }
       } catch (writeError: any) {
@@ -462,8 +462,8 @@ class MediaEncryptionService {
       await this.ensureReady();
 
       // Check if file exists
-      const fileExists = await RNFS.exists(encryptedUri);
-      if (!fileExists) {
+        const encryptedFileExists = await RNFS.exists(encryptedUri);
+        if (!encryptedFileExists) {
         return { success: false, error: 'Encrypted file does not exist' };
       }
 
@@ -660,8 +660,8 @@ class MediaEncryptionService {
         });
         
         // Verify file was written
-        const fileExists = await RNFS.exists(tempPath);
-        if (!fileExists) {
+        const outputFileExists = await RNFS.exists(tempPath);
+        if (!outputFileExists) {
           throw new Error('File was not created after write operation');
         }
         
@@ -676,8 +676,8 @@ class MediaEncryptionService {
         
         // Verify file starts with correct magic bytes for detected MIME type
         if (mimeType.startsWith('image/')) {
-          const fileContent = await RNFS.readFile(tempPath, 'base64');
-          const fileBytes = Buffer.from(fileContent, 'base64');
+          const outputFileContent = await RNFS.readFile(tempPath, 'base64');
+          const fileBytes = Buffer.from(outputFileContent, 'base64');
           const detectedMime = this.detectMimeType(new Uint8Array(fileBytes));
           if (detectedMime !== mimeType) {
             console.warn('[MediaEncryptionService] MIME type mismatch after write:', {
@@ -796,7 +796,7 @@ class MediaEncryptionService {
 
       console.log('[MediaEncryptionService] Decryption successful, decrypted length:', decrypted.length);
       return decrypted;
-    } catch (error) {
+    } catch {
       try {
         const decrypted = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
           null,
@@ -808,7 +808,7 @@ class MediaEncryptionService {
 
         console.log('[MediaEncryptionService] Decryption successful, decrypted length:', decrypted.length);
         return decrypted;
-      } catch (error) {
+      } catch {
         const decrypted = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
           null,
           encrypted,
@@ -870,7 +870,7 @@ class MediaEncryptionService {
         nonce,
         key
       );
-    } catch (error) {
+    } catch {
       try {
         return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
           null,
@@ -879,7 +879,7 @@ class MediaEncryptionService {
           nonce,
           key
         );
-      } catch (innerError) {
+      } catch {
         return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
           null,
           encrypted,
@@ -923,7 +923,7 @@ class MediaEncryptionService {
         type: tabType === 'channel' ? 'channel' : 'dm',
         identifier,
       };
-    } catch (error) {
+    } catch {
       return { hasEncryption: false };
     }
   }

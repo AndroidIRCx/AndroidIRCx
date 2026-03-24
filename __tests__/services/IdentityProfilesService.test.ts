@@ -5,7 +5,7 @@
  * Tests for IdentityProfilesService
  */
 
-import { identityProfilesService, IdentityProfile, DEFAULT_PROFILE_ID, DEFAULT_PROFILE } from '../../src/services/IdentityProfilesService';
+import { identityProfilesService, DEFAULT_PROFILE_ID, DEFAULT_PROFILE } from '../../src/services/IdentityProfilesService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock dependencies

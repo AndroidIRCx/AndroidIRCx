@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useMemo, useState, useEffect } from 'react';
+/* eslint-disable react-native/no-inline-styles -- IRC control-code parsing and local modal layout use inline styles intentionally */
+
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, StyleSheet, Alert } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
@@ -42,6 +44,41 @@ interface WritingSectionProps {
 type DecorSelectTarget = 'text' | 'color' | 'adornment' | null;
 type NickSelectTarget = 'style' | null;
 
+const sanitizeStyleString = (style: string) => {
+  const normalized = repairMojibake(style);
+  const allowedControls = new Set([0x02, 0x03, 0x0F, 0x16, 0x1D, 0x1F, 0x1E, 0x08]);
+  return Array.from(normalized).filter((char) => {
+    const code = char.charCodeAt(0);
+    if (code >= 32 && code !== 127) return true;
+    return allowedControls.has(code);
+  }).join('');
+};
+
+const normalizeNickStyle = (style: string) => (
+  sanitizeStyleString(style)
+    .replace(new RegExp(`(${String.fromCharCode(8)})(on|off)$`, 'i'), '$1')
+    .replace(/\s+(on|off)$/i, '')
+);
+
+const normalizeDecorStyle = (style: string) => sanitizeStyleString(style);
+
+const dedupeStyles = (stylesList: string[]) => {
+  const seen = new Set<string>();
+  return stylesList.filter((style) => {
+    if (!style || seen.has(style)) return false;
+    seen.add(style);
+    return true;
+  });
+};
+
+const replaceBackspacePlaceholder = (template: string, value: string) => {
+  const idx = template.indexOf('\x08');
+  if (idx === -1) return template;
+  const before = template.slice(0, idx);
+  const after = template.slice(idx + 1).replace(new RegExp(String.fromCharCode(8), 'g'), '');
+  return `${before}${value}${after}`;
+};
+
 export const WritingSection: React.FC<WritingSectionProps> = ({
   colors,
   styles,
@@ -75,32 +112,6 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
   const [nickSelectTarget, setNickSelectTarget] = useState<NickSelectTarget>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorInsertTarget, setColorInsertTarget] = useState<'editor' | null>(null);
-
-  const sanitizeStyleString = (style: string) => {
-    const normalized = repairMojibake(style);
-    const allowedControls = new Set([0x02, 0x03, 0x0F, 0x16, 0x1D, 0x1F, 0x1E, 0x08]);
-    return Array.from(normalized).filter((char) => {
-      const code = char.charCodeAt(0);
-      if (code >= 32 && code !== 127) return true;
-      return allowedControls.has(code);
-    }).join('');
-  };
-
-  const normalizeNickStyle = (style: string) => (
-    sanitizeStyleString(style)
-      .replace(/(\x08)(on|off)$/i, '$1')
-      .replace(/\s+(on|off)$/i, '')
-  );
-
-  const normalizeDecorStyle = (style: string) => sanitizeStyleString(style);
-  const dedupeStyles = (stylesList: string[]) => {
-    const seen = new Set<string>();
-    return stylesList.filter((style) => {
-      if (!style || seen.has(style)) return false;
-      seen.add(style);
-      return true;
-    });
-  };
 
   useEffect(() => {
     const load = async () => {
@@ -382,15 +393,7 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
 
   const sampleNick = t('Nick', { _tags: tags });
 
-  const replaceBackspacePlaceholder = (template: string, value: string) => {
-    const idx = template.indexOf('\x08');
-    if (idx === -1) return template;
-    const before = template.slice(0, idx);
-    const after = template.slice(idx + 1).replace(/\x08/g, '');
-    return `${before}${value}${after}`;
-  };
-
-  const nickStyleDisplay = (style: string, usePlaceholder = true) => {
+  const nickStyleDisplay = useCallback((style: string, usePlaceholder = true) => {
     const normalized = normalizeNickStyle(style);
     if (/<nick>/i.test(normalized)) {
       return normalized.replace(/<nick>/gi, usePlaceholder ? '<nick>' : sampleNick);
@@ -399,11 +402,11 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
       return replaceBackspacePlaceholder(normalized, usePlaceholder ? '<nick>' : sampleNick);
     }
     return normalized;
-  };
+  }, [sampleNick]);
 
   const sampleDecorText = t('Text', { _tags: tags });
 
-  const decorStyleDisplay = (styleName: string, usePlaceholder = true) => {
+  const decorStyleDisplay = useCallback((styleName: string, usePlaceholder = true) => {
     if (/<text>/i.test(styleName)) {
       return styleName.replace(/<text>/gi, usePlaceholder ? '<text>' : sampleDecorText);
     }
@@ -411,21 +414,21 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
       return replaceBackspacePlaceholder(styleName, usePlaceholder ? '<text>' : sampleDecorText);
     }
     return styleName;
-  };
+  }, [sampleDecorText]);
 
-  const renderDecorSummary = (styleName: string) => {
+  const renderDecorSummary = useCallback((styleName: string) => {
     const display = decorStyleDisplay(styleName, false);
     const plain = stripIRCFormatting(display).trim();
     const fallback = plain.length > 0 ? plain : display;
     return formatIRCTextAsComponent(display, styles.settingDescription) || fallback;
-  };
+  }, [decorStyleDisplay, styles.settingDescription]);
 
-  const renderNickSummary = (styleName: string) => {
+  const renderNickSummary = useCallback((styleName: string) => {
     const display = nickStyleDisplay(styleName, false);
     const plain = stripIRCFormatting(display).trim();
     const fallback = plain.length > 0 ? plain : display;
     return formatIRCTextAsComponent(display, styles.settingDescription) || fallback;
-  };
+  }, [nickStyleDisplay, styles.settingDescription]);
 
   const decorationItems: SettingItemType[] = useMemo(() => [
     {
@@ -501,6 +504,7 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
     decorUnderline,
     decorUseColors,
     decorStyles.length,
+    renderDecorSummary,
     t,
     tags,
   ]);
@@ -543,6 +547,7 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
     nickCompleteEnabled,
     nickCompleteStyleId,
     nickCompleteStyles.length,
+    renderNickSummary,
     t,
     tags,
   ]);

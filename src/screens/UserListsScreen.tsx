@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -73,19 +73,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
   const [showOnlineUserPicker, setShowOnlineUserPicker] = useState(false);
   const [channelUsers, setChannelUsers] = useState<Array<{ nick: string; user?: string; host?: string }>>([]);
 
-  useEffect(() => {
-    if (visible) {
-      loadEntries();
-      loadAvailableNetworks();
-      checkPrefillFromContextMenu();
-    }
-  }, [visible, network, activeTab]);
-
-  useEffect(() => {
-    filterEntries();
-  }, [entries, ignoredUsers, searchQuery, selectedNetwork, activeTab]);
-
-  const checkPrefillFromContextMenu = () => {
+  const checkPrefillFromContextMenu = useCallback(() => {
     const uiState = useUIStore.getState();
     const target = uiState.userListTarget;
     
@@ -100,15 +88,15 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
       // Clear the target
       useUIStore.getState().setUserListTarget(null);
     }
-  };
+  }, [activeTab]);
 
-  const loadAvailableNetworks = () => {
+  const loadAvailableNetworks = useCallback(() => {
     const networks = connectionManager
       .getAllConnections()
       .map(conn => conn.networkId)
       .filter((id): id is string => Boolean(id));
     setAvailableNetworks(networks);
-  };
+  }, []);
 
   const loadChannelUsers = () => {
     const conn = network ? connectionManager.getConnection(network) : null;
@@ -116,8 +104,8 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
     
     if (conn?.ircService) {
       const allChannelUsers = conn.ircService.getChannels().flatMap(channel => {
-        const channelUsers = conn.ircService.getChannelUsers(channel);
-        return channelUsers.map(u => ({ 
+        const usersInChannel = conn.ircService.getChannelUsers(channel);
+        return usersInChannel.map(u => ({ 
           nick: u.nick, 
           user: u.ident, 
           host: u.host,
@@ -138,7 +126,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
     setChannelUsers(users);
   };
 
-  const getUserManagementService = () => {
+  const getUserManagementService = useCallback(() => {
     if (network) {
       const conn = connectionManager.getConnection(network);
       if (conn?.userManagementService) {
@@ -146,9 +134,9 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
       }
     }
     return userManagementService;
-  };
+  }, [network]);
 
-  const loadEntries = () => {
+  const loadEntries = useCallback(() => {
     const svc = getUserManagementService();
     
     if (activeTab === 'ignore') {
@@ -159,9 +147,9 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
       const userListEntries = svc.getUserListEntries(listType);
       setEntries(userListEntries);
     }
-  };
+  }, [activeTab, getUserManagementService]);
 
-  const filterEntries = () => {
+  const filterEntries = useCallback(() => {
     let filtered: (UserListEntry | IgnoredUser)[] = [];
     
     if (activeTab === 'ignore') {
@@ -184,7 +172,19 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
     }
 
     setFilteredEntries(filtered);
-  };
+  }, [activeTab, entries, ignoredUsers, searchQuery, selectedNetwork]);
+
+  useEffect(() => {
+    if (visible) {
+      loadEntries();
+      loadAvailableNetworks();
+      checkPrefillFromContextMenu();
+    }
+  }, [visible, network, activeTab, loadEntries, loadAvailableNetworks, checkPrefillFromContextMenu]);
+
+  useEffect(() => {
+    filterEntries();
+  }, [filterEntries]);
 
   const handleAddEntry = async () => {
     const trimmedMask = newMask.trim();
@@ -225,7 +225,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
         t('Success'),
         editingEntry ? t('Entry updated') : t('Entry added')
       );
-    } catch (error) {
+    } catch {
       Alert.alert(t('Error'), t('Failed to save entry'));
     }
   };
@@ -249,7 +249,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
               }
               loadEntries();
               Alert.alert(t('Success'), t('Entry removed'));
-            } catch (error) {
+            } catch {
               Alert.alert(t('Error'), t('Failed to remove entry'));
             }
           },
@@ -286,7 +286,7 @@ export const UserListsScreen: React.FC<UserListsScreenProps> = ({
   };
 
   const getTabLabel = (tabId: ListTab) => {
-    const tab = TABS.find(t => t.id === tabId);
+    const tab = TABS.find(tabItem => tabItem.id === tabId);
     return tab ? tab.label : tabId;
   };
 

@@ -304,15 +304,13 @@ class ConnectionManager {
     connectionQualityService.initialize();
     bouncerService.initialize();
     commandService.initialize();
-    autoAuthService.initialize?.();
-
     // Initialize service detection
     console.log(`ConnectionManager: Initializing service detection for ${finalId}`);
     serviceDetectionService.initializeNetwork(finalId);
     
     // Subscribe to service detection events
-    const detectionCleanup = serviceDetectionService.onDetection((networkId, result) => {
-      if (networkId === finalId) {
+      const detectionCleanup = serviceDetectionService.onDetection((detectedNetworkId, result) => {
+        if (detectedNetworkId === finalId) {
         if (autoDetectWhoisDoubleNick && !manualWhoisDoubleNick) {
           const undernetDetected = result.serviceType === 'undernet';
           ircService.setWhoisUseDoubleNick(undernetDetected);

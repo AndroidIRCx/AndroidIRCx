@@ -12,7 +12,7 @@ import type { CommandHandler, CommandHandlerRegistry } from '../commandTypes';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
-export const handleMARKREAD: CommandHandler = (ctx, prefix, params, timestamp) => {
+export const handleMARKREAD: CommandHandler = (ctx, prefix, params, _timestamp) => {
   const target = params[0] || '';
   const tsParam = params[1] || '';
   const tsMatch = tsParam.match(/timestamp=(\d+)/);

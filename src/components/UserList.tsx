@@ -61,6 +61,12 @@ interface UserListProps {
   nickFontSizePx?: number;
 }
 
+type BlacklistTemplateKey = 'akill' | 'gline' | 'shun';
+type BlacklistTemplateMap = Partial<Record<BlacklistTemplateKey, string>>;
+type BlacklistTemplatesSetting = {
+  global?: BlacklistTemplateMap;
+} & Record<string, BlacklistTemplateMap | undefined>;
+
 export const UserList: React.FC<UserListProps> = ({
   users,
   channelName,
@@ -113,7 +119,7 @@ export const UserList: React.FC<UserListProps> = ({
     codeTypes: ['qr'],
     onCodeScanned: (codes) => {
       if (!showKeyScan || scanHandledRef.current) return;
-      const code = codes[0]?.value || codes[0]?.rawValue;
+      const code = codes[0]?.value;
       if (!code) return;
       scanHandledRef.current = true;
       setShowKeyScan(false);
@@ -186,7 +192,7 @@ export const UserList: React.FC<UserListProps> = ({
     if (!['akill', 'gline', 'shun'].includes(action)) {
       return '';
     }
-    const stored = await settingsService.getSetting('blacklistTemplates', {});
+    const stored = await settingsService.getSetting<BlacklistTemplatesSetting>('blacklistTemplates', {});
     const base = {
       akill: 'PRIVMSG OperServ :AKILL ADD {usermask} {reason}',
       gline: 'GLINE {hostmask} :{reason}',
@@ -194,7 +200,10 @@ export const UserList: React.FC<UserListProps> = ({
     };
     const global = stored?.global || {};
     const local = net && stored?.[net] ? stored[net] : {};
-    return (local?.[action] || global?.[action] || base[action] || '') as string;
+    if (action === 'custom' || action === 'ban' || action === 'ignore' || action === 'kick_ban' || action === 'kill' || action === 'os_kill') {
+      return '';
+    }
+    return local[action] || global[action] || base[action] || '';
   }, []);
 
 
@@ -494,7 +503,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
                           setQrPayload(sharePayload);
                           setQrType('bundle');
                           setShowKeyQr(true);
-                        } catch (e) {
+                        } catch {
                           setActionMessage(t('Failed to generate QR'));
                         }
                       },
@@ -506,28 +515,10 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           },
         ]
       );
-    } catch (e) {
+    } catch {
       setActionMessage(t('Invalid key payload'));
     }
   }, [selectedUser, t, getNetworkForStorage, activeIrc]);
-
-  // Check if current user is an operator in the channel
-  const isCurrentUserOp = (): boolean => {
-    const currentNick = activeIrc.getCurrentNick();
-    const currentUser = users.find(u => u.nick === currentNick);
-    if (!currentUser) return false;
-    // Check if user has op, admin, or owner status
-    return currentUser.modes.some(m => ['o', 'a', 'q', 'h'].includes(m));
-  };
-
-  // Check if current user has halfop or higher
-  const isCurrentUserHalfOp = (): boolean => {
-    const currentNick = activeIrc.getCurrentNick();
-    const currentUser = users.find(u => u.nick === currentNick);
-    if (!currentUser) return false;
-    // Check if user has halfop or higher status
-    return currentUser.modes.some(m => ['h', 'o', 'a', 'q'].includes(m));
-  };
 
   // Toggle group collapse/expand
   const toggleGroup = (groupKey: string) => {
@@ -622,7 +613,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
             timestamp: Date.now(),
           });
           setActionMessage(t('Enc key offer sent to {nick}').replace('{nick}', selectedUser.nick));
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to share key'));
         }
         break;
@@ -647,7 +638,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           setQrPayload(payload);
           setQrType('fingerprint');
           setShowKeyQr(true);
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to generate QR'));
         }
         break;
@@ -658,13 +649,13 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           setQrPayload(payload);
           setQrType('bundle');
           setShowKeyQr(true);
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to generate QR'));
         }
         break;
       case 'enc_qr_scan':
         try {
-          const permission = hasCameraPermission || (await requestCameraPermission()) === 'authorized';
+          const permission = Boolean(hasCameraPermission || await requestCameraPermission());
           if (!permission) {
             setActionMessage(t('Camera permission denied'));
             break;
@@ -672,7 +663,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           scanHandledRef.current = false;
           setShowKeyScan(true);
           setScanError('');
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to open camera'));
         }
         break;
@@ -695,7 +686,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
               // Ignore cleanup errors
             }
           }
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to share key file'));
         }
         break;
@@ -706,7 +697,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
             mode: 'import',
           });
           if (result.length === 0) return;
-          const picker = result[0];
+          const picker = result[0] as (typeof result)[number] & { fileCopyUri?: string | null };
           const uri = picker.fileCopyUri || picker.uri;
           const path = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
           const shouldCleanupCopy = Boolean(picker.fileCopyUri);
@@ -743,10 +734,10 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           await NfcManager.requestTechnology(NfcTech.Ndef);
           const bytes = Ndef.encodeMessage([Ndef.textRecord(payload)]);
           if (bytes) {
-            await NfcManager.writeNdefMessage(bytes);
+            await (NfcManager as typeof NfcManager & { writeNdefMessage: (message: number[]) => Promise<void> }).writeNdefMessage(bytes);
           }
           setActionMessage(t('NFC key ready, tap devices'));
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to share via NFC'));
         } finally {
           try { await NfcManager.cancelTechnologyRequest(); } catch {}
@@ -763,13 +754,13 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           await NfcManager.requestTechnology(NfcTech.Ndef);
           const tag = await NfcManager.getTag();
           const ndefMessage = tag?.ndefMessage?.[0];
-          const payload = ndefMessage ? Ndef.text.decodePayload(ndefMessage.payload) : null;
+          const payload = ndefMessage ? Ndef.text.decodePayload(new Uint8Array(ndefMessage.payload as number[])) : null;
           if (!payload) {
             setActionMessage(t('No NFC payload'));
             break;
           }
           await handleExternalPayload(payload);
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to read NFC'));
         } finally {
           try { await NfcManager.cancelTechnologyRequest(); } catch {}
@@ -814,7 +805,7 @@ const getModeColor = (modes?: string[], colors?: any): string => {
               { text: t('Close'), style: 'cancel' },
             ]
           );
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to load fingerprints'));
         }
         break;
@@ -1009,6 +1000,16 @@ const getModeColor = (modes?: string[], colors?: any): string => {
     }
   };
 
+  const getUserManagementServiceForNetwork = useCallback(() => {
+    if (network) {
+      const conn = connectionManager.getConnection(network);
+      if (conn?.userManagementService) {
+        return conn.userManagementService;
+      }
+    }
+    return userManagementService;
+  }, [network]);
+
   const renderUserRow = useCallback((user: ChannelUser, key?: string) => {
     const prefix = getNickPrefix(user.modes);
     const color = getModeColor(user.modes, colors);
@@ -1046,18 +1047,6 @@ const getModeColor = (modes?: string[], colors?: any): string => {
   }
 
   const contextConnection = network ? connectionManager.getConnection(network) : null;
-
-  // IMPORTANT: Use the per-connection UserManagementService when available so UI and enforcement
-  // are consistent (and Settings -> Blacklist shows the same data immediately).
-  const getUserManagementServiceForNetwork = useCallback(() => {
-    if (network) {
-      const conn = connectionManager.getConnection(network);
-      if (conn?.userManagementService) {
-        return conn.userManagementService;
-      }
-    }
-    return userManagementService;
-  }, [network]);
 
   return (
     <View
@@ -1217,8 +1206,6 @@ const getModeColor = (modes?: string[], colors?: any): string => {
           keyExtractor={(item, index) => `${item.nick}-${index}`}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={emptyState}
-          estimatedItemSize={40}
-          initialNumToRender={performanceConfig.userListInitialRenderCount ?? 20}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           removeClippedSubviews={true}

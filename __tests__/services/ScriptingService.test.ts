@@ -25,6 +25,7 @@ const mockIrcService = {
   getChannelUsers: jest.fn(() => [{ nick: 'alice' }, { nick: '@bob' }]),
   getChannels: jest.fn(() => ['#chat', '#help']),
   getCurrentNick: jest.fn(() => 'myNick'),
+  getConnectionStatus: jest.fn(() => true),
   isConnected: true,
 };
 
@@ -36,12 +37,12 @@ const mockConnection = {
     getChannelInfo: jest.fn(() => ({ modes: ['+nt'] })),
   },
   userManagementService: {
-    getWHOISInfo: jest.fn(async () => ({ nick: 'alice' })),
+    getWHOIS: jest.fn(() => ({ nick: 'alice' })),
     getUserNote: jest.fn(async () => 'note'),
-    setUserNote: jest.fn(async () => undefined),
+    addUserNote: jest.fn(async () => undefined),
     getUserAlias: jest.fn(async () => 'ali'),
-    setUserAlias: jest.fn(async () => undefined),
-    isIgnored: jest.fn(() => false),
+    addUserAlias: jest.fn(async () => undefined),
+    isUserIgnored: jest.fn(() => false),
   },
 };
 
@@ -82,7 +83,7 @@ const mockMessageHistoryService = {
 };
 
 const mockThemeService = {
-  getCurrentTheme: jest.fn(() => ({ name: 'IRcap', isDark: true })),
+  getCurrentTheme: jest.fn(() => ({ name: 'IRcap', isDark: true, colors: { background: '#101010' } })),
 };
 
 const mockConnectionQualityService = {
@@ -295,11 +296,19 @@ describe('ScriptingService', () => {
     expect(await api.getUserInfo('alice', 'net1')).toEqual({ nick: 'alice' });
     expect(await api.getUserNote('alice', 'net1')).toBe('note');
     await api.setUserNote('alice', 'new-note', 'net1');
-    expect(mockConnection.userManagementService.setUserNote).toHaveBeenCalledWith('alice', 'new-note', 'net1');
+    expect(mockConnection.userManagementService.addUserNote).toHaveBeenCalledWith(
+      'alice',
+      'new-note',
+      'net1'
+    );
 
     expect(await api.getUserAlias('alice', 'net1')).toBe('ali');
     await api.setUserAlias('alice', 'a', 'net1');
-    expect(mockConnection.userManagementService.setUserAlias).toHaveBeenCalledWith('alice', 'a', 'net1');
+    expect(mockConnection.userManagementService.addUserAlias).toHaveBeenCalledWith(
+      'alice',
+      'a',
+      'net1'
+    );
     expect(api.isIgnored('alice', 'net1')).toBe(false);
 
     expect(await api.getChannelNote('#chat', 'net1')).toBe('chan-note');
@@ -313,7 +322,12 @@ describe('ScriptingService', () => {
     expect(api.isHighlighted('urgent ping')).toBe(true);
 
     expect((await api.searchHistory({ channel: '#chat', limit: 2 })).length).toBe(2);
-    expect(await api.getHistoryStats('net1')).toEqual({ totalMessages: 12 });
+    expect(await api.getHistoryStats('net1')).toEqual(
+      expect.objectContaining({
+        totalMessages: 3,
+        channelCount: 1,
+      })
+    );
     expect(await api.getSetting('nick')).toBe('value:nick');
     expect(await api.getSetting('unsafeKey')).toBeNull();
     expect(api.getTheme()).toEqual({ name: 'IRcap', isDark: true });

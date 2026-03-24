@@ -11,7 +11,8 @@
 import { useEffect, useCallback } from 'react';
 import { useConnectionStore } from '../stores/connectionStore';
 import { connectionManager } from '../services/ConnectionManager';
-import { IRCNetworkConfig, IRCConnectionConfig } from '../services/SettingsService';
+import { IRCNetworkConfig } from '../services/SettingsService';
+import { IRCConnectionConfig } from '../services/IRCService';
 
 export function useConnectionManager() {
   // IMPORTANT: Only subscribe to state values, not actions
@@ -24,28 +25,8 @@ export function useConnectionManager() {
   const ping = useConnectionStore(state => state.ping);
 
   // Get actions without subscribing (they're stable references)
-  const setIsConnected = useCallback((value: boolean) => {
-    useConnectionStore.getState().setIsConnected(value);
-  }, []);
-
-  const setNetworkName = useCallback((name: string) => {
-    useConnectionStore.getState().setNetworkName(name);
-  }, []);
-
   const setSelectedNetworkName = useCallback((name: string) => {
     useConnectionStore.getState().setSelectedNetworkName(name);
-  }, []);
-
-  const setActiveConnectionId = useCallback((id: string | null) => {
-    useConnectionStore.getState().setActiveConnectionId(id);
-  }, []);
-
-  const setPrimaryNetworkId = useCallback((id: string | null) => {
-    useConnectionStore.getState().setPrimaryNetworkId(id);
-  }, []);
-
-  const setPing = useCallback((value: number) => {
-    useConnectionStore.getState().setPing(value);
   }, []);
 
   /**
@@ -130,7 +111,7 @@ export function useConnectionManager() {
         const store = useConnectionStore.getState();
         store.setActiveConnectionId(networkId);
         store.setNetworkName(networkId);
-        store.setIsConnected(connection.isConnected);
+        store.setIsConnected(connection.ircService.getConnectionStatus());
       }
     },
     [] // No dependencies - use store directly
@@ -158,7 +139,7 @@ export function useConnectionManager() {
    */
   const isNetworkConnected = useCallback((networkId: string) => {
     const connection = connectionManager.getConnection(networkId);
-    return connection ? connection.isConnected : false;
+    return connection ? connection.ircService.getConnectionStatus() : false;
   }, []);
 
   /**
@@ -185,7 +166,7 @@ export function useConnectionManager() {
         store.setNetworkName(activeId);
       }
 
-      store.setIsConnected(connections.length > 0 && connections.some(c => c.isConnected));
+      store.setIsConnected(connections.length > 0 && connections.some(c => c.ircService.getConnectionStatus()));
     };
 
     syncState();

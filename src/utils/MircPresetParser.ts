@@ -9,6 +9,7 @@ export interface MircPresetEntry {
   enabled?: boolean;
 }
 
+/* eslint-disable no-bitwise, no-control-regex -- mIRC preset decoding relies on byte-level parsing and control-byte delimiters. */
 const LINE_SPLIT = /\r\n|\n|\r/;
 
 const CP1252_MAP: Record<number, number> = {
@@ -107,9 +108,10 @@ export function parseNickCompletionPresets(raw: string): MircPresetEntry[] {
     if (match) {
       const enabled = match[2].toLowerCase() === 'on';
       const separator = match[1];
+      const matchIndex = match.index ?? 0;
       const rawValue = separator === '\x08'
-        ? line.slice(0, match.index + 1)
-        : line.slice(0, match.index).trim();
+        ? line.slice(0, matchIndex + 1)
+        : line.slice(0, matchIndex).trim();
       return {
         id: `nick-${index + 1}`,
         raw: rawValue,

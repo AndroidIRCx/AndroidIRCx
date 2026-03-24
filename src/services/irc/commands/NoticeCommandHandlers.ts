@@ -40,6 +40,7 @@ export const handleNOTICE: CommandHandler = (ctx, prefix, params, timestamp, met
       noticeTarget.startsWith('!');
     const noticeContext = ctx.getProtectionTabContext(noticeTarget, noticeFrom, isChannelNotice);
     const decision = protectionService.evaluateIncomingMessage({
+      id: `notice:${noticeNetwork}:${timestamp}:${noticeFrom}`,
       type: 'notice',
       channel: isChannelNotice ? noticeTarget : noticeFrom,
       from: noticeFrom,
@@ -111,7 +112,7 @@ export const handleNOTICE: CommandHandler = (ctx, prefix, params, timestamp, met
         ctx.logRaw(`CTCP PING response from ${noticeFrom}: ${latency}ms`);
         ctx.emit('pong', sentTime);
         displayText = t('CTCP PING reply: {latency}ms', { latency });
-      } catch (e) {
+      } catch {
         displayText = t('CTCP PING reply from {nick}', { nick: noticeFrom });
       }
     } else {

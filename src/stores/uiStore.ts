@@ -14,6 +14,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RawMessageCategory } from '../services/IRCService';
 import { ChannelLogEntry } from '../services/ChannelNotesService';
 
+type UserListsInitialTab =
+  | 'notify'
+  | 'ignore'
+  | 'autoop'
+  | 'autovoice'
+  | 'autohalfop'
+  | 'blacklist'
+  | 'other';
 
 export interface UIState {
   // First run setup
@@ -93,7 +101,7 @@ export interface UIState {
 
   // User Lists
   showUserLists: boolean;
-  userListsInitialTab: 'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'blacklist' | 'other';
+  userListsInitialTab: UserListsInitialTab;
   userListTarget: {
     listType: 'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'blacklist' | 'other';
     networkId: string;
@@ -192,7 +200,7 @@ export interface UIState {
 
   // Actions - User Lists
   setShowUserLists: (show: boolean) => void;
-  setUserListsInitialTab: (tab: 'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'blacklist' | 'other') => void;
+  setUserListsInitialTab: (tab: UserListsInitialTab) => void;
   setUserListTarget: (target: {
     listType: 'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'blacklist' | 'other';
     networkId: string;
@@ -276,7 +284,7 @@ const initialState = {
   dccSendPath: '',
   blacklistTarget: null,
   showUserLists: false,
-  userListsInitialTab: 'notify',
+  userListsInitialTab: 'notify' as UserListsInitialTab,
   userListTarget: null,
   showHelpConnection: false,
   showHelpCommands: false,
@@ -284,11 +292,80 @@ const initialState = {
   showHelpMedia: false,
   showHelpChannelManagement: false,
   showHelpTroubleshooting: false,
-};
+} satisfies Pick<
+  UIState,
+  | 'showFirstRunSetup'
+  | 'isCheckingFirstRun'
+  | 'appLockEnabled'
+  | 'appLockUseBiometric'
+  | 'appLockAutoBiometricPrompt'
+  | 'appLockUsePin'
+  | 'appLockOnLaunch'
+  | 'appLockOnBackground'
+  | 'appLocked'
+  | 'appUnlockModalVisible'
+  | 'appPinEntry'
+  | 'appPinError'
+  | 'bannerVisible'
+  | 'scriptingTimeMs'
+  | 'adFreeTimeMs'
+  | 'showRawCommands'
+  | 'rawCategoryVisibility'
+  | 'showTypingIndicators'
+  | 'hideJoinMessages'
+  | 'hidePartMessages'
+  | 'hideQuitMessages'
+  | 'hideIrcServiceListenerMessages'
+  | 'showChannelModal'
+  | 'channelName'
+  | 'showNetworksList'
+  | 'showSettings'
+  | 'showPurchaseScreen'
+  | 'showIgnoreList'
+  | 'showBlacklist'
+  | 'showWHOIS'
+  | 'whoisNick'
+  | 'whoisDisplayMode'
+  | 'swipeBehavior'
+  | 'showQueryEncryptionMenu'
+  | 'showChannelList'
+  | 'showUserList'
+  | 'showChannelSettings'
+  | 'channelSettingsTarget'
+  | 'channelSettingsNetwork'
+  | 'showOptionsMenu'
+  | 'showRenameModal'
+  | 'renameTargetTabId'
+  | 'renameValue'
+  | 'showTabOptionsModal'
+  | 'tabOptionsTitle'
+  | 'tabOptions'
+  | 'showChannelNoteModal'
+  | 'channelNoteTarget'
+  | 'channelNoteValue'
+  | 'showChannelLogModal'
+  | 'channelLogEntries'
+  | 'prefillMessage'
+  | 'showDccTransfers'
+  | 'dccTransfersMinimized'
+  | 'showDccSendModal'
+  | 'dccSendTarget'
+  | 'dccSendPath'
+  | 'blacklistTarget'
+  | 'showUserLists'
+  | 'userListsInitialTab'
+  | 'userListTarget'
+  | 'showHelpConnection'
+  | 'showHelpCommands'
+  | 'showHelpEncryption'
+  | 'showHelpMedia'
+  | 'showHelpChannelManagement'
+  | 'showHelpTroubleshooting'
+>;
 
 export const useUIStore = create<UIState>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       ...initialState,
 
       // First Run

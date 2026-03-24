@@ -59,7 +59,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
     codeTypes: ['qr'],
     onCodeScanned: (codes) => {
       if (!showKeyScan || scanHandledRef.current) return;
-      const code = codes[0]?.value || codes[0]?.rawValue;
+      const code = codes[0]?.value;
       if (!code) return;
       scanHandledRef.current = true;
       setShowKeyScan(false);
@@ -209,7 +209,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
                           setQrPayload(sharePayload);
                           setQrType('bundle');
                           setShowKeyQr(true);
-                        } catch (e) {
+                        } catch {
                           setActionMessage(t('Failed to generate QR'));
                         }
                       },
@@ -221,7 +221,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
           },
         ]
       );
-    } catch (e) {
+    } catch {
       setActionMessage(t('Invalid key payload'));
     }
   }, [activeIrc, getNetworkForStorage, nick, t]);
@@ -239,7 +239,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
             timestamp: Date.now(),
           });
           setActionMessage(t('Enc key offer sent to {nick}', { nick }));
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to share key'));
         }
         break;
@@ -264,7 +264,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
           setQrPayload(payload);
           setQrType('fingerprint');
           setShowKeyQr(true);
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to generate QR'));
         }
         break;
@@ -275,13 +275,16 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
           setQrPayload(payload);
           setQrType('bundle');
           setShowKeyQr(true);
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to generate QR'));
         }
         break;
       case 'enc_qr_scan':
         try {
-          const permission = hasCameraPermission || (await requestCameraPermission()) === 'authorized';
+          const permissionResult = hasCameraPermission ? true : await requestCameraPermission();
+          const permission = typeof permissionResult === 'string'
+            ? permissionResult === 'granted' || permissionResult === 'authorized'
+            : Boolean(permissionResult);
           if (!permission) {
             setActionMessage(t('Camera permission denied'));
             break;
@@ -289,7 +292,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
           scanHandledRef.current = false;
           setShowKeyScan(true);
           setScanError('');
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to open camera'));
         }
         break;
@@ -312,7 +315,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
               // Ignore cleanup errors
             }
           }
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to share key file'));
         }
         break;
@@ -323,7 +326,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
             mode: 'import',
           });
           if (result.length === 0) return;
-          const picker = result[0];
+          const picker = result[0] as (typeof result)[number] & { fileCopyUri?: string | null };
           const uri = picker.fileCopyUri || picker.uri;
           const path = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
           const shouldCleanupCopy = Boolean(picker.fileCopyUri);
@@ -360,10 +363,10 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
           await NfcManager.requestTechnology(NfcTech.Ndef);
           const bytes = Ndef.encodeMessage([Ndef.textRecord(payload)]);
           if (bytes) {
-            await NfcManager.writeNdefMessage(bytes);
+            await (NfcManager as typeof NfcManager & { writeNdefMessage: (message: number[]) => Promise<void> }).writeNdefMessage(bytes);
           }
           setActionMessage(t('NFC key ready, tap devices'));
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to share via NFC'));
         } finally {
           try { await NfcManager.cancelTechnologyRequest(); } catch {}
@@ -380,13 +383,13 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
           await NfcManager.requestTechnology(NfcTech.Ndef);
           const tag = await NfcManager.getTag();
           const ndefMessage = tag?.ndefMessage?.[0];
-          const payload = ndefMessage ? Ndef.text.decodePayload(ndefMessage.payload) : null;
+          const payload = ndefMessage ? Ndef.text.decodePayload(new Uint8Array(ndefMessage.payload as number[])) : null;
           if (!payload) {
             setActionMessage(t('No NFC payload'));
             break;
           }
           await handleExternalPayload(payload);
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to read NFC'));
         } finally {
           try { await NfcManager.cancelTechnologyRequest(); } catch {}
@@ -432,7 +435,7 @@ export const QueryEncryptionMenu: React.FC<QueryEncryptionMenuProps> = ({
               { text: t('Close'), style: 'cancel' },
             ]
           );
-        } catch (e) {
+        } catch {
           setActionMessage(t('Failed to load fingerprints'));
         }
         break;

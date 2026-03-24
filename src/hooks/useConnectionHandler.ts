@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import { IRCNetworkConfig, IRCServerConfig, DEFAULT_SERVER, settingsService } from '../services/SettingsService';
 import { IRCConnectionConfig, IRCMessage } from '../services/IRCService';
@@ -227,7 +227,7 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
     // Choose the target network id we want to reuse (prefer existing server tab id)
     let desiredId = connectNetworkId || networkToUse?.name || 'default';
     const existingServerTab = tabsRef.current.find(
-      t => t.type === 'server' && (t.networkId === desiredId || t.networkId === networkToUse?.name)
+      tabItem => tabItem.type === 'server' && (tabItem.networkId === desiredId || tabItem.networkId === networkToUse?.name)
     );
     if (existingServerTab) {
       desiredId = existingServerTab.networkId;
@@ -283,7 +283,7 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
         networkId: tab.networkId || finalId,
         id: tab.id.includes('::') ? tab.id : (tab.type === 'server' ? serverTabId(finalId) : tab.id),
       }));
-      const withServerTab = normalizedTabs.some(t => t.type === 'server') ? normalizedTabs : [makeServerTab(finalId), ...normalizedTabs];
+      const withServerTab = normalizedTabs.some(tabItem => tabItem.type === 'server') ? normalizedTabs : [makeServerTab(finalId), ...normalizedTabs];
       const initialServerTabId = serverTabId(finalId);
       
       // Load history for server tab BEFORE creating tabs
@@ -311,7 +311,7 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
       });
       
       setTabs(prev => sortTabsGrouped([
-        ...prev.filter(t => t.networkId !== finalId),
+        ...prev.filter(tabItem => tabItem.networkId !== finalId),
         ...tabsWithHistory,
       ], false));
       setActiveTabId(initialServerTabId);

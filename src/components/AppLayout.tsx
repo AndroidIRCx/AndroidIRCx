@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Platform, View, useWindowDimensions, TouchableOpacity, PanResponder } from 'react-native';
+import { Platform, View, useWindowDimensions, TouchableOpacity, PanResponder, type ViewStyle } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ChannelTabs } from './ChannelTabs';
 import { MessageArea } from './MessageArea';
@@ -252,7 +252,7 @@ export function AppLayout({
         }
       }
     },
-  }), [swipeBehavior, swipeInverse, tabs, activeTabId, handleTabPress, sideTabsVisible, onToggleSideTabs, activeTab, showUserList, setShowUserList, layoutConfig.tabPosition]);
+  }), [swipeBehavior, swipeInverse, tabs, activeTabId, handleTabPress, onToggleSideTabs, activeTab, showUserList, setShowUserList, layoutConfig.tabPosition]);
 
   const renderUserList = (position: 'left' | 'right' | 'top' | 'bottom') => {
     if (!activeTab || activeTab.type !== 'channel' || !showUserList) {
@@ -308,7 +308,7 @@ export function AppLayout({
 
   const tongueStyle = (() => {
     const size = nicklistTongueSizePx;
-    const base = {
+    const base: ViewStyle = {
       position: 'absolute' as const,
       zIndex: 5,
       opacity: 0.9,
@@ -321,7 +321,7 @@ export function AppLayout({
         base,
         {
           left: 0,
-          top: '50%',
+          top: '50%' as const,
           marginTop: -size / 2,
           width: 18,
           height: size,
@@ -337,7 +337,7 @@ export function AppLayout({
         base,
         {
           right: 0,
-          top: '50%',
+          top: '50%' as const,
           marginTop: -size / 2,
           width: 18,
           height: size,
@@ -353,7 +353,7 @@ export function AppLayout({
         base,
         {
           top: 0,
-          left: '50%',
+          left: '50%' as const,
           marginLeft: -size / 2,
           width: size,
           height: 18,
@@ -368,7 +368,7 @@ export function AppLayout({
       base,
       {
         bottom: 0,
-        left: '50%',
+        left: '50%' as const,
         marginLeft: -size / 2,
         width: size,
         height: 18,

@@ -4,7 +4,7 @@
  */
 
 import { ReactNode } from 'react';
-import { StyleProp, ViewStyle, TextInputProps } from 'react-native';
+import { StyleProp, ViewStyle } from 'react-native';
 
 /**
  * Icon configuration for settings

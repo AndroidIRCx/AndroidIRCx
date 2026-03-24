@@ -107,7 +107,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
       ],
     );
 
-    void (async () => {
+    (async () => {
       debugLogger.debug('tabContextMenu', 'Building tab context menu', {
         tabId: tab.id,
         tabType: tab.type,
@@ -203,9 +203,9 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
                   FingerprintFormat.COLON_SEPARATED_UPPER
                 );
                 // Send PRIVMSG directly; "/msg" is a client-side alias and not a server command.
-                const tabConnection = connectionManager.getConnection(tab.networkId);
-                if (tabConnection?.ircService) {
-                  tabConnection.ircService.sendRaw(`PRIVMSG NickServ :CERT ADD ${formatted}`);
+                const nickServConnection = connectionManager.getConnection(tab.networkId);
+                if (nickServConnection?.ircService) {
+                  nickServConnection.ircService.sendRaw(`PRIVMSG NickServ :CERT ADD ${formatted}`);
                   safeAlert(t('Sent'), t('Certificate fingerprint sent to NickServ'));
                 } else {
                   safeAlert(t('Error'), t('Not connected to IRC server'));
@@ -370,16 +370,16 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
             }
             await tabService.saveTabs(tab.networkId, []);
             setTabs(prev => {
-              const updated = sortTabsGrouped(prev.filter(t => t.networkId !== tab.networkId), tabSortAlphabetical);
-              if (!updated.some(t => t.id === activeTabId)) {
+              const updated = sortTabsGrouped(prev.filter(tabItem => tabItem.networkId !== tab.networkId), tabSortAlphabetical);
+              if (!updated.some(tabItem => tabItem.id === activeTabId)) {
                 const primaryServerId = primaryNetworkId ? serverTabId(primaryNetworkId) : '';
                 const fallbackId =
-                  (primaryServerId && updated.some(t => t.id === primaryServerId))
+                  (primaryServerId && updated.some(tabItem => tabItem.id === primaryServerId))
                     ? primaryServerId
-                    : updated.find(t => t.type === 'server')?.id || updated[0]?.id || '';
+                    : updated.find(tabItem => tabItem.type === 'server')?.id || updated[0]?.id || '';
                 if (fallbackId) {
                   setActiveTabId(fallbackId);
-                  const fallbackTab = updated.find(t => t.id === fallbackId);
+                  const fallbackTab = updated.find(tabItem => tabItem.id === fallbackId);
                   if (fallbackTab) {
                     setNetworkName(fallbackTab.networkId);
                   }
@@ -406,7 +406,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
     if (tab.type === 'channel') {
       try {
         isBookmarked = await channelNotesService.isBookmarked(tab.networkId, tab.name);
-      } catch (err) {
+      } catch {
         // Ignore bookmark lookup errors; default to false and still show menu
         isBookmarked = false;
       }
@@ -418,7 +418,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           const partMessage = await settingsService.getSetting('partMessage', DEFAULT_PART_MESSAGE);
           activeIRCService.partChannel(tab.name, partMessage);
           tabService.removeTab(tab.networkId, tab.id);
-          setTabs(prev => prev.filter(t => t.id !== tab.id));
+          setTabs(prev => prev.filter(tabItem => tabItem.id !== tab.id));
           if (activeTabId === tab.id) {
             setActiveTabId(serverTabId(tab.networkId)); // Switch to server tab if active tab is closed
           }
@@ -459,15 +459,15 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
     } else if (tab.type === 'query') {
       // Encryption options for DMs
       const alwaysEncryptEnabled = await channelEncryptionSettingsService.getAlwaysEncrypt(tab.name, tab.networkId);
-      const network = tab.networkId || '';
-      const hasBundle = await encryptedDMService.isEncryptedForNetwork(network, tab.name);
+      const queryNetworkId = tab.networkId || '';
+      const hasQueryBundle = await encryptedDMService.isEncryptedForNetwork(queryNetworkId, tab.name);
 
       options.push({
         text: t('Always Encrypt: {status}', { status: alwaysEncryptEnabled ? 'ON' : 'OFF' }),
         icon: 'shield-lock',
         onPress: async () => {
           const newValue = await channelEncryptionSettingsService.toggleAlwaysEncrypt(tab.name, tab.networkId);
-          if (newValue && !hasBundle) {
+          if (newValue && !hasQueryBundle) {
             Alert.alert(
               t('No Encryption Bundle'),
               t('Always-encrypt is now enabled, but no encryption bundle exists. Share your key with this user to enable encryption.'),
@@ -561,7 +561,7 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
           }
           const nextValue = !tab.sendEncrypted;
           setTabs(prev =>
-            prev.map(t => t.id === tab.id ? { ...t, sendEncrypted: nextValue } : t)
+            prev.map(tabItem => tabItem.id === tab.id ? { ...tabItem, sendEncrypted: nextValue } : tabItem)
           );
           const svc = connectionManager.getConnection(tab.networkId)?.ircService || ircService;
           svc.addMessage({
@@ -1021,7 +1021,6 @@ export const useTabContextMenu = (params: UseTabContextMenuParams) => {
     setActiveConnectionId,
     tabSortAlphabetical,
     ircService,
-    t,
   ]);
 
   return { handleTabLongPress };

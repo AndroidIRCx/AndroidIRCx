@@ -10,7 +10,7 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { NumericHandlerContext, NumericHandler } from '../types';
+import type { NumericHandler } from '../types';
 import { useUIStore } from '../../../stores/uiStore';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);

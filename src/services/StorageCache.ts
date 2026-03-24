@@ -49,9 +49,9 @@ class StorageCache {
    */
   async getItem<T = string>(
     key: string,
-    options: CacheOptions = {}
+    _options: CacheOptions = {}
   ): Promise<T | null> {
-    const { ttl = this.DEFAULT_TTL } = options;
+    const { ttl = this.DEFAULT_TTL } = _options;
 
     // Check cache first
     const cached = this.cache.get(key);
@@ -139,7 +139,7 @@ class StorageCache {
   async setItem<T = any>(
     key: string,
     value: T,
-    options: CacheOptions = {}
+    _options: CacheOptions = {}
   ): Promise<void> {
     // Update cache immediately
     this.setCache(key, value);

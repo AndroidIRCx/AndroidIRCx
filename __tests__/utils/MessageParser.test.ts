@@ -6,7 +6,6 @@
  */
 
 import {
-  ParsedMessagePart,
   isImageUrl,
   isVideoUrl,
   isAudioUrl,

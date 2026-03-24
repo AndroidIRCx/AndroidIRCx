@@ -3,10 +3,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import TcpSocket, { Server, Socket } from 'react-native-tcp-socket';
+import TcpSocket from 'react-native-tcp-socket';
+import type Server from 'react-native-tcp-socket/lib/types/Server';
+import type Socket from 'react-native-tcp-socket/lib/types/Socket';
 import { IRCMessage } from './IRCService';
 import { tx } from '../i18n/transifex';
 
+/* eslint-disable no-bitwise, no-control-regex -- DCC framing uses bitwise IP conversion and CTCP control bytes. */
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 type DCCSessionStatus = 'pending' | 'offering' | 'connecting' | 'connected' | 'closed' | 'failed';
@@ -100,7 +103,7 @@ class DCCChatService {
     return session;
   }
 
-  async acceptInvite(sessionId: string, irc: { sendRaw: (cmd: string) => void; getCurrentNick: () => string }): Promise<void> {
+  async acceptInvite(sessionId: string, _irc: { sendRaw: (cmd: string) => void; getCurrentNick: () => string }): Promise<void> {
     const session = this.sessions.get(sessionId);
     if (!session) return;
     session.status = 'connecting';
@@ -254,7 +257,7 @@ class DCCChatService {
     if (!session) return;
     session.messages = [...session.messages, message];
     this.sessions.set(sessionId, session);
-    this.emitMessage(sessionId, message, session);
+    this.emitMessage(sessionId, message);
   }
 
   private ipToInt(ip: string): number | null {

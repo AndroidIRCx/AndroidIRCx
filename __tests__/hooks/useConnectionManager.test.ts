@@ -35,6 +35,14 @@ jest.mock('../../src/services/ConnectionManager', () => ({
 }));
 const mockConnectionManager = jest.requireMock<any>('../../src/services/ConnectionManager').connectionManager;
 
+const makeConnection = (networkId: string, isConnected: boolean) => ({
+  networkId,
+  isConnected,
+  ircService: {
+    getConnectionStatus: jest.fn(() => isConnected),
+  },
+});
+
 // ─── Tests ─────────────────────────────────────────────
 
 describe('useConnectionManager', () => {
@@ -219,7 +227,7 @@ describe('useConnectionManager', () => {
     it('should switch to next connection when disconnecting active', async () => {
       mockConnectionManager.disconnect.mockResolvedValue(undefined);
       mockConnectionManager.getAllConnections.mockReturnValue([
-        { networkId: 'Libera', isConnected: true },
+        makeConnection('Libera', true),
       ]);
 
       act(() => {
@@ -260,7 +268,7 @@ describe('useConnectionManager', () => {
       mockConnectionManager.disconnect.mockResolvedValue(undefined);
       // Mock getAllConnections to return a connected DBase so syncState keeps isConnected=true
       mockConnectionManager.getAllConnections.mockReturnValue([
-        { networkId: 'DBase', isConnected: true },
+        makeConnection('DBase', true),
       ]);
       mockConnectionManager.getActiveNetworkId.mockReturnValue('DBase');
 
@@ -314,8 +322,7 @@ describe('useConnectionManager', () => {
   describe('switchConnection', () => {
     it('should switch to existing connection', () => {
       mockConnectionManager.getConnection.mockReturnValue({
-        networkId: 'Libera',
-        isConnected: true,
+        ...makeConnection('Libera', true),
       });
 
       const { result } = renderHook(() => useConnectionManager());
@@ -332,8 +339,7 @@ describe('useConnectionManager', () => {
 
     it('should handle disconnected connection', () => {
       mockConnectionManager.getConnection.mockReturnValue({
-        networkId: 'Libera',
-        isConnected: false,
+        ...makeConnection('Libera', false),
       });
 
       const { result } = renderHook(() => useConnectionManager());
@@ -399,8 +405,8 @@ describe('useConnectionManager', () => {
   describe('getAllConnections', () => {
     it('should return all connections from ConnectionManager', () => {
       const connections = [
-        { networkId: 'DBase', isConnected: true },
-        { networkId: 'Libera', isConnected: false },
+        makeConnection('DBase', true),
+        makeConnection('Libera', false),
       ];
       mockConnectionManager.getAllConnections.mockReturnValue(connections);
 
@@ -430,7 +436,7 @@ describe('useConnectionManager', () => {
 
   describe('isNetworkConnected', () => {
     it('should return true for connected network', () => {
-      mockConnectionManager.getConnection.mockReturnValue({ isConnected: true });
+      mockConnectionManager.getConnection.mockReturnValue(makeConnection('DBase', true));
 
       const { result } = renderHook(() => useConnectionManager());
 
@@ -443,7 +449,7 @@ describe('useConnectionManager', () => {
     });
 
     it('should return false for disconnected network', () => {
-      mockConnectionManager.getConnection.mockReturnValue({ isConnected: false });
+      mockConnectionManager.getConnection.mockReturnValue(makeConnection('DBase', false));
 
       const { result } = renderHook(() => useConnectionManager());
 
@@ -473,7 +479,7 @@ describe('useConnectionManager', () => {
     it('should sync active connection state on mount', () => {
       mockConnectionManager.getActiveNetworkId.mockReturnValue('DBase');
       mockConnectionManager.getAllConnections.mockReturnValue([
-        { networkId: 'DBase', isConnected: true },
+        makeConnection('DBase', true),
       ]);
 
       renderHook(() => useConnectionManager());
@@ -495,7 +501,7 @@ describe('useConnectionManager', () => {
     it('should set isConnected false when all connections are disconnected', () => {
       mockConnectionManager.getActiveNetworkId.mockReturnValue('DBase');
       mockConnectionManager.getAllConnections.mockReturnValue([
-        { networkId: 'DBase', isConnected: false },
+        makeConnection('DBase', false),
       ]);
 
       renderHook(() => useConnectionManager());

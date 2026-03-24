@@ -8,6 +8,12 @@ import { View, Text, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { SettingInputProps } from '../../types/settings';
 
+const stylesLocal = {
+  iconMargin: { marginRight: 8 },
+  descriptionWrapper: { marginTop: 4 },
+  errorText: { marginTop: 4, fontSize: 12 },
+} as const;
+
 export const SettingInput: React.FC<SettingInputProps> = ({
   item,
   icon,
@@ -38,7 +44,7 @@ export const SettingInput: React.FC<SettingInputProps> = ({
               size={16}
               color={item.disabled ? colors.textSecondary : colors.primary}
               solid={itemIcon.solid}
-              style={{ marginRight: 8 }}
+              style={stylesLocal.iconMargin}
             />
           )}
           <Text style={[styles.settingTitle, item.disabled && styles.disabledText]}>
@@ -53,7 +59,7 @@ export const SettingInput: React.FC<SettingInputProps> = ({
               </Text>
             )
             : (
-              <View style={{ marginTop: 4 }}>
+              <View style={stylesLocal.descriptionWrapper}>
                 {descriptionContent}
               </View>
             )
@@ -89,7 +95,7 @@ export const SettingInput: React.FC<SettingInputProps> = ({
           }}
         />
         {!!item.error && (
-          <Text style={{ color: colors.error, marginTop: 4, fontSize: 12 }}>
+          <Text style={[stylesLocal.errorText, { color: colors.primary }]}>
             {item.error}
           </Text>
         )}

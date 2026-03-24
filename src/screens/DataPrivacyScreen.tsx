@@ -113,7 +113,7 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
                   t('Failed to export data: {error}', { error: result.error || 'Unknown error' })
                 );
               }
-            } catch (error) {
+            } catch {
               Alert.alert(t('Error'), t('An error occurred while exporting data.'));
             } finally {
               setLoading(false);
@@ -242,7 +242,7 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
           ? t('Crash reporting has been disabled. New crashes will not be collected.')
           : t('Crash reporting has been enabled. This helps improve app stability.')
       );
-    } catch (error) {
+    } catch {
       Alert.alert(t('Error'), t('Failed to update crash reporting setting.'));
     } finally {
       setLoading(false);

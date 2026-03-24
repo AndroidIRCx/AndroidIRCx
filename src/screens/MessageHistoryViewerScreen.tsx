@@ -87,7 +87,7 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
       setMigrating(false);
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const loadMessages = useCallback(async (entry: HistoryEntry, sortOrder: 'desc' | 'asc' = messageSortOrder) => {
     setLoading(true);

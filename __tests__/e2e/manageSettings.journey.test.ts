@@ -7,10 +7,6 @@
 
 import { renderHook } from '@testing-library/react-native';
 import { useConnectionLifecycle } from '../../src/hooks/useConnectionLifecycle';
-import { useTabStore } from '../../src/stores/tabStore';
-import { useUIStore } from '../../src/stores/uiStore';
-import { connectionManager } from '../../src/services/ConnectionManager';
-import { ircService } from '../../src/services/IRCService';
 
 // Mock all services used in the manage settings journey
 jest.mock('../../src/services/ConnectionManager', () => ({
@@ -36,7 +32,6 @@ jest.mock('../../src/services/IRCService', () => ({
     getCurrentNick: jest.fn().mockReturnValue('testuser'),
     addMessage: jest.fn(),
     sendRaw: jest.fn(),
-    partChannel: jest.fn(),
     emit: jest.fn(),
     connect: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),

@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
-import { Alert, Modal, PermissionsAndroid, Platform } from 'react-native';
+import { Alert, PermissionsAndroid, Platform } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { MediaUploadModal } from '../../src/components/MediaUploadModal';
 

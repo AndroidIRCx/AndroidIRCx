@@ -274,7 +274,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle typing indicator events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'typing-indicator') {
         return mockUnsubscribe;
       }
@@ -288,7 +288,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle clear-tab events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'clear-tab') {
         return mockUnsubscribe;
       }
@@ -302,7 +302,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle close-tab events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'close-tab') {
         return mockUnsubscribe;
       }
@@ -316,7 +316,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle server-command events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'server-command') {
         return mockUnsubscribe;
       }
@@ -330,7 +330,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle dns-lookup events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'dns-lookup') {
         return mockUnsubscribe;
       }
@@ -344,7 +344,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle amsg events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'amsg') {
         return mockUnsubscribe;
       }
@@ -358,7 +358,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle ame events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'ame') {
         return mockUnsubscribe;
       }
@@ -372,7 +372,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle anotice events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'anotice') {
         return mockUnsubscribe;
       }
@@ -386,7 +386,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle reconnect events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'reconnect') {
         return mockUnsubscribe;
       }
@@ -400,7 +400,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle STS policy events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'sts-policy') {
         return mockUnsubscribe;
       }
@@ -414,7 +414,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle beep events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'beep') {
         return mockUnsubscribe;
       }
@@ -428,7 +428,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle registered events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'registered') {
         return mockUnsubscribe;
       }
@@ -442,7 +442,7 @@ describe('useConnectionLifecycle', () => {
 
   it('should handle motdEnd events', () => {
     const mockUnsubscribe = jest.fn();
-    require('../../src/services/IRCService').ircService.on.mockImplementation((event, handler) => {
+    require('../../src/services/IRCService').ircService.on.mockImplementation((event, _handler) => {
       if (event === 'motdEnd') {
         return mockUnsubscribe;
       }

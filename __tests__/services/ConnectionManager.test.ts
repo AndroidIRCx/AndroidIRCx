@@ -5,7 +5,7 @@
  * Tests for ConnectionManager - Wave 2 coverage target
  */
 
-import { ConnectionManager, ConnectionContext } from '../../src/services/ConnectionManager';
+import { ConnectionManager } from '../../src/services/ConnectionManager';
 
 // Mock all dependencies
 const mockIRCService = {

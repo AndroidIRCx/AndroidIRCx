@@ -193,7 +193,7 @@ class MediaUploadService {
           await RNFS.unlink(tempBinaryPath);
           tempBinaryPath = null;
         }
-      } catch (e) {
+      } catch {
         // Ignore cleanup errors
       }
 
@@ -412,7 +412,7 @@ class MediaUploadService {
       }
 
       return { valid: true };
-    } catch (error) {
+    } catch {
       return { valid: false, error: 'File does not exist or cannot be accessed' };
     }
   }

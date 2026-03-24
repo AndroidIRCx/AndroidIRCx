@@ -8,7 +8,7 @@
  * Displays list of all generated certificates with validity status.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -42,13 +42,7 @@ export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> =
   const [loading, setLoading] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
 
-  useEffect(() => {
-    if (visible) {
-      loadCertificates();
-    }
-  }, [visible]);
-
-  const loadCertificates = async () => {
+  const loadCertificates = useCallback(async () => {
     setLoading(true);
     try {
       const certs = await certificateManager.listCertificates();
@@ -61,7 +55,13 @@ export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> =
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    if (visible) {
+      loadCertificates();
+    }
+  }, [visible, loadCertificates]);
 
   const handleSelect = async (certMetadata: CertificateMetadata) => {
     // Validate certificate

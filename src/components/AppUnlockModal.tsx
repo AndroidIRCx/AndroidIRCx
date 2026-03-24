@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useState } from 'react';
-import { Modal, TouchableOpacity, View, Text, TextInput, Alert } from 'react-native';
+import React from 'react';
+import { Modal, TouchableOpacity, View, Text, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useSettingsSecurity } from '../hooks/useSettingsSecurity';
 
@@ -37,7 +37,6 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
   colors,
   styles,
 }) => {
-  const [showKillSwitchConfirm, setShowKillSwitchConfirm] = useState(false);
   const { killSwitchCustomName, killSwitchCustomIcon, killSwitchCustomColor } = useSettingsSecurity();
 
   const handlePinChange = (text: string) => {

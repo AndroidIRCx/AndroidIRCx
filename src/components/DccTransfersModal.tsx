@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
-import { Modal, TouchableOpacity, View, Text, Alert } from 'react-native';
+import React, { useMemo } from 'react';
+import { Modal, TouchableOpacity, View, Text, Alert, StyleSheet } from 'react-native';
 import Share from 'react-native-share';
 
 export interface DccTransfer {
@@ -104,6 +104,54 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
     onAccent: '#FFFFFF',
     text: '#FFFFFF',
   };
+  const localStyles = useMemo(() => StyleSheet.create({
+    modalContent: { maxHeight: '80%' },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    actionButton: {
+      padding: 8,
+      borderRadius: 4,
+    },
+    actionButtonText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    closeButton: {
+      padding: 8,
+    },
+    transferRow: {
+      marginBottom: 12,
+    },
+    transferMeta: {
+      fontSize: 11,
+      opacity: 0.7,
+    },
+    transferActions: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 4,
+      flexWrap: 'wrap',
+    },
+    openButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 4,
+    },
+    openButtonText: {
+      fontWeight: '600',
+    },
+    compactText: {
+      fontSize: 16,
+    },
+  }), []);
   // Count active transfers (downloading or sending)
   const activeTransfers = transfers.filter(t => t.status === 'downloading' || t.status === 'sending');
   const hasActiveTransfers = activeTransfers.length > 0;
@@ -158,21 +206,21 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}>
       <TouchableOpacity style={styles.modalOverlay} onPress={onClose} activeOpacity={1}>
-        <View style={[styles.modalContent, { maxHeight: '80%' }]} onStartShouldSetResponder={() => true}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <View style={[styles.modalContent, localStyles.modalContent]} onStartShouldSetResponder={() => true}>
+          <View style={localStyles.headerRow}>
             <Text style={styles.modalTitle}>DCC Transfers</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={localStyles.headerActions}>
               {hasActiveTransfers && onMinimize && (
                 <TouchableOpacity
                   onPress={onMinimize}
-                  style={{ padding: 8, backgroundColor: actionColors.accent, borderRadius: 4 }}>
-                  <Text style={{ color: actionColors.onAccent || actionColors.text, fontSize: 12, fontWeight: '600' }}>Minimize</Text>
+                  style={[localStyles.actionButton, { backgroundColor: actionColors.accent }]}>
+                  <Text style={[localStyles.actionButtonText, { color: actionColors.onAccent || actionColors.text }]}>Minimize</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
                 onPress={onClose}
-                style={{ padding: 8 }}>
-                <Text style={[styles.optionText, { fontSize: 16 }]}>✕</Text>
+                style={localStyles.closeButton}>
+                <Text style={[styles.optionText, localStyles.compactText]}>✕</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -182,15 +230,15 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
             transfers.map(t => {
               const percent = t.size ? Math.min(100, Math.floor((t.bytesReceived / t.size) * 100)) : undefined;
               return (
-                <View key={t.id} style={{ marginBottom: 12 }}>
+                <View key={t.id} style={localStyles.transferRow}>
                   <Text style={styles.optionText}>{t.offer.filename} ({t.direction})</Text>
                   <Text style={styles.optionText}>Status: {t.status} {percent !== undefined ? `- ${percent}%` : ''}</Text>
                   {t.status === 'completed' && t.filePath && (
-                    <Text style={[styles.optionText, { fontSize: 11, opacity: 0.7 }]} numberOfLines={1}>
+                    <Text style={[styles.optionText, localStyles.transferMeta]} numberOfLines={1}>
                       {t.filePath}
                     </Text>
                   )}
-                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                  <View style={localStyles.transferActions}>
                     {t.status === 'pending' && t.direction === 'incoming' && (
                       <TouchableOpacity
                         onPress={async () => {
@@ -218,8 +266,8 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
                     {t.status === 'completed' && t.direction === 'incoming' && t.filePath && (
                       <TouchableOpacity
                         onPress={() => handleOpenFile(t)}
-                        style={{ backgroundColor: actionColors.success, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 4 }}>
-                        <Text style={[styles.optionText, { color: actionColors.onAccent || actionColors.text, fontWeight: '600' }]}>Open File</Text>
+                        style={[localStyles.openButton, { backgroundColor: actionColors.success }]}>
+                        <Text style={[styles.optionText, localStyles.openButtonText, { color: actionColors.onAccent || actionColors.text }]}>Open File</Text>
                       </TouchableOpacity>
                     )}
                   </View>

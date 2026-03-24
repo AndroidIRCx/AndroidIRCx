@@ -66,7 +66,7 @@ class IdentityProfilesService {
         }
         await this.applySecrets();
       }
-    } catch (e) {
+    } catch {
       this.profiles = [DEFAULT_PROFILE];
       await this.persist();
     } finally {

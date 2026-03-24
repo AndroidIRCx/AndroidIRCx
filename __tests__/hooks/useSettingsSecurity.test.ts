@@ -79,8 +79,8 @@ describe('useSettingsSecurity', () => {
     await flushPromises();
 
     act(() => {
-      if (settingChangeCallbacks['killSwitchCustomName']) {
-        settingChangeCallbacks['killSwitchCustomName']('NewName');
+      if (settingChangeCallbacks.killSwitchCustomName) {
+        settingChangeCallbacks.killSwitchCustomName('NewName');
       }
     });
 
@@ -93,8 +93,8 @@ describe('useSettingsSecurity', () => {
     await flushPromises();
 
     act(() => {
-      if (settingChangeCallbacks['killSwitchCustomIcon']) {
-        settingChangeCallbacks['killSwitchCustomIcon']('lock');
+      if (settingChangeCallbacks.killSwitchCustomIcon) {
+        settingChangeCallbacks.killSwitchCustomIcon('lock');
       }
     });
 
@@ -107,9 +107,9 @@ describe('useSettingsSecurity', () => {
     await flushPromises();
 
     act(() => {
-      settingChangeCallbacks['killSwitchEnabledOnHeader']?.(false);
-      settingChangeCallbacks['killSwitchEnabledOnLockScreen']?.(true);
-      settingChangeCallbacks['killSwitchShowWarnings']?.(false);
+      settingChangeCallbacks.killSwitchEnabledOnHeader?.(false);
+      settingChangeCallbacks.killSwitchEnabledOnLockScreen?.(true);
+      settingChangeCallbacks.killSwitchShowWarnings?.(false);
     });
 
     expect(result.current.killSwitchEnabledOnHeader).toBe(false);
@@ -123,7 +123,7 @@ describe('useSettingsSecurity', () => {
     await flushPromises();
 
     act(() => {
-      settingChangeCallbacks['killSwitchCustomColor']?.('#123456');
+      settingChangeCallbacks.killSwitchCustomColor?.('#123456');
     });
 
     expect(result.current.killSwitchCustomColor).toBe('#123456');

@@ -199,7 +199,7 @@ describe('StorageCache', () => {
 
       expect(cache.has('key1')).toBe(false);
       expect(cache.has('key2')).toBe(false);
-      expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(['key1', 'key2']);
+      expect((AsyncStorage as any).removeMany).toHaveBeenCalledWith(['key1', 'key2']);
     });
   });
 

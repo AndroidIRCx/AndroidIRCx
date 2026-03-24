@@ -286,7 +286,7 @@ class ThemeService {
         } else {
           // Try to load custom theme
           await this.loadCustomThemes();
-          const customTheme = this.customThemes.find(t => t.id === savedThemeId);
+          const customTheme = this.customThemes.find(themeItem => themeItem.id === savedThemeId);
           if (customTheme) {
             this.currentTheme = customTheme;
           }
@@ -363,7 +363,7 @@ class ThemeService {
     } else if (themeId === 'ircap') {
       this.currentTheme = this.normalizeTheme(IRCAP_THEME);
     } else {
-      const customTheme = this.customThemes.find(t => t.id === themeId);
+      const customTheme = this.customThemes.find(themeItem => themeItem.id === themeId);
       if (customTheme) {
         this.currentTheme = this.normalizeTheme(customTheme);
       } else {
@@ -414,7 +414,7 @@ class ThemeService {
   }
 
   async updateCustomTheme(themeId: string, updates: Partial<Theme>): Promise<boolean> {
-    const themeIndex = this.customThemes.findIndex(t => t.id === themeId);
+    const themeIndex = this.customThemes.findIndex(themeItem => themeItem.id === themeId);
     if (themeIndex === -1) {
       return false;
     }
@@ -446,7 +446,7 @@ class ThemeService {
   }
 
   async deleteCustomTheme(themeId: string): Promise<boolean> {
-    const themeIndex = this.customThemes.findIndex(t => t.id === themeId);
+    const themeIndex = this.customThemes.findIndex(themeItem => themeItem.id === themeId);
     if (themeIndex === -1) {
       return false;
     }
@@ -495,7 +495,7 @@ class ThemeService {
     } else if (themeId === 'ircap') {
       theme = IRCAP_THEME;
     } else {
-      theme = this.customThemes.find(t => t.id === themeId);
+      theme = this.customThemes.find(themeItem => themeItem.id === themeId);
     }
 
     if (!theme) {
@@ -557,7 +557,7 @@ class ThemeService {
 
       // Check if a theme with the same name exists
       const existingIndex = this.customThemes.findIndex(
-        t => t.name.toLowerCase() === newTheme.name.toLowerCase()
+        themeItem => themeItem.name.toLowerCase() === newTheme.name.toLowerCase()
       );
 
       if (existingIndex !== -1) {

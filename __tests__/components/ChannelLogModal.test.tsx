@@ -79,7 +79,7 @@ describe('ChannelLogModal', () => {
     // Since TouchableOpacity contains the content, we can press on the title to trigger
     // Actually, the overlay has onPress={onClose} but it also contains the content
     // We test this by pressing on the modal title which is inside the overlay
-    const title = getByText('Channel Activity');
+    getByText('Channel Activity');
     // The title's parent is the View inside TouchableOpacity
     // We can't easily test the overlay press without more complex queries
     // So we'll skip this test for now

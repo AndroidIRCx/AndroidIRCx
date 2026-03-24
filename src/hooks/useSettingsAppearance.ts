@@ -6,8 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { themeService, Theme } from '../services/ThemeService';
 import { settingsService } from '../services/SettingsService';
-import { layoutService, LayoutConfig, ViewMode, FontSize } from '../services/LayoutService';
-import { SUPPORTED_LOCALES } from '../i18n/config';
+import { layoutService, LayoutConfig } from '../services/LayoutService';
 
 export interface UseSettingsAppearanceReturn {
   // Theme

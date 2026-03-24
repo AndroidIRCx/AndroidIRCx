@@ -50,6 +50,7 @@ interface IRCServiceInterface {
   logRaw: (message: string) => void;
   getNetworkName: () => string;
   hasCapability: (cap: string) => boolean;
+  getUserManagementService: () => any;
 
   // Channel/User
   channelUsers: Map<string, Map<string, any>>;
@@ -95,11 +96,6 @@ interface IRCServiceInterface {
   // Nick state
   altNick: string | null;
   nickChangeAttempts: number;
-
-  // Utility methods
-  logRaw: (...args: any[]) => void;
-  sendRaw: (command: string) => void;
-  addRawMessage: (text: string, category: string) => void;
   disconnect: (message?: string) => void;
 
   // Config
@@ -135,7 +131,6 @@ export class IRCNumericHandlers {
 
       // State mutators
       setRegistered: (value: boolean) => { svc.registered = value; },
-      setCurrentNick: (nick: string) => { svc.currentNick = nick; },
       setServerOper: (value: boolean) => { svc.isServerOper = value; },
       updateSelfUserModes: (modes: string) => { (svc as any).updateSelfUserModes(modes); },
 
@@ -149,9 +144,7 @@ export class IRCNumericHandlers {
       // Commands
       sendCommand: (cmd: string) => svc.sendCommand(cmd),
       sendRaw: (cmd: string) => svc.sendRaw(cmd),
-
-      // Logging
-      logRaw: (msg: string) => svc.logRaw(msg),
+      logRaw: (message: string) => svc.logRaw(message),
 
       // Channel/User management
       getChannelUsers: (channel: string) => svc.channelUsers.get(channel),
@@ -261,11 +254,6 @@ export class IRCNumericHandlers {
 
       // User management service
       getUserManagementService: () => svc.getUserManagementService(),
-
-      // Utility methods
-      logRaw: (msg: string) => svc.logRaw(msg),
-      sendRaw: (cmd: string) => svc.sendRaw(cmd),
-      addRawMessage: (text: string, category: string) => svc.addRawMessage(text, category),
       disconnect: (reason?: string) => svc.disconnect(reason),
 
       // Capabilities

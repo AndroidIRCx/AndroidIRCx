@@ -98,7 +98,7 @@ describe('NotifyService', () => {
 
       connectionChangeHandler(true);
 
-      expect(service['isConnected']).toBe(true);
+      expect(service.isConnected).toBe(true);
     });
 
     it('should handle connection change (connected=false)', () => {
@@ -109,7 +109,7 @@ describe('NotifyService', () => {
       // Then disconnect
       connectionChangeHandler(false);
 
-      expect(service['isConnected']).toBe(false);
+      expect(service.isConnected).toBe(false);
     });
   });
 
@@ -246,8 +246,8 @@ describe('NotifyService', () => {
   describe('addNotify', () => {
     beforeEach(() => {
       service.setNetwork('TestNetwork');
-      service['isConnected'] = true;
-      service['protocol'] = 'monitor';
+      service.isConnected = true;
+      service.protocol = 'monitor';
     });
 
     it('should add nick to notify list via UserManagementService', async () => {
@@ -267,7 +267,7 @@ describe('NotifyService', () => {
     });
 
     it('should send WATCH + when connected with watch protocol', async () => {
-      service['protocol'] = 'watch';
+      service.protocol = 'watch';
       await service.addNotify('NewFriend');
 
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith('WATCH +NewFriend');
@@ -277,8 +277,8 @@ describe('NotifyService', () => {
   describe('removeNotify', () => {
     beforeEach(() => {
       service.setNetwork('TestNetwork');
-      service['isConnected'] = true;
-      service['protocol'] = 'monitor';
+      service.isConnected = true;
+      service.protocol = 'monitor';
     });
 
     it('should remove nick from notify list', async () => {
@@ -298,7 +298,7 @@ describe('NotifyService', () => {
     });
 
     it('should send WATCH - when using watch protocol', async () => {
-      service['protocol'] = 'watch';
+      service.protocol = 'watch';
       await service.removeNotify('OldFriend');
 
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith('WATCH -OldFriend');
@@ -306,7 +306,7 @@ describe('NotifyService', () => {
 
     it('should clear status when removing', async () => {
       // Set up status first
-      service['notifyStatus'].set('OldFriend', { online: true });
+      service.notifyStatus.set('OldFriend', { online: true });
 
       await service.removeNotify('OldFriend');
 
@@ -330,7 +330,7 @@ describe('NotifyService', () => {
 
   describe('getStatus', () => {
     it('should return status for a nick', () => {
-      service['notifyStatus'].set('friend', { online: true, lastSeen: Date.now() });
+      service.notifyStatus.set('friend', { online: true, lastSeen: Date.now() });
 
       const status = service.getStatus('Friend');
 
@@ -346,8 +346,8 @@ describe('NotifyService', () => {
 
   describe('getAllStatuses', () => {
     it('should return all statuses', () => {
-      service['notifyStatus'].set('friend1', { online: true });
-      service['notifyStatus'].set('friend2', { online: false });
+      service.notifyStatus.set('friend1', { online: true });
+      service.notifyStatus.set('friend2', { online: false });
 
       const statuses = service.getAllStatuses();
 
@@ -358,10 +358,10 @@ describe('NotifyService', () => {
 
   describe('getProtocol', () => {
     it('should return current protocol', () => {
-      service['protocol'] = 'monitor';
+      service.protocol = 'monitor';
       expect(service.getProtocol()).toBe('monitor');
 
-      service['protocol'] = 'ison';
+      service.protocol = 'ison';
       expect(service.getProtocol()).toBe('ison');
     });
   });
@@ -369,8 +369,8 @@ describe('NotifyService', () => {
   describe('clearAll', () => {
     beforeEach(() => {
       service.setNetwork('TestNetwork');
-      service['isConnected'] = true;
-      service['protocol'] = 'monitor';
+      service.isConnected = true;
+      service.protocol = 'monitor';
       (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
         { mask: 'Friend1!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
         { mask: 'Friend2!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
@@ -390,8 +390,8 @@ describe('NotifyService', () => {
     });
 
     it('should clear all statuses', async () => {
-      service['notifyStatus'].set('Friend1', { online: true });
-      service['notifyStatus'].set('Friend2', { online: false });
+      service.notifyStatus.set('Friend1', { online: true });
+      service.notifyStatus.set('Friend2', { online: false });
 
       await service.clearAll();
 
@@ -401,11 +401,11 @@ describe('NotifyService', () => {
 
   describe('destroy', () => {
     it('should clear ISON interval', () => {
-      service['isonInterval'] = setInterval(() => {}, 1000);
+      service.isonInterval = setInterval(() => {}, 1000);
       
       service.destroy();
 
-      expect(service['isonInterval']).toBeNull();
+      expect(service.isonInterval).toBeNull();
     });
 
     it('should remove all listeners', () => {

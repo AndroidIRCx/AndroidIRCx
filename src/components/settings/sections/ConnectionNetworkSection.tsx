@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+/* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
+
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { Alert, Modal, View, Text, TextInput, TouchableOpacity, AppState, ScrollView, Switch } from 'react-native';
 import { pick, types, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
@@ -63,6 +65,15 @@ interface ConnectionNetworkSectionProps {
   onShowConnectionProfiles?: () => void;
 }
 
+type GlobalProxySettings = {
+  enabled?: boolean;
+  type?: 'socks5' | 'socks4' | 'http' | 'tor';
+  host?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+};
+
 const PIN_STORAGE_KEY = '@AndroidIRCX:pin-lock';
 
 export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> = ({
@@ -80,7 +91,6 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   
   const {
     networks,
-    autoReconnectConfig,
     rateLimitConfig,
     floodProtectionConfig,
     lagMonitoringConfig,
@@ -154,7 +164,8 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         copyTo: 'cachesDirectory',
       });
       const file = Array.isArray(picked) ? picked[0] : picked;
-      const fileUri = file?.fileCopyUri || file?.uri;
+      const fileWithCopyUri = file as typeof file & { fileCopyUri?: string | null };
+      const fileUri = fileWithCopyUri?.fileCopyUri || file?.uri;
       if (!fileUri) {
         Alert.alert(
           t('Download Folder', { _tags: tags }),
@@ -239,7 +250,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       if (!isMountedRef.current) return;
       setAutoJoinFavoritesEnabled(autoJoin);
       
-      const lagMethod = await settingsService.getSetting('lagCheckMethod', 'server');
+      const lagMethod = await settingsService.getSetting<'server' | 'ctcp'>('lagCheckMethod', 'server');
       if (!isMountedRef.current) return;
       setLagCheckMethod(lagMethod);
       
@@ -267,9 +278,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       setDccCancelAboveKbps(String(await settingsService.getSetting('dccCancelAboveKbps', 0)));
       setDccDownloadFolder(await settingsService.getSetting('dccDownloadFolder', ''));
       
-      const proxy = await settingsService.getSetting('globalProxy', null);
+      const proxy = await settingsService.getSetting<GlobalProxySettings | null>('globalProxy', null);
       if (proxy) {
-        setGlobalProxyEnabled(proxy.enabled || false);
+        setGlobalProxyEnabled(Boolean(proxy.enabled));
         setGlobalProxyType(proxy.type || 'socks5');
         setGlobalProxyHost(proxy.host || '');
         setGlobalProxyPort(proxy.port?.toString() || '');
@@ -296,7 +307,6 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         setWhoisAutoDetectDoubleNick(autoDetectWhois);
         setWhoisUseDoubleNick(manualWhoisDoubleNick);
 
-        const reconnectEnabled = autoReconnectService.isEnabled(currentNetwork);
         const reconnectConfig = autoReconnectService.getConfig(currentNetwork);
         if (reconnectConfig) {
           // Update the hook's config state for this network
@@ -320,7 +330,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     return () => {
       isMountedRef.current = false;
     };
-  }, [currentNetwork, networks, refreshFavorites]);
+  }, [currentNetwork, networks, refreshFavorites, updateAutoReconnectConfig]);
 
   // Track app state for biometric re-initialization
   const appStateRef = useRef(AppState.currentState);
@@ -525,7 +535,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     return true;
   }, [biometricAvailable, biometricLockEnabled, passwordLockActive, pinLockEnabled, requestPinUnlock, t, tags]);
 
-  const handleBiometricLockToggle = async (value: boolean) => {
+  const handleBiometricLockToggle = useCallback(async (value: boolean) => {
     if (value) {
       if (!biometricAvailable) {
         Alert.alert(
@@ -556,9 +566,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     if (!pinLockEnabled) {
       setPasswordsUnlocked(true);
     }
-  };
+  }, [biometricAvailable, pinLockEnabled, t, tags]);
 
-  const handlePinLockToggle = async (value: boolean) => {
+  const handlePinLockToggle = useCallback(async (value: boolean) => {
     if (value) {
       // Allow PIN and biometric to be enabled together - don't disable biometric
       const setupSuccess = await requestPinSetup();
@@ -575,7 +585,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     if (!biometricLockEnabled) {
       setPasswordsUnlocked(true);
     }
-  };
+  }, [biometricLockEnabled, requestPinSetup]);
 
   const dccAutoModeLabel = useMemo(() => {
     switch (dccAutoGetMode) {
@@ -959,13 +969,10 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     dccMinPort,
     dccMaxPort,
     dccHostOverride,
-    dccAutoGetMode,
     dccAutoModeLabel,
     dccAcceptExts.length,
     dccRejectExts.length,
     dccDontSendExts.length,
-    dccAutoChatFrom,
-    dccAutoGetFrom,
     dccAutoChatLabel,
     dccAutoGetLabel,
     dccServeViewerAuto,
@@ -1046,7 +1053,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       return autoReconnectService.getConfig(currentNetwork) || getDefaultAutoReconnectConfig();
     }
     return getDefaultAutoReconnectConfig();
-  }, [currentNetwork, autoReconnectConfig]);
+  }, [currentNetwork, getDefaultAutoReconnectConfig]);
 
   const sectionData: SettingItemType[] = useMemo(() => {
     const items: SettingItemType[] = [
@@ -1496,7 +1503,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 enabled: boolValue,
                 type: globalProxyType,
                 host: globalProxyHost,
-                port: globalProxyPort ? parseInt(globalProxyPort) : 0,
+                port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
                 username: globalProxyUsername,
                 password: globalProxyPassword,
               });
@@ -1527,7 +1534,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 enabled: globalProxyEnabled,
                 type: globalProxyType,
                 host: strValue,
-                port: globalProxyPort ? parseInt(globalProxyPort) : 0,
+                port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
                 username: globalProxyUsername,
                 password: globalProxyPassword,
               });
@@ -1548,7 +1555,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 enabled: globalProxyEnabled,
                 type: globalProxyType,
                 host: globalProxyHost,
-                port: strValue ? parseInt(strValue) : 0,
+                port: strValue ? parseInt(strValue, 10) : 0,
                 username: globalProxyUsername,
                 password: globalProxyPassword,
               });
@@ -1568,7 +1575,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 enabled: globalProxyEnabled,
                 type: globalProxyType,
                 host: globalProxyHost,
-                port: globalProxyPort ? parseInt(globalProxyPort) : 0,
+                port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
                 username: strValue,
                 password: globalProxyPassword,
               });
@@ -1589,7 +1596,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 enabled: globalProxyEnabled,
                 type: globalProxyType,
                 host: globalProxyHost,
-                port: globalProxyPort ? parseInt(globalProxyPort) : 0,
+                port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
                 username: globalProxyUsername,
                 password: strValue,
               });
@@ -1666,7 +1673,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         value: biometricLockEnabled,
         disabled: !biometricAvailable,
         searchKeywords: ['biometric', 'lock', 'passwords', 'fingerprint', 'face', 'security', 'authentication'],
-        onValueChange: handleBiometricLockToggle,
+        onValueChange: (value: string | boolean) => {
+          handleBiometricLockToggle(Boolean(value)).catch(() => {});
+        },
       },
       {
         id: 'connection-pin-lock',
@@ -1679,7 +1688,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         type: 'switch',
         value: pinLockEnabled,
         searchKeywords: ['pin', 'lock', 'passwords', 'passcode', 'security', 'number', 'code'],
-        onValueChange: handlePinLockToggle,
+        onValueChange: (value: string | boolean) => {
+          handlePinLockToggle(Boolean(value)).catch(() => {});
+        },
       },
       ...(passwordLockActive ? [{
         id: 'connection-unlock-passwords',
@@ -1880,16 +1891,18 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   }, [
     autoConnectFavoriteServer,
     currentAutoReconnectConfig,
-    autoReconnectConfig,
     rateLimitConfig,
     floodProtectionConfig,
     lagMonitoringConfig,
     connectionStats,
+    currentNetwork,
     identityProfiles.length,
     globalProxyEnabled,
     globalProxyType,
     globalProxyHost,
     globalProxyPort,
+    globalProxyUsername,
+    globalProxyPassword,
     biometricLockEnabled,
     biometricAvailable,
     pinLockEnabled,
@@ -1917,6 +1930,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     updateRateLimitConfig,
     updateFloodProtectionConfig,
     updateLagMonitoringConfig,
+    openQuickConnectModal,
     unlockPasswords,
     handleBiometricLockToggle,
     handlePinLockToggle,
@@ -1924,7 +1938,6 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     onShowNetworksList,
     onShowConnectionProfiles,
     quickConnectNetworkId,
-    setQuickConnectNetworkId,
     t,
     tags,
   ]);
@@ -2003,7 +2016,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                   itemsToShow = sectionData.find((item) => item.id === showSubmenu)?.submenuItems;
                 }
                 
-                return itemsToShow?.map((subItem, index) => {
+                return itemsToShow?.map((subItem) => {
                   if (subItem.type === 'switch') {
                     return (
                       <View key={subItem.id} style={styles.submenuItem}>
@@ -2258,7 +2271,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                       enabled: globalProxyEnabled,
                       type: proxyType,
                       host: globalProxyHost,
-                      port: globalProxyPort ? parseInt(globalProxyPort) : 0,
+                      port: globalProxyPort ? parseInt(globalProxyPort, 10) : 0,
                       username: globalProxyUsername,
                       password: globalProxyPassword,
                     });

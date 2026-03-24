@@ -10,7 +10,7 @@
  * - Auto-enables sendEncrypted when keys exist and always encrypt is on
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useTabStore } from '../stores/tabStore';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { encryptedDMService } from '../services/EncryptedDMService';

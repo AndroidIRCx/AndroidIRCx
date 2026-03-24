@@ -53,8 +53,8 @@ describe('IgnoreListScreen', () => {
     userManagementService.unignoreUser.mockResolvedValue(undefined);
 
     connectionManager.getAllConnections.mockReturnValue([
-      { config: { id: 'net-a' } },
-      { config: { id: 'net-b' } },
+      { networkId: 'net-a', config: { id: 'net-a' } },
+      { networkId: 'net-b', config: { id: 'net-b' } },
     ]);
     connectionManager.getConnection.mockReturnValue(null);
   });

@@ -39,10 +39,13 @@ describe('MessageHistoryService', () => {
     (storageCache.removeBatch as jest.Mock).mockResolvedValue(undefined);
     (storageCache.setBatch as jest.Mock).mockResolvedValue(undefined);
     (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue([]);
+    (AsyncStorage as any).getMany = jest.fn().mockResolvedValue({});
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
     (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
     (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
     (AsyncStorage.multiRemove as jest.Mock).mockResolvedValue(undefined);
+    (messageHistoryService as any).migrationCompleted = false;
+    (messageHistoryService as any).migrationInProgress = false;
   });
 
   const mockMessage: IRCMessage = {
@@ -451,10 +454,10 @@ describe('MessageHistoryService', () => {
         '@AndroidIRCX:history:freenode:#help',
       ];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
-      (AsyncStorage.multiGet as jest.Mock).mockResolvedValue([
-        [keys[0], JSON.stringify([mockMessage, { ...mockMessage, id: 'msg-2' }])],
-        [keys[1], JSON.stringify([mockMessage])],
-      ]);
+      (AsyncStorage as any).getMany.mockResolvedValue({
+        [keys[0]]: JSON.stringify([mockMessage, { ...mockMessage, id: 'msg-2' }]),
+        [keys[1]]: JSON.stringify([mockMessage]),
+      });
 
       const result = await messageHistoryService.listStoredChannels();
 
@@ -466,9 +469,9 @@ describe('MessageHistoryService', () => {
     it('should handle legacy keys', async () => {
       const keys = ['MESSAGES_freenode_#general'];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
-      (AsyncStorage.multiGet as jest.Mock).mockResolvedValue([
-        [keys[0], JSON.stringify([mockMessage])],
-      ]);
+      (AsyncStorage as any).getMany.mockResolvedValue({
+        [keys[0]]: JSON.stringify([mockMessage]),
+      });
 
       const result = await messageHistoryService.listStoredChannels();
 
@@ -483,10 +486,10 @@ describe('MessageHistoryService', () => {
         'MESSAGES_freenode_#general',
       ];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
-      (AsyncStorage.multiGet as jest.Mock).mockResolvedValue([
-        [keys[0], JSON.stringify([mockMessage, { ...mockMessage, id: 'msg-2' }])], // 2 messages
-        [keys[1], JSON.stringify([mockMessage])], // 1 message
-      ]);
+      (AsyncStorage as any).getMany.mockResolvedValue({
+        [keys[0]]: JSON.stringify([mockMessage, { ...mockMessage, id: 'msg-2' }]),
+        [keys[1]]: JSON.stringify([mockMessage]),
+      });
 
       const result = await messageHistoryService.listStoredChannels();
 
@@ -516,9 +519,9 @@ describe('MessageHistoryService', () => {
       const legacyKeys = ['MESSAGES_freenode_#general'];
       const messages = [mockMessage];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(legacyKeys);
-      (AsyncStorage.multiGet as jest.Mock).mockResolvedValue([
-        [legacyKeys[0], JSON.stringify(messages)],
-      ]);
+      (AsyncStorage as any).getMany.mockResolvedValue({
+        [legacyKeys[0]]: JSON.stringify(messages),
+      });
       (storageCache.getItem as jest.Mock).mockResolvedValue(null);
 
       const result = await messageHistoryService.ensureHistoryMigrated();

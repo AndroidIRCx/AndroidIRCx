@@ -5,7 +5,7 @@
  * AutoAuthService Unit Tests
  */
 
-import { AutoAuthService, createAutoAuthService, AuthMethod, AuthResult } from '../../src/services/AutoAuthService';
+import { createAutoAuthService } from '../../src/services/AutoAuthService';
 import { serviceDetectionService } from '../../src/services/ServiceDetectionService';
 import { IRCService } from '../../src/services/IRCService';
 

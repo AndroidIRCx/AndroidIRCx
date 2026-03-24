@@ -34,8 +34,12 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
   onClose,
 }) => {
   const t = useT();
-  const { theme, colors } = useTheme();
+  const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const watchAdButtonIconStyle = { marginRight: 8 };
+  const watchAdButtonContentStyle = { flex: 1 };
+  const complianceSpacingStyle = { marginTop: 12 };
+  const footerSpacerStyle = { height: 40 };
 
   const [consentStatus, setConsentStatus] = useState<AdsConsentStatus>(
     consentService.getConsentStatus()
@@ -57,7 +61,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
   const [hasScriptingPro, setHasScriptingPro] = useState(false);
   const [isSupporter, setIsSupporter] = useState(false);
   const [showWatchAdButton, setShowWatchAdButton] = useState(true);
-  const [watchAdButtonEnabledForPremium, setWatchAdButtonEnabledForPremium] = useState(false);
+  const [, setWatchAdButtonEnabledForPremium] = useState(false);
 
   // Load consent info and ad status on mount
   useEffect(() => {
@@ -432,8 +436,8 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
                   <ActivityIndicator size="small" color={colors.onAccent} />
                 ) : (
                   <View style={styles.watchAdButtonContent}>
-                    <Icon name="play-circle" size={24} color={colors.onAccent} solid style={{ marginRight: 8 }} />
-                    <View style={{ flex: 1 }}>
+                    <Icon name="play-circle" size={24} color={colors.onAccent} solid style={watchAdButtonIconStyle} />
+                    <View style={watchAdButtonContentStyle}>
                       <Text style={styles.watchAdButtonText}>
                         {adReady
                           ? t('Watch Ad (+60 min Scripting & No-Ads)')
@@ -518,7 +522,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
               <Text style={styles.bulletPoint}>
                 • {t('Other US state privacy laws')}
               </Text>
-              <Text style={[styles.cardText, { marginTop: 12 }]}>
+              <Text style={[styles.cardText, complianceSpacingStyle]}>
                 {t('You have the right to:')}
               </Text>
               <Text style={styles.bulletPoint}>
@@ -537,7 +541,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
           </View>
 
           {/* Footer spacing */}
-          <View style={{ height: 40 }} />
+          <View style={footerSpacerStyle} />
         </ScrollView>
       </View>
     </Modal>

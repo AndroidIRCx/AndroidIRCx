@@ -74,7 +74,7 @@ export class KeyboardShortcutService {
     // The event object from react-native-keyevent contains:
     //   keyCode: number, pressedKey: string, action: number, repeatCount: number
     // We will build a simple combination string.
-    const { pressedKey, keyCode } = event;
+    const { pressedKey } = event;
     // Detect modifier keys via keyCode values (Ctrl=113, Alt=57, Shift=59 on Android)
     const modifiers: string[] = [];
     if (event.ctrlKey) modifiers.push('ctrl');

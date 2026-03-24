@@ -22,10 +22,6 @@ export function useTabManager() {
   const activeTabId = useTabStore(state => state.activeTabId);
 
   // Get actions without subscribing (they're stable references)
-  const setTabs = useCallback((tabs: ChannelTab[]) => {
-    useTabStore.getState().setTabs(tabs);
-  }, []);
-
   const setActiveTabId = useCallback((id: string) => {
     useTabStore.getState().setActiveTabId(id);
   }, []);
@@ -42,10 +38,6 @@ export function useTabManager() {
     useTabStore.getState().updateTab(tabId, updates);
   }, []);
 
-  const addMessageToTab = useCallback((tabId: string, message: any) => {
-    useTabStore.getState().addMessageToTab(tabId, message);
-  }, []);
-
   const setTabActivity = useCallback((tabId: string, hasActivity: boolean) => {
     useTabStore.getState().setTabActivity(tabId, hasActivity);
   }, []);
@@ -54,16 +46,8 @@ export function useTabManager() {
     useTabStore.getState().clearTabMessages(tabId);
   }, []);
 
-  const addTabs = useCallback((tabs: ChannelTab[]) => {
-    useTabStore.getState().addTabs(tabs);
-  }, []);
-
   const removeTabs = useCallback((tabIds: string[]) => {
     useTabStore.getState().removeTabs(tabIds);
-  }, []);
-
-  const updateTabs = useCallback((updates: Array<{ tabId: string; updates: Partial<ChannelTab> }>) => {
-    useTabStore.getState().updateTabs(updates);
   }, []);
 
   const getTabById = useCallback((tabId: string) => {
@@ -72,10 +56,6 @@ export function useTabManager() {
 
   const getTabsByNetwork = useCallback((networkId: string) => {
     return useTabStore.getState().getTabsByNetwork(networkId);
-  }, []);
-
-  const getActiveTab = useCallback(() => {
-    return useTabStore.getState().getActiveTab();
   }, []);
 
   const hasTab = useCallback((tabId: string) => {

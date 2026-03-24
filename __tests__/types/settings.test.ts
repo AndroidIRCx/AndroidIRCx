@@ -17,8 +17,6 @@ import {
   SettingSubmenuProps,
   CustomSettingProps,
 } from '../../src/types/settings';
-import type { TextInputProps } from 'react-native';
-
 describe('Types - settings', () => {
   describe('SettingIcon interface', () => {
     it('should create a valid SettingIcon', () => {

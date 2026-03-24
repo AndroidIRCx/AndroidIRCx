@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { MessageFormatEditorScreen } from '../../src/screens/MessageFormatEditorScreen';
 
