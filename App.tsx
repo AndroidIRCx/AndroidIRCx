@@ -436,24 +436,6 @@ function AppContent() {
     dccSendTarget,
     dccSendPath,
   } = uiState;
-  showChannelModal;
-  channelName;
-  showNetworksList;
-  showSettings;
-  showPurchaseScreen;
-  showIgnoreList;
-  showWHOIS;
-  whoisNick;
-  showQueryEncryptionMenu;
-  showChannelList;
-  showChannelSettings;
-  channelSettingsTarget;
-  channelSettingsNetwork;
-  showOptionsMenu;
-  showRenameModal;
-  renameTargetTabId;
-  renameValue;
-  showTabOptionsModal;
   tabOptionsTitle;
   tabOptions;
   showChannelNoteModal;
