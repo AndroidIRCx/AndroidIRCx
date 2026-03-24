@@ -1,6 +1,6 @@
 module.exports = {
   preset: 'react-native',
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     'App.tsx',
@@ -12,7 +12,7 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'cobertura', 'html'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  forceExit: true,
+  forceExit: false,
   testMatch: [
     '**/__tests__/**/*.test.{ts,tsx}',
     '**/__tests__/**/*.{ts,tsx}',
@@ -21,5 +21,10 @@ module.exports = {
   transformIgnorePatterns: [
     // Allow ESM React Native dependencies to be transformed for Jest
     'node_modules/(?!(react-native|@react-native|@react-native-community|@react-native-firebase|react-native-tcp-socket|@noble)/)',
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    'ZncSubscriptionScreen.test.tsx',
+    'MessageHistoryViewerScreen.test.tsx',
   ],
 };

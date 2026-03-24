@@ -296,14 +296,14 @@ jest.mock('react-native-sound', () => {
     setVolume: jest.fn(),
     setNumberOfLoops: jest.fn(),
   };
-  
+
   const MockSound = jest.fn().mockImplementation(() => mockInstance);
   (MockSound as any).setCategory = jest.fn();
   (MockSound as any).MAIN_BUNDLE = '';
   (MockSound as any).DOCUMENT = '';
   (MockSound as any).LIBRARY = '';
   (MockSound as any).CACHES = '';
-  
+
   return {
     __esModule: true,
     default: MockSound,
