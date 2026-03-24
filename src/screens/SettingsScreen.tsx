@@ -1465,12 +1465,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const _zncPurchaseDescription = zncDisplayPrice
     ? t('Price: {price}', { price: zncDisplayPrice, _tags: tags })
     : t('Monthly subscription via Google Play', { _tags: tags });
-  _handleBiometricLockToggle;
-  _handlePinLockToggle;
-  _zncStatusLabel;
-  _zncExpiresLabel;
-  _zncAccountLabel;
-  _zncPurchaseDescription;
 
   const pinModalContainerStyle: ViewStyle = { maxHeight: '60%' };
   const backupModalContainerStyle: ViewStyle = { maxHeight: '80%' };
