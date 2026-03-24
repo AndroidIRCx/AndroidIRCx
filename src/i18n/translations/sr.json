@@ -12982,5 +12982,101 @@
   },
   "Calls": {
     "string": "Pozivi"
+  },
+  "Query": {
+    "string": ""
+  },
+  "Failed to load options": {
+    "string": ""
+  },
+  "DBase (Optional Default)": {
+    "string": ""
+  },
+  "Use the built-in DBase network now. You can still change or remove it later.": {
+    "string": ""
+  },
+  "Choose Another Server Later": {
+    "string": ""
+  },
+  "Finish setup now and open Choose Network later to add or reload networks from the API list.": {
+    "string": ""
+  },
+  "Your identity is saved. Open Choose Network to add a server or reload the approved API network list.": {
+    "string": ""
+  },
+  "Open Choose Network": {
+    "string": ""
+  },
+  "No new networks imported": {
+    "string": ""
+  },
+  "No new networks were imported from IRC Database. Existing entries are unchanged.": {
+    "string": ""
+  },
+  "Import partially completed": {
+    "string": ""
+  },
+  "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Failed to save: {failed}. Skipped unchanged: {skipped}.": {
+    "string": ""
+  },
+  "Import completed": {
+    "string": ""
+  },
+  "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Skipped unchanged: {skipped}.": {
+    "string": ""
+  },
+  "Import failed": {
+    "string": ""
+  },
+  "Unable to load data from IRC Database: {error}": {
+    "string": ""
+  },
+  "Unable to open link": {
+    "string": ""
+  },
+  "Reload from IRC Database": {
+    "string": ""
+  },
+  "You can add your own networks here, or reload the approved network list from the IRC Database API. Existing networks are kept; missing servers are added.": {
+    "string": ""
+  },
+  "Reload Networks from IRC Database": {
+    "string": ""
+  },
+  "IRC Database contains networks that explicitly opted in to be publicly discoverable in IRC clients.": {
+    "string": ""
+  },
+  "Reload means update: matching networks are skipped, and only missing servers are added to existing networks.": {
+    "string": ""
+  },
+  "AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.": {
+    "string": ""
+  },
+  "If your network is not listed and you want inclusion in AndroidIRCX:": {
+    "string": ""
+  },
+  "By submitting your network, you accept:": {
+    "string": ""
+  },
+  "Submission means your network permits IRCDBase bot discovery actions such as /list, /lusers, and joining the most active channel.": {
+    "string": ""
+  },
+  "Nickname collection via /names is optional and can be disabled in your IRC Database network settings.": {
+    "string": ""
+  },
+  "Update from IRC Database": {
+    "string": ""
+  },
+  "Enable Category Debug Logging": {
+    "string": ""
+  },
+  "Enable optional debug logs by category in development builds": {
+    "string": ""
+  },
+  "Requires console logging to be enabled": {
+    "string": ""
+  },
+  "Unexpected syntax check failure.": {
+    "string": ""
   }
 }

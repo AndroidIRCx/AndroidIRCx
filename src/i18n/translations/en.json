@@ -12982,5 +12982,101 @@
   },
   "Calls": {
     "string": "Calls"
+  },
+  "Query": {
+    "string": "Query"
+  },
+  "Failed to load options": {
+    "string": "Failed to load options"
+  },
+  "DBase (Optional Default)": {
+    "string": "DBase (Optional Default)"
+  },
+  "Use the built-in DBase network now. You can still change or remove it later.": {
+    "string": "Use the built-in DBase network now. You can still change or remove it later."
+  },
+  "Choose Another Server Later": {
+    "string": "Choose Another Server Later"
+  },
+  "Finish setup now and open Choose Network later to add or reload networks from the API list.": {
+    "string": "Finish setup now and open Choose Network later to add or reload networks from the API list."
+  },
+  "Your identity is saved. Open Choose Network to add a server or reload the approved API network list.": {
+    "string": "Your identity is saved. Open Choose Network to add a server or reload the approved API network list."
+  },
+  "Open Choose Network": {
+    "string": "Open Choose Network"
+  },
+  "No new networks imported": {
+    "string": "No new networks imported"
+  },
+  "No new networks were imported from IRC Database. Existing entries are unchanged.": {
+    "string": "No new networks were imported from IRC Database. Existing entries are unchanged."
+  },
+  "Import partially completed": {
+    "string": "Import partially completed"
+  },
+  "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Failed to save: {failed}. Skipped unchanged: {skipped}.": {
+    "string": "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Failed to save: {failed}. Skipped unchanged: {skipped}."
+  },
+  "Import completed": {
+    "string": "Import completed"
+  },
+  "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Skipped unchanged: {skipped}.": {
+    "string": "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Skipped unchanged: {skipped}."
+  },
+  "Import failed": {
+    "string": "Import failed"
+  },
+  "Unable to load data from IRC Database: {error}": {
+    "string": "Unable to load data from IRC Database: {error}"
+  },
+  "Unable to open link": {
+    "string": "Unable to open link"
+  },
+  "Reload from IRC Database": {
+    "string": "Reload from IRC Database"
+  },
+  "You can add your own networks here, or reload the approved network list from the IRC Database API. Existing networks are kept; missing servers are added.": {
+    "string": "You can add your own networks here, or reload the approved network list from the IRC Database API. Existing networks are kept; missing servers are added."
+  },
+  "Reload Networks from IRC Database": {
+    "string": "Reload Networks from IRC Database"
+  },
+  "IRC Database contains networks that explicitly opted in to be publicly discoverable in IRC clients.": {
+    "string": "IRC Database contains networks that explicitly opted in to be publicly discoverable in IRC clients."
+  },
+  "Reload means update: matching networks are skipped, and only missing servers are added to existing networks.": {
+    "string": "Reload means update: matching networks are skipped, and only missing servers are added to existing networks."
+  },
+  "AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.": {
+    "string": "AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged."
+  },
+  "If your network is not listed and you want inclusion in AndroidIRCX:": {
+    "string": "If your network is not listed and you want inclusion in AndroidIRCX:"
+  },
+  "By submitting your network, you accept:": {
+    "string": "By submitting your network, you accept:"
+  },
+  "Submission means your network permits IRCDBase bot discovery actions such as /list, /lusers, and joining the most active channel.": {
+    "string": "Submission means your network permits IRCDBase bot discovery actions such as /list, /lusers, and joining the most active channel."
+  },
+  "Nickname collection via /names is optional and can be disabled in your IRC Database network settings.": {
+    "string": "Nickname collection via /names is optional and can be disabled in your IRC Database network settings."
+  },
+  "Update from IRC Database": {
+    "string": "Update from IRC Database"
+  },
+  "Enable Category Debug Logging": {
+    "string": "Enable Category Debug Logging"
+  },
+  "Enable optional debug logs by category in development builds": {
+    "string": "Enable optional debug logs by category in development builds"
+  },
+  "Requires console logging to be enabled": {
+    "string": "Requires console logging to be enabled"
+  },
+  "Unexpected syntax check failure.": {
+    "string": "Unexpected syntax check failure."
   }
 }

@@ -5979,7 +5979,7 @@
     "string": "Toggle output console.log di development "
   },
   "Use this sound?": {
-    "string": ""
+    "string": "Pakai suara ini?"
   },
   "Do you want to use this sound for {event}?": {
     "string": "Mau pakai suara ini untuk {event}?  "
@@ -6195,298 +6195,298 @@
     "string": "Hapus Akun"
   },
   "Delete this ZNC account from your local storage? This will NOT cancel your subscription - you can restore it later using \"Restore Purchases\".": {
-    "string": ""
+    "string": "Hapus akun ZNC ini dari local storage? Ini TIDAK akan batalkan langganan — bisa direstore lagi pakai \"Restore Purchases\".  "
   },
   "Deleted": {
-    "string": ""
+    "string": "Dihapus"
   },
   "Account removed from local storage.": {
-    "string": ""
+    "string": "Akun dihapus dari local storage.  "
   },
   "Failed to delete account.": {
-    "string": ""
+    "string": "Gagal hapus akun. "
   },
   "Ready": {
-    "string": ""
+    "string": "Siap"
   },
   "Setting up...": {
-    "string": ""
+    "string": "Setup...  "
   },
   "Suspended": {
-    "string": ""
+    "string": "Ditangguhkan"
   },
   "Expires": {
-    "string": ""
+    "string": "Kedaluwarsa"
   },
   "ZNC Status": {
-    "string": ""
+    "string": "Status ZNC"
   },
   "Show": {
-    "string": ""
+    "string": "Tampilkan"
   },
   "Unlink": {
-    "string": ""
+    "string": "Putuskan link"
   },
   "No ZNC Accounts": {
-    "string": ""
+    "string": "Nggak ada akun ZNC"
   },
   "Purchase a ZNC subscription to get always-on IRC connectivity with message playback.": {
-    "string": ""
+    "string": "Beli langganan ZNC untuk konektivitas IRC selalu aktif dengan playback pesan.  "
   },
   "Monthly subscription": {
-    "string": ""
+    "string": "Langganan bulanan"
   },
   "Creating ZNC Account, Please Wait...": {
-    "string": ""
+    "string": "Membuat akun ZNC, tunggu..."
   },
   "Loading Offers...": {
-    "string": ""
+    "string": "Loading penawaran...  "
   },
   "Purchase ZNC Account": {
-    "string": ""
+    "string": "Beli akun ZNC  "
   },
   "Refresh Store": {
-    "string": ""
+    "string": "Refresh Store"
   },
   "Restore Purchases": {
-    "string": ""
+    "string": "Restore pembelian  "
   },
   "Choose ZNC Username": {
-    "string": ""
+    "string": "Pilih username ZNC  "
   },
   "Enter a username for your ZNC account. This will be used to log in to ZNC.": {
-    "string": ""
+    "string": "Masukkan username untuk akun ZNC kamu. Ini dipakai untuk login ke ZNC.  "
   },
   "Add ZNC to Network": {
-    "string": ""
+    "string": "Tambah ZNC ke network  "
   },
   "Connected to {count} servers{suffix}": {
     "string": "Connect ke {count} server{suffix} "
   },
   "No file path provided": {
-    "string": ""
+    "string": "Nggak ada path file diberikan"
   },
   "Invalid file path. Please select the file again.": {
-    "string": ""
+    "string": "Path file nggak valid. Pilih file lagi.  "
   },
   "Cannot check file: {error}": {
-    "string": ""
+    "string": "Nggak bisa cek file: {error}  "
   },
   "File not found: {path}": {
-    "string": ""
+    "string": "File nggak ditemukan: {path}  "
   },
   "Cannot read file info: {error}": {
-    "string": ""
+    "string": "Nggak bisa baca info file: {error}  "
   },
   "Decryption failed. If this was sent from v1.6.3+, please update to v1.6.3 or newer.": {
-    "string": ""
+    "string": "Dekripsi gagal. Kalau dikirim dari v1.6.3+, update ke v1.6.3 atau lebih baru.  "
   },
   "Encrypted message from {nick} could not be decrypted. If they are on v1.6.3+, please update to v1.6.3 or newer.": {
-    "string": ""
+    "string": "Pesan terenkripsi dari {nick} nggak bisa didekripsi. Kalau mereka pakai v1.6.3+, update ke v1.6.3 atau lebih baru.  "
   },
   "No reason given": {
-    "string": ""
+    "string": "Nggak ada alasan  "
   },
   "*** You were killed by {server}: {reason}": {
-    "string": ""
+    "string": "Kamu di-kill oleh {server}: {reason}  "
   },
   "*** You were killed: {reason}": {
-    "string": ""
+    "string": "Kamu di-kill: {reason}  "
   },
   "*** {nick} was killed: {reason}": {
-    "string": ""
+    "string": "{nick} di-kill: {reason}  "
   },
   "{nick} sets mode {modes}": {
-    "string": ""
+    "string": "{nick} set mode {modes}  "
   },
   "*** TAGMSG {from} -> {target} ({tags})": {
-    "string": ""
+    "string": "*** TAGMSG {from} -> {target} ({tags})"
   },
   "*** TAGMSG {from} -> {target}": {
-    "string": ""
+    "string": "*** TAGMSG {from} -> {target}"
   },
   "Kill Switch - Delete All Data": {
-    "string": ""
+    "string": "Kill Switch - Hapus semua data  "
   },
   "WARNING: This will PERMANENTLY delete ALL app data including:\n\n• All messages and history\n• All networks and connections\n• All certificates and keys\n• All logs and cache\n• All settings and preferences\n• EVERYTHING\n\nThis action CANNOT be undone!\n\nType \"DELETE ALL\" to confirm.": {
-    "string": ""
+    "string": "PERINGATAN: Ini akan PERMANEN hapus SEMUA data app termasuk:\n\n• Semua pesan & riwayat\n• Semua network & koneksi\n• Semua sertifikat & key\n• Semua log & cache\n• Semua setting & preferensi\n• SEMUANYAT\n\nIndakan ini NGGAK bisa dibatalkan!\n\nKetik \"DELETE ALL\" untuk konfirmasi.  "
   },
   "Delete All": {
-    "string": ""
+    "string": "Hapus Semua"
   },
   "Are you ABSOLUTELY SURE? This will delete EVERYTHING and cannot be undone.": {
-    "string": ""
+    "string": "Kamu BENAR-BENAR YAKIN? Ini bakal hapus SEMUANYA dan nggak bisa dibatalkan. "
   },
   "YES, DELETE EVERYTHING": {
-    "string": ""
+    "string": "YA, HAPUS SEMUANYA  "
   },
   "Kill Switch Activated": {
-    "string": ""
+    "string": "Kill Switch aktif  "
   },
   "All data has been deleted. The app will now close.": {
-    "string": ""
+    "string": "Semua data sudah dihapus. App akan ditutup.  "
   },
   "Auto-Voice": {
-    "string": ""
+    "string": "Auto-Voice"
   },
   "Automatically voices users when they join.": {
-    "string": ""
+    "string": "Otomatis kasih voice ke user saat join. "
   },
   "Rejoins channel if kicked.": {
-    "string": ""
+    "string": "Rejoin channel kalau di-kick.  "
   },
   "Responds to CTCP VERSION and TIME requests.": {
-    "string": ""
+    "string": "Respon ke request CTCP VERSION dan TIME.  "
   },
   "Channel Guard": {
-    "string": ""
+    "string": "Channel guard  "
   },
   "Protects channel from bad words (example).": {
-    "string": ""
+    "string": "Lindungi channel dari kata-kata kasar (contoh).  "
   },
   "Auto-Rejoin on Part": {
-    "string": ""
+    "string": "Auto-rejoin saat part "
   },
   "Automatically rejoins channel if you part.": {
-    "string": ""
+    "string": "Otomatis rejoin channel kalau kamu part.  "
   },
   "Topic Logger": {
-    "string": ""
+    "string": "Topic Logger"
   },
   "Logs topic changes to script log.": {
-    "string": ""
+    "string": "Log perubahan topik ke script log.  "
   },
   "Invite Handler": {
-    "string": ""
+    "string": "Invite handler  "
   },
   "Auto-joins channels when invited.": {
-    "string": ""
+    "string": "Otomatis join channel saat di-invite.  "
   },
   "Mode Logger": {
-    "string": ""
+    "string": "Mode Logger"
   },
   "Logs mode changes to script log.": {
-    "string": ""
+    "string": "Log perubahan mode ke script log.  "
   },
   "Example of using timers - sends periodic message.": {
-    "string": ""
+    "string": "Contoh pakai timer — kirim pesan periodik.  "
   },
   "User Counter": {
-    "string": ""
+    "string": "User Counter"
   },
   "Counts users in channels and logs on join/part.": {
-    "string": ""
+    "string": "Hitung user di channel dan log saat join/part.  "
   },
   "Highlight Tracker": {
-    "string": ""
+    "string": "Highlight Tracker"
   },
   "Tracks when your highlight words are mentioned and logs them.": {
-    "string": ""
+    "string": "Lacak saat kata highlight kamu disebut dan log"
   },
   "User Notes Manager": {
     "string": ""
   },
   "Automatically saves notes about users based on their messages.": {
-    "string": ""
+    "string": "Otomatis simpan catatan tentang user berdasarkan pesan mereka.  "
   },
   "Channel Info Tracker": {
-    "string": ""
+    "string": "Channel Info Tracker"
   },
   "Tracks and logs channel information changes.": {
-    "string": ""
+    "string": "Lacak dan log perubahan info channel.  "
   },
   "Smart Welcome": {
-    "string": ""
+    "string": "Smart Welcome"
   },
   "Welcomes users with personalized messages based on user notes.": {
-    "string": ""
+    "string": "Sambut user dengan pesan personal berdasarkan catatan user.  "
   },
   "Message History Search": {
-    "string": ""
+    "string": "Pencarian riwayat pesan  "
   },
   "Searches message history when you mention /search in a channel.": {
-    "string": ""
+    "string": "Cari riwayat pesan saat kamu ketik /search di channel.  "
   },
   "Channel Bookmark Manager": {
-    "string": ""
+    "string": "Channel Bookmark Manager"
   },
   "Automatically bookmarks channels you frequently visit.": {
-    "string": ""
+    "string": "Otomatis bookmark channel yang sering kamu kunjungi.  "
   },
   "Connection Monitor": {
-    "string": ""
+    "string": "Connection Monitor"
   },
   "Monitors connection quality and logs statistics.": {
-    "string": ""
+    "string": "Monitor kualitas koneksi dan log statistik.  "
   },
   "Auto Highlight Add": {
-    "string": ""
+    "string": "Auto Highlight Add"
   },
   "Automatically adds your nick to highlight words when mentioned.": {
-    "string": ""
+    "string": "Otomatis tambah nick kamu ke highlight words saat disebut.  "
   },
   "User Alias Resolver": {
-    "string": ""
+    "string": "User alias resolver "
   },
   "Resolves user aliases and shows real nicks in logs.": {
-    "string": ""
+    "string": "Resolve alias user dan tampilkan nick asli di log.  "
   },
   "Channel Notes Reminder": {
-    "string": ""
+    "string": "Channel notes reminder "
   },
   "Shows channel notes when you join a channel.": {
-    "string": ""
+    "string": "Tampilkan catatan channel saat kamu join.  "
   },
   "Tab Manager": {
-    "string": ""
+    "string": "Tab manager  "
   },
   "Logs tab activity and manages tab switching.": {
-    "string": ""
+    "string": "Log aktivitas tab dan kelola perpindahan tab.  "
   },
   "Ignore List Manager": {
-    "string": ""
+    "string": "Ignore List Manager"
   },
   "Logs when ignored users try to message you.": {
-    "string": ""
+    "string": "Log saat user yang di-ignore coba kirim pesan.  "
   },
   "WHOIS Tracker": {
-    "string": ""
+    "string": "WHOIS Tracker"
   },
   "Tracks WHOIS information for users and logs it.": {
-    "string": ""
+    "string": "Lacak info WHOIS user dan log.  "
   },
   "Message Statistics": {
-    "string": ""
+    "string": "Statistik pesan  "
   },
   "Tracks message statistics and shows them periodically.": {
-    "string": ""
+    "string": "Lacak statistik pesan dan tampilkan berkala.  "
   },
   "Theme-Aware Logger": {
-    "string": ""
+    "string": "Theme-Aware Logger"
   },
   "Logs theme information and adapts behavior based on theme.": {
-    "string": ""
+    "string": "Log info tema dan adaptasi sesuai tema.  "
   },
   "Channel User Tracker": {
-    "string": ""
+    "string": "Channel User Tracker"
   },
   "Tracks user activity in channels and logs user counts.": {
-    "string": ""
+    "string": "Lacak aktivitas user di channel dan log jumlah user.  "
   },
   "Smart CTCP Handler": {
-    "string": ""
+    "string": "Smart CTCP Handler"
   },
   "Enhanced CTCP handler with logging and custom responses.": {
-    "string": ""
+    "string": "CTCP handler ditingkatkan dengan logging dan respon custom.  "
   },
   "Channel Mode Protector": {
-    "string": ""
+    "string": "Channel Mode Protector"
   },
   "Monitors channel mode changes and logs important ones.": {
-    "string": ""
+    "string": "Monitor perubahan mode channel dan log yang penting.  "
   },
   "Multi-Network Monitor": {
-    "string": ""
+    "string": "Multi-Network Monitor"
   },
   "Monitors all connected networks and logs their status.": {
     "string": ""
@@ -12981,6 +12981,102 @@
     "string": ""
   },
   "Calls": {
+    "string": ""
+  },
+  "Query": {
+    "string": ""
+  },
+  "Failed to load options": {
+    "string": ""
+  },
+  "DBase (Optional Default)": {
+    "string": ""
+  },
+  "Use the built-in DBase network now. You can still change or remove it later.": {
+    "string": ""
+  },
+  "Choose Another Server Later": {
+    "string": ""
+  },
+  "Finish setup now and open Choose Network later to add or reload networks from the API list.": {
+    "string": ""
+  },
+  "Your identity is saved. Open Choose Network to add a server or reload the approved API network list.": {
+    "string": ""
+  },
+  "Open Choose Network": {
+    "string": ""
+  },
+  "No new networks imported": {
+    "string": ""
+  },
+  "No new networks were imported from IRC Database. Existing entries are unchanged.": {
+    "string": ""
+  },
+  "Import partially completed": {
+    "string": ""
+  },
+  "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Failed to save: {failed}. Skipped unchanged: {skipped}.": {
+    "string": ""
+  },
+  "Import completed": {
+    "string": ""
+  },
+  "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Skipped unchanged: {skipped}.": {
+    "string": ""
+  },
+  "Import failed": {
+    "string": ""
+  },
+  "Unable to load data from IRC Database: {error}": {
+    "string": ""
+  },
+  "Unable to open link": {
+    "string": ""
+  },
+  "Reload from IRC Database": {
+    "string": ""
+  },
+  "You can add your own networks here, or reload the approved network list from the IRC Database API. Existing networks are kept; missing servers are added.": {
+    "string": ""
+  },
+  "Reload Networks from IRC Database": {
+    "string": ""
+  },
+  "IRC Database contains networks that explicitly opted in to be publicly discoverable in IRC clients.": {
+    "string": ""
+  },
+  "Reload means update: matching networks are skipped, and only missing servers are added to existing networks.": {
+    "string": ""
+  },
+  "AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.": {
+    "string": ""
+  },
+  "If your network is not listed and you want inclusion in AndroidIRCX:": {
+    "string": ""
+  },
+  "By submitting your network, you accept:": {
+    "string": ""
+  },
+  "Submission means your network permits IRCDBase bot discovery actions such as /list, /lusers, and joining the most active channel.": {
+    "string": ""
+  },
+  "Nickname collection via /names is optional and can be disabled in your IRC Database network settings.": {
+    "string": ""
+  },
+  "Update from IRC Database": {
+    "string": ""
+  },
+  "Enable Category Debug Logging": {
+    "string": ""
+  },
+  "Enable optional debug logs by category in development builds": {
+    "string": ""
+  },
+  "Requires console logging to be enabled": {
+    "string": ""
+  },
+  "Unexpected syntax check failure.": {
     "string": ""
   }
 }
