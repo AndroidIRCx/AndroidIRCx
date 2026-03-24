@@ -436,17 +436,6 @@ function AppContent() {
     dccSendTarget,
     dccSendPath,
   } = uiState;
-  tabOptionsTitle;
-  tabOptions;
-  showChannelNoteModal;
-  channelNoteTarget;
-  channelNoteValue;
-  showChannelLogModal;
-  channelLogEntries;
-  showDccTransfers;
-  showDccSendModal;
-  dccSendTarget;
-  dccSendPath;
 
   // Get active tab with safe fallback
   const activeTab = getActiveTabSafe(tabs, activeTabId, activeConnectionId, primaryNetworkId, networkName);
