@@ -1465,23 +1465,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const _zncPurchaseDescription = zncDisplayPrice
     ? t('Price: {price}', { price: zncDisplayPrice, _tags: tags })
     : t('Monthly subscription via Google Play', { _tags: tags });
-
-  notificationPrefs;
-  backgroundEnabled;
-  batteryOptEnabledStatus;
-  _zncSubscriptionTitle;
-  _connectNowToZnc;
-  _startZncPurchase;
-  _registerZncSubscription;
-  _networkLabel;
-  _persistGlobalProxy;
-  _handleNotificationChange;
-  _handleBackgroundConnectionChange;
-  _handleClearHistory;
-  _handleBatteryOptimizationWrapper;
-  _handleBackupExport;
-  _passwordUnlockDescription;
-  _unlockPasswords;
   _handleBiometricLockToggle;
   _handlePinLockToggle;
   _zncStatusLabel;
