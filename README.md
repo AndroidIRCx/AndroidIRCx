@@ -3,7 +3,7 @@
 [![Build](https://github.com/AndroidIRCx/AndroidIRCx/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/AndroidIRCx/AndroidIRCx/actions/workflows/test.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/AndroidIRCx/AndroidIRCx)](https://github.com/AndroidIRCx/AndroidIRCx/releases)
 [![Downloads](https://img.shields.io/github/downloads/AndroidIRCx/AndroidIRCx/total)](https://github.com/AndroidIRCx/AndroidIRCx/releases)
-[![GitHub License](https://img.shields.io/github/license/AndroidIRCx/AndroidIRCx)](https://github.com/AndroidIRCx/AndroidIRCx/blob/master/LICENSE)
+[![GitHub License](https://img.shields.io/github/license/AndroidIRCx/AndroidIRCx)](https://github.com/AndroidIRCx/AndroidIRCx/blob/master/LICENSE.md)
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11929/badge)](https://www.bestpractices.dev/projects/11929)
 [![CodeQL](https://img.shields.io/badge/CodeQL-enabled-blue)](https://github.com/AndroidIRCx/AndroidIRCx/security/code-scanning)
