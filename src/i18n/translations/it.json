@@ -12,16 +12,16 @@
     "string": ""
   },
   "Cancel": {
-    "string": ""
+    "string": "Annulla"
   },
   "Error": {
-    "string": ""
+    "string": "Errore"
   },
   "Channel Favorites": {
-    "string": ""
+    "string": "Canali preferiti"
   },
   "Message History": {
-    "string": ""
+    "string": "Cronologia messaggi"
   },
   "Backup Ready": {
     "string": ""
@@ -39,7 +39,7 @@
     "string": ""
   },
   "OK": {
-    "string": ""
+    "string": "OK"
   },
   "Failed to save backup file": {
     "string": ""
@@ -57,7 +57,7 @@
     "string": ""
   },
   "Close": {
-    "string": ""
+    "string": "Chiudi"
   },
   "Copy to Clipboard": {
     "string": ""
@@ -90,7 +90,7 @@
     "string": ""
   },
   "Settings backup generated (excludes logs and message history).": {
-    "string": ""
+    "string": "Backup delle impostazioni generato (Cronologia messaggi e Logs sono esclusi)."
   },
   "Full backup generated (includes all data).": {
     "string": ""
@@ -111,10 +111,10 @@
     "string": ""
   },
   "Enter PIN to unlock": {
-    "string": ""
+    "string": "Inserisci il PIN per sbloccare"
   },
   "PIN must be at least 4 digits.": {
-    "string": ""
+    "string": "Il PIN deve contenere almeno 4 cifre."
   },
   "PINs do not match.": {
     "string": ""
@@ -129,7 +129,7 @@
     "string": ""
   },
   "Authentication failed": {
-    "string": ""
+    "string": "Autenticazione fallita"
   },
   "Unable to unlock passwords.": {
     "string": ""
@@ -141,7 +141,7 @@
     "string": ""
   },
   "Enable a method": {
-    "string": ""
+    "string": "Abilita un metodo"
   },
   "Turn on biometric or PIN for App Lock first.": {
     "string": ""
@@ -150,148 +150,148 @@
     "string": ""
   },
   "Appearance": {
-    "string": ""
+    "string": "Aspetto"
   },
   "Theme": {
-    "string": ""
+    "string": "Tema"
   },
   "Custom theme": {
-    "string": ""
+    "string": "Tema personalizzato"
   },
   "Dark mode (default)": {
-    "string": ""
+    "string": "Modalità scura (default)"
   },
   "Light mode": {
-    "string": ""
+    "string": "Modalità chiara"
   },
   "+ Create New Theme": {
-    "string": ""
+    "string": "+ Crea nuovo tema"
   },
   "Edit {name}": {
-    "string": ""
+    "string": "Modifica {name}"
   },
   "Delete {name}": {
-    "string": ""
+    "string": "Elimina {name}"
   },
   "Delete Theme": {
-    "string": ""
+    "string": "Elimina tema"
   },
   "Are you sure you want to delete \"{name}\"?": {
-    "string": ""
+    "string": "Sei sicuro di vole eliminare \"{name}\"?"
   },
   "Delete": {
-    "string": ""
+    "string": "Elimina"
   },
   "Tab Position": {
-    "string": ""
+    "string": "Posizione delle Tab"
   },
   "Tabs at {position}": {
     "string": ""
   },
   "Select tab position:": {
-    "string": ""
+    "string": "Seleziona la posizione della Tab"
   },
   "Top": {
-    "string": ""
+    "string": "Sopra"
   },
   "Bottom": {
-    "string": ""
+    "string": "Sotto"
   },
   "Left": {
-    "string": ""
+    "string": "Sinistra"
   },
   "Right": {
-    "string": ""
+    "string": "Destra"
   },
   "User List Position": {
-    "string": ""
+    "string": "Posizione della lista utenti"
   },
   "User list at {position}": {
-    "string": ""
+    "string": "Lista utenti a {position}"
   },
   "Select user list position:": {
-    "string": ""
+    "string": "Seleziona la posizione della lista utenti:"
   },
   "View Mode": {
-    "string": ""
+    "string": "Modalità di visualizzazione:"
   },
   "Current: {mode}": {
-    "string": ""
+    "string": "Corrente: {mode}"
   },
   "Select view mode:": {
-    "string": ""
+    "string": "Seleziona la modalità di visualizzazione:"
   },
   "Compact": {
-    "string": ""
+    "string": "Compatta"
   },
   "Comfortable": {
-    "string": ""
+    "string": "Comoda"
   },
   "Spacious": {
-    "string": ""
+    "string": "Spaziosa"
   },
   "Font Size": {
-    "string": ""
+    "string": "Dimensione Font"
   },
   "Current: {size}": {
-    "string": ""
+    "string": "Attuale: {size}"
   },
   "Select font size:": {
-    "string": ""
+    "string": "Seleziona dimensione font:"
   },
   "Small": {
-    "string": ""
+    "string": "Piccolo"
   },
   "Medium": {
-    "string": ""
+    "string": "Medio"
   },
   "Large": {
-    "string": ""
+    "string": "Largo"
   },
   "Extra Large": {
-    "string": ""
+    "string": "Larghissimo"
   },
   "Raw Categories": {
-    "string": ""
+    "string": "Categorie dei Raw"
   },
   "Choose which raw messages are shown": {
-    "string": ""
+    "string": "Scegli quali messaggi raw visualizzare"
   },
   "Notice Routing": {
     "string": ""
   },
   "Show notices in the active tab": {
-    "string": ""
+    "string": "Mostra i Notices nella scheda attiva"
   },
   "Show notices in a Notices tab": {
-    "string": ""
+    "string": "Mostra i Notices nella scheda Notices"
   },
   "Show notices in a private/query tab": {
-    "string": ""
+    "string": "Mostra i Notices nelle schede Privato/Query"
   },
   "Show notices in the server tab": {
-    "string": ""
+    "string": "Mostra i Notices nella scheda server"
   },
   "Active window": {
-    "string": ""
+    "string": "Finestra attiva"
   },
   "Server tab": {
-    "string": ""
+    "string": "Scheda Server"
   },
   "Notices tab": {
-    "string": ""
+    "string": "Scheda Notices"
   },
   "Private/query tab": {
-    "string": ""
+    "string": "Scheda private/query"
   },
   "Show Timestamps": {
-    "string": ""
+    "string": "Mostra il Timestamps"
   },
   "Display message timestamps": {
     "string": ""
   },
   "Info": {
-    "string": ""
+    "string": "Info"
   },
   "Timestamp display setting coming soon": {
     "string": ""
@@ -312,22 +312,22 @@
     "string": ""
   },
   "Never": {
-    "string": ""
+    "string": "Mai"
   },
   "Timestamp Format": {
-    "string": ""
+    "string": "Formato del Timestamp"
   },
   "Format: {format}": {
-    "string": ""
+    "string": "Formato: {format}"
   },
   "Select format:": {
-    "string": ""
+    "string": "Seleziona formato:"
   },
   "12-hour (AM/PM)": {
-    "string": ""
+    "string": "12-ore (AM/PM)"
   },
   "24-hour": {
-    "string": ""
+    "string": "24-ore"
   },
   "Show Encryption Indicators": {
     "string": ""
@@ -402,7 +402,7 @@
     "string": ""
   },
   "Per-Channel Settings": {
-    "string": ""
+    "string": "Impostazioni per canale"
   },
   "Configure notifications for specific channels": {
     "string": ""
@@ -429,7 +429,7 @@
     "string": ""
   },
   "Connection & Network": {
-    "string": ""
+    "string": "Connessione & Network"
   },
   "Auto-Connect to Favorite Server": {
     "string": ""
@@ -696,7 +696,7 @@
     "string": ""
   },
   "Manage favorite channels": {
-    "string": ""
+    "string": "Gestisci i canali preferiti"
   },
   "No favorites yet": {
     "string": ""
@@ -750,7 +750,7 @@
     "string": ""
   },
   "DCC Settings": {
-    "string": ""
+    "string": "Impostazioni DCC"
   },
   "Users & Services": {
     "string": ""
@@ -903,7 +903,7 @@
     "string": ""
   },
   "Bouncer Settings": {
-    "string": ""
+    "string": "Impostazioni Bouncer"
   },
   "Enable Bouncer Support": {
     "string": ""
@@ -999,7 +999,7 @@
     "string": ""
   },
   "Open Battery Settings": {
-    "string": ""
+    "string": "Apri Impostazioni betteria"
   },
   "Configure battery optimization for this app": {
     "string": ""
@@ -1011,22 +1011,22 @@
     "string": ""
   },
   "Manage IRC scripts and automation": {
-    "string": ""
+    "string": "Gestisci gli script e l'automazione"
   },
   "Scripting Help": {
-    "string": ""
+    "string": "Aiuto allo Scripting"
   },
   "Learn how to write and use scripts": {
-    "string": ""
+    "string": "Imparare a scrivere e utilizzare gli script"
   },
   "About": {
-    "string": ""
+    "string": "Informazioni"
   },
   "About AndroidIRCX": {
-    "string": ""
+    "string": "Informazioni su AndroidIRCX"
   },
   "App information and credits": {
-    "string": ""
+    "string": "Informazioni e crediti sull'appllicazione"
   },
   "Enter PIN": {
     "string": ""
@@ -1065,13 +1065,13 @@
     "string": ""
   },
   "Settings": {
-    "string": ""
+    "string": "Impostazioni"
   },
   "Done": {
     "string": ""
   },
   "Search settings...": {
-    "string": ""
+    "string": "Cerca nelle impostazioni..."
   },
   "Options": {
     "string": ""
@@ -1092,7 +1092,7 @@
     "string": ""
   },
   "Add a channel to override global notification settings.": {
-    "string": ""
+    "string": "Aggiungi un canale per sovrascrivere le impostazioni globali delle notifiche."
   },
   "#channel": {
     "string": ""
@@ -1161,7 +1161,7 @@
     "string": ""
   },
   "Setup Wizard": {
-    "string": ""
+    "string": "Configurazione guidata"
   },
   "Quick setup for identity and network connection": {
     "string": ""
@@ -1203,10 +1203,10 @@
     "string": ""
   },
   "Not Connected": {
-    "string": ""
+    "string": "Non Connesso"
   },
   "Please connect to a server first": {
-    "string": ""
+    "string": "Per prima cosa, connettiti a un server"
   },
   "Exit Application": {
     "string": ""
@@ -1257,7 +1257,7 @@
     "string": ""
   },
   "IRC network configurations and server settings": {
-    "string": ""
+    "string": "Configurazioni IRC Network e impostazioni del server"
   },
   "App Settings": {
     "string": ""
@@ -1281,10 +1281,10 @@
     "string": ""
   },
   "Channel Notes & Bookmarks": {
-    "string": ""
+    "string": "Note canale & Segnalibro"
   },
   "Channel notes, bookmarks, and user aliases": {
-    "string": ""
+    "string": "Note dei canali, Segnalibro, e alias utente"
   },
   "Highlights & Notifications": {
     "string": ""
@@ -1716,7 +1716,7 @@
     "string": ""
   },
   "Contact": {
-    "string": ""
+    "string": "Contatto"
   },
   "AndroidIRCX Website": {
     "string": ""
@@ -1845,7 +1845,7 @@
     "string": ""
   },
   "Channel Settings": {
-    "string": ""
+    "string": "Impostazioni del canale"
   },
   "Topic": {
     "string": ""
@@ -2151,10 +2151,10 @@
     "string": ""
   },
   "Quick Start": {
-    "string": ""
+    "string": "Avvio rapido"
   },
   "Scripts are plain JavaScript modules. Export hooks to react to events:": {
-    "string": ""
+    "string": "Gli script sono semplici moduli JavaScript. Esporta hook per reagire agli eventi:"
   },
   "API": {
     "string": ""
@@ -2199,7 +2199,7 @@
     "string": ""
   },
   "Welcome": {
-    "string": ""
+    "string": "Benvenuto"
   },
   "Alias (/hello)": {
     "string": ""
@@ -2241,7 +2241,7 @@
     "string": ""
   },
   "New Script": {
-    "string": ""
+    "string": "Nuovo Script"
   },
   "Lint Passed": {
     "string": ""
@@ -2259,298 +2259,298 @@
     "string": ""
   },
   "Watch Ad (+60 min)": {
-    "string": ""
+    "string": "Guarda l'annuncio (+60 min)"
   },
   "Cooldown ({cooldownSeconds}s)": {
     "string": ""
   },
   "Loading Ad...": {
-    "string": ""
+    "string": "Caricamento annuncio..."
   },
   "Request Ad": {
-    "string": ""
+    "string": "Richiedi annuncio"
   },
   "No scripting time available. Watch an ad to gain scripting access. Scripts will be automatically disabled when time runs out.": {
-    "string": ""
+    "string": "Nessun tempo di scripting disponibile. Guarda un annuncio per ottenere l'accesso allo script. Gli script verranno automaticamente disabilitati allo scadere del tempo."
   },
   "Tap \"Request Ad\" to load an ad from Google. First load may take a few moments.": {
-    "string": ""
+    "string": "Tocca \"Richiedi annuncio\" per caricare un annuncio da Google. Il primo caricamento potrebbe richiedere alcuni istanti."
   },
   "Ads temporarily unavailable. The app works fine without them. Retrying in {cooldownSeconds}s...": {
-    "string": ""
+    "string": "Annunci temporaneamente non disponibili. L'app funziona bene senza di essi. Riprova tra {cooldownSeconds}s..."
   },
   "Install Built-ins": {
-    "string": ""
+    "string": "Installa i built-in"
   },
   "Logging": {
-    "string": ""
+    "string": "Logging"
   },
   "Repository": {
-    "string": ""
+    "string": "Magazzino"
   },
   "No scripts in repository.": {
-    "string": ""
+    "string": "Nessuno scripts in magazzino."
   },
   "No scripts installed.": {
-    "string": ""
+    "string": "Nessuno scripts installato."
   },
   "Script Logs": {
-    "string": ""
+    "string": "Script Logs"
   },
   "Filter by script": {
-    "string": ""
+    "string": "Filtra per script"
   },
   "script id": {
-    "string": ""
+    "string": "script id"
   },
   "No logs yet.": {
-    "string": ""
+    "string": "Ancora nessun logs."
   },
   "Edit Script": {
-    "string": ""
+    "string": "Modifica Script"
   },
   "Enabled": {
-    "string": ""
+    "string": "Abilitato"
   },
   "Highlight": {
     "string": ""
   },
   "Code": {
-    "string": ""
+    "string": "Codice"
   },
   "Config (JSON)": {
-    "string": ""
+    "string": "Config (JSON)"
   },
   "Invalid JSON": {
-    "string": ""
+    "string": "JSON non valido"
   },
   "Lint": {
     "string": ""
   },
   "Server not found": {
-    "string": ""
+    "string": "Server non trovato"
   },
   "Failed to load server": {
-    "string": ""
+    "string": "Impossibile caricare il server"
   },
   "Please enter a hostname": {
-    "string": ""
+    "string": "Inserisci un hostname"
   },
   "Please enter a valid port number (1-65535)": {
-    "string": ""
+    "string": "Inserisci un numero di porta valido (1-65535)"
   },
   "Server Settings": {
-    "string": ""
+    "string": "Impostazioni Server"
   },
   "Connection": {
-    "string": ""
+    "string": "Connessione"
   },
   "Display Name (Optional)": {
-    "string": ""
+    "string": "Nome visualizzato (Opzionale)"
   },
   "Server display name": {
-    "string": ""
+    "string": "Nome del Server visualizzato"
   },
   "Hostname *": {
-    "string": ""
+    "string": "Hostname *"
   },
   "irc.example.com": {
-    "string": ""
+    "string": "irc.esempio.com"
   },
   "Port *": {
-    "string": ""
+    "string": "Porta *"
   },
   "Standard ports: 6667 (plain), 6697 (SSL/TLS)": {
-    "string": ""
+    "string": "Porte standard: 6667 (plain), 6697 (SSL/TLS)"
   },
   "Use SSL/TLS": {
-    "string": ""
+    "string": "Usa SSL/TLS"
   },
   "Enable for secure connections (recommended for port 6697)": {
-    "string": ""
+    "string": "Abilita per connessioni sicure (consigliato per la porta 6697)"
   },
   "Reject Unauthorized Certificates": {
-    "string": ""
+    "string": "Rifiuta certificati non autorizzati"
   },
   "Leave on (recommended). Turn off only for self-signed/expired certs.": {
     "string": ""
   },
   "Authentication": {
-    "string": ""
+    "string": "Autenticazione"
   },
   "Server Password (Optional)": {
-    "string": ""
+    "string": "Password del Server (Opzionale)"
   },
   "Server connection password": {
-    "string": ""
+    "string": "Password di connessione al server"
   },
   "Some servers require a password to connect": {
-    "string": ""
+    "string": "Alcuni server richiedono una password per connettersi"
   },
   "Favorite Server": {
-    "string": ""
+    "string": "Server preferito"
   },
   "Mark this server as the preferred choice for this network.": {
-    "string": ""
+    "string": "Segna questo server come scelta preferita per questo network."
   },
   "Invalid Color": {
-    "string": ""
+    "string": "Colore non valido"
   },
   "Please enter a valid hex color (e.g., #FF0000) or rgba value": {
-    "string": ""
+    "string": "Inserisci un colore esadecimale valido (ad esempio, #FF0000) o un valore rgba"
   },
   "Please enter a theme name": {
-    "string": ""
+    "string": "Inserisci un nome per il tema"
   },
   "Background": {
-    "string": ""
+    "string": "Sfondo"
   },
   "Text": {
-    "string": ""
+    "string": "Testo"
   },
   "Primary": {
-    "string": ""
+    "string": "Primario"
   },
   "Secondary": {
-    "string": ""
+    "string": "Secondario"
   },
   "Status": {
-    "string": ""
+    "string": "Stato"
   },
   "Borders": {
-    "string": ""
+    "string": "Bordi"
   },
   "Input": {
     "string": ""
   },
   "Buttons": {
-    "string": ""
+    "string": "Pulsanti"
   },
   "Tabs": {
-    "string": ""
+    "string": "Schede"
   },
   "Modal": {
     "string": ""
   },
   "User List": {
-    "string": ""
+    "string": "Lista utenti"
   },
   "Edit Theme": {
-    "string": ""
+    "string": "Modifica tema"
   },
   "New Theme": {
-    "string": ""
+    "string": "Nuovo tema"
   },
   "Theme Name": {
-    "string": ""
+    "string": "Nome del tema"
   },
   "Enter theme name": {
-    "string": ""
+    "string": "Inserisci il nome del tema"
   },
   "#FFFFFF": {
-    "string": ""
+    "string": "#FFFFFF"
   },
   "Audio error: {error}": {
-    "string": ""
+    "string": "Errore audio: {error}"
   },
   "Failed to load audio": {
-    "string": ""
+    "string": "Impossibile caricare l'audio"
   },
   "Play": {
-    "string": ""
+    "string": "Play"
   },
   "Pause": {
-    "string": ""
+    "string": "Pausa"
   },
   "Failed to load image": {
-    "string": ""
+    "string": "Impossibile caricare l'immagine"
   },
   "This payload is for {payloadNick}, but you selected {nick}.": {
-    "string": ""
+    "string": "Questo payload è per {payloadNick}, ma hai selezionato {nick}."
   },
   "Key replaced for {nick}": {
-    "string": ""
+    "string": "Chiave sostituita per {nick}"
   },
   "Key imported for {nick}": {
-    "string": ""
+    "string": "Chiave importata per {nick}"
   },
   "Enc key offer sent to {nick}": {
     "string": ""
   },
   "Failed to share key": {
-    "string": ""
+    "string": "Impossibile condividere la chiave"
   },
   "Requested key from {nick}": {
-    "string": ""
+    "string": "Chiave richiesta da {nick}"
   },
   "Key saved for {nick}": {
-    "string": ""
+    "string": "Chiave salvata per {nick}"
   },
   "Key not received (timeout)": {
-    "string": ""
+    "string": "Chiave non ricevuta (timeout)"
   },
   "Camera permission denied": {
-    "string": ""
+    "string": "Autorizzazione della fotocamera negata"
   },
   "Failed to open camera": {
-    "string": ""
+    "string": "Impossibile aprire la fotocamera"
   },
   "Key file shared": {
-    "string": ""
+    "string": "File della chiave condiviso"
   },
   "Failed to share key file": {
-    "string": ""
+    "string": "Impossibile condividere il file della chiave"
   },
   "Failed to import key file": {
-    "string": ""
+    "string": "Impossibile importare il file della chiave"
   },
   "NFC not supported": {
-    "string": ""
+    "string": "NFC non supportato"
   },
   "NFC key ready, tap devices": {
-    "string": ""
+    "string": "Chiave NFC pronta, tocca i dispositivi"
   },
   "Failed to share via NFC": {
-    "string": ""
+    "string": "Impossibile condividere tramite NFC"
   },
   "No NFC payload": {
     "string": ""
   },
   "Failed to read NFC": {
-    "string": ""
+    "string": "Impossibile leggere NFC"
   },
   "No DM key for {nick}": {
-    "string": ""
+    "string": "Nessuna chiave DM per {nick}"
   },
   "Verified": {
-    "string": ""
+    "string": "Verificato"
   },
   "Verify DM Key": {
-    "string": ""
+    "string": "Verifica la chiave DM"
   },
   "Compare fingerprints out-of-band:\n\nYou: {self}\n{nick}: {peer}": {
-    "string": ""
+    "string": "Confronta le impronte digitali out-of-band:\n\nTu: {self}\n{nick}: {peer}"
   },
   "Key marked verified for {nick}": {
-    "string": ""
+    "string": "Chiave contrassegnata come verificata per {nick}"
   },
   "Copy Fingerprints": {
-    "string": ""
+    "string": "Copia Fingerprints"
   },
   "Fingerprints copied": {
-    "string": ""
+    "string": "Fingerprints copiate"
   },
   "Failed to load fingerprints": {
-    "string": ""
+    "string": "Impossibile caricare le fingerprints"
   },
   "E2E Encryption - {nick}": {
-    "string": ""
+    "string": "Crittografia E2E - {nick}"
   },
   "Share DM Key": {
-    "string": ""
+    "string": "Condividi la chiave DM"
   },
   "Request DM Key (36s)": {
-    "string": ""
+    "string": "Richiedi la chiave DM (36 secondi)"
   },
   "Share Key Bundle QR": {
     "string": ""
@@ -2559,19 +2559,19 @@
     "string": ""
   },
   "Scan QR Code": {
-    "string": ""
+    "string": "Scansiona il codice QR"
   },
   "Share Key File": {
-    "string": ""
+    "string": "Condividi il File della chiave"
   },
   "Import Key File": {
-    "string": ""
+    "string": "Importa il File della chiave"
   },
   "Share via NFC": {
-    "string": ""
+    "string": "Condividi via NFC"
   },
   "Receive via NFC": {
-    "string": ""
+    "string": "Ricevi via NFC"
   },
   "Share Key Bundle": {
     "string": ""
@@ -2793,7 +2793,7 @@
     "string": ""
   },
   "Not connected or not registered yet.": {
-    "string": ""
+    "string": "Non connesso o non ancora registrato."
   },
   "Note saved": {
     "string": ""
@@ -2880,7 +2880,7 @@
     "string": ""
   },
   "Enter note about this user": {
-    "string": ""
+    "string": "Insrisci una nota per questo utente"
   },
   "Last action: {action}{channel}": {
     "string": ""
@@ -2913,7 +2913,7 @@
     "string": ""
   },
   "Welcome to AndroidIRCX": {
-    "string": ""
+    "string": "Benvenuto su AndroidIRCX"
   },
   "Set Up Your Identity": {
     "string": ""
@@ -2955,7 +2955,7 @@
     "string": ""
   },
   "End-to-end encryption": {
-    "string": ""
+    "string": "Crittografia End-to-end"
   },
   "Real-time typing indicators": {
     "string": ""
@@ -3252,7 +3252,7 @@
     "string": ""
   },
   "Not connected": {
-    "string": ""
+    "string": "Non connesso"
   },
   "Connection closed": {
     "string": ""
@@ -3591,7 +3591,7 @@
     "string": ""
   },
   "*** Welcome to the {network} Network": {
-    "string": ""
+    "string": "*** Benvenuti nel Network {network}"
   },
   "IRC": {
     "string": ""
@@ -4029,7 +4029,7 @@
     "string": ""
   },
   "*** Auto-reconnect cancelled": {
-    "string": ""
+    "string": "*** Riconnessione automatica annullata"
   },
   "*** Reconnecting in {seconds} second{suffix} (attempt {attempt})...": {
     "string": ""
@@ -4242,7 +4242,7 @@
     "string": ""
   },
   "Welcome Message": {
-    "string": ""
+    "string": "Messaggio di Benvenuto"
   },
   "Greets users when they join.": {
     "string": ""
@@ -4275,16 +4275,16 @@
     "string": ""
   },
   "AndroidIRCX - Download from https://androidircx.com": {
-    "string": ""
+    "string": "AndroidIRCX - Scaricalo da https://androidircx.com"
   },
   "Goodbye from AndroidIRCX - download it from https://androidircx.com": {
-    "string": ""
+    "string": "Arrivederci da AndroidIRCX - Scaricalo da https://androidircx.com"
   },
   "Dark": {
-    "string": ""
+    "string": "Scuro"
   },
   "Light": {
-    "string": ""
+    "string": "Chiaro"
   },
   "*** UserManagementService initialized": {
     "string": ""
@@ -4332,31 +4332,31 @@
     "string": ""
   },
   "Audio Message": {
-    "string": ""
+    "string": "Messaggio audio"
   },
   "File": {
-    "string": ""
+    "string": "File"
   },
   "Tap to open": {
-    "string": ""
+    "string": "Tocca per aprire"
   },
   "Encrypted": {
-    "string": ""
+    "string": "Crittografato"
   },
   "Downloading... {progress}%": {
-    "string": ""
+    "string": "Downloading... {progress}%"
   },
   "Loading encrypted media...": {
-    "string": ""
+    "string": "Caricamento dei contenuti multimediali crittografati in corso..."
   },
   "Cannot decrypt media: insufficient context. This may happen if the message is viewed outside its original channel or if encryption keys are not available.": {
-    "string": ""
+    "string": "Impossibile decifrare il contenuto multimediale: contesto insufficiente. Ciò può accadere se il messaggio viene visualizzato al di fuori del canale originale o se le chiavi di crittografia non sono disponibili."
   },
   "No media selected": {
-    "string": ""
+    "string": "Nessun media selezionato"
   },
   "File does not exist. Please select the file again.": {
-    "string": ""
+    "string": "File inesistente. Seleziona nuovamente il file."
   },
   "Encryption failed": {
     "string": ""
@@ -4374,7 +4374,7 @@
     "string": ""
   },
   "Audio File": {
-    "string": ""
+    "string": "File audio"
   },
   "Failed to load audio preview": {
     "string": ""
@@ -4383,31 +4383,31 @@
     "string": ""
   },
   "Type:": {
-    "string": ""
+    "string": "Tipo:"
   },
   "Size:": {
-    "string": ""
+    "string": "Misure:"
   },
   "Duration:": {
-    "string": ""
+    "string": "Durata:"
   },
   "Dimensions:": {
-    "string": ""
+    "string": "Dimensione:"
   },
   "Caption (optional)": {
-    "string": ""
+    "string": "Didascalia (opzionale)"
   },
   "Add a caption...": {
-    "string": ""
+    "string": "Aggiungi una didascalia..."
   },
   "Encrypting and uploading...": {
     "string": ""
   },
   "Uploading...": {
-    "string": ""
+    "string": "Caricamento..."
   },
   "Sending...": {
-    "string": ""
+    "string": "Invio in corso..."
   },
   "Send": {
     "string": ""
@@ -4443,13 +4443,13 @@
     "string": ""
   },
   "This app needs access to your microphone to record voice messages.": {
-    "string": ""
+    "string": "Questa applicazione necessita dell'accesso al microfono per registrare i messaggi vocali."
   },
   "Microphone permission is required to record voice messages. Please allow microphone access in app settings.": {
-    "string": ""
+    "string": "Per registrare i messaggi vocali è necessaria l'autorizzazione per l'utilizzo del microfono. Abilitare l'accesso al microfono nelle impostazioni dell'app."
   },
   "Failed to request microphone permission. Please check app settings.": {
-    "string": ""
+    "string": "Impossibile richiedere l'autorizzazione per il microfono. Controlla le impostazioni dell'app."
   },
   "File Picker": {
     "string": ""
@@ -4533,7 +4533,7 @@
     "string": ""
   },
   "1. Copy the command above\n2. Send it to {{service}} on IRC\n3. Your certificate will be associated with your nickname\n4. You can now authenticate using SASL EXTERNAL": {
-    "string": ""
+    "string": "1. Copra il comando qui sopra\n2. Invialo a {{service}} su IRC\n3. Il tuo certificato verrà associato al tuo nickname\n4. Ora puoi autenticarti usando SASL EXTERNAL"
   },
   "Certificate name is required": {
     "string": ""
@@ -4836,40 +4836,40 @@
     "string": ""
   },
   "Troubleshooting Guide": {
-    "string": ""
+    "string": "Guida alla risoluzione dei problemi"
   },
   "Fix common problems and errors": {
-    "string": ""
+    "string": "Risolvi problemi ed errori comuni"
   },
   "IRC Connection Guide": {
-    "string": ""
+    "string": "Guida alla connessione IRC"
   },
   "Learn how to connect to IRC servers": {
-    "string": ""
+    "string": "Impara come connetterti ai server IRC"
   },
   "Commands Reference": {
-    "string": ""
+    "string": "Comandi di riferimento"
   },
   "List of all IRC commands": {
-    "string": ""
+    "string": "Lista di tutti i comandi IRC"
   },
   "Encryption Guide": {
-    "string": ""
+    "string": "Guida alla Crittografia"
   },
   "End-to-end encryption for DMs and channels": {
-    "string": ""
+    "string": "Crittograrfia End-to-end per messaggi diretti e canali"
   },
   "Media Sharing Guide": {
-    "string": ""
+    "string": "Guida alla condivisione Multimediale"
   },
   "Send encrypted photos, videos, and voice": {
-    "string": ""
+    "string": "Invia foto, video e messaggi vocali crittografati"
   },
   "Channel Management": {
-    "string": ""
+    "string": "Gestione canali"
   },
   "Manage channels, modes, and permissions": {
-    "string": ""
+    "string": "Gestione canali, modalità e permessi"
   },
   "Clear Media Cache": {
     "string": ""
@@ -4905,7 +4905,7 @@
     "string": ""
   },
   "About Media Sharing": {
-    "string": ""
+    "string": "Informazioni Media Sharing"
   },
   "Media sharing works only in encrypted conversations (DMs with key exchange or encrypted channels). All media is automatically encrypted using existing E2E keys.": {
     "string": ""
@@ -4974,31 +4974,31 @@
     "string": ""
   },
   "Upgrade to Premium": {
-    "string": ""
+    "string": "Aggiorna a Premium"
   },
   "Unlock unlimited scripting, no ads, and premium features": {
     "string": ""
   },
   "My Data & Privacy": {
-    "string": ""
+    "string": "Miei dati e Privacy"
   },
   "Export or delete your data (GDPR/CCPA rights)": {
     "string": ""
   },
   "Privacy & Ads": {
-    "string": ""
+    "string": "Privacy & Annunci"
   },
   "Manage consent for personalized ads and watch ads for rewards": {
-    "string": ""
+    "string": "Gestisci il consenso per gli annunci personalizzati e guarda gli annunci per ottenere premi"
   },
   "Scripts (Scripting Time & No-Ads)": {
-    "string": ""
+    "string": "Scripts (Tempo di scripting & Senza pubblicità)"
   },
   "Manage IRC scripts and automation. Scripting time is also ad-free time.": {
-    "string": ""
+    "string": "Gestisci gli script e l'automazione IRC. Il tempo dedicato allo scripting è anche tempo senza annunci."
   },
   "Show Watch Ad Button (Premium)": {
-    "string": ""
+    "string": "Mostra pulsante Guarda annuncio (Premium)"
   },
   "Enable watch ad button to support the project (you have premium plan)": {
     "string": ""
@@ -5007,10 +5007,10 @@
     "string": ""
   },
   "Watch Ad (+60 min Scripting & No-Ads)": {
-    "string": ""
+    "string": "Guarda l'annuncio (+60 minuti di Scripting e nessun annuncio)"
   },
   "Quick Connect Network": {
-    "string": ""
+    "string": "Connessione Network rapida"
   },
   "Current: {network}": {
     "string": ""
@@ -5061,7 +5061,7 @@
     "string": ""
   },
   "Select Quick Connect Network": {
-    "string": ""
+    "string": "Seleziona Connessione Network rapida"
   },
   "Choose which network to connect when tapping the header \"Tap to connect\" button.": {
     "string": ""
@@ -5214,7 +5214,7 @@
     "string": ""
   },
   "Not connected to IRC server": {
-    "string": ""
+    "string": "Non connesso al server IRC"
   },
   "Failed to send certificate fingerprint": {
     "string": ""
@@ -5421,7 +5421,7 @@
     "string": ""
   },
   "By clicking Accept, you agree to:\n\n• Collection of device info, IP address, and location for ads\n• Use of Google Mobile Ads (personalized or non-personalized)\n• Our Privacy Policy and Terms\n\nYou can change these settings anytime in Settings > Privacy & Ads.": {
-    "string": ""
+    "string": "Cliccando su Accetta, acconsenti:\n\n• Alla raccolta di informazioni sul dispositivo, indirizzo IP e posizione per la pubblicità\n• All'utilizzo di annunci Google per dispositivi mobili (personalizzati o non personalizzati)\n• Alla nostra Informativa sulla privacy e i Termini di servizio\n\nPuoi modificare queste impostazioni in qualsiasi momento in Impostazioni > Privacy & Ads"
   },
   "Read Privacy Policy": {
     "string": ""
@@ -5439,25 +5439,25 @@
     "string": ""
   },
   "What We Collect": {
-    "string": ""
+    "string": "Cosa raccogliamo"
   },
   "To provide free features, we use Google Mobile Ads which may collect:": {
     "string": ""
   },
   "Device information": {
-    "string": ""
+    "string": "Informazioni sul dispositivo"
   },
   "IP address and location": {
     "string": ""
   },
   "Ad interaction data": {
-    "string": ""
+    "string": "Dati sull'interazione con gli annunci"
   },
   "Your Choices": {
     "string": ""
   },
   "You can choose personalized ads (better rewards) or non-personalized ads (more privacy).": {
-    "string": ""
+    "string": "Puoi scegliere annunci personalizzati (premi migliori) o annunci non personalizzati (maggiore privacy)."
   },
   "You can change this anytime in Settings.": {
     "string": ""
@@ -5586,7 +5586,7 @@
     "string": ""
   },
   "You have consented to personalized ads based on your interests.": {
-    "string": ""
+    "string": "Hai acconsentito ad annunci personalizzati in base ai tuoi interessi."
   },
   "Your consent is required to show ads.": {
     "string": ""
@@ -5595,31 +5595,31 @@
     "string": ""
   },
   "Using non-personalized ads only.": {
-    "string": ""
+    "string": "Utilizzo solo di annunci non personalizzati."
   },
   "AndroidIRCX uses Google Mobile Ads to provide free features. Google may collect:": {
     "string": ""
   },
   "Device information (model, OS version)": {
-    "string": ""
+    "string": "Informazioni sul dispositivo (modello, versione del sistema operativo)"
   },
   "IP address and approximate location": {
-    "string": ""
+    "string": "Indirizzo IP e posizione approssimativa"
   },
   "Usage analytics": {
-    "string": ""
+    "string": "Analisi dell'utilizzo"
   },
   "Ad Types": {
-    "string": ""
+    "string": "Tipi di annunci"
   },
   "Personalized Ads": {
-    "string": ""
+    "string": "Annunci personalizzati"
   },
   "Ads tailored to your interests based on your activity. May provide better rewards.": {
     "string": ""
   },
   "Non-Personalized Ads": {
-    "string": ""
+    "string": "Annunci non personalizzati"
   },
   "Generic ads not based on your activity. More privacy, potentially lower rewards.": {
     "string": ""
@@ -5673,16 +5673,16 @@
     "string": ""
   },
   "Opt out of personalized ads": {
-    "string": ""
+    "string": "Disattiva gli annunci personalizzati"
   },
   "Purchase Successful": {
-    "string": ""
+    "string": "Acquisto riuscito"
   },
   "Thank you for your purchase!": {
-    "string": ""
+    "string": "Grazie per il tuo acquisto!"
   },
   "Purchase Failed": {
-    "string": ""
+    "string": "Acquisto fallito"
   },
   "Please try again later.": {
     "string": ""
@@ -5694,7 +5694,7 @@
     "string": ""
   },
   "Your purchases have been restored.": {
-    "string": ""
+    "string": "I tuoi acquisti sono stati ripristinati."
   },
   "Restore failed": {
     "string": ""
@@ -5703,7 +5703,7 @@
     "string": ""
   },
   "Restore purchases": {
-    "string": ""
+    "string": "Ripristina gli acquisti"
   },
   "• api.sendNotice(target, text, networkId?)": {
     "string": ""
@@ -5808,25 +5808,25 @@
     "string": ""
   },
   "Scripting Time & No-Ads Remaining:": {
-    "string": ""
+    "string": "Tempo di Scripting e nessun annuncio rimanenti:"
   },
   "Scripting Time & No-Ads Active": {
-    "string": ""
+    "string": "Tempo di Scripting e nessun annuncio attivo"
   },
   "When ON: Time counts down, scripts can run, no banner ads": {
-    "string": ""
+    "string": "Quando è ON: Il tempo scorre, gli script possono essere eseguiti, nessun banner pubblicitario"
   },
   "Unlimited scripting: Toggle enables/disables no-ads mode": {
     "string": ""
   },
   "Upgrade to Unlimited Scripting & No-Ads": {
-    "string": ""
+    "string": "Aggiorna per Scripting illimitati e nessun annuncio"
   },
   "No scripting time available. Watch an ad to gain 60 minutes of scripting time and no-ads. Scripts will be automatically disabled when time runs out.": {
     "string": ""
   },
   "Scripts run with full access to your local IRC data. Only install scripts you trust and avoid running scripts from unknown sources.": {
-    "string": ""
+    "string": "Gli script vengono eseguiti con accesso completo ai dati IRC locali. Installa solo script di cui ti fidi ed evita di eseguire script da fonti sconosciute."
   },
   "Default Server": {
     "string": ""
@@ -5835,10 +5835,10 @@
     "string": ""
   },
   "📖 Help & Documentation": {
-    "string": ""
+    "string": "Aiuto & Documentazione"
   },
   "Scripting & Ads": {
-    "string": ""
+    "string": "Scripting & Annunci"
   },
   "💎 Premium": {
     "string": ""
@@ -5847,10 +5847,10 @@
     "string": ""
   },
   "Purchase Error": {
-    "string": ""
+    "string": "Errore di acquisto"
   },
   "Missing purchase token from Google Play.": {
-    "string": ""
+    "string": "Manca il token di acquisto da Google Play."
   },
   "Not available": {
     "string": ""
@@ -5868,7 +5868,7 @@
     "string": ""
   },
   "DBase is not connected. Open Networks and connect to DBase to use ZNC.": {
-    "string": ""
+    "string": "DBase is not connected. Open Networks and connect to DBase to use ZNC.\nDBase non è connesso. Apri Networks e connettiti a DBase per usare la ZNC."
   },
   "Reconnecting to ZNC...": {
     "string": ""
@@ -5892,7 +5892,7 @@
     "string": ""
   },
   "Please complete the purchase first.": {
-    "string": ""
+    "string": "Si prega di completare prima l'acquisto."
   },
   "ZNC Ready": {
     "string": ""
@@ -5913,7 +5913,7 @@
     "string": ""
   },
   "Purchase Required": {
-    "string": ""
+    "string": "Acquisto necessario"
   },
   "Not registered": {
     "string": ""
@@ -5925,16 +5925,16 @@
     "string": ""
   },
   "Remove ads, unlimited scripting, and more": {
-    "string": ""
+    "string": "Rimuovi gli annunci, scripting illimitato, ed altro"
   },
   "Manage ZNC Accounts": {
     "string": ""
   },
   "Purchase, manage, and configure ZNC bouncer accounts": {
-    "string": ""
+    "string": "Acquista, gestisci e configura gli account bouncer ZNC."
   },
   "About ZNC Service": {
-    "string": ""
+    "string": "Informazioni sul servizio ZNC"
   },
   "ZNC keeps you connected 24/7 with message playback": {
     "string": ""
@@ -5967,7 +5967,7 @@
     "string": ""
   },
   "Privacy & Legal": {
-    "string": ""
+    "string": "Privacy e aspetti legali"
   },
   "Development": {
     "string": ""
@@ -6066,10 +6066,10 @@
     "string": ""
   },
   "Failed to complete purchase. Please try again.": {
-    "string": ""
+    "string": "Acquisto non riuscito. Riprova di nuovo."
   },
   "Unable to complete purchase.": {
-    "string": ""
+    "string": "Impossibile completare l'acquisto."
   },
   "Your ZNC account has been created successfully! Username: {username}": {
     "string": ""
@@ -6111,10 +6111,10 @@
     "string": ""
   },
   "Failed to start purchase.": {
-    "string": ""
+    "string": "Impossibile avviare l'acquisto."
   },
   "No Purchases": {
-    "string": ""
+    "string": "Nessun acquisto"
   },
   "No ZNC subscriptions found to restore.": {
     "string": ""
@@ -6129,7 +6129,7 @@
     "string": ""
   },
   "Failed to restore purchases.": {
-    "string": ""
+    "string": "Impossibile ripristinare gli acquisti."
   },
   "Account credentials not ready. Please refresh status first.": {
     "string": ""
@@ -6177,7 +6177,7 @@
     "string": ""
   },
   "Remove ZNC server from {network}? This will not cancel your subscription.": {
-    "string": ""
+    "string": "Rimuovere il server ZNC da {network}? Questa operazione non annullerà l'abbonamento."
   },
   "Removed": {
     "string": ""
@@ -6195,7 +6195,7 @@
     "string": ""
   },
   "Delete this ZNC account from your local storage? This will NOT cancel your subscription - you can restore it later using \"Restore Purchases\".": {
-    "string": ""
+    "string": "Vuoi eliminare questo account ZNC dalla memoria locale? Questa operazione NON annullerà l'abbonamento: potrai ripristinarlo in seguito tramite la funzione \"Ripristina gli acquisti\"."
   },
   "Deleted": {
     "string": ""
@@ -6231,7 +6231,7 @@
     "string": ""
   },
   "Purchase a ZNC subscription to get always-on IRC connectivity with message playback.": {
-    "string": ""
+    "string": "Acquista un abbonamento ZNC per avere connettività IRC sempre attiva con riproduzione dei messaggi."
   },
   "Monthly subscription": {
     "string": ""
@@ -6243,13 +6243,13 @@
     "string": ""
   },
   "Purchase ZNC Account": {
-    "string": ""
+    "string": "Acquista un account ZNC"
   },
   "Refresh Store": {
     "string": ""
   },
   "Restore Purchases": {
-    "string": ""
+    "string": "Ripristina gli acquisti"
   },
   "Choose ZNC Username": {
     "string": ""
@@ -6387,7 +6387,7 @@
     "string": ""
   },
   "Automatically saves notes about users based on their messages.": {
-    "string": ""
+    "string": "Salva automaticamente le note sugli utenti in base ai loro messaggi."
   },
   "Channel Info Tracker": {
     "string": ""
@@ -6396,10 +6396,10 @@
     "string": ""
   },
   "Smart Welcome": {
-    "string": ""
+    "string": "Benvenuto intelligente"
   },
   "Welcomes users with personalized messages based on user notes.": {
-    "string": ""
+    "string": "Accoglie gli utenti con messaggi personalizzati basati sulle note dell'utente."
   },
   "Message History Search": {
     "string": ""
@@ -6408,10 +6408,10 @@
     "string": ""
   },
   "Channel Bookmark Manager": {
-    "string": ""
+    "string": "Gestore Segnalibri canale"
   },
   "Automatically bookmarks channels you frequently visit.": {
-    "string": ""
+    "string": "Aggiungi automaticamente nel Segnalibro i canali che visiti più frequentemente."
   },
   "Connection Monitor": {
     "string": ""
@@ -6534,31 +6534,31 @@
     "string": ""
   },
   "Credits": {
-    "string": ""
+    "string": "Crediti"
   },
   "Translators and contributors": {
-    "string": ""
+    "string": "Traduttori e collaboratori"
   },
   "Version 1.6.10": {
     "string": ""
   },
   "Translators": {
-    "string": ""
+    "string": "Traduttori"
   },
   "Special thanks to everyone who helped translate AndroidIRCX into different languages.": {
-    "string": ""
+    "string": "Un ringraziamento speciale a tutti coloro che hanno contribuito a tradurre AndroidIRCX in diverse lingue."
   },
   "Help Translate": {
-    "string": ""
+    "string": "Aiuta a tradurre"
   },
   "Want to help translate AndroidIRCX into your language? We use Transifex for translations and would love your help!": {
-    "string": ""
+    "string": "Vuoi aiutare a tradurre AndroidIRCX nella tua lingua? Usiamo Transifex per le traduzioni e ci piacerebbe avere il tuo aiuto!"
   },
   "Send an email to the address below with the language you want to translate, and we will invite you to our Transifex project. Once you complete the translations, your name will be added to this credits page.": {
-    "string": ""
+    "string": "Invia un'e-mail all'indirizzo sottostante con la lingua che desideri tradurre e ti inviteremo al nostro progetto Transifex. Una volta completate le traduzioni, il tuo nome verrà aggiunto a questa pagina dei crediti."
   },
   "Thank you to all contributors!": {
-    "string": ""
+    "string": "Grazie a tutti i contributori!"
   },
   "Invalid certificate format. Please configure a valid PEM certificate.": {
     "string": ""
@@ -6597,7 +6597,7 @@
     "string": ""
   },
   "Add to Blacklist": {
-    "string": ""
+    "string": "Aggiungi alla lista nera"
   },
   "Mask": {
     "string": ""
@@ -6924,22 +6924,22 @@
     "string": ""
   },
   "Blacklist": {
-    "string": ""
+    "string": "Lista nera"
   },
   "Auto-run actions for matched masks": {
     "string": ""
   },
   "Blacklist feature coming soon": {
-    "string": ""
+    "string": "Le funzionalità della lista nera saranno disponibili a breve."
   },
   "Added {nick} to blacklist": {
-    "string": ""
+    "string": "Aggiunto {nick} nella lista nera"
   },
   "Changing server": {
     "string": ""
   },
   "*** Network \"{name}\" created (not connected). Use /server -m {address} to connect.": {
-    "string": ""
+    "string": "*** Network \"{name}\" creato (non connesso). Usa /server -m {address} per connetterti."
   },
   "Invalid server address or configuration": {
     "string": ""
@@ -7014,31 +7014,31 @@
     "string": ""
   },
   "Blacklist entry updated": {
-    "string": ""
+    "string": "Voce nella lista nera aggiornata"
   },
   "User added to blacklist": {
-    "string": ""
+    "string": "Utente aggiunto alla lista nera"
   },
   "Remove from Blacklist": {
-    "string": ""
+    "string": "Rimuovi dalla lista nera"
   },
   "User removed from blacklist": {
-    "string": ""
+    "string": "Utente rimosso dalla lista nera"
   },
   "Templates": {
     "string": ""
   },
   "No matching blacklist entries": {
-    "string": ""
+    "string": "Nessuna voce corrispondente nella lista nera"
   },
   "No blacklist entries": {
-    "string": ""
+    "string": "Nessuna voce nella lista nera"
   },
   "Add users to auto-run actions on join": {
     "string": ""
   },
   "Edit Blacklist Entry": {
-    "string": ""
+    "string": "Modifica la voce nella lista nera"
   },
   "Enter a mask to match. Examples:": {
     "string": ""
@@ -7059,7 +7059,7 @@
     "string": ""
   },
   "Blacklist Templates": {
-    "string": ""
+    "string": "Modelli di lista nera"
   },
   "Set default commands for AKILL/GLINE/SHUN. Use {mask}, {usermask}, {hostmask}, {reason}.": {
     "string": ""
@@ -7095,7 +7095,7 @@
     "string": ""
   },
   "Blacklisted": {
-    "string": ""
+    "string": "Inserito nella lista nera"
   },
   "Usage: /part <channel> [message]": {
     "string": ""
@@ -7737,7 +7737,7 @@
     "string": ""
   },
   "Cancel if send speed is above (KB/s)": {
-    "string": ""
+    "string": "Annulla se la velocità di invio è superiore a (KB/s)"
   },
   "Download folder": {
     "string": ""
@@ -7833,7 +7833,7 @@
     "string": ""
   },
   "Information about protections": {
-    "string": ""
+    "string": "Informazioni sulle protezioni"
   },
   "Anti-Spam": {
     "string": ""
@@ -8028,13 +8028,13 @@
     "string": ""
   },
   "IRcap Credits": {
-    "string": ""
+    "string": "Crediti IRcap"
   },
   "IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiration for away, protections, writing styles, and the IRcap theme.": {
-    "string": ""
+    "string": "IRcap (c) Carlos Esteve Cremades, 1997-2026. Ispirazione per l'away, le protezioni, gli stili di scrittura e il tema IRcap."
   },
   "IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme.": {
-    "string": ""
+    "string": "Tema IRcap per AndroidIRCx di ARGENTIN07, basato sul tema IRcap originale."
   },
   "Join message format": {
     "string": ""
@@ -8148,7 +8148,7 @@
     "string": ""
   },
   "Blacklist Nick": {
-    "string": ""
+    "string": "Nick nella lista nera"
   },
   "Default Ban Type": {
     "string": ""
@@ -8433,7 +8433,7 @@
     "string": ""
   },
   "Not connected to server.": {
-    "string": ""
+    "string": "Non connesso al server."
   },
   "Connect {network}": {
     "string": ""
@@ -8451,7 +8451,7 @@
     "string": ""
   },
   "Leave Channel": {
-    "string": ""
+    "string": "Esci dal canale"
   },
   "Send Plaintext (Unlock)": {
     "string": ""
@@ -8481,13 +8481,13 @@
     "string": ""
   },
   "Remove Channel Bookmark": {
-    "string": ""
+    "string": "Rimuovi canale dal Segnalibro"
   },
   "Bookmark Channel": {
-    "string": ""
+    "string": "Aggiungi canale al Segnalibro"
   },
   "Edit Channel Note": {
-    "string": ""
+    "string": "Modifica note del canale"
   },
   "View Activity Log": {
     "string": ""
@@ -8559,10 +8559,10 @@
     "string": ""
   },
   "Add to Favorites": {
-    "string": ""
+    "string": "Aggiungi ai Preferiti"
   },
   "Channel: {name}": {
-    "string": ""
+    "string": "Canale: {name}"
   },
   "Query: {name}": {
     "string": ""
@@ -10299,7 +10299,7 @@
     "string": ""
   },
   "help.troubleshooting.messagesNotSending.checkConnected": {
-    "string": ""
+    "string": "help.troubleshooting.messagesNotSending.checkConnected"
   },
   "help.troubleshooting.messagesNotSending.verifyNotBanned": {
     "string": ""
@@ -10809,7 +10809,7 @@
     "string": ""
   },
   "Channel Management Guide": {
-    "string": ""
+    "string": "Guida alla gestione dei canali"
   },
   "Channel Basics": {
     "string": ""
@@ -10923,7 +10923,7 @@
     "string": ""
   },
   "Remove user from channel:": {
-    "string": ""
+    "string": "Rimuovere l'utente dal canale:"
   },
   "Prevent user from rejoining:": {
     "string": ""
@@ -11022,10 +11022,10 @@
     "string": ""
   },
   "Contact network administrators or register the channel with ChanServ.": {
-    "string": ""
+    "string": "Contatta gli amministratori del network o registra il canale con ChanServ."
   },
   "IRC Commands Reference": {
-    "string": ""
+    "string": "Comandi IRC di riferimento"
   },
   "Basic Commands": {
     "string": ""
@@ -11067,7 +11067,7 @@
     "string": ""
   },
   "Example: /topic Welcome to #DBase!": {
-    "string": ""
+    "string": "Esempio: /topic Benvenuti su #DBase!"
   },
   "Example: /kick Spammer Stop spamming": {
     "string": ""
@@ -11106,13 +11106,13 @@
     "string": ""
   },
   "Get information about user": {
-    "string": ""
+    "string": "Ottieni informazioni sull'utente"
   },
   "Example: /whois John": {
     "string": ""
   },
   "Get past information about user": {
-    "string": ""
+    "string": "Ottieni informazioni passate sull'utente"
   },
   "Example: /whowas OldNick": {
     "string": ""
@@ -11151,7 +11151,7 @@
     "string": ""
   },
   "Channel encryption management": {
-    "string": ""
+    "string": "Gestione della crittografia dei canali"
   },
   "Examples:\n/chankey generate\n/chankey share Nick1,Nick2\n/chankey status": {
     "string": ""
@@ -11217,7 +11217,7 @@
     "string": ""
   },
   "Tip: In most cases it is easier to add networks/servers via the UI, but /server is useful for quick testing.": {
-    "string": ""
+    "string": "Suggerimento: nella maggior parte dei casi è più facile aggiungere network/server tramite l'interfaccia utente, ma /server è utile per test rapidi."
   },
   "Utility Commands": {
     "string": ""
@@ -11325,7 +11325,7 @@
     "string": ""
   },
   "Select \"Choose Network\" (or \"Connect Another Network\" if connected)": {
-    "string": ""
+    "string": "Seleziona \"Scegli Network\" (oppure \"Connetti ad un altro Network\" se già connesso)"
   },
   "Step 2: Add a network": {
     "string": ""
@@ -11379,7 +11379,7 @@
     "string": ""
   },
   "Open \"Connection & Network\"": {
-    "string": ""
+    "string": "Apri \"Connessione & Network\""
   },
   "Tap \"Identity Profiles\"": {
     "string": ""
@@ -11469,7 +11469,7 @@
     "string": ""
   },
   "End-to-End Encryption ensures that only you and the recipient can read messages.\\nEven the IRC server cannot decrypt them.": {
-    "string": ""
+    "string": "La crittografia end-to-end garantisce che solo tu e il destinatario possiate leggere i messaggi. Nemmeno il server IRC è in grado di decifrarli."
   },
   "DM (Direct Message) Encryption": {
     "string": ""
@@ -11829,10 +11829,10 @@
     "string": ""
   },
   "Enable auto-reconnect: Settings → Connection & Network → Auto-Reconnect": {
-    "string": ""
+    "string": "Abilita Riconnessione automatica: Impostazioni → Connessione & Network → Riconnesssione automatica"
   },
   "Adjust auto-reconnect delays: Settings → Connection & Network → Auto-Reconnect": {
-    "string": ""
+    "string": "Regola i ritrardi per la Riconnessione automatica: Impostazioni → Connessione & Network → Riconnessione automatica"
   },
   "Check network stability": {
     "string": ""
@@ -11841,7 +11841,7 @@
     "string": ""
   },
   "Review lag settings: Settings → Connection & Network → Connection Quality": {
-    "string": ""
+    "string": "Rivedi le impostazioni di Lag: Impostazioni → Connessione & Network → Qualità della connessione"
   },
   "SSL/TLS Errors": {
     "string": ""
@@ -12267,7 +12267,7 @@
     "string": ""
   },
   "Open Networks list to choose and manage networks": {
-    "string": ""
+    "string": "Apri Lista Networks per scegliere e gestire i networks"
   },
   "Invert scroll & swipe direction": {
     "string": ""
@@ -12888,10 +12888,10 @@
     "string": ""
   },
   "Unable to start subscription purchase.": {
-    "string": ""
+    "string": "Impossibile avviare l'acquisto dell'abbonamento."
   },
   "Checking existing purchases...": {
-    "string": ""
+    "string": "Verifica degli acquisti esistenti..."
   },
   "Your Privacy Relay subscription was restored.": {
     "string": ""
@@ -12900,7 +12900,7 @@
     "string": ""
   },
   "Unable to restore purchases.": {
-    "string": ""
+    "string": "Impossibile ripristinare gli acquisti."
   },
   "No subscription": {
     "string": ""
@@ -12999,7 +12999,7 @@
     "string": ""
   },
   "Finish setup now and open Choose Network later to add or reload networks from the API list.": {
-    "string": ""
+    "string": "Completa ora la configurazione, e poi apri Scegli Networks per aggiungere o ricaricare i networks dall'elenco API."
   },
   "Your identity is saved. Open Choose Network to add a server or reload the approved API network list.": {
     "string": ""
@@ -13050,7 +13050,7 @@
     "string": ""
   },
   "AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.": {
-    "string": ""
+    "string": "AndroidIRCX ricarica i preset approvati dal database IRC. Le voci importate vengono aggiunte all'elenco dei Network locali. La configurazione DBase predefinita rimane invariata."
   },
   "If your network is not listed and you want inclusion in AndroidIRCX:": {
     "string": ""

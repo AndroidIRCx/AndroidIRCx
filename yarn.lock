@@ -2564,32 +2564,37 @@
     prompts "^2.4.2"
     semver "^7.5.2"
 
-"@react-native-community/slider@^5.0.1", "@react-native-community/slider@^5.1.2":
+"@react-native-community/slider@^5.0.1":
   version "5.1.2"
   resolved "https://registry.npmjs.org/@react-native-community/slider/-/slider-5.1.2.tgz"
   integrity sha512-UV/MjCyCtSjS5BQDrrGIMmCXm309xEG6XbR0Dj65kzTraJSVDxSjQS2uBUXgX+5SZUOCzCxzv3OufOZBdtQY4w==
+
+"@react-native-community/slider@^5.2.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-5.2.0.tgz#c154ac4ec10537160462d7a9f3e2e43098257302"
+  integrity sha512-484sH8aWEaSjxaZ7HT3YZ8CKDcNes2synko1vdEz5DFEdvKAduxKJTj22L/qBMD7rtIkfbX69DMzWDAGbOAV6w==
 
 "@react-native-documents/picker@^12.0.1":
   version "12.0.1"
   resolved "https://registry.npmjs.org/@react-native-documents/picker/-/picker-12.0.1.tgz"
   integrity sha512-vpJKb4t/5bnxe9+gQl+plJfKrrIsmYwANGhNH2B9E1dS1+6FDBzg4Dwmcq4ueaGfkRKEPJ606mJttVEH1ZKZaA==
 
-"@react-native-firebase/app-check@^23.8.8":
-  version "23.8.8"
-  resolved "https://registry.npmjs.org/@react-native-firebase/app-check/-/app-check-23.8.8.tgz"
-  integrity sha512-AG6AVwIg2pF6eLuMoMDCL+xZljJxi50VM5qCjq/YysC236upvglg7pkZHT5VPz2YGx2DBN8WVLuTQZHfoLzgHQ==
+"@react-native-firebase/app-check@^24.0.0":
+  version "24.0.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app-check/-/app-check-24.0.0.tgz#8fbe1b1292963cefbbbe356abb7d1e3fa2ae0d44"
+  integrity sha512-HdHqeuKyKxantqLpJYlMJCcUBsOdC4Mb6tOEuUGVo1A0vWiCqSK3NK0Jo25S/Q9fG8dHAq8bwMZjRripFYz3UA==
 
-"@react-native-firebase/app@23.8.8":
-  version "23.8.8"
-  resolved "https://registry.npmjs.org/@react-native-firebase/app/-/app-23.8.8.tgz"
-  integrity sha512-9KeKToqsEPhaL+KlTYIdUB0bsXYAcKk0Zzpu608zf2qsXbyTscuYs1caLWxk8AdGtt3+j7ZsoOFt/8qnlo4Ugg==
+"@react-native-firebase/app@24.0.0":
+  version "24.0.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-24.0.0.tgz#b9400ac3c13617811b0375d1335d24edeec986bf"
+  integrity sha512-rLWNd8/4FjKYV7PeDR9uiT5vwYWdJ7dJ1yiIIaZ/eL+Y56Ij2iXbqRCUu4zWkvu/ZrJfaGOyT12Vhy1SLy0NMg==
   dependencies:
     firebase "12.10.0"
 
-"@react-native-firebase/crashlytics@23.8.8":
-  version "23.8.8"
-  resolved "https://registry.npmjs.org/@react-native-firebase/crashlytics/-/crashlytics-23.8.8.tgz"
-  integrity sha512-2aw6MDyh2Y0N5InSNQlEkJ1Ds3NDdssCHUwIWItnCfIk2VmQt9lWWsKAk8y2GFw7FsIrdHgwI8uLXkm7ARQYXQ==
+"@react-native-firebase/crashlytics@24.0.0":
+  version "24.0.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/crashlytics/-/crashlytics-24.0.0.tgz#dc7f4c0d43787ed1fc91e04c6f1ff40bf67150e9"
+  integrity sha512-slNW6ood4SO9J15OLv2HjWLIsKlVT4VVGew7OacRql0VNDFDxjPwqPDrPus4lCz2oJWS6DQZ+tzZ2BEdT0irSA==
   dependencies:
     stacktrace-js "^2.0.2"
 
@@ -3001,10 +3006,10 @@
   dependencies:
     undici-types "~7.16.0"
 
-"@types/node@25.5.0":
-  version "25.5.0"
-  resolved "https://registry.npmjs.org/@types/node/-/node-25.5.0.tgz"
-  integrity sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw==
+"@types/node@25.5.2":
+  version "25.5.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.5.2.tgz#94861e32f9ffd8de10b52bbec403465c84fff762"
+  integrity sha512-tO4ZIRKNC+MDWV4qKVZe3Ql/woTnmHDr5JD8UI5hn2pwBrHEwOEMZK7WlNb5RKB6EoJ02gwmQS9OrjuFnZYdpg==
   dependencies:
     undici-types "~7.18.0"
 
@@ -7937,10 +7942,10 @@ react-native-is-edge-to-edge@^1.2.1:
   resolved "https://registry.npmjs.org/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.2.1.tgz"
   integrity sha512-FLbPWl/MyYQWz+KwqOZsSyj2JmLKglHatd3xLZWskXOpRaio4LfEDEz8E/A6uD8QoTHW6Aobw1jbEwK7KMgR7Q==
 
-react-native-keyboard-controller@1.21.2:
-  version "1.21.2"
-  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.21.2.tgz#7055008e75944497dde7296c0d0a4b7c47dd09d3"
-  integrity sha512-YIdiDFjkfK4toyt00qGgwS3Or5BwdVUuJ1nH9nRaC4IaSl8lW4s7IKr2xEmyFH2u5Td7f1E723qYVKZ/GdIOcA==
+react-native-keyboard-controller@1.21.3:
+  version "1.21.3"
+  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.21.3.tgz#2043512b1151b23bcdcbc3177280ce95a6f3d9c6"
+  integrity sha512-Fv4lXoHZueU8E+BeI0t6d1YTU79F9KJoPvpfUJfJGGfT8EE3fEFq47RA5VEGj08Uh5+ZIIgWAbKuohY/Y0ARVw==
   dependencies:
     react-native-is-edge-to-edge "^1.2.1"
 

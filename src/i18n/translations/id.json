@@ -7278,223 +7278,223 @@
     "string": "Penggunaan: /watch +nick1 -nick2 ..."
   },
   "*** Attempting IRCop login...": {
-    "string": ""
+    "string": "Mencoba login IRCop... "
   },
   "Usage: /oper <nick> <password>": {
     "string": "Penggunaan: /oper <nick> <password>"
   },
   "*** Requesting server rehash...": {
-    "string": ""
+    "string": "Minta rehash server...  "
   },
   "*** Requesting server disconnect: {server}": {
-    "string": ""
+    "string": "Minta disconnect server: {server}  "
   },
   "Usage: /squit <server> [message]": {
     "string": "Penggunaan: /squit <server> [message]"
   },
   "*** Killing user: {nick}": {
-    "string": ""
+    "string": "Kill user: {nick}"
   },
   "Usage: /kill <nick> <reason>": {
     "string": "Penggunaan: /kill <nick> <reason>"
   },
   "*** Requesting server connection: {server}:{port}": {
-    "string": ""
+    "string": "Minta koneksi server: {server}:{port}  "
   },
   "Usage: /connect <server> <port> [remote]": {
     "string": "Penggunaan: /connect <server> <port> [remote]"
   },
   "*** Requesting server shutdown...": {
-    "string": ""
+    "string": "Minta shutdown server...  "
   },
   "Invalid theme file format": {
-    "string": ""
+    "string": "Format file tema nggak valid  "
   },
   "Theme is missing required color: {key}": {
-    "string": ""
+    "string": "Tema kurang warna wajib: {key}  "
   },
   "Invalid JSON format": {
-    "string": ""
+    "string": "Format JSON nggak valid "
   },
   "Message format": {
-    "string": ""
+    "string": "Format pesan"
   },
   "Message with mention format": {
-    "string": ""
+    "string": "Format pesan dengan mention"
   },
   "Action (/me) message format": {
-    "string": ""
+    "string": "Format pesan action (/me)  "
   },
   "Action (/me) message with mention format": {
-    "string": ""
+    "string": "Format action (/me) dengan mention  "
   },
   "Notice message format": {
-    "string": ""
+    "string": "Format pesan notice"
   },
   "Event (join/leave/etc.) message format": {
-    "string": ""
+    "string": "Format pesan event (join/leave/dll.)  "
   },
   "time": {
-    "string": ""
+    "string": "waktu"
   },
   "sender": {
-    "string": ""
+    "string": "pengirm"
   },
   "message": {
-    "string": ""
+    "string": "pesan"
   },
   "channel": {
-    "string": ""
+    "string": "chanel"
   },
   "network": {
-    "string": ""
+    "string": "network"
   },
   "account": {
-    "string": ""
+    "string": "akun"
   },
   "hostname": {
-    "string": ""
+    "string": "hostname"
   },
   "hostmask": {
-    "string": ""
+    "string": "hostmask"
   },
   "target": {
-    "string": ""
+    "string": "target"
   },
   "mode": {
-    "string": ""
+    "string": "mode"
   },
   "topic": {
-    "string": ""
+    "string": "topik"
   },
   "reason": {
-    "string": ""
+    "string": "alasan"
   },
   "numeric": {
-    "string": ""
+    "string": "numeric"
   },
   "command": {
-    "string": ""
+    "string": "command"
   },
   "This is an example message.": {
-    "string": ""
+    "string": "Ini contoh pesan.  "
   },
   "Example topic": {
-    "string": ""
+    "string": "Contoh topik  "
   },
   "Example reason": {
-    "string": ""
+    "string": "Contoh alasan "
   },
   "does an example action": {
-    "string": ""
+    "string": "melakukan contoh aksi  "
   },
   "[sender-nick!user@host.test has joined]": {
-    "string": ""
+    "string": "[sender-nick!user@host.test telah join]  "
   },
   "Message Format": {
-    "string": ""
+    "string": "format pesan"
   },
   "Add Part": {
-    "string": ""
+    "string": "Tambah bagian"
   },
   "Edit Part": {
-    "string": ""
+    "string": "Edit bagian  "
   },
   "Token": {
-    "string": ""
+    "string": "Token"
   },
   "Text color": {
-    "string": ""
+    "string": "Warna teks"
   },
   "Move Left": {
-    "string": ""
+    "string": "Geser kiri"
   },
   "Move Right": {
-    "string": ""
+    "string": "Geser kanan"
   },
   "Apply": {
-    "string": ""
+    "string": "Terapkan"
   },
   "Pick Color": {
-    "string": ""
+    "string": "Pilih warna"
   },
   "Custom": {
-    "string": ""
+    "string": "Custom"
   },
   "#RRGGBB": {
-    "string": ""
+    "string": "#RRGGBB"
   },
   "Edit format": {
-    "string": ""
+    "string": "Edit format"
   },
   "Customize format": {
-    "string": ""
+    "string": "Kustomisasi format "
   },
   "Enter Key Behavior": {
-    "string": ""
+    "string": "Perilaku tombol Enter"
   },
   "Enter key sends message": {
-    "string": ""
+    "string": "Enter kirim pesan"
   },
   "Enter key creates new line": {
-    "string": ""
+    "string": "Enter buat baris baru"
   },
   "New line": {
-    "string": ""
+    "string": "Baris baru"
   },
   "User List Size": {
-    "string": ""
+    "string": "Ukuran daftar user  "
   },
   "User List Nick Font Size": {
-    "string": ""
+    "string": "Ukuran font nick di daftar user"
   },
   "Reset User List Defaults": {
-    "string": ""
+    "string": "Reset default daftar user  "
   },
   "Reset user list size and nick font size to defaults": {
-    "string": ""
+    "string": "Reset ukuran daftar user dan font nick ke default  "
   },
   "Version 1.6.14": {
     "string": "Version 1.6.14"
   },
   "These are all current channel modes. Use switches below to toggle common modes.": {
-    "string": ""
+    "string": "Ini semua mode channel aktif. Gunakan switch di bawah untuk toggle mode umum. "
   },
   "Enter a valid number": {
-    "string": ""
+    "string": "Masukkan angka valid"
   },
   "Value must be greater than 0": {
-    "string": ""
+    "string": "Nilai harus lebih besar dari 0  "
   },
   "Nicklist Tongue Button": {
-    "string": ""
+    "string": "Tombol nicklist tongue"
   },
   "Show a small center handle to open/close the user list": {
-    "string": ""
+    "string": "Tampilkan handle kecil di tengah untuk buka/tutup daftar user  "
   },
   "Nicklist Tongue Size": {
-    "string": ""
+    "string": "Ukuran nicklist tongue"
   },
   "Insert": {
-    "string": ""
+    "string": "Sisipkan"
   },
   "mIRC Colors": {
-    "string": ""
+    "string": "Warna mIRC "
   },
   "KILL {nick}": {
-    "string": ""
+    "string": "KILL {nick}"
   },
   "Enter reason": {
-    "string": ""
+    "string": "Masukkan alasan"
   },
   "Reason is required": {
-    "string": ""
+    "string": "Alasan wajib diisi "
   },
   "Scan this QR to import your key": {
     "string": "Scan QR ini buat import key kamu  "
   },
   "Scan to verify fingerprint": {
-    "string": ""
+    "string": "Scan untuk verifikasi fingerprint"
   },
   "No QR payload": {
     "string": "Nggak ada payload QR  "
@@ -7503,400 +7503,400 @@
     "string": "Copy QR Payload"
   },
   "Scan Key": {
-    "string": ""
+    "string": "Scan Key"
   },
   "Insert colors": {
-    "string": ""
+    "string": "Sisipkan warna"
   },
   "Clear selection": {
-    "string": ""
+    "string": "Hapus pilihan"
   },
   "Copy nickname": {
-    "string": ""
+    "string": "Salin nickname"
   },
   "User list v": {
-    "string": ""
+    "string": "Daftar user v"
   },
   "User list >": {
-    "string": ""
+    "string": "Daftar user > "
   },
   "KILL (with reason)": {
-    "string": ""
+    "string": "KILL (dengan alasan)"
   },
   "CTCP + DCC v": {
-    "string": ""
+    "string": "CTCP + DCC v"
   },
   "CTCP + DCC >": {
-    "string": ""
+    "string": "CTCP + DCC >"
   },
   "Change nick to pattern": {
-    "string": ""
+    "string": "Ganti nick ke pola"
   },
   "Example: <me>^away": {
-    "string": ""
+    "string": "Contoh: <me>^away"
   },
   "Notify away if nick is mentioned": {
     "string": "Notifikasi saat nick disebut, meskipun status away "
   },
   "DeOp on channels": {
-    "string": ""
+    "string": "DeOp di channel"
   },
   "Announce away status": {
-    "string": ""
+    "string": "Umumkan status away "
   },
   "Auto-answer": {
-    "string": ""
+    "string": "Auto-answer"
   },
   "Disable sounds when away": {
-    "string": ""
+    "string": "Nonaktifkan suara saat away  "
   },
   "Multiserver": {
-    "string": ""
+    "string": "Multiserver"
   },
   "Apply away to all connected networks": {
-    "string": ""
+    "string": "Terapkan away ke semua network terkoneksi  "
   },
   "Away presets": {
-    "string": ""
+    "string": "Preset away  "
   },
   "{count} presets": {
-    "string": ""
+    "string": "{count} preset"
   },
   "Default away reason": {
-    "string": ""
+    "string": "Alasan away default"
   },
   "Go Away Now": {
-    "string": ""
+    "string": "Away sekarang"
   },
   "Send AWAY with default reason": {
-    "string": ""
+    "string": "Kirim AWAY dengan alasan default"
   },
   "Return (Back)": {
-    "string": ""
+    "string": "Kembali"
   },
   "Clear AWAY status": {
-    "string": ""
+    "string": "Hapus status AWAY"
   },
   "Auto-answer message": {
-    "string": ""
+    "string": "Pesan auto-answer  "
   },
   "Auto-answer presets": {
-    "string": ""
+    "string": "Preset auto-answer"
   },
   "{count} messages": {
-    "string": ""
+    "string": "{count} pesan"
   },
   "Announce every (min.)": {
-    "string": ""
+    "string": "Umumkan tiap (menit) "
   },
   "Announce only on channels": {
-    "string": ""
+    "string": "Umumkan hanya di channel"
   },
   "Do not announce on channels": {
-    "string": ""
+    "string": "Jangan umumkan di channel"
   },
   "Away text": {
-    "string": ""
+    "string": "Teks away"
   },
   "Return text": {
-    "string": ""
+    "string": "Teks kembali"
   },
   "Auto-away enabled": {
-    "string": ""
+    "string": "Auto-away aktif"
   },
   "Auto-away minutes": {
-    "string": ""
+    "string": "Menit auto-awa"
   },
   "Auto-away reason": {
-    "string": ""
+    "string": "Alasan auto-away  "
   },
   "Minimize to systray": {
-    "string": ""
+    "string": "Minimalkan ke systray  "
   },
   "Away system": {
-    "string": ""
+    "string": "Sistem away"
   },
   "Add preset": {
-    "string": ""
+    "string": "Tambah preset"
   },
   "Colors": {
-    "string": ""
+    "string": "Warna"
   },
   "Add message": {
-    "string": ""
+    "string": "Tambah pesan"
   },
   "Download Folder": {
-    "string": ""
+    "string": "Folder unduhan"
   },
   "Folder picker is not supported on this device.": {
-    "string": ""
+    "string": "Folder picker nggak didukung di perangkat ini.  "
   },
   "Unable to resolve a folder from the selected file.": {
-    "string": ""
+    "string": "Nggak bisa tentukan folder dari file yang dipilih.  "
   },
   "Failed to pick a folder. Please try again.": {
-    "string": ""
+    "string": "Gagal pilih folder. Coba lagi.  "
   },
   "Reject": {
-    "string": ""
+    "string": "Tolak"
   },
   "Don't send": {
-    "string": ""
+    "string": "Jangan kirim"
   },
   "2 - Friends/Allowlist": {
-    "string": ""
+    "string": "2 - Teman/Allowlist"
   },
   "3 - Ops": {
-    "string": ""
+    "string": "3 - Ops"
   },
   "4 - Auto Op & Notify": {
     "string": "4 - Auto Op & Notify"
   },
   "1 - Always ask": {
-    "string": ""
+    "string": "1 - Selalu tanya"
   },
   "Getting files (auto)": {
-    "string": ""
+    "string": "Ambil file (auto)  "
   },
   "Mode: {mode}": {
-    "string": ""
+    "string": "Mode: {mode}"
   },
   "Auto-Get Mode": {
-    "string": ""
+    "string": "Mode auto-get  "
   },
   "Select behavior for incoming files": {
-    "string": ""
+    "string": "Pilih perilaku untuk file masuk  "
   },
   "File type filters": {
-    "string": ""
+    "string": "Filter tipe file"
   },
   "Accept {accept} / Reject {reject} / Block {block}": {
-    "string": ""
+    "string": "Terima {accept} / Tolak {reject} / Blok {block}  "
   },
   "Accept list": {
-    "string": ""
+    "string": "Daftar terima"
   },
   "{count} items": {
-    "string": ""
+    "string": "{count} item"
   },
   "Reject list": {
-    "string": ""
+    "string": "Daftar tolak  "
   },
   "Don't send list": {
-    "string": ""
+    "string": "Daftar jangan kirim "
   },
   "Auto accept CHAT from": {
-    "string": ""
+    "string": "Auto-accept CHAT dari  "
   },
   "Auto Accept Chat": {
-    "string": ""
+    "string": "Auto-accept chat"
   },
   "Select who can auto-start DCC chat": {
-    "string": ""
+    "string": "Pilih siapa yang bisa auto-start DCC chat  "
   },
   "Auto accept gets from": {
-    "string": ""
+    "string": "Auto-accept gets dari"
   },
   "Auto Accept Gets": {
-    "string": ""
+    "string": "Auto-accept gets"
   },
   "Select who can auto-send files": {
-    "string": ""
+    "string": "Pilih siapa yang bisa auto-send file"
   },
   "Auto-open viewer": {
-    "string": ""
+    "string": "Auto-open viewer"
   },
   "Close queries when chat opens": {
-    "string": ""
+    "string": "Tutup query saat chat dibuka"
   },
   "Request on fail when receiving": {
-    "string": ""
+    "string": "Request saat gagal menerima"
   },
   "Allow DCC by IP": {
-    "string": ""
+    "string": "Izinkan DCC via IP"
   },
   "Block private/local IPs": {
-    "string": ""
+    "string": "Blokir IP privat/lokal  "
   },
   "Block DCC connections to private (RFC1918) and localhost addresses. This prevents SSRF-like attacks where a malicious user could trick your client into connecting to internal network services.": {
-    "string": ""
+    "string": "Blokir koneksi DCC ke alamat privat (RFC1918) dan localhost. Ini mencegah serangan mirip SSRF di mana user jahat bisa bikin client connect ke layanan internal.  "
   },
   "Disabling this option allows DCC connections to private network addresses (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). This could allow malicious users to make your device connect to internal network services. Only disable if you understand the risks and need to connect to a local IRC bouncer or similar service.\n\nAre you sure you want to disable this protection?": {
-    "string": ""
+    "string": "Menonaktifkan opsi ini mengizinkan koneksi DCC ke alamat privat (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). Bisa bikin user jahat menghubungkan device ke layanan internal. Nonaktifkan hanya jika paham risiko dan perlu connect ke IRC bouncer lokal atau layanan serupa.\n\nYakin mau nonaktifkan proteksi ini?"
   },
   "Disable Protection": {
-    "string": ""
+    "string": "Nonaktifkan proteksi"
   },
   "Passive DCC": {
-    "string": ""
+    "string": "DCC pasif"
   },
   "Reply queue commands": {
-    "string": ""
+    "string": "Command antrian reply  "
   },
   "Max. speed on sends (KB/s)": {
-    "string": ""
+    "string": "Kecepatan maks. saat kirim (KB/s) "
   },
   "Cancel if send speed is above (KB/s)": {
-    "string": ""
+    "string": "Batalkan jika kecepatan kirim di atas (KB/s)  "
   },
   "Download folder": {
-    "string": ""
+    "string": "Folder unduhan  "
   },
   "Default app folder": {
-    "string": ""
+    "string": "Folder default aplikasi"
   },
   "Add extension (e.g. *.zip)": {
-    "string": ""
+    "string": "Tambah ekstensi (contoh: .zip)  "
   },
   "Tap to remove": {
-    "string": ""
+    "string": "Tap untuk hapus  "
   },
   "When open": {
-    "string": ""
+    "string": "Saat dibuka"
   },
   "Anti-spam on private messages": {
-    "string": ""
+    "string": "Anti-spam di pesan privat"
   },
   "Spam keywords list": {
-    "string": ""
+    "string": "Daftar kata kunci spam "
   },
   "{count} patterns": {
-    "string": ""
+    "string": "{count} pola"
   },
   "Logging in SPAM.log": {
-    "string": ""
+    "string": "Logging in SPAM.log"
   },
   "Check SPAM.log": {
-    "string": ""
+    "string": "Cek SPAM.log  "
   },
   "No spam log entries.": {
-    "string": ""
+    "string": "Nggak ada entri spam log. "
   },
   "Delete SPAM.log": {
-    "string": ""
+    "string": "Hapus SPAM.log  "
   },
   "Anti-spam on channels": {
-    "string": ""
+    "string": "Anti-spam di channel"
   },
   "No spam on quits": {
-    "string": ""
+    "string": "Nggak ada spam saat quit"
   },
   "CTCP Flood & various": {
-    "string": ""
+    "string": "CTCP flood & lainnya"
   },
   "Text Flood": {
-    "string": ""
+    "string": "Flood teks"
   },
   "DCC flood": {
-    "string": ""
+    "string": "Flood DCC "
   },
   "Query flood": {
-    "string": ""
+    "string": "Flood query"
   },
   "D.O.S. attacks": {
-    "string": ""
+    "string": "Serangan D.O.S. "
   },
   "Anti deop/ban/kick": {
-    "string": ""
+    "string": "Anti deop/ban/kick "
   },
   "Using Chanserv": {
-    "string": ""
+    "string": "Pakai Chanserv"
   },
   "Exclude protections on": {
-    "string": ""
+    "string": "Kecualikan proteksi di  "
   },
   "Example: CTCP SLOTS MP3 SOUND": {
-    "string": ""
+    "string": "Contoh: CTCP SLOTS MP3 SOUND  "
   },
   "Enforce with /silence": {
-    "string": ""
+    "string": "Terapkan dengan /silence "
   },
   "Block Tsunamis": {
-    "string": ""
+    "string": "Blokir Tsunami"
   },
   "Text Flood Net": {
-    "string": ""
+    "string": "Flood teks Net  "
   },
   "IRCop auto action": {
-    "string": ""
+    "string": "Aksi otomatis IRCop"
   },
   "Action: {action}": {
-    "string": ""
+    "string": "Aksi: {action}  "
   },
   "IRCop reason": {
-    "string": ""
+    "string": "Alasan IRCop  "
   },
   "IRCop duration": {
-    "string": ""
+    "string": "Durasi IRCop  "
   },
   "Used for GLINE/KLINE if supported": {
-    "string": ""
+    "string": "Dipakai untuk GLINE/KLINE jika didukung  "
   },
   "Information about protections": {
-    "string": ""
+    "string": "Info proteksi"
   },
   "Anti-Spam": {
-    "string": ""
+    "string": "Anti-Spam"
   },
   "Flood / DOS": {
-    "string": ""
+    "string": "Flood / DOS"
   },
   "Spam keywords": {
-    "string": ""
+    "string": "Kata kunci spam"
   },
   "Add keyword or wildcard": {
-    "string": ""
+    "string": "Tambah kata kunci atau wildcard"
   },
   "Private Message Filter": {
-    "string": ""
+    "string": "Filter pesan privat"
   },
   "Select anti-spam mode": {
-    "string": ""
+    "string": "Pilih mode anti-spam"
   },
   "SPAM.log": {
-    "string": ""
+    "string": "SPAM.log"
   },
   "Are you sure you want to clear the spam log?": {
-    "string": ""
+    "string": "Yakin mau hapus spam log?  "
   },
   "Spam log cleared.": {
-    "string": ""
+    "string": "Spam log dihapus. "
   },
   "Select action when spam/flood is detected": {
-    "string": ""
+    "string": "Pilih aksi saat spam/flood terdeteksi  "
   },
   "Protections": {
-    "string": ""
+    "string": "Proteksi"
   },
   "Protections will ignore spam/flood users and can trigger IRCop actions when enabled.": {
-    "string": ""
+    "string": "Proteksi akan abaikan user spam/flood dan bisa jalankan aksi IRCop jika diaktifkan.  "
   },
   "Decoration style": {
-    "string": ""
+    "string": "Gaya dekorasi"
   },
   "None selected": {
-    "string": ""
+    "string": "Nggak ada yang dipilih"
   },
   "No styles": {
-    "string": ""
+    "string": "Nggak ada gaya"
   },
   "Add styles first.": {
-    "string": ""
+    "string": "Tambah gaya dulu.  "
   },
   "Bold": {
-    "string": ""
+    "string": "Tebal"
   },
   "Underline": {
-    "string": ""
+    "string": "Garis bawah"
   },
   "Use colors": {
-    "string": ""
+    "string": "Pakai warna"
   },
   "Styles list": {
-    "string": ""
+    "string": "Daftar gaya"
   },
   "{count} styles": {
-    "string": ""
+    "string": " {count} gaya"
   },
   "Active style": {
     "string": ""

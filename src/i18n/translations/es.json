@@ -12648,37 +12648,37 @@
     "string": "{nick} ya está en línea"
   },
   "Audio Call": {
-    "string": ""
+    "string": "Llamada de audio"
   },
   "Video Call": {
-    "string": ""
+    "string": "Llamada de video"
   },
   "Auto-detect WHOIS idle format": {
-    "string": ""
+    "string": "Detección automática del formato de inactividad WHOIS"
   },
   "Automatically use \"/WHOIS nick nick\" on networks like Undernet": {
-    "string": ""
+    "string": "Usar automáticamente \"/WHOIS nick nick\" en redes como Undernet"
   },
   "Use manual WHOIS format setting": {
-    "string": ""
+    "string": "Usar configuración manual del formato WHOIS"
   },
   "Use /WHOIS nick nick format": {
-    "string": ""
+    "string": "Usar formato /WHOIS nick nick"
   },
   "Enabled for this network (better idle results on Undernet-like servers)": {
-    "string": ""
+    "string": "Habilitado para esta red (mejores resultados de inactividad en servidores tipo Undernet)"
   },
   "Disabled (uses standard /WHOIS nick)": {
-    "string": ""
+    "string": "Deshabilitado (usa /WHOIS nick estándar)"
   },
   "Live Call Video Quality": {
-    "string": ""
+    "string": "Calidad de video de llamada en vivo"
   },
   "Current: {quality} • Privacy Relay unlocks HD and TURN fallback": {
-    "string": ""
+    "string": "Actual: {quality} • Privacy Relay desbloquea HD y TURN como alternativa"
   },
   "Current: {quality} • Free calls stay direct, default to 480p, and can be raised to 720p": {
-    "string": ""
+    "string": "Actual: {quality} • Las llamadas gratuitas permanecen directas, usan 480p por defecto y pueden aumentarse a 720p"
   },
   "Free Call STUN Servers": {
     "string": ""
@@ -12687,7 +12687,7 @@
     "string": ""
   },
   "Current fallback list: {count} STUN endpoints for direct free calls. Ordered list is used for fallback.": {
-    "string": ""
+    "string": "Lista actual de respaldo: {count} endpoints STUN para llamadas gratuitas directas. Se utiliza una lista ordenada como respaldo."
   },
   "External TURN Server": {
     "string": ""
