@@ -50,7 +50,8 @@ export const CommandSuggestions: React.FC<CommandSuggestionsProps> = ({
           backgroundColor: colors.surface,
           borderColor: colors.border,
         },
-      ]}>
+      ]}
+    >
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
         {suggestions.map((suggestion, index) => (
           <TouchableOpacity
@@ -60,12 +61,15 @@ export const CommandSuggestions: React.FC<CommandSuggestionsProps> = ({
               { borderBottomColor: colors.border },
               index === suggestions.length - 1 && styles.lastItem,
             ]}
-            onPress={() => onSelect(suggestion)}>
+            onPress={() => onSelect(suggestion)}
+          >
             <View style={styles.iconContainer}>
               <Icon
                 name={suggestion.isAlias ? 'flash' : 'server'}
                 size={18}
-                color={suggestion.isAlias ? colors.primary : colors.textSecondary}
+                color={
+                  suggestion.isAlias ? colors.primary : colors.textSecondary
+                }
               />
             </View>
             <View style={styles.content}>
@@ -78,13 +82,22 @@ export const CommandSuggestions: React.FC<CommandSuggestionsProps> = ({
                     style={[
                       styles.aliasBadge,
                       { backgroundColor: colors.primary },
-                    ]}>
-                    <Text style={[styles.aliasBadgeText, { color: colors.onPrimary || colors.surface }]}>alias</Text>
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.aliasBadgeText,
+                        { color: colors.onPrimary || colors.surface },
+                      ]}
+                    >
+                      alias
+                    </Text>
                   </View>
                 )}
               </View>
               <Text
-                style={[styles.description, { color: colors.textSecondary }]}>
+                style={[styles.description, { color: colors.textSecondary }]}
+              >
                 {suggestion.description}
               </Text>
             </View>

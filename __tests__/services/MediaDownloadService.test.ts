@@ -55,7 +55,10 @@ describe('MediaDownloadService', () => {
     (mediaDownloadService as any).downloadCache = new Map();
     mockRNFS.exists.mockResolvedValue(true);
     mockCache.getCachedMedia.mockResolvedValue(null);
-    mockCache.cacheMedia.mockResolvedValue({ success: true, cachedPath: '/mock/cache/final.jpg' });
+    mockCache.cacheMedia.mockResolvedValue({
+      success: true,
+      cachedPath: '/mock/cache/final.jpg',
+    });
     mockCache.isCached.mockResolvedValue(false);
     mockEncryption.decryptMediaFile.mockResolvedValue({
       success: true,
@@ -85,7 +88,7 @@ describe('MediaDownloadService', () => {
     const result = await mediaDownloadService.downloadMedia(
       'media-1',
       'net',
-      'channel::net::#test'
+      'channel::net::#test',
     );
 
     expect(result).toEqual({ success: true, uri: '/mock/cache/cached.png' });
@@ -93,7 +96,11 @@ describe('MediaDownloadService', () => {
   });
 
   it('returns error when tabId is missing', async () => {
-    const result = await mediaDownloadService.downloadMedia('media-1', 'net', '');
+    const result = await mediaDownloadService.downloadMedia(
+      'media-1',
+      'net',
+      '',
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('No tabId provided');
@@ -106,18 +113,18 @@ describe('MediaDownloadService', () => {
       'media-2',
       'net',
       'channel::net::#test',
-      onProgress
+      onProgress,
     );
 
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://www.androidircx.com/api/media/download/media-2'
+      'https://www.androidircx.com/api/media/download/media-2',
     );
     expect(mockRNFS.writeFile).toHaveBeenCalled();
     expect(mockEncryption.decryptMediaFile).toHaveBeenCalledWith(
       '/mock/cache/temp_media/encrypted_media-2',
       'net',
       'channel::net::#test',
-      'media-2'
+      'media-2',
     );
     expect(mockCache.cacheMedia).toHaveBeenCalled();
     expect(onProgress).toHaveBeenCalledWith({
@@ -133,18 +140,23 @@ describe('MediaDownloadService', () => {
   });
 
   it('handles fetch failure and cleans up temp file', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: false, status: 404 });
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+    });
     mockRNFS.exists.mockResolvedValue(true);
 
     const result = await mediaDownloadService.downloadMedia(
       'media-3',
       'net',
-      'channel::net::#test'
+      'channel::net::#test',
     );
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('HTTP 404');
-    expect(mockRNFS.unlink).toHaveBeenCalledWith('/mock/cache/temp_media/encrypted_media-3');
+    expect(mockRNFS.unlink).toHaveBeenCalledWith(
+      '/mock/cache/temp_media/encrypted_media-3',
+    );
   });
 
   it('retries and succeeds on later attempt', async () => {
@@ -157,7 +169,7 @@ describe('MediaDownloadService', () => {
       'media-4',
       'net',
       'channel::net::#test',
-      3
+      3,
     );
 
     expect(result).toEqual({ success: true, uri: '/ok' });
@@ -165,7 +177,12 @@ describe('MediaDownloadService', () => {
   });
 
   it('returns immediate retry error when tabId is missing', async () => {
-    const result = await mediaDownloadService.downloadMediaWithRetry('media-5', 'net', '', 3);
+    const result = await mediaDownloadService.downloadMediaWithRetry(
+      'media-5',
+      'net',
+      '',
+      3,
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('No tabId provided');
@@ -180,13 +197,17 @@ describe('MediaDownloadService', () => {
 
     await mediaDownloadService.cleanupTempFiles();
 
-    expect(mockRNFS.unlink).toHaveBeenCalledWith('/mock/cache/temp_media/a.bin');
-    expect(mockRNFS.unlink).toHaveBeenCalledWith('/mock/cache/temp_media/b.bin');
+    expect(mockRNFS.unlink).toHaveBeenCalledWith(
+      '/mock/cache/temp_media/a.bin',
+    );
+    expect(mockRNFS.unlink).toHaveBeenCalledWith(
+      '/mock/cache/temp_media/b.bin',
+    );
   });
 
   it('builds correct download URL', () => {
     expect(mediaDownloadService.getDownloadUrl('media-xyz')).toBe(
-      'https://www.androidircx.com/api/media/download/media-xyz'
+      'https://www.androidircx.com/api/media/download/media-xyz',
     );
   });
 });

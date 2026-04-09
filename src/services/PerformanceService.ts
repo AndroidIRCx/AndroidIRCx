@@ -18,7 +18,7 @@ export const DEBUG_LOG_CATEGORIES = [
   'tabContextMenu',
 ] as const;
 
-export type DebugLogCategory = typeof DEBUG_LOG_CATEGORIES[number];
+export type DebugLogCategory = (typeof DEBUG_LOG_CATEGORIES)[number];
 
 export interface PerformanceConfig {
   enableVirtualization: boolean; // Use FlatList instead of ScrollView
@@ -268,4 +268,3 @@ class PerformanceService {
 }
 
 export const performanceService = new PerformanceService();
-

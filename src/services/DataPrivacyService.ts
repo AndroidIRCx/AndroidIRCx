@@ -4,7 +4,10 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getCrashlytics, setCrashlyticsCollectionEnabled } from '@react-native-firebase/crashlytics';
+import {
+  getCrashlytics,
+  setCrashlyticsCollectionEnabled,
+} from '@react-native-firebase/crashlytics';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import { Platform } from 'react-native';
@@ -43,7 +46,11 @@ class DataPrivacyService {
   /**
    * Export all user data to a JSON file
    */
-  async exportUserData(): Promise<{ success: boolean; filePath?: string; error?: string }> {
+  async exportUserData(): Promise<{
+    success: boolean;
+    filePath?: string;
+    error?: string;
+  }> {
     try {
       logger.info('privacy', 'Starting user data export...');
 
@@ -83,7 +90,8 @@ class DataPrivacyService {
    */
   async shareExportedData(filePath: string): Promise<boolean> {
     try {
-      const fileUrl = Platform.OS === 'android' ? `file://${filePath}` : filePath;
+      const fileUrl =
+        Platform.OS === 'android' ? `file://${filePath}` : filePath;
 
       await Share.open({
         url: fileUrl,
@@ -122,7 +130,10 @@ class DataPrivacyService {
 
     try {
       logger.info('privacy', '========================================');
-      logger.info('privacy', 'Starting complete data deletion (GDPR/CCPA Right to Erasure)');
+      logger.info(
+        'privacy',
+        'Starting complete data deletion (GDPR/CCPA Right to Erasure)',
+      );
       logger.info('privacy', '========================================');
 
       // 1. Delete message history
@@ -130,7 +141,10 @@ class DataPrivacyService {
         logger.info('privacy', '[1/6] Deleting message history...');
         // Get all networks and delete their message history
         const networks = await settingsService.loadNetworks();
-        logger.info('privacy', `Deleting messages for ${networks.length} networks`);
+        logger.info(
+          'privacy',
+          `Deleting messages for ${networks.length} networks`,
+        );
 
         for (const network of networks) {
           await messageHistoryService.deleteNetworkMessages(network.id);
@@ -156,7 +170,10 @@ class DataPrivacyService {
           await settingsService.deleteNetwork(network.id);
         }
         result.deletedItems.networks = true;
-        logger.info('privacy', `✓ All ${networks.length} networks deleted successfully`);
+        logger.info(
+          'privacy',
+          `✓ All ${networks.length} networks deleted successfully`,
+        );
       } catch (error) {
         const errorMsg = `Networks: ${String(error)}`;
         logger.error('privacy', `✗ ${errorMsg}`);
@@ -175,7 +192,10 @@ class DataPrivacyService {
           await identityProfilesService.remove(profile.id);
         }
         result.deletedItems.identityProfiles = true;
-        logger.info('privacy', `✓ All ${profiles.length} identity profiles deleted successfully`);
+        logger.info(
+          'privacy',
+          `✓ All ${profiles.length} identity profiles deleted successfully`,
+        );
       } catch (error) {
         const errorMsg = `Identity profiles: ${String(error)}`;
         logger.error('privacy', `✗ ${errorMsg}`);
@@ -206,11 +226,14 @@ class DataPrivacyService {
 
         // Keep ONLY essential keys needed for app to function
         const essentialKeys = ['FIRST_RUN_COMPLETED'];
-        const keysToDelete = keys.filter(key =>
-          !essentialKeys.some(essential => key === essential)
+        const keysToDelete = keys.filter(
+          key => !essentialKeys.some(essential => key === essential),
         );
 
-        logger.info('privacy', `Deleting ${keysToDelete.length} keys (keeping ${keys.length - keysToDelete.length} essential keys)`);
+        logger.info(
+          'privacy',
+          `Deleting ${keysToDelete.length} keys (keeping ${keys.length - keysToDelete.length} essential keys)`,
+        );
         await AsyncStorage.removeMany(keysToDelete);
         result.deletedItems.settings = true;
         logger.info('privacy', '✓ AsyncStorage cleared successfully');
@@ -241,12 +264,18 @@ class DataPrivacyService {
               await RNFS.unlink(file.path);
               deletedCount++;
             } catch (fileError) {
-              logger.error('privacy', `Failed to delete ${file.name}: ${String(fileError)}`);
+              logger.error(
+                'privacy',
+                `Failed to delete ${file.name}: ${String(fileError)}`,
+              );
               failedCount++;
             }
           }
 
-          logger.info('privacy', `Deleted ${deletedCount} files, ${failedCount} failed`);
+          logger.info(
+            'privacy',
+            `Deleted ${deletedCount} files, ${failedCount} failed`,
+          );
           result.deletedItems.cache = true;
           logger.info('privacy', '✓ Cache cleared');
         } else {
@@ -262,10 +291,16 @@ class DataPrivacyService {
       }
 
       logger.info('privacy', '========================================');
-      logger.info('privacy', `Data deletion completed. Overall success: ${result.success}`);
+      logger.info(
+        'privacy',
+        `Data deletion completed. Overall success: ${result.success}`,
+      );
       logger.info('privacy', `Deleted: ${JSON.stringify(result.deletedItems)}`);
       if (result.errors.length > 0) {
-        logger.error('privacy', `Errors encountered: ${JSON.stringify(result.errors)}`);
+        logger.error(
+          'privacy',
+          `Errors encountered: ${JSON.stringify(result.errors)}`,
+        );
         console.error('[DataPrivacy] Deletion errors:', result.errors);
       }
       logger.info('privacy', '========================================');
@@ -273,7 +308,10 @@ class DataPrivacyService {
       return result;
     } catch (error) {
       const errorMsg = `General error: ${String(error)}`;
-      logger.error('privacy', `CRITICAL: Data deletion failed with general error: ${errorMsg}`);
+      logger.error(
+        'privacy',
+        `CRITICAL: Data deletion failed with general error: ${errorMsg}`,
+      );
       console.error('[DataPrivacy] CRITICAL deletion failure:', error);
       result.success = false;
       result.errors.push(errorMsg);
@@ -288,10 +326,19 @@ class DataPrivacyService {
     try {
       const crashlyticsInstance = getCrashlytics();
       await setCrashlyticsCollectionEnabled(crashlyticsInstance, !optOut);
-      await AsyncStorage.setItem('@AndroidIRCX:crashlytics_opt_out', String(optOut));
-      logger.info('privacy', `Crashlytics collection ${optOut ? 'disabled' : 'enabled'}`);
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:crashlytics_opt_out',
+        String(optOut),
+      );
+      logger.info(
+        'privacy',
+        `Crashlytics collection ${optOut ? 'disabled' : 'enabled'}`,
+      );
     } catch (error) {
-      logger.error('privacy', `Failed to set crashlytics opt-out: ${String(error)}`);
+      logger.error(
+        'privacy',
+        `Failed to set crashlytics opt-out: ${String(error)}`,
+      );
       throw error;
     }
   }
@@ -301,11 +348,13 @@ class DataPrivacyService {
    */
   async getCrashlyticsOptOut(): Promise<boolean> {
     try {
-      const value = await AsyncStorage.getItem('@AndroidIRCX:crashlytics_opt_out');
+      const value = await AsyncStorage.getItem(
+        '@AndroidIRCX:crashlytics_opt_out',
+      );
       return value === 'true';
-      } catch {
-        return false;
-      }
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -401,7 +450,10 @@ class DataPrivacyService {
     try {
       return await identityProfilesService.list();
     } catch (error) {
-      logger.error('privacy', `Failed to get identity profiles: ${String(error)}`);
+      logger.error(
+        'privacy',
+        `Failed to get identity profiles: ${String(error)}`,
+      );
       return [];
     }
   }
@@ -435,7 +487,10 @@ class DataPrivacyService {
 
       return allMessages;
     } catch (error) {
-      logger.error('privacy', `Failed to get message history: ${String(error)}`);
+      logger.error(
+        'privacy',
+        `Failed to get message history: ${String(error)}`,
+      );
       return [];
     }
   }

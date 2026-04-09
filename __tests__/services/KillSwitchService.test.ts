@@ -60,14 +60,14 @@ describe('KillSwitchService', () => {
     (Platform as any).OS = 'ios';
 
     (RNFS as any).exists = jest.fn(async () => true);
-    (RNFS as any).readDir = jest.fn(async () => ([
+    (RNFS as any).readDir = jest.fn(async () => [
       {
         name: 'AndroidIRCX-log.txt',
         path: '/mock/documents/AndroidIRCX-log.txt',
         isFile: () => true,
         isDirectory: () => false,
       },
-    ]));
+    ]);
     (RNFS as any).unlink = jest.fn(async () => undefined);
 
     mockGetConnection.mockReturnValue({
@@ -111,17 +111,19 @@ describe('KillSwitchService', () => {
   });
 
   it('confirmAndActivate bypasses warnings when disabled', async () => {
-    const spy = jest.spyOn(killSwitchService, 'activateKillSwitch').mockResolvedValueOnce({
-      success: true,
-      deletedItems: {
-        asyncStorage: true,
-        secureStorage: true,
-        fileSystem: true,
-        connections: true,
-        logs: true,
-      },
-      errors: [],
-    });
+    const spy = jest
+      .spyOn(killSwitchService, 'activateKillSwitch')
+      .mockResolvedValueOnce({
+        success: true,
+        deletedItems: {
+          asyncStorage: true,
+          secureStorage: true,
+          fileSystem: true,
+          connections: true,
+          logs: true,
+        },
+        errors: [],
+      });
 
     const ok = await killSwitchService.confirmAndActivate(false);
     expect(ok).toBe(true);
@@ -132,7 +134,9 @@ describe('KillSwitchService', () => {
     (RNFS as any).readDir = jest.fn(async () => {
       throw new Error('fs fail');
     });
-    jest.spyOn(AsyncStorage, 'getAllKeys').mockRejectedValueOnce(new Error('storage fail'));
+    jest
+      .spyOn(AsyncStorage, 'getAllKeys')
+      .mockRejectedValueOnce(new Error('storage fail'));
 
     const result = await killSwitchService.activateKillSwitch();
 
@@ -150,14 +154,14 @@ describe('KillSwitchService', () => {
   });
 
   it('deletes directory entries in cache path', async () => {
-    (RNFS as any).readDir = jest.fn(async () => ([
+    (RNFS as any).readDir = jest.fn(async () => [
       {
         name: 'nested',
         path: '/mock/cache/nested',
         isFile: () => false,
         isDirectory: () => true,
       },
-    ]));
+    ]);
 
     await killSwitchService.activateKillSwitch();
 
@@ -192,7 +196,9 @@ describe('KillSwitchService', () => {
     (Platform as any).OS = 'android';
     const exitSpy = jest.fn();
     (BackHandler as any).exitApp = exitSpy;
-    const timeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((cb: any) => {
+    const timeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+      cb: any,
+    ) => {
       cb();
       return 0 as any;
     }) as any);
@@ -230,7 +236,11 @@ describe('KillSwitchService', () => {
   });
 
   it('confirmAndActivate resolves false when first dialog is cancelled', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(((_title: any, _msg: any, buttons: any[]) => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(((
+      _title: any,
+      _msg: any,
+      buttons: any[],
+    ) => {
       buttons[0].onPress();
     }) as any);
 
@@ -240,20 +250,26 @@ describe('KillSwitchService', () => {
   });
 
   it('confirmAndActivate supports final cancel and final confirm flow', async () => {
-    const activateSpy = jest.spyOn(killSwitchService, 'activateKillSwitch').mockResolvedValue({
-      success: true,
-      deletedItems: {
-        asyncStorage: true,
-        secureStorage: true,
-        fileSystem: true,
-        connections: true,
-        logs: true,
-      },
-      errors: [],
-    });
+    const activateSpy = jest
+      .spyOn(killSwitchService, 'activateKillSwitch')
+      .mockResolvedValue({
+        success: true,
+        deletedItems: {
+          asyncStorage: true,
+          secureStorage: true,
+          fileSystem: true,
+          connections: true,
+          logs: true,
+        },
+        errors: [],
+      });
 
     let callIndex = 0;
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(((_title: any, _msg: any, buttons?: any[]) => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(((
+      _title: any,
+      _msg: any,
+      buttons?: any[],
+    ) => {
       callIndex += 1;
       const list = buttons || [];
       if (callIndex === 1) {
@@ -275,7 +291,11 @@ describe('KillSwitchService', () => {
 
   it('confirmAndActivate resolves false when final confirmation is cancelled', async () => {
     let callIndex = 0;
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(((_title: any, _msg: any, buttons?: any[]) => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(((
+      _title: any,
+      _msg: any,
+      buttons?: any[],
+    ) => {
       callIndex += 1;
       const list = buttons || [];
       if (callIndex === 1) {
@@ -289,5 +309,4 @@ describe('KillSwitchService', () => {
     expect(ok).toBe(false);
     alertSpy.mockRestore();
   });
-
 });

@@ -10,7 +10,6 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { MessageHistoryViewerScreen } from '../../src/screens/MessageHistoryViewerScreen';
 import { messageHistoryService } from '../../src/services/MessageHistoryService';
 
-
 jest.mock('../../src/hooks/useTheme', () => ({
   useTheme: () => ({
     colors: {
@@ -80,15 +79,25 @@ describe('MessageHistoryViewerScreen', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
-    (messageHistoryService.ensureHistoryMigrated as jest.Mock).mockImplementation(async cb => {
+    (
+      messageHistoryService.ensureHistoryMigrated as jest.Mock
+    ).mockImplementation(async cb => {
       cb(1, 2);
       cb(2, 2);
       return { migrated: true, migratedCount: 2 };
     });
-    (messageHistoryService.listStoredChannels as jest.Mock).mockResolvedValue(entries);
-    (messageHistoryService.loadMessages as jest.Mock).mockResolvedValue(messages);
-    (messageHistoryService.deleteMessages as jest.Mock).mockResolvedValue(undefined);
-    (messageHistoryService.deleteMessageById as jest.Mock).mockResolvedValue(undefined);
+    (messageHistoryService.listStoredChannels as jest.Mock).mockResolvedValue(
+      entries,
+    );
+    (messageHistoryService.loadMessages as jest.Mock).mockResolvedValue(
+      messages,
+    );
+    (messageHistoryService.deleteMessages as jest.Mock).mockResolvedValue(
+      undefined,
+    );
+    (messageHistoryService.deleteMessageById as jest.Mock).mockResolvedValue(
+      undefined,
+    );
   });
 
   afterEach(() => {
@@ -100,7 +109,7 @@ describe('MessageHistoryViewerScreen', () => {
 
   it('does not render content when not visible', () => {
     const { queryByText } = render(
-      <MessageHistoryViewerScreen visible={false} onClose={jest.fn()} />
+      <MessageHistoryViewerScreen visible={false} onClose={jest.fn()} />,
     );
 
     expect(queryByText('History Viewer')).toBeNull();
@@ -108,7 +117,7 @@ describe('MessageHistoryViewerScreen', () => {
 
   it('loads entries, sorts them, and shows migration summary', async () => {
     const { findByText, getAllByText } = render(
-      <MessageHistoryViewerScreen visible onClose={jest.fn()} />
+      <MessageHistoryViewerScreen visible onClose={jest.fn()} />,
     );
 
     expect(await findByText('History Viewer')).toBeTruthy();
@@ -125,7 +134,7 @@ describe('MessageHistoryViewerScreen', () => {
 
   it('filters entries by selected network', async () => {
     const { findByText, getByText, queryByText } = render(
-      <MessageHistoryViewerScreen visible onClose={jest.fn()} />
+      <MessageHistoryViewerScreen visible onClose={jest.fn()} />,
     );
 
     await findByText('#general · alpha');
@@ -137,7 +146,7 @@ describe('MessageHistoryViewerScreen', () => {
 
   it('opens an entry, loads messages, toggles sort, and goes back', async () => {
     const { findByText, getByText, queryByText } = render(
-      <MessageHistoryViewerScreen visible onClose={jest.fn()} />
+      <MessageHistoryViewerScreen visible onClose={jest.fn()} />,
     );
 
     await findByText('#general · alpha');
@@ -158,14 +167,23 @@ describe('MessageHistoryViewerScreen', () => {
 
   it('deletes a channel entry from the list', async () => {
     const { findByText, UNSAFE_getAllByType } = render(
-      <MessageHistoryViewerScreen visible onClose={jest.fn()} />
+      <MessageHistoryViewerScreen visible onClose={jest.fn()} />,
     );
 
     await findByText('#general · alpha');
-    const touchables = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
-    fireEvent.press(touchables.find((node: any) => node.props.onPress && node.props.children?.props?.name === 'trash'));
+    const touchables = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
+    fireEvent.press(
+      touchables.find(
+        (node: any) =>
+          node.props.onPress && node.props.children?.props?.name === 'trash',
+      ),
+    );
 
-    const deleteCall = (Alert.alert as jest.Mock).mock.calls.find(call => call[0] === 'Delete Channel History?');
+    const deleteCall = (Alert.alert as jest.Mock).mock.calls.find(
+      call => call[0] === 'Delete Channel History?',
+    );
     expect(deleteCall).toBeTruthy();
 
     await act(async () => {
@@ -177,18 +195,25 @@ describe('MessageHistoryViewerScreen', () => {
 
   it('deletes a single message from opened history', async () => {
     const { findByText, getByText, UNSAFE_getAllByType } = render(
-      <MessageHistoryViewerScreen visible onClose={jest.fn()} />
+      <MessageHistoryViewerScreen visible onClose={jest.fn()} />,
     );
 
     await findByText('#general · alpha');
     fireEvent.press(getByText('#general · alpha'));
     await findByText('newer message');
 
-    const touchables = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
-    const deleteButtons = touchables.filter((node: any) => node.props.onPress && node.findAll?.(() => false) !== undefined);
+    const touchables = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
+    const deleteButtons = touchables.filter(
+      (node: any) =>
+        node.props.onPress && node.findAll?.(() => false) !== undefined,
+    );
     fireEvent.press(deleteButtons[deleteButtons.length - 1]);
 
-    const deleteCall = (Alert.alert as jest.Mock).mock.calls.find(call => call[0] === 'Delete message');
+    const deleteCall = (Alert.alert as jest.Mock).mock.calls.find(
+      call => call[0] === 'Delete message',
+    );
     expect(deleteCall).toBeTruthy();
 
     await act(async () => {
@@ -201,7 +226,7 @@ describe('MessageHistoryViewerScreen', () => {
   it('calls onClose from header button', async () => {
     const onClose = jest.fn();
     const { findAllByText } = render(
-      <MessageHistoryViewerScreen visible onClose={onClose} />
+      <MessageHistoryViewerScreen visible onClose={onClose} />,
     );
 
     const closeButtons = await findAllByText('Close');

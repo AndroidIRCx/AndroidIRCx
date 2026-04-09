@@ -148,15 +148,21 @@ describe('MessageParser', () => {
     });
 
     it('should extract extension from URL with path', () => {
-      expect(getUrlExtension('https://example.com/path/to/file.jpg')).toBe('jpg');
+      expect(getUrlExtension('https://example.com/path/to/file.jpg')).toBe(
+        'jpg',
+      );
     });
 
     it('should extract extension from URL with query string', () => {
-      expect(getUrlExtension('https://example.com/file.pdf?download=1')).toBe('pdf');
+      expect(getUrlExtension('https://example.com/file.pdf?download=1')).toBe(
+        'pdf',
+      );
     });
 
     it('should extract extension from URL with hash', () => {
-      expect(getUrlExtension('https://example.com/file.pdf#page=1')).toBe('pdf');
+      expect(getUrlExtension('https://example.com/file.pdf#page=1')).toBe(
+        'pdf',
+      );
     });
 
     it('should handle URLs without extension', () => {
@@ -182,7 +188,11 @@ describe('MessageParser', () => {
     });
 
     it('should handle complex URLs', () => {
-      expect(getUrlExtension('https://example.com:8080/path/to/file.zip?param=value#hash')).toBe('zip');
+      expect(
+        getUrlExtension(
+          'https://example.com:8080/path/to/file.zip?param=value#hash',
+        ),
+      ).toBe('zip');
     });
 
     it('should return null for dot-only filename segment', () => {
@@ -219,7 +229,9 @@ describe('MessageParser', () => {
     });
 
     it('should handle URLs with query parameters', () => {
-      expect(getUrlExtension('https://example.com/file.pdf?download=1')).toBe('pdf');
+      expect(getUrlExtension('https://example.com/file.pdf?download=1')).toBe(
+        'pdf',
+      );
     });
 
     it('should return null for empty or invalid URLs', () => {
@@ -230,19 +242,27 @@ describe('MessageParser', () => {
 
   describe('isDownloadableFileUrl', () => {
     it('should return true for PDF URLs', () => {
-      expect(isDownloadableFileUrl('https://example.com/document.pdf')).toBe(true);
+      expect(isDownloadableFileUrl('https://example.com/document.pdf')).toBe(
+        true,
+      );
     });
 
     it('should return true for ZIP URLs', () => {
-      expect(isDownloadableFileUrl('https://example.com/archive.zip')).toBe(true);
+      expect(isDownloadableFileUrl('https://example.com/archive.zip')).toBe(
+        true,
+      );
     });
 
     it('should return true for DOCX URLs', () => {
-      expect(isDownloadableFileUrl('https://example.com/document.docx')).toBe(true);
+      expect(isDownloadableFileUrl('https://example.com/document.docx')).toBe(
+        true,
+      );
     });
 
     it('should return true for XLSX URLs', () => {
-      expect(isDownloadableFileUrl('https://example.com/spreadsheet.xlsx')).toBe(true);
+      expect(
+        isDownloadableFileUrl('https://example.com/spreadsheet.xlsx'),
+      ).toBe(true);
     });
 
     it('should return true for APK URLs', () => {
@@ -254,19 +274,27 @@ describe('MessageParser', () => {
     });
 
     it('should return false for image URLs', () => {
-      expect(isDownloadableFileUrl('https://example.com/image.jpg')).toBe(false);
+      expect(isDownloadableFileUrl('https://example.com/image.jpg')).toBe(
+        false,
+      );
     });
 
     it('should return false for video URLs', () => {
-      expect(isDownloadableFileUrl('https://example.com/video.mp4')).toBe(false);
+      expect(isDownloadableFileUrl('https://example.com/video.mp4')).toBe(
+        false,
+      );
     });
 
     it('should return false for audio URLs', () => {
-      expect(isDownloadableFileUrl('https://example.com/audio.mp3')).toBe(false);
+      expect(isDownloadableFileUrl('https://example.com/audio.mp3')).toBe(
+        false,
+      );
     });
 
     it('should return false for HTML URLs', () => {
-      expect(isDownloadableFileUrl('https://example.com/page.html')).toBe(false);
+      expect(isDownloadableFileUrl('https://example.com/page.html')).toBe(
+        false,
+      );
     });
 
     it('should return false for URLs without extension', () => {
@@ -327,12 +355,16 @@ describe('MessageParser', () => {
 
   describe('extractImageUrls', () => {
     it('should extract image URLs', () => {
-      const result = extractImageUrls('Check out https://example.com/image.jpg');
+      const result = extractImageUrls(
+        'Check out https://example.com/image.jpg',
+      );
       expect(result).toEqual(['https://example.com/image.jpg']);
     });
 
     it('should extract multiple image URLs', () => {
-      const result = extractImageUrls('Images: https://a.com/a.jpg and https://b.com/b.png');
+      const result = extractImageUrls(
+        'Images: https://a.com/a.jpg and https://b.com/b.png',
+      );
       expect(result).toEqual(['https://a.com/a.jpg', 'https://b.com/b.png']);
     });
 
@@ -342,7 +374,9 @@ describe('MessageParser', () => {
     });
 
     it('should handle image URLs with query strings', () => {
-      const result = extractImageUrls('Image: https://example.com/image.jpg?size=large');
+      const result = extractImageUrls(
+        'Image: https://example.com/image.jpg?size=large',
+      );
       expect(result).toEqual(['https://example.com/image.jpg?size=large']);
     });
 
@@ -391,13 +425,16 @@ describe('MessageParser', () => {
 
   describe('extractMediaTags', () => {
     it('should extract single media tag', () => {
-      const result = extractMediaTags('!enc-media [550e8400-e29b-41d4-a716-446655440000]');
+      const result = extractMediaTags(
+        '!enc-media [550e8400-e29b-41d4-a716-446655440000]',
+      );
       expect(result).toHaveLength(1);
       expect(result[0].mediaId).toBe('550e8400-e29b-41d4-a716-446655440000');
     });
 
     it('should extract multiple media tags', () => {
-      const text = '!enc-media [550e8400-e29b-41d4-a716-446655440000] !enc-media [660e8400-e29b-41d4-a716-446655440001]';
+      const text =
+        '!enc-media [550e8400-e29b-41d4-a716-446655440000] !enc-media [660e8400-e29b-41d4-a716-446655440001]';
       const result = extractMediaTags(text);
       expect(result).toHaveLength(2);
     });
@@ -413,14 +450,18 @@ describe('MessageParser', () => {
     });
 
     it('should handle media tags in sentence', () => {
-      const result = extractMediaTags('Check this out: !enc-media [550e8400-e29b-41d4-a716-446655440000] cool right?');
+      const result = extractMediaTags(
+        'Check this out: !enc-media [550e8400-e29b-41d4-a716-446655440000] cool right?',
+      );
       expect(result).toHaveLength(1);
     });
   });
 
   describe('hasMediaTags', () => {
     it('should return true for text with media tag', () => {
-      expect(hasMediaTags('!enc-media [550e8400-e29b-41d4-a716-446655440000]')).toBe(true);
+      expect(
+        hasMediaTags('!enc-media [550e8400-e29b-41d4-a716-446655440000]'),
+      ).toBe(true);
     });
 
     it('should return false for text without media tag', () => {
@@ -448,7 +489,11 @@ describe('MessageParser', () => {
       const result = parseMessage('Visit https://example.com today');
       expect(result).toHaveLength(3);
       expect(result[0]).toEqual({ type: 'text', content: 'Visit ' });
-      expect(result[1]).toEqual({ type: 'url', content: 'https://example.com', url: 'https://example.com' });
+      expect(result[1]).toEqual({
+        type: 'url',
+        content: 'https://example.com',
+        url: 'https://example.com',
+      });
       expect(result[2]).toEqual({ type: 'text', content: ' today' });
     });
 
@@ -459,14 +504,18 @@ describe('MessageParser', () => {
     });
 
     it('should parse text with media tag', () => {
-      const result = parseMessage('!enc-media [550e8400-e29b-41d4-a716-446655440000]');
+      const result = parseMessage(
+        '!enc-media [550e8400-e29b-41d4-a716-446655440000]',
+      );
       expect(result).toHaveLength(1);
       expect(result[0].type).toBe('media');
       expect(result[0].mediaId).toBe('550e8400-e29b-41d4-a716-446655440000');
     });
 
     it('should parse complex message with multiple elements', () => {
-      const result = parseMessage('Check https://a.com and https://b.com/image.jpg');
+      const result = parseMessage(
+        'Check https://a.com and https://b.com/image.jpg',
+      );
       expect(result.length).toBeGreaterThan(1);
     });
 
@@ -479,7 +528,8 @@ describe('MessageParser', () => {
     });
 
     it('should preserve ordering for text, media tag and url', () => {
-      const msg = 'A !enc-media [550e8400-e29b-41d4-a716-446655440000] B https://example.com C';
+      const msg =
+        'A !enc-media [550e8400-e29b-41d4-a716-446655440000] B https://example.com C';
       const result = parseMessage(msg);
       expect(result[0]).toEqual({ type: 'text', content: 'A ' });
       expect(result[1].type).toBe('media');
@@ -508,18 +558,24 @@ describe('MessageParser', () => {
     });
 
     it('should handle text with only media tag', () => {
-      const result = parseMessage('!enc-media [550e8400-e29b-41d4-a716-446655440000]');
+      const result = parseMessage(
+        '!enc-media [550e8400-e29b-41d4-a716-446655440000]',
+      );
       expect(result).toHaveLength(1);
       expect(result[0].type).toBe('media');
     });
 
     it('should handle mixed content', () => {
-      const result = parseMessage('Hello https://a.com world https://b.com/image.jpg!');
+      const result = parseMessage(
+        'Hello https://a.com world https://b.com/image.jpg!',
+      );
       expect(result.length).toBeGreaterThan(2);
     });
 
     it('should parse media tags case-insensitively', () => {
-      const result = parseMessage('!ENC-MEDIA [550e8400-e29b-41d4-a716-446655440000]');
+      const result = parseMessage(
+        '!ENC-MEDIA [550e8400-e29b-41d4-a716-446655440000]',
+      );
       expect(result).toHaveLength(1);
       expect(result[0].type).toBe('media');
     });
@@ -536,7 +592,10 @@ describe('MessageParser', () => {
       // and remaining text is added at line 273-281
       const result = parseMessage('Just plain text without any URLs');
       expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({ type: 'text', content: 'Just plain text without any URLs' });
+      expect(result[0]).toEqual({
+        type: 'text',
+        content: 'Just plain text without any URLs',
+      });
     });
   });
 

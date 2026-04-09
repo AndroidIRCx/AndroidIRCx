@@ -22,7 +22,7 @@ jest.mock('../../src/stores/uiStore', () => ({
         setScriptingTimeMs: mockSetScriptingTimeMs,
         setBannerVisible: mockSetBannerVisible,
       }),
-    }
+    },
   ),
 }));
 
@@ -32,7 +32,9 @@ jest.mock('../../src/services/AdRewardService', () => ({
     getRemainingTime: jest.fn(() => 0),
     addListener: jest.fn((cb: any) => {
       scriptingListener = cb;
-      return jest.fn(() => { scriptingListener = null; });
+      return jest.fn(() => {
+        scriptingListener = null;
+      });
     }),
   },
 }));
@@ -43,7 +45,9 @@ jest.mock('../../src/services/BannerAdService', () => ({
     setBannerVisible: jest.fn(),
     addListener: jest.fn((cb: any) => {
       bannerListener = cb;
-      return jest.fn(() => { bannerListener = null; });
+      return jest.fn(() => {
+        bannerListener = null;
+      });
     }),
   },
 }));
@@ -53,7 +57,9 @@ jest.mock('../../src/services/InAppPurchaseService', () => ({
     hasNoAds: jest.fn(() => false),
     addListener: jest.fn((cb: any) => {
       purchaseListener = cb;
-      return jest.fn(() => { purchaseListener = null; });
+      return jest.fn(() => {
+        purchaseListener = null;
+      });
     }),
   },
 }));
@@ -132,16 +138,17 @@ describe('useBannerAds', () => {
   it('should poll tracking status every second', () => {
     renderHook(() => useBannerAds());
 
-    const initialCalls = (adRewardService.isTracking as jest.Mock).mock.calls.length;
+    const initialCalls = (adRewardService.isTracking as jest.Mock).mock.calls
+      .length;
 
     act(() => {
       jest.advanceTimersByTime(3000);
     });
 
     // Should have been called 3 more times (every second)
-    expect((adRewardService.isTracking as jest.Mock).mock.calls.length).toBeGreaterThanOrEqual(
-      initialCalls + 3
-    );
+    expect(
+      (adRewardService.isTracking as jest.Mock).mock.calls.length,
+    ).toBeGreaterThanOrEqual(initialCalls + 3);
   });
 
   it('should update scripting time when listener fires', () => {
@@ -192,9 +199,12 @@ describe('useBannerAds', () => {
     unmount();
 
     // Verify listeners were unsubscribed
-    const adListenerUnsub = (adRewardService.addListener as jest.Mock).mock.results[0]?.value;
-    const bannerListenerUnsub = (bannerAdService.addListener as jest.Mock).mock.results[0]?.value;
-    const purchaseUnsub = (inAppPurchaseService.addListener as jest.Mock).mock.results[0]?.value;
+    const adListenerUnsub = (adRewardService.addListener as jest.Mock).mock
+      .results[0]?.value;
+    const bannerListenerUnsub = (bannerAdService.addListener as jest.Mock).mock
+      .results[0]?.value;
+    const purchaseUnsub = (inAppPurchaseService.addListener as jest.Mock).mock
+      .results[0]?.value;
 
     expect(adListenerUnsub).toHaveBeenCalled();
     expect(bannerListenerUnsub).toHaveBeenCalled();

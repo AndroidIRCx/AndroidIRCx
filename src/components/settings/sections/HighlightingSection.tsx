@@ -7,7 +7,10 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
 import { highlightService } from '../../../services/HighlightService';
 
 interface HighlightingSectionProps {
@@ -41,7 +44,7 @@ export const HighlightingSection: React.FC<HighlightingSectionProps> = ({
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:HighlightingSection.tsx,feature:settings';
-  
+
   const [highlightWords, setHighlightWords] = useState<string[]>([]);
   const [newHighlightWord, setNewHighlightWord] = useState('');
 
@@ -55,12 +58,23 @@ export const HighlightingSection: React.FC<HighlightingSectionProps> = ({
       {
         id: 'highlight-add',
         title: t('Add Highlight Word', { _tags: tags }),
-        description: t('Messages containing these words will be highlighted.', { _tags: tags }),
+        description: t('Messages containing these words will be highlighted.', {
+          _tags: tags,
+        }),
         type: 'input',
         value: newHighlightWord,
         placeholder: t('Enter a word to highlight...', { _tags: tags }),
-        searchKeywords: ['highlight', 'word', 'keyword', 'notify', 'alert', 'ping', 'mention'],
-        onValueChange: (value: string | boolean) => setNewHighlightWord(value as string),
+        searchKeywords: [
+          'highlight',
+          'word',
+          'keyword',
+          'notify',
+          'alert',
+          'ping',
+          'mention',
+        ],
+        onValueChange: (value: string | boolean) =>
+          setNewHighlightWord(value as string),
         onPress: async () => {
           if (newHighlightWord.trim()) {
             await highlightService.addHighlightWord(newHighlightWord.trim());
@@ -76,7 +90,10 @@ export const HighlightingSection: React.FC<HighlightingSectionProps> = ({
         onPress: () => {
           Alert.alert(
             t('Remove Highlight Word', { _tags: tags }),
-            t('Are you sure you want to remove "{word}"?', { word, _tags: tags }),
+            t('Are you sure you want to remove "{word}"?', {
+              word,
+              _tags: tags,
+            }),
             [
               { text: t('Cancel', { _tags: tags }), style: 'cancel' },
               {
@@ -98,8 +115,10 @@ export const HighlightingSection: React.FC<HighlightingSectionProps> = ({
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}

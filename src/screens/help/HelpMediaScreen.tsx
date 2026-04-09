@@ -25,7 +25,11 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
   const t = useT();
 
   return (
-    <HelpScreenBase visible={visible} onClose={onClose} title={t('Media Sharing Guide')}>
+    <HelpScreenBase
+      visible={visible}
+      onClose={onClose}
+      title={t('Media Sharing Guide')}
+    >
       <HelpSection title={t('Overview')}>
         <HelpParagraph>
           {t('AndroidIRCX supports end-to-end encrypted media sharing:')}
@@ -38,7 +42,9 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
 
       <HelpSection title={t('Requirements')}>
         <HelpBullet>{t('E2EE must be enabled for the channel/DM')}</HelpBullet>
-        <HelpBullet>{t('Both sender and recipient must have exchanged encryption keys')}</HelpBullet>
+        <HelpBullet>
+          {t('Both sender and recipient must have exchanged encryption keys')}
+        </HelpBullet>
         <HelpBullet>{t('Internet connection for upload/download')}</HelpBullet>
       </HelpSection>
 
@@ -46,11 +52,15 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
         <HelpSubsection title={t('Step 1: Enable Media Feature')}>
           <HelpBullet>{t('Open Settings (☰ menu)')}</HelpBullet>
           <HelpBullet>{t('Go to "Media"')}</HelpBullet>
-          <HelpBullet>{t('Enable "Enable Encrypted Media Sharing"')}</HelpBullet>
+          <HelpBullet>
+            {t('Enable "Enable Encrypted Media Sharing"')}
+          </HelpBullet>
         </HelpSubsection>
 
         <HelpSubsection title={t('Step 2: Send Photo')}>
-          <HelpBullet>{t('Open encrypted channel or DM (must have 🔒 icon)')}</HelpBullet>
+          <HelpBullet>
+            {t('Open encrypted channel or DM (must have 🔒 icon)')}
+          </HelpBullet>
           <HelpBullet>{t('Tap the 📎 attachment button')}</HelpBullet>
           <HelpBullet>{t('Select "Photo" or "Camera"')}</HelpBullet>
           <HelpBullet>{t('Choose or take photo')}</HelpBullet>
@@ -76,7 +86,9 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
 
       <HelpSection title={t('How to Receive Media')}>
         <HelpSubsection title={t('Automatic Download')}>
-          <HelpParagraph>{t('By default, media is downloaded automatically on WiFi.')}</HelpParagraph>
+          <HelpParagraph>
+            {t('By default, media is downloaded automatically on WiFi.')}
+          </HelpParagraph>
         </HelpSubsection>
 
         <HelpSubsection title={t('Manual Download')}>
@@ -104,14 +116,18 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
         </HelpSubsection>
 
         <HelpSubsection title={t('Auto-Download')}>
-          <HelpParagraph>{t('Settings → Media → Auto-Download Media')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Settings → Media → Auto-Download Media')}
+          </HelpParagraph>
           <HelpBullet>{t('WiFi only (recommended)')}</HelpBullet>
           <HelpBullet>{t('WiFi + Mobile Data')}</HelpBullet>
           <HelpBullet>{t('Never (manual only)')}</HelpBullet>
         </HelpSubsection>
 
         <HelpSubsection title={t('Storage')}>
-          <HelpParagraph>{t('Settings → Media → Maximum Cache Size / Clear Media Cache')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Settings → Media → Maximum Cache Size / Clear Media Cache')}
+          </HelpParagraph>
           <HelpBullet>{t('View cache size')}</HelpBullet>
           <HelpBullet>{t('Clear cache')}</HelpBullet>
           <HelpBullet>{t('Set max cache size')}</HelpBullet>
@@ -120,8 +136,12 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
 
       <HelpSection title={t('Privacy & Security')}>
         <HelpSubsection title={t('Encryption')}>
-          <HelpBullet>{t('All media is encrypted with XChaCha20-Poly1305 before upload')}</HelpBullet>
-          <HelpBullet>{t('Encryption keys are only shared with authorized recipients')}</HelpBullet>
+          <HelpBullet>
+            {t('All media is encrypted with XChaCha20-Poly1305 before upload')}
+          </HelpBullet>
+          <HelpBullet>
+            {t('Encryption keys are only shared with authorized recipients')}
+          </HelpBullet>
           <HelpBullet>{t('Server cannot decrypt media')}</HelpBullet>
         </HelpSubsection>
 
@@ -133,8 +153,10 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
       </HelpSection>
 
       <HelpSection title={t('Troubleshooting')}>
-        <HelpSubsection title={t('Can\'t see attachment button')}>
-          <HelpBullet>{t('Check if channel/DM has encryption enabled (🔒 icon)')}</HelpBullet>
+        <HelpSubsection title={t("Can't see attachment button")}>
+          <HelpBullet>
+            {t('Check if channel/DM has encryption enabled (🔒 icon)')}
+          </HelpBullet>
           <HelpBullet>{t('Enable media feature in Settings')}</HelpBullet>
           <HelpBullet>{t('Exchange encryption keys first')}</HelpBullet>
         </HelpSubsection>
@@ -151,8 +173,8 @@ export const HelpMediaScreen: React.FC<HelpMediaScreenProps> = ({
           <HelpBullet>{t('Try clearing media cache')}</HelpBullet>
         </HelpSubsection>
 
-        <HelpSubsection title={t('Media appears as \'Encrypted data\'')}>
-          <HelpBullet>{t('You don\'t have the decryption key')}</HelpBullet>
+        <HelpSubsection title={t("Media appears as 'Encrypted data'")}>
+          <HelpBullet>{t("You don't have the decryption key")}</HelpBullet>
           <HelpBullet>{t('Request key from sender')}</HelpBullet>
         </HelpSubsection>
       </HelpSection>

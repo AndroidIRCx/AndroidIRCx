@@ -31,7 +31,9 @@ interface UseNetworkInitializationParams {
  * - Cleans up invalid tabs from state and storage
  * - Persists tabs to storage with debouncing
  */
-export const useNetworkInitialization = (params: UseNetworkInitializationParams) => {
+export const useNetworkInitialization = (
+  params: UseNetworkInitializationParams,
+) => {
   const {
     isCheckingFirstRun,
     showFirstRunSetup,
@@ -61,21 +63,25 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
           // 2) Favorite/default server network
           // 3) DBase
           // 4) first with servers
-          const quickConnectNetworkId = await settingsService.getSetting<string | null>('quickConnectNetworkId', null);
+          const quickConnectNetworkId = await settingsService.getSetting<
+            string | null
+          >('quickConnectNetworkId', null);
           let networkToUse = quickConnectNetworkId
             ? networks.find(n => n.id === quickConnectNetworkId)
             : undefined;
 
           if (!networkToUse) {
-            networkToUse = networks.find(n =>
-              n.defaultServerId || n.servers?.some(s => s.favorite)
+            networkToUse = networks.find(
+              n => n.defaultServerId || n.servers?.some(s => s.favorite),
             );
           }
           if (!networkToUse) {
             networkToUse = networks.find(n => n.name === 'DBase');
           }
           if (!networkToUse) {
-            networkToUse = networks.find(n => n.servers && n.servers.length > 0) || networks[0];
+            networkToUse =
+              networks.find(n => n.servers && n.servers.length > 0) ||
+              networks[0];
           }
           if (networkToUse && networkToUse.name) {
             initialNetworkName = networkToUse.name;
@@ -99,13 +105,22 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
         const loadedTabs = await tabService.getTabs(initialNetworkName);
         // Filter out any "Not connected" tabs from storage
         const tabsNormalized = loadedTabs
-          .filter(tab => tab.networkId !== 'Not connected' && tab.name !== 'Not connected')
+          .filter(
+            tab =>
+              tab.networkId !== 'Not connected' && tab.name !== 'Not connected',
+          )
           .map(tab => ({
             ...tab,
             networkId: tab.networkId || initialNetworkName,
-            id: tab.id.includes('::') ? tab.id : (tab.type === 'server' ? serverTabId(initialNetworkName) : tab.id),
+            id: tab.id.includes('::')
+              ? tab.id
+              : tab.type === 'server'
+                ? serverTabId(initialNetworkName)
+                : tab.id,
           }));
-        const ensuredServer = tabsNormalized.some(t => t.type === 'server') ? tabsNormalized : [makeServerTab(initialNetworkName), ...tabsNormalized];
+        const ensuredServer = tabsNormalized.some(t => t.type === 'server')
+          ? tabsNormalized
+          : [makeServerTab(initialNetworkName), ...tabsNormalized];
 
         // Load history for server tab BEFORE creating tabs
         // This ensures history is loaded before new messages arrive, preventing history from being cleared
@@ -114,13 +129,16 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
         const serverTab = ensuredServer.find(t => t.id === initialServerId);
         if (serverTab) {
           try {
-            serverTabHistory = await messageHistoryService.loadMessages(initialNetworkName, 'server');
+            serverTabHistory = await messageHistoryService.loadMessages(
+              initialNetworkName,
+              'server',
+            );
           } catch (err) {
             console.error('Error loading server tab history on startup:', err);
             // Continue without history if loading fails
           }
         }
-        
+
         // Progressive loading: Set tabs with server tab history loaded, others without history
         // Message history for other tabs will be lazy-loaded when tabs are switched to
         const tabsWithHistory = ensuredServer.map(tab => {
@@ -135,11 +153,11 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
         setTabs(tabsWithHistory);
         const lastActiveKey = `@AndroidIRCX:lastActiveTab:${initialNetworkName}`;
         const lastActiveId = await AsyncStorage.getItem(lastActiveKey);
-        const nextActiveId = lastActiveId && tabsWithHistory.some(t => t.id === lastActiveId)
-          ? lastActiveId
-          : initialServerId;
+        const nextActiveId =
+          lastActiveId && tabsWithHistory.some(t => t.id === lastActiveId)
+            ? lastActiveId
+            : initialServerId;
         setActiveTabId(nextActiveId);
-
       } catch (error) {
         console.error('Error loading initial data:', error);
         // Set default tabs on error
@@ -167,23 +185,32 @@ export const useNetworkInitialization = (params: UseNetworkInitializationParams)
   // Clean up invalid tabs from state - run only on mount to avoid infinite loops
   useEffect(() => {
     const currentTabs = useTabStore.getState().tabs;
-    const invalidTabs = currentTabs.filter(t =>
-      t.name === 'Not connected' ||
-      t.networkId === 'Not connected' ||
-      t.networkId === '' ||
-      !t.networkId
+    const invalidTabs = currentTabs.filter(
+      t =>
+        t.name === 'Not connected' ||
+        t.networkId === 'Not connected' ||
+        t.networkId === '' ||
+        !t.networkId,
     );
 
     if (invalidTabs.length > 0) {
-      console.log('🔴 WARNING: Found invalid tabs on mount, removing:', invalidTabs.map(t => ({ id: t.id, name: t.name, networkId: t.networkId })));
+      console.log(
+        '🔴 WARNING: Found invalid tabs on mount, removing:',
+        invalidTabs.map(t => ({
+          id: t.id,
+          name: t.name,
+          networkId: t.networkId,
+        })),
+      );
       console.trace('Stack trace for invalid tab detection');
 
       // Remove invalid tabs immediately
-      const validTabs = currentTabs.filter(t =>
-        t.name !== 'Not connected' &&
-        t.networkId !== 'Not connected' &&
-        t.networkId !== '' &&
-        t.networkId
+      const validTabs = currentTabs.filter(
+        t =>
+          t.name !== 'Not connected' &&
+          t.networkId !== 'Not connected' &&
+          t.networkId !== '' &&
+          t.networkId,
       );
       setTabs(validTabs);
     }

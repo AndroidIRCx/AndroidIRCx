@@ -22,10 +22,13 @@ jest.mock('../../src/services/SettingsService', () => ({
 }));
 
 jest.mock('../../src/utils/MircPresetParser', () => ({
-  decodeMircPresetBase64: (...args: any[]) => mockDecodeMircPresetBase64(...args),
+  decodeMircPresetBase64: (...args: any[]) =>
+    mockDecodeMircPresetBase64(...args),
   parseGenericPresets: (...args: any[]) => mockParseGenericPresets(...args),
-  parseIrcapDecorationEti: (...args: any[]) => mockParseIrcapDecorationEti(...args),
-  parseNickCompletionPresets: (...args: any[]) => mockParseNickCompletionPresets(...args),
+  parseIrcapDecorationEti: (...args: any[]) =>
+    mockParseIrcapDecorationEti(...args),
+  parseNickCompletionPresets: (...args: any[]) =>
+    mockParseNickCompletionPresets(...args),
 }));
 
 jest.mock('../../src/presets/IRcapPresets', () => ({
@@ -89,9 +92,14 @@ describe('PresetImportService', () => {
 
       await presetImportService.initialize();
 
-      expect(mockDecodeMircPresetBase64).toHaveBeenCalledWith('mock-away-base64');
+      expect(mockDecodeMircPresetBase64).toHaveBeenCalledWith(
+        'mock-away-base64',
+      );
       expect(mockParseGenericPresets).toHaveBeenCalledWith('away raw content');
-      expect(mockSetSetting).toHaveBeenCalledWith('awayPresets', ['Away preset 1', 'Away preset 2']);
+      expect(mockSetSetting).toHaveBeenCalledWith('awayPresets', [
+        'Away preset 1',
+        'Away preset 2',
+      ]);
     });
 
     it('should not import if presets already exist and do not need reimport', async () => {
@@ -100,27 +108,38 @@ describe('PresetImportService', () => {
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).not.toHaveBeenCalledWith('awayPresets', expect.anything());
+      expect(mockSetSetting).not.toHaveBeenCalledWith(
+        'awayPresets',
+        expect.anything(),
+      );
     });
 
     it('should reimport if existing presets have corruption markers (ÂÃ�)', async () => {
       mockGetSetting.mockResolvedValue(['Corrupted ÂÃ preset']);
       mockDecodeMircPresetBase64.mockReturnValue('away raw content');
-      mockParseGenericPresets.mockReturnValue([{ id: '1', raw: 'Clean preset' }]);
+      mockParseGenericPresets.mockReturnValue([
+        { id: '1', raw: 'Clean preset' },
+      ]);
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).toHaveBeenCalledWith('awayPresets', ['Clean preset']);
+      expect(mockSetSetting).toHaveBeenCalledWith('awayPresets', [
+        'Clean preset',
+      ]);
     });
 
     it('should reimport if existing presets have on/off suffixes', async () => {
       mockGetSetting.mockResolvedValue(['Preset with on']);
       mockDecodeMircPresetBase64.mockReturnValue('away raw content');
-      mockParseGenericPresets.mockReturnValue([{ id: '1', raw: 'Clean preset' }]);
+      mockParseGenericPresets.mockReturnValue([
+        { id: '1', raw: 'Clean preset' },
+      ]);
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).toHaveBeenCalledWith('awayPresets', ['Clean preset']);
+      expect(mockSetSetting).toHaveBeenCalledWith('awayPresets', [
+        'Clean preset',
+      ]);
     });
 
     it('should not set setting if no presets parsed', async () => {
@@ -130,7 +149,10 @@ describe('PresetImportService', () => {
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).not.toHaveBeenCalledWith('awayPresets', expect.anything());
+      expect(mockSetSetting).not.toHaveBeenCalledWith(
+        'awayPresets',
+        expect.anything(),
+      );
     });
   });
 
@@ -141,16 +163,25 @@ describe('PresetImportService', () => {
         return Promise.resolve([]);
       });
       mockDecodeMircPresetBase64.mockReturnValue('decoration raw content');
-      mockParseIrcapDecorationEti.mockReturnValue(['New style 1', 'Existing style', 'New style 2']);
+      mockParseIrcapDecorationEti.mockReturnValue([
+        'New style 1',
+        'Existing style',
+        'New style 2',
+      ]);
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).toHaveBeenCalledWith('decorStyles', ['Existing style', 'New style 1', 'New style 2']);
+      expect(mockSetSetting).toHaveBeenCalledWith('decorStyles', [
+        'Existing style',
+        'New style 1',
+        'New style 2',
+      ]);
     });
 
     it('should replace existing if needs reimport', async () => {
       mockGetSetting.mockImplementation((key: string) => {
-        if (key === 'decorStyles') return Promise.resolve(['Corrupted Â style']);
+        if (key === 'decorStyles')
+          return Promise.resolve(['Corrupted Â style']);
         return Promise.resolve([]);
       });
       mockDecodeMircPresetBase64.mockReturnValue('decoration raw content');
@@ -158,7 +189,10 @@ describe('PresetImportService', () => {
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).toHaveBeenCalledWith('decorStyles', ['Style 1', 'Style 2']);
+      expect(mockSetSetting).toHaveBeenCalledWith('decorStyles', [
+        'Style 1',
+        'Style 2',
+      ]);
     });
 
     it('should not set setting if no presets parsed', async () => {
@@ -168,7 +202,9 @@ describe('PresetImportService', () => {
 
       await presetImportService.initialize();
 
-      const decorCalls = mockSetSetting.mock.calls.filter((call: any[]) => call[0] === 'decorStyles');
+      const decorCalls = mockSetSetting.mock.calls.filter(
+        (call: any[]) => call[0] === 'decorStyles',
+      );
       expect(decorCalls).toHaveLength(0);
     });
   });
@@ -184,8 +220,14 @@ describe('PresetImportService', () => {
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).toHaveBeenCalledWith('nickCompleteStyles', ['Style 1', 'Style 2']);
-      expect(mockSetSetting).toHaveBeenCalledWith('nickCompleteStyleId', 'Style 1');
+      expect(mockSetSetting).toHaveBeenCalledWith('nickCompleteStyles', [
+        'Style 1',
+        'Style 2',
+      ]);
+      expect(mockSetSetting).toHaveBeenCalledWith(
+        'nickCompleteStyleId',
+        'Style 1',
+      );
     });
 
     it('should not import if presets exist and valid', async () => {
@@ -194,17 +236,24 @@ describe('PresetImportService', () => {
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).not.toHaveBeenCalledWith('nickCompleteStyles', expect.anything());
+      expect(mockSetSetting).not.toHaveBeenCalledWith(
+        'nickCompleteStyles',
+        expect.anything(),
+      );
     });
 
     it('should reimport if presets have corruption markers', async () => {
       mockGetSetting.mockResolvedValue(['Corrupted� preset']);
       mockDecodeMircPresetBase64.mockReturnValue('nick completion raw content');
-      mockParseNickCompletionPresets.mockReturnValue([{ id: '1', raw: 'Clean' }]);
+      mockParseNickCompletionPresets.mockReturnValue([
+        { id: '1', raw: 'Clean' },
+      ]);
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).toHaveBeenCalledWith('nickCompleteStyles', ['Clean']);
+      expect(mockSetSetting).toHaveBeenCalledWith('nickCompleteStyles', [
+        'Clean',
+      ]);
     });
   });
 
@@ -219,8 +268,14 @@ describe('PresetImportService', () => {
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).toHaveBeenCalledWith('topicStyles', ['Topic style 1', 'Topic style 2']);
-      expect(mockSetSetting).toHaveBeenCalledWith('topicStyleId', 'Topic style 1');
+      expect(mockSetSetting).toHaveBeenCalledWith('topicStyles', [
+        'Topic style 1',
+        'Topic style 2',
+      ]);
+      expect(mockSetSetting).toHaveBeenCalledWith(
+        'topicStyleId',
+        'Topic style 1',
+      );
     });
 
     it('should not import if presets exist and valid', async () => {
@@ -229,17 +284,24 @@ describe('PresetImportService', () => {
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).not.toHaveBeenCalledWith('topicStyles', expect.anything());
+      expect(mockSetSetting).not.toHaveBeenCalledWith(
+        'topicStyles',
+        expect.anything(),
+      );
     });
 
     it('should reimport if presets have trailing on/off', async () => {
       mockGetSetting.mockResolvedValue(['Style with OFF']);
       mockDecodeMircPresetBase64.mockReturnValue('topic raw content');
-      mockParseGenericPresets.mockReturnValue([{ id: '1', raw: 'Clean topic' }]);
+      mockParseGenericPresets.mockReturnValue([
+        { id: '1', raw: 'Clean topic' },
+      ]);
 
       await presetImportService.initialize();
 
-      expect(mockSetSetting).toHaveBeenCalledWith('topicStyles', ['Clean topic']);
+      expect(mockSetSetting).toHaveBeenCalledWith('topicStyles', [
+        'Clean topic',
+      ]);
     });
   });
 

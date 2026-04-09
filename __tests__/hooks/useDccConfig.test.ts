@@ -12,9 +12,13 @@ const mockStorage: Map<string, string> = new Map();
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    setItem: jest.fn(async (key: string, value: string) => { mockStorage.set(key, value); }),
+    setItem: jest.fn(async (key: string, value: string) => {
+      mockStorage.set(key, value);
+    }),
     getItem: jest.fn(async (key: string) => mockStorage.get(key) || null),
-    removeItem: jest.fn(async (key: string) => { mockStorage.delete(key); }),
+    removeItem: jest.fn(async (key: string) => {
+      mockStorage.delete(key);
+    }),
   },
 }));
 
@@ -23,14 +27,18 @@ jest.mock('../../src/services/DCCFileService', () => ({
     setPortRange: jest.fn(),
   },
 }));
-const mockDccFileService = jest.requireMock<any>('../../src/services/DCCFileService').dccFileService;
+const mockDccFileService = jest.requireMock<any>(
+  '../../src/services/DCCFileService',
+).dccFileService;
 
 jest.mock('../../src/services/SettingsService', () => ({
   settingsService: {
     getSetting: jest.fn(),
   },
 }));
-const mockSettingsService = jest.requireMock<any>('../../src/services/SettingsService').settingsService;
+const mockSettingsService = jest.requireMock<any>(
+  '../../src/services/SettingsService',
+).settingsService;
 
 describe('useDccConfig', () => {
   beforeEach(() => {
@@ -44,18 +52,27 @@ describe('useDccConfig', () => {
     renderHook(() => useDccConfig());
 
     await waitFor(() => {
-      expect(mockSettingsService.getSetting).toHaveBeenCalledWith('dccPortRange', { min: 5000, max: 6000 });
+      expect(mockSettingsService.getSetting).toHaveBeenCalledWith(
+        'dccPortRange',
+        { min: 5000, max: 6000 },
+      );
       expect(mockDccFileService.setPortRange).toHaveBeenCalledWith(5000, 6000);
     });
   });
 
   it('should apply custom port range', async () => {
-    mockSettingsService.getSetting.mockResolvedValue({ min: 10000, max: 20000 });
+    mockSettingsService.getSetting.mockResolvedValue({
+      min: 10000,
+      max: 20000,
+    });
 
     renderHook(() => useDccConfig());
 
     await waitFor(() => {
-      expect(mockDccFileService.setPortRange).toHaveBeenCalledWith(10000, 20000);
+      expect(mockDccFileService.setPortRange).toHaveBeenCalledWith(
+        10000,
+        20000,
+      );
     });
   });
 

@@ -83,10 +83,15 @@ jest.mock('../../../src/components/settings/SettingItem', () => ({
           <>
             <Text>{item.title}</Text>
             {item.description ? <Text>{item.description}</Text> : null}
-            <Switch value={!!item.value} onValueChange={(v: boolean) => item.onValueChange?.(v)} />
+            <Switch
+              value={!!item.value}
+              onValueChange={(v: boolean) => item.onValueChange?.(v)}
+            />
           </>
         ) : (
-          <TouchableOpacity onPress={() => (item.onPress ? item.onPress() : onPress?.(item.id))}>
+          <TouchableOpacity
+            onPress={() => (item.onPress ? item.onPress() : onPress?.(item.id))}
+          >
             <Text>{item.title}</Text>
             {item.description ? <Text>{item.description}</Text> : null}
           </TouchableOpacity>
@@ -101,9 +106,15 @@ import { mediaCacheService } from '../../../src/services/MediaCacheService';
 import { callMediaProfileService } from '../../../src/services/CallMediaProfileService';
 import { settingsService } from '../../../src/services/SettingsService';
 
-const mockSettings = mediaSettingsService as unknown as Record<string, jest.Mock>;
+const mockSettings = mediaSettingsService as unknown as Record<
+  string,
+  jest.Mock
+>;
 const mockCache = mediaCacheService as unknown as Record<string, jest.Mock>;
-const mockCallMediaProfile = callMediaProfileService as unknown as Record<string, jest.Mock>;
+const mockCallMediaProfile = callMediaProfileService as unknown as Record<
+  string,
+  jest.Mock
+>;
 const mockAppSettings = settingsService as unknown as Record<string, jest.Mock>;
 
 describe('MediaSection', () => {
@@ -152,7 +163,10 @@ describe('MediaSection', () => {
     mockSettings.getCallNicklistCallActionsEnabled.mockResolvedValue(false);
     mockSettings.getVoiceMaxDuration.mockResolvedValue(180);
     mockCache.getCacheSize.mockResolvedValue(1024);
-    mockCache.clearCache.mockResolvedValue({ clearedCount: 1, freedSpace: 1024 });
+    mockCache.clearCache.mockResolvedValue({
+      clearedCount: 1,
+      freedSpace: 1024,
+    });
     mockAppSettings.getSetting.mockResolvedValue(false);
     mockAppSettings.setSetting.mockResolvedValue(undefined);
     mockCallMediaProfile.getCapabilityProfile.mockReturnValue({
@@ -164,7 +178,7 @@ describe('MediaSection', () => {
 
   it('renders media setting entries', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     await waitFor(() => {
@@ -175,7 +189,7 @@ describe('MediaSection', () => {
 
   it('toggles media enabled switch and persists', async () => {
     const { UNSAFE_getAllByType } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     await waitFor(() => {
@@ -187,7 +201,7 @@ describe('MediaSection', () => {
 
   it('opens cache submenu and closes it', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('Maximum Cache Size'));
@@ -199,7 +213,7 @@ describe('MediaSection', () => {
 
   it('updates cache max size by submenu action', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('Maximum Cache Size'));
@@ -214,7 +228,7 @@ describe('MediaSection', () => {
 
   it('selects additional cache size presets', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
     fireEvent.press(getByText('Maximum Cache Size'));
     await waitFor(() => {
@@ -225,14 +239,18 @@ describe('MediaSection', () => {
       fireEvent.press(getByText('1 GB'));
     });
     await waitFor(() => {
-      expect(mockSettings.setMaxCacheSize).toHaveBeenCalledWith(250 * 1024 * 1024);
-      expect(mockSettings.setMaxCacheSize).toHaveBeenCalledWith(1024 * 1024 * 1024);
+      expect(mockSettings.setMaxCacheSize).toHaveBeenCalledWith(
+        250 * 1024 * 1024,
+      );
+      expect(mockSettings.setMaxCacheSize).toHaveBeenCalledWith(
+        1024 * 1024 * 1024,
+      );
     });
   });
 
   it('updates media quality from submenu', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     await waitFor(() => {
@@ -251,7 +269,7 @@ describe('MediaSection', () => {
 
   it('updates video quality from submenu', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
     await waitFor(() => {
       expect(mockSettings.setVideoQuality).toHaveBeenCalledWith('1080p');
@@ -269,7 +287,7 @@ describe('MediaSection', () => {
 
   it('limits live call quality options for free users', async () => {
     const { getByText, queryByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('Live Call Video Quality'));
@@ -288,7 +306,7 @@ describe('MediaSection', () => {
     mockSettings.getCallVideoQuality.mockResolvedValue('1080p');
 
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     await waitFor(() => {
@@ -308,7 +326,7 @@ describe('MediaSection', () => {
 
   it('updates additional video quality presets', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
     fireEvent.press(getByText('Video Recording Quality'));
     await waitFor(() => {
@@ -325,7 +343,7 @@ describe('MediaSection', () => {
 
   it('updates free-call STUN servers from list editor', async () => {
     const { getByText, getByPlaceholderText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('Free Call STUN Servers'));
@@ -333,7 +351,10 @@ describe('MediaSection', () => {
       expect(getByText('stun:turn.dbase.in.rs:3478')).toBeTruthy();
     });
 
-    fireEvent.changeText(getByPlaceholderText('stun:stun.l.google.com:19302'), 'stun:new.example.org:3478');
+    fireEvent.changeText(
+      getByPlaceholderText('stun:stun.l.google.com:19302'),
+      'stun:new.example.org:3478',
+    );
     fireEvent.press(getByText('Add'));
 
     await waitFor(() => {
@@ -347,7 +368,7 @@ describe('MediaSection', () => {
 
   it('shows validation for invalid STUN entries and does not add them', async () => {
     const { getByText, getByPlaceholderText, queryByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('Free Call STUN Servers'));
@@ -355,7 +376,10 @@ describe('MediaSection', () => {
       expect(getByText('STUN Servers')).toBeTruthy();
     });
 
-    fireEvent.changeText(getByPlaceholderText('stun:stun.l.google.com:19302'), 'http://bad.example.org');
+    fireEvent.changeText(
+      getByPlaceholderText('stun:stun.l.google.com:19302'),
+      'http://bad.example.org',
+    );
     fireEvent.press(getByText('Add'));
 
     await waitFor(() => {
@@ -366,7 +390,7 @@ describe('MediaSection', () => {
 
   it('does not add duplicate STUN server entries', async () => {
     const { getByText, getByPlaceholderText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('Free Call STUN Servers'));
@@ -376,7 +400,7 @@ describe('MediaSection', () => {
 
     fireEvent.changeText(
       getByPlaceholderText('stun:stun.l.google.com:19302'),
-      'stun:turn.dbase.in.rs:3478'
+      'stun:turn.dbase.in.rs:3478',
     );
     fireEvent.press(getByText('Add'));
 
@@ -397,15 +421,20 @@ describe('MediaSection', () => {
     });
 
     const { getByText, getByPlaceholderText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('External TURN Server'));
     await waitFor(() => {
-      expect(getByText('turn:relay.example.net:3478?transport=udp')).toBeTruthy();
+      expect(
+        getByText('turn:relay.example.net:3478?transport=udp'),
+      ).toBeTruthy();
     });
 
-    fireEvent.changeText(getByPlaceholderText('turn:turn.example.com:3478?transport=udp'), 'turns:relay.example.net:5349?transport=tcp');
+    fireEvent.changeText(
+      getByPlaceholderText('turn:turn.example.com:3478?transport=udp'),
+      'turns:relay.example.net:5349?transport=tcp',
+    );
     fireEvent.press(getByText('Add'));
     fireEvent.changeText(getByPlaceholderText('username'), 'relay-user');
     fireEvent.changeText(getByPlaceholderText('credential'), 'relay-pass');
@@ -427,11 +456,15 @@ describe('MediaSection', () => {
     mockSettings.getCallForceRelayOnly.mockResolvedValueOnce(true);
     mockSettings.getCallNicklistCallActionsEnabled.mockResolvedValueOnce(true);
 
-    render(<MediaSection colors={colors} styles={styles as any} settingIcons={{}} />);
+    render(
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
+    );
 
     await waitFor(() => {
       expect(mockSettings.setCallForceRelayOnly).toHaveBeenCalledWith(true);
-      expect(mockSettings.setCallNicklistCallActionsEnabled).toHaveBeenCalledWith(true);
+      expect(
+        mockSettings.setCallNicklistCallActionsEnabled,
+      ).toHaveBeenCalledWith(true);
     });
   });
 
@@ -441,7 +474,7 @@ describe('MediaSection', () => {
       .mockResolvedValueOnce(false); // callMinimizedOnlyOnActiveQuery
 
     const { UNSAFE_getAllByType } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     await waitFor(() => {
@@ -450,7 +483,10 @@ describe('MediaSection', () => {
     });
 
     await waitFor(() => {
-      expect(mockAppSettings.setSetting).toHaveBeenCalledWith('showCallNotification', false);
+      expect(mockAppSettings.setSetting).toHaveBeenCalledWith(
+        'showCallNotification',
+        false,
+      );
     });
   });
 
@@ -460,7 +496,7 @@ describe('MediaSection', () => {
       .mockResolvedValueOnce(false); // callMinimizedOnlyOnActiveQuery
 
     const { UNSAFE_getAllByType } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     await waitFor(() => {
@@ -469,13 +505,16 @@ describe('MediaSection', () => {
     });
 
     await waitFor(() => {
-      expect(mockAppSettings.setSetting).toHaveBeenCalledWith('callMinimizedOnlyOnActiveQuery', true);
+      expect(mockAppSettings.setSetting).toHaveBeenCalledWith(
+        'callMinimizedOnlyOnActiveQuery',
+        true,
+      );
     });
   });
 
   it('reorders and removes STUN servers from list editor', async () => {
     const { getByText, getByLabelText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('Free Call STUN Servers'));
@@ -505,7 +544,7 @@ describe('MediaSection', () => {
 
   it('shows validation for invalid TURN entry and does not add it', async () => {
     const { getByText, getByPlaceholderText, queryByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('External TURN Server'));
@@ -515,7 +554,7 @@ describe('MediaSection', () => {
 
     fireEvent.changeText(
       getByPlaceholderText('turn:turn.example.com:3478?transport=udp'),
-      'http://bad-turn.example.org'
+      'http://bad-turn.example.org',
     );
     fireEvent.press(getByText('Add'));
 
@@ -534,7 +573,7 @@ describe('MediaSection', () => {
     });
 
     const { getByText, getByPlaceholderText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('External TURN Server'));
@@ -544,7 +583,7 @@ describe('MediaSection', () => {
 
     fireEvent.changeText(
       getByPlaceholderText('turn:turn.example.com:3478?transport=udp'),
-      'turn:relay.example.net:3478?transport=udp'
+      'turn:relay.example.net:3478?transport=udp',
     );
     fireEvent.press(getByText('Add'));
 
@@ -560,7 +599,7 @@ describe('MediaSection', () => {
 
   it('updates max voice duration from submenu', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
     await waitFor(() => {
       expect(mockSettings.setVoiceMaxDuration).toHaveBeenCalledWith(180);
@@ -578,7 +617,7 @@ describe('MediaSection', () => {
 
   it('updates additional voice duration presets', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
     fireEvent.press(getByText('Max Voice Message Duration'));
     await waitFor(() => {
@@ -595,7 +634,7 @@ describe('MediaSection', () => {
 
   it('triggers clear cache confirmation flow', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
     fireEvent.press(getByText('Clear Media Cache'));
 
@@ -606,7 +645,7 @@ describe('MediaSection', () => {
 
   it('executes clear-cache confirm action successfully', async () => {
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
     fireEvent.press(getByText('Clear Media Cache'));
 
@@ -625,7 +664,7 @@ describe('MediaSection', () => {
 
   it('toggles auto-download and wifi-only settings', async () => {
     const { UNSAFE_getAllByType } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     await waitFor(() => {
@@ -640,7 +679,7 @@ describe('MediaSection', () => {
   it('handles clear-cache confirm error path', async () => {
     mockCache.clearCache.mockRejectedValueOnce(new Error('boom'));
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
     fireEvent.press(getByText('Clear Media Cache'));
 
@@ -652,7 +691,10 @@ describe('MediaSection', () => {
     });
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to clear cache: {error}');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to clear cache: {error}',
+      );
     });
   });
 
@@ -661,7 +703,7 @@ describe('MediaSection', () => {
     mockSettings.getMaxCacheSize.mockResolvedValueOnce(512 * 1024);
 
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     await waitFor(() => {
@@ -674,12 +716,14 @@ describe('MediaSection', () => {
     mockCache.getCacheSize.mockResolvedValueOnce(2 * 1024 * 1024 * 1024);
 
     const { getByText } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     await waitFor(() => {
       expect(
-        getByText('Media sharing is disabled. Attachment button will not appear.')
+        getByText(
+          'Media sharing is disabled. Attachment button will not appear.',
+        ),
       ).toBeTruthy();
       expect(getByText('Current cache: 2.0 GB / Max: 250 MB')).toBeTruthy();
     });
@@ -687,7 +731,7 @@ describe('MediaSection', () => {
 
   it('closes submenu through modal requestClose callback', async () => {
     const { getByText, UNSAFE_getByType } = render(
-      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <MediaSection colors={colors} styles={styles as any} settingIcons={{}} />,
     );
 
     fireEvent.press(getByText('Maximum Cache Size'));

@@ -20,7 +20,16 @@ describe('UserManagementService', () => {
 
   it('stores WHOIS info via updateWHOIS and getWHOIS', () => {
     svc.setNetwork('Net');
-    svc.updateWHOIS({ nick: 'nick', username: 'user', hostname: 'host', server: 'irc.test', channels: ['#chan'] }, 'Net');
+    svc.updateWHOIS(
+      {
+        nick: 'nick',
+        username: 'user',
+        hostname: 'host',
+        server: 'irc.test',
+        channels: ['#chan'],
+      },
+      'Net',
+    );
     const info = svc.getWHOIS('nick', 'Net');
     expect(info?.nick).toBe('nick');
     expect(info?.hostname).toBe('host');

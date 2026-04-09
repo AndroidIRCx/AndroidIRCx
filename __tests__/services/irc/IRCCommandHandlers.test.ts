@@ -26,7 +26,7 @@ describe('IRCCommandHandlers', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockService = {
       addMessage: jest.fn(),
       addRawMessage: jest.fn(),
@@ -35,7 +35,9 @@ describe('IRCCommandHandlers', () => {
       parseCTCP: jest.fn(),
       getNetworkName: jest.fn().mockReturnValue('TestNetwork'),
       currentNick: 'MyNick',
-      getUserManagementService: jest.fn().mockReturnValue(userManagementService),
+      getUserManagementService: jest
+        .fn()
+        .mockReturnValue(userManagementService),
       getProtectionTabContext: jest.fn(),
       handleProtectionBlock: jest.fn(),
       extractMaskFromNotice: jest.fn(),
@@ -67,15 +69,24 @@ describe('IRCCommandHandlers', () => {
 
   describe('handle', () => {
     it('should return false for unknown commands', () => {
-      const result = (handlers as any).handle('UNKNOWNXYZ123', 'server', ['param1'], Date.now());
+      const result = (handlers as any).handle(
+        'UNKNOWNXYZ123',
+        'server',
+        ['param1'],
+        Date.now(),
+      );
       expect(result).toBe(false);
     });
   });
 
   describe('runBlacklistCheckForJoin', () => {
     it('should skip blacklist check for protected users', () => {
-      (userManagementService.isUserProtected as jest.Mock).mockReturnValue(true);
-      (userManagementService.findMatchingBlacklistEntry as jest.Mock).mockReturnValue({
+      (userManagementService.isUserProtected as jest.Mock).mockReturnValue(
+        true,
+      );
+      (
+        userManagementService.findMatchingBlacklistEntry as jest.Mock
+      ).mockReturnValue({
         mask: 'baduser',
         action: 'ban',
       });
@@ -85,15 +96,24 @@ describe('IRCCommandHandlers', () => {
       ctx.runBlacklistCheckForJoin('baduser', 'user', 'host.com', '#channel');
 
       expect(userManagementService.isUserProtected).toHaveBeenCalledWith(
-        'baduser', 'user', 'host.com', 'TestNetwork'
+        'baduser',
+        'user',
+        'host.com',
+        'TestNetwork',
       );
-      expect(userManagementService.findMatchingBlacklistEntry).not.toHaveBeenCalled();
+      expect(
+        userManagementService.findMatchingBlacklistEntry,
+      ).not.toHaveBeenCalled();
       expect(mockService.runBlacklistAction).not.toHaveBeenCalled();
     });
 
     it('should run blacklist action for non-protected matching users', () => {
-      (userManagementService.isUserProtected as jest.Mock).mockReturnValue(false);
-      (userManagementService.findMatchingBlacklistEntry as jest.Mock).mockReturnValue({
+      (userManagementService.isUserProtected as jest.Mock).mockReturnValue(
+        false,
+      );
+      (
+        userManagementService.findMatchingBlacklistEntry as jest.Mock
+      ).mockReturnValue({
         mask: 'baduser',
         action: 'kick_ban',
         reason: 'Spam',
@@ -102,15 +122,19 @@ describe('IRCCommandHandlers', () => {
       const ctx = (handlers as any).ctx;
       ctx.runBlacklistCheckForJoin('baduser', 'user', 'host.com', '#channel');
 
-      expect(userManagementService.findMatchingBlacklistEntry).toHaveBeenCalledWith(
-        'baduser', 'user', 'host.com', 'TestNetwork'
-      );
+      expect(
+        userManagementService.findMatchingBlacklistEntry,
+      ).toHaveBeenCalledWith('baduser', 'user', 'host.com', 'TestNetwork');
       expect(mockService.runBlacklistAction).toHaveBeenCalled();
     });
 
     it('should not run action when no blacklist entry matches', () => {
-      (userManagementService.isUserProtected as jest.Mock).mockReturnValue(false);
-      (userManagementService.findMatchingBlacklistEntry as jest.Mock).mockReturnValue(undefined);
+      (userManagementService.isUserProtected as jest.Mock).mockReturnValue(
+        false,
+      );
+      (
+        userManagementService.findMatchingBlacklistEntry as jest.Mock
+      ).mockReturnValue(undefined);
 
       const ctx = (handlers as any).ctx;
       ctx.runBlacklistCheckForJoin('gooduser', 'user', 'host.com', '#channel');
@@ -122,39 +146,53 @@ describe('IRCCommandHandlers', () => {
   describe('runAutoModeCheckForJoin', () => {
     beforeEach(() => {
       // Set up channel users with ourself having op
-      mockService.channelUsers.set('#channel', new Map([
-        ['mynick', { nick: 'MyNick', modes: ['o'] }],
-        ['newuser', { nick: 'newuser', modes: [] }],
-      ]));
+      mockService.channelUsers.set(
+        '#channel',
+        new Map([
+          ['mynick', { nick: 'MyNick', modes: ['o'] }],
+          ['newuser', { nick: 'newuser', modes: [] }],
+        ]),
+      );
     });
 
     it('should grant +o to users on autoop list when we have op', () => {
-      (userManagementService.findMatchingUserListEntry as jest.Mock)
-        .mockImplementation((type: string) => {
-          if (type === 'autoop') {
-            return { mask: 'trusted!*@*', protected: true };
-          }
-          return undefined;
-        });
+      (
+        userManagementService.findMatchingUserListEntry as jest.Mock
+      ).mockImplementation((type: string) => {
+        if (type === 'autoop') {
+          return { mask: 'trusted!*@*', protected: true };
+        }
+        return undefined;
+      });
 
       const ctx = (handlers as any).ctx;
       ctx.runAutoModeCheckForJoin('trusted', 'user', 'host.com', '#channel');
 
-      expect(userManagementService.findMatchingUserListEntry).toHaveBeenCalledWith(
-        'autoop', 'trusted', 'user', 'host.com', 'TestNetwork', '#channel'
+      expect(
+        userManagementService.findMatchingUserListEntry,
+      ).toHaveBeenCalledWith(
+        'autoop',
+        'trusted',
+        'user',
+        'host.com',
+        'TestNetwork',
+        '#channel',
       );
-      expect(mockService.sendRaw).toHaveBeenCalledWith('MODE #channel +o trusted');
+      expect(mockService.sendRaw).toHaveBeenCalledWith(
+        'MODE #channel +o trusted',
+      );
     });
 
     it('should grant +h to users on autohalfop list when we have op', () => {
-      (userManagementService.findMatchingUserListEntry as jest.Mock)
-        .mockImplementation((type: string) => {
-          if (type === 'autoop') return undefined;
-          if (type === 'autohalfop') {
-            return { mask: 'mod!*@*', protected: false };
-          }
-          return undefined;
-        });
+      (
+        userManagementService.findMatchingUserListEntry as jest.Mock
+      ).mockImplementation((type: string) => {
+        if (type === 'autoop') return undefined;
+        if (type === 'autohalfop') {
+          return { mask: 'mod!*@*', protected: false };
+        }
+        return undefined;
+      });
 
       const ctx = (handlers as any).ctx;
       ctx.runAutoModeCheckForJoin('mod', 'user', 'host.com', '#channel');
@@ -163,34 +201,39 @@ describe('IRCCommandHandlers', () => {
     });
 
     it('should grant +v to users on autovoice list when we have voice or higher', () => {
-      (userManagementService.findMatchingUserListEntry as jest.Mock)
-        .mockImplementation((type: string) => {
-          if (type === 'autoop' || type === 'autohalfop') return undefined;
-          if (type === 'autovoice') {
-            return { mask: 'speaker!*@*', protected: false };
-          }
-          return undefined;
-        });
+      (
+        userManagementService.findMatchingUserListEntry as jest.Mock
+      ).mockImplementation((type: string) => {
+        if (type === 'autoop' || type === 'autohalfop') return undefined;
+        if (type === 'autovoice') {
+          return { mask: 'speaker!*@*', protected: false };
+        }
+        return undefined;
+      });
 
       const ctx = (handlers as any).ctx;
       ctx.runAutoModeCheckForJoin('speaker', 'user', 'host.com', '#channel');
 
-      expect(mockService.sendRaw).toHaveBeenCalledWith('MODE #channel +v speaker');
+      expect(mockService.sendRaw).toHaveBeenCalledWith(
+        'MODE #channel +v speaker',
+      );
     });
 
     it('should not grant modes when we do not have sufficient privileges', () => {
       // Change our modes to have no privileges
-      mockService.channelUsers.set('#channel', new Map([
-        ['mynick', { nick: 'MyNick', modes: [] }],
-      ]));
+      mockService.channelUsers.set(
+        '#channel',
+        new Map([['mynick', { nick: 'MyNick', modes: [] }]]),
+      );
 
-      (userManagementService.findMatchingUserListEntry as jest.Mock)
-        .mockImplementation((type: string) => {
-          if (type === 'autoop') {
-            return { mask: 'trusted!*@*', protected: false };
-          }
-          return undefined;
-        });
+      (
+        userManagementService.findMatchingUserListEntry as jest.Mock
+      ).mockImplementation((type: string) => {
+        if (type === 'autoop') {
+          return { mask: 'trusted!*@*', protected: false };
+        }
+        return undefined;
+      });
 
       const ctx = (handlers as any).ctx;
       ctx.runAutoModeCheckForJoin('trusted', 'user', 'host.com', '#channel');
@@ -200,17 +243,19 @@ describe('IRCCommandHandlers', () => {
 
     it('should not grant voice when we only have voice (need op or halfop for voice)', () => {
       // We only have voice, not op/halfop
-      mockService.channelUsers.set('#channel', new Map([
-        ['mynick', { nick: 'MyNick', modes: ['v'] }],
-      ]));
+      mockService.channelUsers.set(
+        '#channel',
+        new Map([['mynick', { nick: 'MyNick', modes: ['v'] }]]),
+      );
 
-      (userManagementService.findMatchingUserListEntry as jest.Mock)
-        .mockImplementation((type: string) => {
-          if (type === 'autovoice') {
-            return { mask: 'speaker!*@*', protected: false };
-          }
-          return undefined;
-        });
+      (
+        userManagementService.findMatchingUserListEntry as jest.Mock
+      ).mockImplementation((type: string) => {
+        if (type === 'autovoice') {
+          return { mask: 'speaker!*@*', protected: false };
+        }
+        return undefined;
+      });
 
       const ctx = (handlers as any).ctx;
       ctx.runAutoModeCheckForJoin('speaker', 'user', 'host.com', '#channel');
@@ -219,7 +264,9 @@ describe('IRCCommandHandlers', () => {
     });
 
     it('should not send mode when no list entry matches', () => {
-      (userManagementService.findMatchingUserListEntry as jest.Mock).mockReturnValue(undefined);
+      (
+        userManagementService.findMatchingUserListEntry as jest.Mock
+      ).mockReturnValue(undefined);
 
       const ctx = (handlers as any).ctx;
       ctx.runAutoModeCheckForJoin('randomuser', 'user', 'host.com', '#channel');
@@ -228,22 +275,24 @@ describe('IRCCommandHandlers', () => {
     });
 
     it('should check autoop first, then halfop, then voice', () => {
-      const findMock = jest.fn()
+      const findMock = jest
+        .fn()
         .mockReturnValueOnce({ mask: 'user!*@*', protected: false }) // autoop returns match
         .mockReturnValue(undefined);
-      
+
       (userManagementService.findMatchingUserListEntry as jest.Mock) = findMock;
 
       // Need to recreate handlers to use the new mock
       handlers = new IRCCommandHandlers(mockService);
       const ctx = (handlers as any).ctx;
-      
+
       // Re-mock for this test
-      (userManagementService.findMatchingUserListEntry as jest.Mock)
-        .mockImplementation((type: string) => {
-          if (type === 'autoop') return { mask: 'user!*@*', protected: false };
-          return undefined;
-        });
+      (
+        userManagementService.findMatchingUserListEntry as jest.Mock
+      ).mockImplementation((type: string) => {
+        if (type === 'autoop') return { mask: 'user!*@*', protected: false };
+        return undefined;
+      });
 
       ctx.runAutoModeCheckForJoin('user', 'user', 'host.com', '#channel');
 
@@ -255,18 +304,22 @@ describe('IRCCommandHandlers', () => {
     it('should retry auto-mode once when our op arrives shortly after join', () => {
       jest.useFakeTimers();
       mockService.isConnected = true;
-      mockService.channelUsers.set('#channel', new Map([
-        ['mynick', { nick: 'MyNick', modes: [] }],
-        ['trusted', { nick: 'trusted', modes: [] }],
-      ]));
+      mockService.channelUsers.set(
+        '#channel',
+        new Map([
+          ['mynick', { nick: 'MyNick', modes: [] }],
+          ['trusted', { nick: 'trusted', modes: [] }],
+        ]),
+      );
 
-      (userManagementService.findMatchingUserListEntry as jest.Mock)
-        .mockImplementation((type: string) => {
-          if (type === 'autoop') {
-            return { mask: 'trusted!*@*', protected: false };
-          }
-          return undefined;
-        });
+      (
+        userManagementService.findMatchingUserListEntry as jest.Mock
+      ).mockImplementation((type: string) => {
+        if (type === 'autoop') {
+          return { mask: 'trusted!*@*', protected: false };
+        }
+        return undefined;
+      });
 
       const ctx = (handlers as any).ctx;
       ctx.runAutoModeCheckForJoin('trusted', 'user', 'host.com', '#channel');
@@ -275,14 +328,19 @@ describe('IRCCommandHandlers', () => {
       expect(mockService.sendRaw).not.toHaveBeenCalled();
 
       // Gain op before retry timer fires
-      mockService.channelUsers.set('#channel', new Map([
-        ['mynick', { nick: 'MyNick', modes: ['o'] }],
-        ['trusted', { nick: 'trusted', modes: [] }],
-      ]));
+      mockService.channelUsers.set(
+        '#channel',
+        new Map([
+          ['mynick', { nick: 'MyNick', modes: ['o'] }],
+          ['trusted', { nick: 'trusted', modes: [] }],
+        ]),
+      );
 
       jest.advanceTimersByTime(1600);
 
-      expect(mockService.sendRaw).toHaveBeenCalledWith('MODE #channel +o trusted');
+      expect(mockService.sendRaw).toHaveBeenCalledWith(
+        'MODE #channel +o trusted',
+      );
       jest.useRealTimers();
     });
   });

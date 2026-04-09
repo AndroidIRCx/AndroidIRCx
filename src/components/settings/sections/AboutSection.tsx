@@ -6,7 +6,10 @@
 import React from 'react';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
 
 interface AboutSectionProps {
   colors: {
@@ -48,7 +51,16 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
       title: t('About AndroidIRCX', { _tags: tags }),
       description: t('App information and credits', { _tags: tags }),
       type: 'button',
-      searchKeywords: ['about', 'app', 'information', 'credits', 'version', 'androidircx', 'developer', 'info'],
+      searchKeywords: [
+        'about',
+        'app',
+        'information',
+        'credits',
+        'version',
+        'androidircx',
+        'developer',
+        'info',
+      ],
       onPress: onShowAbout,
     },
     {
@@ -56,15 +68,24 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
       title: t('Credits', { _tags: tags }),
       description: t('Translators and contributors', { _tags: tags }),
       type: 'button',
-      searchKeywords: ['credits', 'translators', 'contributors', 'thanks', 'translation', 'language'],
+      searchKeywords: [
+        'credits',
+        'translators',
+        'contributors',
+        'thanks',
+        'translation',
+        'language',
+      ],
       onPress: onShowCredits,
     },
   ];
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}

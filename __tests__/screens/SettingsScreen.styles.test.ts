@@ -18,11 +18,10 @@ describe('SettingsScreen.styles', () => {
         border: '#333',
         error: '#f00',
       } as any,
-      { id: 'dark' } as any
+      { id: 'dark' } as any,
     );
 
     expect(styles).toBeDefined();
     expect(styles.container).toBeDefined();
   });
 });
-

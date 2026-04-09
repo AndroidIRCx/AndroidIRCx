@@ -65,11 +65,15 @@ interface AppModalsProps {
   handleExit: () => void;
   handleFirstRunSetupComplete: (networkConfig: any) => void;
   persistentSetShowRawCommands: (value: boolean) => void;
-  persistentSetRawCategoryVisibility: (visibility: Record<string, boolean>) => void;
+  persistentSetRawCategoryVisibility: (
+    visibility: Record<string, boolean>,
+  ) => void;
   persistentSetShowEncryptionIndicators: (value: boolean) => void;
   persistentSetShowTypingIndicators: (value: boolean) => void;
   setActiveConnectionId: (id: string | null) => void;
-  setTabs: (updater: ChannelTab[] | ((prev: ChannelTab[]) => ChannelTab[])) => void;
+  setTabs: (
+    updater: ChannelTab[] | ((prev: ChannelTab[]) => ChannelTab[]),
+  ) => void;
   getActiveIRCService: () => any;
   safeAlert: (title: string, message?: string) => void;
   attemptBiometricUnlock: (isManualRetry?: boolean) => void;
@@ -114,12 +118,12 @@ export function AppModals({
   const t = useT();
   const uiState = useUIState();
   const setters = useStoreSetters();
-  
+
   // Subscribe directly to these critical modal states to ensure re-renders
   // This ensures the component re-renders when these states change
   const showOptionsMenu = useUIStore(state => state.showOptionsMenu);
   const showSettings = useUIStore(state => state.showSettings);
-  
+
   const {
     showFirstRunSetup,
     showChannelModal,
@@ -193,7 +197,8 @@ export function AppModals({
           animationType="slide"
           onRequestClose={() => {
             setShowFirstRunSetup(false);
-          }}>
+          }}
+        >
           <FirstRunSetupScreen
             onComplete={handleFirstRunSetupComplete}
             onSkip={() => {
@@ -227,7 +232,7 @@ export function AppModals({
         onClose={() => useUIStore.getState().setShowChannelModal(false)}
         channelName={channelName}
         onChangeChannelName={setChannelName}
-        onJoin={(channel) => {
+        onJoin={channel => {
           handleJoinChannel(channel);
           useUIStore.getState().setChannelName('');
           useUIStore.getState().setShowChannelModal(false);
@@ -240,7 +245,9 @@ export function AppModals({
       />
       {showNetworksList && (
         <NetworksListScreen
-          onSelectNetwork={(network, serverId) => handleConnect(network, serverId)}
+          onSelectNetwork={(network, serverId) =>
+            handleConnect(network, serverId)
+          }
           onClose={() => useUIStore.getState().setShowNetworksList(false)}
         />
       )}
@@ -265,7 +272,9 @@ export function AppModals({
           useUIStore.getState().setUserListsInitialTab('notify');
           useUIStore.getState().setShowUserLists(true);
         }}
-        onShowPurchaseScreen={() => useUIStore.getState().setShowPurchaseScreen(true)}
+        onShowPurchaseScreen={() =>
+          useUIStore.getState().setShowPurchaseScreen(true)
+        }
       />
       {showPurchaseScreen && (
         <PurchaseScreen
@@ -291,7 +300,9 @@ export function AppModals({
         <UserListsScreen
           visible={showUserLists}
           network={activeTab?.networkId}
-          initialTab={userListsInitialTab === 'blacklist' ? 'other' : userListsInitialTab}
+          initialTab={
+            userListsInitialTab === 'blacklist' ? 'other' : userListsInitialTab
+          }
           onClose={() => useUIStore.getState().setShowUserLists(false)}
         />
       )}
@@ -304,7 +315,7 @@ export function AppModals({
             useUIStore.getState().setShowWHOIS(false);
             useUIStore.getState().setWhoisNick('');
           }}
-          onChannelPress={(channel) => {
+          onChannelPress={channel => {
             // Send join command for the channel
             const network = activeTab?.networkId;
             if (network) {
@@ -317,13 +328,15 @@ export function AppModals({
               connection?.ircService?.sendRaw(`JOIN ${cleanChannel}`);
             }
           }}
-          onNickPress={(nick) => {
+          onNickPress={nick => {
             // Open query with the nick
             const network = activeTab?.networkId;
             if (!network) return;
             const queryId = `query:${network}:${nick.toLowerCase()}`;
             const tabStore = useTabStore.getState();
-            const existingTab = tabStore.tabs.find(t => t.id === queryId && t.type === 'query');
+            const existingTab = tabStore.tabs.find(
+              t => t.id === queryId && t.type === 'query',
+            );
             if (existingTab) {
               tabStore.setActiveTabId(existingTab.id);
             } else {
@@ -346,7 +359,9 @@ export function AppModals({
       {showQueryEncryptionMenu && activeTab && activeTab.type === 'query' && (
         <QueryEncryptionMenu
           visible={showQueryEncryptionMenu}
-          onClose={() => useUIStore.getState().setShowQueryEncryptionMenu(false)}
+          onClose={() =>
+            useUIStore.getState().setShowQueryEncryptionMenu(false)
+          }
           nick={activeTab.name}
           network={activeTab.networkId}
         />
@@ -366,7 +381,13 @@ export function AppModals({
           channelName={channelNoteTarget.channel}
           value={channelNoteValue}
           onChangeValue={setChannelNoteValue}
-          onSave={async () => await channelNotesService.setNote(channelNoteTarget.networkId, channelNoteTarget.channel, channelNoteValue)}
+          onSave={async () =>
+            await channelNotesService.setNote(
+              channelNoteTarget.networkId,
+              channelNoteTarget.channel,
+              channelNoteValue,
+            )
+          }
           styles={styles}
         />
       )}
@@ -377,7 +398,10 @@ export function AppModals({
           logEntries={channelLogEntries}
           onClearLog={async () => {
             if (channelNoteTarget) {
-              await channelNotesService.clearLog(channelNoteTarget.networkId, channelNoteTarget.channel);
+              await channelNotesService.clearLog(
+                channelNoteTarget.networkId,
+                channelNoteTarget.channel,
+              );
               useUIStore.getState().setChannelLogEntries([]);
             }
           }}
@@ -390,7 +414,15 @@ export function AppModals({
           onClose={() => useUIStore.getState().setShowRenameModal(false)}
           value={renameValue}
           onChangeValue={setRenameValue}
-          onRename={() => setTabs(prev => prev.map(t => t.id === renameTargetTabId ? { ...t, name: renameValue || t.name } : t))}
+          onRename={() =>
+            setTabs(prev =>
+              prev.map(t =>
+                t.id === renameTargetTabId
+                  ? { ...t, name: renameValue || t.name }
+                  : t,
+              ),
+            )
+          }
           styles={styles}
         />
       )}
@@ -402,14 +434,16 @@ export function AppModals({
         styles={styles}
       />
       <WebRTCCallModal activeTab={activeTab} />
-      {showChannelSettings && channelSettingsTarget && channelSettingsNetwork && (
-        <ChannelSettingsScreen
-          visible={showChannelSettings}
-          channel={channelSettingsTarget}
-          network={channelSettingsNetwork}
-          onClose={() => useUIStore.getState().setShowChannelSettings(false)}
-        />
-      )}
+      {showChannelSettings &&
+        channelSettingsTarget &&
+        channelSettingsNetwork && (
+          <ChannelSettingsScreen
+            visible={showChannelSettings}
+            channel={channelSettingsTarget}
+            network={channelSettingsNetwork}
+            onClose={() => useUIStore.getState().setShowChannelSettings(false)}
+          />
+        )}
       {showDccTransfers && (
         <DccTransfersModal
           visible={showDccTransfers}
@@ -419,8 +453,10 @@ export function AppModals({
             useUIStore.getState().setDccTransfersMinimized(true);
           }}
           transfers={dccTransfers}
-          onAccept={(transferId, filePath) => dccFileService.accept(transferId, getActiveIRCService(), filePath)}
-          onCancel={(transferId) => dccFileService.cancel(transferId)}
+          onAccept={(transferId, filePath) =>
+            dccFileService.accept(transferId, getActiveIRCService(), filePath)
+          }
+          onCancel={transferId => dccFileService.cancel(transferId)}
           styles={styles}
           colors={colors}
         />
@@ -434,15 +470,24 @@ export function AppModals({
           onChangeFilePath={setDccSendPath}
           onSend={async () => {
             try {
-              await dccFileService.sendFile(getActiveIRCService(), dccSendTarget.nick, dccSendTarget.networkId, dccSendPath);
+              await dccFileService.sendFile(
+                getActiveIRCService(),
+                dccSendTarget.nick,
+                dccSendTarget.networkId,
+                dccSendPath,
+              );
               useUIStore.getState().setShowDccSendModal(false);
               useUIStore.getState().setDccSendPath('');
             } catch (e) {
               safeAlert(
-                t('DCC Send Error', { _tags: 'screen:app,file:App.tsx,feature:dcc' }),
+                t('DCC Send Error', {
+                  _tags: 'screen:app,file:App.tsx,feature:dcc',
+                }),
                 e instanceof Error
                   ? e.message
-                  : t('Failed to send file', { _tags: 'screen:app,file:App.tsx,feature:dcc' })
+                  : t('Failed to send file', {
+                      _tags: 'screen:app,file:App.tsx,feature:dcc',
+                    }),
               );
             }
           }}
@@ -459,7 +504,9 @@ export function AppModals({
         onClearPinError={() => setAppPinError('')}
         onBiometricUnlock={attemptBiometricUnlock}
         onPinUnlock={() => handleAppPinUnlock(appPinEntry)}
-        onKillSwitch={killSwitchEnabledOnLockScreen ? onKillSwitchFromUnlock : undefined}
+        onKillSwitch={
+          killSwitchEnabledOnLockScreen ? onKillSwitchFromUnlock : undefined
+        }
         colors={colors}
         styles={styles}
       />

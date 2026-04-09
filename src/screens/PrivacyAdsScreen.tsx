@@ -42,7 +42,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
   const footerSpacerStyle = { height: 40 };
 
   const [consentStatus, setConsentStatus] = useState<AdsConsentStatus>(
-    consentService.getConsentStatus()
+    consentService.getConsentStatus(),
   );
   const [loading, setLoading] = useState(false);
   const [consentInfo, setConsentInfo] = useState({
@@ -75,25 +75,31 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
   // Load watch ad settings when premium status changes
   useEffect(() => {
     if (!visible) return;
-    
+
     const loadSettings = async () => {
-      const enabled = await settingsService.getSetting('watchAdButtonEnabledForPremium', false);
+      const enabled = await settingsService.getSetting(
+        'watchAdButtonEnabledForPremium',
+        false,
+      );
       setWatchAdButtonEnabledForPremium(enabled);
-      
+
       // Show button if: normal user OR (premium user AND enabled in settings)
       const isPremium = hasNoAds || hasScriptingPro || isSupporter;
       setShowWatchAdButton(!isPremium || enabled);
     };
-    
+
     loadSettings();
-    
+
     // Listen for setting changes
-    const unsubscribe = settingsService.onSettingChange('watchAdButtonEnabledForPremium', (value) => {
-      setWatchAdButtonEnabledForPremium(Boolean(value));
-      const isPremiumNow = hasNoAds || hasScriptingPro || isSupporter;
-      setShowWatchAdButton(!isPremiumNow || Boolean(value));
-    });
-    
+    const unsubscribe = settingsService.onSettingChange(
+      'watchAdButtonEnabledForPremium',
+      value => {
+        setWatchAdButtonEnabledForPremium(Boolean(value));
+        const isPremiumNow = hasNoAds || hasScriptingPro || isSupporter;
+        setShowWatchAdButton(!isPremiumNow || Boolean(value));
+      },
+    );
+
     return unsubscribe;
   }, [visible, hasNoAds, hasScriptingPro, isSupporter]);
 
@@ -126,10 +132,9 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
     setIsSupporter(supporter);
   };
 
-
   // Listen to consent status changes
   useEffect(() => {
-    const unsubscribe = consentService.addListener((status) => {
+    const unsubscribe = consentService.addListener(status => {
       setConsentStatus(status);
       loadConsentInfo();
     });
@@ -153,7 +158,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
       setLoading(false);
       Alert.alert(
         t('Privacy Settings Updated'),
-        t('Your privacy preferences have been saved.')
+        t('Your privacy preferences have been saved.'),
       );
     } catch (error) {
       setLoading(false);
@@ -163,7 +168,9 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
       if (errorMsg.includes('MANUAL_CONSENT_ONLY')) {
         Alert.alert(
           t('Change Privacy Settings'),
-          t('You previously accepted our privacy terms. Would you like to withdraw your consent and reset privacy settings?'),
+          t(
+            'You previously accepted our privacy terms. Would you like to withdraw your consent and reset privacy settings?',
+          ),
           [
             { text: t('Cancel'), style: 'cancel' },
             {
@@ -171,13 +178,13 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
               style: 'destructive',
               onPress: handleResetConsent,
             },
-          ]
+          ],
         );
       } else {
         console.error('[PrivacyAdsScreen] Failed to show consent form:', error);
         Alert.alert(
           t('Error'),
-          t('Failed to show consent form. Please try again.')
+          t('Failed to show consent form. Please try again.'),
         );
       }
     }
@@ -186,7 +193,9 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
   const handleResetConsent = () => {
     Alert.alert(
       t('Reset Privacy Settings'),
-      t('This will withdraw your consent and reset all privacy preferences. You will need to accept the terms again. Continue?'),
+      t(
+        'This will withdraw your consent and reset all privacy preferences. You will need to accept the terms again. Continue?',
+      ),
       [
         { text: t('Cancel'), style: 'cancel' },
         {
@@ -201,7 +210,9 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
               // After reset, offer to re-accept immediately
               Alert.alert(
                 t('Privacy Agreement'),
-                t('By clicking Accept, you agree to:\n\n• Collection of device info, IP address, and location for ads\n• Use of Google Mobile Ads (personalized or non-personalized)\n• Our Privacy Policy and Terms\n\nYou can change these settings anytime in Settings > Privacy & Ads.'),
+                t(
+                  'By clicking Accept, you agree to:\n\n• Collection of device info, IP address, and location for ads\n• Use of Google Mobile Ads (personalized or non-personalized)\n• Our Privacy Policy and Terms\n\nYou can change these settings anytime in Settings > Privacy & Ads.',
+                ),
                 [
                   {
                     text: t('Read Privacy Policy'),
@@ -217,34 +228,42 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
                         setLoading(false);
                         Alert.alert(
                           t('Success'),
-                          t('Privacy terms accepted. Your settings have been updated.')
+                          t(
+                            'Privacy terms accepted. Your settings have been updated.',
+                          ),
                         );
                         // Reload consent info
                         loadConsentInfo();
                       } catch (error) {
                         setLoading(false);
-                        console.error('[PrivacyAdsScreen] Failed to accept consent:', error);
+                        console.error(
+                          '[PrivacyAdsScreen] Failed to accept consent:',
+                          error,
+                        );
                         Alert.alert(
                           t('Error'),
-                          t('Failed to save consent. Please try again.')
+                          t('Failed to save consent. Please try again.'),
                         );
                       }
                     },
                     style: 'default',
                   },
-                ]
+                ],
               );
             } catch (error) {
               setLoading(false);
-              console.error('[PrivacyAdsScreen] Failed to reset consent:', error);
+              console.error(
+                '[PrivacyAdsScreen] Failed to reset consent:',
+                error,
+              );
               Alert.alert(
                 t('Error'),
-                t('Failed to reset consent. Please try again.')
+                t('Failed to reset consent. Please try again.'),
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -257,7 +276,12 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
 
   const handleWatchAd = async () => {
     console.log('👆 Watch Ad button clicked');
-    console.log('Current state:', { adReady, adLoading, adCooldown, showingAd });
+    console.log('Current state:', {
+      adReady,
+      adLoading,
+      adCooldown,
+      showingAd,
+    });
 
     if (showingAd) return;
 
@@ -272,11 +296,17 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
           // Ad will call the reward callback automatically
           Alert.alert(t('Thank You!'), t('You earned scripting time!'));
         } else {
-          Alert.alert(t('Ad Failed'), t('Could not show the ad. Please try again.'));
+          Alert.alert(
+            t('Ad Failed'),
+            t('Could not show the ad. Please try again.'),
+          );
         }
       } catch (error) {
         console.error('Error showing ad:', error);
-        Alert.alert(t('Error'), error instanceof Error ? error.message : t('Failed to show ad'));
+        Alert.alert(
+          t('Error'),
+          error instanceof Error ? error.message : t('Failed to show ad'),
+        );
       } finally {
         setShowingAd(false);
       }
@@ -289,7 +319,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
     console.log('Manual load result:', result);
     Alert.alert(
       result.success ? t('Loading Ad') : t('Cannot Load Ad'),
-      t(result.messageKey, result.messageParams as Record<string, any>)
+      t(result.messageKey, result.messageParams as Record<string, any>),
     );
   };
 
@@ -361,12 +391,14 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
                   </Text>
                   <Text style={styles.statusDescription}>
                     {consentStatus === AdsConsentStatus.OBTAINED
-                      ? t('You have consented to personalized ads based on your interests.')
+                      ? t(
+                          'You have consented to personalized ads based on your interests.',
+                        )
                       : consentStatus === AdsConsentStatus.REQUIRED
-                      ? t('Your consent is required to show ads.')
-                      : consentStatus === AdsConsentStatus.NOT_REQUIRED
-                      ? t('Consent not required in your region.')
-                      : t('Using non-personalized ads only.')}
+                        ? t('Your consent is required to show ads.')
+                        : consentStatus === AdsConsentStatus.NOT_REQUIRED
+                          ? t('Consent not required in your region.')
+                          : t('Using non-personalized ads only.')}
                   </Text>
                 </View>
               </View>
@@ -378,7 +410,9 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
             <Text style={styles.sectionTitle}>{t('What We Collect')}</Text>
             <View style={styles.card}>
               <Text style={styles.cardText}>
-                {t('AndroidIRCX uses Google Mobile Ads to provide free features. Google may collect:')}
+                {t(
+                  'AndroidIRCX uses Google Mobile Ads to provide free features. Google may collect:',
+                )}
               </Text>
               <Text style={styles.bulletPoint}>
                 • {t('Device information (model, OS version)')}
@@ -389,9 +423,7 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
               <Text style={styles.bulletPoint}>
                 • {t('Ad interaction data')}
               </Text>
-              <Text style={styles.bulletPoint}>
-                • {t('Usage analytics')}
-              </Text>
+              <Text style={styles.bulletPoint}>• {t('Usage analytics')}</Text>
             </View>
           </View>
 
@@ -402,14 +434,18 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
             <View style={styles.card}>
               <Text style={styles.cardTitle}>{t('Personalized Ads')}</Text>
               <Text style={styles.cardText}>
-                {t('Ads tailored to your interests based on your activity. May provide better rewards.')}
+                {t(
+                  'Ads tailored to your interests based on your activity. May provide better rewards.',
+                )}
               </Text>
             </View>
 
             <View style={styles.card}>
               <Text style={styles.cardTitle}>{t('Non-Personalized Ads')}</Text>
               <Text style={styles.cardText}>
-                {t('Generic ads not based on your activity. More privacy, potentially lower rewards.')}
+                {t(
+                  'Generic ads not based on your activity. More privacy, potentially lower rewards.',
+                )}
               </Text>
             </View>
           </View>
@@ -418,17 +454,22 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
           {showWatchAdButton && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>{t('Support & Rewards')}</Text>
-              
+
               {(hasNoAds || hasScriptingPro || isSupporter) && (
                 <View style={styles.infoCard}>
                   <Text style={styles.infoText}>
-                    {t('You have a premium plan. Watching ads helps support the project development.')}
+                    {t(
+                      'You have a premium plan. Watching ads helps support the project development.',
+                    )}
                   </Text>
                 </View>
               )}
 
               <TouchableOpacity
-                style={[styles.watchAdButton, showingAd && styles.watchAdButtonDisabled]}
+                style={[
+                  styles.watchAdButton,
+                  showingAd && styles.watchAdButtonDisabled,
+                ]}
                 onPress={handleWatchAd}
                 disabled={showingAd}
               >
@@ -436,13 +477,22 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
                   <ActivityIndicator size="small" color={colors.onAccent} />
                 ) : (
                   <View style={styles.watchAdButtonContent}>
-                    <Icon name="play-circle" size={24} color={colors.onAccent} solid style={watchAdButtonIconStyle} />
+                    <Icon
+                      name="play-circle"
+                      size={24}
+                      color={colors.onAccent}
+                      solid
+                      style={watchAdButtonIconStyle}
+                    />
                     <View style={watchAdButtonContentStyle}>
                       <Text style={styles.watchAdButtonText}>
                         {adReady
                           ? t('Watch Ad (+60 min Scripting & No-Ads)')
                           : adCooldown
-                            ? t('Cooldown ({cooldownSeconds}s)').replace('{cooldownSeconds}', cooldownSeconds.toString())
+                            ? t('Cooldown ({cooldownSeconds}s)').replace(
+                                '{cooldownSeconds}',
+                                cooldownSeconds.toString(),
+                              )
                             : adLoading
                               ? t('Loading Ad...')
                               : t('Request Ad')}
@@ -480,7 +530,8 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
               ) : (
                 <>
                   <Text style={styles.buttonText}>
-                    {consentInfo.isConsentFormAvailable || consentService.isManuallyAccepted()
+                    {consentInfo.isConsentFormAvailable ||
+                    consentService.isManuallyAccepted()
                       ? t('Change Privacy Settings')
                       : t('Review Privacy Choices')}
                   </Text>
@@ -516,18 +567,14 @@ export const PrivacyAdsScreen: React.FC<PrivacyAdsScreenProps> = ({
               <Text style={styles.bulletPoint}>
                 • {t('GDPR (EU, EEA, UK, Switzerland)')}
               </Text>
-              <Text style={styles.bulletPoint}>
-                • {t('CCPA (California)')}
-              </Text>
+              <Text style={styles.bulletPoint}>• {t('CCPA (California)')}</Text>
               <Text style={styles.bulletPoint}>
                 • {t('Other US state privacy laws')}
               </Text>
               <Text style={[styles.cardText, complianceSpacingStyle]}>
                 {t('You have the right to:')}
               </Text>
-              <Text style={styles.bulletPoint}>
-                • {t('Access your data')}
-              </Text>
+              <Text style={styles.bulletPoint}>• {t('Access your data')}</Text>
               <Text style={styles.bulletPoint}>
                 • {t('Request data deletion')}
               </Text>

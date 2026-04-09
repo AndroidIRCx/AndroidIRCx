@@ -12,7 +12,10 @@
 import { ChannelTab } from '../types';
 import { tabService } from '../services/TabService';
 
-export type SaveCallback = (networkId: string, tabs: ChannelTab[]) => Promise<void>;
+export type SaveCallback = (
+  networkId: string,
+  tabs: ChannelTab[],
+) => Promise<void>;
 
 interface PendingSave {
   networkId: string;
@@ -33,7 +36,8 @@ export class TabUpdateBatcher {
    */
   constructor(
     debounceMs: number = 2000,
-    saveCallback: SaveCallback = (networkId, tabs) => tabService.saveTabs(networkId, tabs)
+    saveCallback: SaveCallback = (networkId, tabs) =>
+      tabService.saveTabs(networkId, tabs),
   ) {
     this.debounceMs = debounceMs;
     this.saveCallback = saveCallback;

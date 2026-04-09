@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -35,10 +41,9 @@ type HistoryEntry = {
   oldest?: number;
 };
 
-export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProps> = ({
-  visible,
-  onClose,
-}) => {
+export const MessageHistoryViewerScreen: React.FC<
+  MessageHistoryViewerScreenProps
+> = ({ visible, onClose }) => {
   const { colors } = useTheme();
   const t = useT();
   const styles = createStyles(colors);
@@ -49,21 +54,34 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
   const [messages, setMessages] = useState<IRCMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [migrating, setMigrating] = useState(false);
-  const [migrationProgress, setMigrationProgress] = useState<{ processed: number; total: number }>({ processed: 0, total: 0 });
+  const [migrationProgress, setMigrationProgress] = useState<{
+    processed: number;
+    total: number;
+  }>({ processed: 0, total: 0 });
   const [migrationSummary, setMigrationSummary] = useState('');
-  const [messageSortOrder, setMessageSortOrder] = useState<'desc' | 'asc'>('desc');
-  const migrationSummaryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [messageSortOrder, setMessageSortOrder] = useState<'desc' | 'asc'>(
+    'desc',
+  );
+  const migrationSummaryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const loadEntries = useCallback(async () => {
     setLoading(true);
     try {
       setMigrating(true);
       setMigrationProgress({ processed: 0, total: 0 });
-      const migrationResult = await messageHistoryService.ensureHistoryMigrated((processed, total) => {
-        setMigrationProgress({ processed, total });
-      });
+      const migrationResult = await messageHistoryService.ensureHistoryMigrated(
+        (processed, total) => {
+          setMigrationProgress({ processed, total });
+        },
+      );
       if (migrationResult.migrated) {
-        setMigrationSummary(t('Migrated {count} channels.', { count: migrationResult.migratedCount }));
+        setMigrationSummary(
+          t('Migrated {count} channels.', {
+            count: migrationResult.migratedCount,
+          }),
+        );
         if (migrationSummaryTimerRef.current) {
           clearTimeout(migrationSummaryTimerRef.current);
         }
@@ -89,18 +107,29 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
     }
   }, [t]);
 
-  const loadMessages = useCallback(async (entry: HistoryEntry, sortOrder: 'desc' | 'asc' = messageSortOrder) => {
-    setLoading(true);
-    try {
-      const data = await messageHistoryService.loadMessages(entry.network, entry.channel);
-      const sorted = [...data].sort((a, b) =>
-        sortOrder === 'desc' ? b.timestamp - a.timestamp : a.timestamp - b.timestamp
-      );
-      setMessages(sorted);
-    } finally {
-      setLoading(false);
-    }
-  }, [messageSortOrder]);
+  const loadMessages = useCallback(
+    async (
+      entry: HistoryEntry,
+      sortOrder: 'desc' | 'asc' = messageSortOrder,
+    ) => {
+      setLoading(true);
+      try {
+        const data = await messageHistoryService.loadMessages(
+          entry.network,
+          entry.channel,
+        );
+        const sorted = [...data].sort((a, b) =>
+          sortOrder === 'desc'
+            ? b.timestamp - a.timestamp
+            : a.timestamp - b.timestamp,
+        );
+        setMessages(sorted);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [messageSortOrder],
+  );
 
   useEffect(() => {
     if (!visible) return;
@@ -127,8 +156,15 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
 
   const handleDeleteEntry = async (entry: HistoryEntry) => {
     Alert.alert(
-      t('Delete Channel History?', { _tags: 'screen:settings,file:MessageHistoryViewerScreen.tsx,feature:history' }),
-      t('This will remove all saved messages for {channel}.', { channel: entry.channel, _tags: 'screen:settings,file:MessageHistoryViewerScreen.tsx,feature:history' }),
+      t('Delete Channel History?', {
+        _tags:
+          'screen:settings,file:MessageHistoryViewerScreen.tsx,feature:history',
+      }),
+      t('This will remove all saved messages for {channel}.', {
+        channel: entry.channel,
+        _tags:
+          'screen:settings,file:MessageHistoryViewerScreen.tsx,feature:history',
+      }),
       [
         { text: t('Cancel'), style: 'cancel' },
         {
@@ -137,9 +173,23 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
           onPress: async () => {
             setLoading(true);
             try {
-              await messageHistoryService.deleteMessages(entry.network, entry.channel);
-              setEntries(prev => prev.filter(e => !(e.network === entry.network && e.channel === entry.channel)));
-              if (selectedEntry && selectedEntry.network === entry.network && selectedEntry.channel === entry.channel) {
+              await messageHistoryService.deleteMessages(
+                entry.network,
+                entry.channel,
+              );
+              setEntries(prev =>
+                prev.filter(
+                  e =>
+                    !(
+                      e.network === entry.network && e.channel === entry.channel
+                    ),
+                ),
+              );
+              if (
+                selectedEntry &&
+                selectedEntry.network === entry.network &&
+                selectedEntry.channel === entry.channel
+              ) {
                 setSelectedEntry(null);
                 setMessages([]);
               }
@@ -148,43 +198,67 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
             }
           },
         },
-      ]
+      ],
     );
   };
 
-  const handleDeleteMessage = async (entry: HistoryEntry, message: IRCMessage) => {
+  const handleDeleteMessage = async (
+    entry: HistoryEntry,
+    message: IRCMessage,
+  ) => {
     Alert.alert(
-      t('Delete message', { _tags: 'screen:settings,file:MessageHistoryViewerScreen.tsx,feature:history' }),
-      t('This will remove the selected message from history.', { _tags: 'screen:settings,file:MessageHistoryViewerScreen.tsx,feature:history' }),
+      t('Delete message', {
+        _tags:
+          'screen:settings,file:MessageHistoryViewerScreen.tsx,feature:history',
+      }),
+      t('This will remove the selected message from history.', {
+        _tags:
+          'screen:settings,file:MessageHistoryViewerScreen.tsx,feature:history',
+      }),
       [
         { text: t('Cancel'), style: 'cancel' },
         {
           text: t('Delete'),
           style: 'destructive',
           onPress: async () => {
-            await messageHistoryService.deleteMessageById(entry.network, entry.channel, message.id);
+            await messageHistoryService.deleteMessageById(
+              entry.network,
+              entry.channel,
+              message.id,
+            );
             setMessages(prev => prev.filter(m => m.id !== message.id));
-            setEntries(prev => prev.flatMap(e => {
-              if (e.network !== entry.network || e.channel !== entry.channel) return e;
-              const nextCount = Math.max(0, e.count - 1);
-              if (nextCount === 0) return [];
-              return { ...e, count: nextCount };
-            }));
+            setEntries(prev =>
+              prev.flatMap(e => {
+                if (e.network !== entry.network || e.channel !== entry.channel)
+                  return e;
+                const nextCount = Math.max(0, e.count - 1);
+                if (nextCount === 0) return [];
+                return { ...e, count: nextCount };
+              }),
+            );
           },
         },
-      ]
+      ],
     );
   };
 
   const renderEntry = ({ item }: { item: HistoryEntry }) => (
     <View style={styles.entryRow}>
-      <TouchableOpacity style={styles.entryInfo} onPress={() => handleOpenEntry(item)}>
+      <TouchableOpacity
+        style={styles.entryInfo}
+        onPress={() => handleOpenEntry(item)}
+      >
         <Text style={styles.entryTitle}>
           {item.channel} {selectedNetwork === 'all' ? `· ${item.network}` : ''}
         </Text>
-        <Text style={styles.entryMeta}>{t('Messages: {count}', { count: item.count })}</Text>
+        <Text style={styles.entryMeta}>
+          {t('Messages: {count}', { count: item.count })}
+        </Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteEntry(item)}>
+      <TouchableOpacity
+        style={styles.iconButton}
+        onPress={() => handleDeleteEntry(item)}
+      >
         <Icon name="trash" size={16} color={colors.error || '#EF5350'} />
       </TouchableOpacity>
     </View>
@@ -194,12 +268,16 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
     <View style={styles.messageRow}>
       <View style={styles.messageInfo}>
         <Text style={styles.messageMeta}>
-          {new Date(item.timestamp).toLocaleString()} {item.from ? `· ${item.from}` : ''}
+          {new Date(item.timestamp).toLocaleString()}{' '}
+          {item.from ? `· ${item.from}` : ''}
         </Text>
         {formatIRCTextAsComponent(item.text, styles.messageText)}
       </View>
       {selectedEntry && (
-        <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteMessage(selectedEntry, item)}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => handleDeleteMessage(selectedEntry, item)}
+        >
           <Icon name="trash" size={14} color={colors.error || '#EF5350'} />
         </TouchableOpacity>
       )}
@@ -209,7 +287,12 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('History Viewer')}</Text>
@@ -223,16 +306,29 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
             {networks.map(net => (
               <TouchableOpacity
                 key={net}
-                style={[styles.networkChip, selectedNetwork === net && styles.networkChipActive]}
-                onPress={() => setSelectedNetwork(net)}>
-                <Text style={[styles.networkChipText, selectedNetwork === net && styles.networkChipTextActive]}>
+                style={[
+                  styles.networkChip,
+                  selectedNetwork === net && styles.networkChipActive,
+                ]}
+                onPress={() => setSelectedNetwork(net)}
+              >
+                <Text
+                  style={[
+                    styles.networkChipText,
+                    selectedNetwork === net && styles.networkChipTextActive,
+                  ]}
+                >
                   {net === 'all' ? t('All Networks') : net}
                 </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
           <TouchableOpacity style={styles.iconButton} onPress={loadEntries}>
-            <Icon name="sync" size={16} color={colors.textSecondary || '#757575'} />
+            <Icon
+              name="sync"
+              size={16}
+              color={colors.textSecondary || '#757575'}
+            />
           </TouchableOpacity>
         </View>
 
@@ -243,7 +339,8 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
               {migrating
                 ? t('Migrating history... {done}/{total}', {
                     done: migrationProgress.processed,
-                    total: migrationProgress.total || migrationProgress.processed,
+                    total:
+                      migrationProgress.total || migrationProgress.processed,
                   })
                 : t('Loading...')}
             </Text>
@@ -254,7 +351,8 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
             <Text style={styles.migrationSummaryText}>{migrationSummary}</Text>
             <TouchableOpacity
               style={styles.migrationSummaryClose}
-              onPress={() => setMigrationSummary('')}>
+              onPress={() => setMigrationSummary('')}
+            >
               <Text style={styles.migrationSummaryCloseText}>{t('Close')}</Text>
             </TouchableOpacity>
           </View>
@@ -263,10 +361,12 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
         {!selectedEntry ? (
           <FlatList
             data={filteredEntries}
-            keyExtractor={(item) => `${item.network}:${item.channel}`}
+            keyExtractor={item => `${item.network}:${item.channel}`}
             renderItem={renderEntry}
             ListEmptyComponent={
-              !loading ? <Text style={styles.emptyText}>{t('No stored messages')}</Text> : null
+              !loading ? (
+                <Text style={styles.emptyText}>{t('No stored messages')}</Text>
+              ) : null
             }
             contentContainerStyle={styles.listContent}
           />
@@ -283,27 +383,39 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
                 <TouchableOpacity
                   style={styles.sortButton}
                   onPress={() => {
-                    const nextOrder = messageSortOrder === 'desc' ? 'asc' : 'desc';
+                    const nextOrder =
+                      messageSortOrder === 'desc' ? 'asc' : 'desc';
                     setMessageSortOrder(nextOrder);
                     if (selectedEntry) {
                       loadMessages(selectedEntry, nextOrder);
                     }
-                  }}>
+                  }}
+                >
                   <Text style={styles.sortText}>
-                    {messageSortOrder === 'desc' ? t('Newest first') : t('Oldest first')}
+                    {messageSortOrder === 'desc'
+                      ? t('Newest first')
+                      : t('Oldest first')}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteEntry(selectedEntry)}>
-                  <Text style={styles.deleteText}>{t('Delete Channel History')}</Text>
+                <TouchableOpacity
+                  onPress={() => handleDeleteEntry(selectedEntry)}
+                >
+                  <Text style={styles.deleteText}>
+                    {t('Delete Channel History')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
             <FlatList
               data={messages}
-              keyExtractor={(item) => item.id}
+              keyExtractor={item => item.id}
               renderItem={renderMessage}
               ListEmptyComponent={
-                !loading ? <Text style={styles.emptyText}>{t('No stored messages')}</Text> : null
+                !loading ? (
+                  <Text style={styles.emptyText}>
+                    {t('No stored messages')}
+                  </Text>
+                ) : null
               }
               contentContainerStyle={styles.listContent}
             />
@@ -314,177 +426,178 @@ export const MessageHistoryViewerScreen: React.FC<MessageHistoryViewerScreenProp
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background || '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border || '#E0E0E0',
-    backgroundColor: colors.surface || '#F5F5F5',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text || '#212121',
-  },
-  closeButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  closeButtonText: {
-    color: colors.buttonPrimary || '#2196F3',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  toolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border || '#E0E0E0',
-  },
-  networkChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceVariant || colors.surface || '#F2F2F2',
-    marginRight: 8,
-  },
-  networkChipActive: {
-    backgroundColor: colors.primary || '#2196F3',
-  },
-  networkChipText: {
-    fontSize: 12,
-    color: colors.textSecondary || '#757575',
-  },
-  networkChipTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  iconButton: {
-    padding: 6,
-  },
-  loadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-  },
-  loadingText: {
-    color: colors.textSecondary || '#757575',
-  },
-  migrationSummaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingBottom: 8,
-  },
-  migrationSummaryText: {
-    color: colors.textSecondary || '#757575',
-    fontSize: 12,
-  },
-  migrationSummaryClose: {
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-  },
-  migrationSummaryCloseText: {
-    color: colors.buttonPrimary || '#2196F3',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  listContent: {
-    padding: 12,
-  },
-  entryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border || '#E0E0E0',
-  },
-  entryInfo: {
-    flex: 1,
-  },
-  entryTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text || '#212121',
-  },
-  entryMeta: {
-    fontSize: 12,
-    color: colors.textSecondary || '#757575',
-    marginTop: 2,
-  },
-  messagesContainer: {
-    flex: 1,
-  },
-  messagesHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border || '#E0E0E0',
-  },
-  messagesHeaderActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  sortButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: colors.surfaceVariant || colors.surface || '#F2F2F2',
-  },
-  sortText: {
-    fontSize: 12,
-    color: colors.textSecondary || '#757575',
-    fontWeight: '600',
-  },
-  messagesTitle: {
-    fontSize: 13,
-    color: colors.textSecondary || '#757575',
-  },
-  backText: {
-    color: colors.buttonPrimary || '#2196F3',
-    fontWeight: '600',
-  },
-  deleteText: {
-    color: colors.error || '#EF5350',
-    fontWeight: '600',
-  },
-  messageRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border || '#E0E0E0',
-  },
-  messageInfo: {
-    flex: 1,
-  },
-  messageMeta: {
-    fontSize: 11,
-    color: colors.textSecondary || '#757575',
-    marginBottom: 4,
-  },
-  messageText: {
-    fontSize: 14,
-    color: colors.text || '#212121',
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: colors.textSecondary || '#757575',
-    paddingVertical: 24,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background || '#FFFFFF',
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border || '#E0E0E0',
+      backgroundColor: colors.surface || '#F5F5F5',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text || '#212121',
+    },
+    closeButton: {
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+    },
+    closeButtonText: {
+      color: colors.buttonPrimary || '#2196F3',
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    toolbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border || '#E0E0E0',
+    },
+    networkChip: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceVariant || colors.surface || '#F2F2F2',
+      marginRight: 8,
+    },
+    networkChipActive: {
+      backgroundColor: colors.primary || '#2196F3',
+    },
+    networkChipText: {
+      fontSize: 12,
+      color: colors.textSecondary || '#757575',
+    },
+    networkChipTextActive: {
+      color: '#FFFFFF',
+      fontWeight: '600',
+    },
+    iconButton: {
+      padding: 6,
+    },
+    loadingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      padding: 12,
+    },
+    loadingText: {
+      color: colors.textSecondary || '#757575',
+    },
+    migrationSummaryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      paddingBottom: 8,
+    },
+    migrationSummaryText: {
+      color: colors.textSecondary || '#757575',
+      fontSize: 12,
+    },
+    migrationSummaryClose: {
+      paddingVertical: 2,
+      paddingHorizontal: 6,
+    },
+    migrationSummaryCloseText: {
+      color: colors.buttonPrimary || '#2196F3',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    listContent: {
+      padding: 12,
+    },
+    entryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border || '#E0E0E0',
+    },
+    entryInfo: {
+      flex: 1,
+    },
+    entryTitle: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text || '#212121',
+    },
+    entryMeta: {
+      fontSize: 12,
+      color: colors.textSecondary || '#757575',
+      marginTop: 2,
+    },
+    messagesContainer: {
+      flex: 1,
+    },
+    messagesHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border || '#E0E0E0',
+    },
+    messagesHeaderActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    sortButton: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceVariant || colors.surface || '#F2F2F2',
+    },
+    sortText: {
+      fontSize: 12,
+      color: colors.textSecondary || '#757575',
+      fontWeight: '600',
+    },
+    messagesTitle: {
+      fontSize: 13,
+      color: colors.textSecondary || '#757575',
+    },
+    backText: {
+      color: colors.buttonPrimary || '#2196F3',
+      fontWeight: '600',
+    },
+    deleteText: {
+      color: colors.error || '#EF5350',
+      fontWeight: '600',
+    },
+    messageRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border || '#E0E0E0',
+    },
+    messageInfo: {
+      flex: 1,
+    },
+    messageMeta: {
+      fontSize: 11,
+      color: colors.textSecondary || '#757575',
+      marginBottom: 4,
+    },
+    messageText: {
+      fontSize: 14,
+      color: colors.text || '#212121',
+    },
+    emptyText: {
+      textAlign: 'center',
+      color: colors.textSecondary || '#757575',
+      paddingVertical: 24,
+    },
+  });

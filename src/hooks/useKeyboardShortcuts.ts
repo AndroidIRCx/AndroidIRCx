@@ -36,24 +36,30 @@ export const useKeyboardShortcuts = (params: UseKeyboardShortcutsParams) => {
     };
     const openAdd = () => useUIStore.getState().setShowChannelModal(true);
     const openSettings = () => useUIStore.getState().setShowSettings(true);
-    
+
     // Kill switch shortcut: Ctrl+Shift+K (K for Kill)
     const activateKillSwitch = () => {
       killSwitchService.confirmAndActivate();
     };
-    
+
     keyboardShortcutService.registerShortcut('Ctrl+Tab', nextTab);
     keyboardShortcutService.registerShortcut('Ctrl+Shift+Tab', prevTab);
     keyboardShortcutService.registerShortcut('Ctrl+N', openAdd);
     keyboardShortcutService.registerShortcut('Ctrl+S', openSettings);
-    keyboardShortcutService.registerShortcut('Ctrl+Shift+K', activateKillSwitch);
-    
+    keyboardShortcutService.registerShortcut(
+      'Ctrl+Shift+K',
+      activateKillSwitch,
+    );
+
     return () => {
       keyboardShortcutService.unregisterShortcut('Ctrl+Tab', nextTab);
       keyboardShortcutService.unregisterShortcut('Ctrl+Shift+Tab', prevTab);
       keyboardShortcutService.unregisterShortcut('Ctrl+N', openAdd);
       keyboardShortcutService.unregisterShortcut('Ctrl+S', openSettings);
-      keyboardShortcutService.unregisterShortcut('Ctrl+Shift+K', activateKillSwitch);
+      keyboardShortcutService.unregisterShortcut(
+        'Ctrl+Shift+K',
+        activateKillSwitch,
+      );
     };
   }, [setActiveTabId, tabsRef]);
 };

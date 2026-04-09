@@ -5,44 +5,64 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { settingsService, IRCNetworkConfig } from '../services/SettingsService';
-import { autoReconnectService, AutoReconnectConfig } from '../services/AutoReconnectService';
-import { connectionQualityService, RateLimitConfig, FloodProtectionConfig, LagMonitoringConfig } from '../services/ConnectionQualityService';
+import {
+  autoReconnectService,
+  AutoReconnectConfig,
+} from '../services/AutoReconnectService';
+import {
+  connectionQualityService,
+  RateLimitConfig,
+  FloodProtectionConfig,
+  LagMonitoringConfig,
+} from '../services/ConnectionQualityService';
 import { bouncerService, BouncerConfig } from '../services/BouncerService';
 
 export interface UseSettingsConnectionReturn {
   // Networks
   networks: IRCNetworkConfig[];
-  
+
   // Auto reconnect
   autoReconnectConfig: AutoReconnectConfig | null;
-  
+
   // Connection quality
   rateLimitConfig: RateLimitConfig | null;
   floodProtectionConfig: FloodProtectionConfig | null;
   lagMonitoringConfig: LagMonitoringConfig | null;
   connectionStats: any;
-  
+
   // Bouncer
   bouncerConfig: BouncerConfig | null;
   bouncerInfo: any;
-  
+
   // Actions
   refreshNetworks: () => Promise<void>;
-  updateAutoReconnectConfig: (config: Partial<AutoReconnectConfig>) => Promise<void>;
+  updateAutoReconnectConfig: (
+    config: Partial<AutoReconnectConfig>,
+  ) => Promise<void>;
   updateRateLimitConfig: (config: Partial<RateLimitConfig>) => Promise<void>;
-  updateFloodProtectionConfig: (config: Partial<FloodProtectionConfig>) => Promise<void>;
-  updateLagMonitoringConfig: (config: Partial<LagMonitoringConfig>) => Promise<void>;
+  updateFloodProtectionConfig: (
+    config: Partial<FloodProtectionConfig>,
+  ) => Promise<void>;
+  updateLagMonitoringConfig: (
+    config: Partial<LagMonitoringConfig>,
+  ) => Promise<void>;
   updateBouncerConfig: (config: Partial<BouncerConfig>) => Promise<void>;
 }
 
 export const useSettingsConnection = (): UseSettingsConnectionReturn => {
   const [networks, setNetworks] = useState<IRCNetworkConfig[]>([]);
-  const [autoReconnectConfig, setAutoReconnectConfig] = useState<AutoReconnectConfig | null>(null);
-  const [rateLimitConfig, setRateLimitConfig] = useState<RateLimitConfig | null>(null);
-  const [floodProtectionConfig, setFloodProtectionConfig] = useState<FloodProtectionConfig | null>(null);
-  const [lagMonitoringConfig, setLagMonitoringConfig] = useState<LagMonitoringConfig | null>(null);
+  const [autoReconnectConfig, setAutoReconnectConfig] =
+    useState<AutoReconnectConfig | null>(null);
+  const [rateLimitConfig, setRateLimitConfig] =
+    useState<RateLimitConfig | null>(null);
+  const [floodProtectionConfig, setFloodProtectionConfig] =
+    useState<FloodProtectionConfig | null>(null);
+  const [lagMonitoringConfig, setLagMonitoringConfig] =
+    useState<LagMonitoringConfig | null>(null);
   const [connectionStats, setConnectionStats] = useState<any>(null);
-  const [bouncerConfig, setBouncerConfig] = useState<BouncerConfig | null>(null);
+  const [bouncerConfig, setBouncerConfig] = useState<BouncerConfig | null>(
+    null,
+  );
   const [bouncerInfo, setBouncerInfo] = useState<any>(null);
 
   // Load initial state
@@ -50,30 +70,33 @@ export const useSettingsConnection = (): UseSettingsConnectionReturn => {
     const loadSettings = async () => {
       const loadedNetworks = await settingsService.loadNetworks();
       setNetworks(loadedNetworks);
-      
-      const reconnectConfig = loadedNetworks[0] ? autoReconnectService.getConfig(loadedNetworks[0].id) ?? null : null;
+
+      const reconnectConfig = loadedNetworks[0]
+        ? (autoReconnectService.getConfig(loadedNetworks[0].id) ?? null)
+        : null;
       setAutoReconnectConfig(reconnectConfig);
-      
+
       const rateLimit = connectionQualityService.getRateLimitConfig();
       setRateLimitConfig(rateLimit);
-      
-      const floodProtection = connectionQualityService.getFloodProtectionConfig();
+
+      const floodProtection =
+        connectionQualityService.getFloodProtectionConfig();
       setFloodProtectionConfig(floodProtection);
-      
+
       const lagMonitoring = connectionQualityService.getLagMonitoringConfig();
       setLagMonitoringConfig(lagMonitoring);
-      
+
       const stats = connectionQualityService.getStatistics();
       setConnectionStats(stats);
-      
+
       const bouncer = bouncerService.getConfig();
       setBouncerConfig(bouncer);
-      
+
       const bouncerInfoData = bouncerService.getBouncerInfo();
       setBouncerInfo(bouncerInfoData);
     };
     loadSettings();
-    
+
     // Update statistics periodically
     const statsInterval = setInterval(() => {
       const stats = connectionQualityService.getStatistics();
@@ -81,7 +104,7 @@ export const useSettingsConnection = (): UseSettingsConnectionReturn => {
       const bouncerInfoData = bouncerService.getBouncerInfo();
       setBouncerInfo(bouncerInfoData);
     }, 1000);
-    
+
     return () => {
       clearInterval(statsInterval);
     };
@@ -92,38 +115,65 @@ export const useSettingsConnection = (): UseSettingsConnectionReturn => {
     setNetworks(loadedNetworks);
   }, []);
 
-  const updateAutoReconnectConfig = useCallback(async (config: Partial<AutoReconnectConfig> | AutoReconnectConfig) => {
-    // If config is a full AutoReconnectConfig, use it directly
-    // Otherwise merge with existing config
-    const fullConfig = ('enabled' in config && 'maxAttempts' in config) 
-      ? config as AutoReconnectConfig
-      : { ...autoReconnectConfig!, ...config };
-    
-    // Note: This function doesn't know which network, so we can't call setConfig here
-    // The caller should handle setting the config for the specific network
-    // We just update the local state for UI refresh
-    setAutoReconnectConfig(fullConfig as AutoReconnectConfig);
-  }, [autoReconnectConfig]);
+  const updateAutoReconnectConfig = useCallback(
+    async (config: Partial<AutoReconnectConfig> | AutoReconnectConfig) => {
+      // If config is a full AutoReconnectConfig, use it directly
+      // Otherwise merge with existing config
+      const fullConfig =
+        'enabled' in config && 'maxAttempts' in config
+          ? (config as AutoReconnectConfig)
+          : { ...autoReconnectConfig!, ...config };
 
-  const updateRateLimitConfig = useCallback(async (config: Partial<RateLimitConfig>) => {
-    await connectionQualityService.setRateLimitConfig({ ...rateLimitConfig!, ...config });
-    setRateLimitConfig(connectionQualityService.getRateLimitConfig());
-  }, [rateLimitConfig]);
+      // Note: This function doesn't know which network, so we can't call setConfig here
+      // The caller should handle setting the config for the specific network
+      // We just update the local state for UI refresh
+      setAutoReconnectConfig(fullConfig as AutoReconnectConfig);
+    },
+    [autoReconnectConfig],
+  );
 
-  const updateFloodProtectionConfig = useCallback(async (config: Partial<FloodProtectionConfig>) => {
-    await connectionQualityService.setFloodProtectionConfig({ ...floodProtectionConfig!, ...config });
-    setFloodProtectionConfig(connectionQualityService.getFloodProtectionConfig());
-  }, [floodProtectionConfig]);
+  const updateRateLimitConfig = useCallback(
+    async (config: Partial<RateLimitConfig>) => {
+      await connectionQualityService.setRateLimitConfig({
+        ...rateLimitConfig!,
+        ...config,
+      });
+      setRateLimitConfig(connectionQualityService.getRateLimitConfig());
+    },
+    [rateLimitConfig],
+  );
 
-  const updateLagMonitoringConfig = useCallback(async (config: Partial<LagMonitoringConfig>) => {
-    await connectionQualityService.setLagMonitoringConfig({ ...lagMonitoringConfig!, ...config });
-    setLagMonitoringConfig(connectionQualityService.getLagMonitoringConfig());
-  }, [lagMonitoringConfig]);
+  const updateFloodProtectionConfig = useCallback(
+    async (config: Partial<FloodProtectionConfig>) => {
+      await connectionQualityService.setFloodProtectionConfig({
+        ...floodProtectionConfig!,
+        ...config,
+      });
+      setFloodProtectionConfig(
+        connectionQualityService.getFloodProtectionConfig(),
+      );
+    },
+    [floodProtectionConfig],
+  );
 
-  const updateBouncerConfig = useCallback(async (config: Partial<BouncerConfig>) => {
-    await bouncerService.setConfig({ ...bouncerConfig!, ...config });
-    setBouncerConfig(bouncerService.getConfig());
-  }, [bouncerConfig]);
+  const updateLagMonitoringConfig = useCallback(
+    async (config: Partial<LagMonitoringConfig>) => {
+      await connectionQualityService.setLagMonitoringConfig({
+        ...lagMonitoringConfig!,
+        ...config,
+      });
+      setLagMonitoringConfig(connectionQualityService.getLagMonitoringConfig());
+    },
+    [lagMonitoringConfig],
+  );
+
+  const updateBouncerConfig = useCallback(
+    async (config: Partial<BouncerConfig>) => {
+      await bouncerService.setConfig({ ...bouncerConfig!, ...config });
+      setBouncerConfig(bouncerService.getConfig());
+    },
+    [bouncerConfig],
+  );
 
   return {
     networks,

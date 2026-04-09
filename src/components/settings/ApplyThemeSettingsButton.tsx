@@ -9,7 +9,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { tx } from '../../i18n/transifex';
 import { useTheme } from '../../hooks/useTheme';
-import { themeService, ThemeRecommendedSettings } from '../../services/ThemeService';
+import {
+  themeService,
+  ThemeRecommendedSettings,
+} from '../../services/ThemeService';
 import { settingsService } from '../../services/SettingsService';
 import { LayoutType } from '../../services/LayoutService';
 
@@ -22,7 +25,9 @@ interface ApplyThemeSettingsButtonProps {
 /**
  * Mapira preporučena podešavanja teme na SettingsService ključeve
  */
-async function applyThemeSettings(settings: ThemeRecommendedSettings): Promise<void> {
+async function applyThemeSettings(
+  settings: ThemeRecommendedSettings,
+): Promise<void> {
   const promises: Promise<void>[] = [];
   const normalizedBannerPosition = (() => {
     const pos = settings.bannerPosition;
@@ -46,69 +51,123 @@ async function applyThemeSettings(settings: ThemeRecommendedSettings): Promise<v
 
   // Appearance settings
   if (settings.tabPosition !== undefined) {
-    promises.push(settingsService.setSetting('tabPosition', settings.tabPosition));
+    promises.push(
+      settingsService.setSetting('tabPosition', settings.tabPosition),
+    );
   }
   if (settings.userListSize !== undefined) {
-    promises.push(settingsService.setSetting('userListSize', settings.userListSize));
+    promises.push(
+      settingsService.setSetting('userListSize', settings.userListSize),
+    );
   }
   if (settings.userListNickFontSize !== undefined) {
-    promises.push(settingsService.setSetting('userListNickFontSize', settings.userListNickFontSize));
+    promises.push(
+      settingsService.setSetting(
+        'userListNickFontSize',
+        settings.userListNickFontSize,
+      ),
+    );
   }
   if (settings.nickListTongueSize !== undefined) {
-    promises.push(settingsService.setSetting('nickListTongueSize', settings.nickListTongueSize));
+    promises.push(
+      settingsService.setSetting(
+        'nickListTongueSize',
+        settings.nickListTongueSize,
+      ),
+    );
   }
   if (settings.fontSize !== undefined) {
     const layoutMapping: Record<string, LayoutType> = {
-      'small': 'compact',
-      'medium': 'default',
-      'large': 'relaxed',
-      'xlarge': 'custom',
+      small: 'compact',
+      medium: 'default',
+      large: 'relaxed',
+      xlarge: 'custom',
     };
-    promises.push(settingsService.setSetting('layoutType', layoutMapping[settings.fontSize] || 'default'));
+    promises.push(
+      settingsService.setSetting(
+        'layoutType',
+        layoutMapping[settings.fontSize] || 'default',
+      ),
+    );
   }
   if (settings.messageSpacing !== undefined) {
-    promises.push(settingsService.setSetting('messageSpacing', settings.messageSpacing));
+    promises.push(
+      settingsService.setSetting('messageSpacing', settings.messageSpacing),
+    );
   }
   if (settings.messagePadding !== undefined) {
-    promises.push(settingsService.setSetting('messagePadding', settings.messagePadding));
+    promises.push(
+      settingsService.setSetting('messagePadding', settings.messagePadding),
+    );
   }
   if (settings.navigationBarOffset !== undefined) {
-    promises.push(settingsService.setSetting('navigationBarOffset', settings.navigationBarOffset));
+    promises.push(
+      settingsService.setSetting(
+        'navigationBarOffset',
+        settings.navigationBarOffset,
+      ),
+    );
   }
 
   // Display & UI settings
   if (settings.noticeRouting !== undefined) {
-    promises.push(settingsService.setSetting('noticeRouting', settings.noticeRouting));
+    promises.push(
+      settingsService.setSetting('noticeRouting', settings.noticeRouting),
+    );
   }
   if (settings.showTimestamps !== undefined) {
-    promises.push(settingsService.setSetting('showTimestamps', settings.showTimestamps));
+    promises.push(
+      settingsService.setSetting('showTimestamps', settings.showTimestamps),
+    );
   }
   if (settings.groupMessages !== undefined) {
-    promises.push(settingsService.setSetting('groupMessages', settings.groupMessages));
+    promises.push(
+      settingsService.setSetting('groupMessages', settings.groupMessages),
+    );
   }
   if (settings.messageTextAlignment !== undefined) {
-    promises.push(settingsService.setSetting('messageTextAlignment', settings.messageTextAlignment));
+    promises.push(
+      settingsService.setSetting(
+        'messageTextAlignment',
+        settings.messageTextAlignment,
+      ),
+    );
   }
   if (settings.messageTextDirection !== undefined) {
-    promises.push(settingsService.setSetting('messageTextDirection', settings.messageTextDirection));
+    promises.push(
+      settingsService.setSetting(
+        'messageTextDirection',
+        settings.messageTextDirection,
+      ),
+    );
   }
   if (settings.timestampDisplay !== undefined) {
-    promises.push(settingsService.setSetting('timestampDisplay', settings.timestampDisplay));
+    promises.push(
+      settingsService.setSetting('timestampDisplay', settings.timestampDisplay),
+    );
   }
   if (settings.timestampFormat !== undefined) {
-    promises.push(settingsService.setSetting('timestampFormat', settings.timestampFormat));
+    promises.push(
+      settingsService.setSetting('timestampFormat', settings.timestampFormat),
+    );
   }
   if (normalizedBannerPosition !== undefined) {
-    promises.push(settingsService.setSetting('bannerPosition', normalizedBannerPosition));
+    promises.push(
+      settingsService.setSetting('bannerPosition', normalizedBannerPosition),
+    );
   }
   if (settings.keyboardBehavior !== undefined) {
-    promises.push(settingsService.setSetting('keyboardBehavior', settings.keyboardBehavior));
+    promises.push(
+      settingsService.setSetting('keyboardBehavior', settings.keyboardBehavior),
+    );
   }
 
   await Promise.all(promises);
 }
 
-export const ApplyThemeSettingsButton: React.FC<ApplyThemeSettingsButtonProps> = ({ onApplied }) => {
+export const ApplyThemeSettingsButton: React.FC<
+  ApplyThemeSettingsButtonProps
+> = ({ onApplied }) => {
   const { theme } = useTheme();
   const hasSettings = themeService.hasRecommendedSettings();
   const settings = themeService.getRecommendedSettings();
@@ -120,7 +179,10 @@ export const ApplyThemeSettingsButton: React.FC<ApplyThemeSettingsButtonProps> =
   const handlePress = () => {
     Alert.alert(
       t('Apply Theme Settings'),
-      t('This will apply the recommended settings for the {{themeName}} theme. Your current settings will be overwritten.', { themeName: theme.name }),
+      t(
+        'This will apply the recommended settings for the {{themeName}} theme. Your current settings will be overwritten.',
+        { themeName: theme.name },
+      ),
       [
         {
           text: t('Cancel'),
@@ -135,18 +197,18 @@ export const ApplyThemeSettingsButton: React.FC<ApplyThemeSettingsButtonProps> =
               onApplied?.();
               Alert.alert(
                 t('Settings Applied'),
-                t('Theme settings have been applied successfully.')
+                t('Theme settings have been applied successfully.'),
               );
             } catch (error) {
               console.error('Failed to apply theme settings:', error);
               Alert.alert(
                 t('Error'),
-                t('Failed to apply theme settings. Please try again.')
+                t('Failed to apply theme settings. Please try again.'),
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -155,7 +217,9 @@ export const ApplyThemeSettingsButton: React.FC<ApplyThemeSettingsButtonProps> =
       <View style={styles.content}>
         <Text style={styles.title}>{t('Apply Theme Settings')}</Text>
         <Text style={styles.description}>
-          {t('Apply recommended settings for {{themeName}} theme', { themeName: theme.name })}
+          {t('Apply recommended settings for {{themeName}} theme', {
+            themeName: theme.name,
+          })}
         </Text>
       </View>
     </TouchableOpacity>

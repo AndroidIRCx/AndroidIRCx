@@ -54,8 +54,21 @@ const mockConnectionManager = {
 };
 
 const mockTabStoreState = {
-  tabs: [{ id: 't1', name: '#chat', type: 'channel', networkId: 'net1', hasActivity: true }],
-  getActiveTab: jest.fn(() => ({ id: 't1', name: '#chat', type: 'channel', networkId: 'net1' })),
+  tabs: [
+    {
+      id: 't1',
+      name: '#chat',
+      type: 'channel',
+      networkId: 'net1',
+      hasActivity: true,
+    },
+  ],
+  getActiveTab: jest.fn(() => ({
+    id: 't1',
+    name: '#chat',
+    type: 'channel',
+    networkId: 'net1',
+  })),
   getTabById: jest.fn((id: string) => (id === 't1' ? { id: 't1' } : null)),
   setActiveTabId: jest.fn(),
 };
@@ -83,7 +96,11 @@ const mockMessageHistoryService = {
 };
 
 const mockThemeService = {
-  getCurrentTheme: jest.fn(() => ({ name: 'IRcap', isDark: true, colors: { background: '#101010' } })),
+  getCurrentTheme: jest.fn(() => ({
+    name: 'IRcap',
+    isDark: true,
+    colors: { background: '#101010' },
+  })),
 };
 
 const mockConnectionQualityService = {
@@ -180,7 +197,9 @@ describe('ScriptingService', () => {
   it('loads, adds, lists, removes, and saves scripts', async () => {
     await (AsyncStorage as any).setItem(
       '@AndroidIRCX:scripts',
-      JSON.stringify([{ id: 'a', name: 'A', code: 'module.exports={};', enabled: false }])
+      JSON.stringify([
+        { id: 'a', name: 'A', code: 'module.exports={};', enabled: false },
+      ]),
     );
 
     await scriptingService.load();
@@ -204,13 +223,21 @@ describe('ScriptingService', () => {
     await scriptingService.setLoggingEnabled(true);
     expect(scriptingService.isLoggingEnabled()).toBe(true);
 
-    (scriptingService as any).addLog({ level: 'info', message: 'hello', scriptId: 's1' });
+    (scriptingService as any).addLog({
+      level: 'info',
+      message: 'hello',
+      scriptId: 's1',
+    });
     expect(scriptingService.getLogs().length).toBe(1);
     await scriptingService.clearLogs();
     expect(scriptingService.getLogs()).toHaveLength(0);
 
-    expect(scriptingService.lint('module.exports = { onConnect: () => {} };').ok).toBe(true);
-    expect(scriptingService.lint('module.exports = { onConnect: ( => {} };').ok).toBe(false);
+    expect(
+      scriptingService.lint('module.exports = { onConnect: () => {} };').ok,
+    ).toBe(true);
+    expect(
+      scriptingService.lint('module.exports = { onConnect: ( => {} };').ok,
+    ).toBe(false);
   });
 
   it('blocks enabling scripts when no rewarded time is available', async () => {
@@ -222,7 +249,9 @@ describe('ScriptingService', () => {
     });
     mockAdRewardService.hasAvailableTime.mockReturnValue(false);
 
-    await expect(scriptingService.setEnabled('limited', true)).rejects.toThrow();
+    await expect(
+      scriptingService.setEnabled('limited', true),
+    ).rejects.toThrow();
     expect(mockLogger.warn).toHaveBeenCalled();
   });
 
@@ -265,55 +294,78 @@ describe('ScriptingService', () => {
       timestamp: Date.now(),
       network: 'net1',
     } as any);
-    expect(mockIrcService.sendMessage).toHaveBeenCalledWith('alice', '\x01PING 123\x01');
+    expect(mockIrcService.sendMessage).toHaveBeenCalledWith(
+      'alice',
+      '\x01PING 123\x01',
+    );
 
     expect(scriptingService.handleRaw('BLOCK THIS', 'in')).toBeNull();
     expect(scriptingService.handleRaw('PING', 'in')).toBe('PING!');
-    expect(scriptingService.processOutgoingCommand('/x', { channel: '#chat', networkId: 'net1' })).toBe('/y');
+    expect(
+      scriptingService.processOutgoingCommand('/x', {
+        channel: '#chat',
+        networkId: 'net1',
+      }),
+    ).toBe('/y');
   });
 
   it('exposes and validates script API helpers', async () => {
-    const api = (scriptingService as any).makeApi({ id: 'api-test', name: 'ApiTest', code: '', enabled: true });
+    const api = (scriptingService as any).makeApi({
+      id: 'api-test',
+      name: 'ApiTest',
+      code: '',
+      enabled: true,
+    });
 
     api.sendMessage('#chat', 'x'.repeat(500), 'net1');
-    expect(mockIrcService.sendMessage).toHaveBeenCalledWith('#chat', 'x'.repeat(500));
+    expect(mockIrcService.sendMessage).toHaveBeenCalledWith(
+      '#chat',
+      'x'.repeat(500),
+    );
     api.sendMessage('#chat', 'x'.repeat(600), 'net1');
     api.sendMessage('', 'test', 'net1');
     expect(mockIrcService.sendMessage).toHaveBeenCalledTimes(1);
 
     api.sendNotice('alice', 'notice text', 'net1');
-    expect(mockIrcService.sendCommand).toHaveBeenCalledWith('NOTICE alice :notice text');
+    expect(mockIrcService.sendCommand).toHaveBeenCalledWith(
+      'NOTICE alice :notice text',
+    );
 
     expect(api.getChannelUsers('#chat', 'net1')).toEqual(['alice', '@bob']);
     expect(api.getChannels('net1')).toEqual(['#chat', '#help']);
     expect(api.getChannelInfo('#chat', 'net1')).toEqual({ modes: ['+nt'] });
 
     expect(api.getTabs()).toHaveLength(1);
-    expect(api.getActiveTab()).toEqual({ id: 't1', name: '#chat', type: 'channel', networkId: 'net1' });
+    expect(api.getActiveTab()).toEqual({
+      id: 't1',
+      name: '#chat',
+      type: 'channel',
+      networkId: 'net1',
+    });
     api.switchToTab('t1');
     expect(mockTabStoreState.setActiveTabId).toHaveBeenCalledWith('t1');
 
     expect(await api.getUserInfo('alice', 'net1')).toEqual({ nick: 'alice' });
     expect(await api.getUserNote('alice', 'net1')).toBe('note');
     await api.setUserNote('alice', 'new-note', 'net1');
-    expect(mockConnection.userManagementService.addUserNote).toHaveBeenCalledWith(
-      'alice',
-      'new-note',
-      'net1'
-    );
+    expect(
+      mockConnection.userManagementService.addUserNote,
+    ).toHaveBeenCalledWith('alice', 'new-note', 'net1');
 
     expect(await api.getUserAlias('alice', 'net1')).toBe('ali');
     await api.setUserAlias('alice', 'a', 'net1');
-    expect(mockConnection.userManagementService.addUserAlias).toHaveBeenCalledWith(
-      'alice',
-      'a',
-      'net1'
-    );
+    expect(
+      mockConnection.userManagementService.addUserAlias,
+    ).toHaveBeenCalledWith('alice', 'a', 'net1');
     expect(api.isIgnored('alice', 'net1')).toBe(false);
 
     expect(await api.getChannelNote('#chat', 'net1')).toBe('chan-note');
     await api.setChannelNote('#chat', 'note', 'net1');
-    expect(mockChannelNotesService.setNote).toHaveBeenCalledWith('net1', '#chat', 'note');
+    expect(mockChannelNotesService.setNote).toHaveBeenCalledWith(
+      'net1',
+      '#chat',
+      'note',
+    );
     expect(await api.isChannelBookmarked('#chat', 'net1')).toBe(true);
 
     expect(api.getHighlightWords()).toEqual(['myNick', 'urgent']);
@@ -321,19 +373,23 @@ describe('ScriptingService', () => {
     await api.removeHighlightWord('abc');
     expect(api.isHighlighted('urgent ping')).toBe(true);
 
-    expect((await api.searchHistory({ channel: '#chat', limit: 2 })).length).toBe(2);
+    expect(
+      (await api.searchHistory({ channel: '#chat', limit: 2 })).length,
+    ).toBe(2);
     expect(await api.getHistoryStats('net1')).toEqual(
       expect.objectContaining({
         totalMessages: 3,
         channelCount: 1,
-      })
+      }),
     );
     expect(await api.getSetting('nick')).toBe('value:nick');
     expect(await api.getSetting('unsafeKey')).toBeNull();
     expect(api.getTheme()).toEqual({ name: 'IRcap', isDark: true });
     expect(api.getConnectionStats('net1')).toEqual({ latency: 42 });
     expect(api.getNetworkId()).toBe('net1');
-    expect(api.getAllNetworks()).toEqual([{ networkId: 'net1', isConnected: true }]);
+    expect(api.getAllNetworks()).toEqual([
+      { networkId: 'net1', isConnected: true },
+    ]);
     expect(api.isConnected('net1')).toBe(true);
 
     await api.setStorage('k1', { v: 1 });
@@ -365,14 +421,67 @@ describe('ScriptingService', () => {
     await scriptingService.setLoggingEnabled(true);
 
     const ts = Date.now();
-    scriptingService.handleMessage({ id: '1', type: 'notice', from: 'srv', text: 'n', timestamp: ts } as any);
-    scriptingService.handleMessage({ id: '2', type: 'join', channel: '#c', from: 'a', text: '', timestamp: ts } as any);
-    scriptingService.handleMessage({ id: '3', type: 'part', channel: '#c', from: 'a', text: 'bye', timestamp: ts } as any);
-    scriptingService.handleMessage({ id: '4', type: 'quit', from: 'a', text: 'bye', timestamp: ts } as any);
-    scriptingService.handleMessage({ id: '5', type: 'nick', from: 'old', text: ':new', timestamp: ts } as any);
-    scriptingService.handleMessage({ id: '6', type: 'mode', channel: '#c', from: 'op', text: '+o a', timestamp: ts } as any);
-    scriptingService.handleMessage({ id: '7', type: 'topic', channel: '#c', from: 'op', text: 't', timestamp: ts } as any);
-    scriptingService.handleMessage({ id: '8', type: 'invite', channel: '#c', from: 'inviter', text: '', timestamp: ts } as any);
+    scriptingService.handleMessage({
+      id: '1',
+      type: 'notice',
+      from: 'srv',
+      text: 'n',
+      timestamp: ts,
+    } as any);
+    scriptingService.handleMessage({
+      id: '2',
+      type: 'join',
+      channel: '#c',
+      from: 'a',
+      text: '',
+      timestamp: ts,
+    } as any);
+    scriptingService.handleMessage({
+      id: '3',
+      type: 'part',
+      channel: '#c',
+      from: 'a',
+      text: 'bye',
+      timestamp: ts,
+    } as any);
+    scriptingService.handleMessage({
+      id: '4',
+      type: 'quit',
+      from: 'a',
+      text: 'bye',
+      timestamp: ts,
+    } as any);
+    scriptingService.handleMessage({
+      id: '5',
+      type: 'nick',
+      from: 'old',
+      text: ':new',
+      timestamp: ts,
+    } as any);
+    scriptingService.handleMessage({
+      id: '6',
+      type: 'mode',
+      channel: '#c',
+      from: 'op',
+      text: '+o a',
+      timestamp: ts,
+    } as any);
+    scriptingService.handleMessage({
+      id: '7',
+      type: 'topic',
+      channel: '#c',
+      from: 'op',
+      text: 't',
+      timestamp: ts,
+    } as any);
+    scriptingService.handleMessage({
+      id: '8',
+      type: 'invite',
+      channel: '#c',
+      from: 'inviter',
+      text: '',
+      timestamp: ts,
+    } as any);
     scriptingService.handleDisconnect('net1', 'bye');
     scriptingService.testHook('events', 'onTimer');
 

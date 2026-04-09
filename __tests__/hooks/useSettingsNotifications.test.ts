@@ -47,7 +47,9 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'android' },
   PermissionsAndroid: {
     request: jest.fn().mockResolvedValue('granted'),
-    PERMISSIONS: { POST_NOTIFICATIONS: 'android.permission.POST_NOTIFICATIONS' },
+    PERMISSIONS: {
+      POST_NOTIFICATIONS: 'android.permission.POST_NOTIFICATIONS',
+    },
     RESULTS: { GRANTED: 'granted', DENIED: 'denied' },
   },
 }));
@@ -55,7 +57,10 @@ jest.mock('react-native', () => ({
 import { notificationService } from '../../src/services/NotificationService';
 import { backgroundService } from '../../src/services/BackgroundService';
 
-const flushPromises = () => act(async () => { await new Promise(r => setTimeout(r, 0)); });
+const flushPromises = () =>
+  act(async () => {
+    await new Promise(r => setTimeout(r, 0));
+  });
 
 describe('useSettingsNotifications', () => {
   beforeEach(() => {
@@ -104,21 +109,23 @@ describe('useSettingsNotifications', () => {
     // Give time for async to complete
     await new Promise(resolve => setTimeout(resolve, 50));
 
-    expect(backgroundService.isBatteryOptimizationEnabled).not.toHaveBeenCalled();
+    expect(
+      backgroundService.isBatteryOptimizationEnabled,
+    ).not.toHaveBeenCalled();
   });
 
   it('should handle initial battery optimization check errors', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    (backgroundService.isBatteryOptimizationEnabled as jest.Mock).mockRejectedValueOnce(
-      new Error('battery-check-failed')
-    );
+    (
+      backgroundService.isBatteryOptimizationEnabled as jest.Mock
+    ).mockRejectedValueOnce(new Error('battery-check-failed'));
 
     renderHook(() => useSettingsNotifications());
     await flushPromises();
 
     expect(errorSpy).toHaveBeenCalledWith(
       'Failed to check battery optimization:',
-      expect.any(Error)
+      expect.any(Error),
     );
     errorSpy.mockRestore();
   });
@@ -131,7 +138,7 @@ describe('useSettingsNotifications', () => {
     });
 
     expect(notificationService.updatePreferences).toHaveBeenCalledWith(
-      expect.objectContaining({ volume: 1.0 })
+      expect.objectContaining({ volume: 1.0 }),
     );
   });
 
@@ -143,7 +150,7 @@ describe('useSettingsNotifications', () => {
     });
 
     expect(PermissionsAndroid.request).toHaveBeenCalledWith(
-      'android.permission.POST_NOTIFICATIONS'
+      'android.permission.POST_NOTIFICATIONS',
     );
   });
 
@@ -157,7 +164,7 @@ describe('useSettingsNotifications', () => {
     });
 
     expect(notificationService.updatePreferences).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true })
+      expect.objectContaining({ enabled: true }),
     );
   });
 
@@ -173,9 +180,11 @@ describe('useSettingsNotifications', () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Permission Required',
-      expect.stringContaining('Notification permission is required')
+      expect.stringContaining('Notification permission is required'),
     );
-    expect(notificationService.updatePreferences).toHaveBeenCalledWith({ enabled: false });
+    expect(notificationService.updatePreferences).toHaveBeenCalledWith({
+      enabled: false,
+    });
   });
 
   it('should proceed if permission check succeeds after Android denial', async () => {
@@ -191,13 +200,15 @@ describe('useSettingsNotifications', () => {
     });
 
     expect(notificationService.updatePreferences).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true })
+      expect.objectContaining({ enabled: true }),
     );
   });
 
   it('should use notifee request on iOS', async () => {
     (Platform as any).OS = 'ios';
-    (notificationService.requestPermission as jest.Mock).mockResolvedValue(true);
+    (notificationService.requestPermission as jest.Mock).mockResolvedValue(
+      true,
+    );
 
     const { result } = renderHook(() => useSettingsNotifications());
 
@@ -207,13 +218,15 @@ describe('useSettingsNotifications', () => {
 
     expect(notificationService.requestPermission).toHaveBeenCalled();
     expect(notificationService.updatePreferences).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true })
+      expect.objectContaining({ enabled: true }),
     );
   });
 
   it('should show alert when iOS permission denied', async () => {
     (Platform as any).OS = 'ios';
-    (notificationService.requestPermission as jest.Mock).mockResolvedValue(false);
+    (notificationService.requestPermission as jest.Mock).mockResolvedValue(
+      false,
+    );
     (notificationService.checkPermission as jest.Mock).mockResolvedValue(false);
 
     const { result } = renderHook(() => useSettingsNotifications());
@@ -224,7 +237,7 @@ describe('useSettingsNotifications', () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Permission Required',
-      expect.stringContaining('Notification permission is required')
+      expect.stringContaining('Notification permission is required'),
     );
   });
 
@@ -240,7 +253,7 @@ describe('useSettingsNotifications', () => {
     // Should not request Android permission since already granted
     expect(PermissionsAndroid.request).not.toHaveBeenCalled();
     expect(notificationService.updatePreferences).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true })
+      expect.objectContaining({ enabled: true }),
     );
   });
 
@@ -251,7 +264,9 @@ describe('useSettingsNotifications', () => {
       await result.current.setBackgroundEnabled(true);
     });
 
-    expect(backgroundService.setBackgroundConnectionEnabled).toHaveBeenCalledWith(true);
+    expect(
+      backgroundService.setBackgroundConnectionEnabled,
+    ).toHaveBeenCalledWith(true);
     expect(result.current.backgroundEnabled).toBe(true);
   });
 
@@ -264,14 +279,18 @@ describe('useSettingsNotifications', () => {
       await result.current.handleBatteryOptimization();
     });
 
-    expect(backgroundService.openBatteryOptimizationSettings).toHaveBeenCalled();
+    expect(
+      backgroundService.openBatteryOptimizationSettings,
+    ).toHaveBeenCalled();
 
     jest.useRealTimers();
   });
 
   it('should re-check battery optimization status after opening settings', async () => {
     jest.useFakeTimers();
-    (backgroundService.isBatteryOptimizationEnabled as jest.Mock).mockResolvedValue(false);
+    (
+      backgroundService.isBatteryOptimizationEnabled as jest.Mock
+    ).mockResolvedValue(false);
     const { result } = renderHook(() => useSettingsNotifications());
 
     await act(async () => {
@@ -291,10 +310,12 @@ describe('useSettingsNotifications', () => {
   it('should handle battery optimization re-check errors after timeout', async () => {
     jest.useFakeTimers();
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    (backgroundService.isBatteryOptimizationEnabled as jest.Mock).mockResolvedValueOnce(true);
-    (backgroundService.isBatteryOptimizationEnabled as jest.Mock).mockRejectedValueOnce(
-      new Error('recheck-failed')
-    );
+    (
+      backgroundService.isBatteryOptimizationEnabled as jest.Mock
+    ).mockResolvedValueOnce(true);
+    (
+      backgroundService.isBatteryOptimizationEnabled as jest.Mock
+    ).mockRejectedValueOnce(new Error('recheck-failed'));
 
     const { result } = renderHook(() => useSettingsNotifications());
     await act(async () => {
@@ -312,15 +333,15 @@ describe('useSettingsNotifications', () => {
 
     expect(errorSpy).toHaveBeenCalledWith(
       'Failed to re-check battery optimization:',
-      expect.any(Error)
+      expect.any(Error),
     );
     errorSpy.mockRestore();
   });
 
   it('should show alert when battery optimization settings fail', async () => {
-    (backgroundService.openBatteryOptimizationSettings as jest.Mock).mockRejectedValue(
-      new Error('Failed')
-    );
+    (
+      backgroundService.openBatteryOptimizationSettings as jest.Mock
+    ).mockRejectedValue(new Error('Failed'));
 
     const { result } = renderHook(() => useSettingsNotifications());
 
@@ -340,7 +361,9 @@ describe('useSettingsNotifications', () => {
       await result.current.handleBatteryOptimization();
     });
 
-    expect(backgroundService.openBatteryOptimizationSettings).not.toHaveBeenCalled();
+    expect(
+      backgroundService.openBatteryOptimizationSettings,
+    ).not.toHaveBeenCalled();
   });
 
   it('should refresh notification preferences', async () => {
@@ -355,7 +378,9 @@ describe('useSettingsNotifications', () => {
   });
 
   it('should handle permission request error gracefully on Android', async () => {
-    (PermissionsAndroid.request as jest.Mock).mockRejectedValue(new Error('Permission error'));
+    (PermissionsAndroid.request as jest.Mock).mockRejectedValue(
+      new Error('Permission error'),
+    );
     (notificationService.checkPermission as jest.Mock).mockResolvedValue(false);
 
     const { result } = renderHook(() => useSettingsNotifications());
@@ -365,6 +390,8 @@ describe('useSettingsNotifications', () => {
     });
 
     // Should disable notifications on error
-    expect(notificationService.updatePreferences).toHaveBeenCalledWith({ enabled: false });
+    expect(notificationService.updatePreferences).toHaveBeenCalledWith({
+      enabled: false,
+    });
   });
 });

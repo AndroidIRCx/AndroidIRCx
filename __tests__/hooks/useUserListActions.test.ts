@@ -32,8 +32,8 @@ const mockUIStore = {
 
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: Object.assign(
-    jest.fn((selector) => selector(mockUIStore)),
-    { getState: jest.fn(() => mockUIStore) }
+    jest.fn(selector => selector(mockUIStore)),
+    { getState: jest.fn(() => mockUIStore) },
   ),
 }));
 
@@ -46,7 +46,12 @@ describe('useUserListActions', () => {
 
   const defaultProps = {
     tabs: [],
-    activeTab: { id: 'server-freenode', name: 'freenode', type: 'server', networkId: 'freenode' } as any,
+    activeTab: {
+      id: 'server-freenode',
+      name: 'freenode',
+      type: 'server',
+      networkId: 'freenode',
+    } as any,
     tabSortAlphabetical: false,
     setTabs: mockSetTabs,
     setActiveTabId: mockSetActiveTabId,
@@ -67,11 +72,16 @@ describe('useUserListActions', () => {
 
   it('should switch to existing query tab on user press', async () => {
     const existingTabs = [
-      { id: 'query::freenode::John', name: 'John', type: 'query', networkId: 'freenode' },
+      {
+        id: 'query::freenode::John',
+        name: 'John',
+        type: 'query',
+        networkId: 'freenode',
+      },
     ];
 
     const { result } = renderHook(() =>
-      useUserListActions({ ...defaultProps, tabs: existingTabs })
+      useUserListActions({ ...defaultProps, tabs: existingTabs }),
     );
 
     await act(async () => {
@@ -89,14 +99,19 @@ describe('useUserListActions', () => {
       await result.current.handleUserPress({ nick: 'NewUser' });
     });
 
-    expect(encryptedDMService.isEncryptedForNetwork).toHaveBeenCalledWith('freenode', 'NewUser');
+    expect(encryptedDMService.isEncryptedForNetwork).toHaveBeenCalledWith(
+      'freenode',
+      'NewUser',
+    );
     expect(mockSetTabs).toHaveBeenCalled();
     expect(soundService.playSound).toHaveBeenCalled();
     expect(mockSetActiveTabId).toHaveBeenCalled();
   });
 
   it('should check encryption status for new query', async () => {
-    (encryptedDMService.isEncryptedForNetwork as jest.Mock).mockResolvedValue(true);
+    (encryptedDMService.isEncryptedForNetwork as jest.Mock).mockResolvedValue(
+      true,
+    );
 
     const { result } = renderHook(() => useUserListActions(defaultProps));
 
@@ -104,8 +119,11 @@ describe('useUserListActions', () => {
       await result.current.handleUserPress({ nick: 'SecureUser' });
     });
 
-    expect(encryptedDMService.isEncryptedForNetwork).toHaveBeenCalledWith('freenode', 'SecureUser');
-    
+    expect(encryptedDMService.isEncryptedForNetwork).toHaveBeenCalledWith(
+      'freenode',
+      'SecureUser',
+    );
+
     // Check that setTabs was called with encrypted tab
     const setTabsCall = mockSetTabs.mock.calls[0][0];
     const newTabs = setTabsCall([]);
@@ -128,7 +146,12 @@ describe('useUserListActions', () => {
   it('should use correct network ID from active tab', async () => {
     const customProps = {
       ...defaultProps,
-      activeTab: { id: 'server-dalnet', name: 'dalnet', type: 'server', networkId: 'dalnet' } as any,
+      activeTab: {
+        id: 'server-dalnet',
+        name: 'dalnet',
+        type: 'server',
+        networkId: 'dalnet',
+      } as any,
     };
 
     const { result } = renderHook(() => useUserListActions(customProps));
@@ -137,6 +160,9 @@ describe('useUserListActions', () => {
       await result.current.handleUserPress({ nick: 'TestUser' });
     });
 
-    expect(encryptedDMService.isEncryptedForNetwork).toHaveBeenCalledWith('dalnet', 'TestUser');
+    expect(encryptedDMService.isEncryptedForNetwork).toHaveBeenCalledWith(
+      'dalnet',
+      'TestUser',
+    );
   });
 });

@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 /**
  * Hook that debounces a value by a specified delay.
  * Useful for search inputs to prevent excessive re-renders.
- * 
+ *
  * @param value The value to debounce
  * @param delay The delay in milliseconds
  * @returns The debounced value

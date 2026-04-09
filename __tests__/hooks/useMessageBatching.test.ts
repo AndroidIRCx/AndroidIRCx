@@ -42,17 +42,17 @@ jest.mock('../../src/services/BouncerService', () => ({
 }));
 
 jest.mock('../../src/utils/tabUtils', () => ({
-  serverTabId: jest.fn().mockImplementation((id) => `server-${id}`),
-  noticeTabId: jest.fn().mockImplementation((id) => `notices-${id}`),
-  notificationsTabId: jest.fn().mockImplementation((id) => `notifications-${id}`),
-  makeServerTab: jest.fn().mockImplementation((id) => ({
+  serverTabId: jest.fn().mockImplementation(id => `server-${id}`),
+  noticeTabId: jest.fn().mockImplementation(id => `notices-${id}`),
+  notificationsTabId: jest.fn().mockImplementation(id => `notifications-${id}`),
+  makeServerTab: jest.fn().mockImplementation(id => ({
     id: `server-${id}`,
     name: id,
     type: 'server',
     networkId: id,
     messages: [],
   })),
-  sortTabsGrouped: jest.fn().mockImplementation((tabs) => tabs),
+  sortTabsGrouped: jest.fn().mockImplementation(tabs => tabs),
 }));
 
 import { messageHistoryService } from '../../src/services/MessageHistoryService';
@@ -72,7 +72,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: mockSetTabs,
-      })
+      }),
     );
 
     expect(result.current.processBatchedMessages).toBeDefined();
@@ -87,7 +87,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: mockSetTabs,
-      })
+      }),
     );
 
     act(() => {
@@ -126,7 +126,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: mockSetTabs,
-      })
+      }),
     );
 
     act(() => {
@@ -138,7 +138,9 @@ describe('useMessageBatching', () => {
     const newState = setTabsCall([]);
     expect(newState.length).toBeGreaterThan(0);
     // Check that channel tab exists (server tab is also created)
-    const channelTab = newState.find((t: any) => t.id === 'channel-freenode-#test');
+    const channelTab = newState.find(
+      (t: any) => t.id === 'channel-freenode-#test',
+    );
     expect(channelTab).toBeDefined();
     expect(channelTab?.messages.length).toBe(1);
   });
@@ -181,7 +183,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: mockSetTabs,
-      })
+      }),
     );
 
     act(() => {
@@ -243,7 +245,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: mockSetTabs,
-      })
+      }),
     );
 
     act(() => {
@@ -304,7 +306,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: mockSetTabs,
-      })
+      }),
     );
 
     act(() => {
@@ -361,7 +363,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: mockSetTabs,
-      })
+      }),
     );
 
     act(() => {
@@ -371,7 +373,9 @@ describe('useMessageBatching', () => {
     const setTabsCall = mockSetTabs.mock.calls[0][0];
     const newState = setTabsCall([]);
     expect(newState.some((t: any) => t.id === 'notices-freenode')).toBe(true);
-    expect(newState.some((t: any) => t.id === 'notifications-freenode')).toBe(true);
+    expect(newState.some((t: any) => t.id === 'notifications-freenode')).toBe(
+      true,
+    );
   });
 
   it('should dedupe messages by msgid when both have msgid', () => {
@@ -423,7 +427,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: mockSetTabs,
-      })
+      }),
     );
 
     act(() => {
@@ -532,7 +536,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: setTabsWithState,
-      })
+      }),
     );
 
     act(() => {
@@ -543,12 +547,13 @@ describe('useMessageBatching', () => {
     expect(messageHistoryService.saveMessage).toHaveBeenCalledTimes(1);
     expect(messageHistoryService.saveMessage).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'ok-1' }),
-      'freenode'
+      'freenode',
     );
   });
 
   it('should enforce performance cleanup limit when threshold is exceeded', () => {
-    const perf = require('../../src/services/PerformanceService').performanceService;
+    const perf =
+      require('../../src/services/PerformanceService').performanceService;
     perf.getConfig.mockReturnValueOnce({
       enableMessageCleanup: true,
       cleanupThreshold: 2,
@@ -595,7 +600,7 @@ describe('useMessageBatching', () => {
         activeTabId: 'tab-1',
         tabSortAlphabetical: false,
         setTabs: mockSetTabs,
-      })
+      }),
     );
 
     act(() => {

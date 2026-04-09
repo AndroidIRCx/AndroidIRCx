@@ -26,13 +26,17 @@ jest.mock('../../../src/i18n/transifex', () => ({
 
 describe('HelpMediaScreen', () => {
   it('renders nothing when not visible', () => {
-    const { queryByText } = render(<HelpMediaScreen visible={false} onClose={jest.fn()} />);
+    const { queryByText } = render(
+      <HelpMediaScreen visible={false} onClose={jest.fn()} />,
+    );
 
     expect(queryByText('Media Sharing Guide')).toBeNull();
   });
 
   it('renders media guide content when visible', () => {
-    const { getByText } = render(<HelpMediaScreen visible onClose={jest.fn()} />);
+    const { getByText } = render(
+      <HelpMediaScreen visible onClose={jest.fn()} />,
+    );
 
     expect(getByText('Media Sharing Guide')).toBeTruthy();
     expect(getByText('Overview')).toBeTruthy();
@@ -47,7 +51,9 @@ describe('HelpMediaScreen', () => {
 
   it('calls onClose when close button is pressed', () => {
     const onClose = jest.fn();
-    const { getByLabelText } = render(<HelpMediaScreen visible onClose={onClose} />);
+    const { getByLabelText } = render(
+      <HelpMediaScreen visible onClose={onClose} />,
+    );
 
     fireEvent.press(getByLabelText('Close help screen'));
 

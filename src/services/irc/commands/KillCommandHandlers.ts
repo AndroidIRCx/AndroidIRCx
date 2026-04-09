@@ -14,17 +14,22 @@ const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 export const handleKILL: CommandHandler = (ctx, prefix, params, timestamp) => {
   const killedNick = params[0] || '';
-  const killReason = params.slice(1).join(' ').replace(/^:/, '') || t('No reason given');
+  const killReason =
+    params.slice(1).join(' ').replace(/^:/, '') || t('No reason given');
   const currentNick = ctx.getCurrentNick();
 
-  if (killedNick && currentNick && killedNick.toLowerCase() === currentNick.toLowerCase()) {
+  if (
+    killedNick &&
+    currentNick &&
+    killedNick.toLowerCase() === currentNick.toLowerCase()
+  ) {
     ctx.addRawMessage(
       t('*** You were killed by {server}: {reason}', {
         server: ctx.extractNick(prefix) || t('server'),
         reason: killReason,
       }),
       'connection',
-      timestamp
+      timestamp,
     );
     ctx.addMessage({
       type: 'error',
@@ -37,7 +42,10 @@ export const handleKILL: CommandHandler = (ctx, prefix, params, timestamp) => {
 
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} was killed: {reason}', { nick: killedNick, reason: killReason }),
+    text: t('*** {nick} was killed: {reason}', {
+      nick: killedNick,
+      reason: killReason,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',

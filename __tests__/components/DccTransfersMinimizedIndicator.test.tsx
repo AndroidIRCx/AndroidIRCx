@@ -39,14 +39,14 @@ describe('DccTransfersMinimizedIndicator', () => {
 
   it('should return null when not visible', () => {
     const { UNSAFE_root } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} visible={false} />
+      <DccTransfersMinimizedIndicator {...defaultProps} visible={false} />,
     );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
 
   it('should return null when no active transfers', () => {
     const { UNSAFE_root } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={[]} />
+      <DccTransfersMinimizedIndicator {...defaultProps} transfers={[]} />,
     );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
@@ -54,26 +54,36 @@ describe('DccTransfersMinimizedIndicator', () => {
   it('should return null when all transfers are completed', () => {
     const completedTransfer = createMockTransfer({ status: 'completed' });
     const { UNSAFE_root } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={[completedTransfer]} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={[completedTransfer]}
+      />,
     );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
 
   it('should render when there are downloading transfers', () => {
-    const { getByText } = render(<DccTransfersMinimizedIndicator {...defaultProps} />);
+    const { getByText } = render(
+      <DccTransfersMinimizedIndicator {...defaultProps} />,
+    );
     expect(getByText('test-file.zip')).toBeTruthy();
   });
 
   it('should render when there are sending transfers', () => {
     const sendingTransfer = createMockTransfer({ status: 'sending' });
     const { getByText } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={[sendingTransfer]} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={[sendingTransfer]}
+      />,
     );
     expect(getByText('test-file.zip')).toBeTruthy();
   });
 
   it('should display transfer count', () => {
-    const { getByText } = render(<DccTransfersMinimizedIndicator {...defaultProps} />);
+    const { getByText } = render(
+      <DccTransfersMinimizedIndicator {...defaultProps} />,
+    );
     expect(getByText(/transfer/)).toBeTruthy();
   });
 
@@ -83,31 +93,45 @@ describe('DccTransfersMinimizedIndicator', () => {
       createMockTransfer({ offer: { filename: 'file2.zip', size: 1000000 } }),
     ];
     const { getByText } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={transfers} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={transfers}
+      />,
     );
     expect(getByText(/2 transfers/)).toBeTruthy();
   });
 
   it('should show first filename with count for multiple transfers', () => {
     const transfers = [
-      createMockTransfer({ offer: { filename: 'first-file.zip', size: 1000000 } }),
-      createMockTransfer({ offer: { filename: 'second-file.zip', size: 1000000 } }),
-      createMockTransfer({ offer: { filename: 'third-file.zip', size: 1000000 } }),
+      createMockTransfer({
+        offer: { filename: 'first-file.zip', size: 1000000 },
+      }),
+      createMockTransfer({
+        offer: { filename: 'second-file.zip', size: 1000000 },
+      }),
+      createMockTransfer({
+        offer: { filename: 'third-file.zip', size: 1000000 },
+      }),
     ];
     const { getByText } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={transfers} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={transfers}
+      />,
     );
     expect(getByText('first-file.zip (+2 more)')).toBeTruthy();
   });
 
   it('should render download icon', () => {
-    const { getByText } = render(<DccTransfersMinimizedIndicator {...defaultProps} />);
+    const { getByText } = render(
+      <DccTransfersMinimizedIndicator {...defaultProps} />,
+    );
     expect(getByText('📥')).toBeTruthy();
   });
 
   it('should render progress bar', () => {
     const { UNSAFE_getAllByType } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} />
+      <DccTransfersMinimizedIndicator {...defaultProps} />,
     );
     const views = UNSAFE_getAllByType('View');
     // Should have multiple views including progress bar
@@ -115,50 +139,69 @@ describe('DccTransfersMinimizedIndicator', () => {
   });
 
   it('should filter out failed transfers', () => {
-    const transfers = [
-      createMockTransfer({ status: 'failed' }),
-    ];
+    const transfers = [createMockTransfer({ status: 'failed' })];
     const { UNSAFE_root } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={transfers} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={transfers}
+      />,
     );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
 
   it('should filter out rejected transfers', () => {
-    const transfers = [
-      createMockTransfer({ status: 'rejected' }),
-    ];
+    const transfers = [createMockTransfer({ status: 'rejected' })];
     const { UNSAFE_root } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={transfers} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={transfers}
+      />,
     );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
 
   it('should show only active transfers in count', () => {
     const transfers = [
-      createMockTransfer({ status: 'downloading', offer: { filename: 'active.zip', size: 1000000 } }),
+      createMockTransfer({
+        status: 'downloading',
+        offer: { filename: 'active.zip', size: 1000000 },
+      }),
       createMockTransfer({ status: 'completed' }),
       createMockTransfer({ status: 'failed' }),
     ];
     const { getByText } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={transfers} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={transfers}
+      />,
     );
     // Only 1 downloading transfer should be shown
     expect(getByText(/1 transfer/)).toBeTruthy();
   });
 
   it('should handle zero bytes received', () => {
-    const transfer = createMockTransfer({ bytesReceived: 0, offer: { filename: 'test.zip', size: 1000000 } });
+    const transfer = createMockTransfer({
+      bytesReceived: 0,
+      offer: { filename: 'test.zip', size: 1000000 },
+    });
     const { getByText } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={[transfer]} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={[transfer]}
+      />,
     );
     expect(getByText('1 transfer - 0%')).toBeTruthy();
   });
 
   it('should handle undefined size gracefully', () => {
-    const transfer = createMockTransfer({ offer: { filename: 'no-size.txt', size: undefined } });
+    const transfer = createMockTransfer({
+      offer: { filename: 'no-size.txt', size: undefined },
+    });
     const { getByText } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={[transfer]} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={[transfer]}
+      />,
     );
     // With undefined size, percentage should be 0%
     expect(getByText('1 transfer - 0%')).toBeTruthy();
@@ -180,13 +223,19 @@ describe('DccTransfersMinimizedIndicator', () => {
     ];
 
     const { getByText, UNSAFE_root } = render(
-      <DccTransfersMinimizedIndicator {...defaultProps} transfers={transfers} onPress={onPress} />
+      <DccTransfersMinimizedIndicator
+        {...defaultProps}
+        transfers={transfers}
+        onPress={onPress}
+      />,
     );
 
     fireEvent.press(getByText('big.zip (+1 more)'));
     expect(onPress).toHaveBeenCalled();
 
-    const widthNode = UNSAFE_root.find((node) => node.props?.style?.some?.((style: any) => style?.width === '25%'));
+    const widthNode = UNSAFE_root.find(node =>
+      node.props?.style?.some?.((style: any) => style?.width === '25%'),
+    );
     expect(widthNode).toBeTruthy();
   });
 });

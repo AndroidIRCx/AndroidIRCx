@@ -25,7 +25,7 @@ describe('useDebounce', () => {
   it('should return debounced value after delay', () => {
     const { result, rerender } = renderHook(
       ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'initial', delay: 500 } }
+      { initialProps: { value: 'initial', delay: 500 } },
     );
 
     expect(result.current).toBe('initial');
@@ -48,7 +48,7 @@ describe('useDebounce', () => {
   it('should reset timer when value changes before delay', () => {
     const { result, rerender } = renderHook(
       ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'initial', delay: 500 } }
+      { initialProps: { value: 'initial', delay: 500 } },
     );
 
     rerender({ value: 'first', delay: 500 });
@@ -81,7 +81,7 @@ describe('useDebounce', () => {
   it('should handle numeric values', () => {
     const { result, rerender } = renderHook(
       ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 0, delay: 300 } }
+      { initialProps: { value: 0, delay: 300 } },
     );
 
     expect(result.current).toBe(0);
@@ -101,7 +101,7 @@ describe('useDebounce', () => {
 
     const { result, rerender } = renderHook(
       ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: initialObj, delay: 400 } }
+      { initialProps: { value: initialObj, delay: 400 } },
     );
 
     expect(result.current).toEqual(initialObj);
@@ -118,7 +118,7 @@ describe('useDebounce', () => {
   it('should clear timeout on unmount', () => {
     const { rerender, unmount } = renderHook(
       ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'initial', delay: 500 } }
+      { initialProps: { value: 'initial', delay: 500 } },
     );
 
     rerender({ value: 'changed', delay: 500 });
@@ -135,7 +135,7 @@ describe('useDebounce', () => {
   it('should handle delay of 0', () => {
     const { result, rerender } = renderHook(
       ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'initial', delay: 0 } }
+      { initialProps: { value: 'initial', delay: 0 } },
     );
 
     rerender({ value: 'changed', delay: 0 });

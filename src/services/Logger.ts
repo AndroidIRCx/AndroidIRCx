@@ -19,10 +19,16 @@ const SENSITIVE_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
   { pattern: /pass[=:\s]+\S+/gi, replacement: 'pass=[REDACTED]' },
   // SASL authentication
   { pattern: /AUTHENTICATE\s+\S+/gi, replacement: 'AUTHENTICATE [REDACTED]' },
-  { pattern: /sasl[_-]?password[=:\s]+\S+/gi, replacement: 'sasl_password=[REDACTED]' },
+  {
+    pattern: /sasl[_-]?password[=:\s]+\S+/gi,
+    replacement: 'sasl_password=[REDACTED]',
+  },
   // NickServ/Auth commands
   { pattern: /IDENTIFY\s+\S+/gi, replacement: 'IDENTIFY [REDACTED]' },
-  { pattern: /nickserv\s+identify\s+\S+/gi, replacement: 'nickserv identify [REDACTED]' },
+  {
+    pattern: /nickserv\s+identify\s+\S+/gi,
+    replacement: 'nickserv identify [REDACTED]',
+  },
   // OAuth/API tokens
   { pattern: /token[=:\s]+\S+/gi, replacement: 'token=[REDACTED]' },
   { pattern: /oauth[=:\s]+\S+/gi, replacement: 'oauth=[REDACTED]' },
@@ -31,8 +37,14 @@ const SENSITIVE_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
   // Server password
   { pattern: /PASS\s+\S+/gi, replacement: 'PASS [REDACTED]' },
   // Certificate/key data
-  { pattern: /-----BEGIN[^-]+-----[\s\S]*?-----END[^-]+-----/g, replacement: '[CERTIFICATE REDACTED]' },
-  { pattern: /fingerprint[=:\s]+[a-fA-F0-9:]+/gi, replacement: 'fingerprint=[REDACTED]' },
+  {
+    pattern: /-----BEGIN[^-]+-----[\s\S]*?-----END[^-]+-----/g,
+    replacement: '[CERTIFICATE REDACTED]',
+  },
+  {
+    pattern: /fingerprint[=:\s]+[a-fA-F0-9:]+/gi,
+    replacement: 'fingerprint=[REDACTED]',
+  },
   // Base64 encoded credentials (common in SASL)
   { pattern: /:[A-Za-z0-9+/=]{20,}/g, replacement: ':[REDACTED]' },
 ];

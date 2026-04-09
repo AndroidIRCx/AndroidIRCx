@@ -197,14 +197,14 @@ describe('AutoAuthService', () => {
       });
 
       const result = await service.authenticate();
-      
+
       expect(result.success).toBe(true);
       expect(result.method).toBe('nickserv');
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
-        expect.stringContaining('PRIVMSG')
+        expect.stringContaining('PRIVMSG'),
       );
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
-        expect.stringContaining('IDENTIFY')
+        expect.stringContaining('IDENTIFY'),
       );
     });
 
@@ -218,7 +218,7 @@ describe('AutoAuthService', () => {
       });
 
       const result = await service.authenticate();
-      
+
       expect(result.success).toBe(false);
       expect(result.method).toBe('none');
     });
@@ -241,7 +241,7 @@ describe('AutoAuthService', () => {
 
       expect(result.success).toBe(true);
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
-        'PRIVMSG NickServ :IDENTIFY mypassword'
+        'PRIVMSG NickServ :IDENTIFY mypassword',
       );
     });
 
@@ -261,7 +261,7 @@ describe('AutoAuthService', () => {
 
       expect(result.success).toBe(true);
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
-        'PRIVMSG NickServ :IDENTIFY saslpass'
+        'PRIVMSG NickServ :IDENTIFY saslpass',
       );
     });
   });
@@ -283,10 +283,10 @@ describe('AutoAuthService', () => {
 
       expect(result.success).toBe(true);
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
-        expect.stringContaining('Q@CServe.quakenet.org')
+        expect.stringContaining('Q@CServe.quakenet.org'),
       );
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
-        expect.stringContaining('AUTH')
+        expect.stringContaining('AUTH'),
       );
     });
   });
@@ -309,10 +309,10 @@ describe('AutoAuthService', () => {
 
       expect(result.success).toBe(true);
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
-        expect.stringContaining('X@channels.undernet.org')
+        expect.stringContaining('X@channels.undernet.org'),
       );
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
-        'PRIVMSG X@channels.undernet.org :LOGIN myuser mypassword'
+        'PRIVMSG X@channels.undernet.org :LOGIN myuser mypassword',
       );
     });
   });
@@ -391,7 +391,7 @@ describe('AutoAuthService', () => {
 
       await service.authenticate();
       const status = service.getStatus();
-      
+
       expect(status.attempted).toBe(true);
       expect(status.completed).toBe(true);
     });
@@ -409,7 +409,7 @@ describe('AutoAuthService', () => {
 
       service.updateSaslStatus(true, false);
       const status = service.getStatus();
-      
+
       // Method should now prefer SASL methods
       expect(status.method).toBe('none');
     });
@@ -447,7 +447,7 @@ describe('AutoAuthService', () => {
       expect(service.isAuthenticated()).toBe(true);
 
       service.reset();
-      
+
       const status = service.getStatus();
       expect(status.attempted).toBe(false);
       expect(status.completed).toBe(false);

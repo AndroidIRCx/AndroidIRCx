@@ -81,7 +81,10 @@ class SoundService {
       }
 
       this.isInitialized = true;
-      console.log('[SoundService] Initialized with settings:', this.settings.enabled ? 'enabled' : 'disabled');
+      console.log(
+        '[SoundService] Initialized with settings:',
+        this.settings.enabled ? 'enabled' : 'disabled',
+      );
     } catch (error) {
       console.error('[SoundService] Failed to initialize:', error);
       this.isInitialized = true;
@@ -123,7 +126,7 @@ class SoundService {
    */
   async updateEventConfig(
     eventType: SoundEventType,
-    config: Partial<SoundSettings['events'][SoundEventType]>
+    config: Partial<SoundSettings['events'][SoundEventType]>,
   ): Promise<void> {
     this.settings.events[eventType] = {
       ...this.settings.events[eventType],
@@ -192,7 +195,9 @@ class SoundService {
     }
 
     // Check if this specific event is enabled
-    const eventConfig = this.settings.events[eventType] ?? DEFAULT_SOUND_SETTINGS.events[eventType];
+    const eventConfig =
+      this.settings.events[eventType] ??
+      DEFAULT_SOUND_SETTINGS.events[eventType];
     if (!eventConfig?.enabled) {
       return;
     }
@@ -227,7 +232,10 @@ class SoundService {
     this.isProcessingQueue = false;
   }
 
-  private async playSoundInternal(eventType: SoundEventType, volume: number): Promise<void> {
+  private async playSoundInternal(
+    eventType: SoundEventType,
+    volume: number,
+  ): Promise<void> {
     try {
       // Stop any currently playing sound
       this.stopCurrentSound();
@@ -235,7 +243,9 @@ class SoundService {
       // Get the sound file info
       const soundInfo = await this.getSoundInfo(eventType);
       if (!soundInfo) {
-        console.warn(`[SoundService] No sound configured for event: ${eventType}`);
+        console.warn(
+          `[SoundService] No sound configured for event: ${eventType}`,
+        );
         return;
       }
 
@@ -247,9 +257,12 @@ class SoundService {
 
       // Create and play sound
       this.isPlaying = true;
-      this.currentSound = new Sound(filename, basePath, (error) => {
+      this.currentSound = new Sound(filename, basePath, error => {
         if (error) {
-          console.error(`[SoundService] Failed to load sound for ${eventType}:`, error);
+          console.error(
+            `[SoundService] Failed to load sound for ${eventType}:`,
+            error,
+          );
           this.isPlaying = false;
           audioFocusService.releaseFocus();
           return;
@@ -260,7 +273,7 @@ class SoundService {
 
         // Set volume and play
         this.currentSound?.setVolume(volume);
-        this.currentSound?.play((success) => {
+        this.currentSound?.play(success => {
           if (!success) {
             console.warn(`[SoundService] Playback failed for ${eventType}`);
           }
@@ -271,14 +284,19 @@ class SoundService {
 
         // Fallback: release focus after duration + 100ms buffer (in case play callback doesn't fire)
         if (durationMs > 0) {
-          setTimeout(() => {
-            audioFocusService.releaseFocus();
-          }, (durationMs * 1000) + 100);
+          setTimeout(
+            () => {
+              audioFocusService.releaseFocus();
+            },
+            durationMs * 1000 + 100,
+          );
         }
       });
-
     } catch (error) {
-      console.error(`[SoundService] Failed to play sound for ${eventType}:`, error);
+      console.error(
+        `[SoundService] Failed to play sound for ${eventType}:`,
+        error,
+      );
       this.isPlaying = false;
       audioFocusService.releaseFocus();
     }
@@ -319,7 +337,9 @@ class SoundService {
    * Get sound file info for react-native-sound
    * Returns filename and basePath
    */
-  private async getSoundInfo(eventType: SoundEventType): Promise<{ filename: string; basePath: string } | null> {
+  private async getSoundInfo(
+    eventType: SoundEventType,
+  ): Promise<{ filename: string; basePath: string } | null> {
     const eventConfig = this.settings.events[eventType];
 
     // Check for custom sound
@@ -332,9 +352,13 @@ class SoundService {
           // For custom files, use the full path as filename and empty basePath
           return { filename: customPath, basePath: '' };
         }
-        console.warn(`[SoundService] Custom sound file not found: ${customPath}`);
+        console.warn(
+          `[SoundService] Custom sound file not found: ${customPath}`,
+        );
       } catch {
-        console.warn(`[SoundService] Error checking custom sound file: ${customPath}`);
+        console.warn(
+          `[SoundService] Error checking custom sound file: ${customPath}`,
+        );
       }
     }
 
@@ -348,13 +372,19 @@ class SoundService {
         return { filename: this.normalizeFilePath(schemeSound), basePath: '' };
       }
       // Otherwise, it's an asset filename - load from Android assets
-      return { filename: this.normalizeAssetName(schemeSound), basePath: Sound.MAIN_BUNDLE };
+      return {
+        filename: this.normalizeAssetName(schemeSound),
+        basePath: Sound.MAIN_BUNDLE,
+      };
     }
 
     // Fall back to default sounds
     const defaultSound = DEFAULT_SOUNDS[eventType];
     if (defaultSound) {
-      return { filename: this.normalizeAssetName(defaultSound), basePath: Sound.MAIN_BUNDLE };
+      return {
+        filename: this.normalizeAssetName(defaultSound),
+        basePath: Sound.MAIN_BUNDLE,
+      };
     }
 
     return null;
@@ -379,7 +409,7 @@ class SoundService {
 
       const { filename, basePath } = soundInfo;
       this.isPlaying = true;
-      this.currentSound = new Sound(filename, basePath, (error) => {
+      this.currentSound = new Sound(filename, basePath, error => {
         if (error) {
           console.error('[SoundService] Failed to load preview sound:', error);
           this.isPlaying = false;
@@ -390,7 +420,6 @@ class SoundService {
           this.releaseCurrentSound();
         });
       });
-
     } catch (error) {
       console.error(`[SoundService] Failed to preview sound:`, error);
       this.isPlaying = false;
@@ -406,9 +435,12 @@ class SoundService {
 
       const normalizedUri = this.normalizeFilePath(uri);
       this.isPlaying = true;
-      this.currentSound = new Sound(normalizedUri, '', (error) => {
+      this.currentSound = new Sound(normalizedUri, '', error => {
         if (error) {
-          console.error('[SoundService] Failed to load custom preview sound:', error);
+          console.error(
+            '[SoundService] Failed to load custom preview sound:',
+            error,
+          );
           this.isPlaying = false;
           return;
         }
@@ -417,7 +449,6 @@ class SoundService {
           this.releaseCurrentSound();
         });
       });
-
     } catch (error) {
       console.error(`[SoundService] Failed to preview custom sound:`, error);
       this.isPlaying = false;
@@ -464,11 +495,16 @@ class SoundService {
             await RNFS.unlink(previousCustomUri);
           }
         } catch (cleanupError) {
-          console.warn('[SoundService] Failed to delete previous custom sound file:', cleanupError);
+          console.warn(
+            '[SoundService] Failed to delete previous custom sound file:',
+            cleanupError,
+          );
         }
       }
 
-      console.log(`[SoundService] Custom sound set for ${eventType}: ${destPath}`);
+      console.log(
+        `[SoundService] Custom sound set for ${eventType}: ${destPath}`,
+      );
     } catch (error) {
       console.error(`[SoundService] Failed to set custom sound:`, error);
       throw error;
@@ -489,7 +525,10 @@ class SoundService {
           await RNFS.unlink(eventConfig.customUri);
         }
       } catch (error) {
-        console.warn(`[SoundService] Failed to delete custom sound file:`, error);
+        console.warn(
+          `[SoundService] Failed to delete custom sound file:`,
+          error,
+        );
       }
     }
 
@@ -512,7 +551,10 @@ class SoundService {
         await RNFS.unlink(soundsDir);
       }
     } catch (error) {
-      console.warn(`[SoundService] Failed to delete custom sounds directory:`, error);
+      console.warn(
+        `[SoundService] Failed to delete custom sounds directory:`,
+        error,
+      );
     }
 
     // Reset settings
@@ -559,7 +601,10 @@ class SoundService {
 
   private async saveCustomSchemes(): Promise<void> {
     try {
-      await AsyncStorage.setItem(CUSTOM_SCHEMES_KEY, JSON.stringify(this.customSchemes));
+      await AsyncStorage.setItem(
+        CUSTOM_SCHEMES_KEY,
+        JSON.stringify(this.customSchemes),
+      );
     } catch (error) {
       console.error('[SoundService] Failed to save custom schemes:', error);
     }

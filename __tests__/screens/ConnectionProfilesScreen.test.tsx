@@ -4,7 +4,7 @@
  */
 
 import { Alert } from 'react-native';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ConnectionProfilesScreen } from '../../src/screens/ConnectionProfilesScreen';
 
 const mockNetworks = [
@@ -18,8 +18,20 @@ const mockNetworks = [
     realname: 'Velimir',
     ident: 'majstor',
     servers: [
-      { id: 'srv1', hostname: 'irc.libera.chat', port: 6697, ssl: true, favorite: true },
-      { id: 'srv2', hostname: 'backup.libera.chat', port: 6667, ssl: false, favorite: false },
+      {
+        id: 'srv1',
+        hostname: 'irc.libera.chat',
+        port: 6697,
+        ssl: true,
+        favorite: true,
+      },
+      {
+        id: 'srv2',
+        hostname: 'backup.libera.chat',
+        port: 6667,
+        ssl: false,
+        favorite: false,
+      },
     ],
   },
 ];
@@ -54,8 +66,9 @@ jest.mock('../../src/i18n/transifex', () => ({
       return key;
     }
     return Object.entries(params).reduce(
-      (result, [paramKey, value]) => result.replace(`{${paramKey}}`, String(value)),
-      key
+      (result, [paramKey, value]) =>
+        result.replace(`{${paramKey}}`, String(value)),
+      key,
     );
   },
 }));
@@ -89,9 +102,17 @@ jest.mock('../../src/screens/NetworkSettingsScreen', () => ({
               proxy: {},
               clientCert: '',
               clientKey: '',
-              servers: [{ id: 'srv-new', hostname: 'new.example', port: 6697, ssl: true }],
+              servers: [
+                {
+                  id: 'srv-new',
+                  hostname: 'new.example',
+                  port: 6697,
+                  ssl: true,
+                },
+              ],
             })
-          }>
+          }
+        >
           Save Mock Network
         </Text>
         <Text onPress={onCancel}>Cancel Mock Network</Text>
@@ -115,7 +136,8 @@ jest.mock('../../src/screens/ServerSettingsScreen', () => ({
               ssl: true,
               favorite: false,
             })
-          }>
+          }
+        >
           Save Mock Server
         </Text>
         <Text onPress={onCancel}>Cancel Mock Server</Text>
@@ -147,7 +169,9 @@ jest.mock('../../src/services/IdentityProfilesService', () => ({
 }));
 
 const { settingsService } = require('../../src/services/SettingsService');
-const { identityProfilesService } = require('../../src/services/IdentityProfilesService');
+const {
+  identityProfilesService,
+} = require('../../src/services/IdentityProfilesService');
 
 describe('ConnectionProfilesScreen', () => {
   beforeEach(() => {
@@ -167,19 +191,26 @@ describe('ConnectionProfilesScreen', () => {
     settingsService.deleteNetwork.mockResolvedValue(undefined);
     settingsService.deleteServerFromNetwork.mockResolvedValue(undefined);
     identityProfilesService.list.mockResolvedValue(mockProfiles);
-    identityProfilesService.add.mockResolvedValue({ id: 'profile-3', name: 'Created' });
+    identityProfilesService.add.mockResolvedValue({
+      id: 'profile-3',
+      name: 'Created',
+    });
     identityProfilesService.update.mockResolvedValue(undefined);
     identityProfilesService.remove.mockResolvedValue(undefined);
   });
 
   it('renders loaded networks list', async () => {
-    const { findByText } = render(<ConnectionProfilesScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <ConnectionProfilesScreen visible onClose={jest.fn()} />,
+    );
     expect(await findByText('Connection Profiles')).toBeTruthy();
     expect(await findByText('Libera')).toBeTruthy();
   });
 
   it('opens network editor and saves through callback', async () => {
-    const { findByText } = render(<ConnectionProfilesScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <ConnectionProfilesScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Add'));
     fireEvent.press(await findByText('Save Mock Network'));
@@ -192,28 +223,39 @@ describe('ConnectionProfilesScreen', () => {
   });
 
   it('renders networks without delete flow regressions', async () => {
-    const { findByText } = render(<ConnectionProfilesScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <ConnectionProfilesScreen visible onClose={jest.fn()} />,
+    );
     expect(await findByText('Libera')).toBeTruthy();
   });
 
   it('shows empty and load error states', async () => {
     settingsService.getAllNetworks.mockResolvedValue([]);
     const { findByText, rerender } = render(
-      <ConnectionProfilesScreen visible onClose={jest.fn()} />
+      <ConnectionProfilesScreen visible onClose={jest.fn()} />,
     );
-    expect(await findByText('No networks configured yet. Add a network to get started!')).toBeTruthy();
+    expect(
+      await findByText(
+        'No networks configured yet. Add a network to get started!',
+      ),
+    ).toBeTruthy();
 
     settingsService.getAllNetworks.mockRejectedValueOnce(new Error('boom'));
     rerender(<ConnectionProfilesScreen visible={false} onClose={jest.fn()} />);
     rerender(<ConnectionProfilesScreen visible onClose={jest.fn()} />);
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to load networks and profiles');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to load networks and profiles',
+      );
     });
   });
 
   it('renders identity profiles data in loaded state', async () => {
-    const { findByText } = render(<ConnectionProfilesScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <ConnectionProfilesScreen visible onClose={jest.fn()} />,
+    );
     expect(await findByText('Libera')).toBeTruthy();
     expect(identityProfilesService.list).toHaveBeenCalled();
   });

@@ -58,9 +58,12 @@ const mockIdentityProfilesList = jest.fn(async () => []);
 
 jest.mock('../../../src/i18n/transifex', () => ({
   useT: () => (key: string, params?: Record<string, any>) => {
-    if (params?.count !== undefined) return `${key}`.replace('{count}', String(params.count));
-    if (params?.mode !== undefined) return `${key}`.replace('{mode}', String(params.mode));
-    if (params?.network !== undefined) return `${key}`.replace('{network}', String(params.network));
+    if (params?.count !== undefined)
+      return `${key}`.replace('{count}', String(params.count));
+    if (params?.mode !== undefined)
+      return `${key}`.replace('{mode}', String(params.mode));
+    if (params?.network !== undefined)
+      return `${key}`.replace('{network}', String(params.network));
     return key;
   },
 }));
@@ -82,7 +85,7 @@ jest.mock('../../../src/components/settings/SettingItem', () => {
             if (item.type === 'submenu') onPress?.(item.id);
           },
         },
-        React.createElement(Text, null, item.title || item.id)
+        React.createElement(Text, null, item.title || item.id),
       );
     },
   };
@@ -97,13 +100,20 @@ jest.mock('../../../src/hooks/useSettingsConnection', () => ({
     autoReconnectConfig: { enabled: false },
     rateLimitConfig: { enabled: false, messagesPerSecond: 2, burstLimit: 5 },
     floodProtectionConfig: { enabled: false, maxMessages: 5, timeWindow: 5 },
-    lagMonitoringConfig: { enabled: false, checkInterval: 30, warningThreshold: 3000 },
+    lagMonitoringConfig: {
+      enabled: false,
+      checkInterval: 30,
+      warningThreshold: 3000,
+    },
     connectionStats: null,
     refreshNetworks: jest.fn(),
     updateAutoReconnectConfig: jest.fn(async () => undefined),
-    updateRateLimitConfig: (...args: any[]) => mockUpdateRateLimitConfig(...args),
-    updateFloodProtectionConfig: (...args: any[]) => mockUpdateFloodProtectionConfig(...args),
-    updateLagMonitoringConfig: (...args: any[]) => mockUpdateLagMonitoringConfig(...args),
+    updateRateLimitConfig: (...args: any[]) =>
+      mockUpdateRateLimitConfig(...args),
+    updateFloodProtectionConfig: (...args: any[]) =>
+      mockUpdateFloodProtectionConfig(...args),
+    updateLagMonitoringConfig: (...args: any[]) =>
+      mockUpdateLagMonitoringConfig(...args),
   }),
 }));
 
@@ -151,7 +161,12 @@ jest.mock('../../../src/services/AutoRejoinService', () => ({
 
 jest.mock('../../../src/services/AutoVoiceService', () => ({
   autoVoiceService: {
-    getConfig: jest.fn(() => ({ enabled: false, forAll: false, forOperators: false, forIRCOps: false })),
+    getConfig: jest.fn(() => ({
+      enabled: false,
+      forAll: false,
+      forOperators: false,
+      forIRCOps: false,
+    })),
     setConfig: (...args: any[]) => mockAutoVoiceSetConfig(...args),
   },
 }));
@@ -267,14 +282,16 @@ describe('ConnectionNetworkSection', () => {
         styles={styles as any}
         settingIcons={{}}
         currentNetwork="net1"
-      />
+      />,
     );
 
     await waitFor(() => {
       expect(mockCapturedItems.has('setup-wizard')).toBe(true);
       expect(mockCapturedItems.has('choose-network')).toBe(true);
       expect(mockCapturedItems.has('quick-connect-network')).toBe(true);
-      expect(mockCapturedItems.has('connection-auto-connect-favorite')).toBe(true);
+      expect(mockCapturedItems.has('connection-auto-connect-favorite')).toBe(
+        true,
+      );
       expect(mockCapturedItems.has('connection-auto-reconnect')).toBe(true);
       expect(mockCapturedItems.has('connection-quality')).toBe(true);
       expect(mockCapturedItems.has('identity-profiles')).toBe(true);
@@ -301,10 +318,12 @@ describe('ConnectionNetworkSection', () => {
         onShowFirstRunSetup={onShowFirstRunSetup}
         onShowNetworksList={onShowNetworksList}
         onShowConnectionProfiles={onShowConnectionProfiles}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('setup-wizard')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('setup-wizard')).toBe(true),
+    );
 
     mockCapturedItems.get('setup-wizard').onPress();
     expect(onShowFirstRunSetup).toHaveBeenCalled();
@@ -322,13 +341,22 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-auto-connect-favorite')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-auto-connect-favorite')).toBe(
+        true,
+      ),
+    );
 
-    await mockCapturedItems.get('connection-auto-connect-favorite').onValueChange(true);
-    expect(mockSettingsSet).toHaveBeenCalledWith('autoConnectFavoriteServer', true);
+    await mockCapturedItems
+      .get('connection-auto-connect-favorite')
+      .onValueChange(true);
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'autoConnectFavoriteServer',
+      true,
+    );
   });
 
   it('handles auto-reconnect configuration', async () => {
@@ -338,35 +366,49 @@ describe('ConnectionNetworkSection', () => {
         styles={styles as any}
         settingIcons={{}}
         currentNetwork="net1"
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-auto-reconnect')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-auto-reconnect')).toBe(true),
+    );
 
     const autoReconnect = mockCapturedItems.get('connection-auto-reconnect');
-    
+
     // Enable auto-reconnect
-    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-enabled').onValueChange(true);
+    await autoReconnect.submenuItems
+      .find((x: any) => x.id === 'auto-reconnect-enabled')
+      .onValueChange(true);
     expect(mockAutoReconnectSetConfig).toHaveBeenCalled();
 
     // Toggle rejoin channels
-    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-rejoin').onValueChange(true);
+    await autoReconnect.submenuItems
+      .find((x: any) => x.id === 'auto-reconnect-rejoin')
+      .onValueChange(true);
     expect(mockAutoReconnectSetConfig).toHaveBeenCalled();
 
     // Toggle smart reconnect
-    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-smart').onValueChange(true);
+    await autoReconnect.submenuItems
+      .find((x: any) => x.id === 'auto-reconnect-smart')
+      .onValueChange(true);
     expect(mockAutoReconnectSetConfig).toHaveBeenCalled();
 
     // Update max attempts
-    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-max-attempts').onValueChange('15');
+    await autoReconnect.submenuItems
+      .find((x: any) => x.id === 'auto-reconnect-max-attempts')
+      .onValueChange('15');
     expect(mockAutoReconnectSetConfig).toHaveBeenCalled();
 
     // Update initial delay
-    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-initial-delay').onValueChange('2000');
+    await autoReconnect.submenuItems
+      .find((x: any) => x.id === 'auto-reconnect-initial-delay')
+      .onValueChange('2000');
     expect(mockAutoReconnectSetConfig).toHaveBeenCalled();
 
     // Update max delay
-    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-max-delay').onValueChange('90000');
+    await autoReconnect.submenuItems
+      .find((x: any) => x.id === 'auto-reconnect-max-delay')
+      .onValueChange('90000');
     expect(mockAutoReconnectSetConfig).toHaveBeenCalled();
   });
 
@@ -376,24 +418,36 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-quality')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-quality')).toBe(true),
+    );
 
     const quality = mockCapturedItems.get('connection-quality');
-    const rateLimit = quality.submenuItems.find((x: any) => x.id === 'quality-rate-limit');
+    const rateLimit = quality.submenuItems.find(
+      (x: any) => x.id === 'quality-rate-limit',
+    );
 
     // Enable rate limiting
-    await rateLimit.submenuItems.find((x: any) => x.id === 'rate-limit-enabled').onValueChange(true);
+    await rateLimit.submenuItems
+      .find((x: any) => x.id === 'rate-limit-enabled')
+      .onValueChange(true);
     expect(mockUpdateRateLimitConfig).toHaveBeenCalledWith({ enabled: true });
 
     // Update messages per second
-    await rateLimit.submenuItems.find((x: any) => x.id === 'rate-limit-msg-per-sec').onValueChange('5');
-    expect(mockUpdateRateLimitConfig).toHaveBeenCalledWith({ messagesPerSecond: 5 });
+    await rateLimit.submenuItems
+      .find((x: any) => x.id === 'rate-limit-msg-per-sec')
+      .onValueChange('5');
+    expect(mockUpdateRateLimitConfig).toHaveBeenCalledWith({
+      messagesPerSecond: 5,
+    });
 
     // Update burst limit
-    await rateLimit.submenuItems.find((x: any) => x.id === 'rate-limit-burst').onValueChange('10');
+    await rateLimit.submenuItems
+      .find((x: any) => x.id === 'rate-limit-burst')
+      .onValueChange('10');
     expect(mockUpdateRateLimitConfig).toHaveBeenCalledWith({ burstLimit: 10 });
   });
 
@@ -403,25 +457,41 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-quality')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-quality')).toBe(true),
+    );
 
     const quality = mockCapturedItems.get('connection-quality');
-    const floodProtection = quality.submenuItems.find((x: any) => x.id === 'quality-flood-protection');
+    const floodProtection = quality.submenuItems.find(
+      (x: any) => x.id === 'quality-flood-protection',
+    );
 
     // Enable flood protection
-    await floodProtection.submenuItems.find((x: any) => x.id === 'flood-protection-enabled').onValueChange(true);
-    expect(mockUpdateFloodProtectionConfig).toHaveBeenCalledWith({ enabled: true });
+    await floodProtection.submenuItems
+      .find((x: any) => x.id === 'flood-protection-enabled')
+      .onValueChange(true);
+    expect(mockUpdateFloodProtectionConfig).toHaveBeenCalledWith({
+      enabled: true,
+    });
 
     // Update max messages per window
-    await floodProtection.submenuItems.find((x: any) => x.id === 'flood-protection-max-msgs').onValueChange('20');
-    expect(mockUpdateFloodProtectionConfig).toHaveBeenCalledWith({ maxMessagesPerWindow: 20 });
+    await floodProtection.submenuItems
+      .find((x: any) => x.id === 'flood-protection-max-msgs')
+      .onValueChange('20');
+    expect(mockUpdateFloodProtectionConfig).toHaveBeenCalledWith({
+      maxMessagesPerWindow: 20,
+    });
 
     // Update window size
-    await floodProtection.submenuItems.find((x: any) => x.id === 'flood-protection-window').onValueChange('15000');
-    expect(mockUpdateFloodProtectionConfig).toHaveBeenCalledWith({ windowSize: 15000 });
+    await floodProtection.submenuItems
+      .find((x: any) => x.id === 'flood-protection-window')
+      .onValueChange('15000');
+    expect(mockUpdateFloodProtectionConfig).toHaveBeenCalledWith({
+      windowSize: 15000,
+    });
   });
 
   it('handles lag monitoring configuration', async () => {
@@ -430,33 +500,53 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-quality')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-quality')).toBe(true),
+    );
 
     const quality = mockCapturedItems.get('connection-quality');
-    const lagMonitoring = quality.submenuItems.find((x: any) => x.id === 'quality-lag-monitoring');
+    const lagMonitoring = quality.submenuItems.find(
+      (x: any) => x.id === 'quality-lag-monitoring',
+    );
 
     // Enable lag monitoring
-    await lagMonitoring.submenuItems.find((x: any) => x.id === 'lag-monitoring-enabled').onValueChange(true);
-    expect(mockUpdateLagMonitoringConfig).toHaveBeenCalledWith({ enabled: true });
+    await lagMonitoring.submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-enabled')
+      .onValueChange(true);
+    expect(mockUpdateLagMonitoringConfig).toHaveBeenCalledWith({
+      enabled: true,
+    });
 
     // Change lag check method to CTCP
-    lagMonitoring.submenuItems.find((x: any) => x.id === 'lag-monitoring-method').onPress();
+    lagMonitoring.submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-method')
+      .onPress();
     const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-    const methodAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Lag Check Method'));
+    const methodAlert = alertCalls.find((c: any[]) =>
+      String(c[0]).includes('Lag Check Method'),
+    );
     const ctcpBtn = methodAlert?.[2]?.find((b: any) => b.text === 'CTCP Ping');
     await ctcpBtn?.onPress?.();
     expect(mockSettingsSet).toHaveBeenCalledWith('lagCheckMethod', 'ctcp');
 
     // Update ping interval
-    await lagMonitoring.submenuItems.find((x: any) => x.id === 'lag-monitoring-interval').onValueChange('45000');
-    expect(mockUpdateLagMonitoringConfig).toHaveBeenCalledWith({ pingInterval: 45000 });
+    await lagMonitoring.submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-interval')
+      .onValueChange('45000');
+    expect(mockUpdateLagMonitoringConfig).toHaveBeenCalledWith({
+      pingInterval: 45000,
+    });
 
     // Update warning threshold
-    await lagMonitoring.submenuItems.find((x: any) => x.id === 'lag-monitoring-warning').onValueChange('2000');
-    expect(mockUpdateLagMonitoringConfig).toHaveBeenCalledWith({ warningThreshold: 2000 });
+    await lagMonitoring.submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-warning')
+      .onValueChange('2000');
+    expect(mockUpdateLagMonitoringConfig).toHaveBeenCalledWith({
+      warningThreshold: 2000,
+    });
   });
 
   it('displays connection statistics', async () => {
@@ -465,16 +555,22 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-quality')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-quality')).toBe(true),
+    );
 
     const quality = mockCapturedItems.get('connection-quality');
-    quality.submenuItems.find((x: any) => x.id === 'quality-statistics').onPress();
-    
+    quality.submenuItems
+      .find((x: any) => x.id === 'quality-statistics')
+      .onPress();
+
     const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-    const statsAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Connection Statistics'));
+    const statsAlert = alertCalls.find((c: any[]) =>
+      String(c[0]).includes('Connection Statistics'),
+    );
     expect(statsAlert).toBeTruthy();
   });
 
@@ -484,35 +580,62 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-global-proxy')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-global-proxy')).toBe(true),
+    );
 
     const proxy = mockCapturedItems.get('connection-global-proxy');
 
     // Enable proxy
-    await proxy.submenuItems.find((x: any) => x.id === 'proxy-enable').onValueChange(true);
-    expect(mockSettingsSet).toHaveBeenCalledWith('globalProxy', expect.objectContaining({ enabled: true }));
+    await proxy.submenuItems
+      .find((x: any) => x.id === 'proxy-enable')
+      .onValueChange(true);
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'globalProxy',
+      expect.objectContaining({ enabled: true }),
+    );
 
     // Change proxy type
     proxy.submenuItems.find((x: any) => x.id === 'proxy-type').onPress();
 
     // Update proxy host
-    await proxy.submenuItems.find((x: any) => x.id === 'proxy-host').onValueChange('proxy.example.com');
-    expect(mockSettingsSet).toHaveBeenCalledWith('globalProxy', expect.objectContaining({ host: 'proxy.example.com' }));
+    await proxy.submenuItems
+      .find((x: any) => x.id === 'proxy-host')
+      .onValueChange('proxy.example.com');
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'globalProxy',
+      expect.objectContaining({ host: 'proxy.example.com' }),
+    );
 
     // Update proxy port
-    await proxy.submenuItems.find((x: any) => x.id === 'proxy-port').onValueChange('1080');
-    expect(mockSettingsSet).toHaveBeenCalledWith('globalProxy', expect.objectContaining({ port: 1080 }));
+    await proxy.submenuItems
+      .find((x: any) => x.id === 'proxy-port')
+      .onValueChange('1080');
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'globalProxy',
+      expect.objectContaining({ port: 1080 }),
+    );
 
     // Update proxy username
-    await proxy.submenuItems.find((x: any) => x.id === 'proxy-username').onValueChange('alice');
-    expect(mockSettingsSet).toHaveBeenCalledWith('globalProxy', expect.objectContaining({ username: 'alice' }));
+    await proxy.submenuItems
+      .find((x: any) => x.id === 'proxy-username')
+      .onValueChange('alice');
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'globalProxy',
+      expect.objectContaining({ username: 'alice' }),
+    );
 
     // Update proxy password
-    await proxy.submenuItems.find((x: any) => x.id === 'proxy-password').onValueChange('secret');
-    expect(mockSettingsSet).toHaveBeenCalledWith('globalProxy', expect.objectContaining({ password: 'secret' }));
+    await proxy.submenuItems
+      .find((x: any) => x.id === 'proxy-password')
+      .onValueChange('secret');
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'globalProxy',
+      expect.objectContaining({ password: 'secret' }),
+    );
   });
 
   it('handles auto-rejoin on kick toggle', async () => {
@@ -522,10 +645,12 @@ describe('ConnectionNetworkSection', () => {
         styles={styles as any}
         settingIcons={{}}
         currentNetwork="net1"
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('channel-auto-rejoin')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('channel-auto-rejoin')).toBe(true),
+    );
 
     await mockCapturedItems.get('channel-auto-rejoin').onValueChange(true);
     expect(mockAutoRejoinSetEnabled).toHaveBeenCalledWith('net1', true);
@@ -538,27 +663,37 @@ describe('ConnectionNetworkSection', () => {
         styles={styles as any}
         settingIcons={{}}
         currentNetwork="net1"
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('channel-auto-voice')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('channel-auto-voice')).toBe(true),
+    );
 
     const autoVoice = mockCapturedItems.get('channel-auto-voice');
 
     // Enable auto-voice
-    await autoVoice.submenuItems.find((x: any) => x.id === 'auto-voice-enabled').onValueChange(true);
+    await autoVoice.submenuItems
+      .find((x: any) => x.id === 'auto-voice-enabled')
+      .onValueChange(true);
     expect(mockAutoVoiceSetConfig).toHaveBeenCalled();
 
     // Enable for all users
-    await autoVoice.submenuItems.find((x: any) => x.id === 'auto-voice-all').onValueChange(true);
+    await autoVoice.submenuItems
+      .find((x: any) => x.id === 'auto-voice-all')
+      .onValueChange(true);
     expect(mockAutoVoiceSetConfig).toHaveBeenCalled();
 
     // Enable for operators
-    await autoVoice.submenuItems.find((x: any) => x.id === 'auto-voice-operators').onValueChange(true);
+    await autoVoice.submenuItems
+      .find((x: any) => x.id === 'auto-voice-operators')
+      .onValueChange(true);
     expect(mockAutoVoiceSetConfig).toHaveBeenCalled();
 
     // Enable for IRC ops
-    await autoVoice.submenuItems.find((x: any) => x.id === 'auto-voice-ircops').onValueChange(true);
+    await autoVoice.submenuItems
+      .find((x: any) => x.id === 'auto-voice-ircops')
+      .onValueChange(true);
     expect(mockAutoVoiceSetConfig).toHaveBeenCalled();
   });
 
@@ -568,58 +703,92 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-dcc')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
 
     const dcc = mockCapturedItems.get('connection-dcc');
 
     // Change auto-get mode to reject
     dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-get-mode').onPress();
     const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-    const modeAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Auto-Get Mode'));
-    const rejectBtn = modeAlert?.[2]?.find((b: any) => String(b.text).includes('Reject'));
+    const modeAlert = alertCalls.find((c: any[]) =>
+      String(c[0]).includes('Auto-Get Mode'),
+    );
+    const rejectBtn = modeAlert?.[2]?.find((b: any) =>
+      String(b.text).includes('Reject'),
+    );
     await rejectBtn?.onPress?.();
     expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoGetMode', 'reject');
 
     // Update min port
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-min-port').onValueChange('5100');
-    expect(mockSettingsSet).toHaveBeenCalledWith('dccPortRange', expect.objectContaining({ min: 5100 }));
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-min-port')
+      .onValueChange('5100');
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'dccPortRange',
+      expect.objectContaining({ min: 5100 }),
+    );
 
     // Update max port
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-max-port').onValueChange('6200');
-    expect(mockSettingsSet).toHaveBeenCalledWith('dccPortRange', expect.objectContaining({ max: 6200 }));
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-max-port')
+      .onValueChange('6200');
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'dccPortRange',
+      expect.objectContaining({ max: 6200 }),
+    );
 
     // Update host override
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-host-override').onValueChange('1.2.3.4');
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-host-override')
+      .onValueChange('1.2.3.4');
     expect(mockSettingsSet).toHaveBeenCalledWith('dccHostOverride', '1.2.3.4');
 
     // Toggle various DCC switches
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-open-viewer').onValueChange(true);
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-auto-open-viewer')
+      .onValueChange(true);
     expect(mockSettingsSet).toHaveBeenCalledWith('dccServeViewerAuto', true);
 
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-close-queries').onValueChange(true);
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-close-queries')
+      .onValueChange(true);
     expect(mockSettingsSet).toHaveBeenCalledWith('dccCloseQueriesOnChat', true);
 
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-request-on-fail').onValueChange(true);
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-request-on-fail')
+      .onValueChange(true);
     expect(mockSettingsSet).toHaveBeenCalledWith('dccRequestOnFail', true);
 
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-allow-by-ip').onValueChange(true);
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-allow-by-ip')
+      .onValueChange(true);
     expect(mockSettingsSet).toHaveBeenCalledWith('dccAllowByIp', true);
 
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-passive').onValueChange(true);
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-passive')
+      .onValueChange(true);
     expect(mockSettingsSet).toHaveBeenCalledWith('dccPassive', true);
 
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-reply-queue').onValueChange(true);
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-reply-queue')
+      .onValueChange(true);
     expect(mockSettingsSet).toHaveBeenCalledWith('dccReplyQueueCommands', true);
 
     // Update send max kbps
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-send-max-kbps').onValueChange('500');
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-send-max-kbps')
+      .onValueChange('500');
     expect(mockSettingsSet).toHaveBeenCalledWith('dccSendMaxKbps', 500);
 
     // Update cancel above kbps
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-cancel-above-kbps').onValueChange('1000');
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-cancel-above-kbps')
+      .onValueChange('1000');
     expect(mockSettingsSet).toHaveBeenCalledWith('dccCancelAboveKbps', 1000);
   });
 
@@ -629,21 +798,29 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-dcc')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
 
     const dcc = mockCapturedItems.get('connection-dcc');
 
     // Try to disable block private IP
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-block-private-ip').onValueChange(false);
-    
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-block-private-ip')
+      .onValueChange(false);
+
     const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-    const warningAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Security Warning'));
+    const warningAlert = alertCalls.find((c: any[]) =>
+      String(c[0]).includes('Security Warning'),
+    );
     expect(warningAlert).toBeTruthy();
-    
-    const disableBtn = warningAlert?.[2]?.find((b: any) => String(b.text).includes('Disable Protection'));
+
+    const disableBtn = warningAlert?.[2]?.find((b: any) =>
+      String(b.text).includes('Disable Protection'),
+    );
     await disableBtn?.onPress?.();
     expect(mockSettingsSet).toHaveBeenCalledWith('dccBlockPrivateIp', false);
   });
@@ -654,22 +831,32 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-dcc')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
 
     const dcc = mockCapturedItems.get('connection-dcc');
-    const fileFilters = dcc.submenuItems.find((x: any) => x.id === 'dcc-file-filters');
+    const fileFilters = dcc.submenuItems.find(
+      (x: any) => x.id === 'dcc-file-filters',
+    );
 
     // Open accept exts
-    fileFilters.submenuItems.find((x: any) => x.id === 'dcc-accept-exts').onPress();
+    fileFilters.submenuItems
+      .find((x: any) => x.id === 'dcc-accept-exts')
+      .onPress();
 
     // Open reject exts
-    fileFilters.submenuItems.find((x: any) => x.id === 'dcc-reject-exts').onPress();
+    fileFilters.submenuItems
+      .find((x: any) => x.id === 'dcc-reject-exts')
+      .onPress();
 
     // Open dont-send exts
-    fileFilters.submenuItems.find((x: any) => x.id === 'dcc-dont-send-exts').onPress();
+    fileFilters.submenuItems
+      .find((x: any) => x.id === 'dcc-dont-send-exts')
+      .onPress();
   });
 
   it('handles DCC auto accept from level selection', async () => {
@@ -678,26 +865,36 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-dcc')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
 
     const dcc = mockCapturedItems.get('connection-dcc');
 
     // Test auto chat from
     dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-chat-from').onPress();
     let alertCalls = (Alert.alert as jest.Mock).mock.calls;
-    let levelAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Auto Accept Chat'));
-    let levelBtn = levelAlert?.[2]?.find((b: any) => String(b.text).includes('2 - Friends'));
+    let levelAlert = alertCalls.find((c: any[]) =>
+      String(c[0]).includes('Auto Accept Chat'),
+    );
+    let levelBtn = levelAlert?.[2]?.find((b: any) =>
+      String(b.text).includes('2 - Friends'),
+    );
     await levelBtn?.onPress?.();
     expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoChatFrom', 2);
 
     // Test auto get from
     dcc.submenuItems.find((x: any) => x.id === 'dcc-auto-get-from').onPress();
     alertCalls = (Alert.alert as jest.Mock).mock.calls;
-    levelAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Auto Accept Gets'));
-    levelBtn = levelAlert?.[2]?.find((b: any) => String(b.text).includes('3 - Ops'));
+    levelAlert = alertCalls.find((c: any[]) =>
+      String(c[0]).includes('Auto Accept Gets'),
+    );
+    levelBtn = levelAlert?.[2]?.find((b: any) =>
+      String(b.text).includes('3 - Ops'),
+    );
     await levelBtn?.onPress?.();
     expect(mockSettingsSet).toHaveBeenCalledWith('dccAutoGetFrom', 3);
   });
@@ -708,18 +905,28 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('channel-auto-join-favorites')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('channel-auto-join-favorites')).toBe(true),
+    );
 
-    await mockCapturedItems.get('channel-auto-join-favorites').onValueChange(false);
+    await mockCapturedItems
+      .get('channel-auto-join-favorites')
+      .onValueChange(false);
     expect(mockSettingsSet).toHaveBeenCalledWith('autoJoinFavorites', false);
   });
 
   it('handles channel favorites with items', async () => {
     const favoritesMap = new Map([
-      ['net1', [{ name: '#general', autoJoin: true, key: '' }, { name: '#random', autoJoin: false, key: 'secret' }]],
+      [
+        'net1',
+        [
+          { name: '#general', autoJoin: true, key: '' },
+          { name: '#random', autoJoin: false, key: 'secret' },
+        ],
+      ],
       ['net2', [{ name: '#help', autoJoin: true, key: '' }]],
     ]);
     mockChannelFavoritesGetAll.mockReturnValue(favoritesMap);
@@ -729,16 +936,20 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('channel-favorites')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('channel-favorites')).toBe(true),
+    );
 
     const favorites = mockCapturedItems.get('channel-favorites');
     expect(favorites.description).toContain('3');
 
     // Check submenu items are created for each favorite
-    const favItems = favorites.submenuItems.filter((x: any) => x.id.startsWith('favorite-'));
+    const favItems = favorites.submenuItems.filter((x: any) =>
+      x.id.startsWith('favorite-'),
+    );
     expect(favItems.length).toBe(3);
   });
 
@@ -753,16 +964,22 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('channel-favorites')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('channel-favorites')).toBe(true),
+    );
 
     const favorites = mockCapturedItems.get('channel-favorites');
-    const favItem = favorites.submenuItems.find((x: any) => x.id === 'favorite-net1-#general');
-    
+    const favItem = favorites.submenuItems.find(
+      (x: any) => x.id === 'favorite-net1-#general',
+    );
+
     // Find move button
-    const moveBtn = favItem.submenuItems.find((x: any) => x.id.includes('favorite-move-'));
+    const moveBtn = favItem.submenuItems.find((x: any) =>
+      x.id.includes('favorite-move-'),
+    );
     if (moveBtn) {
       await moveBtn.onPress();
       expect(mockChannelFavoritesMove).toHaveBeenCalled();
@@ -780,23 +997,33 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('channel-favorites')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('channel-favorites')).toBe(true),
+    );
 
     const favorites = mockCapturedItems.get('channel-favorites');
-    const favItem = favorites.submenuItems.find((x: any) => x.id === 'favorite-net1-#general');
-    
+    const favItem = favorites.submenuItems.find(
+      (x: any) => x.id === 'favorite-net1-#general',
+    );
+
     // Find delete button
-    const deleteBtn = favItem.submenuItems.find((x: any) => x.id.includes('favorite-delete-'));
+    const deleteBtn = favItem.submenuItems.find((x: any) =>
+      x.id.includes('favorite-delete-'),
+    );
     deleteBtn.onPress();
-    
+
     const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-    const deleteAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Delete Favorite'));
+    const deleteAlert = alertCalls.find((c: any[]) =>
+      String(c[0]).includes('Delete Favorite'),
+    );
     expect(deleteAlert).toBeTruthy();
-    
-    const confirmBtn = deleteAlert?.[2]?.find((b: any) => String(b.style) === 'destructive');
+
+    const confirmBtn = deleteAlert?.[2]?.find(
+      (b: any) => String(b.style) === 'destructive',
+    );
     await confirmBtn?.onPress?.();
     expect(mockChannelFavoritesRemove).toHaveBeenCalled();
   });
@@ -808,12 +1035,16 @@ describe('ConnectionNetworkSection', () => {
         styles={styles as any}
         settingIcons={{}}
         currentNetwork="net1"
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-whois-auto-detect')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-whois-auto-detect')).toBe(true),
+    );
 
-    await mockCapturedItems.get('connection-whois-auto-detect').onValueChange(false);
+    await mockCapturedItems
+      .get('connection-whois-auto-detect')
+      .onValueChange(false);
     expect(mockUpdateNetwork).toHaveBeenCalled();
   });
 
@@ -829,12 +1060,16 @@ describe('ConnectionNetworkSection', () => {
         styles={styles as any}
         settingIcons={{}}
         currentNetwork="net1"
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-whois-double-nick')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-whois-double-nick')).toBe(true),
+    );
 
-    await mockCapturedItems.get('connection-whois-double-nick').onValueChange(true);
+    await mockCapturedItems
+      .get('connection-whois-double-nick')
+      .onValueChange(true);
     expect(mockUpdateNetwork).toHaveBeenCalled();
     expect(setWhoisUseDoubleNick).toHaveBeenCalledWith(true);
   });
@@ -852,13 +1087,17 @@ describe('ConnectionNetworkSection', () => {
         styles={styles as any}
         settingIcons={{}}
         currentNetwork="net1"
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-whois-auto-detect')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-whois-auto-detect')).toBe(true),
+    );
 
     // Enable auto-detect when Undernet is detected
-    await mockCapturedItems.get('connection-whois-auto-detect').onValueChange(true);
+    await mockCapturedItems
+      .get('connection-whois-auto-detect')
+      .onValueChange(true);
     expect(mockUpdateNetwork).toHaveBeenCalled();
   });
 
@@ -870,15 +1109,19 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
     await waitFor(() => {
       expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true);
-      expect(mockCapturedItems.get('connection-biometric-lock').disabled).toBe(false);
+      expect(mockCapturedItems.get('connection-biometric-lock').disabled).toBe(
+        false,
+      );
     });
 
-    await mockCapturedItems.get('connection-biometric-lock').onValueChange(true);
+    await mockCapturedItems
+      .get('connection-biometric-lock')
+      .onValueChange(true);
     expect(mockBiometricEnableLock).toHaveBeenCalled();
     expect(mockSettingsSet).toHaveBeenCalledWith('biometricPasswordLock', true);
   });
@@ -891,15 +1134,19 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true),
+    );
 
-    await mockCapturedItems.get('connection-biometric-lock').onValueChange(true);
+    await mockCapturedItems
+      .get('connection-biometric-lock')
+      .onValueChange(true);
     expect(Alert.alert).toHaveBeenCalledWith(
       expect.stringContaining('Biometrics unavailable'),
-      expect.any(String)
+      expect.any(String),
     );
   });
 
@@ -914,17 +1161,24 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
     await waitFor(() => {
       expect(mockCapturedItems.has('connection-biometric-lock')).toBe(true);
-      expect(mockCapturedItems.get('connection-biometric-lock').disabled).toBe(false);
+      expect(mockCapturedItems.get('connection-biometric-lock').disabled).toBe(
+        false,
+      );
     });
 
-    await mockCapturedItems.get('connection-biometric-lock').onValueChange(false);
+    await mockCapturedItems
+      .get('connection-biometric-lock')
+      .onValueChange(false);
     expect(mockBiometricDisableLock).toHaveBeenCalled();
-    expect(mockSettingsSet).toHaveBeenCalledWith('biometricPasswordLock', false);
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'biometricPasswordLock',
+      false,
+    );
   });
 
   it('handles DCC download folder picker failure', async () => {
@@ -936,21 +1190,27 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-dcc')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
 
     const dcc = mockCapturedItems.get('connection-dcc');
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-download-folder').onPress();
-    
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-download-folder')
+      .onPress();
+
     // Should show error alert for general errors
     expect(Alert.alert).toHaveBeenCalled();
   });
 
   it('handles DCC download folder picker cancellation', async () => {
     const cancelError = { code: 'OPERATION_CANCELED', message: 'Canceled' };
-    (isErrorWithCode as jest.Mock).mockImplementation((err: any) => err?.code === 'OPERATION_CANCELED');
+    (isErrorWithCode as jest.Mock).mockImplementation(
+      (err: any) => err?.code === 'OPERATION_CANCELED',
+    );
     (pick as jest.Mock).mockRejectedValue(cancelError);
 
     render(
@@ -958,14 +1218,18 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-dcc')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-dcc')).toBe(true),
+    );
 
     const dcc = mockCapturedItems.get('connection-dcc');
-    await dcc.submenuItems.find((x: any) => x.id === 'dcc-download-folder').onPress();
-    
+    await dcc.submenuItems
+      .find((x: any) => x.id === 'dcc-download-folder')
+      .onPress();
+
     // Should not show error alert for cancellation - just return silently
     // The cancel error should not trigger the failed alert
   });
@@ -977,20 +1241,28 @@ describe('ConnectionNetworkSection', () => {
         styles={styles as any}
         settingIcons={{}}
         currentNetwork="net1"
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-auto-reconnect')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-auto-reconnect')).toBe(true),
+    );
 
     const autoReconnect = mockCapturedItems.get('connection-auto-reconnect');
-    
+
     // Enable first
-    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-enabled').onValueChange(true);
+    await autoReconnect.submenuItems
+      .find((x: any) => x.id === 'auto-reconnect-enabled')
+      .onValueChange(true);
 
     // Try invalid inputs
-    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-max-attempts').onValueChange('abc');
-    await autoReconnect.submenuItems.find((x: any) => x.id === 'auto-reconnect-initial-delay').onValueChange('');
-    
+    await autoReconnect.submenuItems
+      .find((x: any) => x.id === 'auto-reconnect-max-attempts')
+      .onValueChange('abc');
+    await autoReconnect.submenuItems
+      .find((x: any) => x.id === 'auto-reconnect-initial-delay')
+      .onValueChange('');
+
     // Should still be called with parsed values
     expect(mockAutoReconnectSetConfig).toHaveBeenCalled();
   });
@@ -1001,10 +1273,12 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('quick-connect-network')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('quick-connect-network')).toBe(true),
+    );
 
     // Open the quick connect modal
     mockCapturedItems.get('quick-connect-network').onPress();
@@ -1018,13 +1292,17 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('channel-favorites')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('channel-favorites')).toBe(true),
+    );
 
     const favorites = mockCapturedItems.get('channel-favorites');
-    const emptyItem = favorites.submenuItems.find((x: any) => x.id === 'favorites-empty');
+    const emptyItem = favorites.submenuItems.find(
+      (x: any) => x.id === 'favorites-empty',
+    );
     expect(emptyItem).toBeTruthy();
     expect(emptyItem.disabled).toBe(true);
   });
@@ -1040,10 +1318,12 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('identity-profiles')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('identity-profiles')).toBe(true),
+    );
 
     const profiles = mockCapturedItems.get('identity-profiles');
     expect(profiles.description).toContain('2');
@@ -1055,25 +1335,41 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-quality')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-quality')).toBe(true),
+    );
 
     const quality = mockCapturedItems.get('connection-quality');
-    const rateLimit = quality.submenuItems.find((x: any) => x.id === 'quality-rate-limit');
+    const rateLimit = quality.submenuItems.find(
+      (x: any) => x.id === 'quality-rate-limit',
+    );
 
     // Enable rate limiting first
-    await rateLimit.submenuItems.find((x: any) => x.id === 'rate-limit-enabled').onValueChange(true);
+    await rateLimit.submenuItems
+      .find((x: any) => x.id === 'rate-limit-enabled')
+      .onValueChange(true);
 
     // Test with invalid values
-    await rateLimit.submenuItems.find((x: any) => x.id === 'rate-limit-msg-per-sec').onValueChange('0');
-    await rateLimit.submenuItems.find((x: any) => x.id === 'rate-limit-msg-per-sec').onValueChange('-5');
-    await rateLimit.submenuItems.find((x: any) => x.id === 'rate-limit-msg-per-sec').onValueChange('abc');
-    
+    await rateLimit.submenuItems
+      .find((x: any) => x.id === 'rate-limit-msg-per-sec')
+      .onValueChange('0');
+    await rateLimit.submenuItems
+      .find((x: any) => x.id === 'rate-limit-msg-per-sec')
+      .onValueChange('-5');
+    await rateLimit.submenuItems
+      .find((x: any) => x.id === 'rate-limit-msg-per-sec')
+      .onValueChange('abc');
+
     // Should not update with invalid values
-    expect(mockUpdateRateLimitConfig).not.toHaveBeenCalledWith({ messagesPerSecond: 0 });
-    expect(mockUpdateRateLimitConfig).not.toHaveBeenCalledWith({ messagesPerSecond: -5 });
+    expect(mockUpdateRateLimitConfig).not.toHaveBeenCalledWith({
+      messagesPerSecond: 0,
+    });
+    expect(mockUpdateRateLimitConfig).not.toHaveBeenCalledWith({
+      messagesPerSecond: -5,
+    });
   });
 
   it('handles flood protection input validation', async () => {
@@ -1082,23 +1378,35 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-quality')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-quality')).toBe(true),
+    );
 
     const quality = mockCapturedItems.get('connection-quality');
-    const floodProtection = quality.submenuItems.find((x: any) => x.id === 'quality-flood-protection');
+    const floodProtection = quality.submenuItems.find(
+      (x: any) => x.id === 'quality-flood-protection',
+    );
 
     // Enable flood protection first
-    await floodProtection.submenuItems.find((x: any) => x.id === 'flood-protection-enabled').onValueChange(true);
+    await floodProtection.submenuItems
+      .find((x: any) => x.id === 'flood-protection-enabled')
+      .onValueChange(true);
 
     // Test with invalid values
-    await floodProtection.submenuItems.find((x: any) => x.id === 'flood-protection-max-msgs').onValueChange('0');
-    await floodProtection.submenuItems.find((x: any) => x.id === 'flood-protection-window').onValueChange('invalid');
-    
+    await floodProtection.submenuItems
+      .find((x: any) => x.id === 'flood-protection-max-msgs')
+      .onValueChange('0');
+    await floodProtection.submenuItems
+      .find((x: any) => x.id === 'flood-protection-window')
+      .onValueChange('invalid');
+
     // Should not update with invalid values
-    expect(mockUpdateFloodProtectionConfig).not.toHaveBeenCalledWith({ maxMessagesPerWindow: 0 });
+    expect(mockUpdateFloodProtectionConfig).not.toHaveBeenCalledWith({
+      maxMessagesPerWindow: 0,
+    });
   });
 
   it('handles lag monitoring input validation', async () => {
@@ -1107,23 +1415,37 @@ describe('ConnectionNetworkSection', () => {
         colors={colors}
         styles={styles as any}
         settingIcons={{}}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('connection-quality')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('connection-quality')).toBe(true),
+    );
 
     const quality = mockCapturedItems.get('connection-quality');
-    const lagMonitoring = quality.submenuItems.find((x: any) => x.id === 'quality-lag-monitoring');
+    const lagMonitoring = quality.submenuItems.find(
+      (x: any) => x.id === 'quality-lag-monitoring',
+    );
 
     // Enable lag monitoring first
-    await lagMonitoring.submenuItems.find((x: any) => x.id === 'lag-monitoring-enabled').onValueChange(true);
+    await lagMonitoring.submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-enabled')
+      .onValueChange(true);
 
     // Test with invalid values
-    await lagMonitoring.submenuItems.find((x: any) => x.id === 'lag-monitoring-interval').onValueChange('-1');
-    await lagMonitoring.submenuItems.find((x: any) => x.id === 'lag-monitoring-warning').onValueChange('0');
-    
+    await lagMonitoring.submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-interval')
+      .onValueChange('-1');
+    await lagMonitoring.submenuItems
+      .find((x: any) => x.id === 'lag-monitoring-warning')
+      .onValueChange('0');
+
     // Should not update with invalid values
-    expect(mockUpdateLagMonitoringConfig).not.toHaveBeenCalledWith({ pingInterval: -1 });
-    expect(mockUpdateLagMonitoringConfig).not.toHaveBeenCalledWith({ warningThreshold: 0 });
+    expect(mockUpdateLagMonitoringConfig).not.toHaveBeenCalledWith({
+      pingInterval: -1,
+    });
+    expect(mockUpdateLagMonitoringConfig).not.toHaveBeenCalledWith({
+      warningThreshold: 0,
+    });
   });
 });

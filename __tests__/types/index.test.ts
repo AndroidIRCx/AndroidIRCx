@@ -24,7 +24,13 @@ describe('Types - index', () => {
     });
 
     it('should support all tab types', () => {
-      const types: Array<ChannelTab['type']> = ['server', 'channel', 'query', 'notice', 'dcc'];
+      const types: Array<ChannelTab['type']> = [
+        'server',
+        'channel',
+        'query',
+        'notice',
+        'dcc',
+      ];
 
       types.forEach(type => {
         const tab: ChannelTab = {

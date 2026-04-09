@@ -21,7 +21,7 @@ export const useRawSettings = (params: UseRawSettingsParams) => {
       ...getDefaultRawCategoryVisibility(),
       ...(visibility || {}),
     }),
-    []
+    [],
   );
 
   const persistentSetShowRawCommands = useCallback(
@@ -31,12 +31,14 @@ export const useRawSettings = (params: UseRawSettingsParams) => {
       await settingsService.setSetting('showRawCommands', value);
       if (value) {
         const currentRawCategoryVisibility = store.rawCategoryVisibility;
-        const normalized = normalizeRawCategoryVisibility(currentRawCategoryVisibility);
+        const normalized = normalizeRawCategoryVisibility(
+          currentRawCategoryVisibility,
+        );
         store.setRawCategoryVisibility(normalized);
         await settingsService.setSetting('rawCategoryVisibility', normalized);
       }
     },
-    [normalizeRawCategoryVisibility]
+    [normalizeRawCategoryVisibility],
   );
 
   const persistentSetRawCategoryVisibility = useCallback(
@@ -46,7 +48,7 @@ export const useRawSettings = (params: UseRawSettingsParams) => {
       store.setRawCategoryVisibility(normalized);
       await settingsService.setSetting('rawCategoryVisibility', normalized);
     },
-    [normalizeRawCategoryVisibility]
+    [normalizeRawCategoryVisibility],
   );
 
   const persistentSetShowEncryptionIndicators = useCallback(
@@ -54,7 +56,7 @@ export const useRawSettings = (params: UseRawSettingsParams) => {
       setShowEncryptionIndicators(value);
       await settingsService.setSetting('showEncryptionIndicators', value);
     },
-    [setShowEncryptionIndicators]
+    [setShowEncryptionIndicators],
   );
 
   return {

@@ -48,16 +48,20 @@ export function useStoreSetters() {
 
   // Wrapper to support functional updates (for backward compatibility)
   // Use direct store access to avoid dependency issues
-  const setTabs = useCallback((updater: ChannelTab[] | ((prev: ChannelTab[]) => ChannelTab[])) => {
-    const store = useTabStore.getState();
-    const currentTabs = store.tabs;
-    const newTabs = typeof updater === 'function' ? updater(currentTabs) : updater;
+  const setTabs = useCallback(
+    (updater: ChannelTab[] | ((prev: ChannelTab[]) => ChannelTab[])) => {
+      const store = useTabStore.getState();
+      const currentTabs = store.tabs;
+      const newTabs =
+        typeof updater === 'function' ? updater(currentTabs) : updater;
 
-    // Only update if tabs actually changed (reference equality check)
-    if (newTabs !== currentTabs) {
-      store.setTabs(newTabs);
-    }
-  }, []); // No dependencies - always uses current store state
+      // Only update if tabs actually changed (reference equality check)
+      if (newTabs !== currentTabs) {
+        store.setTabs(newTabs);
+      }
+    },
+    [],
+  ); // No dependencies - always uses current store state
 
   // UI store setters
   const setShowFirstRunSetup = useCallback((value: boolean) => {
@@ -72,9 +76,12 @@ export function useStoreSetters() {
     useUIStore.getState().setShowRawCommands(value);
   }, []);
 
-  const setRawCategoryVisibility = useCallback((visibility: Record<RawMessageCategory, boolean>) => {
-    useUIStore.getState().setRawCategoryVisibility(visibility);
-  }, []);
+  const setRawCategoryVisibility = useCallback(
+    (visibility: Record<RawMessageCategory, boolean>) => {
+      useUIStore.getState().setRawCategoryVisibility(visibility);
+    },
+    [],
+  );
 
   const setShowTypingIndicators = useCallback((value: boolean) => {
     useUIStore.getState().setShowTypingIndicators(value);
@@ -97,17 +104,26 @@ export function useStoreSetters() {
   }, []);
 
   // Message store setters
-  const setTypingUser = useCallback((networkId: string, target: string, nick: string, status: any) => {
-    useMessageStore.getState().setTypingUser(networkId, target, nick, status);
-  }, []);
+  const setTypingUser = useCallback(
+    (networkId: string, target: string, nick: string, status: any) => {
+      useMessageStore.getState().setTypingUser(networkId, target, nick, status);
+    },
+    [],
+  );
 
-  const removeTypingUser = useCallback((networkId: string, target: string, nick: string) => {
-    useMessageStore.getState().removeTypingUser(networkId, target, nick);
-  }, []);
+  const removeTypingUser = useCallback(
+    (networkId: string, target: string, nick: string) => {
+      useMessageStore.getState().removeTypingUser(networkId, target, nick);
+    },
+    [],
+  );
 
-  const clearTypingForTarget = useCallback((networkId: string, target: string) => {
-    useMessageStore.getState().clearTypingForTarget(networkId, target);
-  }, []);
+  const clearTypingForTarget = useCallback(
+    (networkId: string, target: string) => {
+      useMessageStore.getState().clearTypingForTarget(networkId, target);
+    },
+    [],
+  );
 
   const cleanupStaleTyping = useCallback(() => {
     useMessageStore.getState().cleanupStaleTyping();

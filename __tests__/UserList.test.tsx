@@ -99,15 +99,26 @@ jest.mock('../src/services/EncryptedDMService', () => ({
   encryptedDMService: {
     exportBundle: jest.fn(() => Promise.resolve({})),
     exportBundlePayload: jest.fn(() => Promise.resolve('test-payload')),
-    exportFingerprintPayload: jest.fn(() => Promise.resolve('fingerprint-payload')),
-    getVerificationStatus: jest.fn(() => Promise.resolve({ fingerprint: null, verified: false })),
-    getVerificationStatusForNetwork: jest.fn(() => Promise.resolve({ fingerprint: null, verified: false })),
+    exportFingerprintPayload: jest.fn(() =>
+      Promise.resolve('fingerprint-payload'),
+    ),
+    getVerificationStatus: jest.fn(() =>
+      Promise.resolve({ fingerprint: null, verified: false }),
+    ),
+    getVerificationStatusForNetwork: jest.fn(() =>
+      Promise.resolve({ fingerprint: null, verified: false }),
+    ),
     getBundleFingerprintForNetwork: jest.fn(() => Promise.resolve(null)),
     getSelfFingerprint: jest.fn(() => Promise.resolve('self-fp')),
     formatFingerprintForDisplay: jest.fn((fp: string) => fp),
     setVerifiedForNetwork: jest.fn(() => Promise.resolve()),
     acceptExternalBundleForNetwork: jest.fn(() => Promise.resolve()),
-    parseExternalPayload: jest.fn((_raw: string) => ({ type: 'encdm-bundle', nick: 'test', bundle: {}, fingerprint: 'fp' })),
+    parseExternalPayload: jest.fn((_raw: string) => ({
+      type: 'encdm-bundle',
+      nick: 'test',
+      bundle: {},
+      fingerprint: 'fp',
+    })),
     verifyBundle: jest.fn(),
     awaitBundleForNick: jest.fn(() => Promise.resolve()),
   },
@@ -121,7 +132,10 @@ jest.mock('../src/services/BanService', () => ({
       { id: 2, pattern: '*!ident@*', description: 'Ident based' },
     ]),
     getPredefinedReasons: jest.fn(() => ['Rule violation', 'Spam']),
-    generateBanMask: jest.fn((nick: string, ident: string, host: string, _typeId: number) => `${nick}!${ident}@${host}`),
+    generateBanMask: jest.fn(
+      (nick: string, ident: string, host: string, _typeId: number) =>
+        `${nick}!${ident}@${host}`,
+    ),
   },
 }));
 
@@ -185,7 +199,7 @@ jest.mock('react-native-nfc-manager', () => ({
     getTag: jest.fn(() =>
       Promise.resolve({
         ndefMessage: [{ payload: 'payload-bytes' }],
-      })
+      }),
     ),
     cancelTechnologyRequest: jest.fn(() => Promise.resolve()),
   },
@@ -194,7 +208,10 @@ jest.mock('react-native-nfc-manager', () => ({
     textRecord: jest.fn((value: string) => ({ value })),
     encodeMessage: jest.fn(() => [1, 2, 3]),
     text: {
-      decodePayload: jest.fn(() => '{"type":"encdm-bundle","nick":"Alice","bundle":{},"fingerprint":"peer-fp"}'),
+      decodePayload: jest.fn(
+        () =>
+          '{"type":"encdm-bundle","nick":"Alice","bundle":{},"fingerprint":"peer-fp"}',
+      ),
     },
   },
 }));
@@ -236,7 +253,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={[]} channelName="#test" network="testnet" />
+          <UserList users={[]} channelName="#test" network="testnet" />,
         );
       });
       const json = tree!.toJSON();
@@ -248,7 +265,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const json = tree!.toJSON();
@@ -264,7 +281,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const json = tree!.toJSON();
@@ -279,13 +296,15 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
-      
+
       const instance = tree!.root;
       const texts = instance.findAllByType('Text');
-      const headerText = texts.find(t => t.props.children && t.props.children[0] === 2);
+      const headerText = texts.find(
+        t => t.props.children && t.props.children[0] === 2,
+      );
       expect(headerText).toBeTruthy();
     });
 
@@ -294,13 +313,15 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
-      
+
       const instance = tree!.root;
       const texts = instance.findAllByType('Text');
-      const headerText = texts.find(t => t.props.children && t.props.children[0] === 1);
+      const headerText = texts.find(
+        t => t.props.children && t.props.children[0] === 1,
+      );
       expect(headerText).toBeTruthy();
     });
   });
@@ -318,7 +339,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const json = tree!.toJSON();
@@ -336,7 +357,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -351,7 +372,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -365,7 +386,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -379,7 +400,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -391,7 +412,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={[]} channelName="#test" network="testnet" />
+          <UserList users={[]} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
@@ -408,16 +429,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('Ali');
       });
-      
+
       expect(searchInput.props.value).toBe('Ali');
     });
 
@@ -429,16 +450,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('alice_acc');
       });
-      
+
       expect(searchInput.props.value).toBe('alice_acc');
     });
 
@@ -447,20 +468,20 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('search');
       });
-      
+
       tree!.update(
-        <UserList users={users} channelName="#test" network="testnet" />
+        <UserList users={users} channelName="#test" network="testnet" />,
       );
-      
+
       expect(searchInput.props.value).toBe('search');
     });
 
@@ -469,20 +490,20 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('search');
       });
-      
+
       await act(async () => {
         searchInput.props.onChangeText('');
       });
-      
+
       expect(searchInput.props.value).toBe('');
     });
 
@@ -494,16 +515,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('ALICE');
       });
-      
+
       expect(searchInput.props.value).toBe('ALICE');
     });
   });
@@ -513,7 +534,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={[]} channelName="#test" network="testnet" />
+          <UserList users={[]} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -524,16 +545,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('nonexistent');
       });
-      
+
       expect(searchInput.props.value).toBe('nonexistent');
     });
   });
@@ -545,19 +566,21 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList 
-            users={users} 
-            channelName="#test" 
+          <UserList
+            users={users}
+            channelName="#test"
             network="testnet"
             onUserPress={onUserPress}
-          />
+          />,
         );
       });
-      
+
       const instance = tree!.root;
       const touchables = instance.findAllByType('TouchableOpacity');
-      const userTouchable = touchables.find(t => t.props.onLongPress && typeof t.props.onLongPress === 'function');
-      
+      const userTouchable = touchables.find(
+        t => t.props.onLongPress && typeof t.props.onLongPress === 'function',
+      );
+
       if (userTouchable) {
         await act(async () => {
           userTouchable.props.onPress();
@@ -571,14 +594,14 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
-      
+
       // Verify component rendered - user items are rendered
       const json = tree!.toJSON();
       expect(json).not.toBeNull();
-      
+
       // The user items have onLongPress handlers defined by the component
       // This test verifies the component structure is correct
       const instance = tree!.root;
@@ -590,14 +613,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
-      
+
       const instance = tree!.root;
       const touchables = instance.findAllByType('TouchableOpacity');
-      const userTouchable = touchables.find(t => t.props.onLongPress && typeof t.props.onLongPress === 'function');
-      
+      const userTouchable = touchables.find(
+        t => t.props.onLongPress && typeof t.props.onLongPress === 'function',
+      );
+
       if (userTouchable) {
         await act(async () => {
           userTouchable.props.onPress();
@@ -614,14 +639,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
-      
+
       const instance = tree!.root;
       const touchables = instance.findAllByType('TouchableOpacity');
-      const userTouchable = touchables.find(t => t.props.onLongPress && typeof t.props.onLongPress === 'function');
-      
+      const userTouchable = touchables.find(
+        t => t.props.onLongPress && typeof t.props.onLongPress === 'function',
+      );
+
       if (userTouchable && userTouchable.props.onLongPress) {
         await act(async () => {
           userTouchable.props.onLongPress();
@@ -630,12 +657,12 @@ describe('UserList', () => {
     });
 
     it('handles whois, query and copy actions from context menu', async () => {
-      const timeoutSpy = jest
-        .spyOn(global, 'setTimeout')
-        .mockImplementation(((fn: any) => {
-          if (typeof fn === 'function') fn();
-          return 0 as any;
-        }) as any);
+      const timeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+        fn: any,
+      ) => {
+        if (typeof fn === 'function') fn();
+        return 0 as any;
+      }) as any);
       const irc = require('../src/services/IRCService').ircService;
       const onUserPress = jest.fn();
       const onWHOISPress = jest.fn();
@@ -660,13 +687,14 @@ describe('UserList', () => {
             network="testnet"
             onUserPress={onUserPress}
             onWHOISPress={onWHOISPress}
-          />
+          />,
         );
       });
 
       const instance = tree!.root;
       const userTouchable = instance.findAll(
-        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+        (node: any) =>
+          node?.props && typeof node.props.onLongPress === 'function',
       )[0];
       expect(userTouchable).toBeTruthy();
 
@@ -682,22 +710,25 @@ describe('UserList', () => {
       });
 
       expect(onWHOISPress).toHaveBeenCalledWith('Alice');
-      expect(onUserPress).toHaveBeenCalledWith(expect.objectContaining({ nick: 'Alice' }));
+      expect(onUserPress).toHaveBeenCalledWith(
+        expect.objectContaining({ nick: 'Alice' }),
+      );
       expect(Clipboard.setString).toHaveBeenCalledWith('Alice');
       expect(irc.sendCommand).not.toHaveBeenCalledWith('WHOIS Alice');
       timeoutSpy.mockRestore();
     });
 
     it('handles monitor, ignore and dcc_send actions', async () => {
-      const timeoutSpy = jest
-        .spyOn(global, 'setTimeout')
-        .mockImplementation(((fn: any) => {
-          if (typeof fn === 'function') fn();
-          return 0 as any;
-        }) as any);
+      const timeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+        fn: any,
+      ) => {
+        if (typeof fn === 'function') fn();
+        return 0 as any;
+      }) as any);
       const irc = require('../src/services/IRCService').ircService;
       const uiStore = require('../src/stores/uiStore').useUIStore;
-      const userMgmt = require('../src/services/UserManagementService').userManagementService;
+      const userMgmt =
+        require('../src/services/UserManagementService').userManagementService;
       const setDccSendTarget = jest.fn();
       const setShowDccSendModal = jest.fn();
       uiStore.getState.mockReturnValue({
@@ -718,24 +749,25 @@ describe('UserList', () => {
         userListAutoDisableGroupingThreshold: 1000,
       });
 
-      irc.isMonitoring
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(true);
+      irc.isMonitoring.mockReturnValueOnce(false).mockReturnValueOnce(true);
       userMgmt.isUserIgnored
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(true);
 
-      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], host: 'example.com' }];
+      const users: ChannelUser[] = [
+        { nick: 'Alice', modes: [], host: 'example.com' },
+      ];
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
 
       const instance = tree!.root;
       const userTouchable = instance.findAll(
-        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+        (node: any) =>
+          node?.props && typeof node.props.onLongPress === 'function',
       )[0];
       expect(userTouchable).toBeTruthy();
 
@@ -756,18 +788,21 @@ describe('UserList', () => {
       expect(irc.unmonitorNick).toHaveBeenCalledWith('Alice');
       expect(userMgmt.ignoreUser).toHaveBeenCalled();
       expect(userMgmt.unignoreUser).toHaveBeenCalledWith('Alice', 'testnet');
-      expect(setDccSendTarget).toHaveBeenCalledWith({ nick: 'Alice', networkId: 'testnet' });
+      expect(setDccSendTarget).toHaveBeenCalledWith({
+        nick: 'Alice',
+        networkId: 'testnet',
+      });
       expect(setShowDccSendModal).toHaveBeenCalledWith(true);
       timeoutSpy.mockRestore();
     });
 
     it('falls back to direct WHOIS command in inline mode', async () => {
-      const timeoutSpy = jest
-        .spyOn(global, 'setTimeout')
-        .mockImplementation(((fn: any) => {
-          if (typeof fn === 'function') fn();
-          return 0 as any;
-        }) as any);
+      const timeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+        fn: any,
+      ) => {
+        if (typeof fn === 'function') fn();
+        return 0 as any;
+      }) as any);
       const irc = require('../src/services/IRCService').ircService;
       (performanceService.getConfig as jest.Mock).mockReturnValue({
         userListType: 'simple',
@@ -784,13 +819,14 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
 
       const instance = tree!.root;
       const userTouchable = instance.findAll(
-        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+        (node: any) =>
+          node?.props && typeof node.props.onLongPress === 'function',
       )[0];
       expect(userTouchable).toBeTruthy();
 
@@ -808,14 +844,16 @@ describe('UserList', () => {
     });
 
     it('handles call, ctcp and operator command actions', async () => {
-      const timeoutSpy = jest
-        .spyOn(global, 'setTimeout')
-        .mockImplementation(((fn: any) => {
-          if (typeof fn === 'function') fn();
-          return 0 as any;
-        }) as any);
+      const timeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+        fn: any,
+      ) => {
+        if (typeof fn === 'function') fn();
+        return 0 as any;
+      }) as any);
       const irc = require('../src/services/IRCService').ircService;
-      const { webRtcCallService } = require('../src/services/WebRTCCallService');
+      const {
+        webRtcCallService,
+      } = require('../src/services/WebRTCCallService');
       const { dccChatService } = require('../src/services/DCCChatService');
 
       (performanceService.getConfig as jest.Mock).mockReturnValue({
@@ -835,17 +873,20 @@ describe('UserList', () => {
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce(new Error('video fail'));
 
-      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], host: 'example.com' }];
+      const users: ChannelUser[] = [
+        { nick: 'Alice', modes: [], host: 'example.com' },
+      ];
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
 
       const instance = tree!.root;
       const userTouchable = instance.findAll(
-        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+        (node: any) =>
+          node?.props && typeof node.props.onLongPress === 'function',
       )[0];
       expect(userTouchable).toBeTruthy();
 
@@ -875,12 +916,28 @@ describe('UserList', () => {
         await mockNickContextMenuProps.onAction('kick_ban_message');
       });
 
-      expect(webRtcCallService.startOutgoingCall).toHaveBeenCalledWith('testnet', 'Alice', 'audio');
-      expect(webRtcCallService.startOutgoingCall).toHaveBeenCalledWith('testnet', 'Alice', 'video');
-      expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'PING', expect.any(String));
+      expect(webRtcCallService.startOutgoingCall).toHaveBeenCalledWith(
+        'testnet',
+        'Alice',
+        'audio',
+      );
+      expect(webRtcCallService.startOutgoingCall).toHaveBeenCalledWith(
+        'testnet',
+        'Alice',
+        'video',
+      );
+      expect(irc.sendCTCPRequest).toHaveBeenCalledWith(
+        'Alice',
+        'PING',
+        expect.any(String),
+      );
       expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'VERSION');
       expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'TIME');
-      expect(dccChatService.initiateChat).toHaveBeenCalledWith(irc, 'Alice', 'testnet');
+      expect(dccChatService.initiateChat).toHaveBeenCalledWith(
+        irc,
+        'Alice',
+        'testnet',
+      );
       expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test +v Alice');
       expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test -v Alice');
       expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test +h Alice');
@@ -889,28 +946,40 @@ describe('UserList', () => {
       expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test -o Alice');
       expect(irc.sendCommand).toHaveBeenCalledWith('KICK #test Alice');
       expect(irc.sendCommand).toHaveBeenCalledWith('KICK #test Alice :Kicked');
-      expect(irc.sendCommand).toHaveBeenCalledWith('MODE #test +b *!*@example.com');
+      expect(irc.sendCommand).toHaveBeenCalledWith(
+        'MODE #test +b *!*@example.com',
+      );
       timeoutSpy.mockRestore();
     });
 
     it('handles encryption share/request/qr and channel key actions', async () => {
-      const timeoutSpy = jest
-        .spyOn(global, 'setTimeout')
-        .mockImplementation(((fn: any) => {
-          if (typeof fn === 'function') fn();
-          return 0 as any;
-        }) as any);
+      const timeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+        fn: any,
+      ) => {
+        if (typeof fn === 'function') fn();
+        return 0 as any;
+      }) as any);
       const irc = require('../src/services/IRCService').ircService;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
-      const { channelEncryptionService } = require('../src/services/ChannelEncryptionService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
+      const {
+        channelEncryptionService,
+      } = require('../src/services/ChannelEncryptionService');
 
       encryptedDMService.exportBundle.mockResolvedValue({ key: 'bundle' });
       encryptedDMService.awaitBundleForNick
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce(new Error('timeout'));
-      encryptedDMService.exportFingerprintPayload.mockResolvedValue('fp-payload');
-      encryptedDMService.exportBundlePayload.mockResolvedValue('bundle-payload');
-      channelEncryptionService.exportChannelKey.mockResolvedValue('chan-key-data');
+      encryptedDMService.exportFingerprintPayload.mockResolvedValue(
+        'fp-payload',
+      );
+      encryptedDMService.exportBundlePayload.mockResolvedValue(
+        'bundle-payload',
+      );
+      channelEncryptionService.exportChannelKey.mockResolvedValue(
+        'chan-key-data',
+      );
 
       (performanceService.getConfig as jest.Mock).mockReturnValue({
         userListType: 'simple',
@@ -923,17 +992,20 @@ describe('UserList', () => {
         userListAutoDisableGroupingThreshold: 1000,
       });
 
-      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], host: 'example.com' }];
+      const users: ChannelUser[] = [
+        { nick: 'Alice', modes: [], host: 'example.com' },
+      ];
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
 
       const instance = tree!.root;
       const userTouchable = instance.findAll(
-        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+        (node: any) =>
+          node?.props && typeof node.props.onLongPress === 'function',
       )[0];
 
       await act(async () => {
@@ -951,28 +1023,43 @@ describe('UserList', () => {
       });
 
       expect(encryptedDMService.exportBundle).toHaveBeenCalled();
-      expect(encryptedDMService.awaitBundleForNick).toHaveBeenCalledWith('Alice', 36000);
-      expect(encryptedDMService.exportFingerprintPayload).toHaveBeenCalledWith('currentUser');
-      expect(encryptedDMService.exportBundlePayload).toHaveBeenCalledWith('currentUser');
-      expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG Alice :!enc-offer'));
-      expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG Alice :!enc-req');
-      expect(channelEncryptionService.exportChannelKey).toHaveBeenCalledWith('#test', 'testnet');
-      expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG Alice :!chanenc-key chan-key-data');
+      expect(encryptedDMService.awaitBundleForNick).toHaveBeenCalledWith(
+        'Alice',
+        36000,
+      );
+      expect(encryptedDMService.exportFingerprintPayload).toHaveBeenCalledWith(
+        'currentUser',
+      );
+      expect(encryptedDMService.exportBundlePayload).toHaveBeenCalledWith(
+        'currentUser',
+      );
       expect(irc.sendRaw).toHaveBeenCalledWith(
-        'PRIVMSG Alice :Please share the channel key for #test with /chankey share currentUser'
+        expect.stringContaining('PRIVMSG Alice :!enc-offer'),
+      );
+      expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG Alice :!enc-req');
+      expect(channelEncryptionService.exportChannelKey).toHaveBeenCalledWith(
+        '#test',
+        'testnet',
+      );
+      expect(irc.sendRaw).toHaveBeenCalledWith(
+        'PRIVMSG Alice :!chanenc-key chan-key-data',
+      );
+      expect(irc.sendRaw).toHaveBeenCalledWith(
+        'PRIVMSG Alice :Please share the channel key for #test with /chankey share currentUser',
       );
 
       timeoutSpy.mockRestore();
     });
 
     it('handles note save and blacklist add flows', async () => {
-      const timeoutSpy = jest
-        .spyOn(global, 'setTimeout')
-        .mockImplementation(((fn: any) => {
-          if (typeof fn === 'function') fn();
-          return 0 as any;
-        }) as any);
-      const userMgmt = require('../src/services/UserManagementService').userManagementService;
+      const timeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+        fn: any,
+      ) => {
+        if (typeof fn === 'function') fn();
+        return 0 as any;
+      }) as any);
+      const userMgmt =
+        require('../src/services/UserManagementService').userManagementService;
 
       (performanceService.getConfig as jest.Mock).mockReturnValue({
         userListType: 'simple',
@@ -987,17 +1074,20 @@ describe('UserList', () => {
 
       userMgmt.getUserNote.mockReturnValueOnce(null);
 
-      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], ident: 'alice', host: 'example.com' }];
+      const users: ChannelUser[] = [
+        { nick: 'Alice', modes: [], ident: 'alice', host: 'example.com' },
+      ];
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
 
       const instance = tree!.root;
       const userTouchable = instance.findAll(
-        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+        (node: any) =>
+          node?.props && typeof node.props.onLongPress === 'function',
       )[0];
 
       await act(async () => {
@@ -1010,7 +1100,8 @@ describe('UserList', () => {
 
       const findPressableByLabel = (label: string) => {
         const pressables = instance.findAll(
-          (node: any) => node?.props && typeof node.props.onPress === 'function'
+          (node: any) =>
+            node?.props && typeof node.props.onPress === 'function',
         );
         return pressables.find((node: any) => {
           try {
@@ -1023,9 +1114,12 @@ describe('UserList', () => {
         });
       };
 
-      const noteInput = instance.findAllByType('TextInput').find(
-        (input: any) => input.props?.placeholder === 'Enter note about this user'
-      );
+      const noteInput = instance
+        .findAllByType('TextInput')
+        .find(
+          (input: any) =>
+            input.props?.placeholder === 'Enter note about this user',
+        );
       expect(noteInput).toBeTruthy();
 
       await act(async () => {
@@ -1039,7 +1133,11 @@ describe('UserList', () => {
         await saveButton?.props.onPress();
       });
 
-      expect(userMgmt.addUserNote).toHaveBeenCalledWith('Alice', 'important note', 'testnet');
+      expect(userMgmt.addUserNote).toHaveBeenCalledWith(
+        'Alice',
+        'important note',
+        'testnet',
+      );
 
       await act(async () => {
         await mockNickContextMenuProps.onAction('blacklist');
@@ -1057,17 +1155,19 @@ describe('UserList', () => {
     });
 
     it('handles file/NFC key exchange actions', async () => {
-      const timeoutSpy = jest
-        .spyOn(global, 'setTimeout')
-        .mockImplementation(((fn: any) => {
-          if (typeof fn === 'function') fn();
-          return 0 as any;
-        }) as any);
+      const timeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+        fn: any,
+      ) => {
+        if (typeof fn === 'function') fn();
+        return 0 as any;
+      }) as any);
       const RNFS = require('react-native-fs');
       const Share = require('react-native-share').default;
       const Picker = require('@react-native-documents/picker');
       const NfcManager = require('react-native-nfc-manager').default;
-      const { encryptedDMService } = require('../src/services/EncryptedDMService');
+      const {
+        encryptedDMService,
+      } = require('../src/services/EncryptedDMService');
 
       Picker.pick.mockResolvedValue([
         {
@@ -1075,7 +1175,9 @@ describe('UserList', () => {
           fileCopyUri: 'file:///tmp/key-copy.json',
         },
       ]);
-      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValueOnce(null);
+      encryptedDMService.getBundleFingerprintForNetwork.mockResolvedValueOnce(
+        null,
+      );
 
       (performanceService.getConfig as jest.Mock).mockReturnValue({
         userListType: 'simple',
@@ -1088,17 +1190,20 @@ describe('UserList', () => {
         userListAutoDisableGroupingThreshold: 1000,
       });
 
-      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], host: 'example.com' }];
+      const users: ChannelUser[] = [
+        { nick: 'Alice', modes: [], host: 'example.com' },
+      ];
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
 
       const instance = tree!.root;
       const userTouchable = instance.findAll(
-        (node: any) => node?.props && typeof node.props.onLongPress === 'function'
+        (node: any) =>
+          node?.props && typeof node.props.onLongPress === 'function',
       )[0];
 
       await act(async () => {
@@ -1127,7 +1232,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={[]} channelName="#test" position="left" />
+          <UserList users={[]} channelName="#test" position="left" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1137,7 +1242,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={[]} channelName="#test" position="right" />
+          <UserList users={[]} channelName="#test" position="right" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1147,7 +1252,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={[]} channelName="#test" position="top" />
+          <UserList users={[]} channelName="#test" position="top" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1157,7 +1262,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={[]} channelName="#test" position="bottom" />
+          <UserList users={[]} channelName="#test" position="bottom" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1169,12 +1274,12 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList 
-            users={[]} 
-            channelName="#test" 
+          <UserList
+            users={[]}
+            channelName="#test"
             panelSizePx={200}
             nickFontSizePx={14}
-          />
+          />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1184,11 +1289,11 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList 
-            users={[{ nick: 'Alice', modes: [] }]} 
-            channelName="#test" 
+          <UserList
+            users={[{ nick: 'Alice', modes: [] }]}
+            channelName="#test"
             nickFontSizePx={16}
-          />
+          />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1204,7 +1309,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1229,7 +1334,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1254,7 +1359,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1286,7 +1391,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1300,18 +1405,18 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
-      
+
       const instance = tree!.root;
       const touchables = instance.findAllByType('TouchableOpacity');
-      
+
       // Find a group header (it has activeOpacity but no onLongPress)
       const groupHeader = touchables.find(t => {
         return t.props.onPress && !t.props.onLongPress;
       });
-      
+
       if (groupHeader) {
         await act(async () => {
           groupHeader.props.onPress();
@@ -1332,7 +1437,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1343,7 +1448,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1372,7 +1477,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1401,7 +1506,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1412,19 +1517,19 @@ describe('UserList', () => {
     it('handles WHOIS via onWHOISPress callback', async () => {
       const onWHOISPress = jest.fn();
       const users: ChannelUser[] = [{ nick: 'Alice', modes: [] }];
-      
+
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList 
-            users={users} 
-            channelName="#test" 
+          <UserList
+            users={users}
+            channelName="#test"
             network="testnet"
             onWHOISPress={onWHOISPress}
-          />
+          />,
         );
       });
-      
+
       expect(tree!.toJSON()).not.toBeNull();
     });
 
@@ -1437,15 +1542,15 @@ describe('UserList', () => {
         setDccSendTarget: jest.fn(),
         setShowDccSendModal: jest.fn(),
       });
-      
+
       const users: ChannelUser[] = [{ nick: 'Alice', modes: [] }];
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
-      
+
       expect(tree!.toJSON()).not.toBeNull();
     });
   });
@@ -1459,7 +1564,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1470,7 +1575,7 @@ describe('UserList', () => {
     it('renders when current user has operator status', async () => {
       const ircService = require('../src/services/IRCService').ircService;
       ircService.getCurrentNick.mockReturnValue('CurrentOp');
-      
+
       const users: ChannelUser[] = [
         { nick: 'CurrentOp', modes: ['o'] },
         { nick: 'RegularUser', modes: [] },
@@ -1478,7 +1583,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1487,7 +1592,7 @@ describe('UserList', () => {
     it('renders when current user has halfop status', async () => {
       const ircService = require('../src/services/IRCService').ircService;
       ircService.getCurrentNick.mockReturnValue('CurrentHalfOp');
-      
+
       const users: ChannelUser[] = [
         { nick: 'CurrentHalfOp', modes: ['h'] },
         { nick: 'RegularUser', modes: [] },
@@ -1495,7 +1600,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1504,14 +1609,12 @@ describe('UserList', () => {
     it('renders when current user is not found', async () => {
       const ircService = require('../src/services/IRCService').ircService;
       ircService.getCurrentNick.mockReturnValue('NotInList');
-      
-      const users: ChannelUser[] = [
-        { nick: 'RegularUser', modes: [] },
-      ];
+
+      const users: ChannelUser[] = [{ nick: 'RegularUser', modes: [] }];
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1524,7 +1627,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1535,7 +1638,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1546,7 +1649,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1557,7 +1660,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1568,7 +1671,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1579,7 +1682,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1590,7 +1693,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1606,16 +1709,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('BOB');
       });
-      
+
       expect(searchInput.props.value).toBe('BOB');
     });
 
@@ -1627,16 +1730,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('123');
       });
-      
+
       expect(searchInput.props.value).toBe('123');
     });
 
@@ -1645,16 +1748,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('');
       });
-      
+
       expect(searchInput.props.value).toBe('');
     });
 
@@ -1663,16 +1766,16 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('   ');
       });
-      
+
       expect(searchInput.props.value).toBe('   ');
     });
   });
@@ -1699,7 +1802,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1712,7 +1815,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" />
+          <UserList users={users} channelName="#test" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1723,7 +1826,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="" />
+          <UserList users={users} channelName="#test" network="" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1736,7 +1839,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" />
+          <UserList users={users} channelName="#test" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1747,7 +1850,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" />
+          <UserList users={users} channelName="#test" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1758,7 +1861,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" />
+          <UserList users={users} channelName="#test" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1771,14 +1874,14 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
-      
+
       // Component should render successfully
       const json = tree!.toJSON();
       expect(json).not.toBeNull();
-      
+
       const instance = tree!.root;
       expect(instance).toBeTruthy();
     });
@@ -1790,7 +1893,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1813,7 +1916,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={[]} channelName="#test" network="testnet" />
+          <UserList users={[]} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1838,7 +1941,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1862,7 +1965,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1884,7 +1987,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1899,20 +2002,18 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
     });
 
     it('renders user with empty account', async () => {
-      const users: ChannelUser[] = [
-        { nick: 'Alice', modes: [], account: '' },
-      ];
+      const users: ChannelUser[] = [{ nick: 'Alice', modes: [], account: '' }];
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1927,7 +2028,7 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1940,20 +2041,18 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
     });
 
     it('renders user with neither ident nor host', async () => {
-      const users: ChannelUser[] = [
-        { nick: 'Alice', modes: [] },
-      ];
+      const users: ChannelUser[] = [{ nick: 'Alice', modes: [] }];
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
       expect(tree!.toJSON()).not.toBeNull();
@@ -1983,13 +2082,13 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
 
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('ali');
       });
@@ -2005,13 +2104,13 @@ describe('UserList', () => {
       let tree: TestRenderer.ReactTestRenderer;
       await act(async () => {
         tree = TestRenderer.create(
-          <UserList users={users} channelName="#test" network="testnet" />
+          <UserList users={users} channelName="#test" network="testnet" />,
         );
       });
 
       const instance = tree!.root;
       const searchInput = instance.findAllByType('TextInput')[0];
-      
+
       await act(async () => {
         searchInput.props.onChangeText('xyz123');
       });

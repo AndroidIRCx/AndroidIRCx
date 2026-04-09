@@ -12,7 +12,12 @@ import type { CommandHandler, CommandHandlerRegistry } from '../commandTypes';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
-export const handleACCOUNT: CommandHandler = (ctx, prefix, params, timestamp) => {
+export const handleACCOUNT: CommandHandler = (
+  ctx,
+  prefix,
+  params,
+  timestamp,
+) => {
   const accountNick = ctx.extractNick(prefix);
   const accountName = params[0] || '';
   if (accountName === '*') {
@@ -26,7 +31,10 @@ export const handleACCOUNT: CommandHandler = (ctx, prefix, params, timestamp) =>
   } else {
     ctx.addMessage({
       type: 'raw',
-      text: t('*** {nick} logged in as {accountName}', { nick: accountNick, accountName }),
+      text: t('*** {nick} logged in as {accountName}', {
+        nick: accountNick,
+        accountName,
+      }),
       timestamp,
       isRaw: true,
       rawCategory: 'user',
@@ -41,7 +49,10 @@ export const handleAWAY: CommandHandler = (ctx, prefix, params, timestamp) => {
   if (awayMessage) {
     ctx.addMessage({
       type: 'raw',
-      text: t('*** {nick} is now away: {message}', { nick: awayNick, message: awayMessage }),
+      text: t('*** {nick} is now away: {message}', {
+        nick: awayNick,
+        message: awayMessage,
+      }),
       timestamp,
       isRaw: true,
       rawCategory: 'user',
@@ -57,12 +68,20 @@ export const handleAWAY: CommandHandler = (ctx, prefix, params, timestamp) => {
   }
 };
 
-export const handleCHGHOST: CommandHandler = (ctx, prefix, params, timestamp) => {
+export const handleCHGHOST: CommandHandler = (
+  ctx,
+  prefix,
+  params,
+  timestamp,
+) => {
   const chghostNick = ctx.extractNick(prefix);
   const newHost = params[1] || '';
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} changed host to {host}', { nick: chghostNick, host: newHost }),
+    text: t('*** {nick} changed host to {host}', {
+      nick: chghostNick,
+      host: newHost,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -70,12 +89,20 @@ export const handleCHGHOST: CommandHandler = (ctx, prefix, params, timestamp) =>
   ctx.emit('chghost', chghostNick, newHost);
 };
 
-export const handleSETNAME: CommandHandler = (ctx, prefix, params, timestamp) => {
+export const handleSETNAME: CommandHandler = (
+  ctx,
+  prefix,
+  params,
+  timestamp,
+) => {
   const setnameNick = ctx.extractNick(prefix);
   const newRealname = ctx.decodeIfBase64Like(params[0] || '');
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} changed realname to: {realname}', { nick: setnameNick, realname: newRealname }),
+    text: t('*** {nick} changed realname to: {realname}', {
+      nick: setnameNick,
+      realname: newRealname,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'user',
@@ -83,7 +110,13 @@ export const handleSETNAME: CommandHandler = (ctx, prefix, params, timestamp) =>
   ctx.emit('setname', setnameNick, newRealname);
 };
 
-export const handleTAGMSG: CommandHandler = (ctx, prefix, params, timestamp, meta) => {
+export const handleTAGMSG: CommandHandler = (
+  ctx,
+  prefix,
+  params,
+  timestamp,
+  meta,
+) => {
   const tagTarget = params[0] || '';
   const tagFrom = ctx.extractNick(prefix);
   const reactTag = meta?.reactTag;
@@ -92,7 +125,9 @@ export const handleTAGMSG: CommandHandler = (ctx, prefix, params, timestamp, met
   const tagSummary = [
     reactTag ? `react=${reactTag}` : null,
     typingTag ? `typing=${typingTag}` : null,
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   if (tagSummary) {
     ctx.addRawMessage(
@@ -102,7 +137,7 @@ export const handleTAGMSG: CommandHandler = (ctx, prefix, params, timestamp, met
         tags: tagSummary,
       }),
       'user',
-      timestamp
+      timestamp,
     );
   } else {
     ctx.addRawMessage(
@@ -111,18 +146,22 @@ export const handleTAGMSG: CommandHandler = (ctx, prefix, params, timestamp, met
         target: tagTarget || '-',
       }),
       'user',
-      timestamp
+      timestamp,
     );
   }
 
   if (reactTag) {
     const [referencedMsgid, emoji] = reactTag.split(';');
-    ctx.logRaw(`IRCService: ${tagFrom} reacted ${emoji} to message ${referencedMsgid} in ${tagTarget}`);
+    ctx.logRaw(
+      `IRCService: ${tagFrom} reacted ${emoji} to message ${referencedMsgid} in ${tagTarget}`,
+    );
     ctx.emit('reaction-received', tagTarget, referencedMsgid, emoji, tagFrom);
   }
 
   if (typingTag) {
-    ctx.logRaw(`IRCService: ${tagFrom} typing status: ${typingTag} in ${tagTarget}`);
+    ctx.logRaw(
+      `IRCService: ${tagFrom} typing status: ${typingTag} in ${tagTarget}`,
+    );
     ctx.emit('typing-indicator', tagTarget, tagFrom, typingTag);
   }
 };

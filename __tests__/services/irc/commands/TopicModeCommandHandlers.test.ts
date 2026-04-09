@@ -50,14 +50,28 @@ describe('TopicModeCommandHandlers', () => {
 
   describe('handleTOPIC', () => {
     it('emits topic event with channel, topic, setBy', () => {
-      handleTOPIC(ctx, 'nick!user@host', ['#general', 'New topic here'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('topic', '#general', 'New topic here', 'nick');
+      handleTOPIC(
+        ctx,
+        'nick!user@host',
+        ['#general', 'New topic here'],
+        Date.now(),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'topic',
+        '#general',
+        'New topic here',
+        'nick',
+      );
     });
 
     it('adds topic message', () => {
       handleTOPIC(ctx, 'nick!user@host', ['#general', 'New topic'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'topic', channel: '#general', from: 'nick' })
+        expect.objectContaining({
+          type: 'topic',
+          channel: '#general',
+          from: 'nick',
+        }),
       );
     });
 
@@ -66,13 +80,16 @@ describe('TopicModeCommandHandlers', () => {
       handleTOPIC(ctx, 'nick!user@host', ['#general', 'New topic'], ts);
       expect(ctx.setChannelTopicInfo).toHaveBeenCalledWith(
         '#general',
-        expect.objectContaining({ topic: 'New topic', setBy: 'nick' })
+        expect.objectContaining({ topic: 'New topic', setBy: 'nick' }),
       );
     });
 
     it('calls maybeEmitChannelIntro when channel provided', () => {
       handleTOPIC(ctx, 'nick!user@host', ['#general', 'topic'], Date.now());
-      expect(ctx.maybeEmitChannelIntro).toHaveBeenCalledWith('#general', expect.any(Number));
+      expect(ctx.maybeEmitChannelIntro).toHaveBeenCalledWith(
+        '#general',
+        expect.any(Number),
+      );
     });
 
     it('merges with existing topic info', () => {
@@ -80,14 +97,14 @@ describe('TopicModeCommandHandlers', () => {
       handleTOPIC(ctx, 'nick!user@host', ['#general', 'new topic'], Date.now());
       expect(ctx.setChannelTopicInfo).toHaveBeenCalledWith(
         '#general',
-        expect.objectContaining({ modes: '+m', topic: 'new topic' })
+        expect.objectContaining({ modes: '+m', topic: 'new topic' }),
       );
     });
 
     it('handles empty topic string', () => {
       handleTOPIC(ctx, 'nick!user@host', ['#general', ''], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'topic', topic: '' })
+        expect.objectContaining({ type: 'topic', topic: '' }),
       );
     });
 
@@ -98,9 +115,14 @@ describe('TopicModeCommandHandlers', () => {
 
     it('extracts nick from prefix', () => {
       ctx.extractNick = jest.fn().mockReturnValue('topicsetter');
-      handleTOPIC(ctx, 'topicsetter!user@host', ['#channel', 'topic'], Date.now());
+      handleTOPIC(
+        ctx,
+        'topicsetter!user@host',
+        ['#channel', 'topic'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ from: 'topicsetter' })
+        expect.objectContaining({ from: 'topicsetter' }),
       );
     });
   });
@@ -108,14 +130,26 @@ describe('TopicModeCommandHandlers', () => {
   describe('handleMODE', () => {
     it('handles channel mode change', () => {
       handleMODE(ctx, 'oper!oper@host', ['#general', '+m'], Date.now());
-      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('#general', ['+m']);
-      expect(ctx.emit).toHaveBeenCalledWith('channelMode', '#general', '+m', []);
+      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('#general', [
+        '+m',
+      ]);
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'channelMode',
+        '#general',
+        '+m',
+        [],
+      );
     });
 
     it('adds mode message for channel mode', () => {
-      handleMODE(ctx, 'oper!oper@host', ['#general', '+o', 'somenick'], Date.now());
+      handleMODE(
+        ctx,
+        'oper!oper@host',
+        ['#general', '+o', 'somenick'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'mode', channel: '#general' })
+        expect.objectContaining({ type: 'mode', channel: '#general' }),
       );
     });
 
@@ -129,7 +163,11 @@ describe('TopicModeCommandHandlers', () => {
       ctx.getCurrentNick = jest.fn().mockReturnValue('MyNick');
       handleMODE(ctx, 'server', ['MyNick', '+i'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true, rawCategory: 'server' })
+        expect.objectContaining({
+          type: 'raw',
+          isRaw: true,
+          rawCategory: 'server',
+        }),
       );
     });
 
@@ -143,21 +181,27 @@ describe('TopicModeCommandHandlers', () => {
       handleMODE(ctx, 'oper!oper@host', ['#general', '+m'], Date.now());
       expect(ctx.setChannelTopicInfo).toHaveBeenCalledWith(
         '#general',
-        expect.objectContaining({ modes: '+m' })
+        expect.objectContaining({ modes: '+m' }),
       );
     });
 
     it('handles & channel prefix', () => {
       handleMODE(ctx, 'oper!oper@host', ['&local', '+m'], Date.now());
-      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('&local', ['+m']);
+      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('&local', [
+        '+m',
+      ]);
     });
 
     it('handles + and ! channel prefixes', () => {
       handleMODE(ctx, 'oper!oper@host', ['+modeless', '+m'], Date.now());
       handleMODE(ctx, 'oper!oper@host', ['!safechan', '+m'], Date.now());
 
-      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('+modeless', ['+m']);
-      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('!safechan', ['+m']);
+      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('+modeless', [
+        '+m',
+      ]);
+      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('!safechan', [
+        '+m',
+      ]);
     });
 
     it('adds message for mode with mode params', () => {
@@ -174,48 +218,75 @@ describe('TopicModeCommandHandlers', () => {
     });
 
     it('colorizes added and removed channel privilege/list modes', () => {
-      handleMODE(ctx, 'oper!oper@host', ['#general', '+ovhqabeI-k', 'nick', 'other'], Date.now());
+      handleMODE(
+        ctx,
+        'oper!oper@host',
+        ['#general', '+ovhqabeI-k', 'nick', 'other'],
+        Date.now(),
+      );
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0304o\x0F'),
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0309v\x0F'),
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0308h\x0F'),
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0306q\x0F'),
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0307a\x0F'),
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0304b\x0F'),
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0307e\x0F'),
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0303I\x0F'),
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0314-\x0F'),
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('\x0314k\x0F'),
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0304o\x0F'),
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0309v\x0F'),
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0308h\x0F'),
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0306q\x0F'),
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0307a\x0F'),
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0304b\x0F'),
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0307e\x0F'),
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0303I\x0F'),
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0314-\x0F'),
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('\x0314k\x0F'),
+        }),
+      );
     });
 
     it('treats empty modeChannel as user mode change without updating self modes', () => {
       handleMODE(ctx, 'server', ['', '+i'], Date.now());
 
       expect(ctx.updateSelfUserModes).not.toHaveBeenCalled();
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'raw',
-        channel: undefined,
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'raw',
+          channel: undefined,
+        }),
+      );
     });
   });
 });

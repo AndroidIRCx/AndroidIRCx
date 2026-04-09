@@ -44,9 +44,7 @@
           "completion": {
             "suggestAlias": "nsregister",
             "priority": 100,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -80,9 +78,7 @@
           "completion": {
             "suggestAlias": "nsidentify",
             "priority": 95,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -112,9 +108,7 @@
           "completion": {
             "suggestAlias": "nsghost",
             "priority": 70,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -144,9 +138,7 @@
           "completion": {
             "suggestAlias": "nsregain",
             "priority": 75,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -176,9 +168,7 @@
           "completion": {
             "suggestAlias": "nsdrop",
             "priority": 30,
-            "context": [
-              "global"
-            ],
+            "context": ["global"],
             "confirmBeforeExecute": true
           }
         },
@@ -203,9 +193,7 @@
           "completion": {
             "suggestAlias": "nsinfo",
             "priority": 80,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -229,9 +217,7 @@
           "completion": {
             "suggestAlias": "nslistchans",
             "priority": 50,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -278,9 +264,7 @@
           "completion": {
             "suggestAlias": "nsset",
             "priority": 60,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -299,11 +283,7 @@
               "type": "enum",
               "required": true,
               "description": "Action",
-              "enumValues": [
-                "ADD",
-                "DEL",
-                "LIST"
-              ]
+              "enumValues": ["ADD", "DEL", "LIST"]
             },
             {
               "name": "fingerprint",
@@ -315,9 +295,7 @@
           "completion": {
             "suggestAlias": "nscert",
             "priority": 40,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -334,9 +312,7 @@
           "completion": {
             "suggestAlias": "nsgroup",
             "priority": 55,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -360,9 +336,7 @@
           "completion": {
             "suggestAlias": "nsungroup",
             "priority": 35,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         }
       ]
@@ -392,9 +366,7 @@
           "completion": {
             "suggestAlias": "csregister",
             "priority": 90,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -424,9 +396,7 @@
           "completion": {
             "suggestAlias": "csop",
             "priority": 85,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -456,9 +426,7 @@
           "completion": {
             "suggestAlias": "csdeop",
             "priority": 80,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -488,9 +456,7 @@
           "completion": {
             "suggestAlias": "csvoice",
             "priority": 75,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -520,9 +486,7 @@
           "completion": {
             "suggestAlias": "csdevoice",
             "priority": 70,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -558,9 +522,7 @@
           "completion": {
             "suggestAlias": "cskick",
             "priority": 65,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -590,9 +552,7 @@
           "completion": {
             "suggestAlias": "csban",
             "priority": 60,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -622,9 +582,7 @@
           "completion": {
             "suggestAlias": "csunban",
             "priority": 55,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -654,9 +612,7 @@
           "completion": {
             "suggestAlias": "csquiet",
             "priority": 58,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -686,9 +642,7 @@
           "completion": {
             "suggestAlias": "csunquiet",
             "priority": 53,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -712,10 +666,7 @@
           "completion": {
             "suggestAlias": "csinvite",
             "priority": 50,
-            "context": [
-              "global",
-              "channel"
-            ]
+            "context": ["global", "channel"]
           }
         },
         {
@@ -739,10 +690,7 @@
           "completion": {
             "suggestAlias": "csinfo",
             "priority": 70,
-            "context": [
-              "global",
-              "channel"
-            ]
+            "context": ["global", "channel"]
           }
         },
         {
@@ -778,9 +726,7 @@
           "completion": {
             "suggestAlias": "csflags",
             "priority": 45,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -810,9 +756,7 @@
           "completion": {
             "suggestAlias": "csaccess",
             "priority": 46,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -837,12 +781,7 @@
               "type": "enum",
               "required": true,
               "description": "Action",
-              "enumValues": [
-                "ADD",
-                "DEL",
-                "LIST",
-                "SET"
-              ]
+              "enumValues": ["ADD", "DEL", "LIST", "SET"]
             },
             {
               "name": "role",
@@ -860,9 +799,7 @@
           "completion": {
             "suggestAlias": "csrole",
             "priority": 42,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -887,11 +824,7 @@
               "type": "enum",
               "required": true,
               "description": "Action",
-              "enumValues": [
-                "ADD",
-                "DEL",
-                "LIST"
-              ]
+              "enumValues": ["ADD", "DEL", "LIST"]
             },
             {
               "name": "target",
@@ -915,9 +848,7 @@
           "completion": {
             "suggestAlias": "csakick",
             "priority": 38,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -972,9 +903,7 @@
           "completion": {
             "suggestAlias": "csset",
             "priority": 40,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -998,9 +927,7 @@
           "completion": {
             "suggestAlias": "csdrop",
             "priority": 25,
-            "context": [
-              "channel"
-            ],
+            "context": ["channel"],
             "confirmBeforeExecute": true
           }
         },
@@ -1031,9 +958,7 @@
           "completion": {
             "suggestAlias": "cstopic",
             "priority": 62,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -1058,12 +983,7 @@
               "type": "enum",
               "required": true,
               "description": "What to clear",
-              "enumValues": [
-                "AKICKS",
-                "BANS",
-                "FLAGS",
-                "USERS"
-              ]
+              "enumValues": ["AKICKS", "BANS", "FLAGS", "USERS"]
             },
             {
               "name": "type",
@@ -1075,9 +995,7 @@
           "completion": {
             "suggestAlias": "csclear",
             "priority": 35,
-            "context": [
-              "channel"
-            ],
+            "context": ["channel"],
             "confirmBeforeExecute": true
           }
         }
@@ -1108,9 +1026,7 @@
           "completion": {
             "suggestAlias": "gsregister",
             "priority": 80,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -1134,9 +1050,7 @@
           "completion": {
             "suggestAlias": "gsinfo",
             "priority": 70,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -1172,9 +1086,7 @@
           "completion": {
             "suggestAlias": "gsflags",
             "priority": 60,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -1198,9 +1110,7 @@
           "completion": {
             "suggestAlias": "gsjoin",
             "priority": 50,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -1224,9 +1134,7 @@
           "completion": {
             "suggestAlias": "gsdrop",
             "priority": 30,
-            "context": [
-              "global"
-            ],
+            "context": ["global"],
             "confirmBeforeExecute": true
           }
         }
@@ -1250,9 +1158,7 @@
           "completion": {
             "suggestAlias": "hson",
             "priority": 80,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -1269,9 +1175,7 @@
           "completion": {
             "suggestAlias": "hsoff",
             "priority": 75,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -1295,9 +1199,7 @@
           "completion": {
             "suggestAlias": "hsrequest",
             "priority": 60,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -1321,9 +1223,7 @@
           "completion": {
             "suggestAlias": "hstake",
             "priority": 55,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -1340,9 +1240,7 @@
           "completion": {
             "suggestAlias": "hslist",
             "priority": 50,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         }
       ]

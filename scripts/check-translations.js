@@ -39,4 +39,4 @@ for (const key of keys) {
 }
 
 console.log(`${missing.length} missing keys in ${file}`);
-missing.sort().forEach((key) => console.log(key));
+missing.sort().forEach(key => console.log(key));

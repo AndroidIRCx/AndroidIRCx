@@ -43,7 +43,7 @@ describe('activeTabUtils', () => {
         'channel::test-net::#general',
         'test-net',
         'test-net',
-        'test-net'
+        'test-net',
       );
       expect(result).toEqual(mockTabs[1]);
     });
@@ -54,7 +54,7 @@ describe('activeTabUtils', () => {
         'invalid-tab',
         'test-net',
         'test-net',
-        'test-net'
+        'test-net',
       );
       expect(result).toEqual(mockTabs[0]);
     });
@@ -66,7 +66,7 @@ describe('activeTabUtils', () => {
         'invalid-tab',
         'test-net',
         'test-net',
-        'test-net'
+        'test-net',
       );
       expect(result).toEqual(tabsWithoutServer[0]);
     });
@@ -77,7 +77,7 @@ describe('activeTabUtils', () => {
         'invalid-tab',
         'test-net',
         'test-net',
-        'test-net'
+        'test-net',
       );
       expect(result.type).toBe('server');
       expect(result.networkId).toBe('test-net');
@@ -89,20 +89,14 @@ describe('activeTabUtils', () => {
         'invalid-tab',
         null,
         null,
-        'Not connected'
+        'Not connected',
       );
       expect(result.id).toBe('temp');
       expect(result.networkId).toBe('');
     });
 
     it('should handle empty networkName string', () => {
-      const result = getActiveTabSafe(
-        [],
-        'invalid-tab',
-        null,
-        null,
-        ''
-      );
+      const result = getActiveTabSafe([], 'invalid-tab', null, null, '');
       expect(result.id).toBe('temp');
     });
   });

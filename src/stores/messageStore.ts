@@ -20,11 +20,19 @@ export interface MessageState {
   typingUsers: Map<string, Map<string, Map<string, TypingUser>>>;
 
   // Actions
-  setTypingUser: (networkId: string, target: string, nick: string, status: TypingUser) => void;
+  setTypingUser: (
+    networkId: string,
+    target: string,
+    nick: string,
+    status: TypingUser,
+  ) => void;
   removeTypingUser: (networkId: string, target: string, nick: string) => void;
   clearTypingForTarget: (networkId: string, target: string) => void;
   clearTypingForNetwork: (networkId: string) => void;
-  getTypingUsersForTarget: (networkId: string, target: string) => Map<string, TypingUser>;
+  getTypingUsersForTarget: (
+    networkId: string,
+    target: string,
+  ) => Map<string, TypingUser>;
   getTypingNicksForTarget: (networkId: string, target: string) => string[];
 
   // Cleanup stale typing indicators
@@ -38,7 +46,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   typingUsers: new Map(),
 
   setTypingUser: (networkId, target, nick, status) =>
-    set((state) => {
+    set(state => {
       const newMap = new Map(state.typingUsers);
 
       if (!newMap.has(networkId)) {
@@ -70,7 +78,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     }),
 
   removeTypingUser: (networkId, target, nick) =>
-    set((state) => {
+    set(state => {
       const newMap = new Map(state.typingUsers);
       const networkMap = newMap.get(networkId);
 
@@ -93,7 +101,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     }),
 
   clearTypingForTarget: (networkId, target) =>
-    set((state) => {
+    set(state => {
       const newMap = new Map(state.typingUsers);
       const networkMap = newMap.get(networkId);
 
@@ -108,8 +116,8 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       return { typingUsers: newMap };
     }),
 
-  clearTypingForNetwork: (networkId) =>
-    set((state) => {
+  clearTypingForNetwork: networkId =>
+    set(state => {
       const newMap = new Map(state.typingUsers);
       newMap.delete(networkId);
       return { typingUsers: newMap };
@@ -130,7 +138,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   },
 
   cleanupStaleTyping: (maxAge = 10000) => {
-    set((state) => {
+    set(state => {
       const now = Date.now();
       const newMap = new Map(state.typingUsers);
 

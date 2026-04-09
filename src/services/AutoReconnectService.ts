@@ -34,7 +34,8 @@ export interface ConnectionState {
 class AutoReconnectService {
   private config: Map<string, AutoReconnectConfig> = new Map(); // network -> config
   private connectionStates: Map<string, ConnectionState> = new Map(); // network -> state
-  private reconnectTimers: Map<string, ReturnType<typeof setTimeout>> = new Map(); // network -> timer
+  private reconnectTimers: Map<string, ReturnType<typeof setTimeout>> =
+    new Map(); // network -> timer
   private isReconnecting: Map<string, boolean> = new Map(); // network -> is reconnecting
   private lastReconnectTime: Map<string, number> = new Map(); // network -> last reconnect timestamp
   private intentionalDisconnects: Map<string, number> = new Map(); // network -> timestamp of intentional disconnect
@@ -45,14 +46,20 @@ class AutoReconnectService {
   private messageListeners: Map<string, () => void> = new Map(); // network -> cleanup function
   private intentionalDisconnectListeners: Map<string, () => void> = new Map(); // network -> cleanup function
 
-  private async resolveNetworkConfig(networkId: string): Promise<IRCNetworkConfig | null> {
+  private async resolveNetworkConfig(
+    networkId: string,
+  ): Promise<IRCNetworkConfig | null> {
     const networks = await settingsService.loadNetworks();
-    const exactMatch = networks.find(n => n.id === networkId || n.name === networkId) || null;
+    const exactMatch =
+      networks.find(n => n.id === networkId || n.name === networkId) || null;
     if (exactMatch) {
       return exactMatch;
     }
     const normalizedId = networkId.replace(/\s+\(\d+\)$/, '');
-    return networks.find(n => n.id === normalizedId || n.name === normalizedId) || null;
+    return (
+      networks.find(n => n.id === normalizedId || n.name === normalizedId) ||
+      null
+    );
   }
 
   /**
@@ -76,14 +83,16 @@ class AutoReconnectService {
       if (storedConfigs) {
         const data = JSON.parse(storedConfigs);
         this.config = new Map(Object.entries(data));
-        console.log(`AutoReconnectService: Loaded ${this.config.size} auto-reconnect configs from storage`);
+        console.log(
+          `AutoReconnectService: Loaded ${this.config.size} auto-reconnect configs from storage`,
+        );
       }
     } catch (error) {
       console.error('Failed to load auto-reconnect configs:', error);
     }
 
     // Listen for connection changes on singleton service (backward compatibility)
-    ircService.onConnectionChange((connected) => {
+    ircService.onConnectionChange(connected => {
       const network = ircService.getNetworkName();
       if (network && network !== 'Not connected') {
         if (connected) {
@@ -101,14 +110,26 @@ class AutoReconnectService {
     });
 
     // Listen for channel joins/parts on singleton service (backward compatibility)
-    ircService.onMessage((message) => {
+    ircService.onMessage(message => {
       const network = ircService.getNetworkName();
       if (network && network !== 'Not connected') {
-        if (message.type === 'join' && message.channel && message.from === ircService.getCurrentNick()) {
+        if (
+          message.type === 'join' &&
+          message.channel &&
+          message.from === ircService.getCurrentNick()
+        ) {
           this.addChannelToState(network, message.channel);
-        } else if (message.type === 'part' && message.channel && message.from === ircService.getCurrentNick()) {
+        } else if (
+          message.type === 'part' &&
+          message.channel &&
+          message.from === ircService.getCurrentNick()
+        ) {
           this.removeChannelFromState(network, message.channel);
-        } else if (message.type === 'mode' && message.text.includes('KICK') && message.text.includes(ircService.getCurrentNick())) {
+        } else if (
+          message.type === 'mode' &&
+          message.text.includes('KICK') &&
+          message.text.includes(ircService.getCurrentNick())
+        ) {
           // This is a basic way to detect a kick, might need refinement
           const parts = message.text.split(' ');
           if (parts.length >= 4 && parts[2] === ircService.getCurrentNick()) {
@@ -119,7 +140,9 @@ class AutoReconnectService {
       }
     });
 
-    console.log('AutoReconnectService: Initialized and ready to monitor connections');
+    console.log(
+      'AutoReconnectService: Initialized and ready to monitor connections',
+    );
   }
 
   /**
@@ -132,23 +155,39 @@ class AutoReconnectService {
     console.log(`AutoReconnectService: Registering listeners for ${networkId}`);
 
     // Listen for connection changes
-    const connectionCleanup = ircServiceInstance.onConnectionChange((connected) => {
-      console.log(`AutoReconnectService: Connection change for ${networkId}: ${connected ? 'connected' : 'disconnected'}`);
-      if (connected) {
-        this.handleConnected(networkId);
-      } else {
-        this.handleDisconnected(networkId);
-      }
-    });
+    const connectionCleanup = ircServiceInstance.onConnectionChange(
+      connected => {
+        console.log(
+          `AutoReconnectService: Connection change for ${networkId}: ${connected ? 'connected' : 'disconnected'}`,
+        );
+        if (connected) {
+          this.handleConnected(networkId);
+        } else {
+          this.handleDisconnected(networkId);
+        }
+      },
+    );
 
     // Listen for channel joins/parts
-    const messageCleanup = ircServiceInstance.onMessage((message) => {
+    const messageCleanup = ircServiceInstance.onMessage(message => {
       const currentNick = ircServiceInstance.getCurrentNick();
-      if (message.type === 'join' && message.channel && message.from === currentNick) {
+      if (
+        message.type === 'join' &&
+        message.channel &&
+        message.from === currentNick
+      ) {
         this.addChannelToState(networkId, message.channel);
-      } else if (message.type === 'part' && message.channel && message.from === currentNick) {
+      } else if (
+        message.type === 'part' &&
+        message.channel &&
+        message.from === currentNick
+      ) {
         this.removeChannelFromState(networkId, message.channel);
-      } else if (message.type === 'mode' && message.text.includes('KICK') && message.text.includes(currentNick)) {
+      } else if (
+        message.type === 'mode' &&
+        message.text.includes('KICK') &&
+        message.text.includes(currentNick)
+      ) {
         const parts = message.text.split(' ');
         if (parts.length >= 4 && parts[2] === currentNick) {
           const channel = parts[1];
@@ -157,15 +196,21 @@ class AutoReconnectService {
       }
     });
 
-    const intentionalDisconnectCleanup = ircServiceInstance.on('intentional-quit', (network: string) => {
-      if (network) {
-        this.markIntentionalDisconnect(network);
-      }
-    });
+    const intentionalDisconnectCleanup = ircServiceInstance.on(
+      'intentional-quit',
+      (network: string) => {
+        if (network) {
+          this.markIntentionalDisconnect(network);
+        }
+      },
+    );
 
     this.connectionListeners.set(networkId, connectionCleanup);
     this.messageListeners.set(networkId, messageCleanup);
-    this.intentionalDisconnectListeners.set(networkId, intentionalDisconnectCleanup);
+    this.intentionalDisconnectListeners.set(
+      networkId,
+      intentionalDisconnectCleanup,
+    );
   }
 
   /**
@@ -184,13 +229,16 @@ class AutoReconnectService {
       this.messageListeners.delete(networkId);
     }
 
-    const intentionalCleanup = this.intentionalDisconnectListeners.get(networkId);
+    const intentionalCleanup =
+      this.intentionalDisconnectListeners.get(networkId);
     if (intentionalCleanup) {
       intentionalCleanup();
       this.intentionalDisconnectListeners.delete(networkId);
     }
 
-    console.log(`AutoReconnectService: Unregistered listeners for ${networkId}`);
+    console.log(
+      `AutoReconnectService: Unregistered listeners for ${networkId}`,
+    );
   }
 
   /**
@@ -221,14 +269,18 @@ class AutoReconnectService {
 
     if (config?.rejoinChannels && state?.channels) {
       if (bouncerInfo.playbackSupported) {
-        console.log('AutoReconnectService: Bouncer with playback detected, requesting playback.');
+        console.log(
+          'AutoReconnectService: Bouncer with playback detected, requesting playback.',
+        );
         // Let the bouncer handle rejoining and message history
         setTimeout(() => {
           bouncerService.requestPlayback();
         }, 1000); // Small delay to ensure server is ready
       } else {
         // No bouncer or playback support, rejoin manually
-        console.log('AutoReconnectService: No bouncer detected, rejoining channels manually.');
+        console.log(
+          'AutoReconnectService: No bouncer detected, rejoining channels manually.',
+        );
         setTimeout(() => {
           this.rejoinChannels(network, state.channels);
         }, 2000); // Wait 2 seconds after connection to rejoin
@@ -240,29 +292,39 @@ class AutoReconnectService {
    * Handle disconnection
    */
   private handleDisconnected(network: string): void {
-    console.log(`AutoReconnectService: handleDisconnected called for ${network}`);
+    console.log(
+      `AutoReconnectService: handleDisconnected called for ${network}`,
+    );
 
     // Check if this was an intentional disconnect (user-initiated via /server -d, /quit, etc.)
     if (this.wasIntentionalDisconnect(network)) {
-      console.log(`AutoReconnectService: Skipping auto-reconnect for ${network} - disconnect was intentional`);
+      console.log(
+        `AutoReconnectService: Skipping auto-reconnect for ${network} - disconnect was intentional`,
+      );
       return;
     }
 
     // Check if already reconnecting - prevent duplicate reconnect attempts
     if (this.isReconnecting.get(network)) {
-      console.log(`AutoReconnectService: Already reconnecting ${network}, ignoring duplicate disconnect event`);
+      console.log(
+        `AutoReconnectService: Already reconnecting ${network}, ignoring duplicate disconnect event`,
+      );
       return;
     }
 
     const config = this.config.get(network);
     if (!config || !config.enabled) {
-      console.log(`AutoReconnectService: Auto-reconnect not enabled for ${network} (config: ${!!config}, enabled: ${config?.enabled})`);
+      console.log(
+        `AutoReconnectService: Auto-reconnect not enabled for ${network} (config: ${!!config}, enabled: ${config?.enabled})`,
+      );
       return;
     }
 
     const state = this.connectionStates.get(network);
     if (!state) {
-      console.log(`AutoReconnectService: No connection state found for ${network}, cannot reconnect`);
+      console.log(
+        `AutoReconnectService: No connection state found for ${network}, cannot reconnect`,
+      );
       return;
     }
 
@@ -275,7 +337,9 @@ class AutoReconnectService {
     // Set reconnecting flag immediately to prevent duplicate attempts
     this.isReconnecting.set(network, true);
 
-    console.log(`AutoReconnectService: Starting reconnect process for ${network} (attempt ${state.reconnectAttempts + 1})`);
+    console.log(
+      `AutoReconnectService: Starting reconnect process for ${network} (attempt ${state.reconnectAttempts + 1})`,
+    );
 
     state.lastDisconnected = Date.now();
     this.connectionStates.set(network, state);
@@ -289,7 +353,9 @@ class AutoReconnectService {
 
       if (timeSinceLastReconnect < minInterval) {
         const waitTime = minInterval - timeSinceLastReconnect;
-        console.log(`AutoReconnectService: Smart reconnect - waiting ${waitTime}ms to avoid flood`);
+        console.log(
+          `AutoReconnectService: Smart reconnect - waiting ${waitTime}ms to avoid flood`,
+        );
         setTimeout(() => {
           this.attemptReconnect(network);
         }, waitTime);
@@ -308,7 +374,9 @@ class AutoReconnectService {
     const state = this.connectionStates.get(network);
 
     if (!config || !state) {
-      console.error(`AutoReconnectService: Cannot reconnect ${network}, missing config or state`);
+      console.error(
+        `AutoReconnectService: Cannot reconnect ${network}, missing config or state`,
+      );
       this.isReconnecting.set(network, false);
       return;
     }
@@ -323,10 +391,12 @@ class AutoReconnectService {
 
     const delay = Math.min(
       initialDelay * Math.pow(multiplier, attempts),
-      maxDelay
+      maxDelay,
     );
 
-    console.log(`AutoReconnectService: Attempting to reconnect to ${network} in ${delay}ms (attempt ${attempts + 1})`);
+    console.log(
+      `AutoReconnectService: Attempting to reconnect to ${network} in ${delay}ms (attempt ${attempts + 1})`,
+    );
 
     const timer = setTimeout(async () => {
       try {
@@ -336,28 +406,46 @@ class AutoReconnectService {
 
         // Attempt reconnection via ConnectionManager if networkConfig is available
         if (state.networkConfig) {
-          console.log(`AutoReconnectService: Reconnecting via ConnectionManager for ${network}`);
-          const reconnectedId = await connectionManager.connect(network, state.networkConfig, state.config);
+          console.log(
+            `AutoReconnectService: Reconnecting via ConnectionManager for ${network}`,
+          );
+          const reconnectedId = await connectionManager.connect(
+            network,
+            state.networkConfig,
+            state.config,
+          );
           // Ensure this connection is set as active
           connectionManager.setActiveConnection(reconnectedId);
-          console.log(`AutoReconnectService: Reconnected to ${network} with ID ${reconnectedId}`);
+          console.log(
+            `AutoReconnectService: Reconnected to ${network} with ID ${reconnectedId}`,
+          );
           // Flag will be cleared by handleConnected when connection succeeds
         } else {
           // Fallback to singleton ircService for backward compatibility
-          console.log(`AutoReconnectService: Reconnecting via singleton ircService for ${network}`);
+          console.log(
+            `AutoReconnectService: Reconnecting via singleton ircService for ${network}`,
+          );
           await ircService.connect(state.config);
           // Flag will be cleared by handleConnected when connection succeeds
         }
       } catch (error) {
-        console.error(`AutoReconnectService: Reconnection failed for ${network}:`, error);
+        console.error(
+          `AutoReconnectService: Reconnection failed for ${network}:`,
+          error,
+        );
         this.isReconnecting.set(network, false);
 
         // Check if we should try again
-        if (!config.maxAttempts || state.reconnectAttempts < config.maxAttempts) {
+        if (
+          !config.maxAttempts ||
+          state.reconnectAttempts < config.maxAttempts
+        ) {
           // Try again with increased delay (will set isReconnecting again)
           this.handleDisconnected(network);
         } else {
-          console.log(`AutoReconnectService: Max reconnect attempts reached for ${network}, giving up`);
+          console.log(
+            `AutoReconnectService: Max reconnect attempts reached for ${network}, giving up`,
+          );
         }
       }
     }, delay);
@@ -368,23 +456,34 @@ class AutoReconnectService {
   /**
    * Rejoin channels after reconnection
    */
-  private async rejoinChannels(network: string, channels: string[]): Promise<void> {
-    console.log(`AutoReconnectService: Rejoining ${channels.length} channels for ${network}`);
+  private async rejoinChannels(
+    network: string,
+    channels: string[],
+  ): Promise<void> {
+    console.log(
+      `AutoReconnectService: Rejoining ${channels.length} channels for ${network}`,
+    );
 
     // Get IRCService instance from ConnectionManager
     const connection = connectionManager.getConnection(network);
     if (!connection) {
-      console.error(`AutoReconnectService: Connection not found for ${network}, cannot rejoin channels`);
+      console.error(
+        `AutoReconnectService: Connection not found for ${network}, cannot rejoin channels`,
+      );
       return;
     }
 
     const ircServiceInstance = connection.ircService;
 
     const state = this.connectionStates.get(network);
-    const networkConfig = state?.networkConfig || await this.resolveNetworkConfig(network);
+    const networkConfig =
+      state?.networkConfig || (await this.resolveNetworkConfig(network));
     const favoritesNetworkName = networkConfig?.name || network;
 
-    const autoJoinFavoritesEnabled = await settingsService.getSetting('autoJoinFavorites', true);
+    const autoJoinFavoritesEnabled = await settingsService.getSetting(
+      'autoJoinFavorites',
+      true,
+    );
     const favorites = autoJoinFavoritesEnabled
       ? channelFavoritesService.getFavorites(favoritesNetworkName)
       : [];
@@ -392,7 +491,10 @@ class AutoReconnectService {
     const autoJoinChannels = networkConfig?.autoJoinChannels || [];
 
     // Only rejoin channels from auto-join list or favorites
-    const allowed = new Set<string>([...autoJoinChannels, ...favoriteChannels.map(f => f.name)]);
+    const allowed = new Set<string>([
+      ...autoJoinChannels,
+      ...favoriteChannels.map(f => f.name),
+    ]);
     const allChannels = new Map<string, string | undefined>();
     favoriteChannels.forEach(f => allChannels.set(f.name, f.key));
     autoJoinChannels.forEach(ch => {
@@ -419,7 +521,12 @@ class AutoReconnectService {
   /**
    * Save connection state for a network
    */
-  async saveConnectionState(network: string, config: IRCConnectionConfig, channels: string[], networkConfig?: IRCNetworkConfig): Promise<void> {
+  async saveConnectionState(
+    network: string,
+    config: IRCConnectionConfig,
+    channels: string[],
+    networkConfig?: IRCNetworkConfig,
+  ): Promise<void> {
     const state: ConnectionState = {
       network,
       config,
@@ -540,7 +647,9 @@ class AutoReconnectService {
    * This prevents auto-reconnect from triggering for intentional disconnections
    */
   markIntentionalDisconnect(network: string): void {
-    console.log(`AutoReconnectService: Marking intentional disconnect for ${network}`);
+    console.log(
+      `AutoReconnectService: Marking intentional disconnect for ${network}`,
+    );
     this.intentionalDisconnects.set(network, Date.now());
     // Also cancel any pending reconnection
     this.cancelReconnect(network);
@@ -554,10 +663,13 @@ class AutoReconnectService {
     if (!intentionalTime) return false;
 
     const timeSinceIntentional = Date.now() - intentionalTime;
-    const wasIntentional = timeSinceIntentional < this.INTENTIONAL_DISCONNECT_TIMEOUT;
+    const wasIntentional =
+      timeSinceIntentional < this.INTENTIONAL_DISCONNECT_TIMEOUT;
 
     if (wasIntentional) {
-      console.log(`AutoReconnectService: Disconnect was intentional (${timeSinceIntentional}ms ago) for ${network}`);
+      console.log(
+        `AutoReconnectService: Disconnect was intentional (${timeSinceIntentional}ms ago) for ${network}`,
+      );
       // Clear the flag after checking
       this.intentionalDisconnects.delete(network);
     }

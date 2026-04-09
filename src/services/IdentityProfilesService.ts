@@ -49,7 +49,11 @@ class IdentityProfilesService {
         let migratedSecrets = false;
         for (let i = 0; i < this.profiles.length; i++) {
           const profile = this.profiles[i];
-          const hadSecret = Boolean(profile.saslPassword || profile.nickservPassword || profile.operPassword);
+          const hadSecret = Boolean(
+            profile.saslPassword ||
+            profile.nickservPassword ||
+            profile.operPassword,
+          );
           if (hadSecret) {
             await this.persistSecrets(profile);
             this.profiles[i] = {
@@ -87,13 +91,22 @@ class IdentityProfilesService {
   private async persistSecrets(profile: IdentityProfile): Promise<void> {
     const key = (suffix: string) => `identity:${profile.id}:${suffix}`;
     if (profile.saslPassword !== undefined) {
-      await secureStorageService.setSecret(key('saslPassword'), profile.saslPassword);
+      await secureStorageService.setSecret(
+        key('saslPassword'),
+        profile.saslPassword,
+      );
     }
     if (profile.nickservPassword !== undefined) {
-      await secureStorageService.setSecret(key('nickservPassword'), profile.nickservPassword);
+      await secureStorageService.setSecret(
+        key('nickservPassword'),
+        profile.nickservPassword,
+      );
     }
     if (profile.operPassword !== undefined) {
-      await secureStorageService.setSecret(key('operPassword'), profile.operPassword);
+      await secureStorageService.setSecret(
+        key('operPassword'),
+        profile.operPassword,
+      );
     }
   }
 
@@ -139,14 +152,20 @@ class IdentityProfilesService {
 
   async add(profile: Omit<IdentityProfile, 'id'>): Promise<IdentityProfile> {
     await this.ensureLoaded();
-    const newProfile: IdentityProfile = { ...profile, id: `id-${Date.now()}-${Math.random()}` };
+    const newProfile: IdentityProfile = {
+      ...profile,
+      id: `id-${Date.now()}-${Math.random()}`,
+    };
     this.profiles.push(newProfile);
     await this.persist();
     await this.persistSecrets(newProfile);
     return newProfile;
   }
 
-  async update(id: string, updates: Partial<Omit<IdentityProfile, 'id'>>): Promise<void> {
+  async update(
+    id: string,
+    updates: Partial<Omit<IdentityProfile, 'id'>>,
+  ): Promise<void> {
     await this.ensureLoaded();
     const index = this.profiles.findIndex(p => p.id === id);
     if (index === -1) {

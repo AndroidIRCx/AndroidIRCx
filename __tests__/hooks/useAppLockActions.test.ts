@@ -39,7 +39,7 @@ describe('useAppLockActions', () => {
 
   it('should show alert when app lock is disabled', () => {
     const { result } = renderHook(() =>
-      useAppLockActions({ ...defaultProps, appLockEnabled: false })
+      useAppLockActions({ ...defaultProps, appLockEnabled: false }),
     );
 
     act(() => {
@@ -48,14 +48,14 @@ describe('useAppLockActions', () => {
 
     expect(mockSafeAlert).toHaveBeenCalledWith(
       'App lock disabled',
-      'Enable app lock first.'
+      'Enable app lock first.',
     );
     expect(mockSetAppLocked).not.toHaveBeenCalled();
   });
 
   it('should lock app when unlocked', () => {
     const { result } = renderHook(() =>
-      useAppLockActions({ ...defaultProps, appLocked: false })
+      useAppLockActions({ ...defaultProps, appLocked: false }),
     );
 
     act(() => {
@@ -72,7 +72,7 @@ describe('useAppLockActions', () => {
         ...defaultProps,
         appLocked: true,
         appLockUseBiometric: true,
-      })
+      }),
     );
 
     act(() => {
@@ -89,7 +89,7 @@ describe('useAppLockActions', () => {
         ...defaultProps,
         appLocked: true,
         appLockUseBiometric: false,
-      })
+      }),
     );
 
     act(() => {
@@ -102,7 +102,7 @@ describe('useAppLockActions', () => {
 
   it('should use t function for translations', () => {
     const { result } = renderHook(() =>
-      useAppLockActions({ ...defaultProps, appLockEnabled: false })
+      useAppLockActions({ ...defaultProps, appLockEnabled: false }),
     );
 
     act(() => {
@@ -110,6 +110,9 @@ describe('useAppLockActions', () => {
     });
 
     expect(mockT).toHaveBeenCalledWith('App lock disabled', expect.any(Object));
-    expect(mockT).toHaveBeenCalledWith('Enable app lock first.', expect.any(Object));
+    expect(mockT).toHaveBeenCalledWith(
+      'Enable app lock first.',
+      expect.any(Object),
+    );
   });
 });

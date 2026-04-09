@@ -8,7 +8,10 @@
  * WHOIS, WHOWAS, WHO
  */
 
-import type { SendMessageHandler, SendMessageHandlerRegistry } from '../sendMessageTypes';
+import type {
+  SendMessageHandler,
+  SendMessageHandlerRegistry,
+} from '../sendMessageTypes';
 import { useUIStore } from '../../../stores/uiStore';
 
 export const handleWHOIS: SendMessageHandler = (ctx, args) => {

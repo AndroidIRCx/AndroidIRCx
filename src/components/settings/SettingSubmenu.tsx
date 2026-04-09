@@ -37,17 +37,13 @@ export const SettingSubmenu: React.FC<SettingSubmenuProps> = ({
           )}
           <Text style={styles.settingTitle}>{item.title}</Text>
         </View>
-        {descriptionContent && (
-          typeof descriptionContent === 'string' || typeof descriptionContent === 'number'
-            ? (
-              <Text style={styles.settingDescription}>{descriptionContent}</Text>
-            )
-            : (
-              <View style={{ marginTop: 4 }}>
-                {descriptionContent}
-              </View>
-            )
-        )}
+        {descriptionContent &&
+          (typeof descriptionContent === 'string' ||
+          typeof descriptionContent === 'number' ? (
+            <Text style={styles.settingDescription}>{descriptionContent}</Text>
+          ) : (
+            <View style={{ marginTop: 4 }}>{descriptionContent}</View>
+          ))}
       </View>
       <Text style={styles.chevron}>›</Text>
     </TouchableOpacity>

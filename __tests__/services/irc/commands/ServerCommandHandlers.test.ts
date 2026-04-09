@@ -53,7 +53,7 @@ describe('ServerCommandHandlers', () => {
       handleERROR(ctx, '', ['Closing', 'Link'], ts);
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error', text: 'Closing Link' })
+        expect.objectContaining({ type: 'error', text: 'Closing Link' }),
       );
     });
 
@@ -62,7 +62,7 @@ describe('ServerCommandHandlers', () => {
       handleERROR(ctx, '', [], ts);
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ text: 'Connection closed by server' })
+        expect.objectContaining({ text: 'Connection closed by server' }),
       );
     });
 
@@ -71,7 +71,7 @@ describe('ServerCommandHandlers', () => {
 
       expect(ctx.addRawMessage).toHaveBeenCalledWith(
         expect.stringContaining('Banned'),
-        'server'
+        'server',
       );
     });
 
@@ -86,7 +86,7 @@ describe('ServerCommandHandlers', () => {
       handleERROR(ctx, '', ['test'], ts);
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ timestamp: ts })
+        expect.objectContaining({ timestamp: ts }),
       );
     });
   });
@@ -97,7 +97,7 @@ describe('ServerCommandHandlers', () => {
       handleWALLOPS(ctx, 'oper!oper@server', ['Global notice'], ts);
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice', from: 'oper', isRaw: true })
+        expect.objectContaining({ type: 'notice', from: 'oper', isRaw: true }),
       );
     });
 
@@ -105,7 +105,7 @@ describe('ServerCommandHandlers', () => {
       handleWALLOPS(ctx, 'oper!oper@host', [], Date.now());
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice', text: '' })
+        expect.objectContaining({ type: 'notice', text: '' }),
       );
     });
 
@@ -120,25 +120,37 @@ describe('ServerCommandHandlers', () => {
         findMatchingBlacklistEntry: jest.fn().mockReturnValue(blacklistEntry),
       });
 
-      handleWALLOPS(ctx, 'oper!oper@server', ['badnick!baduser@bad.host did something'], Date.now());
+      handleWALLOPS(
+        ctx,
+        'oper!oper@server',
+        ['badnick!baduser@bad.host did something'],
+        Date.now(),
+      );
 
       expect(ctx.runBlacklistAction).toHaveBeenCalledWith(
         blacklistEntry,
-        expect.objectContaining({ nick: 'badnick', network: 'TestNetwork' })
+        expect.objectContaining({ nick: 'badnick', network: 'TestNetwork' }),
       );
     });
 
     it('does not run blacklist action when no mask found', () => {
       ctx.extractMaskFromNotice = jest.fn().mockReturnValue(null);
 
-      handleWALLOPS(ctx, 'oper!oper@server', ['Just a wallops message'], Date.now());
+      handleWALLOPS(
+        ctx,
+        'oper!oper@server',
+        ['Just a wallops message'],
+        Date.now(),
+      );
 
       expect(ctx.runBlacklistAction).not.toHaveBeenCalled();
     });
 
     it('does not run blacklist action when entry not found', () => {
       ctx.extractMaskFromNotice = jest.fn().mockReturnValue({
-        nick: 'somenick', username: 'someuser', hostname: 'some.host',
+        nick: 'somenick',
+        username: 'someuser',
+        hostname: 'some.host',
       });
       ctx.getUserManagementService = jest.fn().mockReturnValue({
         findMatchingBlacklistEntry: jest.fn().mockReturnValue(null),
@@ -154,7 +166,7 @@ describe('ServerCommandHandlers', () => {
       handleWALLOPS(ctx, 'extracted_nick!user@host', ['msg'], Date.now());
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ from: 'extracted_nick' })
+        expect.objectContaining({ from: 'extracted_nick' }),
       );
     });
 
@@ -162,7 +174,7 @@ describe('ServerCommandHandlers', () => {
       handleWALLOPS(ctx, 'oper!oper@host', ['test'], Date.now());
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ rawCategory: 'server' })
+        expect.objectContaining({ rawCategory: 'server' }),
       );
     });
   });
@@ -173,22 +185,35 @@ describe('ServerCommandHandlers', () => {
       handleREGISTER(ctx, '', ['SUCCESS', 'testaccount', 'Welcome!'], ts);
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true, rawCategory: 'server' })
+        expect.objectContaining({
+          type: 'raw',
+          isRaw: true,
+          rawCategory: 'server',
+        }),
       );
-      expect(ctx.emit).toHaveBeenCalledWith('account-registered', 'testaccount', 'Welcome!');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'account-registered',
+        'testaccount',
+        'Welcome!',
+      );
     });
 
     it('handles VERIFICATION_REQUIRED subcommand', () => {
       const ts = Date.now();
-      handleREGISTER(ctx, '', ['VERIFICATION_REQUIRED', 'myaccount', 'Check email'], ts);
+      handleREGISTER(
+        ctx,
+        '',
+        ['VERIFICATION_REQUIRED', 'myaccount', 'Check email'],
+        ts,
+      );
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true })
+        expect.objectContaining({ type: 'raw', isRaw: true }),
       );
       expect(ctx.emit).toHaveBeenCalledWith(
         'account-verification-required',
         'myaccount',
-        'Check email'
+        'Check email',
       );
     });
 
@@ -213,12 +238,17 @@ describe('ServerCommandHandlers', () => {
     });
 
     it('joins multi-word message correctly', () => {
-      handleREGISTER(ctx, '', ['SUCCESS', 'acc', 'Your', 'account', 'is', 'created'], Date.now());
+      handleREGISTER(
+        ctx,
+        '',
+        ['SUCCESS', 'acc', 'Your', 'account', 'is', 'created'],
+        Date.now(),
+      );
 
       expect(ctx.emit).toHaveBeenCalledWith(
         'account-registered',
         'acc',
-        'Your account is created'
+        'Your account is created',
       );
     });
   });

@@ -87,7 +87,7 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
           cmd.name.toLowerCase().includes(query) ||
           cmd.description.toLowerCase().includes(query) ||
           cmd.service.toLowerCase().includes(query) ||
-          cmd.completion?.suggestAlias?.toLowerCase().includes(query)
+          cmd.completion?.suggestAlias?.toLowerCase().includes(query),
       );
       if (matching.length > 0) {
         filtered[serviceName] = matching;
@@ -108,7 +108,7 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
       }
       onClose();
     },
-    [onExecuteCommand, onClose]
+    [onExecuteCommand, onClose],
   );
 
   const toggleCommandExpand = useCallback((commandId: string) => {
@@ -118,7 +118,7 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
   const renderCommand = (
     command: ServiceCommand,
     serviceNick: string,
-    serviceName: string
+    serviceName: string,
   ) => {
     const commandId = `${serviceName}-${command.name}`;
     const isExpanded = expandedCommand === commandId;
@@ -132,7 +132,8 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
           { borderBottomColor: colors.border },
           isExpanded && { backgroundColor: colors.background },
         ]}
-        onPress={() => toggleCommandExpand(commandId)}>
+        onPress={() => toggleCommandExpand(commandId)}
+      >
         <View style={styles.commandHeader}>
           <View style={styles.commandTitleRow}>
             <Text style={[styles.commandName, { color: colors.primary }]}>
@@ -143,9 +144,11 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                 style={[
                   styles.aliasBadge,
                   { backgroundColor: colors.background },
-                ]}>
+                ]}
+              >
                 <Text
-                  style={[styles.aliasText, { color: colors.textSecondary }]}>
+                  style={[styles.aliasText, { color: colors.textSecondary }]}
+                >
                   /{hasAlias}
                 </Text>
               </View>
@@ -159,7 +162,8 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
         </View>
 
         <Text
-          style={[styles.commandDescription, { color: colors.textSecondary }]}>
+          style={[styles.commandDescription, { color: colors.textSecondary }]}
+        >
           {command.description}
         </Text>
 
@@ -171,10 +175,10 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                 size={14}
                 color={colors.textSecondary}
               />
-                <Text style={[styles.detailText, { color: colors.text }]}>
-                  <Text style={stylesLocal.boldText}>{t('Usage')}:</Text>{' '}
-                  {command.usage}
-                </Text>
+              <Text style={[styles.detailText, { color: colors.text }]}>
+                <Text style={stylesLocal.boldText}>{t('Usage')}:</Text>{' '}
+                {command.usage}
+              </Text>
             </View>
 
             {command.example && (
@@ -193,11 +197,7 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
 
             {command.parameters.length > 0 && (
               <View style={styles.detailRow}>
-                <Icon
-                  name="code-tags"
-                  size={14}
-                  color={colors.textSecondary}
-                />
+                <Icon name="code-tags" size={14} color={colors.textSecondary} />
                 <Text style={[styles.detailText, { color: colors.text }]}>
                   <Text style={stylesLocal.boldText}>{t('Parameters')}:</Text>{' '}
                   {command.parameters
@@ -212,7 +212,8 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                 styles.executeButton,
                 { backgroundColor: colors.primary },
               ]}
-              onPress={() => handleExecute(command, serviceNick)}>
+              onPress={() => handleExecute(command, serviceNick)}
+            >
               <Icon name="send" size={16} color="#FFFFFF" />
               <Text style={styles.executeButtonText}>
                 {t('Execute')} {serviceNick} {command.name}
@@ -229,7 +230,8 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+    >
       <View style={[styles.overlay, stylesLocal.overlay]}>
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           {/* Header */}
@@ -244,7 +246,11 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
 
           {/* Search */}
           <View
-            style={[styles.searchContainer, { borderBottomColor: colors.border }]}>
+            style={[
+              styles.searchContainer,
+              { borderBottomColor: colors.border },
+            ]}
+          >
             <Icon name="magnify" size={20} color={colors.textSecondary} />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
@@ -255,7 +261,11 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Icon name="close-circle" size={20} color={colors.textSecondary} />
+                <Icon
+                  name="close-circle"
+                  size={20}
+                  color={colors.textSecondary}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -268,7 +278,8 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
               style={[
                 styles.filterContainer,
                 { borderBottomColor: colors.border },
-              ]}>
+              ]}
+            >
               <TouchableOpacity
                 style={[
                   styles.filterChip,
@@ -277,12 +288,16 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                     backgroundColor: colors.primary,
                   },
                 ]}
-                onPress={() => setSelectedService(null)}>
+                onPress={() => setSelectedService(null)}
+              >
                 <Text
                   style={[
                     styles.filterText,
-                    selectedService === null ? stylesLocal.filterTextActive : { color: colors.text },
-                  ]}>
+                    selectedService === null
+                      ? stylesLocal.filterTextActive
+                      : { color: colors.text },
+                  ]}
+                >
                   {t('All')}
                 </Text>
               </TouchableOpacity>
@@ -296,12 +311,16 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                       backgroundColor: colors.primary,
                     },
                   ]}
-                  onPress={() => setSelectedService(name)}>
+                  onPress={() => setSelectedService(name)}
+                >
                   <Text
                     style={[
                       styles.filterText,
-                      selectedService === name ? stylesLocal.filterTextActive : { color: colors.text },
-                    ]}>
+                      selectedService === name
+                        ? stylesLocal.filterTextActive
+                        : { color: colors.text },
+                    ]}
+                  >
                     {name}
                   </Text>
                 </TouchableOpacity>
@@ -319,7 +338,8 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                   color={colors.textSecondary}
                 />
                 <Text
-                  style={[styles.emptyText, { color: colors.textSecondary }]}>
+                  style={[styles.emptyText, { color: colors.textSecondary }]}
+                >
                   {searchQuery
                     ? t('No commands found')
                     : t('No service commands available')}
@@ -330,7 +350,8 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                 .filter(name => !selectedService || name === selectedService)
                 .map(serviceName => {
                   const serviceCommands = filteredCommands[serviceName];
-                  const serviceNick = serviceCommands[0]?.service || serviceName;
+                  const serviceNick =
+                    serviceCommands[0]?.service || serviceName;
 
                   return (
                     <View
@@ -338,34 +359,31 @@ export const ServiceCommandPanel: React.FC<ServiceCommandPanelProps> = ({
                       style={[
                         styles.serviceSection,
                         { borderBottomColor: colors.border },
-                      ]}>
+                      ]}
+                    >
                       <View
                         style={[
                           styles.serviceHeader,
                           { backgroundColor: colors.background },
-                        ]}>
-                        <Icon
-                          name="server"
-                          size={18}
-                          color={colors.primary}
-                        />
+                        ]}
+                      >
+                        <Icon name="server" size={18} color={colors.primary} />
                         <Text
-                          style={[
-                            styles.serviceName,
-                            { color: colors.text },
-                          ]}>
+                          style={[styles.serviceName, { color: colors.text }]}
+                        >
                           {serviceNick}
                         </Text>
                         <Text
                           style={[
                             styles.commandCount,
                             { color: colors.textSecondary },
-                          ]}>
+                          ]}
+                        >
                           {serviceCommands.length} {t('commands')}
                         </Text>
                       </View>
                       {serviceCommands.map(cmd =>
-                        renderCommand(cmd, serviceNick, serviceName)
+                        renderCommand(cmd, serviceNick, serviceName),
                       )}
                     </View>
                   );

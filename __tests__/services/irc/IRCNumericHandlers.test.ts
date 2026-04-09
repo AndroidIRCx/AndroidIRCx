@@ -18,9 +18,7 @@ describe('IRCNumericHandlers', () => {
     logRaw: jest.fn(),
     getNetworkName: jest.fn().mockReturnValue('Net'),
     hasCapability: jest.fn().mockReturnValue(true),
-    channelUsers: new Map([
-      ['#chan', new Map([['alice', { nick: 'alice' }]])],
-    ]),
+    channelUsers: new Map([['#chan', new Map([['alice', { nick: 'alice' }]])]]),
     emitUserListChange: jest.fn(),
     parseUserWithPrefixes: jest.fn().mockReturnValue({ nick: 'bob' }),
     requestChatHistory: jest.fn(),

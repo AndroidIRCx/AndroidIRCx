@@ -20,12 +20,22 @@ import {
 import type { TextStyle, ViewStyle } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import RNFS from 'react-native-fs';
-import { notificationService, NotificationPreferences } from '../services/NotificationService';
-import { messageHistoryService, ExportOptions } from '../services/MessageHistoryService';
+import {
+  notificationService,
+  NotificationPreferences,
+} from '../services/NotificationService';
+import {
+  messageHistoryService,
+  ExportOptions,
+} from '../services/MessageHistoryService';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeEditorScreen } from './ThemeEditorScreen';
 import { ConnectionProfilesScreen } from './ConnectionProfilesScreen';
-import { settingsService, DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE } from '../services/SettingsService';
+import {
+  settingsService,
+  DEFAULT_PART_MESSAGE,
+  DEFAULT_QUIT_MESSAGE,
+} from '../services/SettingsService';
 import { AboutScreen } from './AboutScreen';
 import { CreditsScreen } from './CreditsScreen';
 import { bouncerService } from '../services/BouncerService';
@@ -47,19 +57,46 @@ import { BackupScreen } from './BackupScreen';
 import { MessageHistoryViewerScreen } from './MessageHistoryViewerScreen';
 import { subscriptionService } from '../services/SubscriptionService';
 import * as RNIap from 'react-native-iap';
-import type { ProductSubscription, Purchase, PurchaseError } from 'react-native-iap';
+import type {
+  ProductSubscription,
+  Purchase,
+  PurchaseError,
+} from 'react-native-iap';
 import { KeyManagementScreen } from './KeyManagementScreen';
 import { FirstRunSetupScreen } from './FirstRunSetupScreen';
 import { ZncSubscriptionScreen } from './ZncSubscriptionScreen';
 import { PrivacyRelayScreen } from './PrivacyRelayScreen';
 import { PrivacyAdsScreen } from './PrivacyAdsScreen';
 import { DataPrivacyScreen } from './DataPrivacyScreen';
-import { RawMessageCategory, getDefaultRawCategoryVisibility } from '../services/IRCService';
+import {
+  RawMessageCategory,
+  getDefaultRawCategoryVisibility,
+} from '../services/IRCService';
 import { useT } from '../i18n/transifex';
 import consoleManager from '../utils/consoleManager';
 import { SettingItem as SettingItemComponent } from '../components/settings/SettingItem';
 import { SettingsSectionHeader } from '../components/settings/SettingsSectionHeader';
-import { ScriptingAdsSection, SecurityQuickConnectSection, PrivacyLegalSection, AboutSection, HelpSection, AppearanceSection, DisplayUISection, MessageHistorySection, NotificationsSection, ConnectionNetworkSection, BackgroundBatterySection, HighlightingSection, SecuritySection, UsersServicesSection, CommandsSection, MediaSection, AwaySection, ProtectionSection, WritingSection } from '../components/settings/sections';
+import {
+  ScriptingAdsSection,
+  SecurityQuickConnectSection,
+  PrivacyLegalSection,
+  AboutSection,
+  HelpSection,
+  AppearanceSection,
+  DisplayUISection,
+  MessageHistorySection,
+  NotificationsSection,
+  ConnectionNetworkSection,
+  BackgroundBatterySection,
+  HighlightingSection,
+  SecuritySection,
+  UsersServicesSection,
+  CommandsSection,
+  MediaSection,
+  AwaySection,
+  ProtectionSection,
+  WritingSection,
+} from '../components/settings/sections';
 import { SettingItem, SettingIcon } from '../types/settings';
 import { useSettingsPremium } from '../hooks/useSettingsPremium';
 import { useSettingsSecurity } from '../hooks/useSettingsSecurity';
@@ -73,9 +110,7 @@ import {
   getSectionIcon,
   filterSettings,
   orderSections,
-  buildGlobalProxyConfig as buildProxyConfig,
   toggleSectionExpansion,
-  GlobalProxyInputs,
 } from '../utils/settingsHelpers';
 import type { ZncAccount } from '../types/znc';
 
@@ -92,7 +127,10 @@ const FALLBACK_DEBUG_LOG_CATEGORIES: DebugLogCategory[] = [
   'tabContextMenu',
 ];
 const getPurchaseReceipt = (purchase: Purchase): string =>
-  purchase.purchaseToken || ((purchase as Purchase & { transactionReceipt?: string }).transactionReceipt ?? '');
+  purchase.purchaseToken ||
+  ((purchase as Purchase & { transactionReceipt?: string })
+    .transactionReceipt ??
+    '');
 
 interface SettingsScreenProps {
   visible: boolean;
@@ -101,7 +139,9 @@ interface SettingsScreenProps {
   showRawCommands?: boolean;
   onShowRawCommandsChange?: (value: boolean) => void;
   rawCategoryVisibility?: Record<RawMessageCategory, boolean>;
-  onRawCategoryVisibilityChange?: (value: Record<RawMessageCategory, boolean>) => void;
+  onRawCategoryVisibilityChange?: (
+    value: Record<RawMessageCategory, boolean>,
+  ) => void;
   showEncryptionIndicators?: boolean;
   onShowEncryptionIndicatorsChange?: (value: boolean) => void;
   showTypingIndicators?: boolean;
@@ -137,15 +177,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const zncBasePlanId = 'znc-user';
   const settingIcons = useMemo<Record<string, SettingIcon>>(
     () => SETTINGS_ICONS,
-    []
+    [],
   );
   const aboutTitle = t('About', { _tags: tags });
   const helpTitle = t('📖 Help & Documentation', { _tags: tags });
   const scriptingAdsTitle = t('Scripting & Ads', { _tags: tags });
   const premiumTitle = t('💎 Premium', { _tags: tags });
-  const _zncSubscriptionTitle = t('ZNC Subscription', { _tags: tags });
   const connectionTitle = t('Connection & Network', { _tags: tags });
-  const debugLogCategories = DEBUG_LOG_CATEGORIES ?? FALLBACK_DEBUG_LOG_CATEGORIES;
+  const debugLogCategories =
+    DEBUG_LOG_CATEGORIES ?? FALLBACK_DEBUG_LOG_CATEGORIES;
   const debugLogLabelMap: Record<DebugLogCategory, string> = {
     appInitialization: 'Log App Initialization',
     appState: 'Log App State',
@@ -171,31 +211,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       es: 'Español',
       id: 'Indonesian',
     }),
-    []
+    [],
   );
   // Use hooks for notifications
   const notificationSettings = useSettingsNotifications();
-  const {
-    notificationPrefs,
-    backgroundEnabled,
-    batteryOptEnabledStatus,
-    updateNotificationPrefs,
-    setBackgroundEnabled: setBackgroundEnabledFromHook,
-    handleBatteryOptimization,
-    refreshNotificationPrefs,
-  } = notificationSettings;
-  
+  const { updateNotificationPrefs, refreshNotificationPrefs } =
+    notificationSettings;
+
   // Use hooks for connection settings
   const connectionSettings = useSettingsConnection();
-  const {
-    networks,
-    bouncerConfig,
-    bouncerInfo,
-    refreshNetworks,
-    updateBouncerConfig,
-  } = connectionSettings;
-  const [localShowRawCommands, setLocalShowRawCommands] = useState(showRawCommands);
-  const [localRawCategoryVisibility, setLocalRawCategoryVisibility] = useState<Record<RawMessageCategory, boolean>>(getDefaultRawCategoryVisibility());
+  const { bouncerConfig, bouncerInfo, refreshNetworks, updateBouncerConfig } =
+    connectionSettings;
+  const [localShowRawCommands, setLocalShowRawCommands] =
+    useState(showRawCommands);
+  const [localRawCategoryVisibility, setLocalRawCategoryVisibility] = useState<
+    Record<RawMessageCategory, boolean>
+  >(getDefaultRawCategoryVisibility());
   const [, setHistoryStats] = useState<any>(null);
   const [exportFormat] = useState<'json' | 'txt' | 'csv'>('json');
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
@@ -211,14 +242,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showConnectionProfiles, setShowConnectionProfiles] = useState(false);
   // Networks and connection configs now come from useSettingsConnection hook (see above)
   // Layout config and app language now come from useSettingsAppearance hook (see above)
-  const [performanceConfig, setPerformanceConfig] = useState<PerformanceConfig | null>(null);
+  const [performanceConfig, setPerformanceConfig] =
+    useState<PerformanceConfig | null>(null);
   const [showAbout, setShowAbout] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [showPrivacyAds, setShowPrivacyAds] = useState(false);
   const [showDataPrivacy, setShowDataPrivacy] = useState(false);
   const [backupData, setBackupData] = useState('');
   const [showBackupModal, setShowBackupModal] = useState(false);
-  const [backupOperation, setBackupOperation] = useState<'idle' | 'export' | 'import' | 'save' | 'copy'>('idle');
+  const [backupOperation, setBackupOperation] = useState<
+    'idle' | 'export' | 'import' | 'save' | 'copy'
+  >('idle');
   const [showBackupScreen, setShowBackupScreen] = useState(false);
   const [showHistoryViewer, setShowHistoryViewer] = useState(false);
   const [showKeyManagement, setShowKeyManagement] = useState(false);
@@ -226,24 +260,29 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showPrivacyRelayScreen, setShowPrivacyRelayScreen] = useState(false);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
   const [migrationNetwork, setMigrationNetwork] = useState('');
-  const [storageStats, setStorageStats] = useState<{ keyCount: number; totalBytes: number }>({ keyCount: 0, totalBytes: 0 });
+  const [storageStats, setStorageStats] = useState<{
+    keyCount: number;
+    totalBytes: number;
+  }>({ keyCount: 0, totalBytes: 0 });
   const [, setIdentityProfiles] = useState<any[]>([]);
   const [showScripting, setShowScripting] = useState(false);
   const [showScriptingHelp, setShowScriptingHelp] = useState(false);
   const [showChannelNotifModal, setShowChannelNotifModal] = useState(false);
-  const [channelNotifList, setChannelNotifList] = useState<{ channel: string; prefs: NotificationPreferences }[]>([]);
+  const [channelNotifList, setChannelNotifList] = useState<
+    { channel: string; prefs: NotificationPreferences }[]
+  >([]);
   const [newChannelNotif, setNewChannelNotif] = useState('');
-  const [globalProxyType, setGlobalProxyType] = useState('socks5');
-  const [globalProxyHost, setGlobalProxyHost] = useState('');
-  const [globalProxyPort, setGlobalProxyPort] = useState('');
-  const [globalProxyUsername, setGlobalProxyUsername] = useState('');
-  const [globalProxyPassword, setGlobalProxyPassword] = useState('');
-  const [globalProxyEnabled, setGlobalProxyEnabled] = useState(false);
+  const [, setGlobalProxyType] = useState('socks5');
+  const [, setGlobalProxyHost] = useState('');
+  const [, setGlobalProxyPort] = useState('');
+  const [, setGlobalProxyUsername] = useState('');
+  const [, setGlobalProxyPassword] = useState('');
+  const [, setGlobalProxyEnabled] = useState(false);
   // Security settings now come from useSettingsSecurity hook (see above)
   // Use hooks for premium and security settings
   const premiumSettings = useSettingsPremium();
   useSettingsSecurity();
-  
+
   // Extract values from hooks for backward compatibility
   const {
     watchAdButtonEnabledForPremium,
@@ -259,17 +298,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     showWatchAdButton,
     handleWatchAd,
   } = premiumSettings;
-  
+
   const [zncPurchaseToken, setZncPurchaseToken] = useState('');
-  const [zncSubscriptionId, setZncSubscriptionId] = useState(zncSubscriptionIdConst);
+  const [zncSubscriptionId, setZncSubscriptionId] = useState(
+    zncSubscriptionIdConst,
+  );
   const [zncUsername, setZncUsername] = useState('');
-  const [zncSubscriptionStatus, setZncSubscriptionStatus] = useState<string | null>(null);
-  const [zncExpiresAt, setZncExpiresAt] = useState<string | null>(null);
-  const [zncPassword, setZncPassword] = useState<string | null>(null);
-  const [zncAccountStatus, setZncAccountStatus] = useState<string | null>(null);
+  const [, setZncSubscriptionStatus] = useState<string | null>(null);
+  const [, setZncExpiresAt] = useState<string | null>(null);
+  const [, setZncPassword] = useState<string | null>(null);
+  const [, setZncAccountStatus] = useState<string | null>(null);
   const [, setZncRegistering] = useState(false);
-  const [zncOfferToken, setZncOfferToken] = useState<string | null>(null);
-  const [zncDisplayPrice, setZncDisplayPrice] = useState<string | null>(null);
+  const [, setZncOfferToken] = useState<string | null>(null);
+  const [, setZncDisplayPrice] = useState<string | null>(null);
   const [, setZncPurchasing] = useState(false);
   const zncUsernameRef = useRef('');
 
@@ -277,28 +318,36 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showFirstRunSetup, setShowFirstRunSetup] = useState(false);
   const [, setTabSortAlphabetical] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showEncryptionIndicatorsSetting, setShowEncryptionIndicatorsSetting] = useState(showEncryptionIndicators);
+  const [showEncryptionIndicatorsSetting, setShowEncryptionIndicatorsSetting] =
+    useState(showEncryptionIndicators);
   const [showTypingIndicatorsSetting] = useState(showTypingIndicators);
   // appLanguage now comes from useSettingsAppearance hook (see above)
-  const [biometricLockEnabled, setBiometricLockEnabled] = useState(false);
-  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [, setBiometricLockEnabled] = useState(false);
+  const [, setBiometricAvailable] = useState(false);
   const [, setPasswordsUnlocked] = useState(true);
-  const [pinLockEnabled, setPinLockEnabled] = useState(false);
+  const [, setPinLockEnabled] = useState(false);
   const [pinModalVisible, setPinModalVisible] = useState(false);
-  const [pinModalMode, setPinModalMode] = useState<'unlock' | 'setup' | 'confirm'>('unlock');
+  const [pinModalMode, setPinModalMode] = useState<
+    'unlock' | 'setup' | 'confirm'
+  >('unlock');
   const [pinEntry, setPinEntry] = useState('');
   const [pinSetupValue, setPinSetupValue] = useState('');
   const [pinError, setPinError] = useState('');
   const pinResolveRef = useRef<((ok: boolean) => void) | null>(null);
   const PIN_STORAGE_KEY = '@AndroidIRCX:pin-lock';
-  const [consoleEnabled, setConsoleEnabled] = useState(__DEV__ ? consoleManager.getEnabled() : false);
+  const [consoleEnabled, setConsoleEnabled] = useState(
+    __DEV__ ? consoleManager.getEnabled() : false,
+  );
   const developmentDebugLogItems = __DEV__
     ? ([
         {
           id: 'debug-category-logging-enabled',
           title: t('Enable Category Debug Logging', { _tags: tags }),
           description: consoleEnabled
-            ? t('Enable optional debug logs by category in development builds', { _tags: tags })
+            ? t(
+                'Enable optional debug logs by category in development builds',
+                { _tags: tags },
+              )
             : t('Requires console logging to be enabled', { _tags: tags }),
           type: 'switch' as const,
           value: performanceConfig?.debugLoggingEnabled === true,
@@ -307,17 +356,27 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             await performanceService.setConfig({ debugLoggingEnabled: value });
             setPerformanceConfig(performanceService.getConfig());
           },
-          searchKeywords: ['debug', 'developer', 'logging', 'logs', 'troubleshooting', 'development'],
+          searchKeywords: [
+            'debug',
+            'developer',
+            'logging',
+            'logs',
+            'troubleshooting',
+            'development',
+          ],
         },
-        ...debugLogCategories.map((category) => ({
+        ...debugLogCategories.map(category => ({
           id: `debug-category-${category}`,
           title: t(debugLogLabelMap[category], { _tags: tags }),
           description: consoleEnabled
-            ? t(`Enable ${debugLogLabelMap[category].toLowerCase()} traces`, { _tags: tags })
+            ? t(`Enable ${debugLogLabelMap[category].toLowerCase()} traces`, {
+                _tags: tags,
+              })
             : t('Requires console logging to be enabled', { _tags: tags }),
           type: 'switch' as const,
           value: performanceConfig?.debugLogCategories?.[category] === true,
-          disabled: !consoleEnabled || performanceConfig?.debugLoggingEnabled !== true,
+          disabled:
+            !consoleEnabled || performanceConfig?.debugLoggingEnabled !== true,
           onValueChange: async (value: boolean) => {
             const current = performanceService.getConfig();
             await performanceService.setConfig({
@@ -346,15 +405,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     };
   }, []);
 
-
-
   const refreshChannelNotifList = useCallback(() => {
     setChannelNotifList(notificationService.listChannelPreferences());
   }, []);
 
   // handleWatchAd now comes from useSettingsPremium hook
   // DCC settings now managed by ConnectionNetworkSection
-  const [, setNoticeTarget] = useState<'active' | 'server' | 'notice' | 'private'>('server');
+  const [, setNoticeTarget] = useState<
+    'active' | 'server' | 'notice' | 'private'
+  >('server');
 
   // Configurable messages
   const [, setPartMessage] = useState('');
@@ -365,7 +424,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [, setHideIrcServiceListenerMessages] = useState(true);
   const [, setClosePrivateMessage] = useState(false);
   const [, setClosePrivateMessageText] = useState('Closing window');
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set([aboutTitle]));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    () => new Set([aboutTitle]),
+  );
   const prevAboutTitleRef = useRef(aboutTitle);
   const [, setLagCheckMethod] = useState<'ctcp' | 'server'>('server');
   const sectionListRef = useRef<SectionList>(null);
@@ -406,12 +467,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           await updateNotificationPrefs({ enabled: false });
           Alert.alert(
             t('Permission Required', { _tags: tags }),
-            t('Notification permission is required to receive notifications. Please enable it in system settings.', { _tags: tags })
+            t(
+              'Notification permission is required to receive notifications. Please enable it in system settings.',
+              { _tags: tags },
+            ),
           );
         }
       }
     };
-    
+
     checkNotificationPermission();
   }, [visible, tags, t, updateNotificationPrefs]);
 
@@ -421,8 +485,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     if (!isMountedRef.current) return;
     const biometrySupported = Boolean(biometryType);
     setBiometricAvailable(biometrySupported);
-    const lockSetting = await settingsService.getSetting('biometricPasswordLock', false);
-    const pinSetting = await settingsService.getSetting('pinPasswordLock', false);
+    const lockSetting = await settingsService.getSetting(
+      'biometricPasswordLock',
+      false,
+    );
+    const pinSetting = await settingsService.getSetting(
+      'pinPasswordLock',
+      false,
+    );
     const storedPin = await secureStorageService.getSecret(PIN_STORAGE_KEY);
     const biometricEnabled = lockSetting && biometrySupported;
     let pinEnabled = pinSetting && Boolean(storedPin);
@@ -444,22 +514,41 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setPasswordsUnlocked(!(biometricEnabled || pinEnabled));
     refreshNotificationPrefs();
     // Background and battery optimization status managed by hook
-    setPartMessage(await settingsService.getSetting('partMessage', DEFAULT_PART_MESSAGE));
-    setQuitMessage(await settingsService.getSetting('quitMessage', DEFAULT_QUIT_MESSAGE));
-    setHideJoinMessages(await settingsService.getSetting('hideJoinMessages', false));
-    setHidePartMessages(await settingsService.getSetting('hidePartMessages', false));
-    setHideQuitMessages(await settingsService.getSetting('hideQuitMessages', false));
-    setHideIrcServiceListenerMessages(
-      await settingsService.getSetting('hideIrcServiceListenerMessages', true)
+    setPartMessage(
+      await settingsService.getSetting('partMessage', DEFAULT_PART_MESSAGE),
     );
-    setShowEncryptionIndicatorsSetting(await settingsService.getSetting('showEncryptionIndicators', true));
-    setTabSortAlphabetical(await settingsService.getSetting('tabSortAlphabetical', true));
+    setQuitMessage(
+      await settingsService.getSetting('quitMessage', DEFAULT_QUIT_MESSAGE),
+    );
+    setHideJoinMessages(
+      await settingsService.getSetting('hideJoinMessages', false),
+    );
+    setHidePartMessages(
+      await settingsService.getSetting('hidePartMessages', false),
+    );
+    setHideQuitMessages(
+      await settingsService.getSetting('hideQuitMessages', false),
+    );
+    setHideIrcServiceListenerMessages(
+      await settingsService.getSetting('hideIrcServiceListenerMessages', true),
+    );
+    setShowEncryptionIndicatorsSetting(
+      await settingsService.getSetting('showEncryptionIndicators', true),
+    );
+    setTabSortAlphabetical(
+      await settingsService.getSetting('tabSortAlphabetical', true),
+    );
     // appLanguage now loaded by useSettingsAppearance hook
-    setAutoConnectFavoriteServer(await settingsService.getSetting('autoConnectFavoriteServer', false));
-    const globalProxy = await settingsService.getSetting('globalProxy', { enabled: false } as any);
+    setAutoConnectFavoriteServer(
+      await settingsService.getSetting('autoConnectFavoriteServer', false),
+    );
+    const globalProxy = await settingsService.getSetting('globalProxy', {
+      enabled: false,
+    } as any);
     if (!isMountedRef.current) return;
     if (globalProxy) {
-      const enabled = globalProxy.enabled !== undefined ? Boolean(globalProxy.enabled) : true; // legacy configs assumed enabled
+      const enabled =
+        globalProxy.enabled !== undefined ? Boolean(globalProxy.enabled) : true; // legacy configs assumed enabled
       setGlobalProxyEnabled(enabled);
       setGlobalProxyType(globalProxy.type || 'socks5');
       setGlobalProxyHost(globalProxy.host || '');
@@ -474,15 +563,27 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       setGlobalProxyUsername('');
       setGlobalProxyPassword('');
     }
-    setClosePrivateMessage(await settingsService.getSetting('closePrivateMessage', false));
-    setClosePrivateMessageText(await settingsService.getSetting('closePrivateMessageText', 'Closing window'));
+    setClosePrivateMessage(
+      await settingsService.getSetting('closePrivateMessage', false),
+    );
+    setClosePrivateMessageText(
+      await settingsService.getSetting(
+        'closePrivateMessageText',
+        'Closing window',
+      ),
+    );
     setNoticeTarget(await settingsService.getSetting('noticeTarget', 'server'));
-    setLagCheckMethod(await settingsService.getSetting('lagCheckMethod', 'server'));
-    const zncConfig = await settingsService.getSetting('zncSubscriptionConfig', {
-      purchaseToken: '',
-      subscriptionId: '',
-      zncUsername: '',
-    });
+    setLagCheckMethod(
+      await settingsService.getSetting('lagCheckMethod', 'server'),
+    );
+    const zncConfig = await settingsService.getSetting(
+      'zncSubscriptionConfig',
+      {
+        purchaseToken: '',
+        subscriptionId: '',
+        zncUsername: '',
+      },
+    );
     if (!isMountedRef.current) return;
     const subscriptionId = zncConfig.subscriptionId || zncSubscriptionIdConst;
     setZncPurchaseToken(zncConfig.purchaseToken || '');
@@ -523,7 +624,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     // Connection-related settings (auto-reconnect, auto-voice, auto-rejoin, connection quality, etc.)
     // are now managed by ConnectionNetworkSection component
     // Channel favorites and DCC settings are also managed by ConnectionNetworkSection
-    
+
     // Bouncer settings now managed by useSettingsConnection hook
     // No need to load here - hook handles it
     // Layout settings now managed by useSettingsAppearance hook
@@ -533,26 +634,33 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     if (!isMountedRef.current) return;
     setPerformanceConfig(performanceService.getConfig());
     // Storage stats
-    dataBackupService.getStorageStats().then((stats) => {
-      if (!isMountedRef.current) return;
-      setStorageStats(stats);
-    }).catch(() => {});
+    dataBackupService
+      .getStorageStats()
+      .then(stats => {
+        if (!isMountedRef.current) return;
+        setStorageStats(stats);
+      })
+      .catch(() => {});
     // Identities
-    identityProfilesService.list().then((profiles) => {
-      if (!isMountedRef.current) return;
-      setIdentityProfiles(profiles);
-    }).catch(() => {});
+    identityProfilesService
+      .list()
+      .then(profiles => {
+        if (!isMountedRef.current) return;
+        setIdentityProfiles(profiles);
+      })
+      .catch(() => {});
   }, [refreshNetworks]);
 
   const loadZncSubscriptionProduct = useCallback(async () => {
     try {
-      const products = (await RNIap.fetchProducts({
-        skus: [zncSubscriptionIdConst],
-        type: 'subs',
-      })) ?? [];
+      const products =
+        (await RNIap.fetchProducts({
+          skus: [zncSubscriptionIdConst],
+          type: 'subs',
+        })) ?? [];
       const subscription = products.find(
         (item): item is ProductSubscription =>
-          item.id === zncSubscriptionIdConst && item.type === 'subs'
+          item.id === zncSubscriptionIdConst && item.type === 'subs',
       );
       if (!subscription) {
         if (!isMountedRef.current) return;
@@ -563,11 +671,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       if (!isMountedRef.current) return;
       setZncDisplayPrice(subscription.displayPrice || null);
       if (Platform.OS === 'android') {
-        const offers = ((subscription as ProductSubscription & {
-          subscriptionOfferDetailsAndroid?: Array<{ basePlanId?: string; offerToken?: string }>;
-        }).subscriptionOfferDetailsAndroid) || [];
+        const offers =
+          (
+            subscription as ProductSubscription & {
+              subscriptionOfferDetailsAndroid?: Array<{
+                basePlanId?: string;
+                offerToken?: string;
+              }>;
+            }
+          ).subscriptionOfferDetailsAndroid || [];
         const matchedOffer =
-          offers.find((offer: { basePlanId?: string; offerToken?: string }) => offer.basePlanId === zncBasePlanId) || offers[0];
+          offers.find(
+            (offer: { basePlanId?: string; offerToken?: string }) =>
+              offer.basePlanId === zncBasePlanId,
+          ) || offers[0];
         setZncOfferToken(matchedOffer?.offerToken || null);
       }
     } catch {
@@ -580,7 +697,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const initZncIap = useCallback(async () => {
     await RNIap.initConnection();
     if (Platform.OS === 'android') {
-      const flushPending = (RNIap as any).flushFailedPurchasesCachedAsPendingAndroid;
+      const flushPending = (RNIap as any)
+        .flushFailedPurchasesCachedAsPendingAndroid;
       if (typeof flushPending === 'function') {
         await flushPending();
       }
@@ -588,272 +706,175 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     await loadZncSubscriptionProduct();
   }, [loadZncSubscriptionProduct]);
 
-  const persistZncConfig = useCallback(async (updates: Partial<{ purchaseToken: string; subscriptionId: string; zncUsername: string }>) => {
-    const nextConfig = {
-      purchaseToken: updates.purchaseToken ?? zncPurchaseToken,
-      subscriptionId: updates.subscriptionId ?? zncSubscriptionId,
-      zncUsername: updates.zncUsername ?? zncUsername,
-    };
-    await settingsService.setSetting('zncSubscriptionConfig', nextConfig);
-  }, [zncPurchaseToken, zncSubscriptionId, zncUsername]);
-
-  const formatZncExpiresAt = (value: string | null) => {
-    if (!value) return t('Not available', { _tags: tags });
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString();
-  };
-
-  const applyZncServerToDBase = useCallback(async (username: string, password: string) => {
-    if (!username || !password) {
-      console.warn('applyZncServerToDBase: Missing username or password');
-      return;
-    }
-    
-    try {
-      const loadedNetworks = await settingsService.loadNetworks();
-      let dbaseNetwork = loadedNetworks.find(n => n.id === 'DBase' || n.name === 'DBase') || null;
-      if (!dbaseNetwork) {
-        dbaseNetwork = await settingsService.createDefaultNetwork();
-      }
-
-      const serverId = 'znc-subscription';
-      const serverConfig = {
-        id: serverId,
-        hostname: 'irc.androidircx.com',
-        port: 16786,
-        ssl: true,
-        rejectUnauthorized: true,
-        name: 'ZNC Subscription',
-        favorite: true,
-        password: `${username}:${password}`,
+  const persistZncConfig = useCallback(
+    async (
+      updates: Partial<{
+        purchaseToken: string;
+        subscriptionId: string;
+        zncUsername: string;
+      }>,
+    ) => {
+      const nextConfig = {
+        purchaseToken: updates.purchaseToken ?? zncPurchaseToken,
+        subscriptionId: updates.subscriptionId ?? zncSubscriptionId,
+        zncUsername: updates.zncUsername ?? zncUsername,
       };
+      await settingsService.setSetting('zncSubscriptionConfig', nextConfig);
+    },
+    [zncPurchaseToken, zncSubscriptionId, zncUsername],
+  );
 
-      const existing = dbaseNetwork.servers.find(s => s.id === serverId);
-      if (existing) {
-        await settingsService.updateServerInNetwork(dbaseNetwork.id, serverId, serverConfig);
-      } else {
-        await settingsService.addServerToNetwork(dbaseNetwork.id, serverConfig);
+  const applyZncServerToDBase = useCallback(
+    async (username: string, password: string) => {
+      if (!username || !password) {
+        console.warn('applyZncServerToDBase: Missing username or password');
+        return;
       }
 
-      await settingsService.updateNetwork(dbaseNetwork.id, {
-        defaultServerId: serverId,
-        connectionType: 'znc',
-      });
-    } catch (error) {
-      console.error('applyZncServerToDBase: Error applying ZNC server:', error);
-      // Don't throw - log error but don't crash the app
-      throw error; // Re-throw so caller can handle it
-    }
-  }, []);
+      try {
+        const loadedNetworks = await settingsService.loadNetworks();
+        let dbaseNetwork =
+          loadedNetworks.find(n => n.id === 'DBase' || n.name === 'DBase') ||
+          null;
+        if (!dbaseNetwork) {
+          dbaseNetwork = await settingsService.createDefaultNetwork();
+        }
 
-  const _connectNowToZnc = async () => {
-    if (!zncUsername || !zncPassword) {
-      Alert.alert(
-        t('Missing Credentials', { _tags: tags }),
-        t('Register your subscription to get ZNC credentials first.', { _tags: tags })
-      );
-      return;
-    }
+        const serverId = 'znc-subscription';
+        const serverConfig = {
+          id: serverId,
+          hostname: 'irc.androidircx.com',
+          port: 16786,
+          ssl: true,
+          rejectUnauthorized: true,
+          name: 'ZNC Subscription',
+          favorite: true,
+          password: `${username}:${password}`,
+        };
 
-    await applyZncServerToDBase(zncUsername, zncPassword);
-    const loadedNetworks = await settingsService.loadNetworks();
-    const dbaseNetwork = loadedNetworks.find(n => n.id === 'DBase' || n.name === 'DBase');
-    const zncServer = dbaseNetwork?.servers.find(s => s.id === 'znc-subscription') || dbaseNetwork?.servers.find(s => s.hostname === 'irc.androidircx.com' && s.port === 16786);
+        const existing = dbaseNetwork.servers.find(s => s.id === serverId);
+        if (existing) {
+          await settingsService.updateServerInNetwork(
+            dbaseNetwork.id,
+            serverId,
+            serverConfig,
+          );
+        } else {
+          await settingsService.addServerToNetwork(
+            dbaseNetwork.id,
+            serverConfig,
+          );
+        }
 
-    if (!dbaseNetwork || !zncServer) {
-      Alert.alert(
-        t('Connection Error', { _tags: tags }),
-        t('ZNC server configuration is missing.', { _tags: tags })
-      );
-      return;
-    }
-
-    const activeConnection = connectionManager.getConnection(dbaseNetwork.id);
-    if (!activeConnection) {
-      Alert.alert(
-        t('Not Connected', { _tags: tags }),
-        t('DBase is not connected. Open Networks and connect to DBase to use ZNC.', { _tags: tags })
-      );
-      return;
-    }
-
-    const globalProxy = await settingsService.getSetting('globalProxy', { enabled: false } as any);
-    const proxyToUse = dbaseNetwork.proxy || globalProxy || null;
-
-    const connectionConfig = {
-      host: (zncServer.hostname || '').trim(),
-      port: zncServer.port,
-      nick: dbaseNetwork.nick,
-      altNick: dbaseNetwork.altNick,
-      username: dbaseNetwork.ident || dbaseNetwork.nick,
-      realname: dbaseNetwork.realname,
-      password: zncServer.password,
-      tls: zncServer.ssl,
-      rejectUnauthorized: zncServer.rejectUnauthorized,
-      proxy: proxyToUse,
-      sasl: dbaseNetwork.sasl,
-    };
-
-    try {
-      activeConnection.ircService.disconnect(t('Reconnecting to ZNC...', { _tags: tags }));
-      await activeConnection.ircService.connect(connectionConfig);
-      Alert.alert(
-        t('Connected', { _tags: tags }),
-        t('Reconnected to ZNC for DBase.', { _tags: tags })
-      );
-    } catch (error: any) {
-      Alert.alert(
-        t('Connection Failed', { _tags: tags }),
-        error?.message || t('Unable to reconnect to ZNC.', { _tags: tags })
-      );
-    }
-  };
-
-  const _startZncPurchase = async () => {
-    const username = zncUsername.trim();
-    if (!username) {
-      Alert.alert(
-        t('Missing Information', { _tags: tags }),
-        t('Please enter a ZNC username.', { _tags: tags })
-      );
-      return;
-    }
-
-    setZncPurchasing(true);
-    try {
-      await persistZncConfig({ zncUsername: username, subscriptionId: zncSubscriptionIdConst });
-      await initZncIap();
-
-      if (Platform.OS === 'android' && !zncOfferToken) {
-        await loadZncSubscriptionProduct();
-      }
-
-      if (Platform.OS === 'android' && !zncOfferToken) {
-        throw new Error('Missing subscription offer token.');
-      }
-
-      const request = Platform.select({
-        ios: {
-          request: {
-            apple: {
-              sku: zncSubscriptionIdConst,
-            },
-          },
-          type: 'subs' as const,
-        },
-        android: {
-          request: {
-            google: {
-              skus: [zncSubscriptionIdConst],
-              subscriptionOffers: [{
-                sku: zncSubscriptionIdConst,
-                offerToken: zncOfferToken as string,
-              }],
-            },
-          },
-          type: 'subs' as const,
-        },
-        default: {
-          request: {
-            google: {
-              skus: [zncSubscriptionIdConst],
-              subscriptionOffers: [{
-                sku: zncSubscriptionIdConst,
-                offerToken: zncOfferToken as string,
-              }],
-            },
-          },
-          type: 'subs' as const,
-        },
-      });
-
-      if (!request) {
-        throw new Error('Unsupported platform for subscriptions.');
-      }
-
-      await RNIap.requestPurchase(request);
-    } catch (error: any) {
-      setZncPurchasing(false);
-      Alert.alert(
-        t('Purchase Failed', { _tags: tags }),
-        error?.message || t('Please try again later.', { _tags: tags })
-      );
-    }
-  };
-
-  const registerZncSubscriptionWithToken = useCallback(async (purchaseToken: string, username: string) => {
-    const subscriptionId = zncSubscriptionIdConst;
-    const trimmedToken = purchaseToken.trim();
-    const trimmedUsername = username.trim();
-
-    if (!trimmedToken) {
-      Alert.alert(
-        t('Missing Information', { _tags: tags }),
-        t('Please complete the purchase first.', { _tags: tags })
-      );
-      return;
-    }
-
-    // Don't show error if username is missing but we're just updating an existing subscription
-    // The username might be retrieved from the server response
-    if (!trimmedUsername) {
-      // Still try to register, as the server might return the username in the response
-      console.warn('Username is empty, but attempting registration with purchase token only');
-    }
-
-    setZncRegistering(true);
-    try {
-      // Persist the purchase token even if username is empty
-      await persistZncConfig({ purchaseToken: trimmedToken, subscriptionId, zncUsername: trimmedUsername });
-
-      const response: ZncAccount = await subscriptionService.registerZncSubscription({
-        purchaseToken: trimmedToken,
-        subscriptionId,
-        zncUsername: trimmedUsername || '', // Pass empty string if username is not provided
-      });
-
-      // Use the username from the response if available, otherwise fall back to the one we sent
-      const effectiveUsername = response.zncUsername || trimmedUsername;
-      setZncSubscriptionStatus(response.status || null);
-      setZncExpiresAt(response.expiresAt || null);
-      setZncPassword(response.zncPassword || null);
-      setZncAccountStatus(response.provisioningStatus || null);
-
-      // Only update the UI username if we have a valid one
-      if (effectiveUsername) {
-        setZncUsername(effectiveUsername);
-        await persistZncConfig({ zncUsername: effectiveUsername });
-      }
-
-      await settingsService.setSetting('zncSubscriptionState', {
-        status: response.status || null,
-        expiresAt: response.expiresAt || null,
-        zncPassword: response.zncPassword || null,
-        zncStatus: response.provisioningStatus || null,
-      });
-
-      if ((response.status === 'active' || response.status === 'grace') && response.zncUsername && response.zncPassword) {
-        await applyZncServerToDBase(response.zncUsername, response.zncPassword);
-        Alert.alert(
-          t('ZNC Ready', { _tags: tags }),
-          t('ZNC server added to DBase network.', { _tags: tags })
+        await settingsService.updateNetwork(dbaseNetwork.id, {
+          defaultServerId: serverId,
+          connectionType: 'znc',
+        });
+      } catch (error) {
+        console.error(
+          'applyZncServerToDBase: Error applying ZNC server:',
+          error,
         );
-      } else {
+        // Don't throw - log error but don't crash the app
+        throw error; // Re-throw so caller can handle it
+      }
+    },
+    [],
+  );
+
+  const registerZncSubscriptionWithToken = useCallback(
+    async (purchaseToken: string, username: string) => {
+      const subscriptionId = zncSubscriptionIdConst;
+      const trimmedToken = purchaseToken.trim();
+      const trimmedUsername = username.trim();
+
+      if (!trimmedToken) {
         Alert.alert(
-          t('Subscription Updated', { _tags: tags }),
-          t('Status: {status}', { status: response.status || 'unknown', _tags: tags })
+          t('Missing Information', { _tags: tags }),
+          t('Please complete the purchase first.', { _tags: tags }),
+        );
+        return;
+      }
+
+      // Don't show error if username is missing but we're just updating an existing subscription
+      // The username might be retrieved from the server response
+      if (!trimmedUsername) {
+        // Still try to register, as the server might return the username in the response
+        console.warn(
+          'Username is empty, but attempting registration with purchase token only',
         );
       }
-    } catch (error: any) {
-      Alert.alert(
-        t('Subscription Error', { _tags: tags }),
-        error?.message || t('Unable to register subscription.', { _tags: tags })
-      );
-    } finally {
-      setZncRegistering(false);
-    }
-  }, [applyZncServerToDBase, persistZncConfig, tags, t, zncSubscriptionIdConst]);
+
+      setZncRegistering(true);
+      try {
+        // Persist the purchase token even if username is empty
+        await persistZncConfig({
+          purchaseToken: trimmedToken,
+          subscriptionId,
+          zncUsername: trimmedUsername,
+        });
+
+        const response: ZncAccount =
+          await subscriptionService.registerZncSubscription({
+            purchaseToken: trimmedToken,
+            subscriptionId,
+            zncUsername: trimmedUsername || '', // Pass empty string if username is not provided
+          });
+
+        // Use the username from the response if available, otherwise fall back to the one we sent
+        const effectiveUsername = response.zncUsername || trimmedUsername;
+        setZncSubscriptionStatus(response.status || null);
+        setZncExpiresAt(response.expiresAt || null);
+        setZncPassword(response.zncPassword || null);
+        setZncAccountStatus(response.provisioningStatus || null);
+
+        // Only update the UI username if we have a valid one
+        if (effectiveUsername) {
+          setZncUsername(effectiveUsername);
+          await persistZncConfig({ zncUsername: effectiveUsername });
+        }
+
+        await settingsService.setSetting('zncSubscriptionState', {
+          status: response.status || null,
+          expiresAt: response.expiresAt || null,
+          zncPassword: response.zncPassword || null,
+          zncStatus: response.provisioningStatus || null,
+        });
+
+        if (
+          (response.status === 'active' || response.status === 'grace') &&
+          response.zncUsername &&
+          response.zncPassword
+        ) {
+          await applyZncServerToDBase(
+            response.zncUsername,
+            response.zncPassword,
+          );
+          Alert.alert(
+            t('ZNC Ready', { _tags: tags }),
+            t('ZNC server added to DBase network.', { _tags: tags }),
+          );
+        } else {
+          Alert.alert(
+            t('Subscription Updated', { _tags: tags }),
+            t('Status: {status}', {
+              status: response.status || 'unknown',
+              _tags: tags,
+            }),
+          );
+        }
+      } catch (error: any) {
+        Alert.alert(
+          t('Subscription Error', { _tags: tags }),
+          error?.message ||
+            t('Unable to register subscription.', { _tags: tags }),
+        );
+      } finally {
+        setZncRegistering(false);
+      }
+    },
+    [applyZncServerToDBase, persistZncConfig, tags, t, zncSubscriptionIdConst],
+  );
 
   useEffect(() => {
     if (!visible) return;
@@ -884,7 +905,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         if (!token) {
           Alert.alert(
             t('Purchase Error', { _tags: tags }),
-            t('Missing purchase token from Google Play.', { _tags: tags })
+            t('Missing purchase token from Google Play.', { _tags: tags }),
           );
           return;
         }
@@ -902,7 +923,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           zncUsername: zncUsernameRef.current,
         });
         await registerZncSubscriptionWithToken(token, zncUsernameRef.current);
-      }
+      },
     );
 
     purchaseErrorSubscription = RNIap.purchaseErrorListener(
@@ -914,10 +935,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         if (String(error.code) !== 'E_USER_CANCELLED') {
           Alert.alert(
             t('Purchase Failed', { _tags: tags }),
-            error.message || t('Please try again later.', { _tags: tags })
+            error.message || t('Please try again later.', { _tags: tags }),
           );
         }
-      }
+      },
     );
 
     return () => {
@@ -940,69 +961,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   ]);
 
   // Supporter status now managed by useSettingsPremium hook - no local state needed
-
-  const _registerZncSubscription = async () => {
-    const purchaseToken = zncPurchaseToken.trim();
-
-    if (!purchaseToken) {
-      Alert.alert(
-        t('Purchase Required', { _tags: tags }),
-        t('Please complete the purchase first.', { _tags: tags })
-      );
-      return;
-    }
-
-    // Allow registration even if username is empty, as it might be retrieved from server
-    const username = zncUsername.trim();
-
-    await registerZncSubscriptionWithToken(purchaseToken, username);
-  };
-
-  const _buildGlobalProxyConfig = (overrides?: Partial<GlobalProxyInputs>) => {
-    const inputs: GlobalProxyInputs = {
-      enabled: globalProxyEnabled,
-      type: globalProxyType,
-      host: globalProxyHost,
-      port: globalProxyPort,
-      username: globalProxyUsername,
-      password: globalProxyPassword,
-    };
-    return buildProxyConfig(inputs, overrides);
-  };
-
-  // Helper function to get network label
-  const _networkLabel = useCallback((networkId: string): string => {
-    const network = networks.find(n => n.id === networkId);
-    return network?.name || networkId;
-  }, [networks]);
-
-  const _persistGlobalProxy = async (overrides?: Partial<GlobalProxyInputs>) => {
-    const cfg = _buildGlobalProxyConfig(overrides);
-    await settingsService.setSetting('globalProxy', cfg);
-  };
-
-  const _handleNotificationChange = async (key: keyof NotificationPreferences, value: boolean) => {
-    // If enabling notifications, check and request permission first
-    if (key === 'enabled' && value) {
-      const hasPermission = await notificationService.checkPermission();
-      if (!hasPermission) {
-        const granted = await notificationService.requestPermission();
-        if (!granted) {
-          Alert.alert(
-            t('Permission Required', { _tags: tags }),
-            t('Notification permission is required to receive notifications. Please enable it in system settings.', { _tags: tags })
-          );
-          return; // Don't enable notifications if permission denied
-        }
-      }
-    }
-
-    await updateNotificationPrefs({ [key]: value });
-  };
-
-  const _handleBackgroundConnectionChange = async (value: boolean) => {
-    await setBackgroundEnabledFromHook(value);
-  };
 
   useEffect(() => {
     if (!visible) {
@@ -1028,7 +986,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
 
     setLocalShowRawCommands(prev =>
-      prev === showRawCommands ? prev : showRawCommands
+      prev === showRawCommands ? prev : showRawCommands,
     );
   }, [showRawCommands, visible]);
 
@@ -1044,7 +1002,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
     setLocalRawCategoryVisibility(prev => {
       const categories = Object.keys(nextVisibility) as RawMessageCategory[];
-      const hasChanges = categories.some(category => prev[category] !== nextVisibility[category]);
+      const hasChanges = categories.some(
+        category => prev[category] !== nextVisibility[category],
+      );
       return hasChanges ? nextVisibility : prev;
     });
   }, [rawCategoryVisibility, visible]);
@@ -1055,7 +1015,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
 
     setShowEncryptionIndicatorsSetting(prev =>
-      prev === showEncryptionIndicators ? prev : showEncryptionIndicators
+      prev === showEncryptionIndicators ? prev : showEncryptionIndicators,
     );
   }, [showEncryptionIndicators, visible]);
 
@@ -1068,96 +1028,48 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         includeMetadata: true,
       };
       const exported = await messageHistoryService.exportHistory(options);
-      
+
       // In a real app, you'd save this to a file or share it
       Alert.alert(
         t('Export Complete', { _tags: tags }),
-        t('Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)', {
-          count: exported.length,
-          format: exportFormat.toUpperCase(),
-          _tags: tags,
-        }),
-        [{ text: t('OK', { _tags: tags }) }]
+        t(
+          'Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)',
+          {
+            count: exported.length,
+            format: exportFormat.toUpperCase(),
+            _tags: tags,
+          },
+        ),
+        [{ text: t('OK', { _tags: tags }) }],
       );
     } catch (error) {
       Alert.alert(
         t('Export Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to export history', { _tags: tags })
+        error instanceof Error
+          ? error.message
+          : t('Failed to export history', { _tags: tags }),
       );
     }
-  };
-
-  const _handleClearHistory = () => {
-    Alert.alert(
-      t('Clear Message History', { _tags: tags }),
-      t('Are you sure you want to clear all message history? This cannot be undone.', { _tags: tags }),
-      [
-        { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-        {
-          text: t('Clear', { _tags: tags }),
-          style: 'destructive',
-          onPress: async () => {
-            if (currentNetwork) {
-                await messageHistoryService.deleteNetworkMessages(currentNetwork);
-                Alert.alert(
-                  t('Success', { _tags: tags }),
-                  t('Message history cleared', { _tags: tags })
-                );
-                loadHistoryStats();
-                dataBackupService.getStorageStats().then(setStorageStats).catch(() => {});
-              }
-            },
-          },
-        ]
-      );
-  };
-
-  // handleBatteryOptimization now comes from useSettingsNotifications hook
-  const _handleBatteryOptimizationWrapper = async () => {
-    await handleBatteryOptimization();
   };
 
   const backupBusy = backupOperation !== 'idle';
-  const backupOperationLabel = backupOperation === 'export'
-    ? t('Generating backup...', { _tags: tags })
-    : backupOperation === 'import'
-    ? t('Restoring backup...', { _tags: tags })
-    : backupOperation === 'save'
-    ? t('Saving backup file...', { _tags: tags })
-    : backupOperation === 'copy'
-    ? t('Copying backup data...', { _tags: tags })
-    : '';
-
-  const _handleBackupExport = async (settingsOnly: boolean = false) => {
-    if (backupBusy) return;
-    setBackupOperation('export');
-    try {
-      const data = settingsOnly
-        ? await dataBackupService.exportSettings()
-        : await dataBackupService.exportAll();
-      setBackupData(data);
-      setShowBackupModal(true);
-      setStorageStats(await dataBackupService.getStorageStats());
-      const message = settingsOnly
-        ? t('Settings backup generated (excludes logs and message history).', { _tags: tags })
-        : t('Full backup generated (includes all data).', { _tags: tags });
-      Alert.alert(t('Backup Ready', { _tags: tags }), message);
-    } catch (error) {
-      Alert.alert(
-        t('Backup Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to create backup', { _tags: tags })
-      );
-    } finally {
-      setBackupOperation('idle');
-    }
-  };
+  const backupOperationLabel =
+    backupOperation === 'export'
+      ? t('Generating backup...', { _tags: tags })
+      : backupOperation === 'import'
+        ? t('Restoring backup...', { _tags: tags })
+        : backupOperation === 'save'
+          ? t('Saving backup file...', { _tags: tags })
+          : backupOperation === 'copy'
+            ? t('Copying backup data...', { _tags: tags })
+            : '';
 
   const handleBackupImport = async () => {
     if (backupBusy) return;
     if (!backupData.trim()) {
       Alert.alert(
         t('Restore Error', { _tags: tags }),
-        t('Please paste backup data first', { _tags: tags })
+        t('Please paste backup data first', { _tags: tags }),
       );
       return;
     }
@@ -1166,7 +1078,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       await dataBackupService.importAll(backupData);
       Alert.alert(
         t('Restore Complete', { _tags: tags }),
-        t('Backup restored. Restart app to ensure all data reloads.', { _tags: tags })
+        t('Backup restored. Restart app to ensure all data reloads.', {
+          _tags: tags,
+        }),
       );
       setStorageStats(await dataBackupService.getStorageStats());
       setShowBackupModal(false);
@@ -1174,7 +1088,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     } catch (error) {
       Alert.alert(
         t('Restore Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Invalid backup data', { _tags: tags })
+        error instanceof Error
+          ? error.message
+          : t('Invalid backup data', { _tags: tags }),
       );
     } finally {
       setBackupOperation('idle');
@@ -1188,12 +1104,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       Clipboard.setString(backupData);
       Alert.alert(
         t('Success', { _tags: tags }),
-        t('Backup data copied to clipboard', { _tags: tags })
+        t('Backup data copied to clipboard', { _tags: tags }),
       );
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to copy to clipboard', { _tags: tags })
+        error instanceof Error
+          ? error.message
+          : t('Failed to copy to clipboard', { _tags: tags }),
       );
     } finally {
       setBackupOperation('idle');
@@ -1205,30 +1123,36 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       if (!migrationNetwork) {
         Alert.alert(
           t('Select Network', { _tags: tags }),
-          t('Please select a network to migrate keys to', { _tags: tags })
+          t('Please select a network to migrate keys to', { _tags: tags }),
         );
         return;
       }
 
-      const migratedCount = await encryptedDMService.migrateOldKeysToNetwork(migrationNetwork);
+      const migratedCount =
+        await encryptedDMService.migrateOldKeysToNetwork(migrationNetwork);
       setShowMigrationDialog(false);
       setMigrationNetwork('');
 
       if (migratedCount === 0) {
         Alert.alert(
           t('Migration Complete', { _tags: tags }),
-          t('No old keys found to migrate', { _tags: tags })
+          t('No old keys found to migrate', { _tags: tags }),
         );
       } else {
         Alert.alert(
           t('Migration Complete', { _tags: tags }),
-          t(`Successfully migrated ${migratedCount} key(s) to ${migrationNetwork}`, { _tags: tags })
+          t(
+            `Successfully migrated ${migratedCount} key(s) to ${migrationNetwork}`,
+            { _tags: tags },
+          ),
         );
       }
     } catch (error) {
       Alert.alert(
         t('Migration Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to migrate keys', { _tags: tags })
+        error instanceof Error
+          ? error.message
+          : t('Failed to migrate keys', { _tags: tags }),
       );
     }
   };
@@ -1238,7 +1162,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     if (!backupData.trim()) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        t('No backup data to save', { _tags: tags })
+        t('No backup data to save', { _tags: tags }),
       );
       return;
     }
@@ -1275,22 +1199,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       Alert.alert(
         t('Success', { _tags: tags }),
         t('Backup saved to:\n{path}', { path: savePath, _tags: tags }),
-        [{ text: t('OK', { _tags: tags }) }]
+        [{ text: t('OK', { _tags: tags }) }],
       );
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to save backup file', { _tags: tags })
+        error instanceof Error
+          ? error.message
+          : t('Failed to save backup file', { _tags: tags }),
       );
     } finally {
       setBackupOperation('idle');
     }
   };
-
-  const passwordLockActive = biometricLockEnabled || pinLockEnabled;
-  const _passwordUnlockDescription = biometricLockEnabled
-    ? t('Use fingerprint/biometric to unlock', { _tags: tags })
-    : t('Enter PIN to unlock', { _tags: tags });
 
   const closePinModal = useCallback((ok: boolean) => {
     setPinModalVisible(false);
@@ -1300,28 +1221,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     const resolve = pinResolveRef.current;
     pinResolveRef.current = null;
     if (resolve) resolve(ok);
-  }, []);
-
-  const requestPinUnlock = useCallback(() => {
-    setPinModalMode('unlock');
-    setPinEntry('');
-    setPinSetupValue('');
-    setPinError('');
-    setPinModalVisible(true);
-    return new Promise<boolean>((resolve) => {
-      pinResolveRef.current = resolve;
-    });
-  }, []);
-
-  const requestPinSetup = useCallback(() => {
-    setPinModalMode('setup');
-    setPinEntry('');
-    setPinSetupValue('');
-    setPinError('');
-    setPinModalVisible(true);
-    return new Promise<boolean>((resolve) => {
-      pinResolveRef.current = resolve;
-    });
   }, []);
 
   const handlePinSubmit = useCallback(async () => {
@@ -1366,111 +1265,39 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setPinLockEnabled(true);
     setPasswordsUnlocked(false);
     closePinModal(true);
-  }, [PIN_STORAGE_KEY, closePinModal, pinEntry, pinModalMode, pinSetupValue, t]);
+  }, [
+    PIN_STORAGE_KEY,
+    closePinModal,
+    pinEntry,
+    pinModalMode,
+    pinSetupValue,
+    t,
+  ]);
 
   // App lock functions now handled by SecuritySection component
-
-  const _unlockPasswords = async (): Promise<boolean> => {
-    if (!passwordLockActive) {
-      setPasswordsUnlocked(true);
-      return true;
-    }
-    if (biometricLockEnabled) {
-      if (!biometricAvailable) {
-        Alert.alert(
-          t('Biometrics unavailable', { _tags: tags }),
-          t('Enable a fingerprint/biometric on your device first.', { _tags: tags })
-        );
-        return false;
-      }
-      const result = await biometricAuthService.authenticate(
-        t('Unlock passwords', { _tags: tags }),
-        t('Authenticate to view passwords', { _tags: tags })
-      );
-      if (result.success) {
-        setPasswordsUnlocked(true);
-        return true;
-      }
-      const errorMessage = result.errorMessage
-        || (result.errorKey ? t(result.errorKey, { _tags: tags }) : t('Unable to unlock passwords.', { _tags: tags }));
-      Alert.alert(
-        t('Authentication failed', { _tags: tags }),
-        errorMessage
-      );
-      return false;
-    }
-    if (pinLockEnabled) {
-      return await requestPinUnlock();
-    }
-    setPasswordsUnlocked(true);
-    return true;
-  };
-
-  const _handleBiometricLockToggle = async (value: boolean) => {
-    if (value) {
-      if (!biometricAvailable) {
-        Alert.alert(
-          t('Biometrics unavailable', { _tags: tags }),
-          t('Enable a fingerprint/biometric on your device first.', { _tags: tags })
-        );
-        return;
-      }
-      if (pinLockEnabled) {
-        await secureStorageService.removeSecret(PIN_STORAGE_KEY);
-        await settingsService.setSetting('pinPasswordLock', false);
-        setPinLockEnabled(false);
-      }
-      const enabled = await biometricAuthService.enableLock();
-      if (!enabled) {
-        Alert.alert(
-          t('Biometric setup failed', { _tags: tags }),
-          t('Unable to enable biometric lock for passwords.', { _tags: tags })
-        );
-        return;
-      }
-      await settingsService.setSetting('biometricPasswordLock', true);
-      setBiometricLockEnabled(true);
-      setPasswordsUnlocked(false);
-      return;
-    }
-    await biometricAuthService.disableLock();
-    await settingsService.setSetting('biometricPasswordLock', false);
-    setBiometricLockEnabled(false);
-    setPasswordsUnlocked(true);
-  };
-
-  const _handlePinLockToggle = async (value: boolean) => {
-    if (value) {
-      if (biometricLockEnabled) {
-        await biometricAuthService.disableLock();
-        await settingsService.setSetting('biometricPasswordLock', false);
-        setBiometricLockEnabled(false);
-      }
-      await requestPinSetup();
-      return;
-    }
-    await secureStorageService.removeSecret(PIN_STORAGE_KEY);
-    await settingsService.setSetting('pinPasswordLock', false);
-    setPinLockEnabled(false);
-    setPasswordsUnlocked(true);
-  };
 
   // App lock functions now handled by SecuritySection component
 
   const lastSearchTermRef = useRef('');
   // Icon mapping now handled by utility function
-  const _zncStatusLabel = zncSubscriptionStatus || t('Not registered', { _tags: tags });
-  const _zncExpiresLabel = formatZncExpiresAt(zncExpiresAt);
-  const _zncAccountLabel = zncAccountStatus || t('Not available', { _tags: tags });
-  const _zncPurchaseDescription = zncDisplayPrice
-    ? t('Price: {price}', { price: zncDisplayPrice, _tags: tags })
-    : t('Monthly subscription via Google Play', { _tags: tags });
-
   const pinModalContainerStyle: ViewStyle = { maxHeight: '60%' };
   const backupModalContainerStyle: ViewStyle = { maxHeight: '80%' };
-  const modalSectionPaddingStyle: ViewStyle = { paddingHorizontal: 16, paddingVertical: 12 };
-  const modalActionRowStyle: ViewStyle = { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, padding: 16, paddingTop: 0 };
-  const backupBusyRowStyle: ViewStyle = { flexDirection: 'row', alignItems: 'center', paddingTop: 8 };
+  const modalSectionPaddingStyle: ViewStyle = {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  };
+  const modalActionRowStyle: ViewStyle = {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    padding: 16,
+    paddingTop: 0,
+  };
+  const backupBusyRowStyle: ViewStyle = {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 8,
+  };
   const backupBusyLabelStyle: TextStyle = { marginLeft: 8 };
   const backupInputStyle: TextStyle = {
     minHeight: 200,
@@ -1479,11 +1306,27 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     color: colors.text,
     borderColor: colors.border,
   };
-  const backupActionRowStyle: ViewStyle = { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 12, flexWrap: 'wrap' };
-  const channelNotifSectionPaddingStyle: ViewStyle = { paddingHorizontal: 16, paddingVertical: 12 };
-  const channelNotifActionRowStyle: ViewStyle = { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 };
+  const backupActionRowStyle: ViewStyle = {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 12,
+    flexWrap: 'wrap',
+  };
+  const channelNotifSectionPaddingStyle: ViewStyle = {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  };
+  const channelNotifActionRowStyle: ViewStyle = {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  };
   const channelNotifOuterRowStyle: ViewStyle = { alignItems: 'flex-end' };
-  const channelNotifInnerRowStyle: ViewStyle = { flexDirection: 'row', alignItems: 'center' };
+  const channelNotifInnerRowStyle: ViewStyle = {
+    flexDirection: 'row',
+    alignItems: 'center',
+  };
   const identityDeleteSpacingStyle: ViewStyle = { marginTop: 4 };
 
   const sections = [
@@ -1494,27 +1337,52 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {
           id: 'premium-upgrade',
           title: t('Upgrade to Premium', { _tags: tags }),
-          description: t('Remove ads, unlimited scripting, and more', { _tags: tags }),
+          description: t('Remove ads, unlimited scripting, and more', {
+            _tags: tags,
+          }),
           type: 'button' as const,
           icon: { name: 'crown', solid: true },
           onPress: () => onShowPurchaseScreen?.(),
-          searchKeywords: ['premium', 'upgrade', 'pro', 'supporter', 'no-ads', 'remove ads', 'unlimited', 'scripting', 'purchase', 'buy'],
+          searchKeywords: [
+            'premium',
+            'upgrade',
+            'pro',
+            'supporter',
+            'no-ads',
+            'remove ads',
+            'unlimited',
+            'scripting',
+            'purchase',
+            'buy',
+          ],
         },
         {
           id: 'privacy-relay-subscription',
           title: t('Privacy Relay for Calls', { _tags: tags }),
-          description: t('Manage TURN relay access on turn.dbase.in.rs for calls that cannot stay direct P2P', { _tags: tags }),
+          description: t(
+            'Manage TURN relay access on turn.dbase.in.rs for calls that cannot stay direct P2P',
+            { _tags: tags },
+          ),
           type: 'button' as const,
           icon: { name: 'user-shield', solid: true },
           onPress: () => setShowPrivacyRelayScreen(true),
-          searchKeywords: ['privacy relay', 'turn', 'webrtc', 'calls', 'subscription', 'relay', 'p2p', 'nat'],
+          searchKeywords: [
+            'privacy relay',
+            'turn',
+            'webrtc',
+            'calls',
+            'subscription',
+            'relay',
+            'p2p',
+            'nat',
+          ],
         },
       ],
     },
     /*
     {
       id: 'znc-subscription',
-      title: _zncSubscriptionTitle,
+      title: zncSubscriptionTitle,
       data: [
         {
           id: 'znc-manage-subscriptions',
@@ -1545,22 +1413,71 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     {
       id: 'appearance',
       title: t('Appearance', { _tags: tags }),
-      data: [{
-        id: 'appearance-section',
-        title: 'appearance-section',
-        type: 'custom' as const,
-        searchKeywords: ['theme', 'dark', 'light', 'color', 'style', 'font', 'size', 'search', 'header', 'icon', 'message', 'button', 'floating', 'appearance', 'ui', 'language', 'translation', 'bold', 'nicknames'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'appearance-section',
+          title: 'appearance-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'theme',
+            'dark',
+            'light',
+            'color',
+            'style',
+            'font',
+            'size',
+            'search',
+            'header',
+            'icon',
+            'message',
+            'button',
+            'floating',
+            'appearance',
+            'ui',
+            'language',
+            'translation',
+            'bold',
+            'nicknames',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'display-ui',
       title: t('Display & UI', { _tags: tags }),
-      data: [{
-        id: 'display-ui-section',
-        title: 'display-ui-section',
-        type: 'custom' as const,
-        searchKeywords: ['layout', 'tabs', 'userlist', 'nicklist', 'position', 'top', 'bottom', 'left', 'right', 'scroll', 'swipe', 'switch', 'invert', 'reverse', 'channel list', 'whois', 'display', 'modal', 'popup', 'raw', 'encryption', 'typing', 'banner', 'keyboard'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'display-ui-section',
+          title: 'display-ui-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'layout',
+            'tabs',
+            'userlist',
+            'nicklist',
+            'position',
+            'top',
+            'bottom',
+            'left',
+            'right',
+            'scroll',
+            'swipe',
+            'switch',
+            'invert',
+            'reverse',
+            'channel list',
+            'whois',
+            'display',
+            'modal',
+            'popup',
+            'raw',
+            'encryption',
+            'typing',
+            'banner',
+            'keyboard',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'messages-history',
@@ -1570,7 +1487,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           id: 'message-history-section',
           title: 'message-history-section',
           type: 'custom' as const,
-          searchKeywords: ['message', 'timestamp', 'format', 'raw', 'join', 'part', 'quit', 'notice', 'routing'],
+          searchKeywords: [
+            'message',
+            'timestamp',
+            'format',
+            'raw',
+            'join',
+            'part',
+            'quit',
+            'notice',
+            'routing',
+          ],
         }, // Message settings component
         {
           id: 'history-stats',
@@ -1581,22 +1508,41 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             const stats = await messageHistoryService.getStats();
             Alert.alert(
               'Message History Statistics',
-              `Total Messages: ${stats.totalMessages}\nChannels: ${stats.channelCount}\nOldest Message: ${stats.oldestMessage ? new Date(stats.oldestMessage).toLocaleString() : 'N/A'}\nNewest Message: ${stats.newestMessage ? new Date(stats.newestMessage).toLocaleString() : 'N/A'}`
+              `Total Messages: ${stats.totalMessages}\nChannels: ${stats.channelCount}\nOldest Message: ${stats.oldestMessage ? new Date(stats.oldestMessage).toLocaleString() : 'N/A'}\nNewest Message: ${stats.newestMessage ? new Date(stats.newestMessage).toLocaleString() : 'N/A'}`,
             );
           },
-          searchKeywords: ['history', 'statistics', 'stats', 'messages', 'count', 'total'],
+          searchKeywords: [
+            'history',
+            'statistics',
+            'stats',
+            'messages',
+            'count',
+            'total',
+          ],
         },
         {
           id: 'history-export',
           title: t('Export History', { _tags: tags }),
           description: t('Export message history to file', { _tags: tags }),
           type: 'submenu' as const,
-          searchKeywords: ['export', 'history', 'messages', 'json', 'txt', 'csv', 'file', 'save', 'download'],
+          searchKeywords: [
+            'export',
+            'history',
+            'messages',
+            'json',
+            'txt',
+            'csv',
+            'file',
+            'save',
+            'download',
+          ],
           submenuItems: [
             {
               id: 'export-json',
               title: t('Export as JSON', { _tags: tags }),
-              description: t('Export all messages in JSON format', { _tags: tags }),
+              description: t('Export all messages in JSON format', {
+                _tags: tags,
+              }),
               type: 'button' as const,
               onPress: () => handleExportHistory(),
             },
@@ -1610,7 +1556,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             {
               id: 'export-csv',
               title: t('Export as CSV', { _tags: tags }),
-              description: t('Export as spreadsheet-compatible CSV', { _tags: tags }),
+              description: t('Export as spreadsheet-compatible CSV', {
+                _tags: tags,
+              }),
               type: 'button' as const,
               onPress: () => handleExportHistory(),
             },
@@ -1619,10 +1567,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {
           id: 'history-viewer',
           title: t('History Viewer', { _tags: tags }),
-          description: t('Browse saved messages by network and channel', { _tags: tags }),
+          description: t('Browse saved messages by network and channel', {
+            _tags: tags,
+          }),
           type: 'button' as const,
           onPress: () => setShowHistoryViewer(true),
-          searchKeywords: ['history', 'logs', 'viewer', 'messages', 'channel', 'private', 'browse'],
+          searchKeywords: [
+            'history',
+            'logs',
+            'viewer',
+            'messages',
+            'channel',
+            'private',
+            'browse',
+          ],
         },
         {
           id: 'history-clear',
@@ -1631,8 +1589,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           type: 'button' as const,
           onPress: () => {
             Alert.alert(
-          t('Clear Message History', { _tags: tags }),
-          t('This will permanently delete all stored messages. Continue?', { _tags: tags }),
+              t('Clear Message History', { _tags: tags }),
+              t('This will permanently delete all stored messages. Continue?', {
+                _tags: tags,
+              }),
               [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -1641,24 +1601,46 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   onPress: async () => {
                     await messageHistoryService.clearAll();
                     loadHistoryStats();
-                    dataBackupService.getStorageStats().then(setStorageStats).catch(() => {});
+                    dataBackupService
+                      .getStorageStats()
+                      .then(setStorageStats)
+                      .catch(() => {});
                     Alert.alert(
-          t('Success', { _tags: tags }),
-          t('Message history cleared', { _tags: tags }));
+                      t('Success', { _tags: tags }),
+                      t('Message history cleared', { _tags: tags }),
+                    );
                   },
                 },
-              ]
+              ],
             );
           },
-          searchKeywords: ['clear', 'delete', 'remove', 'history', 'messages', 'wipe', 'erase'],
+          searchKeywords: [
+            'clear',
+            'delete',
+            'remove',
+            'history',
+            'messages',
+            'wipe',
+            'erase',
+          ],
         },
         {
           id: 'history-storage',
           title: t('Storage Usage', { _tags: tags }),
-          description: storageStats ? `${(storageStats.totalBytes / 1024 / 1024).toFixed(2)} MB used` : 'Loading...',
+          description: storageStats
+            ? `${(storageStats.totalBytes / 1024 / 1024).toFixed(2)} MB used`
+            : 'Loading...',
           type: 'button' as const,
           disabled: true,
-          searchKeywords: ['storage', 'space', 'usage', 'size', 'disk', 'mb', 'data'],
+          searchKeywords: [
+            'storage',
+            'space',
+            'usage',
+            'size',
+            'disk',
+            'mb',
+            'data',
+          ],
         },
         {
           id: 'history-backup',
@@ -1666,69 +1648,136 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           description: t('Backup or restore all app data', { _tags: tags }),
           type: 'button' as const,
           onPress: () => setShowBackupScreen(true),
-          searchKeywords: ['backup', 'restore', 'import', 'export', 'save', 'load', 'data', 'settings'],
+          searchKeywords: [
+            'backup',
+            'restore',
+            'import',
+            'export',
+            'save',
+            'load',
+            'data',
+            'settings',
+          ],
         },
       ],
     },
     {
       id: 'media',
       title: t('Media', { _tags: tags }),
-      data: [{
-        id: 'media-section',
-        title: 'media-section',
-        type: 'custom' as const,
-        searchKeywords: ['image', 'video', 'audio', 'photo', 'camera', 'voice', 'recorder', 'upload', 'download', 'media'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'media-section',
+          title: 'media-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'image',
+            'video',
+            'audio',
+            'photo',
+            'camera',
+            'voice',
+            'recorder',
+            'upload',
+            'download',
+            'media',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'notifications',
       title: t('Notifications', { _tags: tags }),
-      data: [{
-        id: 'notifications-section',
-        title: 'notifications-section',
-        type: 'custom' as const,
-        searchKeywords: ['notification', 'alert', 'sound', 'vibrate', 'badge', 'push'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'notifications-section',
+          title: 'notifications-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'notification',
+            'alert',
+            'sound',
+            'vibrate',
+            'badge',
+            'push',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'away',
       title: t('Away', { _tags: tags }),
-      data: [{
-        id: 'away-section',
-        title: 'away-section',
-        type: 'custom' as const,
-        searchKeywords: ['away', 'back', 'auto-away', 'auto answer', 'auto-answer', 'announce', 'nick', 'return', 'message'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'away-section',
+          title: 'away-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'away',
+            'back',
+            'auto-away',
+            'auto answer',
+            'auto-answer',
+            'announce',
+            'nick',
+            'return',
+            'message',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'protection',
       title: t('Protection', { _tags: tags }),
-      data: [{
-        id: 'protection-section',
-        title: 'protection-section',
-        type: 'custom' as const,
-        searchKeywords: ['protection', 'anti-spam', 'spam', 'flood', 'dos', 'ctcp', 'query', 'dcc', 'silence'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'protection-section',
+          title: 'protection-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'protection',
+            'anti-spam',
+            'spam',
+            'flood',
+            'dos',
+            'ctcp',
+            'query',
+            'dcc',
+            'silence',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'writing',
       title: t('Writing', { _tags: tags }),
-      data: [{
-        id: 'writing-section',
-        title: 'writing-section',
-        type: 'custom' as const,
-        searchKeywords: ['writing', 'decoration', 'styles', 'nick completion', 'completion', 'formatting', 'text'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'writing-section',
+          title: 'writing-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'writing',
+            'decoration',
+            'styles',
+            'nick completion',
+            'completion',
+            'formatting',
+            'text',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'highlighting',
       title: t('Highlighting', { _tags: tags }),
-      data: [{
-        id: 'highlighting-section',
-        title: 'highlighting-section',
-        type: 'custom' as const,
-        searchKeywords: ['highlight', 'keyword', 'mention', 'nick', 'color'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'highlighting-section',
+          title: 'highlighting-section',
+          type: 'custom' as const,
+          searchKeywords: ['highlight', 'keyword', 'mention', 'nick', 'color'],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'connection-network',
@@ -1738,7 +1787,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           id: 'connection-network-section',
           title: 'connection-network-section',
           type: 'custom' as const,
-          searchKeywords: ['network', 'server', 'connection', 'proxy', 'tor', 'ssl', 'tls', 'port', 'bouncer', 'znc', 'auto-reconnect', 'favorites', 'dcc'],
+          searchKeywords: [
+            'network',
+            'server',
+            'connection',
+            'proxy',
+            'tor',
+            'ssl',
+            'tls',
+            'port',
+            'bouncer',
+            'znc',
+            'auto-reconnect',
+            'favorites',
+            'dcc',
+          ],
         }, // Connection & Network component
         // IRC Bouncer settings moved here
         {
@@ -1749,7 +1812,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             : 'Not connected or not detected',
           type: 'button' as const,
           disabled: true,
-          searchKeywords: ['bouncer', 'status', 'znc', 'bnc', 'playback', 'connected'],
+          searchKeywords: [
+            'bouncer',
+            'status',
+            'znc',
+            'bnc',
+            'playback',
+            'connected',
+          ],
         },
         {
           id: 'bouncer-config',
@@ -1758,7 +1828,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             ? `${bouncerConfig.type} mode, ${bouncerConfig.handlePlayback ? 'playback enabled' : 'playback disabled'}`
             : 'Configure bouncer support',
           type: 'submenu' as const,
-          searchKeywords: ['bouncer', 'settings', 'znc', 'bnc', 'playback', 'buffer', 'timeout', 'age', 'limit'],
+          searchKeywords: [
+            'bouncer',
+            'settings',
+            'znc',
+            'bnc',
+            'playback',
+            'buffer',
+            'timeout',
+            'age',
+            'limit',
+          ],
           submenuItems: [
             {
               id: 'bouncer-enabled',
@@ -1776,8 +1856,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               type: 'button' as const,
               onPress: () => {
                 Alert.alert(
-          t('Bouncer Type', { _tags: tags }),
-          t('Select bouncer type:', { _tags: tags }),
+                  t('Bouncer Type', { _tags: tags }),
+                  t('Select bouncer type:', { _tags: tags }),
                   [
                     { text: 'Cancel', style: 'cancel' },
                     {
@@ -1798,7 +1878,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                         await updateBouncerConfig({ type: 'bnc' });
                       },
                     },
-                  ]
+                  ],
                 );
               },
               disabled: !bouncerConfig?.enabled,
@@ -1806,7 +1886,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             {
               id: 'bouncer-handle-playback',
               title: t('Handle Playback Buffer', { _tags: tags }),
-              description: t('Process playback messages from bouncer', { _tags: tags }),
+              description: t('Process playback messages from bouncer', {
+                _tags: tags,
+              }),
               type: 'switch' as const,
               value: bouncerConfig?.handlePlayback || false,
               onValueChange: async (value: boolean) => {
@@ -1817,13 +1899,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             {
               id: 'bouncer-mark-playback',
               title: t('Mark Playback Messages', { _tags: tags }),
-              description: t('Add [Playback] indicator to old messages', { _tags: tags }),
+              description: t('Add [Playback] indicator to old messages', {
+                _tags: tags,
+              }),
               type: 'switch' as const,
               value: bouncerConfig?.markPlaybackMessages || false,
               onValueChange: async (value: boolean) => {
                 await updateBouncerConfig({ markPlaybackMessages: value });
               },
-              disabled: !bouncerConfig?.enabled || !bouncerConfig?.handlePlayback,
+              disabled:
+                !bouncerConfig?.enabled || !bouncerConfig?.handlePlayback,
             },
             {
               id: 'bouncer-skip-old',
@@ -1834,7 +1919,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               onValueChange: async (value: boolean) => {
                 await updateBouncerConfig({ skipOldPlayback: value });
               },
-              disabled: !bouncerConfig?.enabled || !bouncerConfig?.handlePlayback,
+              disabled:
+                !bouncerConfig?.enabled || !bouncerConfig?.handlePlayback,
             },
             {
               id: 'bouncer-playback-timeout',
@@ -1849,7 +1935,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   await updateBouncerConfig({ playbackTimeout: timeout });
                 }
               },
-              disabled: !bouncerConfig?.enabled || !bouncerConfig?.handlePlayback,
+              disabled:
+                !bouncerConfig?.enabled || !bouncerConfig?.handlePlayback,
             },
             {
               id: 'bouncer-playback-age',
@@ -1864,25 +1951,37 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   await updateBouncerConfig({ playbackAgeLimit: age });
                 }
               },
-              disabled: !bouncerConfig?.enabled || !bouncerConfig?.handlePlayback || !bouncerConfig?.skipOldPlayback,
+              disabled:
+                !bouncerConfig?.enabled ||
+                !bouncerConfig?.handlePlayback ||
+                !bouncerConfig?.skipOldPlayback,
             },
             {
               id: 'bouncer-request-playback',
               title: t('Request Playback (ZNC)', { _tags: tags }),
-              description: t('Request playback buffer from ZNC', { _tags: tags }),
+              description: t('Request playback buffer from ZNC', {
+                _tags: tags,
+              }),
               type: 'button' as const,
               onPress: () => {
                 bouncerService.requestPlayback();
                 Alert.alert(
-          t('Info', { _tags: tags }),
-          t('Playback requested from ZNC', { _tags: tags }));
+                  t('Info', { _tags: tags }),
+                  t('Playback requested from ZNC', { _tags: tags }),
+                );
               },
-              disabled: !bouncerConfig?.enabled || bouncerInfo?.type !== 'znc' || !bouncerInfo?.playbackSupported,
+              disabled:
+                !bouncerConfig?.enabled ||
+                bouncerInfo?.type !== 'znc' ||
+                !bouncerInfo?.playbackSupported,
             },
             {
               id: 'bouncer-load-scrollback',
               title: t('Load Scrollback on Join', { _tags: tags }),
-              description: t('Load previous messages from local history when joining channels', { _tags: tags }),
+              description: t(
+                'Load previous messages from local history when joining channels',
+                { _tags: tags },
+              ),
               type: 'switch' as const,
               value: bouncerConfig?.loadScrollbackOnJoin ?? true,
               onValueChange: async (value: boolean) => {
@@ -1892,7 +1991,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             {
               id: 'bouncer-scrollback-lines',
               title: t('Scrollback Lines', { _tags: tags }),
-              description: t('Number of previous messages to load: {count}', { _tags: tags, count: bouncerConfig?.scrollbackLines || 50 }),
+              description: t('Number of previous messages to load: {count}', {
+                _tags: tags,
+                count: bouncerConfig?.scrollbackLines || 50,
+              }),
               type: 'input' as const,
               value: bouncerConfig?.scrollbackLines?.toString() || '50',
               keyboardType: 'numeric',
@@ -1916,40 +2018,112 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           id: 'security-section',
           title: 'security-section',
           type: 'custom' as const,
-          searchKeywords: ['pin', 'password', 'lock', 'biometric', 'fingerprint', 'face', 'encryption', 'keys', 'identity', 'profile'],
+          searchKeywords: [
+            'pin',
+            'password',
+            'lock',
+            'biometric',
+            'fingerprint',
+            'face',
+            'encryption',
+            'keys',
+            'identity',
+            'profile',
+          ],
         }, // Security component
         {
           id: 'security-quick-connect-section',
           title: 'security-quick-connect-section',
           type: 'custom' as const,
-          searchKeywords: ['quick', 'connect', 'favorite', 'identity', 'profile', 'kill', 'switch', 'panic', 'emergency', 'wipe', 'delete', 'custom', 'icon', 'color', 'name'],
+          searchKeywords: [
+            'quick',
+            'connect',
+            'favorite',
+            'identity',
+            'profile',
+            'kill',
+            'switch',
+            'panic',
+            'emergency',
+            'wipe',
+            'delete',
+            'custom',
+            'icon',
+            'color',
+            'name',
+          ],
         }, // Security & Quick Connect merged here
       ],
     },
     {
       id: 'users-services',
       title: t('Users & Services', { _tags: tags }),
-      data: [{
-        id: 'users-services-section',
-        title: 'users-services-section',
-        type: 'custom' as const,
-        searchKeywords: ['ignore', 'block', 'monitor', 'watch', 'nickserv', 'chanserv', 'user', 'service'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'users-services-section',
+          title: 'users-services-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'ignore',
+            'block',
+            'monitor',
+            'watch',
+            'nickserv',
+            'chanserv',
+            'user',
+            'service',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'commands',
       title: t('Commands', { _tags: tags }),
-      data: [{
-        id: 'commands-section',
-        title: 'commands-section',
-        type: 'custom' as const,
-        searchKeywords: [
-          'command', 'alias', 'custom', 'history', 'kill', 'kick', 'ban', 'mode', 'whois',
-          'join', 'part', 'quit', 'nick', 'msg', 'notice', 'topic', 'invite', 'voice',
-          'op', 'deop', 'halfop', 'dehalfop', 'owner', 'deowner', 'admin', 'deadmin',
-          'znc', 'oper', 'ctcp', 'dcc', 'away', 'back', 'list', 'names', 'who', 'whowas',
-        ],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'commands-section',
+          title: 'commands-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'command',
+            'alias',
+            'custom',
+            'history',
+            'kill',
+            'kick',
+            'ban',
+            'mode',
+            'whois',
+            'join',
+            'part',
+            'quit',
+            'nick',
+            'msg',
+            'notice',
+            'topic',
+            'invite',
+            'voice',
+            'op',
+            'deop',
+            'halfop',
+            'dehalfop',
+            'owner',
+            'deowner',
+            'admin',
+            'deadmin',
+            'znc',
+            'oper',
+            'ctcp',
+            'dcc',
+            'away',
+            'back',
+            'list',
+            'names',
+            'who',
+            'whowas',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'performance',
@@ -1958,19 +2132,31 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {
           id: 'perf-virtualization',
           title: t('Message List Virtualization', { _tags: tags }),
-          description: t('Use FlatList for better performance with large channels', { _tags: tags }),
+          description: t(
+            'Use FlatList for better performance with large channels',
+            { _tags: tags },
+          ),
           type: 'switch' as const,
           value: performanceConfig?.enableVirtualization !== false,
           onValueChange: async (value: boolean) => {
             await performanceService.setConfig({ enableVirtualization: value });
             setPerformanceConfig(performanceService.getConfig());
           },
-          searchKeywords: ['virtualization', 'performance', 'flatlist', 'scroll', 'optimize', 'speed'],
+          searchKeywords: [
+            'virtualization',
+            'performance',
+            'flatlist',
+            'scroll',
+            'optimize',
+            'speed',
+          ],
         },
         {
           id: 'perf-lazy-loading',
           title: t('Lazy Load Old Messages', { _tags: tags }),
-          description: t('Load old messages when scrolling up', { _tags: tags }),
+          description: t('Load old messages when scrolling up', {
+            _tags: tags,
+          }),
           type: 'switch' as const,
           value: performanceConfig?.enableLazyLoading !== false,
           onValueChange: async (value: boolean) => {
@@ -1978,31 +2164,58 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             setPerformanceConfig(performanceService.getConfig());
           },
           disabled: !performanceConfig?.enableVirtualization,
-          searchKeywords: ['lazy', 'load', 'loading', 'old', 'messages', 'scroll', 'performance'],
+          searchKeywords: [
+            'lazy',
+            'load',
+            'loading',
+            'old',
+            'messages',
+            'scroll',
+            'performance',
+          ],
         },
         {
           id: 'perf-render-optimization',
           title: t('Render Optimization', { _tags: tags }),
-          description: t('Use React.memo and useMemo for optimized rendering', { _tags: tags }),
+          description: t('Use React.memo and useMemo for optimized rendering', {
+            _tags: tags,
+          }),
           type: 'switch' as const,
           value: performanceConfig?.renderOptimization !== false,
           onValueChange: async (value: boolean) => {
             await performanceService.setConfig({ renderOptimization: value });
             setPerformanceConfig(performanceService.getConfig());
           },
-          searchKeywords: ['render', 'optimization', 'optimize', 'memo', 'performance', 'speed'],
+          searchKeywords: [
+            'render',
+            'optimization',
+            'optimize',
+            'memo',
+            'performance',
+            'speed',
+          ],
         },
         {
           id: 'perf-message-cleanup',
           title: t('Automatic Message Cleanup', { _tags: tags }),
-          description: t('Automatically remove old messages to save memory', { _tags: tags }),
+          description: t('Automatically remove old messages to save memory', {
+            _tags: tags,
+          }),
           type: 'switch' as const,
           value: performanceConfig?.enableMessageCleanup !== false,
           onValueChange: async (value: boolean) => {
             await performanceService.setConfig({ enableMessageCleanup: value });
             setPerformanceConfig(performanceService.getConfig());
           },
-          searchKeywords: ['cleanup', 'clean', 'remove', 'old', 'messages', 'memory', 'automatic'],
+          searchKeywords: [
+            'cleanup',
+            'clean',
+            'remove',
+            'old',
+            'messages',
+            'memory',
+            'automatic',
+          ],
         },
         {
           id: 'perf-message-limit',
@@ -2019,7 +2232,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             }
           },
           disabled: !performanceConfig?.enableMessageCleanup,
-          searchKeywords: ['message', 'limit', 'max', 'maximum', 'channel', 'memory', 'count'],
+          searchKeywords: [
+            'message',
+            'limit',
+            'max',
+            'maximum',
+            'channel',
+            'memory',
+            'count',
+          ],
         },
         {
           id: 'perf-max-visible',
@@ -2036,7 +2257,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             }
           },
           disabled: !performanceConfig?.enableVirtualization,
-          searchKeywords: ['max', 'maximum', 'visible', 'messages', 'render', 'display'],
+          searchKeywords: [
+            'max',
+            'maximum',
+            'visible',
+            'messages',
+            'render',
+            'display',
+          ],
         },
         {
           id: 'perf-load-chunk',
@@ -2052,66 +2280,111 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               setPerformanceConfig(performanceService.getConfig());
             }
           },
-          disabled: !performanceConfig?.enableVirtualization || !performanceConfig?.enableLazyLoading,
-          searchKeywords: ['load', 'chunk', 'size', 'batch', 'messages', 'performance'],
+          disabled:
+            !performanceConfig?.enableVirtualization ||
+            !performanceConfig?.enableLazyLoading,
+          searchKeywords: [
+            'load',
+            'chunk',
+            'size',
+            'batch',
+            'messages',
+            'performance',
+          ],
         },
         {
           id: 'perf-image-lazy',
           title: t('Lazy Load Images', { _tags: tags }),
-          description: t('Only load images when they become visible', { _tags: tags }),
+          description: t('Only load images when they become visible', {
+            _tags: tags,
+          }),
           type: 'switch' as const,
           value: performanceConfig?.imageLazyLoad !== false,
           onValueChange: async (value: boolean) => {
             await performanceService.setConfig({ imageLazyLoad: value });
             setPerformanceConfig(performanceService.getConfig());
           },
-          searchKeywords: ['lazy', 'load', 'images', 'photos', 'visible', 'performance'],
+          searchKeywords: [
+            'lazy',
+            'load',
+            'images',
+            'photos',
+            'visible',
+            'performance',
+          ],
         },
         {
           id: 'perf-user-grouping',
           title: t('User List Grouping', { _tags: tags }),
-          description: t('Group users by status (ops/voice/etc.)', { _tags: tags }),
+          description: t('Group users by status (ops/voice/etc.)', {
+            _tags: tags,
+          }),
           type: 'switch' as const,
           value: performanceConfig?.userListGrouping !== false,
           onValueChange: async (value: boolean) => {
             await performanceService.setConfig({ userListGrouping: value });
             setPerformanceConfig(performanceService.getConfig());
           },
-          searchKeywords: ['user', 'list', 'group', 'grouping', 'ops', 'voice', 'performance'],
+          searchKeywords: [
+            'user',
+            'list',
+            'group',
+            'grouping',
+            'ops',
+            'voice',
+            'performance',
+          ],
         },
         {
           id: 'perf-user-grouping-threshold',
           title: t('Auto-Disable Grouping Threshold', { _tags: tags }),
           description: `Disable grouping above ${performanceConfig?.userListAutoDisableGroupingThreshold || 1000} users`,
           type: 'input' as const,
-          value: performanceConfig?.userListAutoDisableGroupingThreshold?.toString() || '1000',
+          value:
+            performanceConfig?.userListAutoDisableGroupingThreshold?.toString() ||
+            '1000',
           keyboardType: 'numeric',
           onValueChange: async (value: string) => {
             const threshold = parseInt(value, 10);
             if (!isNaN(threshold) && threshold > 0) {
-              await performanceService.setConfig({ userListAutoDisableGroupingThreshold: threshold });
+              await performanceService.setConfig({
+                userListAutoDisableGroupingThreshold: threshold,
+              });
               setPerformanceConfig(performanceService.getConfig());
             }
           },
           disabled: performanceConfig?.userListGrouping === false,
-          searchKeywords: ['user', 'list', 'group', 'threshold', 'auto', 'disable', 'performance'],
+          searchKeywords: [
+            'user',
+            'list',
+            'group',
+            'threshold',
+            'auto',
+            'disable',
+            'performance',
+          ],
         },
         // User List Type Selection (Modal)
         {
           id: 'perf-user-list-type',
           title: t('User List Type', { _tags: tags }),
-          description: t('Currently: {type}', { 
+          description: t('Currently: {type}', {
             type: (() => {
               const type = performanceConfig?.userListType || 'flashlist';
-              switch(type) {
-                case 'flashlist': return t('FlashList (Fastest)', { _tags: tags });
-                case 'flatlist': return t('FlatList (Virtualized)', { _tags: tags });
-                case 'grouped': return t('Grouped (By Mode)', { _tags: tags });
-                case 'simple': return t('Simple (ScrollView)', { _tags: tags });
-                default: return type;
+              switch (type) {
+                case 'flashlist':
+                  return t('FlashList (Fastest)', { _tags: tags });
+                case 'flatlist':
+                  return t('FlatList (Virtualized)', { _tags: tags });
+                case 'grouped':
+                  return t('Grouped (By Mode)', { _tags: tags });
+                case 'simple':
+                  return t('Simple (ScrollView)', { _tags: tags });
+                default:
+                  return type;
               }
             })(),
-            _tags: tags 
+            _tags: tags,
           }),
           type: 'button' as const,
           onPress: () => {
@@ -2122,28 +2395,36 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 {
                   text: t('FlashList (Fastest)', { _tags: tags }),
                   onPress: async () => {
-                    await performanceService.setConfig({ userListType: 'flashlist' });
+                    await performanceService.setConfig({
+                      userListType: 'flashlist',
+                    });
                     setPerformanceConfig(performanceService.getConfig());
                   },
                 },
                 {
                   text: t('FlatList (Virtualized)', { _tags: tags }),
                   onPress: async () => {
-                    await performanceService.setConfig({ userListType: 'flatlist' });
+                    await performanceService.setConfig({
+                      userListType: 'flatlist',
+                    });
                     setPerformanceConfig(performanceService.getConfig());
                   },
                 },
                 {
                   text: t('Grouped (By Mode)', { _tags: tags }),
                   onPress: async () => {
-                    await performanceService.setConfig({ userListType: 'grouped' });
+                    await performanceService.setConfig({
+                      userListType: 'grouped',
+                    });
                     setPerformanceConfig(performanceService.getConfig());
                   },
                 },
                 {
                   text: t('Simple (ScrollView)', { _tags: tags }),
                   onPress: async () => {
-                    await performanceService.setConfig({ userListType: 'simple' });
+                    await performanceService.setConfig({
+                      userListType: 'simple',
+                    });
                     setPerformanceConfig(performanceService.getConfig());
                   },
                 },
@@ -2151,10 +2432,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   text: t('Cancel', { _tags: tags }),
                   style: 'cancel',
                 },
-              ]
+              ],
             );
           },
-          searchKeywords: ['user', 'list', 'type', 'flashlist', 'flatlist', 'grouped', 'simple', 'performance'],
+          searchKeywords: [
+            'user',
+            'list',
+            'type',
+            'flashlist',
+            'flatlist',
+            'grouped',
+            'simple',
+            'performance',
+          ],
         },
         // Search Debounce
         {
@@ -2162,12 +2452,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           title: t('Search Debounce', { _tags: tags }),
           description: `${performanceConfig?.userListSearchDebounceMs || 300}ms delay`,
           type: 'input' as const,
-          value: performanceConfig?.userListSearchDebounceMs?.toString() || '300',
+          value:
+            performanceConfig?.userListSearchDebounceMs?.toString() || '300',
           keyboardType: 'numeric',
           onValueChange: async (value: string) => {
             const ms = parseInt(value, 10);
             if (!isNaN(ms) && ms >= 0) {
-              await performanceService.setConfig({ userListSearchDebounceMs: ms });
+              await performanceService.setConfig({
+                userListSearchDebounceMs: ms,
+              });
               setPerformanceConfig(performanceService.getConfig());
             }
           },
@@ -2179,12 +2472,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           title: t('Skip Sort Threshold', { _tags: tags }),
           description: `Disable sorting above ${performanceConfig?.userListSkipSortThreshold || 1000} users`,
           type: 'input' as const,
-          value: performanceConfig?.userListSkipSortThreshold?.toString() || '1000',
+          value:
+            performanceConfig?.userListSkipSortThreshold?.toString() || '1000',
           keyboardType: 'numeric',
           onValueChange: async (value: string) => {
             const threshold = parseInt(value, 10);
             if (!isNaN(threshold) && threshold >= 0) {
-              await performanceService.setConfig({ userListSkipSortThreshold: threshold });
+              await performanceService.setConfig({
+                userListSkipSortThreshold: threshold,
+              });
               setPerformanceConfig(performanceService.getConfig());
             }
           },
@@ -2198,7 +2494,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           type: 'switch' as const,
           value: performanceConfig?.userListEnableChunkLoading !== false,
           onValueChange: async (value: boolean) => {
-            await performanceService.setConfig({ userListEnableChunkLoading: value });
+            await performanceService.setConfig({
+              userListEnableChunkLoading: value,
+            });
             setPerformanceConfig(performanceService.getConfig());
           },
           searchKeywords: ['chunk', 'loading', 'incremental', 'user', 'list'],
@@ -2227,12 +2525,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           title: t('Initial Render Count', { _tags: tags }),
           description: `${performanceConfig?.userListInitialRenderCount || 50} users initially`,
           type: 'input' as const,
-          value: performanceConfig?.userListInitialRenderCount?.toString() || '50',
+          value:
+            performanceConfig?.userListInitialRenderCount?.toString() || '50',
           keyboardType: 'numeric',
           onValueChange: async (value: string) => {
             const count = parseInt(value, 10);
             if (!isNaN(count) && count > 0) {
-              await performanceService.setConfig({ userListInitialRenderCount: count });
+              await performanceService.setConfig({
+                userListInitialRenderCount: count,
+              });
               setPerformanceConfig(performanceService.getConfig());
             }
           },
@@ -2243,12 +2544,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     {
       id: 'background-battery',
       title: t('Background & Battery', { _tags: tags }),
-      data: [{
-        id: 'background-battery-section',
-        title: 'background-battery-section',
-        type: 'custom' as const,
-        searchKeywords: ['background', 'service', 'foreground', 'battery', 'optimization', 'doze', 'persistent'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'background-battery-section',
+          title: 'background-battery-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'background',
+            'service',
+            'foreground',
+            'battery',
+            'optimization',
+            'doze',
+            'persistent',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'scripting-ads',
@@ -2257,10 +2568,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {
           id: 'advanced-scripts',
           title: t('Scripts (Scripting Time & No-Ads)', { _tags: tags }),
-          description: t('Manage IRC scripts and automation. Scripting time is also ad-free time.', { _tags: tags }),
+          description: t(
+            'Manage IRC scripts and automation. Scripting time is also ad-free time.',
+            { _tags: tags },
+          ),
           type: 'button' as const,
           onPress: () => setShowScripting(true),
-          searchKeywords: ['scripts', 'scripting', 'automation', 'time', 'no-ads', 'ad-free', 'manage'],
+          searchKeywords: [
+            'scripts',
+            'scripting',
+            'automation',
+            'time',
+            'no-ads',
+            'ad-free',
+            'manage',
+          ],
         },
         {
           id: 'advanced-scripts-help',
@@ -2268,39 +2590,77 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           description: t('Learn how to write and use scripts', { _tags: tags }),
           type: 'button' as const,
           onPress: () => setShowScriptingHelp(true),
-          searchKeywords: ['scripting', 'help', 'guide', 'tutorial', 'write', 'scripts'],
+          searchKeywords: [
+            'scripting',
+            'help',
+            'guide',
+            'tutorial',
+            'write',
+            'scripts',
+          ],
         },
         {
           id: 'watch-ad-button-premium',
           title: t('Show Watch Ad Button (Premium)', { _tags: tags }),
-          description: (hasNoAds || hasScriptingPro || isSupporter)
-            ? t('Enable watch ad button to support the project (you have premium plan)', { _tags: tags })
-            : t('Always shown for normal users', { _tags: tags }),
+          description:
+            hasNoAds || hasScriptingPro || isSupporter
+              ? t(
+                  'Enable watch ad button to support the project (you have premium plan)',
+                  { _tags: tags },
+                )
+              : t('Always shown for normal users', { _tags: tags }),
           type: 'switch' as const,
           value: watchAdButtonEnabledForPremium,
           onValueChange: async (value: boolean | string) => {
             await setWatchAdButtonEnabledForPremium(value as boolean);
           },
           disabled: !(hasNoAds || hasScriptingPro || isSupporter),
-          searchKeywords: ['watch', 'ad', 'button', 'premium', 'ads', 'advertising', 'support'],
+          searchKeywords: [
+            'watch',
+            'ad',
+            'button',
+            'premium',
+            'ads',
+            'advertising',
+            'support',
+          ],
         },
         {
           id: 'watch-ad-button',
           title: 'watch-ad-button',
           type: 'custom' as const,
-          searchKeywords: ['watch', 'ad', 'reward', 'video', 'ads', 'time', 'scripting'],
+          searchKeywords: [
+            'watch',
+            'ad',
+            'reward',
+            'video',
+            'ads',
+            'time',
+            'scripting',
+          ],
         },
       ],
     },
     {
       id: 'privacy-legal',
       title: t('Privacy & Legal', { _tags: tags }),
-      data: [{
-        id: 'privacy-legal-section',
-        title: 'privacy-legal-section',
-        type: 'custom' as const,
-        searchKeywords: ['privacy', 'legal', 'terms', 'policy', 'data', 'gdpr', 'license', 'copyright'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'privacy-legal-section',
+          title: 'privacy-legal-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'privacy',
+            'legal',
+            'terms',
+            'policy',
+            'data',
+            'gdpr',
+            'license',
+            'copyright',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     ...(__DEV__
       ? [
@@ -2311,18 +2671,32 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               {
                 id: 'console-logging',
                 title: t('Enable Console Logging', { _tags: tags }),
-                description: t('Toggle console.log output in development', { _tags: tags }),
+                description: t('Toggle console.log output in development', {
+                  _tags: tags,
+                }),
                 type: 'switch' as const,
                 value: consoleEnabled,
                 onValueChange: async (value: boolean) => {
                   setConsoleEnabled(value);
                   await consoleManager.setEnabled(value);
-                  if (!value && performanceConfig?.debugLoggingEnabled === true) {
-                    await performanceService.setConfig({ debugLoggingEnabled: false });
+                  if (
+                    !value &&
+                    performanceConfig?.debugLoggingEnabled === true
+                  ) {
+                    await performanceService.setConfig({
+                      debugLoggingEnabled: false,
+                    });
                     setPerformanceConfig(performanceService.getConfig());
                   }
                 },
-                searchKeywords: ['console', 'logging', 'log', 'debug', 'development', 'dev'],
+                searchKeywords: [
+                  'console',
+                  'logging',
+                  'log',
+                  'debug',
+                  'development',
+                  'dev',
+                ],
               },
               ...developmentDebugLogItems,
             ],
@@ -2332,34 +2706,65 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     {
       id: 'about',
       title: aboutTitle,
-      data: [{
-        id: 'about-section',
-        title: 'about-section',
-        type: 'custom' as const,
-        searchKeywords: ['about', 'version', 'info', 'credits', 'author', 'developer', 'contact', 'support'],
-      }], // Placeholder - actual rendering handled by component
+      data: [
+        {
+          id: 'about-section',
+          title: 'about-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'about',
+            'version',
+            'info',
+            'credits',
+            'author',
+            'developer',
+            'contact',
+            'support',
+          ],
+        },
+      ], // Placeholder - actual rendering handled by component
     },
     {
       id: 'help',
       title: helpTitle,
-      data: [{
-        id: 'help-section',
-        title: 'help-section',
-        type: 'custom' as const,
-        searchKeywords: ['help', 'guide', 'tutorial', 'documentation', 'faq', 'troubleshooting', 'support'],
-      }], // Help & Documentation section
+      data: [
+        {
+          id: 'help-section',
+          title: 'help-section',
+          type: 'custom' as const,
+          searchKeywords: [
+            'help',
+            'guide',
+            'tutorial',
+            'documentation',
+            'faq',
+            'troubleshooting',
+            'support',
+          ],
+        },
+      ], // Help & Documentation section
     },
   ];
 
-  const orderedSections = orderSections(sections, isSupporter, hasNoAds, hasScriptingPro);
+  const orderedSections = orderSections(
+    sections,
+    isSupporter,
+    hasNoAds,
+    hasScriptingPro,
+  );
   const filteredSections = filterSettings(orderedSections, searchTerm);
 
   const renderSettingItem = (item: SettingItem, sectionTitle?: string) => {
-    const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
-    
+    const itemIcon =
+      (typeof item.icon === 'object' ? item.icon : undefined) ||
+      settingIcons[item.id];
+
     // Handle section components
     if (item.type === 'custom') {
-      if (item.id === 'scripting-ads-section' && sectionTitle === scriptingAdsTitle) {
+      if (
+        item.id === 'scripting-ads-section' &&
+        sectionTitle === scriptingAdsTitle
+      ) {
         return (
           <ScriptingAdsSection
             key={item.id}
@@ -2371,7 +2776,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           />
         );
       }
-      if (item.id === 'security-quick-connect-section' && sectionTitle === t('Security', { _tags: tags })) {
+      if (
+        item.id === 'security-quick-connect-section' &&
+        sectionTitle === t('Security', { _tags: tags })
+      ) {
         return (
           <SecurityQuickConnectSection
             key={item.id}
@@ -2381,7 +2789,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           />
         );
       }
-      if (item.id === 'security-section' && sectionTitle === t('Security', { _tags: tags })) {
+      if (
+        item.id === 'security-section' &&
+        sectionTitle === t('Security', { _tags: tags })
+      ) {
         return (
           <SecuritySection
             key={item.id}
@@ -2396,7 +2807,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           />
         );
       }
-      if (item.id === 'privacy-legal-section' && sectionTitle === t('Privacy & Legal', { _tags: tags })) {
+      if (
+        item.id === 'privacy-legal-section' &&
+        sectionTitle === t('Privacy & Legal', { _tags: tags })
+      ) {
         return (
           <PrivacyLegalSection
             key={item.id}
@@ -2423,14 +2837,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       if (item.id === 'help-section' && sectionTitle === helpTitle) {
         return <HelpSection key={item.id} />;
       }
-      if (item.id === 'appearance-section' && sectionTitle === t('Appearance', { _tags: tags })) {
+      if (
+        item.id === 'appearance-section' &&
+        sectionTitle === t('Appearance', { _tags: tags })
+      ) {
         return (
           <AppearanceSection
             key={item.id}
             colors={colors}
             styles={styles}
             settingIcons={settingIcons}
-            onShowThemeEditor={(selectedTheme) => {
+            onShowThemeEditor={selectedTheme => {
               setEditingTheme(selectedTheme);
               setShowThemeEditor(true);
             }}
@@ -2438,7 +2855,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           />
         );
       }
-      if (item.id === 'display-ui-section' && sectionTitle === t('Display & UI', { _tags: tags })) {
+      if (
+        item.id === 'display-ui-section' &&
+        sectionTitle === t('Display & UI', { _tags: tags })
+      ) {
         return (
           <DisplayUISection
             key={item.id}
@@ -2456,7 +2876,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           />
         );
       }
-      if (item.id === 'message-history-section' && sectionTitle === t('Messages & History', { _tags: tags })) {
+      if (
+        item.id === 'message-history-section' &&
+        sectionTitle === t('Messages & History', { _tags: tags })
+      ) {
         return (
           <MessageHistorySection
             key={item.id}
@@ -2466,136 +2889,172 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           />
         );
       }
-            if (item.id === 'notifications-section' && sectionTitle === t('Notifications', { _tags: tags })) {
-              return (
-                <NotificationsSection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                />
-              );
-            }
-            if (item.id === 'away-section' && sectionTitle === t('Away', { _tags: tags })) {
-              return (
-                <AwaySection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                  onClose={onClose}
-                />
-              );
-            }
-            if (item.id === 'protection-section' && sectionTitle === t('Protection', { _tags: tags })) {
-              return (
-                <ProtectionSection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                />
-              );
-            }
-            if (item.id === 'writing-section' && sectionTitle === t('Writing', { _tags: tags })) {
-              return (
-                <WritingSection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                />
-              );
-            }
-            if (item.id === 'connection-network-section' && sectionTitle === connectionTitle) {
-              return (
-                <ConnectionNetworkSection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                  currentNetwork={currentNetwork}
-                  onShowFirstRunSetup={() => setShowFirstRunSetup(true)}
-                  onShowNetworksList={() => {
-                    useUIStore.getState().setShowSettings(false);
-                    useUIStore.getState().setShowNetworksList(true);
-                  }}
-                  onShowConnectionProfiles={() => setShowConnectionProfiles(true)}
-                />
-              );
-            }
-            if (item.id === 'background-battery-section' && sectionTitle === t('Background & Battery', { _tags: tags })) {
-              return (
-                <BackgroundBatterySection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                />
-              );
-            }
-            if (item.id === 'highlighting-section' && sectionTitle === t('Highlighting', { _tags: tags })) {
-              return (
-                <HighlightingSection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                />
-              );
-            }
-            if (item.id === 'security-section' && sectionTitle === t('Security', { _tags: tags })) {
-              return (
-                <SecuritySection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                  onShowKeyManagement={() => setShowKeyManagement(true)}
-                  onShowMigrationDialog={() => setShowMigrationDialog(true)}
-                />
-              );
-            }
-            if (item.id === 'users-services-section' && sectionTitle === t('Users & Services', { _tags: tags })) {
-              return (
-                <UsersServicesSection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                  currentNetwork={currentNetwork}
-                  onShowBlacklist={onShowBlacklist}
-                  onShowUserLists={onShowUserLists}
-                />
-              );
-            }
-            if (item.id === 'commands-section' && sectionTitle === t('Commands', { _tags: tags })) {
-              return (
-                <CommandsSection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                />
-              );
-            }
-            if (item.id === 'media-section' && sectionTitle === t('Media', { _tags: tags })) {
-              return (
-                <MediaSection
-                  key={item.id}
-                  colors={colors}
-                  styles={styles}
-                  settingIcons={settingIcons}
-                />
-              );
-            }
-      
+      if (
+        item.id === 'notifications-section' &&
+        sectionTitle === t('Notifications', { _tags: tags })
+      ) {
+        return (
+          <NotificationsSection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+          />
+        );
+      }
+      if (
+        item.id === 'away-section' &&
+        sectionTitle === t('Away', { _tags: tags })
+      ) {
+        return (
+          <AwaySection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+            onClose={onClose}
+          />
+        );
+      }
+      if (
+        item.id === 'protection-section' &&
+        sectionTitle === t('Protection', { _tags: tags })
+      ) {
+        return (
+          <ProtectionSection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+          />
+        );
+      }
+      if (
+        item.id === 'writing-section' &&
+        sectionTitle === t('Writing', { _tags: tags })
+      ) {
+        return (
+          <WritingSection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+          />
+        );
+      }
+      if (
+        item.id === 'connection-network-section' &&
+        sectionTitle === connectionTitle
+      ) {
+        return (
+          <ConnectionNetworkSection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+            currentNetwork={currentNetwork}
+            onShowFirstRunSetup={() => setShowFirstRunSetup(true)}
+            onShowNetworksList={() => {
+              useUIStore.getState().setShowSettings(false);
+              useUIStore.getState().setShowNetworksList(true);
+            }}
+            onShowConnectionProfiles={() => setShowConnectionProfiles(true)}
+          />
+        );
+      }
+      if (
+        item.id === 'background-battery-section' &&
+        sectionTitle === t('Background & Battery', { _tags: tags })
+      ) {
+        return (
+          <BackgroundBatterySection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+          />
+        );
+      }
+      if (
+        item.id === 'highlighting-section' &&
+        sectionTitle === t('Highlighting', { _tags: tags })
+      ) {
+        return (
+          <HighlightingSection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+          />
+        );
+      }
+      if (
+        item.id === 'security-section' &&
+        sectionTitle === t('Security', { _tags: tags })
+      ) {
+        return (
+          <SecuritySection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+            onShowKeyManagement={() => setShowKeyManagement(true)}
+            onShowMigrationDialog={() => setShowMigrationDialog(true)}
+          />
+        );
+      }
+      if (
+        item.id === 'users-services-section' &&
+        sectionTitle === t('Users & Services', { _tags: tags })
+      ) {
+        return (
+          <UsersServicesSection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+            currentNetwork={currentNetwork}
+            onShowBlacklist={onShowBlacklist}
+            onShowUserLists={onShowUserLists}
+          />
+        );
+      }
+      if (
+        item.id === 'commands-section' &&
+        sectionTitle === t('Commands', { _tags: tags })
+      ) {
+        return (
+          <CommandsSection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+          />
+        );
+      }
+      if (
+        item.id === 'media-section' &&
+        sectionTitle === t('Media', { _tags: tags })
+      ) {
+        return (
+          <MediaSection
+            key={item.id}
+            colors={colors}
+            styles={styles}
+            settingIcons={settingIcons}
+          />
+        );
+      }
+
       // Custom render function for special cases like watch-ad-button
       if (item.id === 'watch-ad-button' && showWatchAdButton) {
         return (
           <View key={item.id} style={styles.settingItem}>
             <TouchableOpacity
-              style={[styles.watchAdButton, showingAd && styles.watchAdButtonDisabled]}
+              style={[
+                styles.watchAdButton,
+                showingAd && styles.watchAdButtonDisabled,
+              ]}
               onPress={handleWatchAd}
               disabled={showingAd}
             >
@@ -2606,7 +3065,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   {adReady
                     ? t('Watch Ad (+60 min Scripting & No-Ads)')
                     : adCooldown
-                      ? t('Cooldown ({cooldownSeconds}s)').replace('{cooldownSeconds}', cooldownSeconds.toString())
+                      ? t('Cooldown ({cooldownSeconds}s)').replace(
+                          '{cooldownSeconds}',
+                          cooldownSeconds.toString(),
+                        )
                       : adLoading
                         ? t('Loading Ad...')
                         : t('Request Ad')}
@@ -2620,37 +3082,44 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
 
     return (
-        <SettingItemComponent
-          key={item.id}
-          item={item}
-          icon={itemIcon}
-          colors={colors}
-          styles={styles}
-          onPress={(_itemId) => {
-            if (item.type === 'submenu') {
-              setShowSubmenu(_itemId);
-            }
-          }}
-          onValueChange={(_itemId, _value) => {
-            // Value change is handled by item.onValueChange in SettingItem component
-          }}
-        />
+      <SettingItemComponent
+        key={item.id}
+        item={item}
+        icon={itemIcon}
+        colors={colors}
+        styles={styles}
+        onPress={_itemId => {
+          if (item.type === 'submenu') {
+            setShowSubmenu(_itemId);
+          }
+        }}
+        onValueChange={(_itemId, _value) => {
+          // Value change is handled by item.onValueChange in SettingItem component
+        }}
+      />
     );
   };
 
   const toggleSection = (sectionTitle: string) => {
-    const newExpandedSections = toggleSectionExpansion(sectionTitle, expandedSections);
+    const newExpandedSections = toggleSectionExpansion(
+      sectionTitle,
+      expandedSections,
+    );
     setExpandedSections(newExpandedSections);
   };
 
-  const renderSectionListItem = (info: { item?: SettingItem; section?: { title?: string } } | null) => {
+  const renderSectionListItem = (
+    info: { item?: SettingItem; section?: { title?: string } } | null,
+  ) => {
     if (!info?.item) {
       return null;
     }
     return renderSettingItem(info.item, info.section?.title);
   };
 
-  const renderSectionListHeader = (info: { section?: { id?: string; title?: string } } | null) => {
+  const renderSectionListHeader = (
+    info: { section?: { id?: string; title?: string } } | null,
+  ) => {
     const id = info?.section?.id;
     const title = info?.section?.title;
     if (!id || !title) {
@@ -2661,7 +3130,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     return (
       <SettingsSectionHeader
         title={title}
-        icon={iconInfo ? { name: iconInfo.name, solid: Boolean(iconInfo.solid) } : undefined}
+        icon={
+          iconInfo
+            ? { name: iconInfo.name, solid: Boolean(iconInfo.solid) }
+            : undefined
+        }
         isExpanded={expandedSections.has(title)}
         onToggle={() => toggleSection(title)}
         colors={colors}
@@ -2705,17 +3178,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }));
   }, [filteredSections, expandedSections, searchTerm]);
 
-  const pinModalTitle = pinModalMode === 'unlock'
-    ? t('Enter PIN', { _tags: tags })
-    : (pinModalMode === 'setup' ? t('Set PIN', { _tags: tags }) : t('Confirm PIN', { _tags: tags }));
-  const pinModalDescription = pinModalMode === 'unlock'
-    ? t('Enter your PIN to unlock passwords.', { _tags: tags })
-    : (pinModalMode === 'setup'
-      ? t('Create a 4+ digit PIN to protect passwords.', { _tags: tags })
-      : t('Re-enter your PIN to confirm.', { _tags: tags }));
-  const pinModalActionLabel = pinModalMode === 'unlock'
-    ? t('Unlock', { _tags: tags })
-    : (pinModalMode === 'setup' ? t('Next', { _tags: tags }) : t('Save', { _tags: tags }));
+  const pinModalTitle =
+    pinModalMode === 'unlock'
+      ? t('Enter PIN', { _tags: tags })
+      : pinModalMode === 'setup'
+        ? t('Set PIN', { _tags: tags })
+        : t('Confirm PIN', { _tags: tags });
+  const pinModalDescription =
+    pinModalMode === 'unlock'
+      ? t('Enter your PIN to unlock passwords.', { _tags: tags })
+      : pinModalMode === 'setup'
+        ? t('Create a 4+ digit PIN to protect passwords.', { _tags: tags })
+        : t('Re-enter your PIN to confirm.', { _tags: tags });
+  const pinModalActionLabel =
+    pinModalMode === 'unlock'
+      ? t('Unlock', { _tags: tags })
+      : pinModalMode === 'setup'
+        ? t('Next', { _tags: tags })
+        : t('Save', { _tags: tags });
   // App lock modal now handled by SecuritySection component
 
   if (!visible) return null;
@@ -2725,12 +3205,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('Settings', { _tags: tags })}</Text>
+          <Text style={styles.headerTitle}>
+            {t('Settings', { _tags: tags })}
+          </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>{t('Done', { _tags: tags })}</Text>
+            <Text style={styles.closeButtonText}>
+              {t('Done', { _tags: tags })}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -2744,7 +3229,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           />
           {searchTerm.length > 0 && (
             <TouchableOpacity onPress={() => setSearchTerm('')}>
-              <Text style={styles.clearSearch}>{t('Clear', { _tags: tags })}</Text>
+              <Text style={styles.clearSearch}>
+                {t('Clear', { _tags: tags })}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -2752,7 +3239,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <SectionList
           ref={sectionListRef as any}
           sections={displaySections as any}
-          keyExtractor={(item) => item?.id ?? 'missing-setting-item'}
+          keyExtractor={item => item?.id ?? 'missing-setting-item'}
           renderItem={renderSectionListItem}
           renderSectionHeader={renderSectionListHeader}
           style={styles.list}
@@ -2764,17 +3251,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           visible={showSubmenu !== null}
           transparent
           animationType="slide"
-          onRequestClose={() => setShowSubmenu(null)}>
+          onRequestClose={() => setShowSubmenu(null)}
+        >
           <View style={styles.submenuOverlay}>
             <View style={styles.submenuContainer}>
               <View style={styles.submenuHeader}>
                 <Text style={styles.submenuTitle}>
                   {(orderedSections as any)
                     .flatMap((s: any) => s.data as SettingItem[])
-                    .find((item: SettingItem) => item.id === showSubmenu)?.title || t('Options', { _tags: tags })}
+                    .find((item: SettingItem) => item.id === showSubmenu)
+                    ?.title || t('Options', { _tags: tags })}
                 </Text>
                 <TouchableOpacity onPress={() => setShowSubmenu(null)}>
-                  <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+                  <Text style={styles.closeButtonText}>
+                    {t('Close', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
               </View>
               <ScrollView>
@@ -2786,14 +3277,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                       return (
                         <View key={subItem.id} style={styles.submenuItem}>
                           <View style={styles.submenuItemContent}>
-                            <Text style={styles.submenuItemText}>{subItem.title}</Text>
+                            <Text style={styles.submenuItemText}>
+                              {subItem.title}
+                            </Text>
                             {subItem.description && (
-                              <Text style={styles.submenuItemDescription}>{subItem.description}</Text>
+                              <Text style={styles.submenuItemDescription}>
+                                {subItem.description}
+                              </Text>
                             )}
                           </View>
                           <Switch
                             value={subItem.value as boolean}
-                            onValueChange={(value) => {
+                            onValueChange={value => {
                               subItem.onValueChange?.(value);
                             }}
                             disabled={subItem.disabled}
@@ -2805,18 +3300,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                       return (
                         <View key={subItem.id} style={styles.submenuItem}>
                           <View style={styles.submenuItemContent}>
-                            <Text style={styles.submenuItemText}>{subItem.title}</Text>
+                            <Text style={styles.submenuItemText}>
+                              {subItem.title}
+                            </Text>
                             {subItem.description && (
-                              <Text style={styles.submenuItemDescription}>{subItem.description}</Text>
+                              <Text style={styles.submenuItemDescription}>
+                                {subItem.description}
+                              </Text>
                             )}
                             <TextInput
                               style={[
                                 styles.submenuInput,
                                 subItem.disabled && styles.disabledInput,
-                                { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                                {
+                                  backgroundColor: colors.surface,
+                                  color: colors.text,
+                                  borderColor: colors.border,
+                                },
                               ]}
                               value={subItem.value as string}
-                              onChangeText={(text) => subItem.onValueChange?.(text)}
+                              onChangeText={text =>
+                                subItem.onValueChange?.(text)
+                              }
                               placeholder={subItem.placeholder}
                               placeholderTextColor={colors.textSecondary}
                               keyboardType={subItem.keyboardType || 'default'}
@@ -2833,17 +3338,31 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                         style={styles.submenuItem}
                         onPress={() => {
                           subItem.onPress?.();
-                          if (subItem.type !== 'switch' && subItem.type !== 'input') {
+                          if (
+                            subItem.type !== 'switch' &&
+                            subItem.type !== 'input'
+                          ) {
                             setShowSubmenu(null);
                           }
                         }}
-                        disabled={subItem.disabled}>
+                        disabled={subItem.disabled}
+                      >
                         <View style={styles.submenuItemContent}>
-                          <Text style={[styles.submenuItemText, subItem.disabled && styles.disabledText]}>
+                          <Text
+                            style={[
+                              styles.submenuItemText,
+                              subItem.disabled && styles.disabledText,
+                            ]}
+                          >
                             {subItem.title}
                           </Text>
                           {subItem.description && (
-                            <Text style={[styles.submenuItemDescription, subItem.disabled && styles.disabledText]}>
+                            <Text
+                              style={[
+                                styles.submenuItemDescription,
+                                subItem.disabled && styles.disabledText,
+                              ]}
+                            >
                               {subItem.description}
                             </Text>
                           )}
@@ -2859,24 +3378,33 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           visible={pinModalVisible}
           transparent
           animationType="fade"
-          onRequestClose={() => closePinModal(false)}>
+          onRequestClose={() => closePinModal(false)}
+        >
           <View style={styles.submenuOverlay}>
             <View style={[styles.submenuContainer, pinModalContainerStyle]}>
               <View style={styles.submenuHeader}>
                 <Text style={styles.submenuTitle}>{pinModalTitle}</Text>
                 <TouchableOpacity onPress={() => closePinModal(false)}>
-                  <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+                  <Text style={styles.closeButtonText}>
+                    {t('Close', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
               </View>
               <View style={modalSectionPaddingStyle}>
-                <Text style={styles.submenuItemDescription}>{pinModalDescription}</Text>
+                <Text style={styles.submenuItemDescription}>
+                  {pinModalDescription}
+                </Text>
                 <TextInput
                   style={[
                     styles.submenuInput,
-                    { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
                   ]}
                   value={pinEntry}
-                  onChangeText={(text) => {
+                  onChangeText={text => {
                     const sanitized = text.replace(/[^0-9]/g, '');
                     setPinEntry(sanitized);
                     if (pinError) setPinError('');
@@ -2887,15 +3415,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   secureTextEntry
                 />
                 {!!pinError && (
-                  <Text style={[styles.submenuItemDescription, { color: colors.error }]}>{pinError}</Text>
+                  <Text
+                    style={[
+                      styles.submenuItemDescription,
+                      { color: colors.error },
+                    ]}
+                  >
+                    {pinError}
+                  </Text>
                 )}
               </View>
               <View style={modalActionRowStyle}>
                 <TouchableOpacity onPress={() => closePinModal(false)}>
-                  <Text style={styles.closeButtonText}>{t('Cancel', { _tags: tags })}</Text>
+                  <Text style={styles.closeButtonText}>
+                    {t('Cancel', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handlePinSubmit}>
-                  <Text style={[styles.closeButtonText, { color: colors.primary }]}>{pinModalActionLabel}</Text>
+                  <Text
+                    style={[styles.closeButtonText, { color: colors.primary }]}
+                  >
+                    {pinModalActionLabel}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -2908,18 +3449,29 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           animationType="fade"
           onRequestClose={() => {
             if (!backupBusy) setShowBackupModal(false);
-          }}>
+          }}
+        >
           <View style={styles.submenuOverlay}>
             <View style={[styles.submenuContainer, backupModalContainerStyle]}>
               <View style={styles.submenuHeader}>
-                <Text style={styles.submenuTitle}>{t('Backup / Restore', { _tags: tags })}</Text>
-                <TouchableOpacity disabled={backupBusy} onPress={() => setShowBackupModal(false)}>
-                  <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+                <Text style={styles.submenuTitle}>
+                  {t('Backup / Restore', { _tags: tags })}
+                </Text>
+                <TouchableOpacity
+                  disabled={backupBusy}
+                  onPress={() => setShowBackupModal(false)}
+                >
+                  <Text style={styles.closeButtonText}>
+                    {t('Close', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
               </View>
               <ScrollView>
                 <Text style={styles.submenuItemDescription}>
-                  {t('Copy this JSON to back up. To restore, paste backup JSON and tap Restore.', { _tags: tags })}
+                  {t(
+                    'Copy this JSON to back up. To restore, paste backup JSON and tap Restore.',
+                    { _tags: tags },
+                  )}
                 </Text>
                 <TextInput
                   style={[styles.submenuInput, backupInputStyle]}
@@ -2934,23 +3486,52 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               {backupBusy && (
                 <View style={backupBusyRowStyle}>
                   <ActivityIndicator size="small" color={colors.primary} />
-                  <Text style={[styles.submenuItemDescription, backupBusyLabelStyle]}>
+                  <Text
+                    style={[
+                      styles.submenuItemDescription,
+                      backupBusyLabelStyle,
+                    ]}
+                  >
                     {backupOperationLabel}
                   </Text>
                 </View>
               )}
               <View style={backupActionRowStyle}>
-                <TouchableOpacity disabled={backupBusy} onPress={() => setShowBackupModal(false)}>
-                  <Text style={styles.closeButtonText}>{t('Cancel', { _tags: tags })}</Text>
+                <TouchableOpacity
+                  disabled={backupBusy}
+                  onPress={() => setShowBackupModal(false)}
+                >
+                  <Text style={styles.closeButtonText}>
+                    {t('Cancel', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity disabled={backupBusy} onPress={handleBackupCopyToClipboard}>
-                  <Text style={[styles.closeButtonText, { color: colors.primary }]}>{t('Copy to Clipboard', { _tags: tags })}</Text>
+                <TouchableOpacity
+                  disabled={backupBusy}
+                  onPress={handleBackupCopyToClipboard}
+                >
+                  <Text
+                    style={[styles.closeButtonText, { color: colors.primary }]}
+                  >
+                    {t('Copy to Clipboard', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity disabled={backupBusy} onPress={handleBackupSaveToFile}>
-                  <Text style={[styles.closeButtonText, { color: colors.primary }]}>{t('Save to File', { _tags: tags })}</Text>
+                <TouchableOpacity
+                  disabled={backupBusy}
+                  onPress={handleBackupSaveToFile}
+                >
+                  <Text
+                    style={[styles.closeButtonText, { color: colors.primary }]}
+                  >
+                    {t('Save to File', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity disabled={backupBusy} onPress={handleBackupImport}>
-                  <Text style={styles.closeButtonText}>{t('Restore', { _tags: tags })}</Text>
+                <TouchableOpacity
+                  disabled={backupBusy}
+                  onPress={handleBackupImport}
+                >
+                  <Text style={styles.closeButtonText}>
+                    {t('Restore', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -2960,23 +3541,37 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           visible={showChannelNotifModal}
           transparent
           animationType="slide"
-          onRequestClose={() => setShowChannelNotifModal(false)}>
+          onRequestClose={() => setShowChannelNotifModal(false)}
+        >
           <View style={styles.submenuOverlay}>
             <View style={[styles.submenuContainer, backupModalContainerStyle]}>
               <View style={styles.submenuHeader}>
-                <Text style={styles.submenuTitle}>{t('Per-Channel Notifications', { _tags: tags })}</Text>
-                <TouchableOpacity onPress={() => setShowChannelNotifModal(false)}>
-                  <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+                <Text style={styles.submenuTitle}>
+                  {t('Per-Channel Notifications', { _tags: tags })}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowChannelNotifModal(false)}
+                >
+                  <Text style={styles.closeButtonText}>
+                    {t('Close', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
               </View>
               <View style={channelNotifSectionPaddingStyle}>
                 <Text style={styles.submenuItemDescription}>
-                  {t('Add a channel to override global notification settings.', { _tags: tags })}
+                  {t(
+                    'Add a channel to override global notification settings.',
+                    { _tags: tags },
+                  )}
                 </Text>
                 <TextInput
                   style={[
                     styles.submenuInput,
-                    { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
                   ]}
                   placeholder={t('#channel', { _tags: tags })}
                   placeholderTextColor={colors.textSecondary}
@@ -2998,8 +3593,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                       });
                       setNewChannelNotif('');
                       refreshChannelNotifList();
-                    }}>
-                    <Text style={styles.closeButtonText}>{t('Add', { _tags: tags })}</Text>
+                    }}
+                  >
+                    <Text style={styles.closeButtonText}>
+                      {t('Add', { _tags: tags })}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -3017,37 +3615,59 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     </View>
                     <View style={channelNotifOuterRowStyle}>
                       <View style={channelNotifInnerRowStyle}>
-                        <Text style={styles.submenuItemDescription}>{t('All', { _tags: tags })}</Text>
+                        <Text style={styles.submenuItemDescription}>
+                          {t('All', { _tags: tags })}
+                        </Text>
                         <Switch
                           value={prefs.notifyOnAllMessages}
-                          onValueChange={async (v) => {
-                            await notificationService.updateChannelPreferences(channel, { notifyOnAllMessages: v });
+                          onValueChange={async v => {
+                            await notificationService.updateChannelPreferences(
+                              channel,
+                              { notifyOnAllMessages: v },
+                            );
                             refreshChannelNotifList();
                           }}
                         />
                       </View>
                       <View style={channelNotifInnerRowStyle}>
-                        <Text style={styles.submenuItemDescription}>{t('Mentions', { _tags: tags })}</Text>
+                        <Text style={styles.submenuItemDescription}>
+                          {t('Mentions', { _tags: tags })}
+                        </Text>
                         <Switch
                           value={prefs.notifyOnMentions}
-                          onValueChange={async (v) => {
-                            await notificationService.updateChannelPreferences(channel, { notifyOnMentions: v });
+                          onValueChange={async v => {
+                            await notificationService.updateChannelPreferences(
+                              channel,
+                              { notifyOnMentions: v },
+                            );
                             refreshChannelNotifList();
                           }}
                         />
                       </View>
                       <TouchableOpacity
                         onPress={async () => {
-                          await notificationService.removeChannelPreferences(channel);
+                          await notificationService.removeChannelPreferences(
+                            channel,
+                          );
                           refreshChannelNotifList();
-                        }}>
-                        <Text style={[styles.identityDeleteText, identityDeleteSpacingStyle]}>{t('Delete', { _tags: tags })}</Text>
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.identityDeleteText,
+                            identityDeleteSpacingStyle,
+                          ]}
+                        >
+                          {t('Delete', { _tags: tags })}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
                 ))}
                 {channelNotifList.length === 0 && (
-                  <Text style={styles.identityEmpty}>{t('No channel overrides set.', { _tags: tags })}</Text>
+                  <Text style={styles.identityEmpty}>
+                    {t('No channel overrides set.', { _tags: tags })}
+                  </Text>
                 )}
               </ScrollView>
             </View>
@@ -3084,14 +3704,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         />
       )}
       {showScriptingHelp && (
-        <Modal visible={showScriptingHelp} animationType="slide" onRequestClose={() => setShowScriptingHelp(false)}>
-          <ScriptingHelpScreen visible={showScriptingHelp} onClose={() => setShowScriptingHelp(false)} />
+        <Modal
+          visible={showScriptingHelp}
+          animationType="slide"
+          onRequestClose={() => setShowScriptingHelp(false)}
+        >
+          <ScriptingHelpScreen
+            visible={showScriptingHelp}
+            onClose={() => setShowScriptingHelp(false)}
+          />
         </Modal>
       )}
-      <AboutScreen
-        visible={showAbout}
-        onClose={() => setShowAbout(false)}
-      />
+      <AboutScreen visible={showAbout} onClose={() => setShowAbout(false)} />
       <MessageHistoryViewerScreen
         visible={showHistoryViewer}
         onClose={() => setShowHistoryViewer(false)}
@@ -3129,30 +3753,38 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         visible={showMigrationDialog}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowMigrationDialog(false)}>
+        onRequestClose={() => setShowMigrationDialog(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.migrationDialog}>
             <Text style={styles.migrationDialogTitle}>
               {t('Migrate Old Keys', { _tags: tags })}
             </Text>
             <Text style={styles.migrationDialogDescription}>
-              {t('Select the network to migrate your old nick-only encryption keys to:', { _tags: tags })}
+              {t(
+                'Select the network to migrate your old nick-only encryption keys to:',
+                { _tags: tags },
+              )}
             </Text>
 
             <ScrollView style={styles.networkList}>
-              {connectionManager.getAllConnections().map((conn) => (
+              {connectionManager.getAllConnections().map(conn => (
                 <TouchableOpacity
                   key={conn.networkId}
                   style={[
                     styles.networkItem,
-                    migrationNetwork === conn.networkId && styles.networkItemSelected,
+                    migrationNetwork === conn.networkId &&
+                      styles.networkItemSelected,
                   ]}
-                  onPress={() => setMigrationNetwork(conn.networkId)}>
+                  onPress={() => setMigrationNetwork(conn.networkId)}
+                >
                   <Text
                     style={[
                       styles.networkItemText,
-                      migrationNetwork === conn.networkId && styles.networkItemTextSelected,
-                    ]}>
+                      migrationNetwork === conn.networkId &&
+                        styles.networkItemTextSelected,
+                    ]}
+                  >
                     {conn.networkId}
                   </Text>
                 </TouchableOpacity>
@@ -3161,11 +3793,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
             <View style={styles.migrationDialogButtons}>
               <TouchableOpacity
-                style={[styles.migrationDialogButton, styles.migrationDialogButtonCancel]}
+                style={[
+                  styles.migrationDialogButton,
+                  styles.migrationDialogButtonCancel,
+                ]}
                 onPress={() => {
                   setShowMigrationDialog(false);
                   setMigrationNetwork('');
-                }}>
+                }}
+              >
                 <Text style={styles.migrationDialogButtonText}>
                   {t('Cancel', { _tags: tags })}
                 </Text>
@@ -3177,11 +3813,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   !migrationNetwork && styles.migrationDialogButtonDisabled,
                 ]}
                 onPress={handleMigration}
-                disabled={!migrationNetwork}>
-                <Text style={[
-                  styles.migrationDialogButtonText,
-                  styles.migrationDialogButtonTextMigrate,
-                ]}>
+                disabled={!migrationNetwork}
+              >
+                <Text
+                  style={[
+                    styles.migrationDialogButtonText,
+                    styles.migrationDialogButtonTextMigrate,
+                  ]}
+                >
                   {t('Migrate', { _tags: tags })}
                 </Text>
               </TouchableOpacity>
@@ -3195,9 +3834,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <Modal
           visible={showFirstRunSetup}
           animationType="slide"
-          onRequestClose={() => setShowFirstRunSetup(false)}>
+          onRequestClose={() => setShowFirstRunSetup(false)}
+        >
           <FirstRunSetupScreen
-            onComplete={async (_networkConfig) => {
+            onComplete={async _networkConfig => {
               console.log('First run setup completed from settings');
               setShowFirstRunSetup(false);
               onClose(); // Close settings screen

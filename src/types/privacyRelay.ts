@@ -64,7 +64,8 @@ export const PRIVACY_RELAY_BASE_PLAN_IDS = {
   yearly: 'yearly',
 } as const;
 
-export const PRIVACY_RELAY_STORAGE_KEY = '@AndroidIRCX:privacyRelaySubscription';
+export const PRIVACY_RELAY_STORAGE_KEY =
+  '@AndroidIRCX:privacyRelaySubscription';
 
 export const DEFAULT_PRIVACY_RELAY_TURN_SERVER: PrivacyRelayTurnServer = {
   host: 'turn.dbase.in.rs',
@@ -73,9 +74,7 @@ export const DEFAULT_PRIVACY_RELAY_TURN_SERVER: PrivacyRelayTurnServer = {
   realm: 'turn.dbase.in.rs',
   usernameAuthMode: 'ephemeral-api',
   credentialEndpoint: 'https://androidircx.com/api/webrtc/turn-credentials',
-  stunUrls: [
-    'stun:turn.dbase.in.rs:3478',
-  ],
+  stunUrls: ['stun:turn.dbase.in.rs:3478'],
   turnUrls: [
     'turn:turn.dbase.in.rs:3478?transport=udp',
     'turn:turn.dbase.in.rs:3478?transport=tcp',
@@ -84,7 +83,7 @@ export const DEFAULT_PRIVACY_RELAY_TURN_SERVER: PrivacyRelayTurnServer = {
 };
 
 export function isPrivacyRelayActive(
-  subscription: PrivacyRelaySubscription | null | undefined
+  subscription: PrivacyRelaySubscription | null | undefined,
 ): boolean {
   if (!subscription) {
     return false;

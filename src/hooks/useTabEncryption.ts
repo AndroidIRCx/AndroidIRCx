@@ -22,7 +22,11 @@ interface UseTabEncryptionProps {
   tabsRef: React.MutableRefObject<any[]>;
 }
 
-export function useTabEncryption({ isConnected, setTabs, tabsRef }: UseTabEncryptionProps) {
+export function useTabEncryption({
+  isConnected,
+  setTabs,
+  tabsRef,
+}: UseTabEncryptionProps) {
   // Effect: Reconcile tab encryption flags with stored keys
   // Run when connection state changes to avoid infinite loops
   useEffect(() => {
@@ -34,14 +38,18 @@ export function useTabEncryption({ isConnected, setTabs, tabsRef }: UseTabEncryp
       const currentTabs = useTabStore.getState().tabs;
 
       const updated = await Promise.all(
-        currentTabs.map(async (tab) => {
+        currentTabs.map(async tab => {
           // Handle channel encryption
           if (tab.type === 'channel') {
-            const hasKey = await channelEncryptionService.hasChannelKey(tab.name, tab.networkId);
-            const alwaysEncrypt = await channelEncryptionSettingsService.getAlwaysEncrypt(
+            const hasKey = await channelEncryptionService.hasChannelKey(
               tab.name,
-              tab.networkId
+              tab.networkId,
             );
+            const alwaysEncrypt =
+              await channelEncryptionSettingsService.getAlwaysEncrypt(
+                tab.name,
+                tab.networkId,
+              );
 
             // Auto-enable sendEncrypted if "always encrypt" is on AND key exists
             const shouldSendEncrypted = alwaysEncrypt && hasKey;
@@ -55,7 +63,8 @@ export function useTabEncryption({ isConnected, setTabs, tabsRef }: UseTabEncryp
               return {
                 ...tab,
                 isEncrypted: hasKey,
-                sendEncrypted: shouldSendEncrypted || (hasKey ? tab.sendEncrypted : false),
+                sendEncrypted:
+                  shouldSendEncrypted || (hasKey ? tab.sendEncrypted : false),
               };
             }
           }
@@ -63,11 +72,15 @@ export function useTabEncryption({ isConnected, setTabs, tabsRef }: UseTabEncryp
           // Handle query (DM) encryption
           else if (tab.type === 'query') {
             const network = tab.networkId || '';
-            const hasBundle = await encryptedDMService.isEncryptedForNetwork(network, tab.name);
-            const alwaysEncrypt = await channelEncryptionSettingsService.getAlwaysEncrypt(
+            const hasBundle = await encryptedDMService.isEncryptedForNetwork(
+              network,
               tab.name,
-              tab.networkId
             );
+            const alwaysEncrypt =
+              await channelEncryptionSettingsService.getAlwaysEncrypt(
+                tab.name,
+                tab.networkId,
+              );
 
             // Auto-enable sendEncrypted if "always encrypt" is on AND bundle exists
             const shouldSendEncrypted = alwaysEncrypt && hasBundle;
@@ -81,13 +94,15 @@ export function useTabEncryption({ isConnected, setTabs, tabsRef }: UseTabEncryp
               return {
                 ...tab,
                 isEncrypted: hasBundle,
-                sendEncrypted: shouldSendEncrypted || (hasBundle ? tab.sendEncrypted : false),
+                sendEncrypted:
+                  shouldSendEncrypted ||
+                  (hasBundle ? tab.sendEncrypted : false),
               };
             }
           }
 
           return tab;
-        })
+        }),
       );
 
       // Only update if something actually changed
@@ -112,7 +127,7 @@ export function useTabEncryption({ isConnected, setTabs, tabsRef }: UseTabEncryp
 
         // Update tabs that match the channel/network
         const updated = await Promise.all(
-          currentTabs.map(async (tab) => {
+          currentTabs.map(async tab => {
             if (
               (tab.type === 'channel' || tab.type === 'query') &&
               tab.name.toLowerCase() === channel.toLowerCase() &&
@@ -122,15 +137,21 @@ export function useTabEncryption({ isConnected, setTabs, tabsRef }: UseTabEncryp
               const tabNetwork = tab.networkId || '';
               const hasKey =
                 tab.type === 'channel'
-                  ? await channelEncryptionService.hasChannelKey(tab.name, tab.networkId)
-                  : await encryptedDMService.isEncryptedForNetwork(tabNetwork, tab.name);
+                  ? await channelEncryptionService.hasChannelKey(
+                      tab.name,
+                      tab.networkId,
+                    )
+                  : await encryptedDMService.isEncryptedForNetwork(
+                      tabNetwork,
+                      tab.name,
+                    );
 
               // Update sendEncrypted based on always encrypt setting and key existence
               const shouldSendEncrypted = value && hasKey;
               return { ...tab, sendEncrypted: shouldSendEncrypted };
             }
             return tab;
-          })
+          }),
         );
 
         // Only update if something changed
@@ -138,7 +159,7 @@ export function useTabEncryption({ isConnected, setTabs, tabsRef }: UseTabEncryp
         if (changed) {
           setTabs(updated);
         }
-      }
+      },
     );
 
     return () => unsubscribe();

@@ -40,7 +40,7 @@ interface UseServiceCommandsReturn {
   detectionResult?: DetectionResult;
   /** Detected service type name */
   serviceTypeName: string;
-  
+
   // Commands
   /** All available commands for this network */
   availableCommands: ServiceCommand[];
@@ -49,8 +49,10 @@ interface UseServiceCommandsReturn {
   /** Get suggestions for a query */
   getSuggestions: (query: string) => CommandSuggestion[];
   /** Find a specific command */
-  findCommand: (query: string) => { command: ServiceCommand; serviceNick: string } | undefined;
-  
+  findCommand: (
+    query: string,
+  ) => { command: ServiceCommand; serviceNick: string } | undefined;
+
   // Command execution
   /** Build a command string for execution */
   buildCommand: (commandName: string, args: string[]) => CommandExecutionResult;
@@ -63,7 +65,7 @@ interface UseServiceCommandsReturn {
   };
   /** Get help text for a command */
   getCommandHelp: (commandName: string) => string | undefined;
-  
+
   // IRCd info
   /** Available user modes */
   userModes: string[];
@@ -71,26 +73,35 @@ interface UseServiceCommandsReturn {
   channelModes: string[];
   /** Available oper commands */
   operCommands: string[];
-  
+
   // Service nicks
   /** Check if a nick is a service */
   isServiceNick: (nick: string) => boolean;
   /** Get service by nick */
-  getServiceByNick: (nick: string) => { nick: string; commands: ServiceCommand[] } | undefined;
+  getServiceByNick: (
+    nick: string,
+  ) => { nick: string; commands: ServiceCommand[] } | undefined;
 }
 
 /**
  * React hook for IRC service commands
  * Integrates service detection and command provider with React UI
  */
-export function useServiceCommands(params: UseServiceCommandsParams): UseServiceCommandsReturn {
-  const { networkId, currentChannel, userLevel = 'user', isAuthenticated = false } = params;
-  
+export function useServiceCommands(
+  params: UseServiceCommandsParams,
+): UseServiceCommandsReturn {
+  const {
+    networkId,
+    currentChannel,
+    userLevel = 'user',
+    isAuthenticated = false,
+  } = params;
+
   // Detection state
-  const [detectionResult, setDetectionResult] = useState<DetectionResult | undefined>(
-    serviceDetectionService.getDetectionResult(networkId)
-  );
-  
+  const [detectionResult, setDetectionResult] = useState<
+    DetectionResult | undefined
+  >(serviceDetectionService.getDetectionResult(networkId));
+
   // Use ref for callbacks to avoid re-subscription
   const contextRef = useRef<CompletionContext>({
     availableChannels: [],
@@ -98,7 +109,7 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
     userLevel,
     isAuthenticated,
   });
-  
+
   // Update context ref when values change
   useEffect(() => {
     contextRef.current = {
@@ -119,11 +130,13 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
     }
 
     // Subscribe to detection events
-    const unsubscribe = serviceDetectionService.onDetection((detectedNetworkId, result) => {
-      if (detectedNetworkId === networkId) {
-        setDetectionResult(result);
-      }
-    });
+    const unsubscribe = serviceDetectionService.onDetection(
+      (detectedNetworkId, result) => {
+        if (detectedNetworkId === networkId) {
+          setDetectionResult(result);
+        }
+      },
+    );
 
     return () => {
       unsubscribe();
@@ -131,7 +144,7 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
   }, [networkId]);
 
   // Get available channels from store
-  const tabs = useTabStore((state) => state.tabs);
+  const tabs = useTabStore(state => state.tabs);
   const availableChannels = useMemo(() => {
     return tabs
       .filter(t => t.type === 'channel' && t.networkId === networkId)
@@ -145,10 +158,10 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
 
   // Derived state
   const isDetected = !!detectionResult;
-  
+
   const serviceTypeName = useMemo(() => {
     if (!detectionResult) return 'Detecting...';
-    
+
     const names: Record<string, string> = {
       anope: 'Anope Services',
       atheme: 'Atheme Services',
@@ -157,7 +170,7 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
       quakenet: 'QuakeNet Q',
       generic: 'Generic Services',
     };
-    
+
     return names[detectionResult.serviceType] || detectionResult.serviceType;
   }, [detectionResult]);
 
@@ -178,29 +191,38 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
   }, [networkId]);
 
   // Callback: Get suggestions
-  const getSuggestions = useCallback((query: string): CommandSuggestion[] => {
-    return serviceCommandProvider.getSuggestions(
-      networkId,
-      query,
-      contextRef.current
-    );
-  }, [networkId]);
+  const getSuggestions = useCallback(
+    (query: string): CommandSuggestion[] => {
+      return serviceCommandProvider.getSuggestions(
+        networkId,
+        query,
+        contextRef.current,
+      );
+    },
+    [networkId],
+  );
 
   // Callback: Find command
-  const findCommand = useCallback((query: string) => {
-    const result = serviceCommandProvider.findCommand(networkId, query);
-    if (!result) return undefined;
-    
-    return {
-      command: result.command,
-      serviceNick: result.serviceNick,
-    };
-  }, [networkId]);
+  const findCommand = useCallback(
+    (query: string) => {
+      const result = serviceCommandProvider.findCommand(networkId, query);
+      if (!result) return undefined;
+
+      return {
+        command: result.command,
+        serviceNick: result.serviceNick,
+      };
+    },
+    [networkId],
+  );
 
   // Callback: Build command
-  const buildCommand = useCallback((commandName: string, args: string[]) => {
-    return serviceCommandProvider.buildCommand(networkId, commandName, args);
-  }, [networkId]);
+  const buildCommand = useCallback(
+    (commandName: string, args: string[]) => {
+      return serviceCommandProvider.buildCommand(networkId, commandName, args);
+    },
+    [networkId],
+  );
 
   // Callback: Parse input
   const parseInput = useCallback((input: string) => {
@@ -208,9 +230,12 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
   }, []);
 
   // Callback: Get command help
-  const getCommandHelp = useCallback((commandName: string) => {
-    return serviceCommandProvider.getCommandHelp(networkId, commandName);
-  }, [networkId]);
+  const getCommandHelp = useCallback(
+    (commandName: string) => {
+      return serviceCommandProvider.getCommandHelp(networkId, commandName);
+    },
+    [networkId],
+  );
 
   // Callback: Check if nick is service
   const isServiceNick = useCallback((nick: string) => {
@@ -218,38 +243,41 @@ export function useServiceCommands(params: UseServiceCommandsParams): UseService
   }, []);
 
   // Callback: Get service by nick
-  const getServiceByNick = useCallback((nick: string) => {
-    const service = serviceDetectionService.getServiceByNick(networkId, nick);
-    if (!service) return undefined;
-    
-    return {
-      nick: service.nick,
-      commands: service.commands || [],
-    };
-  }, [networkId]);
+  const getServiceByNick = useCallback(
+    (nick: string) => {
+      const service = serviceDetectionService.getServiceByNick(networkId, nick);
+      if (!service) return undefined;
+
+      return {
+        nick: service.nick,
+        commands: service.commands || [],
+      };
+    },
+    [networkId],
+  );
 
   return {
     // Detection state
     isDetected,
     detectionResult,
     serviceTypeName,
-    
+
     // Commands
     availableCommands,
     safeAliases,
     getSuggestions,
     findCommand,
-    
+
     // Command execution
     buildCommand,
     parseInput,
     getCommandHelp,
-    
+
     // IRCd info
     userModes: ircdInfo?.userModes || [],
     channelModes: ircdInfo?.channelModes || [],
     operCommands: ircdInfo?.operCommands || [],
-    
+
     // Service nicks
     isServiceNick,
     getServiceByNick,
@@ -266,11 +294,13 @@ export function useServicesAvailable(networkId: string): boolean {
   });
 
   useEffect(() => {
-    const unsubscribe = serviceDetectionService.onDetection((detectedNetworkId, result) => {
-      if (detectedNetworkId === networkId) {
-        setIsAvailable(result.serviceType !== 'generic');
-      }
-    });
+    const unsubscribe = serviceDetectionService.onDetection(
+      (detectedNetworkId, result) => {
+        if (detectedNetworkId === networkId) {
+          setIsAvailable(result.serviceType !== 'generic');
+        }
+      },
+    );
 
     return () => unsubscribe();
   }, [networkId]);
@@ -288,11 +318,13 @@ export function useServiceType(networkId: string): string {
   });
 
   useEffect(() => {
-    const unsubscribe = serviceDetectionService.onDetection((detectedNetworkId, result) => {
-      if (detectedNetworkId === networkId) {
-        setServiceType(result.serviceType);
-      }
-    });
+    const unsubscribe = serviceDetectionService.onDetection(
+      (detectedNetworkId, result) => {
+        if (detectedNetworkId === networkId) {
+          setServiceType(result.serviceType);
+        }
+      },
+    );
 
     return () => unsubscribe();
   }, [networkId]);

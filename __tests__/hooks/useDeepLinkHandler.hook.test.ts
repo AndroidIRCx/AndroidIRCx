@@ -15,10 +15,12 @@ jest.mock('react-native', () => ({
   },
   Linking: {
     getInitialURL: jest.fn(() => Promise.resolve(mockInitialUrl)),
-    addEventListener: jest.fn((_event: string, listener: (event: { url: string }) => void) => {
-      mockUrlListener = listener;
-      return { remove: jest.fn() };
-    }),
+    addEventListener: jest.fn(
+      (_event: string, listener: (event: { url: string }) => void) => {
+        mockUrlListener = listener;
+        return { remove: jest.fn() };
+      },
+    ),
   },
 }));
 
@@ -30,7 +32,9 @@ jest.mock('../../src/services/ConnectionManager', () => ({
 
 jest.mock('../../src/services/IdentityProfilesService', () => ({
   identityProfilesService: {
-    list: jest.fn(() => Promise.resolve([{ id: 'default', nick: 'AndroidIRCX' }])),
+    list: jest.fn(() =>
+      Promise.resolve([{ id: 'default', nick: 'AndroidIRCX' }]),
+    ),
   },
 }));
 
@@ -101,7 +105,7 @@ describe('useDeepLinkHandler hook', () => {
   const t = jest.fn((key: string, params?: any) => {
     if (!params) return key;
     let result = key;
-    Object.keys(params).forEach((k) => {
+    Object.keys(params).forEach(k => {
       result = result.replace(`{${k}}`, String(params[k]));
     });
     return result;
@@ -151,35 +155,35 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
 
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
     expect(Linking.getInitialURL).toHaveBeenCalled();
-    expect(handleConnect).toHaveBeenCalledWith(expect.objectContaining({ name: 'TestNet' }), 'srv-1');
+    expect(handleConnect).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'TestNet' }),
+      'srv-1',
+    );
   });
 
   it('queues URL while locked and processes it after unlock', async () => {
     mockInitialUrl = 'ircs://irc.test.net:6697';
 
-    const { rerender } = renderHook(
-      (props: any) => useDeepLinkHandler(props),
-      {
-        initialProps: {
-          handleConnect,
-          handleJoinChannel,
-          isAppLocked: true,
-          isFirstRunComplete: true,
-          activeConnectionId: null,
-          tabs: [],
-          safeAlert,
-          t,
-        },
-      }
-    );
+    const { rerender } = renderHook((props: any) => useDeepLinkHandler(props), {
+      initialProps: {
+        handleConnect,
+        handleJoinChannel,
+        isAppLocked: true,
+        isFirstRunComplete: true,
+        activeConnectionId: null,
+        tabs: [],
+        safeAlert,
+        t,
+      },
+    });
 
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
     expect(handleConnect).not.toHaveBeenCalled();
 
     rerender({
@@ -192,7 +196,7 @@ describe('useDeepLinkHandler hook', () => {
       safeAlert,
       t,
     });
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
     expect(handleConnect).toHaveBeenCalled();
   });
@@ -217,10 +221,10 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
 
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
     expect(handleJoinChannel).toHaveBeenCalledWith('#chan', undefined);
     expect(handleConnect).not.toHaveBeenCalled();
@@ -240,15 +244,15 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
 
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
     expect(safeAlert).toHaveBeenCalledWith(
       'Invalid IRC URL',
       expect.stringContaining('bad format'),
-      expect.any(Array)
+      expect.any(Array),
     );
   });
 
@@ -267,20 +271,20 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
 
     await act(async () => {
       mockUrlListener?.({ url: 'ircs://irc.test.net:6697' });
-      await new Promise((r) => setTimeout(r, 0));
+      await new Promise(r => setTimeout(r, 0));
       mockUrlListener?.({ url: 'ircs://irc.test.net:6697' });
-      await new Promise((r) => setTimeout(r, 0));
+      await new Promise(r => setTimeout(r, 0));
     });
 
     expect(handleConnect).toHaveBeenCalledTimes(1);
     expect(logger.info).toHaveBeenCalledWith(
       'deeplink',
-      expect.stringContaining('Ignoring duplicate URL')
+      expect.stringContaining('Ignoring duplicate URL'),
     );
     nowSpy.mockRestore();
   });
@@ -299,20 +303,20 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
     const warningButtons = safeAlert.mock.calls[0][2];
     await act(async () => {
       await warningButtons[1].onPress();
-      await new Promise((r) => setTimeout(r, 0));
+      await new Promise(r => setTimeout(r, 0));
     });
 
     expect(safeAlert).toHaveBeenCalledWith(
       'Security Warning',
       expect.stringContaining('plain text'),
-      expect.any(Array)
+      expect.any(Array),
     );
     expect(handleConnect).toHaveBeenCalled();
   });
@@ -333,17 +337,25 @@ describe('useDeepLinkHandler hook', () => {
         isAppLocked: false,
         isFirstRunComplete: true,
         activeConnectionId: 'irc.test.net',
-        tabs: [{ id: 's1', name: 'Server', type: 'server', networkId: 'irc.test.net', messages: [] }],
+        tabs: [
+          {
+            id: 's1',
+            name: 'Server',
+            type: 'server',
+            networkId: 'irc.test.net',
+            messages: [],
+          },
+        ],
         safeAlert,
         t,
-      })
+      }),
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
     expect(safeAlert).toHaveBeenCalledWith(
       'Already Connected',
       expect.stringContaining('Already connected'),
-      expect.any(Array)
+      expect.any(Array),
     );
     expect(handleConnect).not.toHaveBeenCalled();
   });
@@ -372,12 +384,20 @@ describe('useDeepLinkHandler hook', () => {
         isAppLocked: false,
         isFirstRunComplete: true,
         activeConnectionId: null,
-        tabs: [{ id: 's1', name: 'Server', type: 'server', networkId: 'DBase', messages: [] }],
+        tabs: [
+          {
+            id: 's1',
+            name: 'Server',
+            type: 'server',
+            networkId: 'DBase',
+            messages: [],
+          },
+        ],
         safeAlert,
         t,
-      })
+      }),
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
     expect(handleJoinChannel).toHaveBeenCalledWith('#mapped', undefined);
     expect(handleConnect).not.toHaveBeenCalled();
@@ -386,7 +406,9 @@ describe('useDeepLinkHandler hook', () => {
   it('shows temporary network confirmation and connects on confirm', async () => {
     mockInitialUrl = 'ircs://new.server.net:6697/#chan';
     mockFindMatchingNetwork.mockResolvedValue(null);
-    mockParseIRCUrl.mockReturnValue(makeParsed({ server: 'new.server.net', channel: '#chan' }));
+    mockParseIRCUrl.mockReturnValue(
+      makeParsed({ server: 'new.server.net', channel: '#chan' }),
+    );
 
     renderHook(() =>
       useDeepLinkHandler({
@@ -398,25 +420,36 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
-    const buttons = safeAlert.mock.calls.find((c) => c[0] === 'Connect to IRC Server')?.[2];
+    const buttons = safeAlert.mock.calls.find(
+      c => c[0] === 'Connect to IRC Server',
+    )?.[2];
     expect(buttons).toBeDefined();
     await act(async () => {
       await buttons[1].onPress();
-      await new Promise((r) => setTimeout(r, 0));
+      await new Promise(r => setTimeout(r, 0));
     });
 
-    expect(handleConnect).toHaveBeenCalledWith(expect.objectContaining({ name: 'temp-network' }), 'srv-temp');
+    expect(handleConnect).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'temp-network' }),
+      'srv-temp',
+    );
   });
 
   it('temp network confirm schedules keyed join after delayed connect', async () => {
     jest.useFakeTimers();
     mockInitialUrl = 'ircs://new.server.net:6697/#chan';
     mockFindMatchingNetwork.mockResolvedValue(null);
-    mockParseIRCUrl.mockReturnValue(makeParsed({ server: 'new.server.net', channel: '#chan', channelKey: 'tempKey' }));
+    mockParseIRCUrl.mockReturnValue(
+      makeParsed({
+        server: 'new.server.net',
+        channel: '#chan',
+        channelKey: 'tempKey',
+      }),
+    );
 
     renderHook(() =>
       useDeepLinkHandler({
@@ -428,14 +461,16 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
 
-    const buttons = safeAlert.mock.calls.find((c) => c[0] === 'Connect to IRC Server')?.[2];
+    const buttons = safeAlert.mock.calls.find(
+      c => c[0] === 'Connect to IRC Server',
+    )?.[2];
     await act(async () => {
       await buttons[1].onPress();
       await Promise.resolve();
@@ -480,9 +515,9 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
     expect(handleJoinChannel).toHaveBeenCalledWith('#race', undefined);
     expect(handleConnect).not.toHaveBeenCalled();
@@ -491,7 +526,9 @@ describe('useDeepLinkHandler hook', () => {
   it('joins keyed channel after delayed connect for saved network', async () => {
     jest.useFakeTimers();
     mockInitialUrl = 'ircs://irc.test.net:6697/#chan';
-    mockParseIRCUrl.mockReturnValue(makeParsed({ channel: '#chan', channelKey: 'k123' }));
+    mockParseIRCUrl.mockReturnValue(
+      makeParsed({ channel: '#chan', channelKey: 'k123' }),
+    );
 
     renderHook(() =>
       useDeepLinkHandler({
@@ -503,7 +540,7 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
 
     await act(async () => {
@@ -523,7 +560,13 @@ describe('useDeepLinkHandler hook', () => {
   it('logs temp network connect errors from confirmation flow', async () => {
     mockInitialUrl = 'ircs://new.server.net:6697/#chan';
     mockFindMatchingNetwork.mockResolvedValue(null);
-    mockParseIRCUrl.mockReturnValue(makeParsed({ server: 'new.server.net', channel: '#chan', channelKey: 'key' }));
+    mockParseIRCUrl.mockReturnValue(
+      makeParsed({
+        server: 'new.server.net',
+        channel: '#chan',
+        channelKey: 'key',
+      }),
+    );
     handleConnect.mockRejectedValueOnce(new Error('temp connect fail'));
 
     renderHook(() =>
@@ -536,17 +579,22 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
-    const buttons = safeAlert.mock.calls.find((c) => c[0] === 'Connect to IRC Server')?.[2];
+    const buttons = safeAlert.mock.calls.find(
+      c => c[0] === 'Connect to IRC Server',
+    )?.[2];
     await act(async () => {
       await buttons[1].onPress();
-      await new Promise((r) => setTimeout(r, 0));
+      await new Promise(r => setTimeout(r, 0));
     });
 
-    expect(logger.error).toHaveBeenCalledWith('deeplink', expect.stringContaining('Connection failed: temp connect fail'));
+    expect(logger.error).toHaveBeenCalledWith(
+      'deeplink',
+      expect.stringContaining('Connection failed: temp connect fail'),
+    );
   });
 
   it('logs saved network connect errors', async () => {
@@ -563,11 +611,14 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
-    expect(logger.error).toHaveBeenCalledWith('deeplink', expect.stringContaining('Connection failed: saved connect fail'));
+    expect(logger.error).toHaveBeenCalledWith(
+      'deeplink',
+      expect.stringContaining('Connection failed: saved connect fail'),
+    );
   });
 
   it('queues incoming URL when another URL is already being processed', async () => {
@@ -575,9 +626,9 @@ describe('useDeepLinkHandler hook', () => {
     let resolveConnect: (() => void) | null = null;
     handleConnect.mockImplementationOnce(
       () =>
-        new Promise<void>((resolve) => {
+        new Promise<void>(resolve => {
           resolveConnect = resolve;
-        })
+        }),
     );
 
     renderHook(() =>
@@ -590,7 +641,7 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
 
     await act(async () => {
@@ -599,7 +650,10 @@ describe('useDeepLinkHandler hook', () => {
       await Promise.resolve();
     });
 
-    expect(logger.info).toHaveBeenCalledWith('deeplink', 'Already processing a URL, queuing');
+    expect(logger.info).toHaveBeenCalledWith(
+      'deeplink',
+      'Already processing a URL, queuing',
+    );
     resolveConnect?.();
     await act(async () => {
       await Promise.resolve();
@@ -611,7 +665,9 @@ describe('useDeepLinkHandler hook', () => {
     jest.useFakeTimers();
     const clearSpy = jest.spyOn(global, 'clearTimeout');
     mockInitialUrl = 'ircs://irc.test.net:6697/#chan';
-    mockParseIRCUrl.mockReturnValue(makeParsed({ channel: '#chan', channelKey: 'cleanup' }));
+    mockParseIRCUrl.mockReturnValue(
+      makeParsed({ channel: '#chan', channelKey: 'cleanup' }),
+    );
 
     const { unmount } = renderHook(() =>
       useDeepLinkHandler({
@@ -623,7 +679,7 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
 
     await act(async () => {
@@ -638,7 +694,9 @@ describe('useDeepLinkHandler hook', () => {
 
   it('logs and alerts when deep link processing throws', async () => {
     mockInitialUrl = 'ircs://irc.test.net:6697';
-    (settingsService.loadNetworks as jest.Mock).mockRejectedValueOnce(new Error('load failed'));
+    (settingsService.loadNetworks as jest.Mock).mockRejectedValueOnce(
+      new Error('load failed'),
+    );
 
     renderHook(() =>
       useDeepLinkHandler({
@@ -650,20 +708,25 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
-    expect(logger.error).toHaveBeenCalledWith('deeplink', expect.stringContaining('Error processing deep link'));
+    expect(logger.error).toHaveBeenCalledWith(
+      'deeplink',
+      expect.stringContaining('Error processing deep link'),
+    );
     expect(safeAlert).toHaveBeenCalledWith(
       'Error',
       expect.stringContaining('load failed'),
-      expect.any(Array)
+      expect.any(Array),
     );
   });
 
   it('logs initial URL retrieval errors', async () => {
-    (Linking.getInitialURL as jest.Mock).mockRejectedValueOnce(new Error('initial fail'));
+    (Linking.getInitialURL as jest.Mock).mockRejectedValueOnce(
+      new Error('initial fail'),
+    );
     mockInitialUrl = null;
 
     renderHook(() =>
@@ -676,10 +739,13 @@ describe('useDeepLinkHandler hook', () => {
         tabs: [],
         safeAlert,
         t,
-      })
+      }),
     );
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
 
-    expect(logger.error).toHaveBeenCalledWith('deeplink', expect.stringContaining('Error getting initial URL'));
+    expect(logger.error).toHaveBeenCalledWith(
+      'deeplink',
+      expect.stringContaining('Error getting initial URL'),
+    );
   });
 });

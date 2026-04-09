@@ -37,23 +37,29 @@ describe('Presets - IRcapPresets', () => {
     it('should have valid base64 for awayPresets', () => {
       const base64 = IRCAP_PRESETS_BASE64.awayPresets.replace(/\s+/g, '');
       expect(() => Buffer.from(base64, 'base64')).not.toThrow();
-      
+
       const decoded = Buffer.from(base64, 'base64').toString('utf-8');
       expect(decoded.length).toBeGreaterThan(0);
     });
 
     it('should have valid base64 for textDecorationPresets', () => {
-      const base64 = IRCAP_PRESETS_BASE64.textDecorationPresets.replace(/\s+/g, '');
+      const base64 = IRCAP_PRESETS_BASE64.textDecorationPresets.replace(
+        /\s+/g,
+        '',
+      );
       expect(() => Buffer.from(base64, 'base64')).not.toThrow();
-      
+
       const decoded = Buffer.from(base64, 'base64').toString('utf-8');
       expect(decoded.length).toBeGreaterThan(0);
     });
 
     it('should have valid base64 for nickCompletionPresets', () => {
-      const base64 = IRCAP_PRESETS_BASE64.nickCompletionPresets.replace(/\s+/g, '');
+      const base64 = IRCAP_PRESETS_BASE64.nickCompletionPresets.replace(
+        /\s+/g,
+        '',
+      );
       expect(() => Buffer.from(base64, 'base64')).not.toThrow();
-      
+
       const decoded = Buffer.from(base64, 'base64').toString('utf-8');
       expect(decoded.length).toBeGreaterThan(0);
     });
@@ -61,7 +67,7 @@ describe('Presets - IRcapPresets', () => {
     it('should have valid base64 for topicPresets', () => {
       const base64 = IRCAP_PRESETS_BASE64.topicPresets.replace(/\s+/g, '');
       expect(() => Buffer.from(base64, 'base64')).not.toThrow();
-      
+
       const decoded = Buffer.from(base64, 'base64').toString('utf-8');
       expect(decoded.length).toBeGreaterThan(0);
     });
@@ -71,7 +77,7 @@ describe('Presets - IRcapPresets', () => {
     it('awayPresets should decode to valid content', () => {
       const base64 = IRCAP_PRESETS_BASE64.awayPresets.replace(/\s+/g, '');
       const decoded = Buffer.from(base64, 'base64').toString('utf-8');
-      
+
       // Should contain away-related text
       expect(decoded.length).toBeGreaterThan(0);
       // Content should contain text (may include IRC control chars for formatting)
@@ -79,18 +85,24 @@ describe('Presets - IRcapPresets', () => {
     });
 
     it('textDecorationPresets should decode to valid content', () => {
-      const base64 = IRCAP_PRESETS_BASE64.textDecorationPresets.replace(/\s+/g, '');
+      const base64 = IRCAP_PRESETS_BASE64.textDecorationPresets.replace(
+        /\s+/g,
+        '',
+      );
       const decoded = Buffer.from(base64, 'base64').toString('utf-8');
-      
+
       expect(decoded.length).toBeGreaterThan(0);
       // Contains text decoration patterns with IRC formatting codes
       expect(typeof decoded).toBe('string');
     });
 
     it('nickCompletionPresets should decode to valid content', () => {
-      const base64 = IRCAP_PRESETS_BASE64.nickCompletionPresets.replace(/\s+/g, '');
+      const base64 = IRCAP_PRESETS_BASE64.nickCompletionPresets.replace(
+        /\s+/g,
+        '',
+      );
       const decoded = Buffer.from(base64, 'base64').toString('utf-8');
-      
+
       expect(decoded.length).toBeGreaterThan(0);
       expect(typeof decoded).toBe('string');
     });
@@ -98,7 +110,7 @@ describe('Presets - IRcapPresets', () => {
     it('topicPresets should decode to valid content', () => {
       const base64 = IRCAP_PRESETS_BASE64.topicPresets.replace(/\s+/g, '');
       const decoded = Buffer.from(base64, 'base64').toString('utf-8');
-      
+
       expect(decoded.length).toBeGreaterThan(0);
       expect(typeof decoded).toBe('string');
     });
@@ -125,7 +137,7 @@ describe('Presets - IRcapPresets', () => {
       // The export uses 'as const' which makes it readonly at compile time
       // At runtime we just verify the structure is consistent
       expect(IRCAP_PRESETS_BASE64).toBeDefined();
-      
+
       // Values should remain constant across multiple accesses
       const firstAccess = IRCAP_PRESETS_BASE64.awayPresets;
       const secondAccess = IRCAP_PRESETS_BASE64.awayPresets;

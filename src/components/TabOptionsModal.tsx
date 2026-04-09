@@ -44,21 +44,34 @@ export const TabOptionsModal: React.FC<TabOptionsModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
-      <TouchableOpacity style={styles.modalOverlay} onPress={onClose} activeOpacity={1}>
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        onPress={onClose}
+        activeOpacity={1}
+      >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>{title || 'Options'}</Text>
           {options.map((opt, idx) => (
             <TouchableOpacity
               key={`${opt.text}-${idx}`}
-              style={[styles.modalButton, opt.style === 'destructive' && styles.modalButtonCancel]}
-              onPress={() => handleOptionPress(opt)}>
+              style={[
+                styles.modalButton,
+                opt.style === 'destructive' && styles.modalButtonCancel,
+              ]}
+              onPress={() => handleOptionPress(opt)}
+            >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 {opt.icon && (
                   <Icon
                     name={opt.icon}
                     size={20}
-                    color={opt.style === 'destructive' ? (colors?.destructive || '#EF5350') : (colors?.text || '#666')}
+                    color={
+                      opt.style === 'destructive'
+                        ? colors?.destructive || '#EF5350'
+                        : colors?.text || '#666'
+                    }
                     style={{ marginRight: 12 }}
                   />
                 )}
@@ -66,7 +79,8 @@ export const TabOptionsModal: React.FC<TabOptionsModalProps> = ({
                   style={[
                     styles.modalButtonText,
                     opt.style === 'destructive' && styles.destructiveOption,
-                  ]}>
+                  ]}
+                >
                   {opt.text}
                 </Text>
               </View>

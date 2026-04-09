@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Example usage of IRCFormatter
- * 
+ *
  * This file demonstrates how to use the IRC formatting utilities
  * to display IRC-formatted text in React Native components.
  */
@@ -15,29 +15,29 @@ import { formatIRCTextAsComponent, stripIRCFormatting } from './IRCFormatter';
 /**
  * Example: Displaying formatted IRC text in a message
  */
-export const FormattedMessageExample: React.FC<{ message: string }> = ({ message }) => {
+export const FormattedMessageExample: React.FC<{ message: string }> = ({
+  message,
+}) => {
   return (
     <View style={styles.container}>
       {/* Display with IRC formatting */}
       <Text style={styles.messageText}>
         {formatIRCTextAsComponent(message, styles.baseText)}
       </Text>
-      
+
       {/* Or display without formatting */}
-      <Text style={styles.plainText}>
-        {stripIRCFormatting(message)}
-      </Text>
+      <Text style={styles.plainText}>{stripIRCFormatting(message)}</Text>
     </View>
   );
 };
 
 /**
  * Example: Using in MessageArea component
- * 
+ *
  * Replace the plain Text component with:
- * 
+ *
  * import { formatIRCTextAsComponent } from '../utils/IRCFormatter';
- * 
+ *
  * // In your message rendering:
  * {message.type === 'message' ? (
  *   <View style={styles.messageContent}>
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
 
 /**
  * IRC Format Codes Examples:
- * 
+ *
  * Bold: \x02text\x02 or \x02text\x0F
  * Color: \x03colorcode or \x03foreground,background
  * Underline: \x1Ftext\x1F
@@ -78,14 +78,13 @@ const styles = StyleSheet.create({
  * Strikethrough: \x1Etext\x1E
  * Reverse: \x16text\x16
  * Reset: \x0F
- * 
+ *
  * Color codes:
  * - 0-15: Standard IRC colors
  * - 16-98: Extended RGB colors
- * 
+ *
  * Example formatted messages:
  * - "\x034Hello \x038world\x03" - Red "Hello" and Yellow "world"
  * - "\x02Bold \x034Red\x03 \x02Bold\x02" - Bold text with red word
  * - "\x031,4Red on Green\x03" - Red text on green background
  */
-

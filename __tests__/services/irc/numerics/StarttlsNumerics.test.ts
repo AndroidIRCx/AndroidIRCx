@@ -55,7 +55,7 @@ describe('StarttlsNumerics', () => {
     handle670(ctx, 'server', ['nick'], 201);
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: '*** STARTTLS successful' })
+      expect.objectContaining({ text: '*** STARTTLS successful' }),
     );
   });
 
@@ -73,7 +73,7 @@ describe('StarttlsNumerics', () => {
     handle691(ctx, 'server', ['nick'], 203);
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: 'STARTTLS failed' })
+      expect.objectContaining({ text: 'STARTTLS failed' }),
     );
   });
 
@@ -89,14 +89,14 @@ describe('StarttlsNumerics', () => {
       expect.objectContaining({
         text: '*** [690] TLS capability advertised',
         rawCategory: 'server',
-      })
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
         text: '*** [699] ',
         rawCategory: 'server',
-      })
+      }),
     );
   });
 });

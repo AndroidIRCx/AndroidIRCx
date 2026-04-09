@@ -65,7 +65,11 @@ describe('CameraScreen', () => {
 
   it('returns null when not visible', () => {
     const { toJSON } = render(
-      <CameraScreen visible={false} onClose={jest.fn()} onPhotoTaken={jest.fn()} />
+      <CameraScreen
+        visible={false}
+        onClose={jest.fn()}
+        onPhotoTaken={jest.fn()}
+      />,
     );
     expect(toJSON()).toBeNull();
   });
@@ -75,7 +79,7 @@ describe('CameraScreen', () => {
     mockRequestPermission.mockResolvedValue(false);
 
     const { getByText } = render(
-      <CameraScreen visible onClose={jest.fn()} onPhotoTaken={jest.fn()} />
+      <CameraScreen visible onClose={jest.fn()} onPhotoTaken={jest.fn()} />,
     );
 
     await act(async () => {
@@ -90,10 +94,12 @@ describe('CameraScreen', () => {
     const onClose = jest.fn();
 
     const { UNSAFE_getAllByType } = render(
-      <CameraScreen visible onClose={onClose} onPhotoTaken={onPhotoTaken} />
+      <CameraScreen visible onClose={onClose} onPhotoTaken={onPhotoTaken} />,
     );
 
-    const buttons = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const buttons = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
     const captureButton = buttons[1];
 
     await act(async () => {
@@ -103,7 +109,9 @@ describe('CameraScreen', () => {
     expect(mockTakePhoto).toHaveBeenCalled();
     expect(mockReadFile).toHaveBeenCalledWith('/tmp/cam.jpg', 'base64');
     expect(mockWriteFile).toHaveBeenCalled();
-    expect(onPhotoTaken).toHaveBeenCalledWith(expect.stringContaining('/cache/photo_'));
+    expect(onPhotoTaken).toHaveBeenCalledWith(
+      expect.stringContaining('/cache/photo_'),
+    );
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -112,7 +120,7 @@ describe('CameraScreen', () => {
     mockDevice = null;
 
     const { getByText } = render(
-      <CameraScreen visible onClose={onClose} onPhotoTaken={jest.fn()} />
+      <CameraScreen visible onClose={onClose} onPhotoTaken={jest.fn()} />,
     );
 
     expect(getByText('Camera not available')).toBeTruthy();
@@ -126,10 +134,12 @@ describe('CameraScreen', () => {
     mockTakePhoto.mockRejectedValue(new Error('boom'));
 
     const { UNSAFE_getAllByType, getByText } = render(
-      <CameraScreen visible onClose={onClose} onPhotoTaken={onPhotoTaken} />
+      <CameraScreen visible onClose={onClose} onPhotoTaken={onPhotoTaken} />,
     );
 
-    const buttons = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const buttons = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
     const captureButton = buttons[1];
 
     await act(async () => {

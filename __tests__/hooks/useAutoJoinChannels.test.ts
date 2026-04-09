@@ -29,11 +29,17 @@ describe('useAutoJoinChannels', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockMotdCompleteRef.current = new Set();
-    
+
     // Default mock implementations
-    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(true);
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([]);
-    require('../../src/services/ChannelFavoritesService').channelFavoritesService.getFavorites.mockReturnValue([]);
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(
+      true,
+    );
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      [],
+    );
+    require('../../src/services/ChannelFavoritesService').channelFavoritesService.getFavorites.mockReturnValue(
+      [],
+    );
   });
 
   it('should render without crashing', () => {
@@ -63,7 +69,9 @@ describe('useAutoJoinChannels', () => {
 
     renderHook(() => useAutoJoinChannels(params));
 
-    expect(require('../../src/services/SettingsService').settingsService.getSetting).toHaveBeenCalledWith('autoJoinFavorites', true);
+    expect(
+      require('../../src/services/SettingsService').settingsService.getSetting,
+    ).toHaveBeenCalledWith('autoJoinFavorites', true);
   });
 
   it('should attempt auto-join when connected and registered', async () => {
@@ -71,9 +79,9 @@ describe('useAutoJoinChannels', () => {
       isRegistered: jest.fn().mockReturnValue(true),
       joinChannel: jest.fn(),
     };
-    
+
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
-    
+
     const params = {
       isConnected: true,
       activeConnectionId: 'test-net',
@@ -85,9 +93,9 @@ describe('useAutoJoinChannels', () => {
     mockMotdCompleteRef.current.add('test-net');
 
     // Add network to mock
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
-      { id: 'test-net', name: 'Test Network', autoJoinChannels: ['#test'] }
-    ]);
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      [{ id: 'test-net', name: 'Test Network', autoJoinChannels: ['#test'] }],
+    );
 
     renderHook(() => useAutoJoinChannels(params));
 
@@ -117,9 +125,9 @@ describe('useAutoJoinChannels', () => {
       isRegistered: jest.fn().mockReturnValue(false),
       joinChannel: jest.fn(),
     };
-    
+
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
-    
+
     const params = {
       isConnected: true,
       activeConnectionId: 'test-net',
@@ -139,9 +147,9 @@ describe('useAutoJoinChannels', () => {
       isRegistered: jest.fn().mockReturnValue(true),
       joinChannel: jest.fn(),
     };
-    
+
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
-    
+
     const params = {
       isConnected: true,
       activeConnectionId: 'test-net',
@@ -153,13 +161,13 @@ describe('useAutoJoinChannels', () => {
     mockMotdCompleteRef.current.add('test-net');
 
     // Add network and favorites to mock
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
-      { id: 'test-net', name: 'Test Network', autoJoinChannels: ['#test'] }
-    ]);
-    
-    require('../../src/services/ChannelFavoritesService').channelFavoritesService.getFavorites.mockReturnValue([
-      { name: '#favorite', key: 'secret' }
-    ]);
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      [{ id: 'test-net', name: 'Test Network', autoJoinChannels: ['#test'] }],
+    );
+
+    require('../../src/services/ChannelFavoritesService').channelFavoritesService.getFavorites.mockReturnValue(
+      [{ name: '#favorite', key: 'secret' }],
+    );
 
     renderHook(() => useAutoJoinChannels(params));
 
@@ -167,7 +175,10 @@ describe('useAutoJoinChannels', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(mockIRCService.joinChannel).toHaveBeenCalledWith('#test', undefined);
-    expect(mockIRCService.joinChannel).toHaveBeenCalledWith('#favorite', 'secret');
+    expect(mockIRCService.joinChannel).toHaveBeenCalledWith(
+      '#favorite',
+      'secret',
+    );
   });
 
   it('should not join favorite channels when disabled', async () => {
@@ -175,9 +186,9 @@ describe('useAutoJoinChannels', () => {
       isRegistered: jest.fn().mockReturnValue(true),
       joinChannel: jest.fn(),
     };
-    
+
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
-    
+
     const params = {
       isConnected: false,
       activeConnectionId: 'test-net',
@@ -189,18 +200,22 @@ describe('useAutoJoinChannels', () => {
     mockMotdCompleteRef.current.add('test-net');
 
     // Disable auto-join favorites
-    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(false);
-    
-    // Add network and favorites to mock
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([
-      { id: 'test-net', name: 'Test Network', autoJoinChannels: ['#test'] }
-    ]);
-    
-    require('../../src/services/ChannelFavoritesService').channelFavoritesService.getFavorites.mockReturnValue([
-      { name: '#favorite', key: 'secret' }
-    ]);
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(
+      false,
+    );
 
-    const { rerender } = renderHook((p) => useAutoJoinChannels(p), { initialProps: params });
+    // Add network and favorites to mock
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      [{ id: 'test-net', name: 'Test Network', autoJoinChannels: ['#test'] }],
+    );
+
+    require('../../src/services/ChannelFavoritesService').channelFavoritesService.getFavorites.mockReturnValue(
+      [{ name: '#favorite', key: 'secret' }],
+    );
+
+    const { rerender } = renderHook(p => useAutoJoinChannels(p), {
+      initialProps: params,
+    });
 
     // Wait for async operations
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -209,7 +224,10 @@ describe('useAutoJoinChannels', () => {
 
     // Should only join auto-join channels, not favorites
     expect(mockIRCService.joinChannel).toHaveBeenCalledWith('#test', undefined);
-    expect(mockIRCService.joinChannel).not.toHaveBeenCalledWith('#favorite', 'secret');
+    expect(mockIRCService.joinChannel).not.toHaveBeenCalledWith(
+      '#favorite',
+      'secret',
+    );
   });
 
   it('should reset when connection ID changes', () => {
@@ -222,16 +240,16 @@ describe('useAutoJoinChannels', () => {
       motdSignal: 0,
     };
 
-    const { rerender } = renderHook((props) => useAutoJoinChannels(props), {
-      initialProps: params
+    const { rerender } = renderHook(props => useAutoJoinChannels(props), {
+      initialProps: params,
     });
 
     // Rerender with different connection ID to trigger reset
     rerender({
       ...params,
-      activeConnectionId: 'different-net'
+      activeConnectionId: 'different-net',
     });
-    
+
     // Should not throw
     expect(true).toBe(true);
   });

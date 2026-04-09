@@ -13,46 +13,67 @@ export interface MircPresetEntry {
 const LINE_SPLIT = /\r\n|\n|\r/;
 
 const CP1252_MAP: Record<number, number> = {
-  0x80: 0x20AC, 0x82: 0x201A, 0x83: 0x0192, 0x84: 0x201E, 0x85: 0x2026,
-  0x86: 0x2020, 0x87: 0x2021, 0x88: 0x02C6, 0x89: 0x2030, 0x8A: 0x0160,
-  0x8B: 0x2039, 0x8C: 0x0152, 0x8E: 0x017D, 0x91: 0x2018, 0x92: 0x2019,
-  0x93: 0x201C, 0x94: 0x201D, 0x95: 0x2022, 0x96: 0x2013, 0x97: 0x2014,
-  0x98: 0x02DC, 0x99: 0x2122, 0x9A: 0x0161, 0x9B: 0x203A, 0x9C: 0x0153,
-  0x9E: 0x017E, 0x9F: 0x0178,
+  0x80: 0x20ac,
+  0x82: 0x201a,
+  0x83: 0x0192,
+  0x84: 0x201e,
+  0x85: 0x2026,
+  0x86: 0x2020,
+  0x87: 0x2021,
+  0x88: 0x02c6,
+  0x89: 0x2030,
+  0x8a: 0x0160,
+  0x8b: 0x2039,
+  0x8c: 0x0152,
+  0x8e: 0x017d,
+  0x91: 0x2018,
+  0x92: 0x2019,
+  0x93: 0x201c,
+  0x94: 0x201d,
+  0x95: 0x2022,
+  0x96: 0x2013,
+  0x97: 0x2014,
+  0x98: 0x02dc,
+  0x99: 0x2122,
+  0x9a: 0x0161,
+  0x9b: 0x203a,
+  0x9c: 0x0153,
+  0x9e: 0x017e,
+  0x9f: 0x0178,
 };
 
 const isValidUtf8 = (bytes: Uint8Array): boolean => {
   let i = 0;
   while (i < bytes.length) {
     const byte1 = bytes[i];
-    if (byte1 <= 0x7F) {
+    if (byte1 <= 0x7f) {
       i += 1;
       continue;
     }
-    if ((byte1 & 0xE0) === 0xC0) {
+    if ((byte1 & 0xe0) === 0xc0) {
       if (i + 1 >= bytes.length) return false;
       const byte2 = bytes[i + 1];
-      if ((byte2 & 0xC0) !== 0x80) return false;
+      if ((byte2 & 0xc0) !== 0x80) return false;
       i += 2;
       continue;
     }
-    if ((byte1 & 0xF0) === 0xE0) {
+    if ((byte1 & 0xf0) === 0xe0) {
       if (i + 2 >= bytes.length) return false;
       const byte2 = bytes[i + 1];
       const byte3 = bytes[i + 2];
-      if ((byte2 & 0xC0) !== 0x80 || (byte3 & 0xC0) !== 0x80) return false;
+      if ((byte2 & 0xc0) !== 0x80 || (byte3 & 0xc0) !== 0x80) return false;
       i += 3;
       continue;
     }
-    if ((byte1 & 0xF8) === 0xF0) {
+    if ((byte1 & 0xf8) === 0xf0) {
       if (i + 3 >= bytes.length) return false;
       const byte2 = bytes[i + 1];
       const byte3 = bytes[i + 2];
       const byte4 = bytes[i + 3];
       if (
-        (byte2 & 0xC0) !== 0x80 ||
-        (byte3 & 0xC0) !== 0x80 ||
-        (byte4 & 0xC0) !== 0x80
+        (byte2 & 0xc0) !== 0x80 ||
+        (byte3 & 0xc0) !== 0x80 ||
+        (byte4 & 0xc0) !== 0x80
       ) {
         return false;
       }
@@ -68,7 +89,7 @@ const decodeCp1252 = (bytes: Uint8Array): string => {
   let output = '';
   for (let i = 0; i < bytes.length; i += 1) {
     const byte = bytes[i];
-    if (byte >= 0x80 && byte <= 0x9F) {
+    if (byte >= 0x80 && byte <= 0x9f) {
       const mapped = CP1252_MAP[byte];
       output += String.fromCharCode(mapped || byte);
     } else {
@@ -91,8 +112,8 @@ export function decodeMircPresetBase64(base64: string): string {
 export function splitPresetLines(raw: string): string[] {
   return raw
     .split(LINE_SPLIT)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
 }
 
 export function parseGenericPresets(raw: string): MircPresetEntry[] {
@@ -109,9 +130,10 @@ export function parseNickCompletionPresets(raw: string): MircPresetEntry[] {
       const enabled = match[2].toLowerCase() === 'on';
       const separator = match[1];
       const matchIndex = match.index ?? 0;
-      const rawValue = separator === '\x08'
-        ? line.slice(0, matchIndex + 1)
-        : line.slice(0, matchIndex).trim();
+      const rawValue =
+        separator === '\x08'
+          ? line.slice(0, matchIndex + 1)
+          : line.slice(0, matchIndex).trim();
       return {
         id: `nick-${index + 1}`,
         raw: rawValue,
@@ -126,7 +148,7 @@ export function parseNickCompletionPresets(raw: string): MircPresetEntry[] {
 }
 
 export function parseIrcapDecorationEti(raw: string): string[] {
-  const lines = raw.split(LINE_SPLIT).filter((line) => line.length > 0);
+  const lines = raw.split(LINE_SPLIT).filter(line => line.length > 0);
   const results: string[] = [];
   const seen = new Set<string>();
 

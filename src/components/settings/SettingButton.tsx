@@ -35,23 +35,26 @@ export const SettingButton: React.FC<SettingButtonProps> = ({
               style={{ marginRight: 8 }}
             />
           )}
-          <Text style={[styles.settingTitle, item.disabled && styles.disabledText]}>
+          <Text
+            style={[styles.settingTitle, item.disabled && styles.disabledText]}
+          >
             {item.title}
           </Text>
         </View>
-        {descriptionContent && (
-          typeof descriptionContent === 'string' || typeof descriptionContent === 'number'
-            ? (
-              <Text style={[styles.settingDescription, item.disabled && styles.disabledText]}>
-                {descriptionContent}
-              </Text>
-            )
-            : (
-              <View style={{ marginTop: 4 }}>
-                {descriptionContent}
-              </View>
-            )
-        )}
+        {descriptionContent &&
+          (typeof descriptionContent === 'string' ||
+          typeof descriptionContent === 'number' ? (
+            <Text
+              style={[
+                styles.settingDescription,
+                item.disabled && styles.disabledText,
+              ]}
+            >
+              {descriptionContent}
+            </Text>
+          ) : (
+            <View style={{ marginTop: 4 }}>{descriptionContent}</View>
+          ))}
       </View>
       <Text style={styles.chevron}>›</Text>
     </TouchableOpacity>

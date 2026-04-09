@@ -18,7 +18,9 @@ export interface MessageReactions {
 
 class MessageReactionsService {
   private reactions: Map<string, MessageReactions> = new Map();
-  private listeners: Array<(messageId: string, reactions: MessageReactions) => void> = [];
+  private listeners: Array<
+    (messageId: string, reactions: MessageReactions) => void
+  > = [];
   private readonly STORAGE_KEY = '@AndroidIRCX:messageReactions';
 
   async initialize(): Promise<void> {
@@ -45,9 +47,13 @@ class MessageReactionsService {
   /**
    * Add a reaction to a message
    */
-  async addReaction(messageId: string, emoji: string, userNick: string): Promise<void> {
+  async addReaction(
+    messageId: string,
+    emoji: string,
+    userNick: string,
+  ): Promise<void> {
     let messageReactions = this.reactions.get(messageId);
-    
+
     if (!messageReactions) {
       messageReactions = {
         messageId,
@@ -58,7 +64,7 @@ class MessageReactionsService {
 
     // Find existing reaction for this emoji
     let reaction = messageReactions.reactions.find(r => r.emoji === emoji);
-    
+
     if (reaction) {
       // Add user if not already present
       if (!reaction.users.includes(userNick)) {
@@ -82,7 +88,11 @@ class MessageReactionsService {
   /**
    * Remove a reaction from a message
    */
-  async removeReaction(messageId: string, emoji: string, userNick: string): Promise<void> {
+  async removeReaction(
+    messageId: string,
+    emoji: string,
+    userNick: string,
+  ): Promise<void> {
     const messageReactions = this.reactions.get(messageId);
     if (!messageReactions) {
       return;
@@ -120,7 +130,11 @@ class MessageReactionsService {
   /**
    * Toggle a reaction (add if not present, remove if present)
    */
-  async toggleReaction(messageId: string, emoji: string, userNick: string): Promise<void> {
+  async toggleReaction(
+    messageId: string,
+    emoji: string,
+    userNick: string,
+  ): Promise<void> {
     const messageReactions = this.reactions.get(messageId);
     const reaction = messageReactions?.reactions.find(r => r.emoji === emoji);
     const hasReacted = reaction?.users.includes(userNick) || false;
@@ -181,7 +195,9 @@ class MessageReactionsService {
   /**
    * Listen for reaction changes
    */
-  onReactionsChange(callback: (messageId: string, reactions: MessageReactions) => void): () => void {
+  onReactionsChange(
+    callback: (messageId: string, reactions: MessageReactions) => void,
+  ): () => void {
     this.listeners.push(callback);
     return () => {
       const index = this.listeners.indexOf(callback);
@@ -191,10 +207,12 @@ class MessageReactionsService {
     };
   }
 
-  private notifyListeners(messageId: string, reactions: MessageReactions): void {
+  private notifyListeners(
+    messageId: string,
+    reactions: MessageReactions,
+  ): void {
     this.listeners.forEach(callback => callback(messageId, reactions));
   }
 }
 
 export const messageReactionsService = new MessageReactionsService();
-

@@ -17,7 +17,10 @@ import { callMediaProfileService } from './CallMediaProfileService';
 import { mediaSettingsService } from './MediaSettingsService';
 import { settingsService } from './SettingsService';
 import { callSignalCodec, type WebRTCCallChunkBuffer } from './CallSignalCodec';
-import { CALL_NOTIFICATION_ACTIONS, notificationService } from './NotificationService';
+import {
+  CALL_NOTIFICATION_ACTIONS,
+  notificationService,
+} from './NotificationService';
 import { useTabStore } from '../stores/tabStore';
 import { queryTabId } from '../utils/tabUtils';
 import type { CallVideoQuality } from '../types/callMedia';
@@ -68,7 +71,9 @@ class WebRTCCallService {
     }
 
     // Fallback: preserve previous behavior if crypto is not available.
-    return Math.random().toString(36).slice(2, 2 + length);
+    return Math.random()
+      .toString(36)
+      .slice(2, 2 + length);
   }
 
   initialize(): void {
@@ -78,25 +83,33 @@ class WebRTCCallService {
 
     this.initialized = true;
     this.loadOverlayPreferences().catch(() => undefined);
-    notificationService.setCallNotificationActionListener(async (action) => {
+    notificationService.setCallNotificationActionListener(async action => {
       if (action === CALL_NOTIFICATION_ACTIONS.HANGUP) {
         await this.hangUp();
         return;
       }
-      if (action === CALL_NOTIFICATION_ACTIONS.RETURN || action === CALL_NOTIFICATION_ACTIONS.DEFAULT) {
+      if (
+        action === CALL_NOTIFICATION_ACTIONS.RETURN ||
+        action === CALL_NOTIFICATION_ACTIONS.DEFAULT
+      ) {
         this.focusCallQueryTab();
         this.restoreCall();
       }
     });
-    notificationService.consumePendingCallNotificationAction().then((action) => {
-      if (action) {
-        notificationService.handleCallNotificationAction(action).catch(() => undefined);
-      }
-    }).catch(() => undefined);
-    connectionManager.getAllConnections().forEach((connection) => {
+    notificationService
+      .consumePendingCallNotificationAction()
+      .then(action => {
+        if (action) {
+          notificationService
+            .handleCallNotificationAction(action)
+            .catch(() => undefined);
+        }
+      })
+      .catch(() => undefined);
+    connectionManager.getAllConnections().forEach(connection => {
       this.attachConnection(connection.networkId, connection.ircService);
     });
-    connectionManager.onConnectionCreated((networkId) => {
+    connectionManager.onConnectionCreated(networkId => {
       const connection = connectionManager.getConnection(networkId);
       if (connection) {
         this.attachConnection(networkId, connection.ircService);
@@ -104,13 +117,17 @@ class WebRTCCallService {
     });
   }
 
-  async startOutgoingCall(networkId: string, peerNick: string, mediaType: CallMediaType): Promise<void> {
+  async startOutgoingCall(
+    networkId: string,
+    peerNick: string,
+    mediaType: CallMediaType,
+  ): Promise<void> {
     await this.ensureMediaPermissions(mediaType);
 
     const quality = callMediaProfileService.clampVideoQuality(
       mediaType === 'video'
         ? ((await mediaSettingsService.getCallVideoQuality()) as CallVideoQuality)
-        : '720p'
+        : '720p',
     );
     //const sessionId = `call-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     const sessionId = `call-${Date.now()}-${WebRTCCallService.generateSecureIdSuffix(8)}`;
@@ -124,7 +141,10 @@ class WebRTCCallService {
       mediaType,
       direction: 'outgoing',
       phase: 'outgoing',
-      statusText: mediaType === 'video' ? 'Calling with video...' : 'Calling with audio...',
+      statusText:
+        mediaType === 'video'
+          ? 'Calling with video...'
+          : 'Calling with audio...',
       error: null,
       requestedQuality: quality,
       activeQuality: quality,
@@ -142,7 +162,8 @@ class WebRTCCallService {
       mediaType,
       quality,
       sessionId,
-      relayEligible: callMediaProfileService.getCapabilityProfile().relayEnabled,
+      relayEligible:
+        callMediaProfileService.getCapabilityProfile().relayEnabled,
     });
 
     await this.sendSignal(networkId, peerNick, {
@@ -253,11 +274,16 @@ class WebRTCCallService {
     this.persistOverlayPreferences();
   }
 
-  snapOverlayToEdge(viewportWidth: number, overlayWidth: number, y: number): void {
+  snapOverlayToEdge(
+    viewportWidth: number,
+    overlayWidth: number,
+    y: number,
+  ): void {
     const left = 12;
     const right = Math.max(left, viewportWidth - overlayWidth - 12);
     const currentX = useCallStore.getState().overlayX;
-    const snappedX = currentX + (overlayWidth / 2) < viewportWidth / 2 ? left : right;
+    const snappedX =
+      currentX + overlayWidth / 2 < viewportWidth / 2 ? left : right;
     useCallStore.getState().setPartial({
       overlayX: snappedX,
       overlayY: Math.max(8, Math.round(y)),
@@ -279,34 +305,63 @@ class WebRTCCallService {
 
     const unsubscribes: Array<() => void> = [];
     unsubscribes.push(
-      ircService.on('webrtc-signal', (payload: WebRTCCallSignal, meta: { fromNick: string; network: string }) => {
-        this.handleSignal(meta.network || networkId, meta.fromNick, payload).catch((error) => {
-          console.error('[WebRTCCall] Failed to handle signal:', error);
-          this.failCall(error instanceof Error ? error.message : 'Failed to handle call signal.');
-        });
-      })
+      ircService.on(
+        'webrtc-signal',
+        (
+          payload: WebRTCCallSignal,
+          meta: { fromNick: string; network: string },
+        ) => {
+          this.handleSignal(
+            meta.network || networkId,
+            meta.fromNick,
+            payload,
+          ).catch(error => {
+            console.error('[WebRTCCall] Failed to handle signal:', error);
+            this.failCall(
+              error instanceof Error
+                ? error.message
+                : 'Failed to handle call signal.',
+            );
+          });
+        },
+      ),
     );
     unsubscribes.push(
-      ircService.on('webrtc-signal-chunk', (chunk: any, meta: { fromNick: string; network: string }) => {
-        this.handleSignalChunk(meta.network || networkId, meta.fromNick, chunk);
-      })
+      ircService.on(
+        'webrtc-signal-chunk',
+        (chunk: any, meta: { fromNick: string; network: string }) => {
+          this.handleSignalChunk(
+            meta.network || networkId,
+            meta.fromNick,
+            chunk,
+          );
+        },
+      ),
     );
 
     if (ircService.onConnectionChange) {
       unsubscribes.push(
-        ircService.onConnectionChange((connected) => {
+        ircService.onConnectionChange(connected => {
           const state = useCallStore.getState();
-          if (!connected && state.networkId === networkId && state.phase !== 'idle') {
+          if (
+            !connected &&
+            state.networkId === networkId &&
+            state.phase !== 'idle'
+          ) {
             this.failCall('IRC connection dropped during call setup.');
           }
-        })
+        }),
       );
     }
 
     this.connectionUnsubscribes.set(networkId, unsubscribes);
   }
 
-  private handleSignalChunk(networkId: string, fromNick: string, chunk: any): void {
+  private handleSignalChunk(
+    networkId: string,
+    fromNick: string,
+    chunk: any,
+  ): void {
     this.cleanupExpiredChunkBuffers(networkId);
     this.log(networkId, 'Received signaling chunk', {
       fromNick,
@@ -316,7 +371,10 @@ class WebRTCCallService {
       sessionId: chunk?.sessionId,
     });
     const key = `${networkId}:${fromNick}:${chunk.id}`;
-    const buffer = callSignalCodec.appendChunk(this.signalChunkBuffers.get(key), chunk);
+    const buffer = callSignalCodec.appendChunk(
+      this.signalChunkBuffers.get(key),
+      chunk,
+    );
     this.signalChunkBuffers.set(key, buffer);
     const progress = callSignalCodec.getChunkProgress(buffer);
     this.log(networkId, 'Chunk assembly progress', {
@@ -355,13 +413,21 @@ class WebRTCCallService {
       hasSdp: Boolean(assembled.sdp),
       assembledBytes: assembled.sdp?.length || 0,
     });
-    this.handleSignal(networkId, fromNick, assembled).catch((error) => {
+    this.handleSignal(networkId, fromNick, assembled).catch(error => {
       console.error('[WebRTCCall] Failed to handle chunked signal:', error);
-      this.failCall(error instanceof Error ? error.message : 'Failed to handle call signal.');
+      this.failCall(
+        error instanceof Error
+          ? error.message
+          : 'Failed to handle call signal.',
+      );
     });
   }
 
-  private async handleSignal(networkId: string, fromNick: string, payload: WebRTCCallSignal): Promise<void> {
+  private async handleSignal(
+    networkId: string,
+    fromNick: string,
+    payload: WebRTCCallSignal,
+  ): Promise<void> {
     const state = useCallStore.getState();
     this.log(networkId, 'Received signaling message', {
       fromNick,
@@ -393,9 +459,16 @@ class WebRTCCallService {
           mediaType: payload.mediaType,
           direction: 'incoming',
           phase: 'incoming',
-          statusText: payload.mediaType === 'video' ? 'Incoming video call...' : 'Incoming audio call...',
-          requestedQuality: callMediaProfileService.clampVideoQuality(payload.quality),
-          activeQuality: callMediaProfileService.clampVideoQuality(payload.quality),
+          statusText:
+            payload.mediaType === 'video'
+              ? 'Incoming video call...'
+              : 'Incoming audio call...',
+          requestedQuality: callMediaProfileService.clampVideoQuality(
+            payload.quality,
+          ),
+          activeQuality: callMediaProfileService.clampVideoQuality(
+            payload.quality,
+          ),
           error: null,
           minimized: false,
           overlayX: overlayPrefs.overlayX,
@@ -410,7 +483,10 @@ class WebRTCCallService {
         });
         return;
       case 'accept':
-        if (state.sessionId !== payload.sessionId || state.direction !== 'outgoing') {
+        if (
+          state.sessionId !== payload.sessionId ||
+          state.direction !== 'outgoing'
+        ) {
           return;
         }
         useCallStore.getState().setPartial({
@@ -421,7 +497,11 @@ class WebRTCCallService {
           fromNick,
           sessionId: payload.sessionId,
         });
-        await this.createPeerConnection(networkId, payload.mediaType, state.requestedQuality);
+        await this.createPeerConnection(
+          networkId,
+          payload.mediaType,
+          state.requestedQuality,
+        );
         await this.createAndSendOffer(networkId, fromNick, payload);
         return;
       case 'reject':
@@ -434,11 +514,17 @@ class WebRTCCallService {
         if (state.sessionId !== payload.sessionId || !payload.sdp) {
           return;
         }
-        await this.createPeerConnection(networkId, payload.mediaType, state.requestedQuality);
-        await this.peerConnection?.setRemoteDescription(
-          new RTCSessionDescription({ type: 'offer', sdp: payload.sdp })
+        await this.createPeerConnection(
+          networkId,
+          payload.mediaType,
+          state.requestedQuality,
         );
-        this.remoteHasPublicIceCandidates = this.hasPublicCandidateTypes(payload.sdp);
+        await this.peerConnection?.setRemoteDescription(
+          new RTCSessionDescription({ type: 'offer', sdp: payload.sdp }),
+        );
+        this.remoteHasPublicIceCandidates = this.hasPublicCandidateTypes(
+          payload.sdp,
+        );
         this.log(networkId, 'Remote offer applied', {
           fromNick,
           sessionId: payload.sessionId,
@@ -453,7 +539,8 @@ class WebRTCCallService {
         }
         await this.peerConnection?.setLocalDescription(answer);
         await this.waitForIceGatheringComplete(networkId, 'answer');
-        const rawAnswerSdp = this.peerConnection?.localDescription?.sdp || answer.sdp;
+        const rawAnswerSdp =
+          this.peerConnection?.localDescription?.sdp || answer.sdp;
         const answerSdp = this.optimizeSdpForSignaling(rawAnswerSdp);
         await this.sendSignal(networkId, fromNick, {
           type: 'answer',
@@ -479,9 +566,11 @@ class WebRTCCallService {
           return;
         }
         await this.peerConnection?.setRemoteDescription(
-          new RTCSessionDescription({ type: 'answer', sdp: payload.sdp })
+          new RTCSessionDescription({ type: 'answer', sdp: payload.sdp }),
         );
-        this.remoteHasPublicIceCandidates = this.hasPublicCandidateTypes(payload.sdp);
+        this.remoteHasPublicIceCandidates = this.hasPublicCandidateTypes(
+          payload.sdp,
+        );
         this.log(networkId, 'Remote answer applied', {
           fromNick,
           sessionId: payload.sessionId,
@@ -501,9 +590,13 @@ class WebRTCCallService {
         }
         const candidate = new RTCIceCandidate(payload.candidate);
         if (!this.peerConnection?.remoteDescription) {
-          this.log(networkId, 'Queueing remote ICE candidate until remote description is ready', {
-            sessionId: payload.sessionId,
-          });
+          this.log(
+            networkId,
+            'Queueing remote ICE candidate until remote description is ready',
+            {
+              sessionId: payload.sessionId,
+            },
+          );
           this.pendingCandidates.push(candidate);
           return;
         }
@@ -527,7 +620,7 @@ class WebRTCCallService {
     networkId: string,
     peerNick: string,
     payload: WebRTCCallSignal,
-    options?: { iceRestart?: boolean }
+    options?: { iceRestart?: boolean },
   ): Promise<void> {
     const offer = await this.peerConnection?.createOffer({
       offerToReceiveAudio: true,
@@ -562,7 +655,7 @@ class WebRTCCallService {
   private async createPeerConnection(
     networkId: string,
     mediaType: CallMediaType,
-    requestedQuality: CallVideoQuality
+    requestedQuality: CallVideoQuality,
   ): Promise<void> {
     if (this.peerConnection) {
       return;
@@ -589,14 +682,15 @@ class WebRTCCallService {
     await this.ensureMediaPermissions(mediaType);
     this.localStream = await mediaDevices.getUserMedia({
       audio: true,
-      video: mediaType === 'video'
-        ? {
-            width: rtcConfig.selectedVideoPreset.width,
-            height: rtcConfig.selectedVideoPreset.height,
-            frameRate: rtcConfig.selectedVideoPreset.frameRate,
-            facingMode: 'user',
-          }
-        : false,
+      video:
+        mediaType === 'video'
+          ? {
+              width: rtcConfig.selectedVideoPreset.width,
+              height: rtcConfig.selectedVideoPreset.height,
+              frameRate: rtcConfig.selectedVideoPreset.frameRate,
+              facingMode: 'user',
+            }
+          : false,
     });
     this.log(networkId, 'Local media acquired', {
       audioTracks: this.localStream.getAudioTracks().length,
@@ -633,7 +727,11 @@ class WebRTCCallService {
       });
       event.streams.forEach((stream: MediaStream) => {
         stream.getTracks().forEach((track: any) => {
-          if (!this.remoteStream?.getTracks().some(existing => existing.id === track.id)) {
+          if (
+            !this.remoteStream
+              ?.getTracks()
+              .some(existing => existing.id === track.id)
+          ) {
             this.remoteStream?.addTrack(track);
           }
         });
@@ -650,16 +748,20 @@ class WebRTCCallService {
         this.directRetryAttempted = false;
         useCallStore.getState().setPartial({
           phase: 'connected',
-          statusText: rtcConfig.relayEnabled ? 'Connected via secure relay.' : 'Connected directly.',
+          statusText: rtcConfig.relayEnabled
+            ? 'Connected via secure relay.'
+            : 'Connected directly.',
           usingRelay: rtcConfig.relayEnabled,
         });
       } else if (connectionState === 'failed') {
         if (this.peerConnection?.iceConnectionState === 'failed') {
           return;
         }
-        this.handleDirectIceFailure(networkId, rtcConfig.relayEnabled).catch(() => {
-          this.failCall('WebRTC connection failed.');
-        });
+        this.handleDirectIceFailure(networkId, rtcConfig.relayEnabled).catch(
+          () => {
+            this.failCall('WebRTC connection failed.');
+          },
+        );
       }
     };
 
@@ -670,16 +772,20 @@ class WebRTCCallService {
         this.directRetryAttempted = false;
         useCallStore.getState().setPartial({
           phase: 'connected',
-          statusText: rtcConfig.relayEnabled ? 'Media connected with relay support.' : 'Media connected directly.',
+          statusText: rtcConfig.relayEnabled
+            ? 'Media connected with relay support.'
+            : 'Media connected directly.',
         });
       } else if (iceState === 'failed') {
-        this.handleDirectIceFailure(networkId, rtcConfig.relayEnabled).catch(() => {
-          this.failCall(
-            rtcConfig.relayEnabled
-              ? 'ICE negotiation failed even with relay.'
-              : 'ICE negotiation failed. TURN relay is available only for Privacy Relay subscribers.'
-          );
-        });
+        this.handleDirectIceFailure(networkId, rtcConfig.relayEnabled).catch(
+          () => {
+            this.failCall(
+              rtcConfig.relayEnabled
+                ? 'ICE negotiation failed even with relay.'
+                : 'ICE negotiation failed. TURN relay is available only for Privacy Relay subscribers.',
+            );
+          },
+        );
       }
     };
 
@@ -700,7 +806,9 @@ class WebRTCCallService {
       remoteStream: this.remoteStream,
       usingRelay: rtcConfig.relayEnabled,
       activeQuality: rtcConfig.selectedVideoPreset.quality,
-      statusText: rtcConfig.relayEnabled ? 'Preparing secure relay call...' : 'Preparing direct call...',
+      statusText: rtcConfig.relayEnabled
+        ? 'Preparing secure relay call...'
+        : 'Preparing direct call...',
     });
   }
 
@@ -715,7 +823,11 @@ class WebRTCCallService {
     }
   }
 
-  private async sendSignal(networkId: string, peerNick: string, signal: WebRTCCallSignal): Promise<void> {
+  private async sendSignal(
+    networkId: string,
+    peerNick: string,
+    signal: WebRTCCallSignal,
+  ): Promise<void> {
     const connection = connectionManager.getConnection(networkId);
     if (!connection?.ircService) {
       throw new Error(`No IRC connection found for ${networkId}.`);
@@ -753,7 +865,9 @@ class WebRTCCallService {
     }
   }
 
-  private async ensureMediaPermissions(mediaType: CallMediaType): Promise<void> {
+  private async ensureMediaPermissions(
+    mediaType: CallMediaType,
+  ): Promise<void> {
     if (Platform.OS !== 'android') {
       return;
     }
@@ -781,7 +895,9 @@ class WebRTCCallService {
     });
 
     const results = await PermissionsAndroid.requestMultiple(required);
-    const denied = required.filter(permission => results[permission] !== PermissionsAndroid.RESULTS.GRANTED);
+    const denied = required.filter(
+      permission => results[permission] !== PermissionsAndroid.RESULTS.GRANTED,
+    );
     if (denied.length === 0) {
       this.log(useCallStore.getState().networkId, 'Call permissions granted', {
         mediaType,
@@ -790,7 +906,8 @@ class WebRTCCallService {
     }
 
     const permanentlyDenied = denied.some(
-      permission => results[permission] === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+      permission =>
+        results[permission] === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN,
     );
     const needsCamera = denied.includes(PermissionsAndroid.PERMISSIONS.CAMERA);
     const permissionLabel = needsCamera
@@ -816,16 +933,20 @@ class WebRTCCallService {
               Linking.openSettings().catch(() => undefined);
             },
           },
-        ]
+        ],
       );
-      throw new Error(`Please allow ${permissionLabel} permission in app settings.`);
+      throw new Error(
+        `Please allow ${permissionLabel} permission in app settings.`,
+      );
     }
 
     Alert.alert(
       'Permission required',
-      `This call needs ${permissionLabel} permission before it can start.`
+      `This call needs ${permissionLabel} permission before it can start.`,
     );
-    throw new Error(`Call cancelled because ${permissionLabel} permission was denied.`);
+    throw new Error(
+      `Call cancelled because ${permissionLabel} permission was denied.`,
+    );
   }
 
   private async failCall(message: string): Promise<void> {
@@ -884,7 +1005,11 @@ class WebRTCCallService {
     this.pendingCandidates = [];
   }
 
-  private async sendIrcPrivmsg(networkId: string, peerNick: string, payload: string): Promise<void> {
+  private async sendIrcPrivmsg(
+    networkId: string,
+    peerNick: string,
+    payload: string,
+  ): Promise<void> {
     const connection = connectionManager.getConnection(networkId);
     if (!connection?.ircService) {
       throw new Error(`No IRC connection found for ${networkId}.`);
@@ -899,7 +1024,10 @@ class WebRTCCallService {
     connection.ircService.sendRaw(command);
   }
 
-  private async waitForIceGatheringComplete(networkId: string, phase: 'offer' | 'answer'): Promise<void> {
+  private async waitForIceGatheringComplete(
+    networkId: string,
+    phase: 'offer' | 'answer',
+  ): Promise<void> {
     if (!this.peerConnection) {
       return;
     }
@@ -913,7 +1041,7 @@ class WebRTCCallService {
       timeoutMs: WebRTCCallService.ICE_GATHER_TIMEOUT_MS,
     });
 
-    await new Promise<void>((resolve) => {
+    await new Promise<void>(resolve => {
       let settled = false;
       let timeoutId: ReturnType<typeof setTimeout> | null = null;
       const peerConnectionAny = this.peerConnection as any;
@@ -931,10 +1059,16 @@ class WebRTCCallService {
         this.log(networkId, `ICE gathering wait finished for ${phase}`, {
           reason,
           iceGatheringState: this.peerConnection?.iceGatheringState,
-          candidateCount: this.countSdpCandidates(this.peerConnection?.localDescription?.sdp),
-          candidateTypes: this.countCandidateTypes(this.peerConnection?.localDescription?.sdp),
+          candidateCount: this.countSdpCandidates(
+            this.peerConnection?.localDescription?.sdp,
+          ),
+          candidateTypes: this.countCandidateTypes(
+            this.peerConnection?.localDescription?.sdp,
+          ),
         });
-        this.localHasPublicIceCandidates = this.hasPublicCandidateTypes(this.peerConnection?.localDescription?.sdp);
+        this.localHasPublicIceCandidates = this.hasPublicCandidateTypes(
+          this.peerConnection?.localDescription?.sdp,
+        );
         resolve();
       };
 
@@ -945,7 +1079,10 @@ class WebRTCCallService {
         }
       };
 
-      timeoutId = setTimeout(() => finish('timeout'), WebRTCCallService.ICE_GATHER_TIMEOUT_MS);
+      timeoutId = setTimeout(
+        () => finish('timeout'),
+        WebRTCCallService.ICE_GATHER_TIMEOUT_MS,
+      );
     });
   }
 
@@ -953,7 +1090,8 @@ class WebRTCCallService {
     if (!sdp) {
       return 0;
     }
-    return sdp.split(/\r?\n/).filter(line => line.startsWith('a=candidate:')).length;
+    return sdp.split(/\r?\n/).filter(line => line.startsWith('a=candidate:'))
+      .length;
   }
 
   private countCandidateTypes(sdp?: string | null): Record<string, number> {
@@ -995,7 +1133,9 @@ class WebRTCCallService {
 
   private optimizeSdpForSignaling(sdp: string): string {
     const lines = sdp.split(/\r?\n/);
-    const candidateLines = lines.filter(line => line.startsWith('a=candidate:'));
+    const candidateLines = lines.filter(line =>
+      line.startsWith('a=candidate:'),
+    );
     const hasRoutableCandidates = candidateLines.some(line => {
       const type = this.extractCandidateType(line);
       return type === 'srflx' || type === 'relay';
@@ -1047,7 +1187,10 @@ class WebRTCCallService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  private async handleDirectIceFailure(networkId: string, relayEnabled: boolean): Promise<void> {
+  private async handleDirectIceFailure(
+    networkId: string,
+    relayEnabled: boolean,
+  ): Promise<void> {
     if (relayEnabled) {
       await this.failCall('ICE negotiation failed even with relay.');
       return;
@@ -1063,7 +1206,9 @@ class WebRTCCallService {
       return;
     }
 
-    await this.failCall('ICE negotiation failed. TURN relay is available only for Privacy Relay subscribers.');
+    await this.failCall(
+      'ICE negotiation failed. TURN relay is available only for Privacy Relay subscribers.',
+    );
   }
 
   private async retryDirectConnection(networkId: string): Promise<void> {
@@ -1074,18 +1219,25 @@ class WebRTCCallService {
 
     this.directRetryAttempted = true;
     this.pendingCandidates = [];
-    this.log(networkId, 'Retrying free direct call after missing public ICE candidates', {
-      sessionId: state.sessionId,
-      peerNick: state.peerNick,
-      mediaType: state.mediaType,
-      localHasPublicIceCandidates: this.localHasPublicIceCandidates,
-      remoteHasPublicIceCandidates: this.remoteHasPublicIceCandidates,
-    });
-    console.warn('[WebRTCCall] Free direct call retry started because no public ICE candidates were found', {
+    this.log(
       networkId,
-      sessionId: state.sessionId,
-      peerNick: state.peerNick,
-    });
+      'Retrying free direct call after missing public ICE candidates',
+      {
+        sessionId: state.sessionId,
+        peerNick: state.peerNick,
+        mediaType: state.mediaType,
+        localHasPublicIceCandidates: this.localHasPublicIceCandidates,
+        remoteHasPublicIceCandidates: this.remoteHasPublicIceCandidates,
+      },
+    );
+    console.warn(
+      '[WebRTCCall] Free direct call retry started because no public ICE candidates were found',
+      {
+        networkId,
+        sessionId: state.sessionId,
+        peerNick: state.peerNick,
+      },
+    );
 
     try {
       const peerConnectionAny = this.peerConnection as any;
@@ -1100,20 +1252,28 @@ class WebRTCCallService {
       error: null,
     });
 
-    await this.createAndSendOffer(networkId, state.peerNick, {
-      type: 'offer',
-      sessionId: state.sessionId,
-      mediaType: state.mediaType,
-      quality: state.requestedQuality,
-    }, {
-      iceRestart: true,
-    });
+    await this.createAndSendOffer(
+      networkId,
+      state.peerNick,
+      {
+        type: 'offer',
+        sessionId: state.sessionId,
+        mediaType: state.mediaType,
+        quality: state.requestedQuality,
+      },
+      {
+        iceRestart: true,
+      },
+    );
   }
 
   private cleanupExpiredChunkBuffers(networkId: string): void {
     const now = Date.now();
     for (const [key, buffer] of this.signalChunkBuffers.entries()) {
-      if (now - buffer.updatedAt <= WebRTCCallService.SIGNAL_CHUNK_ASSEMBLY_TIMEOUT_MS) {
+      if (
+        now - buffer.updatedAt <=
+        WebRTCCallService.SIGNAL_CHUNK_ASSEMBLY_TIMEOUT_MS
+      ) {
         continue;
       }
 
@@ -1156,13 +1316,18 @@ class WebRTCCallService {
     useCallStore.getState().setPartial({
       overlayX: typeof stored.overlayX === 'number' ? stored.overlayX : 20,
       overlayY: typeof stored.overlayY === 'number' ? stored.overlayY : 120,
-      videoOverlayWidth: typeof stored.videoOverlayWidth === 'number' ? stored.videoOverlayWidth : 168,
+      videoOverlayWidth:
+        typeof stored.videoOverlayWidth === 'number'
+          ? stored.videoOverlayWidth
+          : 168,
     });
   }
 
   private persistOverlayPreferences(): void {
     const prefs = this.getOverlayPrefsSnapshot();
-    settingsService.setSetting(WebRTCCallService.OVERLAY_PREFS_KEY, prefs).catch(() => undefined);
+    settingsService
+      .setSetting(WebRTCCallService.OVERLAY_PREFS_KEY, prefs)
+      .catch(() => undefined);
   }
 
   private focusCallQueryTab(): void {
@@ -1188,7 +1353,11 @@ class WebRTCCallService {
     tabStore.setActiveTabId(tabId);
   }
 
-  private log(networkId: string | null | undefined, message: string, details?: Record<string, unknown>): void {
+  private log(
+    networkId: string | null | undefined,
+    message: string,
+    details?: Record<string, unknown>,
+  ): void {
     const prefix = '[WebRTCCall]';
     if (details) {
       console.log(prefix, message, details);
@@ -1206,7 +1375,7 @@ class WebRTCCallService {
         details
           ? `${prefix} ${message} ${JSON.stringify(details)}`
           : `${prefix} ${message}`,
-        'debug'
+        'debug',
       );
     } catch {
       // Ignore debug logging failures.

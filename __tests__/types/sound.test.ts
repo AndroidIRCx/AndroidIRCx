@@ -36,7 +36,9 @@ describe('types/sound', () => {
 
   it('should expose expected built-in schemes', () => {
     const schemeIds = BUILT_IN_SCHEMES.map(s => s.id);
-    expect(schemeIds).toEqual(expect.arrayContaining(['classic', 'modern', 'silent']));
+    expect(schemeIds).toEqual(
+      expect.arrayContaining(['classic', 'modern', 'silent']),
+    );
     expect(BUILT_IN_SCHEMES.every(s => s.isBuiltIn)).toBe(true);
   });
 
@@ -83,4 +85,3 @@ describe('types/sound', () => {
     expect(enabled).toEqual(expected);
   });
 });
-

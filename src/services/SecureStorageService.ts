@@ -87,7 +87,9 @@ class SecureStorageService {
       // Add to index for listing
       await this.addToIndex(key);
     } else {
-      console.warn('SecureStorage: Keychain unavailable, falling back to AsyncStorage (less secure)');
+      console.warn(
+        'SecureStorage: Keychain unavailable, falling back to AsyncStorage (less secure)',
+      );
       await AsyncStorage.setItem(`${FALLBACK_PREFIX}${key}`, value);
     }
   }

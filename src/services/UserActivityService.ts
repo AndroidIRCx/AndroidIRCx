@@ -27,7 +27,7 @@ class UserActivityService {
     nick: string | undefined,
     network: string | undefined,
     action: string,
-    context?: { channel?: string; text?: string }
+    context?: { channel?: string; text?: string },
   ) {
     if (!nick) return;
     const key = this.makeKey(nick, network);

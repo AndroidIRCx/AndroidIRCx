@@ -5,7 +5,10 @@
  * Tests for ConnectionProfilesService
  */
 
-import { connectionProfilesService, ProfileTemplate } from '../../src/services/ConnectionProfilesService';
+import {
+  connectionProfilesService,
+  ProfileTemplate,
+} from '../../src/services/ConnectionProfilesService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock transifex
@@ -25,7 +28,9 @@ describe('ConnectionProfilesService', () => {
 
   describe('initialize', () => {
     it('should initialize without errors', async () => {
-      await expect(connectionProfilesService.initialize()).resolves.not.toThrow();
+      await expect(
+        connectionProfilesService.initialize(),
+      ).resolves.not.toThrow();
     });
 
     it('should load saved profiles from storage', async () => {
@@ -33,14 +38,23 @@ describe('ConnectionProfilesService', () => {
         {
           id: 'profile-1',
           name: 'Test Profile',
-          network: { id: 'net-1', name: 'TestNet', nick: 'testnick', realname: 'Test User', servers: [] },
+          network: {
+            id: 'net-1',
+            name: 'TestNet',
+            nick: 'testnick',
+            realname: 'Test User',
+            servers: [],
+          },
           isTemplate: false,
           createdAt: Date.now(),
           useCount: 0,
         },
       ];
 
-      await AsyncStorage.setItem('@AndroidIRCX:connectionProfiles', JSON.stringify(savedProfiles));
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:connectionProfiles',
+        JSON.stringify(savedProfiles),
+      );
       await connectionProfilesService.initialize();
 
       const profiles = connectionProfilesService.getProfiles();
@@ -49,8 +63,13 @@ describe('ConnectionProfilesService', () => {
     });
 
     it('should handle corrupted storage data gracefully', async () => {
-      await AsyncStorage.setItem('@AndroidIRCX:connectionProfiles', 'invalid json');
-      await expect(connectionProfilesService.initialize()).resolves.not.toThrow();
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:connectionProfiles',
+        'invalid json',
+      );
+      await expect(
+        connectionProfilesService.initialize(),
+      ).resolves.not.toThrow();
 
       const profiles = connectionProfilesService.getProfiles();
       expect(profiles).toEqual([]);
@@ -74,7 +93,11 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile = await connectionProfilesService.createProfile('My Profile', network, 'Test description');
+      const profile = await connectionProfilesService.createProfile(
+        'My Profile',
+        network,
+        'Test description',
+      );
 
       expect(profile.id).toBeDefined();
       expect(profile.name).toBe('My Profile');
@@ -93,8 +116,14 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile1 = await connectionProfilesService.createProfile('Profile 1', network);
-      const profile2 = await connectionProfilesService.createProfile('Profile 2', network);
+      const profile1 = await connectionProfilesService.createProfile(
+        'Profile 1',
+        network,
+      );
+      const profile2 = await connectionProfilesService.createProfile(
+        'Profile 2',
+        network,
+      );
 
       expect(profile1.id).not.toBe(profile2.id);
     });
@@ -112,7 +141,7 @@ describe('ConnectionProfilesService', () => {
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         '@AndroidIRCX:connectionProfiles',
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -130,7 +159,7 @@ describe('ConnectionProfilesService', () => {
         network,
         'Template desc',
         true,
-        'gaming'
+        'gaming',
       );
 
       expect(profile.isTemplate).toBe(true);
@@ -148,11 +177,19 @@ describe('ConnectionProfilesService', () => {
           name: 'Freenode',
           nick: 'testnick',
           realname: 'Test User',
-          servers: [{ id: 'srv-1', hostname: 'irc.freenode.net', port: 6697, ssl: true }],
+          servers: [
+            {
+              id: 'srv-1',
+              hostname: 'irc.freenode.net',
+              port: 6697,
+              ssl: true,
+            },
+          ],
         },
       };
 
-      const profile = await connectionProfilesService.createFromTemplate(template);
+      const profile =
+        await connectionProfilesService.createFromTemplate(template);
 
       expect(profile.name).toBe('Freenode');
       expect(profile.network.name).toBe('Freenode');
@@ -173,7 +210,10 @@ describe('ConnectionProfilesService', () => {
         },
       };
 
-      const profile = await connectionProfilesService.createFromTemplate(template, 'Custom Name');
+      const profile = await connectionProfilesService.createFromTemplate(
+        template,
+        'Custom Name',
+      );
 
       expect(profile.name).toBe('Custom Name');
     });
@@ -189,12 +229,18 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile = await connectionProfilesService.createProfile('Original', network);
+      const profile = await connectionProfilesService.createProfile(
+        'Original',
+        network,
+      );
 
-      const updated = await connectionProfilesService.updateProfile(profile.id, {
-        name: 'Updated',
-        description: 'Updated description',
-      });
+      const updated = await connectionProfilesService.updateProfile(
+        profile.id,
+        {
+          name: 'Updated',
+          description: 'Updated description',
+        },
+      );
 
       expect(updated).toBe(true);
 
@@ -204,7 +250,10 @@ describe('ConnectionProfilesService', () => {
     });
 
     it('should return false for non-existent profile', async () => {
-      const updated = await connectionProfilesService.updateProfile('non-existent', { name: 'Test' });
+      const updated = await connectionProfilesService.updateProfile(
+        'non-existent',
+        { name: 'Test' },
+      );
       expect(updated).toBe(false);
     });
 
@@ -217,10 +266,15 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile = await connectionProfilesService.createProfile('Original', network);
+      const profile = await connectionProfilesService.createProfile(
+        'Original',
+        network,
+      );
       jest.clearAllMocks();
 
-      await connectionProfilesService.updateProfile(profile.id, { name: 'Updated' });
+      await connectionProfilesService.updateProfile(profile.id, {
+        name: 'Updated',
+      });
 
       expect(AsyncStorage.setItem).toHaveBeenCalled();
     });
@@ -236,7 +290,10 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile = await connectionProfilesService.createProfile('To Delete', network);
+      const profile = await connectionProfilesService.createProfile(
+        'To Delete',
+        network,
+      );
 
       const deleted = await connectionProfilesService.deleteProfile(profile.id);
       expect(deleted).toBe(true);
@@ -246,7 +303,8 @@ describe('ConnectionProfilesService', () => {
     });
 
     it('should return false for non-existent profile', async () => {
-      const deleted = await connectionProfilesService.deleteProfile('non-existent');
+      const deleted =
+        await connectionProfilesService.deleteProfile('non-existent');
       expect(deleted).toBe(false);
     });
   });
@@ -297,7 +355,10 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const created = await connectionProfilesService.createProfile('Test Profile', network);
+      const created = await connectionProfilesService.createProfile(
+        'Test Profile',
+        network,
+      );
       const retrieved = connectionProfilesService.getProfile(created.id);
 
       expect(retrieved).toBeDefined();
@@ -320,13 +381,34 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      await connectionProfilesService.createProfile('Gaming 1', network, undefined, true, 'gaming');
-      await connectionProfilesService.createProfile('Tech 1', network, undefined, true, 'tech');
-      await connectionProfilesService.createProfile('Gaming 2', network, undefined, true, 'gaming');
+      await connectionProfilesService.createProfile(
+        'Gaming 1',
+        network,
+        undefined,
+        true,
+        'gaming',
+      );
+      await connectionProfilesService.createProfile(
+        'Tech 1',
+        network,
+        undefined,
+        true,
+        'tech',
+      );
+      await connectionProfilesService.createProfile(
+        'Gaming 2',
+        network,
+        undefined,
+        true,
+        'gaming',
+      );
 
-      const gamingProfiles = connectionProfilesService.getProfilesByCategory('gaming');
+      const gamingProfiles =
+        connectionProfilesService.getProfilesByCategory('gaming');
       expect(gamingProfiles.length).toBe(2);
-      expect(gamingProfiles.every(p => p.templateCategory === 'gaming')).toBe(true);
+      expect(gamingProfiles.every(p => p.templateCategory === 'gaming')).toBe(
+        true,
+      );
     });
   });
 
@@ -340,8 +422,18 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      await connectionProfilesService.createProfile('User Profile', network, undefined, false);
-      await connectionProfilesService.createProfile('Template', network, undefined, true);
+      await connectionProfilesService.createProfile(
+        'User Profile',
+        network,
+        undefined,
+        false,
+      );
+      await connectionProfilesService.createProfile(
+        'Template',
+        network,
+        undefined,
+        true,
+      );
 
       const userProfiles = connectionProfilesService.getUserProfiles();
       expect(userProfiles.length).toBe(1);
@@ -361,7 +453,8 @@ describe('ConnectionProfilesService', () => {
 
   describe('getTemplatesByCategory', () => {
     it('should return templates by category', () => {
-      const gamingTemplates = connectionProfilesService.getTemplatesByCategory('gaming');
+      const gamingTemplates =
+        connectionProfilesService.getTemplatesByCategory('gaming');
 
       expect(gamingTemplates.length).toBeGreaterThan(0);
       expect(gamingTemplates.every(t => t.category === 'gaming')).toBe(true);
@@ -378,7 +471,10 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile = await connectionProfilesService.createProfile('Test', network);
+      const profile = await connectionProfilesService.createProfile(
+        'Test',
+        network,
+      );
       const before = Date.now();
 
       await connectionProfilesService.markProfileUsed(profile.id);
@@ -397,7 +493,10 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile = await connectionProfilesService.createProfile('Test', network);
+      const profile = await connectionProfilesService.createProfile(
+        'Test',
+        network,
+      );
 
       await connectionProfilesService.markProfileUsed(profile.id);
       await connectionProfilesService.markProfileUsed(profile.id);
@@ -408,7 +507,9 @@ describe('ConnectionProfilesService', () => {
     });
 
     it('should handle non-existent profile gracefully', async () => {
-      await expect(connectionProfilesService.markProfileUsed('non-existent')).resolves.not.toThrow();
+      await expect(
+        connectionProfilesService.markProfileUsed('non-existent'),
+      ).resolves.not.toThrow();
     });
   });
 
@@ -422,9 +523,18 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile1 = await connectionProfilesService.createProfile('P1', network);
-      const profile2 = await connectionProfilesService.createProfile('P2', network);
-      const profile3 = await connectionProfilesService.createProfile('P3', network);
+      const profile1 = await connectionProfilesService.createProfile(
+        'P1',
+        network,
+      );
+      const profile2 = await connectionProfilesService.createProfile(
+        'P2',
+        network,
+      );
+      const profile3 = await connectionProfilesService.createProfile(
+        'P3',
+        network,
+      );
 
       await connectionProfilesService.markProfileUsed(profile1.id);
       await connectionProfilesService.markProfileUsed(profile2.id);
@@ -468,8 +578,14 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile1 = await connectionProfilesService.createProfile('P1', network);
-      const profile2 = await connectionProfilesService.createProfile('P2', network);
+      const profile1 = await connectionProfilesService.createProfile(
+        'P1',
+        network,
+      );
+      const profile2 = await connectionProfilesService.createProfile(
+        'P2',
+        network,
+      );
 
       await connectionProfilesService.markProfileUsed(profile1.id);
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -490,7 +606,10 @@ describe('ConnectionProfilesService', () => {
         servers: [],
       };
 
-      const profile1 = await connectionProfilesService.createProfile('P1', network);
+      const profile1 = await connectionProfilesService.createProfile(
+        'P1',
+        network,
+      );
       await connectionProfilesService.createProfile('P2', network); // Never used
 
       await connectionProfilesService.markProfileUsed(profile1.id);

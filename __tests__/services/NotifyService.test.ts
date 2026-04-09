@@ -74,7 +74,9 @@ describe('NotifyService', () => {
     });
 
     it('should set network', () => {
-      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([]);
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue(
+        [],
+      );
       service.setNetwork('NewNetwork');
       expect(service.getNotifyEntries()).toEqual([]); // Should use the new network
     });
@@ -82,18 +84,38 @@ describe('NotifyService', () => {
 
   describe('IRC event listeners', () => {
     it('should set up IRC listeners on setIRCService', () => {
-      expect(mockIRCService.onConnectionChange).toHaveBeenCalledWith(expect.any(Function));
-      expect(mockIRCService.on).toHaveBeenCalledWith('connected', expect.any(Function));
-      expect(mockIRCService.on).toHaveBeenCalledWith('disconnected', expect.any(Function));
-      expect(mockIRCService.on).toHaveBeenCalledWith('cap_ack', expect.any(Function));
-      expect(mockIRCService.on).toHaveBeenCalledWith('numeric', expect.any(Function));
+      expect(mockIRCService.onConnectionChange).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
+      expect(mockIRCService.on).toHaveBeenCalledWith(
+        'connected',
+        expect.any(Function),
+      );
+      expect(mockIRCService.on).toHaveBeenCalledWith(
+        'disconnected',
+        expect.any(Function),
+      );
+      expect(mockIRCService.on).toHaveBeenCalledWith(
+        'cap_ack',
+        expect.any(Function),
+      );
+      expect(mockIRCService.on).toHaveBeenCalledWith(
+        'numeric',
+        expect.any(Function),
+      );
     });
 
     it('should handle connection change (connected=true)', () => {
-      const connectionChangeHandler = mockIRCService.onConnectionChange.mock.calls[0][0];
+      const connectionChangeHandler =
+        mockIRCService.onConnectionChange.mock.calls[0][0];
 
       (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
-        { mask: 'Friend1!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
+        {
+          mask: 'Friend1!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
       ]);
 
       connectionChangeHandler(true);
@@ -102,7 +124,8 @@ describe('NotifyService', () => {
     });
 
     it('should handle connection change (connected=false)', () => {
-      const connectionChangeHandler = mockIRCService.onConnectionChange.mock.calls[0][0];
+      const connectionChangeHandler =
+        mockIRCService.onConnectionChange.mock.calls[0][0];
 
       // First connect
       connectionChangeHandler(true);
@@ -116,12 +139,14 @@ describe('NotifyService', () => {
   describe('Numeric handling', () => {
     beforeEach(() => {
       service.setNetwork('TestNetwork');
-      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([]);
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue(
+        [],
+      );
     });
 
     const getNumericHandler = () => {
       return mockIRCService.on.mock.calls.find(
-        (call: [string, Function]) => call[0] === 'numeric'
+        (call: [string, Function]) => call[0] === 'numeric',
       )[1];
     };
 
@@ -130,17 +155,26 @@ describe('NotifyService', () => {
       const listener = jest.fn();
       service.on('online', listener);
 
-      handler(600, 'server', ['*', 'Friend', 'user', 'host.com', '*', ':is online'], Date.now());
+      handler(
+        600,
+        'server',
+        ['*', 'Friend', 'user', 'host.com', '*', ':is online'],
+        Date.now(),
+      );
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        nick: 'Friend',
-        host: 'user@host.com',
-      }));
-      expect(mockIRCService.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'notice',
-        from: 'Friend',
-        text: 'is now online',
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nick: 'Friend',
+          host: 'user@host.com',
+        }),
+      );
+      expect(mockIRCService.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notice',
+          from: 'Friend',
+          text: 'is now online',
+        }),
+      );
     });
 
     it('should handle RPL_NOWON (604) for WATCH', () => {
@@ -150,9 +184,11 @@ describe('NotifyService', () => {
 
       handler(604, 'server', ['', 'Friend', 'user', 'host.com'], Date.now());
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        nick: 'Friend',
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nick: 'Friend',
+        }),
+      );
     });
 
     it('should handle RPL_LOGOFF (601) for WATCH', () => {
@@ -163,11 +199,18 @@ describe('NotifyService', () => {
       // First go online
       handler(600, 'server', ['', 'Friend', 'user', 'host.com'], Date.now());
       // Then offline
-      handler(601, 'server', ['', 'Friend', 'user', 'host.com', ':offline'], Date.now());
+      handler(
+        601,
+        'server',
+        ['', 'Friend', 'user', 'host.com', ':offline'],
+        Date.now(),
+      );
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        nick: 'Friend',
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nick: 'Friend',
+        }),
+      );
     });
 
     it('should handle RPL_NOWOFF (605) for WATCH', () => {
@@ -180,9 +223,11 @@ describe('NotifyService', () => {
       // Then offline
       handler(605, 'server', ['*', 'Friend', 'user', 'host.com'], Date.now());
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        nick: 'Friend',
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nick: 'Friend',
+        }),
+      );
     });
 
     it('should handle RPL_MONONLINE (730) for MONITOR', () => {
@@ -193,9 +238,11 @@ describe('NotifyService', () => {
       // Note: params[0] is usually the target, nick starts at params[1]
       handler(730, 'server', ['*', 'Friend!user@host.com,Friend2'], Date.now());
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        nick: 'Friend',
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nick: 'Friend',
+        }),
+      );
     });
 
     it('should handle RPL_MONOFFLINE (731) for MONITOR', () => {
@@ -208,9 +255,11 @@ describe('NotifyService', () => {
       // Then offline
       handler(731, 'server', ['*', 'Friend,Friend2'], Date.now());
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        nick: 'Friend',
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nick: 'Friend',
+        }),
+      );
     });
 
     it('should handle ERR_MONLISTFULL (734)', () => {
@@ -220,9 +269,11 @@ describe('NotifyService', () => {
 
       handler(734, 'server', ['*', '100'], Date.now());
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        limit: 100,
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          limit: 100,
+        }),
+      );
     });
 
     it('should handle RPL_ISON (303)', () => {
@@ -231,15 +282,27 @@ describe('NotifyService', () => {
       service.on('online', listener);
 
       (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
-        { mask: 'Friend!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
-        { mask: 'AwayUser!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
+        {
+          mask: 'Friend!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+        {
+          mask: 'AwayUser!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
       ]);
 
       handler(303, 'server', ['*', ':Friend'], Date.now());
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        nick: 'Friend',
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nick: 'Friend',
+        }),
+      );
     });
   });
 
@@ -256,14 +319,16 @@ describe('NotifyService', () => {
       expect(userManagementService.addUserListEntry).toHaveBeenCalledWith(
         'notify',
         'NewFriend',
-        expect.objectContaining({ network: 'TestNetwork' })
+        expect.objectContaining({ network: 'TestNetwork' }),
       );
     });
 
     it('should send MONITOR + when connected with monitor protocol', async () => {
       await service.addNotify('NewFriend');
 
-      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('MONITOR + NewFriend');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
+        'MONITOR + NewFriend',
+      );
     });
 
     it('should send WATCH + when connected with watch protocol', async () => {
@@ -287,14 +352,16 @@ describe('NotifyService', () => {
       expect(userManagementService.removeUserListEntry).toHaveBeenCalledWith(
         'notify',
         'OldFriend',
-        'TestNetwork'
+        'TestNetwork',
       );
     });
 
     it('should send MONITOR - when connected', async () => {
       await service.removeNotify('OldFriend');
 
-      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('MONITOR - OldFriend');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
+        'MONITOR - OldFriend',
+      );
     });
 
     it('should send WATCH - when using watch protocol', async () => {
@@ -317,26 +384,41 @@ describe('NotifyService', () => {
   describe('getNotifyEntries', () => {
     it('should get entries from UserManagementService', () => {
       const entries = [
-        { mask: 'Friend1!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
+        {
+          mask: 'Friend1!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
       ];
-      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue(entries);
+      (userManagementService.getUserListEntries as jest.Mock).mockReturnValue(
+        entries,
+      );
 
       const result = service.getNotifyEntries('TestNetwork');
 
       expect(result).toEqual(entries);
-      expect(userManagementService.getUserListEntries).toHaveBeenCalledWith('notify', 'TestNetwork');
+      expect(userManagementService.getUserListEntries).toHaveBeenCalledWith(
+        'notify',
+        'TestNetwork',
+      );
     });
   });
 
   describe('getStatus', () => {
     it('should return status for a nick', () => {
-      service.notifyStatus.set('friend', { online: true, lastSeen: Date.now() });
+      service.notifyStatus.set('friend', {
+        online: true,
+        lastSeen: Date.now(),
+      });
 
       const status = service.getStatus('Friend');
 
-      expect(status).toEqual(expect.objectContaining({
-        online: true,
-      }));
+      expect(status).toEqual(
+        expect.objectContaining({
+          online: true,
+        }),
+      );
     });
 
     it('should return undefined for unknown nick', () => {
@@ -352,7 +434,9 @@ describe('NotifyService', () => {
       const statuses = service.getAllStatuses();
 
       expect(statuses.size).toBe(2);
-      expect(statuses.get('friend1')).toEqual(expect.objectContaining({ online: true }));
+      expect(statuses.get('friend1')).toEqual(
+        expect.objectContaining({ online: true }),
+      );
     });
   });
 
@@ -372,21 +456,35 @@ describe('NotifyService', () => {
       service.isConnected = true;
       service.protocol = 'monitor';
       (userManagementService.getUserListEntries as jest.Mock).mockReturnValue([
-        { mask: 'Friend1!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
-        { mask: 'Friend2!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
+        {
+          mask: 'Friend1!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
+        {
+          mask: 'Friend2!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
       ]);
     });
 
     it('should remove all entries', async () => {
       await service.clearAll();
 
-      expect(userManagementService.removeUserListEntry).toHaveBeenCalledTimes(2);
+      expect(userManagementService.removeUserListEntry).toHaveBeenCalledTimes(
+        2,
+      );
     });
 
     it('should send MONITOR - for all entries', async () => {
       await service.clearAll();
 
-      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('MONITOR - Friend1,Friend2');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
+        'MONITOR - Friend1,Friend2',
+      );
     });
 
     it('should clear all statuses', async () => {
@@ -402,7 +500,7 @@ describe('NotifyService', () => {
   describe('destroy', () => {
     it('should clear ISON interval', () => {
       service.isonInterval = setInterval(() => {}, 1000);
-      
+
       service.destroy();
 
       expect(service.isonInterval).toBeNull();

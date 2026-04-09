@@ -6,12 +6,26 @@
 /* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Alert, Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  Alert,
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
 import { settingsService } from '../../../services/SettingsService';
-import { userManagementService, UserNote, UserAlias } from '../../../services/UserManagementService';
+import {
+  userManagementService,
+  UserNote,
+  UserAlias,
+} from '../../../services/UserManagementService';
 
 interface UsersServicesSectionProps {
   colors: {
@@ -51,7 +65,7 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:UsersServicesSection.tsx,feature:settings';
-  
+
   const [ircServices, setIrcServices] = useState<string[]>([]);
   const [newIrcService, setNewIrcService] = useState('');
   const [userNotes, setUserNotes] = useState<UserNote[]>([]);
@@ -61,7 +75,14 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
   // Load initial state
   useEffect(() => {
     const loadSettings = async () => {
-      const services = await settingsService.getSetting('ircServices', ['nickserv', 'chanserv', 'memoserv', 'operserv', 'hostserv', 'botserv']);
+      const services = await settingsService.getSetting('ircServices', [
+        'nickserv',
+        'chanserv',
+        'memoserv',
+        'operserv',
+        'hostserv',
+        'botserv',
+      ]);
       setIrcServices(services);
       setUserNotes(userManagementService.getUserNotes(currentNetwork));
       setUserAliases(userManagementService.getUserAliases(currentNetwork));
@@ -74,12 +95,25 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
       {
         id: 'irc-services-add',
         title: t('Add Service Nickname', { _tags: tags }),
-        description: t('Prevent sending "close query" messages to these nicks.', { _tags: tags }),
+        description: t(
+          'Prevent sending "close query" messages to these nicks.',
+          { _tags: tags },
+        ),
         type: 'input',
         value: newIrcService,
         placeholder: t('Enter a service name (e.g., Q)', { _tags: tags }),
-        searchKeywords: ['irc', 'services', 'nickserv', 'chanserv', 'memoserv', 'bot', 'service', 'nickname'],
-        onValueChange: (value: string | boolean) => setNewIrcService(value as string),
+        searchKeywords: [
+          'irc',
+          'services',
+          'nickserv',
+          'chanserv',
+          'memoserv',
+          'bot',
+          'service',
+          'nickname',
+        ],
+        onValueChange: (value: string | boolean) =>
+          setNewIrcService(value as string),
         onPress: async () => {
           if (newIrcService.trim()) {
             const updatedServices = [...ircServices, newIrcService.trim()];
@@ -103,9 +137,14 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
                 text: 'Remove',
                 style: 'destructive',
                 onPress: async () => {
-                  const updatedServices = ircServices.filter(s => s !== service);
+                  const updatedServices = ircServices.filter(
+                    s => s !== service,
+                  );
                   setIrcServices(updatedServices);
-                  await settingsService.setSetting('ircServices', updatedServices);
+                  await settingsService.setSetting(
+                    'ircServices',
+                    updatedServices,
+                  );
                 },
               },
             ],
@@ -117,14 +156,23 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
         title: t('Blacklist', { _tags: tags }),
         description: t('Auto-run actions for matched masks', { _tags: tags }),
         type: 'button',
-        searchKeywords: ['blacklist', 'ban', 'kick', 'kill', 'gline', 'akill', 'shun', 'mask'],
+        searchKeywords: [
+          'blacklist',
+          'ban',
+          'kick',
+          'kill',
+          'gline',
+          'akill',
+          'shun',
+          'mask',
+        ],
         onPress: () => {
           if (onShowBlacklist) {
             onShowBlacklist();
           } else {
             Alert.alert(
               t('Info', { _tags: tags }),
-              t('Blacklist feature coming soon', { _tags: tags })
+              t('Blacklist feature coming soon', { _tags: tags }),
             );
           }
         },
@@ -132,9 +180,21 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
       {
         id: 'user-lists',
         title: t('User Lists', { _tags: tags }),
-        description: t('Manage notify, autoop, autovoice and protected lists', { _tags: tags }),
+        description: t('Manage notify, autoop, autovoice and protected lists', {
+          _tags: tags,
+        }),
         type: 'button',
-        searchKeywords: ['user', 'lists', 'notify', 'autoop', 'autovoice', 'protected', 'autohalfop', 'watch', 'monitor'],
+        searchKeywords: [
+          'user',
+          'lists',
+          'notify',
+          'autoop',
+          'autovoice',
+          'protected',
+          'autohalfop',
+          'watch',
+          'monitor',
+        ],
         onPress: () => {
           if (onShowUserLists) {
             onShowUserLists();
@@ -144,80 +204,116 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
       {
         id: 'user-notes',
         title: t('User Notes', { _tags: tags }),
-        description: userNotes.length > 0 ? `${userNotes.length} note${userNotes.length !== 1 ? 's' : ''}` : 'No notes yet',
+        description:
+          userNotes.length > 0
+            ? `${userNotes.length} note${userNotes.length !== 1 ? 's' : ''}`
+            : 'No notes yet',
         type: 'submenu',
-        searchKeywords: ['user', 'notes', 'memo', 'annotation', 'comment', 'remember'],
-        submenuItems: userNotes.length === 0
-          ? [
-              {
-                id: 'user-notes-empty',
-                title: t('No notes saved', { _tags: tags }),
+        searchKeywords: [
+          'user',
+          'notes',
+          'memo',
+          'annotation',
+          'comment',
+          'remember',
+        ],
+        submenuItems:
+          userNotes.length === 0
+            ? [
+                {
+                  id: 'user-notes-empty',
+                  title: t('No notes saved', { _tags: tags }),
+                  type: 'button' as const,
+                  disabled: true,
+                },
+              ]
+            : userNotes.map(note => ({
+                id: `user-note-${note.network || 'global'}-${note.nick}`,
+                title: `${note.nick} (${note.network || 'global'})`,
+                description: note.note,
                 type: 'button' as const,
-                disabled: true,
-              },
-            ]
-          : userNotes.map(note => ({
-              id: `user-note-${note.network || 'global'}-${note.nick}`,
-              title: `${note.nick} (${note.network || 'global'})`,
-              description: note.note,
-              type: 'button' as const,
-              onPress: () => {
-                Alert.alert(
-                  'User Note',
-                  `${note.nick} @ ${note.network || 'global'}\n\n${note.note}`,
-                  [
-                    { text: 'Close', style: 'cancel' },
-                    {
-                      text: 'Delete',
-                      style: 'destructive',
-                      onPress: async () => {
-                        await userManagementService.removeUserNote(note.nick, note.network || undefined);
-                        setUserNotes(userManagementService.getUserNotes(currentNetwork));
+                onPress: () => {
+                  Alert.alert(
+                    'User Note',
+                    `${note.nick} @ ${note.network || 'global'}\n\n${note.note}`,
+                    [
+                      { text: 'Close', style: 'cancel' },
+                      {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: async () => {
+                          await userManagementService.removeUserNote(
+                            note.nick,
+                            note.network || undefined,
+                          );
+                          setUserNotes(
+                            userManagementService.getUserNotes(currentNetwork),
+                          );
+                        },
                       },
-                    },
-                  ]
-                );
-              },
-            })),
+                    ],
+                  );
+                },
+              })),
       },
       {
         id: 'user-aliases',
         title: t('User Aliases', { _tags: tags }),
-        description: userAliases.length > 0 ? `${userAliases.length} alias${userAliases.length !== 1 ? 'es' : ''}` : 'No aliases yet',
+        description:
+          userAliases.length > 0
+            ? `${userAliases.length} alias${userAliases.length !== 1 ? 'es' : ''}`
+            : 'No aliases yet',
         type: 'submenu',
-        searchKeywords: ['user', 'aliases', 'nickname', 'shortcut', 'mapping', 'alternative'],
-        submenuItems: userAliases.length === 0
-          ? [
-              {
-                id: 'user-aliases-empty',
-                title: t('No aliases saved', { _tags: tags }),
+        searchKeywords: [
+          'user',
+          'aliases',
+          'nickname',
+          'shortcut',
+          'mapping',
+          'alternative',
+        ],
+        submenuItems:
+          userAliases.length === 0
+            ? [
+                {
+                  id: 'user-aliases-empty',
+                  title: t('No aliases saved', { _tags: tags }),
+                  type: 'button' as const,
+                  disabled: true,
+                },
+              ]
+            : userAliases.map(alias => ({
+                id: `user-alias-${alias.network || 'global'}-${alias.nick}`,
+                title: `${alias.alias} → ${alias.nick}`,
+                description: alias.network
+                  ? `Network: ${alias.network}`
+                  : 'Global',
                 type: 'button' as const,
-                disabled: true,
-              },
-            ]
-          : userAliases.map(alias => ({
-              id: `user-alias-${alias.network || 'global'}-${alias.nick}`,
-              title: `${alias.alias} → ${alias.nick}`,
-              description: alias.network ? `Network: ${alias.network}` : 'Global',
-              type: 'button' as const,
-              onPress: () => {
-                Alert.alert(
-                  'User Alias',
-                  `${alias.alias} → ${alias.nick}\nNetwork: ${alias.network || 'global'}`,
-                  [
-                    { text: 'Close', style: 'cancel' },
-                    {
-                      text: 'Delete',
-                      style: 'destructive',
-                      onPress: async () => {
-                        await userManagementService.removeUserAlias(alias.nick, alias.network || undefined);
-                        setUserAliases(userManagementService.getUserAliases(currentNetwork));
+                onPress: () => {
+                  Alert.alert(
+                    'User Alias',
+                    `${alias.alias} → ${alias.nick}\nNetwork: ${alias.network || 'global'}`,
+                    [
+                      { text: 'Close', style: 'cancel' },
+                      {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: async () => {
+                          await userManagementService.removeUserAlias(
+                            alias.nick,
+                            alias.network || undefined,
+                          );
+                          setUserAliases(
+                            userManagementService.getUserAliases(
+                              currentNetwork,
+                            ),
+                          );
+                        },
                       },
-                    },
-                  ]
-                );
-              },
-            })),
+                    ],
+                  );
+                },
+              })),
       },
     ];
 
@@ -241,12 +337,16 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
     }
   };
 
-  const currentSubmenuItem = showSubmenu ? sectionData.find(item => item.id === showSubmenu) : null;
+  const currentSubmenuItem = showSubmenu
+    ? sectionData.find(item => item.id === showSubmenu)
+    : null;
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}
@@ -258,29 +358,80 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
           />
         );
       })}
-      
+
       {/* Submenu Modal */}
       <Modal
         visible={showSubmenu !== null}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowSubmenu(null)}>
-        <View style={{ flex: 1, backgroundColor: colors.modalOverlay, justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}>{currentSubmenuItem?.title || t('Options', { _tags: tags })}</Text>
+        onRequestClose={() => setShowSubmenu(null)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: colors.modalOverlay,
+            justifyContent: 'flex-end',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              maxHeight: '80%',
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+              }}
+            >
+              <Text
+                style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}
+              >
+                {currentSubmenuItem?.title || t('Options', { _tags: tags })}
+              </Text>
               <TouchableOpacity onPress={() => setShowSubmenu(null)}>
-                <Text style={{ color: colors.primary, fontSize: 16 }}>{t('Close', { _tags: tags })}</Text>
+                <Text style={{ color: colors.primary, fontSize: 16 }}>
+                  {t('Close', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
             <ScrollView>
-              {currentSubmenuItem?.submenuItems?.map((subItem) => {
+              {currentSubmenuItem?.submenuItems?.map(subItem => {
                 if (subItem.type === 'switch') {
                   return (
-                    <View key={subItem.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                    <View
+                      key={subItem.id}
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: 16,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                      }}
+                    >
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.text, fontSize: 16 }}>{subItem.title}</Text>
-                        {subItem.description && <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 4 }}>{subItem.description}</Text>}
+                        <Text style={{ color: colors.text, fontSize: 16 }}>
+                          {subItem.title}
+                        </Text>
+                        {subItem.description && (
+                          <Text
+                            style={{
+                              color: colors.textSecondary,
+                              fontSize: 14,
+                              marginTop: 4,
+                            }}
+                          >
+                            {subItem.description}
+                          </Text>
+                        )}
                       </View>
                       <SettingItem
                         item={subItem}
@@ -299,9 +450,34 @@ export const UsersServicesSection: React.FC<UsersServicesSectionProps> = ({
                         setShowSubmenu(null);
                       }}
                       disabled={subItem.disabled}
-                      style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: subItem.disabled ? 0.5 : 1 }}>
-                      <Text style={{ color: subItem.disabled ? colors.textSecondary : colors.text, fontSize: 16 }}>{subItem.title}</Text>
-                      {subItem.description && <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 4 }}>{subItem.description}</Text>}
+                      style={{
+                        padding: 16,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                        opacity: subItem.disabled ? 0.5 : 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: subItem.disabled
+                            ? colors.textSecondary
+                            : colors.text,
+                          fontSize: 16,
+                        }}
+                      >
+                        {subItem.title}
+                      </Text>
+                      {subItem.description && (
+                        <Text
+                          style={{
+                            color: colors.textSecondary,
+                            fontSize: 14,
+                            marginTop: 4,
+                          }}
+                        >
+                          {subItem.description}
+                        </Text>
+                      )}
                     </TouchableOpacity>
                   );
                 }

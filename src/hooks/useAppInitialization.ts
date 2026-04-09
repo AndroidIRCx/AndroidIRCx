@@ -21,7 +21,9 @@ import { debugLogger } from '../services/DebugLogger';
 // ErrorUtils is available globally in React Native
 declare const ErrorUtils: {
   getGlobalHandler: () => ((error: Error, isFatal?: boolean) => void) | null;
-  setGlobalHandler: (handler: (error: Error, isFatal?: boolean) => void) => void;
+  setGlobalHandler: (
+    handler: (error: Error, isFatal?: boolean) => void,
+  ) => void;
 };
 
 /**
@@ -31,7 +33,7 @@ declare const ErrorUtils: {
 export function useAppInitialization() {
   useEffect(() => {
     // Initialize Firebase App Check using modular API
-    // 
+    //
     // Play Integrity Requirements (for production):
     // 1. App must be uploaded/published to Google Play Console
     // 2. SHA-256 certificate fingerprint must be registered in Google Play Console
@@ -44,19 +46,29 @@ export function useAppInitialization() {
     // Debug mode uses debug provider (no Play Integrity required)
     const initAppCheck = async () => {
       try {
-        debugLogger.debug('appInitialization', 'Initializing Firebase App Check');
+        debugLogger.debug(
+          'appInitialization',
+          'Initializing Firebase App Check',
+        );
         const app = getApp();
-        debugLogger.debug('appInitialization', 'Firebase app instance obtained');
-        
+        debugLogger.debug(
+          'appInitialization',
+          'Firebase app instance obtained',
+        );
+
         const AppCheckModule = require('@react-native-firebase/app-check') as {
           ReactNativeFirebaseAppCheckProvider: new () => {
             configure: (config: unknown) => void;
             getToken: () => Promise<unknown>;
           };
         };
-        const rnfbProvider = new AppCheckModule.ReactNativeFirebaseAppCheckProvider();
-        debugLogger.debug('appInitialization', 'ReactNativeFirebaseAppCheckProvider created');
-        
+        const rnfbProvider =
+          new AppCheckModule.ReactNativeFirebaseAppCheckProvider();
+        debugLogger.debug(
+          'appInitialization',
+          'ReactNativeFirebaseAppCheckProvider created',
+        );
+
         const providerConfig = {
           android: {
             provider: __DEV__ ? 'debug' : 'playIntegrity',
@@ -69,17 +81,24 @@ export function useAppInitialization() {
             siteKey: 'none',
           },
         };
-        
-        debugLogger.debug('appInitialization', 'Configuring App Check provider', providerConfig);
+
+        debugLogger.debug(
+          'appInitialization',
+          'Configuring App Check provider',
+          providerConfig,
+        );
         rnfbProvider.configure(providerConfig);
         debugLogger.debug('appInitialization', 'App Check provider configured');
-        
+
         debugLogger.debug('appInitialization', 'Initializing App Check');
         await initializeAppCheck(app, {
           provider: rnfbProvider,
           isTokenAutoRefreshEnabled: true,
         } as any);
-        debugLogger.debug('appInitialization', 'App Check initialized successfully');
+        debugLogger.debug(
+          'appInitialization',
+          'App Check initialized successfully',
+        );
       } catch (error: any) {
         console.error('❌ App Check initialization failed:', error);
         console.error('Error details:', {
@@ -100,7 +119,10 @@ export function useAppInitialization() {
     const initPrivacyRelay = async () => {
       try {
         await privacyRelayService.initialize();
-        debugLogger.debug('appInitialization', 'PrivacyRelayService initialized successfully');
+        debugLogger.debug(
+          'appInitialization',
+          'PrivacyRelayService initialized successfully',
+        );
       } catch (error) {
         console.error('❌ Failed to initialize PrivacyRelayService:', error);
       }
@@ -111,7 +133,10 @@ export function useAppInitialization() {
     const initAdsWithConsent = async () => {
       try {
         // Step 1: Initialize UMP SDK for consent (GDPR/CCPA compliance)
-        debugLogger.debug('appInitialization', 'Initializing consent management');
+        debugLogger.debug(
+          'appInitialization',
+          'Initializing consent management',
+        );
         await consentService.initialize(__DEV__); // Enable debug mode in development
         debugLogger.debug('appInitialization', 'Consent service initialized');
 
@@ -121,16 +146,25 @@ export function useAppInitialization() {
         if (!isFirstRun) {
           await consentService.showConsentFormIfRequired();
         } else {
-          debugLogger.debug('appInitialization', 'Skipping consent form on first run');
+          debugLogger.debug(
+            'appInitialization',
+            'Skipping consent form on first run',
+          );
         }
 
         // Step 3: Initialize AdMob after consent is handled
         debugLogger.debug('appInitialization', 'Starting AdMob initialization');
         const adapterStatuses = await MobileAds().initialize();
-        debugLogger.debug('appInitialization', 'AdMob initialized successfully', adapterStatuses);
+        debugLogger.debug(
+          'appInitialization',
+          'AdMob initialized successfully',
+          adapterStatuses,
+        );
 
         // Check if adapters are ready
-        const allReady = adapterStatuses.every((adapter: any) => adapter.state === 1);
+        const allReady = adapterStatuses.every(
+          (adapter: any) => adapter.state === 1,
+        );
         if (!allReady) {
           console.warn('⚠️ WARNING: Not all ad adapters are ready!');
           console.warn('This could be due to:');
@@ -138,7 +172,10 @@ export function useAppInitialization() {
           console.warn('2. AdMob account/app approval pending');
           console.warn('3. Some mediation adapters not configured');
           console.warn('4. Running in emulator/test environment');
-          debugLogger.warn('appInitialization', 'Not all AdMob adapters are ready');
+          debugLogger.warn(
+            'appInitialization',
+            'Not all AdMob adapters are ready',
+          );
         } else {
           debugLogger.debug('appInitialization', 'All AdMob adapters ready');
         }
@@ -146,22 +183,37 @@ export function useAppInitialization() {
         // Step 4: Initialize AdRewardService after consent & AdMob are ready
         debugLogger.debug('appInitialization', 'Initializing AdRewardService');
         await adRewardService.initialize();
-        debugLogger.debug('appInitialization', 'AdRewardService initialized successfully');
+        debugLogger.debug(
+          'appInitialization',
+          'AdRewardService initialized successfully',
+        );
 
         // Step 5: Initialize InAppPurchaseService
-        debugLogger.debug('appInitialization', 'Initializing InAppPurchaseService');
+        debugLogger.debug(
+          'appInitialization',
+          'Initializing InAppPurchaseService',
+        );
         await inAppPurchaseService.initialize();
-        debugLogger.debug('appInitialization', 'InAppPurchaseService initialized successfully');
+        debugLogger.debug(
+          'appInitialization',
+          'InAppPurchaseService initialized successfully',
+        );
 
         // Step 6: Initialize BannerAdService
         debugLogger.debug('appInitialization', 'Initializing BannerAdService');
         await bannerAdService.initialize();
-        debugLogger.debug('appInitialization', 'BannerAdService initialized successfully');
+        debugLogger.debug(
+          'appInitialization',
+          'BannerAdService initialized successfully',
+        );
 
         // Step 7: Initialize SoundService
         debugLogger.debug('appInitialization', 'Initializing SoundService');
         await soundService.initialize();
-        debugLogger.debug('appInitialization', 'SoundService initialized successfully');
+        debugLogger.debug(
+          'appInitialization',
+          'SoundService initialized successfully',
+        );
       } catch (error) {
         console.error('❌ Failed to initialize ads with consent:', error);
         console.error('Error details:', JSON.stringify(error, null, 2));
@@ -176,10 +228,13 @@ export function useAppInitialization() {
       ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
         console.error('Global error handler:', error, 'isFatal:', isFatal);
         console.error('Error stack:', error.stack);
-        errorReportingService.report(error, { fatal: isFatal !== false, source: 'globalErrorHandler' });
+        errorReportingService.report(error, {
+          fatal: isFatal !== false,
+          source: 'globalErrorHandler',
+        });
         // Try to hide bootsplash even on fatal error
         if (isFatal) {
-          RNBootSplash.hide({ fade: false }).catch(() => { });
+          RNBootSplash.hide({ fade: false }).catch(() => {});
         }
         if (originalHandler) {
           originalHandler(error, isFatal);

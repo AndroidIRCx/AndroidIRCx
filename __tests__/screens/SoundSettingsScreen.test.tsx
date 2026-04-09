@@ -112,7 +112,9 @@ describe('SoundSettingsScreen', () => {
     jest.clearAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     useSoundSettings.mockReturnValue(baseHookState);
-    pick.mockResolvedValue([{ uri: 'file:///tmp/custom.mp3', fileCopyUri: 'file:///tmp/copied.mp3' }]);
+    pick.mockResolvedValue([
+      { uri: 'file:///tmp/custom.mp3', fileCopyUri: 'file:///tmp/copied.mp3' },
+    ]);
   });
 
   it('renders loading state', () => {
@@ -122,15 +124,17 @@ describe('SoundSettingsScreen', () => {
     });
 
     const { UNSAFE_getByType } = render(
-      <SoundSettingsScreen visible onClose={jest.fn()} />
+      <SoundSettingsScreen visible onClose={jest.fn()} />,
     );
 
-    expect(UNSAFE_getByType(require('react-native').ActivityIndicator)).toBeTruthy();
+    expect(
+      UNSAFE_getByType(require('react-native').ActivityIndicator),
+    ).toBeTruthy();
   });
 
   it('renders settings and handles top-level toggles', async () => {
     const { findByText, getAllByRole } = render(
-      <SoundSettingsScreen visible onClose={jest.fn()} />
+      <SoundSettingsScreen visible onClose={jest.fn()} />,
     );
 
     expect(await findByText('Sound Settings')).toBeTruthy();
@@ -147,7 +151,7 @@ describe('SoundSettingsScreen', () => {
 
   it('changes scheme, previews event sound and toggles category event', async () => {
     const { findByText, getAllByRole, getAllByText } = render(
-      <SoundSettingsScreen visible onClose={jest.fn()} />
+      <SoundSettingsScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Quiet'));
@@ -155,34 +159,43 @@ describe('SoundSettingsScreen', () => {
 
     fireEvent.press(await findByText('Other'));
     fireEvent(getAllByRole('switch')[4], 'valueChange', false);
-    fireEvent.press((getAllByText('play')[1].parent as any));
+    fireEvent.press(getAllByText('play')[1].parent as any);
 
     expect(baseHookState.setEventEnabled).toHaveBeenCalledWith('join', false);
     expect(baseHookState.previewSound).toHaveBeenCalled();
   });
 
   it('picks custom sound and confirms usage', async () => {
-    const { findByText, getAllByText } = render(<SoundSettingsScreen visible onClose={jest.fn()} />);
+    const { findByText, getAllByText } = render(
+      <SoundSettingsScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Other'));
-    fireEvent.press((getAllByText('folder-open')[1].parent as any));
+    fireEvent.press(getAllByText('folder-open')[1].parent as any);
 
     await waitFor(() => {
-      expect(baseHookState.previewCustomSound).toHaveBeenCalledWith('file:///tmp/copied.mp3');
+      expect(baseHookState.previewCustomSound).toHaveBeenCalledWith(
+        'file:///tmp/copied.mp3',
+      );
     });
 
     const confirmButtons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2];
     await confirmButtons?.[1]?.onPress?.();
 
-    expect(baseHookState.setCustomSound).toHaveBeenCalledWith('join', '/tmp/copied.mp3');
+    expect(baseHookState.setCustomSound).toHaveBeenCalledWith(
+      'join',
+      '/tmp/copied.mp3',
+    );
     expect(baseHookState.stopSound).toHaveBeenCalled();
   });
 
   it('resets individual and all sounds through confirmation alerts', async () => {
-    const { findByText, getAllByText } = render(<SoundSettingsScreen visible onClose={jest.fn()} />);
+    const { findByText, getAllByText } = render(
+      <SoundSettingsScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Other'));
-    fireEvent.press((getAllByText('undo')[0].parent as any));
+    fireEvent.press(getAllByText('undo')[0].parent as any);
 
     let buttons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2];
     buttons?.[1]?.onPress?.();
@@ -197,13 +210,18 @@ describe('SoundSettingsScreen', () => {
   it('handles file picker error when picking custom sound fails', async () => {
     pick.mockRejectedValue(new Error('boom'));
 
-    const { findByText, getAllByText } = render(<SoundSettingsScreen visible onClose={jest.fn()} />);
+    const { findByText, getAllByText } = render(
+      <SoundSettingsScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Other'));
-    fireEvent.press((getAllByText('folder-open')[1].parent as any));
+    fireEvent.press(getAllByText('folder-open')[1].parent as any);
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to select sound file.');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to select sound file.',
+      );
     });
   });
 });

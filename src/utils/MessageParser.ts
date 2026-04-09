@@ -17,19 +17,24 @@ export interface ParsedMessagePart {
 /**
  * Media tag pattern - matches !enc-media [uuid]
  */
-const MEDIA_TAG_PATTERN = /!enc-media\s+\[([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\]/gi;
+const MEDIA_TAG_PATTERN =
+  /!enc-media\s+\[([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\]/gi;
 
 /**
  * URL regex pattern - matches http, https, ftp, and common URL patterns
  */
-const URL_PATTERN = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+|ftp:\/\/[^\s<>"{}|\\^`\[\]]+|www\.[^\s<>"{}|\\^`\[\]]+)/gi;
+const URL_PATTERN =
+  /(https?:\/\/[^\s<>"{}|\\^`\[\]]+|ftp:\/\/[^\s<>"{}|\\^`\[\]]+|www\.[^\s<>"{}|\\^`\[\]]+)/gi;
 
 /**
  * Image URL patterns - matches common image extensions
  */
-const IMAGE_PATTERN = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?[^\s<>"{}|\\^`\[\]]*)?)/gi;
-const VIDEO_PATTERN = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+\.(mp4|mov|webm|mkv|avi)(\?[^\s<>"{}|\\^`\[\]]*)?)/gi;
-const AUDIO_PATTERN = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+\.(mp3|ogg|wav|m4a|flac)(\?[^\s<>"{}|\\^`\[\]]*)?)/gi;
+const IMAGE_PATTERN =
+  /(https?:\/\/[^\s<>"{}|\\^`\[\]]+\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)(\?[^\s<>"{}|\\^`\[\]]*)?)/gi;
+const VIDEO_PATTERN =
+  /(https?:\/\/[^\s<>"{}|\\^`\[\]]+\.(mp4|mov|webm|mkv|avi)(\?[^\s<>"{}|\\^`\[\]]*)?)/gi;
+const AUDIO_PATTERN =
+  /(https?:\/\/[^\s<>"{}|\\^`\[\]]+\.(mp3|ogg|wav|m4a|flac)(\?[^\s<>"{}|\\^`\[\]]*)?)/gi;
 const DOWNLOADABLE_EXTENSIONS = [
   'pdf',
   'zip',
@@ -68,28 +73,46 @@ const DOWNLOADABLE_EXTENSIONS = [
 /**
  * Emoji regex pattern - matches Unicode emoji ranges
  */
-const EMOJI_PATTERN = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]/gu;
+const EMOJI_PATTERN =
+  /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]/gu;
 
 /**
  * Check if a URL is an image
  */
 export function isImageUrl(url: string): boolean {
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico'];
+  const imageExtensions = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.webp',
+    '.svg',
+    '.bmp',
+    '.ico',
+  ];
   const lowerUrl = url.toLowerCase();
-  return imageExtensions.some(ext => lowerUrl.includes(ext)) ||
-         IMAGE_PATTERN.test(url);
+  return (
+    imageExtensions.some(ext => lowerUrl.includes(ext)) ||
+    IMAGE_PATTERN.test(url)
+  );
 }
 
 export function isVideoUrl(url: string): boolean {
   const videoExtensions = ['.mp4', '.mov', '.webm', '.mkv', '.avi'];
   const lowerUrl = url.toLowerCase();
-  return videoExtensions.some(ext => lowerUrl.includes(ext)) || VIDEO_PATTERN.test(url);
+  return (
+    videoExtensions.some(ext => lowerUrl.includes(ext)) ||
+    VIDEO_PATTERN.test(url)
+  );
 }
 
 export function isAudioUrl(url: string): boolean {
   const audioExtensions = ['.mp3', '.ogg', '.wav', '.m4a', '.flac'];
   const lowerUrl = url.toLowerCase();
-  return audioExtensions.some(ext => lowerUrl.includes(ext)) || AUDIO_PATTERN.test(url);
+  return (
+    audioExtensions.some(ext => lowerUrl.includes(ext)) ||
+    AUDIO_PATTERN.test(url)
+  );
 }
 
 export function getUrlExtension(url: string): string | null {
@@ -158,7 +181,9 @@ export function extractEmojis(text: string): string[] {
 /**
  * Extract media tags from text
  */
-export function extractMediaTags(text: string): Array<{ tag: string; mediaId: string }> {
+export function extractMediaTags(
+  text: string,
+): Array<{ tag: string; mediaId: string }> {
   const matches: Array<{ tag: string; mediaId: string }> = [];
   const regex = new RegExp(MEDIA_TAG_PATTERN.source, 'gi');
   let match;
@@ -192,7 +217,12 @@ export function parseMessage(text: string): ParsedMessagePart[] {
   let lastIndex = 0;
 
   // Find all URLs, images, and media tags
-  const allMatches: Array<{ index: number; content: string; type: 'url' | 'image' | 'media'; mediaId?: string }> = [];
+  const allMatches: Array<{
+    index: number;
+    content: string;
+    type: 'url' | 'image' | 'media';
+    mediaId?: string;
+  }> = [];
 
   // Find media tags first
   let mediaMatch;
@@ -205,7 +235,7 @@ export function parseMessage(text: string): ParsedMessagePart[] {
       mediaId: mediaMatch[1],
     });
   }
-  
+
   // Find image URLs first (they're also URLs)
   let imageMatch: RegExpExecArray | null;
   const imageRegex = new RegExp(IMAGE_PATTERN.source, 'gi');
@@ -223,8 +253,9 @@ export function parseMessage(text: string): ParsedMessagePart[] {
   while ((urlMatch = urlRegex.exec(text)) !== null) {
     const currentUrlMatch = urlMatch;
     // Check if this URL is already captured as an image or media tag
-    const alreadyCaptured = allMatches.some(m =>
-      m.index === currentUrlMatch.index && m.content === currentUrlMatch[0]
+    const alreadyCaptured = allMatches.some(
+      m =>
+        m.index === currentUrlMatch.index && m.content === currentUrlMatch[0],
     );
 
     if (!alreadyCaptured) {
@@ -313,4 +344,3 @@ export function hasImages(text: string): boolean {
 export function hasEmojis(text: string): boolean {
   return EMOJI_PATTERN.test(text);
 }
-

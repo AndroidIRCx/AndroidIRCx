@@ -45,7 +45,9 @@ describe('AboutScreen', () => {
   });
 
   it('renders nothing when not visible', () => {
-    const { queryByText } = render(<AboutScreen visible={false} onClose={jest.fn()} />);
+    const { queryByText } = render(
+      <AboutScreen visible={false} onClose={jest.fn()} />,
+    );
 
     expect(queryByText('About')).toBeNull();
   });
@@ -82,7 +84,9 @@ describe('AboutScreen', () => {
   });
 
   it('opens external links when pressed', () => {
-    const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true as never);
+    const openURLSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(true as never);
     const { getByText } = render(<AboutScreen visible onClose={jest.fn()} />);
 
     fireEvent.press(getByText('Velimir Majstorov'));
@@ -101,32 +105,70 @@ describe('AboutScreen', () => {
     fireEvent.press(getByText('Dev.to'));
     fireEvent.press(getByText('CoderLegion'));
 
-    expect(openURLSpy).toHaveBeenNthCalledWith(1, 'https://majstorov.info/en/about');
-    expect(openURLSpy).toHaveBeenNthCalledWith(2, 'mailto:contact@androidircx.com');
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://majstorov.info/en/about',
+    );
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      2,
+      'mailto:contact@androidircx.com',
+    );
     expect(openURLSpy).toHaveBeenNthCalledWith(3, 'https://irc.dbase.in.rs');
     expect(openURLSpy).toHaveBeenNthCalledWith(4, 'https://androidircx.com');
-    expect(openURLSpy).toHaveBeenNthCalledWith(5, 'https://github.com/AndroidIRCx/AndroidIRCx');
-    expect(openURLSpy).toHaveBeenNthCalledWith(6, 'https://www.instagram.com/androidircx/');
-    expect(openURLSpy).toHaveBeenNthCalledWith(7, 'https://www.facebook.com/androidircx');
-    expect(openURLSpy).toHaveBeenNthCalledWith(8, 'https://www.tiktok.com/@androidircx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      5,
+      'https://github.com/AndroidIRCx/AndroidIRCx',
+    );
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      6,
+      'https://www.instagram.com/androidircx/',
+    );
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      7,
+      'https://www.facebook.com/androidircx',
+    );
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      8,
+      'https://www.tiktok.com/@androidircx',
+    );
     expect(openURLSpy).toHaveBeenNthCalledWith(9, 'https://x.com/AndroidIRCx');
-    expect(openURLSpy).toHaveBeenNthCalledWith(10, 'https://www.reddit.com/r/AndroidIRCx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      10,
+      'https://www.reddit.com/r/AndroidIRCx',
+    );
     expect(openURLSpy).toHaveBeenNthCalledWith(11, 'https://t.me/androidircx');
-    expect(openURLSpy).toHaveBeenNthCalledWith(12, 'https://www.linkedin.com/company/androidircx');
-    expect(openURLSpy).toHaveBeenNthCalledWith(13, 'https://mastodon.social/@androidircx');
-    expect(openURLSpy).toHaveBeenNthCalledWith(14, 'https://dev.to/androidircx');
-    expect(openURLSpy).toHaveBeenNthCalledWith(15, 'https://coderlegion.com/user/AndroidIRCx');
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      12,
+      'https://www.linkedin.com/company/androidircx',
+    );
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      13,
+      'https://mastodon.social/@androidircx',
+    );
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      14,
+      'https://dev.to/androidircx',
+    );
+    expect(openURLSpy).toHaveBeenNthCalledWith(
+      15,
+      'https://coderlegion.com/user/AndroidIRCx',
+    );
   });
 
   it('logs linking errors when opening a url fails', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(Linking, 'openURL').mockRejectedValueOnce(new Error('open failed'));
+    jest
+      .spyOn(Linking, 'openURL')
+      .mockRejectedValueOnce(new Error('open failed'));
     const { getByText } = render(<AboutScreen visible onClose={jest.fn()} />);
 
     fireEvent.press(getByText('contact@androidircx.com'));
 
     await waitFor(() => {
-      expect(errorSpy).toHaveBeenCalledWith('Failed to open URL:', expect.any(Error));
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Failed to open URL:',
+        expect.any(Error),
+      );
     });
 
     errorSpy.mockRestore();

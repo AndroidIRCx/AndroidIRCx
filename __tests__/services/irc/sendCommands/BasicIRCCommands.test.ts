@@ -27,7 +27,9 @@ jest.mock('../../../../src/services/SettingsService', () => {
     ...actual,
     settingsService: {
       ...actual.settingsService,
-      getSetting: jest.fn((key: string, defaultVal: any) => Promise.resolve(defaultVal)),
+      getSetting: jest.fn((key: string, defaultVal: any) =>
+        Promise.resolve(defaultVal),
+      ),
     },
   };
 });
@@ -141,9 +143,11 @@ describe('BasicIRCCommands', () => {
       handlePART(ctx, [], 'SomeUser'); // target is not a channel
 
       expect(ctx.partChannel).not.toHaveBeenCalled();
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+        }),
+      );
     });
   });
 
@@ -210,18 +214,25 @@ describe('BasicIRCCommands', () => {
     });
 
     it('should read quit message from settings when no args provided', async () => {
-      (settingsService.getSetting as jest.Mock).mockResolvedValueOnce('Custom quit msg');
+      (settingsService.getSetting as jest.Mock).mockResolvedValueOnce(
+        'Custom quit msg',
+      );
 
       await handleQUIT(ctx, [], '');
 
-      expect(settingsService.getSetting).toHaveBeenCalledWith('quitMessage', expect.any(String));
+      expect(settingsService.getSetting).toHaveBeenCalledWith(
+        'quitMessage',
+        expect.any(String),
+      );
       expect(ctx.sendRaw).toHaveBeenCalledWith('QUIT :Custom quit msg');
     });
 
     it('should use default quit message when settings returns default', async () => {
       await handleQUIT(ctx, [], '');
 
-      expect(ctx.sendRaw).toHaveBeenCalledWith(expect.stringContaining('QUIT :'));
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        expect.stringContaining('QUIT :'),
+      );
     });
   });
 
@@ -229,7 +240,9 @@ describe('BasicIRCCommands', () => {
     it('should send MODE command', () => {
       handleMODE(ctx, ['#general', '+o', 'OtherUser']);
 
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #general +o OtherUser');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE #general +o OtherUser',
+      );
     });
 
     it('should not send if no arguments', () => {
@@ -244,7 +257,9 @@ describe('BasicIRCCommands', () => {
       // When target starts with #, use target as channel, args.slice(1) as text
       handleTOPIC(ctx, ['New', 'topic', 'here'], '#general');
 
-      expect(ctx.sendCommand).toHaveBeenCalledWith('TOPIC #general :topic here');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'TOPIC #general :topic here',
+      );
     });
 
     it('should set topic using first arg as channel when target is not channel', () => {
@@ -280,7 +295,9 @@ describe('BasicIRCCommands', () => {
       // So it sends: KICK #general Spamming
       handleKICK(ctx, ['#somechannel', 'BadUser', 'Spamming'], '#general');
 
-      expect(ctx.sendCommand).toHaveBeenCalledWith('KICK #general BadUser :Spamming');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'KICK #general BadUser :Spamming',
+      );
     });
 
     it('should kick user without reason when target is channel', () => {
@@ -294,7 +311,9 @@ describe('BasicIRCCommands', () => {
       // When target doesn't start with #: kickChannel=args[0], kickUser=args[1], kickReason=args.slice(2)
       handleKICK(ctx, ['#general', 'BadUser', 'Goodbye'], 'SomeUser');
 
-      expect(ctx.sendCommand).toHaveBeenCalledWith('KICK #general BadUser :Goodbye');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'KICK #general BadUser :Goodbye',
+      );
     });
 
     it('should not send if no user specified', () => {
@@ -308,10 +327,12 @@ describe('BasicIRCCommands', () => {
     it('should show error if capability not supported', () => {
       handleREGISTER(ctx, ['email@example.com', 'password123']);
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('not supported'),
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('not supported'),
+        }),
+      );
       expect(ctx.sendRaw).not.toHaveBeenCalled();
     });
 
@@ -319,24 +340,30 @@ describe('BasicIRCCommands', () => {
       ctx.hasCapability = jest.fn().mockReturnValue(true);
       handleREGISTER(ctx, ['email@example.com']);
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
 
     it('should send REGISTER with email and password', () => {
       ctx.hasCapability = jest.fn().mockReturnValue(true);
       handleREGISTER(ctx, ['email@example.com', 'password123']);
 
-      expect(ctx.sendRaw).toHaveBeenCalledWith('REGISTER * email@example.com :password123');
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'REGISTER * email@example.com :password123',
+      );
     });
 
     it('should send REGISTER with account, email and password', () => {
       ctx.hasCapability = jest.fn().mockReturnValue(true);
       handleREGISTER(ctx, ['MyAccount', 'email@example.com', 'password123']);
 
-      expect(ctx.sendRaw).toHaveBeenCalledWith('REGISTER MyAccount email@example.com :password123');
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'REGISTER MyAccount email@example.com :password123',
+      );
     });
   });
 });

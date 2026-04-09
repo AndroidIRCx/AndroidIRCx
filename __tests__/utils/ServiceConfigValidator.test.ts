@@ -33,7 +33,12 @@ describe('ServiceConfigValidator', () => {
             minLevel: 'user',
             requiresAuth: false,
             parameters: [
-              { name: 'password', type: 'string', description: 'Password', required: true },
+              {
+                name: 'password',
+                type: 'string',
+                description: 'Password',
+                required: true,
+              },
             ],
           },
         ],
@@ -147,44 +152,70 @@ describe('ServiceConfigValidator', () => {
     });
 
     it('should reject non-array userModes', () => {
-      const config = { ...validConfig, ircd: { ...validConfig.ircd, userModes: 'invalid' } };
+      const config = {
+        ...validConfig,
+        ircd: { ...validConfig.ircd, userModes: 'invalid' },
+      };
       const result = validateServiceConfig(config);
       expect(result.valid).toBe(false);
       expect(result.errors[0].path).toContain('userModes');
     });
 
     it('should reject non-array channelModes', () => {
-      const config = { ...validConfig, ircd: { ...validConfig.ircd, channelModes: 'invalid' } };
+      const config = {
+        ...validConfig,
+        ircd: { ...validConfig.ircd, channelModes: 'invalid' },
+      };
       const result = validateServiceConfig(config);
       expect(result.valid).toBe(false);
       expect(result.errors[0].path).toContain('channelModes');
     });
 
     it('should reject non-array commands', () => {
-      const config = { ...validConfig, ircd: { ...validConfig.ircd, commands: 'invalid' } };
+      const config = {
+        ...validConfig,
+        ircd: { ...validConfig.ircd, commands: 'invalid' },
+      };
       const result = validateServiceConfig(config);
       expect(result.valid).toBe(false);
       expect(result.errors[0].path).toContain('commands');
     });
 
     it('should validate all valid service types', () => {
-      const validTypes = ['anope', 'atheme', 'dalnet', 'undernet', 'quakenet', 'generic'];
+      const validTypes = [
+        'anope',
+        'atheme',
+        'dalnet',
+        'undernet',
+        'quakenet',
+        'generic',
+      ];
       validTypes.forEach(type => {
         const config = { ...validConfig, serviceType: type };
         const result = validateServiceConfig(config);
-        const serviceTypeError = result.errors.find(e => e.path?.[0] === 'serviceType');
+        const serviceTypeError = result.errors.find(
+          e => e.path?.[0] === 'serviceType',
+        );
         expect(serviceTypeError).toBeUndefined();
       });
     });
 
     it('should validate all valid ircd types', () => {
       const validTypes = [
-        'unrealircd', 'inspircd', 'charybdis', 'solanum', 'hybrid', 'ngircd', 'unknown',
+        'unrealircd',
+        'inspircd',
+        'charybdis',
+        'solanum',
+        'hybrid',
+        'ngircd',
+        'unknown',
       ];
       validTypes.forEach(type => {
         const config = { ...validConfig, ircdType: type };
         const result = validateServiceConfig(config);
-        const ircdTypeError = result.errors.find(e => e.path?.[0] === 'ircdType');
+        const ircdTypeError = result.errors.find(
+          e => e.path?.[0] === 'ircdType',
+        );
         expect(ircdTypeError).toBeUndefined();
       });
     });
@@ -301,7 +332,9 @@ describe('ServiceConfigValidator', () => {
       };
       const result = validateServiceConfig(config);
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.error?.includes('Duplicate command name'))).toBe(true);
+      expect(
+        result.errors.some(e => e.error?.includes('Duplicate command name')),
+      ).toBe(true);
     });
 
     it('should reject duplicate suggestAlias', () => {
@@ -320,15 +353,27 @@ describe('ServiceConfigValidator', () => {
             enabled: true,
             nick: 'NickServ',
             commands: [
-              { ...baseCmd, name: 'CMD1', description: 'Command 1', completion: { suggestAlias: 'alias1' } },
-              { ...baseCmd, name: 'CMD2', description: 'Command 2', completion: { suggestAlias: 'alias1' } },
+              {
+                ...baseCmd,
+                name: 'CMD1',
+                description: 'Command 1',
+                completion: { suggestAlias: 'alias1' },
+              },
+              {
+                ...baseCmd,
+                name: 'CMD2',
+                description: 'Command 2',
+                completion: { suggestAlias: 'alias1' },
+              },
             ],
           },
         },
       };
       const result = validateServiceConfig(config);
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.error?.includes('Duplicate suggestAlias'))).toBe(true);
+      expect(
+        result.errors.some(e => e.error?.includes('Duplicate suggestAlias')),
+      ).toBe(true);
     });
   });
 
@@ -380,8 +425,18 @@ describe('ServiceConfigValidator', () => {
         minLevel: 'user',
         requiresAuth: false,
         parameters: [
-          { name: 'param1', type: 'string', description: 'Param 1', required: true },
-          { name: 'param1', type: 'number', description: 'Duplicate', required: true },
+          {
+            name: 'param1',
+            type: 'string',
+            description: 'Param 1',
+            required: true,
+          },
+          {
+            name: 'param1',
+            type: 'number',
+            description: 'Duplicate',
+            required: true,
+          },
         ],
       };
       const result = validateCommand(command);
@@ -400,7 +455,12 @@ describe('ServiceConfigValidator', () => {
         minLevel: 'user',
         requiresAuth: false,
         parameters: [
-          { name: 'param1', type: 'invalid', description: 'Param 1', required: true },
+          {
+            name: 'param1',
+            type: 'invalid',
+            description: 'Param 1',
+            required: true,
+          },
         ],
       };
       const result = validateCommand(command);
@@ -409,7 +469,15 @@ describe('ServiceConfigValidator', () => {
     });
 
     it('should accept all valid parameter types', () => {
-      const validTypes = ['string', 'number', 'channel', 'nick', 'duration', 'enum', 'boolean'];
+      const validTypes = [
+        'string',
+        'number',
+        'channel',
+        'nick',
+        'duration',
+        'enum',
+        'boolean',
+      ];
       validTypes.forEach(type => {
         const cmd = {
           name: 'TEST',
@@ -420,7 +488,9 @@ describe('ServiceConfigValidator', () => {
           example: 'TEST',
           minLevel: 'user',
           requiresAuth: false,
-          parameters: [{ name: 'p', type, description: 'Param', required: true }],
+          parameters: [
+            { name: 'p', type, description: 'Param', required: true },
+          ],
         };
         const result = validateCommand(cmd);
         expect(result.valid).toBe(true);
@@ -438,7 +508,13 @@ describe('ServiceConfigValidator', () => {
         minLevel: 'user',
         requiresAuth: false,
         parameters: [
-          { name: 'param1', type: 'enum', description: 'Param 1', required: true, enumValues: 'invalid' },
+          {
+            name: 'param1',
+            type: 'enum',
+            description: 'Param 1',
+            required: true,
+            enumValues: 'invalid',
+          },
         ],
       };
       const result = validateCommand(command);
@@ -457,7 +533,13 @@ describe('ServiceConfigValidator', () => {
         minLevel: 'user',
         requiresAuth: false,
         parameters: [
-          { name: 'param1', type: 'enum', description: 'Param 1', required: true, enumValues: ['a', 'b', 'c'] },
+          {
+            name: 'param1',
+            type: 'enum',
+            description: 'Param 1',
+            required: true,
+            enumValues: ['a', 'b', 'c'],
+          },
         ],
       };
       const result = validateCommand(command);
@@ -649,7 +731,15 @@ describe('ServiceConfigValidator', () => {
 
   describe('findDuplicateCommands', () => {
     it('should find duplicate commands across services', () => {
-      const baseCmd = { description: 'Help', minLevel: 'user', aliases: [], usage: 'HELP', example: 'HELP', requiresAuth: false, parameters: [] };
+      const baseCmd = {
+        description: 'Help',
+        minLevel: 'user',
+        aliases: [],
+        usage: 'HELP',
+        example: 'HELP',
+        requiresAuth: false,
+        parameters: [],
+      };
       const config = {
         ...validConfig,
         services: {
@@ -684,7 +774,14 @@ describe('ServiceConfigValidator', () => {
           nickserv: {
             enabled: true,
             nick: 'NickServ',
-            commands: [{ name: 'TEST', description: 'Test', minLevel: 'user', parameters: [] }],
+            commands: [
+              {
+                name: 'TEST',
+                description: 'Test',
+                minLevel: 'user',
+                parameters: [],
+              },
+            ],
           },
           chanserv: {
             enabled: true,
@@ -714,7 +811,15 @@ describe('ServiceConfigValidator', () => {
 
   describe('getAllSuggestAliases', () => {
     it('should collect all aliases', () => {
-      const baseCmd = { description: 'Desc', minLevel: 'user', aliases: [], usage: 'CMD', example: 'CMD', requiresAuth: false, parameters: [] };
+      const baseCmd = {
+        description: 'Desc',
+        minLevel: 'user',
+        aliases: [],
+        usage: 'CMD',
+        example: 'CMD',
+        requiresAuth: false,
+        parameters: [],
+      };
       const config = {
         ...validConfig,
         services: {
@@ -722,8 +827,16 @@ describe('ServiceConfigValidator', () => {
             enabled: true,
             nick: 'NickServ',
             commands: [
-              { ...baseCmd, name: 'REGISTER', completion: { suggestAlias: 'register' } },
-              { ...baseCmd, name: 'IDENTIFY', completion: { suggestAlias: 'identify' } },
+              {
+                ...baseCmd,
+                name: 'REGISTER',
+                completion: { suggestAlias: 'register' },
+              },
+              {
+                ...baseCmd,
+                name: 'IDENTIFY',
+                completion: { suggestAlias: 'identify' },
+              },
             ],
           },
         },
@@ -731,7 +844,10 @@ describe('ServiceConfigValidator', () => {
       const aliases = getAllSuggestAliases(config as any);
       expect(aliases.has('register')).toBe(true);
       expect(aliases.has('identify')).toBe(true);
-      expect(aliases.get('register')).toEqual({ service: 'nickserv', command: 'REGISTER' });
+      expect(aliases.get('register')).toEqual({
+        service: 'nickserv',
+        command: 'REGISTER',
+      });
     });
 
     it('should return empty map when no aliases', () => {
@@ -756,18 +872,36 @@ describe('ServiceConfigValidator', () => {
 
   describe('findAliasConflicts', () => {
     it('should find conflicts with reserved words', () => {
-      const baseCmd = { description: 'Join', minLevel: 'user', aliases: [], usage: 'JOIN', example: 'JOIN', requiresAuth: false, parameters: [] };
+      const baseCmd = {
+        description: 'Join',
+        minLevel: 'user',
+        aliases: [],
+        usage: 'JOIN',
+        example: 'JOIN',
+        requiresAuth: false,
+        parameters: [],
+      };
       const config = {
         ...validConfig,
         services: {
           nickserv: {
             enabled: true,
             nick: 'NickServ',
-            commands: [{ ...baseCmd, name: 'JOIN', completion: { suggestAlias: 'join' } }],
+            commands: [
+              {
+                ...baseCmd,
+                name: 'JOIN',
+                completion: { suggestAlias: 'join' },
+              },
+            ],
           },
         },
       };
-      const conflicts = findAliasConflicts(config as any, ['join', 'part', 'quit']);
+      const conflicts = findAliasConflicts(config as any, [
+        'join',
+        'part',
+        'quit',
+      ]);
       expect(conflicts).toHaveLength(1);
       expect(conflicts[0].alias).toBe('join');
       expect(conflicts[0].command).toBe('JOIN');
@@ -775,14 +909,28 @@ describe('ServiceConfigValidator', () => {
     });
 
     it('should be case insensitive', () => {
-      const baseCmd = { description: 'Test', minLevel: 'user', aliases: [], usage: 'TEST', example: 'TEST', requiresAuth: false, parameters: [] };
+      const baseCmd = {
+        description: 'Test',
+        minLevel: 'user',
+        aliases: [],
+        usage: 'TEST',
+        example: 'TEST',
+        requiresAuth: false,
+        parameters: [],
+      };
       const config = {
         ...validConfig,
         services: {
           nickserv: {
             enabled: true,
             nick: 'NickServ',
-            commands: [{ ...baseCmd, name: 'TEST', completion: { suggestAlias: 'JOIN' } }],
+            commands: [
+              {
+                ...baseCmd,
+                name: 'TEST',
+                completion: { suggestAlias: 'JOIN' },
+              },
+            ],
           },
         },
       };
@@ -791,14 +939,28 @@ describe('ServiceConfigValidator', () => {
     });
 
     it('should return empty array when no conflicts', () => {
-      const baseCmd = { description: 'Test', minLevel: 'user', aliases: [], usage: 'TEST', example: 'TEST', requiresAuth: false, parameters: [] };
+      const baseCmd = {
+        description: 'Test',
+        minLevel: 'user',
+        aliases: [],
+        usage: 'TEST',
+        example: 'TEST',
+        requiresAuth: false,
+        parameters: [],
+      };
       const config = {
         ...validConfig,
         services: {
           nickserv: {
             enabled: true,
             nick: 'NickServ',
-            commands: [{ ...baseCmd, name: 'TEST', completion: { suggestAlias: 'custom' } }],
+            commands: [
+              {
+                ...baseCmd,
+                name: 'TEST',
+                completion: { suggestAlias: 'custom' },
+              },
+            ],
           },
         },
       };
@@ -814,7 +976,13 @@ describe('ServiceConfigValidator', () => {
             enabled: true,
             nick: 'NickServ',
             commands: [
-              { name: 'TEST', description: 'Test', minLevel: 'user', parameters: [], completion: { suggestAlias: 'test' } },
+              {
+                name: 'TEST',
+                description: 'Test',
+                minLevel: 'user',
+                parameters: [],
+                completion: { suggestAlias: 'test' },
+              },
             ],
           },
         },

@@ -40,7 +40,8 @@ export const handle251: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 252 RPL_LUSEROP */
 export const handle252: NumericHandler = (ctx, prefix, params, timestamp) => {
   const count = params[1] || '0';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('operator(s) online');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('operator(s) online');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {count} {message}', { count, message }),
@@ -53,7 +54,8 @@ export const handle252: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 253 RPL_LUSERUNKNOWN */
 export const handle253: NumericHandler = (ctx, prefix, params, timestamp) => {
   const count = params[1] || '0';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('unknown connection(s)');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('unknown connection(s)');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {count} {message}', { count, message }),
@@ -66,7 +68,8 @@ export const handle253: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 254 RPL_LUSERCHANNELS */
 export const handle254: NumericHandler = (ctx, prefix, params, timestamp) => {
   const count = params[1] || '0';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('channels formed');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('channels formed');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {count} {message}', { count, message }),
@@ -90,7 +93,8 @@ export const handle255: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 256 RPL_ADMINME */
 export const handle256: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('Administrative info');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('Administrative info');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -140,7 +144,9 @@ export const handle259: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle265: NumericHandler = (ctx, prefix, params, timestamp) => {
   const current = params[1] || '';
   const max = params[2] || '';
-  const message = params.slice(3).join(' ').replace(/^:/, '') || t('Current local users {current}, max {max}', { current, max });
+  const message =
+    params.slice(3).join(' ').replace(/^:/, '') ||
+    t('Current local users {current}, max {max}', { current, max });
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -154,7 +160,9 @@ export const handle265: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle266: NumericHandler = (ctx, prefix, params, timestamp) => {
   const current = params[1] || '';
   const max = params[2] || '';
-  const message = params.slice(3).join(' ').replace(/^:/, '') || t('Current global users {current}, max {max}', { current, max });
+  const message =
+    params.slice(3).join(' ').replace(/^:/, '') ||
+    t('Current global users {current}, max {max}', { current, max });
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),

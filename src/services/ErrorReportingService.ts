@@ -12,8 +12,20 @@ const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 // Patterns to sanitize sensitive data from Crashlytics extras
 const SENSITIVE_KEYS = [
-  'password', 'pass', 'secret', 'token', 'key', 'auth', 'credential',
-  'sasl', 'oauth', 'apikey', 'api_key', 'bearer', 'certificate', 'cert',
+  'password',
+  'pass',
+  'secret',
+  'token',
+  'key',
+  'auth',
+  'credential',
+  'sasl',
+  'oauth',
+  'apikey',
+  'api_key',
+  'bearer',
+  'certificate',
+  'cert',
 ];
 const SENSITIVE_VALUE_PATTERNS = [
   /password[=:\s]+\S+/gi,
@@ -129,7 +141,10 @@ class ErrorReportingService {
 
       await crashlytics().recordError(normalizedError);
     } catch (err) {
-      console.warn('ErrorReportingService: Crashlytics failed, using mail fallback', err);
+      console.warn(
+        'ErrorReportingService: Crashlytics failed, using mail fallback',
+        err,
+      );
       this.tryMailFallback(normalizedError, context);
     }
   }
@@ -152,7 +167,10 @@ class ErrorReportingService {
     return new Error(t('Unknown error'));
   }
 
-  private async tryMailFallback(error: Error, context?: ErrorContext): Promise<void> {
+  private async tryMailFallback(
+    error: Error,
+    context?: ErrorContext,
+  ): Promise<void> {
     const fatalValue = context?.fatal ? t('Yes') : t('No');
     const body = [
       t('Crash report fallback'),
@@ -162,7 +180,9 @@ class ErrorReportingService {
       '',
       t('Message: {message}', { message: error.message }),
       t('Stack: {stack}', { stack: error.stack || t('n/a') }),
-    ].filter(Boolean).join('\n');
+    ]
+      .filter(Boolean)
+      .join('\n');
 
     const mailto = `mailto:${this.fallbackEmail}?subject=${encodeURIComponent(t('AndroidIRCX Crash Report'))}&body=${encodeURIComponent(body)}`;
     try {

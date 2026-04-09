@@ -55,7 +55,7 @@ describe('MircPresetParser', () => {
 
     it('should handle mixed valid UTF-8 and CP1252 bytes', () => {
       // Valid UTF-8 for ASCII, then CP1252 byte
-      const bytes = new Uint8Array([0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x80]); // "Hello" + Euro in CP1252
+      const bytes = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x80]); // "Hello" + Euro in CP1252
       const base64 = Buffer.from(bytes).toString('base64');
       expect(decodeMircPresetBase64(base64)).toContain('€');
     });
@@ -97,7 +97,12 @@ describe('MircPresetParser', () => {
 
     it('should handle mixed line endings', () => {
       const input = 'line1\nline2\r\nline3\rline4';
-      expect(splitPresetLines(input)).toEqual(['line1', 'line2', 'line3', 'line4']);
+      expect(splitPresetLines(input)).toEqual([
+        'line1',
+        'line2',
+        'line3',
+        'line4',
+      ]);
     });
   });
 
@@ -196,7 +201,8 @@ describe('MircPresetParser', () => {
   describe('parseIrcapDecorationEti', () => {
     it('should parse valid decoration line', () => {
       // Create a valid IRCAP decoration line with 9+ fields separated by \x08
-      const input = 'field1\x08field2\x08field3\x08field4\x08field5\x08field6\x08prefix\x08suffix\x08last';
+      const input =
+        'field1\x08field2\x08field3\x08field4\x08field5\x08field6\x08prefix\x08suffix\x08last';
       const result = parseIrcapDecorationEti(input);
       expect(result).toHaveLength(1);
       expect(result[0]).toBe('prefix\x08suffix');
@@ -209,13 +215,15 @@ describe('MircPresetParser', () => {
     });
 
     it('should remove null bytes from style', () => {
-      const input = 'f1\x08f2\x08f3\x08f4\x08f5\x08f6\x08pre\x00fix\x08suf\x00fix\x08last';
+      const input =
+        'f1\x08f2\x08f3\x08f4\x08f5\x08f6\x08pre\x00fix\x08suf\x00fix\x08last';
       const result = parseIrcapDecorationEti(input);
       expect(result[0]).toBe('prefix\x08suffix');
     });
 
     it('should filter out duplicate styles', () => {
-      const line = 'f1\x08f2\x08f3\x08f4\x08f5\x08f6\x08prefix\x08suffix\x08last';
+      const line =
+        'f1\x08f2\x08f3\x08f4\x08f5\x08f6\x08prefix\x08suffix\x08last';
       const input = `${line}\n${line}`;
       const result = parseIrcapDecorationEti(input);
       expect(result).toHaveLength(1);
@@ -288,7 +296,7 @@ describe('MircPresetParser', () => {
 
     it('should detect invalid 2-byte sequence (truncated)', () => {
       // 0xC0 starts a 2-byte sequence but has no continuation
-      const bytes = new Uint8Array([0xC0]);
+      const bytes = new Uint8Array([0xc0]);
       const base64 = Buffer.from(bytes).toString('base64');
       // Should fall back to CP1252
       const result = decodeMircPresetBase64(base64);
@@ -297,7 +305,7 @@ describe('MircPresetParser', () => {
 
     it('should detect invalid 3-byte sequence (truncated)', () => {
       // 0xE0 starts a 3-byte sequence but has only 1 continuation
-      const bytes = new Uint8Array([0xE0, 0x80]);
+      const bytes = new Uint8Array([0xe0, 0x80]);
       const base64 = Buffer.from(bytes).toString('base64');
       const result = decodeMircPresetBase64(base64);
       expect(result).toBeDefined();
@@ -305,7 +313,7 @@ describe('MircPresetParser', () => {
 
     it('should detect invalid 4-byte sequence (truncated)', () => {
       // 0xF0 starts a 4-byte sequence but has only 2 continuations
-      const bytes = new Uint8Array([0xF0, 0x80, 0x80]);
+      const bytes = new Uint8Array([0xf0, 0x80, 0x80]);
       const base64 = Buffer.from(bytes).toString('base64');
       const result = decodeMircPresetBase64(base64);
       expect(result).toBeDefined();
@@ -313,7 +321,7 @@ describe('MircPresetParser', () => {
 
     it('should detect invalid continuation byte', () => {
       // 0xC0 expects continuation (0x80-0xBF) but gets 0x00
-      const bytes = new Uint8Array([0xC0, 0x00]);
+      const bytes = new Uint8Array([0xc0, 0x00]);
       const base64 = Buffer.from(bytes).toString('base64');
       const result = decodeMircPresetBase64(base64);
       expect(result).toBeDefined();
@@ -321,7 +329,7 @@ describe('MircPresetParser', () => {
 
     it('should detect invalid 4-byte continuation bytes', () => {
       // 0xF0 starts 4-byte sequence, but byte2 is invalid (0x00 instead of 0x80-0xBF)
-      const bytes = new Uint8Array([0xF0, 0x00, 0x80, 0x80]);
+      const bytes = new Uint8Array([0xf0, 0x00, 0x80, 0x80]);
       const base64 = Buffer.from(bytes).toString('base64');
       const result = decodeMircPresetBase64(base64);
       expect(result).toBeDefined(); // Falls back to CP1252
@@ -329,7 +337,7 @@ describe('MircPresetParser', () => {
 
     it('should detect invalid 3-byte continuation bytes', () => {
       // 0xE0 starts 3-byte sequence, but byte3 is invalid (0x00 instead of 0x80-0xBF)
-      const bytes = new Uint8Array([0xE0, 0x80, 0x00]);
+      const bytes = new Uint8Array([0xe0, 0x80, 0x00]);
       const base64 = Buffer.from(bytes).toString('base64');
       const result = decodeMircPresetBase64(base64);
       expect(result).toBeDefined(); // Falls back to CP1252
@@ -345,7 +353,7 @@ describe('MircPresetParser', () => {
 
     it('should handle CP1252 bytes not in mapping table', () => {
       // Bytes 0x81, 0x8D, 0x8F, 0x90, 0x9D are in CP1252 range but not mapped
-      const bytes = new Uint8Array([0x81, 0x8D, 0x8F]);
+      const bytes = new Uint8Array([0x81, 0x8d, 0x8f]);
       const base64 = Buffer.from(bytes).toString('base64');
       const result = decodeMircPresetBase64(base64);
       // These should pass through as-is (their original byte value as char code)

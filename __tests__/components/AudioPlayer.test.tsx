@@ -56,10 +56,10 @@ describe('AudioPlayer', () => {
   it('should toggle between Play and Pause when button is pressed', () => {
     const { getByText } = render(<AudioPlayer {...defaultProps} />);
     const button = getByText('Play');
-    
+
     fireEvent.press(button);
     expect(getByText('Pause')).toBeTruthy();
-    
+
     fireEvent.press(getByText('Pause'));
     expect(getByText('Play')).toBeTruthy();
   });
@@ -70,7 +70,7 @@ describe('AudioPlayer', () => {
       'file:///local/audio.wav',
       'http://stream.example.com/radio.ogg',
     ];
-    
+
     urls.forEach(url => {
       const { UNSAFE_root } = render(<AudioPlayer url={url} />);
       expect(UNSAFE_root).toBeDefined();
@@ -104,7 +104,9 @@ describe('AudioPlayer', () => {
   });
 
   it('should handle onLoad callback', () => {
-    const { UNSAFE_getByType, UNSAFE_root } = render(<AudioPlayer {...defaultProps} />);
+    const { UNSAFE_getByType, UNSAFE_root } = render(
+      <AudioPlayer {...defaultProps} />,
+    );
     const video = UNSAFE_getByType('Video');
 
     act(() => {
@@ -114,7 +116,9 @@ describe('AudioPlayer', () => {
   });
 
   it('should show translated error message when playback fails with error string', () => {
-    const { UNSAFE_getByType, getByText, UNSAFE_root } = render(<AudioPlayer {...defaultProps} />);
+    const { UNSAFE_getByType, getByText, UNSAFE_root } = render(
+      <AudioPlayer {...defaultProps} />,
+    );
     const video = UNSAFE_getByType('Video');
 
     act(() => {
@@ -126,7 +130,9 @@ describe('AudioPlayer', () => {
   });
 
   it('should use fallback translated error when playback fails without error string', () => {
-    const { UNSAFE_getByType, getByText } = render(<AudioPlayer {...defaultProps} />);
+    const { UNSAFE_getByType, getByText } = render(
+      <AudioPlayer {...defaultProps} />,
+    );
     const video = UNSAFE_getByType('Video');
 
     act(() => {

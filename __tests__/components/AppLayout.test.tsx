@@ -19,12 +19,24 @@ const mockGetBannerAdUnitId = jest.fn();
 const mockCanShowPersonalizedAds = jest.fn();
 const settingListeners = new Map<string, (value: any) => void>();
 
-jest.mock('../../src/components/ChannelTabs', () => ({ ChannelTabs: (p: any) => mockChannelTabs(p) }));
-jest.mock('../../src/components/MessageArea', () => ({ MessageArea: (p: any) => mockMessageArea(p) }));
-jest.mock('../../src/components/MessageInput', () => ({ MessageInput: (p: any) => mockMessageInput(p) }));
-jest.mock('../../src/components/TypingIndicator', () => ({ TypingIndicator: (p: any) => mockTypingIndicator(p) }));
-jest.mock('../../src/components/UserList', () => ({ UserList: (p: any) => mockUserList(p) }));
-jest.mock('../../src/components/HeaderBar', () => ({ HeaderBar: (p: any) => mockHeaderBar(p) }));
+jest.mock('../../src/components/ChannelTabs', () => ({
+  ChannelTabs: (p: any) => mockChannelTabs(p),
+}));
+jest.mock('../../src/components/MessageArea', () => ({
+  MessageArea: (p: any) => mockMessageArea(p),
+}));
+jest.mock('../../src/components/MessageInput', () => ({
+  MessageInput: (p: any) => mockMessageInput(p),
+}));
+jest.mock('../../src/components/TypingIndicator', () => ({
+  TypingIndicator: (p: any) => mockTypingIndicator(p),
+}));
+jest.mock('../../src/components/UserList', () => ({
+  UserList: (p: any) => mockUserList(p),
+}));
+jest.mock('../../src/components/HeaderBar', () => ({
+  HeaderBar: (p: any) => mockHeaderBar(p),
+}));
 
 jest.mock('../../src/hooks/useTheme', () => ({
   useTheme: () => mockUseTheme(),
@@ -35,7 +47,7 @@ jest.mock('../../src/stores/uiStore', () => ({
     (selector: (state: any) => any) => mockUseUIStore(selector),
     {
       getState: () => mockUseUIStore.getState(),
-    }
+    },
   ),
 }));
 
@@ -69,11 +81,29 @@ jest.mock('react-native-keyboard-controller', () => {
 
 const baseProps = {
   tabs: [
-    { id: 'chan:1', name: '#general', type: 'channel', networkId: 'net-1', messages: [] },
-    { id: 'query:1', name: 'Alice', type: 'query', networkId: 'net-1', messages: [] },
+    {
+      id: 'chan:1',
+      name: '#general',
+      type: 'channel',
+      networkId: 'net-1',
+      messages: [],
+    },
+    {
+      id: 'query:1',
+      name: 'Alice',
+      type: 'query',
+      networkId: 'net-1',
+      messages: [],
+    },
   ],
   activeTabId: 'chan:1',
-  activeTab: { id: 'chan:1', name: '#general', type: 'channel', networkId: 'net-1', messages: [] },
+  activeTab: {
+    id: 'chan:1',
+    name: '#general',
+    type: 'channel',
+    networkId: 'net-1',
+    messages: [],
+  },
   activeMessages: [],
   activeUsers: [{ nick: 'Alice' }],
   isConnected: true,
@@ -88,7 +118,9 @@ const baseProps = {
   hideIrcServiceListenerMessages: false,
   showEncryptionIndicators: true,
   showTypingIndicators: true,
-  typingUsers: new Map([['net-1', new Map([['#general', new Map([['Alice', true]])]])]]),
+  typingUsers: new Map([
+    ['net-1', new Map([['#general', new Map([['Alice', true]])]])],
+  ]),
   bannerVisible: true,
   prefillMessage: 'hi',
   layoutConfig: {
@@ -140,7 +172,9 @@ describe('AppLayout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseTheme.mockReturnValue({ colors: { surface: '#111', surfaceVariant: '#222', border: '#333' } });
+    mockUseTheme.mockReturnValue({
+      colors: { surface: '#111', surfaceVariant: '#222', border: '#333' },
+    });
 
     const uiStoreState = {
       setShowQueryEncryptionMenu: jest.fn(),
@@ -149,15 +183,19 @@ describe('AppLayout', () => {
     };
 
     mockUseUIStore.mockImplementation((selector: (state: any) => any) =>
-      selector({ setShowUserList: uiStoreState.setShowUserList })
+      selector({ setShowUserList: uiStoreState.setShowUserList }),
     );
     mockUseUIStore.getState = jest.fn(() => uiStoreState);
 
-    mockGetSetting.mockImplementation((key: string, fallback: unknown) => Promise.resolve(fallback));
-    mockOnSettingChange.mockImplementation((key: string, cb: (value: any) => void) => {
-      settingListeners.set(key, cb);
-      return () => settingListeners.delete(key);
-    });
+    mockGetSetting.mockImplementation((key: string, fallback: unknown) =>
+      Promise.resolve(fallback),
+    );
+    mockOnSettingChange.mockImplementation(
+      (key: string, cb: (value: any) => void) => {
+        settingListeners.set(key, cb);
+        return () => settingListeners.delete(key);
+      },
+    );
     mockGetBannerAdUnitId.mockReturnValue('test-banner-id');
     mockCanShowPersonalizedAds.mockReturnValue(true);
   });
@@ -167,7 +205,7 @@ describe('AppLayout', () => {
 
     expect(mockHeaderBar).toHaveBeenCalledTimes(1);
     expect(
-      mockChannelTabs.mock.calls.some(call => call[0]?.position === 'top')
+      mockChannelTabs.mock.calls.some(call => call[0]?.position === 'top'),
     ).toBe(true);
     expect(mockMessageArea).toHaveBeenCalledTimes(1);
     expect(mockMessageInput).toHaveBeenCalledTimes(1);
@@ -185,7 +223,8 @@ describe('AppLayout', () => {
       headerProps.onSearchPress();
     });
 
-    const latestMessageAreaProps = mockMessageArea.mock.calls[mockMessageArea.mock.calls.length - 1][0];
+    const latestMessageAreaProps =
+      mockMessageArea.mock.calls[mockMessageArea.mock.calls.length - 1][0];
     expect(latestMessageAreaProps.searchVisible).toBe(true);
   });
 
@@ -193,7 +232,13 @@ describe('AppLayout', () => {
     const props = {
       ...baseProps,
       activeTabId: 'query:1',
-      activeTab: { id: 'query:1', name: 'Alice', type: 'query', networkId: 'net-1', messages: [] },
+      activeTab: {
+        id: 'query:1',
+        name: 'Alice',
+        type: 'query',
+        networkId: 'net-1',
+        messages: [],
+      },
     };
 
     render(<AppLayout {...props} />);
@@ -215,7 +260,7 @@ describe('AppLayout', () => {
         {...baseProps}
         isConnected={false}
         selectedNetworkName="My Saved Network"
-      />
+      />,
     );
 
     const headerProps = mockHeaderBar.mock.calls[0][0];
@@ -228,9 +273,11 @@ describe('AppLayout', () => {
         {...baseProps}
         layoutConfig={{ ...baseProps.layoutConfig, tabPosition: 'left' }}
         sideTabsVisible={true}
-      />
+      />,
     );
-    expect(mockChannelTabs.mock.calls.some(call => call[0]?.position === 'left')).toBe(true);
+    expect(
+      mockChannelTabs.mock.calls.some(call => call[0]?.position === 'left'),
+    ).toBe(true);
 
     jest.clearAllMocks();
     render(
@@ -238,9 +285,11 @@ describe('AppLayout', () => {
         {...baseProps}
         layoutConfig={{ ...baseProps.layoutConfig, tabPosition: 'right' }}
         sideTabsVisible={true}
-      />
+      />,
     );
-    expect(mockChannelTabs.mock.calls.some(call => call[0]?.position === 'right')).toBe(true);
+    expect(
+      mockChannelTabs.mock.calls.some(call => call[0]?.position === 'right'),
+    ).toBe(true);
 
     jest.clearAllMocks();
     render(
@@ -248,9 +297,11 @@ describe('AppLayout', () => {
         {...baseProps}
         layoutConfig={{ ...baseProps.layoutConfig, tabPosition: 'left' }}
         sideTabsVisible={false}
-      />
+      />,
     );
-    expect(mockChannelTabs.mock.calls.some(call => call[0]?.position === 'left')).toBe(false);
+    expect(
+      mockChannelTabs.mock.calls.some(call => call[0]?.position === 'left'),
+    ).toBe(false);
   });
 
   it('renders bottom tabs and hides typing indicator when disabled', () => {
@@ -259,10 +310,12 @@ describe('AppLayout', () => {
         {...baseProps}
         layoutConfig={{ ...baseProps.layoutConfig, tabPosition: 'bottom' }}
         showTypingIndicators={false}
-      />
+      />,
     );
 
-    expect(mockChannelTabs.mock.calls.some(call => call[0]?.position === 'bottom')).toBe(true);
+    expect(
+      mockChannelTabs.mock.calls.some(call => call[0]?.position === 'bottom'),
+    ).toBe(true);
     expect(mockTypingIndicator).not.toHaveBeenCalled();
   });
 
@@ -272,8 +325,14 @@ describe('AppLayout', () => {
       <AppLayout
         {...baseProps}
         handleToggleUserList={handleToggleUserList}
-        activeTab={{ id: 'chan:1', name: '#general', type: 'channel', networkId: 'net-1', messages: [] }}
-      />
+        activeTab={{
+          id: 'chan:1',
+          name: '#general',
+          type: 'channel',
+          networkId: 'net-1',
+          messages: [],
+        }}
+      />,
     );
 
     const tongue = getByLabelText('Toggle user list');
@@ -290,7 +349,7 @@ describe('AppLayout', () => {
         requestOptions: expect.objectContaining({
           requestNonPersonalizedAdsOnly: true,
         }),
-      })
+      }),
     );
   });
 
@@ -324,7 +383,8 @@ describe('AppLayout', () => {
 
     mockGetSetting.mockImplementation((key: string, fallback: unknown) => {
       if (key === 'swipeBehavior') return Promise.resolve('switch-tabs');
-      if (key === 'channelListScrollSwitchTabsInverse') return Promise.resolve(false);
+      if (key === 'channelListScrollSwitchTabsInverse')
+        return Promise.resolve(false);
       return Promise.resolve(fallback);
     });
 
@@ -333,18 +393,22 @@ describe('AppLayout', () => {
         {...baseProps}
         handleTabPress={handleTabPress}
         onToggleSideTabs={onToggleSideTabs}
-      />
+      />,
     );
 
-    capturedConfigs.forEach((cfg) => {
+    capturedConfigs.forEach(cfg => {
       if (typeof cfg.onStartShouldSetPanResponder === 'function') {
         expect(() => cfg.onStartShouldSetPanResponder()).not.toThrow();
       }
       if (typeof cfg.onMoveShouldSetPanResponder === 'function') {
-        expect(() => cfg.onMoveShouldSetPanResponder({}, { dx: 60, dy: 0 })).not.toThrow();
+        expect(() =>
+          cfg.onMoveShouldSetPanResponder({}, { dx: 60, dy: 0 }),
+        ).not.toThrow();
       }
       if (typeof cfg.onPanResponderRelease === 'function') {
-        expect(() => cfg.onPanResponderRelease({}, { dx: 60, dy: 0 })).not.toThrow();
+        expect(() =>
+          cfg.onPanResponderRelease({}, { dx: 60, dy: 0 }),
+        ).not.toThrow();
       }
     });
 
@@ -352,9 +416,11 @@ describe('AppLayout', () => {
       settingListeners.get('swipeBehavior')?.('show-panels');
     });
 
-    capturedConfigs.forEach((cfg) => {
+    capturedConfigs.forEach(cfg => {
       if (typeof cfg.onPanResponderRelease === 'function') {
-        expect(() => cfg.onPanResponderRelease({}, { dx: -70, dy: 0 })).not.toThrow();
+        expect(() =>
+          cfg.onPanResponderRelease({}, { dx: -70, dy: 0 }),
+        ).not.toThrow();
       }
     });
 
@@ -372,7 +438,7 @@ describe('AppLayout', () => {
 
     const setShowUserList = jest.fn();
     mockUseUIStore.mockImplementation((selector: (state: any) => any) =>
-      selector({ setShowUserList })
+      selector({ setShowUserList }),
     );
 
     const runFor = (pos: 'left' | 'right' | 'top' | 'bottom', gesture: any) => {
@@ -380,12 +446,20 @@ describe('AppLayout', () => {
         <AppLayout
           {...baseProps}
           layoutConfig={{ ...baseProps.layoutConfig, userListPosition: pos }}
-          activeTab={{ id: 'chan:1', name: '#general', type: 'channel', networkId: 'net-1', messages: [] }}
-        />
+          activeTab={{
+            id: 'chan:1',
+            name: '#general',
+            type: 'channel',
+            networkId: 'net-1',
+            messages: [],
+          }}
+        />,
       );
       const tongueConfig = capturedConfigs[capturedConfigs.length - 1];
       expect(tongueConfig.onStartShouldSetPanResponder()).toBe(true);
-      expect(tongueConfig.onMoveShouldSetPanResponder({}, { dx: 7, dy: 0 })).toBe(true);
+      expect(
+        tongueConfig.onMoveShouldSetPanResponder({}, { dx: 7, dy: 0 }),
+      ).toBe(true);
       tongueConfig.onPanResponderRelease({}, gesture);
     };
 
@@ -399,7 +473,9 @@ describe('AppLayout', () => {
   });
 
   it('invokes header connect callback and banner load error handler', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     const handleConnect = jest.fn();
     render(<AppLayout {...baseProps} handleConnect={handleConnect} />);
 
@@ -408,7 +484,9 @@ describe('AppLayout', () => {
     expect(handleConnect).toHaveBeenCalled();
 
     const bannerProps = mockBannerAd.mock.calls[0][0];
-    expect(() => bannerProps.onAdFailedToLoad(new Error('ad-fail'))).not.toThrow();
+    expect(() =>
+      bannerProps.onAdFailedToLoad(new Error('ad-fail')),
+    ).not.toThrow();
     consoleSpy.mockRestore();
   });
 });

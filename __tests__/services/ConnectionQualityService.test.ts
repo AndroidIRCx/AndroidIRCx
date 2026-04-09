@@ -17,13 +17,7 @@ jest.mock('../../src/services/SettingsService', () => ({
 }));
 
 describe('ConnectionQualityService', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
-  });
+  const createdServices: ConnectionQualityService[] = [];
 
   const createIrc = () => ({
     onConnectionChange: jest.fn((cb: any) => {
@@ -43,19 +37,43 @@ describe('ConnectionQualityService', () => {
   });
 
   beforeEach(async () => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
+    jest.clearAllTimers();
     await AsyncStorage.clear();
     mockGetSetting.mockResolvedValue('server');
+    createdServices.length = 0;
   });
 
-  it('initializes and loads persisted config', async () => {
-    await AsyncStorage.setItem('@AndroidIRCX:connectionQualityConfig', JSON.stringify({
-      rateLimit: { messagesPerSecond: 2 },
-      floodProtection: { maxMessagesPerWindow: 3 },
-      lagMonitoring: { pingInterval: 12345 },
-    }));
+  afterEach(() => {
+    createdServices.forEach(service => {
+      (service as any).stopLagMonitoring?.();
+      (service as any).messageQueue = [];
+      (service as any).pendingPings?.clear?.();
+      (service as any).statisticsListeners = [];
+      (service as any).lagListeners = [];
+    });
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
 
+  const createService = () => {
     const service = new ConnectionQualityService();
+    createdServices.push(service);
+    return service;
+  };
+
+  it('initializes and loads persisted config', async () => {
+    await AsyncStorage.setItem(
+      '@AndroidIRCX:connectionQualityConfig',
+      JSON.stringify({
+        rateLimit: { messagesPerSecond: 2 },
+        floodProtection: { maxMessagesPerWindow: 3 },
+        lagMonitoring: { pingInterval: 12345 },
+      }),
+    );
+
+    const service = createService();
     const irc = createIrc();
     service.setIRCService(irc as any);
     await service.initialize();
@@ -68,7 +86,7 @@ describe('ConnectionQualityService', () => {
   });
 
   it('tracks send/receive statistics and rate limiting', async () => {
-    const service = new ConnectionQualityService();
+    const service = createService();
     const irc = createIrc();
     service.setIRCService(irc as any);
     await service.initialize();
@@ -76,7 +94,9 @@ describe('ConnectionQualityService', () => {
     await service.setRateLimitConfig({ enabled: true, messagesPerSecond: 1 });
 
     await expect(service.sendMessage('PRIVMSG #a :x')).resolves.toBeUndefined();
-    await expect(service.sendMessage('PRIVMSG #a :y')).rejects.toThrow('Rate limit exceeded');
+    await expect(service.sendMessage('PRIVMSG #a :y')).rejects.toThrow(
+      'Rate limit exceeded',
+    );
 
     (createIrc as any)._msg?.({ text: ':nick!u@h PRIVMSG #a :hello' });
     const stats = service.getStatistics();
@@ -85,7 +105,7 @@ describe('ConnectionQualityService', () => {
   });
 
   it('handles pong responses and notifies lag listeners', async () => {
-    const service = new ConnectionQualityService();
+    const service = createService();
     const lagListener = jest.fn();
     const statsListener = jest.fn();
 
@@ -101,12 +121,14 @@ describe('ConnectionQualityService', () => {
   });
 
   it('updates config and persists it', async () => {
-    const service = new ConnectionQualityService();
+    const service = createService();
     await service.setRateLimitConfig({ burstLimit: 25 });
     await service.setFloodProtectionConfig({ penaltyDelay: 500 });
     await service.setLagMonitoringConfig({ enabled: false });
 
-    const saved = await AsyncStorage.getItem('@AndroidIRCX:connectionQualityConfig');
+    const saved = await AsyncStorage.getItem(
+      '@AndroidIRCX:connectionQualityConfig',
+    );
     expect(saved).toBeTruthy();
     const parsed = JSON.parse(saved as string);
     expect(parsed.rateLimit.burstLimit).toBe(25);
@@ -115,7 +137,7 @@ describe('ConnectionQualityService', () => {
   });
 
   it('handles connection lifecycle callbacks, queue cleanup and lag monitor branches', async () => {
-    const service = new ConnectionQualityService();
+    const service = createService();
     const irc = createIrc();
     service.setIRCService(irc as any);
     await service.initialize();
@@ -130,19 +152,26 @@ describe('ConnectionQualityService', () => {
     // fill queue and disconnect should reject queued promises
     const reject = jest.fn();
     // @ts-ignore
-    service.messageQueue = [{ message: 'x', timestamp: Date.now(), resolve: jest.fn(), reject }];
+    service.messageQueue = [
+      { message: 'x', timestamp: Date.now(), resolve: jest.fn(), reject },
+    ];
     (createIrc as any)._conn?.(false);
     expect(reject).toHaveBeenCalled();
   });
 
   it('covers flood penalty delay and not-connected/send-error branches', async () => {
-    const service = new ConnectionQualityService();
+    const service = createService();
     const irc = createIrc();
     service.setIRCService(irc as any);
     await service.initialize();
 
-    await service.setFloodProtectionConfig({ enabled: true, maxMessagesPerWindow: 1, penaltyDelay: 100 });
-    jest.spyOn(service as any, 'checkFloodProtection')
+    await service.setFloodProtectionConfig({
+      enabled: true,
+      maxMessagesPerWindow: 1,
+      penaltyDelay: 100,
+    });
+    jest
+      .spyOn(service as any, 'checkFloodProtection')
       .mockReturnValueOnce(false)
       .mockReturnValue(true);
     const p = service.sendMessage('PRIVMSG #a :penalty');
@@ -151,17 +180,25 @@ describe('ConnectionQualityService', () => {
 
     // socket missing branch
     (irc as any).socket = null;
-    await expect(service.sendMessage('PRIVMSG #a :fail')).rejects.toThrow('Not connected');
+    await expect(service.sendMessage('PRIVMSG #a :fail')).rejects.toThrow(
+      'Not connected',
+    );
 
     // socket.write throws
-    (irc as any).socket = { write: jest.fn(() => { throw new Error('write-fail'); }) };
+    (irc as any).socket = {
+      write: jest.fn(() => {
+        throw new Error('write-fail');
+      }),
+    };
     (irc as any).isConnected = true;
-    await expect(service.sendMessage('PRIVMSG #a :boom')).rejects.toThrow('write-fail');
+    await expect(service.sendMessage('PRIVMSG #a :boom')).rejects.toThrow(
+      'write-fail',
+    );
   });
 
   it('covers ctcp ping method and listener error guards', async () => {
     mockGetSetting.mockResolvedValue('ctcp');
-    const service = new ConnectionQualityService();
+    const service = createService();
     const irc = createIrc();
     (irc as any).getCurrentNick = jest.fn(() => 'me');
     service.setIRCService(irc as any);
@@ -185,8 +222,11 @@ describe('ConnectionQualityService', () => {
   });
 
   it('covers initialize parse failure branch', async () => {
-    await AsyncStorage.setItem('@AndroidIRCX:connectionQualityConfig', '{bad-json');
-    const service = new ConnectionQualityService();
+    await AsyncStorage.setItem(
+      '@AndroidIRCX:connectionQualityConfig',
+      '{bad-json',
+    );
+    const service = createService();
     const irc = createIrc();
     service.setIRCService(irc as any);
     await service.initialize();
@@ -194,7 +234,7 @@ describe('ConnectionQualityService', () => {
   });
 
   it('covers lagCheckMethod setting-change callback after successful initialize', async () => {
-    const service = new ConnectionQualityService();
+    const service = createService();
     const irc = createIrc();
     service.setIRCService(irc as any);
     const settingHandlers: Record<string, Function> = {};
@@ -203,7 +243,10 @@ describe('ConnectionQualityService', () => {
     });
 
     await service.initialize();
-    expect(mockOnSettingChange).toHaveBeenCalledWith('lagCheckMethod', expect.any(Function));
+    expect(mockOnSettingChange).toHaveBeenCalledWith(
+      'lagCheckMethod',
+      expect.any(Function),
+    );
     settingHandlers.lagCheckMethod?.('ctcp');
     (createIrc as any)._conn?.(true);
     expect(irc.sendCTCPRequest).toHaveBeenCalled();

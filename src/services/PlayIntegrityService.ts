@@ -16,14 +16,19 @@ export interface PlayIntegrityReport {
     nonce: string;
   };
   appIntegrity: {
-    appRecognitionVerdict: 'PLAY_RECOGNIZED' | 'UNRECOGNIZED_VERSION' | 'UNEVALUATED';
+    appRecognitionVerdict:
+      | 'PLAY_RECOGNIZED'
+      | 'UNRECOGNIZED_VERSION'
+      | 'UNEVALUATED';
     packageName: string;
     certificateSha256Digest: string[];
     versionCode: string;
   };
   deviceIntegrity: {
     deviceRecognitionVerdict: Array<
-      'MEETS_BASIC_INTEGRITY' | 'MEETS_DEVICE_INTEGRITY' | 'MEETS_STRONG_INTEGRITY'
+      | 'MEETS_BASIC_INTEGRITY'
+      | 'MEETS_DEVICE_INTEGRITY'
+      | 'MEETS_STRONG_INTEGRITY'
     >;
     recentDeviceActivity?: {
       deviceActivityLevel: 'LEVEL_1' | 'LEVEL_2' | 'LEVEL_3';
@@ -58,13 +63,13 @@ export interface PlayIntegrityToken {
 
 /**
  * Service for interacting with Google Play Integrity API
- * 
+ *
  * Note: To get a detailed integrity report like the one shown, you need to:
  * 1. Get an integrity token using requestIntegrityToken()
  * 2. Send the token to your backend server
  * 3. Your backend server verifies the token with Google Play Integrity API
  * 4. Google Play Integrity API returns the detailed report
- * 
+ *
  * The detailed report cannot be obtained directly on the client side for security reasons.
  */
 class PlayIntegrityService {
@@ -92,11 +97,13 @@ class PlayIntegrityService {
 
   /**
    * Request an integrity token from Play Integrity API
-   * 
+   *
    * @param nonce Optional nonce for request verification (base64 encoded)
    * @returns Integrity token that can be verified on backend
    */
-  public async requestIntegrityToken(nonce?: string): Promise<PlayIntegrityToken> {
+  public async requestIntegrityToken(
+    nonce?: string,
+  ): Promise<PlayIntegrityToken> {
     if (Platform.OS !== 'android') {
       return {
         token: '',
@@ -120,16 +127,18 @@ class PlayIntegrityService {
 
       // Call native module to get integrity token
       const { PlayIntegrityModule } = NativeModules;
-      
+
       if (!PlayIntegrityModule) {
         return {
           token: '',
-          error: 'Play Integrity native module not found. Make sure PlayIntegrityPackage is registered.',
+          error:
+            'Play Integrity native module not found. Make sure PlayIntegrityPackage is registered.',
         };
       }
 
       try {
-        const result = await PlayIntegrityModule.requestIntegrityToken(requestNonce);
+        const result =
+          await PlayIntegrityModule.requestIntegrityToken(requestNonce);
         // Native module returns { token: "..." } format
         const token = result?.token || '';
         if (!token) {
@@ -165,17 +174,17 @@ class PlayIntegrityService {
 
   /**
    * Verify integrity token on backend and get detailed report
-   * 
+   *
    * This method sends the token to your backend server, which then
    * verifies it with Google Play Integrity API and returns the detailed report.
-   * 
+   *
    * @param token Integrity token from requestIntegrityToken()
    * @param backendUrl Your backend endpoint that verifies the token
    * @returns Detailed integrity report
    */
   public async getIntegrityReport(
     token: string,
-    backendUrl: string
+    backendUrl: string,
   ): Promise<PlayIntegrityReport | null> {
     if (!token) {
       console.error('No integrity token provided');
@@ -208,7 +217,7 @@ class PlayIntegrityService {
   /**
    * Get a simplified integrity status (client-side only)
    * This uses Firebase App Check token if available
-   * 
+   *
    * Note: This is a simplified check. For detailed report with all verdicts,
    * use getIntegrityReport() with backend verification.
    */
@@ -224,10 +233,10 @@ class PlayIntegrityService {
     // For detailed report, use getIntegrityReport() with backend verification
     try {
       const appCheck = require('@react-native-firebase/app-check').default();
-      
+
       // Try to get App Check token
       const token = await appCheck.getToken();
-      
+
       // If we can get App Check token, it means Play Integrity is working
       // But we can't get detailed verdicts without backend verification
       return {

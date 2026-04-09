@@ -5,7 +5,10 @@
  * Tests for NotificationService - Wave 2 coverage target
  */
 
-import { notificationService, NotificationPreferences } from '../../src/services/NotificationService';
+import {
+  notificationService,
+  NotificationPreferences,
+} from '../../src/services/NotificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee from '@notifee/react-native';
 import { Platform } from 'react-native';
@@ -91,20 +94,26 @@ describe('NotificationService', () => {
     it('should check Android permission for API 33+', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
 
       const result = await notificationService.checkPermission();
 
       expect(PermissionsAndroid.check).toHaveBeenCalledWith(
-        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
       );
       expect(result).toBe(true);
     });
 
     it('should fallback to notifee if Android permission check fails', async () => {
       const { PermissionsAndroid } = require('react-native');
-      PermissionsAndroid.check.mockRejectedValue(new Error('Permission check failed'));
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      PermissionsAndroid.check.mockRejectedValue(
+        new Error('Permission check failed'),
+      );
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
 
       const result = await notificationService.checkPermission();
 
@@ -114,7 +123,9 @@ describe('NotificationService', () => {
     it('should return false if permission not granted', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(false);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 0 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 0,
+      });
 
       const result = await notificationService.checkPermission();
 
@@ -122,7 +133,9 @@ describe('NotificationService', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      notifee.getNotificationSettings.mockRejectedValue(new Error('Settings error'));
+      notifee.getNotificationSettings.mockRejectedValue(
+        new Error('Settings error'),
+      );
 
       const result = await notificationService.checkPermission();
 
@@ -132,7 +145,9 @@ describe('NotificationService', () => {
     it('should use notifee on iOS', async () => {
       const originalOS = Platform.OS;
       Object.defineProperty(Platform, 'OS', { value: 'ios' });
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
 
       const result = await notificationService.checkPermission();
 
@@ -144,12 +159,14 @@ describe('NotificationService', () => {
   describe('requestPermission', () => {
     it('should request Android permission for API 33+', async () => {
       const { PermissionsAndroid } = require('react-native');
-      PermissionsAndroid.request.mockResolvedValue(PermissionsAndroid.RESULTS.GRANTED);
+      PermissionsAndroid.request.mockResolvedValue(
+        PermissionsAndroid.RESULTS.GRANTED,
+      );
 
       const result = await notificationService.requestPermission();
 
       expect(PermissionsAndroid.request).toHaveBeenCalledWith(
-        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
       );
       expect(result).toBe(true);
     });
@@ -166,7 +183,9 @@ describe('NotificationService', () => {
 
     it('should return false if permission denied', async () => {
       const { PermissionsAndroid } = require('react-native');
-      PermissionsAndroid.request.mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+      PermissionsAndroid.request.mockResolvedValue(
+        PermissionsAndroid.RESULTS.DENIED,
+      );
       notifee.requestPermission.mockResolvedValue({ authorizationStatus: 0 });
 
       const result = await notificationService.requestPermission();
@@ -176,8 +195,12 @@ describe('NotificationService', () => {
 
     it('should return false if notifee fallback request fails', async () => {
       const { PermissionsAndroid } = require('react-native');
-      PermissionsAndroid.request.mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
-      notifee.requestPermission.mockRejectedValue(new Error('Notifee request failed'));
+      PermissionsAndroid.request.mockResolvedValue(
+        PermissionsAndroid.RESULTS.DENIED,
+      );
+      notifee.requestPermission.mockRejectedValue(
+        new Error('Notifee request failed'),
+      );
 
       const result = await notificationService.requestPermission();
 
@@ -200,7 +223,9 @@ describe('NotificationService', () => {
     it('should disable notifications if permission revoked', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(false);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 0 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 0,
+      });
 
       (notificationService as any).preferences.enabled = true;
       await notificationService.refreshPermissionStatus();
@@ -211,7 +236,9 @@ describe('NotificationService', () => {
     it('should not auto-enable if permission granted', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
 
       (notificationService as any).preferences.enabled = false;
       await notificationService.refreshPermissionStatus();
@@ -220,9 +247,13 @@ describe('NotificationService', () => {
     });
 
     it('should swallow refresh errors', async () => {
-      jest.spyOn(notificationService, 'checkPermission').mockRejectedValueOnce(new Error('refresh failed'));
+      jest
+        .spyOn(notificationService, 'checkPermission')
+        .mockRejectedValueOnce(new Error('refresh failed'));
 
-      await expect(notificationService.refreshPermissionStatus()).resolves.toBeUndefined();
+      await expect(
+        notificationService.refreshPermissionStatus(),
+      ).resolves.toBeUndefined();
     });
   });
 
@@ -233,7 +264,10 @@ describe('NotificationService', () => {
         notifyOnMentions: false,
         channelPreferences: { '#general': { notifyOnAllMessages: true } },
       };
-      await AsyncStorage.setItem('@AndroidIRCX:notificationPreferences', JSON.stringify(storedPrefs));
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:notificationPreferences',
+        JSON.stringify(storedPrefs),
+      );
 
       await notificationService.initialize();
 
@@ -246,29 +280,31 @@ describe('NotificationService', () => {
 
       expect(notifee.createChannel).toHaveBeenCalledTimes(6);
       expect(notifee.createChannel).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'private-messages', importance: 4 })
+        expect.objectContaining({ id: 'private-messages', importance: 4 }),
       );
       expect(notifee.createChannel).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'channel-messages', importance: 3 })
+        expect.objectContaining({ id: 'channel-messages', importance: 3 }),
       );
       expect(notifee.createChannel).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'notices' })
+        expect.objectContaining({ id: 'notices' }),
       );
       expect(notifee.createChannel).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'server' })
+        expect.objectContaining({ id: 'server' }),
       );
       expect(notifee.createChannel).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'dcc-transfers', importance: 4 })
+        expect.objectContaining({ id: 'dcc-transfers', importance: 4 }),
       );
       expect(notifee.createChannel).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'calls', importance: 4 })
+        expect.objectContaining({ id: 'calls', importance: 4 }),
       );
     });
 
     it('should disable notifications if no permission', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(false);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 0 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 0,
+      });
 
       (notificationService as any).preferences.enabled = true;
       await notificationService.initialize();
@@ -280,13 +316,15 @@ describe('NotificationService', () => {
       const { PermissionsAndroid } = require('react-native');
       const logSpy = jest.spyOn(console, 'log').mockImplementation();
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
       (notificationService as any).preferences.enabled = false;
 
       await notificationService.initialize();
 
       expect(logSpy).toHaveBeenCalledWith(
-        'NotificationService: Permission granted, notifications can be enabled by user.'
+        'NotificationService: Permission granted, notifications can be enabled by user.',
       );
       logSpy.mockRestore();
     });
@@ -299,7 +337,7 @@ describe('NotificationService', () => {
 
       expect(errorSpy).toHaveBeenCalledWith(
         'NotificationService: Error initializing notifications:',
-        expect.any(Error)
+        expect.any(Error),
       );
       errorSpy.mockRestore();
     });
@@ -314,16 +352,22 @@ describe('NotificationService', () => {
 
       await notificationService.initialize();
 
-      handler?.({ type: EventType.DISMISSED, detail: { notification: { id: 'dismissed' } } });
-      handler?.({ type: EventType.PRESS, detail: { notification: { id: 'pressed' } } });
+      handler?.({
+        type: EventType.DISMISSED,
+        detail: { notification: { id: 'dismissed' } },
+      });
+      handler?.({
+        type: EventType.PRESS,
+        detail: { notification: { id: 'pressed' } },
+      });
 
       expect(logSpy).toHaveBeenCalledWith(
         'NotificationService: User dismissed notification',
-        { id: 'dismissed' }
+        { id: 'dismissed' },
       );
       expect(logSpy).toHaveBeenCalledWith(
         'NotificationService: User pressed notification',
-        { id: 'pressed' }
+        { id: 'pressed' },
       );
       logSpy.mockRestore();
     });
@@ -337,13 +381,18 @@ describe('NotificationService', () => {
         notifyOnPrivateMessages: true,
         notifyOnAllMessages: false,
         doNotDisturb: false,
-        channelPreferences: new Map([['#general', { enabled: true, notifyOnAllMessages: true } as any]]),
+        channelPreferences: new Map([
+          ['#general', { enabled: true, notifyOnAllMessages: true } as any],
+        ]),
         networkPreferences: new Map(),
       };
-      await AsyncStorage.setItem('@AndroidIRCX:notificationPreferences', JSON.stringify({
-        ...prefs,
-        channelPreferences: Object.fromEntries(prefs.channelPreferences),
-      }));
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:notificationPreferences',
+        JSON.stringify({
+          ...prefs,
+          channelPreferences: Object.fromEntries(prefs.channelPreferences),
+        }),
+      );
 
       await (notificationService as any).loadPreferences();
 
@@ -354,32 +403,43 @@ describe('NotificationService', () => {
     it('should save preferences to storage', async () => {
       await notificationService.updatePreferences({ enabled: false });
 
-      const stored = await AsyncStorage.getItem('@AndroidIRCX:notificationPreferences');
+      const stored = await AsyncStorage.getItem(
+        '@AndroidIRCX:notificationPreferences',
+      );
       expect(stored).toContain('"enabled":false');
     });
 
     it('should handle malformed stored preferences', async () => {
       const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-      await AsyncStorage.setItem('@AndroidIRCX:notificationPreferences', '{broken');
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:notificationPreferences',
+        '{broken',
+      );
 
-      await expect((notificationService as any).loadPreferences()).resolves.toBeUndefined();
+      await expect(
+        (notificationService as any).loadPreferences(),
+      ).resolves.toBeUndefined();
 
       expect(errorSpy).toHaveBeenCalledWith(
         'NotificationService: Error loading preferences:',
-        expect.any(Error)
+        expect.any(Error),
       );
       errorSpy.mockRestore();
     });
 
     it('should swallow save preference errors', async () => {
       const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-      jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('save failed'));
+      jest
+        .spyOn(AsyncStorage, 'setItem')
+        .mockRejectedValueOnce(new Error('save failed'));
 
-      await expect((notificationService as any).savePreferences()).resolves.toBeUndefined();
+      await expect(
+        (notificationService as any).savePreferences(),
+      ).resolves.toBeUndefined();
 
       expect(errorSpy).toHaveBeenCalledWith(
         'NotificationService: Error saving preferences:',
-        expect.any(Error)
+        expect.any(Error),
       );
       errorSpy.mockRestore();
     });
@@ -389,7 +449,9 @@ describe('NotificationService', () => {
     it('should update global preferences', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
 
       await notificationService.updatePreferences({ notifyOnMentions: false });
 
@@ -399,19 +461,25 @@ describe('NotificationService', () => {
     it('should verify permission before enabling notifications', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(false);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 0 });
-      
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 0,
+      });
+
       // Reset to disabled first
       (notificationService as any).preferences.enabled = false;
 
       // Should throw when trying to enable without permission
-      await expect(notificationService.updatePreferences({ enabled: true })).rejects.toThrow();
+      await expect(
+        notificationService.updatePreferences({ enabled: true }),
+      ).rejects.toThrow();
     });
 
     it('should save preferences after update', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
 
       const setItemSpy = jest.spyOn(AsyncStorage, 'setItem');
       await notificationService.updatePreferences({ notifyOnMentions: false });
@@ -423,14 +491,16 @@ describe('NotificationService', () => {
       const { PermissionsAndroid } = require('react-native');
       const logSpy = jest.spyOn(console, 'log').mockImplementation();
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
       (notificationService as any).preferences.enabled = false;
 
       await notificationService.updatePreferences({ enabled: true });
 
       expect(notificationService.getPreferences().enabled).toBe(true);
       expect(logSpy).toHaveBeenCalledWith(
-        'NotificationService: Permission verified, enabling notifications'
+        'NotificationService: Permission verified, enabling notifications',
       );
       logSpy.mockRestore();
     });
@@ -443,8 +513,10 @@ describe('NotificationService', () => {
     });
 
     it('should merge channel preferences with global', async () => {
-      await notificationService.updateChannelPreferences('#general', { notifyOnAllMessages: true });
-      
+      await notificationService.updateChannelPreferences('#general', {
+        notifyOnAllMessages: true,
+      });
+
       const prefs = notificationService.getChannelPreferences('#general');
       expect(prefs.notifyOnAllMessages).toBe(true);
       expect(prefs.notifyOnMentions).toBe(true); // From global
@@ -452,17 +524,21 @@ describe('NotificationService', () => {
 
     it('should save after updating channel preferences', async () => {
       const setItemSpy = jest.spyOn(AsyncStorage, 'setItem');
-      await notificationService.updateChannelPreferences('#general', { notifyOnAllMessages: true });
-      
+      await notificationService.updateChannelPreferences('#general', {
+        notifyOnAllMessages: true,
+      });
+
       expect(setItemSpy).toHaveBeenCalled();
     });
   });
 
   describe('removeChannelPreferences', () => {
     it('should remove channel preferences', async () => {
-      await notificationService.updateChannelPreferences('#general', { notifyOnAllMessages: true });
+      await notificationService.updateChannelPreferences('#general', {
+        notifyOnAllMessages: true,
+      });
       await notificationService.removeChannelPreferences('#general');
-      
+
       const prefs = notificationService.getChannelPreferences('#general');
       expect(prefs.notifyOnAllMessages).toBe(false); // Back to global default
     });
@@ -470,9 +546,13 @@ describe('NotificationService', () => {
 
   describe('listChannelPreferences', () => {
     it('should list all channel preferences', async () => {
-      await notificationService.updateChannelPreferences('#general', { notifyOnAllMessages: true });
-      await notificationService.updateChannelPreferences('#help', { notifyOnMentions: false });
-      
+      await notificationService.updateChannelPreferences('#general', {
+        notifyOnAllMessages: true,
+      });
+      await notificationService.updateChannelPreferences('#help', {
+        notifyOnMentions: false,
+      });
+
       const list = notificationService.listChannelPreferences();
       expect(list).toHaveLength(2);
     });
@@ -485,8 +565,10 @@ describe('NotificationService', () => {
     });
 
     it('should merge network preferences with global', async () => {
-      await notificationService.updateNetworkPreferences('freenode', { doNotDisturb: true });
-      
+      await notificationService.updateNetworkPreferences('freenode', {
+        doNotDisturb: true,
+      });
+
       const prefs = notificationService.getNetworkPreferences('freenode');
       expect(prefs.doNotDisturb).toBe(true);
     });
@@ -496,22 +578,37 @@ describe('NotificationService', () => {
     it('should show notification with permission', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
 
-      await notificationService.showNotification('Test Title', 'Test Body', '#general', 'freenode');
+      await notificationService.showNotification(
+        'Test Title',
+        'Test Body',
+        '#general',
+        'freenode',
+      );
 
-      expect(notifee.displayNotification).toHaveBeenCalledWith(expect.objectContaining({
-        title: 'Test Title',
-        body: 'Test Body',
-      }));
+      expect(notifee.displayNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Test Title',
+          body: 'Test Body',
+        }),
+      );
     });
 
     it('should not show notification without permission', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(false);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 0 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 0,
+      });
 
-      await notificationService.showNotification('Test Title', 'Test Body', '#general');
+      await notificationService.showNotification(
+        'Test Title',
+        'Test Body',
+        '#general',
+      );
 
       expect(notifee.displayNotification).not.toHaveBeenCalled();
     });
@@ -521,16 +618,26 @@ describe('NotificationService', () => {
       const errorSpy = jest.spyOn(console, 'error').mockImplementation();
       const logSpy = jest.spyOn(console, 'log').mockImplementation();
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
-      notifee.displayNotification.mockRejectedValueOnce(new Error('display failed'));
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
+      notifee.displayNotification.mockRejectedValueOnce(
+        new Error('display failed'),
+      );
 
-      await notificationService.showNotification('Test Title', 'Test Body', '#general');
+      await notificationService.showNotification(
+        'Test Title',
+        'Test Body',
+        '#general',
+      );
 
       expect(errorSpy).toHaveBeenCalledWith(
         'NotificationService: Error showing notification:',
-        expect.any(Error)
+        expect.any(Error),
       );
-      expect(logSpy).toHaveBeenCalledWith('[Notification] Test Title: Test Body');
+      expect(logSpy).toHaveBeenCalledWith(
+        '[Notification] Test Title: Test Body',
+      );
       errorSpy.mockRestore();
       logSpy.mockRestore();
     });
@@ -540,46 +647,58 @@ describe('NotificationService', () => {
     it('should show private message notification', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
 
       await notificationService.showMessageNotification(
         { from: 'User1', text: 'Hello!', channel: 'User1' },
-        'TestNick'
+        'TestNick',
       );
 
-      expect(notifee.displayNotification).toHaveBeenCalledWith(expect.objectContaining({
-        title: expect.stringContaining('User1'),
-      }));
+      expect(notifee.displayNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: expect.stringContaining('User1'),
+        }),
+      );
     });
 
     it('should show channel message notification', async () => {
       const { PermissionsAndroid } = require('react-native');
       PermissionsAndroid.check.mockResolvedValue(true);
-      notifee.getNotificationSettings.mockResolvedValue({ authorizationStatus: 1 });
+      notifee.getNotificationSettings.mockResolvedValue({
+        authorizationStatus: 1,
+      });
 
       await notificationService.showMessageNotification(
         { from: 'User1', text: 'Hello everyone!', channel: '#general' },
-        'TestNick'
+        'TestNick',
       );
 
-      expect(notifee.displayNotification).toHaveBeenCalledWith(expect.objectContaining({
-        title: '#general',
-      }));
+      expect(notifee.displayNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: '#general',
+        }),
+      );
     });
   });
 
   describe('cancelNotification', () => {
     it('should cancel notification by id', () => {
       notificationService.cancelNotification('notification-123');
-      expect(notifee.cancelNotification).toHaveBeenCalledWith('notification-123');
+      expect(notifee.cancelNotification).toHaveBeenCalledWith(
+        'notification-123',
+      );
     });
 
     it('should handle errors gracefully', () => {
       notifee.cancelNotification.mockImplementation(() => {
         throw new Error('Cancel error');
       });
-      
-      expect(() => notificationService.cancelNotification('notification-123')).not.toThrow();
+
+      expect(() =>
+        notificationService.cancelNotification('notification-123'),
+      ).not.toThrow();
     });
   });
 
@@ -598,7 +717,7 @@ describe('NotificationService', () => {
       expect(() => notificationService.cancelAllNotifications()).not.toThrow();
       expect(errorSpy).toHaveBeenCalledWith(
         'NotificationService: Error cancelling all notifications:',
-        expect.any(Error)
+        expect.any(Error),
       );
       errorSpy.mockRestore();
     });
@@ -619,7 +738,7 @@ describe('NotificationService', () => {
       expect(() => notificationService.setBadgeCount(5)).not.toThrow();
       expect(errorSpy).toHaveBeenCalledWith(
         'NotificationService: Error setting badge count:',
-        expect.any(Error)
+        expect.any(Error),
       );
       errorSpy.mockRestore();
     });
@@ -640,7 +759,7 @@ describe('NotificationService', () => {
       expect(() => notificationService.removeAllBadges()).not.toThrow();
       expect(errorSpy).toHaveBeenCalledWith(
         'NotificationService: Error removing badges:',
-        expect.any(Error)
+        expect.any(Error),
       );
       errorSpy.mockRestore();
     });
@@ -649,93 +768,97 @@ describe('NotificationService', () => {
   describe('shouldNotify', () => {
     it('should return false if notifications disabled', () => {
       (notificationService as any).preferences.enabled = false;
-      
+
       const result = notificationService.shouldNotify(
         { text: 'Hello', channel: '#general', type: 'message' },
-        'TestNick'
+        'TestNick',
       );
-      
+
       expect(result).toBe(false);
     });
 
     it('should return false if do not disturb', () => {
       (notificationService as any).preferences.doNotDisturb = true;
-      
+
       const result = notificationService.shouldNotify(
         { text: 'Hello', channel: '#general', type: 'message' },
-        'TestNick'
+        'TestNick',
       );
-      
+
       expect(result).toBe(false);
     });
 
     it('should return false for raw messages', () => {
       const result = notificationService.shouldNotify(
         { text: 'Server message', channel: '#general', type: 'raw' },
-        'TestNick'
+        'TestNick',
       );
-      
+
       expect(result).toBe(false);
     });
 
     it('should return true for private messages when enabled', () => {
       const result = notificationService.shouldNotify(
         { text: 'Hello!', channel: 'User1', type: 'message' },
-        'TestNick'
+        'TestNick',
       );
-      
+
       expect(result).toBe(true);
     });
 
     it('should return true for mentions when enabled', () => {
       const result = notificationService.shouldNotify(
         { text: 'Hello TestNick!', channel: '#general', type: 'message' },
-        'TestNick'
+        'TestNick',
       );
-      
+
       expect(result).toBe(true);
     });
 
     it('should return false for non-mentions when only mentions enabled', () => {
       const result = notificationService.shouldNotify(
         { text: 'Hello everyone!', channel: '#general', type: 'message' },
-        'TestNick'
+        'TestNick',
       );
-      
+
       expect(result).toBe(false);
     });
 
     it('should return true for all messages when notifyOnAllMessages enabled', () => {
       (notificationService as any).preferences.notifyOnAllMessages = true;
-      
+
       const result = notificationService.shouldNotify(
         { text: 'Hello everyone!', channel: '#general', type: 'message' },
-        'TestNick'
+        'TestNick',
       );
-      
+
       expect(result).toBe(true);
     });
 
     it('should check channel preferences', async () => {
-      await notificationService.updateChannelPreferences('#general', { notifyOnAllMessages: true });
-      
+      await notificationService.updateChannelPreferences('#general', {
+        notifyOnAllMessages: true,
+      });
+
       const result = notificationService.shouldNotify(
         { text: 'Hello!', channel: '#general', type: 'message' },
-        'TestNick'
+        'TestNick',
       );
-      
+
       expect(result).toBe(true);
     });
 
     it('should check network preferences', async () => {
-      await notificationService.updateNetworkPreferences('freenode', { doNotDisturb: true });
-      
+      await notificationService.updateNetworkPreferences('freenode', {
+        doNotDisturb: true,
+      });
+
       const result = notificationService.shouldNotify(
         { text: 'Hello!', channel: '#general', type: 'message', from: 'User' },
         'TestNick',
-        'freenode'
+        'freenode',
       );
-      
+
       expect(result).toBe(false);
     });
 
@@ -744,9 +867,9 @@ describe('NotificationService', () => {
       // Testing with brackets that have word chars inside
       const result = notificationService.shouldNotify(
         { text: 'Hello [TestNick]!', channel: '#general', type: 'message' },
-        'TestNick'
+        'TestNick',
       );
-      
+
       expect(result).toBe(true);
     });
 
@@ -760,9 +883,9 @@ describe('NotificationService', () => {
 
       const result = notificationService.shouldNotify(
         { text: 'Hello TestNick!', channel: '#general', type: 'message' },
-        nick
+        nick,
       );
-      
+
       expect(result).toBe(true);
     });
 
@@ -772,7 +895,7 @@ describe('NotificationService', () => {
 
       const result = notificationService.shouldNotify(
         { text: 'Hello TestNick!', channel: '#general', type: 'message' },
-        'TestNick'
+        'TestNick',
       );
 
       expect(result).toBe(false);

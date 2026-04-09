@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * CameraScreen - Full-screen camera for taking photos
- * 
+ *
  * Uses react-native-vision-camera to capture photos
  */
 
@@ -17,7 +17,11 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+} from 'react-native-vision-camera';
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
@@ -68,7 +72,7 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
       if (!photoPath.startsWith('file://')) {
         photoPath = `file://${photoPath}`;
       }
-      
+
       // Read the photo file and write to cache
       // Remove file:// prefix for RNFS operations
       const normalizedPhotoPath = photoPath.replace('file://', '');
@@ -76,7 +80,8 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
       await RNFS.writeFile(filePath, photoData, 'base64');
 
       // Return file URI with file:// prefix
-      const fileUri = Platform.OS === 'android' ? `file://${filePath}` : filePath;
+      const fileUri =
+        Platform.OS === 'android' ? `file://${filePath}` : filePath;
 
       console.log('[CameraScreen] Photo saved:', fileUri);
 
@@ -109,23 +114,36 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
         transparent={true}
         animationType="slide"
         onRequestClose={onClose}
-        statusBarTranslucent={false}>
+        statusBarTranslucent={false}
+      >
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           <View style={styles.permissionContainer}>
             <Text style={[styles.permissionTitle, { color: colors.text }]}>
               {t('Camera Permission Required')}
             </Text>
-            <Text style={[styles.permissionMessage, { color: colors.textSecondary }]}>
+            <Text
+              style={[
+                styles.permissionMessage,
+                { color: colors.textSecondary },
+              ]}
+            >
               {t('This app needs access to your camera to take photos.')}
             </Text>
             <TouchableOpacity
-              style={[styles.permissionButton, { backgroundColor: colors.accent }]}
-              onPress={handleRequestPermission}>
-              <Text style={styles.permissionButtonText}>{t('Grant Permission')}</Text>
+              style={[
+                styles.permissionButton,
+                { backgroundColor: colors.accent },
+              ]}
+              onPress={handleRequestPermission}
+            >
+              <Text style={styles.permissionButtonText}>
+                {t('Grant Permission')}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.cancelButton, { borderColor: colors.border }]}
-              onPress={onClose}>
+              onPress={onClose}
+            >
               <Text style={[styles.cancelButtonText, { color: colors.text }]}>
                 {t('Cancel')}
               </Text>
@@ -143,7 +161,8 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
         transparent={true}
         animationType="slide"
         onRequestClose={onClose}
-        statusBarTranslucent={false}>
+        statusBarTranslucent={false}
+      >
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           <View style={styles.errorContainer}>
             <Text style={[styles.errorText, { color: colors.error }]}>
@@ -151,7 +170,8 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
             </Text>
             <TouchableOpacity
               style={[styles.cancelButton, { borderColor: colors.border }]}
-              onPress={onClose}>
+              onPress={onClose}
+            >
               <Text style={[styles.cancelButtonText, { color: colors.text }]}>
                 {t('Close')}
               </Text>
@@ -168,7 +188,8 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
       transparent={false}
       animationType="slide"
       onRequestClose={onClose}
-      statusBarTranslucent={false}>
+      statusBarTranslucent={false}
+    >
       <View style={styles.container}>
         <Camera
           ref={cameraRef}
@@ -185,15 +206,23 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
             <TouchableOpacity
               style={styles.closeButton}
               onPress={onClose}
-              disabled={isCapturing}>
+              disabled={isCapturing}
+            >
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </View>
 
           {/* Error message */}
           {error && (
-            <View style={[styles.errorBanner, { backgroundColor: colors.error + '20' }]}>
-              <Text style={[styles.errorBannerText, { color: colors.error }]}>{error}</Text>
+            <View
+              style={[
+                styles.errorBanner,
+                { backgroundColor: colors.error + '20' },
+              ]}
+            >
+              <Text style={[styles.errorBannerText, { color: colors.error }]}>
+                {error}
+              </Text>
             </View>
           )}
 
@@ -208,7 +237,8 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
                   isCapturing && styles.captureButtonDisabled,
                 ]}
                 onPress={handleTakePhoto}
-                disabled={isCapturing}>
+                disabled={isCapturing}
+              >
                 {isCapturing ? (
                   <ActivityIndicator size="small" color={colors.onAccent} />
                 ) : (
@@ -223,117 +253,118 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'space-between',
-  },
-  topBar: {
-    paddingTop: Platform.OS === 'android' ? 40 : 50,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.modalOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    color: colors.onPrimary,
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  errorBanner: {
-    padding: 12,
-    marginHorizontal: 20,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  errorBannerText: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  bottomBar: {
-    paddingBottom: Platform.OS === 'android' ? 30 : 40,
-    paddingHorizontal: 20,
-  },
-  controlsContainer: {
-    alignItems: 'center',
-  },
-  captureButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: colors.onAccent,
-  },
-  captureButtonDisabled: {
-    opacity: 0.6,
-  },
-  captureButtonInner: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: colors.onAccent,
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  permissionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  permissionMessage: {
-    fontSize: 14,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  permissionButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  permissionButtonText: {
-    color: colors.onAccent,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  cancelButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: 'space-between',
+    },
+    topBar: {
+      paddingTop: Platform.OS === 'android' ? 40 : 50,
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+    },
+    closeButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.modalOverlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    closeButtonText: {
+      color: colors.onPrimary,
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    errorBanner: {
+      padding: 12,
+      marginHorizontal: 20,
+      borderRadius: 8,
+      marginTop: 20,
+    },
+    errorBannerText: {
+      fontSize: 14,
+      textAlign: 'center',
+    },
+    bottomBar: {
+      paddingBottom: Platform.OS === 'android' ? 30 : 40,
+      paddingHorizontal: 20,
+    },
+    controlsContainer: {
+      alignItems: 'center',
+    },
+    captureButton: {
+      width: 70,
+      height: 70,
+      borderRadius: 35,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 4,
+      borderColor: colors.onAccent,
+    },
+    captureButtonDisabled: {
+      opacity: 0.6,
+    },
+    captureButtonInner: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: colors.onAccent,
+    },
+    permissionContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    permissionTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+    permissionMessage: {
+      fontSize: 14,
+      marginBottom: 24,
+      textAlign: 'center',
+    },
+    permissionButton: {
+      paddingVertical: 14,
+      paddingHorizontal: 32,
+      borderRadius: 8,
+      marginBottom: 12,
+    },
+    permissionButtonText: {
+      color: colors.onAccent,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    cancelButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      borderWidth: 1,
+    },
+    cancelButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    errorText: {
+      fontSize: 16,
+      marginBottom: 24,
+      textAlign: 'center',
+    },
+  });

@@ -8,8 +8,6 @@ import { Alert, Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { PrivacyAdsScreen } from '../../src/screens/PrivacyAdsScreen';
 
-jest.useFakeTimers();
-
 jest.mock('../../src/hooks/useTheme', () => ({
   useTheme: () => ({
     theme: 'light',
@@ -35,8 +33,9 @@ jest.mock('../../src/i18n/transifex', () => ({
       return key;
     }
     return Object.entries(params).reduce(
-      (result, [paramKey, value]) => result.replace(`{${paramKey}}`, String(value)),
-      key
+      (result, [paramKey, value]) =>
+        result.replace(`{${paramKey}}`, String(value)),
+      key,
     );
   },
 }));
@@ -98,11 +97,14 @@ jest.mock('../../src/services/SettingsService', () => ({
 
 const { consentService } = require('../../src/services/ConsentService');
 const { adRewardService } = require('../../src/services/AdRewardService');
-const { inAppPurchaseService } = require('../../src/services/InAppPurchaseService');
+const {
+  inAppPurchaseService,
+} = require('../../src/services/InAppPurchaseService');
 const { settingsService } = require('../../src/services/SettingsService');
 
 describe('PrivacyAdsScreen', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     jest.spyOn(Linking, 'openURL').mockResolvedValue(true as never);
@@ -118,7 +120,9 @@ describe('PrivacyAdsScreen', () => {
     consentService.showConsentForm.mockResolvedValue(undefined);
     consentService.resetConsent.mockResolvedValue(undefined);
     consentService.acceptConsentManually.mockResolvedValue(undefined);
-    consentService.getPrivacyPolicyUrl.mockReturnValue('https://androidircx.com/privacy');
+    consentService.getPrivacyPolicyUrl.mockReturnValue(
+      'https://androidircx.com/privacy',
+    );
     consentService.getConsentStatusText.mockReturnValue('Consent Granted');
     consentService.isManuallyAccepted.mockReturnValue(false);
 
@@ -149,31 +153,43 @@ describe('PrivacyAdsScreen', () => {
     act(() => {
       jest.runOnlyPendingTimers();
     });
+    jest.useRealTimers();
   });
 
   it('renders nothing when hidden', () => {
-    const { queryByText } = render(<PrivacyAdsScreen visible={false} onClose={jest.fn()} />);
+    const { queryByText } = render(
+      <PrivacyAdsScreen visible={false} onClose={jest.fn()} />,
+    );
 
     expect(queryByText('Privacy & Ads')).toBeNull();
   });
 
   it('renders current status and watch ad action', async () => {
-    const { findByText } = render(<PrivacyAdsScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <PrivacyAdsScreen visible onClose={jest.fn()} />,
+    );
 
     expect(await findByText('Privacy & Ads')).toBeTruthy();
     expect(await findByText('Consent Granted')).toBeTruthy();
-    expect(await findByText('Watch Ad (+60 min Scripting & No-Ads)')).toBeTruthy();
+    expect(
+      await findByText('Watch Ad (+60 min Scripting & No-Ads)'),
+    ).toBeTruthy();
   });
 
   it('shows rewarded ad success flow', async () => {
-    const { findByText } = render(<PrivacyAdsScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <PrivacyAdsScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Watch Ad (+60 min Scripting & No-Ads)'));
 
     await waitFor(() => {
       expect(adRewardService.showRewardedAd).toHaveBeenCalledTimes(1);
     });
-    expect(Alert.alert).toHaveBeenCalledWith('Thank You!', 'You earned scripting time!');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Thank You!',
+      'You earned scripting time!',
+    );
   });
 
   it('falls back to manual ad load when ad is not ready', async () => {
@@ -185,7 +201,9 @@ describe('PrivacyAdsScreen', () => {
       adUnitType: 'Fallback',
     });
 
-    const { findByText } = render(<PrivacyAdsScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <PrivacyAdsScreen visible onClose={jest.fn()} />,
+    );
     fireEvent.press(await findByText('Request Ad'));
 
     await waitFor(() => {
@@ -196,7 +214,9 @@ describe('PrivacyAdsScreen', () => {
   });
 
   it('reviews consent successfully', async () => {
-    const { findByText } = render(<PrivacyAdsScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <PrivacyAdsScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Change Privacy Settings'));
 
@@ -205,15 +225,19 @@ describe('PrivacyAdsScreen', () => {
     });
     expect(Alert.alert).toHaveBeenCalledWith(
       'Privacy Settings Updated',
-      'Your privacy preferences have been saved.'
+      'Your privacy preferences have been saved.',
     );
   });
 
   it('opens reset flow for manual consent mode and accepts again', async () => {
-    consentService.showConsentForm.mockRejectedValueOnce(new Error('MANUAL_CONSENT_ONLY'));
+    consentService.showConsentForm.mockRejectedValueOnce(
+      new Error('MANUAL_CONSENT_ONLY'),
+    );
     consentService.isManuallyAccepted.mockReturnValue(true);
 
-    const { findByText } = render(<PrivacyAdsScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <PrivacyAdsScreen visible onClose={jest.fn()} />,
+    );
     fireEvent.press(await findByText('Change Privacy Settings'));
 
     await waitFor(() => {
@@ -221,7 +245,7 @@ describe('PrivacyAdsScreen', () => {
     });
 
     const changeDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Change Privacy Settings'
+      call => call[0] === 'Change Privacy Settings',
     );
     expect(changeDialog).toBeTruthy();
 
@@ -230,7 +254,7 @@ describe('PrivacyAdsScreen', () => {
     });
 
     const resetDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Reset Privacy Settings'
+      call => call[0] === 'Reset Privacy Settings',
     );
     expect(resetDialog).toBeTruthy();
 
@@ -239,7 +263,7 @@ describe('PrivacyAdsScreen', () => {
     });
 
     const agreementDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Privacy Agreement'
+      call => call[0] === 'Privacy Agreement',
     );
     expect(agreementDialog).toBeTruthy();
 
@@ -252,18 +276,22 @@ describe('PrivacyAdsScreen', () => {
       expect(consentService.acceptConsentManually).toHaveBeenCalledTimes(1);
       expect(Alert.alert).toHaveBeenCalledWith(
         'Success',
-        'Privacy terms accepted. Your settings have been updated.'
+        'Privacy terms accepted. Your settings have been updated.',
       );
     });
   });
 
   it('opens privacy policy and handles close button', async () => {
     const onClose = jest.fn();
-    const { findByText, findAllByText } = render(<PrivacyAdsScreen visible onClose={onClose} />);
+    const { findByText, findAllByText } = render(
+      <PrivacyAdsScreen visible onClose={onClose} />,
+    );
 
     fireEvent.press(await findByText('Read Privacy Policy'));
     await waitFor(() => {
-      expect(Linking.openURL).toHaveBeenCalledWith('https://androidircx.com/privacy');
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://androidircx.com/privacy',
+      );
     });
 
     fireEvent.press((await findAllByText('Close'))[0]);

@@ -19,9 +19,8 @@
 
 **The open-source IRC client and framework for the mobile era.**
 
-mIRC taught a generation how to script. [IRCap](http://ircap.net) by Carlos Esteve Cremades (since
-1997) showed what a truly complete IRC experience could look like. AndroidIRCX carries that spirit
-      forward - open source, built on React Native, and designed so you can learn, hack, extend, and
+mIRC taught a generation how to script. [IRCap](http://ircap.net) by Carlos Esteve Cremades (since 1997) showed what a truly complete IRC experience could look like. AndroidIRCX carries that spirit
+forward - open source, built on React Native, and designed so you can learn, hack, extend, and
 build your own IRC experience from real production code.
 
 ### 📲 Download
@@ -32,10 +31,10 @@ build your own IRC experience from real production code.
   </a>
 </p>
 
-|                                                                                               Google Play                                                                                                |  |                                                                                  Direct APK Download                                                                                  |
-|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| <img src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&qzone=4&ecc=M&data=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.androidircx" width="220" alt="Google Play QR" /> |  | <img src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&qzone=4&ecc=M&data=https%3A%2F%2Fandroidircx.com%2Fuploads%2Fapp-release.apk" width="220" alt="APK Download QR" /> |
-|                                                            [Google Play Store](https://play.google.com/store/apps/details?id=com.androidircx)                                                            |  |                                                             [Direct APK](https://androidircx.com/uploads/app-release.apk)                                                             |
+|                                                                                               Google Play                                                                                                |     |                                                                                  Direct APK Download                                                                                  |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&qzone=4&ecc=M&data=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.androidircx" width="220" alt="Google Play QR" /> |     | <img src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&qzone=4&ecc=M&data=https%3A%2F%2Fandroidircx.com%2Fuploads%2Fapp-release.apk" width="220" alt="APK Download QR" /> |
+|                                                            [Google Play Store](https://play.google.com/store/apps/details?id=com.androidircx)                                                            |     |                                                             [Direct APK](https://androidircx.com/uploads/app-release.apk)                                                             |
 
 ### 🔒 Verified Builds
 
@@ -59,7 +58,7 @@ sha256sum -c app-release.apk.sha256
 ### 📱 System Requirements
 
 | **_Requirements_** | **_Android version_** |
-|--------------------|-----------------------|
+| ------------------ | --------------------- |
 | **Minimum**        | Android 7.0+ (API 24) |
 | **Recommended**    | Android 11+ (API 30)  |
 | **Target**         | Android 15 (API 36)   |
@@ -74,8 +73,8 @@ moderation panels. People learned scripting, built addons, automated bots, and m
 
 **AndroidIRCX is built for that same crowd, but open source and for today's platforms.**
 
-This is a full-featured, production IRC client - but it's also a **learning platform** and a *
-*framework** you can study, fork, and build on top of:
+This is a full-featured, production IRC client - but it's also a **learning platform** and a \*
+\*framework\*\* you can study, fork, and build on top of:
 
 - **Learn TCP sockets** -- see how raw IRC protocol works over `react-native-tcp-socket`, TLS
   handshakes, proxy tunneling, SOCKS5/Tor
@@ -95,6 +94,20 @@ Everything is TypeScript. Everything is documented. Everything is yours to read,
 
 **This isn't a toy project.** It's a real app on Google Play with real users - and the entire
 codebase is GPL-3.0, because the best way to learn is from code that actually works in production.
+
+## Quality Standards
+
+AndroidIRCX uses a mandatory CI quality gate for code style, linting, type-safety, and tests.
+
+Required project checks:
+
+- Prettier format verification
+- ESLint with zero warnings allowed
+- TypeScript `tsc --noEmit`
+- Jest CI test suite
+
+If you want to contribute, see [CONTRIBUTING.md](CONTRIBUTING.md). Pull requests are expected to be
+small enough to review safely and to include local verification evidence.
 
 ---
 
@@ -184,7 +197,7 @@ reply, react, channel-context, rename
 ## 🛠️ Tech Stack
 
 |                   |                                                   |
-|-------------------|---------------------------------------------------|
+| ----------------- | ------------------------------------------------- |
 | **Framework**     | React Native 0.84.1, React 19.2.3                 |
 | **Language**      | TypeScript 5.9.3                                  |
 | **State**         | Zustand 5.0.11                                    |
@@ -496,7 +509,7 @@ yarn test             # Must pass all tests
 ## 📝 IRC Protocol Compliance
 
 | Standard | Coverage                                       |
-|----------|------------------------------------------------|
+| -------- | ---------------------------------------------- |
 | RFC 1459 | Full compliance                                |
 | RFC 2812 | Extended numeric support (390+ handlers)       |
 | IRCv3    | 27 capabilities requested, full implementation |
@@ -598,5 +611,4 @@ Those who recognize the work will understand. Time will explain the rest.
 
 ---
 
-*mIRC and IRCap set the standard. AndroidIRCX is the open-source platform that carries it forward.*
-
+_mIRC and IRCap set the standard. AndroidIRCX is the open-source platform that carries it forward._

@@ -47,7 +47,10 @@ export class ChannelListService {
 
   private async saveCache() {
     try {
-      await AsyncStorage.setItem('CHANNEL_LIST_CACHE', JSON.stringify(this.cachedLists));
+      await AsyncStorage.setItem(
+        'CHANNEL_LIST_CACHE',
+        JSON.stringify(this.cachedLists),
+      );
     } catch {
       // ignore
     }
@@ -61,9 +64,12 @@ export class ChannelListService {
     // Listen for LIST numeric replies
     // Check if ircService has on method (may not be available in tests)
     if (this.ircService && typeof this.ircService.on === 'function') {
-      this.ircService.on('numeric', (numeric: number, prefix: string, params: string[]) => {
-        this.handleListReply(numeric, params);
-      });
+      this.ircService.on(
+        'numeric',
+        (numeric: number, prefix: string, params: string[]) => {
+          this.handleListReply(numeric, params);
+        },
+      );
     }
   }
 
@@ -78,7 +84,7 @@ export class ChannelListService {
 
     this.isListing = true;
     this.channelList = [];
-    
+
     // Send LIST command with optional filter
     if (filter) {
       this.ircService.sendRaw(`LIST ${filter}`);
@@ -96,14 +102,15 @@ export class ChannelListService {
         // Start of list
         this.channelList = [];
         break;
-      
+
       case 322: // RPL_LIST
         // Channel entry: :server 322 nick channel userCount :topic
         if (params.length >= 3) {
           const channel = params[1];
           const userCount = parseInt(params[2], 10);
-          const topic = params.slice(3).join(' ').replace(/^:/, '') || undefined;
-          
+          const topic =
+            params.slice(3).join(' ').replace(/^:/, '') || undefined;
+
           this.channelList.push({
             name: channel,
             userCount: isNaN(userCount) ? undefined : userCount,
@@ -111,7 +118,7 @@ export class ChannelListService {
           });
         }
         break;
-      
+
       case 323: // RPL_LISTEND
         // End of list
         this.isListing = false;
@@ -167,17 +174,26 @@ export class ChannelListService {
     }
 
     return this.channelList.filter(channel => {
-      if (filter.minUsers !== undefined && (channel.userCount === undefined || channel.userCount < filter.minUsers)) {
+      if (
+        filter.minUsers !== undefined &&
+        (channel.userCount === undefined || channel.userCount < filter.minUsers)
+      ) {
         return false;
       }
-      if (filter.maxUsers !== undefined && (channel.userCount === undefined || channel.userCount > filter.maxUsers)) {
+      if (
+        filter.maxUsers !== undefined &&
+        (channel.userCount === undefined || channel.userCount > filter.maxUsers)
+      ) {
         return false;
       }
       if (namePattern) {
         if (!namePattern.test(channel.name)) {
           return false;
         }
-      } else if (nameFallback && !channel.name.toLowerCase().includes(nameFallback)) {
+      } else if (
+        nameFallback &&
+        !channel.name.toLowerCase().includes(nameFallback)
+      ) {
         return false;
       }
 
@@ -214,7 +230,11 @@ export class ChannelListService {
   /**
    * Sort channels
    */
-  sortChannels(channels: ChannelListItem[], sortBy: 'name' | 'users' = 'users', ascending: boolean = false): ChannelListItem[] {
+  sortChannels(
+    channels: ChannelListItem[],
+    sortBy: 'name' | 'users' = 'users',
+    ascending: boolean = false,
+  ): ChannelListItem[] {
     const sorted = [...channels];
 
     sorted.sort((a, b) => {
@@ -238,7 +258,9 @@ export class ChannelListService {
   /**
    * Listen for channel list updates
    */
-  onChannelListUpdate(callback: (channels: ChannelListItem[]) => void): () => void {
+  onChannelListUpdate(
+    callback: (channels: ChannelListItem[]) => void,
+  ): () => void {
     this.listListeners.push(callback);
     return () => {
       const index = this.listListeners.indexOf(callback);
@@ -281,4 +303,3 @@ export class ChannelListService {
 // Singleton instance for backward compatibility
 const { ircService } = require('./IRCService');
 export const channelListService = new ChannelListService(ircService);
-

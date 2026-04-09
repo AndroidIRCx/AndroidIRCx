@@ -160,9 +160,13 @@ describe('Themes - DarkTheme', () => {
 
   describe('Highlight colors', () => {
     it('should have highlight colors', () => {
-      expect(DARK_THEME.colors.highlightBackground).toBe('rgba(33, 150, 243, 0.2)');
+      expect(DARK_THEME.colors.highlightBackground).toBe(
+        'rgba(33, 150, 243, 0.2)',
+      );
       expect(DARK_THEME.colors.highlightText).toBe('#FFEB3B');
-      expect(DARK_THEME.colors.selectionBackground).toBe('rgba(33, 150, 243, 0.12)');
+      expect(DARK_THEME.colors.selectionBackground).toBe(
+        'rgba(33, 150, 243, 0.12)',
+      );
     });
   });
 
@@ -187,7 +191,9 @@ describe('Themes - DarkTheme', () => {
 
       requiredColors.forEach(color => {
         expect(DARK_THEME.colors).toHaveProperty(color);
-        expect(typeof DARK_THEME.colors[color as keyof typeof DARK_THEME.colors]).toBe('string');
+        expect(
+          typeof DARK_THEME.colors[color as keyof typeof DARK_THEME.colors],
+        ).toBe('string');
       });
     });
 

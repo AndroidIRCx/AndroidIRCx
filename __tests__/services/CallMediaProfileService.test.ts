@@ -31,8 +31,14 @@ import { callMediaProfileService } from '../../src/services/CallMediaProfileServ
 import { privacyRelayService } from '../../src/services/PrivacyRelayService';
 import { mediaSettingsService } from '../../src/services/MediaSettingsService';
 
-const mockPrivacyRelayService = privacyRelayService as unknown as Record<string, jest.Mock>;
-const mockMediaSettingsService = mediaSettingsService as unknown as Record<string, jest.Mock>;
+const mockPrivacyRelayService = privacyRelayService as unknown as Record<
+  string,
+  jest.Mock
+>;
+const mockMediaSettingsService = mediaSettingsService as unknown as Record<
+  string,
+  jest.Mock
+>;
 
 describe('CallMediaProfileService', () => {
   beforeEach(() => {
@@ -107,16 +113,22 @@ describe('CallMediaProfileService', () => {
     expect(profile.relayEnabled).toBe(true);
     expect(profile.allowedVideoQualities).toContain('1440p');
     expect(rtcConfig.selectedVideoPreset.quality).toBe('1440p');
-    expect(mockPrivacyRelayService.fetchTurnCredentials).toHaveBeenCalledWith('relay-token', {
-      callId: 'call-1',
-      deviceId: 'device-1',
-    });
+    expect(mockPrivacyRelayService.fetchTurnCredentials).toHaveBeenCalledWith(
+      'relay-token',
+      {
+        callId: 'call-1',
+        deviceId: 'device-1',
+      },
+    );
   });
 
   it('uses custom TURN for non-subscribers when configured', async () => {
     mockMediaSettingsService.getCallTurnServerConfig.mockResolvedValue({
       enabled: true,
-      urls: ['turn:turn.example.org:3478?transport=udp', 'turns:turn.example.org:5349?transport=tcp'],
+      urls: [
+        'turn:turn.example.org:3478?transport=udp',
+        'turns:turn.example.org:5349?transport=tcp',
+      ],
       username: 'relay-user',
       credential: 'relay-pass',
     });
@@ -128,7 +140,10 @@ describe('CallMediaProfileService', () => {
     expect(rtcConfig.relayEnabled).toBe(true);
     expect(rtcConfig.shouldFetchTurnCredentials).toBe(false);
     expect(rtcConfig.iceServers[0]).toEqual({
-      urls: ['turn:turn.example.org:3478?transport=udp', 'turns:turn.example.org:5349?transport=tcp'],
+      urls: [
+        'turn:turn.example.org:3478?transport=udp',
+        'turns:turn.example.org:5349?transport=tcp',
+      ],
       username: 'relay-user',
       credential: 'relay-pass',
     });
@@ -178,9 +193,15 @@ describe('CallMediaProfileService', () => {
   });
 
   it('falls back to default STUN list when loading settings throws', async () => {
-    mockMediaSettingsService.getCallStunServers.mockRejectedValue(new Error('stun failed'));
-    mockMediaSettingsService.getCallTurnServerConfig.mockRejectedValue(new Error('turn failed'));
-    mockMediaSettingsService.getCallForceRelayOnly.mockRejectedValue(new Error('relay-only failed'));
+    mockMediaSettingsService.getCallStunServers.mockRejectedValue(
+      new Error('stun failed'),
+    );
+    mockMediaSettingsService.getCallTurnServerConfig.mockRejectedValue(
+      new Error('turn failed'),
+    );
+    mockMediaSettingsService.getCallForceRelayOnly.mockRejectedValue(
+      new Error('relay-only failed'),
+    );
 
     const rtcConfig = await callMediaProfileService.buildRtcSessionConfig({
       quality: '480p',
@@ -209,8 +230,10 @@ describe('CallMediaProfileService', () => {
     await expect(
       callMediaProfileService.buildRtcSessionConfig({
         quality: '1080p',
-      })
-    ).rejects.toThrow('Active Privacy Relay subscription is missing a purchase token.');
+      }),
+    ).rejects.toThrow(
+      'Active Privacy Relay subscription is missing a purchase token.',
+    );
   });
 
   it('clamps disallowed quality to profile default and exposes allowed qualities', () => {

@@ -7,8 +7,6 @@ import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ChannelListScreen } from '../../src/screens/ChannelListScreen';
 
-jest.useFakeTimers();
-
 jest.mock('../../src/hooks/useTheme', () => ({
   useTheme: () => ({
     colors: {
@@ -69,7 +67,9 @@ jest.mock('../../src/utils/IRCFormatter', () => ({
 }));
 
 const { channelListService } = require('../../src/services/ChannelListService');
-const { channelFavoritesService } = require('../../src/services/ChannelFavoritesService');
+const {
+  channelFavoritesService,
+} = require('../../src/services/ChannelFavoritesService');
 const { ircService } = require('../../src/services/IRCService');
 const { connectionManager } = require('../../src/services/ConnectionManager');
 
@@ -78,14 +78,17 @@ describe('ChannelListScreen', () => {
   let endListener: (() => void) | undefined;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     updateListener = undefined;
     endListener = undefined;
 
-    channelListService.onChannelListUpdate.mockImplementation((listener: (channels: any[]) => void) => {
-      updateListener = listener;
-      return jest.fn();
-    });
+    channelListService.onChannelListUpdate.mockImplementation(
+      (listener: (channels: any[]) => void) => {
+        updateListener = listener;
+        return jest.fn();
+      },
+    );
     channelListService.onListEnd.mockImplementation((listener: () => void) => {
       endListener = listener;
       return jest.fn();
@@ -99,7 +102,9 @@ describe('ChannelListScreen', () => {
     channelListService.filterChannelList.mockReturnValue([
       { name: '#filtered', userCount: 9, topic: 'filtered topic' },
     ]);
-    channelListService.sortChannels.mockImplementation((channels: any[]) => channels);
+    channelListService.sortChannels.mockImplementation(
+      (channels: any[]) => channels,
+    );
     channelListService.requestChannelList.mockImplementation(() => {
       updateListener?.([
         { name: '#alpha', userCount: 10, topic: 'alpha topic' },
@@ -123,11 +128,16 @@ describe('ChannelListScreen', () => {
     act(() => {
       jest.runOnlyPendingTimers();
     });
+    jest.useRealTimers();
   });
 
   it('renders nothing when hidden', () => {
     const { queryByText } = render(
-      <ChannelListScreen visible={false} onClose={jest.fn()} onJoinChannel={jest.fn()} />
+      <ChannelListScreen
+        visible={false}
+        onClose={jest.fn()}
+        onJoinChannel={jest.fn()}
+      />,
     );
 
     expect(queryByText('Channel List')).toBeNull();
@@ -135,7 +145,11 @@ describe('ChannelListScreen', () => {
 
   it('loads channel list from server when connected', async () => {
     const { findByText } = render(
-      <ChannelListScreen visible onClose={jest.fn()} onJoinChannel={jest.fn()} />
+      <ChannelListScreen
+        visible
+        onClose={jest.fn()}
+        onJoinChannel={jest.fn()}
+      />,
     );
 
     expect(await findByText('Channel List')).toBeTruthy();
@@ -147,7 +161,11 @@ describe('ChannelListScreen', () => {
     ircService.getConnectionStatus.mockReturnValue(false);
 
     const { findByText } = render(
-      <ChannelListScreen visible onClose={jest.fn()} onJoinChannel={jest.fn()} />
+      <ChannelListScreen
+        visible
+        onClose={jest.fn()}
+        onJoinChannel={jest.fn()}
+      />,
     );
 
     expect(await findByText('#cached')).toBeTruthy();
@@ -158,7 +176,12 @@ describe('ChannelListScreen', () => {
     const onJoinChannel = jest.fn();
     const onClose = jest.fn();
     const { findByText } = render(
-      <ChannelListScreen visible onClose={onClose} onJoinChannel={onJoinChannel} network="Net" />
+      <ChannelListScreen
+        visible
+        onClose={onClose}
+        onJoinChannel={onJoinChannel}
+        network="Net"
+      />,
     );
 
     fireEvent.press(await findByText('#alpha'));
@@ -174,22 +197,32 @@ describe('ChannelListScreen', () => {
         onClose={jest.fn()}
         onJoinChannel={jest.fn()}
         network="DBase (2)"
-      />
+      />,
     );
 
     fireEvent(await findByText('#alpha'), 'longPress');
 
     await waitFor(() => {
-      expect(channelFavoritesService.addFavorite).toHaveBeenCalledWith('DBase', '#alpha');
+      expect(channelFavoritesService.addFavorite).toHaveBeenCalledWith(
+        'DBase',
+        '#alpha',
+      );
     });
   });
 
   it('searches after debounce delay', async () => {
     const { findByPlaceholderText, findByText } = render(
-      <ChannelListScreen visible onClose={jest.fn()} onJoinChannel={jest.fn()} />
+      <ChannelListScreen
+        visible
+        onClose={jest.fn()}
+        onJoinChannel={jest.fn()}
+      />,
     );
 
-    fireEvent.changeText(await findByPlaceholderText('Search channels...'), 'term');
+    fireEvent.changeText(
+      await findByPlaceholderText('Search channels...'),
+      'term',
+    );
 
     act(() => {
       jest.advanceTimersByTime(300);
@@ -201,7 +234,11 @@ describe('ChannelListScreen', () => {
 
   it('applies filters and sorting controls', async () => {
     const { findByText, findByPlaceholderText } = render(
-      <ChannelListScreen visible onClose={jest.fn()} onJoinChannel={jest.fn()} />
+      <ChannelListScreen
+        visible
+        onClose={jest.fn()}
+        onJoinChannel={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('Filters'));
@@ -220,7 +257,7 @@ describe('ChannelListScreen', () => {
   it('refreshes and closes from header actions', async () => {
     const onClose = jest.fn();
     const { findByText } = render(
-      <ChannelListScreen visible onClose={onClose} onJoinChannel={jest.fn()} />
+      <ChannelListScreen visible onClose={onClose} onJoinChannel={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Refresh'));

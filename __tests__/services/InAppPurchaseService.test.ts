@@ -8,7 +8,9 @@ const mockStorage = new Map<string, string>();
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    getItem: jest.fn(async (key: string) => (mockStorage.has(key) ? mockStorage.get(key)! : null)),
+    getItem: jest.fn(async (key: string) =>
+      mockStorage.has(key) ? mockStorage.get(key)! : null,
+    ),
     setItem: jest.fn(async (key: string, value: string) => {
       mockStorage.set(key, value);
     }),
@@ -17,7 +19,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
     }),
     getAllKeys: jest.fn(async () => Array.from(mockStorage.keys())),
     multiRemove: jest.fn(async (keys: string[]) => {
-      keys.forEach((k) => mockStorage.delete(k));
+      keys.forEach(k => mockStorage.delete(k));
     }),
   },
 }));
@@ -39,11 +41,14 @@ describe('InAppPurchaseService', () => {
   });
 
   it('initializes from storage and notifies listeners', async () => {
-    mockStorage.set('@AndroidIRCX:purchases', JSON.stringify({
-      [PRODUCT_REMOVE_ADS]: true,
-      [PRODUCT_PRO_UNLIMITED]: false,
-      [PRODUCT_SUPPORTER_PRO]: false,
-    }));
+    mockStorage.set(
+      '@AndroidIRCX:purchases',
+      JSON.stringify({
+        [PRODUCT_REMOVE_ADS]: true,
+        [PRODUCT_PRO_UNLIMITED]: false,
+        [PRODUCT_SUPPORTER_PRO]: false,
+      }),
+    );
 
     const listener = jest.fn();
     const unsubscribe = inAppPurchaseService.addListener(listener);
@@ -57,15 +62,23 @@ describe('InAppPurchaseService', () => {
   });
 
   it('processes purchases and stores purchase token', async () => {
-    const ok = await inAppPurchaseService.processPurchase(PRODUCT_PRO_UNLIMITED, 'token-123');
+    const ok = await inAppPurchaseService.processPurchase(
+      PRODUCT_PRO_UNLIMITED,
+      'token-123',
+    );
     expect(ok).toBe(true);
     expect(inAppPurchaseService.hasUnlimitedScripting()).toBe(true);
     expect(inAppPurchaseService.getHighestTier()).toBe('pro_unlimited');
 
-    const token = await inAppPurchaseService.getPurchaseToken(PRODUCT_PRO_UNLIMITED);
+    const token = await inAppPurchaseService.getPurchaseToken(
+      PRODUCT_PRO_UNLIMITED,
+    );
     expect(token).toBe('token-123');
 
-    const bad = await inAppPurchaseService.processPurchase('invalid_product', 'token');
+    const bad = await inAppPurchaseService.processPurchase(
+      'invalid_product',
+      'token',
+    );
     expect(bad).toBe(false);
   });
 
@@ -90,9 +103,11 @@ describe('InAppPurchaseService', () => {
   it('handles invalid grant/revoke and token read errors safely', async () => {
     await inAppPurchaseService.grantPurchase('bad-id');
     await inAppPurchaseService.revokePurchase('bad-id');
-    const asyncStorage = require('@react-native-async-storage/async-storage').default;
+    const asyncStorage =
+      require('@react-native-async-storage/async-storage').default;
     asyncStorage.getItem.mockRejectedValueOnce(new Error('read fail'));
-    const token = await inAppPurchaseService.getPurchaseToken(PRODUCT_REMOVE_ADS);
+    const token =
+      await inAppPurchaseService.getPurchaseToken(PRODUCT_REMOVE_ADS);
     expect(token).toBeNull();
   });
 });

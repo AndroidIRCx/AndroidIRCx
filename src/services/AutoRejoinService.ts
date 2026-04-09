@@ -28,9 +28,16 @@ export class AutoRejoinService {
    * Initialize auto-rejoin service
    */
   initialize(): void {
-    const kickCleanup = this.ircService.on('kick', (channel: string) => this.handleKick(channel));
-    const joinCleanup = this.ircService.on('joinedChannel', (channel: string) => this.handleJoin(channel));
-    const partCleanup = this.ircService.on('part', (channel: string, nick: string) => this.handlePart(channel, nick));
+    const kickCleanup = this.ircService.on('kick', (channel: string) =>
+      this.handleKick(channel),
+    );
+    const joinCleanup = this.ircService.on('joinedChannel', (channel: string) =>
+      this.handleJoin(channel),
+    );
+    const partCleanup = this.ircService.on(
+      'part',
+      (channel: string, nick: string) => this.handlePart(channel, nick),
+    );
 
     // Store cleanup functions
     if (kickCleanup && typeof kickCleanup === 'function') {
@@ -181,4 +188,3 @@ export class AutoRejoinService {
 
 const { ircService } = require('./IRCService');
 export const autoRejoinService = new AutoRejoinService(ircService);
-

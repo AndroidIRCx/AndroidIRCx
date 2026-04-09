@@ -92,7 +92,7 @@ describe('MediaMessageDisplay', () => {
         network="net"
         tabId="channel::net::#chan"
         caption="hello cap"
-      />
+      />,
     );
 
     await waitFor(() => {
@@ -103,21 +103,21 @@ describe('MediaMessageDisplay', () => {
         'net',
         'channel::net::#chan',
         3,
-        expect.any(Function)
+        expect.any(Function),
       );
     });
   });
 
   it('shows insufficient context error when tabId is missing', async () => {
     const { getByText } = render(
-      <MediaMessageDisplay mediaId="id-2" network="net" tabId="" />
+      <MediaMessageDisplay mediaId="id-2" network="net" tabId="" />,
     );
 
     await waitFor(() => {
       expect(
         getByText(
-          'Cannot decrypt media: insufficient context. This may happen if the message is viewed outside its original channel or if encryption keys are not available.'
-        )
+          'Cannot decrypt media: insufficient context. This may happen if the message is viewed outside its original channel or if encryption keys are not available.',
+        ),
       ).toBeTruthy();
     });
   });
@@ -132,7 +132,11 @@ describe('MediaMessageDisplay', () => {
       });
 
     const { getByText } = render(
-      <MediaMessageDisplay mediaId="id-3" network="net" tabId="channel::net::#chan" />
+      <MediaMessageDisplay
+        mediaId="id-3"
+        network="net"
+        tabId="channel::net::#chan"
+      />,
     );
 
     await waitFor(() => {
@@ -155,7 +159,11 @@ describe('MediaMessageDisplay', () => {
     });
 
     const { UNSAFE_getByType, getByText } = render(
-      <MediaMessageDisplay mediaId="id-4" network="net" tabId="channel::net::#chan" />
+      <MediaMessageDisplay
+        mediaId="id-4"
+        network="net"
+        tabId="channel::net::#chan"
+      />,
     );
 
     await waitFor(() => {

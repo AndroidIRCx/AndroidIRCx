@@ -12,7 +12,11 @@
  * - CAPHandlers (CAP LS, ACK, NAK, NEW, DEL)
  */
 
-import { parseCTCP, encodeCTCP, handleCTCPRequest } from '../src/services/irc/protocol/CTCPHandlers';
+import {
+  parseCTCP,
+  encodeCTCP,
+  handleCTCPRequest,
+} from '../src/services/irc/protocol/CTCPHandlers';
 import { MultilineHandler } from '../src/services/irc/protocol/MultilineHandler';
 import { CAPHandlers } from '../src/services/irc/cap/CAPHandlers';
 
@@ -23,7 +27,11 @@ describe('CTCPHandlers', () => {
   describe('parseCTCP', () => {
     it('parses CTCP command with args', () => {
       const result = parseCTCP('\x01VERSION mIRC v7.69\x01');
-      expect(result).toEqual({ isCTCP: true, command: 'VERSION', args: 'mIRC v7.69' });
+      expect(result).toEqual({
+        isCTCP: true,
+        command: 'VERSION',
+        args: 'mIRC v7.69',
+      });
     });
 
     it('parses CTCP command without args', () => {
@@ -44,18 +52,28 @@ describe('CTCPHandlers', () => {
 
     it('parses ACTION messages', () => {
       const result = parseCTCP('\x01ACTION waves\x01');
-      expect(result).toEqual({ isCTCP: true, command: 'ACTION', args: 'waves' });
+      expect(result).toEqual({
+        isCTCP: true,
+        command: 'ACTION',
+        args: 'waves',
+      });
     });
 
     it('parses PING with timestamp', () => {
       const result = parseCTCP('\x01PING 1234567890\x01');
-      expect(result).toEqual({ isCTCP: true, command: 'PING', args: '1234567890' });
+      expect(result).toEqual({
+        isCTCP: true,
+        command: 'PING',
+        args: '1234567890',
+      });
     });
   });
 
   describe('encodeCTCP', () => {
     it('encodes command with args', () => {
-      expect(encodeCTCP('VERSION', 'AndroidIRCX')).toBe('\x01VERSION AndroidIRCX\x01');
+      expect(encodeCTCP('VERSION', 'AndroidIRCX')).toBe(
+        '\x01VERSION AndroidIRCX\x01',
+      );
     });
 
     it('encodes command without args', () => {
@@ -79,7 +97,9 @@ describe('CTCPHandlers', () => {
           getCurrentNick: jest.fn(() => 'tester'),
           getRealname: jest.fn(() => 'Test User'),
           isConnected: jest.fn(() => true),
-          getCtcpVersionMessage: jest.fn().mockResolvedValue('https://github.com/AndroidIRCX'),
+          getCtcpVersionMessage: jest
+            .fn()
+            .mockResolvedValue('https://github.com/AndroidIRCX'),
         },
         sent,
         messages,
@@ -187,7 +207,10 @@ describe('MultilineHandler', () => {
 
   it('returns text directly for single-line (no concat tag)', () => {
     const result = handler.handleMultilineMessage(
-      'alice', '#chan', 'Hello', undefined,
+      'alice',
+      '#chan',
+      'Hello',
+      undefined,
       { timestamp: Date.now() },
     );
     expect(result).toBe('Hello');
@@ -195,7 +218,10 @@ describe('MultilineHandler', () => {
 
   it('buffers parts when concat tag is non-empty', () => {
     const result = handler.handleMultilineMessage(
-      'alice', '#chan', 'Line 1', 'draft/multiline-concat',
+      'alice',
+      '#chan',
+      'Line 1',
+      'draft/multiline-concat',
       { timestamp: Date.now() },
     );
     expect(result).toBeNull();
@@ -203,11 +229,17 @@ describe('MultilineHandler', () => {
 
   it('buffers multiple parts with non-empty concat tag', () => {
     const r1 = handler.handleMultilineMessage(
-      'alice', '#chan', 'Line 1', 'draft/multiline-concat',
+      'alice',
+      '#chan',
+      'Line 1',
+      'draft/multiline-concat',
       { timestamp: Date.now() },
     );
     const r2 = handler.handleMultilineMessage(
-      'alice', '#chan', 'Line 2', 'draft/multiline-concat',
+      'alice',
+      '#chan',
+      'Line 2',
+      'draft/multiline-concat',
       { timestamp: Date.now() },
     );
 
@@ -217,13 +249,15 @@ describe('MultilineHandler', () => {
 
   it('keeps separate buffers per sender/target pair', () => {
     const rA = handler.handleMultilineMessage(
-      'alice', '#chan1', 'A1', 'concat',
+      'alice',
+      '#chan1',
+      'A1',
+      'concat',
       { timestamp: Date.now() },
     );
-    const rB = handler.handleMultilineMessage(
-      'bob', '#chan1', 'B1', 'concat',
-      { timestamp: Date.now() },
-    );
+    const rB = handler.handleMultilineMessage('bob', '#chan1', 'B1', 'concat', {
+      timestamp: Date.now(),
+    });
 
     // Both should be buffering
     expect(rA).toBeNull();
@@ -234,7 +268,10 @@ describe('MultilineHandler', () => {
     // The final message in a multiline batch has no concat tag
     // so it returns the text directly via the !concatTag check
     const result = handler.handleMultilineMessage(
-      'alice', '#chan', 'Final line', undefined,
+      'alice',
+      '#chan',
+      'Final line',
+      undefined,
       { timestamp: Date.now() },
     );
 
@@ -244,7 +281,10 @@ describe('MultilineHandler', () => {
   it('treats empty string concat as falsy - returns text directly', () => {
     // Empty string is falsy in JS, so '' goes through !concatTag branch
     const result = handler.handleMultilineMessage(
-      'alice', '#chan', 'Text', '',
+      'alice',
+      '#chan',
+      'Text',
+      '',
       { timestamp: Date.now() },
     );
 
@@ -308,7 +348,10 @@ describe('CAPHandlers', () => {
       const ctx = createCAPCtx();
       const handler = new CAPHandlers(ctx);
 
-      handler.handleCAPCommand(['LS', ':sasl=PLAIN,SCRAM-SHA-256 sts=port=6697']);
+      handler.handleCAPCommand([
+        'LS',
+        ':sasl=PLAIN,SCRAM-SHA-256 sts=port=6697',
+      ]);
 
       expect(ctx.capAvailable.has('sasl')).toBe(true);
       expect(ctx.capAvailable.has('sts')).toBe(true);
@@ -380,7 +423,11 @@ describe('CAPHandlers', () => {
       // STS ACK with simple key=value (split at first = gives capName=sts, capValue=duration...)
       handler.handleCAPCommand(['ACK', ':sts=duration']);
 
-      expect(ctx.emit).toHaveBeenCalledWith('sts-policy', 'irc.example.com', 'duration');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'sts-policy',
+        'irc.example.com',
+        'duration',
+      );
     });
   });
 
@@ -427,7 +474,9 @@ describe('CAPHandlers', () => {
 
       handler.handleCAPCommand(['NEW', ':sasl']);
 
-      expect(ctx.sendRaw).not.toHaveBeenCalledWith(expect.stringContaining('CAP REQ'));
+      expect(ctx.sendRaw).not.toHaveBeenCalledWith(
+        expect.stringContaining('CAP REQ'),
+      );
     });
 
     it('does NOT trigger re-auth when already authenticating', () => {

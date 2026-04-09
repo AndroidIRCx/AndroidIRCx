@@ -24,11 +24,15 @@ jest.mock('react-native', () => {
     Platform: {
       OS: 'android',
     },
-    View: ({ children, ...props }: any) => React.createElement('View', props, children),
-    Text: ({ children, ...props }: any) => React.createElement('Text', props, children),
+    View: ({ children, ...props }: any) =>
+      React.createElement('View', props, children),
+    Text: ({ children, ...props }: any) =>
+      React.createElement('Text', props, children),
     TextInput: (props: any) => React.createElement('TextInput', props),
-    TouchableOpacity: ({ children, ...props }: any) => React.createElement('TouchableOpacity', props, children),
-    ScrollView: ({ children, ...props }: any) => React.createElement('ScrollView', props, children),
+    TouchableOpacity: ({ children, ...props }: any) =>
+      React.createElement('TouchableOpacity', props, children),
+    ScrollView: ({ children, ...props }: any) =>
+      React.createElement('ScrollView', props, children),
     FlatList: (props: any) => React.createElement('FlatList', props),
     StyleSheet: {
       create: (styles: any) => styles,
@@ -69,19 +73,21 @@ const mockSettingIcons = {};
 describe.skip('SecuritySection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (settingsService.getSetting as jest.Mock).mockImplementation(async (key, defaultValue) => {
-      const defaults: Record<string, any> = {
-        securityAllowQrVerification: true,
-        securityAllowFileExchange: true,
-        securityAllowNfcExchange: true,
-        appLockEnabled: false,
-        appLockUseBiometric: false,
-        appLockUsePin: false,
-        appLockOnLaunch: true,
-        appLockOnBackground: true,
-      };
-      return defaults[key] ?? defaultValue;
-    });
+    (settingsService.getSetting as jest.Mock).mockImplementation(
+      async (key, defaultValue) => {
+        const defaults: Record<string, any> = {
+          securityAllowQrVerification: true,
+          securityAllowFileExchange: true,
+          securityAllowNfcExchange: true,
+          appLockEnabled: false,
+          appLockUseBiometric: false,
+          appLockUsePin: false,
+          appLockOnLaunch: true,
+          appLockOnBackground: true,
+        };
+        return defaults[key] ?? defaultValue;
+      },
+    );
     (biometricAuthService.isAvailable as jest.Mock).mockResolvedValue(true);
     (settingsService.setSetting as jest.Mock).mockResolvedValue(undefined);
   });
@@ -92,7 +98,7 @@ describe.skip('SecuritySection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     expect(getByText(/Manage Encryption Keys/i)).toBeTruthy();
@@ -105,7 +111,7 @@ describe.skip('SecuritySection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     // Find and toggle the QR verification switch
@@ -123,7 +129,7 @@ describe.skip('SecuritySection', () => {
         styles={mockStyles}
         settingIcons={mockSettingIcons}
         onShowKeyManagement={mockOnShowKeyManagement}
-      />
+      />,
     );
 
     const keyManagementButton = getByText(/Manage Encryption Keys/i);
@@ -140,7 +146,7 @@ describe.skip('SecuritySection', () => {
         styles={mockStyles}
         settingIcons={mockSettingIcons}
         onShowMigrationDialog={mockOnShowMigrationDialog}
-      />
+      />,
     );
 
     const migrationButton = getByText(/Migrate Old Keys/i);
@@ -157,7 +163,7 @@ describe.skip('SecuritySection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     await waitFor(() => {

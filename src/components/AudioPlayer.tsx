@@ -4,7 +4,13 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import Video from 'react-native-video';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
@@ -36,48 +42,52 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ url }) => {
           controls
           paused={paused}
           onLoad={() => setLoading(false)}
-          onError={(e) => {
+          onError={e => {
             setLoading(false);
             setError(e?.error?.errorString || t('Failed to load audio'));
           }}
           style={styles.audioDummy}
         />
       )}
-      <TouchableOpacity style={styles.pauseButton} onPress={() => setPaused((p) => !p)}>
+      <TouchableOpacity
+        style={styles.pauseButton}
+        onPress={() => setPaused(p => !p)}
+      >
         <Text style={styles.pauseText}>{paused ? t('Play') : t('Pause')}</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    marginVertical: 8,
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: 8,
-    padding: 8,
-  },
-  loading: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  error: {
-    color: colors.error,
-    padding: 4,
-  },
-  audioDummy: {
-    height: 0,
-    width: 0,
-    opacity: 0,
-  },
-  pauseButton: {
-    paddingVertical: 8,
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 6,
-  },
-  pauseText: {
-    color: colors.text,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      marginVertical: 8,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 8,
+      padding: 8,
+    },
+    loading: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    error: {
+      color: colors.error,
+      padding: 4,
+    },
+    audioDummy: {
+      height: 0,
+      width: 0,
+      opacity: 0,
+    },
+    pauseButton: {
+      paddingVertical: 8,
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: 6,
+    },
+    pauseText: {
+      color: colors.text,
+      fontWeight: '600',
+    },
+  });

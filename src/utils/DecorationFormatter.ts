@@ -17,7 +17,10 @@ const MIR_BOLD = '\x02';
 const MIR_UNDERLINE = '\x1F';
 const MIR_RESET = '\x0F';
 
-const replaceBackspacePlaceholder = (template: string, text: string): string => {
+const replaceBackspacePlaceholder = (
+  template: string,
+  text: string,
+): string => {
   const idx = template.indexOf('\x08');
   if (idx === -1) return template;
   const before = template.slice(0, idx);
@@ -37,7 +40,10 @@ const applyTemplate = (template: string, text: string): string => {
   return `${template} ${text}`.trim();
 };
 
-export const applyDecoration = (message: string, settings: DecorationSettings): string => {
+export const applyDecoration = (
+  message: string,
+  settings: DecorationSettings,
+): string => {
   if (!settings.enabled || !message.trim()) return message;
 
   let output = message;

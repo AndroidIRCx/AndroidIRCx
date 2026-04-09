@@ -18,11 +18,21 @@ jest.mock('react-native-libsodium', () => {
     randombytes_buf: (length: number) =>
       new Uint8Array(Array.from({ length }, (_, i) => (i + 1) & 0xff)),
     crypto_hash_sha256: (data: Uint8Array | number[] | Buffer) => {
-      const digest = crypto.createHash('sha256').update(Buffer.from(toBytes(data))).digest();
+      const digest = crypto
+        .createHash('sha256')
+        .update(Buffer.from(toBytes(data)))
+        .digest();
       return new Uint8Array(digest);
     },
-    crypto_generichash: (outLen: number, _key: string, data: Uint8Array | number[] | Buffer) => {
-      const digest = crypto.createHash('sha256').update(Buffer.from(toBytes(data))).digest();
+    crypto_generichash: (
+      outLen: number,
+      _key: string,
+      data: Uint8Array | number[] | Buffer,
+    ) => {
+      const digest = crypto
+        .createHash('sha256')
+        .update(Buffer.from(toBytes(data)))
+        .digest();
       return new Uint8Array(digest.slice(0, outLen));
     },
     to_base64: (bytes: Uint8Array | number[] | Buffer) =>
@@ -46,8 +56,10 @@ import {
   type ScramState,
 } from '../../../src/services/irc/ScramAuth';
 
-const toB64 = (text: string): string => Buffer.from(text, 'utf8').toString('base64');
-const fromB64 = (text: string): string => Buffer.from(text, 'base64').toString('utf8');
+const toB64 = (text: string): string =>
+  Buffer.from(text, 'utf8').toString('base64');
+const fromB64 = (text: string): string =>
+  Buffer.from(text, 'base64').toString('utf8');
 
 describe('ScramAuth', () => {
   it('initializes SCRAM states for plain and plus mechanisms', async () => {
@@ -56,14 +68,20 @@ describe('ScramAuth', () => {
     expect(normal.gs2Header).toBe('n,,');
     expect(normal.clientNonce).toBeTruthy();
 
-    const plus = await scramInit('SCRAM-SHA-256-PLUS', new Uint8Array([1, 2, 3]));
+    const plus = await scramInit(
+      'SCRAM-SHA-256-PLUS',
+      new Uint8Array([1, 2, 3]),
+    );
     expect(plus.mechanism).toBe('SCRAM-SHA-256-PLUS');
     expect(plus.gs2Header.startsWith('p=tls-unique,,')).toBe(true);
   });
 
   it('builds client-first message and escapes username', async () => {
     const state = await scramInit('SCRAM-SHA-256');
-    const { message, state: nextState } = buildClientFirstMessage(state, 'user,=name');
+    const { message, state: nextState } = buildClientFirstMessage(
+      state,
+      'user,=name',
+    );
 
     const decoded = fromB64(message);
     expect(decoded.startsWith('n,,')).toBe(true);
@@ -80,11 +98,19 @@ describe('ScramAuth', () => {
     expect(ok.state?.iterations).toBe(4096);
     expect(ok.state?.serverNonce).toBe(`${base.clientNonce}SERVER`);
 
-    const badNonce = parseServerFirstMessage(base, toB64(`r=wrongnonce,s=${Buffer.from('salt').toString('base64')},i=4096`));
+    const badNonce = parseServerFirstMessage(
+      base,
+      toB64(`r=wrongnonce,s=${Buffer.from('salt').toString('base64')},i=4096`),
+    );
     expect(badNonce.success).toBe(false);
     expect(badNonce.error).toContain('nonce');
 
-    const lowIter = parseServerFirstMessage(base, toB64(`r=${base.clientNonce}SERVER,s=${Buffer.from('salt').toString('base64')},i=10`));
+    const lowIter = parseServerFirstMessage(
+      base,
+      toB64(
+        `r=${base.clientNonce}SERVER,s=${Buffer.from('salt').toString('base64')},i=10`,
+      ),
+    );
     expect(lowIter.success).toBe(false);
     expect(lowIter.error).toContain('Iteration count too low');
   });
@@ -102,7 +128,10 @@ describe('ScramAuth', () => {
       authMessage: '',
     };
 
-    const { message, state: nextState } = await buildClientFinalMessage(state, 'password123');
+    const { message, state: nextState } = await buildClientFinalMessage(
+      state,
+      'password123',
+    );
     const decoded = fromB64(message);
 
     expect(decoded).toContain('c=biws');
@@ -125,14 +154,26 @@ describe('ScramAuth', () => {
     };
 
     const sig = new Uint8Array([10, 20, 30]);
-    const ok = verifyServerFinalMessage(state, toB64(`v=${Buffer.from(sig).toString('base64')}`), sig);
+    const ok = verifyServerFinalMessage(
+      state,
+      toB64(`v=${Buffer.from(sig).toString('base64')}`),
+      sig,
+    );
     expect(ok.success).toBe(true);
 
-    const mismatch = verifyServerFinalMessage(state, toB64(`v=${Buffer.from([10, 20, 31]).toString('base64')}`), sig);
+    const mismatch = verifyServerFinalMessage(
+      state,
+      toB64(`v=${Buffer.from([10, 20, 31]).toString('base64')}`),
+      sig,
+    );
     expect(mismatch.success).toBe(false);
     expect(mismatch.error).toContain('mismatch');
 
-    const serverErr = verifyServerFinalMessage(state, toB64('e=invalid-proof'), sig);
+    const serverErr = verifyServerFinalMessage(
+      state,
+      toB64('e=invalid-proof'),
+      sig,
+    );
     expect(serverErr.success).toBe(false);
     expect(serverErr.error).toContain('Server error');
 
@@ -145,7 +186,10 @@ describe('ScramAuth', () => {
     const service = new ScramAuthService();
 
     expect(service.getMechanism()).toBeNull();
-    expect(service.processServerFirst('anything')).toEqual({ success: false, error: 'SCRAM not initialized' });
+    expect(service.processServerFirst('anything')).toEqual({
+      success: false,
+      error: 'SCRAM not initialized',
+    });
     expect(service.verifyServerFinal('anything')).toEqual({
       success: false,
       error: 'SCRAM not initialized or client-final not sent',
@@ -167,7 +211,9 @@ describe('ScramAuth', () => {
 
     const manualSig = new Uint8Array([1, 2, 3]);
     (service as any).serverSignature = manualSig;
-    const verify = service.verifyServerFinal(toB64(`v=${Buffer.from(manualSig).toString('base64')}`));
+    const verify = service.verifyServerFinal(
+      toB64(`v=${Buffer.from(manualSig).toString('base64')}`),
+    );
     expect(verify.success).toBe(true);
 
     service.reset();
@@ -176,7 +222,11 @@ describe('ScramAuth', () => {
 
   it('throws when client steps are called before init', async () => {
     const service = new ScramAuthService();
-    expect(() => service.buildClientFirst('user')).toThrow('SCRAM not initialized');
-    await expect(service.buildClientFinal('pw')).rejects.toThrow('SCRAM not initialized');
+    expect(() => service.buildClientFirst('user')).toThrow(
+      'SCRAM not initialized',
+    );
+    await expect(service.buildClientFinal('pw')).rejects.toThrow(
+      'SCRAM not initialized',
+    );
   });
 });

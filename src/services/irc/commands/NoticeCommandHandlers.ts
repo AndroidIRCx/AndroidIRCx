@@ -13,7 +13,13 @@ import type { CommandHandler, CommandHandlerRegistry } from '../commandTypes';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
-export const handleNOTICE: CommandHandler = (ctx, prefix, params, timestamp, meta) => {
+export const handleNOTICE: CommandHandler = (
+  ctx,
+  prefix,
+  params,
+  timestamp,
+  meta,
+) => {
   const noticeTarget = params[0] || '';
   const noticeFrom = ctx.extractNick(prefix);
   const noticeText = params[1] || '';
@@ -23,12 +29,12 @@ export const handleNOTICE: CommandHandler = (ctx, prefix, params, timestamp, met
   const noticeUsername = noticePrefixParts[1]?.split('@')[0];
   const noticeHostname = noticePrefixParts[1]?.split('@')[1];
 
-  if (prefix.includes('!') && ctx.getUserManagementService().isUserIgnored(
-    noticeFrom,
-    noticeUsername,
-    noticeHostname,
-    noticeNetwork
-  )) {
+  if (
+    prefix.includes('!') &&
+    ctx
+      .getUserManagementService()
+      .isUserIgnored(noticeFrom, noticeUsername, noticeHostname, noticeNetwork)
+  ) {
     return;
   }
 
@@ -38,37 +44,52 @@ export const handleNOTICE: CommandHandler = (ctx, prefix, params, timestamp, met
       noticeTarget.startsWith('&') ||
       noticeTarget.startsWith('+') ||
       noticeTarget.startsWith('!');
-    const noticeContext = ctx.getProtectionTabContext(noticeTarget, noticeFrom, isChannelNotice);
-    const decision = protectionService.evaluateIncomingMessage({
-      id: `notice:${noticeNetwork}:${timestamp}:${noticeFrom}`,
-      type: 'notice',
-      channel: isChannelNotice ? noticeTarget : noticeFrom,
-      from: noticeFrom,
-      text: noticeText,
-      timestamp,
-      network: noticeNetwork,
-      username: noticeUsername,
-      hostname: noticeHostname,
-    }, {
-      isActiveTab: noticeContext.isActiveTab,
-      isQueryOpen: noticeContext.isQueryOpen,
-      isChannel: isChannelNotice,
-      isCtcp: false,
-    });
+    const noticeContext = ctx.getProtectionTabContext(
+      noticeTarget,
+      noticeFrom,
+      isChannelNotice,
+    );
+    const decision = protectionService.evaluateIncomingMessage(
+      {
+        id: `notice:${noticeNetwork}:${timestamp}:${noticeFrom}`,
+        type: 'notice',
+        channel: isChannelNotice ? noticeTarget : noticeFrom,
+        from: noticeFrom,
+        text: noticeText,
+        timestamp,
+        network: noticeNetwork,
+        username: noticeUsername,
+        hostname: noticeHostname,
+      },
+      {
+        isActiveTab: noticeContext.isActiveTab,
+        isQueryOpen: noticeContext.isQueryOpen,
+        isChannel: isChannelNotice,
+        isCtcp: false,
+      },
+    );
     if (decision) {
-      ctx.handleProtectionBlock(decision.kind, noticeFrom, noticeUsername, noticeHostname, isChannelNotice ? noticeTarget : null);
+      ctx.handleProtectionBlock(
+        decision.kind,
+        noticeFrom,
+        noticeUsername,
+        noticeHostname,
+        isChannelNotice ? noticeTarget : null,
+      );
       return;
     }
   }
 
   if (noticeFrom && noticeFrom !== ctx.getCurrentNick()) {
     if (prefix.includes('!')) {
-      const blacklistEntry = ctx.getUserManagementService().findMatchingBlacklistEntry(
-        noticeFrom,
-        noticeUsername,
-        noticeHostname,
-        noticeNetwork
-      );
+      const blacklistEntry = ctx
+        .getUserManagementService()
+        .findMatchingBlacklistEntry(
+          noticeFrom,
+          noticeUsername,
+          noticeHostname,
+          noticeNetwork,
+        );
       if (blacklistEntry) {
         ctx.runBlacklistAction(blacklistEntry, {
           nick: noticeFrom,
@@ -81,12 +102,14 @@ export const handleNOTICE: CommandHandler = (ctx, prefix, params, timestamp, met
     } else {
       const extracted = ctx.extractMaskFromNotice(noticeText);
       if (extracted) {
-        const blacklistEntry = ctx.getUserManagementService().findMatchingBlacklistEntry(
-          extracted.nick,
-          extracted.username,
-          extracted.hostname,
-          noticeNetwork
-        );
+        const blacklistEntry = ctx
+          .getUserManagementService()
+          .findMatchingBlacklistEntry(
+            extracted.nick,
+            extracted.username,
+            extracted.hostname,
+            noticeNetwork,
+          );
         if (blacklistEntry) {
           ctx.runBlacklistAction(blacklistEntry, {
             nick: extracted.nick,
@@ -117,27 +140,37 @@ export const handleNOTICE: CommandHandler = (ctx, prefix, params, timestamp, met
       }
     } else {
       displayText = noticeCTCP.args
-        ? t('CTCP {command} reply from {nick}: {args}', { command: noticeCTCP.command, nick: noticeFrom, args: noticeCTCP.args })
-        : t('CTCP {command} reply from {nick}', { command: noticeCTCP.command, nick: noticeFrom });
+        ? t('CTCP {command} reply from {nick}: {args}', {
+            command: noticeCTCP.command,
+            nick: noticeFrom,
+            args: noticeCTCP.args,
+          })
+        : t('CTCP {command} reply from {nick}', {
+            command: noticeCTCP.command,
+            nick: noticeFrom,
+          });
     }
   }
 
-  ctx.addMessage({
-    type: 'notice',
-    channel: noticeTarget,
-    from: noticeFrom,
-    text: displayText,
-    timestamp,
-    account: meta?.accountTag,
-    msgid: meta?.msgidTag,
-    channelContext: meta?.channelContextTag,
-    replyTo: meta?.replyTag,
-    reactions: meta?.reactTag,
-    username: noticeUsername,
-    hostname: noticeHostname,
-    target: noticeTarget,
-    command: 'NOTICE',
-  }, meta?.batchTag);
+  ctx.addMessage(
+    {
+      type: 'notice',
+      channel: noticeTarget,
+      from: noticeFrom,
+      text: displayText,
+      timestamp,
+      account: meta?.accountTag,
+      msgid: meta?.msgidTag,
+      channelContext: meta?.channelContextTag,
+      replyTo: meta?.replyTag,
+      reactions: meta?.reactTag,
+      username: noticeUsername,
+      hostname: noticeHostname,
+      target: noticeTarget,
+      command: 'NOTICE',
+    },
+    meta?.batchTag,
+  );
 };
 
 export const noticeCommandHandlers: CommandHandlerRegistry = new Map([

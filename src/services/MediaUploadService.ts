@@ -28,29 +28,35 @@ const API_BASE_URL = 'https://www.androidircx.com/api';
 // Maximum file size: 50MB (configurable)
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
 
-export type MediaType = 'image' | 'video' | 'voice' | 'gif' | 'sticker' | 'file';
+export type MediaType =
+  | 'image'
+  | 'video'
+  | 'voice'
+  | 'gif'
+  | 'sticker'
+  | 'file';
 
 export interface UploadTokenResponse {
-  id: string;              // UUID - media identifier
+  id: string; // UUID - media identifier
   status: 'pending' | 'ready' | 'failed';
-  upload_token: string;    // HMAC-SHA256 token
-  expires: number;         // Unix timestamp (5 minutes from now)
+  upload_token: string; // HMAC-SHA256 token
+  expires: number; // Unix timestamp (5 minutes from now)
 }
 
 export interface UploadResult {
   success: boolean;
-  mediaId?: string;        // UUID for use in !enc-media tag
-  size?: number;           // File size in bytes
-  sha256?: string;         // SHA-256 checksum
+  mediaId?: string; // UUID for use in !enc-media tag
+  size?: number; // File size in bytes
+  sha256?: string; // SHA-256 checksum
   status?: 'ready' | 'failed';
   error?: string;
-  ircTag?: string;         // Ready-to-use IRC tag: !enc-media [uuid]
+  ircTag?: string; // Ready-to-use IRC tag: !enc-media [uuid]
 }
 
 export interface UploadProgress {
   bytesUploaded: number;
   totalBytes: number;
-  percentage: number;      // 0-100
+  percentage: number; // 0-100
 }
 
 type ProgressCallback = (progress: UploadProgress) => void;
@@ -68,7 +74,7 @@ class MediaUploadService {
    */
   async requestUploadToken(
     type: MediaType,
-    mimeType?: string
+    mimeType?: string,
   ): Promise<UploadTokenResponse> {
     try {
       const url = `${API_BASE_URL}/media/request-upload`;
@@ -76,32 +82,40 @@ class MediaUploadService {
         type,
         mime: mimeType,
       });
-      
-      console.log('[MediaUploadService] Requesting upload token:', { url, method: 'POST', body: requestBody });
-      
+
+      console.log('[MediaUploadService] Requesting upload token:', {
+        url,
+        method: 'POST',
+        body: requestBody,
+      });
+
       // Use native module for reliable POST requests
       if (!HttpPost) {
         throw new Error('HttpPost native module is not available');
       }
 
-      const responseBody = await HttpPost.postRequest(
-        url,
-        requestBody,
-        {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        }
-      );
+      const responseBody = await HttpPost.postRequest(url, requestBody, {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      });
 
       console.log('[MediaUploadService] Raw response body:', responseBody);
 
       // Check if response is HTML (error page) instead of JSON
-      if (typeof responseBody === 'string' && responseBody.trim().startsWith('<')) {
-        throw new Error(`Received HTML response instead of JSON: ${responseBody.substring(0, 200)}...`);
+      if (
+        typeof responseBody === 'string' &&
+        responseBody.trim().startsWith('<')
+      ) {
+        throw new Error(
+          `Received HTML response instead of JSON: ${responseBody.substring(0, 200)}...`,
+        );
       }
 
       const data: UploadTokenResponse = JSON.parse(responseBody);
-      console.log('[MediaUploadService] Token received successfully:', { id: data.id, status: data.status });
+      console.log('[MediaUploadService] Token received successfully:', {
+        id: data.id,
+        status: data.status,
+      });
       return data;
     } catch (error) {
       console.error('[MediaUploadService] Request token error:', error);
@@ -117,7 +131,7 @@ class MediaUploadService {
     mediaId: string,
     uploadToken: string,
     expires: number,
-    onProgress?: ProgressCallback
+    onProgress?: ProgressCallback,
   ): Promise<{ size: number; sha256: string; status: string }> {
     let progressSubscription: { remove: () => void } | null = null;
     let tempBinaryPath: string | null = null;
@@ -140,7 +154,7 @@ class MediaUploadService {
       // Read file as UTF-8 (base64 string) and convert to binary for upload
       // The encrypted file is stored as UTF-8 text containing base64 string
       const fileContent = await RNFS.readFile(fileUri, 'utf8');
-      
+
       // Convert base64 string to binary (Uint8Array) using Buffer
       const binaryBuffer = Buffer.from(fileContent, 'base64');
       const bytes = new Uint8Array(binaryBuffer);
@@ -153,7 +167,11 @@ class MediaUploadService {
       // Use native module for reliable PUT requests with binary file upload
       // This ensures proper binary data transmission without multipart wrapping
       this.activeUploads.set(mediaId, true);
-      console.log('[MediaUploadService] Upload started, file size:', bytes.length, 'bytes');
+      console.log(
+        '[MediaUploadService] Upload started, file size:',
+        bytes.length,
+        'bytes',
+      );
 
       if (onProgress) {
         onProgress({
@@ -161,15 +179,19 @@ class MediaUploadService {
           totalBytes: bytes.length,
           percentage: 0,
         });
-        progressSubscription = DeviceEventEmitter.addListener('HttpPutProgress', (payload) => {
-          if (!payload || payload.uploadId !== mediaId) {
-            return;
-          }
-          const totalBytes = payload.totalBytes || bytes.length;
-          const bytesUploaded = payload.bytesWritten || 0;
-          const percentage = totalBytes > 0 ? (bytesUploaded / totalBytes) * 100 : 0;
-          onProgress({ bytesUploaded, totalBytes, percentage });
-        });
+        progressSubscription = DeviceEventEmitter.addListener(
+          'HttpPutProgress',
+          payload => {
+            if (!payload || payload.uploadId !== mediaId) {
+              return;
+            }
+            const totalBytes = payload.totalBytes || bytes.length;
+            const bytesUploaded = payload.bytesWritten || 0;
+            const percentage =
+              totalBytes > 0 ? (bytesUploaded / totalBytes) * 100 : 0;
+            onProgress({ bytesUploaded, totalBytes, percentage });
+          },
+        );
       }
 
       // Use native HttpPut module for direct binary upload
@@ -182,9 +204,9 @@ class MediaUploadService {
         tempBinaryPath,
         {
           'Content-Type': 'application/octet-stream',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
-        mediaId
+        mediaId,
       );
 
       // Clean up temporary binary file
@@ -233,7 +255,7 @@ class MediaUploadService {
     fileUri: string,
     type: MediaType,
     mimeType?: string,
-    onProgress?: ProgressCallback
+    onProgress?: ProgressCallback,
   ): Promise<UploadResult> {
     let attempt = 0;
     const maxRetries = this.retryCount;
@@ -283,7 +305,7 @@ class MediaUploadService {
           mediaId,
           upload_token,
           expires,
-          onProgress
+          onProgress,
         );
 
         console.log('[MediaUploadService] Upload successful:', uploadData);
@@ -299,7 +321,10 @@ class MediaUploadService {
         };
       } catch (error: any) {
         attempt++;
-        console.error(`[MediaUploadService] Upload attempt ${attempt} failed:`, error);
+        console.error(
+          `[MediaUploadService] Upload attempt ${attempt} failed:`,
+          error,
+        );
 
         // Check if we should retry
         const shouldRetry = this.shouldRetry(error, attempt, maxRetries);
@@ -329,7 +354,11 @@ class MediaUploadService {
   /**
    * Determine if error is retryable
    */
-  private shouldRetry(error: any, attempt: number, maxRetries: number): boolean {
+  private shouldRetry(
+    error: any,
+    attempt: number,
+    maxRetries: number,
+  ): boolean {
     if (attempt >= maxRetries) {
       return false;
     }
@@ -392,7 +421,9 @@ class MediaUploadService {
   /**
    * Validate file before upload
    */
-  async validateFile(fileUri: string): Promise<{ valid: boolean; error?: string }> {
+  async validateFile(
+    fileUri: string,
+  ): Promise<{ valid: boolean; error?: string }> {
     try {
       const fileInfo = await RNFS.stat(fileUri);
 
@@ -413,7 +444,10 @@ class MediaUploadService {
 
       return { valid: true };
     } catch {
-      return { valid: false, error: 'File does not exist or cannot be accessed' };
+      return {
+        valid: false,
+        error: 'File does not exist or cannot be accessed',
+      };
     }
   }
 }

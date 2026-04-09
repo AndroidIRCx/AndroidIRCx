@@ -33,7 +33,9 @@ export function useAppLock() {
   const appLockOnLaunch = useUIStore(state => state.appLockOnLaunch);
   const appLocked = useUIStore(state => state.appLocked);
   const appLockUseBiometric = useUIStore(state => state.appLockUseBiometric);
-  const appLockAutoBiometricPrompt = useUIStore(state => state.appLockAutoBiometricPrompt);
+  const appLockAutoBiometricPrompt = useUIStore(
+    state => state.appLockAutoBiometricPrompt,
+  );
 
   // Cleanup on unmount
   useEffect(() => {
@@ -47,11 +49,23 @@ export function useAppLock() {
    */
   const loadAppLockSettings = useCallback(async () => {
     const enabled = await settingsService.getSetting('appLockEnabled', false);
-    let useBiometric = await settingsService.getSetting('appLockUseBiometric', false);
+    let useBiometric = await settingsService.getSetting(
+      'appLockUseBiometric',
+      false,
+    );
     const usePin = await settingsService.getSetting('appLockUsePin', false);
-    const lockOnLaunch = await settingsService.getSetting('appLockOnLaunch', true);
-    const lockOnBackground = await settingsService.getSetting('appLockOnBackground', true);
-    const autoBiometricPrompt = await settingsService.getSetting('appLockAutoBiometricPrompt', false);
+    const lockOnLaunch = await settingsService.getSetting(
+      'appLockOnLaunch',
+      true,
+    );
+    const lockOnBackground = await settingsService.getSetting(
+      'appLockOnBackground',
+      true,
+    );
+    const autoBiometricPrompt = await settingsService.getSetting(
+      'appLockAutoBiometricPrompt',
+      false,
+    );
     const storedPin = await secureStorageService.getSecret(APP_PIN_STORAGE_KEY);
     const pinEnabled = usePin && Boolean(storedPin);
 
@@ -91,17 +105,21 @@ export function useAppLock() {
    * Returns true if migration was successful
    */
   const migrateOldBiometricCredentials = useCallback(async () => {
-    console.log('[useAppLock] Attempting to migrate old biometric credentials...');
+    console.log(
+      '[useAppLock] Attempting to migrate old biometric credentials...',
+    );
     try {
       // Try to authenticate with default service (old credentials location)
       const oldResult = await biometricAuthService.authenticate(
         'Migrate Biometric Credentials',
         'Authenticate to update your biometric lock',
-        undefined // No scope = default service (where old credentials are stored)
+        undefined, // No scope = default service (where old credentials are stored)
       );
 
       if (oldResult.success) {
-        console.log('[useAppLock] Found old credentials, migrating to new location...');
+        console.log(
+          '[useAppLock] Found old credentials, migrating to new location...',
+        );
         // Old credentials exist and user authenticated successfully
         // Now store them in the correct location with 'app' scope
         const migrated = await biometricAuthService.enableLock('app');
@@ -112,11 +130,15 @@ export function useAppLock() {
           await biometricAuthService.disableLock(undefined);
           return true;
         } else {
-          console.warn('[useAppLock] Migration failed - could not store credentials in new location');
+          console.warn(
+            '[useAppLock] Migration failed - could not store credentials in new location',
+          );
           return false;
         }
       } else {
-        console.log('[useAppLock] No old credentials found or authentication failed');
+        console.log(
+          '[useAppLock] No old credentials found or authentication failed',
+        );
         return false;
       }
     } catch (error) {
@@ -128,147 +150,180 @@ export function useAppLock() {
   /**
    * Attempt biometric authentication to unlock app
    */
-  const attemptBiometricUnlock = useCallback(async (isManualRetry = false) => {
-    const store = useUIStore.getState();
-    if (!store.appLockUseBiometric) {
-      // If biometric is not enabled, show PIN modal instead
-      store.setAppUnlockModalVisible(true);
-      return false;
-    }
-
-    // Prevent multiple simultaneous attempts
-    if (biometricAttemptInProgressRef.current) {
-      console.log('[useAppLock] Biometric attempt already in progress, skipping');
-      return false;
-    }
-
-    // Check if biometric is available
-    if (!biometricAuthService.isAvailable()) {
-      if (isMountedRef.current) {
-        store.setAppPinError('Biometric authentication is not available on this device.');
-      }
-      return false;
-    }
-
-    const hasEnrollment = await biometricAuthService.hasEnrolledBiometrics();
-    if (!hasEnrollment) {
-      // Safety fallback: disable broken biometric state to prevent restore lockout loops.
-      await settingsService.setSetting('appLockUseBiometric', false);
-      await biometricAuthService.disableLock('app');
-      if (isMountedRef.current) {
-        store.setAppLockUseBiometric(false);
-        store.setAppPinError('No biometric credential is enrolled on this device. Use PIN unlock.');
-      }
-      return false;
-    }
-
-    // If this is a manual retry after a failure, add a delay to allow the native API to reset
-    // Native biometric prompts need time to fully dismiss before a new one can be shown
-    if (isManualRetry) {
-      console.log('[useAppLock] Manual retry - waiting for native API to reset...');
-      await new Promise(resolve => setTimeout(resolve, 800));
-    }
-
-    biometricAttemptInProgressRef.current = true;
-
-    // Clear any previous errors before attempting
-    if (isMountedRef.current) {
-      store.setAppPinError('');
-    }
-
-    try {
-      if (AppState.currentState !== 'active') {
-        biometricAttemptInProgressRef.current = false;
+  const attemptBiometricUnlock = useCallback(
+    async (isManualRetry = false) => {
+      const store = useUIStore.getState();
+      if (!store.appLockUseBiometric) {
+        // If biometric is not enabled, show PIN modal instead
+        store.setAppUnlockModalVisible(true);
         return false;
       }
 
-      console.log('[useAppLock] Attempting biometric authentication with app scope...');
-      const result = await biometricAuthService.authenticate(
-        'Unlock AndroidIRCX',
-        'Authenticate to unlock the app',
-        'app'
-      );
+      // Prevent multiple simultaneous attempts
+      if (biometricAttemptInProgressRef.current) {
+        console.log(
+          '[useAppLock] Biometric attempt already in progress, skipping',
+        );
+        return false;
+      }
 
-      // Always reset the in-progress flag, regardless of success/failure
-      biometricAttemptInProgressRef.current = false;
+      // Check if biometric is available
+      if (!biometricAuthService.isAvailable()) {
+        if (isMountedRef.current) {
+          store.setAppPinError(
+            'Biometric authentication is not available on this device.',
+          );
+        }
+        return false;
+      }
 
-      if (result.success && isMountedRef.current) {
-        console.log('[useAppLock] Biometric authentication successful');
-        store.setAppLocked(false);
-        store.setAppUnlockModalVisible(false);
-        store.setAppPinEntry('');
+      const hasEnrollment = await biometricAuthService.hasEnrolledBiometrics();
+      if (!hasEnrollment) {
+        // Safety fallback: disable broken biometric state to prevent restore lockout loops.
+        await settingsService.setSetting('appLockUseBiometric', false);
+        await biometricAuthService.disableLock('app');
+        if (isMountedRef.current) {
+          store.setAppLockUseBiometric(false);
+          store.setAppPinError(
+            'No biometric credential is enrolled on this device. Use PIN unlock.',
+          );
+        }
+        return false;
+      }
+
+      // If this is a manual retry after a failure, add a delay to allow the native API to reset
+      // Native biometric prompts need time to fully dismiss before a new one can be shown
+      if (isManualRetry) {
+        console.log(
+          '[useAppLock] Manual retry - waiting for native API to reset...',
+        );
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+
+      biometricAttemptInProgressRef.current = true;
+
+      // Clear any previous errors before attempting
+      if (isMountedRef.current) {
         store.setAppPinError('');
-        return true;
-      } else {
-        // Authentication failed or was cancelled
-        console.log('[useAppLock] Biometric authentication failed or cancelled:', result.errorKey);
+      }
 
-        // RECOVERY MECHANISM: If credentials not found, try to migrate old credentials
-        if (result.errorKey === 'Authentication cancelled or credentials not found') {
-          console.log('[useAppLock] Credentials not found in app scope, attempting migration...');
-          const migrated = await migrateOldBiometricCredentials();
+      try {
+        if (AppState.currentState !== 'active') {
+          biometricAttemptInProgressRef.current = false;
+          return false;
+        }
 
-          if (migrated && isMountedRef.current) {
-            // Migration successful! Now retry authentication with correct credentials
-            console.log('[useAppLock] Migration successful, retrying authentication...');
-            biometricAttemptInProgressRef.current = true;
+        console.log(
+          '[useAppLock] Attempting biometric authentication with app scope...',
+        );
+        const result = await biometricAuthService.authenticate(
+          'Unlock AndroidIRCX',
+          'Authenticate to unlock the app',
+          'app',
+        );
 
-            const retryResult = await biometricAuthService.authenticate(
-              'Unlock AndroidIRCX',
-              'Authenticate to unlock the app',
-              'app'
+        // Always reset the in-progress flag, regardless of success/failure
+        biometricAttemptInProgressRef.current = false;
+
+        if (result.success && isMountedRef.current) {
+          console.log('[useAppLock] Biometric authentication successful');
+          store.setAppLocked(false);
+          store.setAppUnlockModalVisible(false);
+          store.setAppPinEntry('');
+          store.setAppPinError('');
+          return true;
+        } else {
+          // Authentication failed or was cancelled
+          console.log(
+            '[useAppLock] Biometric authentication failed or cancelled:',
+            result.errorKey,
+          );
+
+          // RECOVERY MECHANISM: If credentials not found, try to migrate old credentials
+          if (
+            result.errorKey ===
+            'Authentication cancelled or credentials not found'
+          ) {
+            console.log(
+              '[useAppLock] Credentials not found in app scope, attempting migration...',
             );
+            const migrated = await migrateOldBiometricCredentials();
 
-            biometricAttemptInProgressRef.current = false;
+            if (migrated && isMountedRef.current) {
+              // Migration successful! Now retry authentication with correct credentials
+              console.log(
+                '[useAppLock] Migration successful, retrying authentication...',
+              );
+              biometricAttemptInProgressRef.current = true;
 
-            if (retryResult.success && isMountedRef.current) {
-              console.log('[useAppLock] Retry after migration successful!');
-              store.setAppLocked(false);
-              store.setAppUnlockModalVisible(false);
-              store.setAppPinEntry('');
-              store.setAppPinError('');
-              return true;
+              const retryResult = await biometricAuthService.authenticate(
+                'Unlock AndroidIRCX',
+                'Authenticate to unlock the app',
+                'app',
+              );
+
+              biometricAttemptInProgressRef.current = false;
+
+              if (retryResult.success && isMountedRef.current) {
+                console.log('[useAppLock] Retry after migration successful!');
+                store.setAppLocked(false);
+                store.setAppUnlockModalVisible(false);
+                store.setAppPinEntry('');
+                store.setAppPinError('');
+                return true;
+              }
+            } else {
+              // Migration failed or no old credentials found
+              console.warn(
+                '[useAppLock] Migration failed or no old credentials found',
+              );
+              if (isMountedRef.current) {
+                // Provide helpful error message with recovery options
+                store.setAppPinError(
+                  'Biometric credentials not found. Please disable and re-enable biometric lock in Settings > Security.',
+                );
+              }
+              return false;
             }
-          } else {
-            // Migration failed or no old credentials found
-            console.warn('[useAppLock] Migration failed or no old credentials found');
-            if (isMountedRef.current) {
-              // Provide helpful error message with recovery options
+          }
+
+          // Don't hide the modal - allow user to retry
+          if (isMountedRef.current) {
+            // Show user-friendly error message
+            if (result.errorMessage) {
+              store.setAppPinError(result.errorMessage);
+            } else if (
+              result.errorKey ===
+              'Authentication cancelled or credentials not found'
+            ) {
+              // User cancelled - don't show error, just allow retry
+              // The prompt will appear again when they press the button
+              store.setAppPinError('');
+            } else {
               store.setAppPinError(
-                'Biometric credentials not found. Please disable and re-enable biometric lock in Settings > Security.'
+                'Biometric authentication failed. Please try again.',
               );
             }
-            return false;
           }
+          return false;
         }
-
-        // Don't hide the modal - allow user to retry
+      } catch (error) {
+        // Always reset the in-progress flag, even on exception
+        biometricAttemptInProgressRef.current = false;
+        // Handle unexpected errors
+        console.error('[useAppLock] Biometric unlock error:', error);
         if (isMountedRef.current) {
-          // Show user-friendly error message
-          if (result.errorMessage) {
-            store.setAppPinError(result.errorMessage);
-          } else if (result.errorKey === 'Authentication cancelled or credentials not found') {
-            // User cancelled - don't show error, just allow retry
-            // The prompt will appear again when they press the button
-            store.setAppPinError('');
-          } else {
-            store.setAppPinError('Biometric authentication failed. Please try again.');
-          }
+          const errorMsg =
+            error instanceof Error
+              ? error.message
+              : 'Biometric authentication failed';
+          store.setAppPinError(errorMsg + ' Please try again.');
         }
         return false;
       }
-    } catch (error) {
-      // Always reset the in-progress flag, even on exception
-      biometricAttemptInProgressRef.current = false;
-      // Handle unexpected errors
-      console.error('[useAppLock] Biometric unlock error:', error);
-      if (isMountedRef.current) {
-        const errorMsg = error instanceof Error ? error.message : 'Biometric authentication failed';
-        store.setAppPinError(errorMsg + ' Please try again.');
-      }
-      return false;
-    }
-  }, [migrateOldBiometricCredentials]);
+    },
+    [migrateOldBiometricCredentials],
+  );
 
   /**
    * Verify PIN and unlock app if correct
@@ -299,24 +354,39 @@ export function useAppLock() {
   useEffect(() => {
     loadAppLockSettings();
 
-    const unsubEnabled = settingsService.onSettingChange('appLockEnabled', (v) => {
-      useUIStore.getState().setAppLockEnabled(Boolean(v));
-    });
-    const unsubBio = settingsService.onSettingChange('appLockUseBiometric', (v) => {
-      useUIStore.getState().setAppLockUseBiometric(Boolean(v));
-    });
-    const unsubPin = settingsService.onSettingChange('appLockUsePin', (v) => {
+    const unsubEnabled = settingsService.onSettingChange(
+      'appLockEnabled',
+      v => {
+        useUIStore.getState().setAppLockEnabled(Boolean(v));
+      },
+    );
+    const unsubBio = settingsService.onSettingChange(
+      'appLockUseBiometric',
+      v => {
+        useUIStore.getState().setAppLockUseBiometric(Boolean(v));
+      },
+    );
+    const unsubPin = settingsService.onSettingChange('appLockUsePin', v => {
       useUIStore.getState().setAppLockUsePin(Boolean(v));
     });
-    const unsubAutoBioPrompt = settingsService.onSettingChange('appLockAutoBiometricPrompt', (v) => {
-      useUIStore.getState().setAppLockAutoBiometricPrompt(Boolean(v));
-    });
-    const unsubLaunch = settingsService.onSettingChange('appLockOnLaunch', (v) => {
-      useUIStore.getState().setAppLockOnLaunch(Boolean(v));
-    });
-    const unsubBackground = settingsService.onSettingChange('appLockOnBackground', (v) => {
-      useUIStore.getState().setAppLockOnBackground(Boolean(v));
-    });
+    const unsubAutoBioPrompt = settingsService.onSettingChange(
+      'appLockAutoBiometricPrompt',
+      v => {
+        useUIStore.getState().setAppLockAutoBiometricPrompt(Boolean(v));
+      },
+    );
+    const unsubLaunch = settingsService.onSettingChange(
+      'appLockOnLaunch',
+      v => {
+        useUIStore.getState().setAppLockOnLaunch(Boolean(v));
+      },
+    );
+    const unsubBackground = settingsService.onSettingChange(
+      'appLockOnBackground',
+      v => {
+        useUIStore.getState().setAppLockOnBackground(Boolean(v));
+      },
+    );
     const unsubLockNow = settingsService.onSettingChange('appLockNow', () => {
       const currentStore = useUIStore.getState();
       if (!currentStore.appLockEnabled) return;
@@ -345,7 +415,7 @@ export function useAppLock() {
       return;
     }
 
-    const subscription = AppState.addEventListener('change', (nextState) => {
+    const subscription = AppState.addEventListener('change', nextState => {
       const prevState = appStateRef.current;
       appStateRef.current = nextState;
 
@@ -369,12 +439,16 @@ export function useAppLock() {
         const timeInBackground = Date.now() - backgroundTimeRef.current;
         const wasLongBackground = timeInBackground > 60000; // More than 1 minute
 
-        console.log(`[useAppLock] App came to foreground after ${Math.round(timeInBackground / 1000)}s in background`);
+        console.log(
+          `[useAppLock] App came to foreground after ${Math.round(timeInBackground / 1000)}s in background`,
+        );
 
         // CRITICAL FIX: Reset biometric state if app was in background for a long time
         // This prevents the lock screen from freezing due to stuck biometric attempts
         if (wasLongBackground) {
-          console.log('[useAppLock] Long background detected - resetting biometric state');
+          console.log(
+            '[useAppLock] Long background detected - resetting biometric state',
+          );
           biometricAttemptInProgressRef.current = false;
 
           // Clear any error messages
@@ -382,7 +456,9 @@ export function useAppLock() {
 
           // If lock screen is showing, set up a safety timeout to detect freeze
           if (currentStore.appLocked && currentStore.appUnlockModalVisible) {
-            console.log('[useAppLock] Lock screen active after long background - setting up freeze detection');
+            console.log(
+              '[useAppLock] Lock screen active after long background - setting up freeze detection',
+            );
 
             // Clear any existing timeout
             if (lockScreenFreezeTimeoutRef.current) {
@@ -391,7 +467,9 @@ export function useAppLock() {
 
             // Set up a 30-second timeout to detect if lock screen is frozen
             lockScreenFreezeTimeoutRef.current = setTimeout(() => {
-              console.warn('[useAppLock] Lock screen freeze detected! Force resetting...');
+              console.warn(
+                '[useAppLock] Lock screen freeze detected! Force resetting...',
+              );
               const emergencyStore = useUIStore.getState();
 
               // Force reset all lock-related state
@@ -401,7 +479,9 @@ export function useAppLock() {
               emergencyStore.setAppUnlockModalVisible(false);
               setTimeout(() => {
                 emergencyStore.setAppUnlockModalVisible(true);
-                emergencyStore.setAppPinError('Lock screen refreshed. Please try again.');
+                emergencyStore.setAppPinError(
+                  'Lock screen refreshed. Please try again.',
+                );
               }, 100);
             }, 30000); // 30 seconds
           }
@@ -439,17 +519,22 @@ export function useAppLock() {
     }
 
     if (
-      appLockUseBiometric
-      && appLockAutoBiometricPrompt
-      && !biometricAttemptInProgressRef.current
-      && AppState.currentState === 'active'
+      appLockUseBiometric &&
+      appLockAutoBiometricPrompt &&
+      !biometricAttemptInProgressRef.current &&
+      AppState.currentState === 'active'
     ) {
       // Auto-prompt is optional and user-controlled from Security settings.
       attemptBiometricUnlock(false).catch(() => {
         // Auto-prompt failures are already handled by the unlock flow.
       });
     }
-  }, [appLocked, appLockUseBiometric, appLockAutoBiometricPrompt, attemptBiometricUnlock]);
+  }, [
+    appLocked,
+    appLockUseBiometric,
+    appLockAutoBiometricPrompt,
+    attemptBiometricUnlock,
+  ]);
 
   // Effect: Lock on launch if enabled
   useEffect(() => {

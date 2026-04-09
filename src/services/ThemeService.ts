@@ -19,43 +19,43 @@ export interface ThemeColors {
   surfaceVariant: string;
   surfaceAlt: string;
   cardBackground: string;
-  
+
   // Text colors
   text: string;
   textSecondary: string;
   textDisabled: string;
-  
+
   // Primary colors
   primary: string;
   primaryDark: string;
   primaryLight: string;
   onPrimary: string;
-  
+
   // Secondary colors
   secondary: string;
   onSecondary: string;
-  
+
   // Accent colors
   accent: string;
   onAccent: string;
-  
+
   // Status colors
   success: string;
   error: string;
   warning: string;
   info: string;
-  
+
   // Border colors
   border: string;
   borderLight: string;
   divider: string;
-  
+
   // Message colors
   messageBackground: string;
   messageText: string;
   messageNick: string;
   messageTimestamp: string;
-  
+
   // System message colors
   systemMessage: string;
   noticeMessage: string;
@@ -71,13 +71,13 @@ export interface ThemeColors {
   actionMessage: string;
   rawMessage: string;
   ctcpMessage: string;
-  
+
   // Input colors
   inputBackground: string;
   inputText: string;
   inputBorder: string;
   inputPlaceholder: string;
-  
+
   // Button colors
   buttonPrimary: string;
   buttonPrimaryText: string;
@@ -86,31 +86,31 @@ export interface ThemeColors {
   buttonDisabled: string;
   buttonDisabledText: string;
   buttonText: string;
-  
+
   // Tab colors
   tabActive: string;
   tabInactive: string;
   tabActiveText: string;
   tabInactiveText: string;
   tabBorder: string;
-  
+
   // Modal colors
   modalOverlay: string;
   modalBackground: string;
   modalText: string;
-  
+
   // User list colors
   userListBackground: string;
   userListText: string;
   userListBorder: string;
-  userOwner: string;    // ~ channel owner
-  userAdmin: string;    // & channel admin
-  userOp: string;       // @ channel operator
-  userHalfop: string;   // % half-operator
-  userVoice: string;    // + voiced user
+  userOwner: string; // ~ channel owner
+  userAdmin: string; // & channel admin
+  userOp: string; // @ channel operator
+  userHalfop: string; // % half-operator
+  userVoice: string; // + voiced user
   userNormal: string;
   highlightBackground: string;
-  highlightText: string;      // Text color when mentioned/highlighted
+  highlightText: string; // Text color when mentioned/highlighted
   selectionBackground: string;
 }
 
@@ -172,7 +172,8 @@ export interface ThemeMessageFormats {
 
 const cloneMessageFormats = (
   formats?: ThemeMessageFormats,
-): ThemeMessageFormats | undefined => (formats ? JSON.parse(JSON.stringify(formats)) : undefined);
+): ThemeMessageFormats | undefined =>
+  formats ? JSON.parse(JSON.stringify(formats)) : undefined;
 
 /**
  * Preporučena podešavanja koja se primenjuju kada se izabere tema
@@ -188,7 +189,7 @@ export interface ThemeRecommendedSettings {
   messageSpacing?: number;
   messagePadding?: number;
   navigationBarOffset?: number;
-  
+
   // Display & UI
   noticeRouting?: 'server' | 'active' | 'both';
   showTimestamps?: boolean;
@@ -197,7 +198,14 @@ export interface ThemeRecommendedSettings {
   messageTextDirection?: 'auto' | 'ltr' | 'rtl';
   timestampDisplay?: 'always' | 'hover' | 'never';
   timestampFormat?: '12h' | '24h';
-  bannerPosition?: 'above_header' | 'below_header' | 'bottom' | 'input_above' | 'input_below' | 'tabs_above' | 'tabs_below';
+  bannerPosition?:
+    | 'above_header'
+    | 'below_header'
+    | 'bottom'
+    | 'input_above'
+    | 'input_below'
+    | 'tabs_above'
+    | 'tabs_below';
   keyboardBehavior?: 'height' | 'padding' | 'none';
 }
 
@@ -210,8 +218,6 @@ export interface Theme {
   /** Preporučena podešavanja koja se mogu automatski primeniti sa temom */
   recommendedSettings?: ThemeRecommendedSettings;
 }
-
-
 
 class ThemeService {
   private currentTheme: Theme = DARK_THEME;
@@ -228,11 +234,12 @@ class ThemeService {
     if (!bg.startsWith('#')) {
       return DARK_THEME;
     }
-    const hex = bg.length === 4
-      ? `#${bg[1]}${bg[1]}${bg[2]}${bg[2]}${bg[3]}${bg[3]}`
-      : bg.length === 7
-        ? bg
-        : '';
+    const hex =
+      bg.length === 4
+        ? `#${bg[1]}${bg[1]}${bg[2]}${bg[2]}${bg[3]}${bg[3]}`
+        : bg.length === 7
+          ? bg
+          : '';
     if (!hex) {
       return DARK_THEME;
     }
@@ -251,7 +258,9 @@ class ThemeService {
     };
   }
 
-  private normalizeMessageFormats(formats?: ThemeMessageFormats): ThemeMessageFormats | undefined {
+  private normalizeMessageFormats(
+    formats?: ThemeMessageFormats,
+  ): ThemeMessageFormats | undefined {
     if (!formats) {
       return undefined;
     }
@@ -275,7 +284,11 @@ class ThemeService {
       // Load current theme
       const savedThemeId = await AsyncStorage.getItem(this.STORAGE_KEY);
       if (savedThemeId) {
-        if (savedThemeId === 'dark' || savedThemeId === 'light' || savedThemeId === 'ircap') {
+        if (
+          savedThemeId === 'dark' ||
+          savedThemeId === 'light' ||
+          savedThemeId === 'ircap'
+        ) {
           if (savedThemeId === 'dark') {
             this.currentTheme = DARK_THEME;
           } else if (savedThemeId === 'light') {
@@ -286,7 +299,9 @@ class ThemeService {
         } else {
           // Try to load custom theme
           await this.loadCustomThemes();
-          const customTheme = this.customThemes.find(themeItem => themeItem.id === savedThemeId);
+          const customTheme = this.customThemes.find(
+            themeItem => themeItem.id === savedThemeId,
+          );
           if (customTheme) {
             this.currentTheme = customTheme;
           }
@@ -322,7 +337,10 @@ class ThemeService {
 
   private async saveCustomThemes(): Promise<void> {
     try {
-      await AsyncStorage.setItem(this.CUSTOM_THEMES_KEY, JSON.stringify(this.customThemes));
+      await AsyncStorage.setItem(
+        this.CUSTOM_THEMES_KEY,
+        JSON.stringify(this.customThemes),
+      );
     } catch (error) {
       console.error('Failed to save custom themes:', error);
     }
@@ -347,15 +365,19 @@ class ThemeService {
    * Proverava da li trenutna tema ima preporučena podešavanja
    */
   hasRecommendedSettings(): boolean {
-    return !!this.currentTheme.recommendedSettings && 
-           Object.keys(this.currentTheme.recommendedSettings).length > 0;
+    return (
+      !!this.currentTheme.recommendedSettings &&
+      Object.keys(this.currentTheme.recommendedSettings).length > 0
+    );
   }
 
   /**
    * Postavlja temu i opciono vraća preporučena podešavanja za primenu
    * @returns Preporučena podešavanja za temu (ako postoje)
    */
-  async setTheme(themeId: string): Promise<ThemeRecommendedSettings | undefined> {
+  async setTheme(
+    themeId: string,
+  ): Promise<ThemeRecommendedSettings | undefined> {
     if (themeId === 'dark') {
       this.currentTheme = this.normalizeTheme(DARK_THEME);
     } else if (themeId === 'light') {
@@ -363,7 +385,9 @@ class ThemeService {
     } else if (themeId === 'ircap') {
       this.currentTheme = this.normalizeTheme(IRCAP_THEME);
     } else {
-      const customTheme = this.customThemes.find(themeItem => themeItem.id === themeId);
+      const customTheme = this.customThemes.find(
+        themeItem => themeItem.id === themeId,
+      );
       if (customTheme) {
         this.currentTheme = this.normalizeTheme(customTheme);
       } else {
@@ -379,7 +403,7 @@ class ThemeService {
     }
 
     this.notifyListeners();
-    
+
     // Vraća preporučena podešavanja koja UI može primeniti
     return this.currentTheme.recommendedSettings;
   }
@@ -396,7 +420,10 @@ class ThemeService {
     return this.customThemes;
   }
 
-  async createCustomTheme(name: string, baseThemeId: string = 'dark'): Promise<Theme> {
+  async createCustomTheme(
+    name: string,
+    baseThemeId: string = 'dark',
+  ): Promise<Theme> {
     const baseTheme = baseThemeId === 'dark' ? DARK_THEME : LIGHT_THEME;
     const newTheme: Theme = {
       id: `custom_${Date.now()}`,
@@ -413,8 +440,13 @@ class ThemeService {
     return newTheme;
   }
 
-  async updateCustomTheme(themeId: string, updates: Partial<Theme>): Promise<boolean> {
-    const themeIndex = this.customThemes.findIndex(themeItem => themeItem.id === themeId);
+  async updateCustomTheme(
+    themeId: string,
+    updates: Partial<Theme>,
+  ): Promise<boolean> {
+    const themeIndex = this.customThemes.findIndex(
+      themeItem => themeItem.id === themeId,
+    );
     if (themeIndex === -1) {
       return false;
     }
@@ -428,10 +460,15 @@ class ThemeService {
         ...this.customThemes[themeIndex].colors,
         ...updates.colors,
       };
-      this.customThemes[themeIndex].colors = this.normalizeThemeColors(this.customThemes[themeIndex].colors);
+      this.customThemes[themeIndex].colors = this.normalizeThemeColors(
+        this.customThemes[themeIndex].colors,
+      );
     }
     if (updates.messageFormats) {
-      this.customThemes[themeIndex].messageFormats = this.normalizeMessageFormats(cloneMessageFormats(updates.messageFormats));
+      this.customThemes[themeIndex].messageFormats =
+        this.normalizeMessageFormats(
+          cloneMessageFormats(updates.messageFormats),
+        );
     }
 
     await this.saveCustomThemes();
@@ -446,7 +483,9 @@ class ThemeService {
   }
 
   async deleteCustomTheme(themeId: string): Promise<boolean> {
-    const themeIndex = this.customThemes.findIndex(themeItem => themeItem.id === themeId);
+    const themeIndex = this.customThemes.findIndex(
+      themeItem => themeItem.id === themeId,
+    );
     if (themeIndex === -1) {
       return false;
     }
@@ -521,7 +560,9 @@ class ThemeService {
   /**
    * Import a theme from JSON string
    */
-  async importTheme(jsonString: string): Promise<{ success: boolean; theme?: Theme; error?: string }> {
+  async importTheme(
+    jsonString: string,
+  ): Promise<{ success: boolean; theme?: Theme; error?: string }> {
     try {
       const data = JSON.parse(jsonString);
 
@@ -532,12 +573,19 @@ class ThemeService {
 
       // Validate that colors object has required keys
       const requiredKeys: (keyof ThemeColors)[] = [
-        'background', 'surface', 'text', 'primary', 'messageText',
+        'background',
+        'surface',
+        'text',
+        'primary',
+        'messageText',
       ];
 
       for (const key of requiredKeys) {
         if (!data.theme.colors[key]) {
-          return { success: false, error: t('Theme is missing required color: {key}', { key }) };
+          return {
+            success: false,
+            error: t('Theme is missing required color: {key}', { key }),
+          };
         }
       }
 
@@ -552,12 +600,15 @@ class ThemeService {
           ...baseTheme.colors, // Default values
           ...data.theme.colors, // Imported values override defaults
         },
-        messageFormats: this.normalizeMessageFormats(cloneMessageFormats(data.theme.messageFormats)),
+        messageFormats: this.normalizeMessageFormats(
+          cloneMessageFormats(data.theme.messageFormats),
+        ),
       };
 
       // Check if a theme with the same name exists
       const existingIndex = this.customThemes.findIndex(
-        themeItem => themeItem.name.toLowerCase() === newTheme.name.toLowerCase()
+        themeItem =>
+          themeItem.name.toLowerCase() === newTheme.name.toLowerCase(),
       );
 
       if (existingIndex !== -1) {
@@ -574,9 +625,10 @@ class ThemeService {
       console.error('Failed to import theme:', error);
       return {
         success: false,
-        error: error instanceof SyntaxError
-          ? t('Invalid JSON format')
-          : t('Failed to import theme'),
+        error:
+          error instanceof SyntaxError
+            ? t('Invalid JSON format')
+            : t('Failed to import theme'),
       };
     }
   }
@@ -590,4 +642,3 @@ class ThemeService {
 }
 
 export const themeService = new ThemeService();
-

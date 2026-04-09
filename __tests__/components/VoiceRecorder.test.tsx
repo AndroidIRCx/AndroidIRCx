@@ -16,7 +16,8 @@ const mockSetSubscriptionDuration = jest.fn();
 
 jest.mock('../../src/services/MediaSettingsService', () => ({
   mediaSettingsService: {
-    getVoiceMaxDuration: (...args: unknown[]) => mockGetVoiceMaxDuration(...args),
+    getVoiceMaxDuration: (...args: unknown[]) =>
+      mockGetVoiceMaxDuration(...args),
   },
 }));
 
@@ -31,9 +32,12 @@ jest.mock('react-native-video', () => 'Video');
 jest.mock('react-native-nitro-sound', () => ({
   __esModule: true,
   default: {
-    setSubscriptionDuration: (...args: unknown[]) => mockSetSubscriptionDuration(...args),
-    addRecordBackListener: (...args: unknown[]) => mockAddRecordBackListener(...args),
-    removeRecordBackListener: (...args: unknown[]) => mockRemoveRecordBackListener(...args),
+    setSubscriptionDuration: (...args: unknown[]) =>
+      mockSetSubscriptionDuration(...args),
+    addRecordBackListener: (...args: unknown[]) =>
+      mockAddRecordBackListener(...args),
+    removeRecordBackListener: (...args: unknown[]) =>
+      mockRemoveRecordBackListener(...args),
     startRecorder: (...args: unknown[]) => mockStartRecorder(...args),
     stopRecorder: (...args: unknown[]) => mockStopRecorder(...args),
   },
@@ -58,7 +62,8 @@ jest.mock('../../src/hooks/useTheme', () => ({
 
 jest.mock('../../src/i18n/transifex', () => ({
   useT: () => (key: string, params?: Record<string, any>) => {
-    if (key === 'Max duration: {duration} seconds') return `Max duration: ${params?.duration} seconds`;
+    if (key === 'Max duration: {duration} seconds')
+      return `Max duration: ${params?.duration} seconds`;
     return key;
   },
 }));
@@ -76,17 +81,24 @@ describe('VoiceRecorder', () => {
     });
     mockStartRecorder.mockResolvedValue('/cache/voice_1.m4a');
     mockStopRecorder.mockResolvedValue('/cache/voice_1.m4a');
-    jest.spyOn(PermissionsAndroid, 'request').mockResolvedValue(PermissionsAndroid.RESULTS.GRANTED);
+    jest
+      .spyOn(PermissionsAndroid, 'request')
+      .mockResolvedValue(PermissionsAndroid.RESULTS.GRANTED);
   });
 
   it('records, stops and sends recording', async () => {
     const onRecordingComplete = jest.fn();
 
     const { getByText, UNSAFE_getAllByType } = render(
-      <VoiceRecorder onRecordingComplete={onRecordingComplete} onCancel={jest.fn()} />
+      <VoiceRecorder
+        onRecordingComplete={onRecordingComplete}
+        onCancel={jest.fn()}
+      />,
     );
 
-    const touchables = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const touchables = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
     fireEvent(touchables[0], 'pressIn');
 
     await waitFor(() => {
@@ -114,7 +126,7 @@ describe('VoiceRecorder', () => {
 
     expect(onRecordingComplete).toHaveBeenCalledWith(
       expect.stringContaining('/cache/voice_1.m4a'),
-      2
+      2,
     );
   });
 
@@ -122,7 +134,7 @@ describe('VoiceRecorder', () => {
     const onCancel = jest.fn();
 
     const { getByText } = render(
-      <VoiceRecorder onRecordingComplete={jest.fn()} onCancel={onCancel} />
+      <VoiceRecorder onRecordingComplete={jest.fn()} onCancel={onCancel} />,
     );
 
     fireEvent.press(getByText('Cancel'));
@@ -135,10 +147,12 @@ describe('VoiceRecorder', () => {
       .mockResolvedValueOnce(PermissionsAndroid.RESULTS.DENIED);
 
     const { UNSAFE_getAllByType, getByText } = render(
-      <VoiceRecorder onRecordingComplete={jest.fn()} onCancel={jest.fn()} />
+      <VoiceRecorder onRecordingComplete={jest.fn()} onCancel={jest.fn()} />,
     );
 
-    const touchables = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const touchables = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
     fireEvent(touchables[0], 'pressIn');
 
     if (Platform.OS === 'android') {
@@ -160,10 +174,15 @@ describe('VoiceRecorder', () => {
     const onRecordingComplete = jest.fn();
 
     const { getByText, UNSAFE_getAllByType } = render(
-      <VoiceRecorder onRecordingComplete={onRecordingComplete} onCancel={jest.fn()} />
+      <VoiceRecorder
+        onRecordingComplete={onRecordingComplete}
+        onCancel={jest.fn()}
+      />,
     );
 
-    const touchables = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const touchables = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
     fireEvent(touchables[0], 'pressIn');
 
     await waitFor(() => {
@@ -183,15 +202,19 @@ describe('VoiceRecorder', () => {
     });
 
     expect(onRecordingComplete).not.toHaveBeenCalled();
-    expect(getByText('Recording file not found. Please record again.')).toBeTruthy();
+    expect(
+      getByText('Recording file not found. Please record again.'),
+    ).toBeTruthy();
   });
 
   it('deletes recorded file and returns to idle state', async () => {
     const { getByText, UNSAFE_getAllByType } = render(
-      <VoiceRecorder onRecordingComplete={jest.fn()} onCancel={jest.fn()} />
+      <VoiceRecorder onRecordingComplete={jest.fn()} onCancel={jest.fn()} />,
     );
 
-    const touchables = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const touchables = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
     fireEvent(touchables[0], 'pressIn');
 
     await waitFor(() => {

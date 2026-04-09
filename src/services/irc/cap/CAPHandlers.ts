@@ -61,7 +61,9 @@ export class CAPHandlers {
           const [name, value] = cap.split('=');
           if (name) {
             this.ctx.capAvailable.add(name);
-            this.ctx.logRaw(`IRCService: CAP available: ${name}${value ? '='+value : ''}`);
+            this.ctx.logRaw(
+              `IRCService: CAP available: ${name}${value ? '=' + value : ''}`,
+            );
           }
         });
 
@@ -94,14 +96,22 @@ export class CAPHandlers {
         });
 
         const forceSASL = this.ctx.config?.sasl?.force === true;
-        const saslAcknowledged = this.ctx.capEnabledSet.has('sasl') || forceSASL;
-        if ((this.ctx.config?.sasl || (this.ctx.config?.clientCert && this.ctx.config?.clientKey)) &&
-            saslAcknowledged &&
-            !this.ctx.getSaslAuthenticating()) {
+        const saslAcknowledged =
+          this.ctx.capEnabledSet.has('sasl') || forceSASL;
+        if (
+          (this.ctx.config?.sasl ||
+            (this.ctx.config?.clientCert && this.ctx.config?.clientKey)) &&
+          saslAcknowledged &&
+          !this.ctx.getSaslAuthenticating()
+        ) {
           if (forceSASL && !this.ctx.capEnabledSet.has('sasl')) {
-            this.ctx.logRaw('IRCService: Force SASL enabled, starting authentication');
+            this.ctx.logRaw(
+              'IRCService: Force SASL enabled, starting authentication',
+            );
           } else {
-            this.ctx.logRaw('IRCService: SASL capability acknowledged, will start authentication');
+            this.ctx.logRaw(
+              'IRCService: SASL capability acknowledged, will start authentication',
+            );
           }
           setTimeout(() => this.ctx.startSASL(), 50);
           return;
@@ -112,7 +122,12 @@ export class CAPHandlers {
       }
 
       case 'NAK': {
-        const nakCaps = actualParams.slice(1).join(' ').replace(/^:/, '').split(/\s+/).filter(c => c);
+        const nakCaps = actualParams
+          .slice(1)
+          .join(' ')
+          .replace(/^:/, '')
+          .split(/\s+/)
+          .filter(c => c);
         nakCaps.forEach(cap => {
           this.ctx.logRaw(`IRCService: CAP rejected: ${cap}`);
           this.ctx.capRequested.delete(cap);
@@ -130,17 +145,25 @@ export class CAPHandlers {
           if (capName) {
             this.ctx.capAvailable.add(capName);
             newCapNames.push(capName);
-            this.ctx.logRaw(`IRCService: CAP NEW: ${capName}${capValue ? '='+capValue : ''}`);
+            this.ctx.logRaw(
+              `IRCService: CAP NEW: ${capName}${capValue ? '=' + capValue : ''}`,
+            );
           }
         });
         this.ctx.emit('capabilities', Array.from(this.ctx.capAvailable));
 
         // SASL re-auth: if server newly advertises sasl and we have credentials, re-authenticate
         if (newCapNames.includes('sasl') && !this.ctx.getSaslAuthenticating()) {
-          const hasSaslConfig = !!this.ctx.config?.sasl?.account && !!this.ctx.config?.sasl?.password;
-          const hasCert = !!(this.ctx.config?.clientCert && this.ctx.config?.clientKey);
+          const hasSaslConfig =
+            !!this.ctx.config?.sasl?.account &&
+            !!this.ctx.config?.sasl?.password;
+          const hasCert = !!(
+            this.ctx.config?.clientCert && this.ctx.config?.clientKey
+          );
           if (hasSaslConfig || hasCert) {
-            this.ctx.logRaw('IRCService: SASL re-auth: server advertised sasl via CAP NEW, re-authenticating');
+            this.ctx.logRaw(
+              'IRCService: SASL re-auth: server advertised sasl via CAP NEW, re-authenticating',
+            );
             this.ctx.capRequested.add('sasl');
             this.ctx.sendRaw('CAP REQ :sasl');
           }

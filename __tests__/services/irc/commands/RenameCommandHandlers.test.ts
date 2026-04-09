@@ -37,20 +37,35 @@ describe('RenameCommandHandlers', () => {
   describe('handleRENAME', () => {
     it('emits channel-renamed event', () => {
       handleRENAME(ctx, '', ['#old', '#new', 'Merge'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('channel-renamed', '#old', '#new', 'Merge');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'channel-renamed',
+        '#old',
+        '#new',
+        'Merge',
+      );
     });
 
     it('adds raw message about rename', () => {
       handleRENAME(ctx, '', ['#old', '#new', 'reason'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', channel: '#old', isRaw: true, rawCategory: 'server' })
+        expect.objectContaining({
+          type: 'raw',
+          channel: '#old',
+          isRaw: true,
+          rawCategory: 'server',
+        }),
       );
     });
 
     it('adds message without reason when reason empty', () => {
       handleRENAME(ctx, '', ['#old', '#new', ''], Date.now());
       expect(ctx.addMessage).toHaveBeenCalled();
-      expect(ctx.emit).toHaveBeenCalledWith('channel-renamed', '#old', '#new', '');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'channel-renamed',
+        '#old',
+        '#new',
+        '',
+      );
     });
 
     it('returns early when no oldChannel', () => {
@@ -95,7 +110,12 @@ describe('RenameCommandHandlers', () => {
 
     it('handles params without reason', () => {
       handleRENAME(ctx, '', ['#old', '#new'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('channel-renamed', '#old', '#new', '');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'channel-renamed',
+        '#old',
+        '#new',
+        '',
+      );
     });
   });
 });

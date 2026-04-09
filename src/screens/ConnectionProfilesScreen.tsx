@@ -17,8 +17,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
-import { settingsService, IRCNetworkConfig, IRCServerConfig } from '../services/SettingsService';
-import { identityProfilesService, IdentityProfile } from '../services/IdentityProfilesService';
+import {
+  settingsService,
+  IRCNetworkConfig,
+  IRCServerConfig,
+} from '../services/SettingsService';
+import {
+  identityProfilesService,
+  IdentityProfile,
+} from '../services/IdentityProfilesService';
 import { NetworkSettingsScreen } from './NetworkSettingsScreen';
 import { ServerSettingsScreen } from './ServerSettingsScreen';
 import { useT } from '../i18n/transifex';
@@ -29,24 +36,32 @@ interface ConnectionProfilesScreenProps {
   onClose: () => void;
 }
 
-export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> = ({
-  visible,
-  onClose,
-}) => {
+export const ConnectionProfilesScreen: React.FC<
+  ConnectionProfilesScreenProps
+> = ({ visible, onClose }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const t = useT();
-  const tags = 'screen:connection-profiles,file:ConnectionProfilesScreen.tsx,feature:connection-profiles';
+  const tags =
+    'screen:connection-profiles,file:ConnectionProfilesScreen.tsx,feature:connection-profiles';
   const [networks, setNetworks] = useState<IRCNetworkConfig[]>([]);
-  const [identityProfiles, setIdentityProfiles] = useState<IdentityProfile[]>([]);
-  const [expandedNetworkId, setExpandedNetworkId] = useState<string | null>(null);
+  const [identityProfiles, setIdentityProfiles] = useState<IdentityProfile[]>(
+    [],
+  );
+  const [expandedNetworkId, setExpandedNetworkId] = useState<string | null>(
+    null,
+  );
   const [editingNetworkId, setEditingNetworkId] = useState<string | null>(null);
   const [showNetworkEditor, setShowNetworkEditor] = useState(false);
   const [editingServerId, setEditingServerId] = useState<string | null>(null);
-  const [editingServerNetworkId, setEditingServerNetworkId] = useState<string | null>(null);
+  const [editingServerNetworkId, setEditingServerNetworkId] = useState<
+    string | null
+  >(null);
   const [showServerEditor, setShowServerEditor] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
-  const [selectedNetworkForIdentity, setSelectedNetworkForIdentity] = useState<string | null>(null);
+  const [selectedNetworkForIdentity, setSelectedNetworkForIdentity] = useState<
+    string | null
+  >(null);
   const [editProfileName, setEditProfileName] = useState('');
   const [editProfileNick, setEditProfileNick] = useState('');
   const [editProfileAltNick, setEditProfileAltNick] = useState('');
@@ -54,11 +69,15 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
   const [editProfileIdent, setEditProfileIdent] = useState('');
   const [editProfileSaslAccount, setEditProfileSaslAccount] = useState('');
   const [editProfileSaslPassword, setEditProfileSaslPassword] = useState('');
-  const [editProfileSaslMechanism, setEditProfileSaslMechanism] = useState<'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS'>('PLAIN');
-  const [editProfileNickservPassword, setEditProfileNickservPassword] = useState('');
+  const [editProfileSaslMechanism, setEditProfileSaslMechanism] = useState<
+    'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS'
+  >('PLAIN');
+  const [editProfileNickservPassword, setEditProfileNickservPassword] =
+    useState('');
   const [editProfileOperUser, setEditProfileOperUser] = useState('');
   const [editProfileOperPassword, setEditProfileOperPassword] = useState('');
-  const [editProfileOnConnectCommands, setEditProfileOnConnectCommands] = useState('');
+  const [editProfileOnConnectCommands, setEditProfileOnConnectCommands] =
+    useState('');
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingIdentityProfile, setIsSavingIdentityProfile] = useState(false);
@@ -76,7 +95,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
       console.error('Failed to load data:', error);
       Alert.alert(
         t('Error', { _tags: tags }),
-        t('Failed to load networks and profiles', { _tags: tags })
+        t('Failed to load networks and profiles', { _tags: tags }),
       );
     } finally {
       setIsLoading(false);
@@ -89,28 +108,42 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
     }
   }, [visible, loadData]);
 
-  const handleConnectionTypeChange = async (networkId: string, connectionType: 'irc' | 'znc' | 'bnc') => {
+  const handleConnectionTypeChange = async (
+    networkId: string,
+    connectionType: 'irc' | 'znc' | 'bnc',
+  ) => {
     try {
-      await settingsService.updateNetworkProfile(networkId, connectionType, undefined);
+      await settingsService.updateNetworkProfile(
+        networkId,
+        connectionType,
+        undefined,
+      );
       await loadData();
     } catch (error) {
       console.error('Failed to update connection type:', error);
       Alert.alert(
         t('Error', { _tags: tags }),
-        t('Failed to update connection type', { _tags: tags })
+        t('Failed to update connection type', { _tags: tags }),
       );
     }
   };
 
-  const handleIdentityProfileChange = async (networkId: string, identityProfileId: string) => {
+  const handleIdentityProfileChange = async (
+    networkId: string,
+    identityProfileId: string,
+  ) => {
     try {
-      await settingsService.updateNetworkProfile(networkId, undefined, identityProfileId);
+      await settingsService.updateNetworkProfile(
+        networkId,
+        undefined,
+        identityProfileId,
+      );
       await loadData();
     } catch (error) {
       console.error('Failed to update identity profile:', error);
       Alert.alert(
         t('Error', { _tags: tags }),
-        t('Failed to update identity profile', { _tags: tags })
+        t('Failed to update identity profile', { _tags: tags }),
       );
     }
   };
@@ -139,7 +172,7 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
       console.error('Failed to save network changes:', error);
       Alert.alert(
         t('Error', { _tags: tags }),
-        t('Failed to save network changes', { _tags: tags })
+        t('Failed to save network changes', { _tags: tags }),
       );
     } finally {
       setShowNetworkEditor(false);
@@ -157,14 +190,17 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
           updatedServer,
         );
       } else {
-        await settingsService.addServerToNetwork(editingServerNetworkId, updatedServer);
+        await settingsService.addServerToNetwork(
+          editingServerNetworkId,
+          updatedServer,
+        );
       }
       await loadData();
     } catch (error) {
       console.error('Failed to save server changes:', error);
       Alert.alert(
         t('Error', { _tags: tags }),
-        t('Failed to save server changes', { _tags: tags })
+        t('Failed to save server changes', { _tags: tags }),
       );
     } finally {
       setShowServerEditor(false);
@@ -176,7 +212,10 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
   const handleDeleteNetwork = (network: IRCNetworkConfig) => {
     Alert.alert(
       t('Delete Network', { _tags: tags }),
-      t('Are you sure you want to delete "{networkName}"? This cannot be undone.', { networkName: network.name, _tags: tags }),
+      t(
+        'Are you sure you want to delete "{networkName}"? This cannot be undone.',
+        { networkName: network.name, _tags: tags },
+      ),
       [
         { text: t('Cancel', { _tags: tags }), style: 'cancel' },
         {
@@ -191,27 +230,33 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
               console.error('Failed to delete network:', error);
               Alert.alert(
                 t('Error', { _tags: tags }),
-                t('Failed to delete network', { _tags: tags })
+                t('Failed to delete network', { _tags: tags }),
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
-  const handleDeleteServer = (network: IRCNetworkConfig, server: IRCServerConfig) => {
+  const handleDeleteServer = (
+    network: IRCNetworkConfig,
+    server: IRCServerConfig,
+  ) => {
     if (network.servers.length <= 1) {
       Alert.alert(
         t('Cannot Delete Server', { _tags: tags }),
-        t('Each network must have at least one server.', { _tags: tags })
+        t('Each network must have at least one server.', { _tags: tags }),
       );
       return;
     }
     const serverLabel = server.name || server.hostname;
     Alert.alert(
       t('Delete Server', { _tags: tags }),
-      t('Are you sure you want to delete "{serverName}"?', { serverName: serverLabel, _tags: tags }),
+      t('Are you sure you want to delete "{serverName}"?', {
+        serverName: serverLabel,
+        _tags: tags,
+      }),
       [
         { text: t('Cancel', { _tags: tags }), style: 'cancel' },
         {
@@ -219,22 +264,28 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
           style: 'destructive',
           onPress: async () => {
             try {
-              await settingsService.deleteServerFromNetwork(network.id, server.id);
+              await settingsService.deleteServerFromNetwork(
+                network.id,
+                server.id,
+              );
               await loadData();
             } catch (error) {
               console.error('Failed to delete server:', error);
               Alert.alert(
                 t('Error', { _tags: tags }),
-                t('Failed to delete server', { _tags: tags })
+                t('Failed to delete server', { _tags: tags }),
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
-  const openIdentityProfileModal = (profile?: IdentityProfile, networkId?: string) => {
+  const openIdentityProfileModal = (
+    profile?: IdentityProfile,
+    networkId?: string,
+  ) => {
     setEditingProfileId(profile?.id || null);
     setSelectedNetworkForIdentity(networkId || null);
     setEditProfileName(profile?.name || '');
@@ -248,7 +299,9 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
     setEditProfileNickservPassword(profile?.nickservPassword || '');
     setEditProfileOperUser(profile?.operUser || '');
     setEditProfileOperPassword(profile?.operPassword || '');
-    setEditProfileOnConnectCommands((profile?.onConnectCommands || []).join('\n'));
+    setEditProfileOnConnectCommands(
+      (profile?.onConnectCommands || []).join('\n'),
+    );
     setShowEditProfileModal(true);
   };
 
@@ -258,7 +311,10 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
 
     Alert.alert(
       t('Delete', { _tags: tags }),
-      t('Are you sure you want to delete "{name}"? This cannot be undone.', { name: profile.name, _tags: tags }),
+      t('Are you sure you want to delete "{name}"? This cannot be undone.', {
+        name: profile.name,
+        _tags: tags,
+      }),
       [
         { text: t('Cancel', { _tags: tags }), style: 'cancel' },
         {
@@ -267,13 +323,17 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
           onPress: async () => {
             try {
               const allProfiles = await identityProfilesService.list();
-              const fallbackProfile = allProfiles.find(p => p.id !== profile.id);
-              const affectedNetworks = networks.filter(n => n.identityProfileId === profile.id);
+              const fallbackProfile = allProfiles.find(
+                p => p.id !== profile.id,
+              );
+              const affectedNetworks = networks.filter(
+                n => n.identityProfileId === profile.id,
+              );
               for (const network of affectedNetworks) {
                 await settingsService.updateNetworkProfile(
                   network.id,
                   undefined,
-                  fallbackProfile ? fallbackProfile.id : null
+                  fallbackProfile ? fallbackProfile.id : null,
                 );
               }
               await identityProfilesService.remove(profile.id);
@@ -285,12 +345,12 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
               console.error('Failed to delete identity profile:', error);
               Alert.alert(
                 t('Error', { _tags: tags }),
-                t('Failed to delete identity profile', { _tags: tags })
+                t('Failed to delete identity profile', { _tags: tags }),
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -300,15 +360,18 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
 
   const renderNetworkItem = ({ item }: { item: IRCNetworkConfig }) => {
     const isExpanded = expandedNetworkId === item.id;
-    const currentIdentityProfile = identityProfiles.find(p => p.id === item.identityProfileId);
+    const currentIdentityProfile = identityProfiles.find(
+      p => p.id === item.identityProfileId,
+    );
     const connectionTypes: Array<'irc' | 'znc' | 'bnc'> = ['irc', 'znc', 'bnc'];
 
     return (
       <View style={styles.networkCard}>
         <TouchableOpacity
           style={styles.networkHeader}
-          onPress={() => toggleNetworkExpanded(item.id)}>
-            <View style={styles.networkHeaderContent}>
+          onPress={() => toggleNetworkExpanded(item.id)}
+        >
+          <View style={styles.networkHeaderContent}>
             <Text style={styles.networkName}>{item.name}</Text>
             <Text style={styles.networkServers}>
               {item.servers.length}{' '}
@@ -327,35 +390,58 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
               onPress={() => {
                 setEditingNetworkId(item.id);
                 setShowNetworkEditor(true);
-              }}>
-              <Text style={[styles.editButtonText, { color: colors.onPrimary }]}>
+              }}
+            >
+              <Text
+                style={[styles.editButtonText, { color: colors.onPrimary }]}
+              >
                 {t('Edit Network Settings', { _tags: tags })}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.deleteButton, { backgroundColor: colors.error }]}
-              onPress={() => handleDeleteNetwork(item)}>
-              <Text style={[styles.deleteButtonText, { color: colors.onPrimary }]}>
+              onPress={() => handleDeleteNetwork(item)}
+            >
+              <Text
+                style={[styles.deleteButtonText, { color: colors.onPrimary }]}
+              >
                 {t('Delete Network', { _tags: tags })}
               </Text>
             </TouchableOpacity>
 
             <View style={styles.pickerSection}>
-              <Text style={styles.pickerLabel}>{t('Connection Type', { _tags: tags })}</Text>
+              <Text style={styles.pickerLabel}>
+                {t('Connection Type', { _tags: tags })}
+              </Text>
               <View style={styles.buttonGroup}>
-                {connectionTypes.map((type) => (
+                {connectionTypes.map(type => (
                   <TouchableOpacity
                     key={type}
                     style={[
                       styles.optionButton,
-                      (item.connectionType || 'irc') === type && styles.optionButtonActive,
-                      { borderColor: colors.border, backgroundColor: (item.connectionType || 'irc') === type ? colors.primary : colors.surface }
+                      (item.connectionType || 'irc') === type &&
+                        styles.optionButtonActive,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor:
+                          (item.connectionType || 'irc') === type
+                            ? colors.primary
+                            : colors.surface,
+                      },
                     ]}
-                    onPress={() => handleConnectionTypeChange(item.id, type)}>
-                    <Text style={[
-                      styles.optionButtonText,
-                      { color: (item.connectionType || 'irc') === type ? colors.onPrimary : colors.text }
-                    ]}>
+                    onPress={() => handleConnectionTypeChange(item.id, type)}
+                  >
+                    <Text
+                      style={[
+                        styles.optionButtonText,
+                        {
+                          color:
+                            (item.connectionType || 'irc') === type
+                              ? colors.onPrimary
+                              : colors.text,
+                        },
+                      ]}
+                    >
                       {type.toUpperCase()}
                     </Text>
                   </TouchableOpacity>
@@ -364,46 +450,92 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
             </View>
 
             <View style={styles.pickerSection}>
-              <Text style={styles.pickerLabel}>{t('Identity Profile', { _tags: tags })}</Text>
+              <Text style={styles.pickerLabel}>
+                {t('Identity Profile', { _tags: tags })}
+              </Text>
               <View style={styles.identityHeaderRow}>
                 <TouchableOpacity
-                  style={[styles.addProfileButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                  onPress={() => openIdentityProfileModal(undefined, item.id)}>
-                <Text style={[styles.addProfileButtonText, { color: colors.text }]}>
-                  {t('+ Add / Edit Identity', { _tags: tags })}
-                </Text>
+                  style={[
+                    styles.addProfileButton,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  onPress={() => openIdentityProfileModal(undefined, item.id)}
+                >
+                  <Text
+                    style={[
+                      styles.addProfileButtonText,
+                      { color: colors.text },
+                    ]}
+                  >
+                    {t('+ Add / Edit Identity', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
               </View>
               <ScrollView
                 style={styles.profileList}
                 horizontal={false}
                 nestedScrollEnabled
-                showsVerticalScrollIndicator={true}>
-                {identityProfiles.map((profile) => (
+                showsVerticalScrollIndicator={true}
+              >
+                {identityProfiles.map(profile => (
                   <View
                     key={profile.id}
                     style={[
                       styles.profileButton,
-                      item.identityProfileId === profile.id && styles.profileButtonActive,
-                      { borderColor: colors.border, backgroundColor: item.identityProfileId === profile.id ? colors.primary : colors.surface }
-                    ]}>
+                      item.identityProfileId === profile.id &&
+                        styles.profileButtonActive,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor:
+                          item.identityProfileId === profile.id
+                            ? colors.primary
+                            : colors.surface,
+                      },
+                    ]}
+                  >
                     <TouchableOpacity
                       style={{ flex: 1 }}
-                      onPress={() => handleIdentityProfileChange(item.id, profile.id)}>
-                      <Text style={[
-                        styles.profileButtonText,
-                        { color: item.identityProfileId === profile.id ? colors.onPrimary : colors.text }
-                      ]}>
+                      onPress={() =>
+                        handleIdentityProfileChange(item.id, profile.id)
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.profileButtonText,
+                          {
+                            color:
+                              item.identityProfileId === profile.id
+                                ? colors.onPrimary
+                                : colors.text,
+                          },
+                        ]}
+                      >
                         {profile.name}
                       </Text>
                     </TouchableOpacity>
                     {item.identityProfileId === profile.id && (
-                      <Text style={[styles.checkMark, { color: colors.onPrimary }]}>✓</Text>
+                      <Text
+                        style={[styles.checkMark, { color: colors.onPrimary }]}
+                      >
+                        ✓
+                      </Text>
                     )}
                     <TouchableOpacity
-                      style={[styles.editProfileIconButton, { backgroundColor: colors.primary }]}
-                      onPress={() => openIdentityProfileModal(profile, item.id)}>
-                      <Text style={[styles.editProfileIconButtonText, { color: colors.onPrimary }]}>
+                      style={[
+                        styles.editProfileIconButton,
+                        { backgroundColor: colors.primary },
+                      ]}
+                      onPress={() => openIdentityProfileModal(profile, item.id)}
+                    >
+                      <Text
+                        style={[
+                          styles.editProfileIconButtonText,
+                          { color: colors.onPrimary },
+                        ]}
+                      >
                         {t('Edit', { _tags: tags })}
                       </Text>
                     </TouchableOpacity>
@@ -413,26 +545,38 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
             </View>
 
             <View style={styles.serversSection}>
-              <Text style={styles.serversSectionTitle}>{t('Servers', { _tags: tags })}</Text>
+              <Text style={styles.serversSectionTitle}>
+                {t('Servers', { _tags: tags })}
+              </Text>
               <TouchableOpacity
-                style={[styles.addServerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={[
+                  styles.addServerButton,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+                ]}
                 onPress={() => {
                   setEditingServerId(null);
                   setEditingServerNetworkId(item.id);
                   setShowServerEditor(true);
-                }}>
-                <Text style={[styles.addServerButtonText, { color: colors.text }]}>
+                }}
+              >
+                <Text
+                  style={[styles.addServerButtonText, { color: colors.text }]}
+                >
                   {t('+ Add Server', { _tags: tags })}
                 </Text>
               </TouchableOpacity>
-              {item.servers.map((server) => (
+              {item.servers.map(server => (
                 <View key={server.id} style={styles.serverItem}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.serverName}>
                       {server.name || server.hostname}
                     </Text>
                     <Text style={styles.serverDetails}>
-                      {server.hostname}:{server.port} {server.ssl ? '(SSL)' : ''}
+                      {server.hostname}:{server.port}{' '}
+                      {server.ssl ? '(SSL)' : ''}
                     </Text>
                   </View>
                   {server.favorite && (
@@ -442,22 +586,38 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                     style={[
                       styles.deleteServerButton,
                       { backgroundColor: colors.error },
-                      item.servers.length <= 1 && styles.deleteServerButtonDisabled,
+                      item.servers.length <= 1 &&
+                        styles.deleteServerButtonDisabled,
                     ]}
                     onPress={() => handleDeleteServer(item, server)}
-                    disabled={item.servers.length <= 1}>
-                    <Text style={[styles.deleteServerButtonText, { color: colors.onPrimary }]}>
+                    disabled={item.servers.length <= 1}
+                  >
+                    <Text
+                      style={[
+                        styles.deleteServerButtonText,
+                        { color: colors.onPrimary },
+                      ]}
+                    >
                       {t('Delete', { _tags: tags })}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.editServerButton, { backgroundColor: colors.primary }]}
+                    style={[
+                      styles.editServerButton,
+                      { backgroundColor: colors.primary },
+                    ]}
                     onPress={() => {
                       setEditingServerId(server.id);
                       setEditingServerNetworkId(item.id);
                       setShowServerEditor(true);
-                    }}>
-                    <Text style={[styles.editServerButtonText, { color: colors.onPrimary }]}>
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.editServerButtonText,
+                        { color: colors.onPrimary },
+                      ]}
+                    >
                       {t('Edit', { _tags: tags })}
                     </Text>
                   </TouchableOpacity>
@@ -471,7 +631,10 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
               </Text>
               {item.altNick && (
                 <Text style={styles.infoLabel}>
-                  {t('Alt Nick: {altNick}', { altNick: item.altNick, _tags: tags })}
+                  {t('Alt Nick: {altNick}', {
+                    altNick: item.altNick,
+                    _tags: tags,
+                  })}
                 </Text>
               )}
               <Text style={styles.infoLabel}>
@@ -479,7 +642,10 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
               </Text>
               {currentIdentityProfile && (
                 <Text style={styles.infoLabel}>
-                  {t('Current Profile: {name}', { name: currentIdentityProfile.name, _tags: tags })}
+                  {t('Current Profile: {name}', {
+                    name: currentIdentityProfile.name,
+                    _tags: tags,
+                  })}
                 </Text>
               )}
             </View>
@@ -496,7 +662,8 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+    >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { backgroundColor: colors.primary }]}>
           <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
@@ -531,14 +698,19 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
           <FlatList
             data={networks}
             renderItem={renderNetworkItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
             style={styles.list}
             contentContainerStyle={styles.listContent}
             nestedScrollEnabled
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                  {t('No networks configured yet. Add a network to get started!', { _tags: tags })}
+                <Text
+                  style={[styles.emptyText, { color: colors.textSecondary }]}
+                >
+                  {t(
+                    'No networks configured yet. Add a network to get started!',
+                    { _tags: tags },
+                  )}
                 </Text>
               </View>
             }
@@ -578,9 +750,15 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
             setShowEditProfileModal(false);
             setEditingProfileId(null);
             setSelectedNetworkForIdentity(null);
-          }}>
+          }}
+        >
           <View style={styles.modalOverlay}>
-            <View style={[styles.editProfileModal, { backgroundColor: colors.background }]}>
+            <View
+              style={[
+                styles.editProfileModal,
+                { backgroundColor: colors.background },
+              ]}
+            >
               <ScrollView>
                 <Text style={[styles.modalTitle, { color: colors.text }]}>
                   {t('Edit Identity Profile', { _tags: tags })}
@@ -590,7 +768,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('Profile Name', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileName}
                   onChangeText={setEditProfileName}
                   placeholder={t('Profile Name', { _tags: tags })}
@@ -601,7 +786,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('Nick', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileNick}
                   onChangeText={setEditProfileNick}
                   placeholder={t('Nick', { _tags: tags })}
@@ -612,7 +804,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('Alt Nick', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileAltNick}
                   onChangeText={setEditProfileAltNick}
                   placeholder={t('Alt Nick', { _tags: tags })}
@@ -623,7 +822,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('Real Name', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileRealname}
                   onChangeText={setEditProfileRealname}
                   placeholder={t('Real Name', { _tags: tags })}
@@ -634,7 +840,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('Ident/Username', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileIdent}
                   onChangeText={setEditProfileIdent}
                   placeholder={t('Ident/Username', { _tags: tags })}
@@ -644,15 +857,34 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                 <Text style={[styles.inputLabel, { color: colors.text }]}>
                   {t('SASL Mechanism', { _tags: tags })}
                 </Text>
-                <View style={[styles.pickerContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+                <View
+                  style={[
+                    styles.pickerContainer,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor: colors.surface,
+                    },
+                  ]}
+                >
                   <Picker
                     selectedValue={editProfileSaslMechanism}
-                    onValueChange={(value) => setEditProfileSaslMechanism(value)}
+                    onValueChange={value => setEditProfileSaslMechanism(value)}
                     style={{ color: colors.text }}
                   >
-                    <Picker.Item label={t('PLAIN', { _tags: tags })} value="PLAIN" />
-                    <Picker.Item label={t('SCRAM-SHA-256', { _tags: tags })} value="SCRAM-SHA-256" />
-                    <Picker.Item label={t('SCRAM-SHA-256-PLUS (coming soon)', { _tags: tags })} value="SCRAM-SHA-256-PLUS" />
+                    <Picker.Item
+                      label={t('PLAIN', { _tags: tags })}
+                      value="PLAIN"
+                    />
+                    <Picker.Item
+                      label={t('SCRAM-SHA-256', { _tags: tags })}
+                      value="SCRAM-SHA-256"
+                    />
+                    <Picker.Item
+                      label={t('SCRAM-SHA-256-PLUS (coming soon)', {
+                        _tags: tags,
+                      })}
+                      value="SCRAM-SHA-256-PLUS"
+                    />
                   </Picker>
                 </View>
 
@@ -660,7 +892,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('SASL Account', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileSaslAccount}
                   onChangeText={setEditProfileSaslAccount}
                   placeholder={t('SASL Account', { _tags: tags })}
@@ -671,7 +910,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('SASL Password', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileSaslPassword}
                   onChangeText={setEditProfileSaslPassword}
                   placeholder={t('SASL Password', { _tags: tags })}
@@ -683,7 +929,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('NickServ Password', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileNickservPassword}
                   onChangeText={setEditProfileNickservPassword}
                   placeholder={t('NickServ Password', { _tags: tags })}
@@ -695,7 +948,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('Oper Username', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileOperUser}
                   onChangeText={setEditProfileOperUser}
                   placeholder={t('Defaults to nick', { _tags: tags })}
@@ -706,7 +966,14 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                   {t('Oper Password', { _tags: tags })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInput,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileOperPassword}
                   onChangeText={setEditProfileOperPassword}
                   placeholder={t('Oper Password', { _tags: tags })}
@@ -715,13 +982,24 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                 />
 
                 <Text style={[styles.inputLabel, { color: colors.text }]}>
-                  {t('On-Connect Commands (one per line, runs after MOTD)', { _tags: tags })}
+                  {t('On-Connect Commands (one per line, runs after MOTD)', {
+                    _tags: tags,
+                  })}
                 </Text>
                 <TextInput
-                  style={[styles.modalInputMultiline, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.modalInputMultiline,
+                    {
+                      backgroundColor: colors.surface,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   value={editProfileOnConnectCommands}
                   onChangeText={setEditProfileOnConnectCommands}
-                  placeholder={t('Example on-connect commands', { _tags: tags })}
+                  placeholder={t('Example on-connect commands', {
+                    _tags: tags,
+                  })}
                   placeholderTextColor={colors.textSecondary}
                   multiline
                   numberOfLines={4}
@@ -731,36 +1009,61 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
 
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
-                    style={[styles.modalButton, { backgroundColor: colors.buttonSecondary }]}
+                    style={[
+                      styles.modalButton,
+                      { backgroundColor: colors.buttonSecondary },
+                    ]}
                     disabled={isSavingIdentityProfile}
                     onPress={() => {
                       if (isSavingIdentityProfile) return;
                       setShowEditProfileModal(false);
                       setEditingProfileId(null);
                       setSelectedNetworkForIdentity(null);
-                    }}>
-                    <Text style={[styles.modalButtonText, { color: colors.buttonSecondaryText }]}>
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.modalButtonText,
+                        { color: colors.buttonSecondaryText },
+                      ]}
+                    >
                       Cancel
                     </Text>
                   </TouchableOpacity>
                   {editingProfileId && (
                     <TouchableOpacity
-                      style={[styles.modalButton, { backgroundColor: colors.error }]}
+                      style={[
+                        styles.modalButton,
+                        { backgroundColor: colors.error },
+                      ]}
                       disabled={isSavingIdentityProfile}
-                      onPress={() => handleDeleteIdentityProfile(editingProfileId)}>
-                      <Text style={[styles.modalButtonText, { color: colors.onPrimary }]}>
+                      onPress={() =>
+                        handleDeleteIdentityProfile(editingProfileId)
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.modalButtonText,
+                          { color: colors.onPrimary },
+                        ]}
+                      >
                         {t('Delete', { _tags: tags })}
                       </Text>
                     </TouchableOpacity>
                   )}
                   <TouchableOpacity
-                    style={[styles.modalButton, { backgroundColor: colors.buttonPrimary }]}
+                    style={[
+                      styles.modalButton,
+                      { backgroundColor: colors.buttonPrimary },
+                    ]}
                     onPress={async () => {
                       if (isSavingIdentityProfile) return;
                       if (!editProfileName.trim() || !editProfileNick.trim()) {
                         Alert.alert(
                           t('Error', { _tags: tags }),
-                          t('Profile name and nick are required', { _tags: tags })
+                          t('Profile name and nick are required', {
+                            _tags: tags,
+                          }),
                         );
                         return;
                       }
@@ -774,7 +1077,8 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                         saslAccount: editProfileSaslAccount.trim() || undefined,
                         saslPassword: editProfileSaslPassword || undefined,
                         saslMechanism: editProfileSaslMechanism,
-                        nickservPassword: editProfileNickservPassword || undefined,
+                        nickservPassword:
+                          editProfileNickservPassword || undefined,
                         operUser: editProfileOperUser.trim() || undefined,
                         operPassword: editProfileOperPassword || undefined,
                         onConnectCommands: editProfileOnConnectCommands
@@ -787,35 +1091,55 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
                         setIsSavingIdentityProfile(true);
                         let savedProfile: IdentityProfile | null = null;
                         if (editingProfileId) {
-                          await identityProfilesService.update(editingProfileId, payload);
+                          await identityProfilesService.update(
+                            editingProfileId,
+                            payload,
+                          );
                           const profiles = await identityProfilesService.list();
                           setIdentityProfiles(profiles);
-                          savedProfile = profiles.find(p => p.id === editingProfileId) || null;
+                          savedProfile =
+                            profiles.find(p => p.id === editingProfileId) ||
+                            null;
                         } else {
-                          savedProfile = await identityProfilesService.add(payload);
+                          savedProfile =
+                            await identityProfilesService.add(payload);
                           const profiles = await identityProfilesService.list();
                           setIdentityProfiles(profiles);
                         }
 
                         if (savedProfile && selectedNetworkForIdentity) {
-                          await handleIdentityProfileChange(selectedNetworkForIdentity, savedProfile.id);
+                          await handleIdentityProfileChange(
+                            selectedNetworkForIdentity,
+                            savedProfile.id,
+                          );
                         }
 
                         setShowEditProfileModal(false);
                         setEditingProfileId(null);
                         setSelectedNetworkForIdentity(null);
                       } catch (error) {
-                        console.error('Failed to save identity profile:', error);
+                        console.error(
+                          'Failed to save identity profile:',
+                          error,
+                        );
                         Alert.alert(
                           t('Error', { _tags: tags }),
-                          t('Failed to save identity profile', { _tags: tags })
+                          t('Failed to save identity profile', { _tags: tags }),
                         );
                       } finally {
                         setIsSavingIdentityProfile(false);
                       }
-                    }}>
-                    <Text style={[styles.modalButtonText, { color: colors.buttonPrimaryText }]}>
-                      {isSavingIdentityProfile ? t('Saving...', { _tags: tags }) : t('Save', { _tags: tags })}
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.modalButtonText,
+                        { color: colors.buttonPrimaryText },
+                      ]}
+                    >
+                      {isSavingIdentityProfile
+                        ? t('Saving...', { _tags: tags })
+                        : t('Save', { _tags: tags })}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -828,342 +1152,342 @@ export const ConnectionProfilesScreen: React.FC<ConnectionProfilesScreenProps> =
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  cancelButton: {
-    padding: 8,
-  },
-  cancelText: {
-    fontSize: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  headerSpacer: {
-    width: 60,
-  },
-  addButton: {
-    padding: 8,
-  },
-  addButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    padding: 12,
-  },
-  networkCard: {
-    marginBottom: 12,
-    borderRadius: 8,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-  },
-  networkHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: colors.surface,
-  },
-  networkHeaderContent: {
-    flex: 1,
-  },
-  networkName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  networkServers: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  expandIcon: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginLeft: 12,
-  },
-  networkDetails: {
-    padding: 16,
-    paddingTop: 0,
-    backgroundColor: colors.background,
-  },
-  pickerSection: {
-    marginBottom: 16,
-  },
-  pickerLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  optionButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  optionButtonActive: {
-    borderWidth: 2,
-  },
-  optionButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  profileList: {
-    maxHeight: 200,
-  },
-  identityHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 8,
-  },
-  addProfileButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-  },
-  addProfileButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  profileButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    borderWidth: 1,
-    marginBottom: 8,
-  },
-  profileButtonActive: {
-    borderWidth: 2,
-  },
-  profileButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  checkMark: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  serversSection: {
-    marginBottom: 16,
-  },
-  serversSectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  serverItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: colors.surface,
-    borderRadius: 6,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  serverName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  serverDetails: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  favoriteIndicator: {
-    fontSize: 11,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  infoSection: {
-    padding: 12,
-    backgroundColor: colors.surface,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyText: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 24,
-  },
-  loadingText: {
-    fontSize: 14,
-  },
-  editButton: {
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  editButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  deleteButton: {
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  editServerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    marginLeft: 8,
-  },
-  editServerButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  deleteServerButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    marginLeft: 8,
-  },
-  deleteServerButtonDisabled: {
-    opacity: 0.5,
-  },
-  deleteServerButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  editProfileIconButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    marginLeft: 8,
-  },
-  editProfileIconButtonText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  addServerButton: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    marginBottom: 8,
-  },
-  addServerButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  editProfileModal: {
-    width: '90%',
-    maxHeight: '80%',
-    borderRadius: 12,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  modalInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  modalInputMultiline: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    marginBottom: 8,
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  modalButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
-
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    },
+    cancelButton: {
+      padding: 8,
+    },
+    cancelText: {
+      fontSize: 16,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '600',
+    },
+    headerSpacer: {
+      width: 60,
+    },
+    addButton: {
+      padding: 8,
+    },
+    addButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    list: {
+      flex: 1,
+    },
+    listContent: {
+      padding: 12,
+    },
+    networkCard: {
+      marginBottom: 12,
+      borderRadius: 8,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+    },
+    networkHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: colors.surface,
+    },
+    networkHeaderContent: {
+      flex: 1,
+    },
+    networkName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    networkServers: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    expandIcon: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginLeft: 12,
+    },
+    networkDetails: {
+      padding: 16,
+      paddingTop: 0,
+      backgroundColor: colors.background,
+    },
+    pickerSection: {
+      marginBottom: 16,
+    },
+    pickerLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    buttonGroup: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    optionButton: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 6,
+      borderWidth: 1,
+      alignItems: 'center',
+    },
+    optionButtonActive: {
+      borderWidth: 2,
+    },
+    optionButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    profileList: {
+      maxHeight: 200,
+    },
+    identityHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginBottom: 8,
+    },
+    addProfileButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 6,
+      borderWidth: 1,
+    },
+    addProfileButtonText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    profileButton: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 6,
+      borderWidth: 1,
+      marginBottom: 8,
+    },
+    profileButtonActive: {
+      borderWidth: 2,
+    },
+    profileButtonText: {
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    checkMark: {
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    serversSection: {
+      marginBottom: 16,
+    },
+    serversSectionTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    serverItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      backgroundColor: colors.surface,
+      borderRadius: 6,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    serverName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    serverDetails: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    favoriteIndicator: {
+      fontSize: 11,
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    infoSection: {
+      padding: 12,
+      backgroundColor: colors.surface,
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    infoLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+    },
+    emptyText: {
+      fontSize: 14,
+      textAlign: 'center',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 24,
+    },
+    loadingText: {
+      fontSize: 14,
+    },
+    editButton: {
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    editButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    deleteButton: {
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    deleteButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    editServerButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 4,
+      marginLeft: 8,
+    },
+    editServerButtonText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    deleteServerButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 4,
+      marginLeft: 8,
+    },
+    deleteServerButtonDisabled: {
+      opacity: 0.5,
+    },
+    deleteServerButtonText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    editProfileIconButton: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 4,
+      marginLeft: 8,
+    },
+    editProfileIconButtonText: {
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    addServerButton: {
+      alignSelf: 'flex-start',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 6,
+      borderWidth: 1,
+      marginBottom: 8,
+    },
+    addServerButtonText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    editProfileModal: {
+      width: '90%',
+      maxHeight: '80%',
+      borderRadius: 12,
+      padding: 20,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginBottom: 16,
+    },
+    inputLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      marginTop: 12,
+      marginBottom: 4,
+    },
+    modalInput: {
+      borderWidth: 1,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 14,
+      marginBottom: 8,
+    },
+    modalInputMultiline: {
+      borderWidth: 1,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 14,
+      marginBottom: 8,
+      minHeight: 100,
+      textAlignVertical: 'top',
+    },
+    pickerContainer: {
+      borderWidth: 1,
+      borderRadius: 8,
+      marginBottom: 8,
+      overflow: 'hidden',
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
+      gap: 12,
+    },
+    modalButton: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    modalButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });

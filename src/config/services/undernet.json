@@ -35,9 +35,7 @@
           "completion": {
             "suggestAlias": "xlogin",
             "priority": 100,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -60,9 +58,7 @@
           "completion": {
             "suggestAlias": "xinfo",
             "priority": 80,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -91,9 +87,7 @@
           "completion": {
             "suggestAlias": "xaccess",
             "priority": 70,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -122,9 +116,7 @@
           "completion": {
             "suggestAlias": "xop",
             "priority": 85,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -153,9 +145,7 @@
           "completion": {
             "suggestAlias": "xdeop",
             "priority": 80,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -184,9 +174,7 @@
           "completion": {
             "suggestAlias": "xvoice",
             "priority": 75,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -215,9 +203,7 @@
           "completion": {
             "suggestAlias": "xdevoice",
             "priority": 70,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -252,9 +238,7 @@
           "completion": {
             "suggestAlias": "xkick",
             "priority": 65,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -301,9 +285,7 @@
           "completion": {
             "suggestAlias": "xban",
             "priority": 60,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -332,9 +314,7 @@
           "completion": {
             "suggestAlias": "xunban",
             "priority": 55,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -363,9 +343,7 @@
           "completion": {
             "suggestAlias": "xtopic",
             "priority": 62,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -400,9 +378,7 @@
           "completion": {
             "suggestAlias": "xadduser",
             "priority": 50,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -431,9 +407,7 @@
           "completion": {
             "suggestAlias": "xremuser",
             "priority": 48,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -457,10 +431,7 @@
               "type": "enum",
               "required": true,
               "description": "Type",
-              "enumValues": [
-                "ACCESS",
-                "AUTOMODE"
-              ]
+              "enumValues": ["ACCESS", "AUTOMODE"]
             },
             {
               "name": "username",
@@ -478,9 +449,7 @@
           "completion": {
             "suggestAlias": "xmodinfo",
             "priority": 46,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -530,9 +499,7 @@
           "completion": {
             "suggestAlias": "xset",
             "priority": 45,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -555,9 +522,7 @@
           "completion": {
             "suggestAlias": "xclearmode",
             "priority": 40,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         }
       ]

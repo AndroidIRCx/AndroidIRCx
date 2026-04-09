@@ -60,7 +60,7 @@ class SubscriptionService {
 
   private async prepareAccountsForStorage(
     accounts: ZncAccount[],
-    lockEnabled: boolean
+    lockEnabled: boolean,
   ): Promise<ZncAccount[]> {
     const persisted: ZncAccount[] = [];
 
@@ -73,19 +73,31 @@ class SubscriptionService {
         if (lockEnabled) {
           if (account.zncPassword) {
             try {
-              await secureStorageService.setSecret(passwordKey, account.zncPassword);
+              await secureStorageService.setSecret(
+                passwordKey,
+                account.zncPassword,
+              );
               next.zncPassword = null;
-            } catch (passwordError) {
-              logger.error('znc', `Failed to save password for account ${account.id}`);
+            } catch {
+              logger.error(
+                'znc',
+                `Failed to save password for account ${account.id}`,
+              );
               // Continue without clearing password - it will be stored in plain text
             }
           }
           if (account.purchaseToken) {
             try {
-              await secureStorageService.setSecret(tokenKey, account.purchaseToken);
+              await secureStorageService.setSecret(
+                tokenKey,
+                account.purchaseToken,
+              );
               next.purchaseToken = '';
-            } catch (tokenError) {
-              logger.error('znc', `Failed to save token for account ${account.id}`);
+            } catch {
+              logger.error(
+                'znc',
+                `Failed to save token for account ${account.id}`,
+              );
               // Continue without clearing token - it will be stored in plain text
             }
           }
@@ -93,15 +105,21 @@ class SubscriptionService {
           try {
             await secureStorageService.removeSecret(passwordKey);
             await secureStorageService.removeSecret(tokenKey);
-          } catch (removeError) {
-            logger.warn('znc', `Failed to remove secrets for account ${account.id}`);
+          } catch {
+            logger.warn(
+              'znc',
+              `Failed to remove secrets for account ${account.id}`,
+            );
             // Continue - not critical if removal fails
           }
         }
 
         persisted.push(next);
-      } catch (accountError) {
-        logger.error('znc', `Failed to prepare account ${account.id} for storage`);
+      } catch {
+        logger.error(
+          'znc',
+          `Failed to prepare account ${account.id} for storage`,
+        );
         // Add account without sensitive data to prevent data loss
         persisted.push({
           ...account,
@@ -114,7 +132,9 @@ class SubscriptionService {
     return persisted;
   }
 
-  private async hydrateAccountsFromSecureStorage(accounts: ZncAccount[]): Promise<ZncAccount[]> {
+  private async hydrateAccountsFromSecureStorage(
+    accounts: ZncAccount[],
+  ): Promise<ZncAccount[]> {
     const hydrated: ZncAccount[] = [];
     for (const account of accounts) {
       const passwordKey = this.getPasswordKey(account.id);
@@ -144,11 +164,19 @@ class SubscriptionService {
       await this.loadAccounts();
       const lockEnabled = await this.isPasswordLockEnabled();
       if (lockEnabled) {
-        const persisted = await this.prepareAccountsForStorage(this.accounts, true);
-        await AsyncStorage.setItem(ZNC_STORAGE_KEYS.ACCOUNTS, JSON.stringify(persisted));
+        const persisted = await this.prepareAccountsForStorage(
+          this.accounts,
+          true,
+        );
+        await AsyncStorage.setItem(
+          ZNC_STORAGE_KEYS.ACCOUNTS,
+          JSON.stringify(persisted),
+        );
         await this.savePurchaseTokens();
       } else {
-        this.accounts = await this.hydrateAccountsFromSecureStorage(this.accounts);
+        this.accounts = await this.hydrateAccountsFromSecureStorage(
+          this.accounts,
+        );
         await this.saveAccounts();
       }
       this.initialized = true;
@@ -181,7 +209,10 @@ class SubscriptionService {
           logger.warn('znc', `Raw storage length: ${raw.length}`);
         }
       } catch (innerError) {
-        logger.error('znc', `Failed to read raw storage content: ${innerError}`);
+        logger.error(
+          'znc',
+          `Failed to read raw storage content: ${innerError}`,
+        );
       }
       this.accounts = [];
     }
@@ -193,8 +224,14 @@ class SubscriptionService {
   private async saveAccounts(): Promise<void> {
     try {
       const lockEnabled = await this.isPasswordLockEnabled();
-      const persisted = await this.prepareAccountsForStorage(this.accounts, lockEnabled);
-      await AsyncStorage.setItem(ZNC_STORAGE_KEYS.ACCOUNTS, JSON.stringify(persisted));
+      const persisted = await this.prepareAccountsForStorage(
+        this.accounts,
+        lockEnabled,
+      );
+      await AsyncStorage.setItem(
+        ZNC_STORAGE_KEYS.ACCOUNTS,
+        JSON.stringify(persisted),
+      );
       logger.info('znc', `Saved ${this.accounts.length} ZNC accounts`);
     } catch (error) {
       logger.error('znc', `Failed to save ZNC accounts: ${error}`);
@@ -210,19 +247,28 @@ class SubscriptionService {
       if (lockEnabled) {
         const tokenIndex = this.accounts.map(a => ({ accountId: a.id }));
         await Promise.all(
-          this.accounts.map(a => (
+          this.accounts.map(a =>
             a.purchaseToken
-              ? secureStorageService.setSecret(this.getTokenKey(a.id), a.purchaseToken)
-              : Promise.resolve()
-          ))
+              ? secureStorageService.setSecret(
+                  this.getTokenKey(a.id),
+                  a.purchaseToken,
+                )
+              : Promise.resolve(),
+          ),
         );
-        await AsyncStorage.setItem(ZNC_STORAGE_KEYS.TOKENS, JSON.stringify(tokenIndex));
+        await AsyncStorage.setItem(
+          ZNC_STORAGE_KEYS.TOKENS,
+          JSON.stringify(tokenIndex),
+        );
       } else {
         const tokens = this.accounts.map(a => ({
           token: a.purchaseToken,
           accountId: a.id,
         }));
-        await AsyncStorage.setItem(ZNC_STORAGE_KEYS.TOKENS, JSON.stringify(tokens));
+        await AsyncStorage.setItem(
+          ZNC_STORAGE_KEYS.TOKENS,
+          JSON.stringify(tokens),
+        );
       }
     } catch (error) {
       logger.error('znc', `Failed to save purchase tokens: ${error}`);
@@ -239,34 +285,55 @@ class SubscriptionService {
         const tokens = JSON.parse(raw);
         const lockEnabled = await this.isPasswordLockEnabled();
         if (lockEnabled) {
-          const ids = tokens.map((t: { accountId?: string }) => t.accountId).filter(Boolean) as string[];
+          const ids = tokens
+            .map((t: { accountId?: string }) => t.accountId)
+            .filter(Boolean) as string[];
           const stored = await Promise.all(
-            ids.map(id => secureStorageService.getSecret(this.getTokenKey(id)))
+            ids.map(id => secureStorageService.getSecret(this.getTokenKey(id))),
           );
           const parsedTokens = stored.filter(Boolean) as string[];
-          logger.info('znc', `Retrieved ${parsedTokens.length} tokens from secure storage for restore`);
+          logger.info(
+            'znc',
+            `Retrieved ${parsedTokens.length} tokens from secure storage for restore`,
+          );
           return parsedTokens;
         }
         const parsedTokens = tokens.map((t: { token: string }) => t.token);
-        logger.info('znc', `Retrieved ${parsedTokens.length} tokens from storage for restore`);
+        logger.info(
+          'znc',
+          `Retrieved ${parsedTokens.length} tokens from storage for restore`,
+        );
         return parsedTokens;
       }
     } catch (error) {
-      logger.error('znc', `Failed to get purchase tokens from storage: ${error}`);
+      logger.error(
+        'znc',
+        `Failed to get purchase tokens from storage: ${error}`,
+      );
     }
 
     // Fallback to tokens from accounts
     const lockEnabled = await this.isPasswordLockEnabled();
     if (lockEnabled) {
       const stored = await Promise.all(
-        this.accounts.map(a => secureStorageService.getSecret(this.getTokenKey(a.id)))
+        this.accounts.map(a =>
+          secureStorageService.getSecret(this.getTokenKey(a.id)),
+        ),
       );
       const accountTokens = stored.filter(Boolean) as string[];
-      logger.info('znc', `Using ${accountTokens.length} tokens from secure storage for restore`);
+      logger.info(
+        'znc',
+        `Using ${accountTokens.length} tokens from secure storage for restore`,
+      );
       return accountTokens;
     }
-    const accountTokens = this.accounts.map(a => a.purchaseToken).filter(token => token !== null && token !== '');
-    logger.info('znc', `Using ${accountTokens.length} tokens from accounts for restore`);
+    const accountTokens = this.accounts
+      .map(a => a.purchaseToken)
+      .filter(token => token !== null && token !== '');
+    logger.info(
+      'znc',
+      `Using ${accountTokens.length} tokens from accounts for restore`,
+    );
     return accountTokens;
   }
 
@@ -304,7 +371,9 @@ class SubscriptionService {
   /**
    * Get account metadata (without sensitive data)
    */
-  getAccountsMetadata(networkNames?: Map<string, string>): ZncAccountMetadata[] {
+  getAccountsMetadata(
+    networkNames?: Map<string, string>,
+  ): ZncAccountMetadata[] {
     return this.accounts.map(account => ({
       id: account.id,
       zncUsername: account.zncUsername,
@@ -312,9 +381,10 @@ class SubscriptionService {
       provisioningStatus: account.provisioningStatus,
       expiresAt: account.expiresAt,
       assignedNetworkId: account.assignedNetworkId,
-      assignedNetworkName: account.assignedNetworkId && networkNames
-        ? networkNames.get(account.assignedNetworkId) || null
-        : null,
+      assignedNetworkName:
+        account.assignedNetworkId && networkNames
+          ? networkNames.get(account.assignedNetworkId) || null
+          : null,
       createdAt: account.createdAt,
     }));
   }
@@ -332,7 +402,9 @@ class SubscriptionService {
     if (!lockEnabled && account?.zncPassword) {
       return account.zncPassword;
     }
-    const stored = await secureStorageService.getSecret(this.getPasswordKey(accountId));
+    const stored = await secureStorageService.getSecret(
+      this.getPasswordKey(accountId),
+    );
     return stored || account?.zncPassword || null;
   }
 
@@ -340,7 +412,9 @@ class SubscriptionService {
    * Get account by ZNC username
    */
   getAccountByUsername(username: string): ZncAccount | undefined {
-    return this.accounts.find(a => a.zncUsername.toLowerCase() === username.toLowerCase());
+    return this.accounts.find(
+      a => a.zncUsername.toLowerCase() === username.toLowerCase(),
+    );
   }
 
   /**
@@ -360,8 +434,13 @@ class SubscriptionService {
   /**
    * Register a new ZNC subscription
    */
-  async registerZncSubscription(request: ZncRegisterRequest): Promise<ZncAccount> {
-    logger.info('znc', `Registering ZNC subscription for ${request.zncUsername}`);
+  async registerZncSubscription(
+    request: ZncRegisterRequest,
+  ): Promise<ZncAccount> {
+    logger.info(
+      'znc',
+      `Registering ZNC subscription for ${request.zncUsername}`,
+    );
 
     const response = await this.apiCall<ZncRegisterResponse>(
       '/subscriptions/register',
@@ -370,14 +449,17 @@ class SubscriptionService {
         purchase_token: request.purchaseToken,
         subscription_id: request.subscriptionId,
         znc_username: request.zncUsername,
-      }
+      },
     );
 
     if (response.error) {
       throw new Error(response.error);
     }
 
-    logger.info('znc', `Registration response - id: ${response.id}, username: ${response.znc_username}, status: ${response.status}, znc_status: ${response.znc_status}`);
+    logger.info(
+      'znc',
+      `Registration response - id: ${response.id}, username: ${response.znc_username}, status: ${response.status}, znc_status: ${response.znc_status}`,
+    );
 
     // Check if account already exists (update it)
     const existingIndex = this.accounts.findIndex(a => a.id === response.id);
@@ -387,14 +469,19 @@ class SubscriptionService {
     // - Use server-provided status if available
     // - If password is provided, infer that provisioning is ready (even if znc_status is missing)
     // - Otherwise default to 'provisioning'
-    const hasPassword = response.znc_password !== null && response.znc_password !== undefined && response.znc_password !== '';
-    const inferredProvisioningStatus = response.znc_status || (hasPassword ? 'ready' : 'provisioning');
+    const hasPassword =
+      response.znc_password !== null &&
+      response.znc_password !== undefined &&
+      response.znc_password !== '';
+    const inferredProvisioningStatus =
+      response.znc_status || (hasPassword ? 'ready' : 'provisioning');
 
     const account: ZncAccount = {
       id: response.id || `local-${Date.now()}`,
       zncUsername: response.znc_username || request.zncUsername,
       // Store password as-is, only convert undefined to null (preserve empty string if that's what server sent)
-      zncPassword: response.znc_password !== undefined ? response.znc_password : null,
+      zncPassword:
+        response.znc_password !== undefined ? response.znc_password : null,
       status: response.status || 'pending',
       provisioningStatus: inferredProvisioningStatus as ZncProvisioningStatus,
       expiresAt: response.expires_at || null,
@@ -402,13 +489,15 @@ class SubscriptionService {
       subscriptionId: request.subscriptionId,
       assignedNetworkId: null,
       assignedServerId: null,
-      createdAt: existingIndex >= 0 ? this.accounts[existingIndex].createdAt : now,
+      createdAt:
+        existingIndex >= 0 ? this.accounts[existingIndex].createdAt : now,
       lastRefreshedAt: now,
     };
 
     if (existingIndex >= 0) {
       // Preserve network assignment if updating
-      account.assignedNetworkId = this.accounts[existingIndex].assignedNetworkId;
+      account.assignedNetworkId =
+        this.accounts[existingIndex].assignedNetworkId;
       account.assignedServerId = this.accounts[existingIndex].assignedServerId;
       this.accounts[existingIndex] = account;
     } else {
@@ -419,21 +508,30 @@ class SubscriptionService {
     try {
       await this.saveAccounts();
     } catch (saveError) {
-      logger.error('znc', `Failed to save accounts after registration: ${saveError}`);
+      logger.error(
+        'znc',
+        `Failed to save accounts after registration: ${saveError}`,
+      );
       // Don't throw - account is in memory, will be saved on next attempt
     }
-    
+
     try {
       await this.savePurchaseTokens();
     } catch (tokenError) {
-      logger.error('znc', `Failed to save purchase tokens after registration: ${tokenError}`);
+      logger.error(
+        'znc',
+        `Failed to save purchase tokens after registration: ${tokenError}`,
+      );
       // Don't throw - tokens are in memory, will be saved on next attempt
     }
-    
+
     try {
       this.notifyListeners();
     } catch (notifyError) {
-      logger.error('znc', `Failed to notify listeners after registration: ${notifyError}`);
+      logger.error(
+        'znc',
+        `Failed to notify listeners after registration: ${notifyError}`,
+      );
       // Don't throw - notification failure shouldn't crash
     }
 
@@ -503,7 +601,10 @@ class SubscriptionService {
         // Update the last refreshed timestamp
         account.lastRefreshedAt = new Date().toISOString();
       } catch (error) {
-        logger.error('znc', `Failed to refresh account ${account.id}: ${error}`);
+        logger.error(
+          'znc',
+          `Failed to refresh account ${account.id}: ${error}`,
+        );
       }
     }
 
@@ -516,8 +617,13 @@ class SubscriptionService {
    * Restore purchases from Google Play
    * @param purchaseTokens Array of purchase tokens from Google Play
    */
-  async restorePurchases(purchaseTokens: string[]): Promise<{ restored: number; failed: number }> {
-    logger.info('znc', `Restoring purchases with ${purchaseTokens.length} tokens`);
+  async restorePurchases(
+    purchaseTokens: string[],
+  ): Promise<{ restored: number; failed: number }> {
+    logger.info(
+      'znc',
+      `Restoring purchases with ${purchaseTokens.length} tokens`,
+    );
 
     let restored = 0;
     let failed = 0;
@@ -528,34 +634,57 @@ class SubscriptionService {
       const response = await this.apiCall<ZncRestoreResponse>(
         '/subscriptions/restore',
         'POST',
-        { purchase_tokens: purchaseTokens }
+        { purchase_tokens: purchaseTokens },
       );
 
-      logger.info('znc', `Batch restore response: accounts=${response.accounts?.length || 0}`);
+      logger.info(
+        'znc',
+        `Batch restore response: accounts=${response.accounts?.length || 0}`,
+      );
 
       if (response.accounts && response.accounts.length > 0) {
         for (const accountData of response.accounts) {
           try {
-            const existingIndex = this.accounts.findIndex(a => a.id === accountData.id);
+            const existingIndex = this.accounts.findIndex(
+              a => a.id === accountData.id,
+            );
             const now = new Date().toISOString();
-            const token = purchaseTokens.find((_, i) => i < response.accounts.length) || '';
+            const token =
+              purchaseTokens.find((_, i) => i < response.accounts.length) || '';
 
             // Infer provisioning status from password presence
-            const hasPassword = accountData.znc_password !== null && accountData.znc_password !== undefined && accountData.znc_password !== '';
-            const inferredStatus = accountData.znc_status || (hasPassword ? 'ready' : 'provisioning');
+            const hasPassword =
+              accountData.znc_password !== null &&
+              accountData.znc_password !== undefined &&
+              accountData.znc_password !== '';
+            const inferredStatus =
+              accountData.znc_status ||
+              (hasPassword ? 'ready' : 'provisioning');
 
             const account: ZncAccount = {
               id: accountData.id || `restored-${Date.now()}-${restored}`,
               zncUsername: accountData.znc_username || '',
-              zncPassword: accountData.znc_password !== undefined ? accountData.znc_password : null,
+              zncPassword:
+                accountData.znc_password !== undefined
+                  ? accountData.znc_password
+                  : null,
               status: accountData.status || 'active',
               provisioningStatus: inferredStatus as ZncProvisioningStatus,
               expiresAt: accountData.expires_at || null,
               purchaseToken: token,
               subscriptionId: ZNC_PRODUCT_ID,
-              assignedNetworkId: existingIndex >= 0 ? this.accounts[existingIndex].assignedNetworkId : null,
-              assignedServerId: existingIndex >= 0 ? this.accounts[existingIndex].assignedServerId : null,
-              createdAt: existingIndex >= 0 ? this.accounts[existingIndex].createdAt : now,
+              assignedNetworkId:
+                existingIndex >= 0
+                  ? this.accounts[existingIndex].assignedNetworkId
+                  : null,
+              assignedServerId:
+                existingIndex >= 0
+                  ? this.accounts[existingIndex].assignedServerId
+                  : null,
+              createdAt:
+                existingIndex >= 0
+                  ? this.accounts[existingIndex].createdAt
+                  : now,
               lastRefreshedAt: now,
             };
 
@@ -577,7 +706,10 @@ class SubscriptionService {
         this.notifyListeners();
       } else {
         // Batch returned no accounts, try individual method
-        logger.info('znc', 'Batch restore returned no accounts, trying individual method');
+        logger.info(
+          'znc',
+          'Batch restore returned no accounts, trying individual method',
+        );
         shouldTryIndividual = true;
       }
     } catch (error) {
@@ -587,7 +719,6 @@ class SubscriptionService {
 
     // Try individual token restore if batch failed or returned no results
     if (shouldTryIndividual) {
-
       // Fallback: try each token individually
       for (const token of purchaseTokens) {
         try {
@@ -597,29 +728,47 @@ class SubscriptionService {
             {
               purchase_token: token,
               subscription_id: ZNC_PRODUCT_ID,
-            }
+            },
           );
 
           if (response.id && response.znc_username) {
-            const existingIndex = this.accounts.findIndex(a => a.purchaseToken === token);
+            const existingIndex = this.accounts.findIndex(
+              a => a.purchaseToken === token,
+            );
             const now = new Date().toISOString();
 
             // Infer provisioning status from password presence
-            const hasPassword = response.znc_password !== null && response.znc_password !== undefined && response.znc_password !== '';
-            const inferredStatus = response.znc_status || (hasPassword ? 'ready' : 'provisioning');
+            const hasPassword =
+              response.znc_password !== null &&
+              response.znc_password !== undefined &&
+              response.znc_password !== '';
+            const inferredStatus =
+              response.znc_status || (hasPassword ? 'ready' : 'provisioning');
 
             const account: ZncAccount = {
               id: response.id,
               zncUsername: response.znc_username,
-              zncPassword: response.znc_password !== undefined ? response.znc_password : null,
+              zncPassword:
+                response.znc_password !== undefined
+                  ? response.znc_password
+                  : null,
               status: response.status || 'active',
               provisioningStatus: inferredStatus as ZncProvisioningStatus,
               expiresAt: response.expires_at || null,
               purchaseToken: token,
               subscriptionId: ZNC_PRODUCT_ID,
-              assignedNetworkId: existingIndex >= 0 ? this.accounts[existingIndex].assignedNetworkId : null,
-              assignedServerId: existingIndex >= 0 ? this.accounts[existingIndex].assignedServerId : null,
-              createdAt: existingIndex >= 0 ? this.accounts[existingIndex].createdAt : now,
+              assignedNetworkId:
+                existingIndex >= 0
+                  ? this.accounts[existingIndex].assignedNetworkId
+                  : null,
+              assignedServerId:
+                existingIndex >= 0
+                  ? this.accounts[existingIndex].assignedServerId
+                  : null,
+              createdAt:
+                existingIndex >= 0
+                  ? this.accounts[existingIndex].createdAt
+                  : now,
               lastRefreshedAt: now,
             };
 
@@ -644,14 +793,21 @@ class SubscriptionService {
       }
     }
 
-    logger.info('znc', `Restore complete: ${restored} restored, ${failed} failed`);
+    logger.info(
+      'znc',
+      `Restore complete: ${restored} restored, ${failed} failed`,
+    );
     return { restored, failed };
   }
 
   /**
    * Assign a ZNC account to a network
    */
-  async assignToNetwork(accountId: string, networkId: string, serverId: string): Promise<void> {
+  async assignToNetwork(
+    accountId: string,
+    networkId: string,
+    serverId: string,
+  ): Promise<void> {
     const account = this.accounts.find(a => a.id === accountId);
     if (!account) {
       throw new Error('Account not found');
@@ -693,7 +849,7 @@ class SubscriptionService {
     try {
       const response = await this.apiCall<{ available: boolean }>(
         `/subscriptions/check-username?username=${encodeURIComponent(username)}`,
-        'GET'
+        'GET',
       );
       return response.available;
     } catch (error) {
@@ -706,7 +862,10 @@ class SubscriptionService {
   /**
    * Generate ZNC server configuration for adding to a network
    */
-  generateServerConfig(account: ZncAccount, passwordOverride?: string | null): ZncServerConfig {
+  generateServerConfig(
+    account: ZncAccount,
+    passwordOverride?: string | null,
+  ): ZncServerConfig {
     // ZNC requires password in format "username:password"
     const rawPassword = passwordOverride ?? account.zncPassword;
     const zncPassword = rawPassword
@@ -748,7 +907,10 @@ class SubscriptionService {
    */
   async clearAllData(): Promise<void> {
     this.accounts = [];
-    await AsyncStorage.removeMany([ZNC_STORAGE_KEYS.ACCOUNTS, ZNC_STORAGE_KEYS.TOKENS]);
+    await AsyncStorage.removeMany([
+      ZNC_STORAGE_KEYS.ACCOUNTS,
+      ZNC_STORAGE_KEYS.TOKENS,
+    ]);
     this.notifyListeners();
     logger.info('znc', 'All ZNC data cleared');
   }
@@ -759,7 +921,7 @@ class SubscriptionService {
   private async apiCall<T>(
     endpoint: string,
     method: 'GET' | 'POST' = 'POST',
-    body?: Record<string, unknown>
+    body?: Record<string, unknown>,
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     logger.info('znc', `Making API call to ${url}`);
@@ -773,7 +935,10 @@ class SubscriptionService {
 
     if (body) {
       options.body = JSON.stringify(body);
-      logger.debug('znc', `API call body keys: ${Object.keys(body).join(', ')}`);
+      logger.debug(
+        'znc',
+        `API call body keys: ${Object.keys(body).join(', ')}`,
+      );
     }
 
     try {
@@ -781,12 +946,15 @@ class SubscriptionService {
       logger.info('znc', `API response status: ${response.status}`);
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => `Request failed with status ${response.status}`);
+        const errorText = await response
+          .text()
+          .catch(() => `Request failed with status ${response.status}`);
         let errorMessage = errorText;
         try {
           // Try to parse as JSON to get structured error
           const errorJson = JSON.parse(errorText);
-          errorMessage = typeof errorJson?.error === 'string' ? errorJson.error : errorText;
+          errorMessage =
+            typeof errorJson?.error === 'string' ? errorJson.error : errorText;
         } catch {
           // If not JSON, use the raw text
           logger.warn('znc', `Non-JSON error response: ${errorText}`);
@@ -800,7 +968,8 @@ class SubscriptionService {
         return {};
       });
 
-      const responseKeys = data && typeof data === 'object' ? Object.keys(data as object) : [];
+      const responseKeys =
+        data && typeof data === 'object' ? Object.keys(data as object) : [];
       logger.debug('znc', `API response keys: ${responseKeys.join(', ')}`);
       return data as T;
     } catch (error) {

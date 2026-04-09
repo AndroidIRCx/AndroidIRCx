@@ -21,7 +21,10 @@ jest.mock('../../src/components/settings/SettingItem', () => {
       mockCapturedSettingItems.set(item.id, item);
       return (
         <View>
-          <TouchableOpacity testID={`setting-item-${item.id}`} onPress={() => onPress?.(item.id)}>
+          <TouchableOpacity
+            testID={`setting-item-${item.id}`}
+            onPress={() => onPress?.(item.id)}
+          >
             <Text>{item.title || item.id}</Text>
           </TouchableOpacity>
         </View>
@@ -31,7 +34,9 @@ jest.mock('../../src/components/settings/SettingItem', () => {
 });
 jest.mock('../../src/services/SettingsService', () => ({
   settingsService: {
-    getSetting: jest.fn((key: string, defaultValue: any) => Promise.resolve(defaultValue)),
+    getSetting: jest.fn((key: string, defaultValue: any) =>
+      Promise.resolve(defaultValue),
+    ),
     setSetting: jest.fn().mockResolvedValue(undefined),
     getAllSettings: jest.fn().mockResolvedValue({}),
     getNetwork: jest.fn().mockResolvedValue(null),
@@ -99,7 +104,9 @@ jest.mock('../../src/services/BackgroundService', () => ({
 }));
 jest.mock('../../src/services/MessageHistoryService', () => ({
   messageHistoryService: {
-    getStats: jest.fn().mockResolvedValue({ totalMessages: 0, totalBytes: 0, perNetwork: {} }),
+    getStats: jest
+      .fn()
+      .mockResolvedValue({ totalMessages: 0, totalBytes: 0, perNetwork: {} }),
     exportHistory: jest.fn().mockResolvedValue({}),
     deleteNetworkMessages: jest.fn().mockResolvedValue(undefined),
     clearAll: jest.fn().mockResolvedValue(undefined),
@@ -121,7 +128,9 @@ jest.mock('../../src/services/IRCService', () => ({
 }));
 jest.mock('../../src/services/ThemeService', () => ({
   themeService: {
-    getCurrentTheme: jest.fn().mockReturnValue({ id: 'light', name: 'Light', colors: {} }),
+    getCurrentTheme: jest
+      .fn()
+      .mockReturnValue({ id: 'light', name: 'Light', colors: {} }),
     onThemeChange: jest.fn().mockReturnValue(jest.fn()),
     getColors: jest.fn().mockReturnValue({}),
     getMessageFormat: jest.fn().mockReturnValue('{nick} has joined {channel}'),
@@ -152,7 +161,9 @@ jest.mock('../../src/services/PerformanceService', () => ({
 }));
 jest.mock('../../src/services/DataBackupService', () => ({
   dataBackupService: {
-    getStorageStats: jest.fn().mockResolvedValue({ totalMessages: 0, totalBytes: 0 }),
+    getStorageStats: jest
+      .fn()
+      .mockResolvedValue({ totalMessages: 0, totalBytes: 0 }),
     exportSettings: jest.fn().mockResolvedValue({}),
     exportAll: jest.fn().mockResolvedValue({}),
     importAll: jest.fn().mockResolvedValue(undefined),
@@ -210,24 +221,39 @@ jest.mock('../../src/services/SubscriptionService', () => ({
 }));
 jest.mock('../../src/components/settings/sections', () => {
   const { View, Text, TouchableOpacity } = require('react-native');
-  const make = (name: string, buttons: Array<{ testID: string; label: string; onPress?: () => void }>) => (_props: any) => (
-    <View>
-      <Text>{name}</Text>
-      {buttons.map((btn) => (
-        <TouchableOpacity key={btn.testID} testID={btn.testID} onPress={btn.onPress || (() => {})}>
-          <Text>{btn.label}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
+  const make =
+    (
+      name: string,
+      buttons: Array<{ testID: string; label: string; onPress?: () => void }>,
+    ) =>
+    (_props: any) => (
+      <View>
+        <Text>{name}</Text>
+        {buttons.map(btn => (
+          <TouchableOpacity
+            key={btn.testID}
+            testID={btn.testID}
+            onPress={btn.onPress || (() => {})}
+          >
+            <Text>{btn.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
   return {
     ScriptingAdsSection: (props: any) => (
       <View>
         <Text>ScriptingAdsSection</Text>
-        <TouchableOpacity testID="sec-open-scripting" onPress={() => props.onShowScripting?.()}>
+        <TouchableOpacity
+          testID="sec-open-scripting"
+          onPress={() => props.onShowScripting?.()}
+        >
           <Text>Open Scripting</Text>
         </TouchableOpacity>
-        <TouchableOpacity testID="sec-open-scripting-help" onPress={() => props.onShowScriptingHelp?.()}>
+        <TouchableOpacity
+          testID="sec-open-scripting-help"
+          onPress={() => props.onShowScriptingHelp?.()}
+        >
           <Text>Open Scripting Help</Text>
         </TouchableOpacity>
       </View>
@@ -235,30 +261,48 @@ jest.mock('../../src/components/settings/sections', () => {
     SecurityQuickConnectSection: make('SecurityQuickConnectSection', []),
     SecuritySection: (props: any) => (
       <View>
-        <TouchableOpacity testID="sec-open-key-management" onPress={() => props.onShowKeyManagement?.()}>
+        <TouchableOpacity
+          testID="sec-open-key-management"
+          onPress={() => props.onShowKeyManagement?.()}
+        >
           <Text>Open Key</Text>
         </TouchableOpacity>
-        <TouchableOpacity testID="sec-open-migration" onPress={() => props.onShowMigrationDialog?.('net-test')}>
+        <TouchableOpacity
+          testID="sec-open-migration"
+          onPress={() => props.onShowMigrationDialog?.('net-test')}
+        >
           <Text>Open Migration</Text>
         </TouchableOpacity>
       </View>
     ),
     PrivacyLegalSection: (props: any) => (
       <View>
-        <TouchableOpacity testID="sec-open-data-privacy" onPress={() => props.onShowDataPrivacy?.()}>
+        <TouchableOpacity
+          testID="sec-open-data-privacy"
+          onPress={() => props.onShowDataPrivacy?.()}
+        >
           <Text>Open Data Privacy</Text>
         </TouchableOpacity>
-        <TouchableOpacity testID="sec-open-privacy-ads" onPress={() => props.onShowPrivacyAds?.()}>
+        <TouchableOpacity
+          testID="sec-open-privacy-ads"
+          onPress={() => props.onShowPrivacyAds?.()}
+        >
           <Text>Open Privacy Ads</Text>
         </TouchableOpacity>
       </View>
     ),
     AboutSection: (props: any) => (
       <View>
-        <TouchableOpacity testID="sec-open-about" onPress={() => props.onShowAbout?.()}>
+        <TouchableOpacity
+          testID="sec-open-about"
+          onPress={() => props.onShowAbout?.()}
+        >
           <Text>Open About</Text>
         </TouchableOpacity>
-        <TouchableOpacity testID="sec-open-credits" onPress={() => props.onShowCredits?.()}>
+        <TouchableOpacity
+          testID="sec-open-credits"
+          onPress={() => props.onShowCredits?.()}
+        >
           <Text>Open Credits</Text>
         </TouchableOpacity>
       </View>
@@ -266,7 +310,10 @@ jest.mock('../../src/components/settings/sections', () => {
     HelpSection: make('HelpSection', []),
     AppearanceSection: (props: any) => (
       <View>
-        <TouchableOpacity testID="sec-open-theme-editor" onPress={() => props.onShowThemeEditor?.({ id: 'light' })}>
+        <TouchableOpacity
+          testID="sec-open-theme-editor"
+          onPress={() => props.onShowThemeEditor?.({ id: 'light' })}
+        >
           <Text>Open Theme Editor</Text>
         </TouchableOpacity>
       </View>
@@ -276,13 +323,22 @@ jest.mock('../../src/components/settings/sections', () => {
     NotificationsSection: make('NotificationsSection', []),
     ConnectionNetworkSection: (props: any) => (
       <View>
-        <TouchableOpacity testID="sec-open-first-run" onPress={() => props.onShowFirstRunSetup?.()}>
+        <TouchableOpacity
+          testID="sec-open-first-run"
+          onPress={() => props.onShowFirstRunSetup?.()}
+        >
           <Text>Open First Run</Text>
         </TouchableOpacity>
-        <TouchableOpacity testID="sec-open-networks-list" onPress={() => props.onShowNetworksList?.()}>
+        <TouchableOpacity
+          testID="sec-open-networks-list"
+          onPress={() => props.onShowNetworksList?.()}
+        >
           <Text>Open Networks List</Text>
         </TouchableOpacity>
-        <TouchableOpacity testID="sec-open-connection-profiles" onPress={() => props.onShowConnectionProfiles?.()}>
+        <TouchableOpacity
+          testID="sec-open-connection-profiles"
+          onPress={() => props.onShowConnectionProfiles?.()}
+        >
           <Text>Open Profiles</Text>
         </TouchableOpacity>
       </View>
@@ -337,7 +393,9 @@ jest.mock('../../src/screens/FirstRunSetupScreen', () => ({
     return (
       <>
         {'FirstRunSetupScreenMock'}
-        <Text onPress={() => onComplete?.({ id: 'net-1' })}>FirstRunComplete</Text>
+        <Text onPress={() => onComplete?.({ id: 'net-1' })}>
+          FirstRunComplete
+        </Text>
         <Text onPress={() => onSkip?.()}>FirstRunSkip</Text>
       </>
     );
@@ -464,12 +522,16 @@ jest.mock('../../src/stores/uiStore', () => ({
 }));
 
 // Import SettingsScreen after mocks
-const { SettingsScreen } = jest.requireActual('../../src/screens/SettingsScreen');
+const { SettingsScreen } = jest.requireActual(
+  '../../src/screens/SettingsScreen',
+);
 
 describe('SettingsScreen Integration', () => {
   const mockOnClose = jest.fn();
   const setPremiumHook = (overrides: Record<string, any> = {}) => {
-    const { useSettingsPremium } = require('../../src/hooks/useSettingsPremium');
+    const {
+      useSettingsPremium,
+    } = require('../../src/hooks/useSettingsPremium');
     (useSettingsPremium as jest.Mock).mockReturnValue({
       watchAdButtonEnabledForPremium: false,
       setWatchAdButtonEnabledForPremium: jest.fn().mockResolvedValue(undefined),
@@ -492,11 +554,18 @@ describe('SettingsScreen Integration', () => {
     jest.clearAllMocks();
     mockCapturedSettingItems.clear();
     setPremiumHook();
-    
+
     // Mock utility functions
-    (settingsHelpers.getSectionIcon as jest.Mock).mockReturnValue({ name: 'cog', solid: false });
-    (settingsHelpers.filterSettings as jest.Mock).mockImplementation((sections) => sections);
-    (settingsHelpers.orderSections as jest.Mock).mockImplementation((sections) => sections);
+    (settingsHelpers.getSectionIcon as jest.Mock).mockReturnValue({
+      name: 'cog',
+      solid: false,
+    });
+    (settingsHelpers.filterSettings as jest.Mock).mockImplementation(
+      sections => sections,
+    );
+    (settingsHelpers.orderSections as jest.Mock).mockImplementation(
+      sections => sections,
+    );
     (settingsHelpers.toggleSectionExpansion as jest.Mock).mockImplementation(
       (title, expanded) => {
         const newSet = new Set(expanded);
@@ -506,13 +575,13 @@ describe('SettingsScreen Integration', () => {
           newSet.add(title);
         }
         return newSet;
-      }
+      },
     );
   });
 
   it('should render settings screen with all sections', async () => {
     const { findByText } = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} />
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
     );
 
     expect(await findByText('Settings')).toBeTruthy();
@@ -520,7 +589,7 @@ describe('SettingsScreen Integration', () => {
 
   it('should handle closing the settings screen', async () => {
     const { findByText } = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} />
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
     );
 
     const closeButton = await findByText('Done');
@@ -530,7 +599,7 @@ describe('SettingsScreen Integration', () => {
 
   it('should handle search functionality', async () => {
     const { findByPlaceholderText } = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} />
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
     );
 
     const searchInput = await findByPlaceholderText('Search settings...');
@@ -540,7 +609,7 @@ describe('SettingsScreen Integration', () => {
 
   it('should render all section components', async () => {
     const { findByText } = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} />
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
     );
 
     expect(await findByText('Appearance')).toBeTruthy();
@@ -549,7 +618,7 @@ describe('SettingsScreen Integration', () => {
 
   it('should handle search term clearing', async () => {
     const { findByPlaceholderText } = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} />
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
     );
 
     const searchInput = await findByPlaceholderText('Search settings...');
@@ -560,7 +629,7 @@ describe('SettingsScreen Integration', () => {
 
   it('should handle section expansion toggle', async () => {
     const { findByText } = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} />
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
     );
 
     const sectionHeader = await findByText('Appearance');
@@ -570,7 +639,7 @@ describe('SettingsScreen Integration', () => {
 
   it('should maintain state consistency', async () => {
     const { findByText } = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} />
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
     );
 
     expect(await findByText('Settings')).toBeTruthy();
@@ -580,7 +649,9 @@ describe('SettingsScreen Integration', () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'appearance-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'appearance-section'),
+      ),
     );
     let view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
     fireEvent.press(view.getByText('Appearance'));
@@ -589,7 +660,9 @@ describe('SettingsScreen Integration', () => {
     view.unmount();
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'security-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'security-section'),
+      ),
     );
     view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
     fireEvent.press(view.getByText('Security'));
@@ -599,7 +672,9 @@ describe('SettingsScreen Integration', () => {
     view.unmount();
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'privacy-legal-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'privacy-legal-section'),
+      ),
     );
     view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
     fireEvent.press(view.getByText('Privacy & Legal'));
@@ -609,7 +684,9 @@ describe('SettingsScreen Integration', () => {
     view.unmount();
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'connection-network-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'connection-network-section'),
+      ),
     );
     view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
     fireEvent.press(view.getByText('Connection & Network'));
@@ -620,15 +697,21 @@ describe('SettingsScreen Integration', () => {
 
   it('should execute messages/history item actions', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { messageHistoryService } = require('../../src/services/MessageHistoryService');
-    const { dataBackupService } = require('../../src/services/DataBackupService');
+    const {
+      messageHistoryService,
+    } = require('../../src/services/MessageHistoryService');
+    const {
+      dataBackupService,
+    } = require('../../src/services/DataBackupService');
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'messages-history')
+      sections.filter(s => s.id === 'messages-history'),
     );
 
     jest.spyOn(Alert, 'alert');
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Messages & History'));
 
     await waitFor(() => {
@@ -643,7 +726,9 @@ describe('SettingsScreen Integration', () => {
     mockCapturedSettingItems.get('history-backup').onPress();
 
     mockCapturedSettingItems.get('history-clear').onPress();
-    const clearCall = (Alert.alert as jest.Mock).mock.calls.find((call: any[]) => String(call[0]).includes('Clear Message History'));
+    const clearCall = (Alert.alert as jest.Mock).mock.calls.find(
+      (call: any[]) => String(call[0]).includes('Clear Message History'),
+    );
     expect(clearCall).toBeTruthy();
     const clearAction = clearCall[2].find((btn: any) => btn.text === 'Clear');
     await clearAction.onPress();
@@ -655,19 +740,23 @@ describe('SettingsScreen Integration', () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     const { bouncerService } = require('../../src/services/BouncerService');
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'connection-network')
+      sections.filter(s => s.id === 'connection-network'),
     );
 
     jest.spyOn(Alert, 'alert');
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Connection & Network'));
 
     await waitFor(() => {
       expect(mockCapturedSettingItems.get('bouncer-config')).toBeTruthy();
     });
 
-    const submenuItems = mockCapturedSettingItems.get('bouncer-config').submenuItems;
-    const itemById = (id: string) => submenuItems.find((it: any) => it.id === id);
+    const submenuItems =
+      mockCapturedSettingItems.get('bouncer-config').submenuItems;
+    const itemById = (id: string) =>
+      submenuItems.find((it: any) => it.id === id);
 
     await itemById('bouncer-enabled').onValueChange(true);
     await itemById('bouncer-handle-playback').onValueChange(true);
@@ -678,7 +767,9 @@ describe('SettingsScreen Integration', () => {
     await itemById('bouncer-scrollback-lines').onValueChange('120');
 
     itemById('bouncer-type').onPress();
-    const typeCall = (Alert.alert as jest.Mock).mock.calls.find((call: any[]) => String(call[0]).includes('Bouncer Type'));
+    const typeCall = (Alert.alert as jest.Mock).mock.calls.find((call: any[]) =>
+      String(call[0]).includes('Bouncer Type'),
+    );
     expect(typeCall).toBeTruthy();
     await typeCall[2].find((btn: any) => btn.text === 'Auto-detect').onPress();
     await typeCall[2].find((btn: any) => btn.text === 'ZNC').onPress();
@@ -691,21 +782,41 @@ describe('SettingsScreen Integration', () => {
   it('should render additional custom sections through renderSettingItem branches', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     const sectionsToValidate = [
-      { id: 'notifications', title: 'Notifications', marker: 'NotificationsSection' },
+      {
+        id: 'notifications',
+        title: 'Notifications',
+        marker: 'NotificationsSection',
+      },
       { id: 'help', title: '📖 Help & Documentation', marker: 'HelpSection' },
       { id: 'away', title: 'Away', marker: 'AwaySection' },
       { id: 'protection', title: 'Protection', marker: 'ProtectionSection' },
       { id: 'writing', title: 'Writing', marker: 'WritingSection' },
-      { id: 'users-services', title: 'Users & Services', marker: 'UsersServicesSection' },
+      {
+        id: 'users-services',
+        title: 'Users & Services',
+        marker: 'UsersServicesSection',
+      },
       { id: 'commands', title: 'Commands', marker: 'CommandsSection' },
       { id: 'media', title: 'Media', marker: 'MediaSection' },
-      { id: 'background-battery', title: 'Background & Battery', marker: 'BackgroundBatterySection' },
-      { id: 'highlighting', title: 'Highlighting', marker: 'HighlightingSection' },
+      {
+        id: 'background-battery',
+        title: 'Background & Battery',
+        marker: 'BackgroundBatterySection',
+      },
+      {
+        id: 'highlighting',
+        title: 'Highlighting',
+        marker: 'HighlightingSection',
+      },
     ];
 
     for (const sec of sectionsToValidate) {
-      fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === sec.id));
-      const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+      fsMock.mockImplementation((sections: any[]) =>
+        sections.filter(s => s.id === sec.id),
+      );
+      const view = render(
+        <SettingsScreen visible={true} onClose={mockOnClose} />,
+      );
       fireEvent.press(view.getByText(sec.title));
       expect(await view.findByText(sec.marker)).toBeTruthy();
       view.unmount();
@@ -713,24 +824,33 @@ describe('SettingsScreen Integration', () => {
   });
 
   // ========== Submenu Modal Tests ==========
-  
+
   it('should handle submenu item types (switch, input, button)', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'connection-network')
+      sections.filter(s => s.id === 'connection-network'),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Connection & Network'));
 
     await waitFor(() => {
       expect(mockCapturedSettingItems.get('bouncer-config')).toBeTruthy();
     });
 
-    const submenuItems = mockCapturedSettingItems.get('bouncer-config').submenuItems;
-    const switchItem = submenuItems.find((it: any) => it.id === 'bouncer-enabled');
-    const inputItem = submenuItems.find((it: any) => it.id === 'bouncer-playback-timeout');
-    const buttonItem = submenuItems.find((it: any) => it.id === 'bouncer-request-playback');
+    const submenuItems =
+      mockCapturedSettingItems.get('bouncer-config').submenuItems;
+    const switchItem = submenuItems.find(
+      (it: any) => it.id === 'bouncer-enabled',
+    );
+    const inputItem = submenuItems.find(
+      (it: any) => it.id === 'bouncer-playback-timeout',
+    );
+    const buttonItem = submenuItems.find(
+      (it: any) => it.id === 'bouncer-request-playback',
+    );
 
     // Test switch type
     expect(switchItem.type).toBe('switch');
@@ -748,10 +868,12 @@ describe('SettingsScreen Integration', () => {
   it('should open and close submenu modal for bouncer settings', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'connection-network')
+      sections.filter(s => s.id === 'connection-network'),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Connection & Network'));
 
     await waitFor(() => {
@@ -770,8 +892,12 @@ describe('SettingsScreen Integration', () => {
   // ========== PIN Modal Tests ==========
 
   it('should handle biometric availability check', async () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
-    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue('FaceID');
+    const {
+      biometricAuthService,
+    } = require('../../src/services/BiometricAuthService');
+    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue(
+      'FaceID',
+    );
 
     render(<SettingsScreen visible={true} onClose={mockOnClose} />);
 
@@ -781,7 +907,9 @@ describe('SettingsScreen Integration', () => {
   });
 
   it('should handle biometric unavailable state', async () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    const {
+      biometricAuthService,
+    } = require('../../src/services/BiometricAuthService');
     (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue(null);
 
     render(<SettingsScreen visible={true} onClose={mockOnClose} />);
@@ -792,58 +920,87 @@ describe('SettingsScreen Integration', () => {
   });
 
   it('should reset biometric password lock when biometrics are unavailable', async () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    const {
+      biometricAuthService,
+    } = require('../../src/services/BiometricAuthService');
     const { settingsService } = require('../../src/services/SettingsService');
 
     (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue(null);
-    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
-      if (key === 'biometricPasswordLock') return Promise.resolve(true);
-      return Promise.resolve(defaultValue);
-    });
+    (settingsService.getSetting as jest.Mock).mockImplementation(
+      (key: string, defaultValue: any) => {
+        if (key === 'biometricPasswordLock') return Promise.resolve(true);
+        return Promise.resolve(defaultValue);
+      },
+    );
 
     render(<SettingsScreen visible={true} onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(settingsService.setSetting).toHaveBeenCalledWith('biometricPasswordLock', false);
+      expect(settingsService.setSetting).toHaveBeenCalledWith(
+        'biometricPasswordLock',
+        false,
+      );
     });
   });
 
   it('should reset pin lock when configured PIN is missing', async () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    const {
+      biometricAuthService,
+    } = require('../../src/services/BiometricAuthService');
     const { settingsService } = require('../../src/services/SettingsService');
-    const { secureStorageService } = require('../../src/services/SecureStorageService');
+    const {
+      secureStorageService,
+    } = require('../../src/services/SecureStorageService');
 
-    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue('FaceID');
+    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue(
+      'FaceID',
+    );
     (secureStorageService.getSecret as jest.Mock).mockResolvedValue(null);
-    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
-      if (key === 'pinPasswordLock') return Promise.resolve(true);
-      return Promise.resolve(defaultValue);
-    });
+    (settingsService.getSetting as jest.Mock).mockImplementation(
+      (key: string, defaultValue: any) => {
+        if (key === 'pinPasswordLock') return Promise.resolve(true);
+        return Promise.resolve(defaultValue);
+      },
+    );
 
     render(<SettingsScreen visible={true} onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(settingsService.setSetting).toHaveBeenCalledWith('pinPasswordLock', false);
+      expect(settingsService.setSetting).toHaveBeenCalledWith(
+        'pinPasswordLock',
+        false,
+      );
     });
   });
 
   it('should disable pin lock when biometric and pin locks are both enabled', async () => {
-    const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+    const {
+      biometricAuthService,
+    } = require('../../src/services/BiometricAuthService');
     const { settingsService } = require('../../src/services/SettingsService');
-    const { secureStorageService } = require('../../src/services/SecureStorageService');
+    const {
+      secureStorageService,
+    } = require('../../src/services/SecureStorageService');
 
-    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue('FaceID');
+    (biometricAuthService.getBiometryType as jest.Mock).mockResolvedValue(
+      'FaceID',
+    );
     (secureStorageService.getSecret as jest.Mock).mockResolvedValue('1234');
-    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
-      if (key === 'biometricPasswordLock') return Promise.resolve(true);
-      if (key === 'pinPasswordLock') return Promise.resolve(true);
-      return Promise.resolve(defaultValue);
-    });
+    (settingsService.getSetting as jest.Mock).mockImplementation(
+      (key: string, defaultValue: any) => {
+        if (key === 'biometricPasswordLock') return Promise.resolve(true);
+        if (key === 'pinPasswordLock') return Promise.resolve(true);
+        return Promise.resolve(defaultValue);
+      },
+    );
 
     render(<SettingsScreen visible={true} onClose={mockOnClose} />);
 
     await waitFor(() => {
-      expect(settingsService.setSetting).toHaveBeenCalledWith('pinPasswordLock', false);
+      expect(settingsService.setSetting).toHaveBeenCalledWith(
+        'pinPasswordLock',
+        false,
+      );
     });
   });
 
@@ -851,15 +1008,15 @@ describe('SettingsScreen Integration', () => {
 
   it('should clear search when search term is empty', async () => {
     const { findByPlaceholderText } = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} />
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
     );
 
     const searchInput = await findByPlaceholderText('Search settings...');
-    
+
     // Type something
     fireEvent.changeText(searchInput, 'test');
     expect(searchInput.props.value).toBe('test');
-    
+
     // Clear it
     fireEvent.changeText(searchInput, '');
     expect(searchInput.props.value).toBe('');
@@ -874,7 +1031,7 @@ describe('SettingsScreen Integration', () => {
     });
 
     const { findByPlaceholderText } = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} />
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
     );
 
     const searchInput = await findByPlaceholderText('Search settings...');
@@ -882,10 +1039,7 @@ describe('SettingsScreen Integration', () => {
 
     // Search should trigger filterSettings with the search term
     await waitFor(() => {
-      expect(fsMock).toHaveBeenCalledWith(
-        expect.any(Array),
-        'notification'
-      );
+      expect(fsMock).toHaveBeenCalledWith(expect.any(Array), 'notification');
     });
   });
 
@@ -894,11 +1048,13 @@ describe('SettingsScreen Integration', () => {
   it('should open about and credits screens', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'about-section'))
+      sections.filter(s => s.data?.some((d: any) => d.id === 'about-section')),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
-    
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
+
     // Should find the About section
     const aboutButton = view.getByTestId('sec-open-about');
     expect(aboutButton).toBeTruthy();
@@ -916,12 +1072,16 @@ describe('SettingsScreen Integration', () => {
   it('should open privacy and data privacy screens', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'privacy-legal-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'privacy-legal-section'),
+      ),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Privacy & Legal'));
-    
+
     const dataPrivacyButton = view.getByTestId('sec-open-data-privacy');
     expect(dataPrivacyButton).toBeTruthy();
     fireEvent.press(dataPrivacyButton);
@@ -938,12 +1098,16 @@ describe('SettingsScreen Integration', () => {
   it('should handle Connection & Network section actions', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'connection-network-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'connection-network-section'),
+      ),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Connection & Network'));
-    
+
     const firstRunButton = view.getByTestId('sec-open-first-run');
     expect(firstRunButton).toBeTruthy();
     fireEvent.press(firstRunButton);
@@ -961,12 +1125,16 @@ describe('SettingsScreen Integration', () => {
 
   it('should handle performance input fields', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { performanceService } = require('../../src/services/PerformanceService');
+    const {
+      performanceService,
+    } = require('../../src/services/PerformanceService');
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'performance')
+      sections.filter(s => s.id === 'performance'),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Performance'));
 
     await waitFor(() => {
@@ -975,19 +1143,29 @@ describe('SettingsScreen Integration', () => {
     });
 
     // Test numeric input changes
-    await mockCapturedSettingItems.get('perf-message-limit').onValueChange('2000');
-    expect(performanceService.setConfig).toHaveBeenCalledWith({ messageLimit: 2000 });
+    await mockCapturedSettingItems
+      .get('perf-message-limit')
+      .onValueChange('2000');
+    expect(performanceService.setConfig).toHaveBeenCalledWith({
+      messageLimit: 2000,
+    });
 
     await mockCapturedSettingItems.get('perf-max-visible').onValueChange('150');
-    expect(performanceService.setConfig).toHaveBeenCalledWith({ maxVisibleMessages: 150 });
+    expect(performanceService.setConfig).toHaveBeenCalledWith({
+      maxVisibleMessages: 150,
+    });
   });
 
   // ========== ZNC Subscription Tests ==========
 
   it('should handle ZNC subscription registration flow', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { subscriptionService } = require('../../src/services/SubscriptionService');
-    (subscriptionService.registerZncSubscription as jest.Mock).mockResolvedValue({
+    const {
+      subscriptionService,
+    } = require('../../src/services/SubscriptionService');
+    (
+      subscriptionService.registerZncSubscription as jest.Mock
+    ).mockResolvedValue({
       status: 'active',
       expires_at: '2025-12-31T23:59:59Z',
       znc_username: 'testuser',
@@ -995,10 +1173,16 @@ describe('SettingsScreen Integration', () => {
     });
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'connection-network')
+      sections.filter(s => s.id === 'connection-network'),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    const view = render(
+      <SettingsScreen
+        visible={true}
+        onClose={mockOnClose}
+        currentNetwork="test-network"
+      />,
+    );
     fireEvent.press(view.getByText('Connection & Network'));
 
     // Should have bouncer info and config items
@@ -1012,17 +1196,25 @@ describe('SettingsScreen Integration', () => {
 
   it('should load and display storage statistics', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { dataBackupService } = require('../../src/services/DataBackupService');
+    const {
+      dataBackupService,
+    } = require('../../src/services/DataBackupService');
     (dataBackupService.getStorageStats as jest.Mock).mockResolvedValue({
       totalMessages: 1000,
       totalBytes: 1024 * 1024 * 5, // 5 MB
     });
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'messages-history')
+      sections.filter(s => s.id === 'messages-history'),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    const view = render(
+      <SettingsScreen
+        visible={true}
+        onClose={mockOnClose}
+        currentNetwork="test-network"
+      />,
+    );
     fireEvent.press(view.getByText('Messages & History'));
 
     await waitFor(() => {
@@ -1033,7 +1225,9 @@ describe('SettingsScreen Integration', () => {
   // ========== Identity Profiles Tests ==========
 
   it('should load identity profiles on mount', async () => {
-    const { identityProfilesService } = require('../../src/services/IdentityProfilesService');
+    const {
+      identityProfilesService,
+    } = require('../../src/services/IdentityProfilesService');
     (identityProfilesService.list as jest.Mock).mockResolvedValue([
       { id: '1', name: 'Profile 1' },
       { id: '2', name: 'Profile 2' },
@@ -1050,16 +1244,26 @@ describe('SettingsScreen Integration', () => {
 
   it('should handle history export in different formats', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { messageHistoryService } = require('../../src/services/MessageHistoryService');
-    (messageHistoryService.exportHistory as jest.Mock).mockResolvedValue('exported data');
+    const {
+      messageHistoryService,
+    } = require('../../src/services/MessageHistoryService');
+    (messageHistoryService.exportHistory as jest.Mock).mockResolvedValue(
+      'exported data',
+    );
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'messages-history')
+      sections.filter(s => s.id === 'messages-history'),
     );
 
     jest.spyOn(Alert, 'alert');
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    const view = render(
+      <SettingsScreen
+        visible={true}
+        onClose={mockOnClose}
+        currentNetwork="test-network"
+      />,
+    );
     fireEvent.press(view.getByText('Messages & History'));
 
     await waitFor(() => {
@@ -1067,12 +1271,15 @@ describe('SettingsScreen Integration', () => {
     });
 
     // Get submenu items
-    const exportSubmenuItems = mockCapturedSettingItems.get('history-export').submenuItems;
+    const exportSubmenuItems =
+      mockCapturedSettingItems.get('history-export').submenuItems;
     expect(exportSubmenuItems).toBeTruthy();
     expect(exportSubmenuItems.length).toBeGreaterThan(0);
 
     // Test JSON export
-    const jsonExport = exportSubmenuItems.find((item: any) => item.id === 'export-json');
+    const jsonExport = exportSubmenuItems.find(
+      (item: any) => item.id === 'export-json',
+    );
     expect(jsonExport).toBeTruthy();
     jsonExport.onPress();
   });
@@ -1080,14 +1287,16 @@ describe('SettingsScreen Integration', () => {
   // ========== Additional Coverage Tests ==========
 
   it('should handle section header toggles correctly', async () => {
-    const { findByText } = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const { findByText } = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
 
     // Toggle Appearance section
     const appearanceHeader = await findByText('Appearance');
     fireEvent.press(appearanceHeader);
     expect(settingsHelpers.toggleSectionExpansion).toHaveBeenCalledWith(
       'Appearance',
-      expect.any(Set)
+      expect.any(Set),
     );
 
     // Toggle again to collapse
@@ -1097,10 +1306,16 @@ describe('SettingsScreen Integration', () => {
   it('should handle backup screen modal', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'messages-history')
+      sections.filter(s => s.id === 'messages-history'),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    const view = render(
+      <SettingsScreen
+        visible={true}
+        onClose={mockOnClose}
+        currentNetwork="test-network"
+      />,
+    );
     fireEvent.press(view.getByText('Messages & History'));
 
     await waitFor(() => {
@@ -1116,10 +1331,16 @@ describe('SettingsScreen Integration', () => {
   it('should handle history viewer screen', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'messages-history')
+      sections.filter(s => s.id === 'messages-history'),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    const view = render(
+      <SettingsScreen
+        visible={true}
+        onClose={mockOnClose}
+        currentNetwork="test-network"
+      />,
+    );
     fireEvent.press(view.getByText('Messages & History'));
 
     await waitFor(() => {
@@ -1128,13 +1349,19 @@ describe('SettingsScreen Integration', () => {
 
     // Open history viewer
     mockCapturedSettingItems.get('history-viewer').onPress();
-    expect(await view.findByText('MessageHistoryViewerScreenMock')).toBeTruthy();
+    expect(
+      await view.findByText('MessageHistoryViewerScreenMock'),
+    ).toBeTruthy();
     fireEvent.press(view.getByText('MessageHistoryViewerClose'));
   });
 
   it('should handle when notification permission is granted', async () => {
-    const { notificationService } = require('../../src/services/NotificationService');
-    (notificationService.getPreferences as jest.Mock).mockReturnValue({ enabled: true });
+    const {
+      notificationService,
+    } = require('../../src/services/NotificationService');
+    (notificationService.getPreferences as jest.Mock).mockReturnValue({
+      enabled: true,
+    });
     (notificationService.checkPermission as jest.Mock).mockResolvedValue(true);
 
     render(<SettingsScreen visible={true} onClose={mockOnClose} />);
@@ -1147,10 +1374,14 @@ describe('SettingsScreen Integration', () => {
   it('should handle theme editor screen', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'appearance-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'appearance-section'),
+      ),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Appearance'));
 
     const themeEditorButton = view.getByTestId('sec-open-theme-editor');
@@ -1159,18 +1390,22 @@ describe('SettingsScreen Integration', () => {
   });
 
   it('should handle screen not visible state', () => {
-    const { queryByText } = render(<SettingsScreen visible={false} onClose={mockOnClose} />);
-    
+    const { queryByText } = render(
+      <SettingsScreen visible={false} onClose={mockOnClose} />,
+    );
+
     // When not visible, nothing should render
     expect(queryByText('Settings')).toBeNull();
   });
 
   it('should handle multiple section toggles in sequence', async () => {
-    const { findByText } = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const { findByText } = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
 
     // Toggle multiple sections
     const sections = ['Appearance', 'Messages & History', 'Notifications'];
-    
+
     for (const section of sections) {
       try {
         const header = await findByText(section);
@@ -1182,25 +1417,39 @@ describe('SettingsScreen Integration', () => {
   });
 
   it('should handle settings with currentNetwork prop', async () => {
-    const { messageHistoryService } = require('../../src/services/MessageHistoryService');
-    
-    render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    const {
+      messageHistoryService,
+    } = require('../../src/services/MessageHistoryService');
+
+    render(
+      <SettingsScreen
+        visible={true}
+        onClose={mockOnClose}
+        currentNetwork="test-network"
+      />,
+    );
 
     await waitFor(() => {
-      expect(messageHistoryService.getStats).toHaveBeenCalledWith('test-network');
+      expect(messageHistoryService.getStats).toHaveBeenCalledWith(
+        'test-network',
+      );
     });
   });
 
   it('should execute extended performance actions and user list type choices', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { performanceService } = require('../../src/services/PerformanceService');
+    const {
+      performanceService,
+    } = require('../../src/services/PerformanceService');
     jest.spyOn(Alert, 'alert');
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'performance')
+      sections.filter(s => s.id === 'performance'),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Performance'));
 
     await waitFor(() => {
@@ -1208,45 +1457,63 @@ describe('SettingsScreen Integration', () => {
       expect(mockCapturedSettingItems.get('perf-max-visible')).toBeTruthy();
     });
 
-    await mockCapturedSettingItems.get('perf-message-limit').onValueChange('1800');
+    await mockCapturedSettingItems
+      .get('perf-message-limit')
+      .onValueChange('1800');
     await mockCapturedSettingItems.get('perf-max-visible').onValueChange('130');
 
     const maybeListType = mockCapturedSettingItems.get('perf-user-list-type');
     if (maybeListType?.onPress) {
       maybeListType.onPress();
-      const typeCall = (Alert.alert as jest.Mock).mock.calls.find((call: any[]) =>
-        String(call[0]).includes('Select User List Type')
+      const typeCall = (Alert.alert as jest.Mock).mock.calls.find(
+        (call: any[]) => String(call[0]).includes('Select User List Type'),
       );
       if (typeCall?.[2]) {
-        await typeCall[2].find((btn: any) => String(btn.text).includes('FlashList'))?.onPress?.();
-        await typeCall[2].find((btn: any) => String(btn.text).includes('FlatList'))?.onPress?.();
-        await typeCall[2].find((btn: any) => String(btn.text).includes('Grouped'))?.onPress?.();
-        await typeCall[2].find((btn: any) => String(btn.text).includes('Simple'))?.onPress?.();
+        await typeCall[2]
+          .find((btn: any) => String(btn.text).includes('FlashList'))
+          ?.onPress?.();
+        await typeCall[2]
+          .find((btn: any) => String(btn.text).includes('FlatList'))
+          ?.onPress?.();
+        await typeCall[2]
+          .find((btn: any) => String(btn.text).includes('Grouped'))
+          ?.onPress?.();
+        await typeCall[2]
+          .find((btn: any) => String(btn.text).includes('Simple'))
+          ?.onPress?.();
       }
     }
 
-    expect(performanceService.setConfig).toHaveBeenCalledWith({ messageLimit: 1800 });
-    expect(performanceService.setConfig).toHaveBeenCalledWith({ maxVisibleMessages: 130 });
+    expect(performanceService.setConfig).toHaveBeenCalledWith({
+      messageLimit: 1800,
+    });
+    expect(performanceService.setConfig).toHaveBeenCalledWith({
+      maxVisibleMessages: 130,
+    });
   });
 
   it('should execute premium section actions and open privacy relay screen', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     const onShowPurchaseScreen = jest.fn();
-    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'premium'));
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'premium'),
+    );
 
     const view = render(
       <SettingsScreen
         visible={true}
         onClose={mockOnClose}
         onShowPurchaseScreen={onShowPurchaseScreen}
-      />
+      />,
     );
 
     fireEvent.press(view.getByText('💎 Premium'));
 
     await waitFor(() => {
       expect(mockCapturedSettingItems.get('premium-upgrade')).toBeTruthy();
-      expect(mockCapturedSettingItems.get('privacy-relay-subscription')).toBeTruthy();
+      expect(
+        mockCapturedSettingItems.get('privacy-relay-subscription'),
+      ).toBeTruthy();
     });
 
     mockCapturedSettingItems.get('premium-upgrade').onPress();
@@ -1259,14 +1526,20 @@ describe('SettingsScreen Integration', () => {
 
   it('should open scripting and scripting help screens from the section component', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'scripting-ads'),
+    );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Scripting & Ads'));
 
     await waitFor(() => {
       expect(mockCapturedSettingItems.get('advanced-scripts')).toBeTruthy();
-      expect(mockCapturedSettingItems.get('advanced-scripts-help')).toBeTruthy();
+      expect(
+        mockCapturedSettingItems.get('advanced-scripts-help'),
+      ).toBeTruthy();
     });
 
     mockCapturedSettingItems.get('advanced-scripts').onPress();
@@ -1276,13 +1549,19 @@ describe('SettingsScreen Integration', () => {
 
   it('should handle scripting help close callback', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'scripting-ads'),
+    );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Scripting & Ads'));
 
     await waitFor(() => {
-      expect(mockCapturedSettingItems.get('advanced-scripts-help')).toBeTruthy();
+      expect(
+        mockCapturedSettingItems.get('advanced-scripts-help'),
+      ).toBeTruthy();
     });
 
     mockCapturedSettingItems.get('advanced-scripts-help').onPress();
@@ -1296,10 +1575,16 @@ describe('SettingsScreen Integration', () => {
   it('should handle scripting purchase and close callbacks', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     const onShowPurchaseScreen = jest.fn();
-    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'scripting-ads'),
+    );
 
     const view = render(
-      <SettingsScreen visible={true} onClose={mockOnClose} onShowPurchaseScreen={onShowPurchaseScreen} />
+      <SettingsScreen
+        visible={true}
+        onClose={mockOnClose}
+        onShowPurchaseScreen={onShowPurchaseScreen}
+      />,
     );
     fireEvent.press(view.getByText('Scripting & Ads'));
 
@@ -1323,8 +1608,12 @@ describe('SettingsScreen Integration', () => {
 
   it('should open key management and handle migration dialog states', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { connectionManager } = require('../../src/services/ConnectionManager');
-    const { encryptedDMService } = require('../../src/services/EncryptedDMService');
+    const {
+      connectionManager,
+    } = require('../../src/services/ConnectionManager');
+    const {
+      encryptedDMService,
+    } = require('../../src/services/EncryptedDMService');
     jest.spyOn(Alert, 'alert');
 
     (connectionManager.getAllConnections as jest.Mock).mockReturnValue([
@@ -1332,9 +1621,13 @@ describe('SettingsScreen Integration', () => {
       { networkId: 'net-b' },
     ]);
 
-    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'security'));
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'security'),
+    );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Security'));
 
     fireEvent.press(view.getByTestId('sec-open-key-management'));
@@ -1343,31 +1636,42 @@ describe('SettingsScreen Integration', () => {
     fireEvent.press(view.getByTestId('sec-open-migration'));
     expect(await view.findByText('Migrate Old Keys')).toBeTruthy();
 
-    (encryptedDMService.migrateOldKeysToNetwork as jest.Mock).mockResolvedValueOnce(2);
+    (
+      encryptedDMService.migrateOldKeysToNetwork as jest.Mock
+    ).mockResolvedValueOnce(2);
     fireEvent.press(view.getByText('net-a'));
     fireEvent.press(view.getByText('Migrate'));
 
     await waitFor(() => {
-      expect(encryptedDMService.migrateOldKeysToNetwork).toHaveBeenCalledWith('net-a');
+      expect(encryptedDMService.migrateOldKeysToNetwork).toHaveBeenCalledWith(
+        'net-a',
+      );
     });
 
     fireEvent.press(view.getByTestId('sec-open-migration'));
     fireEvent.press(view.getByText('Cancel'));
     expect(view.queryByText('Migrate Old Keys')).toBeNull();
 
-    (encryptedDMService.migrateOldKeysToNetwork as jest.Mock).mockRejectedValueOnce(new Error('migration failed'));
+    (
+      encryptedDMService.migrateOldKeysToNetwork as jest.Mock
+    ).mockRejectedValueOnce(new Error('migration failed'));
     fireEvent.press(view.getByTestId('sec-open-migration'));
     fireEvent.press(view.getByText('net-b'));
     fireEvent.press(view.getByText('Migrate'));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Migration Error', 'migration failed');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Migration Error',
+        'migration failed',
+      );
     });
   });
 
   it('should handle theme editor close and save callbacks', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { useSettingsAppearance } = require('../../src/hooks/useSettingsAppearance');
+    const {
+      useSettingsAppearance,
+    } = require('../../src/hooks/useSettingsAppearance');
     const refreshThemes = jest.fn();
     const setShowThemeEditor = jest.fn();
     const setEditingTheme = jest.fn();
@@ -1389,10 +1693,14 @@ describe('SettingsScreen Integration', () => {
     });
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'appearance-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'appearance-section'),
+      ),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Appearance'));
     fireEvent.press(view.getByTestId('sec-open-theme-editor'));
     expect(setShowThemeEditor).toHaveBeenCalledWith(true);
@@ -1416,7 +1724,9 @@ describe('SettingsScreen Integration', () => {
       setTheme: jest.fn(),
     });
 
-    const reopenedView = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const reopenedView = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(reopenedView.getByText('ThemeEditorClose'));
     fireEvent.press(reopenedView.getByText('ThemeEditorSave'));
     expect(refreshThemes).toHaveBeenCalled();
@@ -1425,7 +1735,9 @@ describe('SettingsScreen Integration', () => {
   it('should handle first run setup complete and skip callbacks', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'connection-network-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'connection-network-section'),
+      ),
     );
 
     let view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
@@ -1444,10 +1756,14 @@ describe('SettingsScreen Integration', () => {
   it('should handle connection profiles close callback', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'connection-network-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'connection-network-section'),
+      ),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Connection & Network'));
     fireEvent.press(view.getByTestId('sec-open-connection-profiles'));
     expect(await view.findByText('ConnectionProfilesClose')).toBeTruthy();
@@ -1466,10 +1782,14 @@ describe('SettingsScreen Integration', () => {
     });
 
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.data?.some((d: any) => d.id === 'connection-network-section'))
+      sections.filter(s =>
+        s.data?.some((d: any) => d.id === 'connection-network-section'),
+      ),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Connection & Network'));
     fireEvent.press(view.getByTestId('sec-open-networks-list'));
 
@@ -1479,30 +1799,51 @@ describe('SettingsScreen Integration', () => {
 
   it('should export history as txt and csv formats from submenu', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { messageHistoryService } = require('../../src/services/MessageHistoryService');
+    const {
+      messageHistoryService,
+    } = require('../../src/services/MessageHistoryService');
     (messageHistoryService.exportHistory as jest.Mock).mockResolvedValue('x');
-    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'messages-history'));
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'messages-history'),
+    );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} currentNetwork="test-network" />);
+    const view = render(
+      <SettingsScreen
+        visible={true}
+        onClose={mockOnClose}
+        currentNetwork="test-network"
+      />,
+    );
     fireEvent.press(view.getByText('Messages & History'));
 
     await waitFor(() => {
       expect(mockCapturedSettingItems.get('history-export')).toBeTruthy();
     });
 
-    const exportSubmenuItems = mockCapturedSettingItems.get('history-export').submenuItems;
-    exportSubmenuItems.find((item: any) => item.id === 'export-txt')?.onPress?.();
-    exportSubmenuItems.find((item: any) => item.id === 'export-csv')?.onPress?.();
+    const exportSubmenuItems =
+      mockCapturedSettingItems.get('history-export').submenuItems;
+    exportSubmenuItems
+      .find((item: any) => item.id === 'export-txt')
+      ?.onPress?.();
+    exportSubmenuItems
+      .find((item: any) => item.id === 'export-csv')
+      ?.onPress?.();
 
     expect(messageHistoryService.exportHistory).toHaveBeenCalledTimes(2);
   });
 
   it('should run additional performance callbacks and ignore invalid numeric inputs', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const { performanceService } = require('../../src/services/PerformanceService');
-    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'performance'));
+    const {
+      performanceService,
+    } = require('../../src/services/PerformanceService');
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'performance'),
+    );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Performance'));
 
     await waitFor(() => {
@@ -1518,21 +1859,37 @@ describe('SettingsScreen Integration', () => {
       return false;
     };
 
-    const calledVirtualization = await callIfExists('perf-virtualization', false);
+    const calledVirtualization = await callIfExists(
+      'perf-virtualization',
+      false,
+    );
     const calledLazy = await callIfExists('perf-lazy-loading', false);
-    const calledRenderOpt = await callIfExists('perf-render-optimization', false);
+    const calledRenderOpt = await callIfExists(
+      'perf-render-optimization',
+      false,
+    );
     const calledCleanup = await callIfExists('perf-message-cleanup', false);
     const calledChunk = await callIfExists('perf-load-chunk', '64');
     const calledImageLazy = await callIfExists('perf-image-lazy', false);
     const calledGrouping = await callIfExists('perf-user-grouping', false);
-    const calledGroupingThreshold = await callIfExists('perf-user-grouping-threshold', '1200');
+    const calledGroupingThreshold = await callIfExists(
+      'perf-user-grouping-threshold',
+      '1200',
+    );
     const calledDebounce = await callIfExists('perf-user-debounce', '0');
     const calledSkipSort = await callIfExists('perf-user-skip-sort', '0');
-    const calledChunkLoading = await callIfExists('perf-user-chunk-loading', false);
+    const calledChunkLoading = await callIfExists(
+      'perf-user-chunk-loading',
+      false,
+    );
     const calledChunkSize = await callIfExists('perf-user-chunk-size', '120');
-    const calledInitialRender = await callIfExists('perf-user-initial-render', '60');
+    const calledInitialRender = await callIfExists(
+      'perf-user-initial-render',
+      '60',
+    );
 
-    const callsBeforeInvalid = (performanceService.setConfig as jest.Mock).mock.calls.length;
+    const callsBeforeInvalid = (performanceService.setConfig as jest.Mock).mock
+      .calls.length;
     await callIfExists('perf-message-limit', 'abc');
     await callIfExists('perf-max-visible', '0');
     await callIfExists('perf-load-chunk', '0');
@@ -1540,25 +1897,68 @@ describe('SettingsScreen Integration', () => {
     await callIfExists('perf-user-chunk-size', '0');
     await callIfExists('perf-user-initial-render', '0');
 
-    if (calledVirtualization) expect(performanceService.setConfig).toHaveBeenCalledWith({ enableVirtualization: false });
-    if (calledLazy) expect(performanceService.setConfig).toHaveBeenCalledWith({ enableLazyLoading: false });
-    if (calledRenderOpt) expect(performanceService.setConfig).toHaveBeenCalledWith({ renderOptimization: false });
-    if (calledCleanup) expect(performanceService.setConfig).toHaveBeenCalledWith({ enableMessageCleanup: false });
-    if (calledChunk) expect(performanceService.setConfig).toHaveBeenCalledWith({ messageLoadChunk: 64 });
-    if (calledImageLazy) expect(performanceService.setConfig).toHaveBeenCalledWith({ imageLazyLoad: false });
-    if (calledGrouping) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListGrouping: false });
-    if (calledGroupingThreshold) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListAutoDisableGroupingThreshold: 1200 });
-    if (calledDebounce) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListSearchDebounceMs: 0 });
-    if (calledSkipSort) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListSkipSortThreshold: 0 });
-    if (calledChunkLoading) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListEnableChunkLoading: false });
-    if (calledChunkSize) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListChunkSize: 120 });
-    if (calledInitialRender) expect(performanceService.setConfig).toHaveBeenCalledWith({ userListInitialRenderCount: 60 });
-    expect((performanceService.setConfig as jest.Mock).mock.calls.length).toBe(callsBeforeInvalid);
+    if (calledVirtualization)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        enableVirtualization: false,
+      });
+    if (calledLazy)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        enableLazyLoading: false,
+      });
+    if (calledRenderOpt)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        renderOptimization: false,
+      });
+    if (calledCleanup)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        enableMessageCleanup: false,
+      });
+    if (calledChunk)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        messageLoadChunk: 64,
+      });
+    if (calledImageLazy)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        imageLazyLoad: false,
+      });
+    if (calledGrouping)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        userListGrouping: false,
+      });
+    if (calledGroupingThreshold)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        userListAutoDisableGroupingThreshold: 1200,
+      });
+    if (calledDebounce)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        userListSearchDebounceMs: 0,
+      });
+    if (calledSkipSort)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        userListSkipSortThreshold: 0,
+      });
+    if (calledChunkLoading)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        userListEnableChunkLoading: false,
+      });
+    if (calledChunkSize)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        userListChunkSize: 120,
+      });
+    if (calledInitialRender)
+      expect(performanceService.setConfig).toHaveBeenCalledWith({
+        userListInitialRenderCount: 60,
+      });
+    expect((performanceService.setConfig as jest.Mock).mock.calls.length).toBe(
+      callsBeforeInvalid,
+    );
   });
 
   it('should render watch ad button variants and call handleWatchAd', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'scripting-ads'),
+    );
 
     const handleWatchAd = jest.fn().mockResolvedValue(undefined);
     setPremiumHook({
@@ -1576,19 +1976,40 @@ describe('SettingsScreen Integration', () => {
     expect(handleWatchAd).toHaveBeenCalled();
     view.unmount();
 
-    setPremiumHook({ showWatchAdButton: true, adReady: true, adLoading: false, adCooldown: false, showingAd: false });
+    setPremiumHook({
+      showWatchAdButton: true,
+      adReady: true,
+      adLoading: false,
+      adCooldown: false,
+      showingAd: false,
+    });
     view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
     fireEvent.press(view.getByText('Scripting & Ads'));
-    expect(await view.findByText('Watch Ad (+60 min Scripting & No-Ads)')).toBeTruthy();
+    expect(
+      await view.findByText('Watch Ad (+60 min Scripting & No-Ads)'),
+    ).toBeTruthy();
     view.unmount();
 
-    setPremiumHook({ showWatchAdButton: true, adReady: false, adLoading: false, adCooldown: true, cooldownSeconds: 45, showingAd: false });
+    setPremiumHook({
+      showWatchAdButton: true,
+      adReady: false,
+      adLoading: false,
+      adCooldown: true,
+      cooldownSeconds: 45,
+      showingAd: false,
+    });
     view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
     fireEvent.press(view.getByText('Scripting & Ads'));
     expect(await view.findByText('Cooldown (45s)')).toBeTruthy();
     view.unmount();
 
-    setPremiumHook({ showWatchAdButton: true, adReady: false, adLoading: true, adCooldown: false, showingAd: false });
+    setPremiumHook({
+      showWatchAdButton: true,
+      adReady: false,
+      adLoading: true,
+      adCooldown: false,
+      showingAd: false,
+    });
     view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
     fireEvent.press(view.getByText('Scripting & Ads'));
     expect(await view.findByText('Loading Ad...')).toBeTruthy();
@@ -1596,8 +2017,12 @@ describe('SettingsScreen Integration', () => {
 
   it('should handle premium watch ad button setting state and toggle', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
-    const setWatchAdButtonEnabledForPremium = jest.fn().mockResolvedValue(undefined);
-    fsMock.mockImplementation((sections: any[]) => sections.filter((s) => s.id === 'scripting-ads'));
+    const setWatchAdButtonEnabledForPremium = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    fsMock.mockImplementation((sections: any[]) =>
+      sections.filter(s => s.id === 'scripting-ads'),
+    );
 
     setPremiumHook({
       hasNoAds: false,
@@ -1610,11 +2035,17 @@ describe('SettingsScreen Integration', () => {
     fireEvent.press(view.getByText('Scripting & Ads'));
 
     await waitFor(() => {
-      expect(mockCapturedSettingItems.get('watch-ad-button-premium')).toBeTruthy();
+      expect(
+        mockCapturedSettingItems.get('watch-ad-button-premium'),
+      ).toBeTruthy();
     });
 
-    expect(mockCapturedSettingItems.get('watch-ad-button-premium').disabled).toBe(true);
-    await mockCapturedSettingItems.get('watch-ad-button-premium').onValueChange(true);
+    expect(
+      mockCapturedSettingItems.get('watch-ad-button-premium').disabled,
+    ).toBe(true);
+    await mockCapturedSettingItems
+      .get('watch-ad-button-premium')
+      .onValueChange(true);
     expect(setWatchAdButtonEnabledForPremium).toHaveBeenCalledWith(true);
     view.unmount();
 
@@ -1629,26 +2060,33 @@ describe('SettingsScreen Integration', () => {
     fireEvent.press(view.getByText('Scripting & Ads'));
 
     await waitFor(() => {
-      expect(mockCapturedSettingItems.get('watch-ad-button-premium')).toBeTruthy();
+      expect(
+        mockCapturedSettingItems.get('watch-ad-button-premium'),
+      ).toBeTruthy();
     });
 
-    expect(mockCapturedSettingItems.get('watch-ad-button-premium').disabled).toBe(false);
+    expect(
+      mockCapturedSettingItems.get('watch-ad-button-premium').disabled,
+    ).toBe(false);
   });
 
   it('should execute additional bouncer scrollback handlers', async () => {
     const fsMock = settingsHelpers.filterSettings as jest.Mock;
     fsMock.mockImplementation((sections: any[]) =>
-      sections.filter((s) => s.id === 'connection-network')
+      sections.filter(s => s.id === 'connection-network'),
     );
 
-    const view = render(<SettingsScreen visible={true} onClose={mockOnClose} />);
+    const view = render(
+      <SettingsScreen visible={true} onClose={mockOnClose} />,
+    );
     fireEvent.press(view.getByText('Connection & Network'));
 
     await waitFor(() => {
       expect(mockCapturedSettingItems.get('bouncer-config')).toBeTruthy();
     });
 
-    const submenuItems = mockCapturedSettingItems.get('bouncer-config').submenuItems;
+    const submenuItems =
+      mockCapturedSettingItems.get('bouncer-config').submenuItems;
     const byId = (id: string) => submenuItems.find((it: any) => it.id === id);
 
     await byId('bouncer-load-scrollback').onValueChange(false);

@@ -11,9 +11,18 @@ import { ChannelLogModal } from '../../src/components/ChannelLogModal';
 
 const mockStyles = {
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { backgroundColor: '#fff', padding: 20, margin: 20, borderRadius: 8 },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    margin: 20,
+    borderRadius: 8,
+  },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
-  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 16,
+  },
   modalButton: { padding: 12, marginLeft: 8 },
   modalButtonCancel: { backgroundColor: '#ccc' },
   modalButtonJoin: { backgroundColor: '#007AFF' },
@@ -41,12 +50,16 @@ describe('ChannelLogModal', () => {
   });
 
   it('should not render when not visible', () => {
-    const { queryByText } = render(<ChannelLogModal {...defaultProps} visible={false} />);
+    const { queryByText } = render(
+      <ChannelLogModal {...defaultProps} visible={false} />,
+    );
     expect(queryByText('Channel Activity')).toBeNull();
   });
 
   it('should display "No activity recorded" when log is empty', () => {
-    const { getByText } = render(<ChannelLogModal {...defaultProps} logEntries={[]} />);
+    const { getByText } = render(
+      <ChannelLogModal {...defaultProps} logEntries={[]} />,
+    );
     expect(getByText('No activity recorded')).toBeTruthy();
   });
 
@@ -55,7 +68,9 @@ describe('ChannelLogModal', () => {
       { timestamp: Date.now(), text: 'User1 joined' },
       { timestamp: Date.now() + 1000, text: 'User2 left' },
     ];
-    const { getAllByText } = render(<ChannelLogModal {...defaultProps} logEntries={logEntries} />);
+    const { getAllByText } = render(
+      <ChannelLogModal {...defaultProps} logEntries={logEntries} />,
+    );
     // Each entry is displayed as "timestamp - text"
     expect(getAllByText(/User1 joined/).length).toBeGreaterThan(0);
     expect(getAllByText(/User2 left/).length).toBeGreaterThan(0);
@@ -87,10 +102,10 @@ describe('ChannelLogModal', () => {
 
   it('should format timestamps correctly', () => {
     const now = new Date('2026-02-14T12:00:00');
-    const logEntries = [
-      { timestamp: now.getTime(), text: 'Test entry' },
-    ];
-    const { getAllByText } = render(<ChannelLogModal {...defaultProps} logEntries={logEntries} />);
+    const logEntries = [{ timestamp: now.getTime(), text: 'Test entry' }];
+    const { getAllByText } = render(
+      <ChannelLogModal {...defaultProps} logEntries={logEntries} />,
+    );
     // The timestamp should be formatted as locale string, so we search for partial text
     expect(getAllByText(/Test entry/).length).toBeGreaterThan(0);
   });
@@ -100,7 +115,9 @@ describe('ChannelLogModal', () => {
       timestamp: Date.now() + i * 1000,
       text: `Entry ${i + 1}`,
     }));
-    const { getByText } = render(<ChannelLogModal {...defaultProps} logEntries={logEntries} />);
+    const { getByText } = render(
+      <ChannelLogModal {...defaultProps} logEntries={logEntries} />,
+    );
     // Just verify the modal renders with all entries
     expect(getByText('Channel Activity')).toBeTruthy();
   });

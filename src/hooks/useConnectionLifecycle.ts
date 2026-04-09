@@ -9,7 +9,10 @@ import { IRCMessage, ChannelUser } from '../services/IRCService';
 import { connectionManager } from '../services/ConnectionManager';
 import { ircService } from '../services/IRCService';
 import { userManagementService } from '../services/UserManagementService';
-import { NEW_FEATURE_DEFAULTS, settingsService } from '../services/SettingsService';
+import {
+  NEW_FEATURE_DEFAULTS,
+  settingsService,
+} from '../services/SettingsService';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
 import { offlineQueueService } from '../services/OfflineQueueService';
@@ -25,14 +28,21 @@ import { useTabStore } from '../stores/tabStore';
 import { useUIStore } from '../stores/uiStore';
 import { tabService } from '../services/TabService';
 import { messageHistoryService } from '../services/MessageHistoryService';
-import { serverTabId, channelTabId, queryTabId, noticeTabId, notificationsTabId, makeServerTab, sortTabsGrouped } from '../utils/tabUtils';
+import {
+  serverTabId,
+  channelTabId,
+  queryTabId,
+  noticeTabId,
+  notificationsTabId,
+  makeServerTab,
+  sortTabsGrouped,
+} from '../utils/tabUtils';
 import { useT } from '../i18n/transifex';
 import { stsService } from '../services/STSService';
 import type { ChannelTab } from '../types';
 import { debugLogger } from '../services/DebugLogger';
 
-const normalizePattern = (pattern: string) =>
-  pattern.trim().toLowerCase();
+const normalizePattern = (pattern: string) => pattern.trim().toLowerCase();
 
 const matchWildcard = (filename: string, pattern: string): boolean => {
   if (!pattern) return false;
@@ -59,26 +69,42 @@ interface UseConnectionLifecycleParams {
   setNetworkName: (name: string) => void;
   setTabs: React.Dispatch<React.SetStateAction<any[]>>;
   setActiveTabId: (id: string) => void;
-  setChannelUsers: React.Dispatch<React.SetStateAction<Map<string, ChannelUser[]>>>;
+  setChannelUsers: React.Dispatch<
+    React.SetStateAction<Map<string, ChannelUser[]>>
+  >;
   setPing: (ping: number) => void;
-  setTypingUser: (network: string, target: string, nick: string, data: { status: 'active' | 'paused' | 'done'; timestamp: number }) => void;
+  setTypingUser: (
+    network: string,
+    target: string,
+    nick: string,
+    data: { status: 'active' | 'paused' | 'done'; timestamp: number },
+  ) => void;
   setMotdSignal: React.Dispatch<React.SetStateAction<number>>;
   networkName: string;
   activeTabId: string | null;
   tabsRef: React.RefObject<any[]>;
   tabSortAlphabetical: boolean;
   isConnected: boolean;
-  messageBatchTimeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
-  pendingMessagesRef: React.MutableRefObject<Array<{message: IRCMessage, context: any}>>;
+  messageBatchTimeoutRef: React.MutableRefObject<ReturnType<
+    typeof setTimeout
+  > | null>;
+  pendingMessagesRef: React.MutableRefObject<
+    Array<{ message: IRCMessage; context: any }>
+  >;
   motdCompleteRef: React.MutableRefObject<Set<string>>;
-  handleServerConnect?: (serverArgs: any, activeIRCService: any) => Promise<void>;
+  handleServerConnect?: (
+    serverArgs: any,
+    activeIRCService: any,
+  ) => Promise<void>;
 }
 
 /**
  * Hook that manages IRC connection lifecycle and event listeners
  * Handles message routing, connection state, encryption, typing indicators, etc.
  */
-export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => {
+export const useConnectionLifecycle = (
+  params: UseConnectionLifecycleParams,
+) => {
   const {
     processBatchedMessages,
     safeSetState,
@@ -178,7 +204,9 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
 
   // Re-run when isConnected changes OR when we need to check for new connections
   // We use a timestamp to force re-check when ConnectionManager creates a new connection
-  const [connectionCheckTimestamp, setConnectionCheckTimestamp] = useState(Date.now());
+  const [connectionCheckTimestamp, setConnectionCheckTimestamp] = useState(
+    Date.now(),
+  );
 
   // Track connection changes - re-run when isConnected changes OR networkName changes
   // This ensures listeners are re-attached after auto-reconnect
@@ -190,7 +218,7 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
       if (networkName !== prevNetworkRef.current) {
         debugLogger.debug(
           'connectionLifecycle',
-          `Network changed from ${prevNetworkRef.current} to ${networkName}, re-setting up listeners`
+          `Network changed from ${prevNetworkRef.current} to ${networkName}, re-setting up listeners`,
         );
         prevNetworkRef.current = networkName;
       }
@@ -202,42 +230,70 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
   // This handles the case where auto-reconnect creates a new IRCService instance
   // and we need to re-attach all event listeners to the new instance
   useEffect(() => {
-    debugLogger.debug('connectionLifecycle', 'Setting up connection-created listener');
-    const cleanup = connectionManager.onConnectionCreated((networkId: string) => {
-      debugLogger.debug('connectionLifecycle', `Received connection-created event for ${networkId}, forcing listener re-setup`);
-      setConnectionCheckTimestamp(Date.now());
-    });
+    debugLogger.debug(
+      'connectionLifecycle',
+      'Setting up connection-created listener',
+    );
+    const cleanup = connectionManager.onConnectionCreated(
+      (networkId: string) => {
+        debugLogger.debug(
+          'connectionLifecycle',
+          `Received connection-created event for ${networkId}, forcing listener re-setup`,
+        );
+        setConnectionCheckTimestamp(Date.now());
+      },
+    );
 
     return () => {
-      debugLogger.debug('connectionLifecycle', 'Cleaning up connection-created listener');
+      debugLogger.debug(
+        'connectionLifecycle',
+        'Cleaning up connection-created listener',
+      );
       cleanup();
     };
   }, []);
 
   useEffect(() => {
-    debugLogger.debug('connectionLifecycle', 'Setting up IRC listeners', isConnected);
+    debugLogger.debug(
+      'connectionLifecycle',
+      'Setting up IRC listeners',
+      isConnected,
+    );
 
     const connectionTargets = connectionManager.getAllConnections();
-    debugLogger.debug('connectionLifecycle', 'ConnectionManager connections', connectionTargets.length);
+    debugLogger.debug(
+      'connectionLifecycle',
+      'ConnectionManager connections',
+      connectionTargets.length,
+    );
 
-    const listenerTargets = connectionTargets.length > 0
-      ? connectionTargets.map(ctx => ({
-        id: ctx.networkId,
-        ircService: ctx.ircService,
-        userManagementService: ctx.userManagementService,
-        managed: true,
-      }))
-      : [{
-        id: ircService.getNetworkName(),
-        ircService,
-        userManagementService,
-        managed: false,
-      }];
+    const listenerTargets =
+      connectionTargets.length > 0
+        ? connectionTargets.map(ctx => ({
+            id: ctx.networkId,
+            ircService: ctx.ircService,
+            userManagementService: ctx.userManagementService,
+            managed: true,
+          }))
+        : [
+            {
+              id: ircService.getNetworkName(),
+              ircService,
+              userManagementService,
+              managed: false,
+            },
+          ];
 
-    debugLogger.debug('connectionLifecycle', 'Setting up listeners for targets', listenerTargets.map(listenerTarget => listenerTarget.id));
+    debugLogger.debug(
+      'connectionLifecycle',
+      'Setting up listeners for targets',
+      listenerTargets.map(listenerTarget => listenerTarget.id),
+    );
 
     // Sync initial connection state in case connect events happened before listeners attached
-    const anyConnected = listenerTargets.some(listenerTarget => listenerTarget.ircService.getConnectionStatus());
+    const anyConnected = listenerTargets.some(listenerTarget =>
+      listenerTarget.ircService.getConnectionStatus(),
+    );
     latestRef.current.setIsConnected(anyConnected);
     const currentConnectionId = connectionManager.getActiveNetworkId();
     if (currentConnectionId) {
@@ -252,515 +308,760 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
       const targetNetworkId = target.id;
 
       // Listen for messages per connection
-      const unsubscribeMessages = activeIRCService.onMessage(async (message: IRCMessage) => {
-        if (__DEV__ || message.batchTag) {
-          //console.log(`📥 useConnectionLifecycle: Received message type=${message.type}, channel=${message.channel}, batchTag=${message.batchTag || 'none'}`);
-        }
-        const latest = latestRef.current;
-        // Check if user is ignored (filter messages from ignored users)
-        if (message.from && message.type === 'message') {
-          const isIgnored = activeUserMgmt.isUserIgnored(
-            message.from,
-            undefined, // username not available in message
-            undefined, // hostname not available in message
-            message.network || activeIRCService.getNetworkName() || undefined
-          );
-          if (isIgnored) {
-            return; // Skip ignored user messages
+      const unsubscribeMessages = activeIRCService.onMessage(
+        async (message: IRCMessage) => {
+          if (__DEV__ || message.batchTag) {
+            //console.log(`📥 useConnectionLifecycle: Received message type=${message.type}, channel=${message.channel}, batchTag=${message.batchTag || 'none'}`);
           }
-        }
+          const latest = latestRef.current;
+          // Check if user is ignored (filter messages from ignored users)
+          if (message.from && message.type === 'message') {
+            const isIgnored = activeUserMgmt.isUserIgnored(
+              message.from,
+              undefined, // username not available in message
+              undefined, // hostname not available in message
+              message.network || activeIRCService.getNetworkName() || undefined,
+            );
+            if (isIgnored) {
+              return; // Skip ignored user messages
+            }
+          }
 
-        const noticeTargetPref = await settingsService.getSetting('noticeTarget', 'server'); // 'active' | 'server' | 'private' | 'notice'
-        const messageNetwork = message.network || activeIRCService.getNetworkName();
-        const currentActiveTab = latest.tabsRef.current.find(t => t.id === latest.activeTabId);
-        const isSameNetworkAsActive =
-          !!(currentActiveTab && messageNetwork && currentActiveTab.networkId?.toLowerCase() === messageNetwork.toLowerCase());
-        const currentNick = activeIRCService.getCurrentNick?.() || '';
-        const normalizedChannel = (message.channel || '').trim();
-        const isChannelTarget = (target: string) =>
-          target.startsWith('#') || target.startsWith('&') || target.startsWith('+') || target.startsWith('!');
-        const isServerNoticeTarget =
-          normalizedChannel === '*' ||
-          (!!currentNick && normalizedChannel.toLowerCase() === currentNick.toLowerCase());
-        const isServerNoticeOrigin =
-          !message.from ||
-          (messageNetwork && message.from.toLowerCase() === messageNetwork.toLowerCase()) ||
-          message.from.includes('.');
-        const forceServerNotice = isServerNoticeTarget && isServerNoticeOrigin;
-        scriptingService.handleMessage(message);
+          const noticeTargetPref = await settingsService.getSetting(
+            'noticeTarget',
+            'server',
+          ); // 'active' | 'server' | 'private' | 'notice'
+          const messageNetwork =
+            message.network || activeIRCService.getNetworkName();
+          const currentActiveTab = latest.tabsRef.current.find(
+            t => t.id === latest.activeTabId,
+          );
+          const isSameNetworkAsActive = !!(
+            currentActiveTab &&
+            messageNetwork &&
+            currentActiveTab.networkId?.toLowerCase() ===
+              messageNetwork.toLowerCase()
+          );
+          const currentNick = activeIRCService.getCurrentNick?.() || '';
+          const normalizedChannel = (message.channel || '').trim();
+          const isChannelTarget = (target: string) =>
+            target.startsWith('#') ||
+            target.startsWith('&') ||
+            target.startsWith('+') ||
+            target.startsWith('!');
+          const isServerNoticeTarget =
+            normalizedChannel === '*' ||
+            (!!currentNick &&
+              normalizedChannel.toLowerCase() === currentNick.toLowerCase());
+          const isServerNoticeOrigin =
+            !message.from ||
+            (messageNetwork &&
+              message.from.toLowerCase() === messageNetwork.toLowerCase()) ||
+            message.from.includes('.');
+          const forceServerNotice =
+            isServerNoticeTarget && isServerNoticeOrigin;
+          scriptingService.handleMessage(message);
 
-        if (message.typing && message.from) {
-          const typingTarget =
-            currentNick && normalizedChannel && normalizedChannel.toLowerCase() === currentNick.toLowerCase()
-              ? message.from
-              : normalizedChannel;
-          if (typingTarget) {
-            latest.safeSetState(() => {
-              latest.setTypingUser(targetNetworkId, typingTarget, message.from!, {
-                status: message.typing!,
+          if (message.typing && message.from) {
+            const typingTarget =
+              currentNick &&
+              normalizedChannel &&
+              normalizedChannel.toLowerCase() === currentNick.toLowerCase()
+                ? message.from
+                : normalizedChannel;
+            if (typingTarget) {
+              latest.safeSetState(() => {
+                latest.setTypingUser(
+                  targetNetworkId,
+                  typingTarget,
+                  message.from!,
+                  {
+                    status: message.typing!,
+                    timestamp: Date.now(),
+                  },
+                );
+              });
+            }
+          }
+
+          // Handle DCC CHAT invites (CTCP)
+          const dccInvite = dccChatService.parseDccChatInvite(message.text);
+          if (dccInvite && message.from) {
+            const session = dccChatService.handleIncomingInvite(
+              message.from,
+              messageNetwork,
+              dccInvite.host,
+              dccInvite.port,
+            );
+            const autoChatFrom = await settingsService.getSetting(
+              'dccAutoChatFrom',
+              1,
+            );
+            if (autoChatFrom > 1) {
+              dccChatService.acceptInvite(session.id, activeIRCService);
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t('*** DCC CHAT from {from} auto-accepted', {
+                  from: message.from,
+                }),
                 timestamp: Date.now(),
               });
-            });
+            } else {
+              latest.safeAlert(
+                latest.t('DCC Chat Request'),
+                latest
+                  .t('{from} wants to start a DCC chat. Accept?')
+                  .replace('{from}', message.from),
+                [
+                  {
+                    text: latest.t('Decline'),
+                    style: 'cancel',
+                    onPress: () => dccChatService.closeSession(session.id),
+                  },
+                  {
+                    text: latest.t('Accept'),
+                    onPress: () =>
+                      dccChatService.acceptInvite(session.id, activeIRCService),
+                  },
+                ],
+              );
+            }
           }
-        }
+          // Handle DCC SEND offers
+          const dccSend = dccFileService.parseSendOffer(message.text);
+          if (dccSend && message.from) {
+            const transfer = dccFileService.handleOffer(
+              message.from,
+              messageNetwork,
+              dccSend,
+            );
+            const autoMode = await settingsService.getSetting(
+              'dccAutoGetMode',
+              'accept',
+            );
+            const acceptExts = await settingsService.getSetting(
+              'dccAcceptExts',
+              NEW_FEATURE_DEFAULTS.dccAcceptExts,
+            );
+            const rejectExts = await settingsService.getSetting(
+              'dccRejectExts',
+              NEW_FEATURE_DEFAULTS.dccRejectExts,
+            );
+            const dontSendExts = await settingsService.getSetting(
+              'dccDontSendExts',
+              NEW_FEATURE_DEFAULTS.dccDontSendExts,
+            );
+            const autoGetFrom = await settingsService.getSetting(
+              'dccAutoGetFrom',
+              1,
+            );
+            const filename = dccSend.filename || '';
+            const allowAuto = Number(autoGetFrom) > 1;
+            let action: 'accept' | 'reject' | 'prompt' = 'prompt';
+            if (matchesAnyPattern(filename, dontSendExts)) {
+              action = 'reject';
+            } else if (matchesAnyPattern(filename, rejectExts)) {
+              action = 'reject';
+            } else if (matchesAnyPattern(filename, acceptExts)) {
+              action = 'accept';
+            } else if (allowAuto) {
+              if (autoMode === 'accept') action = 'accept';
+              if (autoMode === 'reject' || autoMode === 'dont_send')
+                action = 'reject';
+            }
 
-        // Handle DCC CHAT invites (CTCP)
-        const dccInvite = dccChatService.parseDccChatInvite(message.text);
-        if (dccInvite && message.from) {
-          const session = dccChatService.handleIncomingInvite(message.from, messageNetwork, dccInvite.host, dccInvite.port);
-          const autoChatFrom = await settingsService.getSetting('dccAutoChatFrom', 1);
-          if (autoChatFrom > 1) {
-            dccChatService.acceptInvite(session.id, activeIRCService);
-            activeIRCService.addMessage({
-              type: 'notice',
-              text: latest.t('*** DCC CHAT from {from} auto-accepted', { from: message.from }),
-              timestamp: Date.now(),
-            });
-          } else {
+            if (action === 'accept') {
+              const downloadPath = await dccFileService.getDefaultDownloadPath(
+                dccSend.filename,
+              );
+              await dccFileService.accept(
+                transfer.id,
+                activeIRCService,
+                downloadPath,
+              );
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t(
+                  '*** DCC SEND offer from {from}: {filename} - Auto-accepted',
+                  { from: message.from, filename: dccSend.filename },
+                ),
+                timestamp: Date.now(),
+              });
+              return;
+            }
+
+            if (action === 'reject') {
+              dccFileService.cancel(transfer.id);
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t(
+                  '*** DCC SEND offer from {from}: {filename} - Rejected by filters',
+                  { from: message.from, filename: dccSend.filename },
+                ),
+                timestamp: Date.now(),
+              });
+              return;
+            }
             latest.safeAlert(
-              latest.t('DCC Chat Request'),
-              latest.t('{from} wants to start a DCC chat. Accept?').replace('{from}', message.from),
+              latest.t('DCC SEND Offer'),
+              latest
+                .t('{from} offers "{filename}" ({size} bytes). Accept?')
+                .replace('{from}', message.from)
+                .replace('{filename}', dccSend.filename)
+                .replace('{size}', (dccSend.size || '?').toString()),
               [
-                { text: latest.t('Decline'), style: 'cancel', onPress: () => dccChatService.closeSession(session.id) },
-                { text: latest.t('Accept'), onPress: () => dccChatService.acceptInvite(session.id, activeIRCService) },
-              ]
+                {
+                  text: latest.t('Decline'),
+                  style: 'cancel',
+                  onPress: () => {
+                    dccFileService.cancel(transfer.id);
+                    activeIRCService.addMessage({
+                      type: 'notice',
+                      text: latest.t(
+                        '*** DCC SEND offer from {from}: {filename} - Rejected',
+                        { from: message.from, filename: dccSend.filename },
+                      ),
+                      timestamp: Date.now(),
+                    });
+                  },
+                },
+                {
+                  text: latest.t('Accept'),
+                  onPress: () => {
+                    // Open DCC Transfers modal so user can see and manage the transfer
+                    useUIStore.getState().setShowDccTransfers(true);
+                    useUIStore.getState().setDccTransfersMinimized(false);
+                    // Inform user that transfer is ready to accept
+                    activeIRCService.addMessage({
+                      type: 'notice',
+                      text: latest.t(
+                        '*** DCC SEND offer from {from}: {filename} - Open DCC Transfers to accept',
+                        { from: message.from, filename: dccSend.filename },
+                      ),
+                      timestamp: Date.now(),
+                    });
+                  },
+                },
+              ],
             );
           }
-        }
-        // Handle DCC SEND offers
-        const dccSend = dccFileService.parseSendOffer(message.text);
-        if (dccSend && message.from) {
-          const transfer = dccFileService.handleOffer(message.from, messageNetwork, dccSend);
-          const autoMode = await settingsService.getSetting('dccAutoGetMode', 'accept');
-          const acceptExts = await settingsService.getSetting('dccAcceptExts', NEW_FEATURE_DEFAULTS.dccAcceptExts);
-          const rejectExts = await settingsService.getSetting('dccRejectExts', NEW_FEATURE_DEFAULTS.dccRejectExts);
-          const dontSendExts = await settingsService.getSetting('dccDontSendExts', NEW_FEATURE_DEFAULTS.dccDontSendExts);
-          const autoGetFrom = await settingsService.getSetting('dccAutoGetFrom', 1);
-          const filename = dccSend.filename || '';
-          const allowAuto = Number(autoGetFrom) > 1;
-          let action: 'accept' | 'reject' | 'prompt' = 'prompt';
-          if (matchesAnyPattern(filename, dontSendExts)) {
-            action = 'reject';
-          } else if (matchesAnyPattern(filename, rejectExts)) {
-            action = 'reject';
-          } else if (matchesAnyPattern(filename, acceptExts)) {
-            action = 'accept';
-          } else if (allowAuto) {
-            if (autoMode === 'accept') action = 'accept';
-            if (autoMode === 'reject' || autoMode === 'dont_send') action = 'reject';
-          }
 
-          if (action === 'accept') {
-            const downloadPath = await dccFileService.getDefaultDownloadPath(dccSend.filename);
-            await dccFileService.accept(transfer.id, activeIRCService, downloadPath);
-            activeIRCService.addMessage({
-              type: 'notice',
-              text: latest.t('*** DCC SEND offer from {from}: {filename} - Auto-accepted', { from: message.from, filename: dccSend.filename }),
-              timestamp: Date.now(),
-            });
-            return;
-          }
-
-          if (action === 'reject') {
-            dccFileService.cancel(transfer.id);
-            activeIRCService.addMessage({
-              type: 'notice',
-              text: latest.t('*** DCC SEND offer from {from}: {filename} - Rejected by filters', { from: message.from, filename: dccSend.filename }),
-              timestamp: Date.now(),
-            });
-            return;
-          }
-          latest.safeAlert(
-            latest.t('DCC SEND Offer'),
-            latest.t('{from} offers "{filename}" ({size} bytes). Accept?')
-              .replace('{from}', message.from)
-              .replace('{filename}', dccSend.filename)
-              .replace('{size}', (dccSend.size || '?').toString()),
-            [
-              { 
-                text: latest.t('Decline'), 
-                style: 'cancel', 
-                onPress: () => {
-                  dccFileService.cancel(transfer.id);
-                  activeIRCService.addMessage({
-                    type: 'notice',
-                    text: latest.t('*** DCC SEND offer from {from}: {filename} - Rejected', { from: message.from, filename: dccSend.filename }),
-                    timestamp: Date.now(),
-                  });
-                }
-              },
-              {
-                text: latest.t('Accept'),
-                onPress: () => {
-                  // Open DCC Transfers modal so user can see and manage the transfer
-                  useUIStore.getState().setShowDccTransfers(true);
-                  useUIStore.getState().setDccTransfersMinimized(false);
-                  // Inform user that transfer is ready to accept
-                  activeIRCService.addMessage({
-                    type: 'notice',
-                    text: latest.t('*** DCC SEND offer from {from}: {filename} - Open DCC Transfers to accept', { from: message.from, filename: dccSend.filename }),
-                    timestamp: Date.now(),
-                  });
-                },
-              },
-            ]
+          const hasValidNetwork = !!(
+            messageNetwork && messageNetwork !== 'Not connected'
           );
-        }
+          let targetTabId = hasValidNetwork
+            ? serverTabId(messageNetwork)
+            : latest.activeTabId || '';
+          let targetTabType: ChannelTab['type'] = 'server';
+          let newTabIsEncrypted = false;
 
-        const hasValidNetwork = !!(messageNetwork && messageNetwork !== 'Not connected');
-        let targetTabId = hasValidNetwork ? serverTabId(messageNetwork) : latest.activeTabId || '';
-        let targetTabType: ChannelTab['type'] = 'server';
-        let newTabIsEncrypted = false;
-
-        if (message.type === 'raw' || message.isRaw) {
-          // WHOIS messages routed to active tab when whoisDisplayMode is 'active'
-          if (message.whoisActiveTab && currentActiveTab && isSameNetworkAsActive) {
-            targetTabId = currentActiveTab.id;
-            targetTabType = currentActiveTab.type;
-          }
-          // Raw/system messages should stay on the server tab
-          // EXCEPT: connection messages (disconnect, etc.) should follow notice routing if server tab doesn't exist
-          // This prevents recreating a closed server tab when user manually closes it
-          else if (message.rawCategory === 'connection' && hasValidNetwork) {
-            const serverTab = latest.tabsRef.current?.find((t: ChannelTab) => t.id === serverTabId(messageNetwork));
-            if (!serverTab) {
-              // Server tab doesn't exist (user closed it), follow notice routing instead
-              if (!forceServerNotice && noticeTargetPref === 'active' && currentActiveTab && isSameNetworkAsActive) {
-                targetTabId = currentActiveTab.id;
-                targetTabType = currentActiveTab.type;
-              } else if (!forceServerNotice && noticeTargetPref === 'notice') {
-                targetTabId = noticeTabId(messageNetwork);
-                targetTabType = 'channel';
-              } else if (!forceServerNotice && noticeTargetPref === 'private' && currentActiveTab) {
-                // For private routing, use the current active tab if it's a query, otherwise fallback to notice tab
-                if (currentActiveTab.type === 'query') {
+          if (message.type === 'raw' || message.isRaw) {
+            // WHOIS messages routed to active tab when whoisDisplayMode is 'active'
+            if (
+              message.whoisActiveTab &&
+              currentActiveTab &&
+              isSameNetworkAsActive
+            ) {
+              targetTabId = currentActiveTab.id;
+              targetTabType = currentActiveTab.type;
+            }
+            // Raw/system messages should stay on the server tab
+            // EXCEPT: connection messages (disconnect, etc.) should follow notice routing if server tab doesn't exist
+            // This prevents recreating a closed server tab when user manually closes it
+            else if (message.rawCategory === 'connection' && hasValidNetwork) {
+              const serverTab = latest.tabsRef.current?.find(
+                (t: ChannelTab) => t.id === serverTabId(messageNetwork),
+              );
+              if (!serverTab) {
+                // Server tab doesn't exist (user closed it), follow notice routing instead
+                if (
+                  !forceServerNotice &&
+                  noticeTargetPref === 'active' &&
+                  currentActiveTab &&
+                  isSameNetworkAsActive
+                ) {
                   targetTabId = currentActiveTab.id;
-                  targetTabType = 'query';
-                } else {
+                  targetTabType = currentActiveTab.type;
+                } else if (
+                  !forceServerNotice &&
+                  noticeTargetPref === 'notice'
+                ) {
                   targetTabId = noticeTabId(messageNetwork);
                   targetTabType = 'channel';
+                } else if (
+                  !forceServerNotice &&
+                  noticeTargetPref === 'private' &&
+                  currentActiveTab
+                ) {
+                  // For private routing, use the current active tab if it's a query, otherwise fallback to notice tab
+                  if (currentActiveTab.type === 'query') {
+                    targetTabId = currentActiveTab.id;
+                    targetTabType = 'query';
+                  } else {
+                    targetTabId = noticeTabId(messageNetwork);
+                    targetTabType = 'channel';
+                  }
+                }
+                // If noticeTargetPref is 'server' or no valid routing found, keep server target.
+                // Message batching will now avoid recreating a missing server tab.
+              }
+            }
+          } else if (message.type === 'notice') {
+            if (
+              !forceServerNotice &&
+              noticeTargetPref === 'active' &&
+              currentActiveTab &&
+              isSameNetworkAsActive
+            ) {
+              targetTabId = currentActiveTab.id;
+              targetTabType = currentActiveTab.type;
+            } else if (
+              !forceServerNotice &&
+              noticeTargetPref === 'notice' &&
+              hasValidNetwork
+            ) {
+              targetTabId = noticeTabId(messageNetwork);
+              targetTabType = 'channel';
+            } else if (
+              !forceServerNotice &&
+              noticeTargetPref === 'private' &&
+              message.from &&
+              hasValidNetwork
+            ) {
+              targetTabId = queryTabId(messageNetwork, message.from);
+              targetTabType = 'query';
+              newTabIsEncrypted =
+                await encryptedDMService.isEncryptedForNetwork(
+                  messageNetwork,
+                  message.from,
+                );
+            }
+          } else if (message.type === 'system') {
+            // System messages go to the special Notifications tab
+            // These include notify online/offline messages and other system notifications
+            if (message.channel === 'notifications' && hasValidNetwork) {
+              targetTabId = notificationsTabId(messageNetwork);
+              targetTabType = 'channel';
+            }
+            // Other system messages without specific channel go to server tab
+          } else if (message.type === 'nick' && !message.channel) {
+            // Nick change messages without a channel should follow notice routing
+            // This handles cases where the user changes nick but isn't in any channels
+            // or when the nick change is a server-wide notice
+            if (
+              !forceServerNotice &&
+              noticeTargetPref === 'active' &&
+              currentActiveTab &&
+              isSameNetworkAsActive
+            ) {
+              targetTabId = currentActiveTab.id;
+              targetTabType = currentActiveTab.type;
+            } else if (
+              !forceServerNotice &&
+              noticeTargetPref === 'notice' &&
+              hasValidNetwork
+            ) {
+              targetTabId = noticeTabId(messageNetwork);
+              targetTabType = 'channel';
+            } else if (
+              !forceServerNotice &&
+              noticeTargetPref === 'private' &&
+              message.from &&
+              hasValidNetwork
+            ) {
+              // For private routing, use the old nick (message.from) to find the query tab
+              targetTabId = queryTabId(messageNetwork, message.from);
+              targetTabType = 'query';
+              newTabIsEncrypted =
+                await encryptedDMService.isEncryptedForNetwork(
+                  messageNetwork,
+                  message.from,
+                );
+            }
+            // If noticeTargetPref is 'server', it will stay on server tab (default)
+          } else if (message.channel && hasValidNetwork) {
+            const isWildcardTarget = normalizedChannel === '*';
+            const isSelfTarget =
+              !!currentNick &&
+              normalizedChannel.toLowerCase() === currentNick.toLowerCase();
+            const isServerOrigin = !!message.from && message.from.includes('.');
+            if (isWildcardTarget || (isSelfTarget && isServerOrigin)) {
+              // keep server tab for server-originated non-channel targets
+            } else if (isChannelTarget(normalizedChannel)) {
+              targetTabId = channelTabId(messageNetwork, message.channel);
+              targetTabType = 'channel';
+              newTabIsEncrypted = await channelEncryptionService.hasChannelKey(
+                message.channel,
+                messageNetwork,
+              );
+            } else if (message.from) {
+              // For private messages (query), use channel (recipient) for tab ID
+              // This ensures both local echo (from=currentNick) and incoming messages (from=sagovornik)
+              // are routed to the same tab identified by the other party's nick
+              targetTabId = queryTabId(messageNetwork, message.channel);
+              targetTabType = 'query';
+              newTabIsEncrypted =
+                await encryptedDMService.isEncryptedForNetwork(
+                  messageNetwork,
+                  message.channel,
+                );
+            }
+          } else if (message.from && hasValidNetwork) {
+            // Fallback: if no channel specified, use message.from
+            targetTabId = queryTabId(messageNetwork, message.from);
+            targetTabType = 'query';
+            newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(
+              messageNetwork,
+              message.from,
+            );
+          }
+
+          // Play notification sounds for relevant events
+          // Only for incoming messages, not local echo (from !== currentNick)
+          // Sounds respect per-channel notification preferences (mentions only, etc.)
+          const isLocalEcho =
+            message.from?.toLowerCase() === currentNick.toLowerCase();
+          if (!isLocalEcho && message.type === 'message' && message.text) {
+            // Check per-channel notification preferences before playing sounds
+            const shouldPlaySound = notificationService.shouldNotify(
+              {
+                from: message.from,
+                text: message.text,
+                channel: message.channel,
+                type: message.type,
+              },
+              currentNick,
+              messageNetwork,
+            );
+
+            if (shouldPlaySound) {
+              // Private message sound
+              if (targetTabType === 'query' && message.from) {
+                soundService.playSound(SoundEventType.PRIVATE_MESSAGE);
+              }
+              // Mention sound - check if current nick is mentioned in the message
+              else if (targetTabType === 'channel' && currentNick) {
+                const mentionPattern = new RegExp(
+                  `\\b${currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
+                  'i',
+                );
+                if (mentionPattern.test(message.text)) {
+                  soundService.playSound(SoundEventType.MENTION);
                 }
               }
-              // If noticeTargetPref is 'server' or no valid routing found, keep server target.
-              // Message batching will now avoid recreating a missing server tab.
             }
           }
-        } else if (message.type === 'notice') {
-          if (!forceServerNotice && noticeTargetPref === 'active' && currentActiveTab && isSameNetworkAsActive) {
-            targetTabId = currentActiveTab.id;
-            targetTabType = currentActiveTab.type;
-          } else if (!forceServerNotice && noticeTargetPref === 'notice' && hasValidNetwork) {
-            targetTabId = noticeTabId(messageNetwork);
-            targetTabType = 'channel';
-          } else if (!forceServerNotice && noticeTargetPref === 'private' && message.from && hasValidNetwork) {
-            targetTabId = queryTabId(messageNetwork, message.from);
-            targetTabType = 'query';
-            newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(messageNetwork, message.from);
-          }
-        } else if (message.type === 'system') {
-          // System messages go to the special Notifications tab
-          // These include notify online/offline messages and other system notifications
-          if (message.channel === 'notifications' && hasValidNetwork) {
-            targetTabId = notificationsTabId(messageNetwork);
-            targetTabType = 'channel';
-          }
-          // Other system messages without specific channel go to server tab
-        } else if (message.type === 'nick' && !message.channel) {
-          // Nick change messages without a channel should follow notice routing
-          // This handles cases where the user changes nick but isn't in any channels
-          // or when the nick change is a server-wide notice
-          if (!forceServerNotice && noticeTargetPref === 'active' && currentActiveTab && isSameNetworkAsActive) {
-            targetTabId = currentActiveTab.id;
-            targetTabType = currentActiveTab.type;
-          } else if (!forceServerNotice && noticeTargetPref === 'notice' && hasValidNetwork) {
-            targetTabId = noticeTabId(messageNetwork);
-            targetTabType = 'channel';
-          } else if (!forceServerNotice && noticeTargetPref === 'private' && message.from && hasValidNetwork) {
-            // For private routing, use the old nick (message.from) to find the query tab
-            targetTabId = queryTabId(messageNetwork, message.from);
-            targetTabType = 'query';
-            newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(messageNetwork, message.from);
-          }
-          // If noticeTargetPref is 'server', it will stay on server tab (default)
-        } else if (message.channel && hasValidNetwork) {
-          const isWildcardTarget = normalizedChannel === '*';
-          const isSelfTarget =
-            !!currentNick && normalizedChannel.toLowerCase() === currentNick.toLowerCase();
-          const isServerOrigin = !!message.from && message.from.includes('.');
-          if (isWildcardTarget || (isSelfTarget && isServerOrigin)) {
-            // keep server tab for server-originated non-channel targets
-          } else if (isChannelTarget(normalizedChannel)) {
-            targetTabId = channelTabId(messageNetwork, message.channel);
-            targetTabType = 'channel';
-            newTabIsEncrypted = await channelEncryptionService.hasChannelKey(message.channel, messageNetwork);
-          } else if (message.from) {
-            // For private messages (query), use channel (recipient) for tab ID
-            // This ensures both local echo (from=currentNick) and incoming messages (from=sagovornik)
-            // are routed to the same tab identified by the other party's nick
-            targetTabId = queryTabId(messageNetwork, message.channel);
-            targetTabType = 'query';
-            newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(messageNetwork, message.channel);
-          }
-        } else if (message.from && hasValidNetwork) {
-          // Fallback: if no channel specified, use message.from
-          targetTabId = queryTabId(messageNetwork, message.from);
-          targetTabType = 'query';
-          newTabIsEncrypted = await encryptedDMService.isEncryptedForNetwork(messageNetwork, message.from);
-        }
-
-        // Play notification sounds for relevant events
-        // Only for incoming messages, not local echo (from !== currentNick)
-        // Sounds respect per-channel notification preferences (mentions only, etc.)
-        const isLocalEcho = message.from?.toLowerCase() === currentNick.toLowerCase();
-        if (!isLocalEcho && message.type === 'message' && message.text) {
-          // Check per-channel notification preferences before playing sounds
-          const shouldPlaySound = notificationService.shouldNotify(
-            { from: message.from, text: message.text, channel: message.channel, type: message.type },
-            currentNick,
-            messageNetwork
-          );
-
-          if (shouldPlaySound) {
-            // Private message sound
-            if (targetTabType === 'query' && message.from) {
-              soundService.playSound(SoundEventType.PRIVATE_MESSAGE);
-            }
-            // Mention sound - check if current nick is mentioned in the message
-            else if (targetTabType === 'channel' && currentNick) {
-              const mentionPattern = new RegExp(`\\b${currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-              if (mentionPattern.test(message.text)) {
-                soundService.playSound(SoundEventType.MENTION);
-              }
+          // Notice sound - also respect notification preferences
+          if (message.type === 'notice' && !isLocalEcho) {
+            const shouldPlayNoticeSound = notificationService.shouldNotify(
+              {
+                from: message.from,
+                text: message.text || '',
+                channel: message.channel,
+                type: message.type,
+              },
+              currentNick,
+              messageNetwork,
+            );
+            if (shouldPlayNoticeSound) {
+              soundService.playSound(SoundEventType.NOTICE);
             }
           }
-        }
-        // Notice sound - also respect notification preferences
-        if (message.type === 'notice' && !isLocalEcho) {
-          const shouldPlayNoticeSound = notificationService.shouldNotify(
-            { from: message.from, text: message.text || '', channel: message.channel, type: message.type },
-            currentNick,
-            messageNetwork
-          );
-          if (shouldPlayNoticeSound) {
-            soundService.playSound(SoundEventType.NOTICE);
+          // CTCP sound (for DCC and other CTCP requests)
+          if (message.type === 'ctcp' && !isLocalEcho) {
+            soundService.playSound(SoundEventType.CTCP);
           }
-        }
-        // CTCP sound (for DCC and other CTCP requests)
-        if (message.type === 'ctcp' && !isLocalEcho) {
-          soundService.playSound(SoundEventType.CTCP);
-        }
-        // Join sound
-        if (message.type === 'join' && !isLocalEcho) {
-          soundService.playSound(SoundEventType.JOIN);
-        }
-        // Kick sound - play if user was kicked (message.text contains kicked user)
-        if (message.type === 'mode' && message.text?.includes('kicked')) {
-          soundService.playSound(SoundEventType.KICK);
-        }
-
-        // Add message to pending batch
-        latest.pendingMessagesRef.current.push({
-          message,
-          context: {
-            targetTabId,
-            targetTabType,
-            messageNetwork,
-            newTabIsEncrypted,
-            hasValidNetwork,
-          },
-        });
-
-        if (__DEV__ || message.batchTag) {
-//           console.log('📥 useConnectionLifecycle: Message queued for batch:', {
-//             type: message.type,
-//             channel: message.channel,
-//             batchTag: message.batchTag || 'none',
-//             queueLength: latest.pendingMessagesRef.current.length,
-//             targetTab: targetTabId,
-//           });
-        }
-
-        // Clear existing timeout and set new one
-        if (latest.messageBatchTimeoutRef.current) {
-          clearTimeout(latest.messageBatchTimeoutRef.current);
-        }
-
-        latest.messageBatchTimeoutRef.current = setTimeout(() => {
-          if (__DEV__) {
-            debugLogger.debug('connectionLifecycle', 'Batch timeout triggered, processing messages', latest.pendingMessagesRef.current.length);
+          // Join sound
+          if (message.type === 'join' && !isLocalEcho) {
+            soundService.playSound(SoundEventType.JOIN);
           }
-          latest.safeSetState(() => {
-            latest.processBatchedMessages();
+          // Kick sound - play if user was kicked (message.text contains kicked user)
+          if (message.type === 'mode' && message.text?.includes('kicked')) {
+            soundService.playSound(SoundEventType.KICK);
+          }
+
+          // Add message to pending batch
+          latest.pendingMessagesRef.current.push({
+            message,
+            context: {
+              targetTabId,
+              targetTabType,
+              messageNetwork,
+              newTabIsEncrypted,
+              hasValidNetwork,
+            },
           });
-        }, 16);
-      });
+
+          if (__DEV__ || message.batchTag) {
+            //           console.log('📥 useConnectionLifecycle: Message queued for batch:', {
+            //             type: message.type,
+            //             channel: message.channel,
+            //             batchTag: message.batchTag || 'none',
+            //             queueLength: latest.pendingMessagesRef.current.length,
+            //             targetTab: targetTabId,
+            //           });
+          }
+
+          // Clear existing timeout and set new one
+          if (latest.messageBatchTimeoutRef.current) {
+            clearTimeout(latest.messageBatchTimeoutRef.current);
+          }
+
+          latest.messageBatchTimeoutRef.current = setTimeout(() => {
+            if (__DEV__) {
+              debugLogger.debug(
+                'connectionLifecycle',
+                'Batch timeout triggered, processing messages',
+                latest.pendingMessagesRef.current.length,
+              );
+            }
+            latest.safeSetState(() => {
+              latest.processBatchedMessages();
+            });
+          }, 16);
+        },
+      );
 
       // Listen for connection changes
-      const unsubscribeConnection = activeIRCService.onConnectionChange((connected: boolean) => {
-        const latest = latestRef.current;
-        const connections = connectionManager.getAllConnections();
-        const anyConn = connections.length > 0
-          ? connections.some(c => c.ircService.getConnectionStatus())
-          : connected;
-        latest.safeSetState(() => latest.setIsConnected(anyConn));
-        const activeConnectionId = connectionManager.getActiveNetworkId();
-        latest.safeSetState(() => latest.setActiveConnectionId(activeConnectionId));
-        if (connected) {
-          offlineQueueService.processQueue();
-          // Keep using the logical network id for UI/tab grouping
-          if (activeConnectionId) {
-            latest.safeSetState(() => latest.setNetworkName(activeConnectionId));
-          }
-          if (activeConnectionId) {
-            const serverId = serverTabId(activeConnectionId);
-            // Load tabs from storage if they don't exist (e.g., after reconnect)
-            const existingTabs = latest.tabsRef.current.filter(tabItem => tabItem.networkId === activeConnectionId);
-            if (existingTabs.length === 0) {
-              // No tabs for this network, load from storage
-              if (!currentConnectionId) {
-                return;
-              }
-              const currentNetworkId = currentConnectionId;
-              (async () => {
-                try {
-                  const loadedTabs = await tabService.getTabs(activeConnectionId);
-                  const normalizedTabs = loadedTabs
-                    .filter(tab => tab.networkId !== 'Not connected' && tab.name !== 'Not connected')
-                    .map(tab => ({
-                      ...tab,
-                      networkId: tab.networkId || activeConnectionId,
-                      id: tab.id.includes('::') ? tab.id : (tab.type === 'server' ? serverTabId(activeConnectionId) : tab.id),
-                    }));
-                  const withServerTab = normalizedTabs.some(t => t.type === 'server') 
-                    ? normalizedTabs 
-                    : [makeServerTab(currentNetworkId), ...normalizedTabs];
-                  
-                  // Load server tab history
-                  const initialServerTabId = serverTabId(currentNetworkId);
-                  let serverTabHistory: IRCMessage[] = [];
-                  const serverTab = withServerTab.find(t => t.id === initialServerTabId);
-                  if (serverTab) {
-                    try {
-                      serverTabHistory = await messageHistoryService.loadMessages(currentNetworkId, 'server');
-                    } catch (err) {
-                      console.error('Error loading server tab history on reconnect:', err);
-                    }
-                  }
-                  
-                  const tabsWithHistory = withServerTab.map(tab => {
-                    if (tab.id === initialServerTabId) {
-                      return { ...tab, messages: serverTabHistory };
-                    }
-                    return { ...tab, messages: [] };
-                  });
-                  
-                  latest.safeSetState(() => {
-                    latest.setTabs(prev => sortTabsGrouped([
-                      ...prev.filter(t => t.networkId !== currentNetworkId),
-                      ...tabsWithHistory,
-                    ], latest.tabSortAlphabetical));
-                    if (!latest.activeTabId || !latest.tabsRef.current.some(t => t.id === latest.activeTabId)) {
-                      latest.setActiveTabId(initialServerTabId);
-                    }
-                  });
-                } catch (error) {
-                  console.error('Error loading tabs on reconnect:', error);
-                  // Fallback: just add server tab
-                  latest.safeSetState(() => {
-                    latest.setTabs(prev => {
-                      const exists = prev.some(t => t.id === serverId);
-                      const updated = exists
-                        ? prev
-                        : sortTabsGrouped([...prev, makeServerTab(currentNetworkId)], latest.tabSortAlphabetical);
-                      return updated;
-                    });
-                    if (!latest.activeTabId || !latest.tabsRef.current.some(t => t.id === latest.activeTabId)) {
-                      latest.setActiveTabId(serverId);
-                    }
-                  });
+      const unsubscribeConnection = activeIRCService.onConnectionChange(
+        (connected: boolean) => {
+          const latest = latestRef.current;
+          const connections = connectionManager.getAllConnections();
+          const anyConn =
+            connections.length > 0
+              ? connections.some(c => c.ircService.getConnectionStatus())
+              : connected;
+          latest.safeSetState(() => latest.setIsConnected(anyConn));
+          const activeConnectionId = connectionManager.getActiveNetworkId();
+          latest.safeSetState(() =>
+            latest.setActiveConnectionId(activeConnectionId),
+          );
+          if (connected) {
+            offlineQueueService.processQueue();
+            // Keep using the logical network id for UI/tab grouping
+            if (activeConnectionId) {
+              latest.safeSetState(() =>
+                latest.setNetworkName(activeConnectionId),
+              );
+            }
+            if (activeConnectionId) {
+              const serverId = serverTabId(activeConnectionId);
+              // Load tabs from storage if they don't exist (e.g., after reconnect)
+              const existingTabs = latest.tabsRef.current.filter(
+                tabItem => tabItem.networkId === activeConnectionId,
+              );
+              if (existingTabs.length === 0) {
+                // No tabs for this network, load from storage
+                if (!currentConnectionId) {
+                  return;
                 }
-              })();
-            } else {
-              if (!currentConnectionId) {
-                return;
-              }
-              const currentNetworkId = currentConnectionId;
-              // Tabs already exist (reconnect after disconnect/kill)
-              debugLogger.debug('connectionLifecycle', `Reconnected to ${currentNetworkId}, tabs already exist`);
-              latest.safeSetState(() => {
-                latest.setTabs(prev => {
-                  const exists = prev.some(t => t.id === serverId);
-                  const updated = exists
-                    ? prev
-                    : sortTabsGrouped([...prev, makeServerTab(currentNetworkId)], latest.tabSortAlphabetical);
-                  return updated;
-                });
-              });
-              // Add reconnection message to server tab
-              const reconnectMessage: IRCMessage = {
-                id: `reconnect-${Date.now()}`,
-                type: 'system',
-                text: latest.t('*** Reconnected to {network}').replace('{network}', currentNetworkId),
-                timestamp: Date.now(),
-                channel: 'server',
-                network: currentNetworkId,
-              };
-              latest.pendingMessagesRef.current.push({
-                message: reconnectMessage,
-                context: { targetTab: serverId }
-              });
-              latest.processBatchedMessages();
+                const currentNetworkId = currentConnectionId;
+                (async () => {
+                  try {
+                    const loadedTabs =
+                      await tabService.getTabs(activeConnectionId);
+                    const normalizedTabs = loadedTabs
+                      .filter(
+                        tab =>
+                          tab.networkId !== 'Not connected' &&
+                          tab.name !== 'Not connected',
+                      )
+                      .map(tab => ({
+                        ...tab,
+                        networkId: tab.networkId || activeConnectionId,
+                        id: tab.id.includes('::')
+                          ? tab.id
+                          : tab.type === 'server'
+                            ? serverTabId(activeConnectionId)
+                            : tab.id,
+                      }));
+                    const withServerTab = normalizedTabs.some(
+                      t => t.type === 'server',
+                    )
+                      ? normalizedTabs
+                      : [makeServerTab(currentNetworkId), ...normalizedTabs];
 
-              // Switch to server tab if current active tab is invalid
-              if (!latest.activeTabId || !latest.tabsRef.current.some(t => t.id === latest.activeTabId)) {
-                latest.safeSetState(() => latest.setActiveTabId(serverId));
+                    // Load server tab history
+                    const initialServerTabId = serverTabId(currentNetworkId);
+                    let serverTabHistory: IRCMessage[] = [];
+                    const serverTab = withServerTab.find(
+                      t => t.id === initialServerTabId,
+                    );
+                    if (serverTab) {
+                      try {
+                        serverTabHistory =
+                          await messageHistoryService.loadMessages(
+                            currentNetworkId,
+                            'server',
+                          );
+                      } catch (err) {
+                        console.error(
+                          'Error loading server tab history on reconnect:',
+                          err,
+                        );
+                      }
+                    }
+
+                    const tabsWithHistory = withServerTab.map(tab => {
+                      if (tab.id === initialServerTabId) {
+                        return { ...tab, messages: serverTabHistory };
+                      }
+                      return { ...tab, messages: [] };
+                    });
+
+                    latest.safeSetState(() => {
+                      latest.setTabs(prev =>
+                        sortTabsGrouped(
+                          [
+                            ...prev.filter(
+                              t => t.networkId !== currentNetworkId,
+                            ),
+                            ...tabsWithHistory,
+                          ],
+                          latest.tabSortAlphabetical,
+                        ),
+                      );
+                      if (
+                        !latest.activeTabId ||
+                        !latest.tabsRef.current.some(
+                          t => t.id === latest.activeTabId,
+                        )
+                      ) {
+                        latest.setActiveTabId(initialServerTabId);
+                      }
+                    });
+                  } catch (error) {
+                    console.error('Error loading tabs on reconnect:', error);
+                    // Fallback: just add server tab
+                    latest.safeSetState(() => {
+                      latest.setTabs(prev => {
+                        const exists = prev.some(t => t.id === serverId);
+                        const updated = exists
+                          ? prev
+                          : sortTabsGrouped(
+                              [...prev, makeServerTab(currentNetworkId)],
+                              latest.tabSortAlphabetical,
+                            );
+                        return updated;
+                      });
+                      if (
+                        !latest.activeTabId ||
+                        !latest.tabsRef.current.some(
+                          t => t.id === latest.activeTabId,
+                        )
+                      ) {
+                        latest.setActiveTabId(serverId);
+                      }
+                    });
+                  }
+                })();
+              } else {
+                if (!currentConnectionId) {
+                  return;
+                }
+                const currentNetworkId = currentConnectionId;
+                // Tabs already exist (reconnect after disconnect/kill)
+                debugLogger.debug(
+                  'connectionLifecycle',
+                  `Reconnected to ${currentNetworkId}, tabs already exist`,
+                );
+                latest.safeSetState(() => {
+                  latest.setTabs(prev => {
+                    const exists = prev.some(t => t.id === serverId);
+                    const updated = exists
+                      ? prev
+                      : sortTabsGrouped(
+                          [...prev, makeServerTab(currentNetworkId)],
+                          latest.tabSortAlphabetical,
+                        );
+                    return updated;
+                  });
+                });
+                // Add reconnection message to server tab
+                const reconnectMessage: IRCMessage = {
+                  id: `reconnect-${Date.now()}`,
+                  type: 'system',
+                  text: latest
+                    .t('*** Reconnected to {network}')
+                    .replace('{network}', currentNetworkId),
+                  timestamp: Date.now(),
+                  channel: 'server',
+                  network: currentNetworkId,
+                };
+                latest.pendingMessagesRef.current.push({
+                  message: reconnectMessage,
+                  context: { targetTab: serverId },
+                });
+                latest.processBatchedMessages();
+
+                // Switch to server tab if current active tab is invalid
+                if (
+                  !latest.activeTabId ||
+                  !latest.tabsRef.current.some(t => t.id === latest.activeTabId)
+                ) {
+                  latest.safeSetState(() => latest.setActiveTabId(serverId));
+                }
               }
             }
+            // Background service will handle keeping connection alive
+          } else {
+            // Keep current network name when disconnected - don't switch to "Not connected" tab
+            // Clear user lists on disconnect
+            latest.safeSetState(() => latest.setChannelUsers(new Map()));
+            if (currentConnectionId) {
+              userActivityService.clearNetwork(currentConnectionId);
+              scriptingService.handleDisconnect(
+                currentConnectionId,
+                'Disconnected',
+              );
+            }
+            // Play disconnect sound
+            soundService.playSound(SoundEventType.DISCONNECT);
           }
-          // Background service will handle keeping connection alive
-        } else {
-          // Keep current network name when disconnected - don't switch to "Not connected" tab
-          // Clear user lists on disconnect
-          latest.safeSetState(() => latest.setChannelUsers(new Map()));
-          if (currentConnectionId) {
-            userActivityService.clearNetwork(currentConnectionId);
-            scriptingService.handleDisconnect(currentConnectionId, 'Disconnected');
+        },
+      );
+
+      const unsubscribeRegistered = activeIRCService.on(
+        'registered',
+        async () => {
+          const netId =
+            connectionManager.getActiveNetworkId() ||
+            activeIRCService.getNetworkName();
+          if (!netId || netId === 'Not connected') return;
+
+          // Play login sound
+          soundService.playSound(SoundEventType.LOGIN);
+
+          const netConfig = await settingsService.getNetwork(netId);
+          if (!netConfig) return;
+          // OPER (only if user provided oper password)
+          if (netConfig.operPassword) {
+            const operUser =
+              netConfig.operUser?.trim() ||
+              activeIRCService.getCurrentNick() ||
+              netConfig.nick;
+            activeIRCService.sendRaw(
+              `OPER ${operUser} ${netConfig.operPassword}`,
+            );
           }
-          // Play disconnect sound
-          soundService.playSound(SoundEventType.DISCONNECT);
-        }
-      });
-
-      const unsubscribeRegistered = activeIRCService.on('registered', async () => {
-        const netId = connectionManager.getActiveNetworkId() || activeIRCService.getNetworkName();
-        if (!netId || netId === 'Not connected') return;
-
-        // Play login sound
-        soundService.playSound(SoundEventType.LOGIN);
-
-        const netConfig = await settingsService.getNetwork(netId);
-        if (!netConfig) return;
-        // OPER (only if user provided oper password)
-        if (netConfig.operPassword) {
-          const operUser =
-            netConfig.operUser?.trim() ||
-            activeIRCService.getCurrentNick() ||
-            netConfig.nick;
-          activeIRCService.sendRaw(`OPER ${operUser} ${netConfig.operPassword}`);
-        }
-      });
+        },
+      );
 
       // Fallback NickServ IDENTIFY for singleton mode (ConnectionManager connections handle this internally)
       let unsubscribeMotd: (() => void) | undefined;
       if (!target.managed) {
         unsubscribeMotd = activeIRCService.on('motdEnd', async () => {
           const latest = latestRef.current;
-          const netId = connectionManager.getActiveNetworkId() || activeIRCService.getNetworkName();
+          const netId =
+            connectionManager.getActiveNetworkId() ||
+            activeIRCService.getNetworkName();
           if (!netId || netId === 'Not connected') return;
           const netConfig = await settingsService.getNetwork(netId);
           if (!netConfig) return;
           if (netConfig.nickservPassword) {
-            activeIRCService.sendRaw(`PRIVMSG NickServ :IDENTIFY ${netConfig.nickservPassword}`);
+            activeIRCService.sendRaw(
+              `PRIVMSG NickServ :IDENTIFY ${netConfig.nickservPassword}`,
+            );
           }
           latest.motdCompleteRef.current.add(netId);
           latest.setMotdSignal(signal => signal + 1);
@@ -768,7 +1069,9 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
       }
       const unsubscribeMotdAny = activeIRCService.on('motdEnd', () => {
         const latest = latestRef.current;
-        const netId = connectionManager.getActiveNetworkId() || activeIRCService.getNetworkName();
+        const netId =
+          connectionManager.getActiveNetworkId() ||
+          activeIRCService.getNetworkName();
         if (netId && netId !== 'Not connected') {
           latest.motdCompleteRef.current.add(netId);
           latest.setMotdSignal(signal => signal + 1);
@@ -776,64 +1079,85 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
       });
 
       // Listen for user list changes
-      const unsubscribeUserList = activeIRCService.onUserListChange((channel: string, users: ChannelUser[]) => {
-        const latest = latestRef.current;
-        latest.safeSetState(() => {
-          latest.setChannelUsers((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(channel, users);
-            return newMap;
+      const unsubscribeUserList = activeIRCService.onUserListChange(
+        (channel: string, users: ChannelUser[]) => {
+          const latest = latestRef.current;
+          latest.safeSetState(() => {
+            latest.setChannelUsers(prev => {
+              const newMap = new Map(prev);
+              newMap.set(channel, users);
+              return newMap;
+            });
           });
-        });
-      });
+        },
+      );
 
       // Listen for encryption key exchanges to update tab encryption status
-      const unsubscribeEncryption = encryptedDMService.onBundleStored((nick: string) => {
-        const latest = latestRef.current;
-        latest.safeSetState(() => {
-          latest.setTabs((prev) =>
-            prev.map((tab) => {
-              if (tab.type === 'query' && tab.name.toLowerCase() === nick.toLowerCase()) {
-                return { ...tab, isEncrypted: true };
-              }
-              return tab;
-            })
-          );
-        });
-      });
+      const unsubscribeEncryption = encryptedDMService.onBundleStored(
+        (nick: string) => {
+          const latest = latestRef.current;
+          latest.safeSetState(() => {
+            latest.setTabs(prev =>
+              prev.map(tab => {
+                if (
+                  tab.type === 'query' &&
+                  tab.name.toLowerCase() === nick.toLowerCase()
+                ) {
+                  return { ...tab, isEncrypted: true };
+                }
+                return tab;
+              }),
+            );
+          });
+        },
+      );
 
       // Listen for incoming encryption key offers (require user acceptance)
-      const unsubscribeKeyRequests = encryptedDMService.onKeyRequest((nick: string, _bundle, meta) => {
-        const latest = latestRef.current;
-        const newFingerprint = encryptedDMService.formatFingerprintForDisplay(meta.newFingerprint);
-        const existingFingerprint = meta.existingFingerprint
-          ? encryptedDMService.formatFingerprintForDisplay(meta.existingFingerprint)
-          : 'None';
-        const isChange = meta.reason === 'change' || meta.reason === 'legacy';
-        const title = isChange ? 'Encryption Key Change' : 'Encryption Key Offer';
-        const message = isChange
-          ? `WARNING: ${nick} sent a different encryption key.\n\nOld: ${existingFingerprint}\nNew: ${newFingerprint}\n\nOnly replace if you verified the change out-of-band.`
-          : `${nick} wants to enable encrypted messaging.\n\nFingerprint: ${newFingerprint}\n\nVerify out-of-band before trusting.`;
-        latest.safeAlert(
-          title,
-          message,
-          [
+      const unsubscribeKeyRequests = encryptedDMService.onKeyRequest(
+        (nick: string, _bundle, meta) => {
+          const latest = latestRef.current;
+          const newFingerprint = encryptedDMService.formatFingerprintForDisplay(
+            meta.newFingerprint,
+          );
+          const existingFingerprint = meta.existingFingerprint
+            ? encryptedDMService.formatFingerprintForDisplay(
+                meta.existingFingerprint,
+              )
+            : 'None';
+          const isChange = meta.reason === 'change' || meta.reason === 'legacy';
+          const title = isChange
+            ? 'Encryption Key Change'
+            : 'Encryption Key Offer';
+          const message = isChange
+            ? `WARNING: ${nick} sent a different encryption key.\n\nOld: ${existingFingerprint}\nNew: ${newFingerprint}\n\nOnly replace if you verified the change out-of-band.`
+            : `${nick} wants to enable encrypted messaging.\n\nFingerprint: ${newFingerprint}\n\nVerify out-of-band before trusting.`;
+          latest.safeAlert(title, message, [
             {
               text: isChange ? 'Keep Existing' : 'Reject',
               style: 'cancel',
               onPress: async () => {
                 const network = activeIRCService.getNetworkName();
-                await encryptedDMService.rejectKeyOfferForNetwork(network, nick);
+                await encryptedDMService.rejectKeyOfferForNetwork(
+                  network,
+                  nick,
+                );
                 activeIRCService.sendRaw(`PRIVMSG ${nick} :!enc-reject`);
-              }
+              },
             },
             {
               text: isChange ? 'Replace Key' : 'Accept',
               onPress: async () => {
                 try {
                   const network = activeIRCService.getNetworkName();
-                  const ourBundle = await encryptedDMService.acceptKeyOfferForNetwork(network, nick, isChange);
-                  activeIRCService.sendRaw(`PRIVMSG ${nick} :!enc-accept ${JSON.stringify(ourBundle)}`);
+                  const ourBundle =
+                    await encryptedDMService.acceptKeyOfferForNetwork(
+                      network,
+                      nick,
+                      isChange,
+                    );
+                  activeIRCService.sendRaw(
+                    `PRIVMSG ${nick} :!enc-accept ${JSON.stringify(ourBundle)}`,
+                  );
                   activeIRCService.addMessage({
                     type: 'notice',
                     text: `*** Encryption key ${isChange ? 'replaced' : 'accepted'} from ${nick}. Encrypted chat enabled.`,
@@ -846,429 +1170,584 @@ export const useConnectionLifecycle = (params: UseConnectionLifecycleParams) => 
                     timestamp: Date.now(),
                   });
                 }
-              }
+              },
             },
-          ]
-        );
-      });
+          ]);
+        },
+      );
 
       // Listen for channel encryption key changes to update tab encryption status
-      const unsubscribeChannelKeys = channelEncryptionService.onChannelKeyChange(async (channel: string, network: string) => {
-        const hasKey = await channelEncryptionService.hasChannelKey(channel, network);
-        const noticeText = hasKey
-          ? `🔒 Channel key stored for ${channel}`
-          : `🔓 Channel key removed for ${channel}`;
-        const ircSvc = connectionManager.getConnection(network)?.ircService || ircService;
-        ircSvc.addMessage({
-          type: 'notice',
-          channel,
-          text: noticeText,
-          timestamp: Date.now(),
-        });
-        const latest = latestRef.current;
-        latest.safeSetState(() => {
-          latest.setTabs((prev) =>
-            prev.map((tab) => {
-              if (tab.type === 'channel' && tab.name.toLowerCase() === channel.toLowerCase() && tab.networkId === network) {
-                return { ...tab, isEncrypted: hasKey, sendEncrypted: hasKey ? tab.sendEncrypted : false };
-              }
-              return tab;
-            })
-          );
-        });
-      });
+      const unsubscribeChannelKeys =
+        channelEncryptionService.onChannelKeyChange(
+          async (channel: string, network: string) => {
+            const hasKey = await channelEncryptionService.hasChannelKey(
+              channel,
+              network,
+            );
+            const noticeText = hasKey
+              ? `🔒 Channel key stored for ${channel}`
+              : `🔓 Channel key removed for ${channel}`;
+            const ircSvc =
+              connectionManager.getConnection(network)?.ircService ||
+              ircService;
+            ircSvc.addMessage({
+              type: 'notice',
+              channel,
+              text: noticeText,
+              timestamp: Date.now(),
+            });
+            const latest = latestRef.current;
+            latest.safeSetState(() => {
+              latest.setTabs(prev =>
+                prev.map(tab => {
+                  if (
+                    tab.type === 'channel' &&
+                    tab.name.toLowerCase() === channel.toLowerCase() &&
+                    tab.networkId === network
+                  ) {
+                    return {
+                      ...tab,
+                      isEncrypted: hasKey,
+                      sendEncrypted: hasKey ? tab.sendEncrypted : false,
+                    };
+                  }
+                  return tab;
+                }),
+              );
+            });
+          },
+        );
 
       // Listen for typing indicators
-      const unsubscribeTyping = activeIRCService.on('typing-indicator', (targetName: string, nick: string, status: 'active' | 'paused' | 'done') => {
-        const latest = latestRef.current;
-        const currentNick = activeIRCService.getCurrentNick?.() || '';
-        const resolvedTarget =
-          currentNick && targetName && targetName.toLowerCase() === currentNick.toLowerCase()
-            ? nick
-            : targetName;
-        latest.safeSetState(() => {
-          // Use message store to update typing status
-          latest.setTypingUser(targetNetworkId, resolvedTarget, nick, { status, timestamp: Date.now() });
-        });
-      });
+      const unsubscribeTyping = activeIRCService.on(
+        'typing-indicator',
+        (
+          targetName: string,
+          nick: string,
+          status: 'active' | 'paused' | 'done',
+        ) => {
+          const latest = latestRef.current;
+          const currentNick = activeIRCService.getCurrentNick?.() || '';
+          const resolvedTarget =
+            currentNick &&
+            targetName &&
+            targetName.toLowerCase() === currentNick.toLowerCase()
+              ? nick
+              : targetName;
+          latest.safeSetState(() => {
+            // Use message store to update typing status
+            latest.setTypingUser(targetNetworkId, resolvedTarget, nick, {
+              status,
+              timestamp: Date.now(),
+            });
+          });
+        },
+      );
 
       // Listen for clear-tab command
-      const unsubscribeClearTab = activeIRCService.on('clear-tab', (target: string, network: string) => {
-        const latest = latestRef.current;
-        const currentTabs = latest.tabsRef.current;
-        // Find tab by target (channel name or nick)
-        const tabToClear = currentTabs.find(tabItem => {
-          if (tabItem.networkId === network) {
-            if (target.startsWith('#') || target.startsWith('&')) {
-              return tabItem.type === 'channel' && tabItem.name.toLowerCase() === target.toLowerCase();
-            } else {
-              return (tabItem.type === 'query' || tabItem.type === 'notice') && tabItem.name.toLowerCase() === target.toLowerCase();
+      const unsubscribeClearTab = activeIRCService.on(
+        'clear-tab',
+        (target: string, network: string) => {
+          const latest = latestRef.current;
+          const currentTabs = latest.tabsRef.current;
+          // Find tab by target (channel name or nick)
+          const tabToClear = currentTabs.find(tabItem => {
+            if (tabItem.networkId === network) {
+              if (target.startsWith('#') || target.startsWith('&')) {
+                return (
+                  tabItem.type === 'channel' &&
+                  tabItem.name.toLowerCase() === target.toLowerCase()
+                );
+              } else {
+                return (
+                  (tabItem.type === 'query' || tabItem.type === 'notice') &&
+                  tabItem.name.toLowerCase() === target.toLowerCase()
+                );
+              }
             }
-          }
-          return false;
-        });
-        if (tabToClear) {
-          latest.safeSetState(() => {
-            useTabStore.getState().clearTabMessages(tabToClear.id);
-            // Also clear from message history
-            const channelKey = tabToClear.type === 'server' ? 'server' : tabToClear.name;
-            messageHistoryService.deleteMessages(network, channelKey).catch(err => {
-              console.error('Failed to clear message history:', err);
-            });
+            return false;
           });
-        }
-      });
+          if (tabToClear) {
+            latest.safeSetState(() => {
+              useTabStore.getState().clearTabMessages(tabToClear.id);
+              // Also clear from message history
+              const channelKey =
+                tabToClear.type === 'server' ? 'server' : tabToClear.name;
+              messageHistoryService
+                .deleteMessages(network, channelKey)
+                .catch(err => {
+                  console.error('Failed to clear message history:', err);
+                });
+            });
+          }
+        },
+      );
 
       // Listen for close-tab command
-      const unsubscribeCloseTab = activeIRCService.on('close-tab', (target: string, network: string) => {
-        const latest = latestRef.current;
-        const currentTabs = latest.tabsRef.current;
-        // Find tab by target (channel name or nick)
-        const tabToClose = currentTabs.find(tabItem => {
-          if (tabItem.networkId === network) {
-            if (target.startsWith('#') || target.startsWith('&')) {
-              return tabItem.type === 'channel' && tabItem.name.toLowerCase() === target.toLowerCase();
-            } else {
-              return (tabItem.type === 'query' || tabItem.type === 'notice') && tabItem.name.toLowerCase() === target.toLowerCase();
-            }
-          }
-          return false;
-        });
-        if (tabToClose && tabToClose.type !== 'server') {
-          latest.safeSetState(() => {
-            // Part channel if it's a channel tab
-            if (tabToClose.type === 'channel') {
-              activeIRCService.partChannel(tabToClose.name);
-            }
-            // Remove tab
-            useTabStore.getState().removeTab(tabToClose.id);
-            // Save tabs
-            const remainingTabs = currentTabs.filter(tabItem => tabItem.id !== tabToClose.id);
-            tabService.saveTabs(network, remainingTabs.filter(tabItem => tabItem.networkId === network)).catch(err => {
-              console.error('Failed to save tabs after close:', err);
-            });
-            // Switch to another tab if this was active
-            if (tabToClose.id === latest.activeTabId) {
-              const serverTab = remainingTabs.find(tabItem => tabItem.networkId === network && tabItem.type === 'server');
-              const nextTab = serverTab || remainingTabs[0];
-              if (nextTab) {
-                latest.setActiveTabId(nextTab.id);
+      const unsubscribeCloseTab = activeIRCService.on(
+        'close-tab',
+        (target: string, network: string) => {
+          const latest = latestRef.current;
+          const currentTabs = latest.tabsRef.current;
+          // Find tab by target (channel name or nick)
+          const tabToClose = currentTabs.find(tabItem => {
+            if (tabItem.networkId === network) {
+              if (target.startsWith('#') || target.startsWith('&')) {
+                return (
+                  tabItem.type === 'channel' &&
+                  tabItem.name.toLowerCase() === target.toLowerCase()
+                );
+              } else {
+                return (
+                  (tabItem.type === 'query' || tabItem.type === 'notice') &&
+                  tabItem.name.toLowerCase() === target.toLowerCase()
+                );
               }
             }
+            return false;
           });
-        }
-      });
+          if (tabToClose && tabToClose.type !== 'server') {
+            latest.safeSetState(() => {
+              // Part channel if it's a channel tab
+              if (tabToClose.type === 'channel') {
+                activeIRCService.partChannel(tabToClose.name);
+              }
+              // Remove tab
+              useTabStore.getState().removeTab(tabToClose.id);
+              // Save tabs
+              const remainingTabs = currentTabs.filter(
+                tabItem => tabItem.id !== tabToClose.id,
+              );
+              tabService
+                .saveTabs(
+                  network,
+                  remainingTabs.filter(
+                    tabItem => tabItem.networkId === network,
+                  ),
+                )
+                .catch(err => {
+                  console.error('Failed to save tabs after close:', err);
+                });
+              // Switch to another tab if this was active
+              if (tabToClose.id === latest.activeTabId) {
+                const serverTab = remainingTabs.find(
+                  tabItem =>
+                    tabItem.networkId === network && tabItem.type === 'server',
+                );
+                const nextTab = serverTab || remainingTabs[0];
+                if (nextTab) {
+                  latest.setActiveTabId(nextTab.id);
+                }
+              }
+            });
+          }
+        },
+      );
 
       // Listen for server-command - Handle /server command with all mIRC parameters
-      const unsubscribeServerCommand = activeIRCService.on('server-command', async (serverArgs: any) => {
-        const latest = latestRef.current;
-        try {
-          // Handle server management (-sar)
-          if (serverArgs.management.sort || serverArgs.management.add || serverArgs.management.remove) {
-            const networks = await settingsService.loadNetworks();
-            if (serverArgs.management.sort) {
-              // Sort servers (implementation depends on requirements)
-              activeIRCService.addMessage({
-                type: 'notice',
-                text: latest.t('*** Server list sorted'),
-                timestamp: Date.now(),
-              });
-            } else if (serverArgs.management.add && serverArgs.address) {
-              // Add server to network
-              const network = networks.find(n => n.name === activeIRCService.getNetworkName()) || networks[0];
-              if (network) {
-                const serverConfig = {
-                  id: `server-${Date.now()}`,
-                  hostname: serverArgs.address,
-                  port: serverArgs.managementOptions.port || serverArgs.port || 6667,
-                  ssl: serverArgs.switches.ssl || false,
-                  rejectUnauthorized: true,
-                  password: serverArgs.managementOptions.password || serverArgs.password || '',
-                  name: serverArgs.managementOptions.description || serverArgs.address,
-                };
-                await settingsService.addServerToNetwork(network.id, serverConfig);
+      const unsubscribeServerCommand = activeIRCService.on(
+        'server-command',
+        async (serverArgs: any) => {
+          const latest = latestRef.current;
+          try {
+            // Handle server management (-sar)
+            if (
+              serverArgs.management.sort ||
+              serverArgs.management.add ||
+              serverArgs.management.remove
+            ) {
+              const networks = await settingsService.loadNetworks();
+              if (serverArgs.management.sort) {
+                // Sort servers (implementation depends on requirements)
                 activeIRCService.addMessage({
                   type: 'notice',
-                  text: latest.t('*** Server added: {server}:{port}', { server: serverArgs.address, port: serverConfig.port }),
+                  text: latest.t('*** Server list sorted'),
                   timestamp: Date.now(),
                 });
-              }
-            } else if (serverArgs.management.remove && serverArgs.address) {
-              // Remove server from network
-              const network = networks.find(n => n.name === activeIRCService.getNetworkName()) || networks[0];
-              if (network) {
-                const server = network.servers.find(s => 
-                  s.hostname.toLowerCase() === serverArgs.address.toLowerCase() ||
-                  s.name?.toLowerCase() === serverArgs.address.toLowerCase()
-                );
-                if (server) {
-                  network.servers = network.servers.filter(s => s.id !== server.id);
-                  await settingsService.saveNetworks(networks);
+              } else if (serverArgs.management.add && serverArgs.address) {
+                // Add server to network
+                const network =
+                  networks.find(
+                    n => n.name === activeIRCService.getNetworkName(),
+                  ) || networks[0];
+                if (network) {
+                  const serverConfig = {
+                    id: `server-${Date.now()}`,
+                    hostname: serverArgs.address,
+                    port:
+                      serverArgs.managementOptions.port ||
+                      serverArgs.port ||
+                      6667,
+                    ssl: serverArgs.switches.ssl || false,
+                    rejectUnauthorized: true,
+                    password:
+                      serverArgs.managementOptions.password ||
+                      serverArgs.password ||
+                      '',
+                    name:
+                      serverArgs.managementOptions.description ||
+                      serverArgs.address,
+                  };
+                  await settingsService.addServerToNetwork(
+                    network.id,
+                    serverConfig,
+                  );
                   activeIRCService.addMessage({
                     type: 'notice',
-                    text: latest.t('*** Server removed: {server}', { server: serverArgs.address }),
+                    text: latest.t('*** Server added: {server}:{port}', {
+                      server: serverArgs.address,
+                      port: serverConfig.port,
+                    }),
                     timestamp: Date.now(),
                   });
                 }
+              } else if (serverArgs.management.remove && serverArgs.address) {
+                // Remove server from network
+                const network =
+                  networks.find(
+                    n => n.name === activeIRCService.getNetworkName(),
+                  ) || networks[0];
+                if (network) {
+                  const server = network.servers.find(
+                    s =>
+                      s.hostname.toLowerCase() ===
+                        serverArgs.address.toLowerCase() ||
+                      s.name?.toLowerCase() ===
+                        serverArgs.address.toLowerCase(),
+                  );
+                  if (server) {
+                    network.servers = network.servers.filter(
+                      s => s.id !== server.id,
+                    );
+                    await settingsService.saveNetworks(networks);
+                    activeIRCService.addMessage({
+                      type: 'notice',
+                      text: latest.t('*** Server removed: {server}', {
+                        server: serverArgs.address,
+                      }),
+                      timestamp: Date.now(),
+                    });
+                  }
+                }
               }
+              return;
             }
-            return;
-          }
 
-          // Handle connection (-d switch: disconnect only, no connect)
-          if (serverArgs.switches.disconnectOnly) {
-            if (activeIRCService.getConnectionStatus()) {
-              // Mark as intentional disconnect so auto-reconnect doesn't trigger
-              const disconnectNetworkName = activeIRCService.getNetworkName();
-              if (disconnectNetworkName) {
-                autoReconnectService.markIntentionalDisconnect(disconnectNetworkName);
+            // Handle connection (-d switch: disconnect only, no connect)
+            if (serverArgs.switches.disconnectOnly) {
+              if (activeIRCService.getConnectionStatus()) {
+                // Mark as intentional disconnect so auto-reconnect doesn't trigger
+                const disconnectNetworkName = activeIRCService.getNetworkName();
+                if (disconnectNetworkName) {
+                  autoReconnectService.markIntentionalDisconnect(
+                    disconnectNetworkName,
+                  );
+                }
+                activeIRCService.sendRaw(
+                  `QUIT :${latest.t('Changing server')}`,
+                );
               }
-              activeIRCService.sendRaw(`QUIT :${latest.t('Changing server')}`);
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t('*** Server connection details updated'),
+                timestamp: Date.now(),
+              });
+              return;
             }
-            activeIRCService.addMessage({
-              type: 'notice',
-              text: latest.t('*** Server connection details updated'),
-              timestamp: Date.now(),
-            });
-            return;
-          }
 
-          // Handle server connection
-          if (!serverArgs.address && !serverArgs.serverIndex) {
-            // No parameters - connect to last server
+            // Handle server connection
+            if (!serverArgs.address && !serverArgs.serverIndex) {
+              // No parameters - connect to last server
+              activeIRCService.addMessage({
+                type: 'error',
+                text: latest.t(
+                  'No server specified. Use /server <address> [port]',
+                ),
+                timestamp: Date.now(),
+              });
+              return;
+            }
+
+            // Call handleServerConnect directly if available, otherwise emit event for backward compatibility
+            if (handleServerConnect) {
+              await handleServerConnect(serverArgs, activeIRCService);
+            } else {
+              // Fallback: emit event for App.tsx to handle (backward compatibility)
+              activeIRCService.emit('server-connect', {
+                ...serverArgs,
+                network: activeIRCService.getNetworkName(),
+              });
+            }
+          } catch (error: any) {
             activeIRCService.addMessage({
               type: 'error',
-              text: latest.t('No server specified. Use /server <address> [port]'),
+              text: latest.t('*** Server command error: {error}', {
+                error: error.message || String(error),
+              }),
               timestamp: Date.now(),
             });
-            return;
           }
-
-          // Call handleServerConnect directly if available, otherwise emit event for backward compatibility
-          if (handleServerConnect) {
-            await handleServerConnect(serverArgs, activeIRCService);
-          } else {
-            // Fallback: emit event for App.tsx to handle (backward compatibility)
-            activeIRCService.emit('server-connect', {
-              ...serverArgs,
-              network: activeIRCService.getNetworkName(),
-            });
-          }
-        } catch (error: any) {
-          activeIRCService.addMessage({
-            type: 'error',
-            text: latest.t('*** Server command error: {error}', { error: error.message || String(error) }),
-            timestamp: Date.now(),
-          });
-        }
-      });
+        },
+      );
       unsubscribers.push(unsubscribeServerCommand);
 
       // Listen for dns-lookup command - Resolve hostname via DNS-over-HTTPS
-      const unsubscribeDnsLookup = activeIRCService.on('dns-lookup', async (hostname: string) => {
-        const latest = latestRef.current;
-        const query = (hostname || '').trim();
-        if (!query) {
-          activeIRCService.addMessage({
-            type: 'error',
-            text: latest.t('Usage: /dns <hostname>'),
-            timestamp: Date.now(),
-          });
-          return;
-        }
-
-        const lookup = async (baseUrl: string, type: 'A' | 'AAAA') => {
-          const url = `${baseUrl}?name=${encodeURIComponent(query)}&type=${type}`;
-          const response = await fetch(url, {
-            headers: { Accept: 'application/dns-json' },
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          const data = await response.json();
-          if (data?.Status !== 0) {
-            return [];
-          }
-          const answers = Array.isArray(data?.Answer) ? data.Answer : [];
-          return answers
-            .filter((entry: any) => entry?.type === (type === 'A' ? 1 : 28) && entry?.data)
-            .map((entry: any) => String(entry.data));
-        };
-
-        try {
-          const providers = [
-            'https://cloudflare-dns.com/dns-query',
-            'https://dns.google/resolve',
-          ];
-          let aRecords: string[] = [];
-          let aaaaRecords: string[] = [];
-          let resolved = false;
-
-          for (const provider of providers) {
-            try {
-              aRecords = await lookup(provider, 'A');
-              aaaaRecords = await lookup(provider, 'AAAA');
-              resolved = true;
-              break;
-            } catch {
-              // Try next provider
-            }
-          }
-
-          if (!resolved) {
+      const unsubscribeDnsLookup = activeIRCService.on(
+        'dns-lookup',
+        async (hostname: string) => {
+          const latest = latestRef.current;
+          const query = (hostname || '').trim();
+          if (!query) {
             activeIRCService.addMessage({
               type: 'error',
-              text: latest.t('*** DNS lookup failed for {hostname}', { hostname: query }),
+              text: latest.t('Usage: /dns <hostname>'),
               timestamp: Date.now(),
             });
             return;
           }
 
-          const uniqueA = Array.from(new Set(aRecords));
-          const uniqueAAAA = Array.from(new Set(aaaaRecords));
-          if (uniqueA.length === 0 && uniqueAAAA.length === 0) {
-            activeIRCService.addMessage({
-              type: 'notice',
-              text: latest.t('*** No DNS records found for {hostname}', { hostname: query }),
-              timestamp: Date.now(),
+          const lookup = async (baseUrl: string, type: 'A' | 'AAAA') => {
+            const url = `${baseUrl}?name=${encodeURIComponent(query)}&type=${type}`;
+            const response = await fetch(url, {
+              headers: { Accept: 'application/dns-json' },
             });
-            return;
-          }
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            if (data?.Status !== 0) {
+              return [];
+            }
+            const answers = Array.isArray(data?.Answer) ? data.Answer : [];
+            return answers
+              .filter(
+                (entry: any) =>
+                  entry?.type === (type === 'A' ? 1 : 28) && entry?.data,
+              )
+              .map((entry: any) => String(entry.data));
+          };
 
-          if (uniqueA.length > 0) {
+          try {
+            const providers = [
+              'https://cloudflare-dns.com/dns-query',
+              'https://dns.google/resolve',
+            ];
+            let aRecords: string[] = [];
+            let aaaaRecords: string[] = [];
+            let resolved = false;
+
+            for (const provider of providers) {
+              try {
+                aRecords = await lookup(provider, 'A');
+                aaaaRecords = await lookup(provider, 'AAAA');
+                resolved = true;
+                break;
+              } catch {
+                // Try next provider
+              }
+            }
+
+            if (!resolved) {
+              activeIRCService.addMessage({
+                type: 'error',
+                text: latest.t('*** DNS lookup failed for {hostname}', {
+                  hostname: query,
+                }),
+                timestamp: Date.now(),
+              });
+              return;
+            }
+
+            const uniqueA = Array.from(new Set(aRecords));
+            const uniqueAAAA = Array.from(new Set(aaaaRecords));
+            if (uniqueA.length === 0 && uniqueAAAA.length === 0) {
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t('*** No DNS records found for {hostname}', {
+                  hostname: query,
+                }),
+                timestamp: Date.now(),
+              });
+              return;
+            }
+
+            if (uniqueA.length > 0) {
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t('*** DNS A for {hostname}: {records}', {
+                  hostname: query,
+                  records: uniqueA.join(', '),
+                }),
+                timestamp: Date.now(),
+              });
+            } else {
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t('*** DNS A for {hostname}: <none>', {
+                  hostname: query,
+                }),
+                timestamp: Date.now(),
+              });
+            }
+
+            if (uniqueAAAA.length > 0) {
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t('*** DNS AAAA for {hostname}: {records}', {
+                  hostname: query,
+                  records: uniqueAAAA.join(', '),
+                }),
+                timestamp: Date.now(),
+              });
+            } else {
+              activeIRCService.addMessage({
+                type: 'notice',
+                text: latest.t('*** DNS AAAA for {hostname}: <none>', {
+                  hostname: query,
+                }),
+                timestamp: Date.now(),
+              });
+            }
+          } catch (error: any) {
             activeIRCService.addMessage({
-              type: 'notice',
-              text: latest.t('*** DNS A for {hostname}: {records}', {
+              type: 'error',
+              text: latest.t('*** DNS lookup failed for {hostname}: {error}', {
                 hostname: query,
-                records: uniqueA.join(', '),
+                error: error?.message || String(error),
               }),
               timestamp: Date.now(),
             });
-          } else {
-            activeIRCService.addMessage({
-              type: 'notice',
-              text: latest.t('*** DNS A for {hostname}: <none>', { hostname: query }),
-              timestamp: Date.now(),
-            });
           }
-
-          if (uniqueAAAA.length > 0) {
-            activeIRCService.addMessage({
-              type: 'notice',
-              text: latest.t('*** DNS AAAA for {hostname}: {records}', {
-                hostname: query,
-                records: uniqueAAAA.join(', '),
-              }),
-              timestamp: Date.now(),
-            });
-          } else {
-            activeIRCService.addMessage({
-              type: 'notice',
-              text: latest.t('*** DNS AAAA for {hostname}: <none>', { hostname: query }),
-              timestamp: Date.now(),
-            });
-          }
-        } catch (error: any) {
-          activeIRCService.addMessage({
-            type: 'error',
-            text: latest.t('*** DNS lookup failed for {hostname}: {error}', {
-              hostname: query,
-              error: error?.message || String(error),
-            }),
-            timestamp: Date.now(),
-          });
-        }
-      });
+        },
+      );
       unsubscribers.push(unsubscribeDnsLookup);
 
       // Listen for amsg command - Send message to all channels
-      const unsubscribeAmsg = activeIRCService.on('amsg', (message: string, network: string) => {
-        const latest = latestRef.current;
-        const currentTabs = latest.tabsRef.current;
-        const channelTabs = currentTabs.filter(t => t.networkId === network && t.type === 'channel');
-        channelTabs.forEach(tab => {
-          activeIRCService.sendRaw(`PRIVMSG ${tab.name} :${message}`);
-        });
-        if (channelTabs.length > 0) {
-          activeIRCService.addMessage({
-            type: 'notice',
-            text: latest.t('*** Message sent to {count} channel(s)', { count: channelTabs.length }),
-            timestamp: Date.now(),
+      const unsubscribeAmsg = activeIRCService.on(
+        'amsg',
+        (message: string, network: string) => {
+          const latest = latestRef.current;
+          const currentTabs = latest.tabsRef.current;
+          const channelTabs = currentTabs.filter(
+            t => t.networkId === network && t.type === 'channel',
+          );
+          channelTabs.forEach(tab => {
+            activeIRCService.sendRaw(`PRIVMSG ${tab.name} :${message}`);
           });
-        }
-      });
-
-      // Listen for ame command - Send action to all channels
-      const unsubscribeAme = activeIRCService.on('ame', (action: string, network: string) => {
-        const latest = latestRef.current;
-        const currentTabs = latest.tabsRef.current;
-        const channelTabs = currentTabs.filter(t => t.networkId === network && t.type === 'channel');
-        channelTabs.forEach(tab => {
-          // CTCP ACTION encoding: \x01ACTION text\x01
-          activeIRCService.sendRaw(`PRIVMSG ${tab.name} :\x01ACTION ${action}\x01`);
-        });
-        if (channelTabs.length > 0) {
-          activeIRCService.addMessage({
-            type: 'notice',
-            text: latest.t('*** Action sent to {count} channel(s)', { count: channelTabs.length }),
-            timestamp: Date.now(),
-          });
-        }
-      });
-
-      // Listen for anotice command - Send notice to all channels
-      const unsubscribeAnotice = activeIRCService.on('anotice', (message: string, network: string) => {
-        const latest = latestRef.current;
-        const currentTabs = latest.tabsRef.current;
-        const channelTabs = currentTabs.filter(t => t.networkId === network && t.type === 'channel');
-        channelTabs.forEach(tab => {
-          activeIRCService.sendRaw(`NOTICE ${tab.name} :${message}`);
-        });
-        if (channelTabs.length > 0) {
-          activeIRCService.addMessage({
-            type: 'notice',
-            text: latest.t('*** Notice sent to {count} channel(s)', { count: channelTabs.length }),
-            timestamp: Date.now(),
-          });
-        }
-      });
-
-      // Listen for reconnect command
-      const unsubscribeReconnect = activeIRCService.on('reconnect', (network: string) => {
-        const latest = latestRef.current;
-        // Emit event that connection handler can pick up
-        connectionManager.getConnection(network)?.ircService.disconnect();
-        // Reconnect will be handled by auto-reconnect service or connection handler
-        latest.safeSetState(() => {
-          latest.setIsConnected(false);
-        });
-      });
-
-      // Listen for STS policy updates
-      const unsubscribeStsPolicy = activeIRCService.on('sts-policy', (hostname: string, capValue: string) => {
-        debugLogger.debug('connectionLifecycle', `STS: Received policy for ${hostname}`, capValue);
-        const success = stsService.savePolicy(hostname, capValue);
-        if (success) {
-          const policy = stsService.getPolicy(hostname);
-          if (policy) {
-            const expiresIn = Math.floor((policy.expiresAt - Date.now()) / 1000);
+          if (channelTabs.length > 0) {
             activeIRCService.addMessage({
-              type: 'raw',
-              text: `*** STS policy saved for ${hostname}: TLS required for ${expiresIn} seconds`,
+              type: 'notice',
+              text: latest.t('*** Message sent to {count} channel(s)', {
+                count: channelTabs.length,
+              }),
               timestamp: Date.now(),
-              isRaw: true,
-              rawCategory: 'connection',
             });
           }
-        }
-      });
+        },
+      );
+
+      // Listen for ame command - Send action to all channels
+      const unsubscribeAme = activeIRCService.on(
+        'ame',
+        (action: string, network: string) => {
+          const latest = latestRef.current;
+          const currentTabs = latest.tabsRef.current;
+          const channelTabs = currentTabs.filter(
+            t => t.networkId === network && t.type === 'channel',
+          );
+          channelTabs.forEach(tab => {
+            // CTCP ACTION encoding: \x01ACTION text\x01
+            activeIRCService.sendRaw(
+              `PRIVMSG ${tab.name} :\x01ACTION ${action}\x01`,
+            );
+          });
+          if (channelTabs.length > 0) {
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** Action sent to {count} channel(s)', {
+                count: channelTabs.length,
+              }),
+              timestamp: Date.now(),
+            });
+          }
+        },
+      );
+
+      // Listen for anotice command - Send notice to all channels
+      const unsubscribeAnotice = activeIRCService.on(
+        'anotice',
+        (message: string, network: string) => {
+          const latest = latestRef.current;
+          const currentTabs = latest.tabsRef.current;
+          const channelTabs = currentTabs.filter(
+            t => t.networkId === network && t.type === 'channel',
+          );
+          channelTabs.forEach(tab => {
+            activeIRCService.sendRaw(`NOTICE ${tab.name} :${message}`);
+          });
+          if (channelTabs.length > 0) {
+            activeIRCService.addMessage({
+              type: 'notice',
+              text: latest.t('*** Notice sent to {count} channel(s)', {
+                count: channelTabs.length,
+              }),
+              timestamp: Date.now(),
+            });
+          }
+        },
+      );
+
+      // Listen for reconnect command
+      const unsubscribeReconnect = activeIRCService.on(
+        'reconnect',
+        (network: string) => {
+          const latest = latestRef.current;
+          // Emit event that connection handler can pick up
+          connectionManager.getConnection(network)?.ircService.disconnect();
+          // Reconnect will be handled by auto-reconnect service or connection handler
+          latest.safeSetState(() => {
+            latest.setIsConnected(false);
+          });
+        },
+      );
+
+      // Listen for STS policy updates
+      const unsubscribeStsPolicy = activeIRCService.on(
+        'sts-policy',
+        (hostname: string, capValue: string) => {
+          debugLogger.debug(
+            'connectionLifecycle',
+            `STS: Received policy for ${hostname}`,
+            capValue,
+          );
+          const success = stsService.savePolicy(hostname, capValue);
+          if (success) {
+            const policy = stsService.getPolicy(hostname);
+            if (policy) {
+              const expiresIn = Math.floor(
+                (policy.expiresAt - Date.now()) / 1000,
+              );
+              activeIRCService.addMessage({
+                type: 'raw',
+                text: `*** STS policy saved for ${hostname}: TLS required for ${expiresIn} seconds`,
+                timestamp: Date.now(),
+                isRaw: true,
+                rawCategory: 'connection',
+              });
+            }
+          }
+        },
+      );
 
       // Listen for beep command
-      const unsubscribeBeep = activeIRCService.on('beep', (options: { count: number; delay: number }) => {
-        // Could trigger sound service beep
-        // For now, just log
-        debugLogger.debug('connectionLifecycle', 'Beep requested', options);
-      });
+      const unsubscribeBeep = activeIRCService.on(
+        'beep',
+        (options: { count: number; delay: number }) => {
+          // Could trigger sound service beep
+          // For now, just log
+          debugLogger.debug('connectionLifecycle', 'Beep requested', options);
+        },
+      );
 
       // Simulate ping (in real implementation, measure actual ping)
       const pingInterval = setInterval(() => {

@@ -9,7 +9,9 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useDccSessionSync } from '../../src/hooks/useDccSessionSync';
 
 let sessionCallback: ((session: any) => void) | null = null;
-let messageCallback: ((sessionId: string, message: any, session: any) => void) | null = null;
+let messageCallback:
+  | ((sessionId: string, message: any, session: any) => void)
+  | null = null;
 const mockUnsubSession = jest.fn();
 const mockUnsubMsg = jest.fn();
 
@@ -67,15 +69,19 @@ describe('useDccSessionSync', () => {
   it('should subscribe to session updates and messages on mount', () => {
     const { dccChatService } = require('../../src/services/DCCChatService');
 
-    renderHook(() => useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }));
+    renderHook(() =>
+      useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }),
+    );
 
-    expect(dccChatService.onSessionUpdate).toHaveBeenCalledWith(expect.any(Function));
+    expect(dccChatService.onSessionUpdate).toHaveBeenCalledWith(
+      expect.any(Function),
+    );
     expect(dccChatService.onMessage).toHaveBeenCalledWith(expect.any(Function));
   });
 
   it('should unsubscribe on unmount', () => {
     const { unmount } = renderHook(() =>
-      useDccSessionSync({ isMountedRef, tabSortAlphabetical: false })
+      useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }),
     );
 
     unmount();
@@ -85,7 +91,9 @@ describe('useDccSessionSync', () => {
   });
 
   it('should create a new DCC tab when session connects and tab does not exist', () => {
-    renderHook(() => useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }));
+    renderHook(() =>
+      useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }),
+    );
 
     sessionCallback!({
       id: 'sess1',
@@ -104,7 +112,7 @@ describe('useDccSessionSync', () => {
           networkId: 'TestNet',
           dccSessionId: 'sess1',
         }),
-      ])
+      ]),
     );
     expect(mockSetActiveTabId).toHaveBeenCalledWith('dcc::TestNet::Alice');
     expect(mockSetNetworkName).toHaveBeenCalledWith('TestNet');
@@ -120,7 +128,9 @@ describe('useDccSessionSync', () => {
       dccSessionId: 'old-sess',
     });
 
-    renderHook(() => useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }));
+    renderHook(() =>
+      useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }),
+    );
 
     sessionCallback!({
       id: 'sess2',
@@ -137,14 +147,16 @@ describe('useDccSessionSync', () => {
           messages: [{ text: 'reconnected' }],
           dccSessionId: 'sess2',
         }),
-      ])
+      ]),
     );
   });
 
   it('should not update tabs if component is unmounted', () => {
     isMountedRef.current = false;
 
-    renderHook(() => useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }));
+    renderHook(() =>
+      useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }),
+    );
 
     sessionCallback!({
       id: 'sess1',
@@ -158,7 +170,9 @@ describe('useDccSessionSync', () => {
   });
 
   it('should ignore closed/failed sessions (keep tab for history)', () => {
-    renderHook(() => useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }));
+    renderHook(() =>
+      useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }),
+    );
 
     sessionCallback!({
       id: 'sess1',
@@ -180,12 +194,18 @@ describe('useDccSessionSync', () => {
       messages: [{ text: 'first' }],
     });
 
-    renderHook(() => useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }));
+    renderHook(() =>
+      useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }),
+    );
 
-    messageCallback!('sess1', { text: 'second' }, {
-      networkId: 'TestNet',
-      peerNick: 'Bob',
-    });
+    messageCallback!(
+      'sess1',
+      { text: 'second' },
+      {
+        networkId: 'TestNet',
+        peerNick: 'Bob',
+      },
+    );
 
     expect(mockSetTabs).toHaveBeenCalledWith(
       expect.arrayContaining([
@@ -193,19 +213,25 @@ describe('useDccSessionSync', () => {
           id: 'dcc::TestNet::Bob',
           messages: [{ text: 'first' }, { text: 'second' }],
         }),
-      ])
+      ]),
     );
   });
 
   it('should not append message if component is unmounted', () => {
     isMountedRef.current = false;
 
-    renderHook(() => useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }));
+    renderHook(() =>
+      useDccSessionSync({ isMountedRef, tabSortAlphabetical: false }),
+    );
 
-    messageCallback!('sess1', { text: 'msg' }, {
-      networkId: 'TestNet',
-      peerNick: 'Bob',
-    });
+    messageCallback!(
+      'sess1',
+      { text: 'msg' },
+      {
+        networkId: 'TestNet',
+        peerNick: 'Bob',
+      },
+    );
 
     expect(mockSetTabs).not.toHaveBeenCalled();
   });
@@ -213,7 +239,9 @@ describe('useDccSessionSync', () => {
   it('should use sortTabsGrouped when creating new tab', () => {
     const { sortTabsGrouped } = require('../../src/utils/tabUtils');
 
-    renderHook(() => useDccSessionSync({ isMountedRef, tabSortAlphabetical: true }));
+    renderHook(() =>
+      useDccSessionSync({ isMountedRef, tabSortAlphabetical: true }),
+    );
 
     sessionCallback!({
       id: 'sess1',

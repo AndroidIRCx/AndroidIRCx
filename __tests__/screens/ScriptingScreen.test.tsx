@@ -8,8 +8,6 @@ import { Alert } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ScriptingScreen } from '../../src/screens/ScriptingScreen';
 
-jest.useFakeTimers();
-
 const mockScripts = [
   {
     id: 'script-1',
@@ -64,8 +62,9 @@ jest.mock('../../src/i18n/transifex', () => ({
     }
 
     return Object.entries(params).reduce(
-      (result, [paramKey, value]) => result.replace(`{${paramKey}}`, String(value)),
-      key
+      (result, [paramKey, value]) =>
+        result.replace(`{${paramKey}}`, String(value)),
+      key,
     );
   },
 }));
@@ -111,10 +110,13 @@ jest.mock('../../src/services/InAppPurchaseService', () => ({
 
 const { scriptingService } = require('../../src/services/ScriptingService');
 const { adRewardService } = require('../../src/services/AdRewardService');
-const { inAppPurchaseService } = require('../../src/services/InAppPurchaseService');
+const {
+  inAppPurchaseService,
+} = require('../../src/services/InAppPurchaseService');
 
 describe('ScriptingScreen', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
 
@@ -130,7 +132,10 @@ describe('ScriptingScreen', () => {
     scriptingService.add.mockResolvedValue(undefined);
     scriptingService.setLoggingEnabled.mockResolvedValue(undefined);
     scriptingService.clearLogs.mockResolvedValue(undefined);
-    scriptingService.lint.mockReturnValue({ ok: true, message: 'No syntax errors detected.' });
+    scriptingService.lint.mockReturnValue({
+      ok: true,
+      message: 'No syntax errors detected.',
+    });
 
     adRewardService.getRemainingTimeFormatted.mockReturnValue('59m');
     adRewardService.hasAvailableTime.mockReturnValue(true);
@@ -152,13 +157,20 @@ describe('ScriptingScreen', () => {
     inAppPurchaseService.hasUnlimitedScripting.mockReturnValue(false);
   });
 
-  afterAll(() => {
+  afterEach(() => {
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     jest.useRealTimers();
   });
 
   it('renders script list and allows toggling, deleting and testing a script', async () => {
     const { findByText, getAllByRole } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText('Logger Script')).toBeTruthy();
@@ -166,7 +178,10 @@ describe('ScriptingScreen', () => {
 
     fireEvent(getAllByRole('switch')[2], 'valueChange', false);
     await waitFor(() => {
-      expect(scriptingService.setEnabled).toHaveBeenCalledWith('script-1', false);
+      expect(scriptingService.setEnabled).toHaveBeenCalledWith(
+        'script-1',
+        false,
+      );
     });
 
     fireEvent.press(await findByText('Delete'));
@@ -175,12 +190,19 @@ describe('ScriptingScreen', () => {
     });
 
     fireEvent.press(await findByText('Test'));
-    expect(scriptingService.testHook).toHaveBeenCalledWith('script-1', 'onMessage');
+    expect(scriptingService.testHook).toHaveBeenCalledWith(
+      'script-1',
+      'onMessage',
+    );
   });
 
   it('requests an ad when not ready and shows rewarded ad when ready', async () => {
     const { findByText, rerender } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('Request Ad'));
@@ -197,12 +219,21 @@ describe('ScriptingScreen', () => {
       adUnitType: 'Primary',
     });
 
-    rerender(<ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />);
+    rerender(
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
+    );
     fireEvent.press(await findByText('Watch Ad (+60 min Scripting & No-Ads)'));
 
     await waitFor(() => {
       expect(adRewardService.showRewardedAd).toHaveBeenCalledTimes(1);
-      expect(Alert.alert).toHaveBeenCalledWith('Thank You!', 'You earned scripting time!');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Thank You!',
+        'You earned scripting time!',
+      );
     });
   });
 
@@ -210,20 +241,32 @@ describe('ScriptingScreen', () => {
     scriptingService.list.mockReturnValue([]);
 
     const { findByText, findByDisplayValue, getAllByDisplayValue } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('New Script'));
     fireEvent.changeText(await findByDisplayValue('New Script'), 'My Script');
 
-    const codeInput = getAllByDisplayValue('// module.exports = { onMessage: (msg) => { /* ... */ } };')[0];
+    const codeInput = getAllByDisplayValue(
+      '// module.exports = { onMessage: (msg) => { /* ... */ } };',
+    )[0];
     fireEvent.changeText(codeInput, 'const x = 1;');
 
     fireEvent.changeText(await findByDisplayValue('{}'), '{bad json');
-    expect(Alert.alert).toHaveBeenCalledWith('Invalid JSON', expect.stringContaining('SyntaxError'));
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Invalid JSON',
+      expect.stringContaining('SyntaxError'),
+    );
 
     fireEvent.press(await findByText('Lint'));
-    expect(Alert.alert).toHaveBeenCalledWith('Lint Passed', 'No syntax errors detected.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Lint Passed',
+      'No syntax errors detected.',
+    );
 
     fireEvent.press(await findByText('Save'));
     await waitFor(() => {
@@ -231,14 +274,18 @@ describe('ScriptingScreen', () => {
         expect.objectContaining({
           name: 'My Script',
           code: 'const x = 1;',
-        })
+        }),
       );
     });
   });
 
   it('toggles scripting time mode, installs built-ins, clears logs and filters them', async () => {
     const { findByText, getAllByRole, getByPlaceholderText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent(getAllByRole('switch')[0], 'valueChange', true);
@@ -263,7 +310,11 @@ describe('ScriptingScreen', () => {
     const onShowPurchaseScreen = jest.fn();
 
     render(
-      <ScriptingScreen visible onClose={onClose} onShowPurchaseScreen={onShowPurchaseScreen} />
+      <ScriptingScreen
+        visible
+        onClose={onClose}
+        onShowPurchaseScreen={onShowPurchaseScreen}
+      />,
     );
 
     const listener = adRewardService.addListener.mock.calls[0]?.[0];
@@ -283,7 +334,11 @@ describe('ScriptingScreen', () => {
     scriptingService.list.mockReturnValue([]);
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText('No scripts installed.')).toBeTruthy();
@@ -293,7 +348,11 @@ describe('ScriptingScreen', () => {
     scriptingService.list.mockReturnValue([]);
 
     const { findByText, queryByText, getAllByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('New Script'));
@@ -302,7 +361,7 @@ describe('ScriptingScreen', () => {
     // Use getAllByText to get all Close buttons and press the one in the editor (second one)
     const closeButtons = getAllByText('Close');
     fireEvent.press(closeButtons[closeButtons.length - 1]);
-    
+
     await waitFor(() => {
       // After closing, the 'Name' label from editor should not be visible
       expect(queryByText('Name')).toBeNull();
@@ -311,7 +370,11 @@ describe('ScriptingScreen', () => {
 
   it('toggles logging on and off', async () => {
     const { getAllByRole } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     // Find the logging switch (last switch in the row section)
@@ -334,7 +397,11 @@ describe('ScriptingScreen', () => {
     scriptingService.setEnabled.mockRejectedValue(error);
 
     const { findByText, getAllByRole } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText('Logger Script')).toBeTruthy();
@@ -346,7 +413,7 @@ describe('ScriptingScreen', () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Cannot Enable Script',
-        'Cannot enable: dependency missing'
+        'Cannot enable: dependency missing',
       );
     });
   });
@@ -359,20 +426,31 @@ describe('ScriptingScreen', () => {
     scriptingService.list.mockReturnValue([]);
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('New Script'));
     fireEvent.press(await findByText('Lint'));
 
-    expect(Alert.alert).toHaveBeenCalledWith('Syntax Error', 'Unexpected token at line 5');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Syntax Error',
+      'Unexpected token at line 5',
+    );
   });
 
   it('stops usage tracking when master toggle is turned off', async () => {
     adRewardService.isTracking.mockReturnValue(true);
 
     const { getAllByRole } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     const switches = getAllByRole('switch');
@@ -388,7 +466,11 @@ describe('ScriptingScreen', () => {
     inAppPurchaseService.hasUnlimitedScripting.mockReturnValue(false);
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText(/No scripting time available/)).toBeTruthy();
@@ -404,7 +486,11 @@ describe('ScriptingScreen', () => {
     });
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText('Loading Ad...')).toBeTruthy();
@@ -420,7 +506,11 @@ describe('ScriptingScreen', () => {
     });
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText('Cooldown (45s)')).toBeTruthy();
@@ -437,7 +527,11 @@ describe('ScriptingScreen', () => {
     });
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText('Using fallback ad unit')).toBeTruthy();
@@ -447,7 +541,11 @@ describe('ScriptingScreen', () => {
     inAppPurchaseService.hasUnlimitedScripting.mockReturnValue(true);
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText(/Unlimited scripting/)).toBeTruthy();
@@ -457,14 +555,20 @@ describe('ScriptingScreen', () => {
     inAppPurchaseService.hasUnlimitedScripting.mockReturnValue(true);
 
     const { queryByText, findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     // Wait for the component to render first
     await findByText('Scripts');
-    
+
     // The upgrade button should not be visible for unlimited users
-    expect(queryByText('💎 Upgrade to Unlimited Scripting & No-Ads')).toBeNull();
+    expect(
+      queryByText('💎 Upgrade to Unlimited Scripting & No-Ads'),
+    ).toBeNull();
   });
 
   it('handles ad show failure', async () => {
@@ -478,7 +582,11 @@ describe('ScriptingScreen', () => {
     adRewardService.showRewardedAd.mockResolvedValue(false);
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('Watch Ad (+60 min Scripting & No-Ads)'));
@@ -486,7 +594,7 @@ describe('ScriptingScreen', () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Ad Failed',
-        'Could not show the ad. Please try again.'
+        'Could not show the ad. Please try again.',
       );
     });
   });
@@ -499,10 +607,16 @@ describe('ScriptingScreen', () => {
       cooldownSeconds: 0,
       adUnitType: 'Primary',
     });
-    adRewardService.showRewardedAd.mockRejectedValue(new Error('Network error'));
+    adRewardService.showRewardedAd.mockRejectedValue(
+      new Error('Network error'),
+    );
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('Watch Ad (+60 min Scripting & No-Ads)'));
@@ -519,13 +633,20 @@ describe('ScriptingScreen', () => {
     });
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('Request Ad'));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Cannot Load Ad', 'Ad load failed');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Cannot Load Ad',
+        'Ad load failed',
+      );
     });
   });
 
@@ -533,7 +654,11 @@ describe('ScriptingScreen', () => {
     scriptingService.list.mockReturnValue([]);
 
     const { findByText, getAllByRole } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('New Script'));
@@ -551,7 +676,11 @@ describe('ScriptingScreen', () => {
     scriptingService.list.mockReturnValue([]);
 
     const { findByText, getAllByRole } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('New Script'));
@@ -567,7 +696,11 @@ describe('ScriptingScreen', () => {
     scriptingService.getLogs.mockReturnValue([]);
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText('No logs yet.')).toBeTruthy();
@@ -575,7 +708,11 @@ describe('ScriptingScreen', () => {
 
   it('filters logs by script ID and shows no results', async () => {
     const { getByPlaceholderText, queryByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     // Filter by non-existent script
@@ -589,7 +726,11 @@ describe('ScriptingScreen', () => {
 
   it('edits an existing script', async () => {
     const { findByText, findByDisplayValue } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('Edit'));
@@ -598,7 +739,10 @@ describe('ScriptingScreen', () => {
     expect(await findByDisplayValue('Logger Script')).toBeTruthy();
 
     // Change the name
-    fireEvent.changeText(await findByDisplayValue('Logger Script'), 'Updated Script');
+    fireEvent.changeText(
+      await findByDisplayValue('Logger Script'),
+      'Updated Script',
+    );
 
     // Save the script
     fireEvent.press(await findByText('Save'));
@@ -607,7 +751,7 @@ describe('ScriptingScreen', () => {
       expect(scriptingService.add).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Updated Script',
-        })
+        }),
       );
     });
   });
@@ -616,7 +760,11 @@ describe('ScriptingScreen', () => {
     const onClose = jest.fn();
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={onClose} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={onClose}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     // Find and press the close button in header
@@ -631,7 +779,11 @@ describe('ScriptingScreen', () => {
     const onShowPurchaseScreen = jest.fn();
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={onClose} onShowPurchaseScreen={onShowPurchaseScreen} />
+      <ScriptingScreen
+        visible
+        onClose={onClose}
+        onShowPurchaseScreen={onShowPurchaseScreen}
+      />,
     );
 
     fireEvent.press(await findByText(/Upgrade to Unlimited/));
@@ -642,7 +794,11 @@ describe('ScriptingScreen', () => {
 
   it('does not refresh when not visible', async () => {
     render(
-      <ScriptingScreen visible={false} onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible={false}
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(scriptingService.initialize).not.toHaveBeenCalled();
@@ -656,16 +812,27 @@ describe('ScriptingScreen', () => {
     scriptingService.list.mockReturnValue([scriptWithConnectHook]);
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('Test'));
-    expect(scriptingService.testHook).toHaveBeenCalledWith('script-1', 'onMessage');
+    expect(scriptingService.testHook).toHaveBeenCalledWith(
+      'script-1',
+      'onMessage',
+    );
   });
 
   it('shows script description when available', async () => {
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     expect(await findByText('Logs messages')).toBeTruthy();
@@ -675,7 +842,11 @@ describe('ScriptingScreen', () => {
     scriptingService.list.mockReturnValue([]);
 
     const { findByText, findByDisplayValue } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     fireEvent.press(await findByText('New Script'));
@@ -701,7 +872,11 @@ describe('ScriptingScreen', () => {
     ]);
 
     const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
     );
 
     // The repository section should render (even if empty display)
@@ -717,19 +892,29 @@ describe('ScriptingScreen', () => {
       adUnitType: 'Primary',
     });
     // Make showRewardedAd hang to simulate showing state
-    adRewardService.showRewardedAd.mockImplementation(() => new Promise(() => {}));
-
-    const { findByText } = render(
-      <ScriptingScreen visible onClose={jest.fn()} onShowPurchaseScreen={jest.fn()} />
+    adRewardService.showRewardedAd.mockImplementation(
+      () => new Promise(() => {}),
     );
 
-    const watchButton = await findByText('Watch Ad (+60 min Scripting & No-Ads)');
-    
+    const { findByText } = render(
+      <ScriptingScreen
+        visible
+        onClose={jest.fn()}
+        onShowPurchaseScreen={jest.fn()}
+      />,
+    );
+
+    const watchButton = await findByText(
+      'Watch Ad (+60 min Scripting & No-Ads)',
+    );
+
     // First press starts showing the ad
     fireEvent.press(watchButton);
-    
+
     // Wait a tick for state to update
-    await act(async () => { jest.advanceTimersByTime(10); });
+    await act(async () => {
+      jest.advanceTimersByTime(10);
+    });
 
     // Second press should be ignored while showingAd is true
     // Since the button text changes to a loading indicator, we can't press it again

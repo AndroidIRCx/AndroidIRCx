@@ -262,8 +262,12 @@ import { useSettingsAppearance } from '../hooks/useSettingsAppearance';
 
 function MySettingsScreen() {
   const appearanceSettings = useSettingsAppearance();
-  const colors = { /* ... */ };
-  const styles = { /* ... */ };
+  const colors = {
+    /* ... */
+  };
+  const styles = {
+    /* ... */
+  };
 
   return (
     <AppearanceSection
@@ -279,17 +283,17 @@ function MySettingsScreen() {
 
 1. Create a new file in `sections/` directory
 2. Follow the pattern of existing sections:
-    - Import necessary hooks/services
-    - Define component props interface
-    - Manage local state with `useState`
-    - Load initial state with `useEffect`
-    - Generate section data with `useMemo`
-    - Render `SettingItem` components
+   - Import necessary hooks/services
+   - Define component props interface
+   - Manage local state with `useState`
+   - Load initial state with `useEffect`
+   - Generate section data with `useMemo`
+   - Render `SettingItem` components
 3. Export from `sections/index.ts`
 4. Add to `SettingsScreen.tsx`:
-    - Import the component
-    - Add placeholder in sections array
-    - Add rendering logic in `renderSettingItem`
+   - Import the component
+   - Add placeholder in sections array
+   - Add rendering logic in `renderSettingItem`
 
 ## Testing
 

@@ -15,7 +15,9 @@ jest.mock('../../src/i18n/transifex', () => ({
   tx: {
     t: jest.fn((key: string, params?: Record<string, any>) => {
       if (!params) return key;
-      return key.replace('{type}', params.type || '').replace('{hint}', params.hint || '');
+      return key
+        .replace('{type}', params.type || '')
+        .replace('{hint}', params.hint || '');
     }),
   },
 }));
@@ -55,7 +57,9 @@ describe('BouncerService', () => {
 
   it('loads config on initialize and binds IRC listeners', async () => {
     const irc = makeIrcService();
-    mockGetItem.mockResolvedValueOnce(JSON.stringify({ type: 'znc', playbackTimeout: 1234 }));
+    mockGetItem.mockResolvedValueOnce(
+      JSON.stringify({ type: 'znc', playbackTimeout: 1234 }),
+    );
     const service = new BouncerService(irc as any);
 
     await service.initialize();
@@ -94,7 +98,11 @@ describe('BouncerService', () => {
   it('requests and clears playback only when playback handling is enabled', async () => {
     const irc = makeIrcService();
     const service = new BouncerService(irc as any);
-    await service.setConfig({ enabled: true, handlePlayback: true, type: 'znc' });
+    await service.setConfig({
+      enabled: true,
+      handlePlayback: true,
+      type: 'znc',
+    });
     (service as any).bouncerInfo.type = 'znc';
     (service as any).bouncerInfo.playbackSupported = true;
 
@@ -110,13 +118,18 @@ describe('BouncerService', () => {
 
   it('marks playback messages and exits playback after timeout', async () => {
     const service = new BouncerService(makeIrcService() as any);
-    await service.setConfig({ enabled: true, handlePlayback: true, type: 'znc', playbackTimeout: 1000 });
+    await service.setConfig({
+      enabled: true,
+      handlePlayback: true,
+      type: 'znc',
+      playbackTimeout: 1000,
+    });
     (service as any).bouncerInfo.type = 'znc';
     (service as any).bouncerInfo.playbackSupported = true;
     (service as any).playbackStartTime = Date.now();
 
     const stateChanges: boolean[] = [];
-    service.onPlaybackChange((on) => stateChanges.push(on));
+    service.onPlaybackChange(on => stateChanges.push(on));
 
     (service as any).handleMessage({
       type: 'message',
@@ -135,7 +148,11 @@ describe('BouncerService', () => {
 
   it('ignores batch-tagged messages for playback detection', async () => {
     const service = new BouncerService(makeIrcService() as any);
-    await service.setConfig({ enabled: true, handlePlayback: true, type: 'znc' });
+    await service.setConfig({
+      enabled: true,
+      handlePlayback: true,
+      type: 'znc',
+    });
     (service as any).bouncerInfo.type = 'znc';
     (service as any).bouncerInfo.playbackSupported = true;
 

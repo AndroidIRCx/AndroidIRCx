@@ -40,7 +40,13 @@ describe('MessageFormatDefaults', () => {
 
       expectedTypes.forEach(type => {
         expect(DEFAULT_MESSAGE_FORMATS).toHaveProperty(type);
-        expect(Array.isArray(DEFAULT_MESSAGE_FORMATS[type as keyof typeof DEFAULT_MESSAGE_FORMATS])).toBe(true);
+        expect(
+          Array.isArray(
+            DEFAULT_MESSAGE_FORMATS[
+              type as keyof typeof DEFAULT_MESSAGE_FORMATS
+            ],
+          ),
+        ).toBe(true);
       });
     });
 
@@ -229,11 +235,15 @@ describe('MessageFormatDefaults', () => {
     });
 
     it('should have messageMention format identical to message', () => {
-      expect(DEFAULT_MESSAGE_FORMATS.messageMention).toEqual(DEFAULT_MESSAGE_FORMATS.message);
+      expect(DEFAULT_MESSAGE_FORMATS.messageMention).toEqual(
+        DEFAULT_MESSAGE_FORMATS.message,
+      );
     });
 
     it('should have actionMention format identical to action', () => {
-      expect(DEFAULT_MESSAGE_FORMATS.actionMention).toEqual(DEFAULT_MESSAGE_FORMATS.action);
+      expect(DEFAULT_MESSAGE_FORMATS.actionMention).toEqual(
+        DEFAULT_MESSAGE_FORMATS.action,
+      );
     });
 
     it('should have exactly 18 format types', () => {
@@ -301,7 +311,9 @@ describe('MessageFormatDefaults', () => {
     });
 
     it('should contain message token', () => {
-      const messageToken = AVAILABLE_MESSAGE_FORMAT_TOKENS.find(t => t.value === 'message');
+      const messageToken = AVAILABLE_MESSAGE_FORMAT_TOKENS.find(
+        t => t.value === 'message',
+      );
       expect(messageToken).toEqual({
         type: 'token',
         value: 'message',
@@ -309,7 +321,9 @@ describe('MessageFormatDefaults', () => {
     });
 
     it('should contain channel token', () => {
-      const channelToken = AVAILABLE_MESSAGE_FORMAT_TOKENS.find(t => t.value === 'channel');
+      const channelToken = AVAILABLE_MESSAGE_FORMAT_TOKENS.find(
+        t => t.value === 'channel',
+      );
       expect(channelToken).toEqual({
         type: 'token',
         value: 'channel',
@@ -317,7 +331,9 @@ describe('MessageFormatDefaults', () => {
     });
 
     it('should contain reason token', () => {
-      const reasonToken = AVAILABLE_MESSAGE_FORMAT_TOKENS.find(t => t.value === 'reason');
+      const reasonToken = AVAILABLE_MESSAGE_FORMAT_TOKENS.find(
+        t => t.value === 'reason',
+      );
       expect(reasonToken).toEqual({
         type: 'token',
         value: 'reason',

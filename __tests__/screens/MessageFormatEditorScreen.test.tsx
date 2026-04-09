@@ -76,7 +76,7 @@ describe('MessageFormatEditorScreen', () => {
         initialFormats={buildFormats() as any}
         onSave={jest.fn()}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     expect(queryByText('Message Format')).toBeNull();
@@ -91,7 +91,7 @@ describe('MessageFormatEditorScreen', () => {
         initialFormats={buildFormats() as any}
         onSave={onSave}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     fireEvent.press((await findAllByText('+'))[0]);
@@ -105,7 +105,7 @@ describe('MessageFormatEditorScreen', () => {
         message: expect.arrayContaining([
           expect.objectContaining({ type: 'text', value: 'custom' }),
         ]),
-      })
+      }),
     );
   });
 
@@ -118,7 +118,7 @@ describe('MessageFormatEditorScreen', () => {
         initialFormats={buildFormats() as any}
         onSave={onSave}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     fireEvent.press(getAllByText('{time}')[0]);
@@ -138,7 +138,7 @@ describe('MessageFormatEditorScreen', () => {
           bold: true,
           color: '#123456',
         }),
-      })
+      }),
     );
   });
 
@@ -151,7 +151,7 @@ describe('MessageFormatEditorScreen', () => {
         initialFormats={buildFormats() as any}
         onSave={onSave}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     fireEvent.press(getAllByText(' hello ')[1]);

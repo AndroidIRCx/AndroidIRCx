@@ -3,9 +3,9 @@ const path = require('path');
 
 const ENV_PATH = path.resolve(__dirname, '../../secrets/transifex.env');
 
-const parseEnv = (contents) => {
+const parseEnv = contents => {
   const env = {};
-  contents.split(/\r?\n/).forEach((line) => {
+  contents.split(/\r?\n/).forEach(line => {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) {
       return;

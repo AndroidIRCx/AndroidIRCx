@@ -4,7 +4,12 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AdEventType, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
+import {
+  AdEventType,
+  RewardedAd,
+  RewardedAdEventType,
+  TestIds,
+} from 'react-native-google-mobile-ads';
 import { logger } from './Logger';
 import { consentService } from './ConsentService';
 import { inAppPurchaseService } from './InAppPurchaseService';
@@ -72,12 +77,18 @@ class AdRewardService {
       this.remainingMs = safetyMs;
       this.lastUpdated = Date.now();
       await this.save();
-      logger.info('ad-reward', 'Granted safety bonus of 30m because remaining time was 0');
+      logger.info(
+        'ad-reward',
+        'Granted safety bonus of 30m because remaining time was 0',
+      );
     }
 
     this.setupRewardedAd();
     this.initialized = true;
-    logger.info('ad-reward', `AdRewardService initialized. Current time: ${this.formatTime(this.remainingMs)}`);
+    logger.info(
+      'ad-reward',
+      `AdRewardService initialized. Current time: ${this.formatTime(this.remainingMs)}`,
+    );
   }
 
   private async load() {
@@ -97,7 +108,10 @@ class AdRewardService {
 
       // Grant initial 1 hour bonus if not already granted
       if (!initialBonusGranted) {
-        logger.info('ad-reward', 'Granting 1 hour initial bonus - Google needs time to load first ad');
+        logger.info(
+          'ad-reward',
+          'Granting 1 hour initial bonus - Google needs time to load first ad',
+        );
         this.remainingMs += HOUR_IN_MS;
         this.lastUpdated = Date.now();
         await AsyncStorage.setItem(INITIAL_BONUS_KEY, 'true');
@@ -105,9 +119,15 @@ class AdRewardService {
         logger.info('ad-reward', 'Initial bonus granted: 1 hour');
       }
 
-      logger.info('ad-reward', `Loaded scripting time: ${this.formatTime(this.remainingMs)}`);
+      logger.info(
+        'ad-reward',
+        `Loaded scripting time: ${this.formatTime(this.remainingMs)}`,
+      );
     } catch (error) {
-      logger.error('ad-reward', `Failed to load scripting time: ${String(error)}`);
+      logger.error(
+        'ad-reward',
+        `Failed to load scripting time: ${String(error)}`,
+      );
       this.remainingMs = HOUR_IN_MS; // Grant 1 hour on error too
       this.lastUpdated = Date.now();
     }
@@ -122,10 +142,16 @@ class AdRewardService {
         this.lastUpdated = Date.now();
         await AsyncStorage.setItem(VERSION_BONUS_KEY, this.appVersion);
         await this.save();
-        logger.info('ad-reward', `Granted version bonus (${VERSION_BONUS_MINUTES}m) for app version ${this.appVersion}`);
+        logger.info(
+          'ad-reward',
+          `Granted version bonus (${VERSION_BONUS_MINUTES}m) for app version ${this.appVersion}`,
+        );
       }
     } catch (error) {
-      logger.error('ad-reward', `Failed to apply version bonus: ${String(error)}`);
+      logger.error(
+        'ad-reward',
+        `Failed to apply version bonus: ${String(error)}`,
+      );
     }
   }
 
@@ -136,9 +162,15 @@ class AdRewardService {
         lastUpdated: this.lastUpdated,
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      logger.info('ad-reward', `Saved scripting time: ${this.formatTime(this.remainingMs)}`);
+      logger.info(
+        'ad-reward',
+        `Saved scripting time: ${this.formatTime(this.remainingMs)}`,
+      );
     } catch (error) {
-      logger.error('ad-reward', `Failed to save scripting time: ${String(error)}`);
+      logger.error(
+        'ad-reward',
+        `Failed to save scripting time: ${String(error)}`,
+      );
     }
   }
 
@@ -154,85 +186,120 @@ class AdRewardService {
       const canShowPersonalizedAds = consentService.canShowPersonalizedAds();
       const consentStatus = consentService.getConsentStatusText();
 
-      logger.info('ad-reward', `Creating rewarded ad with unit ID: ${adUnitId} (${adType})`);
+      logger.info(
+        'ad-reward',
+        `Creating rewarded ad with unit ID: ${adUnitId} (${adType})`,
+      );
       logger.info('ad-reward', `Mode: ${mode}`);
       logger.info('ad-reward', `Consent status: ${consentStatus}`);
-      logger.info('ad-reward', `Personalized ads: ${canShowPersonalizedAds ? 'Yes' : 'No (non-personalized)'}`);
+      logger.info(
+        'ad-reward',
+        `Personalized ads: ${canShowPersonalizedAds ? 'Yes' : 'No (non-personalized)'}`,
+      );
       console.log(`📺 Ad Unit ID: ${adUnitId} (${adType})`);
       console.log(`🔧 Mode: ${mode}`);
       console.log(`🔐 Consent: ${consentStatus}`);
-      console.log(`🎯 Personalized ads: ${canShowPersonalizedAds ? 'Yes' : 'No'}`);
+      console.log(
+        `🎯 Personalized ads: ${canShowPersonalizedAds ? 'Yes' : 'No'}`,
+      );
 
       this.rewardedAd = RewardedAd.createForAdRequest(adUnitId, {
         requestNonPersonalizedAdsOnly: !canShowPersonalizedAds,
       });
 
       // Load the ad
-      const onLoadedUnsubscribe = this.rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
-        // Clear timeout on successful load
-        if (this.loadTimeoutId) {
-          clearTimeout(this.loadTimeoutId);
-          this.loadTimeoutId = null;
-        }
+      const onLoadedUnsubscribe = this.rewardedAd.addAdEventListener(
+        RewardedAdEventType.LOADED,
+        () => {
+          // Clear timeout on successful load
+          if (this.loadTimeoutId) {
+            clearTimeout(this.loadTimeoutId);
+            this.loadTimeoutId = null;
+          }
 
-        const adPlacement = this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
-        this.adLoaded = true;
-        this.adLoading = false;
-        this.retryCount = 0; // Reset retry count on success
-        this.consecutiveFailures = 0; // Reset failure count on success
-        this.adsDisabled = false; // Re-enable ads on success
-        const timeTaken = Date.now() - this.loadAttemptTime;
-        logger.info('ad-reward', `✅ Rewarded ad loaded successfully in ${timeTaken}ms (${adPlacement})`);
-        console.log(`✅ AD LOADED! (${adPlacement} ad unit) Ready to show. Time taken: ${timeTaken}ms`);
-        this.notifyListeners();
-      });
+          const adPlacement =
+            this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
+          this.adLoaded = true;
+          this.adLoading = false;
+          this.retryCount = 0; // Reset retry count on success
+          this.consecutiveFailures = 0; // Reset failure count on success
+          this.adsDisabled = false; // Re-enable ads on success
+          const timeTaken = Date.now() - this.loadAttemptTime;
+          logger.info(
+            'ad-reward',
+            `✅ Rewarded ad loaded successfully in ${timeTaken}ms (${adPlacement})`,
+          );
+          console.log(
+            `✅ AD LOADED! (${adPlacement} ad unit) Ready to show. Time taken: ${timeTaken}ms`,
+          );
+          this.notifyListeners();
+        },
+      );
       this.adEventUnsubscribers.push(onLoadedUnsubscribe);
 
-      const onRewardUnsubscribe = this.rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, async (reward) => {
-        logger.info('ad-reward', `User earned reward: ${reward.amount} ${reward.type}`);
-        console.log(`🎁 Reward earned: ${reward.amount} ${reward.type}`);
-        // Use the reward amount from AdMob (configured as 60 = 60 minutes)
-        const rewardMinutes = reward.amount || 60;
-        const rewardMs = rewardMinutes * 60 * 1000; // Convert minutes to milliseconds
+      const onRewardUnsubscribe = this.rewardedAd.addAdEventListener(
+        RewardedAdEventType.EARNED_REWARD,
+        async reward => {
+          logger.info(
+            'ad-reward',
+            `User earned reward: ${reward.amount} ${reward.type}`,
+          );
+          console.log(`🎁 Reward earned: ${reward.amount} ${reward.type}`);
+          // Use the reward amount from AdMob (configured as 60 = 60 minutes)
+          const rewardMinutes = reward.amount || 60;
+          const rewardMs = rewardMinutes * 60 * 1000; // Convert minutes to milliseconds
 
-        // Grant scripting time only (banner ads controlled by scripting time tracking, not ad-free time)
-        this.addTime(rewardMs);
+          // Grant scripting time only (banner ads controlled by scripting time tracking, not ad-free time)
+          this.addTime(rewardMs);
 
-        logger.info('ad-reward', `Granted ${rewardMinutes}m of scripting time`);
-        console.log(`✅ Granted ${rewardMinutes}m of scripting time`);
+          logger.info(
+            'ad-reward',
+            `Granted ${rewardMinutes}m of scripting time`,
+          );
+          console.log(`✅ Granted ${rewardMinutes}m of scripting time`);
 
-        // Ad will be consumed after showing, prepare next one
-        this.adLoaded = false;
-        this.retryCount = 0; // Reset retry count for next ad
-        console.log('🔄 Ad consumed, will load next ad...');
+          // Ad will be consumed after showing, prepare next one
+          this.adLoaded = false;
+          this.retryCount = 0; // Reset retry count for next ad
+          console.log('🔄 Ad consumed, will load next ad...');
 
-        // Load next ad after a short delay
-        setTimeout(() => {
-          logger.info('ad-reward', 'Loading next ad after reward...');
-          this.loadAd();
-        }, 2000);
-      });
+          // Load next ad after a short delay
+          setTimeout(() => {
+            logger.info('ad-reward', 'Loading next ad after reward...');
+            this.loadAd();
+          }, 2000);
+        },
+      );
       this.adEventUnsubscribers.push(onRewardUnsubscribe);
 
-      const onErrorUnsubscribe = this.rewardedAd.addAdEventListener(AdEventType.ERROR, (error) => {
-        if (this.loadTimeoutId) {
-          clearTimeout(this.loadTimeoutId);
-          this.loadTimeoutId = null;
-        }
+      const onErrorUnsubscribe = this.rewardedAd.addAdEventListener(
+        AdEventType.ERROR,
+        error => {
+          if (this.loadTimeoutId) {
+            clearTimeout(this.loadTimeoutId);
+            this.loadTimeoutId = null;
+          }
 
-        const adPlacement = this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
-        this.adLoading = false;
-        this.adLoaded = false;
-        const code = (error as any)?.code ?? 'unknown';
-        const message = (error as any)?.message ?? String(error);
-        
-        // Store error for handleLoadError to check
-        this.lastError = { code, message };
-        
-        logger.error('ad-reward', `Rewarded ad error (${adPlacement}): ${code} - ${message}`);
-        console.error(`Rewarded ad error (${adPlacement}): ${code} - ${message}`);
-        this.handleLoadError();
-      });
+          const adPlacement =
+            this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
+          this.adLoading = false;
+          this.adLoaded = false;
+          const code = (error as any)?.code ?? 'unknown';
+          const message = (error as any)?.message ?? String(error);
+
+          // Store error for handleLoadError to check
+          this.lastError = { code, message };
+
+          logger.error(
+            'ad-reward',
+            `Rewarded ad error (${adPlacement}): ${code} - ${message}`,
+          );
+          console.error(
+            `Rewarded ad error (${adPlacement}): ${code} - ${message}`,
+          );
+          this.handleLoadError();
+        },
+      );
       this.adEventUnsubscribers.push(onErrorUnsubscribe);
 
       // Delay ad loading until Activity is ready (fixes null-activity error)
@@ -245,7 +312,10 @@ class AdRewardService {
         this.loadAd();
       }, 2000); // 2 second delay to ensure Activity is ready
     } catch (error) {
-      logger.error('ad-reward', `Failed to setup rewarded ad: ${String(error)}`);
+      logger.error(
+        'ad-reward',
+        `Failed to setup rewarded ad: ${String(error)}`,
+      );
       console.error('❌ SETUP ERROR:', error);
     }
   }
@@ -259,8 +329,13 @@ class AdRewardService {
     if (this.rewardedAd && !this.adLoaded && !this.adLoading) {
       this.adLoading = true;
       this.loadAttemptTime = Date.now();
-      logger.info('ad-reward', `🔄 Loading rewarded ad (attempt ${this.retryCount + 1}/${this.maxRetries})...`);
-      console.log(`🔄 Loading ad... Attempt ${this.retryCount + 1}/${this.maxRetries}`);
+      logger.info(
+        'ad-reward',
+        `🔄 Loading rewarded ad (attempt ${this.retryCount + 1}/${this.maxRetries})...`,
+      );
+      console.log(
+        `🔄 Loading ad... Attempt ${this.retryCount + 1}/${this.maxRetries}`,
+      );
 
       // Clear any existing timeout
       if (this.loadTimeoutId) {
@@ -275,7 +350,10 @@ class AdRewardService {
         this.loadTimeoutId = setTimeout(() => {
           if (this.adLoading && !this.adLoaded) {
             console.error('⏱️ Ad loading timeout (45s) - treating as error');
-            logger.error('ad-reward', 'Ad loading timeout - no response from Google after 45 seconds');
+            logger.error(
+              'ad-reward',
+              'Ad loading timeout - no response from Google after 45 seconds',
+            );
             this.adLoading = false;
             this.loadTimeoutId = null;
             this.handleLoadError();
@@ -301,7 +379,9 @@ class AdRewardService {
     // Don't retry if error is null-activity (Activity not ready yet)
     const lastError = this.lastError;
     if (lastError?.code === 'googleMobileAds/null-activity') {
-      console.log('⏸️ Ad loading paused - Activity not ready yet. Will retry when Activity is available.');
+      console.log(
+        '⏸️ Ad loading paused - Activity not ready yet. Will retry when Activity is available.',
+      );
       // Don't increment retry count for null-activity errors
       // Just wait and retry later when Activity is ready
       setTimeout(() => {
@@ -317,19 +397,29 @@ class AdRewardService {
       this.adLoading = false;
       this.adLoaded = false;
       this.cooldownEndTime = Date.now() + 120000; // 2 minutes
-      logger.error('ad-reward', 'Internal ad SDK error. Backing off for 120 seconds before retry.');
-      console.error('⏸️ Internal ad SDK error. Cooling down for 120 seconds...');
+      logger.error(
+        'ad-reward',
+        'Internal ad SDK error. Backing off for 120 seconds before retry.',
+      );
+      console.error(
+        '⏸️ Internal ad SDK error. Cooling down for 120 seconds...',
+      );
       this.notifyListeners();
       setTimeout(() => {
         if (!this.adLoaded && !this.adLoading && !this.adsDisabled) {
-          logger.info('ad-reward', 'Retrying ad load after internal-error cooldown');
+          logger.info(
+            'ad-reward',
+            'Retrying ad load after internal-error cooldown',
+          );
           this.loadAd();
         }
       }, 120000);
       return;
     }
-    
-    console.log(`❌ handleLoadError() called. Retry count: ${this.retryCount + 1}/${this.maxRetries}`);
+
+    console.log(
+      `❌ handleLoadError() called. Retry count: ${this.retryCount + 1}/${this.maxRetries}`,
+    );
     this.retryCount++;
     this.consecutiveFailures++;
 
@@ -337,9 +427,16 @@ class AdRewardService {
       this.adsDisabled = true;
       this.adLoading = false;
       this.cooldownEndTime = 0;
-      logger.error('ad-reward', '🛑 Ads disabled after 10 consecutive failures. Likely network or Google Play Services issue.');
-      console.error('🛑 Ads disabled after persistent failures. App works fine without them.');
-      console.error('💡 To fix: Check internet connection or update Google Play Services');
+      logger.error(
+        'ad-reward',
+        '🛑 Ads disabled after 10 consecutive failures. Likely network or Google Play Services issue.',
+      );
+      console.error(
+        '🛑 Ads disabled after persistent failures. App works fine without them.',
+      );
+      console.error(
+        '💡 To fix: Check internet connection or update Google Play Services',
+      );
       this.notifyListeners();
       return; // Stop trying
     }
@@ -350,15 +447,23 @@ class AdRewardService {
         // Switch to fallback ad unit
         this.currentAdUnitIndex++;
         this.retryCount = 0; // Reset retry count for new ad unit
-        logger.info('ad-reward', `⚠️ Primary ad failed. Switching to fallback ad unit...`);
-        console.log(`⚠️ Primary ad failed after ${this.maxRetries} attempts. Switching to fallback ad unit...`);
+        logger.info(
+          'ad-reward',
+          `⚠️ Primary ad failed. Switching to fallback ad unit...`,
+        );
+        console.log(
+          `⚠️ Primary ad failed after ${this.maxRetries} attempts. Switching to fallback ad unit...`,
+        );
 
         // Recreate rewarded ad with fallback unit
         this.setupRewardedAd();
       } else {
         // All ad units failed - enter cooldown and reset to primary
         this.cooldownEndTime = Date.now() + 60000; // 60 seconds cooldown
-        logger.info('ad-reward', `⏸️ All ad units failed. Cooldown for 60 seconds.`);
+        logger.info(
+          'ad-reward',
+          `⏸️ All ad units failed. Cooldown for 60 seconds.`,
+        );
         console.log(`⏸️ All ad units failed. Cooling down for 60 seconds...`);
         this.notifyListeners();
 
@@ -382,8 +487,13 @@ class AdRewardService {
       }
     } else {
       // Retry after short delay
-      logger.info('ad-reward', `🔄 Retrying ad load in 3 seconds (${this.retryCount}/${this.maxRetries})...`);
-      console.log(`🔄 Retrying ad load in 3 seconds... (attempt ${this.retryCount + 1}/${this.maxRetries})`);
+      logger.info(
+        'ad-reward',
+        `🔄 Retrying ad load in 3 seconds (${this.retryCount}/${this.maxRetries})...`,
+      );
+      console.log(
+        `🔄 Retrying ad load in 3 seconds... (attempt ${this.retryCount + 1}/${this.maxRetries})`,
+      );
       setTimeout(() => this.loadAd(), 3000); // Wait 3 seconds before retry
     }
   }
@@ -404,22 +514,29 @@ class AdRewardService {
     }
   }
 
-  async manualLoadAd(): Promise<{ success: boolean; messageKey: string; messageParams?: Record<string, unknown> }> {
+  async manualLoadAd(): Promise<{
+    success: boolean;
+    messageKey: string;
+    messageParams?: Record<string, unknown>;
+  }> {
     // Check if ads are disabled due to too many failures
     if (this.adsDisabled) {
       return {
         success: false,
-        messageKey: 'Ads unavailable. Please check your internet connection or update Google Play Services.'
+        messageKey:
+          'Ads unavailable. Please check your internet connection or update Google Play Services.',
       };
     }
 
     // Check if in cooldown
     if (this.cooldownEndTime > Date.now()) {
-      const remainingCooldown = Math.ceil((this.cooldownEndTime - Date.now()) / 1000);
+      const remainingCooldown = Math.ceil(
+        (this.cooldownEndTime - Date.now()) / 1000,
+      );
       return {
         success: false,
         messageKey: 'Please wait {seconds} seconds before trying again.',
-        messageParams: { seconds: remainingCooldown }
+        messageParams: { seconds: remainingCooldown },
       };
     }
 
@@ -427,7 +544,7 @@ class AdRewardService {
     if (this.adLoaded) {
       return {
         success: true,
-        messageKey: 'Ad is ready! Click again to watch.'
+        messageKey: 'Ad is ready! Click again to watch.',
       };
     }
 
@@ -435,7 +552,7 @@ class AdRewardService {
     if (this.adLoading) {
       return {
         success: false,
-        messageKey: 'Ad is loading, please wait...'
+        messageKey: 'Ad is loading, please wait...',
       };
     }
 
@@ -443,7 +560,7 @@ class AdRewardService {
     this.loadAd();
     return {
       success: true,
-      messageKey: 'Requesting ad from Google...'
+      messageKey: 'Requesting ad from Google...',
     };
   }
 
@@ -497,7 +614,15 @@ class AdRewardService {
     return Math.ceil((this.cooldownEndTime - Date.now()) / 1000);
   }
 
-  getAdStatus(): { ready: boolean; loading: boolean; cooldown: boolean; cooldownSeconds: number; retryCount: number; currentAdUnit: string; adUnitType: string } {
+  getAdStatus(): {
+    ready: boolean;
+    loading: boolean;
+    cooldown: boolean;
+    cooldownSeconds: number;
+    retryCount: number;
+    currentAdUnit: string;
+    adUnitType: string;
+  } {
     const adUnitId = REWARDED_AD_UNIT_IDS[this.currentAdUnitIndex];
     const adType = this.currentAdUnitIndex === 0 ? 'Primary' : 'Fallback';
 
@@ -508,7 +633,7 @@ class AdRewardService {
       cooldownSeconds: this.getCooldownRemaining(),
       retryCount: this.retryCount,
       currentAdUnit: adUnitId,
-      adUnitType: adType
+      adUnitType: adType,
     };
   }
 
@@ -555,7 +680,10 @@ class AdRewardService {
     this.lastUpdated = Date.now();
     await this.save();
     this.notifyListeners();
-    logger.info('ad-reward', `Added ${this.formatTime(ms)}. Total: ${this.formatTime(this.remainingMs)}`);
+    logger.info(
+      'ad-reward',
+      `Added ${this.formatTime(ms)}. Total: ${this.formatTime(this.remainingMs)}`,
+    );
   }
 
   startUsageTracking() {
@@ -564,7 +692,10 @@ class AdRewardService {
     // If user has unlimited scripting, set a marker interval so isTracking() returns true
     // but don't actually track usage (no countdown)
     if (inAppPurchaseService.hasUnlimitedScripting()) {
-      logger.info('ad-reward', 'User has unlimited scripting, enabling no-ads mode without tracking');
+      logger.info(
+        'ad-reward',
+        'User has unlimited scripting, enabling no-ads mode without tracking',
+      );
       // Set a dummy interval so isTracking() returns true
       this.usageInterval = setInterval(() => {
         // No-op: just keep the interval alive for isTracking() to return true

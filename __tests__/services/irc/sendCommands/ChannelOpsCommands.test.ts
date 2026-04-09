@@ -46,22 +46,26 @@ describe('ChannelOpsCommands', () => {
   describe('handleBAN', () => {
     it('bans nick using current channel target', () => {
       handleBAN(ctx, ['badnick'], '#general');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #general +b badnick!*@*');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE #general +b badnick!*@*',
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
     it('bans nick with explicit channel arg', () => {
       handleBAN(ctx, ['badnick', '#specific'], 'somenick');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #specific +b badnick!*@*');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE #specific +b badnick!*@*',
+      );
     });
 
     it('adds error when in query with no channel', () => {
       handleBAN(ctx, ['badnick'], 'somenick');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -69,35 +73,41 @@ describe('ChannelOpsCommands', () => {
       handleBAN(ctx, [], '#general');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
     it('supports & channel prefix', () => {
       handleBAN(ctx, ['badnick'], '&local');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE &local +b badnick!*@*');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE &local +b badnick!*@*',
+      );
     });
   });
 
   describe('handleUNBAN', () => {
     it('unbans mask from current channel', () => {
       handleUNBAN(ctx, ['badnick!*@*'], '#general');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #general -b badnick!*@*');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE #general -b badnick!*@*',
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
     it('unbans mask from explicit channel', () => {
       handleUNBAN(ctx, ['badnick!*@*', '#specific'], 'somenick');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #specific -b badnick!*@*');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE #specific -b badnick!*@*',
+      );
     });
 
     it('adds error when in query with no channel', () => {
       handleUNBAN(ctx, ['badnick!*@*'], 'somenick');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -110,28 +120,38 @@ describe('ChannelOpsCommands', () => {
   describe('handleKICKBAN', () => {
     it('kicks and bans from current channel without reason', () => {
       handleKICKBAN(ctx, ['badnick'], '#general');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #general +b badnick!*@*');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE #general +b badnick!*@*',
+      );
       expect(ctx.sendCommand).toHaveBeenCalledWith('KICK #general badnick');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
     it('kicks and bans from explicit channel', () => {
       handleKICKBAN(ctx, ['badnick', '#specific'], 'somenick');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #specific +b badnick!*@*');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE #specific +b badnick!*@*',
+      );
       expect(ctx.sendCommand).toHaveBeenCalledWith('KICK #specific badnick');
     });
 
     it('kicks and bans with reason', () => {
       handleKICKBAN(ctx, ['badnick', '#general', 'Flooding'], '#general');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #general +b badnick!*@*');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('KICK #general badnick :Flooding');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE #general +b badnick!*@*',
+      );
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'KICK #general badnick :Flooding',
+      );
     });
 
     it('ignores a second non-channel arg when current target is already a channel', () => {
       handleKICKBAN(ctx, ['badnick', 'Flooding'], '#general');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('MODE #general +b badnick!*@*');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'MODE #general +b badnick!*@*',
+      );
       expect(ctx.sendCommand).toHaveBeenCalledWith('KICK #general badnick');
     });
 
@@ -139,7 +159,7 @@ describe('ChannelOpsCommands', () => {
       handleKICKBAN(ctx, [], '#general');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -147,7 +167,7 @@ describe('ChannelOpsCommands', () => {
       handleKICKBAN(ctx, ['badnick'], 'somenick');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -155,22 +175,26 @@ describe('ChannelOpsCommands', () => {
   describe('handleINVITE', () => {
     it('invites nick to current channel', () => {
       handleINVITE(ctx, ['friendnick'], '#general');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('INVITE friendnick #general');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'INVITE friendnick #general',
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
     it('invites nick to explicit channel', () => {
       handleINVITE(ctx, ['friendnick', '#specific'], 'somenick');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('INVITE friendnick #specific');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'INVITE friendnick #specific',
+      );
     });
 
     it('adds error when in query with no channel', () => {
       handleINVITE(ctx, ['friendnick'], 'somenick');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -178,7 +202,7 @@ describe('ChannelOpsCommands', () => {
       handleINVITE(ctx, [], '#general');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });

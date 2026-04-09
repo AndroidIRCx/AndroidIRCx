@@ -41,7 +41,7 @@ jest.mock('../../src/services/IRCService', () => ({
     joinChannel: jest.fn().mockResolvedValue(undefined),
     partChannel: jest.fn().mockResolvedValue(undefined),
   },
-  ChannelUser: {}
+  ChannelUser: {},
 }));
 
 jest.mock('../../src/services/UserManagementService', () => ({
@@ -65,7 +65,7 @@ jest.mock('../../src/services/SettingsService', () => ({
     dccAcceptExts: [],
     dccRejectExts: [],
     dccDontSendExts: [],
-  }
+  },
 }));
 
 jest.mock('../../src/services/EncryptedDMService', () => ({
@@ -147,7 +147,13 @@ jest.mock('../../src/stores/tabStore', () => ({
   useTabStore: {
     getState: jest.fn().mockReturnValue({
       tabs: [
-        { id: 'server-test-network', type: 'server', name: 'test-network', networkId: 'test-network', messages: [] }
+        {
+          id: 'server-test-network',
+          type: 'server',
+          name: 'test-network',
+          networkId: 'test-network',
+          messages: [],
+        },
       ],
       setTabs: jest.fn(),
       setActiveTabId: jest.fn(),
@@ -183,17 +189,17 @@ jest.mock('../../src/utils/tabUtils', () => ({
   serverTabId: jest.fn().mockReturnValue('server-test-network'),
   channelTabId: jest.fn().mockReturnValue('channel-test-network-#test'),
   queryTabId: jest.fn().mockReturnValue('query-test-network-nickname'),
-  makeServerTab: jest.fn().mockReturnValue({ 
-    id: 'server-test-network', 
-    type: 'server', 
-    name: 'test-network', 
-    networkId: 'test-network' 
+  makeServerTab: jest.fn().mockReturnValue({
+    id: 'server-test-network',
+    type: 'server',
+    name: 'test-network',
+    networkId: 'test-network',
   }),
-  sortTabsGrouped: jest.fn().mockImplementation((tabs) => tabs),
+  sortTabsGrouped: jest.fn().mockImplementation(tabs => tabs),
 }));
 
 jest.mock('../../src/i18n/transifex', () => ({
-  useT: jest.fn().mockReturnValue((str) => str),
+  useT: jest.fn().mockReturnValue(str => str),
 }));
 
 jest.mock('../../src/services/STSService', () => ({
@@ -212,7 +218,7 @@ global.Alert = mockAlert;
 describe('manageSettings Journey Test', () => {
   const mockParams = {
     processBatchedMessages: jest.fn(),
-    safeSetState: jest.fn().mockImplementation((fn) => fn()),
+    safeSetState: jest.fn().mockImplementation(fn => fn()),
     safeAlert: mockAlert.alert,
     setIsConnected: jest.fn(),
     setActiveConnectionId: jest.fn(),
@@ -225,9 +231,17 @@ describe('manageSettings Journey Test', () => {
     setMotdSignal: jest.fn(),
     networkName: 'test-network',
     activeTabId: 'server-test-network',
-    tabsRef: { current: [
-      { id: 'server-test-network', type: 'server', name: 'test-network', networkId: 'test-network', messages: [] }
-    ]},
+    tabsRef: {
+      current: [
+        {
+          id: 'server-test-network',
+          type: 'server',
+          name: 'test-network',
+          networkId: 'test-network',
+          messages: [],
+        },
+      ],
+    },
     tabSortAlphabetical: false,
     isConnected: true, // Connected for managing settings
     messageBatchTimeoutRef: { current: null },
@@ -238,16 +252,32 @@ describe('manageSettings Journey Test', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Set default mock implementations
-    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue('server');
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([]);
-    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(false);
-    require('../../src/services/IRCService').ircService.getNetworkName.mockReturnValue('test-network');
-    require('../../src/services/IRCService').ircService.getCurrentNick.mockReturnValue('testuser');
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(
+      'server',
+    );
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      [],
+    );
+    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(
+      false,
+    );
+    require('../../src/services/IRCService').ircService.getNetworkName.mockReturnValue(
+      'test-network',
+    );
+    require('../../src/services/IRCService').ircService.getCurrentNick.mockReturnValue(
+      'testuser',
+    );
     require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
       tabs: [
-        { id: 'server-test-network', type: 'server', name: 'test-network', networkId: 'test-network', messages: [] }
+        {
+          id: 'server-test-network',
+          type: 'server',
+          name: 'test-network',
+          networkId: 'test-network',
+          messages: [],
+        },
       ],
       setTabs: jest.fn(),
       setActiveTabId: jest.fn(),
@@ -256,7 +286,9 @@ describe('manageSettings Journey Test', () => {
 
   it('should change notification settings', async () => {
     const mockSaveSetting = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(mockSaveSetting);
+    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(
+      mockSaveSetting,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -267,7 +299,10 @@ describe('manageSettings Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate changing notification settings
-    await require('../../src/services/SettingsService').settingsService.saveSetting('notificationsEnabled', true);
+    await require('../../src/services/SettingsService').settingsService.saveSetting(
+      'notificationsEnabled',
+      true,
+    );
 
     // Verify that the setting was saved
     expect(mockSaveSetting).toHaveBeenCalledWith('notificationsEnabled', true);
@@ -275,7 +310,9 @@ describe('manageSettings Journey Test', () => {
 
   it('should change theme settings', async () => {
     const mockSaveSetting = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(mockSaveSetting);
+    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(
+      mockSaveSetting,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -286,7 +323,10 @@ describe('manageSettings Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate changing theme settings
-    await require('../../src/services/SettingsService').settingsService.saveSetting('theme', 'dark');
+    await require('../../src/services/SettingsService').settingsService.saveSetting(
+      'theme',
+      'dark',
+    );
 
     // Verify that the setting was saved
     expect(mockSaveSetting).toHaveBeenCalledWith('theme', 'dark');
@@ -294,7 +334,9 @@ describe('manageSettings Journey Test', () => {
 
   it('should change nickname settings', async () => {
     const mockSaveSetting = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(mockSaveSetting);
+    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(
+      mockSaveSetting,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -305,7 +347,10 @@ describe('manageSettings Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate changing nickname settings
-    await require('../../src/services/SettingsService').settingsService.saveSetting('nickname', 'newnickname');
+    await require('../../src/services/SettingsService').settingsService.saveSetting(
+      'nickname',
+      'newnickname',
+    );
 
     // Verify that the setting was saved
     expect(mockSaveSetting).toHaveBeenCalledWith('nickname', 'newnickname');
@@ -313,7 +358,9 @@ describe('manageSettings Journey Test', () => {
 
   it('should change auto-join channel settings', async () => {
     const mockSaveSetting = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(mockSaveSetting);
+    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(
+      mockSaveSetting,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -324,15 +371,23 @@ describe('manageSettings Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate changing auto-join channel settings
-    await require('../../src/services/SettingsService').settingsService.saveSetting('autoJoinChannels', ['#general', '#random']);
+    await require('../../src/services/SettingsService').settingsService.saveSetting(
+      'autoJoinChannels',
+      ['#general', '#random'],
+    );
 
     // Verify that the setting was saved
-    expect(mockSaveSetting).toHaveBeenCalledWith('autoJoinChannels', ['#general', '#random']);
+    expect(mockSaveSetting).toHaveBeenCalledWith('autoJoinChannels', [
+      '#general',
+      '#random',
+    ]);
   });
 
   it('should change message history settings', async () => {
     const mockSaveSetting = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(mockSaveSetting);
+    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(
+      mockSaveSetting,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -343,7 +398,10 @@ describe('manageSettings Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate changing message history settings
-    await require('../../src/services/SettingsService').settingsService.saveSetting('messageHistoryLimit', 1000);
+    await require('../../src/services/SettingsService').settingsService.saveSetting(
+      'messageHistoryLimit',
+      1000,
+    );
 
     // Verify that the setting was saved
     expect(mockSaveSetting).toHaveBeenCalledWith('messageHistoryLimit', 1000);
@@ -351,7 +409,9 @@ describe('manageSettings Journey Test', () => {
 
   it('should change DCC settings', async () => {
     const mockSaveSetting = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(mockSaveSetting);
+    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(
+      mockSaveSetting,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -362,7 +422,10 @@ describe('manageSettings Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate changing DCC settings
-    await require('../../src/services/SettingsService').settingsService.saveSetting('dccAutoGetMode', 'accept');
+    await require('../../src/services/SettingsService').settingsService.saveSetting(
+      'dccAutoGetMode',
+      'accept',
+    );
 
     // Verify that the setting was saved
     expect(mockSaveSetting).toHaveBeenCalledWith('dccAutoGetMode', 'accept');
@@ -370,7 +433,9 @@ describe('manageSettings Journey Test', () => {
 
   it('should change encryption settings', async () => {
     const mockSaveSetting = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(mockSaveSetting);
+    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(
+      mockSaveSetting,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -381,7 +446,10 @@ describe('manageSettings Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate changing encryption settings
-    await require('../../src/services/SettingsService').settingsService.saveSetting('encryptionEnabled', true);
+    await require('../../src/services/SettingsService').settingsService.saveSetting(
+      'encryptionEnabled',
+      true,
+    );
 
     // Verify that the setting was saved
     expect(mockSaveSetting).toHaveBeenCalledWith('encryptionEnabled', true);
@@ -389,7 +457,9 @@ describe('manageSettings Journey Test', () => {
 
   it('should change privacy settings', async () => {
     const mockSaveSetting = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(mockSaveSetting);
+    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(
+      mockSaveSetting,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -400,7 +470,10 @@ describe('manageSettings Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate changing privacy settings
-    await require('../../src/services/SettingsService').settingsService.saveSetting('showUserList', false);
+    await require('../../src/services/SettingsService').settingsService.saveSetting(
+      'showUserList',
+      false,
+    );
 
     // Verify that the setting was saved
     expect(mockSaveSetting).toHaveBeenCalledWith('showUserList', false);
@@ -408,7 +481,9 @@ describe('manageSettings Journey Test', () => {
 
   it('should change appearance settings', async () => {
     const mockSaveSetting = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(mockSaveSetting);
+    require('../../src/services/SettingsService').settingsService.saveSetting.mockImplementation(
+      mockSaveSetting,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -419,7 +494,10 @@ describe('manageSettings Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate changing appearance settings
-    await require('../../src/services/SettingsService').settingsService.saveSetting('fontSize', 'large');
+    await require('../../src/services/SettingsService').settingsService.saveSetting(
+      'fontSize',
+      'large',
+    );
 
     // Verify that the setting was saved
     expect(mockSaveSetting).toHaveBeenCalledWith('fontSize', 'large');
@@ -427,7 +505,9 @@ describe('manageSettings Journey Test', () => {
 
   it('should save all settings at once', async () => {
     const mockSaveSettings = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSettings.mockImplementation(mockSaveSettings);
+    require('../../src/services/SettingsService').settingsService.saveSettings.mockImplementation(
+      mockSaveSettings,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -447,9 +527,11 @@ describe('manageSettings Journey Test', () => {
       dccAutoGetMode: 'prompt',
       encryptionEnabled: true,
       showUserList: true,
-      fontSize: 'medium'
+      fontSize: 'medium',
     };
-    await require('../../src/services/SettingsService').settingsService.saveSettings(settings);
+    await require('../../src/services/SettingsService').settingsService.saveSettings(
+      settings,
+    );
 
     // Verify that all settings were saved
     expect(mockSaveSettings).toHaveBeenCalledWith(settings);

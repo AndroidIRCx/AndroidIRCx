@@ -32,7 +32,10 @@ export interface UseSoundSettingsReturn {
   deleteScheme: (schemeId: string) => Promise<void>;
 
   // Event settings
-  setEventEnabled: (eventType: SoundEventType, enabled: boolean) => Promise<void>;
+  setEventEnabled: (
+    eventType: SoundEventType,
+    enabled: boolean,
+  ) => Promise<void>;
   setEventVolume: (eventType: SoundEventType, volume: number) => Promise<void>;
   setCustomSound: (eventType: SoundEventType, uri: string) => Promise<void>;
   resetEventToDefault: (eventType: SoundEventType) => Promise<void>;
@@ -48,7 +51,9 @@ export interface UseSoundSettingsReturn {
 }
 
 export function useSoundSettings(): UseSoundSettingsReturn {
-  const [settings, setSettings] = useState<SoundSettings>(soundService.getSettings());
+  const [settings, setSettings] = useState<SoundSettings>(
+    soundService.getSettings(),
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -61,7 +66,7 @@ export function useSoundSettings(): UseSoundSettingsReturn {
 
     init();
 
-    const unsubscribe = soundService.addListener((newSettings) => {
+    const unsubscribe = soundService.addListener(newSettings => {
       setSettings(newSettings);
     });
 
@@ -73,7 +78,9 @@ export function useSoundSettings(): UseSoundSettingsReturn {
   }, []);
 
   const setMasterVolume = useCallback(async (volume: number) => {
-    await soundService.updateSettings({ masterVolume: Math.max(0, Math.min(1, volume)) });
+    await soundService.updateSettings({
+      masterVolume: Math.max(0, Math.min(1, volume)),
+    });
   }, []);
 
   const setPlayInForeground = useCallback(async (enabled: boolean) => {
@@ -88,37 +95,56 @@ export function useSoundSettings(): UseSoundSettingsReturn {
     await soundService.setActiveScheme(schemeId);
   }, []);
 
-  const createScheme = useCallback(async (name: string, description?: string) => {
-    return await soundService.createScheme(name, description);
-  }, []);
+  const createScheme = useCallback(
+    async (name: string, description?: string) => {
+      return await soundService.createScheme(name, description);
+    },
+    [],
+  );
 
   const deleteScheme = useCallback(async (schemeId: string) => {
     await soundService.deleteScheme(schemeId);
   }, []);
 
-  const setEventEnabled = useCallback(async (eventType: SoundEventType, enabled: boolean) => {
-    await soundService.updateEventConfig(eventType, { enabled });
-  }, []);
+  const setEventEnabled = useCallback(
+    async (eventType: SoundEventType, enabled: boolean) => {
+      await soundService.updateEventConfig(eventType, { enabled });
+    },
+    [],
+  );
 
-  const setEventVolume = useCallback(async (eventType: SoundEventType, volume: number) => {
-    await soundService.updateEventConfig(eventType, { volume: Math.max(0, Math.min(1, volume)) });
-  }, []);
+  const setEventVolume = useCallback(
+    async (eventType: SoundEventType, volume: number) => {
+      await soundService.updateEventConfig(eventType, {
+        volume: Math.max(0, Math.min(1, volume)),
+      });
+    },
+    [],
+  );
 
-  const setCustomSound = useCallback(async (eventType: SoundEventType, uri: string) => {
-    await soundService.setCustomSound(eventType, uri);
-  }, []);
+  const setCustomSound = useCallback(
+    async (eventType: SoundEventType, uri: string) => {
+      await soundService.setCustomSound(eventType, uri);
+    },
+    [],
+  );
 
   const resetEventToDefault = useCallback(async (eventType: SoundEventType) => {
     await soundService.resetToDefault(eventType);
   }, []);
 
-  const getEventConfig = useCallback((eventType: SoundEventType): SoundEventConfig => {
-    return settings.events[eventType] || {
-      enabled: false,
-      useCustom: false,
-      volume: 1.0,
-    };
-  }, [settings.events]);
+  const getEventConfig = useCallback(
+    (eventType: SoundEventType): SoundEventConfig => {
+      return (
+        settings.events[eventType] || {
+          enabled: false,
+          useCustom: false,
+          volume: 1.0,
+        }
+      );
+    },
+    [settings.events],
+  );
 
   const previewSound = useCallback(async (eventType: SoundEventType) => {
     await soundService.previewSound(eventType);

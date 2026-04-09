@@ -57,7 +57,10 @@ const buildDefaultPart = (): MessageFormatPart => ({
 const clonePart = (part: MessageFormatPart): MessageFormatPart =>
   JSON.parse(JSON.stringify(part));
 
-const applyPreviewStyle = (baseStyle: TextStyle, formatStyle?: MessageFormatStyle): TextStyle => {
+const applyPreviewStyle = (
+  baseStyle: TextStyle,
+  formatStyle?: MessageFormatStyle,
+): TextStyle => {
   if (!formatStyle) {
     return baseStyle;
   }
@@ -90,22 +93,22 @@ const applyPreviewStyle = (baseStyle: TextStyle, formatStyle?: MessageFormatStyl
   }
 
   if (decoration.size > 0) {
-    textStyle.textDecorationLine = Array.from(decoration).join(' ') as TextStyle['textDecorationLine'];
+    textStyle.textDecorationLine = Array.from(decoration).join(
+      ' ',
+    ) as TextStyle['textDecorationLine'];
   }
 
   return textStyle;
 };
 
-export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps> = ({
-  visible,
-  colors,
-  initialFormats,
-  onSave,
-  onCancel,
-}) => {
+export const MessageFormatEditorScreen: React.FC<
+  MessageFormatEditorScreenProps
+> = ({ visible, colors, initialFormats, onSave, onCancel }) => {
   const t = useT();
   const styles = createStyles(colors);
-  const [formats, setFormats] = useState<ThemeMessageFormats>(getDefaultMessageFormats());
+  const [formats, setFormats] = useState<ThemeMessageFormats>(
+    getDefaultMessageFormats(),
+  );
   const [editState, setEditState] = useState<EditState | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorTarget, setColorTarget] = useState<ColorTarget>('color');
@@ -114,7 +117,11 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
 
   useEffect(() => {
     if (visible) {
-      setFormats(initialFormats ? JSON.parse(JSON.stringify(initialFormats)) : getDefaultMessageFormats());
+      setFormats(
+        initialFormats
+          ? JSON.parse(JSON.stringify(initialFormats))
+          : getDefaultMessageFormats(),
+      );
     }
   }, [visible, initialFormats]);
 
@@ -123,7 +130,10 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
       { key: 'message', title: t('Message format') },
       { key: 'messageMention', title: t('Message with mention format') },
       { key: 'action', title: t('Action (/me) message format') },
-      { key: 'actionMention', title: t('Action (/me) message with mention format') },
+      {
+        key: 'actionMention',
+        title: t('Action (/me) message with mention format'),
+      },
       { key: 'notice', title: t('Notice message format') },
       { key: 'join', title: t('Join message format') },
       { key: 'part', title: t('Part message format') },
@@ -513,7 +523,10 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
     [t],
   );
 
-  const updateFormatParts = (formatKey: FormatKey, nextParts: MessageFormatPart[]) => {
+  const updateFormatParts = (
+    formatKey: FormatKey,
+    nextParts: MessageFormatPart[],
+  ) => {
     setFormats(prev => ({
       ...prev,
       [formatKey]: nextParts,
@@ -576,7 +589,9 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
 
   const updateEditPart = (updates: Partial<MessageFormatPart>) => {
     if (!editState) return;
-    setEditState(prev => (prev ? { ...prev, part: { ...prev.part, ...updates } } : prev));
+    setEditState(prev =>
+      prev ? { ...prev, part: { ...prev.part, ...updates } } : prev,
+    );
   };
 
   const updateEditStyle = (updates: Partial<MessageFormatStyle>) => {
@@ -631,7 +646,10 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
               return null;
             }
             return (
-              <Text key={`preview-${index}`} style={applyPreviewStyle(baseStyle, part.style)}>
+              <Text
+                key={`preview-${index}`}
+                style={applyPreviewStyle(baseStyle, part.style)}
+              >
                 {part.value}
               </Text>
             );
@@ -642,11 +660,14 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
             return null;
           }
 
-            return (
-              <Text key={`preview-${index}`} style={applyPreviewStyle(baseStyle, part.style)}>
-                {tokenValue}
-              </Text>
-            );
+          return (
+            <Text
+              key={`preview-${index}`}
+              style={applyPreviewStyle(baseStyle, part.style)}
+            >
+              {tokenValue}
+            </Text>
+          );
         })}
       </>
     );
@@ -657,15 +678,24 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { backgroundColor: colors.primary }]}>
           <TouchableOpacity onPress={onCancel}>
-            <Text style={[styles.headerText, { color: colors.onPrimary }]}>{t('Cancel')}</Text>
+            <Text style={[styles.headerText, { color: colors.onPrimary }]}>
+              {t('Cancel')}
+            </Text>
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.onPrimary }]}>{t('Message Format')}</Text>
+          <Text style={[styles.headerTitle, { color: colors.onPrimary }]}>
+            {t('Message Format')}
+          </Text>
           <TouchableOpacity onPress={() => onSave(formats)}>
-            <Text style={[styles.headerText, { color: colors.onPrimary }]}>{t('Save')}</Text>
+            <Text style={[styles.headerText, { color: colors.onPrimary }]}>
+              {t('Save')}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
           {formatSections.map(section => {
             const formatKey = section.key as FormatKey;
             return (
@@ -673,8 +703,15 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                 key={section.key}
                 style={[styles.section, { borderBottomColor: colors.divider }]}
               >
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>{section.title}</Text>
-                <View style={[styles.previewRow, { backgroundColor: colors.surfaceVariant }]}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  {section.title}
+                </Text>
+                <View
+                  style={[
+                    styles.previewRow,
+                    { backgroundColor: colors.surfaceVariant },
+                  ]}
+                >
                   {renderPreviewParts(formatKey)}
                 </View>
                 <View style={styles.partsRow}>
@@ -683,7 +720,10 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                       key={`${section.key}-${index}`}
                       style={[
                         styles.partChip,
-                        { backgroundColor: colors.surface, borderColor: colors.border },
+                        {
+                          backgroundColor: colors.surface,
+                          borderColor: colors.border,
+                        },
                       ]}
                       onPress={() => openEditPart(formatKey, index)}
                     >
@@ -698,7 +738,11 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                     style={[styles.addChip, { borderColor: colors.primary }]}
                     onPress={() => openAddPart(formatKey)}
                   >
-                    <Text style={[styles.addChipText, { color: colors.primary }]}>+</Text>
+                    <Text
+                      style={[styles.addChipText, { color: colors.primary }]}
+                    >
+                      +
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -713,7 +757,9 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
           onRequestClose={() => setEditState(null)}
         >
           <View style={styles.overlay}>
-            <View style={[styles.editorCard, { backgroundColor: colors.surface }]}>
+            <View
+              style={[styles.editorCard, { backgroundColor: colors.surface }]}
+            >
               <Text style={[styles.editorTitle, { color: colors.text }]}>
                 {editState?.mode === 'add' ? t('Add Part') : t('Edit Part')}
               </Text>
@@ -724,17 +770,23 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                     styles.toggleButton,
                     {
                       backgroundColor:
-                        editState?.part.type === 'token' ? colors.primary : colors.surfaceVariant,
+                        editState?.part.type === 'token'
+                          ? colors.primary
+                          : colors.surfaceVariant,
                     },
                   ]}
-                  onPress={() => updateEditPart({ type: 'token', value: 'time' })}
+                  onPress={() =>
+                    updateEditPart({ type: 'token', value: 'time' })
+                  }
                 >
                   <Text
                     style={[
                       styles.toggleText,
                       {
                         color:
-                          editState?.part.type === 'token' ? colors.onPrimary : colors.text,
+                          editState?.part.type === 'token'
+                            ? colors.onPrimary
+                            : colors.text,
                       },
                     ]}
                   >
@@ -746,7 +798,9 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                     styles.toggleButton,
                     {
                       backgroundColor:
-                        editState?.part.type === 'text' ? colors.primary : colors.surfaceVariant,
+                        editState?.part.type === 'text'
+                          ? colors.primary
+                          : colors.surfaceVariant,
                     },
                   ]}
                   onPress={() => updateEditPart({ type: 'text', value: '' })}
@@ -755,7 +809,10 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                     style={[
                       styles.toggleText,
                       {
-                        color: editState?.part.type === 'text' ? colors.onPrimary : colors.text,
+                        color:
+                          editState?.part.type === 'text'
+                            ? colors.onPrimary
+                            : colors.text,
                       },
                     ]}
                   >
@@ -800,7 +857,11 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                 <TextInput
                   style={[
                     styles.textInput,
-                    { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
+                    {
+                      color: colors.text,
+                      borderColor: colors.border,
+                      backgroundColor: colors.surface,
+                    },
                   ]}
                   value={editState?.part.value || ''}
                   onChangeText={text => updateEditPart({ value: text })}
@@ -813,14 +874,22 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                 <TouchableOpacity
                   style={[
                     styles.styleButton,
-                    { backgroundColor: currentStyle.bold ? colors.primary : colors.surfaceVariant },
+                    {
+                      backgroundColor: currentStyle.bold
+                        ? colors.primary
+                        : colors.surfaceVariant,
+                    },
                   ]}
                   onPress={() => updateEditStyle({ bold: !currentStyle.bold })}
                 >
                   <Text
                     style={[
                       styles.styleButtonText,
-                      { color: currentStyle.bold ? colors.onPrimary : colors.text },
+                      {
+                        color: currentStyle.bold
+                          ? colors.onPrimary
+                          : colors.text,
+                      },
                     ]}
                   >
                     B
@@ -829,14 +898,24 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                 <TouchableOpacity
                   style={[
                     styles.styleButton,
-                    { backgroundColor: currentStyle.italic ? colors.primary : colors.surfaceVariant },
+                    {
+                      backgroundColor: currentStyle.italic
+                        ? colors.primary
+                        : colors.surfaceVariant,
+                    },
                   ]}
-                  onPress={() => updateEditStyle({ italic: !currentStyle.italic })}
+                  onPress={() =>
+                    updateEditStyle({ italic: !currentStyle.italic })
+                  }
                 >
                   <Text
                     style={[
                       styles.styleButtonText,
-                      { color: currentStyle.italic ? colors.onPrimary : colors.text },
+                      {
+                        color: currentStyle.italic
+                          ? colors.onPrimary
+                          : colors.text,
+                      },
                     ]}
                   >
                     I
@@ -846,15 +925,23 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                   style={[
                     styles.styleButton,
                     {
-                      backgroundColor: currentStyle.underline ? colors.primary : colors.surfaceVariant,
+                      backgroundColor: currentStyle.underline
+                        ? colors.primary
+                        : colors.surfaceVariant,
                     },
                   ]}
-                  onPress={() => updateEditStyle({ underline: !currentStyle.underline })}
+                  onPress={() =>
+                    updateEditStyle({ underline: !currentStyle.underline })
+                  }
                 >
                   <Text
                     style={[
                       styles.styleButtonText,
-                      { color: currentStyle.underline ? colors.onPrimary : colors.text },
+                      {
+                        color: currentStyle.underline
+                          ? colors.onPrimary
+                          : colors.text,
+                      },
                     ]}
                   >
                     U
@@ -869,12 +956,20 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                         : colors.surfaceVariant,
                     },
                   ]}
-                  onPress={() => updateEditStyle({ strikethrough: !currentStyle.strikethrough })}
+                  onPress={() =>
+                    updateEditStyle({
+                      strikethrough: !currentStyle.strikethrough,
+                    })
+                  }
                 >
                   <Text
                     style={[
                       styles.styleButtonText,
-                      { color: currentStyle.strikethrough ? colors.onPrimary : colors.text },
+                      {
+                        color: currentStyle.strikethrough
+                          ? colors.onPrimary
+                          : colors.text,
+                      },
                     ]}
                   >
                     S
@@ -883,14 +978,24 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                 <TouchableOpacity
                   style={[
                     styles.styleButton,
-                    { backgroundColor: currentStyle.reverse ? colors.primary : colors.surfaceVariant },
+                    {
+                      backgroundColor: currentStyle.reverse
+                        ? colors.primary
+                        : colors.surfaceVariant,
+                    },
                   ]}
-                  onPress={() => updateEditStyle({ reverse: !currentStyle.reverse })}
+                  onPress={() =>
+                    updateEditStyle({ reverse: !currentStyle.reverse })
+                  }
                 >
                   <Text
                     style={[
                       styles.styleButtonText,
-                      { color: currentStyle.reverse ? colors.onPrimary : colors.text },
+                      {
+                        color: currentStyle.reverse
+                          ? colors.onPrimary
+                          : colors.text,
+                      },
                     ]}
                   >
                     R
@@ -900,33 +1005,47 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
 
               <View style={styles.editorRow}>
                 <TouchableOpacity
-                  style={[styles.colorButton, { backgroundColor: colors.surfaceVariant }]}
+                  style={[
+                    styles.colorButton,
+                    { backgroundColor: colors.surfaceVariant },
+                  ]}
                   onPress={() => openColorPicker('color')}
                 >
                   <View
                     style={[
                       styles.colorSwatch,
-                      { backgroundColor: currentStyle.color || 'transparent', borderColor: colors.border },
+                      {
+                        backgroundColor: currentStyle.color || 'transparent',
+                        borderColor: colors.border,
+                      },
                     ]}
                   />
-                  <Text style={[styles.colorButtonText, { color: colors.text }]}>
+                  <Text
+                    style={[styles.colorButtonText, { color: colors.text }]}
+                  >
                     {t('Text color')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.colorButton, { backgroundColor: colors.surfaceVariant }]}
+                  style={[
+                    styles.colorButton,
+                    { backgroundColor: colors.surfaceVariant },
+                  ]}
                   onPress={() => openColorPicker('backgroundColor')}
                 >
                   <View
                     style={[
                       styles.colorSwatch,
                       {
-                        backgroundColor: currentStyle.backgroundColor || 'transparent',
+                        backgroundColor:
+                          currentStyle.backgroundColor || 'transparent',
                         borderColor: colors.border,
                       },
                     ]}
                   />
-                  <Text style={[styles.colorButtonText, { color: colors.text }]}>
+                  <Text
+                    style={[styles.colorButtonText, { color: colors.text }]}
+                  >
                     {t('Background')}
                   </Text>
                 </TouchableOpacity>
@@ -935,30 +1054,54 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
               <View style={styles.editorRow}>
                 {editState?.mode === 'edit' && (
                   <TouchableOpacity
-                    style={[styles.secondaryButton, { backgroundColor: colors.surfaceVariant }]}
+                    style={[
+                      styles.secondaryButton,
+                      { backgroundColor: colors.surfaceVariant },
+                    ]}
                     onPress={deletePart}
                   >
-                    <Text style={[styles.secondaryButtonText, { color: colors.text }]}>
+                    <Text
+                      style={[
+                        styles.secondaryButtonText,
+                        { color: colors.text },
+                      ]}
+                    >
                       {t('Delete')}
                     </Text>
                   </TouchableOpacity>
                 )}
                 {editState?.mode === 'edit' && (
                   <TouchableOpacity
-                    style={[styles.secondaryButton, { backgroundColor: colors.surfaceVariant }]}
+                    style={[
+                      styles.secondaryButton,
+                      { backgroundColor: colors.surfaceVariant },
+                    ]}
                     onPress={() => movePart(-1)}
                   >
-                    <Text style={[styles.secondaryButtonText, { color: colors.text }]}>
+                    <Text
+                      style={[
+                        styles.secondaryButtonText,
+                        { color: colors.text },
+                      ]}
+                    >
                       {t('Move Left')}
                     </Text>
                   </TouchableOpacity>
                 )}
                 {editState?.mode === 'edit' && (
                   <TouchableOpacity
-                    style={[styles.secondaryButton, { backgroundColor: colors.surfaceVariant }]}
+                    style={[
+                      styles.secondaryButton,
+                      { backgroundColor: colors.surfaceVariant },
+                    ]}
                     onPress={() => movePart(1)}
                   >
-                    <Text style={[styles.secondaryButtonText, { color: colors.text }]}>
+                    <Text
+                      style={[
+                        styles.secondaryButtonText,
+                        { color: colors.text },
+                      ]}
+                    >
                       {t('Move Right')}
                     </Text>
                   </TouchableOpacity>
@@ -967,18 +1110,31 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
 
               <View style={styles.editorRow}>
                 <TouchableOpacity
-                  style={[styles.secondaryButton, { backgroundColor: colors.surfaceVariant }]}
+                  style={[
+                    styles.secondaryButton,
+                    { backgroundColor: colors.surfaceVariant },
+                  ]}
                   onPress={() => setEditState(null)}
                 >
-                  <Text style={[styles.secondaryButtonText, { color: colors.text }]}>
+                  <Text
+                    style={[styles.secondaryButtonText, { color: colors.text }]}
+                  >
                     {t('Cancel')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.primaryButton, { backgroundColor: colors.primary }]}
+                  style={[
+                    styles.primaryButton,
+                    { backgroundColor: colors.primary },
+                  ]}
                   onPress={applyEdit}
                 >
-                  <Text style={[styles.primaryButtonText, { color: colors.onPrimary }]}>
+                  <Text
+                    style={[
+                      styles.primaryButtonText,
+                      { color: colors.onPrimary },
+                    ]}
+                  >
                     {t('Apply')}
                   </Text>
                 </TouchableOpacity>
@@ -994,7 +1150,12 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
           onRequestClose={() => setShowColorPicker(false)}
         >
           <View style={styles.overlay}>
-            <View style={[styles.colorPickerCard, { backgroundColor: colors.surface }]}>
+            <View
+              style={[
+                styles.colorPickerCard,
+                { backgroundColor: colors.surface },
+              ]}
+            >
               <Text style={[styles.editorTitle, { color: colors.text }]}>
                 {t('Pick Color')}
               </Text>
@@ -1003,7 +1164,10 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                   style={[
                     styles.toggleButton,
                     {
-                      backgroundColor: colorMode === 'palette' ? colors.primary : colors.surfaceVariant,
+                      backgroundColor:
+                        colorMode === 'palette'
+                          ? colors.primary
+                          : colors.surfaceVariant,
                     },
                   ]}
                   onPress={() => setColorMode('palette')}
@@ -1011,7 +1175,12 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                   <Text
                     style={[
                       styles.toggleText,
-                      { color: colorMode === 'palette' ? colors.onPrimary : colors.text },
+                      {
+                        color:
+                          colorMode === 'palette'
+                            ? colors.onPrimary
+                            : colors.text,
+                      },
                     ]}
                   >
                     {t('Palette')}
@@ -1021,7 +1190,10 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                   style={[
                     styles.toggleButton,
                     {
-                      backgroundColor: colorMode === 'custom' ? colors.primary : colors.surfaceVariant,
+                      backgroundColor:
+                        colorMode === 'custom'
+                          ? colors.primary
+                          : colors.surfaceVariant,
                     },
                   ]}
                   onPress={() => setColorMode('custom')}
@@ -1029,7 +1201,12 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                   <Text
                     style={[
                       styles.toggleText,
-                      { color: colorMode === 'custom' ? colors.onPrimary : colors.text },
+                      {
+                        color:
+                          colorMode === 'custom'
+                            ? colors.onPrimary
+                            : colors.text,
+                      },
                     ]}
                   >
                     {t('Custom')}
@@ -1041,7 +1218,11 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
                 <TextInput
                   style={[
                     styles.textInput,
-                    { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
+                    {
+                      color: colors.text,
+                      borderColor: colors.border,
+                      backgroundColor: colors.surface,
+                    },
                   ]}
                   value={customColor}
                   onChangeText={setCustomColor}
@@ -1063,18 +1244,34 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
               {colorMode === 'custom' && (
                 <View style={styles.editorRow}>
                   <TouchableOpacity
-                    style={[styles.secondaryButton, { backgroundColor: colors.surfaceVariant }]}
+                    style={[
+                      styles.secondaryButton,
+                      { backgroundColor: colors.surfaceVariant },
+                    ]}
                     onPress={clearColor}
                   >
-                    <Text style={[styles.secondaryButtonText, { color: colors.text }]}>
+                    <Text
+                      style={[
+                        styles.secondaryButtonText,
+                        { color: colors.text },
+                      ]}
+                    >
                       {t('Clear')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.primaryButton, { backgroundColor: colors.primary }]}
+                    style={[
+                      styles.primaryButton,
+                      { backgroundColor: colors.primary },
+                    ]}
                     onPress={() => applyColor(customColor.trim())}
                   >
-                    <Text style={[styles.primaryButtonText, { color: colors.onPrimary }]}>
+                    <Text
+                      style={[
+                        styles.primaryButtonText,
+                        { color: colors.onPrimary },
+                      ]}
+                    >
                       {t('Apply')}
                     </Text>
                   </TouchableOpacity>
@@ -1088,201 +1285,202 @@ export const MessageFormatEditorScreen: React.FC<MessageFormatEditorScreenProps>
   );
 };
 
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  headerText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingBottom: 32,
-  },
-  section: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  partsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  partChip: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  partText: {
-    fontSize: 13,
-  },
-  addChip: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderStyle: 'dashed',
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  addChipText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.modalOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  editorCard: {
-    width: '100%',
-    borderRadius: 12,
-    padding: 16,
-  },
-  colorPickerCard: {
-    width: '100%',
-    borderRadius: 12,
-    padding: 16,
-    maxHeight: '80%',
-  },
-  editorTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  editorRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  toggleButton: {
-    flexGrow: 1,
-    borderRadius: 8,
-    paddingVertical: 8,
-    alignItems: 'center',
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  toggleText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  tokenList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  tokenChip: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  tokenText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  textInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  styleRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  styleButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  styleButtonText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  colorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  colorSwatch: {
-    width: 18,
-    height: 18,
-    borderWidth: 1,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  colorButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    flexGrow: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  secondaryButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  primaryButton: {
-    flexGrow: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  primaryButtonText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  previewRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    marginBottom: 8,
-    minHeight: 32,
-    alignItems: 'center',
-    borderRadius: 4,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    headerText: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+    },
+    content: {
+      flex: 1,
+    },
+    contentContainer: {
+      paddingBottom: 32,
+    },
+    section: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    partsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    partChip: {
+      borderWidth: 1,
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    partText: {
+      fontSize: 13,
+    },
+    addChip: {
+      borderWidth: 1,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderStyle: 'dashed',
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    addChipText: {
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.modalOverlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 16,
+    },
+    editorCard: {
+      width: '100%',
+      borderRadius: 12,
+      padding: 16,
+    },
+    colorPickerCard: {
+      width: '100%',
+      borderRadius: 12,
+      padding: 16,
+      maxHeight: '80%',
+    },
+    editorTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 12,
+    },
+    editorRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: 12,
+    },
+    toggleButton: {
+      flexGrow: 1,
+      borderRadius: 8,
+      paddingVertical: 8,
+      alignItems: 'center',
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    toggleText: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    tokenList: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: 12,
+    },
+    tokenChip: {
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    tokenText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    textInput: {
+      borderWidth: 1,
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      fontSize: 14,
+      marginBottom: 12,
+    },
+    styleRow: {
+      flexDirection: 'row',
+      marginBottom: 12,
+    },
+    styleButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 8,
+    },
+    styleButtonText: {
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    colorButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      borderRadius: 8,
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    colorSwatch: {
+      width: 18,
+      height: 18,
+      borderWidth: 1,
+      borderRadius: 4,
+      marginRight: 8,
+    },
+    colorButtonText: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    secondaryButton: {
+      flexGrow: 1,
+      paddingVertical: 10,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    secondaryButtonText: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    primaryButton: {
+      flexGrow: 1,
+      paddingVertical: 10,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    primaryButtonText: {
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    previewRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      paddingVertical: 8,
+      paddingHorizontal: 4,
+      marginBottom: 8,
+      minHeight: 32,
+      alignItems: 'center',
+      borderRadius: 4,
+    },
+  });

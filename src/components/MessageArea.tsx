@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  useState,
+} from 'react';
 import {
   View,
   Text,
@@ -20,17 +26,36 @@ import {
   Linking,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useCodeScanner,
+} from 'react-native-vision-camera';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
-import { pick, types, errorCodes, isErrorWithCode } from '@react-native-documents/picker';
+import {
+  pick,
+  types,
+  errorCodes,
+  isErrorWithCode,
+} from '@react-native-documents/picker';
 import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { IRCMessage, RawMessageCategory, ChannelUser } from '../services/IRCService';
+import {
+  IRCMessage,
+  RawMessageCategory,
+  ChannelUser,
+} from '../services/IRCService';
 import { ChannelTab } from '../types';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
-import { parseMessage, isVideoUrl, isAudioUrl, isDownloadableFileUrl } from '../utils/MessageParser';
+import {
+  parseMessage,
+  isVideoUrl,
+  isAudioUrl,
+  isDownloadableFileUrl,
+} from '../utils/MessageParser';
 import { LinkPreview } from './LinkPreview';
 import { ImagePreview } from './ImagePreview';
 import { MessageReactionsComponent } from './MessageReactions';
@@ -42,18 +67,28 @@ import { messageHistoryService } from '../services/MessageHistoryService';
 import { highlightService } from '../services/HighlightService';
 import { VideoPlayer } from './VideoPlayer';
 import { AudioPlayer } from './AudioPlayer';
-import { userManagementService, BlacklistActionType } from '../services/UserManagementService';
+import {
+  userManagementService,
+  BlacklistActionType,
+} from '../services/UserManagementService';
 import { banService } from '../services/BanService';
 import { dccChatService } from '../services/DCCChatService';
 import { ircService } from '../services/IRCService';
 import { encryptedDMService } from '../services/EncryptedDMService';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
-import { formatIRCTextAsComponent, formatIRCTextWithLinks } from '../utils/IRCFormatter';
+import {
+  formatIRCTextAsComponent,
+  formatIRCTextWithLinks,
+} from '../utils/IRCFormatter';
 import { MessageSearchBar, MessageSearchFilters } from './MessageSearchBar';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { NickContextMenu } from './NickContextMenu';
 import { settingsService } from '../services/SettingsService';
-import { MessageFormatPart, MessageFormatStyle, ThemeMessageFormats } from '../services/ThemeService';
+import {
+  MessageFormatPart,
+  MessageFormatStyle,
+  ThemeMessageFormats,
+} from '../services/ThemeService';
 import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
 import { useTabStore } from '../stores/tabStore';
 import { queryTabId, sortTabsGrouped } from '../utils/tabUtils';
@@ -129,7 +164,7 @@ const applyMessageFormatStyle = (
   const decorationSet = new Set(
     textStyle.textDecorationLine && textStyle.textDecorationLine !== 'none'
       ? textStyle.textDecorationLine.split(' ')
-      : []
+      : [],
   );
   if (formatStyle.underline) {
     decorationSet.add('underline');
@@ -137,9 +172,12 @@ const applyMessageFormatStyle = (
   if (formatStyle.strikethrough) {
     decorationSet.add('line-through');
   }
-  textStyle.textDecorationLine = decorationSet.size > 0
-    ? Array.from(decorationSet).join(' ') as NonNullable<TextStyle['textDecorationLine']>
-    : textStyle.textDecorationLine;
+  textStyle.textDecorationLine =
+    decorationSet.size > 0
+      ? (Array.from(decorationSet).join(' ') as NonNullable<
+          TextStyle['textDecorationLine']
+        >)
+      : textStyle.textDecorationLine;
   if (formatStyle.color) {
     textStyle.color = formatStyle.color;
   }
@@ -158,840 +196,1145 @@ const applyMessageFormatStyle = (
 const IRC_FORMATTING_CHARS = [
   String.fromCharCode(0x02),
   String.fromCharCode(0x03),
-  String.fromCharCode(0x0F),
+  String.fromCharCode(0x0f),
   String.fromCharCode(0x16),
-  String.fromCharCode(0x1D),
-  String.fromCharCode(0x1E),
-  String.fromCharCode(0x1F),
+  String.fromCharCode(0x1d),
+  String.fromCharCode(0x1e),
+  String.fromCharCode(0x1f),
 ];
 const IRC_BEL = String.fromCharCode(0x07);
 const IRC_NUL = String.fromCharCode(0x00);
 
 // Memoized message item component for performance
-const MessageItem = React.memo<MessageItemProps>(({
-  message,
-  channelUsers,
-  timestampDisplay,
-  timestampFormat,
-  colors,
-  styles,
-  currentNick,
-  isGrouped,
-  onNickLongPress,
-  onNickPress,
-  onChannelPress,
-  onPressMessage,
-  onLongPressMessage,
-  isSelected = false,
-  selectionMode = false,
-  showImages = true,
-  network,
-  channel,
-  tabId,
-  layoutWidth,
-  messageFormats,
-}) => {
-  const t = useT();
+const MessageItem = React.memo<MessageItemProps>(
+  ({
+    message,
+    channelUsers,
+    timestampDisplay,
+    timestampFormat,
+    colors,
+    styles,
+    currentNick,
+    isGrouped,
+    onNickLongPress,
+    onNickPress,
+    onChannelPress,
+    onPressMessage,
+    onLongPressMessage,
+    isSelected = false,
+    selectionMode = false,
+    showImages = true,
+    network,
+    channel,
+    tabId,
+    layoutWidth,
+    messageFormats,
+  }) => {
+    const t = useT();
 
-  const formatTimestamp = useCallback((timestamp: number): string => {
-    const date = new Date(timestamp);
-    if (timestampFormat === '24h') {
-      return date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-    } else {
-      return date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    }
-  }, [timestampFormat]);
-
-  const getMessageColor = useCallback((type: IRCMessage['type']): string => {
-    switch (type) {
-      case 'error':
-        return colors.error;
-      case 'notice':
-        return colors.noticeMessage || colors.warning;
-      case 'join':
-        return colors.joinMessage;
-      case 'part':
-        return colors.partMessage;
-      case 'quit':
-        return colors.quitMessage;
-      case 'kick':
-        return colors.kickMessage || colors.error;
-      case 'nick':
-        return colors.nickMessage || colors.info;
-      case 'invite':
-        return colors.inviteMessage;
-      case 'monitor':
-        return colors.monitorMessage;
-      case 'topic':
-        return colors.topicMessage;
-      case 'mode':
-        return colors.modeMessage || colors.info;
-      case 'raw':
-        return colors.rawMessage || colors.textSecondary;
-      case 'ctcp':
-        return colors.ctcpMessage || colors.info;
-      default:
-        return colors.messageText;
-    }
-  }, [colors]);
-
-  const isActionMessage = useCallback((text: string): boolean => {
-    if (!text || text.length < 2) return false;
-    return text.charCodeAt(0) === 0x01 && 
-           text.startsWith('ACTION ', 1) && 
-           text.charCodeAt(text.length - 1) === 0x01;
-  }, []);
-
-  const extractActionText = useCallback((text: string): string | null => {
-    if (!isActionMessage(text)) return null;
-    return text.slice(8, -1);
-  }, [isActionMessage]);
-
-  const renderMessageParts = useCallback((text: string, isAction: boolean = false) => {
-    const parts = parseMessage(text);
-    const imageUrls: string[] = [];
-    const videoUrls: string[] = [];
-    const audioUrls: string[] = [];
-    const linkUrls: string[] = [];
-    const fileUrls: string[] = [];
-    const mediaIds: string[] = [];
-
-    parts.forEach(part => {
-      if (part.type === 'media' && part.mediaId) {
-        mediaIds.push(part.mediaId);
-      } else if (part.type === 'image' && part.url) {
-        imageUrls.push(part.url);
-      } else if (part.type === 'url' && part.url) {
-        if (isVideoUrl(part.url)) {
-          videoUrls.push(part.url);
-        } else if (isAudioUrl(part.url)) {
-          audioUrls.push(part.url);
-        } else if (isDownloadableFileUrl(part.url)) {
-          fileUrls.push(part.url);
+    const formatTimestamp = useCallback(
+      (timestamp: number): string => {
+        const date = new Date(timestamp);
+        if (timestampFormat === '24h') {
+          return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          });
         } else {
-          linkUrls.push(part.url);
+          return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+        }
+      },
+      [timestampFormat],
+    );
+
+    const getMessageColor = useCallback(
+      (type: IRCMessage['type']): string => {
+        switch (type) {
+          case 'error':
+            return colors.error;
+          case 'notice':
+            return colors.noticeMessage || colors.warning;
+          case 'join':
+            return colors.joinMessage;
+          case 'part':
+            return colors.partMessage;
+          case 'quit':
+            return colors.quitMessage;
+          case 'kick':
+            return colors.kickMessage || colors.error;
+          case 'nick':
+            return colors.nickMessage || colors.info;
+          case 'invite':
+            return colors.inviteMessage;
+          case 'monitor':
+            return colors.monitorMessage;
+          case 'topic':
+            return colors.topicMessage;
+          case 'mode':
+            return colors.modeMessage || colors.info;
+          case 'raw':
+            return colors.rawMessage || colors.textSecondary;
+          case 'ctcp':
+            return colors.ctcpMessage || colors.info;
+          default:
+            return colors.messageText;
+        }
+      },
+      [colors],
+    );
+
+    const isActionMessage = useCallback((text: string): boolean => {
+      if (!text || text.length < 2) return false;
+      return (
+        text.charCodeAt(0) === 0x01 &&
+        text.startsWith('ACTION ', 1) &&
+        text.charCodeAt(text.length - 1) === 0x01
+      );
+    }, []);
+
+    const extractActionText = useCallback(
+      (text: string): string | null => {
+        if (!isActionMessage(text)) return null;
+        return text.slice(8, -1);
+      },
+      [isActionMessage],
+    );
+
+    const renderMessageParts = useCallback(
+      (text: string, isAction: boolean = false) => {
+        const parts = parseMessage(text);
+        const imageUrls: string[] = [];
+        const videoUrls: string[] = [];
+        const audioUrls: string[] = [];
+        const linkUrls: string[] = [];
+        const fileUrls: string[] = [];
+        const mediaIds: string[] = [];
+
+        parts.forEach(part => {
+          if (part.type === 'media' && part.mediaId) {
+            mediaIds.push(part.mediaId);
+          } else if (part.type === 'image' && part.url) {
+            imageUrls.push(part.url);
+          } else if (part.type === 'url' && part.url) {
+            if (isVideoUrl(part.url)) {
+              videoUrls.push(part.url);
+            } else if (isAudioUrl(part.url)) {
+              audioUrls.push(part.url);
+            } else if (isDownloadableFileUrl(part.url)) {
+              fileUrls.push(part.url);
+            } else {
+              linkUrls.push(part.url);
+            }
+          }
+        });
+
+        return {
+          textParts: parts.filter(
+            part =>
+              part.type === 'text' ||
+              (part.type === 'url' &&
+                !imageUrls.includes(part.url || '') &&
+                !videoUrls.includes(part.url || '') &&
+                !audioUrls.includes(part.url || '') &&
+                !fileUrls.includes(part.url || '')),
+          ),
+          imageUrls,
+          videoUrls,
+          audioUrls,
+          fileUrls,
+          mediaIds,
+          linkUrls: linkUrls.filter(
+            url =>
+              !imageUrls.includes(url) &&
+              !videoUrls.includes(url) &&
+              !audioUrls.includes(url) &&
+              !fileUrls.includes(url),
+          ),
+          isAction,
+        };
+      },
+      [],
+    );
+
+    const actionText = useMemo(
+      () => extractActionText(message.text),
+      [message.text, extractActionText],
+    );
+    const parsed = useMemo(
+      () => renderMessageParts(message.text, actionText !== null),
+      [message.text, actionText, renderMessageParts],
+    );
+
+    // Escape special regex characters to prevent invalid regex errors
+    const escapeRegExp = useCallback((string: string): string => {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }, []);
+
+    const isHighlighted = useMemo(() => {
+      if (message.type !== 'message') {
+        return false;
+      }
+      // Check for custom highlight words
+      if (highlightService.isHighlighted(message.text)) {
+        return true;
+      }
+      // Check if the current user's nick is mentioned as a whole word
+      if (currentNick) {
+        try {
+          const escapedNick = escapeRegExp(currentNick);
+          const regex = new RegExp(`\\b${escapedNick}\\b`, 'i');
+          return regex.test(message.text);
+        } catch {
+          // Fallback to simple includes if regex fails
+          return message.text.toLowerCase().includes(currentNick.toLowerCase());
         }
       }
-    });
-
-    return {
-      textParts: parts.filter(part =>
-        part.type === 'text' ||
-        (part.type === 'url' &&
-          !imageUrls.includes(part.url || '') &&
-          !videoUrls.includes(part.url || '') &&
-          !audioUrls.includes(part.url || '') &&
-          !fileUrls.includes(part.url || ''))
-      ),
-      imageUrls,
-      videoUrls,
-      audioUrls,
-      fileUrls,
-      mediaIds,
-      linkUrls: linkUrls.filter(url =>
-        !imageUrls.includes(url) &&
-        !videoUrls.includes(url) &&
-        !audioUrls.includes(url) &&
-        !fileUrls.includes(url)
-      ),
-      isAction,
-    };
-  }, []);
-
-  const actionText = useMemo(() => extractActionText(message.text), [message.text, extractActionText]);
-  const parsed = useMemo(() => renderMessageParts(message.text, actionText !== null), [message.text, actionText, renderMessageParts]);
-
-  // Escape special regex characters to prevent invalid regex errors
-  const escapeRegExp = useCallback((string: string): string => {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }, []);
-
-  const isHighlighted = useMemo(() => {
-    if (message.type !== 'message') {
       return false;
-    }
-    // Check for custom highlight words
-    if (highlightService.isHighlighted(message.text)) {
-      return true;
-    }
-    // Check if the current user's nick is mentioned as a whole word
-    if (currentNick) {
-      try {
-        const escapedNick = escapeRegExp(currentNick);
-        const regex = new RegExp(`\\b${escapedNick}\\b`, 'i');
-        return regex.test(message.text);
-      } catch {
-        // Fallback to simple includes if regex fails
-        return message.text.toLowerCase().includes(currentNick.toLowerCase());
+    }, [message.text, message.type, currentNick, escapeRegExp]);
+
+    const actionMessageColor = isHighlighted
+      ? colors.highlightText
+      : colors.actionMessage;
+
+    const shouldShowTimestamp =
+      timestampDisplay === 'always' ||
+      (timestampDisplay === 'grouped' && !isGrouped);
+
+    const normalizedMessageFormats = useMemo(
+      () =>
+        messageFormats
+          ? { ...getDefaultMessageFormats(), ...messageFormats }
+          : null,
+      [messageFormats],
+    );
+
+    const formatParts = useMemo(() => {
+      if (!normalizedMessageFormats) {
+        return null;
       }
-    }
-    return false;
-  }, [message.text, message.type, currentNick, escapeRegExp]);
 
-  const actionMessageColor = isHighlighted ? colors.highlightText : colors.actionMessage;
+      if (message.type === 'message') {
+        if (actionText !== null) {
+          return isHighlighted
+            ? normalizedMessageFormats.actionMention
+            : normalizedMessageFormats.action;
+        }
+        return isHighlighted
+          ? normalizedMessageFormats.messageMention
+          : normalizedMessageFormats.message;
+      }
 
-  const shouldShowTimestamp =
-    timestampDisplay === 'always' ||
-    (timestampDisplay === 'grouped' && !isGrouped);
+      if (message.type === 'notice') {
+        return normalizedMessageFormats.notice;
+      }
 
-  const normalizedMessageFormats = useMemo(
-    () => (messageFormats ? { ...getDefaultMessageFormats(), ...messageFormats } : null),
-    [messageFormats],
-  );
+      if (message.type === 'join') {
+        return normalizedMessageFormats.join;
+      }
+      if (message.type === 'part') {
+        return normalizedMessageFormats.part;
+      }
+      if (message.type === 'quit') {
+        return normalizedMessageFormats.quit;
+      }
+      if (message.type === 'kick') {
+        return normalizedMessageFormats.kick;
+      }
+      if (message.type === 'nick') {
+        return normalizedMessageFormats.nick;
+      }
+      if (message.type === 'invite') {
+        return normalizedMessageFormats.invite;
+      }
+      if (message.type === 'monitor') {
+        return normalizedMessageFormats.monitor;
+      }
+      if (message.type === 'mode') {
+        return normalizedMessageFormats.mode;
+      }
+      if (message.type === 'topic') {
+        return normalizedMessageFormats.topic;
+      }
+      if (message.type === 'raw') {
+        return normalizedMessageFormats.raw;
+      }
+      if (message.type === 'error') {
+        return normalizedMessageFormats.error;
+      }
+      if (message.type === 'ctcp') {
+        return normalizedMessageFormats.ctcp;
+      }
+      if (
+        ['join', 'part', 'quit', 'invite', 'monitor', 'mode', 'topic'].includes(
+          message.type,
+        )
+      ) {
+        return normalizedMessageFormats.event;
+      }
 
-  const formatParts = useMemo(() => {
-    if (!normalizedMessageFormats) {
       return null;
-    }
+    }, [normalizedMessageFormats, message.type, isHighlighted, actionText]);
 
-    if (message.type === 'message') {
-      if (actionText !== null) {
-        return isHighlighted ? normalizedMessageFormats.actionMention : normalizedMessageFormats.action;
-      }
-      return isHighlighted ? normalizedMessageFormats.messageMention : normalizedMessageFormats.message;
-    }
+    const baseLineColor =
+      message.type === 'message'
+        ? actionText !== null
+          ? actionMessageColor
+          : isHighlighted
+            ? colors.highlightText
+            : colors.messageText
+        : getMessageColor(message.type);
 
-    if (message.type === 'notice') {
-      return normalizedMessageFormats.notice;
-    }
+    const inlineBaseStyle = useMemo<TextStyle>(() => {
+      const baseLineStyle = StyleSheet.flatten([
+        styles.messageText,
+        { color: baseLineColor },
+      ]) as TextStyle;
+      return {
+        ...baseLineStyle,
+        flex: undefined,
+        flexGrow: undefined,
+        flexShrink: undefined,
+      };
+    }, [baseLineColor, styles.messageText]);
 
-    if (message.type === 'join') {
-      return normalizedMessageFormats.join;
-    }
-    if (message.type === 'part') {
-      return normalizedMessageFormats.part;
-    }
-    if (message.type === 'quit') {
-      return normalizedMessageFormats.quit;
-    }
-    if (message.type === 'kick') {
-      return normalizedMessageFormats.kick;
-    }
-    if (message.type === 'nick') {
-      return normalizedMessageFormats.nick;
-    }
-    if (message.type === 'invite') {
-      return normalizedMessageFormats.invite;
-    }
-    if (message.type === 'monitor') {
-      return normalizedMessageFormats.monitor;
-    }
-    if (message.type === 'mode') {
-      return normalizedMessageFormats.mode;
-    }
-    if (message.type === 'topic') {
-      return normalizedMessageFormats.topic;
-    }
-    if (message.type === 'raw') {
-      return normalizedMessageFormats.raw;
-    }
-    if (message.type === 'error') {
-      return normalizedMessageFormats.error;
-    }
-    if (message.type === 'ctcp') {
-      return normalizedMessageFormats.ctcp;
-    }
-    if (['join', 'part', 'quit', 'invite', 'monitor', 'mode', 'topic'].includes(message.type)) {
-      return normalizedMessageFormats.event;
-    }
-
-    return null;
-  }, [normalizedMessageFormats, message.type, isHighlighted, actionText]);
-
-  const baseLineColor =
-    message.type === 'message'
-      ? actionText !== null
-        ? actionMessageColor
-        : isHighlighted
-          ? colors.highlightText
-          : colors.messageText
-      : getMessageColor(message.type);
-
-  const inlineBaseStyle = useMemo<TextStyle>(() => {
-    const baseLineStyle = StyleSheet.flatten([styles.messageText, { color: baseLineColor }]) as TextStyle;
-    return {
-      ...baseLineStyle,
-      flex: undefined,
-      flexGrow: undefined,
-      flexShrink: undefined,
-    };
-  }, [baseLineColor, styles.messageText]);
-
-  const nickMap = useMemo(() => {
-    const map = new Map<string, string>();
-    (channelUsers || []).forEach(user => {
-      if (!user?.nick) return;
-      map.set(user.nick.toLowerCase(), user.nick);
-    });
-    return map;
-  }, [channelUsers]);
-
-  const containsIrcFormatting = useCallback((text: string | undefined | null): boolean => {
-    if (!text) return false;
-    return IRC_FORMATTING_CHARS.some(char => text.includes(char));
-  }, []);
-
-  const handleLinkPress = useCallback(async (url: string) => {
-    const confirmOpen = await settingsService.getSetting('confirmBeforeOpeningLinks', true);
-    if (confirmOpen) {
-      Alert.alert(
-        t('Open Link'),
-        t('Do you want to open this link in your browser?\n\n{url}', { url }),
-        [
-          { text: t('Cancel'), style: 'cancel' },
-          { text: t('Open'), onPress: () => Linking.openURL(url) },
-        ]
-      );
-    } else {
-      Linking.openURL(url);
-    }
-  }, [t]);
-
-  const renderTextWithNickActions = useCallback((
-    text: string,
-    baseStyle: TextStyle,
-    keyPrefix: string,
-  ) => {
-    if (!text) {
-      return <Text key={`${keyPrefix}-empty`} style={baseStyle} />;
-    }
-    // If the message uses IRC formatting codes, use the formatter with clickable links.
-    if (containsIrcFormatting(text)) {
-      return React.cloneElement(formatIRCTextWithLinks(text, baseStyle, colors.primary, handleLinkPress), {
-        key: `${keyPrefix}-formatted`,
+    const nickMap = useMemo(() => {
+      const map = new Map<string, string>();
+      (channelUsers || []).forEach(user => {
+        if (!user?.nick) return;
+        map.set(user.nick.toLowerCase(), user.nick);
       });
-    }
+      return map;
+    }, [channelUsers]);
 
-    const tokens = text.match(/\S+|\s+/g) || [];
-    return (
-      <Text key={`${keyPrefix}-text`} style={baseStyle}>
-        {tokens.map((token, index) => {
-          // Preserve whitespace as-is.
-          if (/^\s+$/.test(token)) {
-            return (
-              <Text key={`${keyPrefix}-ws-${index}`} style={baseStyle}>
-                {token}
-              </Text>
-            );
-          }
+    const containsIrcFormatting = useCallback(
+      (text: string | undefined | null): boolean => {
+        if (!text) return false;
+        return IRC_FORMATTING_CHARS.some(char => text.includes(char));
+      },
+      [],
+    );
 
-          // Check for URLs (http/https/ftp)
-          const urlMatch = token.match(/^(.*?)((?:https?|ftp):\/\/[^\s]+)(.*)$/i);
-          if (urlMatch) {
-            const [, leading, url, trailing] = urlMatch;
-            if (url.includes(IRC_BEL) || url.includes(IRC_NUL)) {
+    const handleLinkPress = useCallback(
+      async (url: string) => {
+        const confirmOpen = await settingsService.getSetting(
+          'confirmBeforeOpeningLinks',
+          true,
+        );
+        if (confirmOpen) {
+          Alert.alert(
+            t('Open Link'),
+            t('Do you want to open this link in your browser?\n\n{url}', {
+              url,
+            }),
+            [
+              { text: t('Cancel'), style: 'cancel' },
+              { text: t('Open'), onPress: () => Linking.openURL(url) },
+            ],
+          );
+        } else {
+          Linking.openURL(url);
+        }
+      },
+      [t],
+    );
+
+    const renderTextWithNickActions = useCallback(
+      (text: string, baseStyle: TextStyle, keyPrefix: string) => {
+        if (!text) {
+          return <Text key={`${keyPrefix}-empty`} style={baseStyle} />;
+        }
+        // If the message uses IRC formatting codes, use the formatter with clickable links.
+        if (containsIrcFormatting(text)) {
+          return React.cloneElement(
+            formatIRCTextWithLinks(
+              text,
+              baseStyle,
+              colors.primary,
+              handleLinkPress,
+            ),
+            {
+              key: `${keyPrefix}-formatted`,
+            },
+          );
+        }
+
+        const tokens = text.match(/\S+|\s+/g) || [];
+        return (
+          <Text key={`${keyPrefix}-text`} style={baseStyle}>
+            {tokens.map((token, index) => {
+              // Preserve whitespace as-is.
+              if (/^\s+$/.test(token)) {
+                return (
+                  <Text key={`${keyPrefix}-ws-${index}`} style={baseStyle}>
+                    {token}
+                  </Text>
+                );
+              }
+
+              // Check for URLs (http/https/ftp)
+              const urlMatch = token.match(
+                /^(.*?)((?:https?|ftp):\/\/[^\s]+)(.*)$/i,
+              );
+              if (urlMatch) {
+                const [, leading, url, trailing] = urlMatch;
+                if (url.includes(IRC_BEL) || url.includes(IRC_NUL)) {
+                  return (
+                    <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
+                      {token}
+                    </Text>
+                  );
+                }
+                return (
+                  <Text key={`${keyPrefix}-url-${index}`} style={baseStyle}>
+                    {leading}
+                    <Text
+                      style={styles.linkText}
+                      onPress={() => handleLinkPress(url)}
+                    >
+                      {url}
+                    </Text>
+                    {trailing}
+                  </Text>
+                );
+              }
+
+              // Check for channel names (e.g., #channel, &channel)
+              // Channel pattern: starts with # or &, followed by valid channel characters
+              // Also handles status prefixes: ~ (owner), & (admin), @ (op), % (halfop), + (voice)
+              const channelMatch = token.match(/^([^#&]*)([#&][^\s,:]+)(.*)$/);
+              if (channelMatch && onChannelPress) {
+                const [, leadingCh, rawChannelName, trailingCh] = channelMatch;
+                // Remove ALL status prefixes from channel name
+                const channelName = rawChannelName.replace(/^[~&@%+]+/, '');
+                const joinChannel = () => {
+                  onChannelPress(channelName);
+                };
+                return (
+                  <Text key={`${keyPrefix}-channel-${index}`} style={baseStyle}>
+                    {leadingCh}
+                    <Text style={styles.linkText} onPress={joinChannel}>
+                      {channelName}
+                    </Text>
+                    {trailingCh}
+                  </Text>
+                );
+              }
+
+              // Extract a potential nick while preserving surrounding punctuation.
+              const match = token.match(
+                new RegExp(
+                  '^([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)(@?[A-Za-z0-9_`^\\\\-\\]\\[{}|]+)([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)$',
+                ),
+              );
+              if (!match) {
+                return (
+                  <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
+                    {token}
+                  </Text>
+                );
+              }
+
+              const [, leading, core, trailing] = match;
+              const coreNick = core.startsWith('@') ? core.slice(1) : core;
+              const resolved = nickMap.get(coreNick.toLowerCase());
+              if (!resolved) {
+                return (
+                  <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
+                    {token}
+                  </Text>
+                );
+              }
+
+              const openMenu = () => {
+                if (onNickLongPress) {
+                  onNickLongPress(resolved);
+                }
+              };
+
               return (
-                <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
-                  {token}
+                <Text key={`${keyPrefix}-nick-${index}`} style={baseStyle}>
+                  {leading}
+                  <Text
+                    style={styles.nick}
+                    onPress={openMenu}
+                    onLongPress={openMenu}
+                  >
+                    {core}
+                  </Text>
+                  {trailing}
                 </Text>
               );
-            }
-            return (
-              <Text key={`${keyPrefix}-url-${index}`} style={baseStyle}>
-                {leading}
-                <Text style={styles.linkText} onPress={() => handleLinkPress(url)}>
-                  {url}
-                </Text>
-                {trailing}
-              </Text>
-            );
-          }
-
-          // Check for channel names (e.g., #channel, &channel)
-          // Channel pattern: starts with # or &, followed by valid channel characters
-          // Also handles status prefixes: ~ (owner), & (admin), @ (op), % (halfop), + (voice)
-          const channelMatch = token.match(/^([^#&]*)([#&][^\s,:]+)(.*)$/);
-          if (channelMatch && onChannelPress) {
-            const [, leadingCh, rawChannelName, trailingCh] = channelMatch;
-            // Remove ALL status prefixes from channel name
-            const channelName = rawChannelName.replace(/^[~&@%+]+/, '');
-            const joinChannel = () => {
-              onChannelPress(channelName);
-            };
-            return (
-              <Text key={`${keyPrefix}-channel-${index}`} style={baseStyle}>
-                {leadingCh}
-                <Text style={styles.linkText} onPress={joinChannel}>
-                  {channelName}
-                </Text>
-                {trailingCh}
-              </Text>
-            );
-          }
-
-          // Extract a potential nick while preserving surrounding punctuation.
-          const match = token.match(new RegExp('^([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)(@?[A-Za-z0-9_`^\\\\-\\]\\[{}|]+)([^A-Za-z0-9_`^\\\\-\\]\\[{}|]*)$'));
-          if (!match) {
-            return (
-              <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
-                {token}
-              </Text>
-            );
-          }
-
-          const [, leading, core, trailing] = match;
-          const coreNick = core.startsWith('@') ? core.slice(1) : core;
-          const resolved = nickMap.get(coreNick.toLowerCase());
-          if (!resolved) {
-            return (
-              <Text key={`${keyPrefix}-plain-${index}`} style={baseStyle}>
-                {token}
-              </Text>
-            );
-          }
-
-          const openMenu = () => {
-            if (onNickLongPress) {
-              onNickLongPress(resolved);
-            }
-          };
-
-          return (
-            <Text key={`${keyPrefix}-nick-${index}`} style={baseStyle}>
-              {leading}
-              <Text style={styles.nick} onPress={openMenu} onLongPress={openMenu}>
-                {core}
-              </Text>
-              {trailing}
-            </Text>
-          );
-        })}
-      </Text>
+            })}
+          </Text>
+        );
+      },
+      [
+        containsIrcFormatting,
+        nickMap,
+        onNickLongPress,
+        onChannelPress,
+        handleLinkPress,
+        styles.nick,
+        styles.linkText,
+        colors.primary,
+      ],
     );
-  }, [containsIrcFormatting, nickMap, onNickLongPress, onChannelPress, handleLinkPress, styles.nick, styles.linkText, colors.primary]);
 
-  const renderFormattedParts = useCallback(
-    (parts: MessageFormatPart[]) => {
-      const hostmask = message.username && message.hostname
-        ? `${message.from || ''}!${message.username}@${message.hostname}`
-        : '';
-      const tokenValues: Record<string, string> = {
-        time: shouldShowTimestamp ? formatTimestamp(message.timestamp) : '',
-        nick: !isGrouped ? message.from || '' : '',
-        oldnick: message.oldNick || '',
-        newnick: message.newNick || '',
-        message: actionText !== null ? actionText : message.text,
-        channel: message.channel || channel || '',
-        network: message.network || network || '',
-        account: message.account || '',
-        username: message.username || '',
-        hostname: message.hostname || '',
-        hostmask,
-        target: message.target || message.channel || channel || '',
-        mode: message.mode || '',
-        topic: message.topic || '',
-        reason: message.reason || '',
-        numeric: message.numeric || '',
-        command: message.command || '',
-      };
+    const renderFormattedParts = useCallback(
+      (parts: MessageFormatPart[]) => {
+        const hostmask =
+          message.username && message.hostname
+            ? `${message.from || ''}!${message.username}@${message.hostname}`
+            : '';
+        const tokenValues: Record<string, string> = {
+          time: shouldShowTimestamp ? formatTimestamp(message.timestamp) : '',
+          nick: !isGrouped ? message.from || '' : '',
+          oldnick: message.oldNick || '',
+          newnick: message.newNick || '',
+          message: actionText !== null ? actionText : message.text,
+          channel: message.channel || channel || '',
+          network: message.network || network || '',
+          account: message.account || '',
+          username: message.username || '',
+          hostname: message.hostname || '',
+          hostmask,
+          target: message.target || message.channel || channel || '',
+          mode: message.mode || '',
+          topic: message.topic || '',
+          reason: message.reason || '',
+          numeric: message.numeric || '',
+          command: message.command || '',
+        };
 
-      return parts.map((part, index) => {
-        if (part.type === 'text') {
-          if (!part.value) {
+        return parts.map((part, index) => {
+          if (part.type === 'text') {
+            if (!part.value) {
+              return null;
+            }
+            return (
+              <Text
+                key={`part-${index}`}
+                style={applyMessageFormatStyle(inlineBaseStyle, part.style)}
+              >
+                {part.value}
+              </Text>
+            );
+          }
+
+          if (part.value === 'message') {
+            if (!tokenValues.message) {
+              return null;
+            }
+            return React.cloneElement(
+              formatIRCTextAsComponent(
+                tokenValues.message,
+                applyMessageFormatStyle(inlineBaseStyle, part.style),
+              ),
+              { key: `part-${index}` },
+            );
+          }
+
+          const tokenValue = tokenValues[part.value] || '';
+          if (!tokenValue) {
             return null;
           }
-          return (
-            <Text key={`part-${index}`} style={applyMessageFormatStyle(inlineBaseStyle, part.style)}>
-              {part.value}
-            </Text>
-          );
-        }
 
-        if (part.value === 'message') {
-          if (!tokenValues.message) {
-            return null;
+          if (part.value === 'nick') {
+            return (
+              <Text
+                key={`part-${index}`}
+                style={applyMessageFormatStyle(inlineBaseStyle, part.style)}
+                onPress={() =>
+                  onNickLongPress &&
+                  message.from &&
+                  onNickLongPress(message.from)
+                }
+                onLongPress={() =>
+                  onNickLongPress &&
+                  message.from &&
+                  onNickLongPress(message.from)
+                }
+              >
+                {tokenValue}
+              </Text>
+            );
           }
-          return React.cloneElement(
-            formatIRCTextAsComponent(tokenValues.message, applyMessageFormatStyle(inlineBaseStyle, part.style)),
-            { key: `part-${index}` },
-          );
-        }
 
-        const tokenValue = tokenValues[part.value] || '';
-        if (!tokenValue) {
-          return null;
-        }
-
-        if (part.value === 'nick') {
           return (
             <Text
               key={`part-${index}`}
               style={applyMessageFormatStyle(inlineBaseStyle, part.style)}
-              onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-              onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
             >
               {tokenValue}
             </Text>
           );
-        }
+        });
+      },
+      [
+        actionText,
+        inlineBaseStyle,
+        channel,
+        formatTimestamp,
+        isGrouped,
+        message.account,
+        message.channel,
+        message.command,
+        message.hostname,
+        message.mode,
+        message.network,
+        message.numeric,
+        message.reason,
+        message.text,
+        message.timestamp,
+        message.from,
+        message.oldNick,
+        message.newNick,
+        message.target,
+        message.topic,
+        message.username,
+        network,
+        onNickLongPress,
+        shouldShowTimestamp,
+      ],
+    );
 
-        return (
-          <Text key={`part-${index}`} style={applyMessageFormatStyle(inlineBaseStyle, part.style)}>
-            {tokenValue}
-          </Text>
-        );
-      });
-    },
-    [
-      actionText,
-      inlineBaseStyle,
-      channel,
-      formatTimestamp,
-      isGrouped,
-      message.account,
-      message.channel,
-      message.command,
-      message.hostname,
-      message.mode,
-      message.network,
-      message.numeric,
-      message.reason,
-      message.text,
-      message.timestamp,
-      message.from,
-      message.oldNick,
-      message.newNick,
-      message.target,
-      message.topic,
-      message.username,
-      network,
-      onNickLongPress,
-      shouldShowTimestamp,
-    ],
-  );
-
-  return (
-    <TouchableOpacity
-      activeOpacity={selectionMode ? 0.8 : 1}
-      onLongPress={() => onLongPressMessage && onLongPressMessage(message)}
-      onPress={() => onPressMessage && onPressMessage(message)}
-      delayLongPress={180}
-    >
-      <View style={[
-        styles.messageContainer,
-        isGrouped && styles.groupedMessageContainer,
-        isHighlighted && styles.highlightedMessage,
-        message.status === 'pending' && styles.pendingMessage,
-        isSelected && styles.selectedMessage,
-      ]}>
-        {!formatParts && shouldShowTimestamp && (
-          <Text style={styles.timestamp}>
-            {formatTimestamp(message.timestamp)}
-          </Text>
-        )}
-        {message.type === 'raw' ? (
-          message.whoisData?.channels ? (
-            // Render WHOIS channels with clickable links
-            <Text style={StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }])}>
-              <Text>*** {message.whoisData.nick} is on channels: </Text>
-              {message.whoisData.channels.map((channelNameWithPrefix, index) => {
-                const cleanChannel = channelNameWithPrefix.replace(/^[~&@%+]+/, '');
-                const prefix = channelNameWithPrefix.match(/^[~&@%+]/)?.[0] || '';
-                return (
-                  <React.Fragment key={channelNameWithPrefix}>
-                    {index > 0 && <Text>, </Text>}
-                    {prefix && <Text>{prefix}</Text>}
-                    {onChannelPress ? (
-                      <Text
-                        style={styles.linkText}
-                        onPress={() => onChannelPress(cleanChannel)}
-                      >
-                        {cleanChannel}
-                      </Text>
-                    ) : (
-                      <Text>{cleanChannel}</Text>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+    return (
+      <TouchableOpacity
+        activeOpacity={selectionMode ? 0.8 : 1}
+        onLongPress={() => onLongPressMessage && onLongPressMessage(message)}
+        onPress={() => onPressMessage && onPressMessage(message)}
+        delayLongPress={180}
+      >
+        <View
+          style={[
+            styles.messageContainer,
+            isGrouped && styles.groupedMessageContainer,
+            isHighlighted && styles.highlightedMessage,
+            message.status === 'pending' && styles.pendingMessage,
+            isSelected && styles.selectedMessage,
+          ]}
+        >
+          {!formatParts && shouldShowTimestamp && (
+            <Text style={styles.timestamp}>
+              {formatTimestamp(message.timestamp)}
             </Text>
-          ) : message.whoisData?.nick ? (
-            // Render other WHOIS messages with clickable nick
-            <Text style={StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }])}>
-              {(() => {
-                const parts = message.text.split(message.whoisData.nick);
-                return (
-                  <>
-                    {parts[0]}
-                    {onNickPress ? (
-                      <Text
-                        style={styles.linkText}
-                        onPress={() => onNickPress(message.whoisData!.nick!)}
-                      >
-                        {message.whoisData.nick}
-                      </Text>
-                    ) : (
-                      message.whoisData.nick
-                    )}
-                    {parts.slice(1).join(message.whoisData.nick)}
-                  </>
-                );
-              })()}
-            </Text>
-          ) : (
-            renderTextWithNickActions(
-              message.text.startsWith(`:${currentNick}!`)
-                ? message.text.substring(message.text.indexOf(' ') + 1) // Remove the entire :nick!user@host part
-                : message.text,
-              StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }]),
-              `raw-${message.id}`
-            )
-          )
-        ) : message.type === 'message' ? (
-          <>
-            {formatParts ? (
-              <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
-                  <View style={[
-                    styles.messageContent,
-                    message.text?.includes('\n') ? styles.messageContentColumn : null
-                  ]}>
-                  <Text style={styles.messageText}>
-                    {renderFormattedParts(formatParts)}
-                  </Text>
-                </View>
-                {showImages && parsed.mediaIds.map((mediaId, index) => {
-                  // Use the MessageArea's tabId as the primary source for media decryption
-                  // This ensures that media in a specific channel/query uses the correct encryption key
-                  const mediaTabId = tabId;
-
-                  return mediaTabId && network ? (
-                    <MediaMessageDisplay
-                      key={`media-${message.id}-${index}`}
-                      mediaId={mediaId}
-                      network={network}
-                      tabId={mediaTabId}
-                    />
-                  ) : (
-                    // If tabId is not available, we can't decrypt the media, so show an error or skip
-                    <Text key={`media-${message.id}-${index}`} style={{color: colors.error}}>
-                      [Encrypted media - unable to decrypt: no tab context]
-                    </Text>
+          )}
+          {message.type === 'raw' ? (
+            message.whoisData?.channels ? (
+              // Render WHOIS channels with clickable links
+              <Text
+                style={StyleSheet.flatten([
+                  styles.messageText,
+                  { color: getMessageColor(message.type) },
+                ])}
+              >
+                <Text>*** {message.whoisData.nick} is on channels: </Text>
+                {message.whoisData.channels.map(
+                  (channelNameWithPrefix, index) => {
+                    const cleanChannel = channelNameWithPrefix.replace(
+                      /^[~&@%+]+/,
+                      '',
+                    );
+                    const prefix =
+                      channelNameWithPrefix.match(/^[~&@%+]/)?.[0] || '';
+                    return (
+                      <React.Fragment key={channelNameWithPrefix}>
+                        {index > 0 && <Text>, </Text>}
+                        {prefix && <Text>{prefix}</Text>}
+                        {onChannelPress ? (
+                          <Text
+                            style={styles.linkText}
+                            onPress={() => onChannelPress(cleanChannel)}
+                          >
+                            {cleanChannel}
+                          </Text>
+                        ) : (
+                          <Text>{cleanChannel}</Text>
+                        )}
+                      </React.Fragment>
+                    );
+                  },
+                )}
+              </Text>
+            ) : message.whoisData?.nick ? (
+              // Render other WHOIS messages with clickable nick
+              <Text
+                style={StyleSheet.flatten([
+                  styles.messageText,
+                  { color: getMessageColor(message.type) },
+                ])}
+              >
+                {(() => {
+                  const parts = message.text.split(message.whoisData.nick);
+                  return (
+                    <>
+                      {parts[0]}
+                      {onNickPress ? (
+                        <Text
+                          style={styles.linkText}
+                          onPress={() => onNickPress(message.whoisData!.nick!)}
+                        >
+                          {message.whoisData.nick}
+                        </Text>
+                      ) : (
+                        message.whoisData.nick
+                      )}
+                      {parts.slice(1).join(message.whoisData.nick)}
+                    </>
                   );
-                })}
-                {showImages && parsed.imageUrls.map((url, index) => (
-                  <ImagePreview key={`img-${message.id}-${index}`} url={url} thumbnail />
-                ))}
-                {showImages && parsed.videoUrls.map((url, index) => (
-                  url ? <VideoPlayer key={`video-${message.id}-${index}`} url={url} /> : null
-                ))}
-                {showImages && parsed.audioUrls.map((url, index) => (
-                  url ? <AudioPlayer key={`audio-${message.id}-${index}`} url={url} /> : null
-                ))}
-                {showImages && parsed.fileUrls.map((url, index) => (
-                  url ? <LinkPreview key={`file-${message.id}-${index}`} url={url} showDownloadButton /> : null
-                ))}
-                {showImages && parsed.linkUrls.map((url, index) => (
-                  url ? <LinkPreview key={`link-${message.id}-${index}`} url={url} showDownloadButton={false} /> : null
-                ))}
-                <MessageReactionsComponent
-                  messageId={message.id}
-                  currentUserNick={currentNick}
-                />
-              </View>
-            ) : actionText !== null ? (
-              // ACTION (/me) message
-              <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
-                <View style={styles.messageContent}>
-                    <Text style={[styles.messageTextInline, styles.messageTextItalic, { color: actionMessageColor }]}>
-                    {!isGrouped && (
-                      <Text
-                        style={styles.nick}
-                        onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-                        onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-                      >
-                        * {message.from}{' '}
-                      </Text>
-                    )}
-                    {renderTextWithNickActions(
-                      actionText,
-                      StyleSheet.flatten([styles.messageTextInline, styles.messageTextItalic, { color: actionMessageColor }]),
-                      `action-${message.id}`,
-                    )}
-                  </Text>
-                </View>
-                {showImages && parsed.mediaIds.map((mediaId, index) => {
-                  // Use the MessageArea's tabId as the primary source for media decryption
-                  // This ensures that media in a specific channel/query uses the correct encryption key
-                  const mediaTabId = tabId;
-
-                  return mediaTabId && network ? (
-                    <MediaMessageDisplay
-                      key={`media-${message.id}-${index}`}
-                      mediaId={mediaId}
-                      network={network}
-                      tabId={mediaTabId}
-                    />
-                  ) : (
-                    // If tabId is not available, we can't decrypt the media, so show an error or skip
-                    <Text key={`media-${message.id}-${index}`} style={{color: colors.error}}>
-                      [Encrypted media - unable to decrypt: no tab context]
-                    </Text>
-                  );
-                })}
-                {showImages && parsed.imageUrls.map((url, index) => (
-                  <ImagePreview key={`img-${message.id}-${index}`} url={url} thumbnail />
-                ))}
-                {showImages && parsed.videoUrls.map((url, index) => (
-                  url ? <VideoPlayer key={`video-${message.id}-${index}`} url={url} /> : null
-                ))}
-                {showImages && parsed.audioUrls.map((url, index) => (
-                  url ? <AudioPlayer key={`audio-${message.id}-${index}`} url={url} /> : null
-                ))}
-                {showImages && parsed.fileUrls.map((url, index) => (
-                  url ? <LinkPreview key={`file-${message.id}-${index}`} url={url} showDownloadButton /> : null
-                ))}
-                {showImages && parsed.linkUrls.map((url, index) => (
-                  url ? <LinkPreview key={`link-${message.id}-${index}`} url={url} showDownloadButton={false} /> : null
-                ))}
-                <MessageReactionsComponent
-                  messageId={message.id}
-                  currentUserNick={currentNick}
-                />
-              </View>
+                })()}
+              </Text>
             ) : (
-              // Regular message
-              <View style={[styles.messageWrapper, layoutWidth ? { maxWidth: layoutWidth } : null]}>
-                <View style={styles.messageContent}>
-                  <Text
-                    style={isHighlighted
-                      ? StyleSheet.flatten([styles.messageTextInline, { color: colors.highlightText }])
-                      : styles.messageTextInline}
+              renderTextWithNickActions(
+                message.text.startsWith(`:${currentNick}!`)
+                  ? message.text.substring(message.text.indexOf(' ') + 1) // Remove the entire :nick!user@host part
+                  : message.text,
+                StyleSheet.flatten([
+                  styles.messageText,
+                  { color: getMessageColor(message.type) },
+                ]),
+                `raw-${message.id}`,
+              )
+            )
+          ) : message.type === 'message' ? (
+            <>
+              {formatParts ? (
+                <View
+                  style={[
+                    styles.messageWrapper,
+                    layoutWidth ? { maxWidth: layoutWidth } : null,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.messageContent,
+                      message.text?.includes('\n')
+                        ? styles.messageContentColumn
+                        : null,
+                    ]}
                   >
-                    {!isGrouped && (
+                    <Text style={styles.messageText}>
+                      {renderFormattedParts(formatParts)}
+                    </Text>
+                  </View>
+                  {showImages &&
+                    parsed.mediaIds.map((mediaId, index) => {
+                      // Use the MessageArea's tabId as the primary source for media decryption
+                      // This ensures that media in a specific channel/query uses the correct encryption key
+                      const mediaTabId = tabId;
+
+                      return mediaTabId && network ? (
+                        <MediaMessageDisplay
+                          key={`media-${message.id}-${index}`}
+                          mediaId={mediaId}
+                          network={network}
+                          tabId={mediaTabId}
+                        />
+                      ) : (
+                        // If tabId is not available, we can't decrypt the media, so show an error or skip
+                        <Text
+                          key={`media-${message.id}-${index}`}
+                          style={{ color: colors.error }}
+                        >
+                          [Encrypted media - unable to decrypt: no tab context]
+                        </Text>
+                      );
+                    })}
+                  {showImages &&
+                    parsed.imageUrls.map((url, index) => (
+                      <ImagePreview
+                        key={`img-${message.id}-${index}`}
+                        url={url}
+                        thumbnail
+                      />
+                    ))}
+                  {showImages &&
+                    parsed.videoUrls.map((url, index) =>
+                      url ? (
+                        <VideoPlayer
+                          key={`video-${message.id}-${index}`}
+                          url={url}
+                        />
+                      ) : null,
+                    )}
+                  {showImages &&
+                    parsed.audioUrls.map((url, index) =>
+                      url ? (
+                        <AudioPlayer
+                          key={`audio-${message.id}-${index}`}
+                          url={url}
+                        />
+                      ) : null,
+                    )}
+                  {showImages &&
+                    parsed.fileUrls.map((url, index) =>
+                      url ? (
+                        <LinkPreview
+                          key={`file-${message.id}-${index}`}
+                          url={url}
+                          showDownloadButton
+                        />
+                      ) : null,
+                    )}
+                  {showImages &&
+                    parsed.linkUrls.map((url, index) =>
+                      url ? (
+                        <LinkPreview
+                          key={`link-${message.id}-${index}`}
+                          url={url}
+                          showDownloadButton={false}
+                        />
+                      ) : null,
+                    )}
+                  <MessageReactionsComponent
+                    messageId={message.id}
+                    currentUserNick={currentNick}
+                  />
+                </View>
+              ) : actionText !== null ? (
+                // ACTION (/me) message
+                <View
+                  style={[
+                    styles.messageWrapper,
+                    layoutWidth ? { maxWidth: layoutWidth } : null,
+                  ]}
+                >
+                  <View style={styles.messageContent}>
+                    <Text
+                      style={[
+                        styles.messageTextInline,
+                        styles.messageTextItalic,
+                        { color: actionMessageColor },
+                      ]}
+                    >
+                      {!isGrouped && (
+                        <Text
+                          style={styles.nick}
+                          onPress={() =>
+                            onNickLongPress &&
+                            message.from &&
+                            onNickLongPress(message.from)
+                          }
+                          onLongPress={() =>
+                            onNickLongPress &&
+                            message.from &&
+                            onNickLongPress(message.from)
+                          }
+                        >
+                          * {message.from}{' '}
+                        </Text>
+                      )}
+                      {renderTextWithNickActions(
+                        actionText,
+                        StyleSheet.flatten([
+                          styles.messageTextInline,
+                          styles.messageTextItalic,
+                          { color: actionMessageColor },
+                        ]),
+                        `action-${message.id}`,
+                      )}
+                    </Text>
+                  </View>
+                  {showImages &&
+                    parsed.mediaIds.map((mediaId, index) => {
+                      // Use the MessageArea's tabId as the primary source for media decryption
+                      // This ensures that media in a specific channel/query uses the correct encryption key
+                      const mediaTabId = tabId;
+
+                      return mediaTabId && network ? (
+                        <MediaMessageDisplay
+                          key={`media-${message.id}-${index}`}
+                          mediaId={mediaId}
+                          network={network}
+                          tabId={mediaTabId}
+                        />
+                      ) : (
+                        // If tabId is not available, we can't decrypt the media, so show an error or skip
+                        <Text
+                          key={`media-${message.id}-${index}`}
+                          style={{ color: colors.error }}
+                        >
+                          [Encrypted media - unable to decrypt: no tab context]
+                        </Text>
+                      );
+                    })}
+                  {showImages &&
+                    parsed.imageUrls.map((url, index) => (
+                      <ImagePreview
+                        key={`img-${message.id}-${index}`}
+                        url={url}
+                        thumbnail
+                      />
+                    ))}
+                  {showImages &&
+                    parsed.videoUrls.map((url, index) =>
+                      url ? (
+                        <VideoPlayer
+                          key={`video-${message.id}-${index}`}
+                          url={url}
+                        />
+                      ) : null,
+                    )}
+                  {showImages &&
+                    parsed.audioUrls.map((url, index) =>
+                      url ? (
+                        <AudioPlayer
+                          key={`audio-${message.id}-${index}`}
+                          url={url}
+                        />
+                      ) : null,
+                    )}
+                  {showImages &&
+                    parsed.fileUrls.map((url, index) =>
+                      url ? (
+                        <LinkPreview
+                          key={`file-${message.id}-${index}`}
+                          url={url}
+                          showDownloadButton
+                        />
+                      ) : null,
+                    )}
+                  {showImages &&
+                    parsed.linkUrls.map((url, index) =>
+                      url ? (
+                        <LinkPreview
+                          key={`link-${message.id}-${index}`}
+                          url={url}
+                          showDownloadButton={false}
+                        />
+                      ) : null,
+                    )}
+                  <MessageReactionsComponent
+                    messageId={message.id}
+                    currentUserNick={currentNick}
+                  />
+                </View>
+              ) : (
+                // Regular message
+                <View
+                  style={[
+                    styles.messageWrapper,
+                    layoutWidth ? { maxWidth: layoutWidth } : null,
+                  ]}
+                >
+                  <View style={styles.messageContent}>
+                    <Text
+                      style={
+                        isHighlighted
+                          ? StyleSheet.flatten([
+                              styles.messageTextInline,
+                              { color: colors.highlightText },
+                            ])
+                          : styles.messageTextInline
+                      }
+                    >
+                      {!isGrouped && (
+                        <Text
+                          style={styles.nick}
+                          onPress={() =>
+                            onNickLongPress &&
+                            message.from &&
+                            onNickLongPress(message.from)
+                          }
+                          onLongPress={() =>
+                            onNickLongPress &&
+                            message.from &&
+                            onNickLongPress(message.from)
+                          }
+                        >
+                          {message.from}{' '}
+                        </Text>
+                      )}
+                      {renderTextWithNickActions(
+                        message.text,
+                        isHighlighted
+                          ? StyleSheet.flatten([
+                              styles.messageTextInline,
+                              { color: colors.highlightText },
+                            ])
+                          : styles.messageTextInline,
+                        `msg-${message.id}`,
+                      )}
+                    </Text>
+                  </View>
+                  {showImages &&
+                    parsed.mediaIds.map((mediaId, index) => {
+                      // Use the MessageArea's tabId as the primary source for media decryption
+                      // This ensures that media in a specific channel/query uses the correct encryption key
+                      const mediaTabId = tabId;
+
+                      return mediaTabId && network ? (
+                        <MediaMessageDisplay
+                          key={`media-${message.id}-${index}`}
+                          mediaId={mediaId}
+                          network={network}
+                          tabId={mediaTabId}
+                        />
+                      ) : (
+                        // If tabId is not available, we can't decrypt the media, so show an error or skip
+                        <Text
+                          key={`media-${message.id}-${index}`}
+                          style={{ color: colors.error }}
+                        >
+                          [Encrypted media - unable to decrypt: no tab context]
+                        </Text>
+                      );
+                    })}
+                  {showImages &&
+                    parsed.imageUrls.map((url, index) => (
+                      <ImagePreview
+                        key={`img-${message.id}-${index}`}
+                        url={url}
+                        thumbnail
+                      />
+                    ))}
+                  {showImages &&
+                    parsed.videoUrls.map((url, index) =>
+                      url ? (
+                        <VideoPlayer
+                          key={`video-${message.id}-${index}`}
+                          url={url}
+                        />
+                      ) : null,
+                    )}
+                  {showImages &&
+                    parsed.audioUrls.map((url, index) =>
+                      url ? (
+                        <AudioPlayer
+                          key={`audio-${message.id}-${index}`}
+                          url={url}
+                        />
+                      ) : null,
+                    )}
+                  {showImages &&
+                    parsed.fileUrls.map((url, index) =>
+                      url ? (
+                        <LinkPreview
+                          key={`file-${message.id}-${index}`}
+                          url={url}
+                          showDownloadButton
+                        />
+                      ) : null,
+                    )}
+                  {showImages &&
+                    parsed.linkUrls.map((url, index) =>
+                      url ? (
+                        <LinkPreview
+                          key={`link-${message.id}-${index}`}
+                          url={url}
+                          showDownloadButton={false}
+                        />
+                      ) : null,
+                    )}
+                  <MessageReactionsComponent
+                    messageId={message.id}
+                    currentUserNick={currentNick}
+                  />
+                </View>
+              )}
+            </>
+          ) : formatParts ? (
+            <View style={styles.messageContent}>
+              <Text style={styles.messageText}>
+                {renderFormattedParts(formatParts)}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.messageContent}>
+              {message.type === 'notice' && message.from ? (
+                <View style={styles.messageWrapper}>
+                  <View style={styles.messageContent}>
+                    <Text
+                      style={StyleSheet.flatten([
+                        styles.messageTextInline,
+                        { color: getMessageColor(message.type) },
+                      ])}
+                    >
                       <Text
-                        style={styles.nick}
-                        onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-                        onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
+                        style={[
+                          styles.nick,
+                          { color: getMessageColor(message.type) },
+                        ]}
+                        onPress={() =>
+                          onNickLongPress &&
+                          message.from &&
+                          onNickLongPress(message.from)
+                        }
+                        onLongPress={() =>
+                          onNickLongPress &&
+                          message.from &&
+                          onNickLongPress(message.from)
+                        }
                       >
                         {message.from}{' '}
                       </Text>
-                    )}
-                    {renderTextWithNickActions(
-                      message.text,
-                      isHighlighted
-                        ? StyleSheet.flatten([styles.messageTextInline, { color: colors.highlightText }])
-                        : styles.messageTextInline,
-                      `msg-${message.id}`,
-                    )}
-                  </Text>
-                </View>
-                {showImages && parsed.mediaIds.map((mediaId, index) => {
-                  // Use the MessageArea's tabId as the primary source for media decryption
-                  // This ensures that media in a specific channel/query uses the correct encryption key
-                  const mediaTabId = tabId;
-
-                  return mediaTabId && network ? (
-                    <MediaMessageDisplay
-                      key={`media-${message.id}-${index}`}
-                      mediaId={mediaId}
-                      network={network}
-                      tabId={mediaTabId}
-                    />
-                  ) : (
-                    // If tabId is not available, we can't decrypt the media, so show an error or skip
-                    <Text key={`media-${message.id}-${index}`} style={{color: colors.error}}>
-                      [Encrypted media - unable to decrypt: no tab context]
+                      {formatIRCTextWithLinks(
+                        message.text,
+                        StyleSheet.flatten([
+                          styles.messageTextInline,
+                          { color: getMessageColor(message.type) },
+                        ]),
+                        colors.primary,
+                        handleLinkPress,
+                      )}
                     </Text>
-                  );
-                })}
-                {showImages && parsed.imageUrls.map((url, index) => (
-                  <ImagePreview key={`img-${message.id}-${index}`} url={url} thumbnail />
-                ))}
-                {showImages && parsed.videoUrls.map((url, index) => (
-                  url ? <VideoPlayer key={`video-${message.id}-${index}`} url={url} /> : null
-                ))}
-                {showImages && parsed.audioUrls.map((url, index) => (
-                  url ? <AudioPlayer key={`audio-${message.id}-${index}`} url={url} /> : null
-                ))}
-                {showImages && parsed.fileUrls.map((url, index) => (
-                  url ? <LinkPreview key={`file-${message.id}-${index}`} url={url} showDownloadButton /> : null
-                ))}
-                {showImages && parsed.linkUrls.map((url, index) => (
-                  url ? <LinkPreview key={`link-${message.id}-${index}`} url={url} showDownloadButton={false} /> : null
-                ))}
-                <MessageReactionsComponent
-                  messageId={message.id}
-                  currentUserNick={currentNick}
-                />
-              </View>
-            )}
-          </>
-          ) : formatParts ? (
-          <View style={styles.messageContent}>
-            <Text style={styles.messageText}>
-              {renderFormattedParts(formatParts)}
-            </Text>
-          </View>
-          ) : (
-          <View style={styles.messageContent}>
-            {message.type === 'notice' && message.from ? (
-              <View style={styles.messageWrapper}>
-                <View style={styles.messageContent}>
-                  <Text style={StyleSheet.flatten([styles.messageTextInline, { color: getMessageColor(message.type) }])}>
-                    <Text
-                      style={[styles.nick, { color: getMessageColor(message.type) }]}
-                      onPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-                      onLongPress={() => onNickLongPress && message.from && onNickLongPress(message.from)}
-                    >
-                      {message.from}{' '}
-                    </Text>
-                    {formatIRCTextWithLinks(
-                      message.text,
-                      StyleSheet.flatten([styles.messageTextInline, { color: getMessageColor(message.type) }]),
-                      colors.primary,
-                      handleLinkPress
-                    )}
-                  </Text>
+                  </View>
                 </View>
-              </View>
-            ) : message.type === 'topic' ? (
-              // Topic messages with clickable links (no preview)
-              formatIRCTextWithLinks(
-                message.text,
-                StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }]),
-                colors.primary,
-                handleLinkPress
-              )
-            ) : (
-              renderTextWithNickActions(
-                message.type === 'join' || message.type === 'part' || message.type === 'quit'
-                  ? `*** ${message.text}`
-                  : message.text,
-                StyleSheet.flatten([styles.messageText, { color: getMessageColor(message.type) }]),
-                `sys-${message.id}`,
-              )
-            )}
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison for memo
-  return (
-    prevProps.message.id === nextProps.message.id &&
-    prevProps.message.text === nextProps.message.text &&
-    prevProps.message.status === nextProps.message.status &&
-    prevProps.isGrouped === nextProps.isGrouped &&
-    prevProps.timestampDisplay === nextProps.timestampDisplay &&
-    prevProps.timestampFormat === nextProps.timestampFormat &&
-    prevProps.currentNick === nextProps.currentNick &&
-    prevProps.isSelected === nextProps.isSelected &&
-    prevProps.selectionMode === nextProps.selectionMode &&
-    prevProps.showImages === nextProps.showImages &&
-    prevProps.network === nextProps.network &&
-    prevProps.channel === nextProps.channel &&
-    prevProps.layoutWidth === nextProps.layoutWidth &&
-    prevProps.channelUsers === nextProps.channelUsers
-  );
-});
+              ) : message.type === 'topic' ? (
+                // Topic messages with clickable links (no preview)
+                formatIRCTextWithLinks(
+                  message.text,
+                  StyleSheet.flatten([
+                    styles.messageText,
+                    { color: getMessageColor(message.type) },
+                  ]),
+                  colors.primary,
+                  handleLinkPress,
+                )
+              ) : (
+                renderTextWithNickActions(
+                  message.type === 'join' ||
+                    message.type === 'part' ||
+                    message.type === 'quit'
+                    ? `*** ${message.text}`
+                    : message.text,
+                  StyleSheet.flatten([
+                    styles.messageText,
+                    { color: getMessageColor(message.type) },
+                  ]),
+                  `sys-${message.id}`,
+                )
+              )}
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison for memo
+    return (
+      prevProps.message.id === nextProps.message.id &&
+      prevProps.message.text === nextProps.message.text &&
+      prevProps.message.status === nextProps.message.status &&
+      prevProps.isGrouped === nextProps.isGrouped &&
+      prevProps.timestampDisplay === nextProps.timestampDisplay &&
+      prevProps.timestampFormat === nextProps.timestampFormat &&
+      prevProps.currentNick === nextProps.currentNick &&
+      prevProps.isSelected === nextProps.isSelected &&
+      prevProps.selectionMode === nextProps.selectionMode &&
+      prevProps.showImages === nextProps.showImages &&
+      prevProps.network === nextProps.network &&
+      prevProps.channel === nextProps.channel &&
+      prevProps.layoutWidth === nextProps.layoutWidth &&
+      prevProps.channelUsers === nextProps.channelUsers
+    );
+  },
+);
 
 MessageItem.displayName = 'MessageItem';
 
@@ -1021,14 +1364,24 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const [contextUser, setContextUser] = useState<ChannelUser | null>(null);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [showKickBanModal, setShowKickBanModal] = useState(false);
-  const [kickBanTarget, setKickBanTarget] = useState<{ nick: string; user?: string; host?: string } | null>(null);
-  const [kickBanMode, setKickBanMode] = useState<'kick' | 'ban' | 'kickban'>('kickban');
+  const [kickBanTarget, setKickBanTarget] = useState<{
+    nick: string;
+    user?: string;
+    host?: string;
+  } | null>(null);
+  const [kickBanMode, setKickBanMode] = useState<'kick' | 'ban' | 'kickban'>(
+    'kickban',
+  );
   const [showBlacklistModal, setShowBlacklistModal] = useState(false);
-  const [showBlacklistActionPicker, setShowBlacklistActionPicker] = useState(false);
-  const [blacklistAction, setBlacklistAction] = useState<BlacklistActionType>('ban');
+  const [showBlacklistActionPicker, setShowBlacklistActionPicker] =
+    useState(false);
+  const [blacklistAction, setBlacklistAction] =
+    useState<BlacklistActionType>('ban');
   const [, setBlacklistMaskChoice] = useState<string>('nick');
   const [showBlacklistMaskPicker, setShowBlacklistMaskPicker] = useState(false);
-  const [selectedBanMaskTypeId, setSelectedBanMaskTypeId] = useState<number | null>(null);
+  const [selectedBanMaskTypeId, setSelectedBanMaskTypeId] = useState<
+    number | null
+  >(null);
   const [blacklistReason, setBlacklistReason] = useState('');
   const [blacklistCustomCommand, setBlacklistCustomCommand] = useState('');
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -1043,18 +1396,24 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const [allowNfcExchange, setAllowNfcExchange] = useState(true);
   const [tabSortAlphabetical, setTabSortAlphabetical] = useState(true);
   const [isServerOper, setIsServerOper] = useState(false);
-  const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
+  const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [copyStatus, setCopyStatus] = useState('');
   const selectionMode = selectedMessageIds.size > 0;
-  const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] = useState(false);
+  const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] =
+    useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const isAtBottomRef = useRef(true);
   const device = useCameraDevice('back');
-  const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } = useCameraPermission();
+  const {
+    hasPermission: hasCameraPermission,
+    requestPermission: requestCameraPermission,
+  } = useCameraPermission();
   const scanHandledRef = useRef(false);
   const codeScanner = useCodeScanner({
     codeTypes: ['qr'],
-    onCodeScanned: (codes) => {
+    onCodeScanned: codes => {
       if (!showKeyScan || scanHandledRef.current) return;
       const code = codes[0]?.value;
       if (!code) return;
@@ -1068,10 +1427,15 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const selectionBarPanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 3 || Math.abs(gesture.dy) > 3,
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        Math.abs(gesture.dx) > 3 || Math.abs(gesture.dy) > 3,
       onPanResponderGrant: () => {
-        const selectionBarX = selectionBarPan.x as Animated.Value & { __getValue?: () => number };
-        const selectionBarY = selectionBarPan.y as Animated.Value & { __getValue?: () => number };
+        const selectionBarX = selectionBarPan.x as Animated.Value & {
+          __getValue?: () => number;
+        };
+        const selectionBarY = selectionBarPan.y as Animated.Value & {
+          __getValue?: () => number;
+        };
         selectionBarPan.setOffset({
           x: selectionBarX.__getValue?.() ?? 0,
           y: selectionBarY.__getValue?.() ?? 0,
@@ -1080,16 +1444,17 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       },
       onPanResponderMove: Animated.event(
         [null, { dx: selectionBarPan.x, dy: selectionBarPan.y }],
-        { useNativeDriver: false }
+        { useNativeDriver: false },
       ),
       onPanResponderRelease: () => selectionBarPan.flattenOffset(),
       onPanResponderTerminate: () => selectionBarPan.flattenOffset(),
-    })
+    }),
   ).current;
 
   // Search state (controlled or uncontrolled)
   const [internalSearchVisible, setInternalSearchVisible] = useState(false);
-  const searchVisible = searchVisibleProp !== undefined ? searchVisibleProp : internalSearchVisible;
+  const searchVisible =
+    searchVisibleProp !== undefined ? searchVisibleProp : internalSearchVisible;
   const [searchFilters, setSearchFilters] = useState<MessageSearchFilters>({
     searchTerm: '',
     messageTypes: {
@@ -1110,12 +1475,15 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     }
   };
 
-  const handleContainerLayout = useCallback((event: any) => {
-    const nextWidth = Math.round(event?.nativeEvent?.layout?.width || 0);
-    if (nextWidth > 0 && nextWidth !== containerWidth) {
-      setContainerWidth(nextWidth);
-    }
-  }, [containerWidth]);
+  const handleContainerLayout = useCallback(
+    (event: any) => {
+      const nextWidth = Math.round(event?.nativeEvent?.layout?.width || 0);
+      if (nextWidth > 0 && nextWidth !== containerWidth) {
+        setContainerWidth(nextWidth);
+      }
+    },
+    [containerWidth],
+  );
 
   useEffect(() => {
     if (!selectionMode) {
@@ -1126,14 +1494,20 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
   useEffect(() => {
     const loadSetting = async () => {
-      const enabled = await settingsService.getSetting('showMessageAreaSearchButton', false);
+      const enabled = await settingsService.getSetting(
+        'showMessageAreaSearchButton',
+        false,
+      );
       setShowMessageAreaSearchButton(enabled);
     };
     loadSetting();
 
-    const unsubscribe = settingsService.onSettingChange<boolean>('showMessageAreaSearchButton', (value) => {
-      setShowMessageAreaSearchButton(Boolean(value));
-    });
+    const unsubscribe = settingsService.onSettingChange<boolean>(
+      'showMessageAreaSearchButton',
+      value => {
+        setShowMessageAreaSearchButton(Boolean(value));
+      },
+    );
 
     return () => {
       unsubscribe && unsubscribe();
@@ -1143,9 +1517,18 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   useEffect(() => {
     let mounted = true;
     const load = async () => {
-      const qr = await settingsService.getSetting('securityAllowQrVerification', true);
-      const file = await settingsService.getSetting('securityAllowFileExchange', true);
-      const nfc = await settingsService.getSetting('securityAllowNfcExchange', true);
+      const qr = await settingsService.getSetting(
+        'securityAllowQrVerification',
+        true,
+      );
+      const file = await settingsService.getSetting(
+        'securityAllowFileExchange',
+        true,
+      );
+      const nfc = await settingsService.getSetting(
+        'securityAllowNfcExchange',
+        true,
+      );
       if (mounted) {
         setAllowQrVerification(qr);
         setAllowFileExchange(file);
@@ -1153,9 +1536,18 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       }
     };
     load();
-    const unsubQr = settingsService.onSettingChange('securityAllowQrVerification', (v) => setAllowQrVerification(Boolean(v)));
-    const unsubFile = settingsService.onSettingChange('securityAllowFileExchange', (v) => setAllowFileExchange(Boolean(v)));
-    const unsubNfc = settingsService.onSettingChange('securityAllowNfcExchange', (v) => setAllowNfcExchange(Boolean(v)));
+    const unsubQr = settingsService.onSettingChange(
+      'securityAllowQrVerification',
+      v => setAllowQrVerification(Boolean(v)),
+    );
+    const unsubFile = settingsService.onSettingChange(
+      'securityAllowFileExchange',
+      v => setAllowFileExchange(Boolean(v)),
+    );
+    const unsubNfc = settingsService.onSettingChange(
+      'securityAllowNfcExchange',
+      v => setAllowNfcExchange(Boolean(v)),
+    );
     return () => {
       mounted = false;
       unsubQr();
@@ -1167,13 +1559,19 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   useEffect(() => {
     let mounted = true;
     const loadSort = async () => {
-      const sort = await settingsService.getSetting('tabSortAlphabetical', true);
+      const sort = await settingsService.getSetting(
+        'tabSortAlphabetical',
+        true,
+      );
       if (mounted) setTabSortAlphabetical(Boolean(sort));
     };
     loadSort();
-    const unsub = settingsService.onSettingChange('tabSortAlphabetical', (value) => {
-      setTabSortAlphabetical(Boolean(value));
-    });
+    const unsub = settingsService.onSettingChange(
+      'tabSortAlphabetical',
+      value => {
+        setTabSortAlphabetical(Boolean(value));
+      },
+    );
     return () => {
       mounted = false;
       unsub();
@@ -1189,62 +1587,98 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const currentTabNetworkId = tabId ? getTabById(tabId)?.networkId : undefined;
 
   useEffect(() => {
-    const oper = typeof activeIrc?.isServerOper === 'function' ? activeIrc.isServerOper() : false;
+    const oper =
+      typeof activeIrc?.isServerOper === 'function'
+        ? activeIrc.isServerOper()
+        : false;
     setIsServerOper(oper);
   }, [activeIrc]);
-  const resolveContextUser = useCallback((nick: string | null) => {
-    if (!nick || !channel) return null;
-    if (channelUsers && channelUsers.length > 0) {
-      return channelUsers.find(user => user.nick.toLowerCase() === nick.toLowerCase()) || null;
-    }
-    const contextIrc: any = connection?.ircService || ircService;
-    if (typeof contextIrc.getChannelUsers !== 'function') return null;
-    const users = contextIrc.getChannelUsers(channel) as ChannelUser[];
-    return users.find(user => user.nick.toLowerCase() === nick.toLowerCase()) || null;
-  }, [channel, channelUsers, connection]);
+  const resolveContextUser = useCallback(
+    (nick: string | null) => {
+      if (!nick || !channel) return null;
+      if (channelUsers && channelUsers.length > 0) {
+        return (
+          channelUsers.find(
+            user => user.nick.toLowerCase() === nick.toLowerCase(),
+          ) || null
+        );
+      }
+      const contextIrc: any = connection?.ircService || ircService;
+      if (typeof contextIrc.getChannelUsers !== 'function') return null;
+      const users = contextIrc.getChannelUsers(channel) as ChannelUser[];
+      return (
+        users.find(user => user.nick.toLowerCase() === nick.toLowerCase()) ||
+        null
+      );
+    },
+    [channel, channelUsers, connection],
+  );
 
-  const blacklistActionOptions: Array<{ id: BlacklistActionType; label: string }> = useMemo(() => ([
-    { id: 'ignore', label: t('Ignore (local)') },
-    { id: 'ban', label: t('Ban') },
-    { id: 'kick_ban', label: t('Kick + Ban') },
-    { id: 'kill', label: t('Kill') },
-    { id: 'os_kill', label: t('OperServ Kill') },
-    { id: 'akill', label: t('AKILL') },
-    { id: 'gline', label: t('GLINE') },
-    { id: 'shun', label: t('SHUN') },
-    { id: 'custom', label: t('Custom Command') },
-  ]), [t]);
+  const blacklistActionOptions: Array<{
+    id: BlacklistActionType;
+    label: string;
+  }> = useMemo(
+    () => [
+      { id: 'ignore', label: t('Ignore (local)') },
+      { id: 'ban', label: t('Ban') },
+      { id: 'kick_ban', label: t('Kick + Ban') },
+      { id: 'kill', label: t('Kill') },
+      { id: 'os_kill', label: t('OperServ Kill') },
+      { id: 'akill', label: t('AKILL') },
+      { id: 'gline', label: t('GLINE') },
+      { id: 'shun', label: t('SHUN') },
+      { id: 'custom', label: t('Custom Command') },
+    ],
+    [t],
+  );
 
-  const getBlacklistBanMaskOptions = useCallback((user: ChannelUser | null, nick: string | null) => {
-    const safeNick = nick || '';
-    // Use ident from user object (from userhost-in-names) or fallback to '*'
-    const ident = user?.ident || '*';
-    const host = user?.host || '*';
-    return banService.getBanMaskTypes().map(type => ({
-      id: type.id,
-      label: `(${type.id}) ${type.pattern}`,
-      mask: banService.generateBanMask(safeNick, ident, host, type.id),
-      description: type.description,
-    }));
-  }, []);
+  const getBlacklistBanMaskOptions = useCallback(
+    (user: ChannelUser | null, nick: string | null) => {
+      const safeNick = nick || '';
+      // Use ident from user object (from userhost-in-names) or fallback to '*'
+      const ident = user?.ident || '*';
+      const host = user?.host || '*';
+      return banService.getBanMaskTypes().map(type => ({
+        id: type.id,
+        label: `(${type.id}) ${type.pattern}`,
+        mask: banService.generateBanMask(safeNick, ident, host, type.id),
+        description: type.description,
+      }));
+    },
+    [],
+  );
 
-  const getBlacklistTemplate = useCallback(async (action: BlacklistActionType, net?: string) => {
-    if (!['akill', 'gline', 'shun'].includes(action)) {
-      return '';
-    }
-    const stored = await settingsService.getSetting<BlacklistTemplatesSetting>('blacklistTemplates', {});
-    const base = {
-      akill: 'PRIVMSG OperServ :AKILL ADD {usermask} {reason}',
-      gline: 'GLINE {hostmask} :{reason}',
-      shun: 'SHUN {hostmask} :{reason}',
-    };
-    const global = stored?.global || {};
-    const local = net && stored?.[net] ? stored[net] : {};
-    if (action === 'custom' || action === 'ban' || action === 'ignore' || action === 'kick_ban' || action === 'kill' || action === 'os_kill') {
-      return '';
-    }
-    return local[action] || global[action] || base[action] || '';
-  }, []);
+  const getBlacklistTemplate = useCallback(
+    async (action: BlacklistActionType, net?: string) => {
+      if (!['akill', 'gline', 'shun'].includes(action)) {
+        return '';
+      }
+      const stored =
+        await settingsService.getSetting<BlacklistTemplatesSetting>(
+          'blacklistTemplates',
+          {},
+        );
+      const base = {
+        akill: 'PRIVMSG OperServ :AKILL ADD {usermask} {reason}',
+        gline: 'GLINE {hostmask} :{reason}',
+        shun: 'SHUN {hostmask} :{reason}',
+      };
+      const global = stored?.global || {};
+      const local = net && stored?.[net] ? stored[net] : {};
+      if (
+        action === 'custom' ||
+        action === 'ban' ||
+        action === 'ignore' ||
+        action === 'kick_ban' ||
+        action === 'kill' ||
+        action === 'os_kill'
+      ) {
+        return '';
+      }
+      return local[action] || global[action] || base[action] || '';
+    },
+    [],
+  );
 
   // IMPORTANT: Use the per-connection UserManagementService when available so that adding
   // blacklist entries/notes from UI is immediately visible in Settings and applied by enforcement.
@@ -1263,575 +1697,737 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     return network || activeIrc.getNetworkName() || 'default';
   }, [network, activeIrc]);
 
-  const handleExternalPayload = useCallback(async (raw: string) => {
-    if (!contextNick) {
-      Alert.alert(t('Error'), t('Select a user first'));
-      return;
-    }
-    try {
-      const payload = encryptedDMService.parseExternalPayload(raw);
-      const targetNick = contextNick;
-      if (payload.nick && payload.nick.toLowerCase() !== targetNick.toLowerCase()) {
-        Alert.alert(
-          t('Mismatched Nick'),
-          t('This payload is for {payloadNick}, but you selected {targetNick}.')
-            .replace('{payloadNick}', payload.nick)
-            .replace('{targetNick}', targetNick),
-          [{ text: t('OK'), style: 'cancel' }]
-        );
+  const handleExternalPayload = useCallback(
+    async (raw: string) => {
+      if (!contextNick) {
+        Alert.alert(t('Error'), t('Select a user first'));
         return;
       }
-
-      if (payload.type === 'encdm-fingerprint') {
-        const storageNetwork = getNetworkForStorage();
-        const currentFp = await encryptedDMService.getBundleFingerprintForNetwork(storageNetwork, targetNick);
-        if (!currentFp) {
-          Alert.alert(t('No Key'), t('No DM key stored for {nick}.').replace('{nick}', targetNick));
+      try {
+        const payload = encryptedDMService.parseExternalPayload(raw);
+        const targetNick = contextNick;
+        if (
+          payload.nick &&
+          payload.nick.toLowerCase() !== targetNick.toLowerCase()
+        ) {
+          Alert.alert(
+            t('Mismatched Nick'),
+            t(
+              'This payload is for {payloadNick}, but you selected {targetNick}.',
+            )
+              .replace('{payloadNick}', payload.nick)
+              .replace('{targetNick}', targetNick),
+            [{ text: t('OK'), style: 'cancel' }],
+          );
           return;
         }
-        const currentDisplay = encryptedDMService.formatFingerprintForDisplay(currentFp);
-        const incomingDisplay = encryptedDMService.formatFingerprintForDisplay(payload.fingerprint);
-        const matches = currentFp === payload.fingerprint;
-        Alert.alert(
-          t('Fingerprint Check'),
-          t('Stored: {stored}\nScanned: {scanned}\n\n{result}')
-            .replace('{stored}', currentDisplay)
-            .replace('{scanned}', incomingDisplay)
-            .replace('{result}', matches ? t('Match ✅') : t('Mismatch ⚠️')),
-          matches
-            ? [
-                {
-                  text: t('Mark Verified'),
-                  onPress: async () => {
-                    await encryptedDMService.setVerifiedForNetwork(storageNetwork, targetNick, true);
-                  },
-                },
-                { text: t('Close'), style: 'cancel' },
-              ]
-            : [{ text: t('Close'), style: 'cancel' }]
-        );
-        return;
-      }
 
-      encryptedDMService.verifyBundle(payload.bundle);
-      const storageNetwork = getNetworkForStorage();
-      const existingFp = await encryptedDMService.getBundleFingerprintForNetwork(storageNetwork, targetNick);
-      const newDisplay = encryptedDMService.formatFingerprintForDisplay(payload.fingerprint);
-      const oldDisplay = existingFp
-        ? encryptedDMService.formatFingerprintForDisplay(existingFp)
-        : t('None');
-      const isChange = Boolean(existingFp && existingFp !== payload.fingerprint);
-      Alert.alert(
-        isChange ? t('Replace DM Key') : t('Import DM Key'),
-        isChange
-          ? t('Existing: {old}\nNew: {new}\n\nOnly replace if verified out-of-band.')
-              .replace('{old}', oldDisplay)
-              .replace('{new}', newDisplay)
-          : t('Fingerprint: {fp}\n\nAccept this key for {nick}?')
-              .replace('{fp}', newDisplay)
-              .replace('{nick}', targetNick),
-        [
-          { text: t('Cancel'), style: 'cancel' },
-          {
-            text: isChange ? t('Replace') : t('Accept'),
-            onPress: async () => {
-              await encryptedDMService.acceptExternalBundleForNetwork(storageNetwork, targetNick, payload.bundle, isChange);
-              setTimeout(() => {
-                Alert.alert(
-                  t('Share Your Key?'),
-                  t('You imported {nick}\'s key offline. For encrypted chat to work both ways, {nick} also needs your key.\n\n💡 Show your QR code for them to scan (no server messages)')
-                    .replace(/{nick}/g, targetNick),
-                  [
-                    { text: t('Later'), style: 'cancel' },
-                    {
-                      text: t('Show QR Code'),
-                      onPress: async () => {
-                        try {
-                          const selfNick = activeIrc.getCurrentNick();
-                          const sharePayload = await encryptedDMService.exportBundlePayload(selfNick);
-                          setQrPayload(sharePayload);
-                          setQrType('bundle');
-                          setShowKeyQr(true);
-                        } catch {
-                          Alert.alert(t('Error'), t('Failed to generate QR'));
-                        }
-                      },
+        if (payload.type === 'encdm-fingerprint') {
+          const storageNetwork = getNetworkForStorage();
+          const currentFp =
+            await encryptedDMService.getBundleFingerprintForNetwork(
+              storageNetwork,
+              targetNick,
+            );
+          if (!currentFp) {
+            Alert.alert(
+              t('No Key'),
+              t('No DM key stored for {nick}.').replace('{nick}', targetNick),
+            );
+            return;
+          }
+          const currentDisplay =
+            encryptedDMService.formatFingerprintForDisplay(currentFp);
+          const incomingDisplay =
+            encryptedDMService.formatFingerprintForDisplay(payload.fingerprint);
+          const matches = currentFp === payload.fingerprint;
+          Alert.alert(
+            t('Fingerprint Check'),
+            t('Stored: {stored}\nScanned: {scanned}\n\n{result}')
+              .replace('{stored}', currentDisplay)
+              .replace('{scanned}', incomingDisplay)
+              .replace('{result}', matches ? t('Match ✅') : t('Mismatch ⚠️')),
+            matches
+              ? [
+                  {
+                    text: t('Mark Verified'),
+                    onPress: async () => {
+                      await encryptedDMService.setVerifiedForNetwork(
+                        storageNetwork,
+                        targetNick,
+                        true,
+                      );
                     },
-                  ]
+                  },
+                  { text: t('Close'), style: 'cancel' },
+                ]
+              : [{ text: t('Close'), style: 'cancel' }],
+          );
+          return;
+        }
+
+        encryptedDMService.verifyBundle(payload.bundle);
+        const storageNetwork = getNetworkForStorage();
+        const existingFp =
+          await encryptedDMService.getBundleFingerprintForNetwork(
+            storageNetwork,
+            targetNick,
+          );
+        const newDisplay = encryptedDMService.formatFingerprintForDisplay(
+          payload.fingerprint,
+        );
+        const oldDisplay = existingFp
+          ? encryptedDMService.formatFingerprintForDisplay(existingFp)
+          : t('None');
+        const isChange = Boolean(
+          existingFp && existingFp !== payload.fingerprint,
+        );
+        Alert.alert(
+          isChange ? t('Replace DM Key') : t('Import DM Key'),
+          isChange
+            ? t(
+                'Existing: {old}\nNew: {new}\n\nOnly replace if verified out-of-band.',
+              )
+                .replace('{old}', oldDisplay)
+                .replace('{new}', newDisplay)
+            : t('Fingerprint: {fp}\n\nAccept this key for {nick}?')
+                .replace('{fp}', newDisplay)
+                .replace('{nick}', targetNick),
+          [
+            { text: t('Cancel'), style: 'cancel' },
+            {
+              text: isChange ? t('Replace') : t('Accept'),
+              onPress: async () => {
+                await encryptedDMService.acceptExternalBundleForNetwork(
+                  storageNetwork,
+                  targetNick,
+                  payload.bundle,
+                  isChange,
                 );
-              }, 500);
+                setTimeout(() => {
+                  Alert.alert(
+                    t('Share Your Key?'),
+                    t(
+                      "You imported {nick}'s key offline. For encrypted chat to work both ways, {nick} also needs your key.\n\n💡 Show your QR code for them to scan (no server messages)",
+                    ).replace(/{nick}/g, targetNick),
+                    [
+                      { text: t('Later'), style: 'cancel' },
+                      {
+                        text: t('Show QR Code'),
+                        onPress: async () => {
+                          try {
+                            const selfNick = activeIrc.getCurrentNick();
+                            const sharePayload =
+                              await encryptedDMService.exportBundlePayload(
+                                selfNick,
+                              );
+                            setQrPayload(sharePayload);
+                            setQrType('bundle');
+                            setShowKeyQr(true);
+                          } catch {
+                            Alert.alert(t('Error'), t('Failed to generate QR'));
+                          }
+                        },
+                      },
+                    ],
+                  );
+                }, 500);
+              },
             },
-          },
-        ]
-      );
-    } catch {
-      Alert.alert(t('Error'), t('Invalid key payload'));
-    }
-  }, [activeIrc, contextNick, getNetworkForStorage, t]);
-  const handleNickAction = useCallback(async (action: string) => {
-    if (!contextNick) return;
-    const selectedUser = resolveContextUser(contextNick);
-    const currentNetwork = network || currentTabNetworkId || activeIrc.getNetworkName();
-    switch (action) {
-      case 'whois': {
-        // Check if modal mode is enabled
-        const whoisMode = useUIStore.getState().whoisDisplayMode;
-        if (whoisMode === 'modal') {
-          useUIStore.getState().setWhoisNick(contextNick);
-          useUIStore.getState().setShowWHOIS(true);
-        } else {
-          activeIrc.sendCommand(`WHOIS ${contextNick}`);
-        }
-        break;
+          ],
+        );
+      } catch {
+        Alert.alert(t('Error'), t('Invalid key payload'));
       }
-      case 'query': {
-        if (!currentNetwork) break;
-        const queryId = queryTabId(currentNetwork, contextNick);
-        const currentTabs = useTabStore.getState().tabs;
-        const existingTab = currentTabs.find(item => item.id === queryId && item.type === 'query');
-        if (existingTab) {
-          setActiveTabId(existingTab.id);
-        } else {
-          const isEncrypted = await encryptedDMService.isEncryptedForNetwork(currentNetwork, contextNick);
-          const newQueryTab: ChannelTab = {
-            id: queryId,
-            name: contextNick,
-            type: 'query',
-            networkId: currentNetwork,
-            messages: [],
-            isEncrypted,
-          };
-          setTabs(sortTabsGrouped([...currentTabs, newQueryTab], tabSortAlphabetical));
-          soundService.playSound(SoundEventType.RING);
-          setActiveTabId(newQueryTab.id);
+    },
+    [activeIrc, contextNick, getNetworkForStorage, t],
+  );
+  const handleNickAction = useCallback(
+    async (action: string) => {
+      if (!contextNick) return;
+      const selectedUser = resolveContextUser(contextNick);
+      const currentNetwork =
+        network || currentTabNetworkId || activeIrc.getNetworkName();
+      switch (action) {
+        case 'whois': {
+          // Check if modal mode is enabled
+          const whoisMode = useUIStore.getState().whoisDisplayMode;
+          if (whoisMode === 'modal') {
+            useUIStore.getState().setWhoisNick(contextNick);
+            useUIStore.getState().setShowWHOIS(true);
+          } else {
+            activeIrc.sendCommand(`WHOIS ${contextNick}`);
+          }
+          break;
         }
-        break;
-      }
-      case 'copy':
-        Clipboard.setString(contextNick);
-        break;
-      case 'enc_share':
-        try {
-          const bundle = await encryptedDMService.exportBundle();
-          activeIrc.sendRaw(`PRIVMSG ${contextNick} :!enc-offer ${JSON.stringify(bundle)}`);
+        case 'query': {
+          if (!currentNetwork) break;
+          const queryId = queryTabId(currentNetwork, contextNick);
+          const currentTabs = useTabStore.getState().tabs;
+          const existingTab = currentTabs.find(
+            item => item.id === queryId && item.type === 'query',
+          );
+          if (existingTab) {
+            setActiveTabId(existingTab.id);
+          } else {
+            const isEncrypted = await encryptedDMService.isEncryptedForNetwork(
+              currentNetwork,
+              contextNick,
+            );
+            const newQueryTab: ChannelTab = {
+              id: queryId,
+              name: contextNick,
+              type: 'query',
+              networkId: currentNetwork,
+              messages: [],
+              isEncrypted,
+            };
+            setTabs(
+              sortTabsGrouped(
+                [...currentTabs, newQueryTab],
+                tabSortAlphabetical,
+              ),
+            );
+            soundService.playSound(SoundEventType.RING);
+            setActiveTabId(newQueryTab.id);
+          }
+          break;
+        }
+        case 'copy':
+          Clipboard.setString(contextNick);
+          break;
+        case 'enc_share':
+          try {
+            const bundle = await encryptedDMService.exportBundle();
+            activeIrc.sendRaw(
+              `PRIVMSG ${contextNick} :!enc-offer ${JSON.stringify(bundle)}`,
+            );
+            activeIrc.addMessage({
+              type: 'system',
+              channel: contextNick,
+              text: t(
+                '*** Encryption key offer sent to {nick}. Waiting for acceptance...',
+                { nick: contextNick },
+              ),
+              timestamp: Date.now(),
+            });
+          } catch {
+            Alert.alert(t('Error'), t('Failed to share key'));
+          }
+          break;
+        case 'enc_request':
+          activeIrc.sendRaw(`PRIVMSG ${contextNick} :!enc-req`);
           activeIrc.addMessage({
             type: 'system',
             channel: contextNick,
-            text: t('*** Encryption key offer sent to {nick}. Waiting for acceptance...', { nick: contextNick }),
+            text: t('*** Encryption key requested from {nick}', {
+              nick: contextNick,
+            }),
             timestamp: Date.now(),
           });
-        } catch {
-          Alert.alert(t('Error'), t('Failed to share key'));
-        }
-        break;
-      case 'enc_request':
-        activeIrc.sendRaw(`PRIVMSG ${contextNick} :!enc-req`);
-        activeIrc.addMessage({
-          type: 'system',
-          channel: contextNick,
-          text: t('*** Encryption key requested from {nick}', { nick: contextNick }),
-          timestamp: Date.now(),
-        });
-        encryptedDMService.awaitBundleForNick(contextNick, 36000).catch(() => {});
-        break;
-      case 'enc_qr_show_fingerprint':
-        try {
-          const selfNick = activeIrc.getCurrentNick();
-          const payload = await encryptedDMService.exportFingerprintPayload(selfNick);
-          setQrPayload(payload);
-          setQrType('fingerprint');
-          setShowKeyQr(true);
-        } catch {
-          Alert.alert(t('Error'), t('Failed to generate QR'));
-        }
-        break;
-      case 'enc_qr_show_bundle':
-        try {
-          const selfNick = activeIrc.getCurrentNick();
-          const payload = await encryptedDMService.exportBundlePayload(selfNick);
-          setQrPayload(payload);
-          setQrType('bundle');
-          setShowKeyQr(true);
-        } catch {
-          Alert.alert(t('Error'), t('Failed to generate QR'));
-        }
-        break;
-      case 'enc_qr_scan':
-        try {
-          const permission = Boolean(hasCameraPermission || await requestCameraPermission());
-          if (!permission) {
-            Alert.alert(t('Error'), t('Camera permission denied'));
-            break;
-          }
-          scanHandledRef.current = false;
-          setShowKeyScan(true);
-          setScanError('');
-        } catch {
-          Alert.alert(t('Error'), t('Failed to open camera'));
-        }
-        break;
-      case 'enc_share_file':
-        try {
-          const selfNick = activeIrc.getCurrentNick();
-          const payload = await encryptedDMService.exportBundlePayload(selfNick);
-          const filename = `androidircx-key-${selfNick}.json`;
-          const path = `${RNFS.CachesDirectoryPath}/${filename}`;
+          encryptedDMService
+            .awaitBundleForNick(contextNick, 36000)
+            .catch(() => {});
+          break;
+        case 'enc_qr_show_fingerprint':
           try {
-            await RNFS.writeFile(path, payload, 'utf8');
-            await Share.open({ url: `file://${path}`, type: 'application/json' });
-          } finally {
-            try {
-              if (await RNFS.exists(path)) {
-                await RNFS.unlink(path);
-              }
-            } catch {
-              // Ignore cleanup errors
+            const selfNick = activeIrc.getCurrentNick();
+            const payload =
+              await encryptedDMService.exportFingerprintPayload(selfNick);
+            setQrPayload(payload);
+            setQrType('fingerprint');
+            setShowKeyQr(true);
+          } catch {
+            Alert.alert(t('Error'), t('Failed to generate QR'));
+          }
+          break;
+        case 'enc_qr_show_bundle':
+          try {
+            const selfNick = activeIrc.getCurrentNick();
+            const payload =
+              await encryptedDMService.exportBundlePayload(selfNick);
+            setQrPayload(payload);
+            setQrType('bundle');
+            setShowKeyQr(true);
+          } catch {
+            Alert.alert(t('Error'), t('Failed to generate QR'));
+          }
+          break;
+        case 'enc_qr_scan':
+          try {
+            const permission = Boolean(
+              hasCameraPermission || (await requestCameraPermission()),
+            );
+            if (!permission) {
+              Alert.alert(t('Error'), t('Camera permission denied'));
+              break;
             }
+            scanHandledRef.current = false;
+            setShowKeyScan(true);
+            setScanError('');
+          } catch {
+            Alert.alert(t('Error'), t('Failed to open camera'));
           }
-        } catch {
-          Alert.alert(t('Error'), t('Failed to share key file'));
-        }
-        break;
-      case 'enc_import_file':
-        try {
-          const result = await pick({
-            type: [types.allFiles],
-            mode: 'import',
-          });
-          if (result.length === 0) return;
-          const picker = result[0] as (typeof result)[number] & { fileCopyUri?: string | null };
-          const uri = picker.fileCopyUri || picker.uri;
-          const path = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
-          const shouldCleanupCopy = Boolean(picker.fileCopyUri);
+          break;
+        case 'enc_share_file':
           try {
-            const contents = await RNFS.readFile(path, 'utf8');
-            await handleExternalPayload(contents);
-          } finally {
-            if (shouldCleanupCopy) {
+            const selfNick = activeIrc.getCurrentNick();
+            const payload =
+              await encryptedDMService.exportBundlePayload(selfNick);
+            const filename = `androidircx-key-${selfNick}.json`;
+            const path = `${RNFS.CachesDirectoryPath}/${filename}`;
+            try {
+              await RNFS.writeFile(path, payload, 'utf8');
+              await Share.open({
+                url: `file://${path}`,
+                type: 'application/json',
+              });
+            } finally {
               try {
-                await RNFS.unlink(path);
+                if (await RNFS.exists(path)) {
+                  await RNFS.unlink(path);
+                }
               } catch {
                 // Ignore cleanup errors
               }
             }
+          } catch {
+            Alert.alert(t('Error'), t('Failed to share key file'));
           }
-        } catch (e: any) {
-          if (isErrorWithCode(e) && e.code === errorCodes.OPERATION_CANCELED) {
-            // ignore
-          } else {
-            Alert.alert(t('Error'), t('Failed to import key file'));
-          }
-        }
-        break;
-      case 'enc_share_nfc':
-        try {
-          const supported = await NfcManager.isSupported();
-          if (!supported) {
-            Alert.alert(t('Error'), t('NFC not supported'));
-            break;
-          }
-          const selfNick = activeIrc.getCurrentNick();
-          const payload = await encryptedDMService.exportBundlePayload(selfNick);
-          await NfcManager.start();
-          await NfcManager.requestTechnology(NfcTech.Ndef);
-          const bytes = Ndef.encodeMessage([Ndef.textRecord(payload)]);
-          if (bytes) {
-            await (NfcManager as typeof NfcManager & { writeNdefMessage: (message: number[]) => Promise<void> }).writeNdefMessage(bytes);
-          }
-        } catch {
-          Alert.alert(t('Error'), t('Failed to share via NFC'));
-        } finally {
-          try { await NfcManager.cancelTechnologyRequest(); } catch {}
-        }
-        break;
-      case 'enc_receive_nfc':
-        try {
-          const supported = await NfcManager.isSupported();
-          if (!supported) {
-            Alert.alert(t('Error'), t('NFC not supported'));
-            break;
-          }
-          await NfcManager.start();
-          await NfcManager.requestTechnology(NfcTech.Ndef);
-          const tag = await NfcManager.getTag();
-          const ndefMessage = tag?.ndefMessage?.[0];
-          const payload = ndefMessage ? Ndef.text.decodePayload(new Uint8Array(ndefMessage.payload as number[])) : null;
-          if (!payload) {
-            Alert.alert(t('Error'), t('No NFC payload'));
-            break;
-          }
-          await handleExternalPayload(payload);
-        } catch {
-          Alert.alert(t('Error'), t('Failed to read NFC'));
-        } finally {
-          try { await NfcManager.cancelTechnologyRequest(); } catch {}
-        }
-        break;
-      case 'enc_verify':
-        try {
-          const status = network
-            ? await encryptedDMService.getVerificationStatusForNetwork(network, contextNick)
-            : await encryptedDMService.getVerificationStatus(contextNick);
-          if (!status.fingerprint) {
-            Alert.alert(t('Verify DM Key'), t('No DM key for {nick}').replace('{nick}', contextNick));
-            break;
-          }
-          const selfFp = encryptedDMService.formatFingerprintForDisplay(await encryptedDMService.getSelfFingerprint());
-          const peerFp = encryptedDMService.formatFingerprintForDisplay(status.fingerprint);
-          const verifiedLabel = status.verified ? t('Verified') : t('Mark Verified');
-          Alert.alert(
-            t('Verify DM Key'),
-            t('Compare fingerprints out-of-band:\n\nYou: {self}\n{nick}: {peer}')
-              .replace('{self}', selfFp)
-              .replace('{nick}', contextNick)
-              .replace('{peer}', peerFp),
-            [
-              {
-                text: verifiedLabel,
-                onPress: async () => {
-                  if (!status.verified) {
-                    const storageNetwork = getNetworkForStorage();
-                    await encryptedDMService.setVerifiedForNetwork(storageNetwork, contextNick, true);
-                  }
-                },
-              },
-              {
-                text: t('Copy Fingerprints'),
-                onPress: () => {
-                  Clipboard.setString(`You: ${selfFp}\n${contextNick}: ${peerFp}`);
-                },
-              },
-              { text: t('Close'), style: 'cancel' },
-            ]
-          );
-        } catch {
-          Alert.alert(t('Error'), t('Failed to load fingerprints'));
-        }
-        break;
-      case 'chan_share':
-        try {
-          if (!channel) break;
-          const keyData = await channelEncryptionService.exportChannelKey(channel, currentNetwork || activeIrc.getNetworkName());
-          activeIrc.sendRaw(`PRIVMSG ${contextNick} :!chanenc-key ${keyData}`);
-          const noticeService = currentNetwork
-            ? connectionManager.getConnection(currentNetwork)?.ircService || activeIrc
-            : activeIrc;
-          noticeService.addMessage({
-            type: 'notice',
-            from: contextNick,
-            text: t('*** Channel key for {channel} shared with {nick}', { channel, nick: contextNick }),
-            timestamp: Date.now(),
-          });
-        } catch (e: any) {
-          Alert.alert(t('Error'), e?.message || t('Failed to share channel key'));
-        }
-        break;
-      case 'chan_request':
-        try {
-          if (!channel) break;
-          const requester = activeIrc.getCurrentNick();
-          activeIrc.sendRaw(
-            `PRIVMSG ${contextNick} :Please share the channel key for ${channel} with /chankey share ${requester}`
-          );
-        } catch (e: any) {
-          Alert.alert(t('Error'), e?.message || t('Failed to request channel key'));
-        }
-        break;
-      case 'ctcp_ping':
-        activeIrc.sendCTCPRequest(contextNick, 'PING', Date.now().toString());
-        break;
-      case 'ctcp_version':
-        activeIrc.sendCTCPRequest(contextNick, 'VERSION');
-        break;
-      case 'ctcp_time':
-        activeIrc.sendCTCPRequest(contextNick, 'TIME');
-        break;
-      case 'dcc_chat':
-        dccChatService.initiateChat(activeIrc, contextNick, currentNetwork || activeIrc.getNetworkName());
-        break;
-      case 'dcc_send':
-        if (currentNetwork) {
-          useUIStore.getState().setDccSendTarget({ nick: contextNick, networkId: currentNetwork });
-          useUIStore.getState().setShowDccSendModal(true);
-        }
-        break;
-      case 'ignore_toggle': {
-        const isIgnored = userManagementService.isUserIgnored(contextNick, undefined, undefined, network);
-        if (isIgnored) {
-          userManagementService.unignoreUser(contextNick, network);
-        } else {
-          userManagementService.ignoreUser(contextNick, undefined, network);
-        }
-        break;
-      }
-      case 'add_note': {
-        const existingNote = userManagementService.getUserNote(contextNick, network);
-        setNoteText(existingNote || '');
-        setShowNoteModal(true);
-        break;
-      }
-      case 'monitor_toggle': {
-        if (typeof activeIrc.isMonitoring === 'function') {
-          if (activeIrc.isMonitoring(contextNick)) {
-            activeIrc.unmonitorNick(contextNick);
-          } else {
-            activeIrc.monitorNick(contextNick);
-          }
-        }
-        break;
-      }
-      case 'blacklist': {
-        setBlacklistAction('ban');
-        setBlacklistReason('');
-        setBlacklistCustomCommand('');
-        setBlacklistMaskChoice(selectedUser?.host ? 'host' : 'nick');
-        setSelectedBanMaskTypeId(2);
-        setShowBlacklistModal(true);
-        break;
-      }
-      case 'kill': {
-        const targetNick = contextNick;
-        Alert.prompt(
-          t('KILL {nick}').replace('{nick}', targetNick),
-          t('Enter reason'),
-          [
-            { text: t('Cancel'), style: 'cancel' },
-            {
-              text: t('Send'),
-              onPress: (reason?: string) => {
-                const trimmed = (reason || '').trim();
-                if (!trimmed) {
-                  Alert.alert(t('Error'), t('Reason is required'));
-                  return;
+          break;
+        case 'enc_import_file':
+          try {
+            const result = await pick({
+              type: [types.allFiles],
+              mode: 'import',
+            });
+            if (result.length === 0) return;
+            const picker = result[0] as (typeof result)[number] & {
+              fileCopyUri?: string | null;
+            };
+            const uri = picker.fileCopyUri || picker.uri;
+            const path = uri.startsWith('file://')
+              ? uri.replace('file://', '')
+              : uri;
+            const shouldCleanupCopy = Boolean(picker.fileCopyUri);
+            try {
+              const contents = await RNFS.readFile(path, 'utf8');
+              await handleExternalPayload(contents);
+            } finally {
+              if (shouldCleanupCopy) {
+                try {
+                  await RNFS.unlink(path);
+                } catch {
+                  // Ignore cleanup errors
                 }
-                activeIrc.sendCommand(`KILL ${targetNick} :${trimmed}`);
-              },
-            },
-          ],
-          'plain-text'
-        );
-        break;
-      }
-      case 'give_voice':
-        if (channel) activeIrc.sendCommand(`MODE ${channel} +v ${contextNick}`);
-        break;
-      case 'take_voice':
-        if (channel) activeIrc.sendCommand(`MODE ${channel} -v ${contextNick}`);
-        break;
-      case 'give_halfop':
-        if (channel) activeIrc.sendCommand(`MODE ${channel} +h ${contextNick}`);
-        break;
-      case 'take_halfop':
-        if (channel) activeIrc.sendCommand(`MODE ${channel} -h ${contextNick}`);
-        break;
-      case 'give_op':
-        if (channel) activeIrc.sendCommand(`MODE ${channel} +o ${contextNick}`);
-        break;
-      case 'take_op':
-        if (channel) activeIrc.sendCommand(`MODE ${channel} -o ${contextNick}`);
-        break;
-      case 'kick':
-        if (channel) activeIrc.sendCommand(`KICK ${channel} ${contextNick}`);
-        break;
-      case 'kick_message':
-        if (channel) activeIrc.sendCommand(`KICK ${channel} ${contextNick} :Kicked`);
-        break;
-      case 'ban': {
-        if (!channel) break;
-        const mask = selectedUser?.host ? `*!*@${selectedUser.host}` : `${contextNick}!*@*`;
-        activeIrc.sendCommand(`MODE ${channel} +b ${mask}`);
-        break;
-      }
-      case 'kick_ban': {
-        if (!channel) break;
-        const mask = selectedUser?.host ? `*!*@${selectedUser.host}` : `${contextNick}!*@*`;
-        activeIrc.sendCommand(`MODE ${channel} +b ${mask}`);
-        activeIrc.sendCommand(`KICK ${channel} ${contextNick}`);
-        break;
-      }
-      case 'kick_ban_message': {
-        if (!channel) break;
-        const mask = selectedUser?.host ? `*!*@${selectedUser.host}` : `${contextNick}!*@*`;
-        activeIrc.sendCommand(`MODE ${channel} +b ${mask}`);
-        activeIrc.sendCommand(`KICK ${channel} ${contextNick} :Kicked`);
-        break;
-      }
-      case 'kick_with_options':
-      case 'ban_with_options':
-      case 'kick_ban_with_options': {
-        // Set up the kickban target and show the modal
-        if (channel && contextNick) {
-          setKickBanTarget({
-            nick: contextNick,
-            user: selectedUser?.ident,
-            host: selectedUser?.host,
-          });
-          setKickBanMode(
-            action === 'kick_with_options' ? 'kick' :
-            action === 'ban_with_options' ? 'ban' : 'kickban'
+              }
+            }
+          } catch (e: any) {
+            if (
+              isErrorWithCode(e) &&
+              e.code === errorCodes.OPERATION_CANCELED
+            ) {
+              // ignore
+            } else {
+              Alert.alert(t('Error'), t('Failed to import key file'));
+            }
+          }
+          break;
+        case 'enc_share_nfc':
+          try {
+            const supported = await NfcManager.isSupported();
+            if (!supported) {
+              Alert.alert(t('Error'), t('NFC not supported'));
+              break;
+            }
+            const selfNick = activeIrc.getCurrentNick();
+            const payload =
+              await encryptedDMService.exportBundlePayload(selfNick);
+            await NfcManager.start();
+            await NfcManager.requestTechnology(NfcTech.Ndef);
+            const bytes = Ndef.encodeMessage([Ndef.textRecord(payload)]);
+            if (bytes) {
+              await (
+                NfcManager as typeof NfcManager & {
+                  writeNdefMessage: (message: number[]) => Promise<void>;
+                }
+              ).writeNdefMessage(bytes);
+            }
+          } catch {
+            Alert.alert(t('Error'), t('Failed to share via NFC'));
+          } finally {
+            try {
+              await NfcManager.cancelTechnologyRequest();
+            } catch {}
+          }
+          break;
+        case 'enc_receive_nfc':
+          try {
+            const supported = await NfcManager.isSupported();
+            if (!supported) {
+              Alert.alert(t('Error'), t('NFC not supported'));
+              break;
+            }
+            await NfcManager.start();
+            await NfcManager.requestTechnology(NfcTech.Ndef);
+            const tag = await NfcManager.getTag();
+            const ndefMessage = tag?.ndefMessage?.[0];
+            const payload = ndefMessage
+              ? Ndef.text.decodePayload(
+                  new Uint8Array(ndefMessage.payload as number[]),
+                )
+              : null;
+            if (!payload) {
+              Alert.alert(t('Error'), t('No NFC payload'));
+              break;
+            }
+            await handleExternalPayload(payload);
+          } catch {
+            Alert.alert(t('Error'), t('Failed to read NFC'));
+          } finally {
+            try {
+              await NfcManager.cancelTechnologyRequest();
+            } catch {}
+          }
+          break;
+        case 'enc_verify':
+          try {
+            const status = network
+              ? await encryptedDMService.getVerificationStatusForNetwork(
+                  network,
+                  contextNick,
+                )
+              : await encryptedDMService.getVerificationStatus(contextNick);
+            if (!status.fingerprint) {
+              Alert.alert(
+                t('Verify DM Key'),
+                t('No DM key for {nick}').replace('{nick}', contextNick),
+              );
+              break;
+            }
+            const selfFp = encryptedDMService.formatFingerprintForDisplay(
+              await encryptedDMService.getSelfFingerprint(),
+            );
+            const peerFp = encryptedDMService.formatFingerprintForDisplay(
+              status.fingerprint,
+            );
+            const verifiedLabel = status.verified
+              ? t('Verified')
+              : t('Mark Verified');
+            Alert.alert(
+              t('Verify DM Key'),
+              t(
+                'Compare fingerprints out-of-band:\n\nYou: {self}\n{nick}: {peer}',
+              )
+                .replace('{self}', selfFp)
+                .replace('{nick}', contextNick)
+                .replace('{peer}', peerFp),
+              [
+                {
+                  text: verifiedLabel,
+                  onPress: async () => {
+                    if (!status.verified) {
+                      const storageNetwork = getNetworkForStorage();
+                      await encryptedDMService.setVerifiedForNetwork(
+                        storageNetwork,
+                        contextNick,
+                        true,
+                      );
+                    }
+                  },
+                },
+                {
+                  text: t('Copy Fingerprints'),
+                  onPress: () => {
+                    Clipboard.setString(
+                      `You: ${selfFp}\n${contextNick}: ${peerFp}`,
+                    );
+                  },
+                },
+                { text: t('Close'), style: 'cancel' },
+              ],
+            );
+          } catch {
+            Alert.alert(t('Error'), t('Failed to load fingerprints'));
+          }
+          break;
+        case 'chan_share':
+          try {
+            if (!channel) break;
+            const keyData = await channelEncryptionService.exportChannelKey(
+              channel,
+              currentNetwork || activeIrc.getNetworkName(),
+            );
+            activeIrc.sendRaw(
+              `PRIVMSG ${contextNick} :!chanenc-key ${keyData}`,
+            );
+            const noticeService = currentNetwork
+              ? connectionManager.getConnection(currentNetwork)?.ircService ||
+                activeIrc
+              : activeIrc;
+            noticeService.addMessage({
+              type: 'notice',
+              from: contextNick,
+              text: t('*** Channel key for {channel} shared with {nick}', {
+                channel,
+                nick: contextNick,
+              }),
+              timestamp: Date.now(),
+            });
+          } catch (e: any) {
+            Alert.alert(
+              t('Error'),
+              e?.message || t('Failed to share channel key'),
+            );
+          }
+          break;
+        case 'chan_request':
+          try {
+            if (!channel) break;
+            const requester = activeIrc.getCurrentNick();
+            activeIrc.sendRaw(
+              `PRIVMSG ${contextNick} :Please share the channel key for ${channel} with /chankey share ${requester}`,
+            );
+          } catch (e: any) {
+            Alert.alert(
+              t('Error'),
+              e?.message || t('Failed to request channel key'),
+            );
+          }
+          break;
+        case 'ctcp_ping':
+          activeIrc.sendCTCPRequest(contextNick, 'PING', Date.now().toString());
+          break;
+        case 'ctcp_version':
+          activeIrc.sendCTCPRequest(contextNick, 'VERSION');
+          break;
+        case 'ctcp_time':
+          activeIrc.sendCTCPRequest(contextNick, 'TIME');
+          break;
+        case 'dcc_chat':
+          dccChatService.initiateChat(
+            activeIrc,
+            contextNick,
+            currentNetwork || activeIrc.getNetworkName(),
           );
-          setShowKickBanModal(true);
+          break;
+        case 'dcc_send':
+          if (currentNetwork) {
+            useUIStore.getState().setDccSendTarget({
+              nick: contextNick,
+              networkId: currentNetwork,
+            });
+            useUIStore.getState().setShowDccSendModal(true);
+          }
+          break;
+        case 'ignore_toggle': {
+          const isIgnored = userManagementService.isUserIgnored(
+            contextNick,
+            undefined,
+            undefined,
+            network,
+          );
+          if (isIgnored) {
+            userManagementService.unignoreUser(contextNick, network);
+          } else {
+            userManagementService.ignoreUser(contextNick, undefined, network);
+          }
+          break;
         }
-        break;
+        case 'add_note': {
+          const existingNote = userManagementService.getUserNote(
+            contextNick,
+            network,
+          );
+          setNoteText(existingNote || '');
+          setShowNoteModal(true);
+          break;
+        }
+        case 'monitor_toggle': {
+          if (typeof activeIrc.isMonitoring === 'function') {
+            if (activeIrc.isMonitoring(contextNick)) {
+              activeIrc.unmonitorNick(contextNick);
+            } else {
+              activeIrc.monitorNick(contextNick);
+            }
+          }
+          break;
+        }
+        case 'blacklist': {
+          setBlacklistAction('ban');
+          setBlacklistReason('');
+          setBlacklistCustomCommand('');
+          setBlacklistMaskChoice(selectedUser?.host ? 'host' : 'nick');
+          setSelectedBanMaskTypeId(2);
+          setShowBlacklistModal(true);
+          break;
+        }
+        case 'kill': {
+          const targetNick = contextNick;
+          Alert.prompt(
+            t('KILL {nick}').replace('{nick}', targetNick),
+            t('Enter reason'),
+            [
+              { text: t('Cancel'), style: 'cancel' },
+              {
+                text: t('Send'),
+                onPress: (reason?: string) => {
+                  const trimmed = (reason || '').trim();
+                  if (!trimmed) {
+                    Alert.alert(t('Error'), t('Reason is required'));
+                    return;
+                  }
+                  activeIrc.sendCommand(`KILL ${targetNick} :${trimmed}`);
+                },
+              },
+            ],
+            'plain-text',
+          );
+          break;
+        }
+        case 'give_voice':
+          if (channel)
+            activeIrc.sendCommand(`MODE ${channel} +v ${contextNick}`);
+          break;
+        case 'take_voice':
+          if (channel)
+            activeIrc.sendCommand(`MODE ${channel} -v ${contextNick}`);
+          break;
+        case 'give_halfop':
+          if (channel)
+            activeIrc.sendCommand(`MODE ${channel} +h ${contextNick}`);
+          break;
+        case 'take_halfop':
+          if (channel)
+            activeIrc.sendCommand(`MODE ${channel} -h ${contextNick}`);
+          break;
+        case 'give_op':
+          if (channel)
+            activeIrc.sendCommand(`MODE ${channel} +o ${contextNick}`);
+          break;
+        case 'take_op':
+          if (channel)
+            activeIrc.sendCommand(`MODE ${channel} -o ${contextNick}`);
+          break;
+        case 'kick':
+          if (channel) activeIrc.sendCommand(`KICK ${channel} ${contextNick}`);
+          break;
+        case 'kick_message':
+          if (channel)
+            activeIrc.sendCommand(`KICK ${channel} ${contextNick} :Kicked`);
+          break;
+        case 'ban': {
+          if (!channel) break;
+          const mask = selectedUser?.host
+            ? `*!*@${selectedUser.host}`
+            : `${contextNick}!*@*`;
+          activeIrc.sendCommand(`MODE ${channel} +b ${mask}`);
+          break;
+        }
+        case 'kick_ban': {
+          if (!channel) break;
+          const mask = selectedUser?.host
+            ? `*!*@${selectedUser.host}`
+            : `${contextNick}!*@*`;
+          activeIrc.sendCommand(`MODE ${channel} +b ${mask}`);
+          activeIrc.sendCommand(`KICK ${channel} ${contextNick}`);
+          break;
+        }
+        case 'kick_ban_message': {
+          if (!channel) break;
+          const mask = selectedUser?.host
+            ? `*!*@${selectedUser.host}`
+            : `${contextNick}!*@*`;
+          activeIrc.sendCommand(`MODE ${channel} +b ${mask}`);
+          activeIrc.sendCommand(`KICK ${channel} ${contextNick} :Kicked`);
+          break;
+        }
+        case 'kick_with_options':
+        case 'ban_with_options':
+        case 'kick_ban_with_options': {
+          // Set up the kickban target and show the modal
+          if (channel && contextNick) {
+            setKickBanTarget({
+              nick: contextNick,
+              user: selectedUser?.ident,
+              host: selectedUser?.host,
+            });
+            setKickBanMode(
+              action === 'kick_with_options'
+                ? 'kick'
+                : action === 'ban_with_options'
+                  ? 'ban'
+                  : 'kickban',
+            );
+            setShowKickBanModal(true);
+          }
+          break;
+        }
+        default:
+          break;
       }
-      default:
-        break;
-    }
-    setShowContextMenu(false);
-  }, [
-    activeIrc,
-    channel,
-    contextNick,
-    currentTabNetworkId,
-    getNetworkForStorage,
-    handleExternalPayload,
-    hasCameraPermission,
-    network,
-    requestCameraPermission,
-    resolveContextUser,
-    setActiveTabId,
-    setTabs,
-    tabSortAlphabetical,
-    t,
-  ]);
+      setShowContextMenu(false);
+    },
+    [
+      activeIrc,
+      channel,
+      contextNick,
+      currentTabNetworkId,
+      getNetworkForStorage,
+      handleExternalPayload,
+      hasCameraPermission,
+      network,
+      requestCameraPermission,
+      resolveContextUser,
+      setActiveTabId,
+      setTabs,
+      tabSortAlphabetical,
+      t,
+    ],
+  );
 
-  const handleKickBanConfirm = useCallback((options: {
-    reason: string;
-    banType: number;
-    kick: boolean;
-    ban: boolean;
-    unbanAfterSeconds?: number;
-  }) => {
-    if (!channel || !kickBanTarget) return;
+  const handleKickBanConfirm = useCallback(
+    (options: {
+      reason: string;
+      banType: number;
+      kick: boolean;
+      ban: boolean;
+      unbanAfterSeconds?: number;
+    }) => {
+      if (!channel || !kickBanTarget) return;
 
-    const banMask = banService.generateBanMask(
-      kickBanTarget.nick,
-      kickBanTarget.user || '',
-      kickBanTarget.host || '',
-      options.banType
-    );
+      const banMask = banService.generateBanMask(
+        kickBanTarget.nick,
+        kickBanTarget.user || '',
+        kickBanTarget.host || '',
+        options.banType,
+      );
 
-    if (options.ban) {
-      activeIrc.sendRaw(`MODE ${channel} +b ${banMask}`);
-    }
+      if (options.ban) {
+        activeIrc.sendRaw(`MODE ${channel} +b ${banMask}`);
+      }
 
-    if (options.kick) {
-      activeIrc.sendRaw(`KICK ${channel} ${kickBanTarget.nick} :${options.reason || 'Goodbye'}`);
-    }
+      if (options.kick) {
+        activeIrc.sendRaw(
+          `KICK ${channel} ${kickBanTarget.nick} :${options.reason || 'Goodbye'}`,
+        );
+      }
 
-    if (options.unbanAfterSeconds) {
-      setTimeout(() => {
-        activeIrc.sendRaw(`MODE ${channel} -b ${banMask}`);
-      }, options.unbanAfterSeconds * 1000);
-    }
+      if (options.unbanAfterSeconds) {
+        setTimeout(() => {
+          activeIrc.sendRaw(`MODE ${channel} -b ${banMask}`);
+        }, options.unbanAfterSeconds * 1000);
+      }
 
-    setShowKickBanModal(false);
-  }, [activeIrc, channel, kickBanTarget]);
+      setShowKickBanModal(false);
+    },
+    [activeIrc, channel, kickBanTarget],
+  );
 
   // Listen for performance config changes
   const [perfConfig, setPerfConfig] = useState(performanceService.getConfig());
   useEffect(() => {
-    const unsubscribe = performanceService.onConfigChange((config) => {
+    const unsubscribe = performanceService.onConfigChange(config => {
       setPerfConfig(config);
     });
     return unsubscribe;
@@ -1840,7 +2436,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   // Listen for layout changes
   const [layoutState, setLayoutState] = useState(layoutConfig);
   useEffect(() => {
-    const unsubscribe = layoutService.onConfigChange((config) => {
+    const unsubscribe = layoutService.onConfigChange(config => {
       setLayoutState(config);
     });
     return unsubscribe;
@@ -1857,7 +2453,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
   // Message selection helpers for copy/paste
   const toggleMessageSelection = useCallback((message: IRCMessage) => {
-    setSelectedMessageIds((prev) => {
+    setSelectedMessageIds(prev => {
       const next = new Set(prev);
       if (next.has(message.id)) {
         next.delete(message.id);
@@ -1868,14 +2464,20 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     });
   }, []);
 
-  const handleMessageLongPress = useCallback((message: IRCMessage) => {
-    toggleMessageSelection(message);
-  }, [toggleMessageSelection]);
+  const handleMessageLongPress = useCallback(
+    (message: IRCMessage) => {
+      toggleMessageSelection(message);
+    },
+    [toggleMessageSelection],
+  );
 
-  const handleMessagePress = useCallback((message: IRCMessage) => {
-    if (!selectionMode) return;
-    toggleMessageSelection(message);
-  }, [selectionMode, toggleMessageSelection]);
+  const handleMessagePress = useCallback(
+    (message: IRCMessage) => {
+      if (!selectionMode) return;
+      toggleMessageSelection(message);
+    },
+    [selectionMode, toggleMessageSelection],
+  );
 
   const clearSelection = useCallback(() => {
     setSelectedMessageIds(new Set());
@@ -1884,11 +2486,11 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   // Filter and group messages
   const displayMessages = useMemo(() => {
     if (__DEV__ && messages.length > 0) {
-//       console.log(`📺 MessageArea: Tab ${tabId} has ${messages.length} messages, types:`,
-//         messages.slice(-5).map(m => ({ type: m.type, isRaw: m.isRaw, batchTag: m.batchTag, text: m.text?.substring(0, 30) }))
-//       );
+      //       console.log(`📺 MessageArea: Tab ${tabId} has ${messages.length} messages, types:`,
+      //         messages.slice(-5).map(m => ({ type: m.type, isRaw: m.isRaw, batchTag: m.batchTag, text: m.text?.substring(0, 30) }))
+      //       );
     }
-    const filtered = messages.filter((msg) => {
+    const filtered = messages.filter(msg => {
       if (msg.isRaw && !showRawCommands) {
         //console.log(`📺 MessageArea: Filtering out raw message (showRawCommands: ${showRawCommands})`);
         return false;
@@ -1915,9 +2517,9 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       return true;
     });
 
-//     if (__DEV__) {
-//       console.log(`📺 MessageArea: After visibility filter: ${visibilityFiltered.length} messages`);
-//     }
+    //     if (__DEV__) {
+    //       console.log(`📺 MessageArea: After visibility filter: ${visibilityFiltered.length} messages`);
+    //     }
 
     // Apply search filtering
     const searchFiltered = visibilityFiltered.filter(msg => {
@@ -1933,7 +2535,16 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         (msg.type === 'join' && searchFilters.messageTypes.join) ||
         (msg.type === 'part' && searchFilters.messageTypes.part) ||
         (msg.type === 'quit' && searchFilters.messageTypes.quit) ||
-        (['system', 'error', 'topic', 'mode', 'invite', 'monitor', 'raw'].includes(msg.type) && searchFilters.messageTypes.system);
+        ([
+          'system',
+          'error',
+          'topic',
+          'mode',
+          'invite',
+          'monitor',
+          'raw',
+        ].includes(msg.type) &&
+          searchFilters.messageTypes.system);
 
       if (!typeMatch) return false;
 
@@ -1947,9 +2558,11 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     });
 
     // Apply message limit if enabled
-    const limitedMessages = (perfConfig.enableMessageCleanup && searchFiltered.length > perfConfig.messageLimit)
-      ? searchFiltered.slice(-perfConfig.messageLimit)
-      : searchFiltered;
+    const limitedMessages =
+      perfConfig.enableMessageCleanup &&
+      searchFiltered.length > perfConfig.messageLimit
+        ? searchFiltered.slice(-perfConfig.messageLimit)
+        : searchFiltered;
 
     const groupingEnabled = layoutState.messageGroupingEnabled !== false;
 
@@ -1992,9 +2605,9 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   // Track if we're at the bottom for auto-scroll
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [loadedMessageCount, setLoadedMessageCount] = useState(
-    perfConfig.enableVirtualization 
+    perfConfig.enableVirtualization
       ? Math.min(perfConfig.maxVisibleMessages, displayMessages.length)
-      : displayMessages.length
+      : displayMessages.length,
   );
 
   useEffect(() => {
@@ -2005,7 +2618,10 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       return;
     }
 
-    const minVisible = Math.min(perfConfig.maxVisibleMessages, displayMessages.length);
+    const minVisible = Math.min(
+      perfConfig.maxVisibleMessages,
+      displayMessages.length,
+    );
     if (loadedMessageCount < minVisible) {
       setLoadedMessageCount(minVisible);
       return;
@@ -2060,41 +2676,63 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
 
   // Handle end reached (top of list) - load more old messages
   const handleEndReached = useCallback(() => {
-    if (perfConfig.enableLazyLoading && loadedMessageCount < displayMessages.length) {
+    if (
+      perfConfig.enableLazyLoading &&
+      loadedMessageCount < displayMessages.length
+    ) {
       const newCount = Math.min(
         loadedMessageCount + perfConfig.messageLoadChunk,
-        displayMessages.length
+        displayMessages.length,
       );
       setLoadedMessageCount(newCount);
-      
+
       // Optionally load from history
       if (channel && network && newCount >= displayMessages.length) {
         // Load older messages from history
-        messageHistoryService.loadMessages(network, channel).then(() => {
-          // This would need to be integrated with the message state in App.tsx
-          // For now, we just track that we've loaded all available messages
-        }).catch(err => {
-          console.error('Failed to load message history:', err);
-        });
+        messageHistoryService
+          .loadMessages(network, channel)
+          .then(() => {
+            // This would need to be integrated with the message state in App.tsx
+            // For now, we just track that we've loaded all available messages
+          })
+          .catch(err => {
+            console.error('Failed to load message history:', err);
+          });
       }
     }
-  }, [perfConfig.enableLazyLoading, perfConfig.messageLoadChunk, loadedMessageCount, displayMessages.length, channel, network]);
+  }, [
+    perfConfig.enableLazyLoading,
+    perfConfig.messageLoadChunk,
+    loadedMessageCount,
+    displayMessages.length,
+    channel,
+    network,
+  ]);
 
   const handleCopySelected = useCallback(() => {
     if (!selectedMessageIds.size) return;
-    const selected = displayMessages.filter(msg => selectedMessageIds.has(msg.id));
+    const selected = displayMessages.filter(msg =>
+      selectedMessageIds.has(msg.id),
+    );
     if (!selected.length) return;
 
     const formatTimestamp = (timestamp: number): string => {
       const date = new Date(timestamp);
       if (layoutState.timestampFormat === '24h') {
-        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return date.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
       }
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
     };
 
     const sorted = [...selected].sort((a, b) => a.timestamp - b.timestamp);
-    const lines = sorted.map((msg) => {
+    const lines = sorted.map(msg => {
       const ts = formatTimestamp(msg.timestamp);
       const prefix = msg.from ? `<${msg.from}> ` : '';
       const text = msg.type === 'message' ? msg.text : `*** ${msg.text}`;
@@ -2102,95 +2740,115 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     });
 
     Clipboard.setString(lines.join('\n'));
-    const message = sorted.length === 1
-      ? t('Copied {count} message').replace('{count}', sorted.length.toString())
-      : t('Copied {count} messages').replace('{count}', sorted.length.toString());
+    const message =
+      sorted.length === 1
+        ? t('Copied {count} message').replace(
+            '{count}',
+            sorted.length.toString(),
+          )
+        : t('Copied {count} messages').replace(
+            '{count}',
+            sorted.length.toString(),
+          );
     setCopyStatus(message);
     setTimeout(() => setCopyStatus(''), 1500);
   }, [selectedMessageIds, displayMessages, layoutState.timestampFormat, t]);
 
   // Render message item
-  const renderItem = useCallback(({ item: messageItem }: { item: IRCMessage }) => {
-    return (
-      <MessageItem
-        message={messageItem}
-        channelUsers={channelUsers}
-        timestampDisplay={layoutState.timestampDisplay}
-        timestampFormat={layoutState.timestampFormat}
-      colors={colors}
-      styles={styles}
-      currentNick={currentNick}
-      isGrouped={messageItem.isGrouped || false}
-        onNickLongPress={(nick) => {
-          setContextNick(nick);
-          setContextUser(resolveContextUser(nick));
-          const selfNick = activeIrc.getCurrentNick?.();
-          if (selfNick) {
-            activeIrc.sendCommand?.(`MODE ${selfNick}`);
-            setTimeout(() => {
-              const oper = typeof activeIrc?.isServerOper === 'function' ? activeIrc.isServerOper() : false;
-              setIsServerOper(oper);
-            }, 300);
-          }
-          setShowContextMenu(true);
-        }}
-        onChannelPress={(channelName) => {
-          activeIrc.sendRaw?.(`JOIN ${channelName}`);
-        }}
-        onNickPress={(nick) => {
-          // Open query with the nick
-          if (!network) return;
-          const queryId = `query:${network}:${nick.toLowerCase()}`;
-          const tabStore = useTabStore.getState();
-          const currentTabs = tabStore.tabs;
-          const existingTab = currentTabs.find(item => item.id === queryId && item.type === 'query');
-          if (existingTab) {
-            tabStore.setActiveTabId(existingTab.id);
-          } else {
-            const newQueryTab: ChannelTab = {
-              id: queryId,
-              name: nick,
-              type: 'query',
-              networkId: network,
-              messages: [],
-            };
-            tabStore.setTabs(sortTabsGrouped([...currentTabs, newQueryTab], tabSortAlphabetical));
-            tabStore.setActiveTabId(newQueryTab.id);
-          }
-        }}
-        onLongPressMessage={handleMessageLongPress}
-        onPressMessage={handleMessagePress}
-        isSelected={selectedMessageIds.has(messageItem.id)}
-        selectionMode={selectionMode}
-        showImages={perfConfig.imageLazyLoad !== false}
-        network={network}
-        channel={channel}
-        tabId={tabId}
-        layoutWidth={containerWidth}
-        messageFormats={theme.messageFormats}
-      />
-    );
-  }, [
-    layoutState.timestampDisplay,
-    layoutState.timestampFormat,
-    colors,
-    styles,
-    currentNick,
-    resolveContextUser,
-    handleMessageLongPress,
-    handleMessagePress,
-    selectedMessageIds,
-    selectionMode,
-    perfConfig.imageLazyLoad,
-    network,
-    channel,
-    tabId,
-    containerWidth,
-    theme.messageFormats,
-    activeIrc,
-    tabSortAlphabetical,
-    channelUsers,
-  ]);
+  const renderItem = useCallback(
+    ({ item: messageItem }: { item: IRCMessage }) => {
+      return (
+        <MessageItem
+          message={messageItem}
+          channelUsers={channelUsers}
+          timestampDisplay={layoutState.timestampDisplay}
+          timestampFormat={layoutState.timestampFormat}
+          colors={colors}
+          styles={styles}
+          currentNick={currentNick}
+          isGrouped={messageItem.isGrouped || false}
+          onNickLongPress={nick => {
+            setContextNick(nick);
+            setContextUser(resolveContextUser(nick));
+            const selfNick = activeIrc.getCurrentNick?.();
+            if (selfNick) {
+              activeIrc.sendCommand?.(`MODE ${selfNick}`);
+              setTimeout(() => {
+                const oper =
+                  typeof activeIrc?.isServerOper === 'function'
+                    ? activeIrc.isServerOper()
+                    : false;
+                setIsServerOper(oper);
+              }, 300);
+            }
+            setShowContextMenu(true);
+          }}
+          onChannelPress={channelName => {
+            activeIrc.sendRaw?.(`JOIN ${channelName}`);
+          }}
+          onNickPress={nick => {
+            // Open query with the nick
+            if (!network) return;
+            const queryId = `query:${network}:${nick.toLowerCase()}`;
+            const tabStore = useTabStore.getState();
+            const currentTabs = tabStore.tabs;
+            const existingTab = currentTabs.find(
+              item => item.id === queryId && item.type === 'query',
+            );
+            if (existingTab) {
+              tabStore.setActiveTabId(existingTab.id);
+            } else {
+              const newQueryTab: ChannelTab = {
+                id: queryId,
+                name: nick,
+                type: 'query',
+                networkId: network,
+                messages: [],
+              };
+              tabStore.setTabs(
+                sortTabsGrouped(
+                  [...currentTabs, newQueryTab],
+                  tabSortAlphabetical,
+                ),
+              );
+              tabStore.setActiveTabId(newQueryTab.id);
+            }
+          }}
+          onLongPressMessage={handleMessageLongPress}
+          onPressMessage={handleMessagePress}
+          isSelected={selectedMessageIds.has(messageItem.id)}
+          selectionMode={selectionMode}
+          showImages={perfConfig.imageLazyLoad !== false}
+          network={network}
+          channel={channel}
+          tabId={tabId}
+          layoutWidth={containerWidth}
+          messageFormats={theme.messageFormats}
+        />
+      );
+    },
+    [
+      layoutState.timestampDisplay,
+      layoutState.timestampFormat,
+      colors,
+      styles,
+      currentNick,
+      resolveContextUser,
+      handleMessageLongPress,
+      handleMessagePress,
+      selectedMessageIds,
+      selectionMode,
+      perfConfig.imageLazyLoad,
+      network,
+      channel,
+      tabId,
+      containerWidth,
+      theme.messageFormats,
+      activeIrc,
+      tabSortAlphabetical,
+      channelUsers,
+    ],
+  );
 
   // Get item key
   const getItemKey = useCallback((item: IRCMessage) => item.id, []);
@@ -2214,32 +2872,42 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     return displayMessages.length;
   }, [searchVisible, searchFilters.searchTerm, displayMessages.length]);
 
-  const listExtraData = useMemo(() => ({
-    containerWidth,
-    selectionMode,
-    selectedCount: selectedMessageIds.size,
-    currentNick,
-    timestampDisplay: layoutState.timestampDisplay,
-    timestampFormat: layoutState.timestampFormat,
-    showImages: perfConfig.imageLazyLoad !== false,
-    messageFormats: theme.messageFormats,
-  }), [
-    containerWidth,
-    currentNick,
-    layoutState.timestampDisplay,
-    layoutState.timestampFormat,
-    perfConfig.imageLazyLoad,
-    selectedMessageIds.size,
-    selectionMode,
-    theme.messageFormats,
-  ]);
+  const listExtraData = useMemo(
+    () => ({
+      containerWidth,
+      selectionMode,
+      selectedCount: selectedMessageIds.size,
+      currentNick,
+      timestampDisplay: layoutState.timestampDisplay,
+      timestampFormat: layoutState.timestampFormat,
+      showImages: perfConfig.imageLazyLoad !== false,
+      messageFormats: theme.messageFormats,
+    }),
+    [
+      containerWidth,
+      currentNick,
+      layoutState.timestampDisplay,
+      layoutState.timestampFormat,
+      perfConfig.imageLazyLoad,
+      selectedMessageIds.size,
+      selectionMode,
+      theme.messageFormats,
+    ],
+  );
 
   const initialRenderCount = useMemo(() => {
     if (!perfConfig.enableVirtualization) {
       return Math.min(reversedMessages.length, 24);
     }
-    return Math.min(reversedMessages.length, Math.max(16, Math.min(perfConfig.maxVisibleMessages, 24)));
-  }, [perfConfig.enableVirtualization, perfConfig.maxVisibleMessages, reversedMessages.length]);
+    return Math.min(
+      reversedMessages.length,
+      Math.max(16, Math.min(perfConfig.maxVisibleMessages, 24)),
+    );
+  }, [
+    perfConfig.enableVirtualization,
+    perfConfig.maxVisibleMessages,
+    reversedMessages.length,
+  ]);
 
   const batchRenderCount = useMemo(() => {
     if (!perfConfig.enableVirtualization) {
@@ -2251,285 +2919,386 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   const blacklistModals = (
     <>
       {showNoteModal && (
-      <Modal
-        visible={showNoteModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowNoteModal(false)}>
-        <View style={styles.blacklistOverlay}>
-          <View style={styles.noteModal}>
-            <Text style={styles.blacklistTitle}>{t('User Note')}</Text>
-            <TextInput
-              style={[styles.noteInput, styles.blacklistInputMultiline]}
-              value={noteText}
-              onChangeText={setNoteText}
-              placeholder={t('Enter note about this user')}
-              multiline
-              textAlignVertical="top"
-            />
-            <View style={styles.blacklistButtons}>
-              <TouchableOpacity
-                style={[styles.blacklistButton, styles.blacklistButtonCancel]}
-                onPress={() => setShowNoteModal(false)}>
-                <Text style={styles.blacklistButtonText}>{t('Cancel')}</Text>
-              </TouchableOpacity>
+        <Modal
+          visible={showNoteModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowNoteModal(false)}
+        >
+          <View style={styles.blacklistOverlay}>
+            <View style={styles.noteModal}>
+              <Text style={styles.blacklistTitle}>{t('User Note')}</Text>
+              <TextInput
+                style={[styles.noteInput, styles.blacklistInputMultiline]}
+                value={noteText}
+                onChangeText={setNoteText}
+                placeholder={t('Enter note about this user')}
+                multiline
+                textAlignVertical="top"
+              />
+              <View style={styles.blacklistButtons}>
+                <TouchableOpacity
+                  style={[styles.blacklistButton, styles.blacklistButtonCancel]}
+                  onPress={() => setShowNoteModal(false)}
+                >
+                  <Text style={styles.blacklistButtonText}>{t('Cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.blacklistButton,
+                    styles.blacklistButtonPrimary,
+                  ]}
+                  onPress={async () => {
+                    if (!contextNick) return;
+                    if (noteText.trim()) {
+                      await getUserManagementServiceForNetwork().addUserNote(
+                        contextNick,
+                        noteText.trim(),
+                        network,
+                      );
+                    } else {
+                      await getUserManagementServiceForNetwork().removeUserNote(
+                        contextNick,
+                        network,
+                      );
+                    }
+                    setShowNoteModal(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.blacklistButtonText,
+                      styles.blacklistButtonTextPrimary,
+                    ]}
+                  >
+                    {t('Save')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+      {showBlacklistModal && (
+        <Modal
+          visible={showBlacklistModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowBlacklistModal(false)}
+        >
+          <View style={styles.blacklistOverlay}>
+            <View style={styles.blacklistModal}>
+              <Text style={styles.blacklistTitle}>{t('Add to Blacklist')}</Text>
+              {contextNick ? (
+                <>
+                  <Text style={styles.blacklistLabel}>{t('Mask')}</Text>
+                  <TouchableOpacity
+                    style={styles.blacklistPicker}
+                    onPress={() => setShowBlacklistMaskPicker(true)}
+                  >
+                    <Text style={styles.blacklistPickerText}>
+                      {getBlacklistBanMaskOptions(
+                        contextUser,
+                        contextNick,
+                      ).find(opt => opt.id === selectedBanMaskTypeId)?.label ||
+                        t('Ban mask type (0-11)')}
+                    </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.blacklistLabel}>{t('Action')}</Text>
+                  <TouchableOpacity
+                    style={styles.blacklistPicker}
+                    onPress={() => setShowBlacklistActionPicker(true)}
+                  >
+                    <Text style={styles.blacklistPickerText}>
+                      {blacklistActionOptions.find(
+                        opt => opt.id === blacklistAction,
+                      )?.label || blacklistAction}
+                    </Text>
+                  </TouchableOpacity>
+                  {blacklistAction === 'custom' && (
+                    <TextInput
+                      style={styles.blacklistInput}
+                      value={blacklistCustomCommand}
+                      onChangeText={setBlacklistCustomCommand}
+                      placeholder={t(
+                        'Command template (use {mask}, {usermask}, {hostmask}, {nick})',
+                      )}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  )}
+                  <TextInput
+                    style={[
+                      styles.blacklistInput,
+                      styles.blacklistInputMultiline,
+                    ]}
+                    value={blacklistReason}
+                    onChangeText={setBlacklistReason}
+                    placeholder={t('Reason (optional)')}
+                    multiline
+                  />
+                  <View style={styles.blacklistButtons}>
+                    <TouchableOpacity
+                      style={[
+                        styles.blacklistButton,
+                        styles.blacklistButtonCancel,
+                      ]}
+                      onPress={() => setShowBlacklistModal(false)}
+                    >
+                      <Text style={styles.blacklistButtonText}>
+                        {t('Cancel')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.blacklistButton,
+                        styles.blacklistButtonPrimary,
+                      ]}
+                      onPress={async () => {
+                        if (!contextNick) {
+                          setShowBlacklistModal(false);
+                          return;
+                        }
+                        const banMaskOptions = getBlacklistBanMaskOptions(
+                          contextUser,
+                          contextNick,
+                        );
+                        const choice =
+                          banMaskOptions.find(
+                            opt => opt.id === selectedBanMaskTypeId,
+                          ) || banMaskOptions[0];
+                        const templateCommand =
+                          blacklistAction === 'custom'
+                            ? blacklistCustomCommand.trim()
+                            : await getBlacklistTemplate(
+                                blacklistAction,
+                                network,
+                              );
+                        await getUserManagementServiceForNetwork().addBlacklistEntry(
+                          choice.mask,
+                          blacklistAction,
+                          blacklistReason.trim() || undefined,
+                          network,
+                          templateCommand || undefined,
+                        );
+                        setShowBlacklistModal(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.blacklistButtonText,
+                          styles.blacklistButtonTextPrimary,
+                        ]}
+                      >
+                        {t('Add')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              ) : null}
+            </View>
+          </View>
+        </Modal>
+      )}
+      {showBlacklistMaskPicker && (
+        <Modal
+          visible={showBlacklistMaskPicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowBlacklistMaskPicker(false)}
+        >
+          <View style={styles.blacklistOverlay}>
+            <View style={styles.blacklistModal}>
+              <Text style={styles.blacklistTitle}>
+                {t('Select Ban Mask Type')}
+              </Text>
+              <ScrollView style={styles.blacklistOptionsScroll}>
+                {getBlacklistBanMaskOptions(contextUser, contextNick).map(
+                  option => (
+                    <TouchableOpacity
+                      key={`banmask-${option.id}`}
+                      style={styles.blacklistOption}
+                      onPress={() => {
+                        setSelectedBanMaskTypeId(option.id);
+                        setBlacklistMaskChoice(`banmask_${option.id}`);
+                        setShowBlacklistMaskPicker(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.blacklistOptionText,
+                          selectedBanMaskTypeId === option.id &&
+                            styles.blacklistOptionTextSelected,
+                        ]}
+                      >
+                        {option.label} {option.mask}
+                      </Text>
+                      <Text style={styles.blacklistOptionSubtext}>
+                        {option.description}
+                      </Text>
+                    </TouchableOpacity>
+                  ),
+                )}
+              </ScrollView>
               <TouchableOpacity
                 style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
-                onPress={async () => {
-                  if (!contextNick) return;
-                  if (noteText.trim()) {
-                    await getUserManagementServiceForNetwork().addUserNote(contextNick, noteText.trim(), network);
-                  } else {
-                    await getUserManagementServiceForNetwork().removeUserNote(contextNick, network);
-                  }
-                  setShowNoteModal(false);
-                }}>
-                <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
-                  {t('Save')}
+                onPress={() => setShowBlacklistMaskPicker(false)}
+              >
+                <Text
+                  style={[
+                    styles.blacklistButtonText,
+                    styles.blacklistButtonTextPrimary,
+                  ]}
+                >
+                  {t('Close')}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
-      )}
-      {showBlacklistModal && (
-      <Modal
-        visible={showBlacklistModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowBlacklistModal(false)}>
-        <View style={styles.blacklistOverlay}>
-          <View style={styles.blacklistModal}>
-            <Text style={styles.blacklistTitle}>{t('Add to Blacklist')}</Text>
-            {contextNick ? (
-              <>
-                <Text style={styles.blacklistLabel}>{t('Mask')}</Text>
-                <TouchableOpacity
-                  style={styles.blacklistPicker}
-                  onPress={() => setShowBlacklistMaskPicker(true)}>
-                  <Text style={styles.blacklistPickerText}>
-                    {getBlacklistBanMaskOptions(contextUser, contextNick)
-                      .find(opt => opt.id === selectedBanMaskTypeId)?.label || t('Ban mask type (0-11)')}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={styles.blacklistLabel}>{t('Action')}</Text>
-                <TouchableOpacity
-                  style={styles.blacklistPicker}
-                  onPress={() => setShowBlacklistActionPicker(true)}>
-                  <Text style={styles.blacklistPickerText}>
-                    {blacklistActionOptions.find(opt => opt.id === blacklistAction)?.label || blacklistAction}
-                  </Text>
-                </TouchableOpacity>
-                {blacklistAction === 'custom' && (
-                  <TextInput
-                    style={styles.blacklistInput}
-                    value={blacklistCustomCommand}
-                    onChangeText={setBlacklistCustomCommand}
-                    placeholder={t('Command template (use {mask}, {usermask}, {hostmask}, {nick})')}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                )}
-                <TextInput
-                  style={[styles.blacklistInput, styles.blacklistInputMultiline]}
-                  value={blacklistReason}
-                  onChangeText={setBlacklistReason}
-                  placeholder={t('Reason (optional)')}
-                  multiline
-                />
-                <View style={styles.blacklistButtons}>
-                  <TouchableOpacity
-                    style={[styles.blacklistButton, styles.blacklistButtonCancel]}
-                    onPress={() => setShowBlacklistModal(false)}>
-                    <Text style={styles.blacklistButtonText}>{t('Cancel')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
-                    onPress={async () => {
-                      if (!contextNick) {
-                        setShowBlacklistModal(false);
-                        return;
-                      }
-                      const banMaskOptions = getBlacklistBanMaskOptions(contextUser, contextNick);
-                      const choice = banMaskOptions.find(opt => opt.id === selectedBanMaskTypeId) || banMaskOptions[0];
-                      const templateCommand = blacklistAction === 'custom'
-                        ? blacklistCustomCommand.trim()
-                        : await getBlacklistTemplate(blacklistAction, network);
-                      await getUserManagementServiceForNetwork().addBlacklistEntry(
-                        choice.mask,
-                        blacklistAction,
-                        blacklistReason.trim() || undefined,
-                        network,
-                        templateCommand || undefined
-                      );
-                      setShowBlacklistModal(false);
-                    }}>
-                    <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
-                      {t('Add')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            ) : null}
-          </View>
-        </View>
-      </Modal>
-      )}
-      {showBlacklistMaskPicker && (
-      <Modal
-        visible={showBlacklistMaskPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowBlacklistMaskPicker(false)}>
-        <View style={styles.blacklistOverlay}>
-          <View style={styles.blacklistModal}>
-            <Text style={styles.blacklistTitle}>{t('Select Ban Mask Type')}</Text>
-            <ScrollView style={styles.blacklistOptionsScroll}>
-              {getBlacklistBanMaskOptions(contextUser, contextNick).map(option => (
-                <TouchableOpacity
-                  key={`banmask-${option.id}`}
-                  style={styles.blacklistOption}
-                  onPress={() => {
-                    setSelectedBanMaskTypeId(option.id);
-                    setBlacklistMaskChoice(`banmask_${option.id}`);
-                    setShowBlacklistMaskPicker(false);
-                  }}>
-                  <Text style={[
-                    styles.blacklistOptionText,
-                    selectedBanMaskTypeId === option.id && styles.blacklistOptionTextSelected,
-                  ]}>
-                    {option.label} {option.mask}
-                  </Text>
-                  <Text style={styles.blacklistOptionSubtext}>{option.description}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
-              onPress={() => setShowBlacklistMaskPicker(false)}>
-              <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
-                {t('Close')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        </Modal>
       )}
       {showBlacklistActionPicker && (
-      <Modal
-        visible={showBlacklistActionPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowBlacklistActionPicker(false)}>
-        <View style={styles.blacklistOverlay}>
-          <View style={styles.blacklistModal}>
-            <Text style={styles.blacklistTitle}>{t('Select Action')}</Text>
-            <ScrollView style={styles.blacklistPickerScroll}>
-              {blacklistActionOptions.map(option => (
-                <TouchableOpacity
-                  key={option.id}
-                  style={styles.blacklistOption}
-                  onPress={() => {
-                    setBlacklistAction(option.id);
-                    if (option.id !== 'custom') {
-                      setBlacklistCustomCommand('');
-                    }
-                    setShowBlacklistActionPicker(false);
-                  }}>
-                  <Text style={[
-                    styles.blacklistOptionText,
-                    blacklistAction === option.id && styles.blacklistOptionTextSelected,
-                  ]}>
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
-              onPress={() => setShowBlacklistActionPicker(false)}>
-              <Text style={[styles.blacklistButtonText, styles.blacklistButtonTextPrimary]}>
-                {t('Close')}
-              </Text>
-            </TouchableOpacity>
+        <Modal
+          visible={showBlacklistActionPicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowBlacklistActionPicker(false)}
+        >
+          <View style={styles.blacklistOverlay}>
+            <View style={styles.blacklistModal}>
+              <Text style={styles.blacklistTitle}>{t('Select Action')}</Text>
+              <ScrollView style={styles.blacklistPickerScroll}>
+                {blacklistActionOptions.map(option => (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={styles.blacklistOption}
+                    onPress={() => {
+                      setBlacklistAction(option.id);
+                      if (option.id !== 'custom') {
+                        setBlacklistCustomCommand('');
+                      }
+                      setShowBlacklistActionPicker(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.blacklistOptionText,
+                        blacklistAction === option.id &&
+                          styles.blacklistOptionTextSelected,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                style={[styles.blacklistButton, styles.blacklistButtonPrimary]}
+                onPress={() => setShowBlacklistActionPicker(false)}
+              >
+                <Text
+                  style={[
+                    styles.blacklistButtonText,
+                    styles.blacklistButtonTextPrimary,
+                  ]}
+                >
+                  {t('Close')}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
       )}
       {showKeyQr && (
-      <Modal
-        visible={showKeyQr}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowKeyQr(false)}>
-        <TouchableOpacity
-          style={styles.blacklistOverlay}
-          activeOpacity={1}
-          onPress={() => setShowKeyQr(false)}>
-          <View style={styles.qrModal}>
-            <View style={styles.qrModalHeader}>
-              <Text style={styles.qrModalTitle}>
-                {qrType === 'bundle' ? t('Share Key Bundle') : t('Fingerprint QR')}
-              </Text>
-              <Text style={styles.qrModalSubtitle}>
-                {qrType === 'bundle'
-                  ? t('Scan this QR to import your key')
-                  : t('Scan to verify fingerprint')}
-              </Text>
+        <Modal
+          visible={showKeyQr}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowKeyQr(false)}
+        >
+          <TouchableOpacity
+            style={styles.blacklistOverlay}
+            activeOpacity={1}
+            onPress={() => setShowKeyQr(false)}
+          >
+            <View style={styles.qrModal}>
+              <View style={styles.qrModalHeader}>
+                <Text style={styles.qrModalTitle}>
+                  {qrType === 'bundle'
+                    ? t('Share Key Bundle')
+                    : t('Fingerprint QR')}
+                </Text>
+                <Text style={styles.qrModalSubtitle}>
+                  {qrType === 'bundle'
+                    ? t('Scan this QR to import your key')
+                    : t('Scan to verify fingerprint')}
+                </Text>
+              </View>
+              <View style={styles.qrCodeContainer}>
+                {qrPayload ? (
+                  <QRCode value={qrPayload} size={220} />
+                ) : (
+                  <Text style={styles.blacklistOptionText}>
+                    {t('No QR payload')}
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity
+                style={styles.qrModalButton}
+                onPress={() => {
+                  if (qrPayload) {
+                    Clipboard.setString(qrPayload);
+                    Alert.alert(t('Copied'), t('QR payload copied'));
+                  }
+                }}
+              >
+                <Text style={styles.qrModalButtonText}>
+                  {t('Copy QR Payload')}
+                </Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.qrCodeContainer}>
-              {qrPayload ? (
-                <QRCode value={qrPayload} size={220} />
-              ) : (
-                <Text style={styles.blacklistOptionText}>{t('No QR payload')}</Text>
-              )}
-            </View>
-            <TouchableOpacity
-              style={styles.qrModalButton}
-              onPress={() => {
-                if (qrPayload) {
-                  Clipboard.setString(qrPayload);
-                  Alert.alert(t('Copied'), t('QR payload copied'));
-                }
-              }}>
-              <Text style={styles.qrModalButtonText}>{t('Copy QR Payload')}</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+          </TouchableOpacity>
+        </Modal>
       )}
       {showKeyScan && (
-      <Modal
-        visible={showKeyScan}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowKeyScan(false)}>
-        <TouchableOpacity
-          style={styles.blacklistOverlay}
-          activeOpacity={1}
-          onPress={() => setShowKeyScan(false)}>
-          <View style={styles.scanContainer}>
-            <View style={styles.scanHeader}>
-              <Text style={styles.scanTitle}>{t('Scan Key')}</Text>
-              <Text style={styles.scanText}>{t('Scan a fingerprint QR')}</Text>
-              {scanError ? <Text style={styles.scanError}>{scanError}</Text> : null}
-            </View>
-            {device ? (
-                <Camera
-                style={styles.cameraFlex}
-                device={device}
-                isActive={showKeyScan}
-                codeScanner={codeScanner}
-              />
-            ) : (
-              <View style={styles.scanFallback}>
-                <Text style={styles.scanText}>{t('Camera not available')}</Text>
+        <Modal
+          visible={showKeyScan}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowKeyScan(false)}
+        >
+          <TouchableOpacity
+            style={styles.blacklistOverlay}
+            activeOpacity={1}
+            onPress={() => setShowKeyScan(false)}
+          >
+            <View style={styles.scanContainer}>
+              <View style={styles.scanHeader}>
+                <Text style={styles.scanTitle}>{t('Scan Key')}</Text>
+                <Text style={styles.scanText}>
+                  {t('Scan a fingerprint QR')}
+                </Text>
+                {scanError ? (
+                  <Text style={styles.scanError}>{scanError}</Text>
+                ) : null}
               </View>
-            )}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+              {device ? (
+                <Camera
+                  style={styles.cameraFlex}
+                  device={device}
+                  isActive={showKeyScan}
+                  codeScanner={codeScanner}
+                />
+              ) : (
+                <View style={styles.scanFallback}>
+                  <Text style={styles.scanText}>
+                    {t('Camera not available')}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       )}
     </>
   );
@@ -2540,7 +3309,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         <MessageSearchBar
           visible={searchVisible}
           onClose={() => handleSearchVisibleChange(false)}
-          onSearch={(filters) => setSearchFilters(filters)}
+          onSearch={filters => setSearchFilters(filters)}
           resultCount={searchResultCount}
         />
         <View style={styles.container}>
@@ -2552,7 +3321,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           <TouchableOpacity
             style={styles.searchButton}
             onPress={() => handleSearchVisibleChange(true)}
-            activeOpacity={0.7}>
+            activeOpacity={0.7}
+          >
             <Icon name="search" size={20} color={colors.buttonPrimaryText} />
           </TouchableOpacity>
         )}
@@ -2567,7 +3337,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         <MessageSearchBar
           visible={searchVisible}
           onClose={() => handleSearchVisibleChange(false)}
-          onSearch={(filters) => setSearchFilters(filters)}
+          onSearch={filters => setSearchFilters(filters)}
           resultCount={searchResultCount}
         />
         <FlatList
@@ -2585,7 +3355,10 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           maxToRenderPerBatch={batchRenderCount}
           windowSize={7}
           removeClippedSubviews={false}
-          maintainVisibleContentPosition={{ autoscrollToTopThreshold: 50, minIndexForVisible: 1 }}
+          maintainVisibleContentPosition={{
+            autoscrollToTopThreshold: 50,
+            minIndexForVisible: 1,
+          }}
           style={styles.container}
           contentContainerStyle={styles.contentContainer}
         />
@@ -2594,7 +3367,8 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           <TouchableOpacity
             style={styles.searchButton}
             onPress={() => handleSearchVisibleChange(true)}
-            activeOpacity={0.7}>
+            activeOpacity={0.7}
+          >
             <Icon name="search" size={20} color={colors.buttonPrimaryText} />
           </TouchableOpacity>
         )}
@@ -2602,7 +3376,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
           visible={showContextMenu}
           nick={contextNick}
           onClose={() => setShowContextMenu(false)}
-          onAction={(action) => handleNickAction(action)}
+          onAction={action => handleNickAction(action)}
           colors={colors}
           network={network}
           channel={channel}
@@ -2617,16 +3391,37 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         {blacklistModals}
         {selectionMode && (
           <Animated.View
-            style={[styles.selectionBar, { transform: selectionBarPan.getTranslateTransform() }]}
+            style={[
+              styles.selectionBar,
+              { transform: selectionBarPan.getTranslateTransform() },
+            ]}
             {...selectionBarPanResponder.panHandlers}
           >
-            <Text style={styles.selectionText}>{t('{count} selected').replace('{count}', selectedMessageIds.size.toString())}</Text>
+            <Text style={styles.selectionText}>
+              {t('{count} selected').replace(
+                '{count}',
+                selectedMessageIds.size.toString(),
+              )}
+            </Text>
             <View style={styles.selectionActions}>
-              <TouchableOpacity style={styles.selectionButton} onPress={handleCopySelected}>
+              <TouchableOpacity
+                style={styles.selectionButton}
+                onPress={handleCopySelected}
+              >
                 <Text style={styles.selectionButtonText}>{t('Copy')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.selectionButton, styles.selectionCancelButton]} onPress={clearSelection}>
-                <Text style={[styles.selectionButtonText, styles.selectionCancelText]}>{t('Cancel')}</Text>
+              <TouchableOpacity
+                style={[styles.selectionButton, styles.selectionCancelButton]}
+                onPress={clearSelection}
+              >
+                <Text
+                  style={[
+                    styles.selectionButtonText,
+                    styles.selectionCancelText,
+                  ]}
+                >
+                  {t('Cancel')}
+                </Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -2641,38 +3436,42 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   }
 
   // Fallback to ScrollView for small message lists
-    return (
-      <View style={styles.wrapper} onLayout={handleContainerLayout}>
-        {/* Message Search Bar */}
-        <MessageSearchBar
-          visible={searchVisible}
-          onClose={() => handleSearchVisibleChange(false)}
-          onSearch={(filters) => setSearchFilters(filters)}
-          resultCount={searchResultCount}
-        />
-        <FlatList
-          ref={flatListRef}
-          data={reversedMessages}
-          renderItem={renderItem}
-          keyExtractor={getItemKey}
-          extraData={listExtraData}
-          inverted
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          initialNumToRender={initialRenderCount}
-          maxToRenderPerBatch={batchRenderCount}
-          windowSize={5}
-          maintainVisibleContentPosition={{ autoscrollToTopThreshold: 50, minIndexForVisible: 1 }}
-          removeClippedSubviews={false}
-          style={styles.container}
-          contentContainerStyle={styles.contentContainer}
-        />
+  return (
+    <View style={styles.wrapper} onLayout={handleContainerLayout}>
+      {/* Message Search Bar */}
+      <MessageSearchBar
+        visible={searchVisible}
+        onClose={() => handleSearchVisibleChange(false)}
+        onSearch={filters => setSearchFilters(filters)}
+        resultCount={searchResultCount}
+      />
+      <FlatList
+        ref={flatListRef}
+        data={reversedMessages}
+        renderItem={renderItem}
+        keyExtractor={getItemKey}
+        extraData={listExtraData}
+        inverted
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        initialNumToRender={initialRenderCount}
+        maxToRenderPerBatch={batchRenderCount}
+        windowSize={5}
+        maintainVisibleContentPosition={{
+          autoscrollToTopThreshold: 50,
+          minIndexForVisible: 1,
+        }}
+        removeClippedSubviews={false}
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      />
       {/* Search Button (Floating) */}
       {!searchVisible && !selectionMode && showMessageAreaSearchButton && (
         <TouchableOpacity
           style={styles.searchButton}
           onPress={() => handleSearchVisibleChange(true)}
-          activeOpacity={0.7}>
+          activeOpacity={0.7}
+        >
           <Icon name="search" size={20} color={colors.buttonPrimaryText} />
         </TouchableOpacity>
       )}
@@ -2680,7 +3479,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         visible={showContextMenu}
         nick={contextNick}
         onClose={() => setShowContextMenu(false)}
-        onAction={(action) => handleNickAction(action)}
+        onAction={action => handleNickAction(action)}
         colors={colors}
         network={network}
         channel={channel}
@@ -2697,7 +3496,11 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
         onClose={() => setShowKickBanModal(false)}
         onConfirm={handleKickBanConfirm}
         nick={kickBanTarget?.nick || ''}
-        userHost={kickBanTarget?.user && kickBanTarget?.host ? `${kickBanTarget.user}@${kickBanTarget.host}` : undefined}
+        userHost={
+          kickBanTarget?.user && kickBanTarget?.host
+            ? `${kickBanTarget.user}@${kickBanTarget.host}`
+            : undefined
+        }
         mode={kickBanMode}
         colors={{
           background: colors.surface,
@@ -2710,16 +3513,34 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
       {blacklistModals}
       {selectionMode && (
         <Animated.View
-          style={[styles.selectionBar, { transform: selectionBarPan.getTranslateTransform() }]}
+          style={[
+            styles.selectionBar,
+            { transform: selectionBarPan.getTranslateTransform() },
+          ]}
           {...selectionBarPanResponder.panHandlers}
         >
-          <Text style={styles.selectionText}>{t('{count} selected').replace('{count}', selectedMessageIds.size.toString())}</Text>
+          <Text style={styles.selectionText}>
+            {t('{count} selected').replace(
+              '{count}',
+              selectedMessageIds.size.toString(),
+            )}
+          </Text>
           <View style={styles.selectionActions}>
-            <TouchableOpacity style={styles.selectionButton} onPress={handleCopySelected}>
+            <TouchableOpacity
+              style={styles.selectionButton}
+              onPress={handleCopySelected}
+            >
               <Text style={styles.selectionButtonText}>{t('Copy')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.selectionButton, styles.selectionCancelButton]} onPress={clearSelection}>
-              <Text style={[styles.selectionButtonText, styles.selectionCancelText]}>{t('Cancel')}</Text>
+            <TouchableOpacity
+              style={[styles.selectionButton, styles.selectionCancelButton]}
+              onPress={clearSelection}
+            >
+              <Text
+                style={[styles.selectionButtonText, styles.selectionCancelText]}
+              >
+                {t('Cancel')}
+              </Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -2733,7 +3554,11 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
   );
 };
 
-const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) => {
+const createStyles = (
+  colors: any,
+  layoutConfig: any,
+  bottomInset: number = 0,
+) => {
   // Calculate the appropriate bottom position for the selection bar
   // MessageInput height is approximately 50-60px + bottom inset
   const messageInputHeight = 60;
@@ -2746,512 +3571,512 @@ const createStyles = (colors: any, layoutConfig: any, bottomInset: number = 0) =
   const groupedMessageOverlap = messageLineHeight >= 18 ? 0 : -4;
 
   return StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    position: 'relative',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.messageBackground,
-  },
-  contentContainer: {
-    padding: 12,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyText: {
-    color: colors.textSecondary,
-    fontSize: messageFontSize,
-    lineHeight: messageLineHeight,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    marginBottom: layoutConfig.messageSpacing || 4,
-    flexWrap: 'wrap',
-    paddingVertical: (layoutConfig.messagePadding || 8) / 2,
-    paddingHorizontal: layoutConfig.messagePadding || 8,
-  },
-  groupedMessageContainer: {
-    marginTop: groupedMessageOverlap,
-    paddingTop: 0,
-    marginBottom: 4,
-  },
-  highlightedMessage: {
-    backgroundColor: colors.highlightBackground,
-    borderRadius: 4,
-  },
-  selectedMessage: {
-    backgroundColor: colors.selectionBackground,
-    borderRadius: 6,
-  },
-  pendingMessage: {
-    opacity: 0.6,
-  },
-  timestamp: {
-    color: colors.messageTimestamp,
-    fontSize: timestampFontSize,
-    lineHeight: timestampLineHeight,
-    marginRight: 8,
-    minWidth: 50,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  messageWrapper: {
-    flex: 1,
-  },
-  messageContent: {
-    flexDirection: 'row',
-    flex: 1,
-    flexWrap: 'wrap',
-  },
-  messageContentColumn: {
-    flexDirection: 'column',
-  },
-  linkText: {
-    color: colors.primary,
-    textDecorationLine: 'underline',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  messageTextItalic: {
-    fontStyle: 'italic',
-  },
-  nick: {
-    color: colors.messageNick,
-    fontSize: messageFontSize,
-    lineHeight: messageLineHeight,
-    fontWeight: '600',
-    marginRight: 8,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  messageText: {
-    color: colors.messageText,
-    fontSize: messageFontSize,
-    lineHeight: messageLineHeight,
-    flex: 1,
-    flexShrink: 1,
-    textAlign: layoutConfig.messageTextAlign || 'left',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  messageTextInline: {
-    color: colors.messageText,
-    fontSize: messageFontSize,
-    lineHeight: messageLineHeight,
-    textAlign: layoutConfig.messageTextAlign || 'left',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  contextOverlay: {
-    flex: 1,
-    backgroundColor: colors.modalOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  contextBox: {
-    width: '80%',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-  },
-  contextHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  contextHeaderText: {
-    flex: 1,
-  },
-  contextTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  contextCopyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  contextCopyText: {
-    fontSize: 12,
-    color: colors.primary,
-    fontWeight: '600',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  contextScroll: {
-    maxHeight: 360,
-  },
-  contextScrollContent: {
-    paddingTop: 8,
-  },
-  contextItem: {
-    paddingVertical: 10,
-  },
-  contextText: {
-    color: colors.text,
-    fontSize: 14,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  contextWarning: {
-    color: colors.warning,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  contextDanger: {
-    color: colors.error,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  contextGroupHeader: {
-    marginTop: 6,
-    marginBottom: 4,
-  },
-  contextGroupTitle: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  contextDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
-    marginVertical: 8,
-  },
-  contextSubGroup: {
-    paddingLeft: 10,
-  },
-  contextSubHeader: {
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  contextSubTitle: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  contextFooter: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    marginTop: 8,
-    paddingTop: 8,
-  },
-  contextCancel: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  contextCancelText: {
-    color: colors.primary,
-    fontWeight: '600',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistOverlay: {
-    flex: 1,
-    backgroundColor: colors.modalOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  blacklistModal: {
-    width: '90%',
-    maxWidth: 420,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-  },
-  noteModal: {
-    width: '90%',
-    maxWidth: 420,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-  },
-  blacklistTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 12,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 8,
-    marginBottom: 6,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistOption: {
-    paddingVertical: 8,
-  },
-  blacklistOptionText: {
-    color: colors.text,
-    fontSize: 14,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistOptionTextSelected: {
-    color: colors.primary,
-    fontWeight: '600',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistOptionSubtext: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    marginTop: 2,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistOptionsScroll: {
-    maxHeight: 260,
-    marginBottom: 12,
-  },
-  blacklistPicker: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    backgroundColor: colors.surfaceVariant || colors.messageBackground,
-    
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  blacklistPickerText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '500',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    color: colors.text,
-    marginTop: 8,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  noteInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    color: colors.text,
-    marginTop: 8,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistInputMultiline: {
-    minHeight: 70,
-    textAlignVertical: 'top',
-  },
-  blacklistButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-  },
-  blacklistButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  blacklistButtonCancel: {
-    marginRight: 8,
-    backgroundColor: colors.surfaceVariant || colors.messageBackground,
-  },
-  blacklistButtonPrimary: {
-    backgroundColor: colors.primary,
-  },
-  blacklistButtonText: {
-    color: colors.text,
-    fontWeight: '600',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistButtonTextPrimary: {
-    color: colors.onPrimary,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  blacklistPickerScroll: {
-    maxHeight: 220,
-  },
-  qrModal: {
-    backgroundColor: colors.modalBackground,
-    borderRadius: 12,
-    minWidth: 300,
-    maxWidth: 360,
-    width: '90%',
-    shadowColor: colors.modalOverlay,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  qrModalHeader: {
-    padding: 20,
-    backgroundColor: colors.modalBackground,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  qrModalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.modalText,
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  qrModalSubtitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  qrCodeContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: colors.modalBackground,
-  },
-  qrModalButton: {
-    padding: 16,
-    backgroundColor: colors.modalBackground,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  qrModalButtonText: {
-    fontSize: 15,
-    color: colors.accent,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  scanContainer: {
-    backgroundColor: colors.modalBackground,
-    borderRadius: 12,
-    overflow: 'hidden',
-    width: '90%',
-    maxWidth: 360,
-    aspectRatio: 3 / 4,
-  },
-  scanHeader: {
-    padding: 14,
-    backgroundColor: colors.surfaceAlt,
-  },
-  scanTitle: {
-    color: colors.modalText,
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  scanText: {
-    color: colors.modalText,
-    textAlign: 'center',
-    paddingVertical: 10,
-  },
-  scanError: {
-    color: colors.error,
-    textAlign: 'center',
-    paddingVertical: 6,
-  },
-  scanFallback: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectionBar: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: selectionBarBottom,
-    backgroundColor: colors.surface,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    shadowColor: colors.modalOverlay,
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
-  },
-  selectionText: {
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: 14,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  selectionActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  selectionButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: colors.primary,
-    marginLeft: 8,
-  },
-  cameraFlex: {
-    flex: 1,
-  },
-  selectionButtonText: {
-    color: colors.buttonPrimaryText,
-    fontWeight: '600',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  selectionCancelButton: {
-    backgroundColor: colors.surfaceAlt || colors.messageBackground,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-  },
-  selectionCancelText: {
-    color: colors.text,
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  selectionToast: {
-    position: 'absolute',
-    bottom: selectionToastBottom,
-    left: 24,
-    right: 24,
-    backgroundColor: colors.surface,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  selectionToastText: {
-    color: colors.text,
-    fontWeight: '600',
-    writingDirection: layoutConfig.messageTextDirection || 'auto',
-  },
-  searchButton: {
-    position: 'absolute',
-    bottom: 80,
-    right: 16,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: colors.modalOverlay,
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-});
+    wrapper: {
+      flex: 1,
+      position: 'relative',
+    },
+    container: {
+      flex: 1,
+      backgroundColor: colors.messageBackground,
+    },
+    contentContainer: {
+      padding: 12,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 40,
+    },
+    emptyText: {
+      color: colors.textSecondary,
+      fontSize: messageFontSize,
+      lineHeight: messageLineHeight,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    messageContainer: {
+      flexDirection: 'row',
+      marginBottom: layoutConfig.messageSpacing || 4,
+      flexWrap: 'wrap',
+      paddingVertical: (layoutConfig.messagePadding || 8) / 2,
+      paddingHorizontal: layoutConfig.messagePadding || 8,
+    },
+    groupedMessageContainer: {
+      marginTop: groupedMessageOverlap,
+      paddingTop: 0,
+      marginBottom: 4,
+    },
+    highlightedMessage: {
+      backgroundColor: colors.highlightBackground,
+      borderRadius: 4,
+    },
+    selectedMessage: {
+      backgroundColor: colors.selectionBackground,
+      borderRadius: 6,
+    },
+    pendingMessage: {
+      opacity: 0.6,
+    },
+    timestamp: {
+      color: colors.messageTimestamp,
+      fontSize: timestampFontSize,
+      lineHeight: timestampLineHeight,
+      marginRight: 8,
+      minWidth: 50,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    messageWrapper: {
+      flex: 1,
+    },
+    messageContent: {
+      flexDirection: 'row',
+      flex: 1,
+      flexWrap: 'wrap',
+    },
+    messageContentColumn: {
+      flexDirection: 'column',
+    },
+    linkText: {
+      color: colors.primary,
+      textDecorationLine: 'underline',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    messageTextItalic: {
+      fontStyle: 'italic',
+    },
+    nick: {
+      color: colors.messageNick,
+      fontSize: messageFontSize,
+      lineHeight: messageLineHeight,
+      fontWeight: '600',
+      marginRight: 8,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    messageText: {
+      color: colors.messageText,
+      fontSize: messageFontSize,
+      lineHeight: messageLineHeight,
+      flex: 1,
+      flexShrink: 1,
+      textAlign: layoutConfig.messageTextAlign || 'left',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    messageTextInline: {
+      color: colors.messageText,
+      fontSize: messageFontSize,
+      lineHeight: messageLineHeight,
+      textAlign: layoutConfig.messageTextAlign || 'left',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    contextOverlay: {
+      flex: 1,
+      backgroundColor: colors.modalOverlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    contextBox: {
+      width: '80%',
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 16,
+    },
+    contextHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    contextHeaderText: {
+      flex: 1,
+    },
+    contextTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    contextCopyButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    contextCopyText: {
+      fontSize: 12,
+      color: colors.primary,
+      fontWeight: '600',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    contextScroll: {
+      maxHeight: 360,
+    },
+    contextScrollContent: {
+      paddingTop: 8,
+    },
+    contextItem: {
+      paddingVertical: 10,
+    },
+    contextText: {
+      color: colors.text,
+      fontSize: 14,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    contextWarning: {
+      color: colors.warning,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    contextDanger: {
+      color: colors.error,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    contextGroupHeader: {
+      marginTop: 6,
+      marginBottom: 4,
+    },
+    contextGroupTitle: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    contextDivider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.border,
+      marginVertical: 8,
+    },
+    contextSubGroup: {
+      paddingLeft: 10,
+    },
+    contextSubHeader: {
+      marginTop: 8,
+      marginBottom: 4,
+    },
+    contextSubTitle: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    contextFooter: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      marginTop: 8,
+      paddingTop: 8,
+    },
+    contextCancel: {
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    contextCancelText: {
+      color: colors.primary,
+      fontWeight: '600',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistOverlay: {
+      flex: 1,
+      backgroundColor: colors.modalOverlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    blacklistModal: {
+      width: '90%',
+      maxWidth: 420,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 16,
+    },
+    noteModal: {
+      width: '90%',
+      maxWidth: 420,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 16,
+    },
+    blacklistTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 8,
+      marginBottom: 6,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistOption: {
+      paddingVertical: 8,
+    },
+    blacklistOptionText: {
+      color: colors.text,
+      fontSize: 14,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistOptionTextSelected: {
+      color: colors.primary,
+      fontWeight: '600',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistOptionSubtext: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      marginTop: 2,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistOptionsScroll: {
+      maxHeight: 260,
+      marginBottom: 12,
+    },
+    blacklistPicker: {
+      paddingVertical: 12,
+      paddingHorizontal: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceVariant || colors.messageBackground,
+
+      minHeight: 44,
+      justifyContent: 'center',
+    },
+    blacklistPickerText: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '500',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistInput: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      color: colors.text,
+      marginTop: 8,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    noteInput: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      color: colors.text,
+      marginTop: 8,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistInputMultiline: {
+      minHeight: 70,
+      textAlignVertical: 'top',
+    },
+    blacklistButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 12,
+    },
+    blacklistButton: {
+      flex: 1,
+      paddingVertical: 10,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    blacklistButtonCancel: {
+      marginRight: 8,
+      backgroundColor: colors.surfaceVariant || colors.messageBackground,
+    },
+    blacklistButtonPrimary: {
+      backgroundColor: colors.primary,
+    },
+    blacklistButtonText: {
+      color: colors.text,
+      fontWeight: '600',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistButtonTextPrimary: {
+      color: colors.onPrimary,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    blacklistPickerScroll: {
+      maxHeight: 220,
+    },
+    qrModal: {
+      backgroundColor: colors.modalBackground,
+      borderRadius: 12,
+      minWidth: 300,
+      maxWidth: 360,
+      width: '90%',
+      shadowColor: colors.modalOverlay,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+      overflow: 'hidden',
+    },
+    qrModalHeader: {
+      padding: 20,
+      backgroundColor: colors.modalBackground,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    qrModalTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.modalText,
+      marginBottom: 6,
+      textAlign: 'center',
+    },
+    qrModalSubtitle: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    qrCodeContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+      backgroundColor: colors.modalBackground,
+    },
+    qrModalButton: {
+      padding: 16,
+      backgroundColor: colors.modalBackground,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    qrModalButtonText: {
+      fontSize: 15,
+      color: colors.accent,
+      textAlign: 'center',
+      fontWeight: '500',
+    },
+    scanContainer: {
+      backgroundColor: colors.modalBackground,
+      borderRadius: 12,
+      overflow: 'hidden',
+      width: '90%',
+      maxWidth: 360,
+      aspectRatio: 3 / 4,
+    },
+    scanHeader: {
+      padding: 14,
+      backgroundColor: colors.surfaceAlt,
+    },
+    scanTitle: {
+      color: colors.modalText,
+      fontSize: 16,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    scanText: {
+      color: colors.modalText,
+      textAlign: 'center',
+      paddingVertical: 10,
+    },
+    scanError: {
+      color: colors.error,
+      textAlign: 'center',
+      paddingVertical: 6,
+    },
+    scanFallback: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    selectionBar: {
+      position: 'absolute',
+      left: 12,
+      right: 12,
+      bottom: selectionBarBottom,
+      backgroundColor: colors.surface,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderRadius: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      shadowColor: colors.modalOverlay,
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    selectionText: {
+      color: colors.text,
+      fontWeight: '600',
+      fontSize: 14,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    selectionActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    selectionButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      marginLeft: 8,
+    },
+    cameraFlex: {
+      flex: 1,
+    },
+    selectionButtonText: {
+      color: colors.buttonPrimaryText,
+      fontWeight: '600',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    selectionCancelButton: {
+      backgroundColor: colors.surfaceAlt || colors.messageBackground,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    selectionCancelText: {
+      color: colors.text,
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    selectionToast: {
+      position: 'absolute',
+      bottom: selectionToastBottom,
+      left: 24,
+      right: 24,
+      backgroundColor: colors.surface,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    selectionToastText: {
+      color: colors.text,
+      fontWeight: '600',
+      writingDirection: layoutConfig.messageTextDirection || 'auto',
+    },
+    searchButton: {
+      position: 'absolute',
+      bottom: 80,
+      right: 16,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: colors.modalOverlay,
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 6,
+    },
+  });
 };

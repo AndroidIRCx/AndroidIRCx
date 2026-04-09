@@ -47,19 +47,36 @@ describe('UtilityCommands', () => {
 
   describe('utilityCommands map', () => {
     it('registers all utility commands', () => {
-      ['ECHO', 'CLEAR', 'CLOSE', 'HELP', 'RAW', 'DNS', 'TIMER', 'WINDOW',
-       'FILTER', 'CLONES', 'DETECTCLONES', 'CLONESDETECT', 'IGNORE', 'UNIGNORE'
+      [
+        'ECHO',
+        'CLEAR',
+        'CLOSE',
+        'HELP',
+        'RAW',
+        'DNS',
+        'TIMER',
+        'WINDOW',
+        'FILTER',
+        'CLONES',
+        'DETECTCLONES',
+        'CLONESDETECT',
+        'IGNORE',
+        'UNIGNORE',
       ].forEach(cmd => {
         expect(utilityCommands.has(cmd)).toBe(true);
       });
     });
 
     it('maps DETECTCLONES to same handler as CLONES', () => {
-      expect(utilityCommands.get('DETECTCLONES')).toBe(utilityCommands.get('CLONES'));
+      expect(utilityCommands.get('DETECTCLONES')).toBe(
+        utilityCommands.get('CLONES'),
+      );
     });
 
     it('maps CLONESDETECT to same handler as CLONES', () => {
-      expect(utilityCommands.get('CLONESDETECT')).toBe(utilityCommands.get('CLONES'));
+      expect(utilityCommands.get('CLONESDETECT')).toBe(
+        utilityCommands.get('CLONES'),
+      );
     });
   });
 
@@ -67,14 +84,14 @@ describe('UtilityCommands', () => {
     it('displays notice with message text', () => {
       handleECHO(ctx, ['Hello', 'world'], '#channel');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice', text: 'Hello world' })
+        expect.objectContaining({ type: 'notice', text: 'Hello world' }),
       );
     });
 
     it('adds error when no args', () => {
       handleECHO(ctx, [], '#channel');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -88,7 +105,7 @@ describe('UtilityCommands', () => {
     it('adds notice message', () => {
       handleCLEAR(ctx, [], '#channel');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
   });
@@ -105,7 +122,7 @@ describe('UtilityCommands', () => {
       handleHELP(ctx, ['join'], '#channel');
       expect(ctx.emit).toHaveBeenCalledWith('help', 'join');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -131,7 +148,7 @@ describe('UtilityCommands', () => {
       handleRAW(ctx, [], '#channel');
       expect(ctx.sendRaw).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -141,7 +158,7 @@ describe('UtilityCommands', () => {
       handleDNS(ctx, ['irc.freenode.net'], '#channel');
       expect(ctx.emit).toHaveBeenCalledWith('dns-lookup', 'irc.freenode.net');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -149,24 +166,28 @@ describe('UtilityCommands', () => {
       handleDNS(ctx, [], '#channel');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
 
   describe('handleTIMER', () => {
     it('emits timer event with valid args', () => {
-      handleTIMER(ctx, ['mytimer', '5000', '1', 'PRIVMSG #test :hello'], '#channel');
+      handleTIMER(
+        ctx,
+        ['mytimer', '5000', '1', 'PRIVMSG #test :hello'],
+        '#channel',
+      );
       expect(ctx.emit).toHaveBeenCalledWith(
         'timer',
         expect.objectContaining({
           name: 'mytimer',
           delay: 5000,
           repetitions: 1,
-        })
+        }),
       );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -174,7 +195,7 @@ describe('UtilityCommands', () => {
       handleTIMER(ctx, ['t', '0', '1', 'cmd'], '#channel');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -187,7 +208,7 @@ describe('UtilityCommands', () => {
       handleTIMER(ctx, ['t', '5000', '1'], '#channel');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -207,7 +228,7 @@ describe('UtilityCommands', () => {
       handleWINDOW(ctx, ['-a'], '#other');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -220,7 +241,7 @@ describe('UtilityCommands', () => {
       handleWINDOW(ctx, [], '#channel');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -230,10 +251,10 @@ describe('UtilityCommands', () => {
       handleFILTER(ctx, ['spam'], '#channel');
       expect(ctx.emit).toHaveBeenCalledWith(
         'filter',
-        expect.objectContaining({ text: 'spam', global: false })
+        expect.objectContaining({ text: 'spam', global: false }),
       );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -241,7 +262,7 @@ describe('UtilityCommands', () => {
       handleFILTER(ctx, ['-g', 'spam'], '#channel');
       expect(ctx.emit).toHaveBeenCalledWith(
         'filter',
-        expect.objectContaining({ text: 'spam', global: true })
+        expect.objectContaining({ text: 'spam', global: true }),
       );
     });
 
@@ -249,7 +270,7 @@ describe('UtilityCommands', () => {
       handleFILTER(ctx, ['-g'], '#channel');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -257,7 +278,7 @@ describe('UtilityCommands', () => {
       handleFILTER(ctx, [], '#channel');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -280,7 +301,7 @@ describe('UtilityCommands', () => {
       handleCLONES(ctx, [], '#channel');
       await Promise.resolve();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -296,17 +317,19 @@ describe('UtilityCommands', () => {
     it('adds error when not in channel and no channel arg', () => {
       handleCLONES(ctx, [], 'somenick');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
       expect(ctx.detectClones).not.toHaveBeenCalled();
     });
 
     it('adds error on detectClones failure', async () => {
-      ctx.detectClones = jest.fn().mockRejectedValue(new Error('network error'));
+      ctx.detectClones = jest
+        .fn()
+        .mockRejectedValue(new Error('network error'));
       handleCLONES(ctx, [], '#channel');
       await new Promise(resolve => setTimeout(resolve, 10));
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -315,16 +338,24 @@ describe('UtilityCommands', () => {
     it('calls ignoreUser and adds notice on success', async () => {
       handleIGNORE(ctx, ['badnick'], '#channel');
       await new Promise(resolve => setTimeout(resolve, 10));
-      expect(mockIgnoreUser).toHaveBeenCalledWith('badnick', undefined, 'TestNet');
+      expect(mockIgnoreUser).toHaveBeenCalledWith(
+        'badnick',
+        undefined,
+        'TestNet',
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
     it('passes reason when provided', async () => {
       handleIGNORE(ctx, ['badnick', 'Spammer'], '#channel');
       await Promise.resolve();
-      expect(mockIgnoreUser).toHaveBeenCalledWith('badnick', 'Spammer', 'TestNet');
+      expect(mockIgnoreUser).toHaveBeenCalledWith(
+        'badnick',
+        'Spammer',
+        'TestNet',
+      );
     });
 
     it('adds error message on failure', async () => {
@@ -332,7 +363,7 @@ describe('UtilityCommands', () => {
       handleIGNORE(ctx, ['badnick'], '#channel');
       await new Promise(resolve => setTimeout(resolve, 10));
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -340,7 +371,7 @@ describe('UtilityCommands', () => {
       handleIGNORE(ctx, [], '#channel');
       expect(mockIgnoreUser).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -351,7 +382,7 @@ describe('UtilityCommands', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
       expect(mockUnignoreUser).toHaveBeenCalledWith('badnick', 'TestNet');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -360,7 +391,7 @@ describe('UtilityCommands', () => {
       handleUNIGNORE(ctx, ['badnick'], '#channel');
       await new Promise(resolve => setTimeout(resolve, 10));
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -368,7 +399,7 @@ describe('UtilityCommands', () => {
       handleUNIGNORE(ctx, [], '#channel');
       expect(mockUnignoreUser).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });

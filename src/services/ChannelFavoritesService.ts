@@ -15,7 +15,9 @@ export interface ChannelFavorite {
 
 class ChannelFavoritesService {
   private favorites: Map<string, ChannelFavorite[]> = new Map(); // network -> favorites
-  private listeners: Array<(network: string, favorites: ChannelFavorite[]) => void> = [];
+  private listeners: Array<
+    (network: string, favorites: ChannelFavorite[]) => void
+  > = [];
   private readonly STORAGE_KEY = '@AndroidIRCX:channelFavorites';
 
   async initialize(): Promise<void> {
@@ -42,9 +44,14 @@ class ChannelFavoritesService {
   /**
    * Add a channel to favorites
    */
-  async addFavorite(network: string, channel: string, key?: string, autoJoin?: boolean): Promise<void> {
+  async addFavorite(
+    network: string,
+    channel: string,
+    key?: string,
+    autoJoin?: boolean,
+  ): Promise<void> {
     const networkFavorites = this.favorites.get(network) || [];
-    
+
     // Check if already exists
     const existing = networkFavorites.find(f => f.name === channel);
     if (existing) {
@@ -77,13 +84,13 @@ class ChannelFavoritesService {
   async removeFavorite(network: string, channel: string): Promise<void> {
     const networkFavorites = this.favorites.get(network) || [];
     const filtered = networkFavorites.filter(f => f.name !== channel);
-    
+
     if (filtered.length === 0) {
       this.favorites.delete(network);
     } else {
       this.favorites.set(network, filtered);
     }
-    
+
     await this.save();
     this.notifyListeners(network);
   }
@@ -91,7 +98,11 @@ class ChannelFavoritesService {
   /**
    * Move a favorite to another network (keeps key/autoJoin)
    */
-  async moveFavorite(fromNetwork: string, channel: string, toNetwork: string): Promise<void> {
+  async moveFavorite(
+    fromNetwork: string,
+    channel: string,
+    toNetwork: string,
+  ): Promise<void> {
     if (fromNetwork === toNetwork) return;
 
     const sourceFavorites = this.favorites.get(fromNetwork) || [];
@@ -160,10 +171,14 @@ class ChannelFavoritesService {
   /**
    * Toggle auto-join for a favorite
    */
-  async setAutoJoin(network: string, channel: string, autoJoin: boolean): Promise<void> {
+  async setAutoJoin(
+    network: string,
+    channel: string,
+    autoJoin: boolean,
+  ): Promise<void> {
     const networkFavorites = this.favorites.get(network) || [];
     const favorite = networkFavorites.find(f => f.name === channel);
-    
+
     if (favorite) {
       favorite.autoJoin = autoJoin;
       await this.save();
@@ -174,10 +189,14 @@ class ChannelFavoritesService {
   /**
    * Update favorite key/password
    */
-  async updateFavoriteKey(network: string, channel: string, key?: string): Promise<void> {
+  async updateFavoriteKey(
+    network: string,
+    channel: string,
+    key?: string,
+  ): Promise<void> {
     const networkFavorites = this.favorites.get(network) || [];
     const favorite = networkFavorites.find(f => f.name === channel);
-    
+
     if (favorite) {
       favorite.key = key;
       await this.save();
@@ -188,7 +207,9 @@ class ChannelFavoritesService {
   /**
    * Listen for favorites changes
    */
-  onFavoritesChange(callback: (network: string, favorites: ChannelFavorite[]) => void): () => void {
+  onFavoritesChange(
+    callback: (network: string, favorites: ChannelFavorite[]) => void,
+  ): () => void {
     this.listeners.push(callback);
     return () => {
       const index = this.listeners.indexOf(callback);
@@ -205,4 +226,3 @@ class ChannelFavoritesService {
 }
 
 export const channelFavoritesService = new ChannelFavoritesService();
-

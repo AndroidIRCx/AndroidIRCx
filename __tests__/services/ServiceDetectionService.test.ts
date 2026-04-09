@@ -5,7 +5,10 @@
  * ServiceDetectionService Unit Tests
  */
 
-import { serviceDetectionService, ServiceDetectionService } from '../../src/services/ServiceDetectionService';
+import {
+  serviceDetectionService,
+  ServiceDetectionService,
+} from '../../src/services/ServiceDetectionService';
 
 describe('ServiceDetectionService', () => {
   let localService: ServiceDetectionService;
@@ -30,7 +33,9 @@ describe('ServiceDetectionService', () => {
 
   describe('processISupport', () => {
     it('auto-initializes state when processing an unknown network', () => {
-      serviceDetectionService.processISupport('test-network', ['NETWORK=Undernet']);
+      serviceDetectionService.processISupport('test-network', [
+        'NETWORK=Undernet',
+      ]);
 
       const result = serviceDetectionService.getDetectionResult('test-network');
       expect(result?.serviceType).toBe('undernet');
@@ -38,7 +43,7 @@ describe('ServiceDetectionService', () => {
 
     it('should detect Anope services from NICKSERV/CHANSERV tokens', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processISupport('test-network', [
         'NICKSERV=NickServ',
         'CHANSERV=ChanServ',
@@ -53,7 +58,7 @@ describe('ServiceDetectionService', () => {
 
     it('should detect UnrealIRCd from specific tokens', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processISupport('test-network', [
         'NICKCHARS=',
         'NICKIP=',
@@ -67,7 +72,7 @@ describe('ServiceDetectionService', () => {
 
     it('should detect InspIRCd from NICKMAXLEN token', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processISupport('test-network', [
         'NICKMAXLEN=30',
       ]);
@@ -79,10 +84,8 @@ describe('ServiceDetectionService', () => {
 
     it('should detect Charybdis from EUID token', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
-      serviceDetectionService.processISupport('test-network', [
-        'EUID=',
-      ]);
+
+      serviceDetectionService.processISupport('test-network', ['EUID=']);
 
       const result = serviceDetectionService.getDetectionResult('test-network');
       expect(result).toBeDefined();
@@ -91,7 +94,7 @@ describe('ServiceDetectionService', () => {
 
     it('should extract NETWORK name from token', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processISupport('test-network', [
         'NETWORK=DALnet',
       ]);
@@ -129,12 +132,14 @@ describe('ServiceDetectionService', () => {
     it('auto-initializes when processing a network name on a fresh network', () => {
       serviceDetectionService.processNetworkName('test-network', 'QuakeNet');
 
-      expect(serviceDetectionService.getDetectionResult('test-network')?.serviceType).toBe('quakenet');
+      expect(
+        serviceDetectionService.getDetectionResult('test-network')?.serviceType,
+      ).toBe('quakenet');
     });
 
     it('should detect DALnet from network name', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processNetworkName('test-network', 'DALnet');
 
       const result = serviceDetectionService.getDetectionResult('test-network');
@@ -144,7 +149,7 @@ describe('ServiceDetectionService', () => {
 
     it('should detect Undernet from network name', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processNetworkName('test-network', 'Undernet');
 
       const result = serviceDetectionService.getDetectionResult('test-network');
@@ -155,7 +160,7 @@ describe('ServiceDetectionService', () => {
 
     it('should detect QuakeNet from network name', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processNetworkName('test-network', 'QuakeNet');
 
       const result = serviceDetectionService.getDetectionResult('test-network');
@@ -168,13 +173,18 @@ describe('ServiceDetectionService', () => {
     it('auto-initializes when processing version on a fresh network', () => {
       serviceDetectionService.processVersion('test-network', 'ngIRCd-26');
 
-      expect(serviceDetectionService.getDetectionResult('test-network')?.ircdType).toBe('ngircd');
+      expect(
+        serviceDetectionService.getDetectionResult('test-network')?.ircdType,
+      ).toBe('ngircd');
     });
 
     it('should detect UnrealIRCd from version string', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
-      serviceDetectionService.processVersion('test-network', 'UnrealIRCd-6.0.0');
+
+      serviceDetectionService.processVersion(
+        'test-network',
+        'UnrealIRCd-6.0.0',
+      );
 
       const result = serviceDetectionService.getDetectionResult('test-network');
       expect(result).toBeDefined();
@@ -183,7 +193,7 @@ describe('ServiceDetectionService', () => {
 
     it('should detect InspIRCd from version string', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processVersion('test-network', 'InspIRCd-3.0.0');
 
       const result = serviceDetectionService.getDetectionResult('test-network');
@@ -193,7 +203,7 @@ describe('ServiceDetectionService', () => {
 
     it('should detect Charybdis from version string', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processVersion('test-network', 'charybdis-4.0');
 
       const result = serviceDetectionService.getDetectionResult('test-network');
@@ -203,7 +213,7 @@ describe('ServiceDetectionService', () => {
 
     it('should detect Solanum as Charybdis', () => {
       serviceDetectionService.initializeNetwork('test-network');
-      
+
       serviceDetectionService.processVersion('test-network', 'solanum-1.0');
 
       const result = serviceDetectionService.getDetectionResult('test-network');
@@ -214,9 +224,14 @@ describe('ServiceDetectionService', () => {
     it('should detect hybrid from version string', () => {
       serviceDetectionService.initializeNetwork('test-network');
 
-      serviceDetectionService.processVersion('test-network', 'ircd-hybrid-8.2.44');
+      serviceDetectionService.processVersion(
+        'test-network',
+        'ircd-hybrid-8.2.44',
+      );
 
-      expect(serviceDetectionService.getDetectionResult('test-network')?.ircdType).toBe('hybrid');
+      expect(
+        serviceDetectionService.getDetectionResult('test-network')?.ircdType,
+      ).toBe('hybrid');
     });
   });
 
@@ -225,7 +240,7 @@ describe('ServiceDetectionService', () => {
       serviceDetectionService.processServiceMessage(
         'test-network',
         'X',
-        'Welcome to channel services'
+        'Welcome to channel services',
       );
 
       const result = serviceDetectionService.getDetectionResult('test-network');
@@ -237,12 +252,12 @@ describe('ServiceDetectionService', () => {
       serviceDetectionService.processServiceMessage(
         'test-network',
         'NickServ',
-        'You can register your nickname with REGISTER'
+        'You can register your nickname with REGISTER',
       );
       serviceDetectionService.processServiceMessage(
         'test-network',
         'ChanServ',
-        'You can register a channel with REGISTER'
+        'You can register a channel with REGISTER',
       );
 
       const result = serviceDetectionService.getDetectionResult('test-network');
@@ -251,9 +266,15 @@ describe('ServiceDetectionService', () => {
     });
 
     it('ignores messages from non-service nicks', () => {
-      serviceDetectionService.processServiceMessage('test-network', 'RegularUser', 'register your nickname');
+      serviceDetectionService.processServiceMessage(
+        'test-network',
+        'RegularUser',
+        'register your nickname',
+      );
 
-      expect(serviceDetectionService.getDetectionResult('test-network')).toBeUndefined();
+      expect(
+        serviceDetectionService.getDetectionResult('test-network'),
+      ).toBeUndefined();
     });
   });
 
@@ -283,16 +304,18 @@ describe('ServiceDetectionService', () => {
   });
 
   describe('onDetection callback', () => {
-    it('should emit detection event when services are detected', (done) => {
+    it('should emit detection event when services are detected', done => {
       serviceDetectionService.initializeNetwork('test-network');
-      
-      const unsubscribe = serviceDetectionService.onDetection((networkId, result) => {
-        if (networkId === 'test-network') {
-          expect(result.serviceType).toBe('dalnet');
-          unsubscribe();
-          done();
-        }
-      });
+
+      const unsubscribe = serviceDetectionService.onDetection(
+        (networkId, result) => {
+          if (networkId === 'test-network') {
+            expect(result.serviceType).toBe('dalnet');
+            unsubscribe();
+            done();
+          }
+        },
+      );
 
       serviceDetectionService.processNetworkName('test-network', 'DALnet');
     });
@@ -308,7 +331,9 @@ describe('ServiceDetectionService', () => {
     });
 
     it('swallows callback errors and continues notifying others', () => {
-      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
       const throwingCallback = jest.fn(() => {
         throw new Error('boom');
       });
@@ -323,7 +348,7 @@ describe('ServiceDetectionService', () => {
       expect(healthyCallback).toHaveBeenCalled();
       expect(errorSpy).toHaveBeenCalledWith(
         'ServiceDetectionService: Error in detection callback:',
-        expect.any(Error)
+        expect.any(Error),
       );
 
       errorSpy.mockRestore();
@@ -341,7 +366,8 @@ describe('ServiceDetectionService', () => {
     });
 
     it('should return undefined when no detection result', () => {
-      const config = serviceDetectionService.getServiceConfig('unknown-network');
+      const config =
+        serviceDetectionService.getServiceConfig('unknown-network');
       expect(config).toBeUndefined();
     });
   });
@@ -350,12 +376,16 @@ describe('ServiceDetectionService', () => {
     it('should remove detection state for a network', () => {
       serviceDetectionService.initializeNetwork('test-network');
       serviceDetectionService.processNetworkName('test-network', 'DALnet');
-      
-      expect(serviceDetectionService.getDetectionResult('test-network')).toBeDefined();
-      
+
+      expect(
+        serviceDetectionService.getDetectionResult('test-network'),
+      ).toBeDefined();
+
       serviceDetectionService.cleanupNetwork('test-network');
-      
-      expect(serviceDetectionService.getDetectionResult('test-network')).toBeUndefined();
+
+      expect(
+        serviceDetectionService.getDetectionResult('test-network'),
+      ).toBeUndefined();
     });
   });
 
@@ -366,7 +396,7 @@ describe('ServiceDetectionService', () => {
 
       const commands = serviceDetectionService.getAllCommands('test-network');
       expect(Array.isArray(commands)).toBe(true);
-      
+
       if (commands.length > 0) {
         expect(commands[0]).toHaveProperty('service');
         expect(commands[0]).toHaveProperty('command');
@@ -375,7 +405,8 @@ describe('ServiceDetectionService', () => {
     });
 
     it('should return empty array when no detection result', () => {
-      const commands = serviceDetectionService.getAllCommands('unknown-network');
+      const commands =
+        serviceDetectionService.getAllCommands('unknown-network');
       expect(commands).toEqual([]);
     });
   });
@@ -384,37 +415,46 @@ describe('ServiceDetectionService', () => {
     it('returns a service definition for a detected network', () => {
       serviceDetectionService.processNetworkName('test-network', 'DALnet');
 
-      const service = serviceDetectionService.getServiceByNick('test-network', 'NickServ');
+      const service = serviceDetectionService.getServiceByNick(
+        'test-network',
+        'NickServ',
+      );
       expect(service).toBeDefined();
       expect(service?.nick).toBe('NickServ');
       expect(Array.isArray(service?.commands)).toBe(true);
     });
 
     it('returns undefined when the network has no config or nick is unknown', () => {
-      expect(serviceDetectionService.getServiceByNick('missing-network', 'NickServ')).toBeUndefined();
+      expect(
+        serviceDetectionService.getServiceByNick('missing-network', 'NickServ'),
+      ).toBeUndefined();
 
       serviceDetectionService.processNetworkName('test-network', 'DALnet');
-      expect(serviceDetectionService.getServiceByNick('test-network', 'UnknownServ')).toBeUndefined();
+      expect(
+        serviceDetectionService.getServiceByNick('test-network', 'UnknownServ'),
+      ).toBeUndefined();
     });
   });
 
   describe('detection precedence', () => {
     it('keeps a high-confidence detection instead of replacing it with a weaker one', () => {
       serviceDetectionService.processNetworkName('test-network', 'DALnet');
-      const initialResult = serviceDetectionService.getDetectionResult('test-network');
+      const initialResult =
+        serviceDetectionService.getDetectionResult('test-network');
 
       serviceDetectionService.processServiceMessage(
         'test-network',
         'NickServ',
-        'Please register your nickname'
+        'Please register your nickname',
       );
       serviceDetectionService.processServiceMessage(
         'test-network',
         'ChanServ',
-        'Please register your channel'
+        'Please register your channel',
       );
 
-      const finalResult = serviceDetectionService.getDetectionResult('test-network');
+      const finalResult =
+        serviceDetectionService.getDetectionResult('test-network');
       expect(initialResult).toBeDefined();
       expect(finalResult).toEqual(initialResult);
     });

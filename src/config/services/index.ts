@@ -74,7 +74,7 @@ export function getConfig(type: string): ServiceConfig | undefined {
  */
 export function getAllServiceNicks(): string[] {
   const nicks: string[] = [];
-  
+
   Object.values(serviceConfigs).forEach(config => {
     if (config.services) {
       Object.values(config.services).forEach(service => {
@@ -87,7 +87,7 @@ export function getAllServiceNicks(): string[] {
       });
     }
   });
-  
+
   return [...new Set(nicks)];
 }
 
@@ -103,7 +103,7 @@ export function isServiceNick(nick: string): boolean {
  */
 export function getServiceTypeByNick(nick: string): string | undefined {
   const lowerNick = nick.toLowerCase();
-  
+
   for (const [type, config] of Object.entries(serviceConfigs)) {
     if (config.services) {
       for (const service of Object.values(config.services)) {
@@ -111,13 +111,13 @@ export function getServiceTypeByNick(nick: string): string | undefined {
           service.nick?.toLowerCase(),
           ...(service.aliases?.map((a: string) => a.toLowerCase()) || []),
         ].filter(Boolean);
-        
+
         if (serviceNicks.includes(lowerNick)) {
           return type;
         }
       }
     }
   }
-  
+
   return undefined;
 }

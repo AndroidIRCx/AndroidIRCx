@@ -65,7 +65,7 @@ describe('OfflineQueueService', () => {
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         'OFFLINE_MESSAGE_QUEUE',
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -134,8 +134,16 @@ describe('OfflineQueueService', () => {
       await offlineQueueService.processQueue();
 
       expect(ircService.sendMessage).toHaveBeenCalledTimes(2);
-      expect(ircService.sendMessage).toHaveBeenCalledWith('#channel', 'msg1', true);
-      expect(ircService.sendMessage).toHaveBeenCalledWith('#channel', 'msg2', true);
+      expect(ircService.sendMessage).toHaveBeenCalledWith(
+        '#channel',
+        'msg1',
+        true,
+      );
+      expect(ircService.sendMessage).toHaveBeenCalledWith(
+        '#channel',
+        'msg2',
+        true,
+      );
     });
 
     it('should clear queue after successful processing', async () => {
@@ -212,7 +220,9 @@ describe('OfflineQueueService', () => {
 
       // Should save queue at least twice: once when clearing, once after processing
       const setItemCalls = (AsyncStorage.setItem as jest.Mock).mock.calls;
-      const queueSaves = setItemCalls.filter((call: any) => call[0] === 'OFFLINE_MESSAGE_QUEUE');
+      const queueSaves = setItemCalls.filter(
+        (call: any) => call[0] === 'OFFLINE_MESSAGE_QUEUE',
+      );
       expect(queueSaves.length).toBeGreaterThanOrEqual(1);
     });
   });
@@ -223,13 +233,15 @@ describe('OfflineQueueService', () => {
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         'OFFLINE_MESSAGE_QUEUE',
-        expect.stringContaining('test message')
+        expect.stringContaining('test message'),
       );
     });
 
     it('should handle storage errors gracefully', async () => {
       // Mock storage failure
-      (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
+      (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Storage error'),
+      );
 
       // Should not throw
       await expect(async () => {
@@ -239,22 +251,30 @@ describe('OfflineQueueService', () => {
 
     it('should handle load queue errors gracefully', async () => {
       // Reset the service to trigger loadQueue in constructor
-      (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('Load error'));
+      (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Load error'),
+      );
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       // Import fresh to trigger constructor with mocked error
       jest.isolateModules(() => {
-        const { offlineQueueService: freshService } = require('../../src/services/OfflineQueueService');
+        const {
+          offlineQueueService: freshService,
+        } = require('../../src/services/OfflineQueueService');
         expect(freshService.getQueue()).toEqual([]);
       });
     });
 
     it('should handle invalid JSON in storage gracefully', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockReturnValueOnce(Promise.resolve('invalid json'));
+      (AsyncStorage.getItem as jest.Mock).mockReturnValueOnce(
+        Promise.resolve('invalid json'),
+      );
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       jest.isolateModules(() => {
-        const { offlineQueueService: freshService } = require('../../src/services/OfflineQueueService');
+        const {
+          offlineQueueService: freshService,
+        } = require('../../src/services/OfflineQueueService');
         expect(freshService.getQueue()).toEqual([]);
       });
     });

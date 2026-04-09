@@ -11,7 +11,9 @@ import { AppState } from 'react-native';
 // Mock service dependencies
 jest.mock('../../src/services/SettingsService', () => ({
   settingsService: {
-    getSetting: jest.fn().mockImplementation((key, defaultValue) => Promise.resolve(defaultValue)),
+    getSetting: jest
+      .fn()
+      .mockImplementation((key, defaultValue) => Promise.resolve(defaultValue)),
     setSetting: jest.fn().mockResolvedValue(undefined),
     onSettingChange: jest.fn().mockReturnValue(jest.fn()),
   },
@@ -63,8 +65,8 @@ const mockStore = {
 
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: Object.assign(
-    jest.fn((selector) => selector(mockStore)),
-    { getState: jest.fn(() => mockStore) }
+    jest.fn(selector => selector(mockStore)),
+    { getState: jest.fn(() => mockStore) },
   ),
 }));
 
@@ -97,7 +99,7 @@ describe('useAppLock', () => {
 
   it('should return attemptBiometricUnlock and handleAppPinUnlock functions', () => {
     const { result } = renderHook(() => useAppLock());
-    
+
     expect(result.current.attemptBiometricUnlock).toBeDefined();
     expect(result.current.handleAppPinUnlock).toBeDefined();
     expect(typeof result.current.attemptBiometricUnlock).toBe('function');
@@ -106,17 +108,29 @@ describe('useAppLock', () => {
 
   it('should load app lock settings on mount', async () => {
     renderHook(() => useAppLock());
-    
+
     // Wait for async useEffect
     await act(async () => {
       await Promise.resolve();
     });
 
     // Should query settings
-    expect(settingsService.getSetting).toHaveBeenCalledWith('appLockEnabled', false);
-    expect(settingsService.getSetting).toHaveBeenCalledWith('appLockUseBiometric', false);
-    expect(settingsService.getSetting).toHaveBeenCalledWith('appLockAutoBiometricPrompt', false);
-    expect(settingsService.getSetting).toHaveBeenCalledWith('appLockUsePin', false);
+    expect(settingsService.getSetting).toHaveBeenCalledWith(
+      'appLockEnabled',
+      false,
+    );
+    expect(settingsService.getSetting).toHaveBeenCalledWith(
+      'appLockUseBiometric',
+      false,
+    );
+    expect(settingsService.getSetting).toHaveBeenCalledWith(
+      'appLockAutoBiometricPrompt',
+      false,
+    );
+    expect(settingsService.getSetting).toHaveBeenCalledWith(
+      'appLockUsePin',
+      false,
+    );
   });
 
   it('should handle PIN unlock successfully', async () => {
@@ -129,7 +143,9 @@ describe('useAppLock', () => {
       await result.current.handleAppPinUnlock();
     });
 
-    expect(secureStorageService.getSecret).toHaveBeenCalledWith('@AndroidIRCX:app-lock-pin');
+    expect(secureStorageService.getSecret).toHaveBeenCalledWith(
+      '@AndroidIRCX:app-lock-pin',
+    );
     expect(mockStore.setAppLocked).toHaveBeenCalledWith(false);
     expect(mockStore.setAppUnlockModalVisible).toHaveBeenCalledWith(false);
     expect(mockStore.setAppPinEntry).toHaveBeenCalledWith('');
@@ -188,7 +204,7 @@ describe('useAppLock', () => {
 
     expect(unlockResult).toBe(false);
     expect(mockStore.setAppPinError).toHaveBeenCalledWith(
-      'Biometric authentication is not available on this device.'
+      'Biometric authentication is not available on this device.',
     );
   });
 
@@ -200,13 +216,34 @@ describe('useAppLock', () => {
       await Promise.resolve();
     });
 
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockEnabled', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockUseBiometric', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockAutoBiometricPrompt', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockUsePin', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockOnLaunch', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockOnBackground', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('appLockNow', expect.any(Function));
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'appLockEnabled',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'appLockUseBiometric',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'appLockAutoBiometricPrompt',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'appLockUsePin',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'appLockOnLaunch',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'appLockOnBackground',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'appLockNow',
+      expect.any(Function),
+    );
   });
 
   // ==================== NEW TESTS FOR IMPROVED COVERAGE ====================
@@ -215,8 +252,11 @@ describe('useAppLock', () => {
     it('should prevent multiple simultaneous biometric attempts', async () => {
       mockStore.appLockUseBiometric = true;
       (biometricAuthService.isAvailable as jest.Mock).mockReturnValue(true);
-      (biometricAuthService.authenticate as jest.Mock).mockImplementation(() => 
-        new Promise(resolve => setTimeout(() => resolve({ success: true }), 100))
+      (biometricAuthService.authenticate as jest.Mock).mockImplementation(
+        () =>
+          new Promise(resolve =>
+            setTimeout(() => resolve({ success: true }), 100),
+          ),
       );
 
       const { result } = renderHook(() => useAppLock());
@@ -227,8 +267,10 @@ describe('useAppLock', () => {
       await act(async () => {
         // Fire both attempts simultaneously
         const promise1 = result.current.attemptBiometricUnlock();
-        const promise2 = result.current.attemptBiometricUnlock().then(r => { secondResult = r; });
-        
+        const promise2 = result.current.attemptBiometricUnlock().then(r => {
+          secondResult = r;
+        });
+
         jest.advanceTimersByTime(100);
         await Promise.all([promise1, promise2]);
       });
@@ -240,7 +282,9 @@ describe('useAppLock', () => {
     it('should handle no enrolled biometrics - disables biometric', async () => {
       mockStore.appLockUseBiometric = true;
       (biometricAuthService.isAvailable as jest.Mock).mockReturnValue(true);
-      (biometricAuthService.hasEnrolledBiometrics as jest.Mock).mockResolvedValue(false);
+      (
+        biometricAuthService.hasEnrolledBiometrics as jest.Mock
+      ).mockResolvedValue(false);
 
       const { result } = renderHook(() => useAppLock());
 
@@ -248,14 +292,16 @@ describe('useAppLock', () => {
         await result.current.attemptBiometricUnlock();
       });
 
-      expect(settingsService.setSetting).toHaveBeenCalledWith('appLockUseBiometric', false);
+      expect(settingsService.setSetting).toHaveBeenCalledWith(
+        'appLockUseBiometric',
+        false,
+      );
       expect(biometricAuthService.disableLock).toHaveBeenCalledWith('app');
       expect(mockStore.setAppLockUseBiometric).toHaveBeenCalledWith(false);
       expect(mockStore.setAppPinError).toHaveBeenCalledWith(
-        'No biometric credential is enrolled on this device. Use PIN unlock.'
+        'No biometric credential is enrolled on this device. Use PIN unlock.',
       );
     });
-
   });
 
   describe('App State Changes', () => {
@@ -264,10 +310,12 @@ describe('useAppLock', () => {
       mockStore.appLockOnBackground = true;
 
       let appStateCallback: ((state: string) => void) | undefined;
-      jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, callback: any) => {
-        appStateCallback = callback;
-        return { remove: jest.fn() };
-      });
+      jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((event: any, callback: any) => {
+          appStateCallback = callback;
+          return { remove: jest.fn() };
+        });
 
       renderHook(() => useAppLock());
 
@@ -290,10 +338,12 @@ describe('useAppLock', () => {
       mockStore.appLockOnBackground = false;
 
       let appStateCallback: ((state: string) => void) | undefined;
-      jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, callback: any) => {
-        appStateCallback = callback;
-        return { remove: jest.fn() };
-      });
+      jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((event: any, callback: any) => {
+          appStateCallback = callback;
+          return { remove: jest.fn() };
+        });
 
       renderHook(() => useAppLock());
 
@@ -318,10 +368,12 @@ describe('useAppLock', () => {
       mockStore.appLockOnLaunch = true;
 
       let appStateCallback: ((state: string) => void) | undefined;
-      jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, callback: any) => {
-        appStateCallback = callback;
-        return { remove: jest.fn() };
-      });
+      jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((event: any, callback: any) => {
+          appStateCallback = callback;
+          return { remove: jest.fn() };
+        });
 
       renderHook(() => useAppLock());
 
@@ -351,7 +403,9 @@ describe('useAppLock', () => {
       mockStore.appLockEnabled = true;
       const mockRemove = jest.fn();
 
-      jest.spyOn(AppState, 'addEventListener').mockReturnValue({ remove: mockRemove });
+      jest
+        .spyOn(AppState, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
 
       const { unmount } = renderHook(() => useAppLock());
 

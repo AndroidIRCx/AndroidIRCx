@@ -56,7 +56,10 @@ jest.mock('../../src/services/SettingsService', () => ({
   },
 }));
 
-import { autoReconnectService, AutoReconnectConfig } from '../../src/services/AutoReconnectService';
+import {
+  autoReconnectService,
+  AutoReconnectConfig,
+} from '../../src/services/AutoReconnectService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connectionManager } from '../../src/services/ConnectionManager';
 import { settingsService } from '../../src/services/SettingsService';
@@ -105,12 +108,12 @@ describe('AutoReconnectService', () => {
 
     it('should persist config to storage', async () => {
       const setItemSpy = jest.spyOn(AsyncStorage, 'setItem');
-      
+
       await autoReconnectService.setConfig('freenode', { enabled: true });
 
       expect(setItemSpy).toHaveBeenCalledWith(
         '@AndroidIRCX:autoReconnectConfigs',
-        expect.any(String)
+        expect.any(String),
       );
     });
   });
@@ -144,7 +147,11 @@ describe('AutoReconnectService', () => {
       const config = { host: 'irc.test.com', port: 6667 } as any;
       const channels = ['#general', '#help'];
 
-      await autoReconnectService.saveConnectionState('freenode', config, channels);
+      await autoReconnectService.saveConnectionState(
+        'freenode',
+        config,
+        channels,
+      );
       const state = autoReconnectService.getConnectionState('freenode');
 
       expect(state).toBeDefined();
@@ -155,12 +162,12 @@ describe('AutoReconnectService', () => {
 
     it('should persist state to storage', async () => {
       const setItemSpy = jest.spyOn(AsyncStorage, 'setItem');
-      
+
       await autoReconnectService.saveConnectionState('freenode', {} as any, []);
 
       expect(setItemSpy).toHaveBeenCalledWith(
         '@AndroidIRCX:connectionStates',
-        expect.any(String)
+        expect.any(String),
       );
     });
   });
@@ -169,7 +176,7 @@ describe('AutoReconnectService', () => {
     it('should add channel to connection state', async () => {
       await autoReconnectService.saveConnectionState('freenode', {} as any, []);
       autoReconnectService.addChannelToState('freenode', '#general');
-      
+
       const state = autoReconnectService.getConnectionState('freenode');
       expect(state?.channels).toContain('#general');
     });
@@ -178,37 +185,48 @@ describe('AutoReconnectService', () => {
       await autoReconnectService.saveConnectionState('freenode', {} as any, []);
       autoReconnectService.addChannelToState('freenode', '#general');
       autoReconnectService.addChannelToState('freenode', '#general');
-      
+
       const state = autoReconnectService.getConnectionState('freenode');
       expect(state?.channels).toHaveLength(1);
     });
 
     it('should handle non-existent network gracefully', () => {
-      expect(() => autoReconnectService.addChannelToState('non-existent', '#general')).not.toThrow();
+      expect(() =>
+        autoReconnectService.addChannelToState('non-existent', '#general'),
+      ).not.toThrow();
     });
   });
 
   describe('removeChannelFromState', () => {
     it('should remove channel from connection state', async () => {
-      await autoReconnectService.saveConnectionState('freenode', {} as any, ['#general', '#help']);
+      await autoReconnectService.saveConnectionState('freenode', {} as any, [
+        '#general',
+        '#help',
+      ]);
       autoReconnectService.removeChannelFromState('freenode', '#general');
-      
+
       const state = autoReconnectService.getConnectionState('freenode');
       expect(state?.channels).not.toContain('#general');
       expect(state?.channels).toContain('#help');
     });
 
     it('should handle non-existent network gracefully', () => {
-      expect(() => autoReconnectService.removeChannelFromState('non-existent', '#general')).not.toThrow();
+      expect(() =>
+        autoReconnectService.removeChannelFromState('non-existent', '#general'),
+      ).not.toThrow();
     });
   });
 
   describe('clearConnectionState', () => {
     it('should clear connection state for a network', async () => {
-      await autoReconnectService.saveConnectionState('freenode', {} as any, ['#general']);
+      await autoReconnectService.saveConnectionState('freenode', {} as any, [
+        '#general',
+      ]);
       await autoReconnectService.clearConnectionState('freenode');
-      
-      expect(autoReconnectService.getConnectionState('freenode')).toBeUndefined();
+
+      expect(
+        autoReconnectService.getConnectionState('freenode'),
+      ).toBeUndefined();
     });
   });
 
@@ -216,16 +234,22 @@ describe('AutoReconnectService', () => {
     it('should mark disconnect as intentional', () => {
       autoReconnectService.markIntentionalDisconnect('freenode');
       // The flag should prevent auto-reconnect
-      expect((autoReconnectService as any).intentionalDisconnects.has('freenode')).toBe(true);
+      expect(
+        (autoReconnectService as any).intentionalDisconnects.has('freenode'),
+      ).toBe(true);
     });
 
     it('should cancel pending reconnect', async () => {
       await autoReconnectService.setConfig('freenode', { enabled: true });
-      await autoReconnectService.saveConnectionState('freenode', {} as any, ['#general']);
-      
+      await autoReconnectService.saveConnectionState('freenode', {} as any, [
+        '#general',
+      ]);
+
       autoReconnectService.markIntentionalDisconnect('freenode');
-      
-      expect((autoReconnectService as any).intentionalDisconnects.has('freenode')).toBe(true);
+
+      expect(
+        (autoReconnectService as any).intentionalDisconnects.has('freenode'),
+      ).toBe(true);
     });
   });
 
@@ -233,25 +257,33 @@ describe('AutoReconnectService', () => {
     it('should clear intentional disconnect flag', () => {
       autoReconnectService.markIntentionalDisconnect('freenode');
       (autoReconnectService as any).clearIntentionalDisconnect('freenode');
-      
-      expect((autoReconnectService as any).intentionalDisconnects.has('freenode')).toBe(false);
+
+      expect(
+        (autoReconnectService as any).intentionalDisconnects.has('freenode'),
+      ).toBe(false);
     });
   });
 
   describe('cancelReconnect', () => {
     it('should cancel pending reconnect timer', async () => {
       await autoReconnectService.setConfig('freenode', { enabled: true });
-      await autoReconnectService.saveConnectionState('freenode', {} as any, ['#general']);
-      
+      await autoReconnectService.saveConnectionState('freenode', {} as any, [
+        '#general',
+      ]);
+
       // Start reconnect
       (autoReconnectService as any).isReconnecting.set('freenode', true);
       const timer = setTimeout(() => {}, 10000);
       (autoReconnectService as any).reconnectTimers.set('freenode', timer);
-      
+
       autoReconnectService.cancelReconnect('freenode');
-      
-      expect((autoReconnectService as any).isReconnecting.get('freenode')).toBe(false);
-      expect((autoReconnectService as any).reconnectTimers.has('freenode')).toBe(false);
+
+      expect((autoReconnectService as any).isReconnecting.get('freenode')).toBe(
+        false,
+      );
+      expect(
+        (autoReconnectService as any).reconnectTimers.has('freenode'),
+      ).toBe(false);
     });
   });
 
@@ -302,107 +334,142 @@ describe('AutoReconnectService', () => {
     });
 
     it('should handle unregistering non-existent connection gracefully', () => {
-      expect(() => autoReconnectService.unregisterConnection('non-existent')).not.toThrow();
+      expect(() =>
+        autoReconnectService.unregisterConnection('non-existent'),
+      ).not.toThrow();
     });
   });
 
   describe('handleDisconnected', () => {
     it('should not reconnect if disconnect was intentional', async () => {
       await autoReconnectService.setConfig('freenode', { enabled: true });
-      await autoReconnectService.saveConnectionState('freenode', {} as any, ['#general']);
-      
+      await autoReconnectService.saveConnectionState('freenode', {} as any, [
+        '#general',
+      ]);
+
       autoReconnectService.markIntentionalDisconnect('freenode');
-      
+
       // Simulate disconnect
       await (autoReconnectService as any).handleDisconnected('freenode');
 
-      expect((autoReconnectService as any).isReconnecting.get('freenode')).toBeFalsy();
+      expect(
+        (autoReconnectService as any).isReconnecting.get('freenode'),
+      ).toBeFalsy();
     });
 
     it('should not reconnect if already reconnecting', async () => {
       await autoReconnectService.setConfig('freenode', { enabled: true });
-      await autoReconnectService.saveConnectionState('freenode', {} as any, ['#general']);
-      
+      await autoReconnectService.saveConnectionState('freenode', {} as any, [
+        '#general',
+      ]);
+
       (autoReconnectService as any).isReconnecting.set('freenode', true);
-      
+
       await (autoReconnectService as any).handleDisconnected('freenode');
-      
+
       // Should not start another reconnect
-      expect((autoReconnectService as any).reconnectTimers.has('freenode')).toBe(false);
+      expect(
+        (autoReconnectService as any).reconnectTimers.has('freenode'),
+      ).toBe(false);
     });
 
     it('should not reconnect if auto-reconnect is disabled', async () => {
       await autoReconnectService.setConfig('freenode', { enabled: false });
-      await autoReconnectService.saveConnectionState('freenode', {} as any, ['#general']);
-      
+      await autoReconnectService.saveConnectionState('freenode', {} as any, [
+        '#general',
+      ]);
+
       await (autoReconnectService as any).handleDisconnected('freenode');
-      
-      expect((autoReconnectService as any).isReconnecting.get('freenode')).toBeFalsy();
+
+      expect(
+        (autoReconnectService as any).isReconnecting.get('freenode'),
+      ).toBeFalsy();
     });
 
     it('should not reconnect if max attempts reached', async () => {
-      await autoReconnectService.setConfig('freenode', { enabled: true, maxAttempts: 3 });
-      await autoReconnectService.saveConnectionState('freenode', {} as any, ['#general']);
-      
+      await autoReconnectService.setConfig('freenode', {
+        enabled: true,
+        maxAttempts: 3,
+      });
+      await autoReconnectService.saveConnectionState('freenode', {} as any, [
+        '#general',
+      ]);
+
       const state = autoReconnectService.getConnectionState('freenode');
       if (state) {
         state.reconnectAttempts = 3;
       }
-      
+
       await (autoReconnectService as any).handleDisconnected('freenode');
-      
-      expect((autoReconnectService as any).isReconnecting.get('freenode')).toBeFalsy();
+
+      expect(
+        (autoReconnectService as any).isReconnecting.get('freenode'),
+      ).toBeFalsy();
     });
 
     it('should use smart reconnect to avoid flood', async () => {
-      await autoReconnectService.setConfig('freenode', { 
-        enabled: true, 
-        smartReconnect: true, 
-        minReconnectInterval: 5000 
+      await autoReconnectService.setConfig('freenode', {
+        enabled: true,
+        smartReconnect: true,
+        minReconnectInterval: 5000,
       });
-      await autoReconnectService.saveConnectionState('freenode', {} as any, ['#general']);
-      
+      await autoReconnectService.saveConnectionState('freenode', {} as any, [
+        '#general',
+      ]);
+
       // Set last reconnect time to now
-      (autoReconnectService as any).lastReconnectTime.set('freenode', Date.now());
-      
+      (autoReconnectService as any).lastReconnectTime.set(
+        'freenode',
+        Date.now(),
+      );
+
       await (autoReconnectService as any).handleDisconnected('freenode');
-      
+
       // Should wait before reconnecting
-      expect((autoReconnectService as any).isReconnecting.get('freenode')).toBe(true);
+      expect((autoReconnectService as any).isReconnecting.get('freenode')).toBe(
+        true,
+      );
     });
   });
 
   describe('initialize and reconnect internals', () => {
     it('initializes from storage and registers singleton listeners', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockImplementation(async (key: string) => {
-        if (key === '@AndroidIRCX:connectionStates') {
-          return JSON.stringify({
-            freenode: {
-              network: 'freenode',
-              config: { host: 'irc.test' },
-              channels: ['#a'],
-              reconnectAttempts: 1,
-            },
-          });
-        }
-        if (key === '@AndroidIRCX:autoReconnectConfigs') {
-          return JSON.stringify({
-            freenode: { enabled: true, maxAttempts: 3 },
-          });
-        }
-        return null;
-      });
+      (AsyncStorage.getItem as jest.Mock).mockImplementation(
+        async (key: string) => {
+          if (key === '@AndroidIRCX:connectionStates') {
+            return JSON.stringify({
+              freenode: {
+                network: 'freenode',
+                config: { host: 'irc.test' },
+                channels: ['#a'],
+                reconnectAttempts: 1,
+              },
+            });
+          }
+          if (key === '@AndroidIRCX:autoReconnectConfigs') {
+            return JSON.stringify({
+              freenode: { enabled: true, maxAttempts: 3 },
+            });
+          }
+          return null;
+        },
+      );
 
       await autoReconnectService.initialize();
       expect(autoReconnectService.getConnectionState('freenode')).toBeDefined();
       expect(autoReconnectService.getConfig('freenode')?.enabled).toBe(true);
-      expect((ircService.onConnectionChange as jest.Mock)).toHaveBeenCalled();
-      expect((ircService.onMessage as jest.Mock)).toHaveBeenCalled();
-      expect((ircService.on as jest.Mock)).toHaveBeenCalledWith('intentional-quit', expect.any(Function));
+      expect(ircService.onConnectionChange as jest.Mock).toHaveBeenCalled();
+      expect(ircService.onMessage as jest.Mock).toHaveBeenCalled();
+      expect(ircService.on as jest.Mock).toHaveBeenCalledWith(
+        'intentional-quit',
+        expect.any(Function),
+      );
     });
 
     it('handles initialize storage parse errors gracefully', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('{bad').mockResolvedValueOnce('{bad');
+      (AsyncStorage.getItem as jest.Mock)
+        .mockResolvedValueOnce('{bad')
+        .mockResolvedValueOnce('{bad');
       await expect(autoReconnectService.initialize()).resolves.toBeUndefined();
     });
 
@@ -411,8 +478,12 @@ describe('AutoReconnectService', () => {
         { id: 'freenode', name: 'Freenode' },
         { id: 'libera', name: 'Libera Chat' },
       ]);
-      const exact = await (autoReconnectService as any).resolveNetworkConfig('freenode');
-      const normalized = await (autoReconnectService as any).resolveNetworkConfig('libera (2)');
+      const exact = await (autoReconnectService as any).resolveNetworkConfig(
+        'freenode',
+      );
+      const normalized = await (
+        autoReconnectService as any
+      ).resolveNetworkConfig('libera (2)');
       expect(exact?.id).toBe('freenode');
       expect(normalized?.id).toBe('libera');
     });
@@ -420,7 +491,9 @@ describe('AutoReconnectService', () => {
     it('attemptReconnect handles missing config/state and fallback singleton path', async () => {
       (autoReconnectService as any).isReconnecting.set('missing', true);
       (autoReconnectService as any).attemptReconnect('missing');
-      expect((autoReconnectService as any).isReconnecting.get('missing')).toBe(false);
+      expect((autoReconnectService as any).isReconnecting.get('missing')).toBe(
+        false,
+      );
 
       await autoReconnectService.setConfig('freenode', {
         enabled: true,
@@ -428,49 +501,79 @@ describe('AutoReconnectService', () => {
         maxDelay: 10,
         backoffMultiplier: 2,
       });
-      await autoReconnectService.saveConnectionState('freenode', { host: 'x' } as any, ['#a']);
+      await autoReconnectService.saveConnectionState(
+        'freenode',
+        { host: 'x' } as any,
+        ['#a'],
+      );
       (autoReconnectService as any).attemptReconnect('freenode');
       jest.runOnlyPendingTimers();
       await Promise.resolve();
-      expect((ircService.connect as jest.Mock)).toHaveBeenCalled();
+      expect(ircService.connect as jest.Mock).toHaveBeenCalled();
     });
 
     it('attemptReconnect uses ConnectionManager when networkConfig exists', async () => {
-      await autoReconnectService.setConfig('net1', { enabled: true, initialDelay: 1 });
-      await autoReconnectService.saveConnectionState('net1', { host: 'x' } as any, [], { id: 'net1', name: 'Net1' } as any);
+      await autoReconnectService.setConfig('net1', {
+        enabled: true,
+        initialDelay: 1,
+      });
+      await autoReconnectService.saveConnectionState(
+        'net1',
+        { host: 'x' } as any,
+        [],
+        { id: 'net1', name: 'Net1' } as any,
+      );
 
       (autoReconnectService as any).attemptReconnect('net1');
       jest.runOnlyPendingTimers();
       await Promise.resolve();
 
-      expect((connectionManager.connect as jest.Mock)).toHaveBeenCalledWith(
+      expect(connectionManager.connect as jest.Mock).toHaveBeenCalledWith(
         'net1',
         expect.objectContaining({ id: 'net1' }),
         expect.any(Object),
       );
-      expect((connectionManager.setActiveConnection as jest.Mock)).toHaveBeenCalledWith('freenode');
+      expect(
+        connectionManager.setActiveConnection as jest.Mock,
+      ).toHaveBeenCalledWith('freenode');
     });
 
     it('rejoins via playback or join list branches on successful handleConnected', async () => {
-      await autoReconnectService.setConfig('freenode', { enabled: true, rejoinChannels: true });
+      await autoReconnectService.setConfig('freenode', {
+        enabled: true,
+        rejoinChannels: true,
+      });
       await autoReconnectService.saveConnectionState(
         'freenode',
         { host: 'x' } as any,
         ['#a', '#b'],
-        { id: 'freenode', name: 'Freenode', autoJoinChannels: ['#a', '#z'] } as any,
+        {
+          id: 'freenode',
+          name: 'Freenode',
+          autoJoinChannels: ['#a', '#z'],
+        } as any,
       );
 
-      (bouncerService.getBouncerInfo as jest.Mock).mockReturnValueOnce({ playbackSupported: true });
+      (bouncerService.getBouncerInfo as jest.Mock).mockReturnValueOnce({
+        playbackSupported: true,
+      });
       (autoReconnectService as any).handleConnected('freenode');
       jest.advanceTimersByTime(1001);
       await Promise.resolve();
-      expect((bouncerService.requestPlayback as jest.Mock)).toHaveBeenCalled();
+      expect(bouncerService.requestPlayback as jest.Mock).toHaveBeenCalled();
 
       const joinChannel = jest.fn();
-      (connectionManager.getConnection as jest.Mock).mockReturnValue({ ircService: { joinChannel } });
+      (connectionManager.getConnection as jest.Mock).mockReturnValue({
+        ircService: { joinChannel },
+      });
       (settingsService.getSetting as jest.Mock).mockResolvedValueOnce(true);
-      (channelFavoritesService.getFavorites as jest.Mock).mockReturnValue([{ name: '#fav', key: 'k' }]);
-      await (autoReconnectService as any).rejoinChannels('freenode', ['#a', '#b']);
+      (channelFavoritesService.getFavorites as jest.Mock).mockReturnValue([
+        { name: '#fav', key: 'k' },
+      ]);
+      await (autoReconnectService as any).rejoinChannels('freenode', [
+        '#a',
+        '#b',
+      ]);
       jest.runOnlyPendingTimers();
       expect(joinChannel).toHaveBeenCalledWith('#fav', 'k');
       expect(joinChannel).toHaveBeenCalledWith('#a', undefined);

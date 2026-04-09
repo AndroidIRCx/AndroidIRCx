@@ -33,42 +33,51 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
 }) => {
   const t = useT();
 
-  const styles = useMemo(() => StyleSheet.create({
-    overlay: {
-      flex: 1,
-      backgroundColor: colors.modalOverlay || 'rgba(0,0,0,0.6)',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 20,
-    },
-    card: {
-      width: '100%',
-      maxWidth: 520,
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 12,
-    },
-    title: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.text,
-    },
-    close: {
-      color: colors.textSecondary,
-      fontWeight: '600',
-    },
-  }), [colors]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: {
+          flex: 1,
+          backgroundColor: colors.modalOverlay || 'rgba(0,0,0,0.6)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        },
+        card: {
+          width: '100%',
+          maxWidth: 520,
+          backgroundColor: colors.surface,
+          borderRadius: 12,
+          padding: 16,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        header: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 12,
+        },
+        title: {
+          fontSize: 16,
+          fontWeight: '700',
+          color: colors.text,
+        },
+        close: {
+          color: colors.textSecondary,
+          fontWeight: '600',
+        },
+      }),
+    [colors],
+  );
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={styles.overlay}>
         <View style={styles.card}>
           <View style={styles.header}>

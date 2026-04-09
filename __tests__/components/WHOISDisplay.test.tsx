@@ -26,7 +26,8 @@ jest.mock('../../src/services/UserManagementService', () => ({
 jest.mock('../../src/services/ConnectionManager', () => ({
   connectionManager: {
     getConnection: (...args: unknown[]) => mockGetConnection(...args),
-    getActiveConnection: (...args: unknown[]) => mockGetActiveConnection(...args),
+    getActiveConnection: (...args: unknown[]) =>
+      mockGetActiveConnection(...args),
   },
 }));
 
@@ -82,7 +83,8 @@ jest.mock('../../src/hooks/useTheme', () => ({
 }));
 
 describe('WHOISDisplay', () => {
-  const mockUserService = require('../../src/services/UserManagementService').userManagementService as {
+  const mockUserService = require('../../src/services/UserManagementService')
+    .userManagementService as {
     getWHOIS: jest.Mock;
     requestWHOIS: jest.Mock;
     getUserNote: jest.Mock;
@@ -130,13 +132,19 @@ describe('WHOISDisplay', () => {
       getCurrentNick: jest.fn(() => 'me'),
       sendCommand: jest.fn(),
     };
-    mockGetConnection.mockReturnValue({ ircService: irc, userManagementService: mockUserService });
-    mockGetActiveConnection.mockReturnValue({ ircService: irc, userManagementService: mockUserService });
+    mockGetConnection.mockReturnValue({
+      ircService: irc,
+      userManagementService: mockUserService,
+    });
+    mockGetActiveConnection.mockReturnValue({
+      ircService: irc,
+      userManagementService: mockUserService,
+    });
   });
 
   it('does not render when hidden', () => {
     const { toJSON } = render(
-      <WHOISDisplay visible={false} nick="alice" onClose={jest.fn()} />
+      <WHOISDisplay visible={false} nick="alice" onClose={jest.fn()} />,
     );
     expect(toJSON()).toBeNull();
   });
@@ -151,7 +159,7 @@ describe('WHOISDisplay', () => {
         network="net-1"
         onClose={jest.fn()}
         onChannelPress={onChannelPress}
-      />
+      />,
     );
 
     await waitFor(() => {
@@ -163,9 +171,12 @@ describe('WHOISDisplay', () => {
 
     const channelNodes = getAllByText(/#chat/);
     const pressableChannelText =
-      channelNodes.find((node: any) => typeof node?.parent?.props?.onPress === 'function') ||
-      channelNodes[0];
-    fireEvent.press((pressableChannelText as any).parent ?? pressableChannelText);
+      channelNodes.find(
+        (node: any) => typeof node?.parent?.props?.onPress === 'function',
+      ) || channelNodes[0];
+    fireEvent.press(
+      (pressableChannelText as any).parent ?? pressableChannelText,
+    );
     expect(onChannelPress).toHaveBeenCalledWith('#chat');
   });
 
@@ -173,7 +184,7 @@ describe('WHOISDisplay', () => {
     mockUserService.isUserIgnored.mockReturnValue(true);
 
     const { getByText, rerender } = render(
-      <WHOISDisplay visible nick="alice" onClose={jest.fn()} />
+      <WHOISDisplay visible nick="alice" onClose={jest.fn()} />,
     );
 
     await waitFor(() => expect(getByText('Unignore User')).toBeTruthy());
@@ -181,13 +192,18 @@ describe('WHOISDisplay', () => {
     await act(async () => {
       fireEvent.press(getByText('Unignore User'));
     });
-    expect(mockUserService.unignoreUser).toHaveBeenCalledWith('alice', undefined);
+    expect(mockUserService.unignoreUser).toHaveBeenCalledWith(
+      'alice',
+      undefined,
+    );
 
     mockUserService.isUserIgnored.mockReturnValue(false);
     rerender(<WHOISDisplay visible nick="alice" onClose={jest.fn()} />);
 
     fireEvent.press(getByText('Ignore User'));
-    const ignoreAction = (Alert.alert as jest.Mock).mock.calls.find(c => c[0] === 'Ignore User')?.[2]?.[1];
+    const ignoreAction = (Alert.alert as jest.Mock).mock.calls.find(
+      c => c[0] === 'Ignore User',
+    )?.[2]?.[1];
     await act(async () => {
       await ignoreAction.onPress();
     });

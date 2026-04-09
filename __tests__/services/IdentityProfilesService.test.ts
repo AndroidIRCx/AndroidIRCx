@@ -5,7 +5,11 @@
  * Tests for IdentityProfilesService
  */
 
-import { identityProfilesService, DEFAULT_PROFILE_ID, DEFAULT_PROFILE } from '../../src/services/IdentityProfilesService';
+import {
+  identityProfilesService,
+  DEFAULT_PROFILE_ID,
+  DEFAULT_PROFILE,
+} from '../../src/services/IdentityProfilesService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock dependencies
@@ -28,7 +32,9 @@ jest.mock('../../src/i18n/transifex', () => ({
   },
 }));
 
-const { secureStorageService } = require('../../src/services/SecureStorageService');
+const {
+  secureStorageService,
+} = require('../../src/services/SecureStorageService');
 
 describe('IdentityProfilesService', () => {
   beforeEach(() => {
@@ -63,7 +69,10 @@ describe('IdentityProfilesService', () => {
         },
       ];
 
-      await AsyncStorage.setItem('@AndroidIRCX:identityProfiles', JSON.stringify(savedProfiles));
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:identityProfiles',
+        JSON.stringify(savedProfiles),
+      );
 
       const profiles = await identityProfilesService.list();
       expect(profiles.some(p => p.name === 'Test Profile')).toBe(true);
@@ -145,7 +154,7 @@ describe('IdentityProfilesService', () => {
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         '@AndroidIRCX:identityProfiles',
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -168,7 +177,9 @@ describe('IdentityProfilesService', () => {
       });
 
       const calls = (AsyncStorage.setItem as jest.Mock).mock.calls;
-      const profileCall = calls.find((call: any) => call[0] === '@AndroidIRCX:identityProfiles');
+      const profileCall = calls.find(
+        (call: any) => call[0] === '@AndroidIRCX:identityProfiles',
+      );
       const data = JSON.parse(profileCall[1]);
 
       // Should not contain password in plain storage
@@ -195,7 +206,7 @@ describe('IdentityProfilesService', () => {
 
     it('should throw error for non-existent profile', async () => {
       await expect(
-        identityProfilesService.update('non-existent', { name: 'Test' })
+        identityProfilesService.update('non-existent', { name: 'Test' }),
       ).rejects.toThrow();
     });
 
@@ -269,7 +280,9 @@ describe('IdentityProfilesService', () => {
     });
 
     it('should handle removing non-existent profile', async () => {
-      await expect(identityProfilesService.remove('non-existent')).resolves.not.toThrow();
+      await expect(
+        identityProfilesService.remove('non-existent'),
+      ).resolves.not.toThrow();
     });
 
     it('should allow removing default profile when other profiles exist', async () => {
@@ -301,7 +314,10 @@ describe('IdentityProfilesService', () => {
         },
       ];
 
-      await AsyncStorage.setItem('@AndroidIRCX:identityProfiles', JSON.stringify(oldProfiles));
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:identityProfiles',
+        JSON.stringify(oldProfiles),
+      );
 
       // Trigger load which should migrate
       await identityProfilesService.list();
@@ -310,9 +326,16 @@ describe('IdentityProfilesService', () => {
       expect(secureStorageService.setSecret).toHaveBeenCalled();
 
       // Should have called setSecret for each password field
-      const setSecretCalls = (secureStorageService.setSecret as jest.Mock).mock.calls;
-      expect(setSecretCalls.some((call: any) => call[0].includes('saslPassword'))).toBe(true);
-      expect(setSecretCalls.some((call: any) => call[0].includes('nickservPassword'))).toBe(true);
+      const setSecretCalls = (secureStorageService.setSecret as jest.Mock).mock
+        .calls;
+      expect(
+        setSecretCalls.some((call: any) => call[0].includes('saslPassword')),
+      ).toBe(true);
+      expect(
+        setSecretCalls.some((call: any) =>
+          call[0].includes('nickservPassword'),
+        ),
+      ).toBe(true);
     });
   });
 
@@ -332,7 +355,10 @@ describe('IdentityProfilesService', () => {
     });
 
     it('should handle corrupted storage with default profile fallback', async () => {
-      await AsyncStorage.setItem('@AndroidIRCX:identityProfiles', 'invalid json');
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:identityProfiles',
+        'invalid json',
+      );
 
       const profiles = await identityProfilesService.list();
 
@@ -380,7 +406,7 @@ describe('IdentityProfilesService', () => {
           identityProfilesService.add({
             name: `Profile ${i}`,
             nick: `nick${i}`,
-          })
+          }),
         );
       }
 
@@ -404,7 +430,9 @@ describe('IdentityProfilesService', () => {
 
   describe('storage errors', () => {
     it('should handle AsyncStorage errors during initialization', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
+      (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Storage error'),
+      );
 
       // Should fallback to default profile on error
       const profiles = await identityProfilesService.list();
@@ -412,7 +440,9 @@ describe('IdentityProfilesService', () => {
     });
 
     it('should propagate secure storage errors', async () => {
-      (secureStorageService.setSecret as jest.Mock).mockRejectedValueOnce(new Error('Secure storage error'));
+      (secureStorageService.setSecret as jest.Mock).mockRejectedValueOnce(
+        new Error('Secure storage error'),
+      );
 
       // Service doesn't handle secure storage errors, they bubble up
       await expect(
@@ -420,7 +450,7 @@ describe('IdentityProfilesService', () => {
           name: 'Test',
           nick: 'test',
           saslPassword: 'secret',
-        })
+        }),
       ).rejects.toThrow('Secure storage error');
     });
   });

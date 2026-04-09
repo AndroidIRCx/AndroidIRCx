@@ -99,7 +99,11 @@ describe('QueryCommands', () => {
   describe('handleWHOWAS', () => {
     it('emits set-whowas-target event', () => {
       handleWHOWAS(ctx, ['oldnick'], '#channel');
-      expect(ctx.emit).toHaveBeenCalledWith('set-whowas-target', 'oldnick', expect.any(Number));
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'set-whowas-target',
+        'oldnick',
+        expect.any(Number),
+      );
     });
 
     it('sends WHOWAS with nick', () => {

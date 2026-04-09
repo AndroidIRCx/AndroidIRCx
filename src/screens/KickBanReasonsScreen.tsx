@@ -71,7 +71,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = () => {
             await banService.setPredefinedReasons(updatedReasons);
           },
         },
-      ]
+      ],
     );
   };
 
@@ -87,9 +87,9 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = () => {
     }
 
     const updatedReasons = reasons.map(reason =>
-      reason.id === editingId ? { ...reason, text: editText.trim() } : reason
+      reason.id === editingId ? { ...reason, text: editText.trim() } : reason,
     );
-    
+
     setReasons(updatedReasons);
     await banService.setPredefinedReasons(updatedReasons);
     setEditingId(null);
@@ -116,33 +116,43 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = () => {
             setReasons(defaultReasons);
           },
         },
-      ]
+      ],
     );
   };
 
   const moveReasonUp = async (index: number) => {
     if (index === 0) return; // Already at top
-    
+
     const updatedReasons = [...reasons];
-    [updatedReasons[index], updatedReasons[index - 1]] = 
-      [updatedReasons[index - 1], updatedReasons[index]];
-    
+    [updatedReasons[index], updatedReasons[index - 1]] = [
+      updatedReasons[index - 1],
+      updatedReasons[index],
+    ];
+
     setReasons(updatedReasons);
     await banService.setPredefinedReasons(updatedReasons);
   };
 
   const moveReasonDown = async (index: number) => {
     if (index === reasons.length - 1) return; // Already at bottom
-    
+
     const updatedReasons = [...reasons];
-    [updatedReasons[index], updatedReasons[index + 1]] = 
-      [updatedReasons[index + 1], updatedReasons[index]];
-    
+    [updatedReasons[index], updatedReasons[index + 1]] = [
+      updatedReasons[index + 1],
+      updatedReasons[index],
+    ];
+
     setReasons(updatedReasons);
     await banService.setPredefinedReasons(updatedReasons);
   };
 
-  const renderReason = ({ item, index }: { item: PredefinedReason; index: number }) => (
+  const renderReason = ({
+    item,
+    index,
+  }: {
+    item: PredefinedReason;
+    index: number;
+  }) => (
     <View style={styles.reasonItem}>
       {editingId === item.id ? (
         <View style={styles.editContainer}>
@@ -166,28 +176,28 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = () => {
         <View style={styles.reasonContent}>
           <Text style={styles.reasonText}>{item.text}</Text>
           <View style={styles.reasonActions}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.moveButton]} 
+            <TouchableOpacity
+              style={[styles.actionButton, styles.moveButton]}
               onPress={() => moveReasonUp(index)}
               disabled={index === 0}
             >
               <Text style={styles.actionButtonText}>↑</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.moveButton]} 
+            <TouchableOpacity
+              style={[styles.actionButton, styles.moveButton]}
               onPress={() => moveReasonDown(index)}
               disabled={index === reasons.length - 1}
             >
               <Text style={styles.actionButtonText}>↓</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.editButton]} 
+            <TouchableOpacity
+              style={[styles.actionButton, styles.editButton]}
               onPress={() => startEditing(item)}
             >
               <Text style={styles.actionButtonText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.deleteButton]} 
+            <TouchableOpacity
+              style={[styles.actionButton, styles.deleteButton]}
               onPress={() => deleteReason(item.id)}
             >
               <Text style={styles.actionButtonText}>Delete</Text>
@@ -209,7 +219,7 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = () => {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Predefined Kick/Ban Reasons</Text>
-      
+
       <View style={styles.addContainer}>
         <TextInput
           style={styles.addInput}
@@ -222,15 +232,15 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = () => {
           <Text style={styles.buttonText}>Add Reason</Text>
         </TouchableOpacity>
       </View>
-      
+
       <FlatList
         data={reasons}
         renderItem={renderReason}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         style={styles.list}
         scrollEnabled={false}
       />
-      
+
       <TouchableOpacity style={styles.resetButton} onPress={resetToDefaults}>
         <Text style={styles.resetButtonText}>Reset to Defaults</Text>
       </TouchableOpacity>
@@ -238,137 +248,138 @@ const KickBanReasonsScreen: React.FC<KickBanReasonsScreenProps> = () => {
   );
 };
 
-const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: colors.background,
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: colors.text,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: colors.text,
-  },
-  addContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  addInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: 5,
-    padding: 10,
-    marginRight: 10,
-    backgroundColor: colors.inputBackground,
-    color: colors.inputText,
-  },
-  addButton: {
-    backgroundColor: colors.buttonPrimary,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 5,
-    justifyContent: 'center',
-  },
-  list: {
-    flex: 1,
-  },
-  reasonItem: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 5,
-    padding: 15,
-    marginBottom: 10,
-  },
-  reasonContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  reasonText: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.text,
-  },
-  reasonActions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    marginLeft: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 3,
-  },
-  moveButton: {
-    backgroundColor: colors.buttonSecondary,
-  },
-  editButton: {
-    backgroundColor: colors.accent,
-  },
-  deleteButton: {
-    backgroundColor: colors.error,
-  },
-  actionButtonText: {
-    color: colors.onPrimary,
-    fontSize: 12,
-  },
-  editContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  editInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: 5,
-    padding: 10,
-    marginRight: 10,
-    backgroundColor: colors.inputBackground,
-    color: colors.inputText,
-  },
-  editButtons: {
-    flexDirection: 'row',
-  },
-  saveButton: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 3,
-    marginRight: 5,
-  },
-  cancelButton: {
-    backgroundColor: colors.error,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 3,
-  },
-  buttonText: {
-    color: colors.onPrimary,
-    fontWeight: 'bold',
-  },
-  resetButton: {
-    backgroundColor: colors.warning,
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
-  },
-  resetButtonText: {
-    color: colors.onPrimary,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+      backgroundColor: colors.background,
+    },
+    centered: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      color: colors.text,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 20,
+      textAlign: 'center',
+      color: colors.text,
+    },
+    addContainer: {
+      flexDirection: 'row',
+      marginBottom: 20,
+    },
+    addInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      borderRadius: 5,
+      padding: 10,
+      marginRight: 10,
+      backgroundColor: colors.inputBackground,
+      color: colors.inputText,
+    },
+    addButton: {
+      backgroundColor: colors.buttonPrimary,
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      borderRadius: 5,
+      justifyContent: 'center',
+    },
+    list: {
+      flex: 1,
+    },
+    reasonItem: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 5,
+      padding: 15,
+      marginBottom: 10,
+    },
+    reasonContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    reasonText: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text,
+    },
+    reasonActions: {
+      flexDirection: 'row',
+    },
+    actionButton: {
+      marginLeft: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+      borderRadius: 3,
+    },
+    moveButton: {
+      backgroundColor: colors.buttonSecondary,
+    },
+    editButton: {
+      backgroundColor: colors.accent,
+    },
+    deleteButton: {
+      backgroundColor: colors.error,
+    },
+    actionButtonText: {
+      color: colors.onPrimary,
+      fontSize: 12,
+    },
+    editContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    editInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      borderRadius: 5,
+      padding: 10,
+      marginRight: 10,
+      backgroundColor: colors.inputBackground,
+      color: colors.inputText,
+    },
+    editButtons: {
+      flexDirection: 'row',
+    },
+    saveButton: {
+      backgroundColor: colors.accent,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 3,
+      marginRight: 5,
+    },
+    cancelButton: {
+      backgroundColor: colors.error,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 3,
+    },
+    buttonText: {
+      color: colors.onPrimary,
+      fontWeight: 'bold',
+    },
+    resetButton: {
+      backgroundColor: colors.warning,
+      padding: 15,
+      borderRadius: 5,
+      alignItems: 'center',
+      marginTop: 20,
+      marginBottom: 40,
+    },
+    resetButtonText: {
+      color: colors.onPrimary,
+      fontWeight: 'bold',
+      fontSize: 16,
+    },
+  });
 
 export default KickBanReasonsScreen;

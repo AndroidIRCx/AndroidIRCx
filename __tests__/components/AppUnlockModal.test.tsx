@@ -9,7 +9,9 @@ import { AppUnlockModal } from '../../src/components/AppUnlockModal';
 
 // Mock vector icons
 jest.mock('react-native-vector-icons/FontAwesome5', () => {
-  return ({ name, size, color }: any) => <icon name={name} size={size} color={color} />;
+  return ({ name, size, color }: any) => (
+    <icon name={name} size={size} color={color} />
+  );
 });
 
 // Mock useSettingsSecurity
@@ -73,7 +75,9 @@ describe('AppUnlockModal', () => {
   });
 
   it('should not render PIN input when usePin is false', () => {
-    const { UNSAFE_root } = render(<AppUnlockModal {...defaultProps} usePin={false} />);
+    const { UNSAFE_root } = render(
+      <AppUnlockModal {...defaultProps} usePin={false} />,
+    );
     const textInputs = UNSAFE_root.findAllByType('TextInput');
     expect(textInputs.length).toBe(0);
   });
@@ -84,7 +88,9 @@ describe('AppUnlockModal', () => {
   });
 
   it('should not render biometric button when useBiometric is false', () => {
-    const { queryByText } = render(<AppUnlockModal {...defaultProps} useBiometric={false} />);
+    const { queryByText } = render(
+      <AppUnlockModal {...defaultProps} useBiometric={false} />,
+    );
     expect(queryByText('Use Biometrics')).toBeNull();
   });
 
@@ -100,7 +106,9 @@ describe('AppUnlockModal', () => {
   });
 
   it('should clear pin error before biometric retry', () => {
-    const { getByText } = render(<AppUnlockModal {...defaultProps} pinError="Try again" />);
+    const { getByText } = render(
+      <AppUnlockModal {...defaultProps} pinError="Try again" />,
+    );
     fireEvent.press(getByText('Use Biometrics'));
     expect(defaultProps.onClearPinError).toHaveBeenCalled();
     expect(defaultProps.onBiometricUnlock).toHaveBeenCalledWith(true);
@@ -128,14 +136,14 @@ describe('AppUnlockModal', () => {
 
   it('should show PIN error message when pinError is provided', () => {
     const { getByText } = render(
-      <AppUnlockModal {...defaultProps} pinError="Invalid PIN" />
+      <AppUnlockModal {...defaultProps} pinError="Invalid PIN" />,
     );
     expect(getByText('Invalid PIN')).toBeTruthy();
   });
 
   it('should call onClearPinError when PIN input changes', () => {
     const { UNSAFE_getByType } = render(
-      <AppUnlockModal {...defaultProps} pinError="Invalid PIN" />
+      <AppUnlockModal {...defaultProps} pinError="Invalid PIN" />,
     );
     const textInput = UNSAFE_getByType('TextInput');
     fireEvent.changeText(textInput, '1234');
@@ -148,7 +156,9 @@ describe('AppUnlockModal', () => {
   });
 
   it('should not render kill switch button when onKillSwitch is not provided', () => {
-    const { queryByText } = render(<AppUnlockModal {...defaultProps} onKillSwitch={undefined} />);
+    const { queryByText } = render(
+      <AppUnlockModal {...defaultProps} onKillSwitch={undefined} />,
+    );
     expect(queryByText('Emergency Clear')).toBeNull();
   });
 

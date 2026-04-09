@@ -50,7 +50,7 @@ jest.mock('../../src/stores/tabStore', () => ({
 
 jest.mock('../../src/utils/tabUtils', () => ({
   serverTabId: jest.fn().mockReturnValue('server-test'),
-  sortTabsGrouped: jest.fn().mockImplementation((tabs) => tabs),
+  sortTabsGrouped: jest.fn().mockImplementation(tabs => tabs),
 }));
 
 describe('useServiceHelpers', () => {
@@ -64,13 +64,23 @@ describe('useServiceHelpers', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Set default mock implementations
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [] });
-    require('../../src/utils/tabUtils').serverTabId.mockReturnValue('server-test');
-    require('../../src/utils/tabUtils').sortTabsGrouped.mockImplementation((tabs) => tabs);
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([]);
-    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(null);
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [],
+    });
+    require('../../src/utils/tabUtils').serverTabId.mockReturnValue(
+      'server-test',
+    );
+    require('../../src/utils/tabUtils').sortTabsGrouped.mockImplementation(
+      tabs => tabs,
+    );
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      [],
+    );
+    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(
+      null,
+    );
   });
 
   it('should return helper functions', () => {
@@ -88,9 +98,17 @@ describe('useServiceHelpers', () => {
 
   it('should append server message to existing server tab', () => {
     const mockTabs = [
-      { id: 'server-test', type: 'server', name: 'test', networkId: 'test', messages: [] }
+      {
+        id: 'server-test',
+        type: 'server',
+        name: 'test',
+        networkId: 'test',
+        messages: [],
+      },
     ];
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: mockTabs });
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: mockTabs,
+    });
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -105,15 +123,17 @@ describe('useServiceHelpers', () => {
               text: 'Test message',
               type: 'raw',
               isRaw: true,
-            })
-          ])
-        })
-      ])
+            }),
+          ]),
+        }),
+      ]),
     );
   });
 
   it('should not create a missing server tab when appending a server message', () => {
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [] });
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [],
+    });
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -131,8 +151,8 @@ describe('useServiceHelpers', () => {
 
     expect(mockSetTabs).not.toHaveBeenCalled();
     expect(mockConsoleWarn).toHaveBeenCalledWith(
-      '?? Prevented server message for invalid networkId:', 
-      'Not connected'
+      '?? Prevented server message for invalid networkId:',
+      'Not connected',
     );
 
     mockConsoleWarn.mockRestore();
@@ -147,8 +167,8 @@ describe('useServiceHelpers', () => {
 
     expect(mockSetTabs).not.toHaveBeenCalled();
     expect(mockConsoleWarn).toHaveBeenCalledWith(
-      '?? Prevented server message for invalid networkId:', 
-      ''
+      '?? Prevented server message for invalid networkId:',
+      '',
     );
 
     mockConsoleWarn.mockRestore();
@@ -164,7 +184,9 @@ describe('useServiceHelpers', () => {
 
   it('should get active IRC service from connection manager when active connection exists', () => {
     const mockActiveConnection = { ircService: { mockService: true } };
-    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(mockActiveConnection);
+    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(
+      mockActiveConnection,
+    );
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -178,12 +200,18 @@ describe('useServiceHelpers', () => {
 
     const service = result.current.getActiveUserManagementService();
 
-    expect(service).toBe(require('../../src/services/UserManagementService').userManagementService);
+    expect(service).toBe(
+      require('../../src/services/UserManagementService').userManagementService,
+    );
   });
 
   it('should get active user management service from connection manager when active connection exists', () => {
-    const mockActiveConnection = { userManagementService: { mockService: true } };
-    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(mockActiveConnection);
+    const mockActiveConnection = {
+      userManagementService: { mockService: true },
+    };
+    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(
+      mockActiveConnection,
+    );
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -197,12 +225,16 @@ describe('useServiceHelpers', () => {
 
     const service = result.current.getActiveCommandService();
 
-    expect(service).toBe(require('../../src/services/CommandService').commandService);
+    expect(service).toBe(
+      require('../../src/services/CommandService').commandService,
+    );
   });
 
   it('should get active command service from connection manager when active connection exists', () => {
     const mockActiveConnection = { commandService: { mockService: true } };
-    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(mockActiveConnection);
+    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(
+      mockActiveConnection,
+    );
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -216,12 +248,19 @@ describe('useServiceHelpers', () => {
 
     const service = result.current.getActiveConnectionQualityService();
 
-    expect(service).toBe(require('../../src/services/ConnectionQualityService').connectionQualityService);
+    expect(service).toBe(
+      require('../../src/services/ConnectionQualityService')
+        .connectionQualityService,
+    );
   });
 
   it('should get active connection quality service from connection manager when active connection exists', () => {
-    const mockActiveConnection = { connectionQualityService: { mockService: true } };
-    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(mockActiveConnection);
+    const mockActiveConnection = {
+      connectionQualityService: { mockService: true },
+    };
+    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(
+      mockActiveConnection,
+    );
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -235,12 +274,19 @@ describe('useServiceHelpers', () => {
 
     const service = result.current.getActiveChannelManagementService();
 
-    expect(service).toBe(require('../../src/services/ChannelManagementService').channelManagementService);
+    expect(service).toBe(
+      require('../../src/services/ChannelManagementService')
+        .channelManagementService,
+    );
   });
 
   it('should get active channel management service from connection manager when active connection exists', () => {
-    const mockActiveConnection = { channelManagementService: { mockService: true } };
-    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(mockActiveConnection);
+    const mockActiveConnection = {
+      channelManagementService: { mockService: true },
+    };
+    require('../../src/services/ConnectionManager').connectionManager.getActiveConnection.mockReturnValue(
+      mockActiveConnection,
+    );
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -270,7 +316,9 @@ describe('useServiceHelpers', () => {
       { name: 'Test Network', id: 'test1', servers: [] },
       { name: 'Another Network', id: 'test2', servers: [] },
     ];
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(mockNetworks);
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      mockNetworks,
+    );
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -280,10 +328,10 @@ describe('useServiceHelpers', () => {
   });
 
   it('should return null if network config not found', async () => {
-    const mockNetworks = [
-      { name: 'Test Network', id: 'test1', servers: [] },
-    ];
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(mockNetworks);
+    const mockNetworks = [{ name: 'Test Network', id: 'test1', servers: [] }];
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      mockNetworks,
+    );
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -293,10 +341,10 @@ describe('useServiceHelpers', () => {
   });
 
   it('should find network config by normalized ID', async () => {
-    const mockNetworks = [
-      { name: 'Test Network', id: 'test', servers: [] },
-    ];
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(mockNetworks);
+    const mockNetworks = [{ name: 'Test Network', id: 'test', servers: [] }];
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      mockNetworks,
+    );
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
@@ -315,21 +363,38 @@ describe('useServiceHelpers', () => {
 
   it('should sort tabs when appending server message', () => {
     const mockTabs = [
-      { id: 'server-test', type: 'server', name: 'test', networkId: 'test', messages: [] }
+      {
+        id: 'server-test',
+        type: 'server',
+        name: 'test',
+        networkId: 'test',
+        messages: [],
+      },
     ];
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: mockTabs });
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: mockTabs,
+    });
     const mockSortedTabs = [
-      { id: 'server-test', type: 'server', name: 'test', networkId: 'test', messages: [{ id: 'msg1', text: 'Test message', type: 'raw', isRaw: true }] }
+      {
+        id: 'server-test',
+        type: 'server',
+        name: 'test',
+        networkId: 'test',
+        messages: [
+          { id: 'msg1', text: 'Test message', type: 'raw', isRaw: true },
+        ],
+      },
     ];
-    require('../../src/utils/tabUtils').sortTabsGrouped.mockReturnValue(mockSortedTabs);
+    require('../../src/utils/tabUtils').sortTabsGrouped.mockReturnValue(
+      mockSortedTabs,
+    );
 
     const { result } = renderHook(() => useServiceHelpers(defaultProps));
 
     result.current.appendServerMessage('test', 'Test message');
 
-    expect(require('../../src/utils/tabUtils').sortTabsGrouped).toHaveBeenCalledWith(
-      expect.any(Array),
-      mockTabSortAlphabetical
-    );
+    expect(
+      require('../../src/utils/tabUtils').sortTabsGrouped,
+    ).toHaveBeenCalledWith(expect.any(Array), mockTabSortAlphabetical);
   });
 });

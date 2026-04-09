@@ -46,7 +46,9 @@ jest.mock('../../src/services/SettingsService', () => ({
     }),
     onSettingChange: jest.fn((key: string, cb: any) => {
       settingChangeCallbacks[key] = cb;
-      return jest.fn(() => { delete settingChangeCallbacks[key]; });
+      return jest.fn(() => {
+        delete settingChangeCallbacks[key];
+      });
     }),
   },
 }));
@@ -73,7 +75,10 @@ jest.mock('../../src/services/ScriptingService', () => ({
 import { settingsService } from '../../src/services/SettingsService';
 import { scriptingService } from '../../src/services/ScriptingService';
 
-const flushPromises = () => act(async () => { await new Promise(r => setTimeout(r, 0)); });
+const flushPromises = () =>
+  act(async () => {
+    await new Promise(r => setTimeout(r, 0));
+  });
 
 describe('useUISettings', () => {
   const mockSetAutoSwitchPrivate = jest.fn();
@@ -90,7 +95,9 @@ describe('useUISettings', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    Object.keys(settingChangeCallbacks).forEach(k => delete settingChangeCallbacks[k]);
+    Object.keys(settingChangeCallbacks).forEach(
+      k => delete settingChangeCallbacks[k],
+    );
   });
 
   it('should load raw command settings on mount', async () => {
@@ -98,7 +105,10 @@ describe('useUISettings', () => {
 
     await flushPromises();
 
-    expect(settingsService.getSetting).toHaveBeenCalledWith('showRawCommands', true);
+    expect(settingsService.getSetting).toHaveBeenCalledWith(
+      'showRawCommands',
+      true,
+    );
     expect(mockStore.setShowRawCommands).toHaveBeenCalledWith(true);
   });
 
@@ -112,7 +122,7 @@ describe('useUISettings', () => {
         server: true,
         channel: false, // From saved value
         ctcp: true, // From defaults
-      })
+      }),
     );
   });
 
@@ -132,7 +142,9 @@ describe('useUISettings', () => {
     expect(mockStore.setHideJoinMessages).toHaveBeenCalledWith(true);
     expect(mockStore.setHidePartMessages).toHaveBeenCalledWith(false);
     expect(mockStore.setHideQuitMessages).toHaveBeenCalledWith(true);
-    expect(mockStore.setHideIrcServiceListenerMessages).toHaveBeenCalledWith(false);
+    expect(mockStore.setHideIrcServiceListenerMessages).toHaveBeenCalledWith(
+      false,
+    );
     expect(mockStore.setShowTypingIndicators).toHaveBeenCalledWith(true);
   });
 
@@ -150,12 +162,30 @@ describe('useUISettings', () => {
   it('should subscribe to setting changes', () => {
     renderHook(() => useUISettings(defaultProps));
 
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('hideJoinMessages', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('hidePartMessages', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('hideQuitMessages', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('hideIrcServiceListenerMessages', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('showTypingIndicators', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('autoConnectFavoriteServer', expect.any(Function));
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'hideJoinMessages',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'hidePartMessages',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'hideQuitMessages',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'hideIrcServiceListenerMessages',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'showTypingIndicators',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'autoConnectFavoriteServer',
+      expect.any(Function),
+    );
   });
 
   it('should update hideJoinMessages via setting change listener', () => {
@@ -195,7 +225,9 @@ describe('useUISettings', () => {
       settingChangeCallbacks.hideIrcServiceListenerMessages(true);
     }
 
-    expect(mockStore.setHideIrcServiceListenerMessages).toHaveBeenCalledWith(true);
+    expect(mockStore.setHideIrcServiceListenerMessages).toHaveBeenCalledWith(
+      true,
+    );
   });
 
   it('should update showTypingIndicators via listener', () => {
@@ -232,16 +264,20 @@ describe('useUISettings', () => {
   });
 
   it('should handle defaults when saved category visibility is undefined', async () => {
-    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultVal: any) => {
-      if (key === 'rawCategoryVisibility') return Promise.resolve(undefined);
-      return Promise.resolve(defaultVal);
-    });
+    (settingsService.getSetting as jest.Mock).mockImplementation(
+      (key: string, defaultVal: any) => {
+        if (key === 'rawCategoryVisibility') return Promise.resolve(undefined);
+        return Promise.resolve(defaultVal);
+      },
+    );
 
     renderHook(() => useUISettings(defaultProps));
 
     await flushPromises();
 
     // Should use all defaults
-    expect(mockStore.setRawCategoryVisibility).toHaveBeenCalledWith(mockDefaultVisibility);
+    expect(mockStore.setRawCategoryVisibility).toHaveBeenCalledWith(
+      mockDefaultVisibility,
+    );
   });
 });

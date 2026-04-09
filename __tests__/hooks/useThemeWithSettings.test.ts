@@ -25,7 +25,9 @@ jest.mock('../../src/services/ThemeService', () => ({
     setTheme: jest.fn().mockResolvedValue(null),
     onThemeChange: jest.fn((cb: any) => {
       themeChangeCallback = cb;
-      return jest.fn(() => { themeChangeCallback = null; });
+      return jest.fn(() => {
+        themeChangeCallback = null;
+      });
     }),
     hasRecommendedSettings: jest.fn(() => false),
     getRecommendedSettings: jest.fn(() => undefined),
@@ -117,9 +119,18 @@ describe('useThemeWithSettings', () => {
     });
 
     expect(themeService.setTheme).toHaveBeenCalledWith('light');
-    expect(settingsService.setSetting).toHaveBeenCalledWith('tabPosition', 'bottom');
-    expect(settingsService.setSetting).toHaveBeenCalledWith('layoutType', 'default');
-    expect(settingsService.setSetting).toHaveBeenCalledWith('showTimestamps', true);
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'tabPosition',
+      'bottom',
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'layoutType',
+      'default',
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'showTimestamps',
+      true,
+    );
   });
 
   it('should not apply settings when applySettings is true but no recommended settings', async () => {
@@ -147,7 +158,10 @@ describe('useThemeWithSettings', () => {
       await result.current.setTheme('custom', true);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('bannerPosition', 'tabs_above');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'bannerPosition',
+      'tabs_above',
+    );
   });
 
   it('should normalize below_header to tabs_below', async () => {
@@ -160,7 +174,10 @@ describe('useThemeWithSettings', () => {
       await result.current.setTheme('custom', true);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('bannerPosition', 'tabs_below');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'bannerPosition',
+      'tabs_below',
+    );
   });
 
   it('should normalize bottom to input_below', async () => {
@@ -173,7 +190,10 @@ describe('useThemeWithSettings', () => {
       await result.current.setTheme('custom', true);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('bannerPosition', 'input_below');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'bannerPosition',
+      'input_below',
+    );
   });
 
   it('should pass through already-normalized banner positions', async () => {
@@ -186,7 +206,10 @@ describe('useThemeWithSettings', () => {
       await result.current.setTheme('custom', true);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('bannerPosition', 'input_above');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'bannerPosition',
+      'input_above',
+    );
   });
 
   it('should apply fontSize mapping', async () => {
@@ -207,7 +230,10 @@ describe('useThemeWithSettings', () => {
         await result.current.setTheme('theme-id', true);
       });
 
-      expect(settingsService.setSetting).toHaveBeenCalledWith('layoutType', expected);
+      expect(settingsService.setSetting).toHaveBeenCalledWith(
+        'layoutType',
+        expected,
+      );
     }
   });
 
@@ -237,20 +263,62 @@ describe('useThemeWithSettings', () => {
       await result.current.setTheme('full-theme', true);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('tabPosition', 'top');
-    expect(settingsService.setSetting).toHaveBeenCalledWith('userListSize', 120);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('userListNickFontSize', 14);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('nickListTongueSize', 8);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('messageSpacing', 4);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('messagePadding', 8);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('navigationBarOffset', 10);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('noticeRouting', 'server');
-    expect(settingsService.setSetting).toHaveBeenCalledWith('groupMessages', true);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('messageTextAlignment', 'left');
-    expect(settingsService.setSetting).toHaveBeenCalledWith('messageTextDirection', 'ltr');
-    expect(settingsService.setSetting).toHaveBeenCalledWith('timestampDisplay', 'inline');
-    expect(settingsService.setSetting).toHaveBeenCalledWith('timestampFormat', 'HH:mm');
-    expect(settingsService.setSetting).toHaveBeenCalledWith('keyboardBehavior', 'auto');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'tabPosition',
+      'top',
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'userListSize',
+      120,
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'userListNickFontSize',
+      14,
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'nickListTongueSize',
+      8,
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'messageSpacing',
+      4,
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'messagePadding',
+      8,
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'navigationBarOffset',
+      10,
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'noticeRouting',
+      'server',
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'groupMessages',
+      true,
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'messageTextAlignment',
+      'left',
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'messageTextDirection',
+      'ltr',
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'timestampDisplay',
+      'inline',
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'timestampFormat',
+      'HH:mm',
+    );
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'keyboardBehavior',
+      'auto',
+    );
   });
 
   it('should clean up theme listener on unmount', () => {
@@ -258,7 +326,8 @@ describe('useThemeWithSettings', () => {
 
     unmount();
 
-    const unsubscribeFn = (themeService.onThemeChange as jest.Mock).mock.results[0]?.value;
+    const unsubscribeFn = (themeService.onThemeChange as jest.Mock).mock
+      .results[0]?.value;
     expect(unsubscribeFn).toHaveBeenCalled();
   });
 });

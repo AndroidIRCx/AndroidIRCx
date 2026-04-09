@@ -16,9 +16,13 @@ import type { NumericHandler } from '../types';
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 /** Generic handler for simple extended numerics */
-const createExtendedHandler = (numeric: number, defaultMsg: string = ''): NumericHandler => {
+const createExtendedHandler = (
+  numeric: number,
+  defaultMsg: string = '',
+): NumericHandler => {
   return (ctx, prefix, params, timestamp) => {
-    const message = params.slice(1).join(' ').replace(/^:/, '') || t(defaultMsg);
+    const message =
+      params.slice(1).join(' ').replace(/^:/, '') || t(defaultMsg);
     ctx.addMessage({
       type: 'raw',
       text: t('*** [{numeric}] {message}', { numeric, message }),
@@ -30,9 +34,13 @@ const createExtendedHandler = (numeric: number, defaultMsg: string = ''): Numeri
 };
 
 /** Generic error handler for extended numerics */
-const createExtendedErrorHandler = (numeric: number, defaultMsg: string = ''): NumericHandler => {
+const createExtendedErrorHandler = (
+  numeric: number,
+  defaultMsg: string = '',
+): NumericHandler => {
   return (ctx, prefix, params, timestamp) => {
-    const message = params.slice(1).join(' ').replace(/^:/, '') || t(defaultMsg);
+    const message =
+      params.slice(1).join(' ').replace(/^:/, '') || t(defaultMsg);
     ctx.addMessage({
       type: 'error',
       text: t('[{numeric}] {message}', { numeric, message }),
@@ -91,7 +99,8 @@ export const handle618: NumericHandler = createExtendedHandler(618);
 /** 619 RPL_ENDOFWHOWAS (extended) */
 export const handle619: NumericHandler = (ctx, prefix, params, timestamp) => {
   const nick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('End of WHOWAS');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('End of WHOWAS');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick}: {message}', { nick, message }),
@@ -119,7 +128,8 @@ export const handle629: NumericHandler = createExtendedHandler(629);
 /** 660 RPL_LOGON (extended) */
 export const handle660: NumericHandler = (ctx, prefix, params, timestamp) => {
   const nick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is now online');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('is now online');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick, message }),
@@ -132,7 +142,8 @@ export const handle660: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 661 RPL_LOGOFF (extended) */
 export const handle661: NumericHandler = (ctx, prefix, params, timestamp) => {
   const nick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is now offline');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('is now offline');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick, message }),
@@ -148,13 +159,19 @@ export const handle664: NumericHandler = createExtendedHandler(664);
 export const handle665: NumericHandler = createExtendedHandler(665);
 export const handle666: NumericHandler = createExtendedHandler(666);
 /** 667 ERR_TARGCHANGE - Target change too fast */
-export const handle667: NumericHandler = createExtendedErrorHandler(667, 'Target change too fast');
+export const handle667: NumericHandler = createExtendedErrorHandler(
+  667,
+  'Target change too fast',
+);
 export const handle668: NumericHandler = createExtendedHandler(668);
 export const handle669: NumericHandler = createExtendedHandler(669);
 export const handle672: NumericHandler = createExtendedHandler(672);
 export const handle673: NumericHandler = createExtendedHandler(673);
 /** 674 ERR_CANNOTSETMODES - Cannot set modes */
-export const handle674: NumericHandler = createExtendedErrorHandler(674, 'Cannot set modes');
+export const handle674: NumericHandler = createExtendedErrorHandler(
+  674,
+  'Cannot set modes',
+);
 export const handle675: NumericHandler = createExtendedHandler(675);
 export const handle676: NumericHandler = createExtendedHandler(676);
 export const handle678: NumericHandler = createExtendedHandler(678);
@@ -184,7 +201,8 @@ export const handle709: NumericHandler = createExtendedHandler(709);
 /** 710 RPL_KNOCK - Knock notification */
 export const handle710: NumericHandler = (ctx, prefix, params, timestamp) => {
   const channel = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('has knocked');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('has knocked');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {channel}: {message}', { channel, message }),
@@ -197,16 +215,28 @@ export const handle710: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle711: NumericHandler = createExtendedHandler(711);
 
 /** 712 ERR_TOOMANYKNOCK - Too many knocks */
-export const handle712: NumericHandler = createExtendedErrorHandler(712, 'Too many knocks');
+export const handle712: NumericHandler = createExtendedErrorHandler(
+  712,
+  'Too many knocks',
+);
 
 /** 713 ERR_CHANOPEN - Channel is open (no knocks) */
-export const handle713: NumericHandler = createExtendedErrorHandler(713, 'Channel is open');
+export const handle713: NumericHandler = createExtendedErrorHandler(
+  713,
+  'Channel is open',
+);
 
 /** 714 ERR_KNOCKONCHAN - You are already on the channel */
-export const handle714: NumericHandler = createExtendedErrorHandler(714, 'You are on that channel');
+export const handle714: NumericHandler = createExtendedErrorHandler(
+  714,
+  'You are on that channel',
+);
 
 /** 715 ERR_KNOCKDISABLED - Knock is disabled */
-export const handle715: NumericHandler = createExtendedErrorHandler(715, 'Knock is disabled');
+export const handle715: NumericHandler = createExtendedErrorHandler(
+  715,
+  'Knock is disabled',
+);
 
 export const handle716: NumericHandler = createExtendedHandler(716);
 export const handle717: NumericHandler = createExtendedHandler(717);
@@ -214,7 +244,8 @@ export const handle718: NumericHandler = createExtendedHandler(718);
 
 /** 720 RPL_OMOTDSTART - Operator MOTD start */
 export const handle720: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('Operator MOTD');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('Operator MOTD');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -228,7 +259,10 @@ export const handle721: NumericHandler = createExtendedHandler(721);
 export const handle722: NumericHandler = createExtendedHandler(722);
 
 /** 723 ERR_NOPRIVS - Insufficient privileges */
-export const handle723: NumericHandler = createExtendedErrorHandler(723, 'Insufficient privileges');
+export const handle723: NumericHandler = createExtendedErrorHandler(
+  723,
+  'Insufficient privileges',
+);
 
 export const handle724: NumericHandler = createExtendedHandler(724);
 export const handle725: NumericHandler = createExtendedHandler(725);
@@ -253,13 +287,22 @@ export const handle740: NumericHandler = createExtendedHandler(740);
 export const handle741: NumericHandler = createExtendedHandler(741);
 
 /** 742 ERR_MLOCKRESTRICTED - Mode lock restricted */
-export const handle742: NumericHandler = createExtendedErrorHandler(742, 'Mode lock restricted');
+export const handle742: NumericHandler = createExtendedErrorHandler(
+  742,
+  'Mode lock restricted',
+);
 
 /** 743 ERR_INVALIDBAN - Invalid ban mask */
-export const handle743: NumericHandler = createExtendedErrorHandler(743, 'Invalid ban mask');
+export const handle743: NumericHandler = createExtendedErrorHandler(
+  743,
+  'Invalid ban mask',
+);
 
 /** 744 ERR_TOPICLOCK - Topic is locked */
-export const handle744: NumericHandler = createExtendedErrorHandler(744, 'Topic is locked');
+export const handle744: NumericHandler = createExtendedErrorHandler(
+  744,
+  'Topic is locked',
+);
 
 export const handle750: NumericHandler = createExtendedHandler(750);
 export const handle751: NumericHandler = createExtendedHandler(751);
@@ -270,22 +313,40 @@ export const handle761: NumericHandler = createExtendedHandler(761);
 export const handle762: NumericHandler = createExtendedHandler(762);
 
 /** 764 ERR_METADATALIMIT - Metadata limit reached */
-export const handle764: NumericHandler = createExtendedErrorHandler(764, 'Metadata limit reached');
+export const handle764: NumericHandler = createExtendedErrorHandler(
+  764,
+  'Metadata limit reached',
+);
 
 /** 765 ERR_TARGETINVALID - Invalid target */
-export const handle765: NumericHandler = createExtendedErrorHandler(765, 'Invalid target');
+export const handle765: NumericHandler = createExtendedErrorHandler(
+  765,
+  'Invalid target',
+);
 
 /** 766 ERR_NOMATCHINGKEY - No matching key */
-export const handle766: NumericHandler = createExtendedErrorHandler(766, 'No matching key');
+export const handle766: NumericHandler = createExtendedErrorHandler(
+  766,
+  'No matching key',
+);
 
 /** 767 ERR_KEYINVALID - Invalid key */
-export const handle767: NumericHandler = createExtendedErrorHandler(767, 'Invalid key');
+export const handle767: NumericHandler = createExtendedErrorHandler(
+  767,
+  'Invalid key',
+);
 
 /** 768 ERR_KEYNOTSET - Key not set */
-export const handle768: NumericHandler = createExtendedErrorHandler(768, 'Key not set');
+export const handle768: NumericHandler = createExtendedErrorHandler(
+  768,
+  'Key not set',
+);
 
 /** 769 ERR_KEYNOPERMISSION - No permission for key */
-export const handle769: NumericHandler = createExtendedErrorHandler(769, 'No permission for key');
+export const handle769: NumericHandler = createExtendedErrorHandler(
+  769,
+  'No permission for key',
+);
 
 export const handle770: NumericHandler = createExtendedHandler(770);
 export const handle771: NumericHandler = createExtendedHandler(771);
@@ -302,7 +363,10 @@ export const handle913: NumericHandler = createExtendedHandler(913);
 export const handle914: NumericHandler = createExtendedHandler(914);
 
 /** 915 ERR_ACCESSDENIED - Access denied */
-export const handle915: NumericHandler = createExtendedErrorHandler(915, 'Access denied');
+export const handle915: NumericHandler = createExtendedErrorHandler(
+  915,
+  'Access denied',
+);
 
 export const handle920: NumericHandler = createExtendedHandler(920);
 export const handle921: NumericHandler = createExtendedHandler(921);
@@ -310,23 +374,38 @@ export const handle922: NumericHandler = createExtendedHandler(922);
 export const handle923: NumericHandler = createExtendedHandler(923);
 
 /** 936 ERR_CENSORED - Text is censored */
-export const handle936: NumericHandler = createExtendedErrorHandler(936, 'Text is censored');
+export const handle936: NumericHandler = createExtendedErrorHandler(
+  936,
+  'Text is censored',
+);
 
 export const handle940: NumericHandler = createExtendedHandler(940);
 export const handle941: NumericHandler = createExtendedHandler(941);
 export const handle942: NumericHandler = createExtendedHandler(942);
 
 /** 972 ERR_CANNOTDOCOMMAND - Cannot do command */
-export const handle972: NumericHandler = createExtendedErrorHandler(972, 'Cannot execute command');
+export const handle972: NumericHandler = createExtendedErrorHandler(
+  972,
+  'Cannot execute command',
+);
 
 /** 973 ERR_CANNOTCHANGENICK - Cannot change nick */
-export const handle973: NumericHandler = createExtendedErrorHandler(973, 'Cannot change nickname');
+export const handle973: NumericHandler = createExtendedErrorHandler(
+  973,
+  'Cannot change nickname',
+);
 
 /** 974 ERR_CANNOTDEOP - Cannot deop */
-export const handle974: NumericHandler = createExtendedErrorHandler(974, 'Cannot deop');
+export const handle974: NumericHandler = createExtendedErrorHandler(
+  974,
+  'Cannot deop',
+);
 
 /** 975 ERR_ISREALSERVICE - Is a real service */
-export const handle975: NumericHandler = createExtendedErrorHandler(975, 'Is a real service');
+export const handle975: NumericHandler = createExtendedErrorHandler(
+  975,
+  'Is a real service',
+);
 
 export const handle998: NumericHandler = createExtendedHandler(998);
 export const handle999: NumericHandler = createExtendedHandler(999);

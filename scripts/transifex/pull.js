@@ -11,7 +11,10 @@ if (!env.TRANSIFEX_TOKEN || !env.TRANSIFEX_SECRET) {
   process.exit(0);
 }
 
-const cliPath = path.resolve(__dirname, '../../node_modules/@transifex/cli/bin/run');
+const cliPath = path.resolve(
+  __dirname,
+  '../../node_modules/@transifex/cli/bin/run',
+);
 const outDir = path.resolve(__dirname, '../../src/i18n/translations');
 
 // Preserve the manually maintained Serbian translation file across pulls.
@@ -25,7 +28,10 @@ if (hasSr) {
 let result;
 try {
   const args = ['pull', '--pretty', '-f', outDir];
-  result = spawnSync(process.execPath, [cliPath, ...args], { stdio: 'inherit', env });
+  result = spawnSync(process.execPath, [cliPath, ...args], {
+    stdio: 'inherit',
+    env,
+  });
   if (result.error) {
     console.error(result.error.message);
   }
@@ -38,9 +44,15 @@ try {
   // Merge missing keys from en.json into sr.json (without overwriting existing translations).
   const mergeScript = path.join(__dirname, 'merge-missing-keys.js');
   if (fs.existsSync(mergeScript)) {
-    const mergeResult = spawnSync(process.execPath, [mergeScript], { stdio: 'inherit', cwd: path.resolve(__dirname, '../..') });
+    const mergeResult = spawnSync(process.execPath, [mergeScript], {
+      stdio: 'inherit',
+      cwd: path.resolve(__dirname, '../..'),
+    });
     if (mergeResult.status !== 0) {
-      console.warn('merge-missing-keys.js failed (status %s)', mergeResult.status);
+      console.warn(
+        'merge-missing-keys.js failed (status %s)',
+        mergeResult.status,
+      );
     }
   }
 }

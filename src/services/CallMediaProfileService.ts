@@ -20,10 +20,34 @@ import type {
 } from '../types/callMedia';
 
 const VIDEO_PRESETS: Record<CallVideoQuality, CallVideoPreset> = {
-  '480p': { quality: '480p', width: 640, height: 480, frameRate: 24, maxBitrate: 900_000 },
-  '720p': { quality: '720p', width: 1280, height: 720, frameRate: 30, maxBitrate: 1_800_000 },
-  '1080p': { quality: '1080p', width: 1920, height: 1080, frameRate: 30, maxBitrate: 3_200_000 },
-  '1440p': { quality: '1440p', width: 2560, height: 1440, frameRate: 30, maxBitrate: 5_000_000 },
+  '480p': {
+    quality: '480p',
+    width: 640,
+    height: 480,
+    frameRate: 24,
+    maxBitrate: 900_000,
+  },
+  '720p': {
+    quality: '720p',
+    width: 1280,
+    height: 720,
+    frameRate: 30,
+    maxBitrate: 1_800_000,
+  },
+  '1080p': {
+    quality: '1080p',
+    width: 1920,
+    height: 1080,
+    frameRate: 30,
+    maxBitrate: 3_200_000,
+  },
+  '1440p': {
+    quality: '1440p',
+    width: 2560,
+    height: 1440,
+    frameRate: 30,
+    maxBitrate: 5_000_000,
+  },
 };
 
 class CallMediaProfileService {
@@ -31,13 +55,15 @@ class CallMediaProfileService {
     return Array.from(new Set(urls.map(url => url.trim()).filter(Boolean)));
   }
 
-  private normalizeTurnSettings(config: CallTurnServerSettings): CallTurnServerSettings {
+  private normalizeTurnSettings(
+    config: CallTurnServerSettings,
+  ): CallTurnServerSettings {
     const urls = Array.from(
       new Set(
         config.urls
           .map(url => url.trim())
-          .filter(url => url.startsWith('turn:') || url.startsWith('turns:'))
-      )
+          .filter(url => url.startsWith('turn:') || url.startsWith('turns:')),
+      ),
     );
 
     return {
@@ -49,7 +75,12 @@ class CallMediaProfileService {
   }
 
   private isCustomTurnUsable(config: CallTurnServerSettings): boolean {
-    return config.enabled && config.urls.length > 0 && config.username.length > 0 && config.credential.length > 0;
+    return (
+      config.enabled &&
+      config.urls.length > 0 &&
+      config.username.length > 0 &&
+      config.credential.length > 0
+    );
   }
 
   getCapabilityProfile(): CallMediaCapabilityProfile {
@@ -86,7 +117,9 @@ class CallMediaProfileService {
     return this.getCapabilityProfile().allowedVideoQualities;
   }
 
-  clampVideoQuality(requested: CallVideoQuality | null | undefined): CallVideoQuality {
+  clampVideoQuality(
+    requested: CallVideoQuality | null | undefined,
+  ): CallVideoQuality {
     const profile = this.getCapabilityProfile();
     if (requested && profile.allowedVideoQualities.includes(requested)) {
       return requested;
@@ -94,7 +127,9 @@ class CallMediaProfileService {
     return profile.defaultVideoQuality;
   }
 
-  getVideoPreset(requested: CallVideoQuality | null | undefined): CallVideoPreset {
+  getVideoPreset(
+    requested: CallVideoQuality | null | undefined,
+  ): CallVideoPreset {
     return VIDEO_PRESETS[this.clampVideoQuality(requested)];
   }
 
@@ -106,24 +141,29 @@ class CallMediaProfileService {
   }): Promise<CallRtcSessionConfig> {
     const profile = this.getCapabilityProfile();
     const selectedVideoPreset = this.getVideoPreset(options?.quality);
-    const [freeStunServers, rawCustomTurnSettings, forceRelayOnly] = await Promise.all([
-      mediaSettingsService.getCallStunServers().catch(() => [
-        ...DEFAULT_FREE_CALL_STUN_SERVERS,
-        ...DEFAULT_PRIVACY_RELAY_TURN_SERVER.stunUrls,
-      ]),
-      mediaSettingsService.getCallTurnServerConfig().catch(() => ({
-        enabled: false,
-        urls: [],
-        username: '',
-        credential: '',
-      })),
-      mediaSettingsService.getCallForceRelayOnly().catch(() => false),
-    ]);
+    const [freeStunServers, rawCustomTurnSettings, forceRelayOnly] =
+      await Promise.all([
+        mediaSettingsService
+          .getCallStunServers()
+          .catch(() => [
+            ...DEFAULT_FREE_CALL_STUN_SERVERS,
+            ...DEFAULT_PRIVACY_RELAY_TURN_SERVER.stunUrls,
+          ]),
+        mediaSettingsService.getCallTurnServerConfig().catch(() => ({
+          enabled: false,
+          urls: [],
+          username: '',
+          credential: '',
+        })),
+        mediaSettingsService.getCallForceRelayOnly().catch(() => false),
+      ]);
     const stunUrls = this.normalizeStunUrls([
       ...freeStunServers,
       ...DEFAULT_PRIVACY_RELAY_TURN_SERVER.stunUrls,
     ]);
-    const customTurnSettings = this.normalizeTurnSettings(rawCustomTurnSettings);
+    const customTurnSettings = this.normalizeTurnSettings(
+      rawCustomTurnSettings,
+    );
 
     if (this.isCustomTurnUsable(customTurnSettings)) {
       return {
@@ -164,13 +204,18 @@ class CallMediaProfileService {
       null;
 
     if (!purchaseToken) {
-      throw new Error('Active Privacy Relay subscription is missing a purchase token.');
+      throw new Error(
+        'Active Privacy Relay subscription is missing a purchase token.',
+      );
     }
 
-    const credentials = await privacyRelayService.fetchTurnCredentials(purchaseToken, {
-      callId: options?.callId,
-      deviceId: options?.deviceId,
-    });
+    const credentials = await privacyRelayService.fetchTurnCredentials(
+      purchaseToken,
+      {
+        callId: options?.callId,
+        deviceId: options?.deviceId,
+      },
+    );
 
     return {
       relayEnabled: true,

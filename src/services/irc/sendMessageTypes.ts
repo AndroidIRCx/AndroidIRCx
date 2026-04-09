@@ -19,7 +19,9 @@ export interface SendMessageContext {
   sendCommand: (command: string) => void;
 
   // Message display
-  addMessage: (message: Partial<IRCMessage> & { type: string; timestamp: number }) => void;
+  addMessage: (
+    message: Partial<IRCMessage> & { type: string; timestamp: number },
+  ) => void;
 
   // Events
   emit: (event: string, ...args: any[]) => void;

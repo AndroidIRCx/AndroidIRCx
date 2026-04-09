@@ -13,7 +13,7 @@ export const useLayoutConfig = () => {
     let mounted = true;
     let receivedChange = false;
 
-    const unsubscribe = layoutService.onConfigChange((config) => {
+    const unsubscribe = layoutService.onConfigChange(config => {
       if (mounted) {
         receivedChange = true;
         setLayoutConfig(config);

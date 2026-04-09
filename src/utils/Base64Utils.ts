@@ -12,7 +12,12 @@ const isMostlyPrintable = (value: string): boolean => {
   let printable = 0;
   for (let i = 0; i < value.length; i++) {
     const code = value.charCodeAt(i);
-    if (code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126)) {
+    if (
+      code === 9 ||
+      code === 10 ||
+      code === 13 ||
+      (code >= 32 && code <= 126)
+    ) {
       printable++;
     }
   }

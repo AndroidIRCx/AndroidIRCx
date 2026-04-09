@@ -10,7 +10,9 @@ jest.unmock('../../src/services/ThemeService');
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    getItem: jest.fn(async (key: string) => (mockStorage.has(key) ? mockStorage.get(key)! : null)),
+    getItem: jest.fn(async (key: string) =>
+      mockStorage.has(key) ? mockStorage.get(key)! : null,
+    ),
     setItem: jest.fn(async (key: string, value: string) => {
       mockStorage.set(key, value);
     }),
@@ -48,7 +50,9 @@ describe('ThemeService', () => {
     await themeService.setTheme('light');
 
     expect(themeService.getCurrentTheme().id).toBe('light');
-    expect(themeService.getColor('background')).toBe(themeService.getCurrentTheme().colors.background);
+    expect(themeService.getColor('background')).toBe(
+      themeService.getCurrentTheme().colors.background,
+    );
     expect(listener).toHaveBeenCalled();
     expect(mockStorage.get('@AndroidIRCX:currentTheme')).toBe('light');
 
@@ -80,22 +84,28 @@ describe('ThemeService', () => {
     expect(parsed.version).toBe(1);
     expect(parsed.theme.name).toBeTruthy();
 
-    const imported = await themeService.importTheme(JSON.stringify({
-      theme: {
-        name: 'Imported Theme',
-        colors: {
-          background: '#000000',
-          surface: '#111111',
-          text: '#ffffff',
-          primary: '#00ff00',
-          messageText: '#ffffff',
+    const imported = await themeService.importTheme(
+      JSON.stringify({
+        theme: {
+          name: 'Imported Theme',
+          colors: {
+            background: '#000000',
+            surface: '#111111',
+            text: '#ffffff',
+            primary: '#00ff00',
+            messageText: '#ffffff',
+          },
         },
-      },
-    }));
+      }),
+    );
     expect(imported.success).toBe(true);
     expect(imported.theme?.isCustom).toBe(true);
 
-    const missing = await themeService.importTheme(JSON.stringify({ theme: { name: 'Bad', colors: { background: '#000' } } }));
+    const missing = await themeService.importTheme(
+      JSON.stringify({
+        theme: { name: 'Bad', colors: { background: '#000' } },
+      }),
+    );
     expect(missing.success).toBe(false);
     expect(missing.error).toContain('missing required color');
 
@@ -122,6 +132,8 @@ describe('ThemeService', () => {
 
     expect(themeService.getCurrentTheme().id).toBe('custom_x');
     expect(themeService.getColors().background).toBe('#ffffff');
-    expect(themeService.getAvailableThemes().some((t) => t.id === 'custom_x')).toBe(true);
+    expect(
+      themeService.getAvailableThemes().some(t => t.id === 'custom_x'),
+    ).toBe(true);
   });
 });

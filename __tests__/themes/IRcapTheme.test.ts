@@ -198,7 +198,7 @@ describe('Themes - IRcapTheme', () => {
     it('should have format parts with type and value', () => {
       const format = IRCAP_THEME.messageFormats?.message;
       expect(format).toBeDefined();
-      
+
       if (format && format.length > 0) {
         format.forEach(part => {
           expect(part).toHaveProperty('type');
@@ -210,12 +210,12 @@ describe('Themes - IRcapTheme', () => {
 
     it('should have format parts with optional style property', () => {
       const format = IRCAP_THEME.messageFormats?.message;
-      
+
       if (format && format.length > 0) {
         const partsWithStyle = format.filter(part => part.style !== undefined);
         // IRcap theme has styled parts
         expect(partsWithStyle.length).toBeGreaterThan(0);
-        
+
         partsWithStyle.forEach(part => {
           expect(typeof part.style).toBe('object');
         });
@@ -244,7 +244,9 @@ describe('Themes - IRcapTheme', () => {
 
       requiredColors.forEach(color => {
         expect(IRCAP_THEME.colors).toHaveProperty(color);
-        expect(typeof IRCAP_THEME.colors[color as keyof typeof IRCAP_THEME.colors]).toBe('string');
+        expect(
+          typeof IRCAP_THEME.colors[color as keyof typeof IRCAP_THEME.colors],
+        ).toBe('string');
       });
     });
 

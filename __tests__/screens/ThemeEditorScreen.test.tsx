@@ -97,8 +97,9 @@ jest.mock('../../src/i18n/transifex', () => ({
       return key;
     }
     return Object.entries(params).reduce(
-      (result, [paramKey, value]) => result.replace(`{${paramKey}}`, String(value)),
-      key
+      (result, [paramKey, value]) =>
+        result.replace(`{${paramKey}}`, String(value)),
+      key,
     );
   },
 }));
@@ -124,7 +125,9 @@ jest.mock('../../src/screens/MessageFormatEditorScreen', () => ({
     return visible ? (
       <>
         <Text>Mock Message Format Editor</Text>
-        <Text onPress={() => onSave({ privmsg: '[{nick}] {message}' })}>Save Message Formats</Text>
+        <Text onPress={() => onSave({ privmsg: '[{nick}] {message}' })}>
+          Save Message Formats
+        </Text>
         <Text onPress={onCancel}>Cancel Message Formats</Text>
       </>
     ) : null;
@@ -148,7 +151,11 @@ describe('ThemeEditorScreen', () => {
 
   it('renders nothing when hidden', () => {
     const { queryByText } = render(
-      <ThemeEditorScreen visible={false} onClose={jest.fn()} onSave={jest.fn()} />
+      <ThemeEditorScreen
+        visible={false}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />,
     );
 
     expect(queryByText('New Theme')).toBeNull();
@@ -158,19 +165,25 @@ describe('ThemeEditorScreen', () => {
     const onSave = jest.fn();
     const onClose = jest.fn();
     const { findByPlaceholderText, findByText } = render(
-      <ThemeEditorScreen visible onClose={onClose} onSave={onSave} />
+      <ThemeEditorScreen visible onClose={onClose} onSave={onSave} />,
     );
 
-    fireEvent.changeText(await findByPlaceholderText('Enter theme name'), 'Night Sky');
+    fireEvent.changeText(
+      await findByPlaceholderText('Enter theme name'),
+      'Night Sky',
+    );
     fireEvent.press(await findByText('Save'));
 
     await waitFor(() => {
-      expect(themeService.createCustomTheme).toHaveBeenCalledWith('Night Sky', 'dark');
+      expect(themeService.createCustomTheme).toHaveBeenCalledWith(
+        'Night Sky',
+        'dark',
+      );
       expect(onSave).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'new-theme',
           colors: mockTheme.colors,
-        })
+        }),
       );
     });
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -178,18 +191,26 @@ describe('ThemeEditorScreen', () => {
 
   it('validates missing theme name', async () => {
     const { findByText } = render(
-      <ThemeEditorScreen visible onClose={jest.fn()} onSave={jest.fn()} />
+      <ThemeEditorScreen visible onClose={jest.fn()} onSave={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Save'));
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Please enter a theme name');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Please enter a theme name',
+    );
   });
 
   it('updates an existing theme', async () => {
     const onSave = jest.fn();
     const { findByDisplayValue, findByText } = render(
-      <ThemeEditorScreen visible theme={mockTheme as any} onClose={jest.fn()} onSave={onSave} />
+      <ThemeEditorScreen
+        visible
+        theme={mockTheme as any}
+        onClose={jest.fn()}
+        onSave={onSave}
+      />,
     );
 
     fireEvent.changeText(await findByDisplayValue('Ocean'), 'Ocean 2');
@@ -201,7 +222,7 @@ describe('ThemeEditorScreen', () => {
         expect.objectContaining({
           name: 'Ocean 2',
           colors: mockTheme.colors,
-        })
+        }),
       );
     });
   });
@@ -209,7 +230,12 @@ describe('ThemeEditorScreen', () => {
   it('opens message format editor and saves custom formats', async () => {
     const onSave = jest.fn();
     const { findByText } = render(
-      <ThemeEditorScreen visible theme={mockTheme as any} onClose={jest.fn()} onSave={onSave} />
+      <ThemeEditorScreen
+        visible
+        theme={mockTheme as any}
+        onClose={jest.fn()}
+        onSave={onSave}
+      />,
     );
 
     fireEvent.press(await findByText('Edit format'));
@@ -221,7 +247,7 @@ describe('ThemeEditorScreen', () => {
         'custom-1',
         expect.objectContaining({
           messageFormats: { privmsg: '[{nick}] {message}' },
-        })
+        }),
       );
     });
   });
@@ -229,7 +255,12 @@ describe('ThemeEditorScreen', () => {
   it('edits a color with the picker', async () => {
     const onSave = jest.fn();
     const { UNSAFE_getAllByType, findByText, findByPlaceholderText } = render(
-      <ThemeEditorScreen visible theme={mockTheme as any} onClose={jest.fn()} onSave={onSave} />
+      <ThemeEditorScreen
+        visible
+        theme={mockTheme as any}
+        onClose={jest.fn()}
+        onSave={onSave}
+      />,
     );
 
     fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[3]);
@@ -244,14 +275,19 @@ describe('ThemeEditorScreen', () => {
           colors: expect.objectContaining({
             background: '#123456',
           }),
-        })
+        }),
       );
     });
   });
 
   it('shows invalid color alert for bad hex input', async () => {
     const { UNSAFE_getAllByType, findByText, findByPlaceholderText } = render(
-      <ThemeEditorScreen visible theme={mockTheme as any} onClose={jest.fn()} onSave={jest.fn()} />
+      <ThemeEditorScreen
+        visible
+        theme={mockTheme as any}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />,
     );
 
     fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[3]);
@@ -260,7 +296,7 @@ describe('ThemeEditorScreen', () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Invalid Color',
-      'Please enter a valid hex color (e.g., #FF0000) or rgba value'
+      'Please enter a valid hex color (e.g., #FF0000) or rgba value',
     );
   });
 });

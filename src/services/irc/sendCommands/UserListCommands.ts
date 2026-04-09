@@ -10,18 +10,23 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { SendMessageHandler, SendMessageHandlerRegistry } from '../sendMessageTypes';
+import type {
+  SendMessageHandler,
+  SendMessageHandlerRegistry,
+} from '../sendMessageTypes';
 import { UserListType } from '../../UserManagementService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 // Helper to parse nick and optional channel from args
-const parseNickAndChannel = (args: string[]): { nick: string; channel?: string } | null => {
+const parseNickAndChannel = (
+  args: string[],
+): { nick: string; channel?: string } | null => {
   if (args.length === 0) return null;
-  
+
   const nick = args[0];
   let channel: string | undefined;
-  
+
   // Check for channel in remaining args
   for (let i = 1; i < args.length; i++) {
     const arg = args[i];
@@ -30,7 +35,7 @@ const parseNickAndChannel = (args: string[]): { nick: string; channel?: string }
       break;
     }
   }
-  
+
   return { nick, channel };
 };
 
@@ -39,15 +44,22 @@ const addToList = async (
   ctx: any,
   listType: UserListType,
   nick: string,
-  channel?: string
+  channel?: string,
 ) => {
   const userMgmt = ctx.getUserManagementService();
   const network = ctx.getNetworkName();
   const channels = channel ? [channel] : undefined;
   const mask = nick.includes('!') ? nick : `${nick}!*@*`;
-  
+
   // Check if already exists
-  const existing = userMgmt.findMatchingUserListEntry(listType, nick, undefined, undefined, network, channel);
+  const existing = userMgmt.findMatchingUserListEntry(
+    listType,
+    nick,
+    undefined,
+    undefined,
+    network,
+    channel,
+  );
   if (existing) {
     ctx.addMessage({
       type: 'error',
@@ -56,13 +68,13 @@ const addToList = async (
     });
     return;
   }
-  
+
   await userMgmt.addUserListEntry(listType, mask, {
     network,
     channels,
     protected: listType === 'other', // Protected users go to 'other' list with protected flag
   });
-  
+
   const listName = listType === 'other' ? 'protected' : listType;
   ctx.addMessage({
     type: 'notice',
@@ -75,19 +87,20 @@ const addToList = async (
 const removeFromList = async (
   ctx: any,
   listType: UserListType,
-  nick: string
+  nick: string,
 ) => {
   const userMgmt = ctx.getUserManagementService();
   const network = ctx.getNetworkName();
   const mask = nick.includes('!') ? nick : `${nick}!*@*`;
-  
+
   // Try to find and remove the entry
   const entries = userMgmt.getUserListEntries(listType, network);
-  const matchingEntry = entries.find((e: { mask: string }) => 
-    e.mask.toLowerCase() === mask.toLowerCase() || 
-    e.mask.toLowerCase().startsWith(nick.toLowerCase() + '!')
+  const matchingEntry = entries.find(
+    (e: { mask: string }) =>
+      e.mask.toLowerCase() === mask.toLowerCase() ||
+      e.mask.toLowerCase().startsWith(nick.toLowerCase() + '!'),
   );
-  
+
   if (!matchingEntry) {
     ctx.addMessage({
       type: 'error',
@@ -96,9 +109,9 @@ const removeFromList = async (
     });
     return;
   }
-  
+
   await userMgmt.removeUserListEntry(listType, matchingEntry.mask, network);
-  
+
   const listName = listType === 'other' ? 'protected' : listType;
   ctx.addMessage({
     type: 'notice',
@@ -118,7 +131,7 @@ export const handleNOTIFY: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   await addToList(ctx, 'notify', parsed.nick, parsed.channel);
 };
 
@@ -132,7 +145,7 @@ export const handleUNNOTIFY: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   await removeFromList(ctx, 'notify', args[0]);
 };
 
@@ -147,7 +160,7 @@ export const handleAUTOOP: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   await addToList(ctx, 'autoop', parsed.nick, parsed.channel);
 };
 
@@ -161,7 +174,7 @@ export const handleUNAUTOOP: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   await removeFromList(ctx, 'autoop', args[0]);
 };
 
@@ -176,7 +189,7 @@ export const handleAUTOVOICE: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   await addToList(ctx, 'autovoice', parsed.nick, parsed.channel);
 };
 
@@ -190,7 +203,7 @@ export const handleUNAUTOVOICE: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   await removeFromList(ctx, 'autovoice', args[0]);
 };
 
@@ -205,7 +218,7 @@ export const handleAUTOHALFOP: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   await addToList(ctx, 'autohalfop', parsed.nick, parsed.channel);
 };
 
@@ -219,7 +232,7 @@ export const handleUNAUTOHALFOP: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   await removeFromList(ctx, 'autohalfop', args[0]);
 };
 
@@ -234,14 +247,21 @@ export const handlePROTECT: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   const userMgmt = ctx.getUserManagementService();
   const network = ctx.getNetworkName();
   const channels = parsed.channel ? [parsed.channel] : undefined;
   const mask = parsed.nick.includes('!') ? parsed.nick : `${parsed.nick}!*@*`;
-  
+
   // Check if already protected
-  const existing = userMgmt.findMatchingUserListEntry('other', parsed.nick, undefined, undefined, network, parsed.channel);
+  const existing = userMgmt.findMatchingUserListEntry(
+    'other',
+    parsed.nick,
+    undefined,
+    undefined,
+    network,
+    parsed.channel,
+  );
   if (existing?.protected) {
     ctx.addMessage({
       type: 'error',
@@ -250,14 +270,14 @@ export const handlePROTECT: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   await userMgmt.addUserListEntry('other', mask, {
     network,
     channels,
     protected: true,
     reason: 'Protected user',
   });
-  
+
   ctx.addMessage({
     type: 'notice',
     text: t('*** Added {nick} to protected list', { nick: parsed.nick }),
@@ -275,7 +295,7 @@ export const handleUNPROTECT: SendMessageHandler = async (ctx, args) => {
     });
     return;
   }
-  
+
   const nick = args[0];
   await removeFromList(ctx, 'other', nick);
 };
@@ -283,14 +303,24 @@ export const handleUNPROTECT: SendMessageHandler = async (ctx, args) => {
 // USERLISTS - Open user lists screen
 export const handleUSERLISTS: SendMessageHandler = (ctx, args) => {
   const tab = args[0]?.toLowerCase() as UserListType | 'blacklist' | undefined;
-  const validTabs = ['notify', 'ignore', 'autoop', 'autovoice', 'autohalfop', 'blacklist', 'other'];
-  
+  const validTabs = [
+    'notify',
+    'ignore',
+    'autoop',
+    'autovoice',
+    'autohalfop',
+    'blacklist',
+    'other',
+  ];
+
   const { useUIStore } = require('../../../stores/uiStore');
   const uiStore = useUIStore.getState();
-  
-  uiStore.setUserListsInitialTab(tab && validTabs.includes(tab) ? tab : 'notify');
+
+  uiStore.setUserListsInitialTab(
+    tab && validTabs.includes(tab) ? tab : 'notify',
+  );
   uiStore.setShowUserLists(true);
-  
+
   ctx.addMessage({
     type: 'notice',
     text: t('*** Opening user lists...'),

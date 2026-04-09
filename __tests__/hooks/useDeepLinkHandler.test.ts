@@ -23,7 +23,6 @@ jest.mock('../../src/services/SettingsService', () => ({
   },
 }));
 
-
 describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -68,14 +67,21 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
         },
       ];
 
-      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(connections);
+      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(
+        connections,
+      );
 
       const parsed = parseIRCUrl('ircs://irc.dbase.in.rs:6697');
       const normalizedServer = parsed.server.toLowerCase();
 
       const existingConnection = connections.find(context => {
-        const normalizedNetworkId = context.networkId.toLowerCase().replace(/\s*\(\d+\)$/, '');
-        return normalizedNetworkId === normalizedServer && context.ircService.getConnectionStatus();
+        const normalizedNetworkId = context.networkId
+          .toLowerCase()
+          .replace(/\s*\(\d+\)$/, '');
+        return (
+          normalizedNetworkId === normalizedServer &&
+          context.ircService.getConnectionStatus()
+        );
       });
 
       expect(existingConnection).toBeDefined();
@@ -109,7 +115,9 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
         },
       ];
 
-      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(connections);
+      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(
+        connections,
+      );
       (settingsService.loadNetworks as jest.Mock).mockResolvedValue(networks);
 
       const parsed = parseIRCUrl('ircs://irc.dbase.in.rs:6697');
@@ -123,11 +131,19 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
         const isConnected = context.ircService.getConnectionStatus();
         if (!isConnected) continue;
 
-        const network = networksForCheck.find(n => n.name === context.networkId || n.id === context.networkId);
+        const network = networksForCheck.find(
+          n => n.name === context.networkId || n.id === context.networkId,
+        );
         if (network && network.servers) {
           for (const srv of network.servers) {
-            if (srv.hostname.toLowerCase() === parsedServerLower && srv.port === parsed.port) {
-              existingConnection = { networkId: context.networkId, ircService: context.ircService };
+            if (
+              srv.hostname.toLowerCase() === parsedServerLower &&
+              srv.port === parsed.port
+            ) {
+              existingConnection = {
+                networkId: context.networkId,
+                ircService: context.ircService,
+              };
               break;
             }
           }
@@ -166,7 +182,9 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
         },
       ];
 
-      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(connections);
+      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(
+        connections,
+      );
       (settingsService.loadNetworks as jest.Mock).mockResolvedValue(networks);
 
       const parsed = parseIRCUrl('ircs://different.server.com:6697');
@@ -179,11 +197,19 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
         const isConnected = context.ircService.getConnectionStatus();
         if (!isConnected) continue;
 
-        const network = networksForCheck.find(n => n.name === context.networkId || n.id === context.networkId);
+        const network = networksForCheck.find(
+          n => n.name === context.networkId || n.id === context.networkId,
+        );
         if (network && network.servers) {
           for (const srv of network.servers) {
-            if (srv.hostname.toLowerCase() === parsedServerLower && srv.port === parsed.port) {
-              existingConnection = { networkId: context.networkId, ircService: context.ircService };
+            if (
+              srv.hostname.toLowerCase() === parsedServerLower &&
+              srv.port === parsed.port
+            ) {
+              existingConnection = {
+                networkId: context.networkId,
+                ircService: context.ircService,
+              };
               break;
             }
           }
@@ -275,7 +301,9 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
         },
       ];
 
-      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(connections);
+      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(
+        connections,
+      );
       (settingsService.loadNetworks as jest.Mock).mockResolvedValue(networks);
 
       const parsed = parseIRCUrl('ircs://irc.dbase.in.rs:6697');
@@ -290,9 +318,17 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
 
         // First check by networkId
         for (const context of connections) {
-          const normalizedNetworkId = context.networkId.toLowerCase().replace(/\s*\(\d+\)$/, '');
-          if (normalizedNetworkId === parsedServerLower && context.ircService.getConnectionStatus()) {
-            existingConnection = { networkId: context.networkId, ircService: context.ircService };
+          const normalizedNetworkId = context.networkId
+            .toLowerCase()
+            .replace(/\s*\(\d+\)$/, '');
+          if (
+            normalizedNetworkId === parsedServerLower &&
+            context.ircService.getConnectionStatus()
+          ) {
+            existingConnection = {
+              networkId: context.networkId,
+              ircService: context.ircService,
+            };
             break;
           }
         }
@@ -303,11 +339,19 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
             const isConnected = context.ircService.getConnectionStatus();
             if (!isConnected) continue;
 
-            const network = networksForCheck.find(n => n.name === context.networkId || n.id === context.networkId);
+            const network = networksForCheck.find(
+              n => n.name === context.networkId || n.id === context.networkId,
+            );
             if (network && network.servers) {
               for (const srv of network.servers) {
-                if (srv.hostname.toLowerCase() === parsedServerLower && srv.port === parsed.port) {
-                  existingConnection = { networkId: context.networkId, ircService: context.ircService };
+                if (
+                  srv.hostname.toLowerCase() === parsedServerLower &&
+                  srv.port === parsed.port
+                ) {
+                  existingConnection = {
+                    networkId: context.networkId,
+                    ircService: context.ircService,
+                  };
                   break;
                 }
               }
@@ -351,7 +395,9 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
         },
       ];
 
-      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(connections);
+      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(
+        connections,
+      );
       (settingsService.loadNetworks as jest.Mock).mockResolvedValue(networks);
 
       const parsed = parseIRCUrl('ircs://irc.androidircx.com:6697');
@@ -368,11 +414,19 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
           const isConnected = context.ircService.getConnectionStatus();
           if (!isConnected) continue;
 
-          const network = networksForCheck.find(n => n.name === context.networkId || n.id === context.networkId);
+          const network = networksForCheck.find(
+            n => n.name === context.networkId || n.id === context.networkId,
+          );
           if (network && network.servers) {
             for (const srv of network.servers) {
-              if (srv.hostname.toLowerCase() === parsedServerLower && srv.port === parsed.port) {
-                existingConnection = { networkId: context.networkId, ircService: context.ircService };
+              if (
+                srv.hostname.toLowerCase() === parsedServerLower &&
+                srv.port === parsed.port
+              ) {
+                existingConnection = {
+                  networkId: context.networkId,
+                  ircService: context.ircService,
+                };
                 break;
               }
             }
@@ -417,7 +471,9 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
         },
       ];
 
-      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(connections);
+      (connectionManager.getAllConnections as jest.Mock).mockReturnValue(
+        connections,
+      );
       (settingsService.loadNetworks as jest.Mock).mockResolvedValue(networks);
 
       const parsed = parseIRCUrl('ircs://irc.dbase.in.rs:6697');
@@ -430,11 +486,19 @@ describe('Deep Link Handler - Connection and Tab Flood Prevention', () => {
         const isConnected = context.ircService.getConnectionStatus();
         if (!isConnected) continue; // Should skip disconnected connections
 
-        const network = networksForCheck.find(n => n.name === context.networkId || n.id === context.networkId);
+        const network = networksForCheck.find(
+          n => n.name === context.networkId || n.id === context.networkId,
+        );
         if (network && network.servers) {
           for (const srv of network.servers) {
-            if (srv.hostname.toLowerCase() === parsedServerLower && srv.port === parsed.port) {
-              existingConnection = { networkId: context.networkId, ircService: context.ircService };
+            if (
+              srv.hostname.toLowerCase() === parsedServerLower &&
+              srv.port === parsed.port
+            ) {
+              existingConnection = {
+                networkId: context.networkId,
+                ircService: context.ircService,
+              };
               break;
             }
           }

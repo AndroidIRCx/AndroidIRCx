@@ -61,7 +61,7 @@ describe('MotdNumerics', () => {
       expect.objectContaining({
         text: '*** - irc.example.org Message of the Day -',
         rawCategory: 'server',
-      })
+      }),
     );
   });
 
@@ -69,7 +69,7 @@ describe('MotdNumerics', () => {
     handle376(ctx, 'server', ['nick'], 102);
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: '*** End of /MOTD command.' })
+      expect.objectContaining({ text: '*** End of /MOTD command.' }),
     );
     expect(ctx.emit).toHaveBeenCalledWith('motdEnd');
   });
@@ -78,7 +78,7 @@ describe('MotdNumerics', () => {
     handle422(ctx, 'server', ['nick'], 103);
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: '*** No Message of the Day.' })
+      expect.objectContaining({ text: '*** No Message of the Day.' }),
     );
     expect(ctx.emit).toHaveBeenCalledWith('motdEnd');
   });

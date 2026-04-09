@@ -88,7 +88,13 @@ describe('IRCService low-level branches', () => {
     (irc as any).isConnected = true;
     (irc as any).registered = true;
     (irc as any).currentNick = 'tester';
-    (irc as any).config = { host: 'irc.example', port: 6667, nick: 'tester', username: 'tester', realname: 'Tester' };
+    (irc as any).config = {
+      host: 'irc.example',
+      port: 6667,
+      nick: 'tester',
+      username: 'tester',
+      realname: 'Tester',
+    };
     mockCheckConnection.mockReturnValue({
       shouldUpgrade: false,
       tlsRequired: false,
@@ -103,12 +109,20 @@ describe('IRCService low-level branches', () => {
   });
 
   it('extracts masks from notice variants', () => {
-    expect((irc as any).extractMaskFromNotice('*** Client connecting: alice!user@example.org')).toEqual({
+    expect(
+      (irc as any).extractMaskFromNotice(
+        '*** Client connecting: alice!user@example.org',
+      ),
+    ).toEqual({
       nick: 'alice',
       username: 'user',
       hostname: 'example.org',
     });
-    expect((irc as any).extractMaskFromNotice('Client connecting: bob (ident@host.test)')).toEqual({
+    expect(
+      (irc as any).extractMaskFromNotice(
+        'Client connecting: bob (ident@host.test)',
+      ),
+    ).toEqual({
       nick: 'bob',
       username: 'ident',
       hostname: 'host.test',
@@ -126,22 +140,55 @@ describe('IRCService low-level branches', () => {
     };
     const sendCommandSpy = jest.spyOn(irc, 'sendCommand');
 
-    const ctx = { nick: 'alice', username: 'u', hostname: 'h.example', channel: '#chan', network: 'net1' };
-    (irc as any).runBlacklistAction({ action: 'ignore', reason: 'r1', duration: '60' }, ctx);
+    const ctx = {
+      nick: 'alice',
+      username: 'u',
+      hostname: 'h.example',
+      channel: '#chan',
+      network: 'net1',
+    };
+    (irc as any).runBlacklistAction(
+      { action: 'ignore', reason: 'r1', duration: '60' },
+      ctx,
+    );
     (irc as any).runBlacklistAction({ action: 'ban', reason: 'r2' }, ctx);
     (irc as any).runBlacklistAction({ action: 'kick_ban', reason: 'r3' }, ctx);
     (irc as any).runBlacklistAction({ action: 'kill', reason: 'r4' }, ctx);
     (irc as any).runBlacklistAction({ action: 'os_kill', reason: 'r5' }, ctx);
-    (irc as any).runBlacklistAction({ action: 'akill', reason: 'r6', duration: '90' }, ctx);
-    (irc as any).runBlacklistAction({ action: 'gline', reason: 'r7', duration: '120' }, ctx);
-    (irc as any).runBlacklistAction({ action: 'shun', reason: 'r8', duration: '20' }, ctx);
-    (irc as any).runBlacklistAction({ action: 'custom', commandTemplate: '/MODE {channel} +b {mask}' }, ctx);
     (irc as any).runBlacklistAction(
-      { action: 'akill', commandTemplate: '/PRIVMSG OperServ :AKILL ADD +{duration} {usermask} {reason}', duration: '120', reason: 'templ' },
+      { action: 'akill', reason: 'r6', duration: '90' },
       ctx,
     );
-    (irc as any).runBlacklistAction({ action: 'ban', reason: 'skip' }, { ...ctx, channel: 'not-channel' });
-    (irc as any).runBlacklistAction({ action: 'ignore' }, { ...ctx, nick: 'tester' });
+    (irc as any).runBlacklistAction(
+      { action: 'gline', reason: 'r7', duration: '120' },
+      ctx,
+    );
+    (irc as any).runBlacklistAction(
+      { action: 'shun', reason: 'r8', duration: '20' },
+      ctx,
+    );
+    (irc as any).runBlacklistAction(
+      { action: 'custom', commandTemplate: '/MODE {channel} +b {mask}' },
+      ctx,
+    );
+    (irc as any).runBlacklistAction(
+      {
+        action: 'akill',
+        commandTemplate:
+          '/PRIVMSG OperServ :AKILL ADD +{duration} {usermask} {reason}',
+        duration: '120',
+        reason: 'templ',
+      },
+      ctx,
+    );
+    (irc as any).runBlacklistAction(
+      { action: 'ban', reason: 'skip' },
+      { ...ctx, channel: 'not-channel' },
+    );
+    (irc as any).runBlacklistAction(
+      { action: 'ignore' },
+      { ...ctx, nick: 'tester' },
+    );
 
     expect(ignoreUser).toHaveBeenCalled();
     expect(resolveBlacklistMask).toHaveBeenCalled();
@@ -162,12 +209,20 @@ describe('IRCService low-level branches', () => {
   });
 
   it('reads from socket until predicate and times out', async () => {
-    const promise = (irc as any).readFromSocketUntil(socket, (buf: Buffer) => buf.includes(Buffer.from('OK')), 1000);
+    const promise = (irc as any).readFromSocketUntil(
+      socket,
+      (buf: Buffer) => buf.includes(Buffer.from('OK')),
+      1000,
+    );
     socket.emit('data', Buffer.from('HELLO '));
     socket.emit('data', Buffer.from('OK'));
     await expect(promise).resolves.toBeInstanceOf(Buffer);
 
-    const timeoutPromise = (irc as any).readFromSocketUntil(socket, () => false, 5);
+    const timeoutPromise = (irc as any).readFromSocketUntil(
+      socket,
+      () => false,
+      5,
+    );
     jest.advanceTimersByTime(10);
     await expect(timeoutPromise).rejects.toThrow('Proxy read timeout');
   });
@@ -175,14 +230,24 @@ describe('IRCService low-level branches', () => {
   it('establishes and rejects HTTP proxy tunnels', async () => {
     (irc as any).socket = socket;
     const readSpy = jest.spyOn(irc as any, 'readFromSocketUntil');
-    readSpy.mockResolvedValueOnce(Buffer.from('HTTP/1.1 200 Connection established\r\n\r\n'));
+    readSpy.mockResolvedValueOnce(
+      Buffer.from('HTTP/1.1 200 Connection established\r\n\r\n'),
+    );
     await expect(
-      (irc as any).establishHttpTunnel({ type: 'http', host: '127.0.0.1', port: 8080 }, { host: 'irc.example', port: 6697 }),
+      (irc as any).establishHttpTunnel(
+        { type: 'http', host: '127.0.0.1', port: 8080 },
+        { host: 'irc.example', port: 6697 },
+      ),
     ).resolves.toBeUndefined();
 
-    readSpy.mockResolvedValueOnce(Buffer.from('HTTP/1.1 407 Proxy Authentication Required\r\n\r\n'));
+    readSpy.mockResolvedValueOnce(
+      Buffer.from('HTTP/1.1 407 Proxy Authentication Required\r\n\r\n'),
+    );
     await expect(
-      (irc as any).establishHttpTunnel({ type: 'http', host: '127.0.0.1', port: 8080 }, { host: 'irc.example', port: 6697 }),
+      (irc as any).establishHttpTunnel(
+        { type: 'http', host: '127.0.0.1', port: 8080 },
+        { host: 'irc.example', port: 6697 },
+      ),
     ).rejects.toThrow('HTTP proxy CONNECT failed');
   });
 
@@ -191,15 +256,25 @@ describe('IRCService low-level branches', () => {
     const readSpy = jest.spyOn(irc as any, 'readFromSocketUntil');
     readSpy
       .mockResolvedValueOnce(Buffer.from([0x05, 0x00]))
-      .mockResolvedValueOnce(Buffer.from([0x05, 0x00, 0x00, 0x03, 0x03, 0x61, 0x62, 0x63, 0x1a, 0x2b]));
+      .mockResolvedValueOnce(
+        Buffer.from([
+          0x05, 0x00, 0x00, 0x03, 0x03, 0x61, 0x62, 0x63, 0x1a, 0x2b,
+        ]),
+      );
     await expect(
-      (irc as any).establishSocks5Tunnel({ type: 'socks5', host: '127.0.0.1', port: 9050 }, { host: 'irc.example', port: 6697 }),
+      (irc as any).establishSocks5Tunnel(
+        { type: 'socks5', host: '127.0.0.1', port: 9050 },
+        { host: 'irc.example', port: 6697 },
+      ),
     ).resolves.toBeUndefined();
 
     readSpy.mockReset();
     readSpy.mockResolvedValueOnce(Buffer.from([0x04, 0x00]));
     await expect(
-      (irc as any).establishSocks5Tunnel({ type: 'socks5', host: '127.0.0.1', port: 9050 }, { host: 'irc.example', port: 6697 }),
+      (irc as any).establishSocks5Tunnel(
+        { type: 'socks5', host: '127.0.0.1', port: 9050 },
+        { host: 'irc.example', port: 6697 },
+      ),
     ).rejects.toThrow('invalid version');
   });
 
@@ -254,7 +329,9 @@ describe('IRCService low-level branches', () => {
 
     (irc as any).saslAuthenticating = true;
     (irc as any).sendSASLCredentials();
-    expect(sendRawSpy).toHaveBeenCalledWith(expect.stringContaining('AUTHENTICATE '));
+    expect(sendRawSpy).toHaveBeenCalledWith(
+      expect.stringContaining('AUTHENTICATE '),
+    );
 
     (irc as any).scramAuthService = {
       processServerFirst: jest.fn(() => ({ success: false, error: 'bad' })),
@@ -289,7 +366,10 @@ describe('IRCService low-level branches', () => {
   });
 
   it('covers parsing and role/count helpers', () => {
-    expect((irc as any).parseSTSPolicyValue('duration=100,port=6697')).toEqual({ duration: '100', port: '6697' });
+    expect((irc as any).parseSTSPolicyValue('duration=100,port=6697')).toEqual({
+      duration: '100',
+      port: '6697',
+    });
     expect((irc as any).extractNick('alice!u@h')).toBe('alice');
     expect((irc as any).extractNick('alice')).toBe('alice');
     expect((irc as any).parseUserWithPrefixes('@%alice')).toEqual({
@@ -310,10 +390,13 @@ describe('IRCService low-level branches', () => {
     });
 
     expect((irc as any).buildRoleLine('op', 2, 10)).toContain('(20.0%)');
-    (irc as any).channelUsers.set('#x', new Map([
-      ['a', { nick: 'a', modes: ['o'] }],
-      ['b', { nick: 'b', modes: ['v'] }],
-    ]));
+    (irc as any).channelUsers.set(
+      '#x',
+      new Map([
+        ['a', { nick: 'a', modes: ['o'] }],
+        ['b', { nick: 'b', modes: ['v'] }],
+      ]),
+    );
     const counts = (irc as any).getChannelUserCounts('#x');
     expect(counts.total).toBe(2);
     expect(counts.ops).toBe(1);
@@ -335,17 +418,32 @@ describe('IRCService low-level branches', () => {
     (irc as any).selfUserModes = new Set(['o']);
     const sendCommandSpy = jest.spyOn(irc, 'sendCommand');
     const sendRawSpy = jest.spyOn(irc, 'sendRaw');
-    (irc as any).handleProtectionBlock('flood', 'alice', 'u', 'h.example', '#chan');
-    expect(sendRawSpy).toHaveBeenCalledWith(expect.stringContaining('SILENCE +'));
-    expect(sendCommandSpy).toHaveBeenCalledWith(expect.stringContaining('KLINE'));
+    (irc as any).handleProtectionBlock(
+      'flood',
+      'alice',
+      'u',
+      'h.example',
+      '#chan',
+    );
+    expect(sendRawSpy).toHaveBeenCalledWith(
+      expect.stringContaining('SILENCE +'),
+    );
+    expect(sendCommandSpy).toHaveBeenCalledWith(
+      expect.stringContaining('KLINE'),
+    );
 
     jest.spyOn(protectionService, 'getAntiDeopConfig').mockReturnValue({
       protAntiDeopEnabled: true,
       protAntiDeopUseChanserv: true,
     } as any);
-    (irc as any).channelUsers.set('#chan', new Map([['tester', { nick: 'tester', modes: ['o'] }]]));
+    (irc as any).channelUsers.set(
+      '#chan',
+      new Map([['tester', { nick: 'tester', modes: ['o'] }]]),
+    );
     (irc as any).handleChannelModeChange('#chan', ['-o', 'tester']);
-    expect(sendRawSpy).toHaveBeenCalledWith('PRIVMSG ChanServ :OP #chan tester');
+    expect(sendRawSpy).toHaveBeenCalledWith(
+      'PRIVMSG ChanServ :OP #chan tester',
+    );
   });
 
   it('covers connect plain/tls branches and timeout behavior', async () => {
@@ -412,7 +510,12 @@ describe('IRCService low-level branches', () => {
 
   it('covers message/connection backlog trimming', () => {
     for (let i = 0; i < 130; i++) {
-      (irc as any).emitMessage({ id: `${i}`, type: 'raw', text: `x${i}`, timestamp: Date.now() });
+      (irc as any).emitMessage({
+        id: `${i}`,
+        type: 'raw',
+        text: `x${i}`,
+        timestamp: Date.now(),
+      });
     }
     expect((irc as any).pendingMessages.length).toBe(100);
 
@@ -429,7 +532,18 @@ describe('IRCService low-level branches', () => {
   });
 
   it('covers parseServerCommand management and full option parsing', () => {
-    const management = (irc as any).parseServerCommand(['-sar', 'irc.example', '-d', 'Desc', '-p', '6697', '-g', 'grp', '-w', 'pass']);
+    const management = (irc as any).parseServerCommand([
+      '-sar',
+      'irc.example',
+      '-d',
+      'Desc',
+      '-p',
+      '6697',
+      '-g',
+      'grp',
+      '-w',
+      'pass',
+    ]);
     expect(management.management.sort).toBe(true);
     expect(management.management.add).toBe(true);
     expect(management.management.remove).toBe(true);
@@ -493,7 +607,9 @@ describe('IRCService low-level branches', () => {
     (irc as any).socket = throwSocket;
 
     irc.sendRaw('PRIVMSG #x :y');
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Unable to send message'));
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Unable to send message'),
+    );
     expect(irc.getConnectionStatus()).toBe(false);
 
     (irc as any).isConnected = true;
@@ -585,6 +701,8 @@ describe('IRCService low-level branches', () => {
     (irc as any).isConnected = true;
     irc.disconnect('bye');
     jest.advanceTimersByTime(120);
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Socket destroy error'));
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Socket destroy error'),
+    );
   });
 });

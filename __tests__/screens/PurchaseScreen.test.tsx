@@ -33,9 +33,21 @@ jest.mock('../../src/services/InAppPurchaseService', () => ({
   PRODUCT_PRO_UNLIMITED: 'pro_unlimited',
   PRODUCT_SUPPORTER_PRO: 'supporter_pro',
   PRODUCT_CATALOG: {
-    remove_ads: { title: 'Remove Ads', description: 'No more ads', features: ['Ad-free'] },
-    pro_unlimited: { title: 'Pro Unlimited', description: 'All features', features: ['Unlimited scripting'] },
-    supporter_pro: { title: 'Supporter Pro', description: 'Support dev', features: ['Supporter badge'] },
+    remove_ads: {
+      title: 'Remove Ads',
+      description: 'No more ads',
+      features: ['Ad-free'],
+    },
+    pro_unlimited: {
+      title: 'Pro Unlimited',
+      description: 'All features',
+      features: ['Unlimited scripting'],
+    },
+    supporter_pro: {
+      title: 'Supporter Pro',
+      description: 'Support dev',
+      features: ['Supporter badge'],
+    },
   },
   inAppPurchaseService: {
     hasPurchased: jest.fn(),
@@ -65,7 +77,9 @@ describe('PurchaseScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
-    const { inAppPurchaseService } = require('../../src/services/InAppPurchaseService');
+    const {
+      inAppPurchaseService,
+    } = require('../../src/services/InAppPurchaseService');
 
     mockRNIap.initConnection.mockResolvedValue(undefined);
     mockRNIap.fetchProducts.mockResolvedValue([
@@ -75,30 +89,40 @@ describe('PurchaseScreen', () => {
     ]);
     mockRNIap.getAvailablePurchases.mockResolvedValue([]);
     mockRNIap.requestPurchase.mockResolvedValue(undefined);
-    mockRNIap.purchaseUpdatedListener.mockImplementation((handler: (purchase: any) => Promise<void>) => {
-      purchaseUpdatedHandler = handler;
-      return { remove: jest.fn() };
-    });
-    mockRNIap.purchaseErrorListener.mockImplementation((handler: (error: any) => void) => {
-      purchaseErrorHandler = handler;
-      return { remove: jest.fn() };
-    });
+    mockRNIap.purchaseUpdatedListener.mockImplementation(
+      (handler: (purchase: any) => Promise<void>) => {
+        purchaseUpdatedHandler = handler;
+        return { remove: jest.fn() };
+      },
+    );
+    mockRNIap.purchaseErrorListener.mockImplementation(
+      (handler: (error: any) => void) => {
+        purchaseErrorHandler = handler;
+        return { remove: jest.fn() };
+      },
+    );
     mockRNIap.endConnection.mockResolvedValue(undefined);
     mockRNIap.finishTransaction.mockResolvedValue(undefined);
-    mockRNIap.flushFailedPurchasesCachedAsPendingAndroid.mockResolvedValue(undefined);
+    mockRNIap.flushFailedPurchasesCachedAsPendingAndroid.mockResolvedValue(
+      undefined,
+    );
     inAppPurchaseService.hasPurchased.mockReturnValue(false);
     inAppPurchaseService.addListener.mockReturnValue(jest.fn());
     inAppPurchaseService.processPurchase.mockResolvedValue(undefined);
   });
 
   it('does not render content when hidden', () => {
-    const { queryByText } = render(<PurchaseScreen visible={false} onClose={jest.fn()} />);
+    const { queryByText } = render(
+      <PurchaseScreen visible={false} onClose={jest.fn()} />,
+    );
 
     expect(queryByText('AndroidIRCX Premium')).toBeNull();
   });
 
   it('loads products and renders purchase cards when visible', async () => {
-    const { findByText } = render(<PurchaseScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <PurchaseScreen visible onClose={jest.fn()} />,
+    );
 
     expect(await findByText('AndroidIRCX Premium')).toBeTruthy();
     expect(await findByText('Remove Ads')).toBeTruthy();
@@ -118,19 +142,33 @@ describe('PurchaseScreen', () => {
   });
 
   it('restores purchases and shows success feedback', async () => {
-    const { inAppPurchaseService } = require('../../src/services/InAppPurchaseService');
+    const {
+      inAppPurchaseService,
+    } = require('../../src/services/InAppPurchaseService');
     mockRNIap.getAvailablePurchases.mockResolvedValue([
-      { productId: 'remove_ads', transactionReceipt: 'receipt-1', purchaseToken: 'token-1' },
+      {
+        productId: 'remove_ads',
+        transactionReceipt: 'receipt-1',
+        purchaseToken: 'token-1',
+      },
     ]);
 
-    const { findByText } = render(<PurchaseScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <PurchaseScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Restore purchases'));
 
     await waitFor(() => {
-      expect(inAppPurchaseService.processPurchase).toHaveBeenCalledWith('remove_ads', 'token-1');
+      expect(inAppPurchaseService.processPurchase).toHaveBeenCalledWith(
+        'remove_ads',
+        'token-1',
+      );
     });
-    expect(Alert.alert).toHaveBeenCalledWith('Restore complete', 'Your purchases have been restored.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Restore complete',
+      'Your purchases have been restored.',
+    );
   });
 
   it('shows error alert when iap initialization fails', async () => {
@@ -140,14 +178,19 @@ describe('PurchaseScreen', () => {
     render(<PurchaseScreen visible onClose={jest.fn()} />);
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to load products. Please try again later.');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to load products. Please try again later.',
+      );
     });
 
     errorSpy.mockRestore();
   });
 
   it('requests purchase when tapping a product', async () => {
-    const { findAllByText } = render(<PurchaseScreen visible onClose={jest.fn()} />);
+    const { findAllByText } = render(
+      <PurchaseScreen visible onClose={jest.fn()} />,
+    );
 
     const purchaseButtons = await findAllByText('Purchase');
     fireEvent.press(purchaseButtons[0]);
@@ -158,17 +201,25 @@ describe('PurchaseScreen', () => {
   });
 
   it('shows purchased state for already-owned products', async () => {
-    const { inAppPurchaseService } = require('../../src/services/InAppPurchaseService');
-    inAppPurchaseService.hasPurchased.mockImplementation((productId: string) => productId === 'remove_ads');
+    const {
+      inAppPurchaseService,
+    } = require('../../src/services/InAppPurchaseService');
+    inAppPurchaseService.hasPurchased.mockImplementation(
+      (productId: string) => productId === 'remove_ads',
+    );
 
-    const { findByText, queryAllByText } = render(<PurchaseScreen visible onClose={jest.fn()} />);
+    const { findByText, queryAllByText } = render(
+      <PurchaseScreen visible onClose={jest.fn()} />,
+    );
 
     expect(await findByText('✓ Purchased')).toBeTruthy();
     expect(queryAllByText('Purchase').length).toBeGreaterThan(0);
   });
 
   it('processes successful purchase updates', async () => {
-    const { inAppPurchaseService } = require('../../src/services/InAppPurchaseService');
+    const {
+      inAppPurchaseService,
+    } = require('../../src/services/InAppPurchaseService');
     render(<PurchaseScreen visible onClose={jest.fn()} />);
 
     await waitFor(() => {
@@ -184,12 +235,21 @@ describe('PurchaseScreen', () => {
     });
 
     expect(mockRNIap.finishTransaction).toHaveBeenCalled();
-    expect(inAppPurchaseService.processPurchase).toHaveBeenCalledWith('remove_ads', 'token-123');
-    expect(Alert.alert).toHaveBeenCalledWith('Purchase Successful', 'Thank you for your purchase!', [{ text: 'OK' }]);
+    expect(inAppPurchaseService.processPurchase).toHaveBeenCalledWith(
+      'remove_ads',
+      'token-123',
+    );
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Purchase Successful',
+      'Thank you for your purchase!',
+      [{ text: 'OK' }],
+    );
   });
 
   it('shows purchase failed alert when finishing transaction fails', async () => {
-    mockRNIap.finishTransaction.mockRejectedValueOnce(new Error('finish failed'));
+    mockRNIap.finishTransaction.mockRejectedValueOnce(
+      new Error('finish failed'),
+    );
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
 
     render(<PurchaseScreen visible onClose={jest.fn()} />);
@@ -206,7 +266,10 @@ describe('PurchaseScreen', () => {
       });
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Purchase Failed', 'Please try again later.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Purchase Failed',
+      'Please try again later.',
+    );
     errorSpy.mockRestore();
   });
 
@@ -219,22 +282,35 @@ describe('PurchaseScreen', () => {
     });
 
     act(() => {
-      purchaseErrorHandler?.({ code: 'E_USER_CANCELLED', message: 'cancelled' });
+      purchaseErrorHandler?.({
+        code: 'E_USER_CANCELLED',
+        message: 'cancelled',
+      });
     });
 
-    expect(Alert.alert).not.toHaveBeenCalledWith('Purchase Failed', 'cancelled');
+    expect(Alert.alert).not.toHaveBeenCalledWith(
+      'Purchase Failed',
+      'cancelled',
+    );
     errorSpy.mockRestore();
   });
 
   it('handles restore purchase errors with feedback', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-    mockRNIap.getAvailablePurchases.mockRejectedValue(new Error('restore failed'));
+    mockRNIap.getAvailablePurchases.mockRejectedValue(
+      new Error('restore failed'),
+    );
 
-    const { findByText } = render(<PurchaseScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <PurchaseScreen visible onClose={jest.fn()} />,
+    );
     fireEvent.press(await findByText('Restore purchases'));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Restore failed', 'Please try again later.');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Restore failed',
+        'Please try again later.',
+      );
     });
     errorSpy.mockRestore();
   });

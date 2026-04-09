@@ -13,7 +13,12 @@ import type { CommandHandler, CommandHandlerRegistry } from '../commandTypes';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
-export const handleRENAME: CommandHandler = (ctx, _prefix, params, timestamp) => {
+export const handleRENAME: CommandHandler = (
+  ctx,
+  _prefix,
+  params,
+  timestamp,
+) => {
   const oldChannel = params[0] || '';
   const newChannel = params[1] || '';
   const reason = params[2] || '';
@@ -37,8 +42,15 @@ export const handleRENAME: CommandHandler = (ctx, _prefix, params, timestamp) =>
 
   // Display rename message
   const text = reason
-    ? t('*** Channel {oldChannel} has been renamed to {newChannel}: {reason}', { oldChannel, newChannel, reason })
-    : t('*** Channel {oldChannel} has been renamed to {newChannel}', { oldChannel, newChannel });
+    ? t('*** Channel {oldChannel} has been renamed to {newChannel}: {reason}', {
+        oldChannel,
+        newChannel,
+        reason,
+      })
+    : t('*** Channel {oldChannel} has been renamed to {newChannel}', {
+        oldChannel,
+        newChannel,
+      });
 
   ctx.addMessage({
     type: 'raw',

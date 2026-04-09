@@ -54,16 +54,24 @@ jest.mock('react-native-qrcode-svg', () => {
 jest.mock('react-native-vision-camera', () => ({
   Camera: () => null,
   useCameraDevice: jest.fn(() => null),
-  useCameraPermission: jest.fn(() => ({ hasPermission: false, requestPermission: jest.fn() })),
+  useCameraPermission: jest.fn(() => ({
+    hasPermission: false,
+    requestPermission: jest.fn(),
+  })),
   useCodeScanner: jest.fn(() => ({})),
 }));
-jest.mock('react-native-share', () => ({ __esModule: true, default: { open: jest.fn() } }));
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: { open: jest.fn() },
+}));
 jest.mock('react-native-fs', () => ({
   DocumentDirectoryPath: '/tmp',
   readFile: jest.fn().mockResolvedValue(''),
   writeFile: jest.fn().mockResolvedValue(undefined),
   exists: jest.fn().mockResolvedValue(false),
-  downloadFile: jest.fn(() => ({ promise: Promise.resolve({ statusCode: 200 }) })),
+  downloadFile: jest.fn(() => ({
+    promise: Promise.resolve({ statusCode: 200 }),
+  })),
   unlink: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('@react-native-documents/picker', () => ({
@@ -74,7 +82,10 @@ jest.mock('@react-native-documents/picker', () => ({
 }));
 jest.mock('react-native-nfc-manager', () => ({
   __esModule: true,
-  default: { start: jest.fn(), isSupported: jest.fn().mockResolvedValue(false) },
+  default: {
+    start: jest.fn(),
+    isSupported: jest.fn().mockResolvedValue(false),
+  },
   Ndef: {},
   NfcTech: {},
 }));
@@ -84,7 +95,10 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 }));
 jest.mock('react-native-vector-icons/FontAwesome5', () => {
   const React = require('react');
-  return { __esModule: true, default: () => React.createElement('Text', null, 'Icon') };
+  return {
+    __esModule: true,
+    default: () => React.createElement('Text', null, 'Icon'),
+  };
 });
 
 // ── service mocks ──────────────────────────────────────────────────────────
@@ -211,8 +225,12 @@ jest.mock('../../src/services/EncryptedDMService', () => ({
     exportBundle: jest.fn(async () => ({ bundle: 'test-bundle' })),
     awaitBundleForNick: jest.fn().mockResolvedValue(undefined),
     isEncryptedForNetwork: jest.fn().mockResolvedValue(false),
-    getVerificationStatusForNetwork: jest.fn().mockResolvedValue({ fingerprint: null, verified: false }),
-    getVerificationStatus: jest.fn().mockResolvedValue({ fingerprint: null, verified: false }),
+    getVerificationStatusForNetwork: jest
+      .fn()
+      .mockResolvedValue({ fingerprint: null, verified: false }),
+    getVerificationStatus: jest
+      .fn()
+      .mockResolvedValue({ fingerprint: null, verified: false }),
     getSelfFingerprint: jest.fn().mockResolvedValue('self-fp'),
     setVerifiedForNetwork: jest.fn().mockResolvedValue(undefined),
   },
@@ -336,7 +354,7 @@ jest.mock('../../src/stores/tabStore', () => ({
         getTabsByNetwork: mockGetTabsByNetwork,
         getTabById: mockGetTabById,
       }),
-    }
+    },
   ),
 }));
 
@@ -355,7 +373,7 @@ jest.mock('../../src/stores/uiStore', () => ({
         setDccSendTarget: jest.fn(),
         setShowDccSendModal: jest.fn(),
       })),
-    }
+    },
   ),
 }));
 
@@ -401,7 +419,7 @@ const baseProps = {
 const renderAndSettle = async (ui: React.ReactElement) => {
   const result = render(ui);
   await act(async () => {
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
   });
   return result;
 };
@@ -414,7 +432,7 @@ describe('MessageArea', () => {
     mockKickBanModalProps = null;
 
     mockGetSetting.mockImplementation((_key: string, fallback: unknown) =>
-      Promise.resolve(fallback)
+      Promise.resolve(fallback),
     );
     mockOnSettingChange.mockImplementation(() => jest.fn());
     mockGetConnection.mockReturnValue({
@@ -442,7 +460,9 @@ describe('MessageArea', () => {
 
   it('renders with messages provided', async () => {
     const messages = [makeMsg({ text: 'Test message', from: 'Bob' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -453,50 +473,82 @@ describe('MessageArea', () => {
 
   // ── message type rendering ───────────────────────────────────────────────
   it('renders a join message', async () => {
-    const messages = [makeMsg({ type: 'join', text: 'Alice has joined #general', from: 'Alice' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({
+        type: 'join',
+        text: 'Alice has joined #general',
+        from: 'Alice',
+      }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a part message', async () => {
-    const messages = [makeMsg({ type: 'part', text: 'Alice has left #general', from: 'Alice' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({ type: 'part', text: 'Alice has left #general', from: 'Alice' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a quit message', async () => {
-    const messages = [makeMsg({ type: 'quit', text: 'Alice has quit [Bye!]', from: 'Alice' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({ type: 'quit', text: 'Alice has quit [Bye!]', from: 'Alice' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a notice message', async () => {
     const messages = [makeMsg({ type: 'notice', text: 'Server notice here' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders an error message', async () => {
     const messages = [makeMsg({ type: 'error', text: 'Connection error' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a topic message', async () => {
-    const messages = [makeMsg({ type: 'topic', text: 'Channel topic changed', from: 'Alice' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({ type: 'topic', text: 'Channel topic changed', from: 'Alice' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a mode message', async () => {
-    const messages = [makeMsg({ type: 'mode', text: 'Mode +o Alice set by Bob', from: 'Bob' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({ type: 'mode', text: 'Mode +o Alice set by Bob', from: 'Bob' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a kick message', async () => {
-    const messages = [makeMsg({ type: 'kick', text: 'Alice was kicked by Bob', from: 'Bob' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({ type: 'kick', text: 'Alice was kicked by Bob', from: 'Bob' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -510,33 +562,51 @@ describe('MessageArea', () => {
         newNick: 'NewAlice',
       }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a raw message', async () => {
     const messages = [makeMsg({ type: 'raw', text: ':server 001 raw reply' })];
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} showRawCommands={true} />
+      <MessageArea {...baseProps} messages={messages} showRawCommands={true} />,
     );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a ctcp message', async () => {
-    const messages = [makeMsg({ type: 'ctcp', text: 'CTCP PING reply from Alice' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({ type: 'ctcp', text: 'CTCP PING reply from Alice' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders an invite message', async () => {
-    const messages = [makeMsg({ type: 'invite', text: 'Alice invites you to #secret', from: 'Alice' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({
+        type: 'invite',
+        text: 'Alice invites you to #secret',
+        from: 'Alice',
+      }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a monitor message', async () => {
-    const messages = [makeMsg({ type: 'monitor', text: 'Alice is online', from: 'Alice' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({ type: 'monitor', text: 'Alice is online', from: 'Alice' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -544,7 +614,7 @@ describe('MessageArea', () => {
   it('accepts hideJoinMessages prop', async () => {
     const messages = [makeMsg({ type: 'join', text: 'Alice joined' })];
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} hideJoinMessages />
+      <MessageArea {...baseProps} messages={messages} hideJoinMessages />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -552,7 +622,7 @@ describe('MessageArea', () => {
   it('accepts hidePartMessages prop', async () => {
     const messages = [makeMsg({ type: 'part', text: 'Alice left' })];
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} hidePartMessages />
+      <MessageArea {...baseProps} messages={messages} hidePartMessages />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -560,7 +630,7 @@ describe('MessageArea', () => {
   it('accepts hideQuitMessages prop', async () => {
     const messages = [makeMsg({ type: 'quit', text: 'Alice quit' })];
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} hideQuitMessages />
+      <MessageArea {...baseProps} messages={messages} hideQuitMessages />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -568,7 +638,11 @@ describe('MessageArea', () => {
   it('accepts hideIrcServiceListenerMessages prop', async () => {
     const messages = [makeMsg({ type: 'raw', text: ':server 315 end of who' })];
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} hideIrcServiceListenerMessages />
+      <MessageArea
+        {...baseProps}
+        messages={messages}
+        hideIrcServiceListenerMessages
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -581,14 +655,18 @@ describe('MessageArea', () => {
         {...baseProps}
         searchVisible={true}
         onSearchVisibleChange={onSearchVisibleChange}
-      />
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders with searchVisible=false (controlled)', async () => {
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} searchVisible={false} onSearchVisibleChange={jest.fn()} />
+      <MessageArea
+        {...baseProps}
+        searchVisible={false}
+        onSearchVisibleChange={jest.fn()}
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -597,7 +675,7 @@ describe('MessageArea', () => {
   it('renders with showRawCommands=true', async () => {
     const messages = [makeMsg({ type: 'raw', text: ':server raw' })];
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} showRawCommands={true} />
+      <MessageArea {...baseProps} messages={messages} showRawCommands={true} />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -605,7 +683,11 @@ describe('MessageArea', () => {
   it('renders with showRawCommands=false', async () => {
     const messages = [makeMsg({ type: 'raw', text: ':server raw' })];
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} showRawCommands={false} />
+      <MessageArea
+        {...baseProps}
+        messages={messages}
+        showRawCommands={false}
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -615,12 +697,36 @@ describe('MessageArea', () => {
     const ts = Date.now();
     const messages = [
       makeMsg({ id: 'a', type: 'join', text: 'Alice joined', timestamp: ts }),
-      makeMsg({ id: 'b', type: 'message', text: 'Hello!', from: 'Alice', timestamp: ts + 1000 }),
-      makeMsg({ id: 'c', type: 'message', text: 'Hi!', from: 'Bob', timestamp: ts + 2000 }),
-      makeMsg({ id: 'd', type: 'notice', text: 'Notice text', timestamp: ts + 3000 }),
-      makeMsg({ id: 'e', type: 'quit', text: 'Bob quit', timestamp: ts + 4000 }),
+      makeMsg({
+        id: 'b',
+        type: 'message',
+        text: 'Hello!',
+        from: 'Alice',
+        timestamp: ts + 1000,
+      }),
+      makeMsg({
+        id: 'c',
+        type: 'message',
+        text: 'Hi!',
+        from: 'Bob',
+        timestamp: ts + 2000,
+      }),
+      makeMsg({
+        id: 'd',
+        type: 'notice',
+        text: 'Notice text',
+        timestamp: ts + 3000,
+      }),
+      makeMsg({
+        id: 'e',
+        type: 'quit',
+        text: 'Bob quit',
+        timestamp: ts + 4000,
+      }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -628,9 +734,16 @@ describe('MessageArea', () => {
     const ts = Date.now();
     const messages = [
       makeMsg({ id: 'a', from: 'Alice', text: 'First', timestamp: ts }),
-      makeMsg({ id: 'b', from: 'Alice', text: 'Second', timestamp: ts + 30000 }),
+      makeMsg({
+        id: 'b',
+        from: 'Alice',
+        text: 'Second',
+        timestamp: ts + 30000,
+      }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -642,14 +755,20 @@ describe('MessageArea', () => {
     ];
     const messages = [makeMsg({ text: 'Hello Alice!' })];
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} channelUsers={channelUsers as any} />
+      <MessageArea
+        {...baseProps}
+        messages={messages}
+        channelUsers={channelUsers as any}
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
 
   // ── bottomInset ──────────────────────────────────────────────────────────
   it('accepts bottomInset prop', async () => {
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} bottomInset={34} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} bottomInset={34} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -666,14 +785,16 @@ describe('MessageArea', () => {
 
   // ── network / connection handling ────────────────────────────────────────
   it('renders without a network prop (no connection)', async () => {
-    const { toJSON } = await renderAndSettle(<MessageArea messages={[makeMsg()]} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea messages={[makeMsg()]} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders when getConnection returns null', async () => {
     mockGetConnection.mockReturnValue(null);
     const { toJSON } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={[makeMsg()]} />
+      <MessageArea {...baseProps} messages={[makeMsg()]} />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -688,7 +809,7 @@ describe('MessageArea', () => {
         messages={messages}
         rawCategoryVisibility={rawCategoryVisibility}
         showRawCommands={true}
-      />
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -700,7 +821,7 @@ describe('MessageArea', () => {
         messages={[makeMsg()]}
         network="TestNet"
         tabId="query::TestNet::Alice"
-      />
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -711,7 +832,7 @@ describe('MessageArea', () => {
         messages={[makeMsg()]}
         network="TestNet"
         tabId="server::TestNet"
-      />
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -719,10 +840,12 @@ describe('MessageArea', () => {
   // ── setting change callbacks ─────────────────────────────────────────────
   it('fires setting change listeners without error', async () => {
     const listeners = new Map<string, (v: any) => void>();
-    mockOnSettingChange.mockImplementation((key: string, cb: (v: any) => void) => {
-      listeners.set(key, cb);
-      return jest.fn();
-    });
+    mockOnSettingChange.mockImplementation(
+      (key: string, cb: (v: any) => void) => {
+        listeners.set(key, cb);
+        return jest.fn();
+      },
+    );
 
     await renderAndSettle(<MessageArea {...baseProps} />);
 
@@ -746,28 +869,38 @@ describe('MessageArea', () => {
   // ── message with special text content ────────────────────────────────────
   it('renders a message mentioning current nick (highlight)', async () => {
     const messages = [makeMsg({ text: 'Hello TestNick, how are you?' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a message with a URL', async () => {
-    const messages = [makeMsg({ text: 'Check this: https://example.com/page' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const messages = [
+      makeMsg({ text: 'Check this: https://example.com/page' }),
+    ];
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders a message with a channel link', async () => {
     const messages = [makeMsg({ text: 'Join us in #android-dev' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders large message list without crash', async () => {
     const ts = Date.now();
     const messages = Array.from({ length: 50 }, (_, i) =>
-      makeMsg({ id: `m${i}`, text: `Message ${i}`, timestamp: ts + i * 1000 })
+      makeMsg({ id: `m${i}`, text: `Message ${i}`, timestamp: ts + i * 1000 }),
     );
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -775,16 +908,21 @@ describe('MessageArea', () => {
   it('renders with search filters applied', async () => {
     const messages = [
       makeMsg({ id: 'a', type: 'message', text: 'Hello world', from: 'Alice' }),
-      makeMsg({ id: 'b', type: 'notice', text: 'Server notice', from: 'Server' }),
+      makeMsg({
+        id: 'b',
+        type: 'notice',
+        text: 'Server notice',
+        from: 'Server',
+      }),
       makeMsg({ id: 'c', type: 'join', text: 'Bob joined', from: 'Bob' }),
     ];
     const { toJSON } = await renderAndSettle(
-      <MessageArea 
-        {...baseProps} 
-        messages={messages} 
+      <MessageArea
+        {...baseProps}
+        messages={messages}
         searchVisible={true}
         onSearchVisibleChange={jest.fn()}
-      />
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -794,10 +932,22 @@ describe('MessageArea', () => {
     const ts = Date.now();
     const messages = [
       makeMsg({ id: 'a', from: 'Alice', text: 'First message', timestamp: ts }),
-      makeMsg({ id: 'b', from: 'Alice', text: 'Second message', timestamp: ts + 60000 }), // 1 min later
-      makeMsg({ id: 'c', from: 'Bob', text: 'Different user', timestamp: ts + 120000 }),
+      makeMsg({
+        id: 'b',
+        from: 'Alice',
+        text: 'Second message',
+        timestamp: ts + 60000,
+      }), // 1 min later
+      makeMsg({
+        id: 'c',
+        from: 'Bob',
+        text: 'Different user',
+        timestamp: ts + 120000,
+      }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -806,9 +956,16 @@ describe('MessageArea', () => {
     const messages = [
       makeMsg({ id: 'a', from: 'Alice', text: 'From Alice', timestamp: ts }),
       makeMsg({ id: 'b', from: 'Bob', text: 'From Bob', timestamp: ts + 1000 }),
-      makeMsg({ id: 'c', from: 'Alice', text: 'From Alice again', timestamp: ts + 2000 }),
+      makeMsg({
+        id: 'c',
+        from: 'Alice',
+        text: 'From Alice again',
+        timestamp: ts + 2000,
+      }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -816,9 +973,16 @@ describe('MessageArea', () => {
     const ts = Date.now();
     const messages = [
       makeMsg({ id: 'a', from: 'Alice', text: 'First', timestamp: ts }),
-      makeMsg({ id: 'b', from: 'Alice', text: 'Six minutes later', timestamp: ts + 6 * 60 * 1000 }),
+      makeMsg({
+        id: 'b',
+        from: 'Alice',
+        text: 'Six minutes later',
+        timestamp: ts + 6 * 60 * 1000,
+      }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -827,40 +991,66 @@ describe('MessageArea', () => {
     const messages = [
       makeMsg({ id: 'a', text: '\x01ACTION waves hello\x01', from: 'Alice' }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('does not group action messages', async () => {
     const ts = Date.now();
     const messages = [
-      makeMsg({ id: 'a', from: 'Alice', text: '\x01ACTION waves\x01', timestamp: ts }),
-      makeMsg({ id: 'b', from: 'Alice', text: '\x01ACTION sits down\x01', timestamp: ts + 1000 }),
+      makeMsg({
+        id: 'a',
+        from: 'Alice',
+        text: '\x01ACTION waves\x01',
+        timestamp: ts,
+      }),
+      makeMsg({
+        id: 'b',
+        from: 'Alice',
+        text: '\x01ACTION sits down\x01',
+        timestamp: ts + 1000,
+      }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   // ── raw message category visibility tests ─────────────────────────────────
   it('renders with raw category visibility for different categories', async () => {
-    const rawCategoryVisibility = { 
-      server: true, 
-      channel: false, 
+    const rawCategoryVisibility = {
+      server: true,
+      channel: false,
       user: true,
       debug: false,
       error: true,
     };
     const messages = [
-      makeMsg({ id: 'a', type: 'raw', text: ':server 001', isRaw: true, rawCategory: 'server' }),
-      makeMsg({ id: 'b', type: 'raw', text: ':server 002', isRaw: true, rawCategory: 'channel' }),
+      makeMsg({
+        id: 'a',
+        type: 'raw',
+        text: ':server 001',
+        isRaw: true,
+        rawCategory: 'server',
+      }),
+      makeMsg({
+        id: 'b',
+        type: 'raw',
+        text: ':server 002',
+        isRaw: true,
+        rawCategory: 'channel',
+      }),
     ];
     const { toJSON } = await renderAndSettle(
-      <MessageArea 
-        {...baseProps} 
-        messages={messages} 
+      <MessageArea
+        {...baseProps}
+        messages={messages}
         showRawCommands={true}
         rawCategoryVisibility={rawCategoryVisibility}
-      />
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -871,7 +1061,9 @@ describe('MessageArea', () => {
       makeMsg({ id: 'a', type: 'system', text: 'System message' }),
       makeMsg({ id: 'b', type: 'event', text: 'Event message' }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -881,7 +1073,9 @@ describe('MessageArea', () => {
       makeMsg({ id: 'a', text: 'Message 1' }),
       makeMsg({ id: 'b', text: 'Message 2' }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -894,13 +1088,17 @@ describe('MessageArea', () => {
     });
 
     const messages = [makeMsg({ text: 'Test message' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   // ── virtualization tests ──────────────────────────────────────────────────
   it('handles virtualization with many messages', async () => {
-    const { performanceService } = require('../../src/services/PerformanceService');
+    const {
+      performanceService,
+    } = require('../../src/services/PerformanceService');
     performanceService.getConfig.mockReturnValue({
       enableVirtualization: true,
       maxVisibleMessages: 50,
@@ -913,29 +1111,37 @@ describe('MessageArea', () => {
 
     const ts = Date.now();
     const messages = Array.from({ length: 200 }, (_, i) =>
-      makeMsg({ id: `m${i}`, text: `Message ${i}`, timestamp: ts + i * 1000 })
+      makeMsg({ id: `m${i}`, text: `Message ${i}`, timestamp: ts + i * 1000 }),
     );
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   // ── edge cases ────────────────────────────────────────────────────────────
   it('renders with empty message text', async () => {
     const messages = [makeMsg({ text: '' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders with very long message text', async () => {
     const longText = 'A'.repeat(5000);
     const messages = [makeMsg({ text: longText })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders with message containing special characters', async () => {
     const messages = [makeMsg({ text: 'Special: <>&"\'\n\r\t🔥🎉' })];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -946,26 +1152,36 @@ describe('MessageArea', () => {
       makeMsg({ id: 'b', text: 'Second', timestamp: ts }),
       makeMsg({ id: 'c', text: 'Third', timestamp: ts }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
   // ── props change tests ────────────────────────────────────────────────────
   it('handles changing messages prop', async () => {
     const { rerender } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={[makeMsg({ id: 'a', text: 'First' })]} />
+      <MessageArea
+        {...baseProps}
+        messages={[makeMsg({ id: 'a', text: 'First' })]}
+      />,
     );
-    
+
     await act(async () => {
-      rerender(<MessageArea {...baseProps} messages={[makeMsg({ id: 'b', text: 'Second' })]} />);
+      rerender(
+        <MessageArea
+          {...baseProps}
+          messages={[makeMsg({ id: 'b', text: 'Second' })]}
+        />,
+      );
     });
   });
 
   it('handles changing channel prop', async () => {
     const { rerender } = await renderAndSettle(
-      <MessageArea {...baseProps} channel="#first" />
+      <MessageArea {...baseProps} channel="#first" />,
     );
-    
+
     await act(async () => {
       rerender(<MessageArea {...baseProps} channel="#second" />);
     });
@@ -981,13 +1197,13 @@ describe('MessageArea', () => {
     });
 
     const { unmount } = await renderAndSettle(<MessageArea {...baseProps} />);
-    
+
     await act(async () => {
       unmount();
     });
 
     // Verify that unsubscribe functions were called during cleanup
-    unsubscribeFns.forEach((fn) => {
+    unsubscribeFns.forEach(fn => {
       expect(fn).toHaveBeenCalled();
     });
   });
@@ -995,9 +1211,9 @@ describe('MessageArea', () => {
   // ── network-specific tests ────────────────────────────────────────────────
   it('renders for different network names', async () => {
     const { rerender } = await renderAndSettle(
-      <MessageArea messages={[makeMsg()]} network="Network1" />
+      <MessageArea messages={[makeMsg()]} network="Network1" />,
     );
-    
+
     await act(async () => {
       rerender(<MessageArea messages={[makeMsg()]} network="Network2" />);
     });
@@ -1019,7 +1235,9 @@ describe('MessageArea', () => {
       makeMsg({ type: 'message', text: 'Hello', from: 'Alice' }),
       makeMsg({ type: 'join', text: 'Alice joined', from: 'Alice' }),
     ];
-    const { toJSON } = await renderAndSettle(<MessageArea {...baseProps} messages={messages} />);
+    const { toJSON } = await renderAndSettle(
+      <MessageArea {...baseProps} messages={messages} />,
+    );
     expect(toJSON()).toBeTruthy();
   });
 
@@ -1028,12 +1246,14 @@ describe('MessageArea', () => {
       makeMsg({ id: 'sel-1', text: 'Selectable message', from: 'Alice' }),
     ];
     const view = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} />
+      <MessageArea {...baseProps} messages={messages} />,
     );
     const { queryByText, UNSAFE_getAllByType } = view;
     const { TouchableOpacity } = require('react-native');
 
-    const pressables = UNSAFE_getAllByType(TouchableOpacity).filter((node: any) => typeof node.props.onLongPress === 'function');
+    const pressables = UNSAFE_getAllByType(TouchableOpacity).filter(
+      (node: any) => typeof node.props.onLongPress === 'function',
+    );
     expect(pressables.length).toBeGreaterThan(0);
     await act(async () => {
       pressables[0].props.onLongPress?.();
@@ -1052,7 +1272,9 @@ describe('MessageArea', () => {
   });
 
   it('renders non-virtualized branch when virtualization is disabled', async () => {
-    const { performanceService } = require('../../src/services/PerformanceService');
+    const {
+      performanceService,
+    } = require('../../src/services/PerformanceService');
     performanceService.getConfig.mockReturnValue({
       enableVirtualization: false,
       maxVisibleMessages: 100,
@@ -1079,7 +1301,7 @@ describe('MessageArea', () => {
       <MessageArea
         {...baseProps}
         messages={[makeMsg({ id: 'nv-1', text: 'fallback path' })]}
-      />
+      />,
     );
     expect(toJSON()).toBeTruthy();
   });
@@ -1087,7 +1309,7 @@ describe('MessageArea', () => {
   it('opens nick context menu and executes core nick actions', async () => {
     const messages = [makeMsg({ from: 'Alice', text: 'Hello there' })];
     const { getAllByText } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} />
+      <MessageArea {...baseProps} messages={messages} />,
     );
 
     const nickNode = getAllByText(/Alice/)[0];
@@ -1113,7 +1335,11 @@ describe('MessageArea', () => {
     const connection = mockGetConnection.mock.results[0]?.value;
     const irc = connection?.ircService;
     expect(irc.sendCommand).toHaveBeenCalledWith('WHOIS Alice');
-    expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'PING', expect.any(String));
+    expect(irc.sendCTCPRequest).toHaveBeenCalledWith(
+      'Alice',
+      'PING',
+      expect.any(String),
+    );
     expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'VERSION');
     expect(irc.sendCTCPRequest).toHaveBeenCalledWith('Alice', 'TIME');
     expect(irc.sendCommand).toHaveBeenCalledWith('KICK #general Alice');
@@ -1122,7 +1348,9 @@ describe('MessageArea', () => {
   });
 
   it('executes whois modal branch, query tab creation, ignore toggle, monitor toggle and dcc send', async () => {
-    const { userManagementService } = require('../../src/services/UserManagementService');
+    const {
+      userManagementService,
+    } = require('../../src/services/UserManagementService');
     const { useUIStore } = require('../../src/stores/uiStore');
     const uiState = {
       whoisDisplayMode: 'modal',
@@ -1135,7 +1363,7 @@ describe('MessageArea', () => {
 
     const messages = [makeMsg({ from: 'Alice', text: 'Hello again' })];
     const { getAllByText } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} />
+      <MessageArea {...baseProps} messages={messages} />,
     );
 
     await act(async () => {
@@ -1156,23 +1384,35 @@ describe('MessageArea', () => {
     expect(uiState.setShowWHOIS).toHaveBeenCalledWith(true);
     expect(mockSetTabs).toHaveBeenCalled();
     expect(mockSetActiveTabId).toHaveBeenCalled();
-    expect(userManagementService.ignoreUser).toHaveBeenCalledWith('Alice', undefined, 'TestNet');
+    expect(userManagementService.ignoreUser).toHaveBeenCalledWith(
+      'Alice',
+      undefined,
+      'TestNet',
+    );
     expect(irc.monitorNick).toHaveBeenCalledWith('Alice');
-    expect(uiState.setDccSendTarget).toHaveBeenCalledWith({ nick: 'Alice', networkId: 'TestNet' });
+    expect(uiState.setDccSendTarget).toHaveBeenCalledWith({
+      nick: 'Alice',
+      networkId: 'TestNet',
+    });
     expect(uiState.setShowDccSendModal).toHaveBeenCalledWith(true);
 
     (userManagementService.isUserIgnored as jest.Mock).mockReturnValue(true);
     await act(async () => {
       await mockNickContextMenuProps.onAction('ignore_toggle');
     });
-    expect(userManagementService.unignoreUser).toHaveBeenCalledWith('Alice', 'TestNet');
+    expect(userManagementService.unignoreUser).toHaveBeenCalledWith(
+      'Alice',
+      'TestNet',
+    );
   });
 
   it('executes encryption request/share actions and posts system notices', async () => {
-    const { encryptedDMService } = require('../../src/services/EncryptedDMService');
+    const {
+      encryptedDMService,
+    } = require('../../src/services/EncryptedDMService');
     const messages = [makeMsg({ from: 'Alice', text: 'Secure hello' })];
     const { getAllByText } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} />
+      <MessageArea {...baseProps} messages={messages} />,
     );
 
     await act(async () => {
@@ -1187,15 +1427,20 @@ describe('MessageArea', () => {
     const connection = mockGetConnection.mock.results[0]?.value;
     const irc = connection?.ircService;
     expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG Alice :!enc-req');
-    expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG Alice :!enc-offer'));
+    expect(irc.sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('PRIVMSG Alice :!enc-offer'),
+    );
     expect(irc.addMessage).toHaveBeenCalled();
-    expect(encryptedDMService.awaitBundleForNick).toHaveBeenCalledWith('Alice', 36000);
+    expect(encryptedDMService.awaitBundleForNick).toHaveBeenCalledWith(
+      'Alice',
+      36000,
+    );
   });
 
   it('opens kick/ban options modal and confirms kick+ban command flow', async () => {
     const messages = [makeMsg({ from: 'Alice', text: 'Moderation case' })];
     const { getAllByText } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} />
+      <MessageArea {...baseProps} messages={messages} />,
     );
 
     await act(async () => {
@@ -1226,61 +1471,84 @@ describe('MessageArea', () => {
 
     const connection = mockGetConnection.mock.results[0]?.value;
     const irc = connection?.ircService;
-    expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('MODE #general +b'));
+    expect(irc.sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('MODE #general +b'),
+    );
     expect(irc.sendRaw).toHaveBeenCalledWith('KICK #general Alice :bye');
   });
 
   it('handles enc_verify action for missing and existing fingerprints', async () => {
     const { Alert } = require('react-native');
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
-    const { encryptedDMService } = require('../../src/services/EncryptedDMService');
+    const {
+      encryptedDMService,
+    } = require('../../src/services/EncryptedDMService');
     const Clipboard = require('@react-native-clipboard/clipboard');
 
     const messages = [makeMsg({ from: 'Alice', text: 'Verify me' })];
     const { getAllByText } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} />
+      <MessageArea {...baseProps} messages={messages} />,
     );
 
     await act(async () => {
       fireEvent(getAllByText(/Alice/)[0], 'onLongPress');
     });
 
-    (encryptedDMService.getVerificationStatusForNetwork as jest.Mock).mockResolvedValueOnce({
+    (
+      encryptedDMService.getVerificationStatusForNetwork as jest.Mock
+    ).mockResolvedValueOnce({
       fingerprint: null,
       verified: false,
     });
     await act(async () => {
       await mockNickContextMenuProps.onAction('enc_verify');
     });
-    expect(alertSpy).toHaveBeenCalledWith('Verify DM Key', 'No DM key for Alice');
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Verify DM Key',
+      'No DM key for Alice',
+    );
 
-    (encryptedDMService.getVerificationStatusForNetwork as jest.Mock).mockResolvedValueOnce({
+    (
+      encryptedDMService.getVerificationStatusForNetwork as jest.Mock
+    ).mockResolvedValueOnce({
       fingerprint: 'peer-fp',
       verified: false,
     });
     await act(async () => {
       await mockNickContextMenuProps.onAction('enc_verify');
     });
-    const verifyCall = alertSpy.mock.calls.find((call: any[]) => call[0] === 'Verify DM Key' && Array.isArray(call[2]));
+    const verifyCall = alertSpy.mock.calls.find(
+      (call: any[]) => call[0] === 'Verify DM Key' && Array.isArray(call[2]),
+    );
     expect(verifyCall).toBeTruthy();
     const buttons = verifyCall[2];
-    const markVerified = buttons.find((b: any) => String(b.text).includes('Mark Verified'));
-    const copyButton = buttons.find((b: any) => String(b.text).includes('Copy Fingerprints'));
+    const markVerified = buttons.find((b: any) =>
+      String(b.text).includes('Mark Verified'),
+    );
+    const copyButton = buttons.find((b: any) =>
+      String(b.text).includes('Copy Fingerprints'),
+    );
     await act(async () => {
       await markVerified.onPress();
       copyButton.onPress();
     });
 
-    expect(encryptedDMService.setVerifiedForNetwork).toHaveBeenCalledWith('TestNet', 'Alice', true);
+    expect(encryptedDMService.setVerifiedForNetwork).toHaveBeenCalledWith(
+      'TestNet',
+      'Alice',
+      true,
+    );
     expect(Clipboard.setString).toHaveBeenCalled();
     alertSpy.mockRestore();
   });
 
   it('executes channel encryption share and request actions', async () => {
-    const { channelEncryptionService } = require('../../src/services/ChannelEncryptionService');
+    const {
+      channelEncryptionService,
+    } = require('../../src/services/ChannelEncryptionService');
     const messages = [makeMsg({ from: 'Alice', text: 'Channel key flow' })];
     const { getAllByText } = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} />
+      <MessageArea {...baseProps} messages={messages} />,
     );
 
     await act(async () => {
@@ -1293,20 +1561,29 @@ describe('MessageArea', () => {
 
     const connection = mockGetConnection.mock.results[0]?.value;
     const irc = connection?.ircService;
-    expect(channelEncryptionService.exportChannelKey).toHaveBeenCalledWith('#general', 'TestNet');
-    expect(irc.sendRaw).toHaveBeenCalledWith('PRIVMSG Alice :!chanenc-key chan-key-data');
+    expect(channelEncryptionService.exportChannelKey).toHaveBeenCalledWith(
+      '#general',
+      'TestNet',
+    );
     expect(irc.sendRaw).toHaveBeenCalledWith(
-      'PRIVMSG Alice :Please share the channel key for #general with /chankey share TestNick'
+      'PRIVMSG Alice :!chanenc-key chan-key-data',
+    );
+    expect(irc.sendRaw).toHaveBeenCalledWith(
+      'PRIVMSG Alice :Please share the channel key for #general with /chankey share TestNick',
     );
   });
 
   it('opens note and blacklist modals and persists changes', async () => {
-    const { userManagementService } = require('../../src/services/UserManagementService');
-    (userManagementService.getUserNote as jest.Mock).mockReturnValue('existing note');
+    const {
+      userManagementService,
+    } = require('../../src/services/UserManagementService');
+    (userManagementService.getUserNote as jest.Mock).mockReturnValue(
+      'existing note',
+    );
 
     const messages = [makeMsg({ from: 'Alice', text: 'Notes and blacklist' })];
     const view = await renderAndSettle(
-      <MessageArea {...baseProps} messages={messages} />
+      <MessageArea {...baseProps} messages={messages} />,
     );
     const { getAllByText, getByPlaceholderText, getByText } = view;
 
@@ -1329,7 +1606,11 @@ describe('MessageArea', () => {
       fireEvent.changeText(noteInput, 'updated note');
       fireEvent.press(getByText('Save'));
     });
-    expect(userManagementService.addUserNote).toHaveBeenCalledWith('Alice', expect.any(String), 'TestNet');
+    expect(userManagementService.addUserNote).toHaveBeenCalledWith(
+      'Alice',
+      expect.any(String),
+      'TestNet',
+    );
 
     await act(async () => {
       fireEvent(getAllByText(/Alice/)[0], 'onLongPress');

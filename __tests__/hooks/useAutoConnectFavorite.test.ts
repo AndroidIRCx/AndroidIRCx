@@ -12,9 +12,13 @@ const mockStorage: Map<string, string> = new Map();
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    setItem: jest.fn(async (key: string, value: string) => { mockStorage.set(key, value); }),
+    setItem: jest.fn(async (key: string, value: string) => {
+      mockStorage.set(key, value);
+    }),
     getItem: jest.fn(async (key: string) => mockStorage.get(key) || null),
-    removeItem: jest.fn(async (key: string) => { mockStorage.delete(key); }),
+    removeItem: jest.fn(async (key: string) => {
+      mockStorage.delete(key);
+    }),
   },
 }));
 
@@ -24,16 +28,26 @@ jest.mock('../../src/services/SettingsService', () => ({
     getSetting: jest.fn(async () => null),
   },
 }));
-const mockSettingsService = jest.requireMock<any>('../../src/services/SettingsService').settingsService;
+const mockSettingsService = jest.requireMock<any>(
+  '../../src/services/SettingsService',
+).settingsService;
 
 jest.mock('../../src/services/ConnectionManager', () => ({
   connectionManager: {
     hasConnection: jest.fn(() => false),
   },
 }));
-const mockConnectionManager = jest.requireMock<any>('../../src/services/ConnectionManager').connectionManager;
+const mockConnectionManager = jest.requireMock<any>(
+  '../../src/services/ConnectionManager',
+).connectionManager;
 
-const baseNetwork = { id: 'net-1', name: 'DBase', nick: 'Nick', realname: 'User', servers: [{ id: 's1', hostname: 'irc.test.com', port: 6697, ssl: true }] };
+const baseNetwork = {
+  id: 'net-1',
+  name: 'DBase',
+  nick: 'Nick',
+  realname: 'User',
+  servers: [{ id: 's1', hostname: 'irc.test.com', port: 6697, ssl: true }],
+};
 
 describe('useAutoConnectFavorite', () => {
   const mockHandleConnect = jest.fn(async () => {});
@@ -47,13 +61,15 @@ describe('useAutoConnectFavorite', () => {
   });
 
   it('should not auto-connect when disabled', async () => {
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: false,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: false,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await act(async () => {});
     expect(mockHandleConnect).not.toHaveBeenCalled();
@@ -62,13 +78,15 @@ describe('useAutoConnectFavorite', () => {
   it('should not auto-connect when data not loaded', async () => {
     mockSettingsService.loadNetworks.mockResolvedValue([baseNetwork]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: false,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: false,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await act(async () => {});
     expect(mockHandleConnect).not.toHaveBeenCalled();
@@ -78,13 +96,15 @@ describe('useAutoConnectFavorite', () => {
     const startupNetwork = { ...baseNetwork, connectOnStartup: true };
     mockSettingsService.loadNetworks.mockResolvedValue([startupNetwork]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await waitFor(() => {
       expect(mockHandleConnect).toHaveBeenCalledWith(startupNetwork);
@@ -92,16 +112,21 @@ describe('useAutoConnectFavorite', () => {
   });
 
   it('should auto-connect to favorite server networks', async () => {
-    const favNetwork = { ...baseNetwork, servers: [{ ...baseNetwork.servers[0], favorite: true }] };
+    const favNetwork = {
+      ...baseNetwork,
+      servers: [{ ...baseNetwork.servers[0], favorite: true }],
+    };
     mockSettingsService.loadNetworks.mockResolvedValue([favNetwork]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await waitFor(() => {
       expect(mockHandleConnect).toHaveBeenCalledWith(favNetwork);
@@ -111,13 +136,15 @@ describe('useAutoConnectFavorite', () => {
   it('should fall back to selected network when no startup/favorites', async () => {
     mockSettingsService.loadNetworks.mockResolvedValue([baseNetwork]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: 'DBase',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: 'DBase',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await waitFor(() => {
       expect(mockHandleConnect).toHaveBeenCalledWith(baseNetwork);
@@ -127,13 +154,15 @@ describe('useAutoConnectFavorite', () => {
   it('should fall back to first network when nothing else matches', async () => {
     mockSettingsService.loadNetworks.mockResolvedValue([baseNetwork]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: 'NonExistent',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: 'NonExistent',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await waitFor(() => {
       expect(mockHandleConnect).toHaveBeenCalledWith(baseNetwork);
@@ -141,18 +170,39 @@ describe('useAutoConnectFavorite', () => {
   });
 
   it('should connect to Quick Connect Network first and also other favorites', async () => {
-    const dbase = { ...baseNetwork, id: 'DBase', name: 'DBase', servers: [{ ...baseNetwork.servers[0], favorite: true }] };
-    const freenode = { id: 'freenode', name: 'Freenode', nick: 'Nick', realname: 'User', servers: [{ id: 's2', hostname: 'chat.freenode.com', port: 6697, ssl: true, favorite: true }] };
+    const dbase = {
+      ...baseNetwork,
+      id: 'DBase',
+      name: 'DBase',
+      servers: [{ ...baseNetwork.servers[0], favorite: true }],
+    };
+    const freenode = {
+      id: 'freenode',
+      name: 'Freenode',
+      nick: 'Nick',
+      realname: 'User',
+      servers: [
+        {
+          id: 's2',
+          hostname: 'chat.freenode.com',
+          port: 6697,
+          ssl: true,
+          favorite: true,
+        },
+      ],
+    };
     mockSettingsService.loadNetworks.mockResolvedValue([dbase, freenode]);
     mockSettingsService.getSetting.mockResolvedValue('freenode');
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await waitFor(() => {
       // Quick Connect (Freenode) first, then other favorites (DBase)
@@ -163,17 +213,41 @@ describe('useAutoConnectFavorite', () => {
   });
 
   it('should connect to both startup targets and favorite targets', async () => {
-    const startupNetwork = { ...baseNetwork, id: 'net-1', name: 'StartupNet', connectOnStartup: true };
-    const favNetwork = { id: 'net-2', name: 'FavNet', nick: 'Nick', realname: 'User', servers: [{ id: 's2', hostname: 'irc.fav.com', port: 6697, ssl: true, favorite: true }] };
-    mockSettingsService.loadNetworks.mockResolvedValue([startupNetwork, favNetwork]);
+    const startupNetwork = {
+      ...baseNetwork,
+      id: 'net-1',
+      name: 'StartupNet',
+      connectOnStartup: true,
+    };
+    const favNetwork = {
+      id: 'net-2',
+      name: 'FavNet',
+      nick: 'Nick',
+      realname: 'User',
+      servers: [
+        {
+          id: 's2',
+          hostname: 'irc.fav.com',
+          port: 6697,
+          ssl: true,
+          favorite: true,
+        },
+      ],
+    };
+    mockSettingsService.loadNetworks.mockResolvedValue([
+      startupNetwork,
+      favNetwork,
+    ]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await waitFor(() => {
       // Should connect to BOTH startup network AND favorite network
@@ -184,22 +258,24 @@ describe('useAutoConnectFavorite', () => {
   });
 
   it('should not duplicate networks that are both startup and favorite', async () => {
-    const bothNetwork = { 
-      ...baseNetwork, 
-      id: 'net-1', 
-      name: 'BothNet', 
+    const bothNetwork = {
+      ...baseNetwork,
+      id: 'net-1',
+      name: 'BothNet',
       connectOnStartup: true,
-      servers: [{ ...baseNetwork.servers[0], favorite: true }]
+      servers: [{ ...baseNetwork.servers[0], favorite: true }],
     };
     mockSettingsService.loadNetworks.mockResolvedValue([bothNetwork]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await waitFor(() => {
       // Should connect only ONCE even though it's both startup and favorite
@@ -212,13 +288,15 @@ describe('useAutoConnectFavorite', () => {
     autoConnectAttemptedRef.current.add('DBase');
     mockSettingsService.loadNetworks.mockResolvedValue([baseNetwork]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await act(async () => {});
     expect(mockHandleConnect).not.toHaveBeenCalled();
@@ -228,13 +306,15 @@ describe('useAutoConnectFavorite', () => {
     mockConnectionManager.hasConnection.mockReturnValue(true);
     mockSettingsService.loadNetworks.mockResolvedValue([baseNetwork]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await act(async () => {});
     expect(mockHandleConnect).not.toHaveBeenCalled();
@@ -243,13 +323,15 @@ describe('useAutoConnectFavorite', () => {
   it('should clear attempted connections when setting is disabled', () => {
     autoConnectAttemptedRef.current.add('DBase');
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: false,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: false,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     expect(autoConnectAttemptedRef.current.size).toBe(0);
   });
@@ -257,28 +339,34 @@ describe('useAutoConnectFavorite', () => {
   it('should not connect when no networks exist', async () => {
     mockSettingsService.loadNetworks.mockResolvedValue([]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await act(async () => {});
     expect(mockHandleConnect).not.toHaveBeenCalled();
   });
 
   it('should handle errors gracefully', async () => {
-    mockSettingsService.loadNetworks.mockRejectedValue(new Error('Load failed'));
+    mockSettingsService.loadNetworks.mockRejectedValue(
+      new Error('Load failed'),
+    );
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await act(async () => {});
     expect(mockHandleConnect).not.toHaveBeenCalled();
@@ -288,13 +376,15 @@ describe('useAutoConnectFavorite', () => {
     const noNameNetwork = { ...baseNetwork, name: '' };
     mockSettingsService.loadNetworks.mockResolvedValue([noNameNetwork]);
 
-    renderHook(() => useAutoConnectFavorite({
-      autoConnectFavoriteServer: true,
-      initialDataLoaded: true,
-      selectedNetworkName: '',
-      handleConnect: mockHandleConnect,
-      autoConnectAttemptedRef,
-    }));
+    renderHook(() =>
+      useAutoConnectFavorite({
+        autoConnectFavoriteServer: true,
+        initialDataLoaded: true,
+        selectedNetworkName: '',
+        handleConnect: mockHandleConnect,
+        autoConnectAttemptedRef,
+      }),
+    );
 
     await act(async () => {});
     expect(mockHandleConnect).not.toHaveBeenCalled();

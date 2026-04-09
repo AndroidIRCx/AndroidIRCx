@@ -37,7 +37,9 @@ export const handle001: NumericHandler = (ctx, prefix, params, timestamp) => {
   }
   ctx.addMessage({
     type: 'raw',
-    text: t('*** Welcome to the {network} Network', { network: params[0] || t('IRC') }),
+    text: t('*** Welcome to the {network} Network', {
+      network: params[0] || t('IRC'),
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -86,12 +88,15 @@ export const handle004: NumericHandler = (ctx, prefix, params, timestamp) => {
   const channelModes = params[4] || '';
   ctx.addMessage({
     type: 'raw',
-    text: t('*** Server: {server} | Version: {version} | User modes: {userModes} | Channel modes: {channelModes}', {
-      server: serverName,
-      version,
-      userModes,
-      channelModes,
-    }),
+    text: t(
+      '*** Server: {server} | Version: {version} | User modes: {userModes} | Channel modes: {channelModes}',
+      {
+        server: serverName,
+        version,
+        userModes,
+        channelModes,
+      },
+    ),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -130,7 +135,8 @@ export const handle005: NumericHandler = (ctx, prefix, params, timestamp) => {
  */
 export const handle008: NumericHandler = (ctx, prefix, params, timestamp) => {
   const modeString = params[1] || '';
-  const description = params.slice(2).join(' ').replace(/^:/, '') || t('Server notice mask');
+  const description =
+    params.slice(2).join(' ').replace(/^:/, '') || t('Server notice mask');
 
   // Check if this was a silent MODE request
   if (ctx.isSilentModeNick(ctx.getCurrentNick().toLowerCase())) {
@@ -139,7 +145,11 @@ export const handle008: NumericHandler = (ctx, prefix, params, timestamp) => {
 
   ctx.addMessage({
     type: 'raw',
-    text: t('*** [{numeric}] {modes} {description}', { numeric: 8, modes: modeString, description }),
+    text: t('*** [{numeric}] {modes} {description}', {
+      numeric: 8,
+      modes: modeString,
+      description,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -175,7 +185,8 @@ export const handle006: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 7 RPL_MAPEND - End of server map */
 export const handle007: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const mapEnd = params.slice(1).join(' ').replace(/^:/, '') || t('End of /MAP');
+  const mapEnd =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of /MAP');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message: mapEnd }),
@@ -229,7 +240,8 @@ export const handle016: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 17 RPL_MAPEND - End of map (alternative) */
 export const handle017: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const mapEndAlt = params.slice(1).join(' ').replace(/^:/, '') || t('End of /MAP');
+  const mapEndAlt =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of /MAP');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message: mapEndAlt }),
@@ -277,7 +289,8 @@ export const handle042: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 43 RPL_SAVENICK - Nick saved */
 export const handle043: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const saveMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Nick saved');
+  const saveMsg =
+    params.slice(1).join(' ').replace(/^:/, '') || t('Nick saved');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message: saveMsg }),

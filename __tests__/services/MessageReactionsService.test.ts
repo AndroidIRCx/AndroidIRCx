@@ -25,14 +25,12 @@ describe('MessageReactionsService', () => {
       const savedReactions = {
         'msg-1': {
           messageId: 'msg-1',
-          reactions: [
-            { emoji: '👍', users: ['alice', 'bob'], count: 2 },
-          ],
+          reactions: [{ emoji: '👍', users: ['alice', 'bob'], count: 2 }],
         },
       };
       await AsyncStorage.setItem(
         '@AndroidIRCX:messageReactions',
-        JSON.stringify(savedReactions)
+        JSON.stringify(savedReactions),
       );
 
       await messageReactionsService.initialize();
@@ -44,7 +42,10 @@ describe('MessageReactionsService', () => {
     });
 
     it('should handle corrupted storage data gracefully', async () => {
-      await AsyncStorage.setItem('@AndroidIRCX:messageReactions', 'invalid json');
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:messageReactions',
+        'invalid json',
+      );
 
       await expect(messageReactionsService.initialize()).resolves.not.toThrow();
     });
@@ -68,7 +69,11 @@ describe('MessageReactionsService', () => {
       await messageReactionsService.addReaction('msg-1', '👍', 'charlie');
 
       const reactions = messageReactionsService.getReactions('msg-1');
-      expect(reactions?.reactions[0].users).toEqual(['alice', 'bob', 'charlie']);
+      expect(reactions?.reactions[0].users).toEqual([
+        'alice',
+        'bob',
+        'charlie',
+      ]);
       expect(reactions?.reactions[0].count).toBe(3);
     });
 
@@ -79,7 +84,11 @@ describe('MessageReactionsService', () => {
 
       const reactions = messageReactionsService.getReactions('msg-1');
       expect(reactions?.reactions).toHaveLength(3);
-      expect(reactions?.reactions.map(r => r.emoji)).toEqual(['👍', '❤️', '😂']);
+      expect(reactions?.reactions.map(r => r.emoji)).toEqual([
+        '👍',
+        '❤️',
+        '😂',
+      ]);
     });
 
     it('should not duplicate user for same emoji', async () => {
@@ -96,7 +105,7 @@ describe('MessageReactionsService', () => {
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         '@AndroidIRCX:messageReactions',
-        expect.any(String)
+        expect.any(String),
       );
     });
   });
@@ -137,19 +146,19 @@ describe('MessageReactionsService', () => {
 
     it('should handle removing non-existent reaction gracefully', async () => {
       await expect(
-        messageReactionsService.removeReaction('msg-999', '👍', 'alice')
+        messageReactionsService.removeReaction('msg-999', '👍', 'alice'),
       ).resolves.not.toThrow();
     });
 
     it('should handle removing non-existent emoji gracefully', async () => {
       await expect(
-        messageReactionsService.removeReaction('msg-1', '🔥', 'alice')
+        messageReactionsService.removeReaction('msg-1', '🔥', 'alice'),
       ).resolves.not.toThrow();
     });
 
     it('should handle removing non-existent user gracefully', async () => {
       await expect(
-        messageReactionsService.removeReaction('msg-1', '👍', 'nonexistent')
+        messageReactionsService.removeReaction('msg-1', '👍', 'nonexistent'),
       ).resolves.not.toThrow();
     });
   });
@@ -173,15 +182,21 @@ describe('MessageReactionsService', () => {
     it('should toggle multiple times correctly', async () => {
       // Add
       await messageReactionsService.toggleReaction('msg-1', '👍', 'alice');
-      expect(messageReactionsService.hasUserReacted('msg-1', '👍', 'alice')).toBe(true);
+      expect(
+        messageReactionsService.hasUserReacted('msg-1', '👍', 'alice'),
+      ).toBe(true);
 
       // Remove
       await messageReactionsService.toggleReaction('msg-1', '👍', 'alice');
-      expect(messageReactionsService.hasUserReacted('msg-1', '👍', 'alice')).toBe(false);
+      expect(
+        messageReactionsService.hasUserReacted('msg-1', '👍', 'alice'),
+      ).toBe(false);
 
       // Add again
       await messageReactionsService.toggleReaction('msg-1', '👍', 'alice');
-      expect(messageReactionsService.hasUserReacted('msg-1', '👍', 'alice')).toBe(true);
+      expect(
+        messageReactionsService.hasUserReacted('msg-1', '👍', 'alice'),
+      ).toBe(true);
     });
   });
 
@@ -207,19 +222,27 @@ describe('MessageReactionsService', () => {
     });
 
     it('should return true when user has reacted', () => {
-      expect(messageReactionsService.hasUserReacted('msg-1', '👍', 'alice')).toBe(true);
+      expect(
+        messageReactionsService.hasUserReacted('msg-1', '👍', 'alice'),
+      ).toBe(true);
     });
 
     it('should return false when user has not reacted', () => {
-      expect(messageReactionsService.hasUserReacted('msg-1', '👍', 'bob')).toBe(false);
+      expect(messageReactionsService.hasUserReacted('msg-1', '👍', 'bob')).toBe(
+        false,
+      );
     });
 
     it('should return false for non-existent message', () => {
-      expect(messageReactionsService.hasUserReacted('msg-999', '👍', 'alice')).toBe(false);
+      expect(
+        messageReactionsService.hasUserReacted('msg-999', '👍', 'alice'),
+      ).toBe(false);
     });
 
     it('should return false for non-existent emoji', () => {
-      expect(messageReactionsService.hasUserReacted('msg-1', '🔥', 'alice')).toBe(false);
+      expect(
+        messageReactionsService.hasUserReacted('msg-1', '🔥', 'alice'),
+      ).toBe(false);
     });
   });
 
@@ -231,7 +254,11 @@ describe('MessageReactionsService', () => {
     });
 
     it('should return reactions for multiple messages', () => {
-      const result = messageReactionsService.getReactionsForMessages(['msg-1', 'msg-2', 'msg-3']);
+      const result = messageReactionsService.getReactionsForMessages([
+        'msg-1',
+        'msg-2',
+        'msg-3',
+      ]);
 
       expect(result.size).toBe(3);
       expect(result.get('msg-1')?.reactions[0].emoji).toBe('👍');
@@ -273,7 +300,7 @@ describe('MessageReactionsService', () => {
 
     it('should handle clearing non-existent message gracefully', async () => {
       await expect(
-        messageReactionsService.clearReactions('msg-999')
+        messageReactionsService.clearReactions('msg-999'),
       ).resolves.not.toThrow();
     });
 
@@ -283,7 +310,7 @@ describe('MessageReactionsService', () => {
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         '@AndroidIRCX:messageReactions',
-        expect.any(String)
+        expect.any(String),
       );
     });
   });
@@ -295,9 +322,12 @@ describe('MessageReactionsService', () => {
 
       await messageReactionsService.addReaction('msg-1', '👍', 'alice');
 
-      expect(listener).toHaveBeenCalledWith('msg-1', expect.objectContaining({
-        messageId: 'msg-1',
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        'msg-1',
+        expect.objectContaining({
+          messageId: 'msg-1',
+        }),
+      );
     });
 
     it('should notify multiple listeners', async () => {
@@ -345,10 +375,13 @@ describe('MessageReactionsService', () => {
 
       await messageReactionsService.clearReactions('msg-1');
 
-      expect(listener).toHaveBeenCalledWith('msg-1', expect.objectContaining({
-        messageId: 'msg-1',
-        reactions: [],
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        'msg-1',
+        expect.objectContaining({
+          messageId: 'msg-1',
+          reactions: [],
+        }),
+      );
     });
   });
 
@@ -370,7 +403,18 @@ describe('MessageReactionsService', () => {
     });
 
     it('should handle many reactions per message', async () => {
-      const emojis = ['👍', '❤️', '😂', '🎉', '🚀', '👀', '🔥', '✨', '💯', '🙌'];
+      const emojis = [
+        '👍',
+        '❤️',
+        '😂',
+        '🎉',
+        '🚀',
+        '👀',
+        '🔥',
+        '✨',
+        '💯',
+        '🙌',
+      ];
       for (const emoji of emojis) {
         await messageReactionsService.addReaction('msg-1', emoji, 'alice');
       }

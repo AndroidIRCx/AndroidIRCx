@@ -42,7 +42,11 @@ describe('UserStateCommandHandlers', () => {
     it('adds logout message when accountName is *', () => {
       handleACCOUNT(ctx, 'nick!user@host', ['*'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true, rawCategory: 'user' })
+        expect.objectContaining({
+          type: 'raw',
+          isRaw: true,
+          rawCategory: 'user',
+        }),
       );
       expect(ctx.emit).toHaveBeenCalledWith('account', 'nick', '*');
     });
@@ -50,7 +54,7 @@ describe('UserStateCommandHandlers', () => {
     it('adds login message when accountName is provided', () => {
       handleACCOUNT(ctx, 'nick!user@host', ['myaccount'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true })
+        expect.objectContaining({ type: 'raw', isRaw: true }),
       );
       expect(ctx.emit).toHaveBeenCalledWith('account', 'nick', 'myaccount');
     });
@@ -71,14 +75,18 @@ describe('UserStateCommandHandlers', () => {
     it('adds away message when message is provided', () => {
       handleAWAY(ctx, 'nick!user@host', ['Be', 'right', 'back'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true, rawCategory: 'user' })
+        expect.objectContaining({
+          type: 'raw',
+          isRaw: true,
+          rawCategory: 'user',
+        }),
       );
     });
 
     it('adds back message when away message is empty', () => {
       handleAWAY(ctx, 'nick!user@host', [], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true })
+        expect.objectContaining({ type: 'raw', isRaw: true }),
       );
     });
 
@@ -86,22 +94,40 @@ describe('UserStateCommandHandlers', () => {
       const ts = 1234567890;
       handleAWAY(ctx, 'nick!user@host', ['away'], ts);
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ timestamp: ts })
+        expect.objectContaining({ timestamp: ts }),
       );
     });
   });
 
   describe('handleCHGHOST', () => {
     it('adds chghost raw message', () => {
-      handleCHGHOST(ctx, 'nick!user@host', ['newuser', 'newhost.example.com'], Date.now());
+      handleCHGHOST(
+        ctx,
+        'nick!user@host',
+        ['newuser', 'newhost.example.com'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true, rawCategory: 'server' })
+        expect.objectContaining({
+          type: 'raw',
+          isRaw: true,
+          rawCategory: 'server',
+        }),
       );
     });
 
     it('emits chghost event with nick and new host', () => {
-      handleCHGHOST(ctx, 'nick!user@host', ['newuser', 'newhost.example.com'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('chghost', 'nick', 'newhost.example.com');
+      handleCHGHOST(
+        ctx,
+        'nick!user@host',
+        ['newuser', 'newhost.example.com'],
+        Date.now(),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'chghost',
+        'nick',
+        'newhost.example.com',
+      );
     });
 
     it('handles empty new host', () => {
@@ -114,7 +140,7 @@ describe('UserStateCommandHandlers', () => {
     it('adds setname raw message', () => {
       handleSETNAME(ctx, 'nick!user@host', ['New Real Name'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true })
+        expect.objectContaining({ type: 'raw', isRaw: true }),
       );
     });
 
@@ -131,19 +157,36 @@ describe('UserStateCommandHandlers', () => {
 
   describe('handleTAGMSG', () => {
     it('logs reaction tag', () => {
-      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), { reactTag: 'msgid123;👍' });
-      expect(ctx.emit).toHaveBeenCalledWith('reaction-received', '#channel', 'msgid123', '👍', 'nick');
+      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
+        reactTag: 'msgid123;👍',
+      });
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'reaction-received',
+        '#channel',
+        'msgid123',
+        '👍',
+        'nick',
+      );
       expect(ctx.logRaw).toHaveBeenCalled();
     });
 
     it('logs typing tag', () => {
-      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), { typingTag: 'active' });
-      expect(ctx.emit).toHaveBeenCalledWith('typing-indicator', '#channel', 'nick', 'active');
+      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
+        typingTag: 'active',
+      });
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'typing-indicator',
+        '#channel',
+        'nick',
+        'active',
+      );
       expect(ctx.logRaw).toHaveBeenCalled();
     });
 
     it('adds raw message with tag summary when tags present', () => {
-      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), { reactTag: 'id;👍' });
+      handleTAGMSG(ctx, 'nick!user@host', ['#channel'], Date.now(), {
+        reactTag: 'id;👍',
+      });
       expect(ctx.addRawMessage).toHaveBeenCalled();
     });
 
@@ -157,8 +200,19 @@ describe('UserStateCommandHandlers', () => {
         reactTag: 'id;❤️',
         typingTag: 'done',
       });
-      expect(ctx.emit).toHaveBeenCalledWith('reaction-received', '#channel', 'id', '❤️', 'nick');
-      expect(ctx.emit).toHaveBeenCalledWith('typing-indicator', '#channel', 'nick', 'done');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'reaction-received',
+        '#channel',
+        'id',
+        '❤️',
+        'nick',
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'typing-indicator',
+        '#channel',
+        'nick',
+        'done',
+      );
     });
 
     it('handles undefined meta', () => {

@@ -17,7 +17,12 @@ export interface SettingIcon {
 /**
  * Type of setting item
  */
-export type SettingItemType = 'switch' | 'button' | 'input' | 'submenu' | 'custom';
+export type SettingItemType =
+  | 'switch'
+  | 'button'
+  | 'input'
+  | 'submenu'
+  | 'custom';
 
 /**
  * Keyboard type for input settings

@@ -31,7 +31,9 @@ jest.mock('../../src/services/ThemeService', () => ({
     getCurrentTheme: jest.fn(() => darkTheme),
     onThemeChange: jest.fn((cb: Function) => {
       themeChangeCallback = cb;
-      return () => { themeChangeCallback = null; };
+      return () => {
+        themeChangeCallback = null;
+      };
     }),
   },
 }));

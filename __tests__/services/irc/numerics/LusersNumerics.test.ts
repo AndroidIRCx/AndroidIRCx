@@ -53,15 +53,15 @@ describe('LusersNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** There are 10 users' })
+      expect.objectContaining({ text: '*** There are 10 users' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** I have 2 clients and 1 server' })
+      expect.objectContaining({ text: '*** I have 2 clients and 1 server' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** Administrative info' })
+      expect.objectContaining({ text: '*** Administrative info' }),
     );
   });
 
@@ -72,15 +72,15 @@ describe('LusersNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** 3 operator(s) online' })
+      expect.objectContaining({ text: '*** 3 operator(s) online' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** 4 unknown connection(s)' })
+      expect.objectContaining({ text: '*** 4 unknown connection(s)' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** 12 channels formed' })
+      expect.objectContaining({ text: '*** 12 channels formed' }),
     );
   });
 
@@ -91,15 +91,15 @@ describe('LusersNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** Admin location 1' })
+      expect.objectContaining({ text: '*** Admin location 1' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** Admin location 2' })
+      expect.objectContaining({ text: '*** Admin location 2' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** admin@example.org' })
+      expect.objectContaining({ text: '*** admin@example.org' }),
     );
   });
 
@@ -109,11 +109,13 @@ describe('LusersNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** Current local users 25, max 100' })
+      expect.objectContaining({ text: '*** Current local users 25, max 100' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** Current global users 250, max 1000' })
+      expect.objectContaining({
+        text: '*** Current global users 250, max 1000',
+      }),
     );
   });
 });

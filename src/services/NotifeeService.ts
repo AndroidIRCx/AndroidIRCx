@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-
 import notifee from '@notifee/react-native';
 import { tx } from '../i18n/transifex';
 

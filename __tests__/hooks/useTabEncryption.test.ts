@@ -11,7 +11,9 @@ jest.unmock('../../src/hooks/useTabEncryption');
 import { renderHook } from '@testing-library/react-hooks';
 import { useTabEncryption } from '../../src/hooks/useTabEncryption';
 
-let alwaysEncryptCallback: ((channel: string, network: string, value: boolean) => void) | null = null;
+let alwaysEncryptCallback:
+  | ((channel: string, network: string, value: boolean) => void)
+  | null = null;
 
 jest.mock('../../src/stores/tabStore', () => ({
   useTabStore: {
@@ -61,7 +63,9 @@ jest.mock('../../src/services/ChannelEncryptionSettingsService', () => ({
     getAlwaysEncrypt: jest.fn().mockResolvedValue(false),
     onAlwaysEncryptChange: jest.fn((cb: any) => {
       alwaysEncryptCallback = cb;
-      return jest.fn(() => { alwaysEncryptCallback = null; });
+      return jest.fn(() => {
+        alwaysEncryptCallback = null;
+      });
     }),
   },
 }));
@@ -87,7 +91,7 @@ describe('useTabEncryption', () => {
         isConnected: false,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
     expect(channelEncryptionService.hasChannelKey).not.toHaveBeenCalled();
@@ -99,28 +103,38 @@ describe('useTabEncryption', () => {
         isConnected: true,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
     // Wait for async reconciliation
     await waitForNextUpdate().catch(() => {});
 
     // Should check channel key for channel tab
-    expect(channelEncryptionService.hasChannelKey).toHaveBeenCalledWith('#secret', 'net1');
+    expect(channelEncryptionService.hasChannelKey).toHaveBeenCalledWith(
+      '#secret',
+      'net1',
+    );
     // Should check DM encryption for query tab
-    expect(encryptedDMService.isEncryptedForNetwork).toHaveBeenCalledWith('net1', 'Alice');
+    expect(encryptedDMService.isEncryptedForNetwork).toHaveBeenCalledWith(
+      'net1',
+      'Alice',
+    );
   });
 
   it('should update tabs when channel has encryption key', async () => {
-    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(true);
-    (channelEncryptionSettingsService.getAlwaysEncrypt as jest.Mock).mockResolvedValue(true);
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(
+      true,
+    );
+    (
+      channelEncryptionSettingsService.getAlwaysEncrypt as jest.Mock
+    ).mockResolvedValue(true);
 
     const { waitForNextUpdate } = renderHook(() =>
       useTabEncryption({
         isConnected: true,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
     await waitForNextUpdate().catch(() => {});
@@ -134,15 +148,19 @@ describe('useTabEncryption', () => {
   });
 
   it('should update query tabs when DM encryption bundle exists', async () => {
-    (encryptedDMService.isEncryptedForNetwork as jest.Mock).mockResolvedValue(true);
-    (channelEncryptionSettingsService.getAlwaysEncrypt as jest.Mock).mockResolvedValue(true);
+    (encryptedDMService.isEncryptedForNetwork as jest.Mock).mockResolvedValue(
+      true,
+    );
+    (
+      channelEncryptionSettingsService.getAlwaysEncrypt as jest.Mock
+    ).mockResolvedValue(true);
 
     const { waitForNextUpdate } = renderHook(() =>
       useTabEncryption({
         isConnected: true,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
     await waitForNextUpdate().catch(() => {});
@@ -156,15 +174,19 @@ describe('useTabEncryption', () => {
 
   it('should not update tabs when nothing changed', async () => {
     // All defaults are false, tabs already have false -> no change
-    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(false);
-    (encryptedDMService.isEncryptedForNetwork as jest.Mock).mockResolvedValue(false);
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(
+      false,
+    );
+    (encryptedDMService.isEncryptedForNetwork as jest.Mock).mockResolvedValue(
+      false,
+    );
 
     renderHook(() =>
       useTabEncryption({
         isConnected: true,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
     // Give async operations time to complete
@@ -179,21 +201,25 @@ describe('useTabEncryption', () => {
         isConnected: true,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
-    expect(channelEncryptionSettingsService.onAlwaysEncryptChange).toHaveBeenCalled();
+    expect(
+      channelEncryptionSettingsService.onAlwaysEncryptChange,
+    ).toHaveBeenCalled();
   });
 
   it('should handle always encrypt change for matching channel', async () => {
-    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(true);
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(
+      true,
+    );
 
     renderHook(() =>
       useTabEncryption({
         isConnected: true,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
     // Reset from initial reconciliation
@@ -216,7 +242,7 @@ describe('useTabEncryption', () => {
         isConnected: true,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
     mockSetTabs.mockClear();
@@ -230,7 +256,9 @@ describe('useTabEncryption', () => {
   });
 
   it('should disable sendEncrypted when always encrypt is off and no key', async () => {
-    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(false);
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(
+      false,
+    );
 
     // Set tab to have sendEncrypted true initially
     (useTabStore.getState as jest.Mock).mockReturnValue({
@@ -251,7 +279,7 @@ describe('useTabEncryption', () => {
         isConnected: true,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
     await waitForNextUpdate().catch(() => {});
@@ -269,12 +297,14 @@ describe('useTabEncryption', () => {
         isConnected: true,
         setTabs: mockSetTabs,
         tabsRef: mockTabsRef,
-      })
+      }),
     );
 
     unmount();
 
-    const unsubscribeFn = (channelEncryptionSettingsService.onAlwaysEncryptChange as jest.Mock).mock.results[0]?.value;
+    const unsubscribeFn = (
+      channelEncryptionSettingsService.onAlwaysEncryptChange as jest.Mock
+    ).mock.results[0]?.value;
     expect(unsubscribeFn).toHaveBeenCalled();
   });
 });

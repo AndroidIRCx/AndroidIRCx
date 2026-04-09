@@ -44,11 +44,11 @@ describe('IRCFormatter', () => {
     it('should define all format code constants', () => {
       expect(IRC_FORMAT_CODES.BOLD).toBe(0x02);
       expect(IRC_FORMAT_CODES.COLOR).toBe(0x03);
-      expect(IRC_FORMAT_CODES.RESET).toBe(0x0F);
+      expect(IRC_FORMAT_CODES.RESET).toBe(0x0f);
       expect(IRC_FORMAT_CODES.REVERSE).toBe(0x16);
-      expect(IRC_FORMAT_CODES.ITALIC).toBe(0x1D);
-      expect(IRC_FORMAT_CODES.STRIKETHROUGH).toBe(0x1E);
-      expect(IRC_FORMAT_CODES.UNDERLINE).toBe(0x1F);
+      expect(IRC_FORMAT_CODES.ITALIC).toBe(0x1d);
+      expect(IRC_FORMAT_CODES.STRIKETHROUGH).toBe(0x1e);
+      expect(IRC_FORMAT_CODES.UNDERLINE).toBe(0x1f);
     });
   });
 
@@ -98,8 +98,12 @@ describe('IRCFormatter', () => {
     it('should parse combined underline and strikethrough', () => {
       const result = formatIRCText('\x1F\x1EBoth styles\x0F');
       const firstSegment = result[0] as any;
-      expect(firstSegment.props.style.textDecorationLine).toContain('underline');
-      expect(firstSegment.props.style.textDecorationLine).toContain('line-through');
+      expect(firstSegment.props.style.textDecorationLine).toContain(
+        'underline',
+      );
+      expect(firstSegment.props.style.textDecorationLine).toContain(
+        'line-through',
+      );
     });
 
     it('should parse colored text with single digit color', () => {
@@ -137,7 +141,9 @@ describe('IRCFormatter', () => {
     it('should toggle underline on and off', () => {
       const result = formatIRCText('\x1FUnderlined\x1F normal\x0F');
       expect(result).toHaveLength(2);
-      expect((result[0] as any).props.style.textDecorationLine).toBe('underline');
+      expect((result[0] as any).props.style.textDecorationLine).toBe(
+        'underline',
+      );
       expect((result[1] as any).props.style.textDecorationLine).toBeUndefined();
     });
 
@@ -217,7 +223,9 @@ describe('IRCFormatter', () => {
     });
 
     it('should remove underline formatting', () => {
-      expect(stripIRCFormatting('\x1FUnderlined text\x0F')).toBe('Underlined text');
+      expect(stripIRCFormatting('\x1FUnderlined text\x0F')).toBe(
+        'Underlined text',
+      );
     });
 
     it('should remove strikethrough formatting', () => {
@@ -293,12 +301,16 @@ describe('IRCFormatter', () => {
     });
 
     it('should show color code with background', () => {
-      expect(formatIRCDebug('\x034,8Red on yellow')).toBe('[C4,8]Red on yellow');
+      expect(formatIRCDebug('\x034,8Red on yellow')).toBe(
+        '[C4,8]Red on yellow',
+      );
     });
 
     it('should show color code with two digit background', () => {
       // formatIRCDebug preserves the leading zero in the background color
-      expect(formatIRCDebug('\x0312,05Blue on brown')).toBe('[C12,05]Blue on brown');
+      expect(formatIRCDebug('\x0312,05Blue on brown')).toBe(
+        '[C12,05]Blue on brown',
+      );
     });
 
     it('should handle plain text', () => {
@@ -333,7 +345,9 @@ describe('IRCFormatter', () => {
     });
 
     it('should handle multiple URLs', () => {
-      const result = formatIRCTextWithLinks('Visit https://a.com and https://b.com');
+      const result = formatIRCTextWithLinks(
+        'Visit https://a.com and https://b.com',
+      );
       expect((result as any).type).toBe(Text);
     });
 
@@ -343,7 +357,11 @@ describe('IRCFormatter', () => {
     });
 
     it('should apply custom link color', () => {
-      const result = formatIRCTextWithLinks('https://example.com', {}, '#FF0000');
+      const result = formatIRCTextWithLinks(
+        'https://example.com',
+        {},
+        '#FF0000',
+      );
       expect((result as any).type).toBe(Text);
     });
 
@@ -354,7 +372,9 @@ describe('IRCFormatter', () => {
     });
 
     it('should handle formatted text with links', () => {
-      const result = formatIRCTextWithLinks('\x02Bold https://example.com link\x0F');
+      const result = formatIRCTextWithLinks(
+        '\x02Bold https://example.com link\x0F',
+      );
       expect((result as any).type).toBe(Text);
     });
 

@@ -33,7 +33,7 @@ export class MultilineHandler {
       msgid?: string;
       channelContext?: string;
       replyTo?: string;
-    }
+    },
   ): string | null {
     // Undefined means the tag is absent: regular single-line message.
     // Empty string means "last part" in draft/multiline.

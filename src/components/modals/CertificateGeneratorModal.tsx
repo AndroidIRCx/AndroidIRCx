@@ -33,7 +33,9 @@ interface CertificateGeneratorModalProps {
   defaultCommonName?: string;
 }
 
-export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps> = ({
+export const CertificateGeneratorModal: React.FC<
+  CertificateGeneratorModalProps
+> = ({
   visible,
   onClose,
   onCertificateGenerated,
@@ -45,7 +47,9 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
   const [commonName, setCommonName] = useState(defaultCommonName);
   const [validityYears, setValidityYears] = useState('1');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedCert, setGeneratedCert] = useState<CertificateInfo | null>(null);
+  const [generatedCert, setGeneratedCert] = useState<CertificateInfo | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
@@ -61,7 +65,10 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
 
     const years = parseInt(validityYears, 10);
     if (isNaN(years) || years < 1 || years > 10) {
-      Alert.alert(t('Error'), t('Validity period must be between 1 and 10 years'));
+      Alert.alert(
+        t('Error'),
+        t('Validity period must be between 1 and 10 years'),
+      );
       return;
     }
 
@@ -82,7 +89,10 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
       onCertificateGenerated?.(cert);
     } catch (err: any) {
       setError(err.message || t('Failed to generate certificate'));
-      Alert.alert(t('Error'), err.message || t('Failed to generate certificate'));
+      Alert.alert(
+        t('Error'),
+        err.message || t('Failed to generate certificate'),
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -92,7 +102,7 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
     if (generatedCert) {
       const formatted = certificateManager.formatFingerprint(
         generatedCert.fingerprint,
-        FingerprintFormat.COLON_SEPARATED_UPPER
+        FingerprintFormat.COLON_SEPARATED_UPPER,
       );
       Clipboard.setString(formatted);
       Alert.alert(t('Copied'), t('Fingerprint copied to clipboard'));
@@ -122,11 +132,16 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>
-            {generatedCert ? t('Certificate Generated') : t('Generate Certificate')}
+            {generatedCert
+              ? t('Certificate Generated')
+              : t('Generate Certificate')}
           </Text>
           <TouchableOpacity
             onPress={handleDone}
-            style={[styles.closeButton, isGenerating && styles.closeButtonDisabled]}
+            style={[
+              styles.closeButton,
+              isGenerating && styles.closeButtonDisabled,
+            ]}
             disabled={isGenerating}
           >
             <Text style={styles.closeButtonText}>
@@ -141,7 +156,7 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
             <View>
               <Text style={styles.description}>
                 {t(
-                  'Generate a new RSA-2048 self-signed certificate for IRC SASL EXTERNAL authentication.'
+                  'Generate a new RSA-2048 self-signed certificate for IRC SASL EXTERNAL authentication.',
                 )}
               </Text>
 
@@ -158,7 +173,9 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
                   placeholderTextColor="#9E9E9E"
                   editable={!isGenerating}
                 />
-                <Text style={styles.hint}>{t('A friendly name for this certificate')}</Text>
+                <Text style={styles.hint}>
+                  {t('A friendly name for this certificate')}
+                </Text>
               </View>
 
               {/* Common Name (CN) */}
@@ -192,7 +209,9 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
                   keyboardType="number-pad"
                   editable={!isGenerating}
                 />
-                <Text style={styles.hint}>{t('Certificate validity: 1-10 years')}</Text>
+                <Text style={styles.hint}>
+                  {t('Certificate validity: 1-10 years')}
+                </Text>
               </View>
 
               {/* Error Display */}
@@ -204,16 +223,23 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
 
               {/* Generate Button */}
               <TouchableOpacity
-                style={[styles.button, styles.generateButton, isGenerating && styles.buttonDisabled]}
+                style={[
+                  styles.button,
+                  styles.generateButton,
+                  isGenerating && styles.buttonDisabled,
+                ]}
                 onPress={handleGenerate}
-                disabled={isGenerating}>
+                disabled={isGenerating}
+              >
                 {isGenerating ? (
                   <View style={styles.buttonContent}>
                     <ActivityIndicator color="#FFFFFF" size="small" />
                     <Text style={styles.buttonText}>{t('Generating...')}</Text>
                   </View>
                 ) : (
-                  <Text style={styles.buttonText}>{t('Generate Certificate')}</Text>
+                  <Text style={styles.buttonText}>
+                    {t('Generate Certificate')}
+                  </Text>
                 )}
               </TouchableOpacity>
 
@@ -222,7 +248,7 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
                 <Text style={styles.infoTitle}>ℹ️ {t('What is this?')}</Text>
                 <Text style={styles.infoText}>
                   {t(
-                    'Client certificates allow you to authenticate to IRC servers using TLS certificates instead of passwords. This is more secure and supported by many modern IRC networks.'
+                    'Client certificates allow you to authenticate to IRC servers using TLS certificates instead of passwords. This is more secure and supported by many modern IRC networks.',
                   )}
                 </Text>
               </View>
@@ -234,7 +260,9 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
                 <Text style={styles.successEmoji}>✅</Text>
               </View>
 
-              <Text style={styles.successTitle}>{t('Certificate Generated Successfully!')}</Text>
+              <Text style={styles.successTitle}>
+                {t('Certificate Generated Successfully!')}
+              </Text>
 
               {/* Certificate Details */}
               <View style={styles.certDetails}>
@@ -245,31 +273,44 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
 
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>{t('Common Name:')}</Text>
-                  <Text style={styles.detailValue}>{generatedCert.commonName}</Text>
+                  <Text style={styles.detailValue}>
+                    {generatedCert.commonName}
+                  </Text>
                 </View>
 
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>{t('Valid From:')}</Text>
-                  <Text style={styles.detailValue}>{formatDate(generatedCert.validFrom)}</Text>
+                  <Text style={styles.detailValue}>
+                    {formatDate(generatedCert.validFrom)}
+                  </Text>
                 </View>
 
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>{t('Valid To:')}</Text>
-                  <Text style={styles.detailValue}>{formatDate(generatedCert.validTo)}</Text>
+                  <Text style={styles.detailValue}>
+                    {formatDate(generatedCert.validTo)}
+                  </Text>
                 </View>
               </View>
 
               {/* Fingerprint */}
               <View style={styles.fingerprintBox}>
-                <Text style={styles.fingerprintLabel}>{t('SHA-256 Fingerprint:')}</Text>
+                <Text style={styles.fingerprintLabel}>
+                  {t('SHA-256 Fingerprint:')}
+                </Text>
                 <Text style={styles.fingerprintValue}>
                   {certificateManager.formatFingerprint(
                     generatedCert.fingerprint,
-                    FingerprintFormat.COLON_SEPARATED_UPPER
+                    FingerprintFormat.COLON_SEPARATED_UPPER,
                   )}
                 </Text>
-                <TouchableOpacity style={styles.copyButton} onPress={handleCopyFingerprint}>
-                  <Text style={styles.copyButtonText}>📋 {t('Copy Fingerprint')}</Text>
+                <TouchableOpacity
+                  style={styles.copyButton}
+                  onPress={handleCopyFingerprint}
+                >
+                  <Text style={styles.copyButtonText}>
+                    📋 {t('Copy Fingerprint')}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -277,8 +318,12 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
               <View style={styles.infoBox}>
                 <Text style={styles.infoTitle}>📝 {t('Next Steps:')}</Text>
                 <Text style={styles.infoText}>
-                  1. {t('Configure your IRC network to use this certificate')}{'\n'}
-                  2. {t('Add the fingerprint to NickServ: /msg NickServ CERT ADD <fingerprint>')}
+                  1. {t('Configure your IRC network to use this certificate')}
+                  {'\n'}
+                  2.{' '}
+                  {t(
+                    'Add the fingerprint to NickServ: /msg NickServ CERT ADD <fingerprint>',
+                  )}
                   {'\n'}
                   3. {t('Connect to IRC server with SASL EXTERNAL enabled')}
                 </Text>
@@ -290,7 +335,9 @@ export const CertificateGeneratorModal: React.FC<CertificateGeneratorModalProps>
           <View style={styles.generatingOverlay}>
             <View style={styles.generatingCard}>
               <ActivityIndicator size="large" color="#4A9EFF" />
-              <Text style={styles.generatingTitle}>{t('Generating certificate...')}</Text>
+              <Text style={styles.generatingTitle}>
+                {t('Generating certificate...')}
+              </Text>
               <Text style={styles.generatingHint}>
                 {t('This can take a few seconds on older phones.')}
               </Text>

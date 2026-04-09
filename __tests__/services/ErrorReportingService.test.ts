@@ -5,7 +5,10 @@
  * Tests for ErrorReportingService
  */
 
-import { errorReportingService, ErrorContext } from '../../src/services/ErrorReportingService';
+import {
+  errorReportingService,
+  ErrorContext,
+} from '../../src/services/ErrorReportingService';
 import { Linking } from 'react-native';
 
 // Mock dependencies
@@ -78,9 +81,13 @@ describe('ErrorReportingService', () => {
     });
 
     it('should handle crashlytics errors gracefully', async () => {
-      mockCrashlytics.setUserId.mockRejectedValueOnce(new Error('Crashlytics error'));
+      mockCrashlytics.setUserId.mockRejectedValueOnce(
+        new Error('Crashlytics error'),
+      );
 
-      await expect(errorReportingService.setUserId('user123')).resolves.not.toThrow();
+      await expect(
+        errorReportingService.setUserId('user123'),
+      ).resolves.not.toThrow();
     });
 
     it('should not call crashlytics when disabled', async () => {
@@ -134,8 +141,14 @@ describe('ErrorReportingService', () => {
 
       await errorReportingService.report(error, context);
 
-      expect(mockCrashlytics.setAttribute).toHaveBeenCalledWith('environment', 'production');
-      expect(mockCrashlytics.setAttribute).toHaveBeenCalledWith('version', '1.0.0');
+      expect(mockCrashlytics.setAttribute).toHaveBeenCalledWith(
+        'environment',
+        'production',
+      );
+      expect(mockCrashlytics.setAttribute).toHaveBeenCalledWith(
+        'version',
+        '1.0.0',
+      );
     });
 
     it('should log extras to crashlytics for fatal errors', async () => {
@@ -148,7 +161,9 @@ describe('ErrorReportingService', () => {
       await errorReportingService.report(error, context);
 
       expect(mockCrashlytics.log).toHaveBeenCalledWith('userId: 123');
-      expect(mockCrashlytics.log).toHaveBeenCalledWith(expect.stringContaining('"test":true'));
+      expect(mockCrashlytics.log).toHaveBeenCalledWith(
+        expect.stringContaining('"test":true'),
+      );
     });
 
     it('should redact sensitive keys and values before logging extras', async () => {
@@ -167,15 +182,17 @@ describe('ErrorReportingService', () => {
 
       await errorReportingService.report(error, context);
 
-      expect(mockCrashlytics.log).toHaveBeenCalledWith('password: "[REDACTED]"');
       expect(mockCrashlytics.log).toHaveBeenCalledWith(
-        expect.stringContaining('tokenInfo: "[REDACTED]"')
+        'password: "[REDACTED]"',
       );
       expect(mockCrashlytics.log).toHaveBeenCalledWith(
-        expect.stringContaining('"api_key":"[REDACTED]"')
+        expect.stringContaining('tokenInfo: "[REDACTED]"'),
       );
       expect(mockCrashlytics.log).toHaveBeenCalledWith(
-        expect.stringContaining('"authHeader":"[REDACTED]"')
+        expect.stringContaining('"api_key":"[REDACTED]"'),
+      );
+      expect(mockCrashlytics.log).toHaveBeenCalledWith(
+        expect.stringContaining('"authHeader":"[REDACTED]"'),
       );
     });
 
@@ -188,47 +205,63 @@ describe('ErrorReportingService', () => {
 
       await errorReportingService.report(error, context);
 
-      expect(mockCrashlytics.setAttribute).toHaveBeenCalledWith('source', 'test-component');
+      expect(mockCrashlytics.setAttribute).toHaveBeenCalledWith(
+        'source',
+        'test-component',
+      );
     });
 
     it('should normalize string errors', async () => {
       await errorReportingService.report('String error', { fatal: true });
 
-      expect(mockCrashlytics.recordError).toHaveBeenCalledWith(expect.objectContaining({
-        message: 'String error',
-      }));
+      expect(mockCrashlytics.recordError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'String error',
+        }),
+      );
     });
 
     it('should normalize object errors', async () => {
       const errorObj = { code: 'ERR_001', message: 'Custom error' };
       await errorReportingService.report(errorObj, { fatal: true });
 
-      expect(mockCrashlytics.recordError).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('ERR_001'),
-      }));
+      expect(mockCrashlytics.recordError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('ERR_001'),
+        }),
+      );
     });
 
     it('should handle unknown error types', async () => {
       await errorReportingService.report(undefined, { fatal: true });
 
-      expect(mockCrashlytics.recordError).toHaveBeenCalledWith(expect.objectContaining({
-        message: 'Unknown error',
-      }));
+      expect(mockCrashlytics.recordError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Unknown error',
+        }),
+      );
     });
 
     it('should skip mail open when fallback mailto cannot be opened', async () => {
-      mockCrashlytics.recordError.mockRejectedValueOnce(new Error('Crashlytics failed'));
+      mockCrashlytics.recordError.mockRejectedValueOnce(
+        new Error('Crashlytics failed'),
+      );
       (Linking.canOpenURL as jest.Mock).mockResolvedValueOnce(false);
 
       const error = new Error('Test error');
-      await errorReportingService.report(error, { fatal: true, source: 'test-source' });
+      await errorReportingService.report(error, {
+        fatal: true,
+        source: 'test-source',
+      });
 
       expect(Linking.canOpenURL).toHaveBeenCalled();
       expect(Linking.openURL).not.toHaveBeenCalled();
     });
 
     it('should handle crashlytics errors with mail fallback', async () => {
-      mockCrashlytics.recordError.mockRejectedValueOnce(new Error('Crashlytics failed'));
+      mockCrashlytics.recordError.mockRejectedValueOnce(
+        new Error('Crashlytics failed'),
+      );
       (Linking.canOpenURL as jest.Mock).mockResolvedValueOnce(true);
       (Linking.openURL as jest.Mock).mockResolvedValueOnce(undefined);
 
@@ -239,11 +272,17 @@ describe('ErrorReportingService', () => {
     });
 
     it('should handle mail fallback errors gracefully', async () => {
-      mockCrashlytics.recordError.mockRejectedValueOnce(new Error('Crashlytics failed'));
-      (Linking.canOpenURL as jest.Mock).mockRejectedValueOnce(new Error('Linking failed'));
+      mockCrashlytics.recordError.mockRejectedValueOnce(
+        new Error('Crashlytics failed'),
+      );
+      (Linking.canOpenURL as jest.Mock).mockRejectedValueOnce(
+        new Error('Linking failed'),
+      );
 
       const error = new Error('Test error');
-      await expect(errorReportingService.report(error, { fatal: true })).resolves.not.toThrow();
+      await expect(
+        errorReportingService.report(error, { fatal: true }),
+      ).resolves.not.toThrow();
     });
   });
 
@@ -288,7 +327,9 @@ describe('ErrorReportingService', () => {
     });
 
     it('should handle errors with special characters', async () => {
-      const error = new Error('Error with "quotes" and \'apostrophes\' & <symbols>');
+      const error = new Error(
+        'Error with "quotes" and \'apostrophes\' & <symbols>',
+      );
 
       await expect(errorReportingService.report(error)).resolves.not.toThrow();
     });
@@ -331,7 +372,10 @@ describe('ErrorReportingService', () => {
 
       // Should not throw on circular reference
       await expect(
-        errorReportingService.report(error, { fatal: true, extras: { circular } })
+        errorReportingService.report(error, {
+          fatal: true,
+          extras: { circular },
+        }),
       ).resolves.not.toThrow();
     });
 
@@ -382,7 +426,8 @@ describe('ErrorReportingService', () => {
     it('should convert strings to Error objects', async () => {
       await errorReportingService.report('String error', { fatal: true });
 
-      const recordedError = (mockCrashlytics.recordError as jest.Mock).mock.calls[0][0];
+      const recordedError = (mockCrashlytics.recordError as jest.Mock).mock
+        .calls[0][0];
       expect(recordedError).toBeInstanceOf(Error);
       expect(recordedError.message).toBe('String error');
     });
@@ -391,7 +436,8 @@ describe('ErrorReportingService', () => {
       const errorObj = { code: 500, message: 'Server error' };
       await errorReportingService.report(errorObj, { fatal: true });
 
-      const recordedError = (mockCrashlytics.recordError as jest.Mock).mock.calls[0][0];
+      const recordedError = (mockCrashlytics.recordError as jest.Mock).mock
+        .calls[0][0];
       expect(recordedError).toBeInstanceOf(Error);
       expect(recordedError.message).toContain('500');
       expect(recordedError.message).toContain('Server error');

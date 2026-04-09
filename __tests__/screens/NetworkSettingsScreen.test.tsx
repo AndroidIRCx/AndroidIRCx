@@ -35,7 +35,8 @@ jest.mock('../../src/components/modals/CertificateGeneratorModal', () => ({
               pemCert: 'generated-cert',
               pemKey: 'generated-key',
             })
-          }>
+          }
+        >
           Complete Certificate Generation
         </Text>
       </>
@@ -55,7 +56,8 @@ jest.mock('../../src/components/modals/CertificateSelectorModal', () => ({
               pemCert: 'selected-cert',
               pemKey: 'selected-key',
             })
-          }>
+          }
+        >
           Select Certificate
         </Text>
       </>
@@ -71,25 +73,32 @@ jest.mock('../../src/components/modals/CertificateFingerprintModal', () => ({
 }));
 
 jest.mock('@react-native-picker/picker', () => ({
-  Picker: Object.assign(({ selectedValue, onValueChange, children }: any) => {
-    const { Text } = require('react-native');
-    return (
-      <>
-        <Text>Picker Value: {selectedValue}</Text>
-        <Text onPress={() => onValueChange('SCRAM-SHA-256')}>Select SCRAM-SHA-256</Text>
-        {children}
-      </>
-    );
-  }, {
-    Item: ({ label }: any) => {
+  Picker: Object.assign(
+    ({ selectedValue, onValueChange, children }: any) => {
       const { Text } = require('react-native');
-      return <Text>{label}</Text>;
+      return (
+        <>
+          <Text>Picker Value: {selectedValue}</Text>
+          <Text onPress={() => onValueChange('SCRAM-SHA-256')}>
+            Select SCRAM-SHA-256
+          </Text>
+          {children}
+        </>
+      );
     },
-  }),
+    {
+      Item: ({ label }: any) => {
+        const { Text } = require('react-native');
+        return <Text>{label}</Text>;
+      },
+    },
+  ),
 }));
 
 const { settingsService } = require('../../src/services/SettingsService');
-const { certificateManager } = require('../../src/services/CertificateManagerService');
+const {
+  certificateManager,
+} = require('../../src/services/CertificateManagerService');
 
 describe('NetworkSettingsScreen', () => {
   beforeEach(() => {
@@ -101,7 +110,7 @@ describe('NetworkSettingsScreen', () => {
 
   it('renders default values for a new network', async () => {
     const { findByDisplayValue, findByText } = render(
-      <NetworkSettingsScreen onSave={jest.fn()} onCancel={jest.fn()} />
+      <NetworkSettingsScreen onSave={jest.fn()} onCancel={jest.fn()} />,
     );
 
     expect(await findByText('Network Settings')).toBeTruthy();
@@ -139,7 +148,11 @@ describe('NetworkSettingsScreen', () => {
     });
 
     const { findByDisplayValue, findByText } = render(
-      <NetworkSettingsScreen networkId="net-1" onSave={jest.fn()} onCancel={jest.fn()} />
+      <NetworkSettingsScreen
+        networkId="net-1"
+        onSave={jest.fn()}
+        onCancel={jest.fn()}
+      />,
     );
 
     expect(await findByDisplayValue('Freenode')).toBeTruthy();
@@ -160,7 +173,11 @@ describe('NetworkSettingsScreen', () => {
     });
 
     const { findByText, findByDisplayValue } = render(
-      <NetworkSettingsScreen networkId="net-1" onSave={jest.fn()} onCancel={jest.fn()} />
+      <NetworkSettingsScreen
+        networkId="net-1"
+        onSave={jest.fn()}
+        onCancel={jest.fn()}
+      />,
     );
 
     await waitFor(() => {
@@ -173,7 +190,7 @@ describe('NetworkSettingsScreen', () => {
 
   it('validates required fields before saving', async () => {
     const { findAllByText, findAllByDisplayValue } = render(
-      <NetworkSettingsScreen onSave={jest.fn()} onCancel={jest.fn()} />
+      <NetworkSettingsScreen onSave={jest.fn()} onCancel={jest.fn()} />,
     );
 
     fireEvent.changeText((await findAllByDisplayValue('AndroidIRCX'))[0], '');
@@ -181,20 +198,29 @@ describe('NetworkSettingsScreen', () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Error',
-      'Please fill in all required fields (Name, Nick, Realname)'
+      'Please fill in all required fields (Name, Nick, Realname)',
     );
   });
 
   it('saves a new network payload', async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
     const { findByText, findByDisplayValue, findByPlaceholderText } = render(
-      <NetworkSettingsScreen onSave={onSave} onCancel={jest.fn()} />
+      <NetworkSettingsScreen onSave={onSave} onCancel={jest.fn()} />,
     );
 
-    fireEvent.changeText(await findByPlaceholderText('e.g., dbase.in.rs'), 'Libera');
+    fireEvent.changeText(
+      await findByPlaceholderText('e.g., dbase.in.rs'),
+      'Libera',
+    );
     fireEvent.changeText(await findByDisplayValue('AndroidIRCX'), 'tester');
-    fireEvent.changeText(await findByDisplayValue('AndroidIRCX User'), 'Tester Real');
-    fireEvent.changeText(await findByPlaceholderText('#channel1, #channel2'), '#chat, #help');
+    fireEvent.changeText(
+      await findByDisplayValue('AndroidIRCX User'),
+      'Tester Real',
+    );
+    fireEvent.changeText(
+      await findByPlaceholderText('#channel1, #channel2'),
+      '#chat, #help',
+    );
     fireEvent.press(await findByText('Save'));
 
     await waitFor(() => {
@@ -202,7 +228,7 @@ describe('NetworkSettingsScreen', () => {
         expect.objectContaining({
           name: 'Libera',
           autoJoinChannels: ['#chat', '#help'],
-        })
+        }),
       );
     });
   });
@@ -210,20 +236,40 @@ describe('NetworkSettingsScreen', () => {
   it('saves proxy and sasl configuration', async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
     const { UNSAFE_getByType, findByPlaceholderText, findByText } = render(
-      <NetworkSettingsScreen onSave={onSave} onCancel={jest.fn()} />
+      <NetworkSettingsScreen onSave={onSave} onCancel={jest.fn()} />,
     );
 
-    fireEvent.changeText(await findByPlaceholderText('e.g., dbase.in.rs'), 'ProxyNet');
-    fireEvent.changeText(await findByPlaceholderText('Your IRC nickname'), 'nick');
-    fireEvent.changeText(await findByPlaceholderText('Your real name or description'), 'Real');
+    fireEvent.changeText(
+      await findByPlaceholderText('e.g., dbase.in.rs'),
+      'ProxyNet',
+    );
+    fireEvent.changeText(
+      await findByPlaceholderText('Your IRC nickname'),
+      'nick',
+    );
+    fireEvent.changeText(
+      await findByPlaceholderText('Your real name or description'),
+      'Real',
+    );
 
-    const switchNode = await waitFor(() => UNSAFE_getByType(require('react-native').Switch));
+    const switchNode = await waitFor(() =>
+      UNSAFE_getByType(require('react-native').Switch),
+    );
     fireEvent(switchNode, 'valueChange', true);
 
     fireEvent.changeText(await findByPlaceholderText('tor'), 'socks5');
-    fireEvent.changeText(await findByPlaceholderText('127.0.0.1 (Tor default)'), '10.0.0.1');
-    fireEvent.changeText(await findByPlaceholderText('9050 for Tor, 1080 for SOCKS5'), '1080');
-    fireEvent.changeText(await findByPlaceholderText('SASL account name'), 'acc');
+    fireEvent.changeText(
+      await findByPlaceholderText('127.0.0.1 (Tor default)'),
+      '10.0.0.1',
+    );
+    fireEvent.changeText(
+      await findByPlaceholderText('9050 for Tor, 1080 for SOCKS5'),
+      '1080',
+    );
+    fireEvent.changeText(
+      await findByPlaceholderText('SASL account name'),
+      'acc',
+    );
     fireEvent.changeText(await findByPlaceholderText('SASL password'), 'pwd');
     fireEvent.press(await findByText('Select SCRAM-SHA-256'));
     fireEvent.press(await findByText('Save'));
@@ -236,14 +282,14 @@ describe('NetworkSettingsScreen', () => {
             password: 'pwd',
             mechanism: 'SCRAM-SHA-256',
           }),
-        })
+        }),
       );
     });
   });
 
   it('handles certificate generation and selection', async () => {
     const { findByText, findByDisplayValue, findAllByText } = render(
-      <NetworkSettingsScreen onSave={jest.fn()} onCancel={jest.fn()} />
+      <NetworkSettingsScreen onSave={jest.fn()} onCancel={jest.fn()} />,
     );
 
     fireEvent.press((await findAllByText(/Generate New/))[0]);
@@ -251,7 +297,7 @@ describe('NetworkSettingsScreen', () => {
     expect(await findByDisplayValue('generated-cert')).toBeTruthy();
     expect(Alert.alert).toHaveBeenCalledWith(
       'Success',
-      "Certificate generated and applied! Don't forget to add the fingerprint to NickServ."
+      "Certificate generated and applied! Don't forget to add the fingerprint to NickServ.",
     );
 
     fireEvent.press((await findAllByText(/Select Existing/))[0]);
@@ -271,11 +317,17 @@ describe('NetworkSettingsScreen', () => {
     });
 
     const { findByText } = render(
-      <NetworkSettingsScreen networkId="net-1" onSave={jest.fn()} onCancel={jest.fn()} />
+      <NetworkSettingsScreen
+        networkId="net-1"
+        onSave={jest.fn()}
+        onCancel={jest.fn()}
+      />,
     );
 
     expect(await findByText(/View Fingerprint/)).toBeTruthy();
-    expect(certificateManager.extractFingerprintFromPem).toHaveBeenCalledWith('pem-cert');
+    expect(certificateManager.extractFingerprintFromPem).toHaveBeenCalledWith(
+      'pem-cert',
+    );
   });
 
   it('triggers identity profiles callback and cancel button', async () => {
@@ -286,7 +338,7 @@ describe('NetworkSettingsScreen', () => {
         onSave={jest.fn()}
         onCancel={onCancel}
         onShowIdentityProfiles={onShowIdentityProfiles}
-      />
+      />,
     );
 
     fireEvent.press(await findByText('Manage Identity Profiles'));

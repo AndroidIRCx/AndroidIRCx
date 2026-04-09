@@ -5,7 +5,10 @@
  * Tests for ChannelListService - Wave 6
  */
 
-import { ChannelListService, ChannelListItem } from '../../src/services/ChannelListService';
+import {
+  ChannelListService,
+  ChannelListItem,
+} from '../../src/services/ChannelListService';
 
 // Mock AsyncStorage
 const mockStorage: Record<string, string> = {};
@@ -35,7 +38,10 @@ describe('ChannelListService', () => {
   describe('Initialization', () => {
     it('should create service with IRC service', () => {
       expect(service).toBeDefined();
-      expect(mockIrcService.on).toHaveBeenCalledWith('numeric', expect.any(Function));
+      expect(mockIrcService.on).toHaveBeenCalledWith(
+        'numeric',
+        expect.any(Function),
+      );
     });
   });
 
@@ -58,7 +64,9 @@ describe('ChannelListService', () => {
       service.requestChannelList();
       service.requestChannelList();
 
-      expect(consoleSpy).toHaveBeenCalledWith('ChannelListService: Already listing channels');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'ChannelListService: Already listing channels',
+      );
       expect(mockIrcService.sendRaw).toHaveBeenCalledTimes(1);
       consoleSpy.mockRestore();
     });
@@ -73,7 +81,12 @@ describe('ChannelListService', () => {
 
     it('should handle RPL_LIST (322) with channel info', () => {
       service.handleListReply(321, ['nick']); // Start
-      service.handleListReply(322, ['nick', '#general', '50', 'General chat channel']);
+      service.handleListReply(322, [
+        'nick',
+        '#general',
+        '50',
+        'General chat channel',
+      ]);
 
       const list = service.getChannelList();
       expect(list).toHaveLength(1);
@@ -316,20 +329,32 @@ describe('ChannelListService', () => {
     });
 
     it('should sort by users ascending', () => {
-      const sorted = service.sortChannels(service.getChannelList(), 'users', true);
+      const sorted = service.sortChannels(
+        service.getChannelList(),
+        'users',
+        true,
+      );
       expect(sorted[0].name).toBe('#zebra');
       expect(sorted[2].name).toBe('#alpha');
     });
 
     it('should sort by name ascending', () => {
-      const sorted = service.sortChannels(service.getChannelList(), 'name', true);
+      const sorted = service.sortChannels(
+        service.getChannelList(),
+        'name',
+        true,
+      );
       expect(sorted[0].name).toBe('#alpha');
       expect(sorted[1].name).toBe('#beta');
       expect(sorted[2].name).toBe('#zebra');
     });
 
     it('should sort by name descending', () => {
-      const sorted = service.sortChannels(service.getChannelList(), 'name', false);
+      const sorted = service.sortChannels(
+        service.getChannelList(),
+        'name',
+        false,
+      );
       expect(sorted[0].name).toBe('#zebra');
       expect(sorted[2].name).toBe('#alpha');
     });

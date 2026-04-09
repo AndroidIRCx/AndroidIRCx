@@ -43,7 +43,7 @@ describe('SettingSwitch', () => {
         colors={mockColors}
         styles={mockStyles}
         onValueChange={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('Test Switch')).toBeTruthy();
@@ -62,7 +62,7 @@ describe('SettingSwitch', () => {
         colors={mockColors}
         styles={mockStyles}
         onValueChange={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('Test Switch')).toBeTruthy();
@@ -82,7 +82,7 @@ describe('SettingSwitch', () => {
         colors={mockColors}
         styles={mockStyles}
         onValueChange={jest.fn()}
-      />
+      />,
     );
 
     expect(root).toBeTruthy();
@@ -102,7 +102,7 @@ describe('SettingSwitch', () => {
         colors={mockColors}
         styles={mockStyles}
         onValueChange={mockOnValueChange}
-      />
+      />,
     );
 
     const switchElement = getByRole('switch');
@@ -125,7 +125,7 @@ describe('SettingSwitch', () => {
         colors={mockColors}
         styles={mockStyles}
         onValueChange={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('Test Switch')).toBeTruthy();
@@ -146,7 +146,7 @@ describe('SettingSwitch', () => {
         colors={mockColors}
         styles={mockStyles}
         onValueChange={jest.fn()}
-      />
+      />,
     );
 
     expect(getByTestId('custom-node')).toBeTruthy();
@@ -165,7 +165,7 @@ describe('SettingSwitch', () => {
         colors={mockColors}
         styles={mockStyles}
         onValueChange={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('42')).toBeTruthy();

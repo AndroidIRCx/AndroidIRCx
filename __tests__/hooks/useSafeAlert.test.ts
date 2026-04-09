@@ -20,13 +20,17 @@ describe('useSafeAlert', () => {
     const appStateRef = { current: 'active' };
     const pendingAlertRef = { current: null as any };
 
-    const { result } = renderHook(() => useSafeAlert({ appStateRef, pendingAlertRef }));
+    const { result } = renderHook(() =>
+      useSafeAlert({ appStateRef, pendingAlertRef }),
+    );
 
     act(() => {
       result.current.safeAlert('Title', 'Message', [{ text: 'OK' }]);
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Title', 'Message', [{ text: 'OK' }]);
+    expect(Alert.alert).toHaveBeenCalledWith('Title', 'Message', [
+      { text: 'OK' },
+    ]);
     expect(pendingAlertRef.current).toBeNull();
   });
 
@@ -34,7 +38,9 @@ describe('useSafeAlert', () => {
     const appStateRef = { current: 'background' };
     const pendingAlertRef = { current: null as any };
 
-    const { result } = renderHook(() => useSafeAlert({ appStateRef, pendingAlertRef }));
+    const { result } = renderHook(() =>
+      useSafeAlert({ appStateRef, pendingAlertRef }),
+    );
 
     act(() => {
       result.current.safeAlert('Title', 'Message', [{ text: 'OK' }]);
@@ -52,7 +58,9 @@ describe('useSafeAlert', () => {
     const appStateRef = { current: 'inactive' };
     const pendingAlertRef = { current: null as any };
 
-    const { result } = renderHook(() => useSafeAlert({ appStateRef, pendingAlertRef }));
+    const { result } = renderHook(() =>
+      useSafeAlert({ appStateRef, pendingAlertRef }),
+    );
 
     act(() => {
       result.current.safeAlert('Title', 'Message');
@@ -66,7 +74,9 @@ describe('useSafeAlert', () => {
     const appStateRef = { current: 'active' };
     const pendingAlertRef = { current: null as any };
 
-    const { result } = renderHook(() => useSafeAlert({ appStateRef, pendingAlertRef }));
+    const { result } = renderHook(() =>
+      useSafeAlert({ appStateRef, pendingAlertRef }),
+    );
 
     act(() => {
       result.current.safeAlert('Title');
@@ -79,7 +89,9 @@ describe('useSafeAlert', () => {
     const appStateRef = { current: 'active' };
     const pendingAlertRef = { current: null as any };
 
-    const { result } = renderHook(() => useSafeAlert({ appStateRef, pendingAlertRef }));
+    const { result } = renderHook(() =>
+      useSafeAlert({ appStateRef, pendingAlertRef }),
+    );
 
     act(() => {
       result.current.safeAlert(123 as any, 456 as any);
@@ -92,7 +104,9 @@ describe('useSafeAlert', () => {
     const appStateRef = { current: 'active' };
     const pendingAlertRef = { current: null as any };
 
-    const { result, rerender } = renderHook(() => useSafeAlert({ appStateRef, pendingAlertRef }));
+    const { result, rerender } = renderHook(() =>
+      useSafeAlert({ appStateRef, pendingAlertRef }),
+    );
 
     const first = result.current.safeAlert;
     rerender();

@@ -5,7 +5,10 @@
 
 import React from 'react';
 import { SettingItem } from '../SettingItem';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
 import { useT } from '../../../i18n/transifex';
 
 interface PremiumSectionProps {
@@ -44,17 +47,33 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({
     {
       id: 'premium-upgrade',
       title: t('Upgrade to Premium', { _tags: tags }),
-      description: t('Unlock unlimited scripting, no ads, and premium features', { _tags: tags }),
+      description: t(
+        'Unlock unlimited scripting, no ads, and premium features',
+        { _tags: tags },
+      ),
       type: 'button',
-      searchKeywords: ['premium', 'upgrade', 'purchase', 'buy', 'scripting', 'no-ads', 'ad-free', 'features', 'pro', 'supporter'],
+      searchKeywords: [
+        'premium',
+        'upgrade',
+        'purchase',
+        'buy',
+        'scripting',
+        'no-ads',
+        'ad-free',
+        'features',
+        'pro',
+        'supporter',
+      ],
       onPress: onShowPurchaseScreen,
     },
   ];
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}

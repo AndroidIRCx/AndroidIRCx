@@ -30,7 +30,8 @@ export const JoinChannelModal: React.FC<JoinChannelModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+    >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Join Channel</Text>
@@ -51,7 +52,8 @@ export const JoinChannelModal: React.FC<JoinChannelModalProps> = ({
           <View style={styles.modalButtons}>
             <TouchableOpacity
               style={[styles.modalButton, styles.modalButtonCancel]}
-              onPress={onCancel}>
+              onPress={onCancel}
+            >
               <Text style={styles.modalButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -62,8 +64,13 @@ export const JoinChannelModal: React.FC<JoinChannelModalProps> = ({
                   onJoin(trimmed);
                 }
               }}
-              disabled={!channelName.trim()}>
-              <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Join</Text>
+              disabled={!channelName.trim()}
+            >
+              <Text
+                style={[styles.modalButtonText, styles.modalButtonTextPrimary]}
+              >
+                Join
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

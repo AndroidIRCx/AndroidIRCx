@@ -85,7 +85,12 @@ export const handlePONG: CommandHandler = (ctx, prefix, params) => {
 };
 
 /** INVITE - invite to channel */
-export const handleINVITE: CommandHandler = (ctx, prefix, params, timestamp) => {
+export const handleINVITE: CommandHandler = (
+  ctx,
+  prefix,
+  params,
+  timestamp,
+) => {
   const invitedChannel = params[1] || '';
   const inviter = ctx.extractNick(prefix);
   const invitePrefixParts = prefix.split('!');
@@ -95,7 +100,10 @@ export const handleINVITE: CommandHandler = (ctx, prefix, params, timestamp) => 
     type: 'invite',
     from: inviter,
     channel: invitedChannel,
-    text: t('{inviter} invited you to join {channel}', { inviter, channel: invitedChannel }),
+    text: t('{inviter} invited you to join {channel}', {
+      inviter,
+      channel: invitedChannel,
+    }),
     timestamp,
     username: inviteUsername,
     hostname: inviteHostname,

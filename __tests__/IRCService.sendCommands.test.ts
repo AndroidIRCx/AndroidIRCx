@@ -51,7 +51,11 @@ describe('IRC Send Commands', () => {
 
     it('/join with key', () => {
       irc.sendMessage('#test', '/join #secret mykey');
-      expect(socket.writes.some(w => w.includes('JOIN #secret') && w.includes('mykey'))).toBe(true);
+      expect(
+        socket.writes.some(
+          w => w.includes('JOIN #secret') && w.includes('mykey'),
+        ),
+      ).toBe(true);
     });
 
     it('/part sends PART for current channel', () => {
@@ -61,7 +65,11 @@ describe('IRC Send Commands', () => {
 
     it('/part with channel and message', () => {
       irc.sendMessage('#test', '/part #other Goodbye');
-      expect(socket.writes.some(w => w.includes('PART #other') || w.includes('Goodbye'))).toBe(true);
+      expect(
+        socket.writes.some(
+          w => w.includes('PART #other') || w.includes('Goodbye'),
+        ),
+      ).toBe(true);
     });
 
     it('/part shows error for non-channel target without args', () => {
@@ -90,12 +98,16 @@ describe('IRC Send Commands', () => {
 
     it('/quit with custom message', () => {
       irc.sendMessage('#test', '/quit See you later');
-      expect(socket.writes.some(w => w.includes('QUIT :See you later'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('QUIT :See you later'))).toBe(
+        true,
+      );
     });
 
     it('/mode sends MODE command', () => {
       irc.sendMessage('#test', '/mode #test +o alice');
-      expect(socket.writes.some(w => w.includes('MODE #test +o alice'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('MODE #test +o alice'))).toBe(
+        true,
+      );
     });
 
     it('/topic sends TOPIC command', () => {
@@ -105,7 +117,9 @@ describe('IRC Send Commands', () => {
 
     it('/kick sends KICK command', () => {
       irc.sendMessage('#test', '/kick alice');
-      expect(socket.writes.some(w => w.includes('KICK #test alice'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('KICK #test alice'))).toBe(
+        true,
+      );
     });
   });
 
@@ -140,19 +154,25 @@ describe('IRC Send Commands', () => {
   describe('StatusCommands', () => {
     it('/away sets away message', () => {
       irc.sendMessage('#test', '/away Gone fishing');
-      expect(socket.writes.some(w => w.includes('AWAY :Gone fishing'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('AWAY :Gone fishing'))).toBe(
+        true,
+      );
       const notice = messages.find(m => m.type === 'notice');
       expect(notice?.text).toContain('away');
     });
 
     it('/away without args removes away', () => {
       irc.sendMessage('#test', '/away');
-      expect(socket.writes.some(w => w.match(/AWAY\r?\n?$/) || w === 'AWAY\r\n')).toBe(true);
+      expect(
+        socket.writes.some(w => w.match(/AWAY\r?\n?$/) || w === 'AWAY\r\n'),
+      ).toBe(true);
     });
 
     it('/back removes away', () => {
       irc.sendMessage('#test', '/back');
-      expect(socket.writes.some(w => w.match(/AWAY\r?\n?$/) || w === 'AWAY\r\n')).toBe(true);
+      expect(
+        socket.writes.some(w => w.match(/AWAY\r?\n?$/) || w === 'AWAY\r\n'),
+      ).toBe(true);
     });
 
     it('/reconnect emits reconnect event', () => {
@@ -175,7 +195,9 @@ describe('IRC Send Commands', () => {
   describe('MessageCommands', () => {
     it('/msg sends PRIVMSG to target', () => {
       irc.sendMessage('#test', '/msg alice Hello there');
-      expect(socket.writes.some(w => w.includes('PRIVMSG alice :Hello there'))).toBe(true);
+      expect(
+        socket.writes.some(w => w.includes('PRIVMSG alice :Hello there')),
+      ).toBe(true);
     });
 
     it('/msg shows error with no message', () => {
@@ -186,17 +208,23 @@ describe('IRC Send Commands', () => {
 
     it('/notice sends NOTICE to target', () => {
       irc.sendMessage('#test', '/notice alice Hey');
-      expect(socket.writes.some(w => w.includes('NOTICE alice :Hey'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('NOTICE alice :Hey'))).toBe(
+        true,
+      );
     });
 
     it('/me sends CTCP ACTION', () => {
       irc.sendMessage('#test', '/me waves');
-      expect(socket.writes.some(w => w.includes('\x01ACTION waves\x01'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('\x01ACTION waves\x01'))).toBe(
+        true,
+      );
     });
 
     it('/action sends CTCP ACTION', () => {
       irc.sendMessage('#test', '/action dances');
-      expect(socket.writes.some(w => w.includes('\x01ACTION dances\x01'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('\x01ACTION dances\x01'))).toBe(
+        true,
+      );
     });
   });
 
@@ -206,23 +234,33 @@ describe('IRC Send Commands', () => {
   describe('ChannelOpsCommands', () => {
     it('/ban sends MODE +b with nick mask', () => {
       irc.sendMessage('#test', '/ban badguy');
-      expect(socket.writes.some(w => w.includes('MODE #test +b badguy!*@*'))).toBe(true);
+      expect(
+        socket.writes.some(w => w.includes('MODE #test +b badguy!*@*')),
+      ).toBe(true);
     });
 
     it('/unban sends MODE -b', () => {
       irc.sendMessage('#test', '/unban *!*@bad.host');
-      expect(socket.writes.some(w => w.includes('MODE #test -b *!*@bad.host'))).toBe(true);
+      expect(
+        socket.writes.some(w => w.includes('MODE #test -b *!*@bad.host')),
+      ).toBe(true);
     });
 
     it('/kickban bans then kicks', () => {
       irc.sendMessage('#test', '/kickban badguy Spamming');
-      expect(socket.writes.some(w => w.includes('MODE #test +b badguy!*@*'))).toBe(true);
-      expect(socket.writes.some(w => w.includes('KICK #test badguy'))).toBe(true);
+      expect(
+        socket.writes.some(w => w.includes('MODE #test +b badguy!*@*')),
+      ).toBe(true);
+      expect(socket.writes.some(w => w.includes('KICK #test badguy'))).toBe(
+        true,
+      );
     });
 
     it('/invite sends INVITE command', () => {
       irc.sendMessage('#test', '/invite alice');
-      expect(socket.writes.some(w => w.includes('INVITE alice #test'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('INVITE alice #test'))).toBe(
+        true,
+      );
     });
   });
 
@@ -232,12 +270,18 @@ describe('IRC Send Commands', () => {
   describe('OperCommands', () => {
     it('/oper sends OPER command', () => {
       irc.sendMessage('#test', '/oper admin secret');
-      expect(socket.writes.some(w => w.includes('OPER admin secret'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('OPER admin secret'))).toBe(
+        true,
+      );
     });
 
     it('/wallops sends WALLOPS command', () => {
       irc.sendMessage('#test', '/wallops Important message');
-      expect(socket.writes.some(w => w.includes('WALLOPS') && w.includes('Important message'))).toBe(true);
+      expect(
+        socket.writes.some(
+          w => w.includes('WALLOPS') && w.includes('Important message'),
+        ),
+      ).toBe(true);
     });
   });
 
@@ -266,7 +310,9 @@ describe('IRC Send Commands', () => {
 
     it('/ping sends server PING', () => {
       irc.sendMessage('#test', '/ping irc.server.com');
-      expect(socket.writes.some(w => w.includes('PING irc.server.com'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('PING irc.server.com'))).toBe(
+        true,
+      );
     });
 
     it('/quote sends raw command', () => {
@@ -348,13 +394,21 @@ describe('IRC Send Commands', () => {
     it('sends REGISTER with 2 args', () => {
       (irc as any).capEnabledSet.add('draft/account-registration');
       irc.sendMessage('#test', '/register user@example.com pass');
-      expect(socket.writes.some(w => w.includes('REGISTER * user@example.com :pass'))).toBe(true);
+      expect(
+        socket.writes.some(w =>
+          w.includes('REGISTER * user@example.com :pass'),
+        ),
+      ).toBe(true);
     });
 
     it('sends REGISTER with 3 args', () => {
       (irc as any).capEnabledSet.add('draft/account-registration');
       irc.sendMessage('#test', '/register myaccount user@example.com pass');
-      expect(socket.writes.some(w => w.includes('REGISTER myaccount user@example.com :pass'))).toBe(true);
+      expect(
+        socket.writes.some(w =>
+          w.includes('REGISTER myaccount user@example.com :pass'),
+        ),
+      ).toBe(true);
     });
 
     it('errors with too few args', () => {
@@ -371,7 +425,9 @@ describe('IRC Send Commands', () => {
   describe('ChannelCommands', () => {
     it('/invite with explicit channel', () => {
       irc.sendMessage('#test', '/invite alice #other');
-      expect(socket.writes.some(w => w.includes('INVITE alice #other'))).toBe(true);
+      expect(socket.writes.some(w => w.includes('INVITE alice #other'))).toBe(
+        true,
+      );
     });
   });
 

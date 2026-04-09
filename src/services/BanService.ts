@@ -12,30 +12,90 @@ export interface BanMaskType {
 }
 
 export const BAN_MASK_TYPES: BanMaskType[] = [
-  { id: 0, pattern: '*!user@host', description: 'Ban by user@host', example: '*!john@192.168.1.1' },
-  { id: 1, pattern: '*!*user@host', description: 'Ban by *user@host', example: '*!*john@192.168.1.1' },
-  { id: 2, pattern: '*!*@host', description: 'Ban by host only', example: '*!*@192.168.1.1' },
-  { id: 3, pattern: '*!*user@*.host', description: 'Ban by *user@*.domain', example: '*!*john@*.example.com' },
-  { id: 4, pattern: '*!*@*.host', description: 'Ban by *.domain only', example: '*!*@*.example.com' },
-  { id: 5, pattern: 'nick!user@host', description: 'Ban exact nick!user@host', example: 'John!john@192.168.1.1' },
-  { id: 6, pattern: 'nick!*user@host', description: 'Ban nick with *user@host', example: 'John!*john@192.168.1.1' },
-  { id: 7, pattern: 'nick!*@host', description: 'Ban nick with any user@host', example: 'John!*@192.168.1.1' },
-  { id: 8, pattern: 'nick!*user@*.host', description: 'Ban nick with *user@*.domain', example: 'John!*john@*.example.com' },
-  { id: 9, pattern: 'nick!*@*.host', description: 'Ban nick with *.domain', example: 'John!*@*.example.com' },
-  { id: 10, pattern: 'nick!*@*', description: 'Ban by nick only (any ident@host)', example: 'John!*@*' },
-  { id: 11, pattern: '*!ident@*', description: 'Ban by ident only (any nick@host)', example: '*!john@*' },
+  {
+    id: 0,
+    pattern: '*!user@host',
+    description: 'Ban by user@host',
+    example: '*!john@192.168.1.1',
+  },
+  {
+    id: 1,
+    pattern: '*!*user@host',
+    description: 'Ban by *user@host',
+    example: '*!*john@192.168.1.1',
+  },
+  {
+    id: 2,
+    pattern: '*!*@host',
+    description: 'Ban by host only',
+    example: '*!*@192.168.1.1',
+  },
+  {
+    id: 3,
+    pattern: '*!*user@*.host',
+    description: 'Ban by *user@*.domain',
+    example: '*!*john@*.example.com',
+  },
+  {
+    id: 4,
+    pattern: '*!*@*.host',
+    description: 'Ban by *.domain only',
+    example: '*!*@*.example.com',
+  },
+  {
+    id: 5,
+    pattern: 'nick!user@host',
+    description: 'Ban exact nick!user@host',
+    example: 'John!john@192.168.1.1',
+  },
+  {
+    id: 6,
+    pattern: 'nick!*user@host',
+    description: 'Ban nick with *user@host',
+    example: 'John!*john@192.168.1.1',
+  },
+  {
+    id: 7,
+    pattern: 'nick!*@host',
+    description: 'Ban nick with any user@host',
+    example: 'John!*@192.168.1.1',
+  },
+  {
+    id: 8,
+    pattern: 'nick!*user@*.host',
+    description: 'Ban nick with *user@*.domain',
+    example: 'John!*john@*.example.com',
+  },
+  {
+    id: 9,
+    pattern: 'nick!*@*.host',
+    description: 'Ban nick with *.domain',
+    example: 'John!*@*.example.com',
+  },
+  {
+    id: 10,
+    pattern: 'nick!*@*',
+    description: 'Ban by nick only (any ident@host)',
+    example: 'John!*@*',
+  },
+  {
+    id: 11,
+    pattern: '*!ident@*',
+    description: 'Ban by ident only (any nick@host)',
+    example: '*!john@*',
+  },
 ];
 
 export interface KickBanOptions {
   channel: string;
   nick: string;
-  user?: string;      // ident/username
-  host?: string;      // hostname/IP
-  banType: number;    // 0-9
+  user?: string; // ident/username
+  host?: string; // hostname/IP
+  banType: number; // 0-9
   reason?: string;
   kick: boolean;
-  unbanAfterSeconds?: number;  // -uN switch
-  listType?: 'b' | 'e' | 'I' | 'q';  // ban/except/invite/quiet
+  unbanAfterSeconds?: number; // -uN switch
+  listType?: 'b' | 'e' | 'I' | 'q'; // ban/except/invite/quiet
 }
 
 export interface PredefinedReason {
@@ -60,32 +120,50 @@ const DEFAULT_REASONS: PredefinedReason[] = [
 
 class BanService {
   private predefinedReasons: PredefinedReason[] = [...DEFAULT_REASONS];
-  private defaultBanType: number = 2;  // *!*@host
+  private defaultBanType: number = 2; // *!*@host
   private initialized = false;
   private initPromise: Promise<void> | null = null;
 
   /**
    * Generate ban mask from user info
    */
-  generateBanMask(nick: string, user: string, host: string, banType: number): string {
+  generateBanMask(
+    nick: string,
+    user: string,
+    host: string,
+    banType: number,
+  ): string {
     // Handle IP addresses - replace last octet with *
     const processedHost = this.processHost(host, banType);
     const processedUser = user.startsWith('~') ? user.slice(1) : user;
 
     switch (banType) {
-      case 0: return `*!${processedUser}@${host}`;
-      case 1: return `*!*${processedUser}@${host}`;
-      case 2: return `*!*@${host}`;
-      case 3: return `*!*${processedUser}@${processedHost}`;
-      case 4: return `*!*@${processedHost}`;
-      case 5: return `${nick}!${processedUser}@${host}`;
-      case 6: return `${nick}!*${processedUser}@${host}`;
-      case 7: return `${nick}!*@${host}`;
-      case 8: return `${nick}!*${processedUser}@${processedHost}`;
-      case 9: return `${nick}!*@${processedHost}`;
-      case 10: return `${nick}!*@*`;  // Ban by nick only
-      case 11: return `*!${processedUser}@*`;  // Ban by ident only
-      default: return `*!*@${host}`;
+      case 0:
+        return `*!${processedUser}@${host}`;
+      case 1:
+        return `*!*${processedUser}@${host}`;
+      case 2:
+        return `*!*@${host}`;
+      case 3:
+        return `*!*${processedUser}@${processedHost}`;
+      case 4:
+        return `*!*@${processedHost}`;
+      case 5:
+        return `${nick}!${processedUser}@${host}`;
+      case 6:
+        return `${nick}!*${processedUser}@${host}`;
+      case 7:
+        return `${nick}!*@${host}`;
+      case 8:
+        return `${nick}!*${processedUser}@${processedHost}`;
+      case 9:
+        return `${nick}!*@${processedHost}`;
+      case 10:
+        return `${nick}!*@*`; // Ban by nick only
+      case 11:
+        return `*!${processedUser}@*`; // Ban by ident only
+      default:
+        return `*!*@${host}`;
     }
   }
 
@@ -146,7 +224,10 @@ class BanService {
    */
   private async saveReasons(): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(this.predefinedReasons));
+      await AsyncStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(this.predefinedReasons),
+      );
     } catch (error) {
       console.error('Failed to save ban reasons to storage:', error);
     }

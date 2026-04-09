@@ -33,7 +33,10 @@ export const handle325: NumericHandler = (ctx, prefix, params, timestamp) => {
   const uniqNick = params[2] || '';
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} is the unique operator of {channel}', { nick: uniqNick, channel: uniqChan }),
+    text: t('*** {nick} is the unique operator of {channel}', {
+      nick: uniqNick,
+      channel: uniqChan,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -140,7 +143,8 @@ export const handle340: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 342 RPL_SUMMONING */
 export const handle342: NumericHandler = (ctx, prefix, params, timestamp) => {
   const summonNick = params[1] || '';
-  const summonMsg = params.slice(2).join(' ').replace(/^:/, '') || t('Summoning user to IRC');
+  const summonMsg =
+    params.slice(2).join(' ').replace(/^:/, '') || t('Summoning user to IRC');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick}: {message}', { nick: summonNick, message: summonMsg }),
@@ -176,7 +180,9 @@ export const handle344: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 345 RPL_ENDOFREOPLIST */
 export const handle345: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const endReopInfo = params.slice(1).join(' ').replace(/^:/, '') || t('End of channel reop list');
+  const endReopInfo =
+    params.slice(1).join(' ').replace(/^:/, '') ||
+    t('End of channel reop list');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message: endReopInfo }),
@@ -192,7 +198,10 @@ export const handle350: NumericHandler = (ctx, prefix, params, timestamp) => {
   const gatewayInfo = params.slice(2).join(' ').replace(/^:/, '') || '';
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} {message}', { nick: gatewayNick, message: gatewayInfo }),
+    text: t('*** {nick} {message}', {
+      nick: gatewayNick,
+      message: gatewayInfo,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -237,7 +246,9 @@ export const handle384: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 385 RPL_NOTOPERANYMORE */
 export const handle385: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const notOperMsg = params.slice(1).join(' ').replace(/^:/, '') || t('You are no longer an IRC operator');
+  const notOperMsg =
+    params.slice(1).join(' ').replace(/^:/, '') ||
+    t('You are no longer an IRC operator');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message: notOperMsg }),
@@ -261,7 +272,8 @@ export const handle386: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 387 RPL_ENDOFQLIST */
 export const handle387: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const endQlistInfo = params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
+  const endQlistInfo =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message: endQlistInfo }),
@@ -285,7 +297,8 @@ export const handle388: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 389 RPL_ENDOFALIST */
 export const handle389: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const endAlistInfo = params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
+  const endAlistInfo =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message: endAlistInfo }),
@@ -297,7 +310,8 @@ export const handle389: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 390 RPL_ENDOFJUPELIST */
 export const handle390: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const endJupeInfo = params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
+  const endJupeInfo =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of list');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message: endJupeInfo }),
@@ -310,10 +324,14 @@ export const handle390: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 396 RPL_HOSTHIDDEN */
 export const handle396: NumericHandler = (ctx, prefix, params, timestamp) => {
   const hiddenHost = params[1] || '';
-  const hostHiddenMsg = params.slice(2).join(' ').replace(/^:/, '') || t('is now your hidden host');
+  const hostHiddenMsg =
+    params.slice(2).join(' ').replace(/^:/, '') || t('is now your hidden host');
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {host} {message}', { host: hiddenHost, message: hostHiddenMsg }),
+    text: t('*** {host} {message}', {
+      host: hiddenHost,
+      message: hostHiddenMsg,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -323,10 +341,14 @@ export const handle396: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 408 ERR_NOSUCHSERVICE */
 export const handle408: NumericHandler = (ctx, prefix, params, timestamp) => {
   const noService = params[1] || '';
-  const noServiceMsg = params.slice(2).join(' ').replace(/^:/, '') || t('No such service');
+  const noServiceMsg =
+    params.slice(2).join(' ').replace(/^:/, '') || t('No such service');
   ctx.addMessage({
     type: 'error',
-    text: t('*** {service}: {message}', { service: noService, message: noServiceMsg }),
+    text: t('*** {service}: {message}', {
+      service: noService,
+      message: noServiceMsg,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -335,7 +357,8 @@ export const handle408: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 417 ERR_INPUTTOOLONG */
 export const handle417: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const inputTooLongMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Input line was too long');
+  const inputTooLongMsg =
+    params.slice(1).join(' ').replace(/^:/, '') || t('Input line was too long');
   ctx.addMessage({
     type: 'error',
     text: t('*** {message}', { message: inputTooLongMsg }),
@@ -347,7 +370,8 @@ export const handle417: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 493 ERR_NOFEATURE */
 export const handle493: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const noFeatureMsg = params.slice(1).join(' ').replace(/^:/, '') || t('Feature not available');
+  const noFeatureMsg =
+    params.slice(1).join(' ').replace(/^:/, '') || t('Feature not available');
   ctx.addMessage({
     type: 'error',
     text: t('*** {message}', { message: noFeatureMsg }),

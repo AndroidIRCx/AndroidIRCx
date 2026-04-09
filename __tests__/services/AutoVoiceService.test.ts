@@ -5,7 +5,10 @@
  * Tests for AutoVoiceService - 100% coverage target
  */
 
-import { AutoVoiceService, AutoVoiceConfig } from '../../src/services/AutoVoiceService';
+import {
+  AutoVoiceService,
+  AutoVoiceConfig,
+} from '../../src/services/AutoVoiceService';
 
 // Mock IRCService
 const mockOn = jest.fn();
@@ -46,15 +49,18 @@ describe('AutoVoiceService', () => {
   describe('initialize', () => {
     it('should register joinedChannel event handler', () => {
       service.initialize();
-      
-      expect(mockOn).toHaveBeenCalledWith('joinedChannel', expect.any(Function));
+
+      expect(mockOn).toHaveBeenCalledWith(
+        'joinedChannel',
+        expect.any(Function),
+      );
     });
   });
 
   describe('handleJoin', () => {
     it('should not request voice if config not set', () => {
       service.handleJoin('#general');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).not.toHaveBeenCalled();
     });
@@ -66,9 +72,9 @@ describe('AutoVoiceService', () => {
         forOperators: false,
         forIRCOps: false,
       });
-      
+
       service.handleJoin('#general');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).not.toHaveBeenCalled();
     });
@@ -80,9 +86,9 @@ describe('AutoVoiceService', () => {
         forOperators: false,
         forIRCOps: false,
       });
-      
+
       service.handleJoin('#general');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).toHaveBeenCalledWith('MODE #general +v TestUser');
     });
@@ -95,9 +101,9 @@ describe('AutoVoiceService', () => {
         forIRCOps: false,
       });
       service.updateUserModes('freenode', ['o']);
-      
+
       service.handleJoin('#general');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).toHaveBeenCalledWith('MODE #general +v TestUser');
     });
@@ -110,9 +116,9 @@ describe('AutoVoiceService', () => {
         forIRCOps: false,
       });
       service.updateUserModes('freenode', ['h']);
-      
+
       service.handleJoin('#general');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).toHaveBeenCalledWith('MODE #general +v TestUser');
     });
@@ -125,9 +131,9 @@ describe('AutoVoiceService', () => {
         forIRCOps: true,
       });
       service.updateUserModes('freenode', ['a']);
-      
+
       service.handleJoin('#general');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).toHaveBeenCalledWith('MODE #general +v TestUser');
     });
@@ -140,9 +146,9 @@ describe('AutoVoiceService', () => {
         forIRCOps: true,
       });
       service.updateUserModes('freenode', ['q']);
-      
+
       service.handleJoin('#general');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).toHaveBeenCalledWith('MODE #general +v TestUser');
     });
@@ -155,9 +161,9 @@ describe('AutoVoiceService', () => {
         forIRCOps: false,
       });
       service.updateUserModes('freenode', ['v']); // Only voice, not op
-      
+
       service.handleJoin('#general');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).not.toHaveBeenCalled();
     });
@@ -169,12 +175,12 @@ describe('AutoVoiceService', () => {
         forOperators: false,
         forIRCOps: false,
       });
-      
+
       service.handleJoin('#general');
-      
+
       // Before timer
       expect(mockSendCommand).not.toHaveBeenCalled();
-      
+
       // After timer
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).toHaveBeenCalled();
@@ -188,9 +194,9 @@ describe('AutoVoiceService', () => {
         forOperators: false,
         forIRCOps: false,
       });
-      
+
       service.handleJoin('#general');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).toHaveBeenCalledWith('MODE #general +v TestUser');
     });
@@ -205,7 +211,7 @@ describe('AutoVoiceService', () => {
     it('should overwrite previous modes', () => {
       service.updateUserModes('freenode', ['o']);
       service.updateUserModes('freenode', ['v']); // Overwrite
-      
+
       service.setConfig('freenode', {
         enabled: true,
         forAll: false,
@@ -213,7 +219,7 @@ describe('AutoVoiceService', () => {
         forIRCOps: false,
       });
       service.handleJoin('#test');
-      
+
       jest.advanceTimersByTime(1000);
       expect(mockSendCommand).not.toHaveBeenCalled(); // v is not o or h
     });
@@ -227,10 +233,10 @@ describe('AutoVoiceService', () => {
         forOperators: false,
         forIRCOps: false,
       };
-      
+
       service.setConfig('freenode', config);
       const retrieved = service.getConfig('freenode');
-      
+
       expect(retrieved).toEqual(config);
     });
 
@@ -252,7 +258,7 @@ describe('AutoVoiceService', () => {
         forOperators: true,
         forIRCOps: false,
       });
-      
+
       expect(service.getConfig('freenode')?.enabled).toBe(true);
       expect(service.getConfig('libera')?.enabled).toBe(false);
     });
@@ -281,9 +287,9 @@ describe('AutoVoiceService', () => {
         forOperators: true,
         forIRCOps: true,
       });
-      
+
       service.setEnabled('freenode', true);
-      
+
       const config = service.getConfig('freenode');
       expect(config?.enabled).toBe(true);
       expect(config?.forOperators).toBe(true);
@@ -292,7 +298,7 @@ describe('AutoVoiceService', () => {
 
     it('should create default config when enabling unset network', () => {
       service.setEnabled('newnetwork', true);
-      
+
       const config = service.getConfig('newnetwork');
       expect(config).toEqual({
         enabled: true,

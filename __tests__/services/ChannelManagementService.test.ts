@@ -28,8 +28,14 @@ describe('ChannelManagementService', () => {
     service.initialize();
     expect(mockIrc.addRawMessage).toHaveBeenCalled();
     expect(mockIrc.on).toHaveBeenCalledWith('topic', expect.any(Function));
-    expect(mockIrc.on).toHaveBeenCalledWith('channelMode', expect.any(Function));
-    expect(mockIrc.on).toHaveBeenCalledWith('clear-channel', expect.any(Function));
+    expect(mockIrc.on).toHaveBeenCalledWith(
+      'channelMode',
+      expect.any(Function),
+    );
+    expect(mockIrc.on).toHaveBeenCalledWith(
+      'clear-channel',
+      expect.any(Function),
+    );
     expect(mockIrc.on).toHaveBeenCalledWith('numeric', expect.any(Function));
   });
 
@@ -42,11 +48,20 @@ describe('ChannelManagementService', () => {
 
     expect(info?.topic).toBe('hello');
     expect(info?.topicSetBy).toBe('alice');
-    expect(listener).toHaveBeenCalledWith('#chat', expect.objectContaining({ topic: 'hello' }));
+    expect(listener).toHaveBeenCalledWith(
+      '#chat',
+      expect.objectContaining({ topic: 'hello' }),
+    );
   });
 
   it('parses channel mode updates with add/remove parameters', () => {
-    service.updateModes('#chan', '+psitnmklbeI', ['key1', '10', '*!*@ban', '*!*@exc', '*!*@inv']);
+    service.updateModes('#chan', '+psitnmklbeI', [
+      'key1',
+      '10',
+      '*!*@ban',
+      '*!*@exc',
+      '*!*@inv',
+    ]);
     let info = service.getChannelInfo('#chan');
     expect(info?.modes.private).toBe(true);
     expect(info?.modes.secret).toBe(true);
@@ -60,7 +75,13 @@ describe('ChannelManagementService', () => {
     expect(info?.modes.exceptionList).toContain('*!*@exc');
     expect(info?.modes.inviteList).toContain('*!*@inv');
 
-    service.updateModes('#chan', '-klebI', ['key1', '10', '*!*@ban', '*!*@exc', '*!*@inv']);
+    service.updateModes('#chan', '-klebI', [
+      'key1',
+      '10',
+      '*!*@ban',
+      '*!*@exc',
+      '*!*@inv',
+    ]);
     info = service.getChannelInfo('#chan');
     // Current implementation merges modes and keeps previously set scalar keys.
     expect(info?.modes.key).toBe('key1');
@@ -108,7 +129,12 @@ describe('ChannelManagementService', () => {
 
     onNumeric(324, 'srv', ['me', '#chan', '+ntk', 'keyx'], Date.now());
     onNumeric(332, 'srv', ['me', '#chan', 'topic text'], Date.now());
-    onNumeric(333, 'srv', ['me', '#chan', 'alice!u@h', '1700000000'], Date.now());
+    onNumeric(
+      333,
+      'srv',
+      ['me', '#chan', 'alice!u@h', '1700000000'],
+      Date.now(),
+    );
 
     onNumeric(367, 'srv', ['me', '#chan', '*!*@ban1'], Date.now());
     onNumeric(367, 'srv', ['me', '#chan', '*!*@ban2'], Date.now());

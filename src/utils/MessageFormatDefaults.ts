@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import type { MessageFormatPart, ThemeMessageFormats } from '../services/ThemeService';
+import type {
+  MessageFormatPart,
+  ThemeMessageFormats,
+} from '../services/ThemeService';
 
 export const DEFAULT_MESSAGE_FORMATS: ThemeMessageFormats = {
   message: [

@@ -9,7 +9,11 @@ import { tx } from '../i18n/transifex';
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 interface IRCForegroundServiceInterface {
-  startService(networkName: string, title: string, text: string): Promise<boolean>;
+  startService(
+    networkName: string,
+    title: string,
+    text: string,
+  ): Promise<boolean>;
   stopService(): Promise<boolean>;
   updateNotification(title: string, text: string): Promise<boolean>;
 }
@@ -20,16 +24,17 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const IRCForegroundServiceNative: IRCForegroundServiceInterface = NativeModules.IRCForegroundService
-  ? NativeModules.IRCForegroundService
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
+const IRCForegroundServiceNative: IRCForegroundServiceInterface =
+  NativeModules.IRCForegroundService
+    ? NativeModules.IRCForegroundService
+    : new Proxy(
+        {},
+        {
+          get() {
+            throw new Error(LINKING_ERROR);
+          },
         },
-      }
-    );
+      );
 
 /**
  * Service to keep IRC connection alive in the background on Android
@@ -43,9 +48,15 @@ class IRCForegroundService {
    * @param title Notification title
    * @param text Notification text
    */
-  async start(networkName: string, title?: string, text?: string): Promise<void> {
+  async start(
+    networkName: string,
+    title?: string,
+    text?: string,
+  ): Promise<void> {
     if (Platform.OS !== 'android') {
-      console.log('IRCForegroundService: Foreground service only supported on Android');
+      console.log(
+        'IRCForegroundService: Foreground service only supported on Android',
+      );
       return;
     }
 
@@ -56,9 +67,14 @@ class IRCForegroundService {
 
     try {
       const notificationTitle = title || t('IRC Connected');
-      const notificationText = text || t('Maintaining connection to {networkName}', { networkName });
+      const notificationText =
+        text || t('Maintaining connection to {networkName}', { networkName });
 
-      await IRCForegroundServiceNative.startService(networkName, notificationTitle, notificationText);
+      await IRCForegroundServiceNative.startService(
+        networkName,
+        notificationTitle,
+        notificationText,
+      );
       this.isRunning = true;
       console.log('IRCForegroundService: Started successfully');
     } catch (error) {
@@ -101,7 +117,9 @@ class IRCForegroundService {
     }
 
     if (!this.isRunning) {
-      console.log('IRCForegroundService: Service not running, cannot update notification');
+      console.log(
+        'IRCForegroundService: Service not running, cannot update notification',
+      );
       return;
     }
 
@@ -109,7 +127,10 @@ class IRCForegroundService {
       await IRCForegroundServiceNative.updateNotification(title, text);
       console.log('IRCForegroundService: Notification updated');
     } catch (error) {
-      console.error('IRCForegroundService: Failed to update notification:', error);
+      console.error(
+        'IRCForegroundService: Failed to update notification:',
+        error,
+      );
     }
   }
 

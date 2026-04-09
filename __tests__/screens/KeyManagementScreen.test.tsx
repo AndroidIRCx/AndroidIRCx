@@ -51,8 +51,9 @@ jest.mock('../../src/i18n/transifex', () => ({
     }
 
     return Object.entries(params).reduce(
-      (result, [paramKey, value]) => result.replace(`{${paramKey}}`, String(value)),
-      key
+      (result, [paramKey, value]) =>
+        result.replace(`{${paramKey}}`, String(value)),
+      key,
     );
   },
 }));
@@ -86,12 +87,14 @@ jest.mock('../../src/services/ConnectionManager', () => ({
 }));
 
 const { encryptedDMService } = require('../../src/services/EncryptedDMService');
-const { biometricAuthService } = require('../../src/services/BiometricAuthService');
+const {
+  biometricAuthService,
+} = require('../../src/services/BiometricAuthService');
 const { connectionManager } = require('../../src/services/ConnectionManager');
 
 const pressTextButton = async (
   findByText: (text: string) => Promise<any>,
-  label: string
+  label: string,
 ) => {
   let node = await findByText(label);
 
@@ -134,14 +137,17 @@ describe('KeyManagementScreen', () => {
 
   it('renders loaded keys without authentication when biometrics are unavailable', async () => {
     const { findByText, getByPlaceholderText } = render(
-      <KeyManagementScreen visible onClose={jest.fn()} />
+      <KeyManagementScreen visible onClose={jest.fn()} />,
     );
 
     expect(await findByText('Encryption Keys')).toBeTruthy();
     expect(await findByText('Alice')).toBeTruthy();
     expect(await findByText('2 keys · 1 verified')).toBeTruthy();
 
-    fireEvent.changeText(getByPlaceholderText('Search by nick or network...'), 'bob');
+    fireEvent.changeText(
+      getByPlaceholderText('Search by nick or network...'),
+      'bob',
+    );
     expect(await findByText('Bob')).toBeTruthy();
   });
 
@@ -156,11 +162,13 @@ describe('KeyManagementScreen', () => {
     render(<KeyManagementScreen visible onClose={onClose} />);
 
     await waitFor(() => {
-      expect(biometricAuthService.enableLock).toHaveBeenCalledWith('keymanagement');
+      expect(biometricAuthService.enableLock).toHaveBeenCalledWith(
+        'keymanagement',
+      );
       expect(Alert.alert).toHaveBeenCalledWith(
         'Authentication Failed',
         'Denied',
-        [{ text: 'OK', onPress: onClose }]
+        [{ text: 'OK', onPress: onClose }],
       );
     });
   });
@@ -168,7 +176,9 @@ describe('KeyManagementScreen', () => {
   it('handles authentication error and closes from alert action', async () => {
     const onClose = jest.fn();
     biometricAuthService.isAvailable.mockReturnValue(true);
-    biometricAuthService.authenticate.mockRejectedValueOnce(new Error('auth broken'));
+    biometricAuthService.authenticate.mockRejectedValueOnce(
+      new Error('auth broken'),
+    );
 
     render(<KeyManagementScreen visible onClose={onClose} />);
 
@@ -176,7 +186,7 @@ describe('KeyManagementScreen', () => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Authentication Error',
         'auth broken',
-        [{ text: 'OK', onPress: onClose }]
+        [{ text: 'OK', onPress: onClose }],
       );
     });
   });
@@ -193,20 +203,24 @@ describe('KeyManagementScreen', () => {
   });
 
   it('shows load error when keys cannot be loaded', async () => {
-    encryptedDMService.listAllKeys.mockRejectedValueOnce(new Error('load failed'));
+    encryptedDMService.listAllKeys.mockRejectedValueOnce(
+      new Error('load failed'),
+    );
 
     render(<KeyManagementScreen visible onClose={jest.fn()} />);
 
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Error',
-        'Failed to load encryption keys: load failed'
+        'Failed to load encryption keys: load failed',
       );
     });
   });
 
   it('opens key details and toggles verification state', async () => {
-    const { findByText } = render(<KeyManagementScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <KeyManagementScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Alice'));
     fireEvent.press(await findByText('Mark as Unverified'));
@@ -215,13 +229,15 @@ describe('KeyManagementScreen', () => {
       expect(encryptedDMService.setVerifiedForNetwork).toHaveBeenCalledWith(
         'NetOne',
         'Alice',
-        false
+        false,
       );
     });
   });
 
   it('copies and moves a key to another network', async () => {
-    const { findAllByText, findByText } = render(<KeyManagementScreen visible onClose={jest.fn()} />);
+    const { findAllByText, findByText } = render(
+      <KeyManagementScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Alice'));
     fireEvent.press(await findByText('Copy to Network...'));
@@ -231,7 +247,7 @@ describe('KeyManagementScreen', () => {
       expect(encryptedDMService.copyBundleToNetwork).toHaveBeenCalledWith(
         'NetOne',
         'NetThree',
-        'Alice'
+        'Alice',
       );
     });
 
@@ -246,16 +262,22 @@ describe('KeyManagementScreen', () => {
       expect(encryptedDMService.moveBundleToNetwork).toHaveBeenCalledWith(
         'NetTwo',
         'NetOne',
-        'Bob'
+        'Bob',
       );
     });
   });
 
   it('shows copy and move errors', async () => {
-    encryptedDMService.copyBundleToNetwork.mockRejectedValueOnce(new Error('copy failed'));
-    encryptedDMService.moveBundleToNetwork.mockRejectedValueOnce(new Error('move failed'));
+    encryptedDMService.copyBundleToNetwork.mockRejectedValueOnce(
+      new Error('copy failed'),
+    );
+    encryptedDMService.moveBundleToNetwork.mockRejectedValueOnce(
+      new Error('move failed'),
+    );
 
-    const { findByText, findAllByText } = render(<KeyManagementScreen visible onClose={jest.fn()} />);
+    const { findByText, findAllByText } = render(
+      <KeyManagementScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Alice'));
     fireEvent.press(await findByText('Copy to Network...'));
@@ -277,27 +299,40 @@ describe('KeyManagementScreen', () => {
   });
 
   it('deletes a key after confirmation', async () => {
-    const { findByText } = render(<KeyManagementScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <KeyManagementScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Alice'));
     fireEvent.press(await findByText('Delete Key'));
 
-    const deleteDialogButtons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2];
+    const deleteDialogButtons = (Alert.alert as jest.Mock).mock.calls.at(
+      -1,
+    )?.[2];
     deleteDialogButtons?.[1]?.onPress?.();
 
     await waitFor(() => {
-      expect(encryptedDMService.deleteBundleForNetwork).toHaveBeenCalledWith('NetOne', 'Alice');
+      expect(encryptedDMService.deleteBundleForNetwork).toHaveBeenCalledWith(
+        'NetOne',
+        'Alice',
+      );
     });
   });
 
   it('shows delete error when key removal fails', async () => {
-    encryptedDMService.deleteBundleForNetwork.mockRejectedValueOnce(new Error('delete failed'));
-    const { findByText } = render(<KeyManagementScreen visible onClose={jest.fn()} />);
+    encryptedDMService.deleteBundleForNetwork.mockRejectedValueOnce(
+      new Error('delete failed'),
+    );
+    const { findByText } = render(
+      <KeyManagementScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Alice'));
     fireEvent.press(await findByText('Delete Key'));
 
-    const deleteDialogButtons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2];
+    const deleteDialogButtons = (Alert.alert as jest.Mock).mock.calls.at(
+      -1,
+    )?.[2];
     deleteDialogButtons?.[1]?.onPress?.();
 
     await waitFor(() => {
@@ -307,81 +342,113 @@ describe('KeyManagementScreen', () => {
 
   it('exports keys to clipboard and imports backup data', async () => {
     const { findByText, findByPlaceholderText } = render(
-      <KeyManagementScreen visible onClose={jest.fn()} />
+      <KeyManagementScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Export All Keys'));
     fireEvent.changeText(
       await findByPlaceholderText('Backup password (min 6 characters)'),
-      'secret1'
+      'secret1',
     );
     fireEvent.press(await findByText('Export'));
 
     await waitFor(() => {
-      expect(encryptedDMService.exportKeyBackup).toHaveBeenCalledWith('secret1');
+      expect(encryptedDMService.exportKeyBackup).toHaveBeenCalledWith(
+        'secret1',
+      );
     });
 
     fireEvent.press(await findByText('Import Keys'));
-    fireEvent.changeText(await findByPlaceholderText('Paste backup data here...'), ' data ');
-    fireEvent.changeText(await findByPlaceholderText('Backup password'), 'secret1');
+    fireEvent.changeText(
+      await findByPlaceholderText('Paste backup data here...'),
+      ' data ',
+    );
+    fireEvent.changeText(
+      await findByPlaceholderText('Backup password'),
+      'secret1',
+    );
     fireEvent.press(await findByText('Import'));
 
     await waitFor(() => {
-      expect(encryptedDMService.importKeyBackup).toHaveBeenCalledWith('data', 'secret1');
+      expect(encryptedDMService.importKeyBackup).toHaveBeenCalledWith(
+        'data',
+        'secret1',
+      );
     });
   });
 
   it('validates export password length and export failure', async () => {
-    encryptedDMService.exportKeyBackup.mockRejectedValueOnce(new Error('export failed'));
+    encryptedDMService.exportKeyBackup.mockRejectedValueOnce(
+      new Error('export failed'),
+    );
     const { findByText, findByPlaceholderText } = render(
-      <KeyManagementScreen visible onClose={jest.fn()} />
+      <KeyManagementScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Export All Keys'));
     fireEvent.changeText(
       await findByPlaceholderText('Backup password (min 6 characters)'),
-      '123'
+      '123',
     );
     await pressTextButton(findByText, 'Export');
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Password must be at least 6 characters');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Password must be at least 6 characters',
+    );
 
     fireEvent.changeText(
       await findByPlaceholderText('Backup password (min 6 characters)'),
-      'secret1'
+      'secret1',
     );
     await pressTextButton(findByText, 'Export');
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to export keys: Error: export failed');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to export keys: Error: export failed',
+      );
     });
   });
 
   it('validates import inputs and import failure', async () => {
-    encryptedDMService.importKeyBackup.mockRejectedValueOnce(new Error('import failed'));
+    encryptedDMService.importKeyBackup.mockRejectedValueOnce(
+      new Error('import failed'),
+    );
     const { findByText, findByPlaceholderText } = render(
-      <KeyManagementScreen visible onClose={jest.fn()} />
+      <KeyManagementScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Import Keys'));
     await pressTextButton(findByText, 'Import');
     expect(Alert.alert).toHaveBeenCalledWith(
       'Error',
-      'Please provide both backup data and password'
+      'Please provide both backup data and password',
     );
 
-    fireEvent.changeText(await findByPlaceholderText('Paste backup data here...'), ' data ');
-    fireEvent.changeText(await findByPlaceholderText('Backup password'), 'secret1');
+    fireEvent.changeText(
+      await findByPlaceholderText('Paste backup data here...'),
+      ' data ',
+    );
+    fireEvent.changeText(
+      await findByPlaceholderText('Backup password'),
+      'secret1',
+    );
     await pressTextButton(findByText, 'Import');
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to import keys: Error: import failed');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to import keys: Error: import failed',
+      );
     });
   });
 
   it('toggles list view, refreshes keys, and closes on unmount', async () => {
     const disableLockSpy = biometricAuthService.disableLock;
-    const { findByText, unmount } = render(<KeyManagementScreen visible onClose={jest.fn()} />);
+    const { findByText, unmount } = render(
+      <KeyManagementScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('List View'));
     expect(await findByText('Group View')).toBeTruthy();
@@ -396,19 +463,20 @@ describe('KeyManagementScreen', () => {
   });
 
   it('cancels export dialog and closes it', async () => {
-    const { findByText, findByPlaceholderText, queryByPlaceholderText } = render(
-      <KeyManagementScreen visible onClose={jest.fn()} />
-    );
+    const { findByText, findByPlaceholderText, queryByPlaceholderText } =
+      render(<KeyManagementScreen visible onClose={jest.fn()} />);
 
     fireEvent.press(await findByText('Export All Keys'));
     fireEvent.changeText(
       await findByPlaceholderText('Backup password (min 6 characters)'),
-      '123'
+      '123',
     );
     fireEvent.press(await findByText('Cancel'));
 
     await waitFor(() => {
-      expect(queryByPlaceholderText('Backup password (min 6 characters)')).toBeNull();
+      expect(
+        queryByPlaceholderText('Backup password (min 6 characters)'),
+      ).toBeNull();
     });
   });
 });

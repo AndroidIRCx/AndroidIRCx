@@ -14,7 +14,8 @@ jest.mock('../../src/services/BanService', () => ({
   ],
   banService: {
     generateBanMask: (...args: unknown[]) => mockGenerateBanMask(...args),
-    getPredefinedReasons: (...args: unknown[]) => mockGetPredefinedReasons(...args),
+    getPredefinedReasons: (...args: unknown[]) =>
+      mockGetPredefinedReasons(...args),
   },
 }));
 
@@ -55,14 +56,17 @@ describe('KickBanModal', () => {
         mode="kickban"
         userHost="ident@example.com"
         colors={colors}
-      />
+      />,
     );
 
     await act(async () => {
       fireEvent.press(getByText('Confirm'));
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Please enter a reason for the action.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Please enter a reason for the action.',
+    );
   });
 
   it('uses quick reason and confirms kick/ban payload', async () => {
@@ -78,7 +82,7 @@ describe('KickBanModal', () => {
         mode="kickban"
         userHost="ident@example.com"
         colors={colors}
-      />
+      />,
     );
 
     fireEvent.press(getByText('Spamming'));
@@ -108,7 +112,7 @@ describe('KickBanModal', () => {
         mode="ban"
         userHost="ident@example.com"
         colors={colors}
-      />
+      />,
     );
 
     fireEvent.changeText(getByPlaceholderText('Enter reason...'), 'reason');
@@ -119,6 +123,9 @@ describe('KickBanModal', () => {
       fireEvent.press(getByText('Confirm'));
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Please enter a valid time value.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Please enter a valid time value.',
+    );
   });
 });

@@ -7,12 +7,20 @@ jest.mock('react-native-libsodium', () => ({
   __esModule: true,
   default: {
     ready: Promise.resolve(),
-    to_base64: jest.fn((bytes: Uint8Array) => Buffer.from(bytes).toString('base64')),
-    from_base64: jest.fn((b64: string) => new Uint8Array(Buffer.from(b64, 'base64'))),
+    to_base64: jest.fn((bytes: Uint8Array) =>
+      Buffer.from(bytes).toString('base64'),
+    ),
+    from_base64: jest.fn(
+      (b64: string) => new Uint8Array(Buffer.from(b64, 'base64')),
+    ),
     randombytes_buf: jest.fn(() => new Uint8Array(24).fill(7)),
     crypto_aead_xchacha20poly1305_ietf_NPUBBYTES: 24,
-    crypto_aead_xchacha20poly1305_ietf_encrypt: jest.fn((data: Uint8Array) => data),
-    crypto_aead_xchacha20poly1305_ietf_decrypt: jest.fn((data: Uint8Array) => data),
+    crypto_aead_xchacha20poly1305_ietf_encrypt: jest.fn(
+      (data: Uint8Array) => data,
+    ),
+    crypto_aead_xchacha20poly1305_ietf_decrypt: jest.fn(
+      (data: Uint8Array) => data,
+    ),
   },
 }));
 
@@ -27,7 +35,9 @@ jest.mock('react-native-fs', () => ({
 jest.mock('../../src/services/EncryptedDMService', () => ({
   encryptedDMService: {
     isEncryptedForNetwork: jest.fn(),
-    getMessageKeyForNetwork: jest.fn().mockResolvedValue(new Uint8Array(32).fill(1)),
+    getMessageKeyForNetwork: jest
+      .fn()
+      .mockResolvedValue(new Uint8Array(32).fill(1)),
   },
 }));
 
@@ -61,7 +71,8 @@ const mockChannel = channelEncryptionService as unknown as {
   getChannelKey: jest.Mock;
 };
 
-const mockSodium = (sodium as unknown as { default?: any }).default || (sodium as any);
+const mockSodium =
+  (sodium as unknown as { default?: any }).default || (sodium as any);
 
 describe.skip('MediaEncryptionService', () => {
   beforeEach(() => {
@@ -71,10 +82,18 @@ describe.skip('MediaEncryptionService', () => {
     mockRNFS.writeFile.mockResolvedValue(undefined);
     mockChannel.hasChannelKey.mockResolvedValue(false);
     mockDM.isEncryptedForNetwork.mockResolvedValue(false);
-    mockChannel.getChannelKey.mockResolvedValue({ key: Buffer.from(new Uint8Array(32).fill(9)).toString('base64') });
-    mockDM.getMessageKeyForNetwork.mockResolvedValue(new Uint8Array(32).fill(1));
-    mockSodium.crypto_aead_xchacha20poly1305_ietf_encrypt.mockImplementation((d: Uint8Array) => d);
-    mockSodium.crypto_aead_xchacha20poly1305_ietf_decrypt.mockImplementation((d: Uint8Array) => d);
+    mockChannel.getChannelKey.mockResolvedValue({
+      key: Buffer.from(new Uint8Array(32).fill(9)).toString('base64'),
+    });
+    mockDM.getMessageKeyForNetwork.mockResolvedValue(
+      new Uint8Array(32).fill(1),
+    );
+    mockSodium.crypto_aead_xchacha20poly1305_ietf_encrypt.mockImplementation(
+      (d: Uint8Array) => d,
+    );
+    mockSodium.crypto_aead_xchacha20poly1305_ietf_decrypt.mockImplementation(
+      (d: Uint8Array) => d,
+    );
   });
 
   it('returns false from hasEncryptionKey when tabId is missing', async () => {
@@ -87,11 +106,14 @@ describe.skip('MediaEncryptionService', () => {
 
     const result = await mediaEncryptionService.hasEncryptionKey(
       'freenode (2)',
-      'channel::freenode::#android'
+      'channel::freenode::#android',
     );
 
     expect(result).toBe(true);
-    expect(mockChannel.hasChannelKey).toHaveBeenCalledWith('#android', 'freenode (2)');
+    expect(mockChannel.hasChannelKey).toHaveBeenCalledWith(
+      '#android',
+      'freenode (2)',
+    );
   });
 
   it('checks dm encryption for query tabs', async () => {
@@ -99,26 +121,38 @@ describe.skip('MediaEncryptionService', () => {
 
     const result = await mediaEncryptionService.hasEncryptionKey(
       'libera',
-      'query::libera::Alice'
+      'query::libera::Alice',
     );
 
     expect(result).toBe(true);
-    expect(mockDM.isEncryptedForNetwork).toHaveBeenCalledWith('libera', 'Alice');
+    expect(mockDM.isEncryptedForNetwork).toHaveBeenCalledWith(
+      'libera',
+      'Alice',
+    );
   });
 
   it('returns false for invalid tab format', async () => {
-    const result = await mediaEncryptionService.hasEncryptionKey('net', 'invalid-tab-id');
+    const result = await mediaEncryptionService.hasEncryptionKey(
+      'net',
+      'invalid-tab-id',
+    );
     expect(result).toBe(false);
   });
 
   it('returns false for unknown tab type in hasEncryptionKey', async () => {
-    const result = await mediaEncryptionService.hasEncryptionKey('net', 'server::net::main');
+    const result = await mediaEncryptionService.hasEncryptionKey(
+      'net',
+      'server::net::main',
+    );
     expect(result).toBe(false);
   });
 
   it('returns false when hasEncryptionKey throws internally', async () => {
     mockChannel.hasChannelKey.mockRejectedValueOnce(new Error('lookup failed'));
-    const result = await mediaEncryptionService.hasEncryptionKey('net', 'channel::net::#chan');
+    const result = await mediaEncryptionService.hasEncryptionKey(
+      'net',
+      'channel::net::#chan',
+    );
     expect(result).toBe(false);
   });
 
@@ -127,7 +161,7 @@ describe.skip('MediaEncryptionService', () => {
 
     const info = await mediaEncryptionService.getEncryptionInfo(
       'net',
-      'channel::net::#secure'
+      'channel::net::#secure',
     );
 
     expect(info).toEqual({
@@ -140,7 +174,10 @@ describe.skip('MediaEncryptionService', () => {
   it('returns hasEncryption false when no key exists', async () => {
     mockDM.isEncryptedForNetwork.mockResolvedValue(false);
 
-    const info = await mediaEncryptionService.getEncryptionInfo('net', 'query::net::Bob');
+    const info = await mediaEncryptionService.getEncryptionInfo(
+      'net',
+      'query::net::Bob',
+    );
 
     expect(info).toEqual({ hasEncryption: false });
   });
@@ -151,7 +188,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/does/not/exist.jpg',
       'net',
-      'channel::net::#test'
+      'channel::net::#test',
     );
 
     expect(result.success).toBe(false);
@@ -164,7 +201,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.decryptMediaFile(
       '/does/not/exist.enc',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -179,7 +216,7 @@ describe.skip('MediaEncryptionService', () => {
       '/tmp/a.jpg',
       'net',
       'channel::net::#chan',
-      'm1'
+      'm1',
     );
 
     expect(result.success).toBe(true);
@@ -193,7 +230,7 @@ describe.skip('MediaEncryptionService', () => {
       '/tmp/a.jpg',
       'net',
       'query::net::Alice',
-      'm2'
+      'm2',
     );
 
     expect(result.success).toBe(true);
@@ -205,7 +242,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('File is empty');
@@ -216,7 +253,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       'content://media/1',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('cannot be accessed');
@@ -230,7 +267,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       'content://media/ok',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(true);
@@ -243,7 +280,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -255,7 +292,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('Invalid file format');
@@ -265,7 +302,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'broken-tab'
+      'broken-tab',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('Invalid tab ID format');
@@ -275,7 +312,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'server::net::main'
+      'server::net::main',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('Unsupported tab type');
@@ -286,7 +323,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'channel::net::#chan'
+      'channel::net::#chan',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('No channel encryption key found');
@@ -295,7 +332,10 @@ describe.skip('MediaEncryptionService', () => {
   it.skip('decrypts media successfully for channel tab', async () => {
     const nonce = new Uint8Array(24).fill(7);
     const jpegBytes = new Uint8Array([0xff, 0xd8, 0xff, 0x11, 0x22]);
-    const all = Buffer.concat([Buffer.from(nonce), Buffer.from(jpegBytes)]).toString('base64');
+    const all = Buffer.concat([
+      Buffer.from(nonce),
+      Buffer.from(jpegBytes),
+    ]).toString('base64');
     mockRNFS.readFile
       .mockResolvedValueOnce(all)
       .mockResolvedValueOnce(Buffer.from(jpegBytes).toString('base64'));
@@ -304,7 +344,7 @@ describe.skip('MediaEncryptionService', () => {
       '/tmp/encrypted.bin',
       'net',
       'channel::net::#chan',
-      'm1'
+      'm1',
     );
 
     expect(result.success).toBe(true);
@@ -315,14 +355,17 @@ describe.skip('MediaEncryptionService', () => {
   it.skip('decrypts media successfully for query tab', async () => {
     const nonce = new Uint8Array(24).fill(7);
     const mp3Bytes = new Uint8Array([0x49, 0x44, 0x33, 0x10]);
-    const all = Buffer.concat([Buffer.from(nonce), Buffer.from(mp3Bytes)]).toString('base64');
+    const all = Buffer.concat([
+      Buffer.from(nonce),
+      Buffer.from(mp3Bytes),
+    ]).toString('base64');
     mockRNFS.readFile.mockResolvedValueOnce(all);
 
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
       'query::net::Alice',
-      'm3'
+      'm3',
     );
 
     expect(result.success).toBe(true);
@@ -331,11 +374,13 @@ describe.skip('MediaEncryptionService', () => {
   });
 
   it.skip('returns error when encrypted file payload is too short', async () => {
-    mockRNFS.readFile.mockResolvedValueOnce(Buffer.from([1, 2, 3]).toString('base64'));
+    mockRNFS.readFile.mockResolvedValueOnce(
+      Buffer.from([1, 2, 3]).toString('base64'),
+    );
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'channel::net::#chan'
+      'channel::net::#chan',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('File too short');
@@ -345,12 +390,14 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'invalid'
+      'invalid',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('Invalid tab ID format');
@@ -360,12 +407,14 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'server::net::main'
+      'server::net::main',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('Unsupported tab type');
@@ -375,7 +424,9 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([0x00, 0x00, 0x00, 0x00]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockSodium.crypto_aead_xchacha20poly1305_ietf_decrypt
       .mockImplementationOnce(() => {
@@ -390,7 +441,7 @@ describe.skip('MediaEncryptionService', () => {
       '/tmp/encrypted.bin',
       'net',
       'channel::net::#chan',
-      'm5'
+      'm5',
     );
 
     expect(result.success).toBe(true);
@@ -404,21 +455,41 @@ describe.skip('MediaEncryptionService', () => {
 
     expect(Array.from(roundtrip)).toEqual([1, 2, 3, 4]);
     expect(svc.canonicalizeNetwork(' libera (2) ')).toBe('libera');
-    expect(svc.buildMediaAAD('channel', 'libera (3)', '#chan')).toBe('media:channel:libera:#chan');
-    expect(svc.buildMediaAAD('query', 'net', 'Alice', 'm9')).toBe('media:query:net:Alice:m9');
+    expect(svc.buildMediaAAD('channel', 'libera (3)', '#chan')).toBe(
+      'media:channel:libera:#chan',
+    );
+    expect(svc.buildMediaAAD('query', 'net', 'Alice', 'm9')).toBe(
+      'media:query:net:Alice:m9',
+    );
   });
 
   it('covers mime detection and extension mapping helpers', () => {
     const svc = mediaEncryptionService as any;
-    expect(svc.detectMimeType(new Uint8Array([0xff, 0xd8, 0xff, 0x00]))).toBe('image/jpeg');
-    expect(svc.detectMimeType(new Uint8Array([0x89, 0x50, 0x4e, 0x47]))).toBe('image/png');
-    expect(svc.detectMimeType(new Uint8Array([0x47, 0x49, 0x46, 0x38]))).toBe('image/gif');
+    expect(svc.detectMimeType(new Uint8Array([0xff, 0xd8, 0xff, 0x00]))).toBe(
+      'image/jpeg',
+    );
+    expect(svc.detectMimeType(new Uint8Array([0x89, 0x50, 0x4e, 0x47]))).toBe(
+      'image/png',
+    );
+    expect(svc.detectMimeType(new Uint8Array([0x47, 0x49, 0x46, 0x38]))).toBe(
+      'image/gif',
+    );
     expect(
-      svc.detectMimeType(new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50]))
+      svc.detectMimeType(
+        new Uint8Array([
+          0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
+        ]),
+      ),
     ).toBe('image/webp');
-    expect(svc.detectMimeType(new Uint8Array([0, 0, 0, 0, 0x66, 0x74, 0x79, 0x70]))).toBe('video/mp4');
-    expect(svc.detectMimeType(new Uint8Array([0xff, 0xfb, 0x00, 0x00]))).toBe('audio/mpeg');
-    expect(svc.detectMimeType(new Uint8Array([1, 2]))).toBe('application/octet-stream');
+    expect(
+      svc.detectMimeType(new Uint8Array([0, 0, 0, 0, 0x66, 0x74, 0x79, 0x70])),
+    ).toBe('video/mp4');
+    expect(svc.detectMimeType(new Uint8Array([0xff, 0xfb, 0x00, 0x00]))).toBe(
+      'audio/mpeg',
+    );
+    expect(svc.detectMimeType(new Uint8Array([1, 2]))).toBe(
+      'application/octet-stream',
+    );
     expect(svc.getExtensionFromMimeType('image/png')).toBe('.png');
     expect(svc.getExtensionFromMimeType('application/x-unknown')).toBe('.bin');
   });
@@ -429,7 +500,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -437,19 +508,24 @@ describe.skip('MediaEncryptionService', () => {
   });
 
   it.skip('returns error when no tabId is provided on encrypt', async () => {
-    const result = await mediaEncryptionService.encryptMediaFile('/tmp/a.jpg', 'net', '');
-    expect(result).toEqual({ success: false, error: 'No tabId provided for encryption' });
+    const result = await mediaEncryptionService.encryptMediaFile(
+      '/tmp/a.jpg',
+      'net',
+      '',
+    );
+    expect(result).toEqual({
+      success: false,
+      error: 'No tabId provided for encryption',
+    });
   });
 
   it.skip('returns error when cache directory is missing during encrypt', async () => {
-    mockRNFS.exists
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false);
+    mockRNFS.exists.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
 
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -461,7 +537,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('Failed to save encrypted file');
@@ -472,7 +548,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('write failed string');
@@ -487,7 +563,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('Unknown write error');
@@ -502,7 +578,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('File was not created');
@@ -512,27 +588,36 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
 
-    const result = await mediaEncryptionService.decryptMediaFile('/tmp/encrypted.bin', 'net', '');
-    expect(result).toEqual({ success: false, error: 'No tabId provided for decryption' });
+    const result = await mediaEncryptionService.decryptMediaFile(
+      '/tmp/encrypted.bin',
+      'net',
+      '',
+    );
+    expect(result).toEqual({
+      success: false,
+      error: 'No tabId provided for decryption',
+    });
   });
 
   it.skip('returns error when cache directory is missing during decrypt', async () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
-    mockRNFS.exists
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false);
+    mockRNFS.exists.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
 
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('Cache directory does not exist');
@@ -542,14 +627,16 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockRNFS.writeFile.mockRejectedValueOnce(new Error('dec write failed'));
 
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('Failed to save decrypted file');
@@ -559,7 +646,9 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockRNFS.exists
       .mockResolvedValueOnce(true)
@@ -569,7 +658,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('File was not created');
@@ -585,7 +674,7 @@ describe.skip('MediaEncryptionService', () => {
     await mediaEncryptionService.encryptMediaFile(
       'file:///tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(mockRNFS.readFile).toHaveBeenCalledWith('/tmp/a.jpg', 'base64');
@@ -596,7 +685,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('File conversion failed');
@@ -611,7 +700,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -621,12 +710,14 @@ describe.skip('MediaEncryptionService', () => {
 
   it('returns encrypted data empty error when nonce and encrypted payload are empty', async () => {
     mockSodium.randombytes_buf.mockReturnValueOnce(new Uint8Array([]));
-    mockSodium.crypto_aead_xchacha20poly1305_ietf_encrypt.mockReturnValueOnce(new Uint8Array([]));
+    mockSodium.crypto_aead_xchacha20poly1305_ietf_encrypt.mockReturnValueOnce(
+      new Uint8Array([]),
+    );
 
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -642,7 +733,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -660,7 +751,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -673,7 +764,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result).toEqual({ success: false, error: 'hard fail' });
@@ -685,7 +776,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.encryptMediaFile(
       '/tmp/a.jpg',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result).toEqual({ success: false, error: 'obj fail' });
@@ -693,9 +784,14 @@ describe.skip('MediaEncryptionService', () => {
 
   it.skip('parses multipart payload during decrypt', async () => {
     const nonce = new Uint8Array(24).fill(7);
-    const body = Buffer.concat([Buffer.from(nonce), Buffer.from([0xff, 0xd8, 0xff, 0x00])]);
+    const body = Buffer.concat([
+      Buffer.from(nonce),
+      Buffer.from([0xff, 0xd8, 0xff, 0x00]),
+    ]);
     const multipart = Buffer.concat([
-      Buffer.from('--*****\r\nContent-Disposition: form-data; name="file"; filename="x"\r\n\r\n'),
+      Buffer.from(
+        '--*****\r\nContent-Disposition: form-data; name="file"; filename="x"\r\n\r\n',
+      ),
       body,
       Buffer.from('\r\n--*****--\r\n'),
     ]);
@@ -704,7 +800,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(true);
@@ -722,7 +818,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(true);
@@ -732,14 +828,16 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockChannel.getChannelKey.mockResolvedValueOnce(null);
 
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'channel::net::#chan'
+      'channel::net::#chan',
     );
     expect(result.success).toBe(false);
     expect(result.error).toContain('No channel encryption key found');
@@ -749,7 +847,9 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([9, 8, 7, 6]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockSodium.crypto_aead_xchacha20poly1305_ietf_decrypt
       .mockImplementationOnce(() => {
@@ -761,7 +861,7 @@ describe.skip('MediaEncryptionService', () => {
       '/tmp/encrypted.bin',
       'net',
       'channel::net::#chan',
-      'm-fallback'
+      'm-fallback',
     );
 
     expect(result.success).toBe(true);
@@ -771,7 +871,9 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([9, 8, 7, 6]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockSodium.crypto_aead_xchacha20poly1305_ietf_decrypt
       .mockImplementationOnce(() => {
@@ -783,7 +885,7 @@ describe.skip('MediaEncryptionService', () => {
       '/tmp/encrypted.bin',
       'net',
       'query::net::Alice',
-      'm-dm'
+      'm-dm',
     );
 
     expect(result.success).toBe(true);
@@ -793,7 +895,9 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([9, 8, 7, 6]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockSodium.crypto_aead_xchacha20poly1305_ietf_decrypt
       .mockImplementationOnce(() => {
@@ -808,7 +912,7 @@ describe.skip('MediaEncryptionService', () => {
       '/tmp/encrypted.bin',
       'net',
       'query::net::Alice',
-      'm-dm2'
+      'm-dm2',
     );
 
     expect(result.success).toBe(true);
@@ -818,16 +922,18 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockSodium.crypto_aead_xchacha20poly1305_ietf_decrypt.mockImplementationOnce(
-      () => new Uint8Array([])
+      () => new Uint8Array([]),
     );
 
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -838,14 +944,16 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockRNFS.writeFile.mockRejectedValueOnce('write string fail');
 
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -856,7 +964,9 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockRNFS.writeFile.mockRejectedValueOnce({
       toString: () => {
@@ -867,7 +977,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -878,7 +988,9 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockRNFS.writeFile.mockImplementationOnce(() => {
       throw new Error('sync write boom');
@@ -887,7 +999,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -898,7 +1010,9 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockRNFS.exists
       .mockResolvedValueOnce(true)
@@ -908,7 +1022,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -919,7 +1033,9 @@ describe.skip('MediaEncryptionService', () => {
     const nonce = new Uint8Array(24).fill(7);
     const bytes = new Uint8Array([1, 2, 3, 4]);
     mockRNFS.readFile.mockResolvedValueOnce(
-      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString('base64')
+      Buffer.concat([Buffer.from(nonce), Buffer.from(bytes)]).toString(
+        'base64',
+      ),
     );
     mockRNFS.exists
       .mockResolvedValueOnce(true)
@@ -931,7 +1047,7 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
 
     expect(result.success).toBe(false);
@@ -943,36 +1059,50 @@ describe.skip('MediaEncryptionService', () => {
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result).toEqual({ success: false, error: 'decrypt hard fail' });
   });
 
   it.skip('returns top-level decryption error from toString object throw', async () => {
-    mockRNFS.exists.mockRejectedValueOnce({ toString: () => 'decrypt obj fail' });
+    mockRNFS.exists.mockRejectedValueOnce({
+      toString: () => 'decrypt obj fail',
+    });
     const result = await mediaEncryptionService.decryptMediaFile(
       '/tmp/encrypted.bin',
       'net',
-      'query::net::Alice'
+      'query::net::Alice',
     );
     expect(result).toEqual({ success: false, error: 'decrypt obj fail' });
   });
 
   it('returns false encryption info on malformed tab when has key says true', async () => {
-    jest.spyOn(mediaEncryptionService, 'hasEncryptionKey').mockResolvedValueOnce(true);
-    const info = await mediaEncryptionService.getEncryptionInfo('net', 'broken');
+    jest
+      .spyOn(mediaEncryptionService, 'hasEncryptionKey')
+      .mockResolvedValueOnce(true);
+    const info = await mediaEncryptionService.getEncryptionInfo(
+      'net',
+      'broken',
+    );
     expect(info).toEqual({ hasEncryption: false });
   });
 
   it('returns false encryption info when tabId is empty even if has key says true', async () => {
-    jest.spyOn(mediaEncryptionService, 'hasEncryptionKey').mockResolvedValueOnce(true);
+    jest
+      .spyOn(mediaEncryptionService, 'hasEncryptionKey')
+      .mockResolvedValueOnce(true);
     const info = await mediaEncryptionService.getEncryptionInfo('net', '');
     expect(info).toEqual({ hasEncryption: false });
   });
 
   it('returns false encryption info when hasEncryptionKey throws', async () => {
-    jest.spyOn(mediaEncryptionService, 'hasEncryptionKey').mockRejectedValueOnce(new Error('info fail'));
-    const info = await mediaEncryptionService.getEncryptionInfo('net', 'query::net::Alice');
+    jest
+      .spyOn(mediaEncryptionService, 'hasEncryptionKey')
+      .mockRejectedValueOnce(new Error('info fail'));
+    const info = await mediaEncryptionService.getEncryptionInfo(
+      'net',
+      'query::net::Alice',
+    );
     expect(info).toEqual({ hasEncryption: false });
   });
 });

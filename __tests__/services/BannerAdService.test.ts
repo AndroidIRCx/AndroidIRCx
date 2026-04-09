@@ -32,7 +32,8 @@ jest.mock('../../src/services/Logger', () => ({
 
 jest.mock('../../src/services/ConsentService', () => ({
   consentService: {
-    canShowPersonalizedAds: (...args: any[]) => mockCanShowPersonalizedAds(...args),
+    canShowPersonalizedAds: (...args: any[]) =>
+      mockCanShowPersonalizedAds(...args),
   },
 }));
 
@@ -63,7 +64,9 @@ describe('BannerAdService', () => {
   });
 
   it('initializes and loads persisted ad-free time', async () => {
-    mockGetItem.mockResolvedValueOnce(JSON.stringify({ remainingMs: 60000, lastUpdated: 1234 }));
+    mockGetItem.mockResolvedValueOnce(
+      JSON.stringify({ remainingMs: 60000, lastUpdated: 1234 }),
+    );
 
     await bannerAdService.initialize();
 
@@ -73,7 +76,7 @@ describe('BannerAdService', () => {
 
   it('starts show/hide cycle and toggles banner visibility', () => {
     const events: boolean[] = [];
-    bannerAdService.addListener((visible) => events.push(visible));
+    bannerAdService.addListener(visible => events.push(visible));
 
     bannerAdService.startShowHideCycle();
     expect(bannerAdService.isBannerVisible()).toBe(true);

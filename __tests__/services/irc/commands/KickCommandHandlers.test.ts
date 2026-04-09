@@ -36,26 +36,50 @@ describe('KickCommandHandlers', () => {
 
   describe('handleKICK', () => {
     it('adds kick message', () => {
-      handleKICK(ctx, 'oper!oper@host', ['#general', 'target', 'Flooding'], Date.now());
+      handleKICK(
+        ctx,
+        'oper!oper@host',
+        ['#general', 'target', 'Flooding'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'kick', channel: '#general', from: 'oper' })
+        expect.objectContaining({
+          type: 'kick',
+          channel: '#general',
+          from: 'oper',
+        }),
       );
     });
 
     it('emits kick event when current user is kicked', () => {
       ctx.getCurrentNick = jest.fn().mockReturnValue('target');
-      handleKICK(ctx, 'oper!oper@host', ['#general', 'target', 'Reason'], Date.now());
+      handleKICK(
+        ctx,
+        'oper!oper@host',
+        ['#general', 'target', 'Reason'],
+        Date.now(),
+      );
       expect(ctx.emit).toHaveBeenCalledWith('kick', '#general');
     });
 
     it('does not emit kick event when other user is kicked', () => {
       ctx.getCurrentNick = jest.fn().mockReturnValue('MyNick');
-      handleKICK(ctx, 'oper!oper@host', ['#general', 'othernick', 'Reason'], Date.now());
+      handleKICK(
+        ctx,
+        'oper!oper@host',
+        ['#general', 'othernick', 'Reason'],
+        Date.now(),
+      );
       expect(ctx.emit).not.toHaveBeenCalled();
     });
 
     it('removes kicked user from channel users map', () => {
-      handleKICK(ctx, 'oper!oper@host', ['#general', 'target', 'bye'], Date.now());
+      handleKICK(
+        ctx,
+        'oper!oper@host',
+        ['#general', 'target', 'bye'],
+        Date.now(),
+      );
       expect(usersMap.has('target')).toBe(false);
       expect(ctx.updateChannelUserList).toHaveBeenCalledWith('#general');
     });
@@ -63,28 +87,43 @@ describe('KickCommandHandlers', () => {
     it('handles null users map gracefully', () => {
       ctx.getChannelUsers = jest.fn().mockReturnValue(null);
       expect(() => {
-        handleKICK(ctx, 'oper!oper@host', ['#general', 'target', 'bye'], Date.now());
+        handleKICK(
+          ctx,
+          'oper!oper@host',
+          ['#general', 'target', 'bye'],
+          Date.now(),
+        );
       }).not.toThrow();
     });
 
     it('includes reason when provided', () => {
-      handleKICK(ctx, 'oper!oper@host', ['#general', 'target', 'Flooding'], Date.now());
+      handleKICK(
+        ctx,
+        'oper!oper@host',
+        ['#general', 'target', 'Flooding'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ reason: 'Flooding' })
+        expect.objectContaining({ reason: 'Flooding' }),
       );
     });
 
     it('sets reason to undefined when no reason given', () => {
       handleKICK(ctx, 'oper!oper@host', ['#general', 'target', ''], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ reason: undefined })
+        expect.objectContaining({ reason: undefined }),
       );
     });
 
     it('includes target and command metadata', () => {
-      handleKICK(ctx, 'oper!oper@host', ['#general', 'target', 'bye'], Date.now());
+      handleKICK(
+        ctx,
+        'oper!oper@host',
+        ['#general', 'target', 'bye'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ target: 'target', command: 'KICK' })
+        expect.objectContaining({ target: 'target', command: 'KICK' }),
       );
     });
 
@@ -95,7 +134,12 @@ describe('KickCommandHandlers', () => {
 
     it('uses case-insensitive key for deletion', () => {
       usersMap.set('target', { nick: 'Target' });
-      handleKICK(ctx, 'oper!oper@host', ['#general', 'Target', 'bye'], Date.now());
+      handleKICK(
+        ctx,
+        'oper!oper@host',
+        ['#general', 'Target', 'bye'],
+        Date.now(),
+      );
       expect(usersMap.has('target')).toBe(false);
     });
   });

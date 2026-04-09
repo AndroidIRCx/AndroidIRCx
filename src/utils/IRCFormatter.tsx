@@ -34,23 +34,89 @@ export const IRC_STANDARD_COLOR_MAP: { [key: number]: string } = {
  * According to modern.ircdocs.horse specification
  */
 export const IRC_EXTENDED_COLOR_MAP: { [key: number]: string } = {
-  16: '#470000', 17: '#472100', 18: '#474700', 19: '#324700', 20: '#004700',
-  21: '#00472c', 22: '#004747', 23: '#002747', 24: '#000047', 25: '#2e0047',
-  26: '#470047', 27: '#47002a', 28: '#740000', 29: '#743a00', 30: '#747400',
-  31: '#517400', 32: '#007400', 33: '#007449', 34: '#007474', 35: '#004074',
-  36: '#000074', 37: '#4b0074', 38: '#740074', 39: '#740045', 40: '#b50000',
-  41: '#b56300', 42: '#b5b500', 43: '#7db500', 44: '#00b500', 45: '#00b571',
-  46: '#00b5b5', 47: '#0063b5', 48: '#0000b5', 49: '#7500b5', 50: '#b500b5',
-  51: '#b5006b', 52: '#ff0000', 53: '#ff8c00', 54: '#ffff00', 55: '#b2ff00',
-  56: '#00ff00', 57: '#00ffa0', 58: '#00ffff', 59: '#008cff', 60: '#0000ff',
-  61: '#a500ff', 62: '#ff00ff', 63: '#ff0098', 64: '#ff5959', 65: '#ffb459',
-  66: '#ffff71', 67: '#cfff60', 68: '#6fff6f', 69: '#65ffc9', 70: '#6dffff',
-  71: '#59b4ff', 72: '#5959ff', 73: '#c459ff', 74: '#ff66ff', 75: '#ff59bc',
-  76: '#ff9c9c', 77: '#ffd39c', 78: '#ffff9c', 79: '#e2ff9c', 80: '#9cff9c',
-  81: '#9cffdb', 82: '#9cffff', 83: '#9cd3ff', 84: '#9c9cff', 85: '#dc9cff',
-  86: '#ff9cff', 87: '#ff94d3', 88: '#000000', 89: '#131313', 90: '#282828',
-  91: '#363636', 92: '#4d4d4d', 93: '#656565', 94: '#818181', 95: '#9f9f9f',
-  96: '#bcbcbc', 97: '#e2e2e2', 98: '#ffffff',
+  16: '#470000',
+  17: '#472100',
+  18: '#474700',
+  19: '#324700',
+  20: '#004700',
+  21: '#00472c',
+  22: '#004747',
+  23: '#002747',
+  24: '#000047',
+  25: '#2e0047',
+  26: '#470047',
+  27: '#47002a',
+  28: '#740000',
+  29: '#743a00',
+  30: '#747400',
+  31: '#517400',
+  32: '#007400',
+  33: '#007449',
+  34: '#007474',
+  35: '#004074',
+  36: '#000074',
+  37: '#4b0074',
+  38: '#740074',
+  39: '#740045',
+  40: '#b50000',
+  41: '#b56300',
+  42: '#b5b500',
+  43: '#7db500',
+  44: '#00b500',
+  45: '#00b571',
+  46: '#00b5b5',
+  47: '#0063b5',
+  48: '#0000b5',
+  49: '#7500b5',
+  50: '#b500b5',
+  51: '#b5006b',
+  52: '#ff0000',
+  53: '#ff8c00',
+  54: '#ffff00',
+  55: '#b2ff00',
+  56: '#00ff00',
+  57: '#00ffa0',
+  58: '#00ffff',
+  59: '#008cff',
+  60: '#0000ff',
+  61: '#a500ff',
+  62: '#ff00ff',
+  63: '#ff0098',
+  64: '#ff5959',
+  65: '#ffb459',
+  66: '#ffff71',
+  67: '#cfff60',
+  68: '#6fff6f',
+  69: '#65ffc9',
+  70: '#6dffff',
+  71: '#59b4ff',
+  72: '#5959ff',
+  73: '#c459ff',
+  74: '#ff66ff',
+  75: '#ff59bc',
+  76: '#ff9c9c',
+  77: '#ffd39c',
+  78: '#ffff9c',
+  79: '#e2ff9c',
+  80: '#9cff9c',
+  81: '#9cffdb',
+  82: '#9cffff',
+  83: '#9cd3ff',
+  84: '#9c9cff',
+  85: '#dc9cff',
+  86: '#ff9cff',
+  87: '#ff94d3',
+  88: '#000000',
+  89: '#131313',
+  90: '#282828',
+  91: '#363636',
+  92: '#4d4d4d',
+  93: '#656565',
+  94: '#818181',
+  95: '#9f9f9f',
+  96: '#bcbcbc',
+  97: '#e2e2e2',
+  98: '#ffffff',
 };
 
 /**
@@ -85,13 +151,13 @@ interface TextSegment {
  * IRC Format Codes
  */
 export const IRC_FORMAT_CODES = {
-  BOLD: 0x02,           // Ctrl+B
-  COLOR: 0x03,          // Ctrl+C
-  RESET: 0x0F,          // Ctrl+O
-  REVERSE: 0x16,        // Ctrl+V
-  ITALIC: 0x1D,         // Ctrl+]
-  STRIKETHROUGH: 0x1E,  // Ctrl+^
-  UNDERLINE: 0x1F,      // Ctrl+_
+  BOLD: 0x02, // Ctrl+B
+  COLOR: 0x03, // Ctrl+C
+  RESET: 0x0f, // Ctrl+O
+  REVERSE: 0x16, // Ctrl+V
+  ITALIC: 0x1d, // Ctrl+]
+  STRIKETHROUGH: 0x1e, // Ctrl+^
+  UNDERLINE: 0x1f, // Ctrl+_
 };
 
 /**
@@ -141,7 +207,7 @@ function parseIRCText(text: string): TextSegment[] {
 
       case IRC_FORMAT_CODES.COLOR: // Ctrl+C - Color
         flushText();
-        
+
         let fgColor: number | null = null;
         let bgColor: number | null = null;
 
@@ -267,7 +333,10 @@ function parseIRCText(text: string): TextSegment[] {
 /**
  * Convert format style to React Native TextStyle
  */
-function styleToTextStyle(style: FormatStyle, baseStyle?: TextStyle): TextStyle {
+function styleToTextStyle(
+  style: FormatStyle,
+  baseStyle?: TextStyle,
+): TextStyle {
   const textStyle: TextStyle = baseStyle ? { ...baseStyle } : {};
 
   // Handle reverse (swap foreground and background)
@@ -316,9 +385,10 @@ function styleToTextStyle(style: FormatStyle, baseStyle?: TextStyle): TextStyle 
     textStyle.fontStyle = 'italic';
   }
   if (style.strikethrough) {
-    textStyle.textDecorationLine = textStyle.textDecorationLine === 'underline'
-      ? 'underline line-through'
-      : 'line-through';
+    textStyle.textDecorationLine =
+      textStyle.textDecorationLine === 'underline'
+        ? 'underline line-through'
+        : 'line-through';
   }
 
   return textStyle;
@@ -330,7 +400,7 @@ function styleToTextStyle(style: FormatStyle, baseStyle?: TextStyle): TextStyle 
  */
 export function formatIRCText(
   text: string,
-  baseStyle?: TextStyle
+  baseStyle?: TextStyle,
 ): React.ReactElement[] {
   if (!text) {
     return [<Text key="empty" style={baseStyle} />];
@@ -339,10 +409,14 @@ export function formatIRCText(
   const segments = parseIRCText(text);
   const nbsp = String.fromCharCode(0xa0);
   const preserveTrailingSpaces = (value: string) =>
-    value.replace(/(\s+)$/g, (spaces) => spaces.replace(/ /g, nbsp));
+    value.replace(/(\s+)$/g, spaces => spaces.replace(/ /g, nbsp));
 
   if (segments.length === 0) {
-    return [<Text key="plain" style={baseStyle}>{text}</Text>];
+    return [
+      <Text key="plain" style={baseStyle}>
+        {text}
+      </Text>,
+    ];
   }
 
   // Build nested Text components properly
@@ -363,9 +437,9 @@ export function formatIRCText(
  * Handles multiline text by splitting on newlines and rendering each line separately
  */
 export function formatIRCTextAsComponent(
-    text: string,
-    baseStyle?: TextStyle
-  ): React.ReactElement {
+  text: string,
+  baseStyle?: TextStyle,
+): React.ReactElement {
   if (!text) {
     return <Text style={baseStyle} />;
   }
@@ -374,12 +448,12 @@ export function formatIRCTextAsComponent(
   const lines = text.split('\n');
   const nbsp = String.fromCharCode(0xa0);
   const preserveTrailingSpaces = (value: string) =>
-    value.replace(/(\s+)$/g, (spaces) => spaces.replace(/ /g, nbsp));
+    value.replace(/(\s+)$/g, spaces => spaces.replace(/ /g, nbsp));
 
   // If single line, use original logic
   if (lines.length === 1) {
     const segments = parseIRCText(text);
-    
+
     if (segments.length === 0) {
       return <Text style={baseStyle}>{text}</Text>;
     }
@@ -398,31 +472,35 @@ export function formatIRCTextAsComponent(
     );
   }
 
-    // Multiline: render inside a single Text to preserve inline flow and lineHeight
-    return (
-      <Text style={baseStyle}>
-        {lines.map((line, lineIndex) => {
-          const segments = parseIRCText(line);
-          const lineContent = segments.length === 0
+  // Multiline: render inside a single Text to preserve inline flow and lineHeight
+  return (
+    <Text style={baseStyle}>
+      {lines.map((line, lineIndex) => {
+        const segments = parseIRCText(line);
+        const lineContent =
+          segments.length === 0
             ? line
             : segments.map((segment, segmentIndex) => {
-              const segmentStyle = styleToTextStyle(segment.style);
-              return (
-                <Text key={`segment-${lineIndex}-${segmentIndex}`} style={segmentStyle}>
-                  {preserveTrailingSpaces(segment.text)}
-                </Text>
-              );
-            });
-          return (
-            <Text key={`line-${lineIndex}`}>
-              {lineContent}
-              {lineIndex < lines.length - 1 ? '\n' : null}
-            </Text>
-          );
-        })}
-      </Text>
-    );
-  }
+                const segmentStyle = styleToTextStyle(segment.style);
+                return (
+                  <Text
+                    key={`segment-${lineIndex}-${segmentIndex}`}
+                    style={segmentStyle}
+                  >
+                    {preserveTrailingSpaces(segment.text)}
+                  </Text>
+                );
+              });
+        return (
+          <Text key={`line-${lineIndex}`}>
+            {lineContent}
+            {lineIndex < lines.length - 1 ? '\n' : null}
+          </Text>
+        );
+      })}
+    </Text>
+  );
+}
 
 /**
  * Convert IRC formatted text to plain text (remove all formatting)
@@ -559,7 +637,7 @@ export function formatIRCDebug(text: string): string {
  */
 const URL_PATTERN = new RegExp(
   '(https?:\\/\\/[^\\s<>"{}|\\\\^`\\[\\]]+|ftp:\\/\\/[^\\s<>"{}|\\\\^`\\[\\]]+|www\\.[^\\s<>"{}|\\\\^`\\[\\]]+)',
-  'gi'
+  'gi',
 );
 
 /**
@@ -571,7 +649,7 @@ export function formatIRCTextWithLinks(
   text: string,
   baseStyle?: TextStyle,
   linkColor?: string,
-  onLinkPress?: (url: string) => void
+  onLinkPress?: (url: string) => void,
 ): React.ReactElement {
   if (!text) {
     return <Text style={baseStyle} />;
@@ -581,14 +659,18 @@ export function formatIRCTextWithLinks(
   const segments = parseIRCText(text);
   const nbsp = String.fromCharCode(0xa0);
   const preserveTrailingSpaces = (value: string) =>
-    value.replace(/(\s+)$/g, (spaces) => spaces.replace(/ /g, nbsp));
+    value.replace(/(\s+)$/g, spaces => spaces.replace(/ /g, nbsp));
 
   if (segments.length === 0) {
     return <Text style={baseStyle}>{text}</Text>;
   }
 
   // Now for each segment, find URLs and make them clickable
-  const renderSegmentWithLinks = (segmentText: string, segmentStyle: TextStyle, segmentIndex: number) => {
+  const renderSegmentWithLinks = (
+    segmentText: string,
+    segmentStyle: TextStyle,
+    segmentIndex: number,
+  ) => {
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
     const urlRegex = new RegExp(URL_PATTERN.source, 'gi');
@@ -603,8 +685,10 @@ export function formatIRCTextWithLinks(
       if (match.index > lastIndex) {
         parts.push(
           <Text key={`text-${segmentIndex}-${lastIndex}`} style={segmentStyle}>
-            {preserveTrailingSpaces(segmentText.substring(lastIndex, match.index))}
-          </Text>
+            {preserveTrailingSpaces(
+              segmentText.substring(lastIndex, match.index),
+            )}
+          </Text>,
         );
       }
 
@@ -624,7 +708,7 @@ export function formatIRCTextWithLinks(
           }}
         >
           {url}
-        </Text>
+        </Text>,
       );
 
       lastIndex = match.index + url.length;
@@ -635,7 +719,7 @@ export function formatIRCTextWithLinks(
       parts.push(
         <Text key={`text-${segmentIndex}-${lastIndex}`} style={segmentStyle}>
           {preserveTrailingSpaces(segmentText.substring(lastIndex))}
-        </Text>
+        </Text>,
       );
     }
 
@@ -660,4 +744,3 @@ export function formatIRCTextWithLinks(
     </Text>
   );
 }
-

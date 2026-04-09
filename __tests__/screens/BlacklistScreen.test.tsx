@@ -81,7 +81,9 @@ jest.mock('../../src/stores/uiStore', () => ({
   },
 }));
 
-const { userManagementService } = require('../../src/services/UserManagementService');
+const {
+  userManagementService,
+} = require('../../src/services/UserManagementService');
 const { connectionManager } = require('../../src/services/ConnectionManager');
 const { settingsService } = require('../../src/services/SettingsService');
 const { useUIStore } = require('../../src/stores/uiStore');
@@ -131,7 +133,7 @@ describe('BlacklistScreen', () => {
 
   it('renders nothing when hidden', () => {
     const { queryByText } = render(
-      <BlacklistScreen visible={false} onClose={jest.fn()} />
+      <BlacklistScreen visible={false} onClose={jest.fn()} />,
     );
 
     expect(queryByText('Blacklist')).toBeNull();
@@ -139,7 +141,7 @@ describe('BlacklistScreen', () => {
 
   it('loads and renders blacklist entries', async () => {
     const { findByText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     expect(await findByText('Blacklist')).toBeTruthy();
@@ -150,12 +152,12 @@ describe('BlacklistScreen', () => {
 
   it('filters entries by search query', async () => {
     const { findByPlaceholderText, findByText, queryByText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.changeText(
       await findByPlaceholderText('Search by mask or reason...'),
-      'proxy'
+      'proxy',
     );
 
     expect(await findByText('proxy!*@*')).toBeTruthy();
@@ -164,7 +166,7 @@ describe('BlacklistScreen', () => {
 
   it('filters entries by selected network and resets back to all networks', async () => {
     const { findAllByText, findByText, queryByText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('All Networks'));
@@ -182,15 +184,18 @@ describe('BlacklistScreen', () => {
 
   it('adds a new ban entry', async () => {
     const { findByText, findByPlaceholderText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('+ Add'));
     fireEvent.changeText(
       await findByPlaceholderText('nick or mask (e.g., *!*@host.com)'),
-      'fresh!*@*'
+      'fresh!*@*',
     );
-    fireEvent.changeText(await findByPlaceholderText('optional'), 'fresh reason');
+    fireEvent.changeText(
+      await findByPlaceholderText('optional'),
+      'fresh reason',
+    );
 
     fireEvent.press(await findByText('Add'));
 
@@ -201,11 +206,14 @@ describe('BlacklistScreen', () => {
         'fresh reason',
         undefined,
         undefined,
-        '0'
+        '0',
       );
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Success', 'User added to blacklist');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Success',
+      'User added to blacklist',
+    );
   });
 
   it('prefills add modal from blacklist target and clears the target', async () => {
@@ -216,7 +224,7 @@ describe('BlacklistScreen', () => {
     });
 
     const { findByDisplayValue, findByText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     expect(await findByText('Add to Blacklist')).toBeTruthy();
@@ -226,73 +234,89 @@ describe('BlacklistScreen', () => {
 
   it('edits an entry, replaces the old mask, and saves the new one', async () => {
     const { findAllByText, findByPlaceholderText, findByText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     const editButtons = await findAllByText('Edit');
     fireEvent.press(editButtons[0]);
     fireEvent.changeText(
       await findByPlaceholderText('nick or mask (e.g., *!*@host.com)'),
-      'worse!*@*'
+      'worse!*@*',
     );
-    fireEvent.changeText(await findByPlaceholderText('optional'), 'updated reason');
+    fireEvent.changeText(
+      await findByPlaceholderText('optional'),
+      'updated reason',
+    );
     fireEvent.press(await findByText('Save'));
 
     await waitFor(() => {
-      expect(userManagementService.removeBlacklistEntry).toHaveBeenCalledWith('bad!*@*', 'net-a');
+      expect(userManagementService.removeBlacklistEntry).toHaveBeenCalledWith(
+        'bad!*@*',
+        'net-a',
+      );
       expect(userManagementService.addBlacklistEntry).toHaveBeenCalledWith(
         'worse!*@*',
         'ban',
         'updated reason',
         'net-a',
         undefined,
-        '0'
+        '0',
       );
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Success', 'Blacklist entry updated');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Success',
+      'Blacklist entry updated',
+    );
   });
 
   it('validates missing custom command', async () => {
     const { findAllByText, findByText, findByPlaceholderText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     const editButtons = await findAllByText('Edit');
     fireEvent.press(editButtons[1]);
     fireEvent.changeText(
-      await findByPlaceholderText('Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}'),
-      ''
+      await findByPlaceholderText(
+        'Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}',
+      ),
+      '',
     );
 
     fireEvent.press(await findByText('Save'));
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Missing Command',
-      'Custom command is required for this action.'
+      'Custom command is required for this action.',
     );
     expect(userManagementService.addBlacklistEntry).not.toHaveBeenCalled();
   });
 
   it('supports selecting a custom action and saving a command template', async () => {
     const { findAllByText, findByPlaceholderText, findByText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('+ Add'));
     fireEvent.changeText(
       await findByPlaceholderText('nick or mask (e.g., *!*@host.com)'),
-      'custom!*@*'
+      'custom!*@*',
     );
     const banLabels = await findAllByText('Ban');
     fireEvent.press(banLabels[banLabels.length - 1]);
     const customActionLabels = await findAllByText('Custom Command');
     fireEvent.press(customActionLabels[customActionLabels.length - 1]);
     fireEvent.changeText(
-      await findByPlaceholderText('Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}'),
-      'KLINE {mask} :{reason}'
+      await findByPlaceholderText(
+        'Use {mask}, {usermask}, {hostmask}, {nick}, {user}, {host}, {reason}, {duration}',
+      ),
+      'KLINE {mask} :{reason}',
     );
-    fireEvent.changeText(await findByPlaceholderText('optional'), 'custom reason');
+    fireEvent.changeText(
+      await findByPlaceholderText('optional'),
+      'custom reason',
+    );
     fireEvent.press(await findByText('Add'));
 
     await waitFor(() => {
@@ -302,21 +326,21 @@ describe('BlacklistScreen', () => {
         'custom reason',
         undefined,
         'KLINE {mask} :{reason}',
-        '0'
+        '0',
       );
     });
   });
 
   it('removes an entry after confirmation', async () => {
     const { findAllByText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     const removeButtons = await findAllByText('Remove');
     fireEvent.press(removeButtons[0]);
 
     const dialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Remove from Blacklist'
+      call => call[0] === 'Remove from Blacklist',
     );
     expect(dialog).toBeTruthy();
 
@@ -324,13 +348,19 @@ describe('BlacklistScreen', () => {
       await dialog[2][1].onPress();
     });
 
-    expect(userManagementService.removeBlacklistEntry).toHaveBeenCalledWith('bad!*@*', 'net-a');
-    expect(Alert.alert).toHaveBeenCalledWith('Success', 'User removed from blacklist');
+    expect(userManagementService.removeBlacklistEntry).toHaveBeenCalledWith(
+      'bad!*@*',
+      'net-a',
+    );
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Success',
+      'User removed from blacklist',
+    );
   });
 
   it('saves blacklist templates', async () => {
     const { findByText, findAllByText, findByPlaceholderText } = render(
-      <BlacklistScreen visible onClose={jest.fn()} />
+      <BlacklistScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Templates'));
@@ -340,8 +370,10 @@ describe('BlacklistScreen', () => {
     const akillInput = await findByText('Blacklist Templates');
     expect(akillInput).toBeTruthy();
     fireEvent.changeText(
-      await findByPlaceholderText('PRIVMSG OperServ :AKILL ADD +{duration} {usermask} {reason}'),
-      'PRIVMSG OperServ :AKILL ADD {mask}'
+      await findByPlaceholderText(
+        'PRIVMSG OperServ :AKILL ADD +{duration} {usermask} {reason}',
+      ),
+      'PRIVMSG OperServ :AKILL ADD {mask}',
     );
 
     const saveButtons = await findAllByText('Save');
@@ -354,7 +386,7 @@ describe('BlacklistScreen', () => {
           global: expect.objectContaining({
             akill: 'PRIVMSG OperServ :AKILL ADD {mask}',
           }),
-        })
+        }),
       );
     });
   });
@@ -362,7 +394,7 @@ describe('BlacklistScreen', () => {
   it('closes from header button', async () => {
     const onClose = jest.fn();
     const { findAllByText } = render(
-      <BlacklistScreen visible onClose={onClose} />
+      <BlacklistScreen visible onClose={onClose} />,
     );
 
     const closeButtons = await findAllByText('Close');

@@ -4,13 +4,26 @@
  */
 
 import React, { useMemo } from 'react';
-import { Modal, TouchableOpacity, View, Text, Alert, StyleSheet } from 'react-native';
+import {
+  Modal,
+  TouchableOpacity,
+  View,
+  Text,
+  Alert,
+  StyleSheet,
+} from 'react-native';
 import Share from 'react-native-share';
 
 export interface DccTransfer {
   id: string;
   direction: 'incoming' | 'outgoing';
-  status: 'pending' | 'downloading' | 'sending' | 'failed' | 'cancelled' | 'completed';
+  status:
+    | 'pending'
+    | 'downloading'
+    | 'sending'
+    | 'failed'
+    | 'cancelled'
+    | 'completed';
   offer: {
     filename: string;
   };
@@ -104,56 +117,62 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
     onAccent: '#FFFFFF',
     text: '#FFFFFF',
   };
-  const localStyles = useMemo(() => StyleSheet.create({
-    modalContent: { maxHeight: '80%' },
-    headerRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    headerActions: {
-      flexDirection: 'row',
-      gap: 8,
-    },
-    actionButton: {
-      padding: 8,
-      borderRadius: 4,
-    },
-    actionButtonText: {
-      fontSize: 12,
-      fontWeight: '600',
-    },
-    closeButton: {
-      padding: 8,
-    },
-    transferRow: {
-      marginBottom: 12,
-    },
-    transferMeta: {
-      fontSize: 11,
-      opacity: 0.7,
-    },
-    transferActions: {
-      flexDirection: 'row',
-      gap: 8,
-      marginTop: 4,
-      flexWrap: 'wrap',
-    },
-    openButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 4,
-    },
-    openButtonText: {
-      fontWeight: '600',
-    },
-    compactText: {
-      fontSize: 16,
-    },
-  }), []);
+  const localStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        modalContent: { maxHeight: '80%' },
+        headerRow: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 8,
+        },
+        headerActions: {
+          flexDirection: 'row',
+          gap: 8,
+        },
+        actionButton: {
+          padding: 8,
+          borderRadius: 4,
+        },
+        actionButtonText: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
+        closeButton: {
+          padding: 8,
+        },
+        transferRow: {
+          marginBottom: 12,
+        },
+        transferMeta: {
+          fontSize: 11,
+          opacity: 0.7,
+        },
+        transferActions: {
+          flexDirection: 'row',
+          gap: 8,
+          marginTop: 4,
+          flexWrap: 'wrap',
+        },
+        openButton: {
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 4,
+        },
+        openButtonText: {
+          fontWeight: '600',
+        },
+        compactText: {
+          fontSize: 16,
+        },
+      }),
+    [],
+  );
   // Count active transfers (downloading or sending)
-  const activeTransfers = transfers.filter(t => t.status === 'downloading' || t.status === 'sending');
+  const activeTransfers = transfers.filter(
+    t => t.status === 'downloading' || t.status === 'sending',
+  );
   const hasActiveTransfers = activeTransfers.length > 0;
   const handleOpenFile = async (transfer: DccTransfer) => {
     if (!transfer.filePath) {
@@ -187,7 +206,10 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
       if (error.message !== 'User did not share') {
         console.error('[DccTransfersModal] Error opening file:', error);
         // Provide more helpful error message
-        if (error.message?.includes('null object reference') || error.message?.includes('Uri')) {
+        if (
+          error.message?.includes('null object reference') ||
+          error.message?.includes('Uri')
+        ) {
           Alert.alert(
             'Error',
             'Could not open file. The file may need to be moved to an accessible location or the app may need to be restarted.',
@@ -204,23 +226,45 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
-      <TouchableOpacity style={styles.modalOverlay} onPress={onClose} activeOpacity={1}>
-        <View style={[styles.modalContent, localStyles.modalContent]} onStartShouldSetResponder={() => true}>
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        onPress={onClose}
+        activeOpacity={1}
+      >
+        <View
+          style={[styles.modalContent, localStyles.modalContent]}
+          onStartShouldSetResponder={() => true}
+        >
           <View style={localStyles.headerRow}>
             <Text style={styles.modalTitle}>DCC Transfers</Text>
             <View style={localStyles.headerActions}>
               {hasActiveTransfers && onMinimize && (
                 <TouchableOpacity
                   onPress={onMinimize}
-                  style={[localStyles.actionButton, { backgroundColor: actionColors.accent }]}>
-                  <Text style={[localStyles.actionButtonText, { color: actionColors.onAccent || actionColors.text }]}>Minimize</Text>
+                  style={[
+                    localStyles.actionButton,
+                    { backgroundColor: actionColors.accent },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      localStyles.actionButtonText,
+                      { color: actionColors.onAccent || actionColors.text },
+                    ]}
+                  >
+                    Minimize
+                  </Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
                 onPress={onClose}
-                style={localStyles.closeButton}>
-                <Text style={[styles.optionText, localStyles.compactText]}>✕</Text>
+                style={localStyles.closeButton}
+              >
+                <Text style={[styles.optionText, localStyles.compactText]}>
+                  ✕
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -228,13 +272,23 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
             <Text style={styles.optionText}>No transfers</Text>
           ) : (
             transfers.map(t => {
-              const percent = t.size ? Math.min(100, Math.floor((t.bytesReceived / t.size) * 100)) : undefined;
+              const percent = t.size
+                ? Math.min(100, Math.floor((t.bytesReceived / t.size) * 100))
+                : undefined;
               return (
                 <View key={t.id} style={localStyles.transferRow}>
-                  <Text style={styles.optionText}>{t.offer.filename} ({t.direction})</Text>
-                  <Text style={styles.optionText}>Status: {t.status} {percent !== undefined ? `- ${percent}%` : ''}</Text>
+                  <Text style={styles.optionText}>
+                    {t.offer.filename} ({t.direction})
+                  </Text>
+                  <Text style={styles.optionText}>
+                    Status: {t.status}{' '}
+                    {percent !== undefined ? `- ${percent}%` : ''}
+                  </Text>
                   {t.status === 'completed' && t.filePath && (
-                    <Text style={[styles.optionText, localStyles.transferMeta]} numberOfLines={1}>
+                    <Text
+                      style={[styles.optionText, localStyles.transferMeta]}
+                      numberOfLines={1}
+                    >
                       {t.filePath}
                     </Text>
                   )}
@@ -245,31 +299,59 @@ export const DccTransfersModal: React.FC<DccTransfersModalProps> = ({
                           const RNFS = require('react-native-fs');
                           const path = `${RNFS.DocumentDirectoryPath}/${t.offer.filename}`;
                           await onAccept(t.id, path);
-                        }}>
+                        }}
+                      >
                         <Text style={styles.optionText}>Accept</Text>
                       </TouchableOpacity>
                     )}
-                    {(t.status === 'failed' || t.status === 'cancelled') && t.filePath && (
-                      <TouchableOpacity
-                        onPress={async () => {
-                          const path = t.filePath || `${require('react-native-fs').DocumentDirectoryPath}/${t.offer.filename}`;
-                          await onAccept(t.id, path);
-                        }}>
-                        <Text style={styles.optionText}>Resume</Text>
-                      </TouchableOpacity>
-                    )}
-                    {(t.status === 'downloading' || t.status === 'pending' || t.status === 'sending') && (
+                    {(t.status === 'failed' || t.status === 'cancelled') &&
+                      t.filePath && (
+                        <TouchableOpacity
+                          onPress={async () => {
+                            const path =
+                              t.filePath ||
+                              `${require('react-native-fs').DocumentDirectoryPath}/${t.offer.filename}`;
+                            await onAccept(t.id, path);
+                          }}
+                        >
+                          <Text style={styles.optionText}>Resume</Text>
+                        </TouchableOpacity>
+                      )}
+                    {(t.status === 'downloading' ||
+                      t.status === 'pending' ||
+                      t.status === 'sending') && (
                       <TouchableOpacity onPress={() => onCancel(t.id)}>
-                        <Text style={[styles.optionText, styles.destructiveOption]}>Cancel</Text>
+                        <Text
+                          style={[styles.optionText, styles.destructiveOption]}
+                        >
+                          Cancel
+                        </Text>
                       </TouchableOpacity>
                     )}
-                    {t.status === 'completed' && t.direction === 'incoming' && t.filePath && (
-                      <TouchableOpacity
-                        onPress={() => handleOpenFile(t)}
-                        style={[localStyles.openButton, { backgroundColor: actionColors.success }]}>
-                        <Text style={[styles.optionText, localStyles.openButtonText, { color: actionColors.onAccent || actionColors.text }]}>Open File</Text>
-                      </TouchableOpacity>
-                    )}
+                    {t.status === 'completed' &&
+                      t.direction === 'incoming' &&
+                      t.filePath && (
+                        <TouchableOpacity
+                          onPress={() => handleOpenFile(t)}
+                          style={[
+                            localStyles.openButton,
+                            { backgroundColor: actionColors.success },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.optionText,
+                              localStyles.openButtonText,
+                              {
+                                color:
+                                  actionColors.onAccent || actionColors.text,
+                              },
+                            ]}
+                          >
+                            Open File
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                   </View>
                 </View>
               );

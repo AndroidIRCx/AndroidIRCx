@@ -26,7 +26,7 @@ interface CacheEntry {
   filePath: string;
   size: number;
   mimeType?: string;
-  cachedAt: number;      // Timestamp
+  cachedAt: number; // Timestamp
   lastAccessedAt: number; // For LRU
 }
 
@@ -86,7 +86,7 @@ class MediaCacheService {
   async cacheMedia(
     mediaId: string,
     sourceUri: string,
-    mimeType?: string
+    mimeType?: string,
   ): Promise<{ success: boolean; cachedPath?: string; error?: string }> {
     try {
       await this.initialize();
@@ -209,7 +209,9 @@ class MediaCacheService {
       }
 
       // Remove from metadata
-      this.metadata.entries = this.metadata.entries.filter(e => e.mediaId !== mediaId);
+      this.metadata.entries = this.metadata.entries.filter(
+        e => e.mediaId !== mediaId,
+      );
       this.metadata.totalSize -= entry.size;
 
       await this.saveMetadata();
@@ -224,7 +226,9 @@ class MediaCacheService {
    * Clear entire cache
    * @param maxAgeMs - Optional: Only clear entries older than this (milliseconds)
    */
-  async clearCache(maxAgeMs?: number): Promise<{ clearedCount: number; freedSpace: number }> {
+  async clearCache(
+    maxAgeMs?: number,
+  ): Promise<{ clearedCount: number; freedSpace: number }> {
     try {
       await this.initialize();
 
@@ -260,7 +264,10 @@ class MediaCacheService {
           clearedCount++;
           freedSpace += entry.size;
         } catch {
-          console.error('[MediaCacheService] Failed to delete file:', entry.filePath);
+          console.error(
+            '[MediaCacheService] Failed to delete file:',
+            entry.filePath,
+          );
         }
       }
 
@@ -335,7 +342,7 @@ class MediaCacheService {
 
     // Sort entries by last accessed time (LRU - oldest first)
     const sorted = [...this.metadata.entries].sort(
-      (a, b) => a.lastAccessedAt - b.lastAccessedAt
+      (a, b) => a.lastAccessedAt - b.lastAccessedAt,
     );
 
     // Remove oldest entries until we have enough space
@@ -381,7 +388,10 @@ class MediaCacheService {
    */
   private async saveMetadata(): Promise<void> {
     try {
-      await AsyncStorage.setItem(CACHE_METADATA_KEY, JSON.stringify(this.metadata));
+      await AsyncStorage.setItem(
+        CACHE_METADATA_KEY,
+        JSON.stringify(this.metadata),
+      );
     } catch (error) {
       console.error('[MediaCacheService] Save metadata error:', error);
     }

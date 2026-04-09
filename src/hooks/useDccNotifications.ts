@@ -54,18 +54,27 @@ export function useDccNotifications({
   isMountedRef,
 }: UseDccNotificationsProps) {
   useEffect(() => {
-    const unsub = dccFileService.onTransferUpdate((transfer) => {
+    const unsub = dccFileService.onTransferUpdate(transfer => {
       const isMinimized = useUIStore.getState().dccTransfersMinimized;
-      const title = transfer.status === 'completed'
-        ? t('DCC Transfer Complete', { _tags: 'screen:app,file:App.tsx,feature:dcc' })
-        : t('DCC Transfer Failed', { _tags: 'screen:app,file:App.tsx,feature:dcc' });
-      const message = transfer.status === 'completed'
-        ? t('{filename} received ({bytes} bytes).', {
-            filename: transfer.offer.filename,
-            bytes: transfer.bytesReceived,
-            _tags: 'screen:app,file:App.tsx,feature:dcc',
-          })
-        : transfer.error || t('Transfer failed.', { _tags: 'screen:app,file:App.tsx,feature:dcc' });
+      const title =
+        transfer.status === 'completed'
+          ? t('DCC Transfer Complete', {
+              _tags: 'screen:app,file:App.tsx,feature:dcc',
+            })
+          : t('DCC Transfer Failed', {
+              _tags: 'screen:app,file:App.tsx,feature:dcc',
+            });
+      const message =
+        transfer.status === 'completed'
+          ? t('{filename} received ({bytes} bytes).', {
+              filename: transfer.offer.filename,
+              bytes: transfer.bytesReceived,
+              _tags: 'screen:app,file:App.tsx,feature:dcc',
+            })
+          : transfer.error ||
+            t('Transfer failed.', {
+              _tags: 'screen:app,file:App.tsx,feature:dcc',
+            });
 
       if (transfer.status === 'completed') {
         // Show in-app alert
@@ -90,7 +99,7 @@ export function useDccNotifications({
 
         // Auto-restore modal if minimized and no more active transfers
         const activeTransfers = transfers.filter(
-          t => t.status === 'downloading' || t.status === 'sending'
+          t => t.status === 'downloading' || t.status === 'sending',
         );
         if (isMinimized && activeTransfers.length === 0) {
           useUIStore.getState().setDccTransfersMinimized(false);

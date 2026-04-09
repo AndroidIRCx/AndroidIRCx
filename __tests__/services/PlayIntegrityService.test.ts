@@ -38,7 +38,7 @@ jest.mock(
   () => ({
     default: mockAppCheckFactory,
   }),
-  { virtual: true }
+  { virtual: true },
 );
 
 // Mock crypto for nonce generation
@@ -123,9 +123,7 @@ describe('PlayIntegrityService', () => {
 
     it('should handle errors when requesting token', async () => {
       const errorMessage = 'Play Integrity API unavailable';
-      mockRequestIntegrityToken.mockRejectedValue(
-        new Error(errorMessage)
-      );
+      mockRequestIntegrityToken.mockRejectedValue(new Error(errorMessage));
 
       const result = await playIntegrityService.requestIntegrityToken();
 
@@ -168,7 +166,8 @@ describe('PlayIntegrityService', () => {
         token: mockToken,
       });
 
-      const result = await playIntegrityService.requestIntegrityToken(customNonce);
+      const result =
+        await playIntegrityService.requestIntegrityToken(customNonce);
 
       expect(result.token).toBe(mockToken);
       expect(result.error).toBeUndefined();
@@ -181,7 +180,7 @@ describe('PlayIntegrityService', () => {
       // Get reference to NativeModules
       const RN = require('react-native');
       const originalModule = RN.NativeModules.PlayIntegrityModule;
-      
+
       // Remove the module
       delete RN.NativeModules.PlayIntegrityModule;
 
@@ -206,7 +205,9 @@ describe('PlayIntegrityService', () => {
     });
 
     it('should return unavailable error when availability check fails', async () => {
-      jest.spyOn(playIntegrityService, 'checkAvailability').mockResolvedValueOnce(false);
+      jest
+        .spyOn(playIntegrityService, 'checkAvailability')
+        .mockResolvedValueOnce(false);
 
       const result = await playIntegrityService.requestIntegrityToken();
 
@@ -252,7 +253,10 @@ describe('PlayIntegrityService', () => {
         versionCode: '56',
       },
       deviceIntegrity: {
-        deviceRecognitionVerdict: ['MEETS_BASIC_INTEGRITY', 'MEETS_DEVICE_INTEGRITY'],
+        deviceRecognitionVerdict: [
+          'MEETS_BASIC_INTEGRITY',
+          'MEETS_DEVICE_INTEGRITY',
+        ],
       },
       accountDetails: {
         appLicensingVerdict: 'LICENSED',
@@ -274,15 +278,22 @@ describe('PlayIntegrityService', () => {
         }),
       });
 
-      const result = await playIntegrityService.getIntegrityReport(mockToken, backendUrl);
+      const result = await playIntegrityService.getIntegrityReport(
+        mockToken,
+        backendUrl,
+      );
 
       expect(result).not.toBeNull();
       expect(result).toBeDefined();
       if (result) {
         expect(result.appIntegrity).toBeDefined();
-        expect(result.appIntegrity?.appRecognitionVerdict).toBe('PLAY_RECOGNIZED');
+        expect(result.appIntegrity?.appRecognitionVerdict).toBe(
+          'PLAY_RECOGNIZED',
+        );
         expect(result.deviceIntegrity).toBeDefined();
-        expect(result.deviceIntegrity?.deviceRecognitionVerdict).toContain('MEETS_BASIC_INTEGRITY');
+        expect(result.deviceIntegrity?.deviceRecognitionVerdict).toContain(
+          'MEETS_BASIC_INTEGRITY',
+        );
       }
       expect(global.fetch).toHaveBeenCalledWith(backendUrl, {
         method: 'POST',
@@ -303,10 +314,15 @@ describe('PlayIntegrityService', () => {
         json: async () => mockReport,
       });
 
-      const result = await playIntegrityService.getIntegrityReport(mockToken, backendUrl);
+      const result = await playIntegrityService.getIntegrityReport(
+        mockToken,
+        backendUrl,
+      );
 
       expect(result).not.toBeNull();
-      expect(result?.appIntegrity?.appRecognitionVerdict).toBe('PLAY_RECOGNIZED');
+      expect(result?.appIntegrity?.appRecognitionVerdict).toBe(
+        'PLAY_RECOGNIZED',
+      );
     });
 
     it('should handle backend errors', async () => {
@@ -318,7 +334,10 @@ describe('PlayIntegrityService', () => {
         status: 400,
       });
 
-      const result = await playIntegrityService.getIntegrityReport(mockToken, backendUrl);
+      const result = await playIntegrityService.getIntegrityReport(
+        mockToken,
+        backendUrl,
+      );
 
       expect(result).toBeNull();
     });
@@ -329,13 +348,19 @@ describe('PlayIntegrityService', () => {
 
       (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
-      const result = await playIntegrityService.getIntegrityReport(mockToken, backendUrl);
+      const result = await playIntegrityService.getIntegrityReport(
+        mockToken,
+        backendUrl,
+      );
 
       expect(result).toBeNull();
     });
 
     it('should return null for empty token', async () => {
-      const result = await playIntegrityService.getIntegrityReport('', 'https://api.example.com');
+      const result = await playIntegrityService.getIntegrityReport(
+        '',
+        'https://api.example.com',
+      );
 
       expect(result).toBeNull();
       expect(global.fetch).not.toHaveBeenCalled();

@@ -9,13 +9,16 @@ const mockSortTabsGrouped = jest.fn();
 
 jest.mock('../../src/i18n/transifex', () => ({
   useT: () => (key: string, params?: Record<string, string>) => {
-    if (key === 'Disconnect {network}' && params?.network) return `Disconnect ${params.network}`;
+    if (key === 'Disconnect {network}' && params?.network)
+      return `Disconnect ${params.network}`;
     return key;
   },
 }));
 
 jest.mock('../../src/hooks/useTheme', () => ({
-  useTheme: () => ({ colors: { text: '#fff', surface: '#111', border: '#222', error: '#f33' } }),
+  useTheme: () => ({
+    colors: { text: '#fff', surface: '#111', border: '#222', error: '#f33' },
+  }),
 }));
 
 jest.mock('../../src/stores/uiStore', () => ({
@@ -59,7 +62,7 @@ const baseProps = {
 describe('OptionsMenu', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSortTabsGrouped.mockImplementation((tabs) => tabs);
+    mockSortTabsGrouped.mockImplementation(tabs => tabs);
     mockGetActiveNetworkId.mockReturnValue('net-2');
     mockUseUIStoreGetState.mockReturnValue({
       setShowChannelModal: jest.fn(),
@@ -93,20 +96,22 @@ describe('OptionsMenu', () => {
 
   it('handles disconnected actions', () => {
     const { getByText } = render(
-      <OptionsMenu {...baseProps} isConnected={false} />
+      <OptionsMenu {...baseProps} isConnected={false} />,
     );
 
     fireEvent.press(getByText('Connect to Default'));
     fireEvent.press(getByText('Choose Network'));
 
     expect(baseProps.handleConnect).toHaveBeenCalled();
-    expect(mockUseUIStoreGetState().setShowNetworksList).toHaveBeenCalledWith(true);
+    expect(mockUseUIStoreGetState().setShowNetworksList).toHaveBeenCalledWith(
+      true,
+    );
   });
 
   it('applies close-all filters via setTabs updater', () => {
     const setTabs = jest.fn();
     const { getByText } = render(
-      <OptionsMenu {...baseProps} setTabs={setTabs} />
+      <OptionsMenu {...baseProps} setTabs={setTabs} />,
     );
 
     fireEvent.press(getByText('Close All Channels'));

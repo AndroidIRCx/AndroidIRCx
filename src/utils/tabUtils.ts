@@ -20,12 +20,14 @@ export const serverTabId = (network: string) => `server::${network}`;
 /**
  * Generate unique ID for channel tab
  */
-export const channelTabId = (network: string, name: string) => `channel::${network}::${name}`;
+export const channelTabId = (network: string, name: string) =>
+  `channel::${network}::${name}`;
 
 /**
  * Generate unique ID for query tab
  */
-export const queryTabId = (network: string, name: string) => `query::${network}::${name}`;
+export const queryTabId = (network: string, name: string) =>
+  `query::${network}::${name}`;
 
 /**
  * Generate unique ID for notice tab
@@ -35,7 +37,8 @@ export const noticeTabId = (network: string) => `notice::${network}`;
 /**
  * Generate unique ID for notifications tab
  */
-export const notificationsTabId = (network: string) => `notifications::${network}`;
+export const notificationsTabId = (network: string) =>
+  `notifications::${network}`;
 
 /**
  * Create a new server tab with default properties
@@ -54,7 +57,10 @@ export const makeServerTab = (network: string): ChannelTab => ({
  * @param sortAlphabetical - Whether to sort channels/queries alphabetically within each network
  * @returns Sorted array of tabs (returns original reference if order unchanged)
  */
-export const sortTabsGrouped = (tabs: ChannelTab[], sortAlphabetical: boolean = false): ChannelTab[] => {
+export const sortTabsGrouped = (
+  tabs: ChannelTab[],
+  sortAlphabetical: boolean = false,
+): ChannelTab[] => {
   const networks: string[] = [];
   tabs.forEach(t => {
     if (!networks.includes(t.networkId)) {
@@ -73,7 +79,10 @@ export const sortTabsGrouped = (tabs: ChannelTab[], sortAlphabetical: boolean = 
   });
 
   // Check if order actually changed - if not, return same reference to prevent unnecessary re-renders
-  if (result.length === tabs.length && result.every((tab, idx) => tab.id === tabs[idx]?.id)) {
+  if (
+    result.length === tabs.length &&
+    result.every((tab, idx) => tab.id === tabs[idx]?.id)
+  ) {
     return tabs; // Same order, return original reference
   }
 

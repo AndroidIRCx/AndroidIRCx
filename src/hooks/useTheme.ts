@@ -22,4 +22,3 @@ export function useTheme(): { theme: Theme; colors: ThemeColors } {
     colors: theme.colors,
   };
 }
-

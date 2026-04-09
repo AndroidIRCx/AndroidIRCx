@@ -62,7 +62,7 @@ class MessageHistoryService {
 
     // Queue message for batched saving
     messageHistoryBatching.queueMessage(message, network);
-    
+
     // Note: Actual save happens asynchronously in batches
     // For immediate save, use saveMessages() directly
   }
@@ -83,17 +83,19 @@ class MessageHistoryService {
     });
 
     // Save each channel's messages using StorageCache for automatic batching
-    const promises = Array.from(messagesByChannel.entries()).map(([channel, msgs]) => {
-      const key = this.getStorageKey(network, channel);
-      return this.loadMessagesByKey(key).then(existing => {
-        const combined = [...existing, ...msgs];
-        // Limit and sort by timestamp
-        const sorted = combined
-          .sort((a, b) => a.timestamp - b.timestamp)
-          .slice(-this.MAX_MESSAGES_PER_CHANNEL);
-        return storageCache.setItem(key, sorted);
-      });
-    });
+    const promises = Array.from(messagesByChannel.entries()).map(
+      ([channel, msgs]) => {
+        const key = this.getStorageKey(network, channel);
+        return this.loadMessagesByKey(key).then(existing => {
+          const combined = [...existing, ...msgs];
+          // Limit and sort by timestamp
+          const sorted = combined
+            .sort((a, b) => a.timestamp - b.timestamp)
+            .slice(-this.MAX_MESSAGES_PER_CHANNEL);
+          return storageCache.setItem(key, sorted);
+        });
+      },
+    );
 
     await Promise.all(promises);
   }
@@ -104,7 +106,8 @@ class MessageHistoryService {
   async loadMessages(network: string, channel?: string): Promise<IRCMessage[]> {
     try {
       const requestedChannel = (channel || 'server').trim() || 'server';
-      const normalizedChannel = this.normalizeChannelForStorage(requestedChannel);
+      const normalizedChannel =
+        this.normalizeChannelForStorage(requestedChannel);
       const keyCandidates = new Set<string>([
         this.getStorageKey(network, normalizedChannel),
         this.getLegacyStorageKey(network, normalizedChannel),
@@ -112,7 +115,10 @@ class MessageHistoryService {
 
       // Backward compatibility: older builds could store mixed-case channel keys.
       if (requestedChannel !== normalizedChannel) {
-        const rawSanitized = requestedChannel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
+        const rawSanitized = requestedChannel.replace(
+          /[^a-zA-Z0-9_#&+!-]/g,
+          '_',
+        );
         keyCandidates.add(`${this.STORAGE_PREFIX}${network}:${rawSanitized}`);
         keyCandidates.add(`MESSAGES_${network}_${rawSanitized}`);
       }
@@ -140,7 +146,9 @@ class MessageHistoryService {
         }
       }
 
-      return Array.from(deduped.values()).sort((a, b) => a.timestamp - b.timestamp);
+      return Array.from(deduped.values()).sort(
+        (a, b) => a.timestamp - b.timestamp,
+      );
     } catch (error) {
       console.error('MessageHistoryService: Error loading messages:', error);
       return [];
@@ -153,10 +161,10 @@ class MessageHistoryService {
   async loadAllNetworkMessages(network: string): Promise<IRCMessage[]> {
     try {
       const keys = await AsyncStorage.getAllKeys();
-      const networkKeys = keys.filter(key => 
-        key.startsWith(`${this.STORAGE_PREFIX}${network}:`)
+      const networkKeys = keys.filter(key =>
+        key.startsWith(`${this.STORAGE_PREFIX}${network}:`),
       );
-      
+
       const allMessages: IRCMessage[] = [];
       for (const key of networkKeys) {
         const data = await AsyncStorage.getItem(key);
@@ -165,11 +173,14 @@ class MessageHistoryService {
           allMessages.push(...messages);
         }
       }
-      
+
       // Sort by timestamp
       return allMessages.sort((a, b) => a.timestamp - b.timestamp);
     } catch (error) {
-      console.error('MessageHistoryService: Error loading network messages:', error);
+      console.error(
+        'MessageHistoryService: Error loading network messages:',
+        error,
+      );
       return [];
     }
   }
@@ -180,7 +191,7 @@ class MessageHistoryService {
   async searchMessages(filter: MessageHistoryFilter): Promise<IRCMessage[]> {
     try {
       let messages: IRCMessage[] = [];
-      
+
       // Load messages based on filter
       if (filter.network) {
         if (filter.channel) {
@@ -191,8 +202,10 @@ class MessageHistoryService {
       } else {
         // Load from all networks (slower)
         const allKeys = await AsyncStorage.getAllKeys();
-        const historyKeys = allKeys.filter(key => key.startsWith(this.STORAGE_PREFIX));
-        
+        const historyKeys = allKeys.filter(key =>
+          key.startsWith(this.STORAGE_PREFIX),
+        );
+
         for (const key of historyKeys) {
           const data = await AsyncStorage.getItem(key);
           if (data) {
@@ -200,7 +213,7 @@ class MessageHistoryService {
           }
         }
       }
-      
+
       // Apply filters
       return this.applyFilters(messages, filter);
     } catch (error) {
@@ -212,13 +225,16 @@ class MessageHistoryService {
   /**
    * Apply filters to messages
    */
-  private applyFilters(messages: IRCMessage[], filter: MessageHistoryFilter): IRCMessage[] {
+  private applyFilters(
+    messages: IRCMessage[],
+    filter: MessageHistoryFilter,
+  ): IRCMessage[] {
     return messages.filter(msg => {
       // Filter by channel
       if (filter.channel && msg.channel !== filter.channel) {
         return false;
       }
-      
+
       // Filter by from/user
       if (filter.from && msg.from) {
         const fromLower = msg.from.toLowerCase();
@@ -227,7 +243,7 @@ class MessageHistoryService {
           return false;
         }
       }
-      
+
       // Filter by text content
       if (filter.text) {
         const textLower = msg.text.toLowerCase();
@@ -236,12 +252,12 @@ class MessageHistoryService {
           return false;
         }
       }
-      
+
       // Filter by type
       if (filter.type && msg.type !== filter.type) {
         return false;
       }
-      
+
       // Filter by date range
       if (filter.startDate && msg.timestamp < filter.startDate) {
         return false;
@@ -249,12 +265,12 @@ class MessageHistoryService {
       if (filter.endDate && msg.timestamp > filter.endDate) {
         return false;
       }
-      
+
       // Exclude raw messages
       if (filter.excludeRaw && (msg.isRaw || msg.type === 'raw')) {
         return false;
       }
-      
+
       return true;
     });
   }
@@ -265,14 +281,16 @@ class MessageHistoryService {
   async getStats(network?: string): Promise<MessageHistoryStats> {
     try {
       let messages: IRCMessage[] = [];
-      
+
       if (network) {
         messages = await this.loadAllNetworkMessages(network);
       } else {
         // Load from all networks
         const allKeys = await AsyncStorage.getAllKeys();
-        const historyKeys = allKeys.filter(key => key.startsWith(this.STORAGE_PREFIX));
-        
+        const historyKeys = allKeys.filter(key =>
+          key.startsWith(this.STORAGE_PREFIX),
+        );
+
         for (const key of historyKeys) {
           const data = await AsyncStorage.getItem(key);
           if (data) {
@@ -280,33 +298,33 @@ class MessageHistoryService {
           }
         }
       }
-      
+
       const stats: MessageHistoryStats = {
         totalMessages: messages.length,
         channelCount: 0,
         messagesByChannel: new Map(),
         messagesByUser: new Map(),
       };
-      
+
       let oldest: number | undefined;
       let newest: number | undefined;
-      
+
       messages.forEach(msg => {
         // Count by channel
         const channel = msg.channel || 'server';
         stats.messagesByChannel.set(
           channel,
-          (stats.messagesByChannel.get(channel) || 0) + 1
+          (stats.messagesByChannel.get(channel) || 0) + 1,
         );
-        
+
         // Count by user
         if (msg.from) {
           stats.messagesByUser.set(
             msg.from,
-            (stats.messagesByUser.get(msg.from) || 0) + 1
+            (stats.messagesByUser.get(msg.from) || 0) + 1,
           );
         }
-        
+
         // Track oldest/newest
         if (!oldest || msg.timestamp < oldest) {
           oldest = msg.timestamp;
@@ -315,11 +333,11 @@ class MessageHistoryService {
           newest = msg.timestamp;
         }
       });
-      
+
       stats.oldestMessage = oldest;
       stats.newestMessage = newest;
       stats.channelCount = stats.messagesByChannel.size;
-      
+
       return stats;
     } catch (error) {
       console.error('MessageHistoryService: Error getting stats:', error);
@@ -338,26 +356,28 @@ class MessageHistoryService {
   async exportHistory(options: ExportOptions): Promise<string> {
     try {
       let messages: IRCMessage[] = [];
-      
+
       // Load messages based on filter
       if (options.filter) {
         messages = await this.searchMessages(options.filter);
       } else {
         // Load all messages
         const allKeys = await AsyncStorage.getAllKeys();
-        const historyKeys = allKeys.filter(key => key.startsWith(this.STORAGE_PREFIX));
-        
+        const historyKeys = allKeys.filter(key =>
+          key.startsWith(this.STORAGE_PREFIX),
+        );
+
         for (const key of historyKeys) {
           const data = await AsyncStorage.getItem(key);
           if (data) {
             messages.push(...JSON.parse(data));
           }
         }
-        
+
         // Sort by timestamp
         messages.sort((a, b) => a.timestamp - b.timestamp);
       }
-      
+
       // Format based on export type
       switch (options.format) {
         case 'json':
@@ -389,13 +409,13 @@ class MessageHistoryService {
         from: msg.from,
         text: msg.text,
         timestamp: options.includeTimestamps ? msg.timestamp : undefined,
-        timestampISO: options.includeTimestamps 
-          ? new Date(msg.timestamp).toISOString() 
+        timestampISO: options.includeTimestamps
+          ? new Date(msg.timestamp).toISOString()
           : undefined,
         isRaw: options.includeMetadata ? msg.isRaw : undefined,
       })),
     };
-    
+
     return JSON.stringify(exportData, null, 2);
   }
 
@@ -405,24 +425,26 @@ class MessageHistoryService {
   private exportTXT(messages: IRCMessage[], options: ExportOptions): string {
     const lines: string[] = [];
     lines.push(t('AndroidIRCX Message History Export'));
-    lines.push(t('Exported: {timestamp}', { timestamp: new Date().toISOString() }));
+    lines.push(
+      t('Exported: {timestamp}', { timestamp: new Date().toISOString() }),
+    );
     lines.push(t('Messages: {count}', { count: messages.length }));
     lines.push('');
     lines.push('='.repeat(80));
     lines.push('');
-    
+
     messages.forEach(msg => {
       const date = new Date(msg.timestamp);
-      const timestamp = options.includeTimestamps 
-        ? `[${date.toLocaleString()}] ` 
+      const timestamp = options.includeTimestamps
+        ? `[${date.toLocaleString()}] `
         : '';
-      
+
       const channel = msg.channel ? `[${msg.channel}] ` : '';
       const from = msg.from ? `<${msg.from}> ` : '';
-      
+
       lines.push(`${timestamp}${channel}${from}${msg.text}`);
     });
-    
+
     return lines.join('\n');
   }
 
@@ -431,7 +453,7 @@ class MessageHistoryService {
    */
   private exportCSV(messages: IRCMessage[], options: ExportOptions): string {
     const lines: string[] = [];
-    
+
     // Header
     const headers = [
       t('Timestamp'),
@@ -444,13 +466,13 @@ class MessageHistoryService {
       headers.shift(); // Remove timestamp if not included
     }
     lines.push(headers.join(','));
-    
+
     // Data rows
     messages.forEach(msg => {
       const date = new Date(msg.timestamp);
       const timestamp = date.toISOString();
       const row: string[] = [];
-      
+
       if (options.includeTimestamps) {
         row.push(`"${timestamp}"`);
       }
@@ -458,10 +480,10 @@ class MessageHistoryService {
       row.push(`"${msg.channel || ''}"`);
       row.push(`"${msg.from || ''}"`);
       row.push(`"${msg.text.replace(/"/g, '""')}"`); // Escape quotes in CSV
-      
+
       lines.push(row.join(','));
     });
-    
+
     return lines.join('\n');
   }
 
@@ -486,13 +508,16 @@ class MessageHistoryService {
     try {
       const keys = await AsyncStorage.getAllKeys();
       const networkKeys = keys.filter(key =>
-        key.startsWith(`${this.STORAGE_PREFIX}${network}:`)
+        key.startsWith(`${this.STORAGE_PREFIX}${network}:`),
       );
 
       // Use StorageCache to remove from both memory and storage
       await Promise.all(networkKeys.map(key => storageCache.removeItem(key)));
     } catch (error) {
-      console.error('MessageHistoryService: Error deleting network messages:', error);
+      console.error(
+        'MessageHistoryService: Error deleting network messages:',
+        error,
+      );
       throw error;
     }
   }
@@ -500,7 +525,11 @@ class MessageHistoryService {
   /**
    * Delete a single message by id
    */
-  async deleteMessageById(network: string, channel: string, messageId: string): Promise<void> {
+  async deleteMessageById(
+    network: string,
+    channel: string,
+    messageId: string,
+  ): Promise<void> {
     try {
       const key = this.getStorageKey(network, channel || 'server');
       const data = await AsyncStorage.getItem(key);
@@ -521,17 +550,38 @@ class MessageHistoryService {
   /**
    * List stored history channels with counts
    */
-  async listStoredChannels(): Promise<Array<{ network: string; channel: string; count: number; newest?: number; oldest?: number }>> {
+  async listStoredChannels(): Promise<
+    Array<{
+      network: string;
+      channel: string;
+      count: number;
+      newest?: number;
+      oldest?: number;
+    }>
+  > {
     try {
       const keys = await AsyncStorage.getAllKeys();
-      const historyKeys = keys.filter(key => key.startsWith(this.STORAGE_PREFIX));
+      const historyKeys = keys.filter(key =>
+        key.startsWith(this.STORAGE_PREFIX),
+      );
       const legacyKeys = keys.filter(key => key.startsWith('MESSAGES_'));
       const allKeys = [...historyKeys, ...legacyKeys];
       if (allKeys.length === 0) return [];
 
       const entriesMap = await AsyncStorage.getMany(allKeys);
-      const entries = allKeys.map((key) => [key, entriesMap[key] ?? null] as [string, string | null]);
-      const dedupeMap = new Map<string, { network: string; channel: string; count: number; newest?: number; oldest?: number }>();
+      const entries = allKeys.map(
+        key => [key, entriesMap[key] ?? null] as [string, string | null],
+      );
+      const dedupeMap = new Map<
+        string,
+        {
+          network: string;
+          channel: string;
+          count: number;
+          newest?: number;
+          oldest?: number;
+        }
+      >();
 
       for (const [key, value] of entries) {
         if (!key || !value) continue;
@@ -568,7 +618,10 @@ class MessageHistoryService {
 
       return Array.from(dedupeMap.values());
     } catch (error) {
-      console.error('MessageHistoryService: Error listing stored channels:', error);
+      console.error(
+        'MessageHistoryService: Error listing stored channels:',
+        error,
+      );
       return [];
     }
   }
@@ -580,7 +633,9 @@ class MessageHistoryService {
     try {
       messageHistoryBatching.clearQueue();
       const keys = await AsyncStorage.getAllKeys();
-      const historyKeys = keys.filter(key => key.startsWith(this.STORAGE_PREFIX));
+      const historyKeys = keys.filter(key =>
+        key.startsWith(this.STORAGE_PREFIX),
+      );
       await Promise.all(historyKeys.map(key => storageCache.removeItem(key)));
     } catch (error) {
       console.error('MessageHistoryService: Error clearing history:', error);
@@ -612,13 +667,19 @@ class MessageHistoryService {
   private getStorageKey(network: string, channel: string): string {
     // Sanitize and normalize channel name for stable history keys.
     const normalizedChannel = this.normalizeChannelForStorage(channel);
-    const sanitizedChannel = normalizedChannel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
+    const sanitizedChannel = normalizedChannel.replace(
+      /[^a-zA-Z0-9_#&+!-]/g,
+      '_',
+    );
     return `${this.STORAGE_PREFIX}${network}:${sanitizedChannel}`;
   }
 
   private getLegacyStorageKey(network: string, channel: string): string {
     const normalizedChannel = this.normalizeChannelForStorage(channel);
-    const sanitizedChannel = normalizedChannel.replace(/[^a-zA-Z0-9_#&+!-]/g, '_');
+    const sanitizedChannel = normalizedChannel.replace(
+      /[^a-zA-Z0-9_#&+!-]/g,
+      '_',
+    );
     return `MESSAGES_${network}_${sanitizedChannel}`;
   }
 
@@ -629,7 +690,9 @@ class MessageHistoryService {
     return trimmed.toLowerCase();
   }
 
-  private parseStorageKey(key: string): { network: string; channel: string } | null {
+  private parseStorageKey(
+    key: string,
+  ): { network: string; channel: string } | null {
     if (!key.startsWith(this.STORAGE_PREFIX)) return null;
     const rest = key.slice(this.STORAGE_PREFIX.length);
     // Network identifiers can contain ':' (e.g. host:port). Channel is sanitized and
@@ -642,7 +705,9 @@ class MessageHistoryService {
     };
   }
 
-  private parseLegacyStorageKey(key: string): { network: string; channel: string } | null {
+  private parseLegacyStorageKey(
+    key: string,
+  ): { network: string; channel: string } | null {
     if (!key.startsWith('MESSAGES_')) return null;
     const rest = key.slice('MESSAGES_'.length);
     const idx = rest.indexOf('_');
@@ -654,7 +719,7 @@ class MessageHistoryService {
   }
 
   async ensureHistoryMigrated(
-    onProgress?: (processed: number, total: number) => void
+    onProgress?: (processed: number, total: number) => void,
   ): Promise<{ migrated: boolean; total: number; migratedCount: number }> {
     if (this.migrationCompleted || this.migrationInProgress) {
       return { migrated: false, total: 0, migratedCount: 0 };
@@ -669,7 +734,9 @@ class MessageHistoryService {
       }
 
       const legacyEntriesMap = await AsyncStorage.getMany(legacyKeys);
-      const legacyEntries = legacyKeys.map((key) => [key, legacyEntriesMap[key] ?? null] as [string, string | null]);
+      const legacyEntries = legacyKeys.map(
+        key => [key, legacyEntriesMap[key] ?? null] as [string, string | null],
+      );
       const writes: { key: string; value: IRCMessage[] }[] = [];
       const removes: string[] = [];
       let migratedCount = 0;
@@ -700,7 +767,9 @@ class MessageHistoryService {
         }
 
         const newKey = this.getStorageKey(parsed.network, parsed.channel);
-        const existing = await storageCache.getItem<IRCMessage[]>(newKey, { ttl: 0 });
+        const existing = await storageCache.getItem<IRCMessage[]>(newKey, {
+          ttl: 0,
+        });
         const merged = existing ? [...existing, ...messages] : [...messages];
         const sorted = merged
           .sort((a, b) => a.timestamp - b.timestamp)
@@ -719,7 +788,10 @@ class MessageHistoryService {
       this.migrationCompleted = true;
       return { migrated: migratedCount > 0, total, migratedCount };
     } catch (error) {
-      console.error('MessageHistoryService: Error migrating legacy history:', error);
+      console.error(
+        'MessageHistoryService: Error migrating legacy history:',
+        error,
+      );
       return { migrated: false, total: 0, migratedCount: 0 };
     } finally {
       this.migrationInProgress = false;
@@ -748,4 +820,3 @@ class MessageHistoryService {
 }
 
 export const messageHistoryService = new MessageHistoryService();
-

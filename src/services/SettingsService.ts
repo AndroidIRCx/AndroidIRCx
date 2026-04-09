@@ -88,8 +88,12 @@ const DEFAULT_IDENTITY = {
   ident: 'androidircx',
 };
 
-export const DEFAULT_PART_MESSAGE = t('AndroidIRCX - Download from https://androidircx.com');
-export const DEFAULT_QUIT_MESSAGE = t('Goodbye from AndroidIRCX - download it from https://androidircx.com');
+export const DEFAULT_PART_MESSAGE = t(
+  'AndroidIRCX - Download from https://androidircx.com',
+);
+export const DEFAULT_QUIT_MESSAGE = t(
+  'Goodbye from AndroidIRCX - download it from https://androidircx.com',
+);
 export const DEFAULT_CTCP_VERSION_MESSAGE = 'https://github.com/AndroidIRCX';
 
 // Defaults for upcoming settings (Away/Protection/Writing/DCC/Topic styles).
@@ -249,7 +253,7 @@ export const NEW_FEATURE_DEFAULTS = {
   dccDownloadFolder: '',
 
   // Ban settings
-  defaultBanType: 2,           // 0-9, default: 2 (*!*@host)
+  defaultBanType: 2, // 0-9, default: 2 (*!*@host)
   predefinedKickReasons: [
     'Spamming',
     'Flooding',
@@ -259,9 +263,9 @@ export const NEW_FEATURE_DEFAULTS = {
     'Trolling',
     'Harassment',
   ],
-  showBanMaskPreview: true,    // Show preview in modal
-  rememberLastBanType: false,  // Remember last used type
-  confirmBeforeKickBan: true,  // Always show modal (default: true)
+  showBanMaskPreview: true, // Show preview in modal
+  rememberLastBanType: false, // Remember last used type
+  confirmBeforeKickBan: true, // Always show modal (default: true)
 
   // Channel list scroll tab switching
   channelListScrollSwitchTabs: false,
@@ -292,10 +296,15 @@ class SettingsService {
     };
   }
 
-  private async ensureDefaults(networks: IRCNetworkConfig[]): Promise<{ networks: IRCNetworkConfig[]; updated: boolean }> {
+  private async ensureDefaults(
+    networks: IRCNetworkConfig[],
+  ): Promise<{ networks: IRCNetworkConfig[]; updated: boolean }> {
     let updated = false;
     const hasDBase = networks.some(n => n.name === 'DBase');
-    const dbaseRemovedByUser = (await storageCache.getItem<boolean>(STORAGE_KEY_DBASE_REMOVED, { ttl: 0 })) === true;
+    const dbaseRemovedByUser =
+      (await storageCache.getItem<boolean>(STORAGE_KEY_DBASE_REMOVED, {
+        ttl: 0,
+      })) === true;
     let result = networks.map(n => ({ ...n }));
     if (!hasDBase && !dbaseRemovedByUser) {
       result = [...result, this.buildDefaultNetwork()];
@@ -317,7 +326,9 @@ class SettingsService {
         }
 
         const hasDbServer = servers.some(s => s.hostname === 'irc.dbase.in.rs');
-        const hadAndroidircxServer = servers.some(s => s.hostname === 'irc.androidircx.com');
+        const hadAndroidircxServer = servers.some(
+          s => s.hostname === 'irc.androidircx.com',
+        );
 
         if (!hasDbServer) {
           servers = [...servers, this.buildDefaultServer()];
@@ -331,7 +342,8 @@ class SettingsService {
       }
 
       const hasValidDefaultServerId =
-        typeof net.defaultServerId === 'string' && servers.some(s => s.id === net.defaultServerId);
+        typeof net.defaultServerId === 'string' &&
+        servers.some(s => s.id === net.defaultServerId);
       const defaultServerId = hasValidDefaultServerId
         ? net.defaultServerId
         : typeof net.defaultServerId === 'string' || hadNoServers
@@ -371,9 +383,12 @@ class SettingsService {
   async loadNetworks(): Promise<IRCNetworkConfig[]> {
     try {
       // Use StorageCache for in-memory caching and faster access
-      const loaded = await storageCache.getItem<IRCNetworkConfig[]>(STORAGE_KEY, {
-        ttl: 5 * 60 * 1000, // Cache for 5 minutes
-      });
+      const loaded = await storageCache.getItem<IRCNetworkConfig[]>(
+        STORAGE_KEY,
+        {
+          ttl: 5 * 60 * 1000, // Cache for 5 minutes
+        },
+      );
       if (loaded) {
         const ensured = await this.ensureDefaults(loaded);
         const withSecrets = await this.applySecrets(ensured.networks);
@@ -428,7 +443,10 @@ class SettingsService {
     }
   }
 
-  async updateNetwork(networkId: string, updates: Partial<IRCNetworkConfig>): Promise<void> {
+  async updateNetwork(
+    networkId: string,
+    updates: Partial<IRCNetworkConfig>,
+  ): Promise<void> {
     const networks = await this.loadNetworks();
     const index = networks.findIndex(n => n.id === networkId);
     if (index !== -1) {
@@ -462,7 +480,7 @@ class SettingsService {
     }
   }
 
-  async getAllIdentityProfiles(): Promise<Array<{id: string, name: string}>> {
+  async getAllIdentityProfiles(): Promise<Array<{ id: string; name: string }>> {
     try {
       const profiles = await identityProfilesService.list();
       return profiles.map(p => ({ id: p.id, name: p.name || p.nick }));
@@ -472,7 +490,11 @@ class SettingsService {
     }
   }
 
-  async updateNetworkProfile(networkId: string, connectionType?: 'irc' | 'znc' | 'bnc', identityProfileId?: string | null): Promise<void> {
+  async updateNetworkProfile(
+    networkId: string,
+    connectionType?: 'irc' | 'znc' | 'bnc',
+    identityProfileId?: string | null,
+  ): Promise<void> {
     try {
       const network = await this.getNetwork(networkId);
       if (network) {
@@ -490,7 +512,10 @@ class SettingsService {
     }
   }
 
-  async addServerToNetwork(networkId: string, server: IRCServerConfig): Promise<void> {
+  async addServerToNetwork(
+    networkId: string,
+    server: IRCServerConfig,
+  ): Promise<void> {
     const networks = await this.loadNetworks();
     const network = networks.find(n => n.id === networkId);
     if (network) {
@@ -510,7 +535,7 @@ class SettingsService {
   async updateServerInNetwork(
     networkId: string,
     serverId: string,
-    updates: Partial<IRCServerConfig>
+    updates: Partial<IRCServerConfig>,
   ): Promise<void> {
     const networks = await this.loadNetworks();
     const network = networks.find(n => n.id === networkId);
@@ -532,7 +557,10 @@ class SettingsService {
     }
   }
 
-  async deleteServerFromNetwork(networkId: string, serverId: string): Promise<void> {
+  async deleteServerFromNetwork(
+    networkId: string,
+    serverId: string,
+  ): Promise<void> {
     const networks = await this.loadNetworks();
     const network = networks.find(n => n.id === networkId);
     if (network) {
@@ -546,7 +574,10 @@ class SettingsService {
     }
   }
 
-  async setDefaultServerForNetwork(networkId: string, serverId: string): Promise<void> {
+  async setDefaultServerForNetwork(
+    networkId: string,
+    serverId: string,
+  ): Promise<void> {
     const networks = await this.loadNetworks();
     const network = networks.find(n => n.id === networkId);
     if (network) {
@@ -558,7 +589,10 @@ class SettingsService {
     }
   }
 
-  async clearDefaultServerForNetwork(networkId: string, serverId: string): Promise<void> {
+  async clearDefaultServerForNetwork(
+    networkId: string,
+    serverId: string,
+  ): Promise<void> {
     const networks = await this.loadNetworks();
     const network = networks.find(n => n.id === networkId);
     if (network && network.defaultServerId === serverId) {
@@ -583,9 +617,12 @@ class SettingsService {
   async getSetting<T>(key: string, defaultValue: T): Promise<T> {
     try {
       // Use StorageCache for in-memory caching and faster access
-      const data = await storageCache.getItem<T>(`${STORAGE_KEY_SETTINGS}:${key}`, {
-        ttl: 10 * 60 * 1000, // Cache for 10 minutes
-      });
+      const data = await storageCache.getItem<T>(
+        `${STORAGE_KEY_SETTINGS}:${key}`,
+        {
+          ttl: 10 * 60 * 1000, // Cache for 10 minutes
+        },
+      );
       if (data !== null) {
         return data;
       }
@@ -615,7 +652,10 @@ class SettingsService {
     return () => {
       const keyListeners = this.listeners.get(key);
       if (keyListeners) {
-        this.listeners.set(key, keyListeners.filter(cb => cb !== callback));
+        this.listeners.set(
+          key,
+          keyListeners.filter(cb => cb !== callback),
+        );
       }
     };
   }
@@ -633,7 +673,9 @@ class SettingsService {
     }
   }
 
-  private async persistAndSanitizeNetworks(networks: IRCNetworkConfig[]): Promise<IRCNetworkConfig[]> {
+  private async persistAndSanitizeNetworks(
+    networks: IRCNetworkConfig[],
+  ): Promise<IRCNetworkConfig[]> {
     const sanitized: IRCNetworkConfig[] = [];
     for (const net of networks) {
       await this.persistNetworkSecrets(net);
@@ -647,10 +689,14 @@ class SettingsService {
       ...network,
       nickservPassword: undefined,
       operPassword: undefined,
-      sasl: network.sasl ? { account: network.sasl.account, password: undefined as any } : undefined,
+      sasl: network.sasl
+        ? { account: network.sasl.account, password: undefined as any }
+        : undefined,
       clientCert: undefined,
       clientKey: undefined,
-      proxy: network.proxy ? { ...network.proxy, password: undefined } : undefined,
+      proxy: network.proxy
+        ? { ...network.proxy, password: undefined }
+        : undefined,
       servers: (network.servers || []).map(s => ({
         ...s,
         password: undefined,
@@ -658,32 +704,57 @@ class SettingsService {
     };
   }
 
-  private async persistNetworkSecrets(network: IRCNetworkConfig): Promise<void> {
-    const secretKey = (suffix: string) => `${network.id || network.name || 'network'}:${suffix}`;
+  private async persistNetworkSecrets(
+    network: IRCNetworkConfig,
+  ): Promise<void> {
+    const secretKey = (suffix: string) =>
+      `${network.id || network.name || 'network'}:${suffix}`;
     if (network.nickservPassword !== undefined) {
-      await secureStorageService.setSecret(secretKey('nickservPassword'), network.nickservPassword);
+      await secureStorageService.setSecret(
+        secretKey('nickservPassword'),
+        network.nickservPassword,
+      );
     }
     if (network.operPassword !== undefined) {
-      await secureStorageService.setSecret(secretKey('operPassword'), network.operPassword);
+      await secureStorageService.setSecret(
+        secretKey('operPassword'),
+        network.operPassword,
+      );
     }
     if (network.sasl?.password !== undefined) {
-      await secureStorageService.setSecret(secretKey('saslPassword'), network.sasl.password);
+      await secureStorageService.setSecret(
+        secretKey('saslPassword'),
+        network.sasl.password,
+      );
     }
     if (network.clientCert !== undefined) {
-      await secureStorageService.setSecret(secretKey('clientCert'), network.clientCert);
+      await secureStorageService.setSecret(
+        secretKey('clientCert'),
+        network.clientCert,
+      );
     }
     if (network.clientKey !== undefined) {
-      await secureStorageService.setSecret(secretKey('clientKey'), network.clientKey);
+      await secureStorageService.setSecret(
+        secretKey('clientKey'),
+        network.clientKey,
+      );
     }
     if (network.proxy?.password !== undefined) {
-      await secureStorageService.setSecret(secretKey('proxyPassword'), network.proxy.password);
+      await secureStorageService.setSecret(
+        secretKey('proxyPassword'),
+        network.proxy.password,
+      );
     }
     for (const server of network.servers || []) {
       await this.persistServerSecret(network.id, server);
     }
   }
 
-  private async persistServerSecret(networkId: string, server: IRCServerConfig, remove: boolean = false): Promise<void> {
+  private async persistServerSecret(
+    networkId: string,
+    server: IRCServerConfig,
+    remove: boolean = false,
+  ): Promise<void> {
     const key = `${networkId}:server:${server.id}`;
     if (remove) {
       await secureStorageService.removeSecret(key);
@@ -694,11 +765,21 @@ class SettingsService {
     }
   }
 
-  private async applySecrets(networks: IRCNetworkConfig[]): Promise<IRCNetworkConfig[]> {
+  private async applySecrets(
+    networks: IRCNetworkConfig[],
+  ): Promise<IRCNetworkConfig[]> {
     const hydrated: IRCNetworkConfig[] = [];
     for (const net of networks) {
-      const secretKey = (suffix: string) => `${net.id || net.name || 'network'}:${suffix}`;
-      const [nickservPassword, operPassword, saslPassword, clientCert, clientKey, proxyPassword] = await Promise.all([
+      const secretKey = (suffix: string) =>
+        `${net.id || net.name || 'network'}:${suffix}`;
+      const [
+        nickservPassword,
+        operPassword,
+        saslPassword,
+        clientCert,
+        clientKey,
+        proxyPassword,
+      ] = await Promise.all([
         secureStorageService.getSecret(secretKey('nickservPassword')),
         secureStorageService.getSecret(secretKey('operPassword')),
         secureStorageService.getSecret(secretKey('saslPassword')),
@@ -707,19 +788,25 @@ class SettingsService {
         secureStorageService.getSecret(secretKey('proxyPassword')),
       ]);
       const serversWithSecrets = await Promise.all(
-        (net.servers || []).map(async (s) => {
-          const pw = await secureStorageService.getSecret(`${net.id}:server:${s.id}`);
+        (net.servers || []).map(async s => {
+          const pw = await secureStorageService.getSecret(
+            `${net.id}:server:${s.id}`,
+          );
           return { ...s, password: pw || undefined };
-        })
+        }),
       );
       hydrated.push({
         ...net,
         nickservPassword: nickservPassword || undefined,
         operPassword: operPassword || undefined,
-        sasl: net.sasl ? { ...net.sasl, password: saslPassword ?? net.sasl.password } : net.sasl,
+        sasl: net.sasl
+          ? { ...net.sasl, password: saslPassword ?? net.sasl.password }
+          : net.sasl,
         clientCert: clientCert || undefined,
         clientKey: clientKey || undefined,
-        proxy: net.proxy ? { ...net.proxy, password: proxyPassword || undefined } : net.proxy,
+        proxy: net.proxy
+          ? { ...net.proxy, password: proxyPassword || undefined }
+          : net.proxy,
         servers: serversWithSecrets,
       });
     }
@@ -743,7 +830,10 @@ class SettingsService {
   async setFirstRunCompleted(completed: boolean): Promise<void> {
     try {
       // Use StorageCache for automatic write batching (2s debounce)
-      await storageCache.setItem('FIRST_RUN_COMPLETED', completed ? 'true' : 'false');
+      await storageCache.setItem(
+        'FIRST_RUN_COMPLETED',
+        completed ? 'true' : 'false',
+      );
     } catch (error) {
       console.error('Error setting first run status:', error);
     }

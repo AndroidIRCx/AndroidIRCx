@@ -12,7 +12,7 @@ export interface CommandHandlerContext {
   // Messaging
   addMessage: (
     message: Partial<IRCMessage> & { type: string; timestamp: number },
-    batchTag?: string
+    batchTag?: string,
   ) => void;
   addRawMessage: (text: string, category: string, timestamp?: number) => void;
 
@@ -21,18 +21,39 @@ export interface CommandHandlerContext {
 
   // Utilities
   extractNick: (prefix: string) => string;
-  parseCTCP: (message: string) => { isCTCP: boolean; command?: string; args?: string };
+  parseCTCP: (message: string) => {
+    isCTCP: boolean;
+    command?: string;
+    args?: string;
+  };
   getNetworkName: () => string;
   getCurrentNick: () => string;
   getUserManagementService: () => any;
-  getProtectionTabContext: (target: string, from: string, isChannel: boolean) => any;
-  handleProtectionBlock: (kind: string, nick: string, username?: string, hostname?: string, channel?: string | null) => void;
-  extractMaskFromNotice: (text: string) => { nick: string; username?: string; hostname?: string } | null;
+  getProtectionTabContext: (
+    target: string,
+    from: string,
+    isChannel: boolean,
+  ) => any;
+  handleProtectionBlock: (
+    kind: string,
+    nick: string,
+    username?: string,
+    hostname?: string,
+    channel?: string | null,
+  ) => void;
+  extractMaskFromNotice: (
+    text: string,
+  ) => { nick: string; username?: string; hostname?: string } | null;
   runBlacklistAction: (entry: any, context: any) => void;
   logRaw: (message: string) => void;
   handleServerError: (errorText: string) => void;
   decodeIfBase64Like: (value: string) => string;
-  handleBatchStart: (refTag: string, type: string, params: string[], timestamp: number) => void;
+  handleBatchStart: (
+    refTag: string,
+    type: string,
+    params: string[],
+    timestamp: number,
+  ) => void;
   handleBatchEnd: (refTag: string, timestamp: number) => void;
   handleCAPCommand: (params: string[]) => void;
 
@@ -50,8 +71,18 @@ export interface CommandHandlerContext {
   setUser: (channel: string, nick: string, user: any) => void;
   getUser: (channel: string, nick: string) => any | undefined;
   ensureChannelUsersMap: (channel: string) => Map<string, any>;
-  runBlacklistCheckForJoin: (nick: string, username?: string, hostname?: string, channel?: string) => void;
-  runAutoModeCheckForJoin: (nick: string, username?: string, hostname?: string, channel?: string) => void;
+  runBlacklistCheckForJoin: (
+    nick: string,
+    username?: string,
+    hostname?: string,
+    channel?: string,
+  ) => void;
+  runAutoModeCheckForJoin: (
+    nick: string,
+    username?: string,
+    hostname?: string,
+    channel?: string,
+  ) => void;
   isExtendedJoinEnabled: () => boolean;
   emitJoinedChannel: (channel: string) => void;
   addPendingChannelIntro: (channel: string) => void;
@@ -69,16 +100,54 @@ export interface CommandHandlerContext {
 
   // PRIVMSG support
   sendRaw: (command: string) => void;
-  handleCTCPRequest: (from: string, target: string, command: string, args?: string) => void;
-  isUserIgnored: (nick: string, username?: string, hostname?: string, network?: string) => boolean;
-  isUserProtected: (nick: string, username?: string, hostname?: string, network?: string) => boolean;
+  handleCTCPRequest: (
+    from: string,
+    target: string,
+    command: string,
+    args?: string,
+  ) => void;
+  isUserIgnored: (
+    nick: string,
+    username?: string,
+    hostname?: string,
+    network?: string,
+  ) => boolean;
+  isUserProtected: (
+    nick: string,
+    username?: string,
+    hostname?: string,
+    network?: string,
+  ) => boolean;
   evaluateProtectionDecision: (
-    message: { type: string; channel: string; from: string; text: string; timestamp: number; network: string; username?: string; hostname?: string },
-    context: { isActiveTab: boolean; isQueryOpen: boolean; isChannel: boolean; isCtcp: boolean },
+    message: {
+      type: string;
+      channel: string;
+      from: string;
+      text: string;
+      timestamp: number;
+      network: string;
+      username?: string;
+      hostname?: string;
+    },
+    context: {
+      isActiveTab: boolean;
+      isQueryOpen: boolean;
+      isChannel: boolean;
+      isCtcp: boolean;
+    },
   ) => { kind: string } | null;
   handleMultilineMessage: (
-    from: string, target: string, text: string, concatTag: string | undefined,
-    otherTags: { timestamp: number; account?: string; msgid?: string; channelContext?: string; replyTo?: string },
+    from: string,
+    target: string,
+    text: string,
+    concatTag: string | undefined,
+    otherTags: {
+      timestamp: number;
+      account?: string;
+      msgid?: string;
+      channelContext?: string;
+      replyTo?: string;
+    },
   ) => string | null;
   getEncryptedDMService: () => any;
   getChannelEncryptionService: () => any;
@@ -102,7 +171,7 @@ export type CommandHandler = (
     typingTag?: string;
     multilineConcatTag?: string;
     intentTag?: string;
-  }
+  },
 ) => void;
 
 /**

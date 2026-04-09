@@ -225,7 +225,10 @@ describe('TabUpdateBatcher', () => {
       const tabs = createMockTabs(3, 'test-net');
 
       for (let i = 0; i < 10; i++) {
-        batcher.queueSave('test-net', [...tabs, { ...tabs[0], id: `new-${i}` }]);
+        batcher.queueSave('test-net', [
+          ...tabs,
+          { ...tabs[0], id: `new-${i}` },
+        ]);
       }
 
       await wait(150);

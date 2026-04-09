@@ -51,9 +51,13 @@ describe('ConsoleManager', () => {
       // Reset modules to test fresh instantiation
       jest.resetModules();
       // First call should create instance
-      const { default: freshManager1 } = require('../../src/utils/consoleManager');
+      const {
+        default: freshManager1,
+      } = require('../../src/utils/consoleManager');
       // Second call should return same instance without creating new one
-      const { default: freshManager2 } = require('../../src/utils/consoleManager');
+      const {
+        default: freshManager2,
+      } = require('../../src/utils/consoleManager');
       expect(freshManager1).toBe(freshManager2);
     });
   });
@@ -97,7 +101,9 @@ describe('ConsoleManager', () => {
     });
 
     it('should handle getItem rejection path without throwing', async () => {
-      const getItemSpy = jest.spyOn(AsyncStorage, 'getItem').mockRejectedValueOnce(new Error('read-fail'));
+      const getItemSpy = jest
+        .spyOn(AsyncStorage, 'getItem')
+        .mockRejectedValueOnce(new Error('read-fail'));
       await expect(consoleManager.initialize()).resolves.not.toThrow();
       expect(getItemSpy).toHaveBeenCalledWith('@console_enabled');
     });
@@ -116,12 +122,14 @@ describe('ConsoleManager', () => {
       await consoleManager.setEnabled(true);
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         '@console_enabled',
-        'true'
+        'true',
       );
     });
 
     it('should handle storage errors gracefully', async () => {
-      jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('Storage error'));
+      jest
+        .spyOn(AsyncStorage, 'setItem')
+        .mockRejectedValueOnce(new Error('Storage error'));
       await expect(consoleManager.setEnabled(true)).resolves.not.toThrow();
     });
   });
@@ -139,21 +147,27 @@ describe('ConsoleManager', () => {
     });
 
     it('should not initialize in production mode', async () => {
-      const { default: prodManager } = require('../../src/utils/consoleManager');
+      const {
+        default: prodManager,
+      } = require('../../src/utils/consoleManager');
       const getItemSpy = jest.spyOn(AsyncStorage, 'getItem');
       await prodManager.initialize();
       expect(getItemSpy).not.toHaveBeenCalled();
     });
 
     it('should not setEnabled in production mode', async () => {
-      const { default: prodManager } = require('../../src/utils/consoleManager');
+      const {
+        default: prodManager,
+      } = require('../../src/utils/consoleManager');
       const setItemSpy = jest.spyOn(AsyncStorage, 'setItem');
       await prodManager.setEnabled(true);
       expect(setItemSpy).not.toHaveBeenCalled();
     });
 
     it('should early-return in applyConsoleState when not in DEV', () => {
-      const { default: prodManager } = require('../../src/utils/consoleManager');
+      const {
+        default: prodManager,
+      } = require('../../src/utils/consoleManager');
       expect(() => (prodManager as any).applyConsoleState()).not.toThrow();
     });
   });

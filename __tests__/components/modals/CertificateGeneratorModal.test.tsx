@@ -13,7 +13,8 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 
 jest.mock('../../../src/services/CertificateManagerService', () => ({
   certificateManager: {
-    generateCertificate: (...args: unknown[]) => mockGenerateCertificate(...args),
+    generateCertificate: (...args: unknown[]) =>
+      mockGenerateCertificate(...args),
     formatFingerprint: (...args: unknown[]) => mockFormatFingerprint(...args),
   },
 }));
@@ -35,24 +36,41 @@ describe('CertificateGeneratorModal', () => {
 
   it('validates required fields and years range', async () => {
     const { getAllByText, getByDisplayValue, getByPlaceholderText } = render(
-      <CertificateGeneratorModal visible onClose={jest.fn()} defaultName="" defaultCommonName="" />
+      <CertificateGeneratorModal
+        visible
+        onClose={jest.fn()}
+        defaultName=""
+        defaultCommonName=""
+      />,
     );
     const generateButton = getAllByText('Generate Certificate').slice(-1)[0];
 
     await act(async () => {
       fireEvent.press(generateButton);
     });
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Certificate name is required');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Certificate name is required',
+    );
 
-    fireEvent.changeText(getByPlaceholderText('e.g., My IRC Certificate'), 'My Cert');
-    fireEvent.changeText(getByPlaceholderText('e.g., nick@irc.network'), 'nick@test');
+    fireEvent.changeText(
+      getByPlaceholderText('e.g., My IRC Certificate'),
+      'My Cert',
+    );
+    fireEvent.changeText(
+      getByPlaceholderText('e.g., nick@irc.network'),
+      'nick@test',
+    );
     fireEvent.changeText(getByDisplayValue('1'), '99');
 
     await act(async () => {
       fireEvent.press(generateButton);
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Validity period must be between 1 and 10 years');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Validity period must be between 1 and 10 years',
+    );
   });
 
   it('generates certificate and copies fingerprint', async () => {
@@ -71,12 +89,22 @@ describe('CertificateGeneratorModal', () => {
 
     const onCertificateGenerated = jest.fn();
     const { getAllByText, getByText, getByPlaceholderText } = render(
-      <CertificateGeneratorModal visible onClose={jest.fn()} onCertificateGenerated={onCertificateGenerated} />
+      <CertificateGeneratorModal
+        visible
+        onClose={jest.fn()}
+        onCertificateGenerated={onCertificateGenerated}
+      />,
     );
     const generateButton = getAllByText('Generate Certificate').slice(-1)[0];
 
-    fireEvent.changeText(getByPlaceholderText('e.g., My IRC Certificate'), 'My Cert');
-    fireEvent.changeText(getByPlaceholderText('e.g., nick@irc.network'), 'nick@test');
+    fireEvent.changeText(
+      getByPlaceholderText('e.g., My IRC Certificate'),
+      'My Cert',
+    );
+    fireEvent.changeText(
+      getByPlaceholderText('e.g., nick@irc.network'),
+      'nick@test',
+    );
 
     await act(async () => {
       fireEvent.press(generateButton);

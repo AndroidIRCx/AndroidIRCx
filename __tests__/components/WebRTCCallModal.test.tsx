@@ -25,23 +25,27 @@ jest.mock('../../src/stores/callStore', () => ({
 
 jest.mock('../../src/services/WebRTCCallService', () => ({
   webRtcCallService: {
-    declineIncomingCall: (...args: unknown[]) => mockDeclineIncomingCall(...args),
+    declineIncomingCall: (...args: unknown[]) =>
+      mockDeclineIncomingCall(...args),
     acceptIncomingCall: (...args: unknown[]) => mockAcceptIncomingCall(...args),
     toggleMute: (...args: unknown[]) => mockToggleMute(...args),
     toggleCamera: (...args: unknown[]) => mockToggleCamera(...args),
     hangUp: (...args: unknown[]) => mockHangUp(...args),
     minimizeCall: (...args: unknown[]) => mockMinimizeCall(...args),
     restoreCall: (...args: unknown[]) => mockRestoreCall(...args),
-    updateOverlayPosition: (...args: unknown[]) => mockUpdateOverlayPosition(...args),
+    updateOverlayPosition: (...args: unknown[]) =>
+      mockUpdateOverlayPosition(...args),
     snapOverlayToEdge: (...args: unknown[]) => mockSnapOverlayToEdge(...args),
-    updateVideoOverlayWidth: (...args: unknown[]) => mockUpdateVideoOverlayWidth(...args),
+    updateVideoOverlayWidth: (...args: unknown[]) =>
+      mockUpdateVideoOverlayWidth(...args),
   },
 }));
 
 jest.mock('../../src/services/NotificationService', () => ({
   notificationService: {
     showOngoingCallNotification: (...args: unknown[]) => mockShowNotif(...args),
-    cancelOngoingCallNotification: (...args: unknown[]) => mockCancelNotif(...args),
+    cancelOngoingCallNotification: (...args: unknown[]) =>
+      mockCancelNotif(...args),
   },
 }));
 
@@ -59,7 +63,9 @@ jest.mock('react-native-webrtc', () => ({
 describe('WebRTCCallModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetSetting.mockImplementation((key: string, def: any) => Promise.resolve(def));
+    mockGetSetting.mockImplementation((key: string, def: any) =>
+      Promise.resolve(def),
+    );
     mockOnSettingChange.mockImplementation(() => () => {});
     mockShowNotif.mockResolvedValue(undefined);
     mockCancelNotif.mockResolvedValue(undefined);
@@ -100,7 +106,9 @@ describe('WebRTCCallModal', () => {
     });
 
     const { UNSAFE_getAllByType } = render(<WebRTCCallModal />);
-    const buttons = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const buttons = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
 
     fireEvent.press(buttons[0]);
     fireEvent.press(buttons[1]);
@@ -127,7 +135,8 @@ describe('WebRTCCallModal', () => {
 
   it('renders scoped badge when only-active-query mode hides global overlay', async () => {
     mockGetSetting.mockImplementation((key: string) => {
-      if (key === 'callMinimizedOnlyOnActiveQuery') return Promise.resolve(true);
+      if (key === 'callMinimizedOnlyOnActiveQuery')
+        return Promise.resolve(true);
       if (key === 'showCallNotification') return Promise.resolve(true);
       return Promise.resolve(false);
     });
@@ -143,7 +152,9 @@ describe('WebRTCCallModal', () => {
     });
 
     const { getByText } = render(
-      <WebRTCCallModal activeTab={{ type: 'query', name: 'other', networkId: 'net-1' }} />
+      <WebRTCCallModal
+        activeTab={{ type: 'query', name: 'other', networkId: 'net-1' }}
+      />,
     );
 
     await waitFor(() => {

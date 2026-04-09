@@ -62,66 +62,90 @@ describe('ChannelNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** Channel list:', rawCategory: 'server' })
+      expect.objectContaining({
+        text: '*** Channel list:',
+        rawCategory: 'server',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** #chat (42 users): General' })
+      expect.objectContaining({ text: '*** #chat (42 users): General' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** End of channel list' })
+      expect.objectContaining({ text: '*** End of channel list' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** You have invited Alice to #chat', rawCategory: 'channel' })
+      expect.objectContaining({
+        text: '*** You have invited Alice to #chat',
+        rawCategory: 'channel',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       5,
-      expect.objectContaining({ text: '*** #chat invite list: mask!*@*' })
+      expect.objectContaining({ text: '*** #chat invite list: mask!*@*' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       6,
-      expect.objectContaining({ text: '*** End of #chat invite list' })
+      expect.objectContaining({ text: '*** End of #chat invite list' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       7,
-      expect.objectContaining({ text: '*** #chat exception list: except!*@*' })
+      expect.objectContaining({ text: '*** #chat exception list: except!*@*' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       8,
-      expect.objectContaining({ text: '*** End of #chat exception list' })
+      expect.objectContaining({ text: '*** End of #chat exception list' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       9,
-      expect.objectContaining({ text: '*** End of #chat ban list' })
+      expect.objectContaining({ text: '*** End of #chat ban list' }),
     );
   });
 
   it('formats creation time, links, and ban list metadata', () => {
     handle329(ctx, 'server', ['nick', '#chat', '1700000000'], 709);
-    handle364(ctx, 'server', ['nick', '*', 'irc.example.org', ':hub server'], 710);
+    handle364(
+      ctx,
+      'server',
+      ['nick', '*', 'irc.example.org', ':hub server'],
+      710,
+    );
     handle365(ctx, 'server', ['nick', '*'], 711);
-    handle367(ctx, 'server', ['nick', '#chat', '*!*@bad.host', 'Oper', '1700000000'], 712);
+    handle367(
+      ctx,
+      'server',
+      ['nick', '#chat', '*!*@bad.host', 'Oper', '1700000000'],
+      712,
+    );
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: expect.stringContaining('*** #chat was created on '), rawCategory: 'channel' })
+      expect.objectContaining({
+        text: expect.stringContaining('*** #chat was created on '),
+        rawCategory: 'channel',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** Link: irc.example.org (hub server)', rawCategory: 'server' })
+      expect.objectContaining({
+        text: '*** Link: irc.example.org (hub server)',
+        rawCategory: 'server',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** End of LINKS (*)' })
+      expect.objectContaining({ text: '*** End of LINKS (*)' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
       expect.objectContaining({
-        text: expect.stringContaining('*** #chat ban: *!*@bad.host (set by Oper on '),
+        text: expect.stringContaining(
+          '*** #chat ban: *!*@bad.host (set by Oper on ',
+        ),
         rawCategory: 'channel',
-      })
+      }),
     );
   });
 });

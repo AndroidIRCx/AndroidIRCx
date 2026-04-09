@@ -37,7 +37,9 @@ interface CertificateFingerprintModalProps {
   showQRCode?: boolean;
 }
 
-export const CertificateFingerprintModal: React.FC<CertificateFingerprintModalProps> = ({
+export const CertificateFingerprintModal: React.FC<
+  CertificateFingerprintModalProps
+> = ({
   visible,
   onClose,
   fingerprint,
@@ -46,7 +48,9 @@ export const CertificateFingerprintModal: React.FC<CertificateFingerprintModalPr
 }) => {
   const t = useT();
   const [useColons, setUseColons] = useState(true);
-  const [selectedService, setSelectedService] = useState<IRCService>(IRCService.NICKSERV);
+  const [selectedService, setSelectedService] = useState<IRCService>(
+    IRCService.NICKSERV,
+  );
 
   const getFormattedFingerprint = () => {
     const format = useColons
@@ -76,7 +80,9 @@ export const CertificateFingerprintModal: React.FC<CertificateFingerprintModalPr
       onSendToNickServ(command);
       Alert.alert(
         t('Sent'),
-        t('Fingerprint command sent to {{service}}', { service: selectedService })
+        t('Fingerprint command sent to {{service}}', {
+          service: selectedService,
+        }),
       );
       onClose();
     } else {
@@ -101,7 +107,12 @@ export const CertificateFingerprintModal: React.FC<CertificateFingerprintModalPr
         accessibilityRole="button"
         accessibilityState={{ selected: isSelected }}
       >
-        <Text style={[styles.serviceButtonText, isSelected && styles.serviceButtonTextSelected]}>
+        <Text
+          style={[
+            styles.serviceButtonText,
+            isSelected && styles.serviceButtonTextSelected,
+          ]}
+        >
           {service}
         </Text>
       </Pressable>
@@ -109,12 +120,19 @@ export const CertificateFingerprintModal: React.FC<CertificateFingerprintModalPr
   };
 
   return (
-    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="fade"
+      transparent
+      onRequestClose={onClose}
+    >
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>{t('Certificate Fingerprint')}</Text>
+            <Text style={styles.headerTitle}>
+              {t('Certificate Fingerprint')}
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
@@ -142,9 +160,14 @@ export const CertificateFingerprintModal: React.FC<CertificateFingerprintModalPr
                 </Text>
               </View>
 
-              <TouchableOpacity style={styles.actionButton} onPress={handleCopyFingerprint}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleCopyFingerprint}
+              >
                 <Text style={styles.actionButtonIcon}>📋</Text>
-                <Text style={styles.actionButtonText}>{t('Copy Fingerprint')}</Text>
+                <Text style={styles.actionButtonText}>
+                  {t('Copy Fingerprint')}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -185,7 +208,10 @@ export const CertificateFingerprintModal: React.FC<CertificateFingerprintModalPr
                 </Text>
               </View>
 
-              <TouchableOpacity style={styles.actionButton} onPress={handleCopyCommand}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleCopyCommand}
+              >
                 <Text style={styles.actionButtonIcon}>📋</Text>
                 <Text style={styles.actionButtonText}>{t('Copy Command')}</Text>
               </TouchableOpacity>
@@ -193,7 +219,8 @@ export const CertificateFingerprintModal: React.FC<CertificateFingerprintModalPr
               {onSendToNickServ && (
                 <TouchableOpacity
                   style={[styles.actionButton, styles.sendButton]}
-                  onPress={handleSendToService}>
+                  onPress={handleSendToService}
+                >
                   <Text style={styles.actionButtonIcon}>📤</Text>
                   <Text style={styles.actionButtonText}>
                     {t('Send to {{service}}', { service: selectedService })}
@@ -211,7 +238,7 @@ export const CertificateFingerprintModal: React.FC<CertificateFingerprintModalPr
                     '2. Send it to {{service}} on IRC\n' +
                     '3. Your certificate will be associated with your nickname\n' +
                     '4. You can now authenticate using SASL EXTERNAL',
-                  { service: selectedService }
+                  { service: selectedService },
                 )}
               </Text>
             </View>

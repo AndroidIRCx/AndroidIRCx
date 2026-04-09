@@ -22,11 +22,15 @@ jest.mock('react-native', () => {
     Platform: {
       OS: 'android',
     },
-    View: ({ children, ...props }: any) => React.createElement('View', props, children),
-    Text: ({ children, ...props }: any) => React.createElement('Text', props, children),
+    View: ({ children, ...props }: any) =>
+      React.createElement('View', props, children),
+    Text: ({ children, ...props }: any) =>
+      React.createElement('Text', props, children),
     TextInput: (props: any) => React.createElement('TextInput', props),
-    TouchableOpacity: ({ children, ...props }: any) => React.createElement('TouchableOpacity', props, children),
-    ScrollView: ({ children, ...props }: any) => React.createElement('ScrollView', props, children),
+    TouchableOpacity: ({ children, ...props }: any) =>
+      React.createElement('TouchableOpacity', props, children),
+    ScrollView: ({ children, ...props }: any) =>
+      React.createElement('ScrollView', props, children),
     FlatList: (props: any) => React.createElement('FlatList', props),
     StyleSheet: {
       create: (styles: any) => styles,
@@ -61,8 +65,12 @@ describe('HighlightingSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (highlightService.getHighlightWords as jest.Mock).mockReturnValue([]);
-    (highlightService.addHighlightWord as jest.Mock).mockResolvedValue(undefined);
-    (highlightService.removeHighlightWord as jest.Mock).mockResolvedValue(undefined);
+    (highlightService.addHighlightWord as jest.Mock).mockResolvedValue(
+      undefined,
+    );
+    (highlightService.removeHighlightWord as jest.Mock).mockResolvedValue(
+      undefined,
+    );
   });
 
   it('should render add highlight word input', () => {
@@ -71,21 +79,24 @@ describe('HighlightingSection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     expect(getByPlaceholderText(/Enter a word to highlight/i)).toBeTruthy();
   });
 
   it('should display existing highlight words', () => {
-    (highlightService.getHighlightWords as jest.Mock).mockReturnValue(['test', 'hello']);
+    (highlightService.getHighlightWords as jest.Mock).mockReturnValue([
+      'test',
+      'hello',
+    ]);
 
     const { getByText } = render(
       <HighlightingSection
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     expect(getByText('test')).toBeTruthy();
@@ -98,7 +109,7 @@ describe('HighlightingSection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     const input = getByPlaceholderText(/Enter a word to highlight/i);
@@ -117,7 +128,7 @@ describe('HighlightingSection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     const input = getByPlaceholderText(/Enter a word to highlight/i);
@@ -135,7 +146,7 @@ describe('HighlightingSection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     const removeButton = getByText('test');

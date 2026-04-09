@@ -43,12 +43,20 @@ export const callSignalCodec = {
   },
 
   encodeChunked(signal: WebRTCCallSignal, transferId: string): string[] {
-    const encodedPayload = Buffer.from(JSON.stringify(signal), 'utf8').toString('base64');
-    const total = Math.max(1, Math.ceil(encodedPayload.length / SIGNAL_CHUNK_SIZE));
+    const encodedPayload = Buffer.from(JSON.stringify(signal), 'utf8').toString(
+      'base64',
+    );
+    const total = Math.max(
+      1,
+      Math.ceil(encodedPayload.length / SIGNAL_CHUNK_SIZE),
+    );
     const chunks: string[] = [];
 
     for (let index = 0; index < total; index += 1) {
-      const data = encodedPayload.slice(index * SIGNAL_CHUNK_SIZE, (index + 1) * SIGNAL_CHUNK_SIZE);
+      const data = encodedPayload.slice(
+        index * SIGNAL_CHUNK_SIZE,
+        (index + 1) * SIGNAL_CHUNK_SIZE,
+      );
       const chunk: WebRTCCallSignalChunk = {
         id: transferId,
         sessionId: signal.sessionId,
@@ -68,13 +76,18 @@ export const callSignalCodec = {
     }
 
     try {
-      return JSON.parse(raw.slice(SIGNAL_CHUNK_PREFIX.length)) as WebRTCCallSignalChunk;
+      return JSON.parse(
+        raw.slice(SIGNAL_CHUNK_PREFIX.length),
+      ) as WebRTCCallSignalChunk;
     } catch {
       return null;
     }
   },
 
-  appendChunk(buffer: WebRTCCallChunkBuffer | undefined, chunk: WebRTCCallSignalChunk): WebRTCCallChunkBuffer {
+  appendChunk(
+    buffer: WebRTCCallChunkBuffer | undefined,
+    chunk: WebRTCCallSignalChunk,
+  ): WebRTCCallChunkBuffer {
     const now = Date.now();
     const next = buffer || {
       total: chunk.total,

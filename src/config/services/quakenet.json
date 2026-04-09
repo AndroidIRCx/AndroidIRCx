@@ -35,9 +35,7 @@
           "completion": {
             "suggestAlias": "qauth",
             "priority": 100,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -66,9 +64,7 @@
           "completion": {
             "suggestAlias": "qhello",
             "priority": 90,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -84,9 +80,7 @@
           "completion": {
             "suggestAlias": "qwhoami",
             "priority": 80,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -109,9 +103,7 @@
           "completion": {
             "suggestAlias": "qwhois",
             "priority": 75,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -146,9 +138,7 @@
           "completion": {
             "suggestAlias": "qnewpass",
             "priority": 70,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -183,9 +173,7 @@
           "completion": {
             "suggestAlias": "qadduser",
             "priority": 85,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -214,9 +202,7 @@
           "completion": {
             "suggestAlias": "qremoveuser",
             "priority": 80,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -251,9 +237,7 @@
           "completion": {
             "suggestAlias": "qchanlev",
             "priority": 75,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -276,10 +260,7 @@
           "completion": {
             "suggestAlias": "qusers",
             "priority": 70,
-            "context": [
-              "global",
-              "channel"
-            ]
+            "context": ["global", "channel"]
           }
         },
         {
@@ -308,9 +289,7 @@
           "completion": {
             "suggestAlias": "qop",
             "priority": 82,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -339,9 +318,7 @@
           "completion": {
             "suggestAlias": "qvoice",
             "priority": 78,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -364,9 +341,7 @@
           "completion": {
             "suggestAlias": "qinvite",
             "priority": 72,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -395,9 +370,7 @@
           "completion": {
             "suggestAlias": "qtopic",
             "priority": 74,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -426,9 +399,7 @@
           "completion": {
             "suggestAlias": "qchanflags",
             "priority": 68,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -457,9 +428,7 @@
           "completion": {
             "suggestAlias": "qchanmode",
             "priority": 66,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -494,9 +463,7 @@
           "completion": {
             "suggestAlias": "qpermban",
             "priority": 60,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -537,9 +504,7 @@
           "completion": {
             "suggestAlias": "qtempban",
             "priority": 58,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -562,9 +527,7 @@
           "completion": {
             "suggestAlias": "qbanlist",
             "priority": 55,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -593,9 +556,7 @@
           "completion": {
             "suggestAlias": "qbandel",
             "priority": 54,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -618,9 +579,7 @@
           "completion": {
             "suggestAlias": "qunbanme",
             "priority": 52,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -649,9 +608,7 @@
           "completion": {
             "suggestAlias": "qwelcome",
             "priority": 50,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -674,9 +631,7 @@
           "completion": {
             "suggestAlias": "qrecover",
             "priority": 48,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -705,9 +660,7 @@
           "completion": {
             "suggestAlias": "qgiveowner",
             "priority": 46,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         }
       ]

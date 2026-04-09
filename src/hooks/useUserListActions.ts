@@ -30,29 +30,37 @@ export function useUserListActions({
   setTabs,
   setActiveTabId,
 }: UseUserListActionsProps) {
-  const handleUserPress = useCallback(async (user: { nick: string }) => {
-    // Open query window or perform action
-    const queryId = queryTabId(activeTab.networkId, user.nick);
-    const queryTab = tabs.find(t => t.id === queryId && t.type === 'query');
-    if (queryTab) {
-      setActiveTabId(queryTab.id);
-    } else {
-      // Create new query tab
-      const network = activeTab.networkId || '';
-      const isEncrypted = await encryptedDMService.isEncryptedForNetwork(network, user.nick);
-      const newQueryTab: ChannelTab = {
-        id: queryId,
-        name: user.nick,
-        type: 'query',
-        networkId: activeTab.networkId,
-        messages: [],
-        isEncrypted,
-      };
-      setTabs((prev) => sortTabsGrouped([...prev, newQueryTab], tabSortAlphabetical));
-      soundService.playSound(SoundEventType.RING);
-      setActiveTabId(newQueryTab.id);
-    }
-  }, [tabs, activeTab, tabSortAlphabetical, setTabs, setActiveTabId]);
+  const handleUserPress = useCallback(
+    async (user: { nick: string }) => {
+      // Open query window or perform action
+      const queryId = queryTabId(activeTab.networkId, user.nick);
+      const queryTab = tabs.find(t => t.id === queryId && t.type === 'query');
+      if (queryTab) {
+        setActiveTabId(queryTab.id);
+      } else {
+        // Create new query tab
+        const network = activeTab.networkId || '';
+        const isEncrypted = await encryptedDMService.isEncryptedForNetwork(
+          network,
+          user.nick,
+        );
+        const newQueryTab: ChannelTab = {
+          id: queryId,
+          name: user.nick,
+          type: 'query',
+          networkId: activeTab.networkId,
+          messages: [],
+          isEncrypted,
+        };
+        setTabs(prev =>
+          sortTabsGrouped([...prev, newQueryTab], tabSortAlphabetical),
+        );
+        soundService.playSound(SoundEventType.RING);
+        setActiveTabId(newQueryTab.id);
+      }
+    },
+    [tabs, activeTab, tabSortAlphabetical, setTabs, setActiveTabId],
+  );
 
   const handleWHOISPress = useCallback((nick: string) => {
     useUIStore.getState().setWhoisNick(nick);

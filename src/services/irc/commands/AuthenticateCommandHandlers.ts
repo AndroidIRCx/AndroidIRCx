@@ -30,8 +30,11 @@ export const handleAUTHENTICATE: CommandHandler = (ctx, prefix, params) => {
     // Check if we're using SCRAM mechanism
     const mechanism = ctx.getSaslMechanism?.();
     const saslState = ctx.getSaslState?.();
-    
-    if ((mechanism === 'SCRAM-SHA-256' || mechanism === 'SCRAM-SHA-256-PLUS') && saslState) {
+
+    if (
+      (mechanism === 'SCRAM-SHA-256' || mechanism === 'SCRAM-SHA-256-PLUS') &&
+      saslState
+    ) {
       // Handle SCRAM multi-step authentication
       if (saslState === 'client-first-sent') {
         // This is server-first-message
@@ -42,7 +45,9 @@ export const handleAUTHENTICATE: CommandHandler = (ctx, prefix, params) => {
         ctx.logRaw('IRCService: Received SCRAM server-final-message');
         ctx.handleScramServerFinal?.(param);
       } else {
-        ctx.logRaw(`IRCService: Unexpected SCRAM message in state ${saslState}: ${param}`);
+        ctx.logRaw(
+          `IRCService: Unexpected SCRAM message in state ${saslState}: ${param}`,
+        );
       }
     } else {
       // For PLAIN/EXTERNAL, any non-+ response is an error

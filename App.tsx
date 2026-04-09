@@ -7,13 +7,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  StatusBar,
-  View,
-  Alert,
-  AppState,
-  LogBox,
-} from 'react-native';
+import { StatusBar, View, Alert, AppState, LogBox } from 'react-native';
 import { createStyles } from './App.styles';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import {
@@ -27,7 +21,13 @@ import { settingsService } from './src/services/SettingsService';
 import { secureStorageService } from './src/services/SecureStorageService';
 import { useTheme } from './src/hooks/useTheme';
 import { dccFileService } from './src/services/DCCFileService';
-import { initTransifex, listenToLocaleChanges, TXProvider, tx, useT } from './src/i18n/transifex';
+import {
+  initTransifex,
+  listenToLocaleChanges,
+  TXProvider,
+  tx,
+  useT,
+} from './src/i18n/transifex';
 
 // Zustand stores and custom hooks
 import { useUIStore } from './src/stores/uiStore';
@@ -116,7 +116,7 @@ function AppContent() {
     ping,
     activeConnectionId,
     primaryNetworkId,
-    setSelectedNetworkName
+    setSelectedNetworkName,
   } = connectionManagerHook;
 
   // Tab state and manager from Zustand store + custom hook
@@ -182,46 +182,63 @@ function AppContent() {
 
   // App lock management (PIN, biometric auth, auto-lock)
   const { attemptBiometricUnlock, handleAppPinUnlock } = useAppLock();
-  
+
   // Kill switch and quick connect settings
-  const [killSwitchEnabledOnHeader, setKillSwitchEnabledOnHeader] = useState(false);
-  const [killSwitchEnabledOnLockScreen, setKillSwitchEnabledOnLockScreen] = useState(false);
-  
+  const [killSwitchEnabledOnHeader, setKillSwitchEnabledOnHeader] =
+    useState(false);
+  const [killSwitchEnabledOnLockScreen, setKillSwitchEnabledOnLockScreen] =
+    useState(false);
+
   useEffect(() => {
     const loadKillSwitchSettings = async () => {
-      const headerEnabled = await settingsService.getSetting('killSwitchEnabledOnHeader', false);
-      const lockScreenEnabled = await settingsService.getSetting('killSwitchEnabledOnLockScreen', false);
+      const headerEnabled = await settingsService.getSetting(
+        'killSwitchEnabledOnHeader',
+        false,
+      );
+      const lockScreenEnabled = await settingsService.getSetting(
+        'killSwitchEnabledOnLockScreen',
+        false,
+      );
       setKillSwitchEnabledOnHeader(headerEnabled);
       setKillSwitchEnabledOnLockScreen(lockScreenEnabled);
     };
     loadKillSwitchSettings();
-    
-    const unsubscribe = settingsService.onSettingChange('killSwitchEnabledOnHeader', (value) => {
-      setKillSwitchEnabledOnHeader(Boolean(value));
-    });
-    const unsubscribe2 = settingsService.onSettingChange('killSwitchEnabledOnLockScreen', (value) => {
-      setKillSwitchEnabledOnLockScreen(Boolean(value));
-    });
-    
+
+    const unsubscribe = settingsService.onSettingChange(
+      'killSwitchEnabledOnHeader',
+      value => {
+        setKillSwitchEnabledOnHeader(Boolean(value));
+      },
+    );
+    const unsubscribe2 = settingsService.onSettingChange(
+      'killSwitchEnabledOnLockScreen',
+      value => {
+        setKillSwitchEnabledOnLockScreen(Boolean(value));
+      },
+    );
+
     return () => {
       unsubscribe();
       unsubscribe2();
     };
   }, []);
-  
+
   // Kill switch handler for header - checks if warnings enabled, then activates
   const handleKillSwitchFromHeader = useCallback(async () => {
-    const showWarnings = await settingsService.getSetting('killSwitchShowWarnings', true);
+    const showWarnings = await settingsService.getSetting(
+      'killSwitchShowWarnings',
+      true,
+    );
     await killSwitchService.confirmAndActivate(showWarnings);
   }, []);
-  
+
   // Kill switch handler for unlock screen - verifies PIN/biometric then triggers kill switch (no warnings)
   const handleKillSwitchFromUnlock = useCallback(async () => {
     const store = useUIStore.getState();
-    
+
     // Verify authentication first
     let verified = false;
-    
+
     // If biometric is enabled, try biometric first
     // This is a manual action (kill switch), so pass true for manual retry
     if (store.appLockUseBiometric) {
@@ -230,10 +247,12 @@ function AppContent() {
         verified = true;
       }
     }
-    
+
     // If not verified yet and PIN is enabled, verify PIN
     if (!verified && store.appLockUsePin) {
-      const storedPin = await secureStorageService.getSecret('@AndroidIRCX:app-lock-pin');
+      const storedPin = await secureStorageService.getSecret(
+        '@AndroidIRCX:app-lock-pin',
+      );
       if (store.appPinEntry.trim() === storedPin) {
         verified = true;
         // Clear PIN entry after verification
@@ -241,29 +260,34 @@ function AppContent() {
         store.setAppPinError('');
       } else {
         // Wrong PIN
-        store.setAppPinError('Incorrect PIN. Kill switch requires valid authentication.');
+        store.setAppPinError(
+          'Incorrect PIN. Kill switch requires valid authentication.',
+        );
         return;
       }
     }
-    
+
     if (!verified) {
-      Alert.alert(t('Error'), t('Kill switch requires PIN or biometric authentication.'));
+      Alert.alert(
+        t('Error'),
+        t('Kill switch requires PIN or biometric authentication.'),
+      );
       return;
     }
-    
+
     // Authentication verified, trigger kill switch directly (no warnings on lock screen)
     const result = await killSwitchService.activateKillSwitch();
-    
+
     // Close unlock modal
     store.setAppUnlockModalVisible(false);
     store.setAppLocked(false);
-    
+
     // Show minimal result if there were errors
     if (!result.success) {
       const errorsText = result.errors.join('\n');
       Alert.alert(
         t('Kill Switch Error'),
-        `${t('Some errors occurred:')}\n${errorsText}`
+        `${t('Some errors occurred:')}\n${errorsText}`,
       );
     }
   }, [attemptBiometricUnlock, t]);
@@ -276,25 +300,40 @@ function AppContent() {
 
   // Additional UI settings (not yet in store, keeping as local state for now)
   const [, setAutoSwitchPrivate] = useState(false);
-  const [showEncryptionIndicators, setShowEncryptionIndicators] = useState(true);
-  const [autoConnectFavoriteServer, setAutoConnectFavoriteServer] = useState(false);
+  const [showEncryptionIndicators, setShowEncryptionIndicators] =
+    useState(true);
+  const [autoConnectFavoriteServer, setAutoConnectFavoriteServer] =
+    useState(false);
   const autoConnectFavoriteServerRef = useRef(false);
   const [tabSortAlphabetical, setTabSortAlphabetical] = useState(true);
   const [showHeaderSearchButton, setShowHeaderSearchButton] = useState(true);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const [keyboardAvoidingEnabled, setKeyboardAvoidingEnabled] = useState(true);
-  const [keyboardBehaviorIOS, setKeyboardBehaviorIOS] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('padding');
-  const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('height');
+  const [keyboardBehaviorIOS, setKeyboardBehaviorIOS] = useState<
+    'padding' | 'height' | 'position' | 'translate-with-padding'
+  >('padding');
+  const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<
+    'padding' | 'height' | 'position' | 'translate-with-padding'
+  >('height');
   const [keyboardVerticalOffset, setKeyboardVerticalOffset] = useState(0);
-  const [useAndroidBottomSafeArea, setUseAndroidBottomSafeArea] = useState(true);
+  const [useAndroidBottomSafeArea, setUseAndroidBottomSafeArea] =
+    useState(true);
 
-  const pendingAlertRef = useRef<{ title: string; message?: string; buttons?: any } | null>(null);
+  const pendingAlertRef = useRef<{
+    title: string;
+    message?: string;
+    buttons?: any;
+  } | null>(null);
   const motdCompleteRef = useRef<Set<string>>(new Set());
   const autoConnectAttemptedRef = useRef<Set<string>>(new Set());
 
   // Message batching refs to prevent 150+ individual updates during rapid message arrival
-  const pendingMessagesRef = useRef<Array<{message: IRCMessage, context: any}>>([]);
-  const messageBatchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingMessagesRef = useRef<
+    Array<{ message: IRCMessage; context: any }>
+  >([]);
+  const messageBatchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   // Process batched messages - called after timeout
   const { processBatchedMessages } = useMessageBatching({
@@ -316,7 +355,7 @@ function AppContent() {
       setShowTypingIndicators(value);
       await settingsService.setSetting('showTypingIndicators', value);
     },
-    [setShowTypingIndicators]
+    [setShowTypingIndicators],
   );
 
   const { safeAlert } = useSafeAlert({ appStateRef, pendingAlertRef });
@@ -339,14 +378,20 @@ function AppContent() {
 
   useEffect(() => {
     const loadSetting = async () => {
-      const enabled = await settingsService.getSetting('showHeaderSearchButton', true);
+      const enabled = await settingsService.getSetting(
+        'showHeaderSearchButton',
+        true,
+      );
       setShowHeaderSearchButton(enabled);
     };
     loadSetting();
 
-    const unsubscribe = settingsService.onSettingChange<boolean>('showHeaderSearchButton', (value) => {
-      setShowHeaderSearchButton(Boolean(value));
-    });
+    const unsubscribe = settingsService.onSettingChange<boolean>(
+      'showHeaderSearchButton',
+      value => {
+        setShowHeaderSearchButton(Boolean(value));
+      },
+    );
 
     return () => {
       unsubscribe && unsubscribe();
@@ -355,35 +400,83 @@ function AppContent() {
 
   useEffect(() => {
     const loadKeyboardSettings = async () => {
-      const avoidingEnabled = await settingsService.getSetting('keyboardAvoidingEnabled', true);
-      const behaviorIOS = await settingsService.getSetting('keyboardBehaviorIOS', 'padding');
-      const behaviorAndroid = await settingsService.getSetting('keyboardBehaviorAndroid', 'height');
-      const verticalOffset = await settingsService.getSetting('keyboardVerticalOffset', 0);
-      const androidBottomSafeArea = await settingsService.getSetting('useAndroidBottomSafeArea', true);
+      const avoidingEnabled = await settingsService.getSetting(
+        'keyboardAvoidingEnabled',
+        true,
+      );
+      const behaviorIOS = await settingsService.getSetting(
+        'keyboardBehaviorIOS',
+        'padding',
+      );
+      const behaviorAndroid = await settingsService.getSetting(
+        'keyboardBehaviorAndroid',
+        'height',
+      );
+      const verticalOffset = await settingsService.getSetting(
+        'keyboardVerticalOffset',
+        0,
+      );
+      const androidBottomSafeArea = await settingsService.getSetting(
+        'useAndroidBottomSafeArea',
+        true,
+      );
       setKeyboardAvoidingEnabled(avoidingEnabled);
-      setKeyboardBehaviorIOS(behaviorIOS as 'padding' | 'height' | 'position' | 'translate-with-padding');
-      setKeyboardBehaviorAndroid(behaviorAndroid as 'padding' | 'height' | 'position' | 'translate-with-padding');
+      setKeyboardBehaviorIOS(
+        behaviorIOS as
+          | 'padding'
+          | 'height'
+          | 'position'
+          | 'translate-with-padding',
+      );
+      setKeyboardBehaviorAndroid(
+        behaviorAndroid as
+          | 'padding'
+          | 'height'
+          | 'position'
+          | 'translate-with-padding',
+      );
       setKeyboardVerticalOffset(verticalOffset);
       setUseAndroidBottomSafeArea(androidBottomSafeArea);
     };
     loadKeyboardSettings();
 
-    const unsubscribeAvoiding = settingsService.onSettingChange<boolean>('keyboardAvoidingEnabled', (value) => {
-      setKeyboardAvoidingEnabled(Boolean(value));
-    });
-    const unsubscribeBehaviorIOS = settingsService.onSettingChange<string>('keyboardBehaviorIOS', (value) => {
-      setKeyboardBehaviorIOS(value as 'padding' | 'height' | 'position' | 'translate-with-padding');
-    });
-    const unsubscribeBehaviorAndroid = settingsService.onSettingChange<string>('keyboardBehaviorAndroid', (value) => {
-      setKeyboardBehaviorAndroid(value as 'padding' | 'height' | 'position' | 'translate-with-padding');
-    });
-    const unsubscribeVerticalOffset = settingsService.onSettingChange<number>('keyboardVerticalOffset', (value) => {
-      const numericValue = typeof value === 'number' ? value : Number(value);
-      setKeyboardVerticalOffset(Number.isFinite(numericValue) ? numericValue : 0);
-    });
-    const unsubscribeAndroidSafeArea = settingsService.onSettingChange<boolean>('useAndroidBottomSafeArea', (value) => {
-      setUseAndroidBottomSafeArea(Boolean(value));
-    });
+    const unsubscribeAvoiding = settingsService.onSettingChange<boolean>(
+      'keyboardAvoidingEnabled',
+      value => {
+        setKeyboardAvoidingEnabled(Boolean(value));
+      },
+    );
+    const unsubscribeBehaviorIOS = settingsService.onSettingChange<string>(
+      'keyboardBehaviorIOS',
+      value => {
+        setKeyboardBehaviorIOS(
+          value as 'padding' | 'height' | 'position' | 'translate-with-padding',
+        );
+      },
+    );
+    const unsubscribeBehaviorAndroid = settingsService.onSettingChange<string>(
+      'keyboardBehaviorAndroid',
+      value => {
+        setKeyboardBehaviorAndroid(
+          value as 'padding' | 'height' | 'position' | 'translate-with-padding',
+        );
+      },
+    );
+    const unsubscribeVerticalOffset = settingsService.onSettingChange<number>(
+      'keyboardVerticalOffset',
+      value => {
+        const numericValue = typeof value === 'number' ? value : Number(value);
+        setKeyboardVerticalOffset(
+          Number.isFinite(numericValue) ? numericValue : 0,
+        );
+      },
+    );
+    const unsubscribeAndroidSafeArea = settingsService.onSettingChange<boolean>(
+      'useAndroidBottomSafeArea',
+      value => {
+        setUseAndroidBottomSafeArea(Boolean(value));
+      },
+    );
 
     return () => {
       unsubscribeAvoiding();
@@ -398,51 +491,26 @@ function AppContent() {
     autoConnectFavoriteServerRef.current = autoConnectFavoriteServer;
   }, [autoConnectFavoriteServer]);
 
-  const [channelUsers, setChannelUsers] = useState<Map<string, ChannelUser[]>>(new Map());
+  const [channelUsers, setChannelUsers] = useState<Map<string, ChannelUser[]>>(
+    new Map(),
+  );
   const [dccTransfers, setDccTransfers] = useState(dccFileService.list());
   const [motdSignal, setMotdSignal] = useState(0);
 
   // Get modal states from useUIState hook
-  const {
-    showChannelModal,
-    channelName,
-    showNetworksList,
-    showSettings,
-    showPurchaseScreen,
-    showIgnoreList,
-    showWHOIS,
-    whoisNick,
-    showQueryEncryptionMenu,
-    showChannelList,
-    showUserList,
-    showChannelSettings,
-    channelSettingsTarget,
-    channelSettingsNetwork,
-    showOptionsMenu,
-    showRenameModal,
-    renameTargetTabId,
-    renameValue,
-    showTabOptionsModal,
-    tabOptionsTitle,
-    tabOptions,
-    showChannelNoteModal,
-    channelNoteTarget,
-    channelNoteValue,
-    showChannelLogModal,
-    channelLogEntries,
-    prefillMessage,
-    showDccTransfers,
-    showDccSendModal,
-    dccSendTarget,
-    dccSendPath,
-  } = uiState;
+  const { channelName, showUserList, prefillMessage } = uiState;
 
   // Get active tab with safe fallback
-  const activeTab = getActiveTabSafe(tabs, activeTabId, activeConnectionId, primaryNetworkId, networkName);
+  const activeTab = getActiveTabSafe(
+    tabs,
+    activeTabId,
+    activeConnectionId,
+    primaryNetworkId,
+    networkName,
+  );
   const activeMessages = activeTab?.messages || [];
-  const activeUsers = activeTab.type === 'channel'
-    ? (channelUsers.get(activeTab.name) || [])
-    : [];
+  const activeUsers =
+    activeTab.type === 'channel' ? channelUsers.get(activeTab.name) || [] : [];
 
   const {
     appendServerMessage,
@@ -465,7 +533,10 @@ function AppContent() {
 
   useEffect(() => {
     if (!layoutConfig) return;
-    if (layoutConfig.tabPosition === 'top' || layoutConfig.tabPosition === 'bottom') {
+    if (
+      layoutConfig.tabPosition === 'top' ||
+      layoutConfig.tabPosition === 'bottom'
+    ) {
       setSideTabsVisible(true);
     }
   }, [layoutConfig]);
@@ -473,7 +544,6 @@ function AppContent() {
   useServerTabNameSync({ networkName });
   useDccSessionSync({ isMountedRef, tabSortAlphabetical });
   useTypingCleanup();
-
 
   // Network Initialization - Load networks, tabs, and message history
   useNetworkInitialization({
@@ -518,18 +588,19 @@ function AppContent() {
   });
 
   // Tab Actions - Handle tab selection, joins, and bulk closes
-  const { handleTabPress, handleJoinChannel, closeAllChannelsAndQueries } = useTabActions({
-    activeTabId,
-    channelName,
-    tabSortAlphabetical,
-    tabsRef,
-    getActiveIRCService,
-    setActiveTabId,
-    setNetworkName,
-    setActiveConnectionId,
-    setTabs,
-    setChannelUsers,
-  });
+  const { handleTabPress, handleJoinChannel, closeAllChannelsAndQueries } =
+    useTabActions({
+      activeTabId,
+      channelName,
+      tabSortAlphabetical,
+      tabsRef,
+      getActiveIRCService,
+      setActiveTabId,
+      setNetworkName,
+      setActiveConnectionId,
+      setTabs,
+      setChannelUsers,
+    });
 
   // App Exit - Handle disconnect + app exit workflow
   const { handleExit } = useAppExit({
@@ -540,7 +611,8 @@ function AppContent() {
   });
 
   // Header Actions - Options menu, settings, and nicklist toggle
-  const { handleDropdownPress, handleMenuPress, handleToggleUserList } = useHeaderActions();
+  const { handleDropdownPress, handleMenuPress, handleToggleUserList } =
+    useHeaderActions();
 
   // App Lock Actions - Handle lock button behavior
   const { handleLockButtonPress } = useAppLockActions({
@@ -644,7 +716,6 @@ function AppContent() {
   // Note: /server command handling is now in useConnectionHandler.handleServerConnect
   // and called directly from useConnectionLifecycle, so no need for event listener here
 
-
   // Remove handleAddPress as its logic is now merged into handleDropdownPress
   // const handleAddPress = useCallback(() => { /* ... (old code removed) ... */ }, [handleConnect, isConnected]);
 
@@ -663,7 +734,9 @@ function AppContent() {
     activeConnectionId ||
     (networkName !== 'Not connected' ? networkName : undefined) ||
     tabs.find(tab => tab.type === 'server')?.networkId;
-  const showSideTabsToggle = layoutConfig?.tabPosition === 'left' || layoutConfig?.tabPosition === 'right';
+  const showSideTabsToggle =
+    layoutConfig?.tabPosition === 'left' ||
+    layoutConfig?.tabPosition === 'right';
 
   // User list action handlers
   const { handleUserPress, handleWHOISPress } = useUserListActions({
@@ -749,7 +822,9 @@ function AppContent() {
         handleFirstRunSetupComplete={handleFirstRunSetupComplete}
         persistentSetShowRawCommands={persistentSetShowRawCommands}
         persistentSetRawCategoryVisibility={persistentSetRawCategoryVisibility}
-        persistentSetShowEncryptionIndicators={persistentSetShowEncryptionIndicators}
+        persistentSetShowEncryptionIndicators={
+          persistentSetShowEncryptionIndicators
+        }
         persistentSetShowTypingIndicators={persistentSetShowTypingIndicators}
         setActiveConnectionId={setActiveConnectionId}
         setTabs={setTabs}

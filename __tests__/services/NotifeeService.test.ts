@@ -32,7 +32,7 @@ describe('NotifeeService', () => {
   describe('displayNotification', () => {
     it('should display notification with title and body', async () => {
       await NotifeeService.displayNotification('Test Title', 'Test Body');
-      
+
       expect(mockRequestPermission).toHaveBeenCalled();
       expect(mockCreateChannel).toHaveBeenCalledWith({
         id: 'default',
@@ -50,7 +50,7 @@ describe('NotifeeService', () => {
 
     it('should handle empty title and body', async () => {
       await NotifeeService.displayNotification('', '');
-      
+
       expect(mockDisplayNotification).toHaveBeenCalledWith({
         title: '',
         body: '',
@@ -64,9 +64,9 @@ describe('NotifeeService', () => {
     it('should handle long title and body', async () => {
       const longTitle = 'A'.repeat(100);
       const longBody = 'B'.repeat(500);
-      
+
       await NotifeeService.displayNotification(longTitle, longBody);
-      
+
       expect(mockDisplayNotification).toHaveBeenCalledWith({
         title: longTitle,
         body: longBody,
@@ -79,7 +79,7 @@ describe('NotifeeService', () => {
 
     it('should handle special characters in title and body', async () => {
       await NotifeeService.displayNotification('Title <>&"\'', 'Body \n\t');
-      
+
       expect(mockDisplayNotification).toHaveBeenCalledWith({
         title: 'Title <>&"\'',
         body: 'Body \n\t',

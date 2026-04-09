@@ -31,21 +31,27 @@ describe('SettingsService', () => {
     const defaultNet = networks.find(n => n.name === 'DBase');
     expect(defaultNet).toBeTruthy();
     expect(defaultNet?.servers).toBeDefined();
-    const dbServer = defaultNet?.servers.find(s => s.hostname === 'irc.dbase.in.rs');
+    const dbServer = defaultNet?.servers.find(
+      s => s.hostname === 'irc.dbase.in.rs',
+    );
     expect(dbServer).toMatchObject({
       hostname: 'irc.dbase.in.rs',
       port: 6697,
       ssl: true,
     });
-    expect(defaultNet?.servers.some(s => s.hostname === 'irc.androidircx.com')).toBe(false);
+    expect(
+      defaultNet?.servers.some(s => s.hostname === 'irc.androidircx.com'),
+    ).toBe(false);
 
     // Networks should be saved (StorageCache uses multiSet for batched writes)
     const setItemCalls = (AsyncStorage as any).setItem.mock.calls;
     const multiSetCalls = (AsyncStorage as any).multiSet.mock.calls;
 
-    const networksSavedViaSetItem = setItemCalls.some((call: any) => call[0] === '@AndroidIRCX:networks');
+    const networksSavedViaSetItem = setItemCalls.some(
+      (call: any) => call[0] === '@AndroidIRCX:networks',
+    );
     const networksSavedViaMultiSet = multiSetCalls.some((call: any) =>
-      call[0].some((pair: any) => pair[0] === '@AndroidIRCX:networks')
+      call[0].some((pair: any) => pair[0] === '@AndroidIRCX:networks'),
     );
 
     expect(networksSavedViaSetItem || networksSavedViaMultiSet).toBe(true);
@@ -99,12 +105,18 @@ describe('SettingsService', () => {
     };
 
     // Seed storage so loadNetworks starts with our custom network
-    await AsyncStorage.setItem('@AndroidIRCX:networks', JSON.stringify([baseNetwork]));
+    await AsyncStorage.setItem(
+      '@AndroidIRCX:networks',
+      JSON.stringify([baseNetwork]),
+    );
     const networks = await settingsService.loadNetworks();
     await storageCache.flush();
     expect(networks.find(n => n.id === 'custom')).toBeTruthy();
 
-    await settingsService.updateServerInNetwork('custom', 'srv-1', { port: 6697, ssl: true });
+    await settingsService.updateServerInNetwork('custom', 'srv-1', {
+      port: 6697,
+      ssl: true,
+    });
     await storageCache.flush();
     const updated = await settingsService.getNetwork('custom');
     const server = updated?.servers.find(s => s.id === 'srv-1');
@@ -154,13 +166,20 @@ describe('SettingsService', () => {
       defaultServerId: 'androidircx-default',
     };
 
-    await AsyncStorage.setItem('@AndroidIRCX:networks', JSON.stringify([baseNetwork]));
+    await AsyncStorage.setItem(
+      '@AndroidIRCX:networks',
+      JSON.stringify([baseNetwork]),
+    );
 
     const networks = await settingsService.loadNetworks();
     const defaultNet = networks.find(n => n.name === 'DBase');
 
-    expect(defaultNet?.servers.some(s => s.hostname === 'irc.androidircx.com')).toBe(false);
-    expect(defaultNet?.servers.some(s => s.hostname === 'irc.dbase.in.rs')).toBe(true);
+    expect(
+      defaultNet?.servers.some(s => s.hostname === 'irc.androidircx.com'),
+    ).toBe(false);
+    expect(
+      defaultNet?.servers.some(s => s.hostname === 'irc.dbase.in.rs'),
+    ).toBe(true);
     expect(defaultNet?.defaultServerId).toBe(defaultNet?.servers[0].id);
     expect(defaultNet?.servers[0].favorite).toBe(true);
   });
@@ -173,16 +192,27 @@ describe('SettingsService', () => {
       realname: 'Real Name',
       identityProfileId: 'androidircx-default-profile',
       servers: [
-        { id: 'srv-1', hostname: 'one.example', port: 6697, ssl: true, favorite: true },
+        {
+          id: 'srv-1',
+          hostname: 'one.example',
+          port: 6697,
+          ssl: true,
+          favorite: true,
+        },
         { id: 'srv-2', hostname: 'two.example', port: 6697, ssl: true },
       ],
     };
 
-    await AsyncStorage.setItem('@AndroidIRCX:networks', JSON.stringify([baseNetwork]));
+    await AsyncStorage.setItem(
+      '@AndroidIRCX:networks',
+      JSON.stringify([baseNetwork]),
+    );
     await settingsService.loadNetworks();
     await storageCache.flush();
 
-    await settingsService.updateServerInNetwork('fav-test', 'srv-2', { favorite: true });
+    await settingsService.updateServerInNetwork('fav-test', 'srv-2', {
+      favorite: true,
+    });
     await storageCache.flush();
     const updated = await settingsService.getNetwork('fav-test');
 
@@ -197,10 +227,21 @@ describe('SettingsService', () => {
       nick: 'nick',
       realname: 'Real Name',
       identityProfileId: 'androidircx-default-profile',
-      servers: [{ id: 'srv-1', hostname: 'one.example', port: 6697, ssl: true, favorite: true }],
+      servers: [
+        {
+          id: 'srv-1',
+          hostname: 'one.example',
+          port: 6697,
+          ssl: true,
+          favorite: true,
+        },
+      ],
     };
 
-    await AsyncStorage.setItem('@AndroidIRCX:networks', JSON.stringify([baseNetwork]));
+    await AsyncStorage.setItem(
+      '@AndroidIRCX:networks',
+      JSON.stringify([baseNetwork]),
+    );
     await settingsService.loadNetworks();
     await storageCache.flush();
 
@@ -219,7 +260,9 @@ describe('SettingsService', () => {
   });
 
   it('disables the global proxy by default', async () => {
-    const cfg = await settingsService.getSetting('globalProxy', { enabled: false } as any);
+    const cfg = await settingsService.getSetting('globalProxy', {
+      enabled: false,
+    } as any);
     expect(cfg.enabled).toBe(false);
   });
 
@@ -231,7 +274,9 @@ describe('SettingsService', () => {
       port: 9050,
     } as any);
 
-    const cfg = await settingsService.getSetting('globalProxy', { enabled: false } as any);
+    const cfg = await settingsService.getSetting('globalProxy', {
+      enabled: false,
+    } as any);
     expect(cfg.enabled).toBe(true);
     expect(cfg.host).toBe('127.0.0.1');
     expect(cfg.port).toBe(9050);

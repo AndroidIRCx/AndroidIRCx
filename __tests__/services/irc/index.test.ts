@@ -10,5 +10,3 @@ describe('irc/index', () => {
     expect(typeof ircModule).toBe('object');
   });
 });
-
-

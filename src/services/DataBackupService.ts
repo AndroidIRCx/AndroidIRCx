@@ -25,7 +25,7 @@ async function getSodium() {
 
 // Keys that may contain sensitive data (passwords, tokens, etc.)
 const SENSITIVE_KEY_PATTERNS = [
-  '@AndroidIRCX:secure:',  // SecureStorage fallback keys
+  '@AndroidIRCX:secure:', // SecureStorage fallback keys
   'password',
   'token',
   'sasl',
@@ -37,7 +37,9 @@ const SENSITIVE_KEY_PATTERNS = [
  */
 function isSensitiveKey(key: string): boolean {
   const keyLower = key.toLowerCase();
-  return SENSITIVE_KEY_PATTERNS.some(pattern => keyLower.includes(pattern.toLowerCase()));
+  return SENSITIVE_KEY_PATTERNS.some(pattern =>
+    keyLower.includes(pattern.toLowerCase()),
+  );
 }
 
 export interface BackupPayload {
@@ -63,7 +65,9 @@ function fromSecureExportKey(exportKey: string): string {
 
 function hasNetworkSelection(keys: string[] | undefined): boolean {
   if (!keys) return false;
-  return keys.some((key) => key.includes('@AndroidIRCX:networks') || key.includes('NETWORKS'));
+  return keys.some(
+    key => key.includes('@AndroidIRCX:networks') || key.includes('NETWORKS'),
+  );
 }
 
 function isNetworkSecureSecret(secretKey: string): boolean {
@@ -106,10 +110,12 @@ class DataBackupService {
   }
 
   private async yieldToEventLoop(): Promise<void> {
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
   }
 
-  private async multiGetInChunks(keys: string[]): Promise<Array<[string, string | null]>> {
+  private async multiGetInChunks(
+    keys: string[],
+  ): Promise<Array<[string, string | null]>> {
     if (keys.length === 0) return [];
     const storage = this.getStorageCompat();
     const allEntries: Array<[string, string | null]> = [];
@@ -120,7 +126,11 @@ class DataBackupService {
         allEntries.push(...entries);
       } else if (typeof storage.getMany === 'function') {
         const entriesMap = await storage.getMany(chunk);
-        allEntries.push(...chunk.map((key) => [key, entriesMap[key] ?? null] as [string, string | null]));
+        allEntries.push(
+          ...chunk.map(
+            key => [key, entriesMap[key] ?? null] as [string, string | null],
+          ),
+        );
       } else {
         throw new Error('AsyncStorage batch read API is unavailable');
       }
@@ -129,7 +139,9 @@ class DataBackupService {
     return allEntries;
   }
 
-  private async multiSetInChunks(pairs: Array<[string, string]>): Promise<void> {
+  private async multiSetInChunks(
+    pairs: Array<[string, string]>,
+  ): Promise<void> {
     const storage = this.getStorageCompat();
     for (let i = 0; i < pairs.length; i += this.STORAGE_BATCH_SIZE) {
       const chunk = pairs.slice(i, i + this.STORAGE_BATCH_SIZE);
@@ -159,7 +171,9 @@ class DataBackupService {
     }
   }
 
-  private async getSecureExportEntries(keys?: string[]): Promise<Array<[string, string | null]>> {
+  private async getSecureExportEntries(
+    keys?: string[],
+  ): Promise<Array<[string, string | null]>> {
     const allSecretKeys = await secureStorageService.getAllSecretKeys();
     const explicitSecureSelections = keys
       ? keys.filter(isSecureExportKey).map(fromSecureExportKey)
@@ -168,7 +182,7 @@ class DataBackupService {
       ? allSecretKeys.filter(isNetworkSecureSecret)
       : [];
     const selectedSecretKeys = Array.from(
-      new Set([...explicitSecureSelections, ...networkDerivedSelections])
+      new Set([...explicitSecureSelections, ...networkDerivedSelections]),
     );
 
     if (selectedSecretKeys.length === 0) {
@@ -176,10 +190,10 @@ class DataBackupService {
     }
 
     const values = await Promise.all(
-      selectedSecretKeys.map(async (secretKey) => {
+      selectedSecretKeys.map(async secretKey => {
         const value = await secureStorageService.getSecret(secretKey);
         return [toSecureExportKey(secretKey), value] as [string, string | null];
-      })
+      }),
     );
 
     return values;
@@ -187,7 +201,7 @@ class DataBackupService {
 
   private buildPayload(
     asyncEntries: ReadonlyArray<readonly [string, string | null]>,
-    secureEntries: ReadonlyArray<readonly [string, string | null]>
+    secureEntries: ReadonlyArray<readonly [string, string | null]>,
   ): BackupPayload {
     const payload: BackupPayload = {
       version: 1,
@@ -302,10 +316,10 @@ class DataBackupService {
           } else {
             await secureStorageService.setSecret(secretKey, value);
           }
-        })
+        }),
       );
     }
-    
+
     // Re-initialize services to reload restored data
     try {
       await Promise.all([
@@ -325,8 +339,12 @@ class DataBackupService {
     const keys = await AsyncStorage.getAllKeys();
     const entries = await this.multiGetInChunks(keys);
     const secureEntries = await this.getSecureExportEntries();
-    const totalBytes = entries.reduce((sum, [, value]) => sum + (value ? value.length : 0), 0) +
-      secureEntries.reduce((sum, [, value]) => sum + (value ? value.length : 0), 0);
+    const totalBytes =
+      entries.reduce((sum, [, value]) => sum + (value ? value.length : 0), 0) +
+      secureEntries.reduce(
+        (sum, [, value]) => sum + (value ? value.length : 0),
+        0,
+      );
     return { keyCount: keys.length + secureEntries.length, totalBytes };
   }
 
@@ -335,14 +353,19 @@ class DataBackupService {
    */
   async getAllKeys(): Promise<string[]> {
     const keys = await AsyncStorage.getAllKeys();
-    const secureKeys = (await secureStorageService.getAllSecretKeys()).map(toSecureExportKey);
+    const secureKeys = (await secureStorageService.getAllSecretKeys()).map(
+      toSecureExportKey,
+    );
     return [...keys, ...secureKeys];
   }
 
   /**
    * Check if the backup data contains sensitive keys that should be warned about.
    */
-  checkForSensitiveData(keys: string[]): { hasSensitive: boolean; sensitiveKeys: string[] } {
+  checkForSensitiveData(keys: string[]): {
+    hasSensitive: boolean;
+    sensitiveKeys: string[];
+  } {
     const sensitiveKeys = keys.filter(isSensitiveKey);
     return {
       hasSensitive: sensitiveKeys.length > 0,
@@ -367,7 +390,7 @@ class DataBackupService {
       salt,
       sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
       sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-      sodium.crypto_pwhash_ALG_DEFAULT
+      sodium.crypto_pwhash_ALG_DEFAULT,
     );
 
     // Generate a random nonce
@@ -378,7 +401,9 @@ class DataBackupService {
     const ciphertext = sodium.crypto_secretbox_easy(plaintext, nonce, key);
 
     // Combine salt + nonce + ciphertext and encode as base64
-    const combined = new Uint8Array(salt.length + nonce.length + ciphertext.length);
+    const combined = new Uint8Array(
+      salt.length + nonce.length + ciphertext.length,
+    );
     combined.set(salt, 0);
     combined.set(nonce, salt.length);
     combined.set(ciphertext, salt.length + nonce.length);
@@ -397,7 +422,10 @@ class DataBackupService {
    * Decrypt backup data with a password.
    * Returns the decrypted JSON string or throws on failure.
    */
-  async decryptBackup(encryptedJson: string, password: string): Promise<string> {
+  async decryptBackup(
+    encryptedJson: string,
+    password: string,
+  ): Promise<string> {
     const sodium = await getSodium();
 
     const parsed = JSON.parse(encryptedJson);
@@ -412,10 +440,10 @@ class DataBackupService {
     const salt = combined.slice(0, sodium.crypto_pwhash_SALTBYTES);
     const nonce = combined.slice(
       sodium.crypto_pwhash_SALTBYTES,
-      sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES
+      sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES,
     );
     const ciphertext = combined.slice(
-      sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES
+      sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES,
     );
 
     // Derive the key from password
@@ -425,13 +453,15 @@ class DataBackupService {
       salt,
       sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
       sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-      sodium.crypto_pwhash_ALG_DEFAULT
+      sodium.crypto_pwhash_ALG_DEFAULT,
     );
 
     // Decrypt
     const plaintext = sodium.crypto_secretbox_open_easy(ciphertext, nonce, key);
     if (!plaintext) {
-      throw new Error(t('Decryption failed - wrong password or corrupted data'));
+      throw new Error(
+        t('Decryption failed - wrong password or corrupted data'),
+      );
     }
 
     return sodium.to_string(plaintext);

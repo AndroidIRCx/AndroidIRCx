@@ -18,7 +18,9 @@ jest.mock('../../src/services/MessageHistoryService', () => ({
 describe('MessageHistoryBatching', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    (messageHistoryService.saveMessages as jest.Mock).mockResolvedValue(undefined);
+    (messageHistoryService.saveMessages as jest.Mock).mockResolvedValue(
+      undefined,
+    );
     // Reset batching state
     messageHistoryBatching.clearQueue();
   });
@@ -51,7 +53,10 @@ describe('MessageHistoryBatching', () => {
 
       // Queue 10 messages (BATCH_SIZE)
       for (let i = 0; i < 10; i++) {
-        messageHistoryBatching.queueMessage({ ...message, id: String(i) }, 'freenode');
+        messageHistoryBatching.queueMessage(
+          { ...message, id: String(i) },
+          'freenode',
+        );
       }
 
       // Flush is async, wait for it
@@ -91,7 +96,7 @@ describe('MessageHistoryBatching', () => {
 
       expect(messageHistoryService.saveMessages).toHaveBeenCalledWith(
         [message],
-        'freenode'
+        'freenode',
       );
     });
 
@@ -110,7 +115,10 @@ describe('MessageHistoryBatching', () => {
     });
 
     it('should clear queue after flush', async () => {
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
 
       await messageHistoryBatching.flush();
 
@@ -126,10 +134,13 @@ describe('MessageHistoryBatching', () => {
     it('should not flush if already flushing', async () => {
       // Make saveMessages hang to simulate ongoing flush
       (messageHistoryService.saveMessages as jest.Mock).mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 100))
+        () => new Promise(resolve => setTimeout(resolve, 100)),
       );
 
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
 
       // Start first flush
       const flush1 = messageHistoryBatching.flush();
@@ -144,14 +155,19 @@ describe('MessageHistoryBatching', () => {
 
     it('should handle save errors gracefully', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      (messageHistoryService.saveMessages as jest.Mock).mockRejectedValue(new Error('Save failed'));
+      (messageHistoryService.saveMessages as jest.Mock).mockRejectedValue(
+        new Error('Save failed'),
+      );
 
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
       await messageHistoryBatching.flush();
 
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Error saving batch'),
-        expect.any(Error)
+        expect.any(Error),
       );
       consoleSpy.mockRestore();
     });
@@ -159,7 +175,10 @@ describe('MessageHistoryBatching', () => {
 
   describe('Flush Sync', () => {
     it('should flush immediately', async () => {
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
 
       await messageHistoryBatching.flushSync();
 
@@ -168,7 +187,10 @@ describe('MessageHistoryBatching', () => {
     });
 
     it('should cancel pending timeout', async () => {
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
 
       // Wait a bit but not enough for timeout
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -182,8 +204,14 @@ describe('MessageHistoryBatching', () => {
 
   describe('Clear Queue', () => {
     it('should clear queued messages', () => {
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
-      messageHistoryBatching.queueMessage({ id: '2', text: 'World' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
+      messageHistoryBatching.queueMessage(
+        { id: '2', text: 'World' } as any,
+        'freenode',
+      );
 
       messageHistoryBatching.clearQueue();
 
@@ -191,7 +219,10 @@ describe('MessageHistoryBatching', () => {
     });
 
     it('should cancel pending timeout', async () => {
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
 
       messageHistoryBatching.clearQueue();
 
@@ -209,17 +240,26 @@ describe('MessageHistoryBatching', () => {
     });
 
     it('should return correct size', () => {
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
       expect(messageHistoryBatching.getQueueSize()).toBe(1);
 
-      messageHistoryBatching.queueMessage({ id: '2', text: 'World' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '2', text: 'World' } as any,
+        'freenode',
+      );
       expect(messageHistoryBatching.getQueueSize()).toBe(2);
     });
   });
 
   describe('Timeout Behavior', () => {
     it('should flush after timeout', async () => {
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
 
       // Wait for timeout (2 seconds)
       await new Promise(resolve => setTimeout(resolve, 2100));
@@ -229,11 +269,17 @@ describe('MessageHistoryBatching', () => {
 
     it('should reset timeout on new messages', async () => {
       // This test is timing-sensitive, so we'll just verify the queue size increases
-      messageHistoryBatching.queueMessage({ id: '1', text: 'Hello' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '1', text: 'Hello' } as any,
+        'freenode',
+      );
       expect(messageHistoryBatching.getQueueSize()).toBe(1);
 
       // Add another message
-      messageHistoryBatching.queueMessage({ id: '2', text: 'World' } as any, 'freenode');
+      messageHistoryBatching.queueMessage(
+        { id: '2', text: 'World' } as any,
+        'freenode',
+      );
       expect(messageHistoryBatching.getQueueSize()).toBe(2);
 
       // Both messages should be in queue

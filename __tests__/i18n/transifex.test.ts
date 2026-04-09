@@ -41,7 +41,7 @@ const loadModule = (mocks: Mocks = {}) => {
 
   jest.doMock('@transifex/react', () => ({
     TXProvider: ({ children }: { children: unknown }) => children,
-    useT: () => ((k: string) => k),
+    useT: () => (k: string) => k,
   }));
 
   jest.doMock('react-native-localize', () => {
@@ -50,7 +50,7 @@ const loadModule = (mocks: Mocks = {}) => {
     }
     return {
       findBestLanguageTag: jest.fn(() =>
-        mocks.bestLanguageTag ? { languageTag: mocks.bestLanguageTag } : null
+        mocks.bestLanguageTag ? { languageTag: mocks.bestLanguageTag } : null,
       ),
       addEventListener,
       removeEventListener,
@@ -92,28 +92,37 @@ describe('i18n/transifex', () => {
       token: '',
       bestLanguageTag: 'SR',
       bundled: {
-        en: { hello: 'Hello', nested: { string: 'Nested' }, invalid: { nope: 1 } },
+        en: {
+          hello: 'Hello',
+          nested: { string: 'Nested' },
+          invalid: { nope: 1 },
+        },
         sr: { zdravo: 'Zdravo' },
       },
       appLanguage: 'system',
     });
 
     await expect(mod.initTransifex()).rejects.toThrow(
-      'A dynamic import callback was invoked without --experimental-vm-modules'
+      'A dynamic import callback was invoked without --experimental-vm-modules',
     );
 
     expect(mockTx.init).toHaveBeenCalledWith(
       expect.objectContaining({
         token: '',
         cdsHost: 'https://cds.example',
-      })
+      }),
     );
-    expect(mockTx.cache.update).toHaveBeenCalledWith('en', { hello: 'Hello', nested: 'Nested' });
-    expect(mockTx.cache.update).toHaveBeenCalledWith('sr', { zdravo: 'Zdravo' });
+    expect(mockTx.cache.update).toHaveBeenCalledWith('en', {
+      hello: 'Hello',
+      nested: 'Nested',
+    });
+    expect(mockTx.cache.update).toHaveBeenCalledWith('sr', {
+      zdravo: 'Zdravo',
+    });
     expect(mockSettingsService.getSetting).not.toHaveBeenCalled();
     expect(mockTx.setCurrentLocale).not.toHaveBeenCalled();
     expect(warnSpy).toHaveBeenCalledWith(
-      'Transifex Native token missing; translations will use source strings.'
+      'Transifex Native token missing; translations will use source strings.',
     );
     warnSpy.mockRestore();
   });
@@ -147,10 +156,12 @@ describe('i18n/transifex', () => {
     await mod.applyTransifexLocale('de');
 
     expect(mockTx.setCurrentLocale).toHaveBeenCalledWith('de');
-    expect(mockTx.fetchTranslations).toHaveBeenCalledWith('de', { refresh: true });
+    expect(mockTx.fetchTranslations).toHaveBeenCalledWith('de', {
+      refresh: true,
+    });
     expect(warnSpy).toHaveBeenCalledWith(
       'Transifex translation fetch failed:',
-      expect.any(Error)
+      expect.any(Error),
     );
     warnSpy.mockRestore();
   });
@@ -179,7 +190,10 @@ describe('i18n/transifex', () => {
     });
 
     const unsub = mod.listenToLocaleChanges();
-    expect(addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+    expect(addEventListener).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function),
+    );
 
     unsub();
     const changeHandler = addEventListener.mock.calls[0][1];

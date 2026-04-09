@@ -4,8 +4,20 @@
  */
 
 import React, { useState } from 'react';
-import { Modal, TouchableOpacity, View, Text, TextInput, StyleSheet, Alert } from 'react-native';
-import { pick, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
+import {
+  Modal,
+  TouchableOpacity,
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import {
+  pick,
+  isErrorWithCode,
+  errorCodes,
+} from '@react-native-documents/picker';
 import RNFS from 'react-native-fs';
 
 interface DccSendModalProps {
@@ -35,13 +47,16 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
     setIsPicking(true);
 
     try {
-      const [result] = await pick({
+      const [result] = (await pick({
         // @ts-ignore - copyTo exists in some versions of document picker
         copyTo: 'documentDirectory',
-      }) as any[];
+      })) as any[];
 
       if (result?.uri) {
-        console.log('[DccSendModal] Pick result:', JSON.stringify(result, null, 2));
+        console.log(
+          '[DccSendModal] Pick result:',
+          JSON.stringify(result, null, 2),
+        );
 
         let localFilePath: string;
         const pickerFileName = result.name || `file_${Date.now()}`;
@@ -54,7 +69,9 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
           console.log('[DccSendModal] Using fileCopyUri:', localFilePath);
         } else if (result.uri.startsWith('content://')) {
           // Content URI - need to manually copy the file
-          console.log('[DccSendModal] Content URI detected, copying file manually');
+          console.log(
+            '[DccSendModal] Content URI detected, copying file manually',
+          );
           localFilePath = `${RNFS.DocumentDirectoryPath}/${pickerFileName}`;
 
           try {
@@ -62,15 +79,24 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
             await RNFS.copyFile(result.uri, localFilePath);
             console.log('[DccSendModal] File copied via copyFile');
           } catch (copyError) {
-            console.warn('[DccSendModal] copyFile failed, trying readFile/writeFile:', copyError);
+            console.warn(
+              '[DccSendModal] copyFile failed, trying readFile/writeFile:',
+              copyError,
+            );
             try {
               // Alternative: read as base64 and write
               const content = await RNFS.readFile(result.uri, 'base64');
               await RNFS.writeFile(localFilePath, content, 'base64');
               console.log('[DccSendModal] File copied via readFile/writeFile');
             } catch (rwError) {
-              console.error('[DccSendModal] Failed to copy content URI:', rwError);
-              Alert.alert('Error', 'Could not access the selected file. Please try a different file.');
+              console.error(
+                '[DccSendModal] Failed to copy content URI:',
+                rwError,
+              );
+              Alert.alert(
+                'Error',
+                'Could not access the selected file. Please try a different file.',
+              );
               return;
             }
           }
@@ -95,7 +121,10 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
           const exists = await RNFS.exists(localFilePath);
           if (!exists) {
             console.error('[DccSendModal] File does not exist:', localFilePath);
-            Alert.alert('Error', 'Could not access the selected file. Please try again.');
+            Alert.alert(
+              'Error',
+              'Could not access the selected file. Please try again.',
+            );
             return;
           }
 
@@ -104,7 +133,11 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
           console.log('[DccSendModal] File verified - size:', stat.size);
         } catch (verifyError: any) {
           console.error('[DccSendModal] Error verifying file:', verifyError);
-          Alert.alert('Error', 'Could not verify file access: ' + (verifyError?.message || 'Unknown error'));
+          Alert.alert(
+            'Error',
+            'Could not verify file access: ' +
+              (verifyError?.message || 'Unknown error'),
+          );
           return;
         }
 
@@ -113,13 +146,19 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
       }
     } catch (error: any) {
       // User cancelled - this is normal, don't show error
-      if (isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED) {
+      if (
+        isErrorWithCode(error) &&
+        error.code === errorCodes.OPERATION_CANCELED
+      ) {
         // User cancelled, do nothing
         return;
       }
       // Only show alert for actual errors
       console.error('[DccSendModal] Error picking file:', error);
-      Alert.alert('Error', 'Failed to select file: ' + (error?.message || 'Unknown error'));
+      Alert.alert(
+        'Error',
+        'Failed to select file: ' + (error?.message || 'Unknown error'),
+      );
     } finally {
       setIsPicking(false);
     }
@@ -137,13 +176,13 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
   const cleanupCopiedFile = async (path: string) => {
     try {
       // Only delete if the file is in app's directories (cache or documents)
-      const isInAppDir = path && (
-        path.includes(RNFS.CachesDirectoryPath) ||
-        path.includes(RNFS.DocumentDirectoryPath) ||
-        path.includes('/cache/') ||
-        path.includes('/Cache/') ||
-        path.includes('/files/')
-      );
+      const isInAppDir =
+        path &&
+        (path.includes(RNFS.CachesDirectoryPath) ||
+          path.includes(RNFS.DocumentDirectoryPath) ||
+          path.includes('/cache/') ||
+          path.includes('/Cache/') ||
+          path.includes('/files/'));
 
       if (isInAppDir) {
         const exists = await RNFS.exists(path);
@@ -173,17 +212,26 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={handleClose}>
-      <TouchableOpacity style={styles.modalOverlay} onPress={handleClose} activeOpacity={1}>
+      onRequestClose={handleClose}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        onPress={handleClose}
+        activeOpacity={1}
+      >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Send File to {targetNick}</Text>
 
           {/* File picker section */}
           <View style={localStyles.filePickerContainer}>
             <TouchableOpacity
-              style={[localStyles.browseButton, isPicking && localStyles.browseButtonDisabled]}
+              style={[
+                localStyles.browseButton,
+                isPicking && localStyles.browseButtonDisabled,
+              ]}
               onPress={handleBrowse}
-              disabled={isPicking}>
+              disabled={isPicking}
+            >
               <Text style={localStyles.browseButtonText}>
                 {isPicking ? 'Selecting...' : 'Browse Files'}
               </Text>
@@ -207,7 +255,7 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
             style={[styles.modalInput, localStyles.hiddenInput]}
             placeholder="Or enter file path manually"
             value={filePath}
-            onChangeText={(text) => {
+            onChangeText={text => {
               onChangeFilePath(text);
               setFileName(text.split('/').pop() || '');
             }}
@@ -216,14 +264,24 @@ export const DccSendModal: React.FC<DccSendModalProps> = ({
           <View style={styles.modalButtons}>
             <TouchableOpacity
               style={[styles.modalButton, styles.modalButtonCancel]}
-              onPress={handleClose}>
+              onPress={handleClose}
+            >
               <Text style={styles.modalButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.modalButton, styles.modalButtonJoin, !filePath && localStyles.sendButtonDisabled]}
+              style={[
+                styles.modalButton,
+                styles.modalButtonJoin,
+                !filePath && localStyles.sendButtonDisabled,
+              ]}
               onPress={handleSend}
-              disabled={!filePath}>
-              <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Send</Text>
+              disabled={!filePath}
+            >
+              <Text
+                style={[styles.modalButtonText, styles.modalButtonTextPrimary]}
+              >
+                Send
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

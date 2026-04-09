@@ -12,7 +12,13 @@ import { tx } from '../i18n/transifex';
 /* eslint-disable no-bitwise, no-control-regex -- DCC framing uses bitwise IP conversion and CTCP control bytes. */
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
-type DCCSessionStatus = 'pending' | 'offering' | 'connecting' | 'connected' | 'closed' | 'failed';
+type DCCSessionStatus =
+  | 'pending'
+  | 'offering'
+  | 'connecting'
+  | 'connected'
+  | 'closed'
+  | 'failed';
 type DCCDirection = 'incoming' | 'outgoing';
 
 export interface DCCChatSession {
@@ -27,7 +33,11 @@ export interface DCCChatSession {
 }
 
 type SessionCallback = (session: DCCChatSession) => void;
-type MessageCallback = (sessionId: string, message: IRCMessage, session: DCCChatSession) => void;
+type MessageCallback = (
+  sessionId: string,
+  message: IRCMessage,
+  session: DCCChatSession,
+) => void;
 
 class DCCChatService {
   private sessions: Map<string, DCCChatSession> = new Map();
@@ -45,14 +55,18 @@ class DCCChatService {
   onSessionUpdate(callback: SessionCallback): () => void {
     this.sessionListeners.push(callback);
     return () => {
-      this.sessionListeners = this.sessionListeners.filter(cb => cb !== callback);
+      this.sessionListeners = this.sessionListeners.filter(
+        cb => cb !== callback,
+      );
     };
   }
 
   onMessage(callback: MessageCallback): () => void {
     this.messageListeners.push(callback);
     return () => {
-      this.messageListeners = this.messageListeners.filter(cb => cb !== callback);
+      this.messageListeners = this.messageListeners.filter(
+        cb => cb !== callback,
+      );
     };
   }
 
@@ -66,7 +80,9 @@ class DCCChatService {
     this.messageListeners.forEach(cb => cb(sessionId, message, session));
   }
 
-  parseDccChatInvite(text: string | undefined): { host: string; port: number } | null {
+  parseDccChatInvite(
+    text: string | undefined,
+  ): { host: string; port: number } | null {
     if (!text || !text.startsWith('\x01DCC ')) return null;
     const cleaned = text.replace(/\x01/g, '').trim(); // remove CTCP markers
     const parts = cleaned.split(/\s+/);
@@ -84,10 +100,17 @@ class DCCChatService {
   private intToIp(ip: string): string {
     const n = parseInt(ip, 10);
     if (isNaN(n)) return ip;
-    return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.');
+    return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join(
+      '.',
+    );
   }
 
-  handleIncomingInvite(peerNick: string, networkId: string, host: string, port: number): DCCChatSession {
+  handleIncomingInvite(
+    peerNick: string,
+    networkId: string,
+    host: string,
+    port: number,
+  ): DCCChatSession {
     const session: DCCChatSession = {
       id: this.nextId('dcc'),
       networkId,
@@ -103,27 +126,33 @@ class DCCChatService {
     return session;
   }
 
-  async acceptInvite(sessionId: string, _irc: { sendRaw: (cmd: string) => void; getCurrentNick: () => string }): Promise<void> {
+  async acceptInvite(
+    sessionId: string,
+    _irc: { sendRaw: (cmd: string) => void; getCurrentNick: () => string },
+  ): Promise<void> {
     const session = this.sessions.get(sessionId);
     if (!session) return;
     session.status = 'connecting';
     this.emitSession(session);
 
-    const socket = TcpSocket.createConnection({ host: session.host, port: session.port }, () => {
-      session.status = 'connected';
-      this.sessions.set(sessionId, session);
-      this.emitSession(session);
-      // announce connection in log
-      this.appendMessage(sessionId, {
-        id: this.nextId('dccmsg'),
-        type: 'message',
-        from: session.peerNick,
-        text: t('*** DCC CHAT connected'),
-        timestamp: Date.now(),
-        channel: session.peerNick,
-        network: session.networkId,
-      });
-    });
+    const socket = TcpSocket.createConnection(
+      { host: session.host, port: session.port },
+      () => {
+        session.status = 'connected';
+        this.sessions.set(sessionId, session);
+        this.emitSession(session);
+        // announce connection in log
+        this.appendMessage(sessionId, {
+          id: this.nextId('dccmsg'),
+          type: 'message',
+          from: session.peerNick,
+          text: t('*** DCC CHAT connected'),
+          timestamp: Date.now(),
+          channel: session.peerNick,
+          network: session.networkId,
+        });
+      },
+    );
 
     this.attachSocketHandlers(sessionId, socket);
     this.sockets.set(sessionId, socket);
@@ -132,7 +161,7 @@ class DCCChatService {
   async initiateChat(
     irc: { sendRaw: (cmd: string) => void; getCurrentNick: () => string },
     peerNick: string,
-    networkId: string
+    networkId: string,
   ): Promise<DCCChatSession> {
     const session: DCCChatSession = {
       id: this.nextId('dcc'),
@@ -263,7 +292,9 @@ class DCCChatService {
   private ipToInt(ip: string): number | null {
     const parts = ip.split('.').map(p => parseInt(p, 10));
     if (parts.length !== 4 || parts.some(isNaN)) return null;
-    return ((parts[0] << 24) >>> 0) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
+    return (
+      ((parts[0] << 24) >>> 0) + (parts[1] << 16) + (parts[2] << 8) + parts[3]
+    );
   }
 }
 

@@ -55,12 +55,22 @@ describe('BanService', () => {
     });
 
     it('should generate ban mask type 3 (*!*user@*.domain)', () => {
-      const mask = banService.generateBanMask(testNick, testUser, 'irc.example.com', 3);
+      const mask = banService.generateBanMask(
+        testNick,
+        testUser,
+        'irc.example.com',
+        3,
+      );
       expect(mask).toBe('*!*john@*.example.com');
     });
 
     it('should generate ban mask type 4 (*!*@*.domain)', () => {
-      const mask = banService.generateBanMask(testNick, testUser, 'irc.example.com', 4);
+      const mask = banService.generateBanMask(
+        testNick,
+        testUser,
+        'irc.example.com',
+        4,
+      );
       expect(mask).toBe('*!*@*.example.com');
     });
 
@@ -100,10 +110,20 @@ describe('BanService', () => {
     });
 
     it('should process IP addresses with wildcard for types 3,4,8,9', () => {
-      const mask3 = banService.generateBanMask(testNick, testUser, '192.168.1.100', 3);
+      const mask3 = banService.generateBanMask(
+        testNick,
+        testUser,
+        '192.168.1.100',
+        3,
+      );
       expect(mask3).toBe('*!*john@192.168.1.*');
 
-      const mask4 = banService.generateBanMask(testNick, testUser, '192.168.1.100', 4);
+      const mask4 = banService.generateBanMask(
+        testNick,
+        testUser,
+        '192.168.1.100',
+        4,
+      );
       expect(mask4).toBe('*!*@192.168.1.*');
     });
   });
@@ -242,7 +262,7 @@ describe('BanService', () => {
 
       expect(setItem).toHaveBeenCalledWith(
         '@AndroidIRCX:banReasons',
-        expect.any(String)
+        expect.any(String),
       );
     });
 

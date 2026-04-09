@@ -5,7 +5,11 @@
  * Tests for MessageHistoryService - Wave 2 coverage target
  */
 
-import { messageHistoryService, MessageHistoryFilter, ExportOptions } from '../../src/services/MessageHistoryService';
+import {
+  messageHistoryService,
+  MessageHistoryFilter,
+  ExportOptions,
+} from '../../src/services/MessageHistoryService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storageCache } from '../../src/services/StorageCache';
 import { IRCMessage } from '../../src/services/IRCService';
@@ -31,7 +35,7 @@ describe('MessageHistoryService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (AsyncStorage as any).__reset && (AsyncStorage as any).__reset();
-    
+
     // Reset all mock implementations to default success values
     (storageCache.getItem as jest.Mock).mockResolvedValue(null);
     (storageCache.setItem as jest.Mock).mockResolvedValue(undefined);
@@ -60,26 +64,35 @@ describe('MessageHistoryService', () => {
 
   describe('saveMessage', () => {
     it('should queue message for batching', async () => {
-      const { messageHistoryBatching } = require('../../src/services/MessageHistoryBatching');
-      
+      const {
+        messageHistoryBatching,
+      } = require('../../src/services/MessageHistoryBatching');
+
       await messageHistoryService.saveMessage(mockMessage, 'freenode');
-      
-      expect(messageHistoryBatching.queueMessage).toHaveBeenCalledWith(mockMessage, 'freenode');
+
+      expect(messageHistoryBatching.queueMessage).toHaveBeenCalledWith(
+        mockMessage,
+        'freenode',
+      );
     });
 
     it('should not queue if network is invalid', async () => {
-      const { messageHistoryBatching } = require('../../src/services/MessageHistoryBatching');
-      
+      const {
+        messageHistoryBatching,
+      } = require('../../src/services/MessageHistoryBatching');
+
       await messageHistoryService.saveMessage(mockMessage, 'Not connected');
-      
+
       expect(messageHistoryBatching.queueMessage).not.toHaveBeenCalled();
     });
 
     it('should not queue if network is empty', async () => {
-      const { messageHistoryBatching } = require('../../src/services/MessageHistoryBatching');
-      
+      const {
+        messageHistoryBatching,
+      } = require('../../src/services/MessageHistoryBatching');
+
       await messageHistoryService.saveMessage(mockMessage, '');
-      
+
       expect(messageHistoryBatching.queueMessage).not.toHaveBeenCalled();
     });
   });
@@ -107,7 +120,10 @@ describe('MessageHistoryService', () => {
       }));
 
       (storageCache.getItem as jest.Mock).mockResolvedValue(
-        Array.from({ length: 9950 }, (_, i) => ({ ...mockMessage, id: `existing-${i}` }))
+        Array.from({ length: 9950 }, (_, i) => ({
+          ...mockMessage,
+          id: `existing-${i}`,
+        })),
       );
 
       await messageHistoryService.saveMessages(messages, 'freenode');
@@ -122,7 +138,10 @@ describe('MessageHistoryService', () => {
       const storedMessages = [mockMessage];
       (storageCache.getItem as jest.Mock).mockResolvedValue(storedMessages);
 
-      const result = await messageHistoryService.loadMessages('freenode', '#general');
+      const result = await messageHistoryService.loadMessages(
+        'freenode',
+        '#general',
+      );
 
       expect(result).toEqual(storedMessages);
     });
@@ -132,34 +151,57 @@ describe('MessageHistoryService', () => {
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce([mockMessage]);
 
-      const result = await messageHistoryService.loadMessages('freenode', '#general');
+      const result = await messageHistoryService.loadMessages(
+        'freenode',
+        '#general',
+      );
 
       expect(result).toEqual([mockMessage]);
     });
 
     it('should return empty array on error', async () => {
-      (storageCache.getItem as jest.Mock).mockRejectedValue(new Error('Storage error'));
+      (storageCache.getItem as jest.Mock).mockRejectedValue(
+        new Error('Storage error'),
+      );
 
-      const result = await messageHistoryService.loadMessages('freenode', '#general');
+      const result = await messageHistoryService.loadMessages(
+        'freenode',
+        '#general',
+      );
 
       expect(result).toEqual([]);
     });
 
     it('should merge history across channel case variants', async () => {
-      const lowerMessage = { ...mockMessage, id: 'lower', channel: '#general', timestamp: 1000 };
-      const upperMessage = { ...mockMessage, id: 'upper', channel: '#General', timestamp: 2000 };
+      const lowerMessage = {
+        ...mockMessage,
+        id: 'lower',
+        channel: '#general',
+        timestamp: 1000,
+      };
+      const upperMessage = {
+        ...mockMessage,
+        id: 'upper',
+        channel: '#General',
+        timestamp: 2000,
+      };
 
-      (storageCache.getItem as jest.Mock).mockImplementation(async (key: string) => {
-        if (key === '@AndroidIRCX:history:freenode:#general') {
-          return [lowerMessage];
-        }
-        if (key === '@AndroidIRCX:history:freenode:#General') {
-          return [upperMessage];
-        }
-        return null;
-      });
+      (storageCache.getItem as jest.Mock).mockImplementation(
+        async (key: string) => {
+          if (key === '@AndroidIRCX:history:freenode:#general') {
+            return [lowerMessage];
+          }
+          if (key === '@AndroidIRCX:history:freenode:#General') {
+            return [upperMessage];
+          }
+          return null;
+        },
+      );
 
-      const result = await messageHistoryService.loadMessages('freenode', '#General');
+      const result = await messageHistoryService.loadMessages(
+        'freenode',
+        '#General',
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe('lower');
@@ -174,9 +216,12 @@ describe('MessageHistoryService', () => {
         '@AndroidIRCX:history:freenode:#help',
       ];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify([mockMessage]));
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify([mockMessage]),
+      );
 
-      const result = await messageHistoryService.loadAllNetworkMessages('freenode');
+      const result =
+        await messageHistoryService.loadAllNetworkMessages('freenode');
 
       expect(result).toHaveLength(2);
     });
@@ -189,9 +234,12 @@ describe('MessageHistoryService', () => {
         { ...mockMessage, id: 'msg-3', timestamp: 200 },
       ];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(messages));
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify(messages),
+      );
 
-      const result = await messageHistoryService.loadAllNetworkMessages('freenode');
+      const result =
+        await messageHistoryService.loadAllNetworkMessages('freenode');
 
       expect(result[0].timestamp).toBe(100);
       expect(result[1].timestamp).toBe(200);
@@ -199,9 +247,12 @@ describe('MessageHistoryService', () => {
     });
 
     it('should return empty array on error', async () => {
-      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(new Error('Storage error'));
+      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(
+        new Error('Storage error'),
+      );
 
-      const result = await messageHistoryService.loadAllNetworkMessages('freenode');
+      const result =
+        await messageHistoryService.loadAllNetworkMessages('freenode');
 
       expect(result).toEqual([]);
     });
@@ -209,9 +260,26 @@ describe('MessageHistoryService', () => {
 
   describe('searchMessages', () => {
     const mockMessages: IRCMessage[] = [
-      { ...mockMessage, channel: '#general', from: 'User1', text: 'Hello world' },
-      { ...mockMessage, id: 'msg-2', channel: '#help', from: 'User2', text: 'Need help' },
-      { ...mockMessage, id: 'msg-3', channel: '#general', from: 'User1', text: 'Another message' },
+      {
+        ...mockMessage,
+        channel: '#general',
+        from: 'User1',
+        text: 'Hello world',
+      },
+      {
+        ...mockMessage,
+        id: 'msg-2',
+        channel: '#help',
+        from: 'User2',
+        text: 'Need help',
+      },
+      {
+        ...mockMessage,
+        id: 'msg-3',
+        channel: '#general',
+        from: 'User1',
+        text: 'Another message',
+      },
     ];
 
     beforeEach(() => {
@@ -219,32 +287,48 @@ describe('MessageHistoryService', () => {
     });
 
     it('should search by channel', async () => {
-      const filter: MessageHistoryFilter = { network: 'freenode', channel: '#general' };
-      
+      const filter: MessageHistoryFilter = {
+        network: 'freenode',
+        channel: '#general',
+      };
+
       const result = await messageHistoryService.searchMessages(filter);
 
       expect(result.every(m => m.channel === '#general')).toBe(true);
     });
 
     it('should search by from/user', async () => {
-      const filter: MessageHistoryFilter = { network: 'freenode', from: 'User1' };
-      
+      const filter: MessageHistoryFilter = {
+        network: 'freenode',
+        from: 'User1',
+      };
+
       const result = await messageHistoryService.searchMessages(filter);
 
-      expect(result.every(m => m.from?.toLowerCase().includes('user1'))).toBe(true);
+      expect(result.every(m => m.from?.toLowerCase().includes('user1'))).toBe(
+        true,
+      );
     });
 
     it('should search by text content', async () => {
-      const filter: MessageHistoryFilter = { network: 'freenode', text: 'hello' };
-      
+      const filter: MessageHistoryFilter = {
+        network: 'freenode',
+        text: 'hello',
+      };
+
       const result = await messageHistoryService.searchMessages(filter);
 
-      expect(result.every(m => m.text.toLowerCase().includes('hello'))).toBe(true);
+      expect(result.every(m => m.text.toLowerCase().includes('hello'))).toBe(
+        true,
+      );
     });
 
     it('should search by type', async () => {
-      const filter: MessageHistoryFilter = { network: 'freenode', type: 'message' };
-      
+      const filter: MessageHistoryFilter = {
+        network: 'freenode',
+        type: 'message',
+      };
+
       const result = await messageHistoryService.searchMessages(filter);
 
       expect(result.every(m => m.type === 'message')).toBe(true);
@@ -257,8 +341,11 @@ describe('MessageHistoryService', () => {
       ];
       (storageCache.getItem as jest.Mock).mockResolvedValue(messagesWithRaw);
 
-      const filter: MessageHistoryFilter = { network: 'freenode', excludeRaw: true };
-      
+      const filter: MessageHistoryFilter = {
+        network: 'freenode',
+        excludeRaw: true,
+      };
+
       const result = await messageHistoryService.searchMessages(filter);
 
       expect(result.every(m => m.type !== 'raw')).toBe(true);
@@ -270,10 +357,12 @@ describe('MessageHistoryService', () => {
         '@AndroidIRCX:history:libera:#general',
       ];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify([mockMessage]));
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify([mockMessage]),
+      );
 
       const filter: MessageHistoryFilter = {};
-      
+
       const result = await messageHistoryService.searchMessages(filter);
 
       expect(result).toHaveLength(2);
@@ -287,7 +376,9 @@ describe('MessageHistoryService', () => {
         '@AndroidIRCX:history:libera:#general',
       ];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify([mockMessage]));
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify([mockMessage]),
+      );
 
       const stats = await messageHistoryService.getStats();
 
@@ -304,7 +395,9 @@ describe('MessageHistoryService', () => {
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue([
         '@AndroidIRCX:history:freenode:#general',
       ]);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(messages));
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify(messages),
+      );
 
       const stats = await messageHistoryService.getStats('freenode');
 
@@ -313,7 +406,9 @@ describe('MessageHistoryService', () => {
     });
 
     it('should return empty stats on error', async () => {
-      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(new Error('Storage error'));
+      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(
+        new Error('Storage error'),
+      );
 
       const stats = await messageHistoryService.getStats('freenode');
 
@@ -325,7 +420,12 @@ describe('MessageHistoryService', () => {
   describe('exportHistory', () => {
     const mockMessages: IRCMessage[] = [
       { ...mockMessage, channel: '#general', timestamp: 1609459200000 },
-      { ...mockMessage, id: 'msg-2', channel: '#help', timestamp: 1609459300000 },
+      {
+        ...mockMessage,
+        id: 'msg-2',
+        channel: '#help',
+        timestamp: 1609459300000,
+      },
     ];
 
     beforeEach(() => {
@@ -334,12 +434,14 @@ describe('MessageHistoryService', () => {
         '@AndroidIRCX:history:freenode:#general',
         '@AndroidIRCX:history:freenode:#help',
       ]);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockMessages));
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify(mockMessages),
+      );
     });
 
     it('should export as JSON', async () => {
       const options: ExportOptions = { format: 'json' };
-      
+
       const result = await messageHistoryService.exportHistory(options);
 
       expect(JSON.parse(result)).toHaveProperty('messages');
@@ -348,7 +450,7 @@ describe('MessageHistoryService', () => {
 
     it('should export as TXT', async () => {
       const options: ExportOptions = { format: 'txt' };
-      
+
       const result = await messageHistoryService.exportHistory(options);
 
       expect(result).toContain('AndroidIRCX Message History Export');
@@ -356,20 +458,25 @@ describe('MessageHistoryService', () => {
     });
 
     it('should respect filter', async () => {
-      const options: ExportOptions = { 
+      const options: ExportOptions = {
         format: 'json',
-        filter: { network: 'freenode', channel: '#general' }
+        filter: { network: 'freenode', channel: '#general' },
       };
-      
+
       const result = await messageHistoryService.exportHistory(options);
 
       const parsed = JSON.parse(result);
-      expect(parsed.messages.every((m: any) => m.channel === '#general')).toBe(true);
+      expect(parsed.messages.every((m: any) => m.channel === '#general')).toBe(
+        true,
+      );
     });
 
     it('should exclude timestamps if specified', async () => {
-      const options: ExportOptions = { format: 'csv', includeTimestamps: false };
-      
+      const options: ExportOptions = {
+        format: 'csv',
+        includeTimestamps: false,
+      };
+
       const result = await messageHistoryService.exportHistory(options);
 
       expect(result).toContain('Type,Channel');
@@ -377,14 +484,14 @@ describe('MessageHistoryService', () => {
     });
 
     it('should escape quotes in CSV', async () => {
-      const messagesWithQuotes = [
-        { ...mockMessage, text: 'He said "Hello"' },
-      ];
+      const messagesWithQuotes = [{ ...mockMessage, text: 'He said "Hello"' }];
       (storageCache.getItem as jest.Mock).mockResolvedValue(messagesWithQuotes);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(messagesWithQuotes));
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify(messagesWithQuotes),
+      );
 
       const options: ExportOptions = { format: 'csv' };
-      
+
       const result = await messageHistoryService.exportHistory(options);
 
       expect(result).toContain('"He said ""Hello"""');
@@ -392,7 +499,7 @@ describe('MessageHistoryService', () => {
 
     it('should default to TXT for unknown format', async () => {
       const options: ExportOptions = { format: 'unknown' as any };
-      
+
       const result = await messageHistoryService.exportHistory(options);
 
       expect(result).toContain('AndroidIRCX Message History Export');
@@ -409,39 +516,61 @@ describe('MessageHistoryService', () => {
     it('should default to server channel if not specified', async () => {
       await messageHistoryService.deleteMessages('freenode');
 
-      expect(storageCache.removeItem).toHaveBeenCalledWith(expect.stringContaining('server'));
+      expect(storageCache.removeItem).toHaveBeenCalledWith(
+        expect.stringContaining('server'),
+      );
     });
 
     it('should throw on error', async () => {
-      (storageCache.removeItem as jest.Mock).mockRejectedValue(new Error('Delete error'));
+      (storageCache.removeItem as jest.Mock).mockRejectedValue(
+        new Error('Delete error'),
+      );
 
-      await expect(messageHistoryService.deleteMessages('freenode', '#general')).rejects.toThrow();
+      await expect(
+        messageHistoryService.deleteMessages('freenode', '#general'),
+      ).rejects.toThrow();
     });
   });
 
   describe('deleteNetworkMessages', () => {
     it('should throw on error', async () => {
-      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(new Error('Keys error'));
+      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(
+        new Error('Keys error'),
+      );
 
-      await expect(messageHistoryService.deleteNetworkMessages('freenode')).rejects.toThrow();
+      await expect(
+        messageHistoryService.deleteNetworkMessages('freenode'),
+      ).rejects.toThrow();
     });
   });
 
   describe('deleteMessageById', () => {
     it('should delete single message by id', async () => {
       const messages = [mockMessage, { ...mockMessage, id: 'msg-2' }];
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(messages));
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify(messages),
+      );
 
-      await messageHistoryService.deleteMessageById('freenode', '#general', 'msg-1');
+      await messageHistoryService.deleteMessageById(
+        'freenode',
+        '#general',
+        'msg-1',
+      );
 
       expect(storageCache.setItem).toHaveBeenCalled();
     });
 
     it('should remove storage key if no messages left', async () => {
       const messages = [mockMessage];
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(messages));
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify(messages),
+      );
 
-      await messageHistoryService.deleteMessageById('freenode', '#general', 'msg-1');
+      await messageHistoryService.deleteMessageById(
+        'freenode',
+        '#general',
+        'msg-1',
+      );
 
       expect(storageCache.removeItem).toHaveBeenCalled();
     });
@@ -455,7 +584,10 @@ describe('MessageHistoryService', () => {
       ];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
       (AsyncStorage as any).getMany.mockResolvedValue({
-        [keys[0]]: JSON.stringify([mockMessage, { ...mockMessage, id: 'msg-2' }]),
+        [keys[0]]: JSON.stringify([
+          mockMessage,
+          { ...mockMessage, id: 'msg-2' },
+        ]),
         [keys[1]]: JSON.stringify([mockMessage]),
       });
 
@@ -487,7 +619,10 @@ describe('MessageHistoryService', () => {
       ];
       (AsyncStorage.getAllKeys as jest.Mock).mockResolvedValue(keys);
       (AsyncStorage as any).getMany.mockResolvedValue({
-        [keys[0]]: JSON.stringify([mockMessage, { ...mockMessage, id: 'msg-2' }]),
+        [keys[0]]: JSON.stringify([
+          mockMessage,
+          { ...mockMessage, id: 'msg-2' },
+        ]),
         [keys[1]]: JSON.stringify([mockMessage]),
       });
 
@@ -498,7 +633,9 @@ describe('MessageHistoryService', () => {
     });
 
     it('should return empty array on error', async () => {
-      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(new Error('Keys error'));
+      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(
+        new Error('Keys error'),
+      );
 
       const result = await messageHistoryService.listStoredChannels();
 
@@ -508,7 +645,9 @@ describe('MessageHistoryService', () => {
 
   describe('clearAll', () => {
     it('should throw on error', async () => {
-      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(new Error('Keys error'));
+      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(
+        new Error('Keys error'),
+      );
 
       await expect(messageHistoryService.clearAll()).rejects.toThrow();
     });
@@ -553,7 +692,9 @@ describe('MessageHistoryService', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(new Error('Keys error'));
+      (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValue(
+        new Error('Keys error'),
+      );
 
       const result = await messageHistoryService.ensureHistoryMigrated();
 

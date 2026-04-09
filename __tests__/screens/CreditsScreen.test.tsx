@@ -31,7 +31,9 @@ describe('CreditsScreen', () => {
   });
 
   it('renders nothing when not visible', () => {
-    const { queryByText } = render(<CreditsScreen visible={false} onClose={jest.fn()} />);
+    const { queryByText } = render(
+      <CreditsScreen visible={false} onClose={jest.fn()} />,
+    );
 
     expect(queryByText('Credits')).toBeNull();
   });
@@ -51,13 +53,13 @@ describe('CreditsScreen', () => {
     expect(getByText('IRcap Credits')).toBeTruthy();
     expect(
       getByText(
-        'IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiration for away, protections, writing styles, and the IRcap theme.'
-      )
+        'IRcap (c) Carlos Esteve Cremades, 1997-2026. Inspiration for away, protections, writing styles, and the IRcap theme.',
+      ),
     ).toBeTruthy();
     expect(
       getByText(
-        'IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme.'
-      )
+        'IRcap theme for AndroidIRCx by ARGENTIN07, based on the original IRcap theme.',
+      ),
     ).toBeTruthy();
     expect(getByText('Help Translate')).toBeTruthy();
     expect(getByText('contact@androidircx.com')).toBeTruthy();
@@ -74,25 +76,32 @@ describe('CreditsScreen', () => {
   });
 
   it('opens translation help email link', () => {
-    const openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValueOnce(true as never);
+    const openURLSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValueOnce(true as never);
     const { getByText } = render(<CreditsScreen visible onClose={jest.fn()} />);
 
     fireEvent.press(getByText('contact@androidircx.com'));
 
     expect(openURLSpy).toHaveBeenCalledWith(
-      'mailto:contact@androidircx.com?subject=Translation%20Help%20-%20AndroidIRCX'
+      'mailto:contact@androidircx.com?subject=Translation%20Help%20-%20AndroidIRCX',
     );
   });
 
   it('logs linking errors when opening a url fails', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(Linking, 'openURL').mockRejectedValueOnce(new Error('open failed'));
+    jest
+      .spyOn(Linking, 'openURL')
+      .mockRejectedValueOnce(new Error('open failed'));
     const { getByText } = render(<CreditsScreen visible onClose={jest.fn()} />);
 
     fireEvent.press(getByText('contact@androidircx.com'));
 
     await waitFor(() => {
-      expect(errorSpy).toHaveBeenCalledWith('Failed to open URL:', expect.any(Error));
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Failed to open URL:',
+        expect.any(Error),
+      );
     });
 
     errorSpy.mockRestore();

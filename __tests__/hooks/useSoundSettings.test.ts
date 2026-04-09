@@ -35,7 +35,9 @@ jest.mock('../../src/services/SoundService', () => ({
     getActiveScheme: jest.fn(() => mockSchemes[0]),
     addListener: jest.fn((cb: any) => {
       listenerCallback = cb;
-      return jest.fn(() => { listenerCallback = null; });
+      return jest.fn(() => {
+        listenerCallback = null;
+      });
     }),
     updateSettings: jest.fn().mockResolvedValue(undefined),
     setActiveScheme: jest.fn().mockResolvedValue(undefined),
@@ -57,7 +59,10 @@ jest.mock('../../src/types/sound', () => ({
 
 import { soundService } from '../../src/services/SoundService';
 
-const flushPromises = () => act(async () => { await new Promise(r => setTimeout(r, 0)); });
+const flushPromises = () =>
+  act(async () => {
+    await new Promise(r => setTimeout(r, 0));
+  });
 
 describe('useSoundSettings', () => {
   beforeEach(() => {
@@ -112,7 +117,9 @@ describe('useSoundSettings', () => {
       await result.current.setEnabled(false);
     });
 
-    expect(soundService.updateSettings).toHaveBeenCalledWith({ enabled: false });
+    expect(soundService.updateSettings).toHaveBeenCalledWith({
+      enabled: false,
+    });
   });
 
   it('should call setMasterVolume with clamped value', async () => {
@@ -122,13 +129,17 @@ describe('useSoundSettings', () => {
       await result.current.setMasterVolume(1.5);
     });
 
-    expect(soundService.updateSettings).toHaveBeenCalledWith({ masterVolume: 1 });
+    expect(soundService.updateSettings).toHaveBeenCalledWith({
+      masterVolume: 1,
+    });
 
     await act(async () => {
       await result.current.setMasterVolume(-0.5);
     });
 
-    expect(soundService.updateSettings).toHaveBeenCalledWith({ masterVolume: 0 });
+    expect(soundService.updateSettings).toHaveBeenCalledWith({
+      masterVolume: 0,
+    });
   });
 
   it('should call setPlayInForeground', async () => {
@@ -138,7 +149,9 @@ describe('useSoundSettings', () => {
       await result.current.setPlayInForeground(false);
     });
 
-    expect(soundService.updateSettings).toHaveBeenCalledWith({ playInForeground: false });
+    expect(soundService.updateSettings).toHaveBeenCalledWith({
+      playInForeground: false,
+    });
   });
 
   it('should call setPlayInBackground', async () => {
@@ -148,7 +161,9 @@ describe('useSoundSettings', () => {
       await result.current.setPlayInBackground(true);
     });
 
-    expect(soundService.updateSettings).toHaveBeenCalledWith({ playInBackground: true });
+    expect(soundService.updateSettings).toHaveBeenCalledWith({
+      playInBackground: true,
+    });
   });
 
   it('should call setActiveScheme', async () => {
@@ -169,7 +184,10 @@ describe('useSoundSettings', () => {
       scheme = await result.current.createScheme('MyScheme', 'My description');
     });
 
-    expect(soundService.createScheme).toHaveBeenCalledWith('MyScheme', 'My description');
+    expect(soundService.createScheme).toHaveBeenCalledWith(
+      'MyScheme',
+      'My description',
+    );
     expect(scheme).toEqual({ id: 'new', name: 'New' });
   });
 
@@ -190,7 +208,9 @@ describe('useSoundSettings', () => {
       await result.current.setEventEnabled('message' as any, false);
     });
 
-    expect(soundService.updateEventConfig).toHaveBeenCalledWith('message', { enabled: false });
+    expect(soundService.updateEventConfig).toHaveBeenCalledWith('message', {
+      enabled: false,
+    });
   });
 
   it('should call setEventVolume with clamped value', async () => {
@@ -200,17 +220,25 @@ describe('useSoundSettings', () => {
       await result.current.setEventVolume('message' as any, 2.0);
     });
 
-    expect(soundService.updateEventConfig).toHaveBeenCalledWith('message', { volume: 1 });
+    expect(soundService.updateEventConfig).toHaveBeenCalledWith('message', {
+      volume: 1,
+    });
   });
 
   it('should call setCustomSound', async () => {
     const { result } = renderHook(() => useSoundSettings());
 
     await act(async () => {
-      await result.current.setCustomSound('message' as any, '/path/to/sound.mp3');
+      await result.current.setCustomSound(
+        'message' as any,
+        '/path/to/sound.mp3',
+      );
     });
 
-    expect(soundService.setCustomSound).toHaveBeenCalledWith('message', '/path/to/sound.mp3');
+    expect(soundService.setCustomSound).toHaveBeenCalledWith(
+      'message',
+      '/path/to/sound.mp3',
+    );
   });
 
   it('should call resetEventToDefault', async () => {
@@ -250,7 +278,9 @@ describe('useSoundSettings', () => {
       await result.current.previewCustomSound('/path/to/custom.mp3');
     });
 
-    expect(soundService.previewCustomSound).toHaveBeenCalledWith('/path/to/custom.mp3');
+    expect(soundService.previewCustomSound).toHaveBeenCalledWith(
+      '/path/to/custom.mp3',
+    );
   });
 
   it('should call stopSound', async () => {
@@ -278,7 +308,8 @@ describe('useSoundSettings', () => {
 
     unmount();
 
-    const unsubscribeFn = (soundService.addListener as jest.Mock).mock.results[0]?.value;
+    const unsubscribeFn = (soundService.addListener as jest.Mock).mock
+      .results[0]?.value;
     expect(unsubscribeFn).toHaveBeenCalled();
   });
 });

@@ -14,7 +14,12 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import { themeService, Theme, ThemeColors, ThemeMessageFormats } from '../services/ThemeService';
+import {
+  themeService,
+  Theme,
+  ThemeColors,
+  ThemeMessageFormats,
+} from '../services/ThemeService';
 import { useT } from '../i18n/transifex';
 import { MessageFormatEditorScreen } from './MessageFormatEditorScreen';
 import { getDefaultMessageFormats } from '../utils/MessageFormatDefaults';
@@ -31,15 +36,22 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
   theme,
   onClose,
   onSave,
-  }) => {
+}) => {
   const t = useT();
-  const selectedSwatchStyle = { borderColor: themeService.getColors().primary, borderWidth: 2 };
+  const selectedSwatchStyle = {
+    borderColor: themeService.getColors().primary,
+    borderWidth: 2,
+  };
   const [themeName, setThemeName] = useState('');
   const [colors, setColors] = useState<ThemeColors>(themeService.getColors());
-  const [messageFormats, setMessageFormats] = useState<ThemeMessageFormats | undefined>(undefined);
+  const [messageFormats, setMessageFormats] = useState<
+    ThemeMessageFormats | undefined
+  >(undefined);
   const [messageFormatsDirty, setMessageFormatsDirty] = useState(false);
   const [showMessageFormatEditor, setShowMessageFormatEditor] = useState(false);
-  const [editingColor, setEditingColor] = useState<keyof ThemeColors | null>(null);
+  const [editingColor, setEditingColor] = useState<keyof ThemeColors | null>(
+    null,
+  );
   const [colorValue, setColorValue] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [hexInput, setHexInput] = useState('');
@@ -104,7 +116,9 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
         ...theme,
         name: themeName,
         colors,
-        messageFormats: messageFormatsDirty ? messageFormats : theme.messageFormats,
+        messageFormats: messageFormatsDirty
+          ? messageFormats
+          : theme.messageFormats,
       });
     } else {
       // Create new theme
@@ -124,10 +138,19 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
     onClose();
   };
 
-  const colorCategories: Array<{ title: string; keys: Array<keyof ThemeColors> }> = [
+  const colorCategories: Array<{
+    title: string;
+    keys: Array<keyof ThemeColors>;
+  }> = [
     {
       title: t('Background'),
-      keys: ['background', 'surface', 'surfaceVariant', 'surfaceAlt', 'cardBackground'],
+      keys: [
+        'background',
+        'surface',
+        'surfaceVariant',
+        'surfaceAlt',
+        'cardBackground',
+      ],
     },
     {
       title: t('Text'),
@@ -272,23 +295,50 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}>
-      <View style={[styles.container, { backgroundColor: currentColors.background }]}>
-        <View style={[styles.header, { backgroundColor: currentColors.primary, borderBottomColor: currentColors.divider }]}>
+      onRequestClose={onClose}
+    >
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: currentColors.background },
+        ]}
+      >
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: currentColors.primary,
+              borderBottomColor: currentColors.divider,
+            },
+          ]}
+        >
           <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
-            <Text style={[styles.cancelText, { color: currentColors.onPrimary }]}>{t('Cancel')}</Text>
+            <Text
+              style={[styles.cancelText, { color: currentColors.onPrimary }]}
+            >
+              {t('Cancel')}
+            </Text>
           </TouchableOpacity>
           <Text style={[styles.title, { color: currentColors.onPrimary }]}>
             {theme ? t('Edit Theme') : t('New Theme')}
           </Text>
           <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-            <Text style={[styles.saveText, { color: currentColors.onPrimary }]}>{t('Save')}</Text>
+            <Text style={[styles.saveText, { color: currentColors.onPrimary }]}>
+              {t('Save')}
+            </Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content}>
-          <View style={[styles.section, { borderBottomColor: currentColors.divider }]}>
-            <Text style={[styles.sectionTitle, { color: currentColors.text }]}>{t('Theme Name')}</Text>
+          <View
+            style={[
+              styles.section,
+              { borderBottomColor: currentColors.divider },
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
+              {t('Theme Name')}
+            </Text>
             <TextInput
               style={[
                 styles.input,
@@ -304,15 +354,28 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
               placeholderTextColor={currentColors.textSecondary}
             />
           </View>
-          <View style={[styles.section, { borderBottomColor: currentColors.divider }]}>
+          <View
+            style={[
+              styles.section,
+              { borderBottomColor: currentColors.divider },
+            ]}
+          >
             <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
               {t('Message format')}
             </Text>
             <TouchableOpacity
-              style={[styles.formatButton, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}
+              style={[
+                styles.formatButton,
+                {
+                  backgroundColor: currentColors.surface,
+                  borderColor: currentColors.border,
+                },
+              ]}
               onPress={() => setShowMessageFormatEditor(true)}
             >
-              <Text style={[styles.formatButtonText, { color: currentColors.text }]}>
+              <Text
+                style={[styles.formatButtonText, { color: currentColors.text }]}
+              >
                 {messageFormats ? t('Edit format') : t('Customize format')}
               </Text>
             </TouchableOpacity>
@@ -321,13 +384,24 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
           {colorCategories.map(category => (
             <View
               key={category.title}
-              style={[styles.section, { borderBottomColor: currentColors.divider }]}>
-              <Text style={[styles.sectionTitle, { color: currentColors.text }]}>
+              style={[
+                styles.section,
+                { borderBottomColor: currentColors.divider },
+              ]}
+            >
+              <Text
+                style={[styles.sectionTitle, { color: currentColors.text }]}
+              >
                 {category.title}
               </Text>
               {category.keys.map(key => (
                 <View key={key} style={styles.colorRow}>
-                  <Text style={[styles.colorLabel, { color: currentColors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.colorLabel,
+                      { color: currentColors.textSecondary },
+                    ]}
+                  >
                     {key}
                   </Text>
                   <TouchableOpacity
@@ -352,20 +426,39 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
           setShowColorPicker(false);
           setEditingColor(null);
           setHexInput('');
-        }}>
-        <View style={[styles.pickerOverlay, { backgroundColor: currentColors.modalOverlay }]}>
-          <View style={[styles.pickerContainer, { backgroundColor: currentColors.surface }]}>
+        }}
+      >
+        <View
+          style={[
+            styles.pickerOverlay,
+            { backgroundColor: currentColors.modalOverlay },
+          ]}
+        >
+          <View
+            style={[
+              styles.pickerContainer,
+              { backgroundColor: currentColors.surface },
+            ]}
+          >
             <Text style={[styles.pickerTitle, { color: currentColors.text }]}>
               {t('Choose Color')}
             </Text>
-            <Text style={[styles.pickerSubtitle, { color: currentColors.textSecondary }]}>
+            <Text
+              style={[
+                styles.pickerSubtitle,
+                { color: currentColors.textSecondary },
+              ]}
+            >
               {t('Current color: {color}', { color: colorValue || '' })}
             </Text>
             <View style={styles.pickerPreviewRow}>
               <View
                 style={[
                   styles.pickerPreview,
-                  { backgroundColor: colorValue || currentColors.surfaceVariant, borderColor: currentColors.border },
+                  {
+                    backgroundColor: colorValue || currentColors.surfaceVariant,
+                    borderColor: currentColors.border,
+                  },
                 ]}
               />
             </View>
@@ -383,7 +476,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
                   },
                 ]}
                 value={hexInput}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setHexInput(text);
                   if (isValidColor(text)) {
                     applyColorValue(text);
@@ -397,7 +490,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
             </View>
             <ScrollView style={styles.pickerGridScroll}>
               <View style={styles.pickerGrid}>
-                {predefinedColors.map((value) => (
+                {predefinedColors.map(value => (
                   <TouchableOpacity
                     key={value}
                     style={[
@@ -415,28 +508,51 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
             </ScrollView>
             <View style={styles.pickerActions}>
               <TouchableOpacity
-                style={[styles.pickerButton, { backgroundColor: currentColors.surfaceVariant }]}
+                style={[
+                  styles.pickerButton,
+                  { backgroundColor: currentColors.surfaceVariant },
+                ]}
                 onPress={() => {
                   setShowColorPicker(false);
                   setEditingColor(null);
                   setHexInput('');
-                }}>
-                <Text style={[styles.pickerButtonText, { color: currentColors.text }]}>
+                }}
+              >
+                <Text
+                  style={[
+                    styles.pickerButtonText,
+                    { color: currentColors.text },
+                  ]}
+                >
                   {t('Cancel')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.pickerButton, { backgroundColor: currentColors.primary }]}
+                style={[
+                  styles.pickerButton,
+                  { backgroundColor: currentColors.primary },
+                ]}
                 onPress={() => {
                   if (hexInput && !isValidColor(hexInput)) {
-                    Alert.alert(t('Invalid Color'), t('Please enter a valid hex color (e.g., #FF0000) or rgba value'));
+                    Alert.alert(
+                      t('Invalid Color'),
+                      t(
+                        'Please enter a valid hex color (e.g., #FF0000) or rgba value',
+                      ),
+                    );
                     return;
                   }
                   setShowColorPicker(false);
                   setEditingColor(null);
                   setHexInput('');
-                }}>
-                <Text style={[styles.pickerButtonText, { color: currentColors.onPrimary }]}>
+                }}
+              >
+                <Text
+                  style={[
+                    styles.pickerButtonText,
+                    { color: currentColors.onPrimary },
+                  ]}
+                >
                   {t('Done')}
                 </Text>
               </TouchableOpacity>
@@ -448,7 +564,7 @@ export const ThemeEditorScreen: React.FC<ThemeEditorScreenProps> = ({
         visible={showMessageFormatEditor}
         colors={currentColors}
         initialFormats={initialMessageFormats}
-        onSave={(formats) => {
+        onSave={formats => {
           setMessageFormats(formats);
           setMessageFormatsDirty(true);
           setShowMessageFormatEditor(false);
@@ -612,4 +728,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

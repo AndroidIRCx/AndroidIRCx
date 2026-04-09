@@ -17,9 +17,13 @@ const mockStorage: Map<string, string> = new Map();
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    setItem: jest.fn(async (key: string, value: string) => { mockStorage.set(key, value); }),
+    setItem: jest.fn(async (key: string, value: string) => {
+      mockStorage.set(key, value);
+    }),
     getItem: jest.fn(async (key: string) => mockStorage.get(key) || null),
-    removeItem: jest.fn(async (key: string) => { mockStorage.delete(key); }),
+    removeItem: jest.fn(async (key: string) => {
+      mockStorage.delete(key);
+    }),
   },
 }));
 
@@ -33,7 +37,9 @@ jest.mock('../../src/services/ConnectionManager', () => ({
     setActiveConnection: jest.fn(),
   },
 }));
-const mockConnectionManager = jest.requireMock<any>('../../src/services/ConnectionManager').connectionManager;
+const mockConnectionManager = jest.requireMock<any>(
+  '../../src/services/ConnectionManager',
+).connectionManager;
 
 const makeConnection = (networkId: string, isConnected: boolean) => ({
   networkId,
@@ -104,7 +110,9 @@ describe('useConnectionManager', () => {
         result.current.setSelectedNetworkName('MyNetwork');
       });
 
-      expect(useConnectionStore.getState().selectedNetworkName).toBe('MyNetwork');
+      expect(useConnectionStore.getState().selectedNetworkName).toBe(
+        'MyNetwork',
+      );
       expect(result.current.selectedNetworkName).toBe('MyNetwork');
     });
 
@@ -148,7 +156,11 @@ describe('useConnectionManager', () => {
         networkId = await result.current.connect(network as any, config as any);
       });
 
-      expect(mockConnectionManager.connect).toHaveBeenCalledWith('DBase', network, config);
+      expect(mockConnectionManager.connect).toHaveBeenCalledWith(
+        'DBase',
+        network,
+        config,
+      );
       expect(networkId).toBe('DBase');
     });
 
@@ -221,7 +233,10 @@ describe('useConnectionManager', () => {
         await result.current.disconnect('DBase', 'Goodbye');
       });
 
-      expect(mockConnectionManager.disconnect).toHaveBeenCalledWith('DBase', 'Goodbye');
+      expect(mockConnectionManager.disconnect).toHaveBeenCalledWith(
+        'DBase',
+        'Goodbye',
+      );
     });
 
     it('should switch to next connection when disconnecting active', async () => {
@@ -331,7 +346,9 @@ describe('useConnectionManager', () => {
         result.current.switchConnection('Libera');
       });
 
-      expect(mockConnectionManager.setActiveConnection).toHaveBeenCalledWith('Libera');
+      expect(mockConnectionManager.setActiveConnection).toHaveBeenCalledWith(
+        'Libera',
+      );
       expect(useConnectionStore.getState().activeConnectionId).toBe('Libera');
       expect(useConnectionStore.getState().networkName).toBe('Libera');
       expect(useConnectionStore.getState().isConnected).toBe(true);
@@ -436,7 +453,9 @@ describe('useConnectionManager', () => {
 
   describe('isNetworkConnected', () => {
     it('should return true for connected network', () => {
-      mockConnectionManager.getConnection.mockReturnValue(makeConnection('DBase', true));
+      mockConnectionManager.getConnection.mockReturnValue(
+        makeConnection('DBase', true),
+      );
 
       const { result } = renderHook(() => useConnectionManager());
 
@@ -449,7 +468,9 @@ describe('useConnectionManager', () => {
     });
 
     it('should return false for disconnected network', () => {
-      mockConnectionManager.getConnection.mockReturnValue(makeConnection('DBase', false));
+      mockConnectionManager.getConnection.mockReturnValue(
+        makeConnection('DBase', false),
+      );
 
       const { result } = renderHook(() => useConnectionManager());
 
@@ -544,11 +565,15 @@ describe('useConnectionManager', () => {
       expect(result.current.connect).toBe(first.connect);
       expect(result.current.disconnect).toBe(first.disconnect);
       expect(result.current.switchConnection).toBe(first.switchConnection);
-      expect(result.current.getActiveConnection).toBe(first.getActiveConnection);
+      expect(result.current.getActiveConnection).toBe(
+        first.getActiveConnection,
+      );
       expect(result.current.getAllConnections).toBe(first.getAllConnections);
       expect(result.current.isNetworkConnected).toBe(first.isNetworkConnected);
       expect(result.current.updatePing).toBe(first.updatePing);
-      expect(result.current.setSelectedNetworkName).toBe(first.setSelectedNetworkName);
+      expect(result.current.setSelectedNetworkName).toBe(
+        first.setSelectedNetworkName,
+      );
     });
   });
 });

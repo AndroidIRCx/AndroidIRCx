@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2025-2026 Velimir Majstorov
  * SPDX-License-Identifier: GPL-3.0-or-later
-*/
+ */
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -15,7 +15,10 @@ import {
   Switch,
   Modal,
 } from 'react-native';
-import { ChannelInfo, ChannelManagementService } from '../services/ChannelManagementService';
+import {
+  ChannelInfo,
+  ChannelManagementService,
+} from '../services/ChannelManagementService';
 import { IRCService } from '../services/IRCService';
 import { connectionManager } from '../services/ConnectionManager';
 import { channelEncryptionService } from '../services/ChannelEncryptionService';
@@ -23,7 +26,10 @@ import { channelEncryptionSettingsService } from '../services/ChannelEncryptionS
 import { settingsService } from '../services/SettingsService';
 import { useT } from '../i18n/transifex';
 import { getChannelModeDescription } from '../utils/modeDescriptions';
-import { formatIRCTextAsComponent, stripIRCFormatting } from '../utils/IRCFormatter';
+import {
+  formatIRCTextAsComponent,
+  stripIRCFormatting,
+} from '../utils/IRCFormatter';
 import { repairMojibake } from '../utils/EncodingUtils';
 import { ColorPickerModal } from '../components/ColorPickerModal';
 import { useTheme } from '../hooks/useTheme';
@@ -56,7 +62,9 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   const [showTopicSelect, setShowTopicSelect] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showTopicStyleEditor, setShowTopicStyleEditor] = useState(false);
-  const [topicStyleEditorIndex, setTopicStyleEditorIndex] = useState<number | null>(null);
+  const [topicStyleEditorIndex, setTopicStyleEditorIndex] = useState<
+    number | null
+  >(null);
   const [topicStyleEditorValue, setTopicStyleEditorValue] = useState('');
   // Track raw mode string for modes not represented by toggles
   const [rawModeString, setRawModeString] = useState('');
@@ -76,12 +84,16 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
 
   const sanitizeStyleString = (style: string) => {
     const normalized = repairMojibake(style);
-    const allowedControls = new Set([0x02, 0x03, 0x0F, 0x16, 0x1D, 0x1F, 0x1E, 0x08]);
-    return Array.from(normalized).filter((char) => {
-      const code = char.charCodeAt(0);
-      if (code >= 32 && code !== 127) return true;
-      return allowedControls.has(code);
-    }).join('');
+    const allowedControls = new Set([
+      0x02, 0x03, 0x0f, 0x16, 0x1d, 0x1f, 0x1e, 0x08,
+    ]);
+    return Array.from(normalized)
+      .filter(char => {
+        const code = char.charCodeAt(0);
+        if (code >= 32 && code !== 127) return true;
+        return allowedControls.has(code);
+      })
+      .join('');
   };
 
   // Encryption settings state
@@ -98,8 +110,12 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
       };
     }
     // Fallback to singletons if connection not found (shouldn't happen in normal use)
-    console.warn(`ChannelSettingsScreen: No connection found for network "${network}", using fallback`);
-    const { channelManagementService: fallbackCMS } = require('../services/ChannelManagementService');
+    console.warn(
+      `ChannelSettingsScreen: No connection found for network "${network}", using fallback`,
+    );
+    const {
+      channelManagementService: fallbackCMS,
+    } = require('../services/ChannelManagementService');
     const { ircService: fallbackIRC } = require('../services/IRCService');
     return {
       channelManagementService: fallbackCMS as ChannelManagementService,
@@ -108,7 +124,14 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   }, [network]);
 
   useEffect(() => {
-    if (!visible || !channel || !network || !channelManagementService || !ircService) return;
+    if (
+      !visible ||
+      !channel ||
+      !network ||
+      !channelManagementService ||
+      !ircService
+    )
+      return;
 
     const loadSettings = async () => {
       // Load current channel info
@@ -119,22 +142,46 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
       setLimit(info?.modes.limit?.toString() || '');
       setRawModeString(channelManagementService.getModeString(channel) || '');
 
-      const storedTopicStyleId = await settingsService.getSetting('topicStyleId', '');
-      const storedTopicStyles = await settingsService.getSetting('topicStyles', []);
-      const normalizedTopicStyleId = storedTopicStyleId ? sanitizeStyleString(String(storedTopicStyleId)) : '';
-      const normalizedTopicStyles = (storedTopicStyles as string[]).map((style) => sanitizeStyleString(String(style)));
+      const storedTopicStyleId = await settingsService.getSetting(
+        'topicStyleId',
+        '',
+      );
+      const storedTopicStyles = await settingsService.getSetting(
+        'topicStyles',
+        [],
+      );
+      const normalizedTopicStyleId = storedTopicStyleId
+        ? sanitizeStyleString(String(storedTopicStyleId))
+        : '';
+      const normalizedTopicStyles = (storedTopicStyles as string[]).map(style =>
+        sanitizeStyleString(String(style)),
+      );
       setTopicStyleId(normalizedTopicStyleId);
       setTopicStyles(normalizedTopicStyles);
       if (normalizedTopicStyleId !== storedTopicStyleId) {
-        await settingsService.setSetting('topicStyleId', normalizedTopicStyleId);
+        await settingsService.setSetting(
+          'topicStyleId',
+          normalizedTopicStyleId,
+        );
       }
-      if (normalizedTopicStyles.some((style, idx) => style !== storedTopicStyles[idx])) {
+      if (
+        normalizedTopicStyles.some(
+          (style, idx) => style !== storedTopicStyles[idx],
+        )
+      ) {
         await settingsService.setSetting('topicStyles', normalizedTopicStyles);
       }
 
       // Load encryption settings
-      const alwaysEncryptSetting = await channelEncryptionSettingsService.getAlwaysEncrypt(channel, network);
-      const hasKey = await channelEncryptionService.hasChannelKey(channel, network);
+      const alwaysEncryptSetting =
+        await channelEncryptionSettingsService.getAlwaysEncrypt(
+          channel,
+          network,
+        );
+      const hasKey = await channelEncryptionService.hasChannelKey(
+        channel,
+        network,
+      );
       setAlwaysEncrypt(alwaysEncryptSetting);
       setHasEncryptionKey(hasKey);
     };
@@ -150,15 +197,19 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
     channelManagementService.requestInviteList(channel);
 
     // Listen for channel info changes
-    const unsubscribe = channelManagementService.onChannelInfoChange((ch, info) => {
-      if (ch === channel) {
-        setChannelInfo(info);
-        setTopic(info.topic || '');
-        setKey(info.modes.key || '');
-        setLimit(info.modes.limit?.toString() || '');
-        setRawModeString(channelManagementService.getModeString(channel) || '');
-      }
-    });
+    const unsubscribe = channelManagementService.onChannelInfoChange(
+      (ch, info) => {
+        if (ch === channel) {
+          setChannelInfo(info);
+          setTopic(info.topic || '');
+          setKey(info.modes.key || '');
+          setLimit(info.modes.limit?.toString() || '');
+          setRawModeString(
+            channelManagementService.getModeString(channel) || '',
+          );
+        }
+      },
+    );
 
     return () => {
       unsubscribe();
@@ -181,7 +232,11 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
     }
   };
 
-  const renderTopicStylePreview = (styleText: string, baseStyle: any, sampleText: string) => {
+  const renderTopicStylePreview = (
+    styleText: string,
+    baseStyle: any,
+    sampleText: string,
+  ) => {
     const replaced = styleText
       ? styleText.replace(/<TOPIC>/gi, sampleText)
       : sampleText;
@@ -191,12 +246,16 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   };
 
   const handleInsertColor = (code: string) => {
-    setTopicStyleEditorValue((prev) => `${prev}${code}`);
+    setTopicStyleEditorValue(prev => `${prev}${code}`);
     setShowColorPicker(false);
   };
 
   const topicStyleEditorPreview = topicStyleEditorValue
-    ? renderTopicStylePreview(topicStyleEditorValue, styles.editorPreviewText, topicPreviewText)
+    ? renderTopicStylePreview(
+        topicStyleEditorValue,
+        styles.editorPreviewText,
+        topicPreviewText,
+      )
     : topicPreviewText;
 
   const openTopicStyleEditor = (value = '', index: number | null = null) => {
@@ -215,7 +274,11 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
     const nextValue = sanitizeStyleString(topicStyleEditorValue.trim());
     if (!nextValue) return;
     const updated = [...topicStyles];
-    if (topicStyleEditorIndex !== null && topicStyleEditorIndex >= 0 && topicStyleEditorIndex < updated.length) {
+    if (
+      topicStyleEditorIndex !== null &&
+      topicStyleEditorIndex >= 0 &&
+      topicStyleEditorIndex < updated.length
+    ) {
       updated[topicStyleEditorIndex] = nextValue;
     } else {
       updated.push(nextValue);
@@ -240,7 +303,13 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
     const limitNum = parseInt(limit, 10);
     if (limitNum > 0) {
       channelManagementService.setLimit(channel, limitNum);
-      Alert.alert(t('Success'), t('Channel limit set to {limitNum}').replace('{limitNum}', limitNum.toString()));
+      Alert.alert(
+        t('Success'),
+        t('Channel limit set to {limitNum}').replace(
+          '{limitNum}',
+          limitNum.toString(),
+        ),
+      );
     } else if (limit === '') {
       channelManagementService.removeLimit(channel);
       // Clear the input immediately to avoid showing a stale number
@@ -342,22 +411,45 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   const handleToggleAlwaysEncrypt = async () => {
     try {
       const newValue = !alwaysEncrypt;
-      await channelEncryptionSettingsService.setAlwaysEncrypt(channel, network, newValue);
+      await channelEncryptionSettingsService.setAlwaysEncrypt(
+        channel,
+        network,
+        newValue,
+      );
       setAlwaysEncrypt(newValue);
 
       if (newValue && !hasEncryptionKey) {
         Alert.alert(
           t('No Encryption Key'),
-          t('Always-encrypt is now enabled, but no encryption key exists. Generate or request a key to enable encryption.'),
-          [{ text: t('OK') }]
+          t(
+            'Always-encrypt is now enabled, but no encryption key exists. Generate or request a key to enable encryption.',
+          ),
+          [{ text: t('OK') }],
         );
       } else if (newValue) {
-        Alert.alert(t('Success'), t('Always-encrypt enabled for {channel}').replace('{channel}', channel));
+        Alert.alert(
+          t('Success'),
+          t('Always-encrypt enabled for {channel}').replace(
+            '{channel}',
+            channel,
+          ),
+        );
       } else {
-        Alert.alert(t('Success'), t('Always-encrypt disabled for {channel}').replace('{channel}', channel));
+        Alert.alert(
+          t('Success'),
+          t('Always-encrypt disabled for {channel}').replace(
+            '{channel}',
+            channel,
+          ),
+        );
       }
     } catch (error) {
-      Alert.alert(t('Error'), error instanceof Error ? error.message : t('Failed to toggle always-encrypt'));
+      Alert.alert(
+        t('Error'),
+        error instanceof Error
+          ? error.message
+          : t('Failed to toggle always-encrypt'),
+      );
     }
   };
 
@@ -366,12 +458,21 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
       ircService.sendCommand(`/chankey generate`);
       // Refresh key status after a short delay
       setTimeout(async () => {
-        const hasKey = await channelEncryptionService.hasChannelKey(channel, network);
+        const hasKey = await channelEncryptionService.hasChannelKey(
+          channel,
+          network,
+        );
         setHasEncryptionKey(hasKey);
       }, 500);
-      Alert.alert(t('Success'), t('Encryption key generated. You can now share it with other users.'));
+      Alert.alert(
+        t('Success'),
+        t('Encryption key generated. You can now share it with other users.'),
+      );
     } catch (error) {
-      Alert.alert(t('Error'), error instanceof Error ? error.message : t('Failed to generate key'));
+      Alert.alert(
+        t('Error'),
+        error instanceof Error ? error.message : t('Failed to generate key'),
+      );
     }
   };
 
@@ -386,12 +487,15 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
           onPress: (nick: string | undefined) => {
             if (nick && nick.trim()) {
               ircService.sendCommand(`/chankey request ${nick.trim()}`);
-              Alert.alert(t('Success'), t('Key request sent to {nick}').replace('{nick}', nick.trim()));
+              Alert.alert(
+                t('Success'),
+                t('Key request sent to {nick}').replace('{nick}', nick.trim()),
+              );
             }
           },
         },
       ],
-      'plain-text'
+      'plain-text',
     );
   };
 
@@ -406,19 +510,24 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
           onPress: (nick: string | undefined) => {
             if (nick && nick.trim()) {
               ircService.sendCommand(`/chankey share ${nick.trim()}`);
-              Alert.alert(t('Success'), t('Key shared with {nick}').replace('{nick}', nick.trim()));
+              Alert.alert(
+                t('Success'),
+                t('Key shared with {nick}').replace('{nick}', nick.trim()),
+              );
             }
           },
         },
       ],
-      'plain-text'
+      'plain-text',
     );
   };
 
   const handleRemoveKey = () => {
     Alert.alert(
       t('Remove Encryption Key'),
-      t('Are you sure you want to remove the encryption key? You will not be able to decrypt messages until you get the key again.'),
+      t(
+        'Are you sure you want to remove the encryption key? You will not be able to decrypt messages until you get the key again.',
+      ),
       [
         { text: t('Cancel'), style: 'cancel' },
         {
@@ -427,13 +536,16 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
           onPress: async () => {
             ircService.sendCommand(`/chankey remove`);
             setTimeout(async () => {
-              const hasKey = await channelEncryptionService.hasChannelKey(channel, network);
+              const hasKey = await channelEncryptionService.hasChannelKey(
+                channel,
+                network,
+              );
               setHasEncryptionKey(hasKey);
             }, 500);
             Alert.alert(t('Success'), t('Encryption key removed'));
           },
         },
-      ]
+      ],
     );
   };
 
@@ -446,7 +558,8 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Channel Settings')}</Text>
@@ -471,14 +584,20 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
               <Text style={styles.buttonText}>{t('Set Topic')}</Text>
             </TouchableOpacity>
             <View style={styles.topicStylePreview}>
-              <Text style={styles.topicStylePreviewLabel}>{t('Topic Style Preview')}</Text>
-              {topicStyleId
-                ? renderTopicStylePreview(topicStyleId, styles.topicStylePreviewText, topicPreviewText)
-                : (
-                  <Text style={styles.topicStylePreviewText}>
-                    {t('No topic style selected')}
-                  </Text>
-                )}
+              <Text style={styles.topicStylePreviewLabel}>
+                {t('Topic Style Preview')}
+              </Text>
+              {topicStyleId ? (
+                renderTopicStylePreview(
+                  topicStyleId,
+                  styles.topicStylePreviewText,
+                  topicPreviewText,
+                )
+              ) : (
+                <Text style={styles.topicStylePreviewText}>
+                  {t('No topic style selected')}
+                </Text>
+              )}
             </View>
             <View style={styles.buttonRow}>
               <TouchableOpacity
@@ -489,16 +608,25 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                     return;
                   }
                   setShowTopicSelect(true);
-                }}>
+                }}
+              >
                 <Text style={styles.buttonText}>{t('Select Topic Style')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => setShowTopicStyles(true)}>
-                <Text style={styles.buttonText}>{t('Manage Topic Styles')}</Text>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => setShowTopicStyles(true)}
+              >
+                <Text style={styles.buttonText}>
+                  {t('Manage Topic Styles')}
+                </Text>
               </TouchableOpacity>
             </View>
             {channelInfo?.topicSetBy && (
               <Text style={styles.metaText}>
-                {t('Set by {topicSetBy}').replace('{topicSetBy}', channelInfo.topicSetBy)}
+                {t('Set by {topicSetBy}').replace(
+                  '{topicSetBy}',
+                  channelInfo.topicSetBy,
+                )}
                 {channelInfo.topicSetAt &&
                   ` ${t('on {date}').replace('{date}', new Date(channelInfo.topicSetAt).toLocaleString())}`}
               </Text>
@@ -509,7 +637,10 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionTitle}>{t('Channel Modes')}</Text>
-              <TouchableOpacity style={styles.refreshButton} onPress={refreshModes}>
+              <TouchableOpacity
+                style={styles.refreshButton}
+                onPress={refreshModes}
+              >
                 <Text style={styles.refreshButtonText}>{t('Refresh')}</Text>
               </TouchableOpacity>
             </View>
@@ -517,7 +648,9 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
               {rawModeString || t('No modes set')}
             </Text>
             <Text style={styles.metaText}>
-              {t('These are all current channel modes. Use switches below to toggle common modes.')}
+              {t(
+                'These are all current channel modes. Use switches below to toggle common modes.',
+              )}
             </Text>
 
             <View style={styles.modeRow}>
@@ -552,7 +685,9 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
 
             <View style={styles.modeRow}>
               <View style={styles.modeLabelContainer}>
-                <Text style={styles.modeLabel}>{t('No External Messages (n)')}</Text>
+                <Text style={styles.modeLabel}>
+                  {t('No External Messages (n)')}
+                </Text>
                 {getChannelModeDescription('n') && (
                   <Text style={styles.modeDescription}>
                     {getChannelModeDescription('n')?.description}
@@ -614,7 +749,9 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
           {/* Channel Key */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('Channel Key (Password)')}</Text>
+              <Text style={styles.sectionTitle}>
+                {t('Channel Key (Password)')}
+              </Text>
               {getChannelModeDescription('k') && (
                 <Text style={styles.sectionDescription}>
                   {getChannelModeDescription('k')?.description}
@@ -643,7 +780,9 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
             <Text style={styles.sectionTitle}>{t('Encryption Settings')}</Text>
 
             <View style={styles.modeRow}>
-              <Text style={styles.modeLabel}>{t('Always Encrypt Messages')}</Text>
+              <Text style={styles.modeLabel}>
+                {t('Always Encrypt Messages')}
+              </Text>
               <Switch
                 value={alwaysEncrypt}
                 onValueChange={handleToggleAlwaysEncrypt}
@@ -652,27 +791,47 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
 
             <View style={styles.statusContainer}>
               {hasEncryptionKey ? (
-                <Text style={styles.statusSuccess}>{t('✓ Encryption key exists')}</Text>
+                <Text style={styles.statusSuccess}>
+                  {t('✓ Encryption key exists')}
+                </Text>
               ) : (
-                <Text style={styles.statusWarning}>{t('⚠ No encryption key')}</Text>
+                <Text style={styles.statusWarning}>
+                  {t('⚠ No encryption key')}
+                </Text>
               )}
             </View>
 
             {!hasEncryptionKey ? (
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.button} onPress={handleGenerateKey}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleGenerateKey}
+                >
                   <Text style={styles.buttonText}>{t('Generate Key')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={handleRequestKey}>
-                  <Text style={styles.buttonText}>{t('Request Key from...')}</Text>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleRequestKey}
+                >
+                  <Text style={styles.buttonText}>
+                    {t('Request Key from...')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.button} onPress={handleShareKey}>
-                  <Text style={styles.buttonText}>{t('Share Key with...')}</Text>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleShareKey}
+                >
+                  <Text style={styles.buttonText}>
+                    {t('Share Key with...')}
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={handleRemoveKey}>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonDanger]}
+                  onPress={handleRemoveKey}
+                >
                   <Text style={styles.buttonText}>{t('Remove Key')}</Text>
                 </TouchableOpacity>
               </View>
@@ -680,8 +839,12 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
 
             <Text style={styles.metaText}>
               {alwaysEncrypt
-                ? t('Messages will be encrypted automatically when a key is available.')
-                : t('Enable to automatically encrypt all messages to this channel.')}
+                ? t(
+                    'Messages will be encrypted automatically when a key is available.',
+                  )
+                : t(
+                    'Enable to automatically encrypt all messages to this channel.',
+                  )}
             </Text>
           </View>
 
@@ -708,7 +871,12 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
               </Text>
             </TouchableOpacity>
             {modes.limit && (
-              <Text style={styles.metaText}>{t('Current limit: {limit} users').replace('{limit}', modes.limit.toString())}</Text>
+              <Text style={styles.metaText}>
+                {t('Current limit: {limit} users').replace(
+                  '{limit}',
+                  modes.limit.toString(),
+                )}
+              </Text>
             )}
           </View>
 
@@ -735,7 +903,8 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
             </View>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => channelManagementService.requestBanList(channel)}>
+              onPress={() => channelManagementService.requestBanList(channel)}
+            >
               <Text style={styles.buttonText}>{t('Refresh Ban List')}</Text>
             </TouchableOpacity>
             {modes.banList && modes.banList.length > 0 ? (
@@ -745,7 +914,8 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                     <Text style={styles.listItemText}>{mask}</Text>
                     <TouchableOpacity
                       style={styles.removeButton}
-                      onPress={() => handleRemoveBan(mask)}>
+                      onPress={() => handleRemoveBan(mask)}
+                    >
                       <Text style={styles.removeButtonText}>{t('Remove')}</Text>
                     </TouchableOpacity>
                   </View>
@@ -773,14 +943,22 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                 onChangeText={setExceptionMask}
                 placeholder={t('Exception mask')}
               />
-              <TouchableOpacity style={styles.addButton} onPress={handleAddException}>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={handleAddException}
+              >
                 <Text style={styles.addButtonText}>{t('Add')}</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => channelManagementService.requestExceptionList(channel)}>
-              <Text style={styles.buttonText}>{t('Refresh Exception List')}</Text>
+              onPress={() =>
+                channelManagementService.requestExceptionList(channel)
+              }
+            >
+              <Text style={styles.buttonText}>
+                {t('Refresh Exception List')}
+              </Text>
             </TouchableOpacity>
             {modes.exceptionList && modes.exceptionList.length > 0 ? (
               <View style={styles.listContainer}>
@@ -789,7 +967,8 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                     <Text style={styles.listItemText}>{mask}</Text>
                     <TouchableOpacity
                       style={styles.removeButton}
-                      onPress={() => handleRemoveException(mask)}>
+                      onPress={() => handleRemoveException(mask)}
+                    >
                       <Text style={styles.removeButtonText}>{t('Remove')}</Text>
                     </TouchableOpacity>
                   </View>
@@ -803,7 +982,9 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
           {/* Invite Exception List */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('Invite Exception List')}</Text>
+              <Text style={styles.sectionTitle}>
+                {t('Invite Exception List')}
+              </Text>
               {getChannelModeDescription('I') && (
                 <Text style={styles.sectionDescription}>
                   {getChannelModeDescription('I')?.description}
@@ -817,13 +998,19 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                 onChangeText={setInviteMask}
                 placeholder={t('Invite mask (e.g., *!*@trusted.host)')}
               />
-              <TouchableOpacity style={styles.addButton} onPress={handleAddInvite}>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={handleAddInvite}
+              >
                 <Text style={styles.addButtonText}>{t('Add')}</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => channelManagementService.requestInviteList(channel)}>
+              onPress={() =>
+                channelManagementService.requestInviteList(channel)
+              }
+            >
               <Text style={styles.buttonText}>{t('Refresh Invite List')}</Text>
             </TouchableOpacity>
             {modes.inviteList && modes.inviteList.length > 0 ? (
@@ -833,7 +1020,8 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                     <Text style={styles.listItemText}>{mask}</Text>
                     <TouchableOpacity
                       style={styles.removeButton}
-                      onPress={() => handleRemoveInvite(mask)}>
+                      onPress={() => handleRemoveInvite(mask)}
+                    >
                       <Text style={styles.removeButtonText}>{t('Remove')}</Text>
                     </TouchableOpacity>
                   </View>
@@ -845,68 +1033,108 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
           </View>
         </ScrollView>
 
-        <Modal visible={showTopicStyles} transparent animationType="fade" onRequestClose={() => setShowTopicStyles(false)}>
+        <Modal
+          visible={showTopicStyles}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowTopicStyles(false)}
+        >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>{t('Topic Styles')}</Text>
               <View style={styles.modalRow}>
                 <TouchableOpacity
                   style={styles.modalButton}
-                  onPress={() => openTopicStyleEditor()}>
+                  onPress={() => openTopicStyleEditor()}
+                >
                   <Text style={styles.modalButtonText}>{t('Add style')}</Text>
                 </TouchableOpacity>
               </View>
-                <ScrollView style={topicStylesScrollStyle}>
+              <ScrollView style={topicStylesScrollStyle}>
                 {topicStyles.map((styleText, index) => (
                   <View
                     key={`${styleText}-${index}`}
-                    style={styles.modalListItem}>
+                    style={styles.modalListItem}
+                  >
                     <View style={styles.modalListRow}>
                       <View style={topicStylesPreviewWrapStyle}>
-                        {renderTopicStylePreview(styleText, styles.modalListItemText, topicPreviewText)}
+                        {renderTopicStylePreview(
+                          styleText,
+                          styles.modalListItemText,
+                          topicPreviewText,
+                        )}
                       </View>
                       <TouchableOpacity
                         style={styles.modalRemoveButton}
-                        onPress={() => openTopicStyleEditor(styleText, index)}>
-                        <Text style={styles.modalRemoveButtonText}>{t('Edit')}</Text>
+                        onPress={() => openTopicStyleEditor(styleText, index)}
+                      >
+                        <Text style={styles.modalRemoveButtonText}>
+                          {t('Edit')}
+                        </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.modalRemoveButton}
                         onPress={async () => {
-                          const updated = topicStyles.filter((_, i) => i !== index);
+                          const updated = topicStyles.filter(
+                            (_, i) => i !== index,
+                          );
                           setTopicStyles(updated);
-                          await settingsService.setSetting('topicStyles', updated);
-                        }}>
-                        <Text style={styles.modalRemoveButtonText}>{t('Remove')}</Text>
+                          await settingsService.setSetting(
+                            'topicStyles',
+                            updated,
+                          );
+                        }}
+                      >
+                        <Text style={styles.modalRemoveButtonText}>
+                          {t('Remove')}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
                 ))}
               </ScrollView>
               <View style={styles.modalButtonRow}>
-                <TouchableOpacity style={styles.modalButtonSecondary} onPress={() => setShowTopicStyles(false)}>
-                  <Text style={styles.modalButtonSecondaryText}>{t('Close')}</Text>
+                <TouchableOpacity
+                  style={styles.modalButtonSecondary}
+                  onPress={() => setShowTopicStyles(false)}
+                >
+                  <Text style={styles.modalButtonSecondaryText}>
+                    {t('Close')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </Modal>
 
-        <Modal visible={showTopicSelect} transparent animationType="fade" onRequestClose={() => setShowTopicSelect(false)}>
+        <Modal
+          visible={showTopicSelect}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowTopicSelect(false)}
+        >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>{t('Select Topic Style')}</Text>
-                <ScrollView style={topicSelectScrollStyle}>
+              <ScrollView style={topicSelectScrollStyle}>
                 {topicStyles.map((styleText, index) => (
                   <TouchableOpacity
                     key={`${styleText}-${index}`}
                     style={styles.modalListItem}
                     onPress={async () => {
                       setTopicStyleId(styleText);
-                      await settingsService.setSetting('topicStyleId', styleText);
+                      await settingsService.setSetting(
+                        'topicStyleId',
+                        styleText,
+                      );
                       setShowTopicSelect(false);
-                    }}>
-                    {renderTopicStylePreview(styleText, styles.modalListItemText, topicPreviewText)}
+                    }}
+                  >
+                    {renderTopicStylePreview(
+                      styleText,
+                      styles.modalListItemText,
+                      topicPreviewText,
+                    )}
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -917,22 +1145,37 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
                     setTopicStyleId('');
                     await settingsService.setSetting('topicStyleId', '');
                     setShowTopicSelect(false);
-                  }}>
-                  <Text style={styles.modalButtonSecondaryText}>{t('Clear')}</Text>
+                  }}
+                >
+                  <Text style={styles.modalButtonSecondaryText}>
+                    {t('Clear')}
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.modalButtonSecondary} onPress={() => setShowTopicSelect(false)}>
-                  <Text style={styles.modalButtonSecondaryText}>{t('Close')}</Text>
+                <TouchableOpacity
+                  style={styles.modalButtonSecondary}
+                  onPress={() => setShowTopicSelect(false)}
+                >
+                  <Text style={styles.modalButtonSecondaryText}>
+                    {t('Close')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </Modal>
 
-        <Modal visible={showTopicStyleEditor} transparent animationType="fade" onRequestClose={closeTopicStyleEditor}>
+        <Modal
+          visible={showTopicStyleEditor}
+          transparent
+          animationType="fade"
+          onRequestClose={closeTopicStyleEditor}
+        >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>
-                {topicStyleEditorIndex !== null ? t('Edit style') : t('Add style')}
+                {topicStyleEditorIndex !== null
+                  ? t('Edit style')
+                  : t('Add style')}
               </Text>
               <TextInput
                 style={styles.editorInput}
@@ -944,21 +1187,36 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
               />
               <View style={styles.editorPreviewBox}>
                 {typeof topicStyleEditorPreview === 'string' ? (
-                  <Text style={styles.editorPreviewText}>{topicStyleEditorPreview}</Text>
+                  <Text style={styles.editorPreviewText}>
+                    {topicStyleEditorPreview}
+                  </Text>
                 ) : (
                   topicStyleEditorPreview
                 )}
               </View>
               <View style={styles.modalRow}>
-                <TouchableOpacity style={styles.modalButtonSecondary} onPress={() => setShowColorPicker(true)}>
-                  <Text style={styles.modalButtonSecondaryText}>{t('Colors')}</Text>
+                <TouchableOpacity
+                  style={styles.modalButtonSecondary}
+                  onPress={() => setShowColorPicker(true)}
+                >
+                  <Text style={styles.modalButtonSecondaryText}>
+                    {t('Colors')}
+                  </Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.modalButtonRow}>
-                <TouchableOpacity style={styles.modalButtonSecondary} onPress={closeTopicStyleEditor}>
-                  <Text style={styles.modalButtonSecondaryText}>{t('Cancel')}</Text>
+                <TouchableOpacity
+                  style={styles.modalButtonSecondary}
+                  onPress={closeTopicStyleEditor}
+                >
+                  <Text style={styles.modalButtonSecondaryText}>
+                    {t('Cancel')}
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.modalButton} onPress={saveTopicStyleEditor}>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={saveTopicStyleEditor}
+                >
                   <Text style={styles.modalButtonText}>{t('Save')}</Text>
                 </TouchableOpacity>
               </View>
@@ -977,152 +1235,287 @@ export const ChannelSettingsScreen: React.FC<ChannelSettingsScreenProps> = ({
   );
 };
 
-const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  header: { padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border, backgroundColor: colors.surface },
-  headerTitle: { fontSize: 20, fontWeight: '600', color: colors.text, marginBottom: 4 },
-  channelName: { fontSize: 14, color: colors.textSecondary, marginBottom: 8 },
-  closeButton: { alignSelf: 'flex-end', paddingVertical: 8, paddingHorizontal: 16 },
-  closeButtonText: { color: colors.primary, fontSize: 16, fontWeight: '500' },
-  content: { flex: 1 },
-  section: { padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 4 },
-  sectionHeader: { marginBottom: 12 },
-  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  refreshButton: { backgroundColor: colors.buttonSecondary, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 4 },
-  refreshButtonText: { color: colors.buttonSecondaryText, fontSize: 12, fontWeight: '500' },
-  sectionDescription: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic', marginTop: 4 },
-  modeLabelContainer: { flex: 1, marginRight: 12 },
-  modeDescription: { fontSize: 11, color: colors.textDisabled, fontStyle: 'italic', marginTop: 2 },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: 4,
-    padding: 12,
-    fontSize: 14,
-    color: colors.inputText,
-    backgroundColor: colors.inputBackground,
-    marginBottom: 8,
-  },
-  inputRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  inputFlex: { flex: 1 },
-  button: { backgroundColor: colors.buttonPrimary, padding: 12, borderRadius: 4, alignItems: 'center', marginBottom: 8 },
-  buttonText: { color: colors.buttonPrimaryText, fontSize: 14, fontWeight: '500' },
-  addButton: {
-    backgroundColor: colors.accent,
-    padding: 12,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 60,
-  },
-  addButtonText: { color: colors.onAccent, fontSize: 14, fontWeight: '500' },
-  modeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-  },
-  modeLabel: { fontSize: 14, color: colors.text },
-  modeString: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontFamily: 'monospace',
-    marginBottom: 12,
-    padding: 8,
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: 4,
-  },
-  metaText: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic' },
-  listContainer: { marginTop: 8 },
-  listItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  listItemText: { flex: 1, fontSize: 14, color: colors.text, fontFamily: 'monospace' },
-  removeButton: { padding: 6, paddingHorizontal: 12, backgroundColor: colors.error, borderRadius: 4 },
-  removeButtonText: { color: colors.onPrimary, fontSize: 12, fontWeight: '500' },
-  emptyText: { fontSize: 12, color: colors.textDisabled, fontStyle: 'italic', textAlign: 'center', padding: 16 },
-  buttonRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  buttonDanger: { backgroundColor: colors.error },
-  statusContainer: { paddingVertical: 8, marginBottom: 8 },
-  statusSuccess: { fontSize: 14, color: colors.success, fontWeight: '500' },
-  statusWarning: { fontSize: 14, color: colors.warning, fontWeight: '500' },
-  topicStylePreview: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 4,
-    padding: 10,
-    marginBottom: 8,
-    backgroundColor: colors.surfaceVariant,
-  },
-  topicStylePreviewLabel: { fontSize: 12, color: colors.textSecondary, marginBottom: 4 },
-  topicStylePreviewText: { fontSize: 13, color: colors.text },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: colors.modalOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    width: '100%',
-    maxWidth: 480,
-    backgroundColor: colors.modalBackground,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  modalTitle: { fontSize: 16, fontWeight: '600', color: colors.modalText, marginBottom: 12 },
-  modalRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  modalInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: 4,
-    padding: 10,
-    color: colors.inputText,
-    backgroundColor: colors.inputBackground,
-  },
-  editorInput: {
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: colors.inputText,
-    backgroundColor: colors.inputBackground,
-    minHeight: 140,
-    textAlignVertical: 'top',
-    marginBottom: 12,
-  },
-  editorPreviewBox: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: colors.surface,
-    marginBottom: 12,
-  },
-  editorPreviewText: { fontSize: 14, color: colors.text },
-  modalButton: { backgroundColor: colors.buttonPrimary, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 4 },
-  modalButtonText: { color: colors.buttonPrimaryText, fontSize: 14, fontWeight: '500' },
-  modalListItem: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
-  modalListRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  modalListItemText: { color: colors.text, fontSize: 13 },
-  modalRemoveButton: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 4, backgroundColor: colors.buttonSecondary },
-  modalRemoveButtonText: { color: colors.buttonSecondaryText, fontSize: 12, fontWeight: '600' },
-  modalButtonRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12 },
-  modalButtonSecondary: { backgroundColor: colors.buttonSecondary, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 4 },
-  modalButtonSecondaryText: { color: colors.buttonSecondaryText, fontSize: 14, fontWeight: '500' },
-});
-
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    header: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    headerTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    channelName: { fontSize: 14, color: colors.textSecondary, marginBottom: 8 },
+    closeButton: {
+      alignSelf: 'flex-end',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+    },
+    closeButtonText: { color: colors.primary, fontSize: 16, fontWeight: '500' },
+    content: { flex: 1 },
+    section: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    sectionHeader: { marginBottom: 12 },
+    sectionHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    refreshButton: {
+      backgroundColor: colors.buttonSecondary,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 4,
+    },
+    refreshButtonText: {
+      color: colors.buttonSecondaryText,
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    sectionDescription: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+      marginTop: 4,
+    },
+    modeLabelContainer: { flex: 1, marginRight: 12 },
+    modeDescription: {
+      fontSize: 11,
+      color: colors.textDisabled,
+      fontStyle: 'italic',
+      marginTop: 2,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      borderRadius: 4,
+      padding: 12,
+      fontSize: 14,
+      color: colors.inputText,
+      backgroundColor: colors.inputBackground,
+      marginBottom: 8,
+    },
+    inputRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+    inputFlex: { flex: 1 },
+    button: {
+      backgroundColor: colors.buttonPrimary,
+      padding: 12,
+      borderRadius: 4,
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    buttonText: {
+      color: colors.buttonPrimaryText,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    addButton: {
+      backgroundColor: colors.accent,
+      padding: 12,
+      borderRadius: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 60,
+    },
+    addButtonText: { color: colors.onAccent, fontSize: 14, fontWeight: '500' },
+    modeRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
+    },
+    modeLabel: { fontSize: 14, color: colors.text },
+    modeString: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontFamily: 'monospace',
+      marginBottom: 12,
+      padding: 8,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 4,
+    },
+    metaText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+    },
+    listContainer: { marginTop: 8 },
+    listItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 12,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 4,
+      marginBottom: 8,
+    },
+    listItemText: {
+      flex: 1,
+      fontSize: 14,
+      color: colors.text,
+      fontFamily: 'monospace',
+    },
+    removeButton: {
+      padding: 6,
+      paddingHorizontal: 12,
+      backgroundColor: colors.error,
+      borderRadius: 4,
+    },
+    removeButtonText: {
+      color: colors.onPrimary,
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    emptyText: {
+      fontSize: 12,
+      color: colors.textDisabled,
+      fontStyle: 'italic',
+      textAlign: 'center',
+      padding: 16,
+    },
+    buttonRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+    buttonDanger: { backgroundColor: colors.error },
+    statusContainer: { paddingVertical: 8, marginBottom: 8 },
+    statusSuccess: { fontSize: 14, color: colors.success, fontWeight: '500' },
+    statusWarning: { fontSize: 14, color: colors.warning, fontWeight: '500' },
+    topicStylePreview: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 4,
+      padding: 10,
+      marginBottom: 8,
+      backgroundColor: colors.surfaceVariant,
+    },
+    topicStylePreviewLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    topicStylePreviewText: { fontSize: 13, color: colors.text },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: colors.modalOverlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    modalContent: {
+      width: '100%',
+      maxWidth: 480,
+      backgroundColor: colors.modalBackground,
+      borderRadius: 12,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    modalTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.modalText,
+      marginBottom: 12,
+    },
+    modalRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 10,
+    },
+    modalInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      borderRadius: 4,
+      padding: 10,
+      color: colors.inputText,
+      backgroundColor: colors.inputBackground,
+    },
+    editorInput: {
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: colors.inputText,
+      backgroundColor: colors.inputBackground,
+      minHeight: 140,
+      textAlignVertical: 'top',
+      marginBottom: 12,
+    },
+    editorPreviewBox: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      backgroundColor: colors.surface,
+      marginBottom: 12,
+    },
+    editorPreviewText: { fontSize: 14, color: colors.text },
+    modalButton: {
+      backgroundColor: colors.buttonPrimary,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 4,
+    },
+    modalButtonText: {
+      color: colors.buttonPrimaryText,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    modalListItem: {
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    modalListRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    modalListItemText: { color: colors.text, fontSize: 13 },
+    modalRemoveButton: {
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 4,
+      backgroundColor: colors.buttonSecondary,
+    },
+    modalRemoveButtonText: {
+      color: colors.buttonSecondaryText,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    modalButtonRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginTop: 12,
+    },
+    modalButtonSecondary: {
+      backgroundColor: colors.buttonSecondary,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 4,
+    },
+    modalButtonSecondaryText: {
+      color: colors.buttonSecondaryText,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+  });

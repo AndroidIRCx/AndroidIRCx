@@ -85,7 +85,9 @@ jest.mock('../../src/services/ConnectionManager', () => ({
 }));
 
 const mockSetCallNotificationActionListener = jest.fn();
-const mockConsumePendingCallNotificationAction = jest.fn(() => Promise.resolve(null));
+const mockConsumePendingCallNotificationAction = jest.fn(() =>
+  Promise.resolve(null),
+);
 const mockHandleCallNotificationAction = jest.fn(() => Promise.resolve());
 jest.mock('../../src/services/NotificationService', () => ({
   CALL_NOTIFICATION_ACTIONS: {
@@ -94,9 +96,12 @@ jest.mock('../../src/services/NotificationService', () => ({
     DEFAULT: 'default',
   },
   notificationService: {
-    setCallNotificationActionListener: (...args: any[]) => mockSetCallNotificationActionListener(...args),
-    consumePendingCallNotificationAction: (...args: any[]) => mockConsumePendingCallNotificationAction(...args),
-    handleCallNotificationAction: (...args: any[]) => mockHandleCallNotificationAction(...args),
+    setCallNotificationActionListener: (...args: any[]) =>
+      mockSetCallNotificationActionListener(...args),
+    consumePendingCallNotificationAction: (...args: any[]) =>
+      mockConsumePendingCallNotificationAction(...args),
+    handleCallNotificationAction: (...args: any[]) =>
+      mockHandleCallNotificationAction(...args),
   },
 }));
 
@@ -115,7 +120,12 @@ const mockClampVideoQuality = jest.fn((q: any) => q || '720p');
 const mockGetCapabilityProfile = jest.fn(() => ({ relayEnabled: false }));
 const mockBuildRtcSessionConfig = jest.fn(async () => ({
   relayEnabled: false,
-  selectedVideoPreset: { quality: '480p', width: 640, height: 480, frameRate: 24 },
+  selectedVideoPreset: {
+    quality: '480p',
+    width: 640,
+    height: 480,
+    frameRate: 24,
+  },
   iceServers: [{ urls: ['stun:example.org'] }],
   iceTransportPolicy: 'all',
 }));
@@ -123,7 +133,8 @@ jest.mock('../../src/services/CallMediaProfileService', () => ({
   callMediaProfileService: {
     clampVideoQuality: (...args: any[]) => mockClampVideoQuality(...args),
     getCapabilityProfile: (...args: any[]) => mockGetCapabilityProfile(...args),
-    buildRtcSessionConfig: (...args: any[]) => mockBuildRtcSessionConfig(...args),
+    buildRtcSessionConfig: (...args: any[]) =>
+      mockBuildRtcSessionConfig(...args),
   },
 }));
 
@@ -136,11 +147,22 @@ jest.mock('../../src/services/MediaSettingsService', () => ({
 
 jest.mock('../../src/services/CallSignalCodec', () => ({
   callSignalCodec: {
-    appendChunk: jest.fn((a: any) => a || { startedAt: Date.now(), updatedAt: Date.now(), parts: new Map(), total: 1 }),
+    appendChunk: jest.fn(
+      (a: any) =>
+        a || {
+          startedAt: Date.now(),
+          updatedAt: Date.now(),
+          parts: new Map(),
+          total: 1,
+        },
+    ),
     getChunkProgress: jest.fn(() => ({ received: 0, total: 1, missing: [0] })),
     tryAssemble: jest.fn(() => null),
     encode: jest.fn((s: any) => JSON.stringify(s)),
-    encodeChunked: jest.fn((_signal: any, _id: string) => ['chunk-1', 'chunk-2']),
+    encodeChunked: jest.fn((_signal: any, _id: string) => [
+      'chunk-1',
+      'chunk-2',
+    ]),
   },
 }));
 
@@ -199,8 +221,14 @@ class MockRTCPeerConnection {
   onicegatheringstatechange: any;
   onsignalingstatechange: any;
   addTrack = jest.fn();
-  createOffer = jest.fn(async () => ({ type: 'offer', sdp: 'v=0\r\na=candidate:1 1 udp 123 typ host\r\n' }));
-  createAnswer = jest.fn(async () => ({ type: 'answer', sdp: 'v=0\r\na=candidate:2 1 udp 123 typ srflx\r\n' }));
+  createOffer = jest.fn(async () => ({
+    type: 'offer',
+    sdp: 'v=0\r\na=candidate:1 1 udp 123 typ host\r\n',
+  }));
+  createAnswer = jest.fn(async () => ({
+    type: 'answer',
+    sdp: 'v=0\r\na=candidate:2 1 udp 123 typ srflx\r\n',
+  }));
   setLocalDescription = jest.fn(async (d: any) => {
     this.localDescription = d;
     this.iceGatheringState = 'complete';
@@ -225,7 +253,8 @@ jest.mock('react-native-webrtc', () => ({
 
 describe('WebRTCCallService', () => {
   const { webRtcCallService } = require('../../src/services/WebRTCCallService');
-  const mockCallSignalCodec = require('../../src/services/CallSignalCodec').callSignalCodec as {
+  const mockCallSignalCodec = require('../../src/services/CallSignalCodec')
+    .callSignalCodec as {
     appendChunk: jest.Mock;
     getChunkProgress: jest.Mock;
     tryAssemble: jest.Mock;
@@ -300,15 +329,24 @@ describe('WebRTCCallService', () => {
     (Linking.openSettings as any) = jest.fn(() => Promise.resolve());
     (PermissionsAndroid.check as any) = jest.fn(async () => true);
     (PermissionsAndroid.requestMultiple as any) = jest.fn(async () => ({}));
-    mockCallSignalCodec.appendChunk.mockImplementation((a: any) => a || {
-      startedAt: Date.now(),
-      updatedAt: Date.now(),
-      parts: new Map(),
+    mockCallSignalCodec.appendChunk.mockImplementation(
+      (a: any) =>
+        a || {
+          startedAt: Date.now(),
+          updatedAt: Date.now(),
+          parts: new Map(),
+          total: 1,
+        },
+    );
+    mockCallSignalCodec.getChunkProgress.mockReturnValue({
+      received: 0,
       total: 1,
+      missing: [0],
     });
-    mockCallSignalCodec.getChunkProgress.mockReturnValue({ received: 0, total: 1, missing: [0] });
     mockCallSignalCodec.tryAssemble.mockReturnValue(null);
-    mockCallSignalCodec.encode.mockImplementation((s: any) => JSON.stringify(s));
+    mockCallSignalCodec.encode.mockImplementation((s: any) =>
+      JSON.stringify(s),
+    );
     mockCallSignalCodec.encodeChunked.mockReturnValue(['chunk-1', 'chunk-2']);
   });
 
@@ -319,7 +357,9 @@ describe('WebRTCCallService', () => {
 
   it('initialize is idempotent and handles notification actions', async () => {
     const restoreSpy = jest.spyOn(webRtcCallService, 'restoreCall');
-    const hangSpy = jest.spyOn(webRtcCallService, 'hangUp').mockResolvedValue(undefined);
+    const hangSpy = jest
+      .spyOn(webRtcCallService, 'hangUp')
+      .mockResolvedValue(undefined);
     mockConsumePendingCallNotificationAction.mockResolvedValueOnce('hangup');
     const conn = createConnection('net1');
     mockGetAllConnections.mockReturnValue([conn]);
@@ -329,8 +369,14 @@ describe('WebRTCCallService', () => {
     webRtcCallService.initialize();
 
     expect(mockSetCallNotificationActionListener).toHaveBeenCalledTimes(1);
-    expect(conn.ircService.on).toHaveBeenCalledWith('webrtc-signal', expect.any(Function));
-    expect(conn.ircService.on).toHaveBeenCalledWith('webrtc-signal-chunk', expect.any(Function));
+    expect(conn.ircService.on).toHaveBeenCalledWith(
+      'webrtc-signal',
+      expect.any(Function),
+    );
+    expect(conn.ircService.on).toHaveBeenCalledWith(
+      'webrtc-signal-chunk',
+      expect.any(Function),
+    );
 
     const actionCb = mockSetCallNotificationActionListener.mock.calls[0][0];
     await actionCb('return');
@@ -343,33 +389,53 @@ describe('WebRTCCallService', () => {
   });
 
   it('starts outgoing call with generated session and invite signal', async () => {
-    const sendSignalSpy = jest.spyOn(webRtcCallService as any, 'sendSignal').mockResolvedValue(undefined);
-    const ensurePermSpy = jest.spyOn(webRtcCallService as any, 'ensureMediaPermissions').mockResolvedValue(undefined);
-    const resetSpy = jest.spyOn(webRtcCallService as any, 'resetSession').mockResolvedValue(undefined);
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    const ensurePermSpy = jest
+      .spyOn(webRtcCallService as any, 'ensureMediaPermissions')
+      .mockResolvedValue(undefined);
+    const resetSpy = jest
+      .spyOn(webRtcCallService as any, 'resetSession')
+      .mockResolvedValue(undefined);
     mockGetCallVideoQuality.mockResolvedValueOnce('480p');
 
     await webRtcCallService.startOutgoingCall('net1', 'alice', 'video');
 
     expect(ensurePermSpy).toHaveBeenCalledWith('video');
     expect(resetSpy).toHaveBeenCalled();
-    expect(mockSetPartial).toHaveBeenCalledWith(expect.objectContaining({
-      networkId: 'net1',
-      peerNick: 'alice',
-      direction: 'outgoing',
-      phase: 'outgoing',
-      mediaType: 'video',
-    }));
-    expect(sendSignalSpy).toHaveBeenCalledWith('net1', 'alice', expect.objectContaining({
-      type: 'invite',
-      mediaType: 'video',
-    }));
+    expect(mockSetPartial).toHaveBeenCalledWith(
+      expect.objectContaining({
+        networkId: 'net1',
+        peerNick: 'alice',
+        direction: 'outgoing',
+        phase: 'outgoing',
+        mediaType: 'video',
+      }),
+    );
+    expect(sendSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'alice',
+      expect.objectContaining({
+        type: 'invite',
+        mediaType: 'video',
+      }),
+    );
   });
 
   it('accepts/declines/hangup with expected signaling flow', async () => {
-    const sendSignalSpy = jest.spyOn(webRtcCallService as any, 'sendSignal').mockResolvedValue(undefined);
-    const endCallSpy = jest.spyOn(webRtcCallService as any, 'endCall').mockResolvedValue(undefined);
-    const resetSpy = jest.spyOn(webRtcCallService as any, 'resetSession').mockResolvedValue(undefined);
-    const ensurePermSpy = jest.spyOn(webRtcCallService as any, 'ensureMediaPermissions').mockResolvedValue(undefined);
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    const endCallSpy = jest
+      .spyOn(webRtcCallService as any, 'endCall')
+      .mockResolvedValue(undefined);
+    const resetSpy = jest
+      .spyOn(webRtcCallService as any, 'resetSession')
+      .mockResolvedValue(undefined);
+    const ensurePermSpy = jest
+      .spyOn(webRtcCallService as any, 'ensureMediaPermissions')
+      .mockResolvedValue(undefined);
 
     Object.assign(mockCallState, {
       networkId: 'net1',
@@ -381,15 +447,32 @@ describe('WebRTCCallService', () => {
     });
     await webRtcCallService.acceptIncomingCall();
     expect(ensurePermSpy).toHaveBeenCalledWith('audio');
-    expect(sendSignalSpy).toHaveBeenCalledWith('net1', 'bob', expect.objectContaining({ type: 'accept' }));
+    expect(sendSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'bob',
+      expect.objectContaining({ type: 'accept' }),
+    );
 
     await webRtcCallService.declineIncomingCall();
-    expect(sendSignalSpy).toHaveBeenCalledWith('net1', 'bob', expect.objectContaining({ type: 'reject' }));
+    expect(sendSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'bob',
+      expect.objectContaining({ type: 'reject' }),
+    );
     expect(resetSpy).toHaveBeenCalled();
 
-    Object.assign(mockCallState, { networkId: 'net1', peerNick: 'bob', sessionId: 's1', mediaType: 'audio' });
+    Object.assign(mockCallState, {
+      networkId: 'net1',
+      peerNick: 'bob',
+      sessionId: 's1',
+      mediaType: 'audio',
+    });
     await webRtcCallService.hangUp();
-    expect(sendSignalSpy).toHaveBeenCalledWith('net1', 'bob', expect.objectContaining({ type: 'hangup' }));
+    expect(sendSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'bob',
+      expect.objectContaining({ type: 'hangup' }),
+    );
     expect(endCallSpy).toHaveBeenCalledWith('Call ended.');
   });
 
@@ -408,7 +491,9 @@ describe('WebRTCCallService', () => {
     mockCallState.phase = 'idle';
     webRtcCallService.minimizeCall();
     webRtcCallService.restoreCall();
-    expect(mockSetPartial).not.toHaveBeenCalledWith(expect.objectContaining({ minimized: true }));
+    expect(mockSetPartial).not.toHaveBeenCalledWith(
+      expect.objectContaining({ minimized: true }),
+    );
 
     mockCallState.phase = 'active';
     webRtcCallService.minimizeCall();
@@ -423,12 +508,24 @@ describe('WebRTCCallService', () => {
   });
 
   it('handles invite/accept/reject/candidate/hangup signaling branches', async () => {
-    const resetSpy = jest.spyOn(webRtcCallService as any, 'resetSession').mockResolvedValue(undefined);
-    const sendSignalSpy = jest.spyOn(webRtcCallService as any, 'sendSignal').mockResolvedValue(undefined);
-    const endCallSpy = jest.spyOn(webRtcCallService as any, 'endCall').mockResolvedValue(undefined);
-    const createPeerSpy = jest.spyOn(webRtcCallService as any, 'createPeerConnection').mockResolvedValue(undefined);
-    const createOfferSpy = jest.spyOn(webRtcCallService as any, 'createAndSendOffer').mockResolvedValue(undefined);
-    const flushSpy = jest.spyOn(webRtcCallService as any, 'flushPendingCandidates').mockResolvedValue(undefined);
+    const resetSpy = jest
+      .spyOn(webRtcCallService as any, 'resetSession')
+      .mockResolvedValue(undefined);
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    const endCallSpy = jest
+      .spyOn(webRtcCallService as any, 'endCall')
+      .mockResolvedValue(undefined);
+    const createPeerSpy = jest
+      .spyOn(webRtcCallService as any, 'createPeerConnection')
+      .mockResolvedValue(undefined);
+    const createOfferSpy = jest
+      .spyOn(webRtcCallService as any, 'createAndSendOffer')
+      .mockResolvedValue(undefined);
+    const flushSpy = jest
+      .spyOn(webRtcCallService as any, 'flushPendingCandidates')
+      .mockResolvedValue(undefined);
 
     mockCallState.phase = 'active';
     mockCallState.sessionId = 'other';
@@ -437,7 +534,11 @@ describe('WebRTCCallService', () => {
       sessionId: 's-in',
       mediaType: 'audio',
     });
-    expect(sendSignalSpy).toHaveBeenCalledWith('net1', 'alice', expect.objectContaining({ type: 'reject', reason: 'Busy' }));
+    expect(sendSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'alice',
+      expect.objectContaining({ type: 'reject', reason: 'Busy' }),
+    );
 
     mockCallState.phase = 'idle';
     await (webRtcCallService as any).handleSignal('net1', 'alice', {
@@ -449,7 +550,11 @@ describe('WebRTCCallService', () => {
     expect(resetSpy).toHaveBeenCalled();
     expect(mockCallState.phase).toBe('incoming');
 
-    Object.assign(mockCallState, { sessionId: 's-out', direction: 'outgoing', requestedQuality: '480p' });
+    Object.assign(mockCallState, {
+      sessionId: 's-out',
+      direction: 'outgoing',
+      requestedQuality: '480p',
+    });
     await (webRtcCallService as any).handleSignal('net1', 'alice', {
       type: 'accept',
       sessionId: 's-out',
@@ -466,7 +571,10 @@ describe('WebRTCCallService', () => {
     });
     expect(endCallSpy).toHaveBeenCalledWith('Declined');
 
-    (webRtcCallService as any).peerConnection = { remoteDescription: null, addIceCandidate: jest.fn() };
+    (webRtcCallService as any).peerConnection = {
+      remoteDescription: null,
+      addIceCandidate: jest.fn(),
+    };
     Object.assign(mockCallState, { sessionId: 's-cand' });
     await (webRtcCallService as any).handleSignal('net1', 'alice', {
       type: 'candidate',
@@ -476,14 +584,19 @@ describe('WebRTCCallService', () => {
     });
     expect((webRtcCallService as any).pendingCandidates.length).toBe(1);
 
-    (webRtcCallService as any).peerConnection = { remoteDescription: {}, addIceCandidate: jest.fn(async () => undefined) };
+    (webRtcCallService as any).peerConnection = {
+      remoteDescription: {},
+      addIceCandidate: jest.fn(async () => undefined),
+    };
     await (webRtcCallService as any).handleSignal('net1', 'alice', {
       type: 'candidate',
       sessionId: 's-cand',
       mediaType: 'audio',
       candidate: { candidate: 'a=candidate:2 1 udp 123 typ srflx' },
     });
-    expect((webRtcCallService as any).peerConnection.addIceCandidate).toHaveBeenCalled();
+    expect(
+      (webRtcCallService as any).peerConnection.addIceCandidate,
+    ).toHaveBeenCalled();
 
     await (webRtcCallService as any).handleSignal('net1', 'alice', {
       type: 'hangup',
@@ -497,13 +610,23 @@ describe('WebRTCCallService', () => {
   it('handles offer and answer signaling branches', async () => {
     const peer = new MockRTCPeerConnection();
     (webRtcCallService as any).peerConnection = peer;
-    const createPeerSpy = jest.spyOn(webRtcCallService as any, 'createPeerConnection').mockImplementation(async () => {
-      (webRtcCallService as any).peerConnection = peer;
-    });
-    const sendSignalSpy = jest.spyOn(webRtcCallService as any, 'sendSignal').mockResolvedValue(undefined);
-    const waitIceSpy = jest.spyOn(webRtcCallService as any, 'waitForIceGatheringComplete').mockResolvedValue(undefined);
+    const createPeerSpy = jest
+      .spyOn(webRtcCallService as any, 'createPeerConnection')
+      .mockImplementation(async () => {
+        (webRtcCallService as any).peerConnection = peer;
+      });
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    const waitIceSpy = jest
+      .spyOn(webRtcCallService as any, 'waitForIceGatheringComplete')
+      .mockResolvedValue(undefined);
 
-    Object.assign(mockCallState, { sessionId: 's-offer', requestedQuality: '480p', direction: 'incoming' });
+    Object.assign(mockCallState, {
+      sessionId: 's-offer',
+      requestedQuality: '480p',
+      direction: 'incoming',
+    });
     await (webRtcCallService as any).handleSignal('net1', 'alice', {
       type: 'offer',
       sessionId: 's-offer',
@@ -513,9 +636,16 @@ describe('WebRTCCallService', () => {
     expect(createPeerSpy).toHaveBeenCalled();
     expect(peer.setRemoteDescription).toHaveBeenCalled();
     expect(waitIceSpy).toHaveBeenCalledWith('net1', 'answer');
-    expect(sendSignalSpy).toHaveBeenCalledWith('net1', 'alice', expect.objectContaining({ type: 'answer' }));
+    expect(sendSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'alice',
+      expect.objectContaining({ type: 'answer' }),
+    );
 
-    Object.assign(mockCallState, { sessionId: 's-ans', requestedQuality: '480p' });
+    Object.assign(mockCallState, {
+      sessionId: 's-ans',
+      requestedQuality: '480p',
+    });
     await (webRtcCallService as any).handleSignal('net1', 'alice', {
       type: 'answer',
       sessionId: 's-ans',
@@ -528,21 +658,38 @@ describe('WebRTCCallService', () => {
   it('sendSignal uses single or chunked transport and enforces missing connection errors', async () => {
     const conn = createConnection('net1');
     mockGetConnection.mockReturnValue(conn);
-    const sendIrcSpy = jest.spyOn(webRtcCallService as any, 'sendIrcPrivmsg').mockResolvedValue(undefined);
-    const delaySpy = jest.spyOn(webRtcCallService as any, 'delay').mockResolvedValue(undefined);
+    const sendIrcSpy = jest
+      .spyOn(webRtcCallService as any, 'sendIrcPrivmsg')
+      .mockResolvedValue(undefined);
+    const delaySpy = jest
+      .spyOn(webRtcCallService as any, 'delay')
+      .mockResolvedValue(undefined);
 
     mockCallSignalCodec.encode.mockReturnValueOnce('x'.repeat(100));
-    await (webRtcCallService as any).sendSignal('net1', 'alice', { type: 'invite', sessionId: 's1', mediaType: 'audio' });
+    await (webRtcCallService as any).sendSignal('net1', 'alice', {
+      type: 'invite',
+      sessionId: 's1',
+      mediaType: 'audio',
+    });
     expect(sendIrcSpy).toHaveBeenCalledTimes(1);
 
     mockCallSignalCodec.encode.mockReturnValueOnce('x'.repeat(600));
-    await (webRtcCallService as any).sendSignal('net1', 'alice', { type: 'offer', sessionId: 's1', mediaType: 'audio', sdp: 'x' });
+    await (webRtcCallService as any).sendSignal('net1', 'alice', {
+      type: 'offer',
+      sessionId: 's1',
+      mediaType: 'audio',
+      sdp: 'x',
+    });
     expect(sendIrcSpy).toHaveBeenCalledTimes(3);
     expect(delaySpy).toHaveBeenCalled();
 
     mockGetConnection.mockReturnValueOnce(null);
     await expect(
-      (webRtcCallService as any).sendSignal('netX', 'alice', { type: 'invite', sessionId: 'sX', mediaType: 'audio' })
+      (webRtcCallService as any).sendSignal('netX', 'alice', {
+        type: 'invite',
+        sessionId: 'sX',
+        mediaType: 'audio',
+      }),
     ).rejects.toThrow('No IRC connection found');
   });
 
@@ -554,23 +701,46 @@ describe('WebRTCCallService', () => {
     };
     (webRtcCallService as any).peerConnection = peerNoSdp;
     await expect(
-      (webRtcCallService as any).createAndSendOffer('net1', 'alice', { type: 'offer', sessionId: 's1', mediaType: 'audio' })
+      (webRtcCallService as any).createAndSendOffer('net1', 'alice', {
+        type: 'offer',
+        sessionId: 's1',
+        mediaType: 'audio',
+      }),
     ).rejects.toThrow('Failed to create WebRTC offer');
 
     const peer = new MockRTCPeerConnection();
     (webRtcCallService as any).peerConnection = peer;
-    jest.spyOn(webRtcCallService as any, 'waitForIceGatheringComplete').mockResolvedValue(undefined);
-    const sendSignalSpy = jest.spyOn(webRtcCallService as any, 'sendSignal').mockResolvedValue(undefined);
-    await (webRtcCallService as any).createAndSendOffer('net1', 'alice', { type: 'offer', sessionId: 's2', mediaType: 'video' });
-    expect(sendSignalSpy).toHaveBeenCalledWith('net1', 'alice', expect.objectContaining({ type: 'offer' }));
+    jest
+      .spyOn(webRtcCallService as any, 'waitForIceGatheringComplete')
+      .mockResolvedValue(undefined);
+    const sendSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'sendSignal')
+      .mockResolvedValue(undefined);
+    await (webRtcCallService as any).createAndSendOffer('net1', 'alice', {
+      type: 'offer',
+      sessionId: 's2',
+      mediaType: 'video',
+    });
+    expect(sendSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'alice',
+      expect.objectContaining({ type: 'offer' }),
+    );
   });
 
   it('creates peer connection and updates call store fields', async () => {
     const conn = createConnection('net1');
     mockGetConnection.mockReturnValue(conn);
-    Object.assign(mockCallState, { sessionId: 'pc-1', requestedQuality: '480p' });
+    Object.assign(mockCallState, {
+      sessionId: 'pc-1',
+      requestedQuality: '480p',
+    });
 
-    await (webRtcCallService as any).createPeerConnection('net1', 'video', '480p');
+    await (webRtcCallService as any).createPeerConnection(
+      'net1',
+      'video',
+      '480p',
+    );
 
     expect(mockBuildRtcSessionConfig).toHaveBeenCalled();
     expect(mockGetUserMedia).toHaveBeenCalled();
@@ -583,25 +753,42 @@ describe('WebRTCCallService', () => {
     const peer = new MockRTCPeerConnection();
     peer.remoteDescription = { type: 'offer' };
     (webRtcCallService as any).peerConnection = peer;
-    (webRtcCallService as any).pendingCandidates = [{ candidate: 'x' }, { candidate: 'y' }];
+    (webRtcCallService as any).pendingCandidates = [
+      { candidate: 'x' },
+      { candidate: 'y' },
+    ];
     await (webRtcCallService as any).flushPendingCandidates();
     expect(peer.addIceCandidate).toHaveBeenCalledTimes(2);
 
     const conn = createConnection('net1');
     mockGetConnection.mockReturnValue(conn);
     await (webRtcCallService as any).sendIrcPrivmsg('net1', 'alice', 'payload');
-    expect(conn.connectionQualityService.sendMessage).toHaveBeenCalledWith('PRIVMSG alice :payload');
+    expect(conn.connectionQualityService.sendMessage).toHaveBeenCalledWith(
+      'PRIVMSG alice :payload',
+    );
 
     conn.connectionQualityService = null;
-    await (webRtcCallService as any).sendIrcPrivmsg('net1', 'alice', 'payload2');
-    expect(conn.ircService.sendRaw).toHaveBeenCalledWith('PRIVMSG alice :payload2');
+    await (webRtcCallService as any).sendIrcPrivmsg(
+      'net1',
+      'alice',
+      'payload2',
+    );
+    expect(conn.ircService.sendRaw).toHaveBeenCalledWith(
+      'PRIVMSG alice :payload2',
+    );
 
     (webRtcCallService as any).peerConnection = peer;
     peer.iceGatheringState = 'complete';
-    await (webRtcCallService as any).waitForIceGatheringComplete('net1', 'offer');
+    await (webRtcCallService as any).waitForIceGatheringComplete(
+      'net1',
+      'offer',
+    );
 
     peer.iceGatheringState = 'gathering';
-    const waitPromise = (webRtcCallService as any).waitForIceGatheringComplete('net1', 'answer');
+    const waitPromise = (webRtcCallService as any).waitForIceGatheringComplete(
+      'net1',
+      'answer',
+    );
     jest.advanceTimersByTime(4500);
     await waitPromise;
   });
@@ -609,29 +796,41 @@ describe('WebRTCCallService', () => {
   it('handles media permissions branches on Android', async () => {
     setPlatform('android');
     (PermissionsAndroid.check as any).mockResolvedValue(true);
-    await expect((webRtcCallService as any).ensureMediaPermissions('audio')).resolves.toBeUndefined();
+    await expect(
+      (webRtcCallService as any).ensureMediaPermissions('audio'),
+    ).resolves.toBeUndefined();
 
     (PermissionsAndroid.check as any).mockResolvedValue(false);
     (PermissionsAndroid.requestMultiple as any).mockResolvedValue({
-      [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]: PermissionsAndroid.RESULTS.GRANTED,
-      [PermissionsAndroid.PERMISSIONS.CAMERA]: PermissionsAndroid.RESULTS.GRANTED,
+      [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]:
+        PermissionsAndroid.RESULTS.GRANTED,
+      [PermissionsAndroid.PERMISSIONS.CAMERA]:
+        PermissionsAndroid.RESULTS.GRANTED,
     });
-    await expect((webRtcCallService as any).ensureMediaPermissions('video')).resolves.toBeUndefined();
+    await expect(
+      (webRtcCallService as any).ensureMediaPermissions('video'),
+    ).resolves.toBeUndefined();
 
     (PermissionsAndroid.requestMultiple as any).mockResolvedValue({
-      [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]: PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN,
+      [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]:
+        PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN,
     });
-    await expect((webRtcCallService as any).ensureMediaPermissions('audio')).rejects.toThrow('settings');
-    expect((Alert.alert as any)).toHaveBeenCalled();
+    await expect(
+      (webRtcCallService as any).ensureMediaPermissions('audio'),
+    ).rejects.toThrow('settings');
+    expect(Alert.alert as any).toHaveBeenCalled();
     expect(Linking.openSettings).not.toHaveBeenCalled();
     const buttons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] || [];
     await buttons[1].onPress();
     expect(Linking.openSettings).toHaveBeenCalled();
 
     (PermissionsAndroid.requestMultiple as any).mockResolvedValue({
-      [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]: PermissionsAndroid.RESULTS.DENIED,
+      [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO]:
+        PermissionsAndroid.RESULTS.DENIED,
     });
-    await expect((webRtcCallService as any).ensureMediaPermissions('audio')).rejects.toThrow('denied');
+    await expect(
+      (webRtcCallService as any).ensureMediaPermissions('audio'),
+    ).rejects.toThrow('denied');
   });
 
   it('fail/end/reset/dispose flows clean peer resources and reset state', async () => {
@@ -639,7 +838,9 @@ describe('WebRTCCallService', () => {
     const remoteTrack = trackFactory();
     (webRtcCallService as any).peerConnection = { close: jest.fn() };
     (webRtcCallService as any).localStream = { getTracks: () => [localTrack] };
-    (webRtcCallService as any).remoteStream = { getTracks: () => [remoteTrack] };
+    (webRtcCallService as any).remoteStream = {
+      getTracks: () => [remoteTrack],
+    };
 
     await (webRtcCallService as any).failCall('boom');
     expect(mockCallState.phase).toBe('error');
@@ -657,11 +858,13 @@ describe('WebRTCCallService', () => {
     await (webRtcCallService as any).resetSession();
     expect((webRtcCallService as any).localHasPublicIceCandidates).toBe(false);
     expect((webRtcCallService as any).directRetryAttempted).toBe(false);
-    expect(mockSetPartial).toHaveBeenCalledWith(expect.objectContaining({
-      overlayX: 20,
-      overlayY: 120,
-      videoOverlayWidth: 168,
-    }));
+    expect(mockSetPartial).toHaveBeenCalledWith(
+      expect.objectContaining({
+        overlayX: 20,
+        overlayY: 120,
+        videoOverlayWidth: 168,
+      }),
+    );
   });
 
   it('covers SDP helpers and retry/failure handling', async () => {
@@ -674,16 +877,30 @@ describe('WebRTCCallService', () => {
       '',
     ].join('\r\n');
     expect((webRtcCallService as any).countSdpCandidates(sdp)).toBe(3);
-    expect((webRtcCallService as any).countCandidateTypes(sdp)).toEqual(expect.objectContaining({ host: 2, srflx: 1 }));
+    expect((webRtcCallService as any).countCandidateTypes(sdp)).toEqual(
+      expect.objectContaining({ host: 2, srflx: 1 }),
+    );
     expect((webRtcCallService as any).hasPublicCandidateTypes(sdp)).toBe(true);
-    expect((webRtcCallService as any).extractCandidateType('a=candidate:1 1 udp 2 typ relay')).toBe('relay');
-    expect((webRtcCallService as any).extractCandidateProtocol('a=candidate:1 1 UDP 2 typ relay')).toBe('udp');
+    expect(
+      (webRtcCallService as any).extractCandidateType(
+        'a=candidate:1 1 udp 2 typ relay',
+      ),
+    ).toBe('relay');
+    expect(
+      (webRtcCallService as any).extractCandidateProtocol(
+        'a=candidate:1 1 UDP 2 typ relay',
+      ),
+    ).toBe('udp');
     const optimized = (webRtcCallService as any).optimizeSdpForSignaling(sdp);
     expect(optimized.includes('a=end-of-candidates')).toBe(false);
     expect(optimized.includes(' typ host')).toBe(true);
 
-    const retrySpy = jest.spyOn(webRtcCallService as any, 'retryDirectConnection').mockResolvedValue(undefined);
-    const failSpy = jest.spyOn(webRtcCallService as any, 'failCall').mockResolvedValue(undefined);
+    const retrySpy = jest
+      .spyOn(webRtcCallService as any, 'retryDirectConnection')
+      .mockResolvedValue(undefined);
+    const failSpy = jest
+      .spyOn(webRtcCallService as any, 'failCall')
+      .mockResolvedValue(undefined);
     (webRtcCallService as any).directRetryAttempted = false;
     (webRtcCallService as any).localHasPublicIceCandidates = false;
     await (webRtcCallService as any).handleDirectIceFailure('net1', false);
@@ -692,14 +909,18 @@ describe('WebRTCCallService', () => {
     (webRtcCallService as any).directRetryAttempted = true;
     (webRtcCallService as any).localHasPublicIceCandidates = false;
     await (webRtcCallService as any).handleDirectIceFailure('net1', false);
-    expect(failSpy).toHaveBeenCalledWith(expect.stringContaining('No public ICE candidates'));
+    expect(failSpy).toHaveBeenCalledWith(
+      expect.stringContaining('No public ICE candidates'),
+    );
 
     (webRtcCallService as any).localHasPublicIceCandidates = true;
     await (webRtcCallService as any).handleDirectIceFailure('net1', false);
     expect(failSpy).toHaveBeenCalledWith(expect.stringContaining('TURN relay'));
 
     await (webRtcCallService as any).handleDirectIceFailure('net1', true);
-    expect(failSpy).toHaveBeenCalledWith('ICE negotiation failed even with relay.');
+    expect(failSpy).toHaveBeenCalledWith(
+      'ICE negotiation failed even with relay.',
+    );
   });
 
   it('retries direct connection and cleans stale chunk buffers', async () => {
@@ -710,13 +931,15 @@ describe('WebRTCCallService', () => {
       requestedQuality: '720p',
     });
     (webRtcCallService as any).peerConnection = { restartIce: jest.fn() };
-    const createOfferSpy = jest.spyOn(webRtcCallService as any, 'createAndSendOffer').mockResolvedValue(undefined);
+    const createOfferSpy = jest
+      .spyOn(webRtcCallService as any, 'createAndSendOffer')
+      .mockResolvedValue(undefined);
     await (webRtcCallService as any).retryDirectConnection('net1');
     expect(createOfferSpy).toHaveBeenCalledWith(
       'net1',
       'alice',
       expect.objectContaining({ type: 'offer', sessionId: 's-retry' }),
-      { iceRestart: true }
+      { iceRestart: true },
     );
     expect((webRtcCallService as any).directRetryAttempted).toBe(true);
     expect(mockCallState.statusText).toContain('Retrying direct');
@@ -740,31 +963,60 @@ describe('WebRTCCallService', () => {
   });
 
   it('assembles chunked signals and handles malformed completion', async () => {
-    const handleSignalSpy = jest.spyOn(webRtcCallService as any, 'handleSignal').mockResolvedValue(undefined);
+    const handleSignalSpy = jest
+      .spyOn(webRtcCallService as any, 'handleSignal')
+      .mockResolvedValue(undefined);
     mockCallSignalCodec.appendChunk.mockReturnValue({
       startedAt: Date.now() - 100,
       updatedAt: Date.now(),
       total: 2,
-      parts: new Map([[0, 'x'], [1, 'y']]),
+      parts: new Map([
+        [0, 'x'],
+        [1, 'y'],
+      ]),
     });
-    mockCallSignalCodec.getChunkProgress.mockReturnValue({ received: 2, total: 2, missing: [] });
+    mockCallSignalCodec.getChunkProgress.mockReturnValue({
+      received: 2,
+      total: 2,
+      missing: [],
+    });
     mockCallSignalCodec.tryAssemble.mockReturnValueOnce({
       type: 'invite',
       sessionId: 's-1',
       mediaType: 'audio',
     });
 
-    (webRtcCallService as any).handleSignalChunk('net1', 'alice', { id: 't1', index: 1, total: 2, sessionId: 's-1' });
+    (webRtcCallService as any).handleSignalChunk('net1', 'alice', {
+      id: 't1',
+      index: 1,
+      total: 2,
+      sessionId: 's-1',
+    });
     await Promise.resolve();
-    expect(handleSignalSpy).toHaveBeenCalledWith('net1', 'alice', expect.objectContaining({ type: 'invite' }));
+    expect(handleSignalSpy).toHaveBeenCalledWith(
+      'net1',
+      'alice',
+      expect.objectContaining({ type: 'invite' }),
+    );
 
     mockCallSignalCodec.tryAssemble.mockReturnValueOnce(null);
-    (webRtcCallService as any).handleSignalChunk('net1', 'alice', { id: 't2', index: 1, total: 2, sessionId: 's-2' });
-    expect((webRtcCallService as any).signalChunkBuffers.size).toBeGreaterThanOrEqual(0);
+    (webRtcCallService as any).handleSignalChunk('net1', 'alice', {
+      id: 't2',
+      index: 1,
+      total: 2,
+      sessionId: 's-2',
+    });
+    expect(
+      (webRtcCallService as any).signalChunkBuffers.size,
+    ).toBeGreaterThanOrEqual(0);
   });
 
   it('loads/persists overlay preferences and focuses query tab', async () => {
-    mockGetSetting.mockResolvedValueOnce({ overlayX: 44, overlayY: 88, videoOverlayWidth: 200 });
+    mockGetSetting.mockResolvedValueOnce({
+      overlayX: 44,
+      overlayY: 88,
+      videoOverlayWidth: 200,
+    });
     await (webRtcCallService as any).loadOverlayPreferences();
     expect(mockCallState.overlayX).toBe(44);
     expect(mockCallState.overlayY).toBe(88);
@@ -776,7 +1028,9 @@ describe('WebRTCCallService', () => {
     Object.assign(mockCallState, { networkId: 'net1', peerNick: 'alice' });
     (webRtcCallService as any).focusCallQueryTab();
     expect(mockTabsState.addTab).toHaveBeenCalled();
-    expect(mockTabsState.setActiveTabId).toHaveBeenCalledWith('query::net1::alice');
+    expect(mockTabsState.setActiveTabId).toHaveBeenCalledWith(
+      'query::net1::alice',
+    );
 
     mockTabsState.tabs = [{ id: 'query::net1::alice' }];
     mockTabsState.addTab.mockClear();

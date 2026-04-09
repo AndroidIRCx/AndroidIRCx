@@ -67,10 +67,14 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
   useEffect(() => {
     const checkEncryption = async () => {
       if (mediaResult && network && tabId) {
-        const hasKey = await mediaEncryptionService.hasEncryptionKey(network, tabId);
+        const hasKey = await mediaEncryptionService.hasEncryptionKey(
+          network,
+          tabId,
+        );
         setHasEncryption(hasKey);
 
-        const showIndicator = await mediaSettingsService.shouldShowEncryptionIndicator();
+        const showIndicator =
+          await mediaSettingsService.shouldShowEncryptionIndicator();
         setShowEncryptionIndicator(showIndicator);
       }
     };
@@ -118,7 +122,9 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
         // Try with original URI
         const originalExists = await RNFS.exists(mediaResult.uri);
         if (!originalExists) {
-          throw new Error(t('File does not exist. Please select the file again.'));
+          throw new Error(
+            t('File does not exist. Please select the file again.'),
+          );
         }
         fileUri = mediaResult.uri;
       } else {
@@ -130,7 +136,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
       // Step 1: Request upload token (gives us mediaId for AAD binding)
       const uploadToken = await mediaUploadService.requestUploadToken(
         mediaResult.type || 'file',
-        mediaResult.mimeType
+        mediaResult.mimeType,
       );
 
       // Step 2: Encrypt media file (bind AAD to mediaId)
@@ -138,7 +144,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
         fileUri,
         network,
         tabId,
-        uploadToken.id
+        uploadToken.id,
       );
 
       if (!encryptResult.success || !encryptResult.encryptedUri) {
@@ -151,9 +157,9 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
         uploadToken.id,
         uploadToken.upload_token,
         uploadToken.expires,
-        (progress) => {
+        progress => {
           setUploadProgress(Math.round(progress.percentage));
-        }
+        },
       );
 
       if (uploadResult.status !== 'ready') {
@@ -177,11 +183,16 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
 
     const { type, uri, mimeType } = mediaResult;
     const previewHeight = Math.min(screenHeight * 0.45, 360);
-    
+
     // Normalize URI for display
     let displayUri = uri;
-    if (!uri.startsWith('file://') && !uri.startsWith('content://') && !uri.startsWith('http')) {
-      displayUri = Platform.OS === 'android' ? `file://${uri}` : `file://${uri}`;
+    if (
+      !uri.startsWith('file://') &&
+      !uri.startsWith('content://') &&
+      !uri.startsWith('http')
+    ) {
+      displayUri =
+        Platform.OS === 'android' ? `file://${uri}` : `file://${uri}`;
     } else if (uri.startsWith('file://')) {
       // Remove file:// prefix for RNFS operations, but keep for Image/Video components
       displayUri = uri;
@@ -190,13 +201,16 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     // Image preview
     if (type === 'image' || type === 'gif' || mimeType?.startsWith('image/')) {
       return (
-      <View style={[styles.previewContainer, { height: previewHeight }]}>
+        <View style={[styles.previewContainer, { height: previewHeight }]}>
           <Image
             source={{ uri: displayUri }}
             style={styles.imagePreview}
             resizeMode="contain"
-            onError={(e) => {
-              console.error('[MediaPreviewModal] Image load error:', e.nativeEvent.error);
+            onError={e => {
+              console.error(
+                '[MediaPreviewModal] Image load error:',
+                e.nativeEvent.error,
+              );
               setError(t('Failed to load image preview'));
             }}
           />
@@ -215,7 +229,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
             paused
             resizeMode="contain"
             useTextureView
-            onError={(e) => {
+            onError={e => {
               console.error('[MediaPreviewModal] Video load error:', e);
               setError(t('Failed to load video preview'));
             }}
@@ -227,7 +241,13 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     // Audio preview
     if (type === 'voice' || mimeType?.startsWith('audio/')) {
       return (
-      <View style={[styles.previewContainer, styles.audioContainer, { height: previewHeight }]}>
+        <View
+          style={[
+            styles.previewContainer,
+            styles.audioContainer,
+            { height: previewHeight },
+          ]}
+        >
           <Text style={[styles.audioIcon, { color: colors.text }]}>🎵</Text>
           <Text style={[styles.audioLabel, { color: colors.text }]}>
             {t('Audio File')}
@@ -237,7 +257,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
             controls
             paused
             style={styles.audioPlayer}
-            onError={(e) => {
+            onError={e => {
               console.error('[MediaPreviewModal] Audio load error:', e);
               setError(t('Failed to load audio preview'));
             }}
@@ -278,14 +298,13 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
       animationType="slide"
       onRequestClose={onClose}
       statusBarTranslucent={false}
-      hardwareAccelerated={true}>
+      hardwareAccelerated={true}
+    >
       <View style={styles.overlay}>
         {/* Modal content */}
         <View
-          style={[
-            styles.modalContainer,
-            { backgroundColor: colors.surface },
-          ]}>
+          style={[styles.modalContainer, { backgroundColor: colors.surface }]}
+        >
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <Text style={[styles.headerText, { color: colors.text }]}>
@@ -294,7 +313,12 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
             {hasEncryption && showEncryptionIndicator && (
               <View style={styles.encryptionBadge}>
                 <Text style={styles.encryptionIcon}>🔒</Text>
-                <Text style={[styles.encryptionText, { color: colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.encryptionText,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   {t('Encrypted')}
                 </Text>
               </View>
@@ -304,27 +328,39 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
           {/* Scrollable content */}
           <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}>
+            contentContainerStyle={styles.scrollContent}
+          >
             {/* Media preview */}
             {renderMediaPreview()}
 
             {/* File info */}
-            <View style={[styles.infoContainer, { backgroundColor: colors.messageBackground }]}>
+            <View
+              style={[
+                styles.infoContainer,
+                { backgroundColor: colors.messageBackground },
+              ]}
+            >
               <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
                 {t('Type:')} {mediaResult.mimeType || t('Unknown')}
               </Text>
               {mediaResult.size && (
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.infoLabel, { color: colors.textSecondary }]}
+                >
                   {t('Size:')} {formatFileSize(mediaResult.size)}
                 </Text>
               )}
               {mediaResult.duration && (
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.infoLabel, { color: colors.textSecondary }]}
+                >
                   {t('Duration:')} {Math.round(mediaResult.duration)}s
                 </Text>
               )}
               {mediaResult.width && mediaResult.height && (
-                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.infoLabel, { color: colors.textSecondary }]}
+                >
                   {t('Dimensions:')} {mediaResult.width} × {mediaResult.height}
                 </Text>
               )}
@@ -352,14 +388,21 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
                 maxLength={500}
                 editable={!uploading}
               />
-              <Text style={[styles.captionCounter, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.captionCounter, { color: colors.textSecondary }]}
+              >
                 {caption.length}/500
               </Text>
             </View>
 
             {/* Error message */}
             {error && (
-              <View style={[styles.errorContainer, { backgroundColor: colors.error + '20' }]}>
+              <View
+                style={[
+                  styles.errorContainer,
+                  { backgroundColor: colors.error + '20' },
+                ]}
+              >
                 <Text style={[styles.errorText, { color: colors.error }]}>
                   {error}
                 </Text>
@@ -374,14 +417,23 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
                   <Text style={[styles.progressText, { color: colors.text }]}>
                     {uploadProgress < 50
                       ? t('Encrypting and uploading...')
-                      : t('Uploading...')} {uploadProgress}%
+                      : t('Uploading...')}{' '}
+                    {uploadProgress}%
                   </Text>
                 </View>
-                <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
+                <View
+                  style={[
+                    styles.progressBar,
+                    { backgroundColor: colors.border },
+                  ]}
+                >
                   <View
                     style={[
                       styles.progressFill,
-                      { backgroundColor: colors.accent, width: `${uploadProgress}%` },
+                      {
+                        backgroundColor: colors.accent,
+                        width: `${uploadProgress}%`,
+                      },
                     ]}
                   />
                 </View>
@@ -398,7 +450,8 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
                 { backgroundColor: colors.messageBackground },
               ]}
               onPress={onClose}
-              disabled={uploading}>
+              disabled={uploading}
+            >
               <Text style={[styles.buttonText, { color: colors.text }]}>
                 {t('Cancel')}
               </Text>
@@ -412,7 +465,8 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
                 uploading && styles.buttonDisabled,
               ]}
               onPress={handleSend}
-              disabled={uploading}>
+              disabled={uploading}
+            >
               <Text style={[styles.buttonText, styles.sendButtonText]}>
                 {uploading ? t('Sending...') : t('Send')}
               </Text>
@@ -426,192 +480,193 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const createStyles = (colors: any) => StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.modalOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: screenWidth * 0.95,
-    maxHeight: screenHeight * 0.9,
-    borderRadius: 12,
-    elevation: 24,
-    overflow: 'hidden',
-  },
-  header: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerText: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  encryptionBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: colors.accent + '20',
-    borderRadius: 12,
-  },
-  encryptionIcon: {
-    fontSize: 14,
-    marginRight: 4,
-  },
-  encryptionText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  previewContainer: {
-    width: '100%',
-    minHeight: 200,
-    maxHeight: 400,
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 16,
-    backgroundColor: colors.surfaceAlt || colors.surface,
-  },
-  imagePreview: {
-    width: '100%',
-    height: '100%',
-  },
-  videoPreview: {
-    width: '100%',
-    height: '100%',
-  },
-  audioContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: colors.surfaceVariant,
-  },
-  audioIcon: {
-    fontSize: 64,
-    marginBottom: 12,
-  },
-  audioLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 16,
-  },
-  audioPlayer: {
-    width: '100%',
-    height: 50,
-  },
-  fileContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-    backgroundColor: colors.surfaceVariant,
-  },
-  fileIcon: {
-    fontSize: 72,
-    marginBottom: 12,
-  },
-  fileLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  infoContainer: {
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  infoLabel: {
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  captionContainer: {
-    marginBottom: 16,
-  },
-  captionLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  captionInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    minHeight: 80,
-    maxHeight: 120,
-    textAlignVertical: 'top',
-  },
-  captionCounter: {
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: 4,
-  },
-  errorContainer: {
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  progressContainer: {
-    marginBottom: 16,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  progressText: {
-    fontSize: 13,
-    marginLeft: 8,
-  },
-  progressBar: {
-    height: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-  },
-  button: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButton: {
-    // backgroundColor set dynamically
-  },
-  sendButton: {
-    // backgroundColor set dynamically
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  sendButtonText: {
-    color: colors.onAccent,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.modalOverlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContainer: {
+      width: screenWidth * 0.95,
+      maxHeight: screenHeight * 0.9,
+      borderRadius: 12,
+      elevation: 24,
+      overflow: 'hidden',
+    },
+    header: {
+      paddingVertical: 16,
+      paddingHorizontal: 20,
+      borderBottomWidth: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    headerText: {
+      fontSize: 18,
+      fontWeight: '600',
+    },
+    encryptionBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      backgroundColor: colors.accent + '20',
+      borderRadius: 12,
+    },
+    encryptionIcon: {
+      fontSize: 14,
+      marginRight: 4,
+    },
+    encryptionText: {
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: 16,
+    },
+    previewContainer: {
+      width: '100%',
+      minHeight: 200,
+      maxHeight: 400,
+      borderRadius: 8,
+      overflow: 'hidden',
+      marginBottom: 16,
+      backgroundColor: colors.surfaceAlt || colors.surface,
+    },
+    imagePreview: {
+      width: '100%',
+      height: '100%',
+    },
+    videoPreview: {
+      width: '100%',
+      height: '100%',
+    },
+    audioContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+      backgroundColor: colors.surfaceVariant,
+    },
+    audioIcon: {
+      fontSize: 64,
+      marginBottom: 12,
+    },
+    audioLabel: {
+      fontSize: 16,
+      fontWeight: '500',
+      marginBottom: 16,
+    },
+    audioPlayer: {
+      width: '100%',
+      height: 50,
+    },
+    fileContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 32,
+      backgroundColor: colors.surfaceVariant,
+    },
+    fileIcon: {
+      fontSize: 72,
+      marginBottom: 12,
+    },
+    fileLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+      textAlign: 'center',
+    },
+    infoContainer: {
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 16,
+    },
+    infoLabel: {
+      fontSize: 13,
+      marginBottom: 4,
+    },
+    captionContainer: {
+      marginBottom: 16,
+    },
+    captionLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+      marginBottom: 8,
+    },
+    captionInput: {
+      borderWidth: 1,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 14,
+      minHeight: 80,
+      maxHeight: 120,
+      textAlignVertical: 'top',
+    },
+    captionCounter: {
+      fontSize: 12,
+      textAlign: 'right',
+      marginTop: 4,
+    },
+    errorContainer: {
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 16,
+    },
+    errorText: {
+      fontSize: 13,
+      textAlign: 'center',
+    },
+    progressContainer: {
+      marginBottom: 16,
+    },
+    progressHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    progressText: {
+      fontSize: 13,
+      marginLeft: 8,
+    },
+    progressBar: {
+      height: 6,
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      padding: 16,
+      gap: 12,
+    },
+    button: {
+      flex: 1,
+      padding: 14,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cancelButton: {
+      // backgroundColor set dynamically
+    },
+    sendButton: {
+      // backgroundColor set dynamically
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    buttonText: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    sendButtonText: {
+      color: colors.onAccent,
+    },
+  });

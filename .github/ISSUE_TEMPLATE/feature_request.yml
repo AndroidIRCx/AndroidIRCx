@@ -1,11 +1,11 @@
 name: Feature Request
 description: Suggest an idea for AndroidIRCX
-title: "[Feature]: "
-labels: [ "enhancement" ]
+title: '[Feature]: '
+labels: ['enhancement']
 body:
   - type: markdown
     attributes:
-      value: "Thanks for the suggestion. Please describe the feature and its value."
+      value: 'Thanks for the suggestion. Please describe the feature and its value.'
   - type: textarea
     id: problem
     attributes:

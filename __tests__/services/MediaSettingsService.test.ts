@@ -38,7 +38,7 @@ describe('MediaSettingsService', () => {
   it('loads and merges stored settings', async () => {
     await AsyncStorage.setItem(
       '@MediaSettings',
-      JSON.stringify({ enabled: false, mediaQuality: 'low' })
+      JSON.stringify({ enabled: false, mediaQuality: 'low' }),
     );
 
     const settings = await mediaSettingsService.loadSettings();
@@ -50,7 +50,9 @@ describe('MediaSettingsService', () => {
 
   it('falls back to defaults when loading from storage fails', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.spyOn(AsyncStorage, 'getItem').mockRejectedValueOnce(new Error('storage failed'));
+    jest
+      .spyOn(AsyncStorage, 'getItem')
+      .mockRejectedValueOnce(new Error('storage failed'));
 
     const settings = await mediaSettingsService.loadSettings();
 
@@ -62,7 +64,7 @@ describe('MediaSettingsService', () => {
     });
     expect(errorSpy).toHaveBeenCalledWith(
       '[MediaSettingsService] Load error:',
-      expect.any(Error)
+      expect.any(Error),
     );
 
     errorSpy.mockRestore();
@@ -72,32 +74,42 @@ describe('MediaSettingsService', () => {
     const listener = jest.fn();
     mediaSettingsService.onSettingsChanged(listener);
 
-    await mediaSettingsService.saveSettings({ autoDownload: false, wifiOnly: true });
+    await mediaSettingsService.saveSettings({
+      autoDownload: false,
+      wifiOnly: true,
+    });
     const saved = await AsyncStorage.getItem('@MediaSettings');
 
     expect(saved).toContain('"autoDownload":false');
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener).toHaveBeenCalledWith(
-      expect.objectContaining({ autoDownload: false, wifiOnly: true })
+      expect.objectContaining({ autoDownload: false, wifiOnly: true }),
     );
   });
 
   it('handles save errors without throwing', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('save failed'));
+    jest
+      .spyOn(AsyncStorage, 'setItem')
+      .mockRejectedValueOnce(new Error('save failed'));
 
-    await expect(mediaSettingsService.saveSettings({ wifiOnly: true })).resolves.toBeUndefined();
+    await expect(
+      mediaSettingsService.saveSettings({ wifiOnly: true }),
+    ).resolves.toBeUndefined();
 
     expect(errorSpy).toHaveBeenCalledWith(
       '[MediaSettingsService] Save error:',
-      expect.any(Error)
+      expect.any(Error),
     );
 
     errorSpy.mockRestore();
   });
 
   it('returns media-enabled state via lazy load', async () => {
-    await AsyncStorage.setItem('@MediaSettings', JSON.stringify({ enabled: false }));
+    await AsyncStorage.setItem(
+      '@MediaSettings',
+      JSON.stringify({ enabled: false }),
+    );
     (mediaSettingsService as any).loaded = false;
 
     const enabled = await mediaSettingsService.isMediaEnabled();
@@ -136,7 +148,9 @@ describe('MediaSettingsService', () => {
     expect(await mediaSettingsService.isMediaEnabled()).toBe(false);
 
     (mediaSettingsService as any).loaded = false;
-    expect(await mediaSettingsService.shouldShowEncryptionIndicator()).toBe(false);
+    expect(await mediaSettingsService.shouldShowEncryptionIndicator()).toBe(
+      false,
+    );
 
     (mediaSettingsService as any).loaded = false;
     expect(await mediaSettingsService.getAutoDownload()).toBe(false);
@@ -157,7 +171,9 @@ describe('MediaSettingsService', () => {
     expect(await mediaSettingsService.getCallVideoQuality()).toBe('720p');
 
     (mediaSettingsService as any).loaded = false;
-    expect(await mediaSettingsService.getCallStunServers()).toEqual(['stun:test.example.org:3478']);
+    expect(await mediaSettingsService.getCallStunServers()).toEqual([
+      'stun:test.example.org:3478',
+    ]);
 
     (mediaSettingsService as any).loaded = false;
     expect(await mediaSettingsService.getCallTurnServerConfig()).toEqual({
@@ -171,16 +187,22 @@ describe('MediaSettingsService', () => {
     expect(await mediaSettingsService.getCallForceRelayOnly()).toBe(true);
 
     (mediaSettingsService as any).loaded = false;
-    expect(await mediaSettingsService.getCallNicklistCallActionsEnabled()).toBe(true);
+    expect(await mediaSettingsService.getCallNicklistCallActionsEnabled()).toBe(
+      true,
+    );
 
     (mediaSettingsService as any).loaded = false;
-    expect(await mediaSettingsService.hasAutoEnabledNicklistCallActionsFromRelay()).toBe(true);
+    expect(
+      await mediaSettingsService.hasAutoEnabledNicklistCallActionsFromRelay(),
+    ).toBe(true);
 
     (mediaSettingsService as any).loaded = false;
     expect(await mediaSettingsService.getVoiceMaxDuration()).toBe(15);
 
     (mediaSettingsService as any).loaded = false;
-    expect(await mediaSettingsService.exportSettings()).toContain('"cacheSize": 321');
+    expect(await mediaSettingsService.exportSettings()).toContain(
+      '"cacheSize": 321',
+    );
 
     expect(loadSettingsSpy).toHaveBeenCalledTimes(15);
     loadSettingsSpy.mockRestore();
@@ -239,7 +261,7 @@ describe('MediaSettingsService', () => {
         callNicklistCallActionsEnabled: true,
         callNicklistCallActionsAutoEnabledFromRelay: true,
         voiceMaxDuration: 60,
-      })
+      }),
     );
 
     expect(result.success).toBe(true);
@@ -249,7 +271,7 @@ describe('MediaSettingsService', () => {
 
   it('rejects invalid import payload', async () => {
     const result = await mediaSettingsService.importSettings(
-      JSON.stringify({ enabled: 'nope' })
+      JSON.stringify({ enabled: 'nope' }),
     );
 
     expect(result.success).toBe(false);
@@ -264,7 +286,7 @@ describe('MediaSettingsService', () => {
     expect(result.error).toBeDefined();
     expect(errorSpy).toHaveBeenCalledWith(
       '[MediaSettingsService] Import error:',
-      expect.any(Error)
+      expect.any(Error),
     );
 
     errorSpy.mockRestore();
@@ -272,7 +294,9 @@ describe('MediaSettingsService', () => {
 
   it('returns success from import even if saveSettings swallows storage failure', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.spyOn(AsyncStorage, 'setItem').mockRejectedValueOnce(new Error('save failed'));
+    jest
+      .spyOn(AsyncStorage, 'setItem')
+      .mockRejectedValueOnce(new Error('save failed'));
 
     const result = await mediaSettingsService.importSettings(
       JSON.stringify({
@@ -293,20 +317,23 @@ describe('MediaSettingsService', () => {
         callNicklistCallActionsEnabled: false,
         callNicklistCallActionsAutoEnabledFromRelay: false,
         voiceMaxDuration: 12,
-      })
+      }),
     );
 
     expect(result).toEqual({ success: true });
     expect(errorSpy).toHaveBeenCalledWith(
       '[MediaSettingsService] Save error:',
-      expect.any(Error)
+      expect.any(Error),
     );
 
     errorSpy.mockRestore();
   });
 
   it('resets settings to defaults', async () => {
-    await mediaSettingsService.saveSettings({ enabled: false, mediaQuality: 'low' });
+    await mediaSettingsService.saveSettings({
+      enabled: false,
+      mediaQuality: 'low',
+    });
     await mediaSettingsService.resetToDefaults();
 
     const settings = await mediaSettingsService.getSettings();
@@ -350,11 +377,11 @@ describe('MediaSettingsService', () => {
 
     expect(badListener).toHaveBeenCalled();
     expect(goodListener).toHaveBeenCalledWith(
-      expect.objectContaining({ autoDownload: false })
+      expect.objectContaining({ autoDownload: false }),
     );
     expect(errorSpy).toHaveBeenCalledWith(
       '[MediaSettingsService] Listener error:',
-      expect.any(Error)
+      expect.any(Error),
     );
 
     errorSpy.mockRestore();
@@ -363,8 +390,12 @@ describe('MediaSettingsService', () => {
   it('formats cache size labels', () => {
     expect(mediaSettingsService.getCacheSizeLabel(512)).toBe('512 bytes');
     expect(mediaSettingsService.getCacheSizeLabel(2048)).toBe('2 KB');
-    expect(mediaSettingsService.getCacheSizeLabel(10 * 1024 * 1024)).toBe('10 MB');
-    expect(mediaSettingsService.getCacheSizeLabel(2 * 1024 * 1024 * 1024)).toBe('2.0 GB');
+    expect(mediaSettingsService.getCacheSizeLabel(10 * 1024 * 1024)).toBe(
+      '10 MB',
+    );
+    expect(mediaSettingsService.getCacheSizeLabel(2 * 1024 * 1024 * 1024)).toBe(
+      '2.0 GB',
+    );
   });
 
   it('returns expected cache size presets', () => {
@@ -374,7 +405,7 @@ describe('MediaSettingsService', () => {
         expect.objectContaining({ label: '50 MB' }),
         expect.objectContaining({ label: '250 MB' }),
         expect.objectContaining({ label: '1 GB' }),
-      ])
+      ]),
     );
   });
 
@@ -387,7 +418,10 @@ describe('MediaSettingsService', () => {
     await mediaSettingsService.setMediaQuality('medium');
     await mediaSettingsService.setVideoQuality('480p');
     await mediaSettingsService.setCallVideoQuality('1080p');
-    await mediaSettingsService.setCallStunServers(['stun:stun.example.org:3478', '']);
+    await mediaSettingsService.setCallStunServers([
+      'stun:stun.example.org:3478',
+      '',
+    ]);
     await mediaSettingsService.setCallTurnServerConfig({
       enabled: true,
       urls: ['turn:turn.example.org:3478?transport=udp', ''],
@@ -400,14 +434,18 @@ describe('MediaSettingsService', () => {
     await mediaSettingsService.setVoiceMaxDuration(45);
 
     expect(await mediaSettingsService.isMediaEnabled()).toBe(false);
-    expect(await mediaSettingsService.shouldShowEncryptionIndicator()).toBe(false);
+    expect(await mediaSettingsService.shouldShowEncryptionIndicator()).toBe(
+      false,
+    );
     expect(await mediaSettingsService.getAutoDownload()).toBe(false);
     expect(await mediaSettingsService.getWiFiOnly()).toBe(true);
     expect(await mediaSettingsService.getMaxCacheSize()).toBe(1024);
     expect(await mediaSettingsService.getMediaQuality()).toBe('medium');
     expect(await mediaSettingsService.getVideoQuality()).toBe('480p');
     expect(await mediaSettingsService.getCallVideoQuality()).toBe('1080p');
-    expect(await mediaSettingsService.getCallStunServers()).toEqual(['stun:stun.example.org:3478']);
+    expect(await mediaSettingsService.getCallStunServers()).toEqual([
+      'stun:stun.example.org:3478',
+    ]);
     expect(await mediaSettingsService.getCallTurnServerConfig()).toEqual({
       enabled: true,
       urls: ['turn:turn.example.org:3478?transport=udp'],
@@ -415,8 +453,12 @@ describe('MediaSettingsService', () => {
       credential: 'relay-pass',
     });
     expect(await mediaSettingsService.getCallForceRelayOnly()).toBe(true);
-    expect(await mediaSettingsService.getCallNicklistCallActionsEnabled()).toBe(true);
-    expect(await mediaSettingsService.hasAutoEnabledNicklistCallActionsFromRelay()).toBe(true);
+    expect(await mediaSettingsService.getCallNicklistCallActionsEnabled()).toBe(
+      true,
+    );
+    expect(
+      await mediaSettingsService.hasAutoEnabledNicklistCallActionsFromRelay(),
+    ).toBe(true);
     expect(await mediaSettingsService.getVoiceMaxDuration()).toBe(45);
 
     const exported = await mediaSettingsService.exportSettings();
@@ -439,7 +481,7 @@ describe('MediaSettingsService', () => {
       JSON.stringify({
         enabled: true,
         callStunServers: 'stun:not-an-array',
-      })
+      }),
     );
     (mediaSettingsService as any).loaded = false;
 
@@ -456,10 +498,14 @@ describe('MediaSettingsService', () => {
       JSON.stringify({
         enabled: true,
         callTurnEnabled: true,
-        callTurnServers: ['  turn:turn.example.org:3478?transport=udp  ', '', '   '],
+        callTurnServers: [
+          '  turn:turn.example.org:3478?transport=udp  ',
+          '',
+          '   ',
+        ],
         callTurnUsername: '  relay-user  ',
         callTurnCredential: 'secret',
-      })
+      }),
     );
     (mediaSettingsService as any).loaded = false;
 
@@ -480,7 +526,7 @@ describe('MediaSettingsService', () => {
         callTurnServers: 'turn:not-an-array',
         callTurnUsername: ' relay-user ',
         callTurnCredential: 'secret',
-      })
+      }),
     );
     (mediaSettingsService as any).loaded = false;
 

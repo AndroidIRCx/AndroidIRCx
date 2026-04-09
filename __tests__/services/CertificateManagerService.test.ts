@@ -30,14 +30,24 @@ describe('CertificateManagerService', () => {
   });
 
   it('validates generateCertificate input', async () => {
-    await expect(certificateManager.generateCertificate({ name: '', commonName: 'cn' } as any)).rejects.toThrow(
-      'Certificate name is required',
-    );
-    await expect(certificateManager.generateCertificate({ name: 'n', commonName: '' } as any)).rejects.toThrow(
-      'Common Name (CN) is required',
-    );
     await expect(
-      certificateManager.generateCertificate({ name: 'n', commonName: 'cn', validityYears: 11 }),
+      certificateManager.generateCertificate({
+        name: '',
+        commonName: 'cn',
+      } as any),
+    ).rejects.toThrow('Certificate name is required');
+    await expect(
+      certificateManager.generateCertificate({
+        name: 'n',
+        commonName: '',
+      } as any),
+    ).rejects.toThrow('Common Name (CN) is required');
+    await expect(
+      certificateManager.generateCertificate({
+        name: 'n',
+        commonName: 'cn',
+        validityYears: 11,
+      }),
     ).rejects.toThrow('Validity period must be between 1 and 10 years');
   });
 
@@ -59,9 +69,15 @@ describe('CertificateManagerService', () => {
   });
 
   it('handles generateCertificate internal failure', async () => {
-    const saveSpy = jest.spyOn(certificateManager as any, 'saveCertificate').mockRejectedValueOnce(new Error('boom'));
+    const saveSpy = jest
+      .spyOn(certificateManager as any, 'saveCertificate')
+      .mockRejectedValueOnce(new Error('boom'));
     await expect(
-      certificateManager.generateCertificate({ name: 'x', commonName: 'y', validityYears: 1 }),
+      certificateManager.generateCertificate({
+        name: 'x',
+        commonName: 'y',
+        validityYears: 1,
+      }),
     ).rejects.toThrow('Failed to generate certificate');
     saveSpy.mockRestore();
   });
@@ -149,29 +165,57 @@ describe('CertificateManagerService', () => {
 
   it('handles deleteCertificate list failure gracefully', async () => {
     mockGetSecret.mockRejectedValueOnce(new Error('fail list'));
-    await expect(certificateManager.deleteCertificate('x')).resolves.toBeUndefined();
+    await expect(
+      certificateManager.deleteCertificate('x'),
+    ).resolves.toBeUndefined();
     expect(mockRemoveSecret).toHaveBeenCalledWith('cert:x');
   });
 
   it('throws when deleteCertificate cannot persist updated index', async () => {
     mockSecrets.set('certs:index', JSON.stringify([]));
     mockSetSecret.mockRejectedValueOnce(new Error('write fail'));
-    await expect(certificateManager.deleteCertificate('x')).rejects.toThrow('Failed to delete certificate');
+    await expect(certificateManager.deleteCertificate('x')).rejects.toThrow(
+      'Failed to delete certificate',
+    );
   });
 
   it('computes fingerprint and handles invalid inputs', () => {
     expect(certificateManager.getFingerprint('')).toBeNull();
     expect(certificateManager.getFingerprint('not pem')).toBeNull();
     // malformed PEM body should fail safely
-    expect(certificateManager.getFingerprint('-----BEGIN CERTIFICATE-----\nabc\n-----END CERTIFICATE-----')).toBeNull();
+    expect(
+      certificateManager.getFingerprint(
+        '-----BEGIN CERTIFICATE-----\nabc\n-----END CERTIFICATE-----',
+      ),
+    ).toBeNull();
   });
 
   it('formats fingerprint in all supported styles', () => {
     const fp = 'aabbccdd';
-    expect(certificateManager.formatFingerprint(fp, FingerprintFormat.COLON_SEPARATED_UPPER)).toBe('AA:BB:CC:DD');
-    expect(certificateManager.formatFingerprint(fp, FingerprintFormat.COLON_SEPARATED_LOWER)).toBe('aa:bb:cc:dd');
-    expect(certificateManager.formatFingerprint(fp, FingerprintFormat.NO_COLON_UPPER)).toBe('AABBCCDD');
-    expect(certificateManager.formatFingerprint(fp, FingerprintFormat.NO_COLON_LOWER)).toBe('aabbccdd');
+    expect(
+      certificateManager.formatFingerprint(
+        fp,
+        FingerprintFormat.COLON_SEPARATED_UPPER,
+      ),
+    ).toBe('AA:BB:CC:DD');
+    expect(
+      certificateManager.formatFingerprint(
+        fp,
+        FingerprintFormat.COLON_SEPARATED_LOWER,
+      ),
+    ).toBe('aa:bb:cc:dd');
+    expect(
+      certificateManager.formatFingerprint(
+        fp,
+        FingerprintFormat.NO_COLON_UPPER,
+      ),
+    ).toBe('AABBCCDD');
+    expect(
+      certificateManager.formatFingerprint(
+        fp,
+        FingerprintFormat.NO_COLON_LOWER,
+      ),
+    ).toBe('aabbccdd');
   });
 
   it('validates certificates for valid and expired cases', () => {
@@ -207,7 +251,9 @@ describe('CertificateManagerService', () => {
       commonName: 'extract.example',
       validityYears: 1,
     });
-    expect(certificateManager.extractFingerprintFromPem(cert.pemCert)).toBe(cert.fingerprint);
+    expect(certificateManager.extractFingerprintFromPem(cert.pemCert)).toBe(
+      cert.fingerprint,
+    );
 
     const uuid = (certificateManager as any).generateUUID();
     expect(uuid).toMatch(/^[a-f0-9-]{36}$/);

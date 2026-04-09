@@ -18,7 +18,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { pick, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
+import {
+  pick,
+  isErrorWithCode,
+  errorCodes,
+} from '@react-native-documents/picker';
 import Slider from '@react-native-community/slider';
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
@@ -65,15 +69,19 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
     resetAllToDefaults,
   } = useSoundSettings();
 
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
-    'Messages': true,
+  const [expandedCategories, setExpandedCategories] = useState<
+    Record<string, boolean>
+  >({
+    Messages: true,
     'Channel Events': false,
-    'Connection': false,
-    'Other': false,
+    Connection: false,
+    Other: false,
   });
 
   const [isPickingSound, setIsPickingSound] = useState(false);
-  const [pickingForEvent, setPickingForEvent] = useState<SoundEventType | null>(null);
+  const [pickingForEvent, setPickingForEvent] = useState<SoundEventType | null>(
+    null,
+  );
 
   const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => ({
@@ -82,97 +90,128 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
     }));
   }, []);
 
-  const normalizeFileUri = useCallback((uri: string) => (
-    uri.startsWith('file://') ? uri.slice(7) : uri
-  ), []);
+  const normalizeFileUri = useCallback(
+    (uri: string) => (uri.startsWith('file://') ? uri.slice(7) : uri),
+    [],
+  );
 
-  const cleanupPickedCopy = useCallback(async (uri?: string) => {
-    if (!uri) return;
-    const path = normalizeFileUri(uri);
-    try {
-      const exists = await RNFS.exists(path);
-      if (exists) {
-        await RNFS.unlink(path);
-      }
-    } catch (cleanupError) {
-      console.warn('[SoundSettingsScreen] Failed to clean up picked file:', cleanupError);
-    }
-  }, [normalizeFileUri]);
-
-  const handlePickCustomSound = useCallback(async (eventType: SoundEventType) => {
-    setIsPickingSound(true);
-    setPickingForEvent(eventType);
-
-    try {
-      const [result] = await pick({
-        type: ['audio/*'],
-        copyTo: 'documentDirectory',
-      });
-
-      const pickedResult = result as typeof result & { fileCopyUri?: string };
-      const fileUri = pickedResult?.fileCopyUri ?? pickedResult?.uri;
-      const shouldCleanupCopy = Boolean(pickedResult?.fileCopyUri);
-
-      if (fileUri) {
-        // Preview the sound first
-        await previewCustomSound(fileUri);
-
-        // Ask for confirmation
-        const handleDismiss = () => {
-          stopSound();
-          if (shouldCleanupCopy) {
-            cleanupPickedCopy(pickedResult?.fileCopyUri).catch(() => null);
-          }
-        };
-
-        Alert.alert(
-          t('Use this sound?'),
-          t('Do you want to use this sound for {event}?').replace('{event}', SOUND_EVENT_LABELS[eventType]),
-          [
-            {
-              text: t('Cancel'),
-              style: 'cancel',
-              onPress: handleDismiss,
-            },
-            {
-              text: t('Use'),
-              onPress: async () => {
-                await stopSound();
-                await setCustomSound(eventType, normalizeFileUri(fileUri));
-                if (shouldCleanupCopy) {
-                  await cleanupPickedCopy(pickedResult?.fileCopyUri);
-                }
-              },
-            },
-          ],
-          { onDismiss: handleDismiss }
+  const cleanupPickedCopy = useCallback(
+    async (uri?: string) => {
+      if (!uri) return;
+      const path = normalizeFileUri(uri);
+      try {
+        const exists = await RNFS.exists(path);
+        if (exists) {
+          await RNFS.unlink(path);
+        }
+      } catch (cleanupError) {
+        console.warn(
+          '[SoundSettingsScreen] Failed to clean up picked file:',
+          cleanupError,
         );
       }
-    } catch (error: any) {
-      if (!(isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED)) {
-        console.error('[SoundSettingsScreen] Error picking sound:', error);
-        Alert.alert(t('Error'), t('Failed to select sound file.'));
-      }
-    } finally {
-      setIsPickingSound(false);
-      setPickingForEvent(null);
-    }
-  }, [t, previewCustomSound, stopSound, setCustomSound, normalizeFileUri, cleanupPickedCopy]);
+    },
+    [normalizeFileUri],
+  );
 
-  const handleResetEvent = useCallback(async (eventType: SoundEventType) => {
-    Alert.alert(
-      t('Reset to Default'),
-      t('Reset {event} sound to default?').replace('{event}', SOUND_EVENT_LABELS[eventType]),
-      [
-        { text: t('Cancel'), style: 'cancel' },
-        {
-          text: t('Reset'),
-          style: 'destructive',
-          onPress: () => resetEventToDefault(eventType),
-        },
-      ]
-    );
-  }, [t, resetEventToDefault]);
+  const handlePickCustomSound = useCallback(
+    async (eventType: SoundEventType) => {
+      setIsPickingSound(true);
+      setPickingForEvent(eventType);
+
+      try {
+        const [result] = await pick({
+          type: ['audio/*'],
+          copyTo: 'documentDirectory',
+        });
+
+        const pickedResult = result as typeof result & { fileCopyUri?: string };
+        const fileUri = pickedResult?.fileCopyUri ?? pickedResult?.uri;
+        const shouldCleanupCopy = Boolean(pickedResult?.fileCopyUri);
+
+        if (fileUri) {
+          // Preview the sound first
+          await previewCustomSound(fileUri);
+
+          // Ask for confirmation
+          const handleDismiss = () => {
+            stopSound();
+            if (shouldCleanupCopy) {
+              cleanupPickedCopy(pickedResult?.fileCopyUri).catch(() => null);
+            }
+          };
+
+          Alert.alert(
+            t('Use this sound?'),
+            t('Do you want to use this sound for {event}?').replace(
+              '{event}',
+              SOUND_EVENT_LABELS[eventType],
+            ),
+            [
+              {
+                text: t('Cancel'),
+                style: 'cancel',
+                onPress: handleDismiss,
+              },
+              {
+                text: t('Use'),
+                onPress: async () => {
+                  await stopSound();
+                  await setCustomSound(eventType, normalizeFileUri(fileUri));
+                  if (shouldCleanupCopy) {
+                    await cleanupPickedCopy(pickedResult?.fileCopyUri);
+                  }
+                },
+              },
+            ],
+            { onDismiss: handleDismiss },
+          );
+        }
+      } catch (error: any) {
+        if (
+          !(
+            isErrorWithCode(error) &&
+            error.code === errorCodes.OPERATION_CANCELED
+          )
+        ) {
+          console.error('[SoundSettingsScreen] Error picking sound:', error);
+          Alert.alert(t('Error'), t('Failed to select sound file.'));
+        }
+      } finally {
+        setIsPickingSound(false);
+        setPickingForEvent(null);
+      }
+    },
+    [
+      t,
+      previewCustomSound,
+      stopSound,
+      setCustomSound,
+      normalizeFileUri,
+      cleanupPickedCopy,
+    ],
+  );
+
+  const handleResetEvent = useCallback(
+    async (eventType: SoundEventType) => {
+      Alert.alert(
+        t('Reset to Default'),
+        t('Reset {event} sound to default?').replace(
+          '{event}',
+          SOUND_EVENT_LABELS[eventType],
+        ),
+        [
+          { text: t('Cancel'), style: 'cancel' },
+          {
+            text: t('Reset'),
+            style: 'destructive',
+            onPress: () => resetEventToDefault(eventType),
+          },
+        ],
+      );
+    },
+    [t, resetEventToDefault],
+  );
 
   const handleResetAll = useCallback(() => {
     Alert.alert(
@@ -185,126 +224,145 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
           style: 'destructive',
           onPress: resetAllToDefaults,
         },
-      ]
+      ],
     );
   }, [t, resetAllToDefaults]);
 
-  const renderEventRow = useCallback((eventType: SoundEventType) => {
-    const config = getEventConfig(eventType);
-    const label = SOUND_EVENT_LABELS[eventType];
-    const defaultSound = DEFAULT_SOUNDS[eventType];
-    const soundName = config.useCustom && config.customUri
-      ? t('Custom sound')
-      : defaultSound || t('No sound');
+  const renderEventRow = useCallback(
+    (eventType: SoundEventType) => {
+      const config = getEventConfig(eventType);
+      const label = SOUND_EVENT_LABELS[eventType];
+      const defaultSound = DEFAULT_SOUNDS[eventType];
+      const soundName =
+        config.useCustom && config.customUri
+          ? t('Custom sound')
+          : defaultSound || t('No sound');
 
-    return (
-      <View key={eventType} style={styles.eventRow}>
-        <View style={styles.eventInfo}>
-          <Text style={styles.eventLabel}>{t(label)}</Text>
-          <Text style={styles.eventSound} numberOfLines={1}>
-            {soundName}
-          </Text>
-        </View>
+      return (
+        <View key={eventType} style={styles.eventRow}>
+          <View style={styles.eventInfo}>
+            <Text style={styles.eventLabel}>{t(label)}</Text>
+            <Text style={styles.eventSound} numberOfLines={1}>
+              {soundName}
+            </Text>
+          </View>
 
-        <View style={styles.eventActions}>
-          {/* Enable/Disable toggle */}
-          <Switch
-            value={config.enabled}
-            onValueChange={(value) => setEventEnabled(eventType, value)}
-            trackColor={{ false: colors.border, true: colors.primaryLight || colors.primary }}
-            thumbColor={config.enabled ? colors.primary : colors.textSecondary}
-          />
-
-          {/* Preview button */}
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => previewSound(eventType)}
-            disabled={!config.enabled}
-          >
-            <Icon
-              name="play"
-              size={14}
-              color={config.enabled ? colors.primary : colors.textSecondary}
+          <View style={styles.eventActions}>
+            {/* Enable/Disable toggle */}
+            <Switch
+              value={config.enabled}
+              onValueChange={value => setEventEnabled(eventType, value)}
+              trackColor={{
+                false: colors.border,
+                true: colors.primaryLight || colors.primary,
+              }}
+              thumbColor={
+                config.enabled ? colors.primary : colors.textSecondary
+              }
             />
-          </TouchableOpacity>
 
-          {/* Pick custom sound */}
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => handlePickCustomSound(eventType)}
-            disabled={isPickingSound}
-          >
-            <Icon
-              name="folder-open"
-              size={14}
-              color={isPickingSound && pickingForEvent === eventType
-                ? colors.textSecondary
-                : colors.primary}
-            />
-          </TouchableOpacity>
-
-          {/* Reset to default (only if custom) */}
-          {config.useCustom && (
+            {/* Preview button */}
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => handleResetEvent(eventType)}
+              onPress={() => previewSound(eventType)}
+              disabled={!config.enabled}
             >
-              <Icon name="undo" size={14} color={colors.warning || colors.primary} />
+              <Icon
+                name="play"
+                size={14}
+                color={config.enabled ? colors.primary : colors.textSecondary}
+              />
             </TouchableOpacity>
+
+            {/* Pick custom sound */}
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => handlePickCustomSound(eventType)}
+              disabled={isPickingSound}
+            >
+              <Icon
+                name="folder-open"
+                size={14}
+                color={
+                  isPickingSound && pickingForEvent === eventType
+                    ? colors.textSecondary
+                    : colors.primary
+                }
+              />
+            </TouchableOpacity>
+
+            {/* Reset to default (only if custom) */}
+            {config.useCustom && (
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => handleResetEvent(eventType)}
+              >
+                <Icon
+                  name="undo"
+                  size={14}
+                  color={colors.warning || colors.primary}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      );
+    },
+    [
+      colors,
+      styles,
+      t,
+      getEventConfig,
+      setEventEnabled,
+      previewSound,
+      handlePickCustomSound,
+      handleResetEvent,
+      isPickingSound,
+      pickingForEvent,
+    ],
+  );
+
+  const renderCategory = useCallback(
+    (category: string, events: SoundEventType[]) => {
+      const isExpanded = expandedCategories[category];
+
+      return (
+        <View key={category} style={styles.categoryContainer}>
+          <TouchableOpacity
+            style={styles.categoryHeader}
+            onPress={() => toggleCategory(category)}
+          >
+            <Icon
+              name={isExpanded ? 'chevron-down' : 'chevron-right'}
+              size={12}
+              color={colors.textSecondary}
+              style={styles.categoryIcon}
+            />
+            <Text style={styles.categoryTitle}>{t(category)}</Text>
+            <Text style={styles.categoryCount}>
+              {events.filter(e => getEventConfig(e).enabled).length}/
+              {events.length}
+            </Text>
+          </TouchableOpacity>
+
+          {isExpanded && (
+            <View style={styles.categoryContent}>
+              {events.map(renderEventRow)}
+            </View>
           )}
         </View>
-      </View>
-    );
-  }, [
-    colors,
-    styles,
-    t,
-    getEventConfig,
-    setEventEnabled,
-    previewSound,
-    handlePickCustomSound,
-    handleResetEvent,
-    isPickingSound,
-    pickingForEvent,
-  ]);
-
-  const renderCategory = useCallback((category: string, events: SoundEventType[]) => {
-    const isExpanded = expandedCategories[category];
-
-    return (
-      <View key={category} style={styles.categoryContainer}>
-        <TouchableOpacity
-          style={styles.categoryHeader}
-          onPress={() => toggleCategory(category)}
-        >
-          <Icon
-            name={isExpanded ? 'chevron-down' : 'chevron-right'}
-            size={12}
-            color={colors.textSecondary}
-            style={styles.categoryIcon}
-          />
-          <Text style={styles.categoryTitle}>{t(category)}</Text>
-          <Text style={styles.categoryCount}>
-            {events.filter(e => getEventConfig(e).enabled).length}/{events.length}
-          </Text>
-        </TouchableOpacity>
-
-        {isExpanded && (
-          <View style={styles.categoryContent}>
-            {events.map(renderEventRow)}
-          </View>
-        )}
-      </View>
-    );
-  }, [
-    colors,
-    styles,
-    t,
-    expandedCategories,
-    toggleCategory,
-    getEventConfig,
-    renderEventRow,
-  ]);
+      );
+    },
+    [
+      colors,
+      styles,
+      t,
+      expandedCategories,
+      toggleCategory,
+      getEventConfig,
+      renderEventRow,
+    ],
+  );
 
   if (isLoading) {
     return (
@@ -345,8 +403,13 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
               <Switch
                 value={settings.enabled}
                 onValueChange={setEnabled}
-                trackColor={{ false: colors.border, true: colors.primaryLight || colors.primary }}
-                thumbColor={settings.enabled ? colors.primary : colors.textSecondary}
+                trackColor={{
+                  false: colors.border,
+                  true: colors.primaryLight || colors.primary,
+                }}
+                thumbColor={
+                  settings.enabled ? colors.primary : colors.textSecondary
+                }
               />
             </View>
           </View>
@@ -357,7 +420,11 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t('Master Volume')}</Text>
                 <View style={styles.volumeContainer}>
-                  <Icon name="volume-down" size={16} color={colors.textSecondary} />
+                  <Icon
+                    name="volume-down"
+                    size={16}
+                    color={colors.textSecondary}
+                  />
                   <Slider
                     style={styles.volumeSlider}
                     minimumValue={0}
@@ -368,7 +435,11 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
                     maximumTrackTintColor={colors.border}
                     thumbTintColor={colors.primary}
                   />
-                  <Icon name="volume-up" size={16} color={colors.textSecondary} />
+                  <Icon
+                    name="volume-up"
+                    size={16}
+                    color={colors.textSecondary}
+                  />
                   <Text style={styles.volumeValue}>
                     {Math.round(settings.masterVolume * 100)}%
                   </Text>
@@ -381,7 +452,9 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
 
                 <View style={styles.settingRow}>
                   <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>{t('Play in Foreground')}</Text>
+                    <Text style={styles.settingLabel}>
+                      {t('Play in Foreground')}
+                    </Text>
                     <Text style={styles.settingDescription}>
                       {t('Play sounds when app is open')}
                     </Text>
@@ -389,14 +462,23 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
                   <Switch
                     value={settings.playInForeground}
                     onValueChange={setPlayInForeground}
-                    trackColor={{ false: colors.border, true: colors.primaryLight || colors.primary }}
-                    thumbColor={settings.playInForeground ? colors.primary : colors.textSecondary}
+                    trackColor={{
+                      false: colors.border,
+                      true: colors.primaryLight || colors.primary,
+                    }}
+                    thumbColor={
+                      settings.playInForeground
+                        ? colors.primary
+                        : colors.textSecondary
+                    }
                   />
                 </View>
 
                 <View style={styles.settingRow}>
                   <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>{t('Play in Background')}</Text>
+                    <Text style={styles.settingLabel}>
+                      {t('Play in Background')}
+                    </Text>
                     <Text style={styles.settingDescription}>
                       {t('Play sounds when app is minimized')}
                     </Text>
@@ -404,8 +486,15 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
                   <Switch
                     value={settings.playInBackground}
                     onValueChange={setPlayInBackground}
-                    trackColor={{ false: colors.border, true: colors.primaryLight || colors.primary }}
-                    thumbColor={settings.playInBackground ? colors.primary : colors.textSecondary}
+                    trackColor={{
+                      false: colors.border,
+                      true: colors.primaryLight || colors.primary,
+                    }}
+                    thumbColor={
+                      settings.playInBackground
+                        ? colors.primary
+                        : colors.textSecondary
+                    }
                   />
                 </View>
               </View>
@@ -419,15 +508,19 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
                       key={scheme.id}
                       style={[
                         styles.schemeItem,
-                        activeScheme?.id === scheme.id && styles.schemeItemActive,
+                        activeScheme?.id === scheme.id &&
+                          styles.schemeItemActive,
                       ]}
                       onPress={() => setActiveScheme(scheme.id)}
                     >
                       <View style={styles.schemeInfo}>
-                        <Text style={[
-                          styles.schemeName,
-                          activeScheme?.id === scheme.id && styles.schemeNameActive,
-                        ]}>
+                        <Text
+                          style={[
+                            styles.schemeName,
+                            activeScheme?.id === scheme.id &&
+                              styles.schemeNameActive,
+                          ]}
+                        >
                           {t(scheme.name)}
                         </Text>
                         {scheme.description && (
@@ -447,8 +540,8 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
               {/* Event Sounds */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t('Event Sounds')}</Text>
-                {Object.entries(SOUND_EVENT_CATEGORIES).map(([category, events]) =>
-                  renderCategory(category, events)
+                {Object.entries(SOUND_EVENT_CATEGORIES).map(
+                  ([category, events]) => renderCategory(category, events),
                 )}
               </View>
 
@@ -458,7 +551,11 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
                   style={styles.resetButton}
                   onPress={handleResetAll}
                 >
-                  <Icon name="undo" size={14} color={colors.error || '#f44336'} />
+                  <Icon
+                    name="undo"
+                    size={14}
+                    color={colors.error || '#f44336'}
+                  />
                   <Text style={styles.resetButtonText}>
                     {t('Reset All to Defaults')}
                   </Text>

@@ -6,14 +6,31 @@
 /* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Switch,
+} from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
 import { layoutService } from '../../../services/LayoutService';
-import { NEW_FEATURE_DEFAULTS, settingsService } from '../../../services/SettingsService';
-import { RawMessageCategory, RAW_MESSAGE_CATEGORIES, getDefaultRawCategoryVisibility } from '../../../services/IRCService';
+import {
+  NEW_FEATURE_DEFAULTS,
+  settingsService,
+} from '../../../services/SettingsService';
+import {
+  RawMessageCategory,
+  RAW_MESSAGE_CATEGORIES,
+  getDefaultRawCategoryVisibility,
+} from '../../../services/IRCService';
 import { useUIStore } from '../../../stores/uiStore';
 
 interface DisplayUISectionProps {
@@ -42,7 +59,9 @@ interface DisplayUISectionProps {
   showRawCommands: boolean;
   onShowRawCommandsChange?: (value: boolean) => void;
   rawCategoryVisibility?: Record<RawMessageCategory, boolean>;
-  onRawCategoryVisibilityChange?: (value: Record<RawMessageCategory, boolean>) => void;
+  onRawCategoryVisibilityChange?: (
+    value: Record<RawMessageCategory, boolean>,
+  ) => void;
   showEncryptionIndicators?: boolean;
   onShowEncryptionIndicatorsChange?: (value: boolean) => void;
   showTypingIndicators?: boolean;
@@ -65,108 +84,191 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
   const t = useT();
   const tags = 'screen:settings,file:DisplayUISection.tsx,feature:settings';
   const { layoutConfig, updateLayoutConfig } = useSettingsAppearance();
-  
+
   const [tabSortAlphabetical, setTabSortAlphabetical] = useState(true);
-  const [localShowRawCommands, setLocalShowRawCommands] = useState(propShowRawCommands);
-  const [localRawCategoryVisibility, setLocalRawCategoryVisibility] = useState<Record<RawMessageCategory, boolean>>(
-    propRawCategoryVisibility || getDefaultRawCategoryVisibility()
-  );
-  const [noticeTarget, setNoticeTarget] = useState<'active' | 'server' | 'notice' | 'private'>('server');
-  const [whoisDisplayMode, setWhoisDisplayMode] = useState<'modal' | 'active' | 'status'>('status');
-  const [showEncryptionIndicatorsSetting, setShowEncryptionIndicatorsSetting] = useState(propShowEncryptionIndicators ?? true);
-  const [showTypingIndicatorsSetting, setShowTypingIndicatorsSetting] = useState(propShowTypingIndicators ?? true);
+  const [localShowRawCommands, setLocalShowRawCommands] =
+    useState(propShowRawCommands);
+  const [localRawCategoryVisibility, setLocalRawCategoryVisibility] = useState<
+    Record<RawMessageCategory, boolean>
+  >(propRawCategoryVisibility || getDefaultRawCategoryVisibility());
+  const [noticeTarget, setNoticeTarget] = useState<
+    'active' | 'server' | 'notice' | 'private'
+  >('server');
+  const [whoisDisplayMode, setWhoisDisplayMode] = useState<
+    'modal' | 'active' | 'status'
+  >('status');
+  const [showEncryptionIndicatorsSetting, setShowEncryptionIndicatorsSetting] =
+    useState(propShowEncryptionIndicators ?? true);
+  const [showTypingIndicatorsSetting, setShowTypingIndicatorsSetting] =
+    useState(propShowTypingIndicators ?? true);
   const [showSendButton, setShowSendButton] = useState(true);
   const [showColorPickerButton, setShowColorPickerButton] = useState(true);
-  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>('send');
+  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>(
+    'send',
+  );
   const [keyboardAvoidingEnabled, setKeyboardAvoidingEnabled] = useState(true);
-  const [keyboardBehaviorIOS, setKeyboardBehaviorIOS] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('padding');
-  const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<'padding' | 'height' | 'position' | 'translate-with-padding'>('height');
+  const [keyboardBehaviorIOS, setKeyboardBehaviorIOS] = useState<
+    'padding' | 'height' | 'position' | 'translate-with-padding'
+  >('padding');
+  const [keyboardBehaviorAndroid, setKeyboardBehaviorAndroid] = useState<
+    'padding' | 'height' | 'position' | 'translate-with-padding'
+  >('height');
   const [keyboardVerticalOffset, setKeyboardVerticalOffset] = useState('0');
-  const [useAndroidBottomSafeArea, setUseAndroidBottomSafeArea] = useState(true);
-  const [bannerPosition, setBannerPosition] = useState<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>('input_above');
+  const [useAndroidBottomSafeArea, setUseAndroidBottomSafeArea] =
+    useState(true);
+  const [bannerPosition, setBannerPosition] = useState<
+    'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'
+  >('input_above');
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
-  const [channelListScrollSwitchTabs, setChannelListScrollSwitchTabs] = useState(false);
-  const [channelListScrollSwitchTabsInverse, setChannelListScrollSwitchTabsInverse] = useState(false);
-  const [swipeBehavior, setSwipeBehavior] = useState<'off' | 'switch-tabs' | 'show-panels'>('off');
-  const [confirmBeforeOpeningLinks, setConfirmBeforeOpeningLinks] = useState(true);
-  const lastRawVisibilityRef = useRef<Record<RawMessageCategory, boolean> | null>(null);
-  const isNoticeTarget = (value: string): value is 'active' | 'server' | 'notice' | 'private' =>
+  const [channelListScrollSwitchTabs, setChannelListScrollSwitchTabs] =
+    useState(false);
+  const [
+    channelListScrollSwitchTabsInverse,
+    setChannelListScrollSwitchTabsInverse,
+  ] = useState(false);
+  const [swipeBehavior, setSwipeBehavior] = useState<
+    'off' | 'switch-tabs' | 'show-panels'
+  >('off');
+  const [confirmBeforeOpeningLinks, setConfirmBeforeOpeningLinks] =
+    useState(true);
+  const lastRawVisibilityRef = useRef<Record<
+    RawMessageCategory,
+    boolean
+  > | null>(null);
+  const isNoticeTarget = (
+    value: string,
+  ): value is 'active' | 'server' | 'notice' | 'private' =>
     ['active', 'server', 'notice', 'private'].includes(value);
-  const isWhoisDisplayMode = (value: string): value is 'modal' | 'active' | 'status' =>
+  const isWhoisDisplayMode = (
+    value: string,
+  ): value is 'modal' | 'active' | 'status' =>
     ['modal', 'active', 'status'].includes(value);
   const isEnterKeyBehavior = (value: string): value is 'send' | 'newline' =>
     ['send', 'newline'].includes(value);
   const isKeyboardBehavior = (
-    value: string
+    value: string,
   ): value is 'padding' | 'height' | 'position' | 'translate-with-padding' =>
     ['padding', 'height', 'position', 'translate-with-padding'].includes(value);
   const isBannerPosition = (
-    value: string
+    value: string,
   ): value is 'input_above' | 'input_below' | 'tabs_above' | 'tabs_below' =>
     ['input_above', 'input_below', 'tabs_above', 'tabs_below'].includes(value);
 
   // Load initial state
   useEffect(() => {
     const loadSettings = async () => {
-      const sortTabs = await settingsService.getSetting('tabSortAlphabetical', true);
+      const sortTabs = await settingsService.getSetting(
+        'tabSortAlphabetical',
+        true,
+      );
       setTabSortAlphabetical(sortTabs);
 
       const notice = await settingsService.getSetting('noticeTarget', 'server');
       setNoticeTarget(isNoticeTarget(notice) ? notice : 'server');
 
-      const whoisMode = await settingsService.getSetting('whoisDisplayMode', 'status');
+      const whoisMode = await settingsService.getSetting(
+        'whoisDisplayMode',
+        'status',
+      );
       setWhoisDisplayMode(isWhoisDisplayMode(whoisMode) ? whoisMode : 'status');
 
-      const showEncryption = await settingsService.getSetting('showEncryptionIndicators', true);
+      const showEncryption = await settingsService.getSetting(
+        'showEncryptionIndicators',
+        true,
+      );
       setShowEncryptionIndicatorsSetting(showEncryption);
 
-      const showTypingIndicators = await settingsService.getSetting('showTypingIndicators', true);
+      const showTypingIndicators = await settingsService.getSetting(
+        'showTypingIndicators',
+        true,
+      );
       setShowTypingIndicatorsSetting(showTypingIndicators);
 
-      const sendButton = await settingsService.getSetting('showSendButton', true);
+      const sendButton = await settingsService.getSetting(
+        'showSendButton',
+        true,
+      );
       setShowSendButton(sendButton);
 
-      const colorPickerButton = await settingsService.getSetting('showColorPickerButton', true);
+      const colorPickerButton = await settingsService.getSetting(
+        'showColorPickerButton',
+        true,
+      );
       setShowColorPickerButton(colorPickerButton);
 
-      const enterBehavior = await settingsService.getSetting('enterKeyBehavior', 'send');
-      setEnterKeyBehavior(isEnterKeyBehavior(enterBehavior) ? enterBehavior : 'send');
+      const enterBehavior = await settingsService.getSetting(
+        'enterKeyBehavior',
+        'send',
+      );
+      setEnterKeyBehavior(
+        isEnterKeyBehavior(enterBehavior) ? enterBehavior : 'send',
+      );
 
-      const avoidingEnabled = await settingsService.getSetting('keyboardAvoidingEnabled', true);
+      const avoidingEnabled = await settingsService.getSetting(
+        'keyboardAvoidingEnabled',
+        true,
+      );
       setKeyboardAvoidingEnabled(avoidingEnabled);
 
-      const behaviorIOS = await settingsService.getSetting('keyboardBehaviorIOS', 'padding');
-      setKeyboardBehaviorIOS(isKeyboardBehavior(behaviorIOS) ? behaviorIOS : 'padding');
+      const behaviorIOS = await settingsService.getSetting(
+        'keyboardBehaviorIOS',
+        'padding',
+      );
+      setKeyboardBehaviorIOS(
+        isKeyboardBehavior(behaviorIOS) ? behaviorIOS : 'padding',
+      );
 
-      const behaviorAndroid = await settingsService.getSetting('keyboardBehaviorAndroid', 'height');
-      setKeyboardBehaviorAndroid(isKeyboardBehavior(behaviorAndroid) ? behaviorAndroid : 'height');
+      const behaviorAndroid = await settingsService.getSetting(
+        'keyboardBehaviorAndroid',
+        'height',
+      );
+      setKeyboardBehaviorAndroid(
+        isKeyboardBehavior(behaviorAndroid) ? behaviorAndroid : 'height',
+      );
 
-      const offsetValue = await settingsService.getSetting('keyboardVerticalOffset', 0);
+      const offsetValue = await settingsService.getSetting(
+        'keyboardVerticalOffset',
+        0,
+      );
       setKeyboardVerticalOffset(String(offsetValue));
 
-      const androidSafeArea = await settingsService.getSetting('useAndroidBottomSafeArea', true);
+      const androidSafeArea = await settingsService.getSetting(
+        'useAndroidBottomSafeArea',
+        true,
+      );
       setUseAndroidBottomSafeArea(androidSafeArea);
 
-      const bannerPos = await settingsService.getSetting('bannerPosition', 'input_above');
-      setBannerPosition(isBannerPosition(bannerPos) ? bannerPos : 'input_above');
+      const bannerPos = await settingsService.getSetting(
+        'bannerPosition',
+        'input_above',
+      );
+      setBannerPosition(
+        isBannerPosition(bannerPos) ? bannerPos : 'input_above',
+      );
 
       const scrollSwitch = await settingsService.getSetting(
         'channelListScrollSwitchTabs',
-        NEW_FEATURE_DEFAULTS.channelListScrollSwitchTabs
+        NEW_FEATURE_DEFAULTS.channelListScrollSwitchTabs,
       );
       setChannelListScrollSwitchTabs(scrollSwitch);
 
       const scrollSwitchInverse = await settingsService.getSetting(
         'channelListScrollSwitchTabsInverse',
-        NEW_FEATURE_DEFAULTS.channelListScrollSwitchTabsInverse
+        NEW_FEATURE_DEFAULTS.channelListScrollSwitchTabsInverse,
       );
       setChannelListScrollSwitchTabsInverse(scrollSwitchInverse);
 
-      const swipe = await settingsService.getSetting('swipeBehavior', 'off') as 'off' | 'switch-tabs' | 'show-panels';
+      const swipe = (await settingsService.getSetting(
+        'swipeBehavior',
+        'off',
+      )) as 'off' | 'switch-tabs' | 'show-panels';
       setSwipeBehavior(swipe);
       useUIStore.getState().setSwipeBehavior(swipe);
 
-      const confirmLinks = await settingsService.getSetting('confirmBeforeOpeningLinks', true);
+      const confirmLinks = await settingsService.getSetting(
+        'confirmBeforeOpeningLinks',
+        true,
+      );
       setConfirmBeforeOpeningLinks(confirmLinks);
     };
     loadSettings();
@@ -195,12 +297,19 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     if (!onRawCategoryVisibilityChange || !localShowRawCommands) return;
     const last = lastRawVisibilityRef.current;
     const isSame = last
-      ? RAW_MESSAGE_CATEGORIES.every(category => last[category.id] === localRawCategoryVisibility[category.id])
+      ? RAW_MESSAGE_CATEGORIES.every(
+          category =>
+            last[category.id] === localRawCategoryVisibility[category.id],
+        )
       : false;
     if (isSame) return;
     lastRawVisibilityRef.current = localRawCategoryVisibility;
     onRawCategoryVisibilityChange(localRawCategoryVisibility);
-  }, [localRawCategoryVisibility, localShowRawCommands, onRawCategoryVisibilityChange]);
+  }, [
+    localRawCategoryVisibility,
+    localShowRawCommands,
+    onRawCategoryVisibilityChange,
+  ]);
 
   const sectionData: SettingItemType[] = useMemo(() => {
     const formatBehaviorLabel = (value: string) => {
@@ -219,20 +328,45 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     };
 
     const behaviorOptions = [
-      { id: 'behavior-padding', label: t('Padding', { _tags: tags }), value: 'padding' },
-      { id: 'behavior-height', label: t('Height', { _tags: tags }), value: 'height' },
-      { id: 'behavior-position', label: t('Position', { _tags: tags }), value: 'position' },
-      { id: 'behavior-translate-with-padding', label: t('Translate with padding', { _tags: tags }), value: 'translate-with-padding' },
+      {
+        id: 'behavior-padding',
+        label: t('Padding', { _tags: tags }),
+        value: 'padding',
+      },
+      {
+        id: 'behavior-height',
+        label: t('Height', { _tags: tags }),
+        value: 'height',
+      },
+      {
+        id: 'behavior-position',
+        label: t('Position', { _tags: tags }),
+        value: 'position',
+      },
+      {
+        id: 'behavior-translate-with-padding',
+        label: t('Translate with padding', { _tags: tags }),
+        value: 'translate-with-padding',
+      },
     ];
 
     const items: SettingItemType[] = [
       {
         id: 'display-tab-sort',
         title: t('Sort Tabs Alphabetically', { _tags: tags }),
-        description: tabSortAlphabetical ? 'Sorting tabs A→Z per network' : 'Keep tabs in join/open order',
+        description: tabSortAlphabetical
+          ? 'Sorting tabs A→Z per network'
+          : 'Keep tabs in join/open order',
         type: 'switch',
         value: tabSortAlphabetical,
-        searchKeywords: ['sort', 'tabs', 'alphabetical', 'order', 'arrange', 'organize'],
+        searchKeywords: [
+          'sort',
+          'tabs',
+          'alphabetical',
+          'order',
+          'arrange',
+          'organize',
+        ],
         onValueChange: async (value: boolean | string) => {
           setTabSortAlphabetical(value as boolean);
           await settingsService.setSetting('tabSortAlphabetical', value);
@@ -243,28 +377,54 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         title: t('Switch tabs on channel list scroll', { _tags: tags }),
         description: channelListScrollSwitchTabs
           ? t('Scroll up/down to change the active tab', { _tags: tags })
-          : t('Scrolling the channel list will not change tabs', { _tags: tags }),
+          : t('Scrolling the channel list will not change tabs', {
+              _tags: tags,
+            }),
         type: 'switch',
         value: channelListScrollSwitchTabs,
-        searchKeywords: ['scroll', 'tabs', 'channel list', 'switch', 'wheel', 'gesture'],
+        searchKeywords: [
+          'scroll',
+          'tabs',
+          'channel list',
+          'switch',
+          'wheel',
+          'gesture',
+        ],
         onValueChange: async (value: boolean | string) => {
           const boolValue = Boolean(value);
           setChannelListScrollSwitchTabs(boolValue);
-          await settingsService.setSetting('channelListScrollSwitchTabs', boolValue);
+          await settingsService.setSetting(
+            'channelListScrollSwitchTabs',
+            boolValue,
+          );
         },
       },
       {
         id: 'display-scroll-swipe-invert',
         title: t('Invert scroll & swipe direction', { _tags: tags }),
-        description: t('Reverse direction for tab switching gestures', { _tags: tags }),
+        description: t('Reverse direction for tab switching gestures', {
+          _tags: tags,
+        }),
         type: 'switch',
         value: channelListScrollSwitchTabsInverse,
         disabled: !channelListScrollSwitchTabs,
-        searchKeywords: ['scroll', 'swipe', 'invert', 'reverse', 'tabs', 'direction', 'gesture', 'search'],
+        searchKeywords: [
+          'scroll',
+          'swipe',
+          'invert',
+          'reverse',
+          'tabs',
+          'direction',
+          'gesture',
+          'search',
+        ],
         onValueChange: async (value: boolean | string) => {
           const boolValue = Boolean(value);
           setChannelListScrollSwitchTabsInverse(boolValue);
-          await settingsService.setSetting('channelListScrollSwitchTabsInverse', boolValue);
+          await settingsService.setSetting(
+            'channelListScrollSwitchTabsInverse',
+            boolValue,
+          );
         },
       },
       {
@@ -281,7 +441,14 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           }
         })(),
         type: 'submenu',
-        searchKeywords: ['swipe', 'gesture', 'tabs', 'panels', 'nicklist', 'drawer'],
+        searchKeywords: [
+          'swipe',
+          'gesture',
+          'tabs',
+          'panels',
+          'nicklist',
+          'drawer',
+        ],
         submenuItems: [
           {
             id: 'swipe-off',
@@ -297,7 +464,9 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           {
             id: 'swipe-switch-tabs',
             title: t('Switch tabs', { _tags: tags }),
-            description: t('Swipe left/right to switch to next/previous tab', { _tags: tags }),
+            description: t('Swipe left/right to switch to next/previous tab', {
+              _tags: tags,
+            }),
             type: 'button' as const,
             onPress: async () => {
               setSwipeBehavior('switch-tabs');
@@ -308,7 +477,10 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           {
             id: 'swipe-show-panels',
             title: t('Show/hide panels', { _tags: tags }),
-            description: t('Swipe right for tabs panel, swipe left for nicklist', { _tags: tags }),
+            description: t(
+              'Swipe right for tabs panel, swipe left for nicklist',
+              { _tags: tags },
+            ),
             type: 'button' as const,
             onPress: async () => {
               setSwipeBehavior('show-panels');
@@ -324,7 +496,15 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         description: t('Display raw IRC protocol messages', { _tags: tags }),
         type: 'switch',
         value: localShowRawCommands,
-        searchKeywords: ['raw', 'commands', 'protocol', 'irc', 'messages', 'debug', 'technical'],
+        searchKeywords: [
+          'raw',
+          'commands',
+          'protocol',
+          'irc',
+          'messages',
+          'debug',
+          'technical',
+        ],
         onValueChange: (value: boolean | string) => {
           const boolValue = value as boolean;
           setLocalShowRawCommands(boolValue);
@@ -346,7 +526,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         type: 'submenu',
         disabled: !localShowRawCommands,
         searchKeywords: ['raw', 'categories', 'filter', 'messages', 'types'],
-        submenuItems: RAW_MESSAGE_CATEGORIES.map((category) => ({
+        submenuItems: RAW_MESSAGE_CATEGORIES.map(category => ({
           id: `raw-category-${category.id}`,
           title: category.title,
           description: category.description,
@@ -354,7 +534,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           value: localRawCategoryVisibility[category.id] !== false,
           onValueChange: (value: boolean | string) => {
             const boolValue = value as boolean;
-            setLocalRawCategoryVisibility((prev) => {
+            setLocalRawCategoryVisibility(prev => {
               return { ...prev, [category.id]: boolValue };
             });
           },
@@ -376,7 +556,14 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           }
         })(),
         type: 'submenu',
-        searchKeywords: ['notice', 'routing', 'messages', 'server', 'tab', 'active'],
+        searchKeywords: [
+          'notice',
+          'routing',
+          'messages',
+          'server',
+          'tab',
+          'active',
+        ],
         submenuItems: [
           {
             id: 'notice-active',
@@ -430,7 +617,15 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           }
         })(),
         type: 'submenu',
-        searchKeywords: ['whois', 'display', 'modal', 'popup', 'active', 'status', 'tab'],
+        searchKeywords: [
+          'whois',
+          'display',
+          'modal',
+          'popup',
+          'active',
+          'status',
+          'tab',
+        ],
         submenuItems: [
           {
             id: 'whois-modal',
@@ -473,17 +668,27 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         searchKeywords: ['timestamps', 'time', 'clock', 'display', 'show'],
         onValueChange: async (value: boolean | string) => {
           const showTimestamps = value as boolean;
-          await layoutService.setTimestampDisplay(showTimestamps ? 'grouped' : 'never');
+          await layoutService.setTimestampDisplay(
+            showTimestamps ? 'grouped' : 'never',
+          );
           updateLayoutConfig({});
         },
       },
       {
         id: 'display-message-grouping',
         title: t('Group Messages', { _tags: tags }),
-        description: t('Group consecutive messages from the same user', { _tags: tags }),
+        description: t('Group consecutive messages from the same user', {
+          _tags: tags,
+        }),
         type: 'switch',
         value: layoutConfig?.messageGroupingEnabled !== false,
-        searchKeywords: ['group', 'messages', 'combine', 'consecutive', 'spacing'],
+        searchKeywords: [
+          'group',
+          'messages',
+          'combine',
+          'consecutive',
+          'spacing',
+        ],
         onValueChange: async (value: boolean | string) => {
           await layoutService.setMessageGroupingEnabled(Boolean(value));
           updateLayoutConfig({});
@@ -492,9 +697,20 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
       {
         id: 'message-text-align',
         title: t('Message Text Alignment', { _tags: tags }),
-        description: t('Alignment: {align}', { align: layoutConfig?.messageTextAlign || 'left', _tags: tags }),
+        description: t('Alignment: {align}', {
+          align: layoutConfig?.messageTextAlign || 'left',
+          _tags: tags,
+        }),
         type: 'submenu',
-        searchKeywords: ['message', 'text', 'align', 'left', 'right', 'center', 'justify'],
+        searchKeywords: [
+          'message',
+          'text',
+          'align',
+          'left',
+          'right',
+          'center',
+          'justify',
+        ],
         submenuItems: [
           {
             id: 'align-left',
@@ -537,9 +753,20 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
       {
         id: 'message-text-direction',
         title: t('Message Text Direction', { _tags: tags }),
-        description: t('Direction: {direction}', { direction: layoutConfig?.messageTextDirection || 'auto', _tags: tags }),
+        description: t('Direction: {direction}', {
+          direction: layoutConfig?.messageTextDirection || 'auto',
+          _tags: tags,
+        }),
         type: 'submenu',
-        searchKeywords: ['message', 'text', 'direction', 'rtl', 'ltr', 'hebrew', 'arabic'],
+        searchKeywords: [
+          'message',
+          'text',
+          'direction',
+          'rtl',
+          'ltr',
+          'hebrew',
+          'arabic',
+        ],
         submenuItems: [
           {
             id: 'direction-auto',
@@ -573,9 +800,20 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
       {
         id: 'layout-timestamp-display',
         title: t('Timestamp Display', { _tags: tags }),
-        description: t('Show timestamps: {mode}', { mode: layoutConfig?.timestampDisplay || 'grouped', _tags: tags }),
+        description: t('Show timestamps: {mode}', {
+          mode: layoutConfig?.timestampDisplay || 'grouped',
+          _tags: tags,
+        }),
         type: 'submenu',
-        searchKeywords: ['timestamp', 'display', 'mode', 'always', 'grouped', 'never', 'time'],
+        searchKeywords: [
+          'timestamp',
+          'display',
+          'mode',
+          'always',
+          'grouped',
+          'never',
+          'time',
+        ],
         submenuItems: [
           {
             id: 'timestamp-always',
@@ -609,10 +847,22 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
       {
         id: 'layout-timestamp-format',
         title: t('Timestamp Format', { _tags: tags }),
-        description: t('Format: {format}', { format: layoutConfig?.timestampFormat || '12h', _tags: tags }),
+        description: t('Format: {format}', {
+          format: layoutConfig?.timestampFormat || '12h',
+          _tags: tags,
+        }),
         type: 'submenu',
         disabled: layoutConfig?.timestampDisplay === 'never',
-        searchKeywords: ['timestamp', 'format', '12h', '24h', 'time', 'clock', 'am', 'pm'],
+        searchKeywords: [
+          'timestamp',
+          'format',
+          '12h',
+          '24h',
+          'time',
+          'clock',
+          'am',
+          'pm',
+        ],
         submenuItems: [
           {
             id: 'format-12h',
@@ -642,12 +892,24 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           : t('Hide lock icons', { _tags: tags }),
         type: 'switch',
         value: showEncryptionIndicatorsSetting,
-        searchKeywords: ['encryption', 'indicators', 'lock', 'icons', 'security', 'e2ee', 'encrypted'],
+        searchKeywords: [
+          'encryption',
+          'indicators',
+          'lock',
+          'icons',
+          'security',
+          'e2ee',
+          'encrypted',
+        ],
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setShowEncryptionIndicatorsSetting(boolValue);
-          await settingsService.setSetting('showEncryptionIndicators', boolValue);
-          onShowEncryptionIndicatorsChange && onShowEncryptionIndicatorsChange(boolValue);
+          await settingsService.setSetting(
+            'showEncryptionIndicators',
+            boolValue,
+          );
+          onShowEncryptionIndicatorsChange &&
+            onShowEncryptionIndicatorsChange(boolValue);
         },
       },
       {
@@ -663,7 +925,8 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           const boolValue = value as boolean;
           setShowTypingIndicatorsSetting(boolValue);
           await settingsService.setSetting('showTypingIndicators', boolValue);
-          onShowTypingIndicatorsChange && onShowTypingIndicatorsChange(boolValue);
+          onShowTypingIndicatorsChange &&
+            onShowTypingIndicatorsChange(boolValue);
         },
       },
       {
@@ -674,7 +937,14 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           : t('Hide send button (use Enter key)', { _tags: tags }),
         type: 'switch',
         value: showSendButton,
-        searchKeywords: ['send', 'button', 'message', 'input', 'enter', 'submit'],
+        searchKeywords: [
+          'send',
+          'button',
+          'message',
+          'input',
+          'enter',
+          'submit',
+        ],
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setShowSendButton(boolValue);
@@ -693,7 +963,14 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           }
         })(),
         type: 'submenu',
-        searchKeywords: ['enter', 'key', 'send', 'newline', 'multiline', 'input'],
+        searchKeywords: [
+          'enter',
+          'key',
+          'send',
+          'newline',
+          'multiline',
+          'input',
+        ],
         submenuItems: [
           {
             id: 'enter-send',
@@ -719,11 +996,20 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         id: 'display-color-picker-button',
         title: t('Show Color Picker Button', { _tags: tags }),
         description: showColorPickerButton
-          ? t('Display mIRC color picker next to message input', { _tags: tags })
+          ? t('Display mIRC color picker next to message input', {
+              _tags: tags,
+            })
           : t('Hide mIRC color picker button', { _tags: tags }),
         type: 'switch',
         value: showColorPickerButton,
-        searchKeywords: ['color', 'picker', 'mirc', 'formatting', 'input', 'button'],
+        searchKeywords: [
+          'color',
+          'picker',
+          'mirc',
+          'formatting',
+          'input',
+          'button',
+        ],
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setShowColorPickerButton(boolValue);
@@ -738,11 +1024,22 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           : t('Open links directly without asking', { _tags: tags }),
         type: 'switch',
         value: confirmBeforeOpeningLinks,
-        searchKeywords: ['confirm', 'link', 'url', 'open', 'browser', 'warning', 'prompt'],
+        searchKeywords: [
+          'confirm',
+          'link',
+          'url',
+          'open',
+          'browser',
+          'warning',
+          'prompt',
+        ],
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setConfirmBeforeOpeningLinks(boolValue);
-          await settingsService.setSetting('confirmBeforeOpeningLinks', boolValue);
+          await settingsService.setSetting(
+            'confirmBeforeOpeningLinks',
+            boolValue,
+          );
         },
       },
       {
@@ -761,7 +1058,14 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           }
         })(),
         type: 'submenu',
-        searchKeywords: ['banner', 'ads', 'ad', 'position', 'placement', 'layout'],
+        searchKeywords: [
+          'banner',
+          'ads',
+          'ad',
+          'position',
+          'placement',
+          'layout',
+        ],
         submenuItems: [
           {
             id: 'banner-pos-input-above',
@@ -813,47 +1117,90 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setKeyboardAvoidingEnabled(boolValue);
-          await settingsService.setSetting('keyboardAvoidingEnabled', boolValue);
+          await settingsService.setSetting(
+            'keyboardAvoidingEnabled',
+            boolValue,
+          );
         },
       },
       {
         id: 'display-keyboard-behavior-ios',
         title: t('Keyboard Behavior (iOS)', { _tags: tags }),
-        description: t('Current: {mode}', { mode: formatBehaviorLabel(keyboardBehaviorIOS), _tags: tags }),
+        description: t('Current: {mode}', {
+          mode: formatBehaviorLabel(keyboardBehaviorIOS),
+          _tags: tags,
+        }),
         type: 'submenu',
         disabled: !keyboardAvoidingEnabled,
-        searchKeywords: ['keyboard', 'behavior', 'ios', 'padding', 'height', 'position'],
+        searchKeywords: [
+          'keyboard',
+          'behavior',
+          'ios',
+          'padding',
+          'height',
+          'position',
+        ],
         submenuItems: behaviorOptions.map(option => ({
           id: `keyboard-behavior-ios-${option.value}`,
           title: option.label,
           type: 'button' as const,
           onPress: async () => {
-            setKeyboardBehaviorIOS(option.value as 'padding' | 'height' | 'position' | 'translate-with-padding');
-            await settingsService.setSetting('keyboardBehaviorIOS', option.value);
+            setKeyboardBehaviorIOS(
+              option.value as
+                | 'padding'
+                | 'height'
+                | 'position'
+                | 'translate-with-padding',
+            );
+            await settingsService.setSetting(
+              'keyboardBehaviorIOS',
+              option.value,
+            );
           },
         })),
       },
       {
         id: 'display-keyboard-behavior-android',
         title: t('Keyboard Behavior (Android)', { _tags: tags }),
-        description: t('Current: {mode}', { mode: formatBehaviorLabel(keyboardBehaviorAndroid), _tags: tags }),
+        description: t('Current: {mode}', {
+          mode: formatBehaviorLabel(keyboardBehaviorAndroid),
+          _tags: tags,
+        }),
         type: 'submenu',
         disabled: !keyboardAvoidingEnabled,
-        searchKeywords: ['keyboard', 'behavior', 'android', 'padding', 'height', 'position'],
+        searchKeywords: [
+          'keyboard',
+          'behavior',
+          'android',
+          'padding',
+          'height',
+          'position',
+        ],
         submenuItems: behaviorOptions.map(option => ({
           id: `keyboard-behavior-android-${option.value}`,
           title: option.label,
           type: 'button' as const,
           onPress: async () => {
-            setKeyboardBehaviorAndroid(option.value as 'padding' | 'height' | 'position' | 'translate-with-padding');
-            await settingsService.setSetting('keyboardBehaviorAndroid', option.value);
+            setKeyboardBehaviorAndroid(
+              option.value as
+                | 'padding'
+                | 'height'
+                | 'position'
+                | 'translate-with-padding',
+            );
+            await settingsService.setSetting(
+              'keyboardBehaviorAndroid',
+              option.value,
+            );
           },
         })),
       },
       {
         id: 'display-keyboard-offset',
         title: t('Keyboard Vertical Offset', { _tags: tags }),
-        description: t('Additional padding in pixels for keyboard avoidance', { _tags: tags }),
+        description: t('Additional padding in pixels for keyboard avoidance', {
+          _tags: tags,
+        }),
         type: 'input',
         value: keyboardVerticalOffset,
         keyboardType: 'numeric',
@@ -865,7 +1212,10 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           setKeyboardVerticalOffset(sanitized);
           const numericValue = Number(sanitized);
           if (Number.isFinite(numericValue)) {
-            await settingsService.setSetting('keyboardVerticalOffset', numericValue);
+            await settingsService.setSetting(
+              'keyboardVerticalOffset',
+              numericValue,
+            );
           }
         },
       },
@@ -877,11 +1227,21 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           : t('Use full height on Android', { _tags: tags }),
         type: 'switch',
         value: useAndroidBottomSafeArea,
-        searchKeywords: ['android', 'safe area', 'gesture', 'navigation', 'bottom', 'inset'],
+        searchKeywords: [
+          'android',
+          'safe area',
+          'gesture',
+          'navigation',
+          'bottom',
+          'inset',
+        ],
         onValueChange: async (value: boolean | string) => {
           const boolValue = value as boolean;
           setUseAndroidBottomSafeArea(boolValue);
-          await settingsService.setSetting('useAndroidBottomSafeArea', boolValue);
+          await settingsService.setSetting(
+            'useAndroidBottomSafeArea',
+            boolValue,
+          );
         },
       },
     ];
@@ -925,12 +1285,16 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
     }
   };
 
-  const currentSubmenuItem = showSubmenu ? sectionData.find(item => item.id === showSubmenu) : null;
+  const currentSubmenuItem = showSubmenu
+    ? sectionData.find(item => item.id === showSubmenu)
+    : null;
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}
@@ -942,37 +1306,87 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           />
         );
       })}
-      
+
       {/* Submenu Modal */}
       <Modal
         visible={showSubmenu !== null}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowSubmenu(null)}>
-        <View style={{ flex: 1, backgroundColor: colors.modalOverlay, justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}>{currentSubmenuItem?.title || t('Options', { _tags: tags })}</Text>
+        onRequestClose={() => setShowSubmenu(null)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: colors.modalOverlay,
+            justifyContent: 'flex-end',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              maxHeight: '80%',
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+              }}
+            >
+              <Text
+                style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}
+              >
+                {currentSubmenuItem?.title || t('Options', { _tags: tags })}
+              </Text>
               <TouchableOpacity onPress={() => setShowSubmenu(null)}>
-                <Text style={{ color: colors.primary, fontSize: 16 }}>{t('Close', { _tags: tags })}</Text>
+                <Text style={{ color: colors.primary, fontSize: 16 }}>
+                  {t('Close', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
             <ScrollView>
-              {currentSubmenuItem?.submenuItems?.map((subItem) => {
+              {currentSubmenuItem?.submenuItems?.map(subItem => {
                 if (subItem.type === 'switch') {
                   return (
-                    <View key={subItem.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                    <View
+                      key={subItem.id}
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingVertical: 8,
+                        paddingHorizontal: 16,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                      }}
+                    >
                       <View style={{ flex: 1, marginRight: 12 }}>
-                        <Text style={{ color: colors.text, fontSize: 15 }}>{subItem.title}</Text>
+                        <Text style={{ color: colors.text, fontSize: 15 }}>
+                          {subItem.title}
+                        </Text>
                         {subItem.description && (
-                          <Text style={{ color: colors.textSecondary, fontSize: 11, marginTop: 2, lineHeight: 14 }} numberOfLines={2}>
+                          <Text
+                            style={{
+                              color: colors.textSecondary,
+                              fontSize: 11,
+                              marginTop: 2,
+                              lineHeight: 14,
+                            }}
+                            numberOfLines={2}
+                          >
                             {subItem.description}
                           </Text>
                         )}
                       </View>
                       <Switch
                         value={subItem.value as boolean}
-                        onValueChange={(value) => {
+                        onValueChange={value => {
                           subItem.onValueChange?.(value);
                         }}
                         disabled={subItem.disabled}
@@ -989,10 +1403,34 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
                         setShowSubmenu(null);
                       }}
                       disabled={subItem.disabled}
-                      style={{ paddingVertical: 8, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: subItem.disabled ? 0.5 : 1 }}>
-                      <Text style={{ color: subItem.disabled ? colors.textSecondary : colors.text, fontSize: 15 }}>{subItem.title}</Text>
+                      style={{
+                        paddingVertical: 8,
+                        paddingHorizontal: 16,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                        opacity: subItem.disabled ? 0.5 : 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: subItem.disabled
+                            ? colors.textSecondary
+                            : colors.text,
+                          fontSize: 15,
+                        }}
+                      >
+                        {subItem.title}
+                      </Text>
                       {subItem.description && (
-                        <Text style={{ color: colors.textSecondary, fontSize: 11, marginTop: 2, lineHeight: 14 }} numberOfLines={2}>
+                        <Text
+                          style={{
+                            color: colors.textSecondary,
+                            fontSize: 11,
+                            marginTop: 2,
+                            lineHeight: 14,
+                          }}
+                          numberOfLines={2}
+                        >
                           {subItem.description}
                         </Text>
                       )}

@@ -20,7 +20,9 @@ jest.mock('../../../../src/services/SettingsService', () => {
     ...actual,
     settingsService: {
       ...actual.settingsService,
-      getSetting: jest.fn((key: string, defaultVal: any) => Promise.resolve(defaultVal)),
+      getSetting: jest.fn((key: string, defaultVal: any) =>
+        Promise.resolve(defaultVal),
+      ),
     },
   };
 });
@@ -58,14 +60,18 @@ describe('StatusCommands', () => {
       handleAWAY(ctx, ['Gone', 'fishing'], '');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith('AWAY :Gone fishing');
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'notice' }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'notice' }),
+      );
     });
 
     it('should send AWAY without message to remove away status', () => {
       handleAWAY(ctx, [], '');
 
       expect(ctx.sendRaw).toHaveBeenCalledWith('AWAY');
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'notice' }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'notice' }),
+      );
     });
   });
 
@@ -100,18 +106,25 @@ describe('StatusCommands', () => {
     });
 
     it('should read quit message from settings when no args provided', async () => {
-      (settingsService.getSetting as jest.Mock).mockResolvedValueOnce('My custom quit');
+      (settingsService.getSetting as jest.Mock).mockResolvedValueOnce(
+        'My custom quit',
+      );
 
       await handleDISCONNECT(ctx, [], '');
 
-      expect(settingsService.getSetting).toHaveBeenCalledWith('quitMessage', expect.any(String));
+      expect(settingsService.getSetting).toHaveBeenCalledWith(
+        'quitMessage',
+        expect.any(String),
+      );
       expect(ctx.sendRaw).toHaveBeenCalledWith('QUIT :My custom quit');
     });
 
     it('should use default quit message when settings returns default', async () => {
       await handleDISCONNECT(ctx, [], '');
 
-      expect(ctx.sendRaw).toHaveBeenCalledWith(expect.stringContaining('QUIT :'));
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        expect.stringContaining('QUIT :'),
+      );
     });
   });
 
@@ -119,8 +132,14 @@ describe('StatusCommands', () => {
     it('should parse and emit server command', () => {
       handleSERVER(ctx, ['irc.example.com', '6667'], '');
 
-      expect(ctx.parseServerCommand).toHaveBeenCalledWith(['irc.example.com', '6667']);
-      expect(ctx.emit).toHaveBeenCalledWith('server-command', expect.anything());
+      expect(ctx.parseServerCommand).toHaveBeenCalledWith([
+        'irc.example.com',
+        '6667',
+      ]);
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'server-command',
+        expect.anything(),
+      );
     });
 
     it('should show error on invalid syntax', () => {
@@ -130,7 +149,9 @@ describe('StatusCommands', () => {
 
       handleSERVER(ctx, ['bad'], '');
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'error' }),
+      );
     });
   });
 });

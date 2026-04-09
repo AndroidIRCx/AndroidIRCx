@@ -55,17 +55,17 @@ export const useConnectionStore = create<ConnectionState>()(
       ...initialState,
 
       // Actions
-      setIsConnected: (connected) => set({ isConnected: connected }),
+      setIsConnected: connected => set({ isConnected: connected }),
 
-      setNetworkName: (name) => set({ networkName: name }),
+      setNetworkName: name => set({ networkName: name }),
 
-      setSelectedNetworkName: (name) => set({ selectedNetworkName: name }),
+      setSelectedNetworkName: name => set({ selectedNetworkName: name }),
 
-      setActiveConnectionId: (id) => set({ activeConnectionId: id }),
+      setActiveConnectionId: id => set({ activeConnectionId: id }),
 
-      setPrimaryNetworkId: (id) => set({ primaryNetworkId: id }),
+      setPrimaryNetworkId: id => set({ primaryNetworkId: id }),
 
-      setPing: (ping) => set({ ping }),
+      setPing: ping => set({ ping }),
 
       // Derived values
       getIsConnected: () => get().isConnected,
@@ -76,7 +76,8 @@ export const useConnectionStore = create<ConnectionState>()(
       },
 
       // Bulk updates
-      updateConnectionState: (updates) => set((state) => ({ ...state, ...updates })),
+      updateConnectionState: updates =>
+        set(state => ({ ...state, ...updates })),
 
       // Reset
       reset: () => set(initialState),
@@ -95,10 +96,10 @@ export const useConnectionStore = create<ConnectionState>()(
         return rest;
       },
       // Only persist specific fields
-      partialize: (state) => ({
+      partialize: state => ({
         networkName: state.networkName,
         selectedNetworkName: state.selectedNetworkName,
       }),
-    }
-  )
+    },
+  ),
 );

@@ -5,7 +5,14 @@
  * Tests for StandardCommandHandlers - Wave 3 coverage target
  */
 
-import { standardCommandHandlers, handleFAIL, handleWARN, handleNOTE, handlePONG, handleINVITE } from '../../../../src/services/irc/commands/StandardCommandHandlers';
+import {
+  standardCommandHandlers,
+  handleFAIL,
+  handleWARN,
+  handleNOTE,
+  handlePONG,
+  handleINVITE,
+} from '../../../../src/services/irc/commands/StandardCommandHandlers';
 import type { CommandHandlerContext } from '../../../../src/services/irc/commandTypes';
 
 describe('StandardCommandHandlers', () => {
@@ -52,29 +59,59 @@ describe('StandardCommandHandlers', () => {
     it('should handle FAIL message', () => {
       handleFAIL(ctx, '', ['COMMAND', 'CODE', 'description'], Date.now());
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('FAIL'),
-      }));
-      expect(ctx.emit).toHaveBeenCalledWith('fail', 'COMMAND', 'CODE', '', 'description');
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('FAIL'),
+        }),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'fail',
+        'COMMAND',
+        'CODE',
+        '',
+        'description',
+      );
     });
 
     it('should handle FAIL with context', () => {
-      handleFAIL(ctx, '', ['COMMAND', 'CODE', 'context', 'description'], Date.now());
+      handleFAIL(
+        ctx,
+        '',
+        ['COMMAND', 'CODE', 'context', 'description'],
+        Date.now(),
+      );
 
-      expect(ctx.emit).toHaveBeenCalledWith('fail', 'COMMAND', 'CODE', 'context', 'description');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'fail',
+        'COMMAND',
+        'CODE',
+        'context',
+        'description',
+      );
     });
 
     it('should handle FAIL with empty params using UNKNOWN fallback', () => {
       handleFAIL(ctx, '', [], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
     it('should handle FAIL with multi-word context', () => {
-      handleFAIL(ctx, '', ['CMD', 'CODE', 'ctx1', 'ctx2', 'description'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('fail', 'CMD', 'CODE', 'ctx1 ctx2', 'description');
+      handleFAIL(
+        ctx,
+        '',
+        ['CMD', 'CODE', 'ctx1', 'ctx2', 'description'],
+        Date.now(),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'fail',
+        'CMD',
+        'CODE',
+        'ctx1 ctx2',
+        'description',
+      );
     });
   });
 
@@ -82,22 +119,36 @@ describe('StandardCommandHandlers', () => {
     it('should handle WARN message', () => {
       handleWARN(ctx, '', ['COMMAND', 'CODE', 'description'], Date.now());
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'raw',
-        text: expect.stringContaining('WARN'),
-      }));
-      expect(ctx.emit).toHaveBeenCalledWith('warn', 'COMMAND', 'CODE', '', 'description');
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'raw',
+          text: expect.stringContaining('WARN'),
+        }),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'warn',
+        'COMMAND',
+        'CODE',
+        '',
+        'description',
+      );
     });
 
     it('should handle WARN with context', () => {
       handleWARN(ctx, '', ['CMD', 'CODE', 'ctx', 'description'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('warn', 'CMD', 'CODE', 'ctx', 'description');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'warn',
+        'CMD',
+        'CODE',
+        'ctx',
+        'description',
+      );
     });
 
     it('should emit warn with raw message category', () => {
       handleWARN(ctx, '', ['CMD', 'CODE', 'msg'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ isRaw: true, rawCategory: 'server' })
+        expect.objectContaining({ isRaw: true, rawCategory: 'server' }),
       );
     });
   });
@@ -106,23 +157,42 @@ describe('StandardCommandHandlers', () => {
     it('should handle NOTE message', () => {
       handleNOTE(ctx, '', ['COMMAND', 'CODE', 'description'], Date.now());
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'raw',
-        text: expect.stringContaining('NOTE'),
-      }));
-      expect(ctx.emit).toHaveBeenCalledWith('note', 'COMMAND', 'CODE', '', 'description');
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'raw',
+          text: expect.stringContaining('NOTE'),
+        }),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'note',
+        'COMMAND',
+        'CODE',
+        '',
+        'description',
+      );
     });
 
     it('should handle NOTE with context', () => {
       handleNOTE(ctx, '', ['CMD', 'CODE', 'ctx', 'description'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('note', 'CMD', 'CODE', 'ctx', 'description');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'note',
+        'CMD',
+        'CODE',
+        'ctx',
+        'description',
+      );
     });
   });
 
   describe('handlePONG', () => {
     it('should emit pong event with timestamp', () => {
       const timestamp = Date.now();
-      handlePONG(ctx, 'server.irc.com', ['server.irc.com', timestamp.toString()], timestamp);
+      handlePONG(
+        ctx,
+        'server.irc.com',
+        ['server.irc.com', timestamp.toString()],
+        timestamp,
+      );
 
       expect(ctx.emit).toHaveBeenCalledWith('pong', timestamp);
     });
@@ -134,7 +204,12 @@ describe('StandardCommandHandlers', () => {
     });
 
     it('should handle PONG with non-numeric token', () => {
-      handlePONG(ctx, 'server.irc.com', ['server.irc.com', 'non-numeric-token'], Date.now());
+      handlePONG(
+        ctx,
+        'server.irc.com',
+        ['server.irc.com', 'non-numeric-token'],
+        Date.now(),
+      );
 
       expect(ctx.emit).not.toHaveBeenCalled();
     });
@@ -148,33 +223,48 @@ describe('StandardCommandHandlers', () => {
 
   describe('handleINVITE', () => {
     it('should handle incoming INVITE', () => {
-      handleINVITE(ctx, 'OtherUser!user@host.com', ['TestUser', '#secret-channel'], Date.now());
+      handleINVITE(
+        ctx,
+        'OtherUser!user@host.com',
+        ['TestUser', '#secret-channel'],
+        Date.now(),
+      );
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'invite',
-        from: 'OtherUser',
-        channel: '#secret-channel',
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'invite',
+          from: 'OtherUser',
+          channel: '#secret-channel',
+        }),
+      );
     });
 
     it('should include username and hostname', () => {
-      handleINVITE(ctx, 'Nick!theuser@thehost.com', ['Me', '#channel'], Date.now());
+      handleINVITE(
+        ctx,
+        'Nick!theuser@thehost.com',
+        ['Me', '#channel'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ username: 'theuser', hostname: 'thehost.com' })
+        expect.objectContaining({
+          username: 'theuser',
+          hostname: 'thehost.com',
+        }),
       );
     });
 
     it('should include INVITE command metadata', () => {
       handleINVITE(ctx, 'Nick!user@host', ['Me', '#channel'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ command: 'INVITE', target: '#channel' })
+        expect.objectContaining({ command: 'INVITE', target: '#channel' }),
       );
     });
 
     it('should handle empty channel', () => {
       handleINVITE(ctx, 'Nick!user@host', ['Me'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'invite', channel: '' })
+        expect.objectContaining({ type: 'invite', channel: '' }),
       );
     });
   });

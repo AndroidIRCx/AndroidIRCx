@@ -62,21 +62,27 @@ describe('ChannelCommands', () => {
     it('should send CNOTICE command', () => {
       handleCNOTICE(ctx, ['OtherUser', '#general', 'Hello there']);
 
-      expect(ctx.sendRaw).toHaveBeenCalledWith('CNOTICE OtherUser #general :Hello there');
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'notice',
-        channel: '#general',
-      }));
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'CNOTICE OtherUser #general :Hello there',
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notice',
+          channel: '#general',
+        }),
+      );
     });
 
     it('should show usage if not enough arguments', () => {
       handleCNOTICE(ctx, ['OtherUser']);
 
       expect(ctx.sendRaw).not.toHaveBeenCalled();
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
   });
 
@@ -84,20 +90,26 @@ describe('ChannelCommands', () => {
     it('should send CPRIVMSG command', () => {
       handleCPRIVMSG(ctx, ['OtherUser', '#general', 'Secret message']);
 
-      expect(ctx.sendRaw).toHaveBeenCalledWith('CPRIVMSG OtherUser #general :Secret message');
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'message',
-        channel: '#general',
-      }));
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'CPRIVMSG OtherUser #general :Secret message',
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'message',
+          channel: '#general',
+        }),
+      );
     });
 
     it('should show usage if not enough arguments', () => {
       handleCPRIVMSG(ctx, ['OtherUser']);
 
       expect(ctx.sendRaw).not.toHaveBeenCalled();
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+        }),
+      );
     });
   });
 
@@ -105,16 +117,20 @@ describe('ChannelCommands', () => {
     it('should send PRIVMSG to service', () => {
       handleCHAT(ctx, ['NickServ', 'IDENTIFY mypassword']);
 
-      expect(ctx.sendRaw).toHaveBeenCalledWith('PRIVMSG NickServ :IDENTIFY mypassword');
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'PRIVMSG NickServ :IDENTIFY mypassword',
+      );
     });
 
     it('should show usage if not enough arguments', () => {
       handleCHAT(ctx, ['NickServ']);
 
       expect(ctx.sendRaw).not.toHaveBeenCalled();
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+        }),
+      );
     });
   });
 
@@ -122,19 +138,23 @@ describe('ChannelCommands', () => {
     it('should set alternate nickname', () => {
       handleANICK(ctx, ['MyAltNick']);
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'notice',
-        text: expect.stringContaining('Alternate nickname'),
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notice',
+          text: expect.stringContaining('Alternate nickname'),
+        }),
+      );
     });
 
     it('should show usage if no nickname provided', () => {
       handleANICK(ctx, []);
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
   });
 
@@ -142,31 +162,44 @@ describe('ChannelCommands', () => {
     it('should toggle auto-join on invite on', () => {
       handleAJINVITE(ctx, ['on']);
 
-      expect(ctx.emit).toHaveBeenCalledWith('ajinvite-toggle', expect.objectContaining({
-        state: 'on',
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('ON'),
-      }));
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'ajinvite-toggle',
+        expect.objectContaining({
+          state: 'on',
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('ON'),
+        }),
+      );
     });
 
     it('should toggle auto-join on invite off', () => {
       handleAJINVITE(ctx, ['off']);
 
-      expect(ctx.emit).toHaveBeenCalledWith('ajinvite-toggle', expect.objectContaining({
-        state: 'off',
-      }));
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        text: expect.stringContaining('OFF'),
-      }));
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'ajinvite-toggle',
+        expect.objectContaining({
+          state: 'off',
+        }),
+      );
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('OFF'),
+        }),
+      );
     });
 
     it('should toggle auto-join when no state provided', () => {
       handleAJINVITE(ctx, []);
 
-      expect(ctx.emit).toHaveBeenCalledWith('ajinvite-toggle', expect.objectContaining({
-        state: 'toggle',
-      }));
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'ajinvite-toggle',
+        expect.objectContaining({
+          state: 'toggle',
+        }),
+      );
     });
   });
 
@@ -174,37 +207,49 @@ describe('ChannelCommands', () => {
     it('should emit beep event', () => {
       handleBEEP(ctx, []);
 
-      expect(ctx.emit).toHaveBeenCalledWith('beep', expect.objectContaining({
-        count: 1,
-        delay: 0,
-      }));
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'beep',
+        expect.objectContaining({
+          count: 1,
+          delay: 0,
+        }),
+      );
     });
 
     it('should emit beep with count', () => {
       handleBEEP(ctx, ['3']);
 
-      expect(ctx.emit).toHaveBeenCalledWith('beep', expect.objectContaining({
-        count: 3,
-        delay: 0,
-      }));
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'beep',
+        expect.objectContaining({
+          count: 3,
+          delay: 0,
+        }),
+      );
     });
 
     it('should emit beep with count and delay', () => {
       handleBEEP(ctx, ['5', '1000']);
 
-      expect(ctx.emit).toHaveBeenCalledWith('beep', expect.objectContaining({
-        count: 5,
-        delay: 1000,
-      }));
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'beep',
+        expect.objectContaining({
+          count: 5,
+          delay: 1000,
+        }),
+      );
     });
 
     it('should handle invalid numbers gracefully', () => {
       handleBEEP(ctx, ['invalid', 'alsoInvalid']);
 
-      expect(ctx.emit).toHaveBeenCalledWith('beep', expect.objectContaining({
-        count: 1,  // NaN defaults to 1
-        delay: 0,
-      }));
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'beep',
+        expect.objectContaining({
+          count: 1, // NaN defaults to 1
+          delay: 0,
+        }),
+      );
     });
   });
 });

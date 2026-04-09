@@ -31,8 +31,13 @@ export const ChannelLogModal: React.FC<ChannelLogModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
-      <TouchableOpacity style={styles.modalOverlay} onPress={onClose} activeOpacity={1}>
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        onPress={onClose}
+        activeOpacity={1}
+      >
         <View style={[styles.modalContent, { maxHeight: '80%' }]}>
           <Text style={styles.modalTitle}>Channel Activity</Text>
           <View style={{ maxHeight: 300 }}>
@@ -49,13 +54,19 @@ export const ChannelLogModal: React.FC<ChannelLogModalProps> = ({
           <View style={styles.modalButtons}>
             <TouchableOpacity
               style={[styles.modalButton, styles.modalButtonCancel]}
-              onPress={onClose}>
+              onPress={onClose}
+            >
               <Text style={styles.modalButtonText}>Close</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalButton, styles.modalButtonJoin]}
-              onPress={onClearLog}>
-              <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Clear Log</Text>
+              onPress={onClearLog}
+            >
+              <Text
+                style={[styles.modalButtonText, styles.modalButtonTextPrimary]}
+              >
+                Clear Log
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

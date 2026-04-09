@@ -3,9 +3,31 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Switch, TextInput, Modal, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { scriptingService, ScriptConfig, ScriptLogEntry } from '../services/ScriptingService';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Switch,
+  TextInput,
+  Modal,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import {
+  scriptingService,
+  ScriptConfig,
+  ScriptLogEntry,
+} from '../services/ScriptingService';
 import { adRewardService } from '../services/AdRewardService';
 import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { useTheme } from '../hooks/useTheme';
@@ -20,22 +42,35 @@ interface Props {
   onShowPurchaseScreen?: () => void;
 }
 
-export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurchaseScreen }) => {
+export const ScriptingScreen: React.FC<Props> = ({
+  visible,
+  onClose,
+  onShowPurchaseScreen,
+}) => {
   const { colors } = useTheme();
   const t = useT();
   const styles = createStyles(colors);
   const masterToggleContentStyle = { flex: 1, marginRight: 12 };
   const titleSpacingStyle = { marginBottom: 4 };
   const compactSubtitleStyle = { fontSize: 12 };
-  const italicSubtitleStyle = { fontSize: 11, marginTop: 4, fontStyle: 'italic' as const };
-  const fallbackSubtitleStyle = { marginBottom: 8, fontStyle: 'italic' as const };
+  const italicSubtitleStyle = {
+    fontSize: 11,
+    marginTop: 4,
+    fontStyle: 'italic' as const,
+  };
+  const fallbackSubtitleStyle = {
+    marginBottom: 8,
+    fontStyle: 'italic' as const,
+  };
   const spacerStyle = { width: 16 };
   const accentBlueBorderStyle = { borderLeftColor: '#2196F3' };
   const accentBlueTextStyle = { color: '#2196F3' };
   const accentOrangeBorderStyle = { borderLeftColor: '#FF9800' };
   const accentOrangeTextStyle = { color: '#FF9800' };
   const [scripts, setScripts] = useState<ScriptConfig[]>([]);
-  const [loggingEnabled, setLoggingEnabled] = useState<boolean>(scriptingService.isLoggingEnabled());
+  const [loggingEnabled, setLoggingEnabled] = useState<boolean>(
+    scriptingService.isLoggingEnabled(),
+  );
   const [logs, setLogs] = useState<ScriptLogEntry[]>([]);
   const [repo, setRepo] = useState<ScriptConfig[]>([]);
   const [showEditor, setShowEditor] = useState(false);
@@ -44,14 +79,16 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
   const [showHighlight, setShowHighlight] = useState(false);
   const [remainingTime, setRemainingTime] = useState<string>('0s');
   const [hasTime, setHasTime] = useState<boolean>(false);
-  const [hasUnlimitedScripting, setHasUnlimitedScripting] = useState<boolean>(false);
+  const [hasUnlimitedScripting, setHasUnlimitedScripting] =
+    useState<boolean>(false);
   const [adReady, setAdReady] = useState<boolean>(false);
   const [adLoading, setAdLoading] = useState<boolean>(false);
   const [adCooldown, setAdCooldown] = useState<boolean>(false);
   const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
   const [showingAd, setShowingAd] = useState<boolean>(false);
   const [adUnitType, setAdUnitType] = useState<string>('Primary');
-  const [scriptingTimeActive, setScriptingTimeActive] = useState<boolean>(false);
+  const [scriptingTimeActive, setScriptingTimeActive] =
+    useState<boolean>(false);
   const highlightScrollRef = useRef<ScrollView | null>(null);
 
   const refresh = useCallback(async () => {
@@ -83,7 +120,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
     if (!visible) return;
 
     // Listen for time changes
-    const unsubscribe = adRewardService.addListener((remainingMs) => {
+    const unsubscribe = adRewardService.addListener(remainingMs => {
       setRemainingTime(adRewardService.getRemainingTimeFormatted());
       setHasTime(adRewardService.hasAvailableTime());
 
@@ -136,14 +173,22 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
       await scriptingService.setEnabled(id, enabled);
       setScripts(scriptingService.list());
     } catch (error) {
-      Alert.alert(t('Cannot Enable Script'), error instanceof Error ? error.message : 'Unknown error');
+      Alert.alert(
+        t('Cannot Enable Script'),
+        error instanceof Error ? error.message : 'Unknown error',
+      );
       setScripts(scriptingService.list());
     }
   };
 
   const handleWatchAd = async () => {
     console.log('👆 Watch Ad button clicked');
-    console.log('Current state:', { adReady, adLoading, adCooldown, showingAd });
+    console.log('Current state:', {
+      adReady,
+      adLoading,
+      adCooldown,
+      showingAd,
+    });
 
     if (showingAd) return;
 
@@ -158,11 +203,17 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
           // Ad will call the reward callback automatically
           Alert.alert(t('Thank You!'), t('You earned scripting time!'));
         } else {
-          Alert.alert(t('Ad Failed'), t('Could not show the ad. Please try again.'));
+          Alert.alert(
+            t('Ad Failed'),
+            t('Could not show the ad. Please try again.'),
+          );
         }
       } catch (error) {
         console.error('Error showing ad:', error);
-        Alert.alert(t('Error'), error instanceof Error ? error.message : t('Failed to show ad'));
+        Alert.alert(
+          t('Error'),
+          error instanceof Error ? error.message : t('Failed to show ad'),
+        );
       } finally {
         setShowingAd(false);
       }
@@ -175,7 +226,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
     console.log('Manual load result:', result);
     Alert.alert(
       result.success ? t('Loading Ad') : t('Cannot Load Ad'),
-      t(result.messageKey, result.messageParams as Record<string, any>)
+      t(result.messageKey, result.messageParams as Record<string, any>),
     );
   };
 
@@ -185,7 +236,9 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
   };
 
   const installBuiltIns = async () => {
-    await scriptingService.installBuiltIns(scriptingService.getBuiltInScripts());
+    await scriptingService.installBuiltIns(
+      scriptingService.getBuiltInScripts(),
+    );
     setScripts(scriptingService.list());
   };
 
@@ -224,7 +277,10 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
     setLogs([]);
   };
 
-  const handleTestHook = (scriptId: string, hook: 'onConnect' | 'onMessage' | 'onJoin' | 'onCommand') => {
+  const handleTestHook = (
+    scriptId: string,
+    hook: 'onConnect' | 'onMessage' | 'onJoin' | 'onCommand',
+  ) => {
     scriptingService.testHook(scriptId, hook);
     setLogs(scriptingService.getLogs());
   };
@@ -232,83 +288,103 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
   const handleLint = () => {
     if (!editing) return;
     const result = scriptingService.lint(editing.code);
-    Alert.alert(result.ok ? t('Lint Passed') : t('Syntax Error'), result.message);
+    Alert.alert(
+      result.ok ? t('Lint Passed') : t('Syntax Error'),
+      result.message,
+    );
   };
-  
-  const highlightPartsFallback = useCallback((code: string) => {
-    const parts: { text: string; style: any }[] = [];
-    const regex = /(\/\/.*$|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\b(function|const|let|var|return|if|else|for|while|switch|case|break|continue|new|class|extends|import|from|export|default|async|await|try|catch|throw)\b|\b\d+(\.\d+)?\b)/gm;
-    let lastIndex = 0;
-    let match;
-    while ((match = regex.exec(code)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({ text: code.slice(lastIndex, match.index), style: styles.codeText });
-      }
-      const [full, , keyword] = match;
-      if (full.startsWith('//') || full.startsWith('/*')) {
-        parts.push({ text: full, style: styles.codeComment });
-      } else if (full.startsWith('"') || full.startsWith("'") || full.startsWith('`')) {
-        parts.push({ text: full, style: styles.codeString });
-      } else if (keyword) {
-        parts.push({ text: full, style: styles.codeKeyword });
-      } else {
-        parts.push({ text: full, style: styles.codeNumber });
-      }
-      lastIndex = regex.lastIndex;
-    }
-    if (lastIndex < code.length) {
-      parts.push({ text: code.slice(lastIndex), style: styles.codeText });
-    }
-    return parts;
-  }, [styles]);
 
-  const highlightParts = useCallback((code: string) => {
-    try {
-      const grammar = Prism.languages.javascript;
-      if (!grammar) return highlightPartsFallback(code);
-
+  const highlightPartsFallback = useCallback(
+    (code: string) => {
       const parts: { text: string; style: any }[] = [];
-      const tokenStyle = (type: string | undefined) => {
-        switch (type) {
-          case 'comment':
-            return styles.codeComment;
-          case 'string':
-            return styles.codeString;
-          case 'keyword':
-            return styles.codeKeyword;
-          case 'number':
-            return styles.codeNumber;
-          default:
-            return styles.codeText;
+      const regex =
+        /(\/\/.*$|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\b(function|const|let|var|return|if|else|for|while|switch|case|break|continue|new|class|extends|import|from|export|default|async|await|try|catch|throw)\b|\b\d+(\.\d+)?\b)/gm;
+      let lastIndex = 0;
+      let match;
+      while ((match = regex.exec(code)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push({
+            text: code.slice(lastIndex, match.index),
+            style: styles.codeText,
+          });
         }
-      };
-      const pushToken = (token: any, inheritedStyle: any) => {
-        if (typeof token === 'string') {
-          if (token.length) parts.push({ text: token, style: inheritedStyle });
-          return;
+        const [full, , keyword] = match;
+        if (full.startsWith('//') || full.startsWith('/*')) {
+          parts.push({ text: full, style: styles.codeComment });
+        } else if (
+          full.startsWith('"') ||
+          full.startsWith("'") ||
+          full.startsWith('`')
+        ) {
+          parts.push({ text: full, style: styles.codeString });
+        } else if (keyword) {
+          parts.push({ text: full, style: styles.codeKeyword });
+        } else {
+          parts.push({ text: full, style: styles.codeNumber });
         }
-        if (Array.isArray(token)) {
-        token.forEach(childToken => pushToken(childToken, inheritedStyle));
-          return;
-        }
-        const nextStyle = tokenStyle(token.type) || inheritedStyle;
-        pushToken(token.content, nextStyle);
-      };
-
-      const tokens = Prism.tokenize(code, grammar);
-      pushToken(tokens, styles.codeText);
+        lastIndex = regex.lastIndex;
+      }
+      if (lastIndex < code.length) {
+        parts.push({ text: code.slice(lastIndex), style: styles.codeText });
+      }
       return parts;
-    } catch {
-      return highlightPartsFallback(code);
-    }
-  }, [highlightPartsFallback, styles]);
+    },
+    [styles],
+  );
+
+  const highlightParts = useCallback(
+    (code: string) => {
+      try {
+        const grammar = Prism.languages.javascript;
+        if (!grammar) return highlightPartsFallback(code);
+
+        const parts: { text: string; style: any }[] = [];
+        const tokenStyle = (type: string | undefined) => {
+          switch (type) {
+            case 'comment':
+              return styles.codeComment;
+            case 'string':
+              return styles.codeString;
+            case 'keyword':
+              return styles.codeKeyword;
+            case 'number':
+              return styles.codeNumber;
+            default:
+              return styles.codeText;
+          }
+        };
+        const pushToken = (token: any, inheritedStyle: any) => {
+          if (typeof token === 'string') {
+            if (token.length)
+              parts.push({ text: token, style: inheritedStyle });
+            return;
+          }
+          if (Array.isArray(token)) {
+            token.forEach(childToken => pushToken(childToken, inheritedStyle));
+            return;
+          }
+          const nextStyle = tokenStyle(token.type) || inheritedStyle;
+          pushToken(token.content, nextStyle);
+        };
+
+        const tokens = Prism.tokenize(code, grammar);
+        pushToken(tokens, styles.codeText);
+        return parts;
+      } catch {
+        return highlightPartsFallback(code);
+      }
+    },
+    [highlightPartsFallback, styles],
+  );
 
   const highlightedCode = useMemo(
     () => (showHighlight ? highlightParts(editing?.code ?? '') : []),
-    [editing?.code, showHighlight, highlightParts]
+    [editing?.code, showHighlight, highlightParts],
   );
 
-  const filteredLogs = logFilter ? logs.filter(l => l.scriptId === logFilter) : logs;
+  const filteredLogs = logFilter
+    ? logs.filter(l => l.scriptId === logFilter)
+    : logs;
 
   const renderScript = ({ item }: { item: ScriptConfig }) => (
     <View style={styles.card}>
@@ -316,24 +392,37 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
         <View style={styles.cardHeaderText}>
           <Text style={styles.title}>{item.name}</Text>
           <Text style={styles.subtitle}>{item.id}</Text>
-          {item.description ? <Text style={styles.subtitle}>{item.description}</Text> : null}
+          {item.description ? (
+            <Text style={styles.subtitle}>{item.description}</Text>
+          ) : null}
         </View>
-        <Switch 
-          value={item.enabled} 
-          onValueChange={(v) => toggleScript(item.id, v)}
+        <Switch
+          value={item.enabled}
+          onValueChange={v => toggleScript(item.id, v)}
           trackColor={{ false: colors.border, true: colors.primary }}
           thumbColor={item.enabled ? '#fff' : colors.textSecondary}
           style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
         />
       </View>
       <View style={styles.row}>
-        <TouchableOpacity style={styles.button} onPress={() => handleEdit(item)}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => handleEdit(item)}
+        >
           <Text style={styles.buttonText}>{t('Edit')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.danger]} onPress={() => removeScript(item.id)}>
-          <Text style={[styles.buttonText, styles.dangerText]}>{t('Delete')}</Text>
+        <TouchableOpacity
+          style={[styles.button, styles.danger]}
+          onPress={() => removeScript(item.id)}
+        >
+          <Text style={[styles.buttonText, styles.dangerText]}>
+            {t('Delete')}
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => handleTestHook(item.id, 'onMessage')}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => handleTestHook(item.id, 'onMessage')}
+        >
           <Text style={styles.buttonText}>{t('Test')}</Text>
         </TouchableOpacity>
       </View>
@@ -352,130 +441,182 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
           </TouchableOpacity>
         </View>
 
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={true}
         >
           {/* Scripting Time & Ad Reward Section */}
           <View style={styles.adRewardSection}>
-          <View style={styles.timeDisplay}>
-            <Text style={styles.timeLabel}>{t('Scripting Time & No-Ads Remaining:')}</Text>
-            <Text style={[styles.timeValue, !hasTime && styles.timeExpired]}>{remainingTime}</Text>
-          </View>
-
-          {/* Master Toggle for Scripting Time / No-Ads Mode */}
-          <View style={[styles.masterToggleContainer, { backgroundColor: scriptingTimeActive ? colors.primary + '10' : colors.surface }]}>
-            <View style={masterToggleContentStyle}>
-              <Text style={[styles.timeLabel, titleSpacingStyle]}>
-                {scriptingTimeActive ? '✅ ' : ''}{t('Scripting Time & No-Ads Active')}
+            <View style={styles.timeDisplay}>
+              <Text style={styles.timeLabel}>
+                {t('Scripting Time & No-Ads Remaining:')}
               </Text>
-              <Text style={[styles.subtitle, compactSubtitleStyle]}>
-                {t('When ON: Time counts down, scripts can run, no banner ads')}
+              <Text style={[styles.timeValue, !hasTime && styles.timeExpired]}>
+                {remainingTime}
               </Text>
-              {hasUnlimitedScripting && (
-                <Text style={[styles.subtitle, italicSubtitleStyle]}>
-                  {t('Unlimited scripting: Toggle enables/disables no-ads mode')}
-                </Text>
-              )}
             </View>
-            <Switch
-              value={scriptingTimeActive}
-              onValueChange={toggleScriptingTimeActive}
-              disabled={!hasTime && !hasUnlimitedScripting}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={scriptingTimeActive ? '#fff' : colors.textSecondary}
-              style={{ transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }] }}
-            />
-          </View>
-          {adUnitType === 'Fallback' && (
-            <Text style={[styles.subtitle, fallbackSubtitleStyle]}>
-              {t('Using fallback ad unit')}
-            </Text>
-          )}
-          {/* Watch Ad button - always show for normal users, configurable for premium */}
-          <TouchableOpacity
-            style={[styles.watchAdButton, (showingAd) && styles.watchAdButtonDisabled]}
-            onPress={handleWatchAd}
-            disabled={showingAd}
-          >
-            {showingAd ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.watchAdButtonText}>
-                {adReady
-                  ? t('Watch Ad (+60 min Scripting & No-Ads)')
-                  : adCooldown
-                    ? t('Cooldown ({cooldownSeconds}s)').replace('{cooldownSeconds}', cooldownSeconds.toString())
-                    : adLoading
-                      ? t('Loading Ad...')
-                      : t('Request Ad')}
+
+            {/* Master Toggle for Scripting Time / No-Ads Mode */}
+            <View
+              style={[
+                styles.masterToggleContainer,
+                {
+                  backgroundColor: scriptingTimeActive
+                    ? colors.primary + '10'
+                    : colors.surface,
+                },
+              ]}
+            >
+              <View style={masterToggleContentStyle}>
+                <Text style={[styles.timeLabel, titleSpacingStyle]}>
+                  {scriptingTimeActive ? '✅ ' : ''}
+                  {t('Scripting Time & No-Ads Active')}
+                </Text>
+                <Text style={[styles.subtitle, compactSubtitleStyle]}>
+                  {t(
+                    'When ON: Time counts down, scripts can run, no banner ads',
+                  )}
+                </Text>
+                {hasUnlimitedScripting && (
+                  <Text style={[styles.subtitle, italicSubtitleStyle]}>
+                    {t(
+                      'Unlimited scripting: Toggle enables/disables no-ads mode',
+                    )}
+                  </Text>
+                )}
+              </View>
+              <Switch
+                value={scriptingTimeActive}
+                onValueChange={toggleScriptingTimeActive}
+                disabled={!hasTime && !hasUnlimitedScripting}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={scriptingTimeActive ? '#fff' : colors.textSecondary}
+                style={{ transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }] }}
+              />
+            </View>
+            {adUnitType === 'Fallback' && (
+              <Text style={[styles.subtitle, fallbackSubtitleStyle]}>
+                {t('Using fallback ad unit')}
               </Text>
             )}
-          </TouchableOpacity>
-          {!hasUnlimitedScripting && onShowPurchaseScreen && (
+            {/* Watch Ad button - always show for normal users, configurable for premium */}
             <TouchableOpacity
-              style={[styles.upgradeButton]}
-              onPress={() => {
-                onClose();
-                onShowPurchaseScreen();
-              }}
+              style={[
+                styles.watchAdButton,
+                showingAd && styles.watchAdButtonDisabled,
+              ]}
+              onPress={handleWatchAd}
+              disabled={showingAd}
             >
-              <Text style={styles.upgradeButtonText}>
-                💎 {t('Upgrade to Unlimited Scripting & No-Ads')}
-              </Text>
+              {showingAd ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.watchAdButtonText}>
+                  {adReady
+                    ? t('Watch Ad (+60 min Scripting & No-Ads)')
+                    : adCooldown
+                      ? t('Cooldown ({cooldownSeconds}s)').replace(
+                          '{cooldownSeconds}',
+                          cooldownSeconds.toString(),
+                        )
+                      : adLoading
+                        ? t('Loading Ad...')
+                        : t('Request Ad')}
+                </Text>
+              )}
             </TouchableOpacity>
-          )}
-        </View>
+            {!hasUnlimitedScripting && onShowPurchaseScreen && (
+              <TouchableOpacity
+                style={[styles.upgradeButton]}
+                onPress={() => {
+                  onClose();
+                  onShowPurchaseScreen();
+                }}
+              >
+                <Text style={styles.upgradeButtonText}>
+                  💎 {t('Upgrade to Unlimited Scripting & No-Ads')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
           {!hasTime && !hasUnlimitedScripting && (
             <View style={styles.warningBox}>
               <Text style={styles.warningText}>
-                {t('No scripting time available. Watch an ad to gain 60 minutes of scripting time and no-ads. Scripts will be automatically disabled when time runs out.')}
+                {t(
+                  'No scripting time available. Watch an ad to gain 60 minutes of scripting time and no-ads. Scripts will be automatically disabled when time runs out.',
+                )}
               </Text>
             </View>
           )}
           {!adReady && !adLoading && !adCooldown && (
-            <View style={[styles.warningBox, { backgroundColor: '#2196F3' + '20' }, accentBlueBorderStyle]}>
+            <View
+              style={[
+                styles.warningBox,
+                { backgroundColor: '#2196F3' + '20' },
+                accentBlueBorderStyle,
+              ]}
+            >
               <Text style={[styles.warningText, accentBlueTextStyle]}>
-                {t('Tap "Request Ad" to load an ad from Google. First load may take a few moments.')}
+                {t(
+                  'Tap "Request Ad" to load an ad from Google. First load may take a few moments.',
+                )}
               </Text>
             </View>
           )}
           {adCooldown && (
-            <View style={[styles.warningBox, { backgroundColor: '#FF9800' + '20' }, accentOrangeBorderStyle]}>
+            <View
+              style={[
+                styles.warningBox,
+                { backgroundColor: '#FF9800' + '20' },
+                accentOrangeBorderStyle,
+              ]}
+            >
               <Text style={[styles.warningText, accentOrangeTextStyle]}>
-                {t('Ads temporarily unavailable. The app works fine without them. Retrying in {cooldownSeconds}s...').replace('{cooldownSeconds}', cooldownSeconds.toString())}
+                {t(
+                  'Ads temporarily unavailable. The app works fine without them. Retrying in {cooldownSeconds}s...',
+                ).replace('{cooldownSeconds}', cooldownSeconds.toString())}
               </Text>
             </View>
           )}
-          <View style={[styles.warningBox, { backgroundColor: '#2196F3' + '20' }, accentBlueBorderStyle]}>
+          <View
+            style={[
+              styles.warningBox,
+              { backgroundColor: '#2196F3' + '20' },
+              accentBlueBorderStyle,
+            ]}
+          >
             <Text style={[styles.warningText, accentBlueTextStyle]}>
-              {t('Scripts run with full access to your local IRC data. Only install scripts you trust and avoid running scripts from unknown sources.')}
+              {t(
+                'Scripts run with full access to your local IRC data. Only install scripts you trust and avoid running scripts from unknown sources.',
+              )}
             </Text>
           </View>
 
           <View style={styles.row}>
-          <TouchableOpacity style={styles.button} onPress={handleNewScript}>
-            <Text style={styles.buttonText}>{t('New Script')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={installBuiltIns}>
-            <Text style={styles.buttonText}>{t('Install Built-ins')}</Text>
-          </TouchableOpacity>
-          <View style={styles.switchRow}>
-            <Text style={styles.subtitle}>{t('Logging')}</Text>
-            <Switch 
-              value={loggingEnabled} 
-              onValueChange={toggleLogging}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={loggingEnabled ? '#fff' : colors.textSecondary}
-              style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
-            />
+            <TouchableOpacity style={styles.button} onPress={handleNewScript}>
+              <Text style={styles.buttonText}>{t('New Script')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={installBuiltIns}>
+              <Text style={styles.buttonText}>{t('Install Built-ins')}</Text>
+            </TouchableOpacity>
+            <View style={styles.switchRow}>
+              <Text style={styles.subtitle}>{t('Logging')}</Text>
+              <Switch
+                value={loggingEnabled}
+                onValueChange={toggleLogging}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={loggingEnabled ? '#fff' : colors.textSecondary}
+                style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
+              />
+            </View>
           </View>
-        </View>
 
           <Text style={styles.sectionTitle}>{t('Repository')}</Text>
           {repo.length === 0 ? (
-            <Text style={styles.subtitle}>{t('No scripts in repository.')}</Text>
+            <Text style={styles.subtitle}>
+              {t('No scripts in repository.')}
+            </Text>
           ) : null}
 
           {scripts.length === 0 ? (
@@ -483,7 +624,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
           ) : (
             <FlatList
               data={scripts}
-              keyExtractor={(item) => item.id}
+              keyExtractor={item => item.id}
               renderItem={renderScript}
               scrollEnabled={false}
             />
@@ -502,21 +643,29 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
               placeholder={t('script id')}
               placeholderTextColor={colors.textSecondary}
               value={logFilter || ''}
-              onChangeText={(value) => setLogFilter(value || null)}
+              onChangeText={value => setLogFilter(value || null)}
             />
           </View>
           <ScrollView style={styles.logBox} nestedScrollEnabled={true}>
-            {filteredLogs.length === 0 && <Text style={styles.subtitle}>{t('No logs yet.')}</Text>}
-            {filteredLogs.map((log) => (
+            {filteredLogs.length === 0 && (
+              <Text style={styles.subtitle}>{t('No logs yet.')}</Text>
+            )}
+            {filteredLogs.map(log => (
               <Text key={log.id} style={styles.logLine}>
-                [{new Date(log.ts).toLocaleTimeString()}] {log.level.toUpperCase()} {log.scriptId ? `[${log.scriptId}]` : ''} {log.message}
+                [{new Date(log.ts).toLocaleTimeString()}]{' '}
+                {log.level.toUpperCase()}{' '}
+                {log.scriptId ? `[${log.scriptId}]` : ''} {log.message}
               </Text>
             ))}
           </ScrollView>
         </ScrollView>
       </View>
 
-      <Modal visible={showEditor} animationType="slide" onRequestClose={() => setShowEditor(false)}>
+      <Modal
+        visible={showEditor}
+        animationType="slide"
+        onRequestClose={() => setShowEditor(false)}
+      >
         <View style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>{t('Edit Script')}</Text>
@@ -530,21 +679,21 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
               <TextInput
                 style={styles.input}
                 value={editing.name}
-                onChangeText={(value) => setEditing({ ...editing, name: value })}
+                onChangeText={value => setEditing({ ...editing, name: value })}
               />
               <View style={styles.switchRow}>
                 <Text style={styles.subtitle}>{t('Enabled')}</Text>
-                <Switch 
-                  value={editing.enabled} 
-                  onValueChange={(v) => setEditing({ ...editing, enabled: v })}
+                <Switch
+                  value={editing.enabled}
+                  onValueChange={v => setEditing({ ...editing, enabled: v })}
                   trackColor={{ false: colors.border, true: colors.primary }}
                   thumbColor={editing.enabled ? '#fff' : colors.textSecondary}
                   style={{ transform: [{ scaleX: 1.15 }, { scaleY: 1.15 }] }}
                 />
                 <View style={spacerStyle} />
                 <Text style={styles.subtitle}>{t('Highlight')}</Text>
-                <Switch 
-                  value={showHighlight} 
+                <Switch
+                  value={showHighlight}
                   onValueChange={setShowHighlight}
                   trackColor={{ false: colors.border, true: colors.primary }}
                   thumbColor={showHighlight ? '#fff' : colors.textSecondary}
@@ -571,15 +720,23 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
                   </ScrollView>
                 )}
                 <TextInput
-                  style={[styles.codeInput, showHighlight && styles.codeInputOverlay]}
+                  style={[
+                    styles.codeInput,
+                    showHighlight && styles.codeInputOverlay,
+                  ]}
                   multiline
                   value={editing.code}
-                  onChangeText={(value) => setEditing({ ...editing, code: value })}
+                  onChangeText={value =>
+                    setEditing({ ...editing, code: value })
+                  }
                   onScroll={
                     showHighlight
-                      ? (e) => {
+                      ? e => {
                           const y = e.nativeEvent.contentOffset?.y || 0;
-                          highlightScrollRef.current?.scrollTo({ y, animated: false });
+                          highlightScrollRef.current?.scrollTo({
+                            y,
+                            animated: false,
+                          });
                         }
                       : undefined
                   }
@@ -591,7 +748,7 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
                 style={styles.codeInput}
                 multiline
                 value={JSON.stringify(editing.config || {}, null, 2)}
-                onChangeText={(jsonText) => {
+                onChangeText={jsonText => {
                   try {
                     const parsed = JSON.parse(jsonText || '{}');
                     setEditing({ ...editing, config: parsed });
@@ -600,7 +757,10 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
                   }
                 }}
               />
-              <TouchableOpacity style={styles.button} onPress={handleSaveScript}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleSaveScript}
+              >
                 <Text style={styles.buttonText}>{t('Save')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.button} onPress={handleLint}>
@@ -614,53 +774,184 @@ export const ScriptingScreen: React.FC<Props> = ({ visible, onClose, onShowPurch
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: colors.text },
-  close: { color: colors.primary, fontWeight: '600' },
-  scrollView: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 32 },
-  adRewardSection: { backgroundColor: colors.surface, padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-  timeDisplay: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  timeLabel: { color: colors.text, fontSize: 14, fontWeight: '600' },
-  timeValue: { color: colors.primary, fontSize: 18, fontWeight: '700' },
-  timeExpired: { color: colors.error },
-  masterToggleContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-  watchAdButton: { backgroundColor: '#4CAF50', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, alignItems: 'center', marginBottom: 8 },
-  watchAdButtonDisabled: { backgroundColor: colors.border, opacity: 0.6 },
-  watchAdButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  upgradeButton: { backgroundColor: '#FFB300', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, alignItems: 'center', borderWidth: 2, borderColor: '#FF8F00' },
-  upgradeButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  warningBox: { backgroundColor: colors.error + '20', padding: 12, borderRadius: 8, marginBottom: 8, borderLeftWidth: 4, borderLeftColor: colors.error },
-  warningText: { color: colors.error, fontSize: 13, fontWeight: '600' },
-  list: { paddingBottom: 12 },
-  card: { backgroundColor: colors.surface, padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardHeaderText: { flex: 1, marginRight: 12, minWidth: 0, flexShrink: 1 },
-  title: { color: colors.text, fontWeight: '700', fontSize: 16 },
-  subtitle: { color: colors.textSecondary, fontSize: 12 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 8, flexWrap: 'wrap' },
-  button: { backgroundColor: colors.primary, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6 },
-  buttonText: { color: colors.buttonText || '#fff', fontWeight: '600', fontSize: 13 },
-  danger: { backgroundColor: colors.surface },
-  dangerText: { color: colors.error },
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle: { color: colors.text, fontWeight: '700', marginTop: 8, marginBottom: 4 },
-  logHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
-  logBox: { backgroundColor: colors.surfaceVariant, padding: 8, borderRadius: 8, height: 180, marginTop: 4 },
-  logLine: { color: colors.text, fontSize: 12, marginBottom: 4 },
-  label: { color: colors.text, marginTop: 8, marginBottom: 4, fontWeight: '600' },
-  input: { backgroundColor: colors.surfaceVariant, color: colors.text, padding: 8, borderRadius: 6, marginBottom: 8, fontFamily: 'monospace', flex: 1 },
-  codeEditorWrapper: { position: 'relative', height: 240 },
-  codeHighlight: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.surfaceVariant, borderRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, pointerEvents: 'none', zIndex: 2, opacity: 0.95 },
-  codeHighlightContent: { padding: 8 },
-  codeInput: { backgroundColor: colors.surfaceVariant, color: colors.text, padding: 8, borderRadius: 6, height: 240, textAlignVertical: 'top', fontFamily: 'monospace', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, zIndex: 1 },
-  codeInputOverlay: { backgroundColor: 'transparent' },
-  syntax: { backgroundColor: 'transparent', padding: 0, fontSize: 13 },
-  codeText: { color: colors.text, fontFamily: 'monospace' },
-  codeKeyword: { color: '#c792ea', fontFamily: 'monospace' },
-  codeString: { color: '#91b859', fontFamily: 'monospace' },
-  codeComment: { color: '#9e9e9e', fontFamily: 'monospace' },
-  codeNumber: { color: '#f78c6c', fontFamily: 'monospace' },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+      paddingBottom: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    headerTitle: { fontSize: 20, fontWeight: '700', color: colors.text },
+    close: { color: colors.primary, fontWeight: '600' },
+    scrollView: { flex: 1 },
+    scrollContent: { padding: 16, paddingBottom: 32 },
+    adRewardSection: {
+      backgroundColor: colors.surface,
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    timeDisplay: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    timeLabel: { color: colors.text, fontSize: 14, fontWeight: '600' },
+    timeValue: { color: colors.primary, fontSize: 18, fontWeight: '700' },
+    timeExpired: { color: colors.error },
+    masterToggleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    watchAdButton: {
+      backgroundColor: '#4CAF50',
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    watchAdButtonDisabled: { backgroundColor: colors.border, opacity: 0.6 },
+    watchAdButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+    upgradeButton: {
+      backgroundColor: '#FFB300',
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 8,
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: '#FF8F00',
+    },
+    upgradeButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+    warningBox: {
+      backgroundColor: colors.error + '20',
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 8,
+      borderLeftWidth: 4,
+      borderLeftColor: colors.error,
+    },
+    warningText: { color: colors.error, fontSize: 13, fontWeight: '600' },
+    list: { paddingBottom: 12 },
+    card: {
+      backgroundColor: colors.surface,
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    cardHeaderText: { flex: 1, marginRight: 12, minWidth: 0, flexShrink: 1 },
+    title: { color: colors.text, fontWeight: '700', fontSize: 16 },
+    subtitle: { color: colors.textSecondary, fontSize: 12 },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginVertical: 8,
+      flexWrap: 'wrap',
+    },
+    button: {
+      backgroundColor: colors.primary,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 6,
+    },
+    buttonText: {
+      color: colors.buttonText || '#fff',
+      fontWeight: '600',
+      fontSize: 13,
+    },
+    danger: { backgroundColor: colors.surface },
+    dangerText: { color: colors.error },
+    switchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    sectionTitle: {
+      color: colors.text,
+      fontWeight: '700',
+      marginTop: 8,
+      marginBottom: 4,
+    },
+    logHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    logBox: {
+      backgroundColor: colors.surfaceVariant,
+      padding: 8,
+      borderRadius: 8,
+      height: 180,
+      marginTop: 4,
+    },
+    logLine: { color: colors.text, fontSize: 12, marginBottom: 4 },
+    label: {
+      color: colors.text,
+      marginTop: 8,
+      marginBottom: 4,
+      fontWeight: '600',
+    },
+    input: {
+      backgroundColor: colors.surfaceVariant,
+      color: colors.text,
+      padding: 8,
+      borderRadius: 6,
+      marginBottom: 8,
+      fontFamily: 'monospace',
+      flex: 1,
+    },
+    codeEditorWrapper: { position: 'relative', height: 240 },
+    codeHighlight: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 6,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      pointerEvents: 'none',
+      zIndex: 2,
+      opacity: 0.95,
+    },
+    codeHighlightContent: { padding: 8 },
+    codeInput: {
+      backgroundColor: colors.surfaceVariant,
+      color: colors.text,
+      padding: 8,
+      borderRadius: 6,
+      height: 240,
+      textAlignVertical: 'top',
+      fontFamily: 'monospace',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      zIndex: 1,
+    },
+    codeInputOverlay: { backgroundColor: 'transparent' },
+    syntax: { backgroundColor: 'transparent', padding: 0, fontSize: 13 },
+    codeText: { color: colors.text, fontFamily: 'monospace' },
+    codeKeyword: { color: '#c792ea', fontFamily: 'monospace' },
+    codeString: { color: '#91b859', fontFamily: 'monospace' },
+    codeComment: { color: '#9e9e9e', fontFamily: 'monospace' },
+    codeNumber: { color: '#f78c6c', fontFamily: 'monospace' },
+  });

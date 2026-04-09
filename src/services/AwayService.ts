@@ -34,10 +34,14 @@ class AwayService {
     this.initialized = true;
 
     // Attach to existing connections
-    connectionManager.getAllConnections().forEach(conn => this.attachToConnection(conn.networkId, conn.ircService));
+    connectionManager
+      .getAllConnections()
+      .forEach(conn =>
+        this.attachToConnection(conn.networkId, conn.ircService),
+      );
 
     // Attach to new connections
-    const unsubscribe = connectionManager.onConnectionCreated((networkId) => {
+    const unsubscribe = connectionManager.onConnectionCreated(networkId => {
       const conn = connectionManager.getConnection(networkId);
       if (conn) {
         this.attachToConnection(networkId, conn.ircService);
@@ -46,18 +50,31 @@ class AwayService {
     this.settingsCleanup.push(unsubscribe);
 
     // Refresh timers when auto-away settings change
-    const autoAwayEnabledUnsub = settingsService.onSettingChange('autoAwayEnabled', () => {
-      this.refreshAutoAwayTimers();
-    });
-    const autoAwayMinutesUnsub = settingsService.onSettingChange('autoAwayMinutes', () => {
-      this.refreshAutoAwayTimers();
-    });
-    const awayDisableSoundsUnsub = settingsService.onSettingChange('awayDisableSounds', (value) => {
-      this.disableSoundsWhenAway = Boolean(value);
-    });
-    this.settingsCleanup.push(autoAwayEnabledUnsub, autoAwayMinutesUnsub, awayDisableSoundsUnsub);
+    const autoAwayEnabledUnsub = settingsService.onSettingChange(
+      'autoAwayEnabled',
+      () => {
+        this.refreshAutoAwayTimers();
+      },
+    );
+    const autoAwayMinutesUnsub = settingsService.onSettingChange(
+      'autoAwayMinutes',
+      () => {
+        this.refreshAutoAwayTimers();
+      },
+    );
+    const awayDisableSoundsUnsub = settingsService.onSettingChange(
+      'awayDisableSounds',
+      value => {
+        this.disableSoundsWhenAway = Boolean(value);
+      },
+    );
+    this.settingsCleanup.push(
+      autoAwayEnabledUnsub,
+      autoAwayMinutesUnsub,
+      awayDisableSoundsUnsub,
+    );
 
-    settingsService.getSetting('awayDisableSounds', false).then((value) => {
+    settingsService.getSetting('awayDisableSounds', false).then(value => {
       this.disableSoundsWhenAway = Boolean(value);
     });
   }
@@ -82,39 +99,58 @@ class AwayService {
     const state = this.ensureState(networkId);
     const cleanup: Array<() => void> = [];
 
-    cleanup.push(ircService.onMessage((message) => this.handleIncomingMessage(networkId, ircService, message)));
-    cleanup.push(ircService.on('send-raw', (raw: string) => this.handleOutgoingRaw(networkId, ircService, raw)));
-    cleanup.push(ircService.on('numeric', async (numeric: number, _prefix: string, params: string[]) => {
-      try {
-        if (numeric === 305) {
-          // RPL_UNAWAY
+    cleanup.push(
+      ircService.onMessage(message =>
+        this.handleIncomingMessage(networkId, ircService, message),
+      ),
+    );
+    cleanup.push(
+      ircService.on('send-raw', (raw: string) =>
+        this.handleOutgoingRaw(networkId, ircService, raw),
+      ),
+    );
+    cleanup.push(
+      ircService.on(
+        'numeric',
+        async (numeric: number, _prefix: string, params: string[]) => {
+          try {
+            if (numeric === 305) {
+              // RPL_UNAWAY
+              state.isAway = false;
+              state.reason = '';
+              this.stopAnnounceTimer(networkId);
+              await this.restoreNickIfNeeded(networkId, ircService);
+            }
+            if (numeric === 306) {
+              // RPL_NOWAWAY
+              const reason = params.slice(1).join(' ').replace(/^:/, '').trim();
+              state.isAway = true;
+              state.reason = reason || state.reason;
+              this.startAnnounceTimer(networkId, ircService);
+            }
+          } catch (error) {
+            console.error(
+              `AwayService: Failed to handle numeric ${numeric} for ${networkId}:`,
+              error,
+              params,
+            );
+          }
+        },
+      ),
+    );
+    cleanup.push(
+      ircService.onConnectionChange(connected => {
+        if (!connected) {
+          this.clearTimers(networkId);
           state.isAway = false;
           state.reason = '';
-          this.stopAnnounceTimer(networkId);
-          await this.restoreNickIfNeeded(networkId, ircService);
+          state.originalNick = undefined;
+          state.pendingAwayNick = undefined;
+        } else {
+          this.scheduleAutoAway(networkId, ircService);
         }
-        if (numeric === 306) {
-          // RPL_NOWAWAY
-          const reason = params.slice(1).join(' ').replace(/^:/, '').trim();
-          state.isAway = true;
-          state.reason = reason || state.reason;
-          this.startAnnounceTimer(networkId, ircService);
-        }
-      } catch (error) {
-        console.error(`AwayService: Failed to handle numeric ${numeric} for ${networkId}:`, error, params);
-      }
-    }));
-    cleanup.push(ircService.onConnectionChange((connected) => {
-      if (!connected) {
-        this.clearTimers(networkId);
-        state.isAway = false;
-        state.reason = '';
-        state.originalNick = undefined;
-        state.pendingAwayNick = undefined;
-      } else {
-        this.scheduleAutoAway(networkId, ircService);
-      }
-    }));
+      }),
+    );
 
     this.connectionCleanup.set(networkId, cleanup);
     this.scheduleAutoAway(networkId, ircService);
@@ -138,15 +174,24 @@ class AwayService {
     });
   }
 
-  private async scheduleAutoAway(networkId: string, _ircService: IRCService): Promise<void> {
+  private async scheduleAutoAway(
+    networkId: string,
+    _ircService: IRCService,
+  ): Promise<void> {
     const state = this.ensureState(networkId);
     if (state.autoAwayTimer) {
       clearTimeout(state.autoAwayTimer);
       state.autoAwayTimer = undefined;
     }
 
-    const autoAwayEnabled = await settingsService.getSetting('autoAwayEnabled', false);
-    const autoAwayMinutes = await settingsService.getSetting('autoAwayMinutes', 0);
+    const autoAwayEnabled = await settingsService.getSetting(
+      'autoAwayEnabled',
+      false,
+    );
+    const autoAwayMinutes = await settingsService.getSetting(
+      'autoAwayMinutes',
+      0,
+    );
     if (!autoAwayEnabled || autoAwayMinutes <= 0) {
       return;
     }
@@ -162,9 +207,16 @@ class AwayService {
     }, remaining);
   }
 
-  private async handleOutgoingRaw(networkId: string, ircService: IRCService, raw: string): Promise<void> {
+  private async handleOutgoingRaw(
+    networkId: string,
+    ircService: IRCService,
+    raw: string,
+  ): Promise<void> {
     const state = this.ensureState(networkId);
-    if (state.suppressNextClear && raw.trim().toUpperCase().startsWith('NOTICE ')) {
+    if (
+      state.suppressNextClear &&
+      raw.trim().toUpperCase().startsWith('NOTICE ')
+    ) {
       state.suppressNextClear = false;
       return;
     }
@@ -194,10 +246,19 @@ class AwayService {
 
   private isChannelTarget(target?: string): boolean {
     if (!target) return false;
-    return target.startsWith('#') || target.startsWith('&') || target.startsWith('+') || target.startsWith('!');
+    return (
+      target.startsWith('#') ||
+      target.startsWith('&') ||
+      target.startsWith('+') ||
+      target.startsWith('!')
+    );
   }
 
-  private async handleIncomingMessage(networkId: string, ircService: IRCService, message: IRCMessage): Promise<void> {
+  private async handleIncomingMessage(
+    networkId: string,
+    ircService: IRCService,
+    message: IRCMessage,
+  ): Promise<void> {
     const state = this.ensureState(networkId);
     if (!state.isAway) return;
 
@@ -205,12 +266,18 @@ class AwayService {
       return;
     }
 
-    const awayAutoAnswerEnabled = await settingsService.getSetting('awayAutoAnswerEnabled', false);
+    const awayAutoAnswerEnabled = await settingsService.getSetting(
+      'awayAutoAnswerEnabled',
+      false,
+    );
     if (!awayAutoAnswerEnabled) {
       return;
     }
 
-    const awayNotifyMentions = await settingsService.getSetting('awayNotifyMentions', false);
+    const awayNotifyMentions = await settingsService.getSetting(
+      'awayNotifyMentions',
+      false,
+    );
     const channel = message.channel || '';
     const isChannel = this.isChannelTarget(channel);
     const currentNick = ircService.getCurrentNick();
@@ -220,8 +287,12 @@ class AwayService {
     }
 
     if (isChannel) {
-      const mentionTargets = [currentNick, state.originalNick].filter(Boolean) as string[];
-      const mentionsAny = mentionTargets.some(target => this.messageMentionsNick(message.text, target));
+      const mentionTargets = [currentNick, state.originalNick].filter(
+        Boolean,
+      ) as string[];
+      const mentionsAny = mentionTargets.some(target =>
+        this.messageMentionsNick(message.text, target),
+      );
       if (!awayNotifyMentions || !mentionsAny) {
         return;
       }
@@ -232,14 +303,19 @@ class AwayService {
     }
 
     const now = Date.now();
-    const lastSent = state.lastAutoAnswerByNick.get(fromNick.toLowerCase()) || 0;
+    const lastSent =
+      state.lastAutoAnswerByNick.get(fromNick.toLowerCase()) || 0;
     if (now - lastSent < 60 * 1000) {
       return;
     }
 
     const autoAnswerMessage = await this.getAutoAnswerMessage();
-    const reason = state.reason || (await settingsService.getSetting('awayDefaultReason', ''));
-    const reply = reason ? `${autoAnswerMessage} - ${reason}` : autoAnswerMessage;
+    const reason =
+      state.reason ||
+      (await settingsService.getSetting('awayDefaultReason', ''));
+    const reply = reason
+      ? `${autoAnswerMessage} - ${reason}`
+      : autoAnswerMessage;
     state.suppressNextClear = true;
     ircService.sendRaw(`NOTICE ${fromNick} :${reply}`);
     state.lastAutoAnswerByNick.set(fromNick.toLowerCase(), now);
@@ -253,11 +329,17 @@ class AwayService {
   }
 
   private async getAutoAnswerMessage(): Promise<string> {
-    const direct = await settingsService.getSetting('awayAutoAnswerMessage', 'Away');
+    const direct = await settingsService.getSetting(
+      'awayAutoAnswerMessage',
+      'Away',
+    );
     if (direct && direct.trim()) {
       return direct.trim();
     }
-    const presets = await settingsService.getSetting('awayAutoAnswerMessages', [] as string[]);
+    const presets = await settingsService.getSetting(
+      'awayAutoAnswerMessages',
+      [] as string[],
+    );
     if (presets.length > 0) {
       return presets[0];
     }
@@ -267,7 +349,10 @@ class AwayService {
   private async getAutoAwayReason(): Promise<string> {
     const autoReason = await settingsService.getSetting('autoAwayReason', '');
     if (autoReason && autoReason.trim()) return autoReason.trim();
-    const selectedPreset = await settingsService.getSetting('awaySelectedPreset', '');
+    const selectedPreset = await settingsService.getSetting(
+      'awaySelectedPreset',
+      '',
+    );
     if (selectedPreset && selectedPreset.trim()) return selectedPreset.trim();
     const fallback = await settingsService.getSetting('awayDefaultReason', '');
     if (fallback && fallback.trim()) return fallback.trim();
@@ -275,8 +360,14 @@ class AwayService {
     return awayText || t('Away');
   }
 
-  private async applyAwayNick(networkId: string, ircService: IRCService): Promise<void> {
-    const pattern = await settingsService.getSetting('awayNickPattern', '<me>^away');
+  private async applyAwayNick(
+    networkId: string,
+    ircService: IRCService,
+  ): Promise<void> {
+    const pattern = await settingsService.getSetting(
+      'awayNickPattern',
+      '<me>^away',
+    );
     if (!pattern || !pattern.includes('<me>')) {
       return;
     }
@@ -298,7 +389,10 @@ class AwayService {
     }
   }
 
-  private async restoreNickIfNeeded(networkId: string, ircService: IRCService): Promise<void> {
+  private async restoreNickIfNeeded(
+    networkId: string,
+    ircService: IRCService,
+  ): Promise<void> {
     const state = this.ensureState(networkId);
     if (state.originalNick) {
       const currentNick = ircService.getCurrentNick();
@@ -314,17 +408,20 @@ class AwayService {
     const state = this.ensureState(networkId);
     this.stopAnnounceTimer(networkId);
 
-    settingsService.getSetting('awayAnnounceEnabled', false).then((enabled) => {
+    settingsService.getSetting('awayAnnounceEnabled', false).then(enabled => {
       if (!enabled) {
         return;
       }
       this.announceAway(networkId, ircService);
-      settingsService.getSetting('awayAnnounceEveryMin', 5).then((min) => {
+      settingsService.getSetting('awayAnnounceEveryMin', 5).then(min => {
         const every = Math.max(Number(min) || 0, 0);
         if (every <= 0) return;
-        state.announceTimer = setInterval(() => {
-          this.announceAway(networkId, ircService);
-        }, every * 60 * 1000);
+        state.announceTimer = setInterval(
+          () => {
+            this.announceAway(networkId, ircService);
+          },
+          every * 60 * 1000,
+        );
       });
     });
   }
@@ -337,18 +434,27 @@ class AwayService {
     }
   }
 
-  private async announceAway(networkId: string, ircService: IRCService): Promise<void> {
-    const awayAnnounceEnabled = await settingsService.getSetting('awayAnnounceEnabled', false);
+  private async announceAway(
+    networkId: string,
+    ircService: IRCService,
+  ): Promise<void> {
+    const awayAnnounceEnabled = await settingsService.getSetting(
+      'awayAnnounceEnabled',
+      false,
+    );
     if (!awayAnnounceEnabled) return;
 
     const channels = ircService.getChannels();
     if (channels.length === 0) return;
 
     const onlyOn = await settingsService.getSetting('awayAnnounceOnlyOn', '');
-    const excludeOn = await settingsService.getSetting('awayAnnounceExcludeOn', '');
+    const excludeOn = await settingsService.getSetting(
+      'awayAnnounceExcludeOn',
+      '',
+    );
     const allowed = this.parseChannelList(onlyOn);
     const excluded = this.parseChannelList(excludeOn);
-    const filtered = channels.filter((channel) => {
+    const filtered = channels.filter(channel => {
       const lower = channel.toLowerCase();
       if (allowed.length > 0 && !allowed.includes(lower)) {
         return false;
@@ -363,10 +469,12 @@ class AwayService {
 
     const textAway = await settingsService.getSetting('awayTextAway', 'away');
     const state = this.ensureState(networkId);
-    const reason = state.reason || (await settingsService.getSetting('awayDefaultReason', ''));
+    const reason =
+      state.reason ||
+      (await settingsService.getSetting('awayDefaultReason', ''));
     const message = reason ? `${textAway}: ${reason}` : textAway;
 
-    filtered.forEach((channel) => {
+    filtered.forEach(channel => {
       ircService.sendRaw(`PRIVMSG ${channel} :${message}`);
     });
   }
@@ -380,7 +488,10 @@ class AwayService {
   }
 
   async setAway(reason?: string, opts?: { networkId?: string }): Promise<void> {
-    const multiServer = await settingsService.getSetting('awayMultiServer', false);
+    const multiServer = await settingsService.getSetting(
+      'awayMultiServer',
+      false,
+    );
     const targetNetwork = opts?.networkId;
     const targetConnections = multiServer
       ? connectionManager.getAllConnections()
@@ -393,7 +504,9 @@ class AwayService {
     for (const conn of targetConnections) {
       const state = this.ensureState(conn!.networkId);
       const awayReason = (reason || '').trim();
-      const resolvedReason = awayReason || (await settingsService.getSetting('awayDefaultReason', ''));
+      const resolvedReason =
+        awayReason ||
+        (await settingsService.getSetting('awayDefaultReason', ''));
       const payload = resolvedReason ? `AWAY :${resolvedReason}` : 'AWAY';
       conn!.ircService.sendRaw(payload);
       state.isAway = true;
@@ -405,7 +518,10 @@ class AwayService {
   }
 
   async clearAway(opts?: { networkId?: string }): Promise<void> {
-    const multiServer = await settingsService.getSetting('awayMultiServer', false);
+    const multiServer = await settingsService.getSetting(
+      'awayMultiServer',
+      false,
+    );
     const targetNetwork = opts?.networkId;
     const targetConnections = multiServer
       ? connectionManager.getAllConnections()
@@ -424,11 +540,14 @@ class AwayService {
   }
 
   private async deopOnChannels(ircService: IRCService): Promise<void> {
-    const awayDeopOnChannels = await settingsService.getSetting('awayDeopOnChannels', false);
+    const awayDeopOnChannels = await settingsService.getSetting(
+      'awayDeopOnChannels',
+      false,
+    );
     if (!awayDeopOnChannels) return;
     const nick = ircService.getCurrentNick();
     const channels = ircService.getChannels();
-    channels.forEach((channel) => {
+    channels.forEach(channel => {
       ircService.sendRaw(`MODE ${channel} -o ${nick}`);
     });
   }

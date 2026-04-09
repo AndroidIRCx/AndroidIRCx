@@ -109,4 +109,3 @@ After Firebase is set up, you can:
 - **Client-side (React Native app)**: Works automatically with `react-native-notifications` and `google-services.json`. No migration needed.
 - **Server-side**: If you're sending notifications from your server, you must use the HTTP v1 API with OAuth 2.0 access tokens (not the legacy server key).
 - The legacy API is deprecated and will stop working after June 20, 2024.
-

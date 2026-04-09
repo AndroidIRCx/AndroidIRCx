@@ -19,7 +19,9 @@ jest.mock('react-native-bootsplash', () => ({
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-  useSafeAreaInsets: jest.fn().mockReturnValue({ top: 0, bottom: 0, left: 0, right: 0 }),
+  useSafeAreaInsets: jest
+    .fn()
+    .mockReturnValue({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
 jest.mock('react-native-keyboard-controller', () => ({
@@ -131,35 +133,39 @@ const mockUIStore = {
 };
 
 jest.mock('../src/stores/uiStore', () => ({
-  useUIStore: jest.fn((selector) => selector(mockUIStore)),
+  useUIStore: jest.fn(selector => selector(mockUIStore)),
 }));
 
 jest.mock('../src/stores/connectionStore', () => ({
-  useConnectionStore: jest.fn((selector) => selector({
-    isConnected: false,
-    networkName: 'Not connected',
-    selectedNetworkName: null,
-    ping: 0,
-    activeConnectionId: null,
-    primaryNetworkId: null,
-    setSelectedNetworkName: jest.fn(),
-    setIsConnected: jest.fn(),
-    setNetworkName: jest.fn(),
-    setPrimaryNetworkId: jest.fn(),
-    setActiveConnectionId: jest.fn(),
-    setPing: jest.fn(),
-  })),
+  useConnectionStore: jest.fn(selector =>
+    selector({
+      isConnected: false,
+      networkName: 'Not connected',
+      selectedNetworkName: null,
+      ping: 0,
+      activeConnectionId: null,
+      primaryNetworkId: null,
+      setSelectedNetworkName: jest.fn(),
+      setIsConnected: jest.fn(),
+      setNetworkName: jest.fn(),
+      setPrimaryNetworkId: jest.fn(),
+      setActiveConnectionId: jest.fn(),
+      setPing: jest.fn(),
+    }),
+  ),
 }));
 
 jest.mock('../src/stores/tabStore', () => ({
-  useTabStore: jest.fn((selector) => selector({
-    tabs: [],
-    activeTabId: null,
-    setTabs: jest.fn(),
-    setActiveTabId: jest.fn(),
-    updateTab: jest.fn(),
-    removeTab: jest.fn(),
-  })),
+  useTabStore: jest.fn(selector =>
+    selector({
+      tabs: [],
+      activeTabId: null,
+      setTabs: jest.fn(),
+      setActiveTabId: jest.fn(),
+      updateTab: jest.fn(),
+      removeTab: jest.fn(),
+    }),
+  ),
 }));
 
 jest.mock('../src/stores/messageStore', () => ({
@@ -458,8 +464,12 @@ jest.mock('../src/services/SettingsService', () => ({
 
 jest.mock('../src/services/KillSwitchService', () => ({
   killSwitchService: {
-    confirmAndActivate: jest.fn().mockResolvedValue({ success: true, errors: [] }),
-    activateKillSwitch: jest.fn().mockResolvedValue({ success: true, errors: [] }),
+    confirmAndActivate: jest
+      .fn()
+      .mockResolvedValue({ success: true, errors: [] }),
+    activateKillSwitch: jest
+      .fn()
+      .mockResolvedValue({ success: true, errors: [] }),
   },
 }));
 
@@ -533,9 +543,9 @@ describe('AppContent', () => {
   it('renders AppLayout and AppModals', async () => {
     require('../src/components/AppLayout');
     require('../src/components/AppModals');
-    
+
     render(<App />);
-    
+
     await waitFor(() => {
       // Component should be rendered after uiReady is true
     });
@@ -544,7 +554,7 @@ describe('AppContent', () => {
   it('shows loading view before UI is ready', async () => {
     // The component shows a loading view initially, then switches to main UI
     render(<App />);
-    
+
     // Initially, a View with background color is rendered
     await waitFor(() => {
       // After requestAnimationFrame, the main UI should be shown

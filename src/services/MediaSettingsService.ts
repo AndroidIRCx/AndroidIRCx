@@ -28,14 +28,14 @@ export const DEFAULT_FREE_CALL_TURN_SERVERS = [] as const;
 
 // Default settings
 const DEFAULT_SETTINGS: MediaSettings = {
-  enabled: true,                     // Media feature enabled
-  showEncryptionIndicator: true,     // Show 🔒 icon on media
-  autoDownload: true,                // Auto-download media
-  wifiOnly: false,                   // Download only on WiFi
-  cacheSize: 250 * 1024 * 1024,      // 250MB cache limit
-  mediaQuality: 'original',          // original, high, medium, low
-  videoQuality: '1080p',             // 4k, 1080p, 720p, 480p
-  callVideoQuality: '480p',          // 1440p, 1080p, 720p, 480p
+  enabled: true, // Media feature enabled
+  showEncryptionIndicator: true, // Show 🔒 icon on media
+  autoDownload: true, // Auto-download media
+  wifiOnly: false, // Download only on WiFi
+  cacheSize: 250 * 1024 * 1024, // 250MB cache limit
+  mediaQuality: 'original', // original, high, medium, low
+  videoQuality: '1080p', // 4k, 1080p, 720p, 480p
+  callVideoQuality: '480p', // 1440p, 1080p, 720p, 480p
   callStunServers: [...DEFAULT_FREE_CALL_STUN_SERVERS],
   callTurnEnabled: false,
   callTurnServers: [...DEFAULT_FREE_CALL_TURN_SERVERS],
@@ -44,7 +44,7 @@ const DEFAULT_SETTINGS: MediaSettings = {
   callForceRelayOnly: false,
   callNicklistCallActionsEnabled: false,
   callNicklistCallActionsAutoEnabledFromRelay: false,
-  voiceMaxDuration: 180,             // 180 seconds (3 minutes)
+  voiceMaxDuration: 180, // 180 seconds (3 minutes)
 };
 
 export interface CallTurnServerSettings {
@@ -55,23 +55,23 @@ export interface CallTurnServerSettings {
 }
 
 export interface MediaSettings {
-  enabled: boolean;                  // Master toggle for entire media feature
-  showEncryptionIndicator: boolean;  // Show/hide 🔒 icon on media
-  autoDownload: boolean;             // Auto-download media when received
-  wifiOnly: boolean;                 // Only auto-download on WiFi
-  cacheSize: number;                 // Cache size limit in bytes
+  enabled: boolean; // Master toggle for entire media feature
+  showEncryptionIndicator: boolean; // Show/hide 🔒 icon on media
+  autoDownload: boolean; // Auto-download media when received
+  wifiOnly: boolean; // Only auto-download on WiFi
+  cacheSize: number; // Cache size limit in bytes
   mediaQuality: 'original' | 'high' | 'medium' | 'low'; // Media upload quality
-  videoQuality: '4k' | '1080p' | '720p' | '480p';       // Video recording quality
+  videoQuality: '4k' | '1080p' | '720p' | '480p'; // Video recording quality
   callVideoQuality: '1440p' | '1080p' | '720p' | '480p'; // Live call video quality
-  callStunServers: string[];         // Free-call STUN servers used for direct WebRTC
-  callTurnEnabled: boolean;          // Allow custom TURN fallback for calls
-  callTurnServers: string[];         // Custom TURN/ TURNS URLs (one or more)
-  callTurnUsername: string;          // TURN username
-  callTurnCredential: string;        // TURN credential/password
-  callForceRelayOnly: boolean;       // Use only relay candidates when relay is available
+  callStunServers: string[]; // Free-call STUN servers used for direct WebRTC
+  callTurnEnabled: boolean; // Allow custom TURN fallback for calls
+  callTurnServers: string[]; // Custom TURN/ TURNS URLs (one or more)
+  callTurnUsername: string; // TURN username
+  callTurnCredential: string; // TURN credential/password
+  callForceRelayOnly: boolean; // Use only relay candidates when relay is available
   callNicklistCallActionsEnabled: boolean; // Show Audio/Video Call actions in nick context menu
   callNicklistCallActionsAutoEnabledFromRelay: boolean; // Internal marker: auto-enabled once after relay purchase
-  voiceMaxDuration: number;          // Max voice message duration (seconds)
+  voiceMaxDuration: number; // Max voice message duration (seconds)
 }
 
 /**
@@ -232,7 +232,9 @@ class MediaSettingsService {
   /**
    * Set media quality preference
    */
-  async setMediaQuality(quality: 'original' | 'high' | 'medium' | 'low'): Promise<void> {
+  async setMediaQuality(
+    quality: 'original' | 'high' | 'medium' | 'low',
+  ): Promise<void> {
     await this.saveSettings({ mediaQuality: quality });
   }
 
@@ -249,7 +251,9 @@ class MediaSettingsService {
   /**
    * Set video recording quality
    */
-  async setVideoQuality(quality: '4k' | '1080p' | '720p' | '480p'): Promise<void> {
+  async setVideoQuality(
+    quality: '4k' | '1080p' | '720p' | '480p',
+  ): Promise<void> {
     await this.saveSettings({ videoQuality: quality });
   }
 
@@ -266,7 +270,9 @@ class MediaSettingsService {
   /**
    * Set live call video quality
    */
-  async setCallVideoQuality(quality: '1440p' | '1080p' | '720p' | '480p'): Promise<void> {
+  async setCallVideoQuality(
+    quality: '1440p' | '1080p' | '720p' | '480p',
+  ): Promise<void> {
     await this.saveSettings({ callVideoQuality: quality });
   }
 
@@ -286,13 +292,10 @@ class MediaSettingsService {
    * Set free-call STUN servers
    */
   async setCallStunServers(servers: string[]): Promise<void> {
-    const sanitized = servers
-      .map(server => server.trim())
-      .filter(Boolean);
+    const sanitized = servers.map(server => server.trim()).filter(Boolean);
     await this.saveSettings({
-      callStunServers: sanitized.length > 0
-        ? sanitized
-        : [...DEFAULT_FREE_CALL_STUN_SERVERS],
+      callStunServers:
+        sanitized.length > 0 ? sanitized : [...DEFAULT_FREE_CALL_STUN_SERVERS],
     });
   }
 
@@ -306,8 +309,8 @@ class MediaSettingsService {
 
     const urls = Array.isArray(this.settings.callTurnServers)
       ? this.settings.callTurnServers
-        .map(server => server.trim())
-        .filter(Boolean)
+          .map(server => server.trim())
+          .filter(Boolean)
       : [...DEFAULT_FREE_CALL_TURN_SERVERS];
 
     return {
@@ -321,15 +324,24 @@ class MediaSettingsService {
   /**
    * Set custom TURN settings for calls
    */
-  async setCallTurnServerConfig(config: Partial<CallTurnServerSettings>): Promise<void> {
+  async setCallTurnServerConfig(
+    config: Partial<CallTurnServerSettings>,
+  ): Promise<void> {
     const current = await this.getCallTurnServerConfig();
     const next: CallTurnServerSettings = {
-      enabled: typeof config.enabled === 'boolean' ? config.enabled : current.enabled,
+      enabled:
+        typeof config.enabled === 'boolean' ? config.enabled : current.enabled,
       urls: Array.isArray(config.urls)
         ? config.urls.map(server => server.trim()).filter(Boolean)
         : current.urls,
-      username: typeof config.username === 'string' ? config.username.trim() : current.username,
-      credential: typeof config.credential === 'string' ? config.credential : current.credential,
+      username:
+        typeof config.username === 'string'
+          ? config.username.trim()
+          : current.username,
+      credential:
+        typeof config.credential === 'string'
+          ? config.credential
+          : current.credential,
     };
 
     await this.saveSettings({
@@ -371,7 +383,9 @@ class MediaSettingsService {
    * Set visibility of audio/video call actions in nicklist context menu
    */
   async setCallNicklistCallActionsEnabled(enabled: boolean): Promise<void> {
-    await this.saveSettings({ callNicklistCallActionsEnabled: Boolean(enabled) });
+    await this.saveSettings({
+      callNicklistCallActionsEnabled: Boolean(enabled),
+    });
   }
 
   /**
@@ -385,7 +399,9 @@ class MediaSettingsService {
   }
 
   async markNicklistCallActionsAutoEnabledFromRelay(): Promise<void> {
-    await this.saveSettings({ callNicklistCallActionsAutoEnabledFromRelay: true });
+    await this.saveSettings({
+      callNicklistCallActionsAutoEnabledFromRelay: true,
+    });
   }
 
   /**
@@ -425,7 +441,9 @@ class MediaSettingsService {
   /**
    * Import settings (from backup)
    */
-  async importSettings(settingsJson: string): Promise<{ success: boolean; error?: string }> {
+  async importSettings(
+    settingsJson: string,
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       const imported = JSON.parse(settingsJson) as MediaSettings;
 

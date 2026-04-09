@@ -5,7 +5,11 @@
 
 import { create } from 'zustand';
 import type { MediaStream } from 'react-native-webrtc';
-import type { CallDirection, CallMediaType, CallPhase } from '../types/webrtcCall';
+import type {
+  CallDirection,
+  CallMediaType,
+  CallPhase,
+} from '../types/webrtcCall';
 import type { CallVideoQuality } from '../types/callMedia';
 
 interface CallStoreState {
@@ -56,8 +60,8 @@ const initialState = {
   videoOverlayWidth: 168,
 };
 
-export const useCallStore = create<CallStoreState>((set) => ({
+export const useCallStore = create<CallStoreState>(set => ({
   ...initialState,
-  setPartial: (updates) => set((state) => ({ ...state, ...updates })),
+  setPartial: updates => set(state => ({ ...state, ...updates })),
   reset: () => set(initialState),
 }));

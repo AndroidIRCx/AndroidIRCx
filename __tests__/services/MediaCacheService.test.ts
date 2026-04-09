@@ -38,7 +38,7 @@ const mockRNFS = RNFS as unknown as {
 describe('MediaCacheService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    Object.keys(storage).forEach((k) => delete storage[k]);
+    Object.keys(storage).forEach(k => delete storage[k]);
     (mediaCacheService as any).initialized = false;
     (mediaCacheService as any).metadata = { entries: [], totalSize: 0 };
     (mediaCacheService as any).maxCacheSize = 250 * 1024 * 1024;
@@ -56,7 +56,11 @@ describe('MediaCacheService', () => {
   });
 
   it('caches media file successfully', async () => {
-    const result = await mediaCacheService.cacheMedia('mid-1', '/tmp/a.jpg', 'image/jpeg');
+    const result = await mediaCacheService.cacheMedia(
+      'mid-1',
+      '/tmp/a.jpg',
+      'image/jpeg',
+    );
 
     expect(result.success).toBe(true);
     expect(result.cachedPath).toContain('/mock/cache/media/mid-1.jpg');
@@ -68,14 +72,22 @@ describe('MediaCacheService', () => {
       size: 100,
       isFile: () => false,
     });
-    const result = await mediaCacheService.cacheMedia('bad-1', '/tmp/dir', 'image/jpeg');
+    const result = await mediaCacheService.cacheMedia(
+      'bad-1',
+      '/tmp/dir',
+      'image/jpeg',
+    );
     expect(result.success).toBe(false);
     expect(result.error).toBe('Source is not a file');
   });
 
   it('returns existing cached path when same media is cached again', async () => {
     await mediaCacheService.cacheMedia('mid-2', '/tmp/a.jpg', 'image/jpeg');
-    const second = await mediaCacheService.cacheMedia('mid-2', '/tmp/b.jpg', 'image/png');
+    const second = await mediaCacheService.cacheMedia(
+      'mid-2',
+      '/tmp/b.jpg',
+      'image/png',
+    );
 
     expect(second.success).toBe(true);
     expect(second.cachedPath).toContain('mid-2.jpg');
@@ -89,7 +101,9 @@ describe('MediaCacheService', () => {
 
   it('removes stale cached entry when file no longer exists', async () => {
     await mediaCacheService.cacheMedia('mid-stale', '/tmp/a.jpg', 'image/jpeg');
-    mockRNFS.exists.mockImplementation(async (p: string) => !String(p).includes('mid-stale'));
+    mockRNFS.exists.mockImplementation(
+      async (p: string) => !String(p).includes('mid-stale'),
+    );
 
     const path = await mediaCacheService.getCachedMedia('mid-stale');
     expect(path).toBeNull();
@@ -114,7 +128,8 @@ describe('MediaCacheService', () => {
   it('clears only older entries when maxAgeMs is provided', async () => {
     await mediaCacheService.cacheMedia('old-a', '/tmp/a.jpg', 'image/jpeg');
     await mediaCacheService.cacheMedia('old-b', '/tmp/b.jpg', 'image/jpeg');
-    (mediaCacheService as any).metadata.entries[0].cachedAt = Date.now() - 10_000;
+    (mediaCacheService as any).metadata.entries[0].cachedAt =
+      Date.now() - 10_000;
     (mediaCacheService as any).metadata.entries[1].cachedAt = Date.now();
 
     const result = await mediaCacheService.clearCache(1000);

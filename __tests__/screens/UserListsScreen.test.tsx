@@ -87,7 +87,10 @@ jest.mock('../../src/services/UserManagementService', () => ({
 
 jest.mock('../../src/services/ConnectionManager', () => ({
   connectionManager: {
-    getAllConnections: jest.fn(() => [{ networkId: 'net1' }, { networkId: 'net2' }]),
+    getAllConnections: jest.fn(() => [
+      { networkId: 'net1' },
+      { networkId: 'net2' },
+    ]),
     getConnection: jest.fn((networkId: string) => {
       if (!networkId) {
         return null;
@@ -111,12 +114,24 @@ describe('UserListsScreen', () => {
     mockUserManagementService.removeUserListEntry.mockResolvedValue(undefined);
     mockUserManagementService.ignoreUser.mockResolvedValue(undefined);
     mockUserManagementService.unignoreUser.mockResolvedValue(undefined);
-    mockConnectionScopedUserManagementService.getUserListEntries.mockReturnValue(mockEntries);
-    mockConnectionScopedUserManagementService.getIgnoredUsers.mockReturnValue(mockIgnored);
-    mockConnectionScopedUserManagementService.addUserListEntry.mockResolvedValue(undefined);
-    mockConnectionScopedUserManagementService.removeUserListEntry.mockResolvedValue(undefined);
-    mockConnectionScopedUserManagementService.ignoreUser.mockResolvedValue(undefined);
-    mockConnectionScopedUserManagementService.unignoreUser.mockResolvedValue(undefined);
+    mockConnectionScopedUserManagementService.getUserListEntries.mockReturnValue(
+      mockEntries,
+    );
+    mockConnectionScopedUserManagementService.getIgnoredUsers.mockReturnValue(
+      mockIgnored,
+    );
+    mockConnectionScopedUserManagementService.addUserListEntry.mockResolvedValue(
+      undefined,
+    );
+    mockConnectionScopedUserManagementService.removeUserListEntry.mockResolvedValue(
+      undefined,
+    );
+    mockConnectionScopedUserManagementService.ignoreUser.mockResolvedValue(
+      undefined,
+    );
+    mockConnectionScopedUserManagementService.unignoreUser.mockResolvedValue(
+      undefined,
+    );
     mockIrcService.getChannels.mockReturnValue(['#chat', '#other']);
     mockIrcService.getChannelUsers.mockImplementation((channel: string) => {
       if (channel === '#chat') {
@@ -138,17 +153,22 @@ describe('UserListsScreen', () => {
     };
 
     const { findByDisplayValue, findByText, findByPlaceholderText } = render(
-      <UserListsScreen visible network="net1" onClose={jest.fn()} />
+      <UserListsScreen visible network="net1" onClose={jest.fn()} />,
     );
 
     expect(await findByDisplayValue('prefilled!*@*')).toBeTruthy();
     expect(mockState.setUserListTarget).toHaveBeenCalledWith(null);
 
-    fireEvent.changeText(await findByPlaceholderText('optional note'), 'new note');
+    fireEvent.changeText(
+      await findByPlaceholderText('optional note'),
+      'new note',
+    );
     fireEvent.press(await findByText('Add'));
 
     await waitFor(() => {
-      expect(mockConnectionScopedUserManagementService.addUserListEntry).toHaveBeenCalledWith(
+      expect(
+        mockConnectionScopedUserManagementService.addUserListEntry,
+      ).toHaveBeenCalledWith(
         'notify',
         'prefilled!*@*',
         expect.objectContaining({
@@ -156,7 +176,7 @@ describe('UserListsScreen', () => {
           channels: ['#chat', '#ops'],
           protected: false,
           reason: 'new note',
-        })
+        }),
       );
     });
 
@@ -164,30 +184,41 @@ describe('UserListsScreen', () => {
   });
 
   it('filters, edits, removes, and switches to ignore tab', async () => {
-    const { findByText, findByPlaceholderText, getByText, queryByText } = render(
-      <UserListsScreen visible network="net1" onClose={jest.fn()} />
-    );
+    const { findByText, findByPlaceholderText, getByText, queryByText } =
+      render(<UserListsScreen visible network="net1" onClose={jest.fn()} />);
 
     expect(await findByText('nick!*@*')).toBeTruthy();
 
-    fireEvent.changeText(await findByPlaceholderText('Search by mask or reason...'), 'watch');
+    fireEvent.changeText(
+      await findByPlaceholderText('Search by mask or reason...'),
+      'watch',
+    );
     expect(getByText('nick!*@*')).toBeTruthy();
 
-    fireEvent.changeText(await findByPlaceholderText('Search by mask or reason...'), 'missing');
+    fireEvent.changeText(
+      await findByPlaceholderText('Search by mask or reason...'),
+      'missing',
+    );
     expect(await findByText('No matching entries')).toBeTruthy();
 
-    fireEvent.changeText(await findByPlaceholderText('Search by mask or reason...'), '');
+    fireEvent.changeText(
+      await findByPlaceholderText('Search by mask or reason...'),
+      '',
+    );
     fireEvent.press(getByText('Edit'));
-    fireEvent.changeText(await findByPlaceholderText('nick or mask'), 'edited!*@*');
+    fireEvent.changeText(
+      await findByPlaceholderText('nick or mask'),
+      'edited!*@*',
+    );
     fireEvent.press(getByText('Save'));
 
     await waitFor(() => {
-      expect(mockConnectionScopedUserManagementService.removeUserListEntry).toHaveBeenCalledWith(
-        'notify',
-        'nick!*@*',
-        'net1'
-      );
-      expect(mockConnectionScopedUserManagementService.addUserListEntry).toHaveBeenCalledWith(
+      expect(
+        mockConnectionScopedUserManagementService.removeUserListEntry,
+      ).toHaveBeenCalledWith('notify', 'nick!*@*', 'net1');
+      expect(
+        mockConnectionScopedUserManagementService.addUserListEntry,
+      ).toHaveBeenCalledWith(
         'notify',
         'edited!*@*',
         expect.objectContaining({
@@ -195,7 +226,7 @@ describe('UserListsScreen', () => {
           channels: ['#chat'],
           protected: true,
           reason: 'watch list',
-        })
+        }),
       );
     });
 
@@ -205,11 +236,9 @@ describe('UserListsScreen', () => {
       await removeButtons?.[1]?.onPress?.();
     });
     await waitFor(() => {
-      expect(mockConnectionScopedUserManagementService.removeUserListEntry).toHaveBeenCalledWith(
-        'notify',
-        'nick!*@*',
-        'net1'
-      );
+      expect(
+        mockConnectionScopedUserManagementService.removeUserListEntry,
+      ).toHaveBeenCalledWith('notify', 'nick!*@*', 'net1');
     });
 
     fireEvent.press(getByText('Ignore'));
@@ -218,16 +247,15 @@ describe('UserListsScreen', () => {
   });
 
   it('supports online-user picker and network filter', async () => {
-    const { findByPlaceholderText, findByText, getByText, queryByText } = render(
-      <UserListsScreen visible network="net1" onClose={jest.fn()} />
-    );
+    const { findByPlaceholderText, findByText, getByText, queryByText } =
+      render(<UserListsScreen visible network="net1" onClose={jest.fn()} />);
 
     fireEvent.press(await findByText('+ Add'));
     fireEvent.press(getByText('Select from Online Users'));
     fireEvent.press(await findByText('Alice'));
     expect(await findByPlaceholderText('nick or mask')).toHaveProp(
       'value',
-      'Alice!alice@chat.host'
+      'Alice!alice@chat.host',
     );
 
     fireEvent.press(getByText('All Networks'));

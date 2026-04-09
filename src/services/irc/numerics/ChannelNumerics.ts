@@ -54,7 +54,11 @@ export const handle322: NumericHandler = (ctx, prefix, params, timestamp) => {
   const topic = params.slice(3).join(' ').replace(/^:/, '') || '';
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {channel} ({users} users): {topic}', { channel, users, topic }),
+    text: t('*** {channel} ({users} users): {topic}', {
+      channel,
+      users,
+      topic,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -77,10 +81,14 @@ export const handle329: NumericHandler = (ctx, prefix, params, timestamp) => {
   const channel = params[1] || '';
   const createdAtRaw = params[2] || '';
   const createdAt = createdAtRaw ? parseInt(createdAtRaw, 10) : 0;
-  const createdDate = createdAt > 0 ? new Date(createdAt * 1000).toLocaleString() : t('unknown');
+  const createdDate =
+    createdAt > 0 ? new Date(createdAt * 1000).toLocaleString() : t('unknown');
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {channel} was created on {date}', { channel, date: createdDate }),
+    text: t('*** {channel} was created on {date}', {
+      channel,
+      date: createdDate,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'channel',
@@ -93,7 +101,10 @@ export const handle341: NumericHandler = (ctx, prefix, params, timestamp) => {
   const channel = params[2] || '';
   ctx.addMessage({
     type: 'raw',
-    text: t('*** You have invited {nick} to {channel}', { nick: invitedNick, channel }),
+    text: t('*** You have invited {nick} to {channel}', {
+      nick: invitedNick,
+      channel,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'channel',
@@ -131,7 +142,10 @@ export const handle348: NumericHandler = (ctx, prefix, params, timestamp) => {
   const exceptMask = params[2] || '';
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {channel} exception list: {mask}', { channel, mask: exceptMask }),
+    text: t('*** {channel} exception list: {mask}', {
+      channel,
+      mask: exceptMask,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'channel',

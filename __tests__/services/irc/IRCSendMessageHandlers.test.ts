@@ -40,7 +40,10 @@ describe('IRCSendMessageHandlers', () => {
       currentNick: 'MyNick',
       detectClones: jest.fn(),
       emit: jest.fn(),
-      encodeCTCP: jest.fn((command: string, args?: string) => `\u0001${command}${args ? ` ${args}` : ''}\u0001`),
+      encodeCTCP: jest.fn(
+        (command: string, args?: string) =>
+          `\u0001${command}${args ? ` ${args}` : ''}\u0001`,
+      ),
       getNetworkName: jest.fn(() => 'TestNet'),
       getUserManagementService: jest.fn(() => ({})),
       getWhoisUseDoubleNick: jest.fn(() => true),
@@ -77,7 +80,11 @@ describe('IRCSendMessageHandlers', () => {
     expect(result).toBe(true);
     expect(service.lastWhowasTarget).toBe('Nick[away]');
     expect(service.lastWhowasAt).toBe(123456);
-    expect(service.emit).not.toHaveBeenCalledWith('set-whowas-target', expect.anything(), expect.anything());
+    expect(service.emit).not.toHaveBeenCalledWith(
+      'set-whowas-target',
+      expect.anything(),
+      expect.anything(),
+    );
     expect(service.sendCommand).toHaveBeenCalledWith('WHOWAS :Nick[away]');
   });
 
@@ -87,7 +94,10 @@ describe('IRCSendMessageHandlers', () => {
     expect(result).toBe(true);
     expect(service.emit).toHaveBeenCalledWith('amsg', 'hello all', 'TestNet');
     expect(service.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'notice', text: '*** Sending message to all channels...' })
+      expect.objectContaining({
+        type: 'notice',
+        text: '*** Sending message to all channels...',
+      }),
     );
   });
 

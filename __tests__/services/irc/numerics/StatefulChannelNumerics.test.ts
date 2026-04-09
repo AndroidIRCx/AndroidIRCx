@@ -114,7 +114,21 @@ describe('StatefulChannelNumerics', () => {
     ctx.isSilentWhoNick.mockReturnValue(true);
     ctx.getSilentWhoCallback.mockReturnValue(callback);
 
-    handle352(ctx, 'server', ['nick', '#chat', 'user', 'host', 'irc.example.org', 'Alice', 'H', ':0 Real Name'], 606);
+    handle352(
+      ctx,
+      'server',
+      [
+        'nick',
+        '#chat',
+        'user',
+        'host',
+        'irc.example.org',
+        'Alice',
+        'H',
+        ':0 Real Name',
+      ],
+      606,
+    );
 
     expect(callback).toHaveBeenCalledWith('user', 'host');
     expect(ctx.addMessage).not.toHaveBeenCalled();
@@ -124,8 +138,17 @@ describe('StatefulChannelNumerics', () => {
     handle352(
       ctx,
       'server',
-      ['nick', '#chat', 'user', 'host', 'irc.example.org', 'Alice', 'G*', ':0 Real Name'],
-      607
+      [
+        'nick',
+        '#chat',
+        'user',
+        'host',
+        'irc.example.org',
+        'Alice',
+        'G*',
+        ':0 Real Name',
+      ],
+      607,
     );
 
     expect(ctx.addMessage).toHaveBeenCalledWith({
@@ -141,14 +164,18 @@ describe('StatefulChannelNumerics', () => {
     handle353(ctx, 'server', ['nick', '=', '#chat', ':@Alice +Bob Carol'], 608);
     handle366(ctx, 'server', ['nick', '#chat'], 609);
 
-    expect(ctx.addToNamesBuffer).toHaveBeenCalledWith('#chat', ['@Alice', '+Bob', 'Carol']);
+    expect(ctx.addToNamesBuffer).toHaveBeenCalledWith('#chat', [
+      '@Alice',
+      '+Bob',
+      'Carol',
+    ]);
     expect(ctx.setChannelUsers).toHaveBeenCalledWith(
       '#chat',
       new Map([
         ['alice', { nick: 'Alice', original: '@Alice' }],
         ['bob', { nick: 'Bob', original: '+Bob' }],
         ['carol', { nick: 'Carol', original: 'Carol' }],
-      ])
+      ]),
     );
     expect(ctx.clearNamesBuffer).toHaveBeenCalledWith('#chat');
     expect(ctx.emitUserListChange).toHaveBeenCalledWith('#chat', [

@@ -65,9 +65,15 @@ jest.mock('../src/services/CommandService', () => ({
 
 jest.mock('../src/services/AutoAuthService', () => ({
   createAutoAuthService: jest.fn(() => ({
-    authenticate: jest.fn().mockResolvedValue({ success: true, method: 'nickserv' }),
+    authenticate: jest
+      .fn()
+      .mockResolvedValue({ success: true, method: 'nickserv' }),
     isAuthenticated: jest.fn(() => false),
-    getStatus: jest.fn(() => ({ attempted: false, completed: false, method: 'nickserv' })),
+    getStatus: jest.fn(() => ({
+      attempted: false,
+      completed: false,
+      method: 'nickserv',
+    })),
     updateSaslStatus: jest.fn(),
     reset: jest.fn(),
     destroy: jest.fn(),
@@ -135,10 +141,16 @@ describe('ConnectionManager', () => {
 
   beforeEach(() => {
     jest.isolateModules(() => {
-      const { UserManagementService } = require('../src/services/UserManagementService');
+      const {
+        UserManagementService,
+      } = require('../src/services/UserManagementService');
       UserManagementServiceRef = UserManagementService;
-      jest.spyOn(UserManagementServiceRef.prototype, 'initialize').mockResolvedValue();
-      jest.spyOn(UserManagementServiceRef.prototype as any, 'loadFromStorage').mockResolvedValue(undefined);
+      jest
+        .spyOn(UserManagementServiceRef.prototype, 'initialize')
+        .mockResolvedValue();
+      jest
+        .spyOn(UserManagementServiceRef.prototype as any, 'loadFromStorage')
+        .mockResolvedValue(undefined);
 
       const mod = require('../src/services/ConnectionManager');
       connectionManager = mod.connectionManager;

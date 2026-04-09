@@ -26,7 +26,10 @@ export interface ProductDetails {
   features: string[];
 }
 
-export const PRODUCT_CATALOG: Record<string, Omit<ProductDetails, 'price' | 'priceAmountMicros' | 'priceCurrencyCode'>> = {
+export const PRODUCT_CATALOG: Record<
+  string,
+  Omit<ProductDetails, 'price' | 'priceAmountMicros' | 'priceCurrencyCode'>
+> = {
   [PRODUCT_REMOVE_ADS]: {
     id: PRODUCT_REMOVE_ADS,
     title: 'Remove Ads',
@@ -106,7 +109,10 @@ class InAppPurchaseService {
           [PRODUCT_PRO_UNLIMITED]: stored[PRODUCT_PRO_UNLIMITED] || false,
           [PRODUCT_SUPPORTER_PRO]: stored[PRODUCT_SUPPORTER_PRO] || false,
         };
-        logger.info('iap', `Loaded purchases: ${JSON.stringify(this.purchases)}`);
+        logger.info(
+          'iap',
+          `Loaded purchases: ${JSON.stringify(this.purchases)}`,
+        );
       }
     } catch (error) {
       logger.error('iap', `Failed to load purchases: ${String(error)}`);
@@ -115,7 +121,10 @@ class InAppPurchaseService {
 
   private async savePurchases() {
     try {
-      await AsyncStorage.setItem(PURCHASES_STORAGE_KEY, JSON.stringify(this.purchases));
+      await AsyncStorage.setItem(
+        PURCHASES_STORAGE_KEY,
+        JSON.stringify(this.purchases),
+      );
       logger.info('iap', `Saved purchases: ${JSON.stringify(this.purchases)}`);
     } catch (error) {
       logger.error('iap', `Failed to save purchases: ${String(error)}`);
@@ -243,7 +252,10 @@ class InAppPurchaseService {
   /**
    * Process a purchase (to be called after successful payment)
    */
-  async processPurchase(productId: string, purchaseToken: string): Promise<boolean> {
+  async processPurchase(
+    productId: string,
+    purchaseToken: string,
+  ): Promise<boolean> {
     try {
       logger.info('iap', `Processing purchase: ${productId}`);
 

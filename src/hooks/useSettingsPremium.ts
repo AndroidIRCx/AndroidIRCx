@@ -15,7 +15,7 @@ export interface UseSettingsPremiumReturn {
   hasNoAds: boolean;
   hasScriptingPro: boolean;
   isSupporter: boolean;
-  
+
   // Ad status
   adReady: boolean;
   adLoading: boolean;
@@ -23,11 +23,11 @@ export interface UseSettingsPremiumReturn {
   cooldownSeconds: number;
   adUnitType: string;
   showingAd: boolean;
-  
+
   // Watch ad button
   watchAdButtonEnabledForPremium: boolean;
   showWatchAdButton: boolean;
-  
+
   // Actions
   setWatchAdButtonEnabledForPremium: (value: boolean) => Promise<void>;
   handleWatchAd: () => Promise<void>;
@@ -35,12 +35,12 @@ export interface UseSettingsPremiumReturn {
 
 export const useSettingsPremium = (): UseSettingsPremiumReturn => {
   const t = useT();
-  
+
   // Premium status
   const [hasNoAds, setHasNoAds] = useState(false);
   const [hasScriptingPro, setHasScriptingPro] = useState(false);
   const [isSupporter, setIsSupporter] = useState(false);
-  
+
   // Ad status
   const [adReady, setAdReady] = useState(false);
   const [adLoading, setAdLoading] = useState(false);
@@ -48,9 +48,12 @@ export const useSettingsPremium = (): UseSettingsPremiumReturn => {
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [showingAd, setShowingAd] = useState(false);
   const [adUnitType, setAdUnitType] = useState<string>('Primary');
-  
+
   // Watch ad button settings
-  const [watchAdButtonEnabledForPremium, setWatchAdButtonEnabledForPremiumState] = useState(false);
+  const [
+    watchAdButtonEnabledForPremium,
+    setWatchAdButtonEnabledForPremiumState,
+  ] = useState(false);
   const [showWatchAdButton, setShowWatchAdButton] = useState(true);
 
   // Load premium status
@@ -89,16 +92,22 @@ export const useSettingsPremium = (): UseSettingsPremiumReturn => {
   // Load watch ad button setting
   useEffect(() => {
     const loadSetting = async () => {
-      const enabled = await settingsService.getSetting('watchAdButtonEnabledForPremium', false);
+      const enabled = await settingsService.getSetting(
+        'watchAdButtonEnabledForPremium',
+        false,
+      );
       setWatchAdButtonEnabledForPremiumState(enabled);
     };
     loadSetting();
   }, []);
 
-  const setWatchAdButtonEnabledForPremium = useCallback(async (value: boolean) => {
-    await settingsService.setSetting('watchAdButtonEnabledForPremium', value);
-    setWatchAdButtonEnabledForPremiumState(value);
-  }, []);
+  const setWatchAdButtonEnabledForPremium = useCallback(
+    async (value: boolean) => {
+      await settingsService.setSetting('watchAdButtonEnabledForPremium', value);
+      setWatchAdButtonEnabledForPremiumState(value);
+    },
+    [],
+  );
 
   const handleWatchAd = useCallback(async () => {
     if (showingAd) return;
@@ -110,10 +119,16 @@ export const useSettingsPremium = (): UseSettingsPremiumReturn => {
         if (success) {
           Alert.alert(t('Thank You!'), t('You earned scripting time!'));
         } else {
-          Alert.alert(t('Ad Failed'), t('Could not show the ad. Please try again.'));
+          Alert.alert(
+            t('Ad Failed'),
+            t('Could not show the ad. Please try again.'),
+          );
         }
       } catch (error) {
-        Alert.alert(t('Error'), error instanceof Error ? error.message : t('Failed to show ad'));
+        Alert.alert(
+          t('Error'),
+          error instanceof Error ? error.message : t('Failed to show ad'),
+        );
       } finally {
         setShowingAd(false);
       }
@@ -123,7 +138,7 @@ export const useSettingsPremium = (): UseSettingsPremiumReturn => {
     const result = await adRewardService.manualLoadAd();
     Alert.alert(
       result.success ? t('Loading Ad') : t('Cannot Load Ad'),
-      t(result.messageKey, result.messageParams as Record<string, any>)
+      t(result.messageKey, result.messageParams as Record<string, any>),
     );
   }, [adReady, showingAd, t]);
 

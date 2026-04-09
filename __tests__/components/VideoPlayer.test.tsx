@@ -39,7 +39,7 @@ jest.mock('react-native-video', () => {
     useImperativeHandle(ref, () => ({
       enterPictureInPicture: mockEnterPictureInPicture,
     }));
-    
+
     return (
       <video-test data-props={JSON.stringify(props)}>
         Video Component
@@ -95,14 +95,16 @@ describe('VideoPlayer', () => {
   });
 
   it('should toggle play/pause when button pressed', () => {
-    const { getByText, UNSAFE_getByType } = render(<VideoPlayer {...defaultProps} />);
+    const { getByText, UNSAFE_getByType } = render(
+      <VideoPlayer {...defaultProps} />,
+    );
     const playButton = getByText('Play');
-    
+
     fireEvent.press(playButton);
-    
+
     // After press, should show Pause
     expect(getByText('Pause')).toBeTruthy();
-    
+
     // Video should have paused=false
     const video = UNSAFE_getByType('video-test');
     const props = JSON.parse(video.props['data-props']);
@@ -112,11 +114,11 @@ describe('VideoPlayer', () => {
   it('should toggle back to play when pressed again', () => {
     const { getByText } = render(<VideoPlayer {...defaultProps} />);
     const playButton = getByText('Play');
-    
+
     fireEvent.press(playButton);
     const pauseButton = getByText('Pause');
     fireEvent.press(pauseButton);
-    
+
     expect(getByText('Play')).toBeTruthy();
   });
 
@@ -150,7 +152,7 @@ describe('VideoPlayer', () => {
 
   it('should render with different URL', () => {
     const { UNSAFE_getByType } = render(
-      <VideoPlayer url="https://example.com/another-video.mp4" />
+      <VideoPlayer url="https://example.com/another-video.mp4" />,
     );
     const video = UNSAFE_getByType('video-test');
     const props = JSON.parse(video.props['data-props']);
@@ -158,7 +160,9 @@ describe('VideoPlayer', () => {
   });
 
   it('should clear loading after video loads', () => {
-    const { UNSAFE_getByType, UNSAFE_root } = render(<VideoPlayer {...defaultProps} />);
+    const { UNSAFE_getByType, UNSAFE_root } = render(
+      <VideoPlayer {...defaultProps} />,
+    );
     const video = UNSAFE_getByType('video-test');
 
     act(() => {
@@ -169,7 +173,9 @@ describe('VideoPlayer', () => {
   });
 
   it('should show translated error when video load fails', () => {
-    const { UNSAFE_getByType, getByText } = render(<VideoPlayer {...defaultProps} />);
+    const { UNSAFE_getByType, getByText } = render(
+      <VideoPlayer {...defaultProps} />,
+    );
     const video = UNSAFE_getByType('video-test');
 
     act(() => {
@@ -180,7 +186,9 @@ describe('VideoPlayer', () => {
   });
 
   it('should fall back to default translated error and trigger PiP', () => {
-    const { UNSAFE_getByType, getByText } = render(<VideoPlayer {...defaultProps} />);
+    const { UNSAFE_getByType, getByText } = render(
+      <VideoPlayer {...defaultProps} />,
+    );
     const video = UNSAFE_getByType('video-test');
 
     act(() => {
@@ -189,7 +197,9 @@ describe('VideoPlayer', () => {
 
     expect(getByText('Video error: Failed to load video')).toBeTruthy();
 
-    const { getByText: getFreshByText } = render(<VideoPlayer {...defaultProps} />);
+    const { getByText: getFreshByText } = render(
+      <VideoPlayer {...defaultProps} />,
+    );
     fireEvent.press(getFreshByText('PiP'));
     expect(mockEnterPictureInPicture).toHaveBeenCalled();
   });

@@ -18,7 +18,11 @@ export const useHeaderActions = () => {
   const handleMenuPress = useCallback(() => {
     debugLogger.debug('headerActions', 'Hamburger menu pressed');
     useUIStore.getState().setShowSettings(true);
-    debugLogger.debug('headerActions', 'Settings state updated', useUIStore.getState().showSettings);
+    debugLogger.debug(
+      'headerActions',
+      'Settings state updated',
+      useUIStore.getState().showSettings,
+    );
   }, []);
 
   const handleToggleUserList = useCallback(() => {

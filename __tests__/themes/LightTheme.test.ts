@@ -157,16 +157,20 @@ describe('Themes - LightTheme', () => {
 
   describe('Highlight colors', () => {
     it('should have highlight colors', () => {
-      expect(LIGHT_THEME.colors.highlightBackground).toBe('rgba(33, 150, 243, 0.1)');
+      expect(LIGHT_THEME.colors.highlightBackground).toBe(
+        'rgba(33, 150, 243, 0.1)',
+      );
       expect(LIGHT_THEME.colors.highlightText).toBe('#FF6F00');
-      expect(LIGHT_THEME.colors.selectionBackground).toBe('rgba(33, 150, 243, 0.12)');
+      expect(LIGHT_THEME.colors.selectionBackground).toBe(
+        'rgba(33, 150, 243, 0.12)',
+      );
     });
   });
 
   describe('Contrast with DarkTheme', () => {
     it('should have opposite background colors compared to dark theme', () => {
       const { DARK_THEME } = require('../../src/themes/DarkTheme');
-      
+
       // Light theme should have white-ish background, dark theme dark-ish
       expect(LIGHT_THEME.colors.background).toBe('#FFFFFF');
       expect(DARK_THEME.colors.background).toBe('#121212');
@@ -174,7 +178,7 @@ describe('Themes - LightTheme', () => {
 
     it('should have opposite text colors compared to dark theme', () => {
       const { DARK_THEME } = require('../../src/themes/DarkTheme');
-      
+
       // Light theme should have dark text, dark theme light text
       expect(LIGHT_THEME.colors.text).toBe('#212121');
       expect(DARK_THEME.colors.text).toBe('#FFFFFF');
@@ -202,7 +206,9 @@ describe('Themes - LightTheme', () => {
 
       requiredColors.forEach(color => {
         expect(LIGHT_THEME.colors).toHaveProperty(color);
-        expect(typeof LIGHT_THEME.colors[color as keyof typeof LIGHT_THEME.colors]).toBe('string');
+        expect(
+          typeof LIGHT_THEME.colors[color as keyof typeof LIGHT_THEME.colors],
+        ).toBe('string');
       });
     });
 

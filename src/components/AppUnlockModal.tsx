@@ -37,7 +37,8 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
   colors,
   styles,
 }) => {
-  const { killSwitchCustomName, killSwitchCustomIcon, killSwitchCustomColor } = useSettingsSecurity();
+  const { killSwitchCustomName, killSwitchCustomIcon, killSwitchCustomColor } =
+    useSettingsSecurity();
 
   const handlePinChange = (text: string) => {
     const sanitized = text.replace(/[^0-9]/g, '');
@@ -69,7 +70,8 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={() => {}}>
+      onRequestClose={() => {}}
+    >
       <View style={styles.lockOverlay}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>App Locked</Text>
@@ -85,7 +87,12 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
           )}
           {/* Show error message for both PIN and biometric errors */}
           {!!pinError && (
-            <Text style={[styles.optionText, { color: colors.error, marginTop: 8, marginBottom: 8 }]}>
+            <Text
+              style={[
+                styles.optionText,
+                { color: colors.error, marginTop: 8, marginBottom: 8 },
+              ]}
+            >
               {pinError}
             </Text>
           )}
@@ -93,8 +100,14 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
             {useBiometric && (
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonJoin]}
-                onPress={handleBiometricPress}>
-                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
+                onPress={handleBiometricPress}
+              >
+                <Text
+                  style={[
+                    styles.modalButtonText,
+                    styles.modalButtonTextPrimary,
+                  ]}
+                >
                   Use Biometrics
                 </Text>
               </TouchableOpacity>
@@ -102,21 +115,42 @@ export const AppUnlockModal: React.FC<AppUnlockModalProps> = ({
             {usePin && (
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonJoin]}
-                onPress={onPinUnlock}>
-                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
+                onPress={onPinUnlock}
+              >
+                <Text
+                  style={[
+                    styles.modalButtonText,
+                    styles.modalButtonTextPrimary,
+                  ]}
+                >
                   Unlock
                 </Text>
               </TouchableOpacity>
             )}
           </View>
-          
+
           {/* Kill Switch Button - only show if enabled */}
           {onKillSwitch && (
             <TouchableOpacity
-              style={[styles.killSwitchButton, { borderColor: killSwitchCustomColor }]}
-              onPress={handleKillSwitchPress}>
-              <Icon name={killSwitchCustomIcon} size={16} color={killSwitchCustomColor} solid style={{ marginRight: 8 }} />
-              <Text style={[styles.killSwitchText, { color: killSwitchCustomColor }]}>
+              style={[
+                styles.killSwitchButton,
+                { borderColor: killSwitchCustomColor },
+              ]}
+              onPress={handleKillSwitchPress}
+            >
+              <Icon
+                name={killSwitchCustomIcon}
+                size={16}
+                color={killSwitchCustomColor}
+                solid
+                style={{ marginRight: 8 }}
+              />
+              <Text
+                style={[
+                  styles.killSwitchText,
+                  { color: killSwitchCustomColor },
+                ]}
+              >
                 {killSwitchCustomName}
               </Text>
             </TouchableOpacity>

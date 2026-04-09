@@ -36,7 +36,11 @@ describe('KillCommandHandlers', () => {
     it('adds raw message when other user is killed', () => {
       handleKILL(ctx, 'oper!oper@host', ['OtherNick', 'Flooding'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw', isRaw: true, rawCategory: 'server' })
+        expect.objectContaining({
+          type: 'raw',
+          isRaw: true,
+          rawCategory: 'server',
+        }),
       );
     });
 
@@ -48,10 +52,12 @@ describe('KillCommandHandlers', () => {
     it('handles self-kill with error message and disconnect', () => {
       handleKILL(ctx, 'server!server@host', ['MyNick', 'Flooding'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
       expect(ctx.addRawMessage).toHaveBeenCalledWith(
-        expect.any(String), 'connection', expect.any(Number)
+        expect.any(String),
+        'connection',
+        expect.any(Number),
       );
       expect(ctx.handleKillDisconnect).toHaveBeenCalledWith('Flooding');
     });
@@ -62,9 +68,14 @@ describe('KillCommandHandlers', () => {
     });
 
     it('strips leading colon from kill reason', () => {
-      handleKILL(ctx, 'server!server@host', ['OtherNick', ':reason with colon'], Date.now());
+      handleKILL(
+        ctx,
+        'server!server@host',
+        ['OtherNick', ':reason with colon'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'raw' })
+        expect.objectContaining({ type: 'raw' }),
       );
     });
 
@@ -74,7 +85,12 @@ describe('KillCommandHandlers', () => {
     });
 
     it('joins multi-word kill reason', () => {
-      handleKILL(ctx, 'oper!oper@host', ['OtherNick', 'Too', 'much', 'flooding'], Date.now());
+      handleKILL(
+        ctx,
+        'oper!oper@host',
+        ['OtherNick', 'Too', 'much', 'flooding'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalled();
     });
 

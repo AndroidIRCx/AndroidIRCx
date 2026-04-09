@@ -5,7 +5,9 @@ const hookFiles = fs.readdirSync('src/hooks').filter(f => f.endsWith('.ts'));
 const hookNames = hookFiles.map(f => f.replace('.ts', ''));
 
 // Read test files
-const testFiles = fs.readdirSync('__tests__/hooks').filter(f => f.endsWith('.test.ts'));
+const testFiles = fs
+  .readdirSync('__tests__/hooks')
+  .filter(f => f.endsWith('.test.ts'));
 const testNames = testFiles.map(f => f.replace('.test.ts', ''));
 
 console.log('=== HOOKS WITHOUT TESTS ===');

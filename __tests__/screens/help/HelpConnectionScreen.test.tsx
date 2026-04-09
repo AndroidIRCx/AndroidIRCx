@@ -27,7 +27,7 @@ jest.mock('../../../src/i18n/transifex', () => ({
 describe('HelpConnectionScreen', () => {
   it('renders nothing when not visible', () => {
     const { queryByText } = render(
-      <HelpConnectionScreen visible={false} onClose={jest.fn()} />
+      <HelpConnectionScreen visible={false} onClose={jest.fn()} />,
     );
 
     expect(queryByText('IRC Connection Guide')).toBeNull();
@@ -35,7 +35,7 @@ describe('HelpConnectionScreen', () => {
 
   it('renders connection guide content when visible', () => {
     const { getByText } = render(
-      <HelpConnectionScreen visible onClose={jest.fn()} />
+      <HelpConnectionScreen visible onClose={jest.fn()} />,
     );
 
     expect(getByText('IRC Connection Guide')).toBeTruthy();
@@ -51,7 +51,7 @@ describe('HelpConnectionScreen', () => {
   it('calls onClose when close button is pressed', () => {
     const onClose = jest.fn();
     const { getByLabelText } = render(
-      <HelpConnectionScreen visible onClose={onClose} />
+      <HelpConnectionScreen visible onClose={onClose} />,
     );
 
     fireEvent.press(getByLabelText('Close help screen'));

@@ -12,20 +12,41 @@ console.warn = jest.fn();
 
 const originalConsoleError = console.error;
 console.error = (...args: any[]) => {
-  const combined = args.map(arg => (typeof arg === 'string' ? arg : '')).join(' ');
-  if (combined.includes('was not wrapped in act') &&
-      (combined.includes('VirtualizedList') ||
-        combined.includes('AppearanceSection') ||
-        combined.includes('PrivacyRelayScreen'))) {
+  const combined = args
+    .map(arg => (typeof arg === 'string' ? arg : ''))
+    .join(' ');
+  if (
+    combined.includes('was not wrapped in act') &&
+    (combined.includes('VirtualizedList') ||
+      combined.includes('Animated(') ||
+      combined.includes('AppearanceSection') ||
+      combined.includes('PrivacyRelayScreen') ||
+      combined.includes('SettingsScreen'))
+  ) {
     return;
   }
   originalConsoleError(...args);
 };
 
+afterEach(() => {
+  try {
+    jest.runOnlyPendingTimers();
+  } catch {
+    // Ignore when fake timers are not active for the current test.
+  }
+  try {
+    jest.useRealTimers();
+  } catch {
+    // Ignore when the environment is already using real timers.
+  }
+});
+
 jest.mock('@react-native-async-storage/async-storage', () => {
   const asyncStore = new Map<string, string>();
   const mock = {
-    getItem: jest.fn(async (key: string) => (asyncStore.has(key) ? asyncStore.get(key)! : null)),
+    getItem: jest.fn(async (key: string) =>
+      asyncStore.has(key) ? asyncStore.get(key)! : null,
+    ),
     setItem: jest.fn(async (key: string, value: string) => {
       asyncStore.set(key, value);
     }),
@@ -36,7 +57,10 @@ jest.mock('@react-native-async-storage/async-storage', () => {
       asyncStore.clear();
     }),
     multiGet: jest.fn(async (keys: string[]) => {
-      return keys.map(key => [key, asyncStore.has(key) ? asyncStore.get(key)! : null]);
+      return keys.map(key => [
+        key,
+        asyncStore.has(key) ? asyncStore.get(key)! : null,
+      ]);
     }),
     multiSet: jest.fn(async (pairs: [string, string][]) => {
       pairs.forEach(([key, value]) => asyncStore.set(key, value));
@@ -71,6 +95,9 @@ jest.mock('react-native-bootsplash', () => ({
   setBackgroundColor: jest.fn(),
   setMinimumBackgroundDuration: jest.fn(),
 }));
+
+// Prevent RN Animated native driver state from leaking across tests.
+jest.mock('react-native/src/private/animated/NativeAnimatedHelper');
 
 jest.mock('react-native-webrtc', () => {
   const React = require('react');
@@ -154,7 +181,8 @@ jest.mock('react-native-webrtc', () => {
   }
 
   return {
-    RTCView: (props: any) => React.createElement('RTCView', props, props?.children),
+    RTCView: (props: any) =>
+      React.createElement('RTCView', props, props?.children),
     mediaDevices: {
       getUserMedia: jest.fn(async () => new MockMediaStream()),
       enumerateDevices: jest.fn(async () => []),
@@ -168,13 +196,17 @@ jest.mock('react-native-webrtc', () => {
 
 // React Native 0.83 ActivityIndicator jest mock can break when requireActual
 // resolves to an unexpected shape. Keep a local deterministic mock instead.
-jest.mock('react-native/Libraries/Components/ActivityIndicator/ActivityIndicator', () => {
-  const React = require('react');
-  return {
-    __esModule: true,
-    default: (props: any) => React.createElement('ActivityIndicator', props, props?.children),
-  };
-});
+jest.mock(
+  'react-native/Libraries/Components/ActivityIndicator/ActivityIndicator',
+  () => {
+    const React = require('react');
+    return {
+      __esModule: true,
+      default: (props: any) =>
+        React.createElement('ActivityIndicator', props, props?.children),
+    };
+  },
+);
 
 // Silence VirtualizedList act warnings in tests by rendering as a simple View.
 jest.mock('react-native/Libraries/Lists/VirtualizedList', () => {
@@ -289,9 +321,9 @@ jest.mock('./src/hooks/useSettingsConnection', () => ({
 // Mock native modules that need transformation
 jest.mock('react-native-sound', () => {
   const mockInstance = {
-    play: jest.fn((callback) => callback && callback(true)),
+    play: jest.fn(callback => callback && callback(true)),
     pause: jest.fn(),
-    stop: jest.fn((callback) => callback && callback()),
+    stop: jest.fn(callback => callback && callback()),
     release: jest.fn(),
     setVolume: jest.fn(),
     setNumberOfLoops: jest.fn(),
@@ -320,7 +352,10 @@ jest.mock('react-native-fs', () => ({
   exists: jest.fn().mockResolvedValue(true),
   mkdir: jest.fn().mockResolvedValue(undefined),
   unlink: jest.fn().mockResolvedValue(undefined),
-  downloadFile: jest.fn().mockResolvedValue({ jobId: 1, promise: Promise.resolve({ statusCode: 200 }) }),
+  downloadFile: jest.fn().mockResolvedValue({
+    jobId: 1,
+    promise: Promise.resolve({ statusCode: 200 }),
+  }),
 }));
 
 jest.mock('react-native-google-mobile-ads', () => {
@@ -343,7 +378,9 @@ jest.mock('react-native-google-mobile-ads', () => {
     AdsConsent: {
       requestInfoUpdate: jest.fn().mockResolvedValue({ status: 3 }),
       showForm: jest.fn().mockResolvedValue({ status: 3 }),
-      loadAndShowConsentFormIfRequired: jest.fn().mockResolvedValue({ status: 3 }),
+      loadAndShowConsentFormIfRequired: jest
+        .fn()
+        .mockResolvedValue({ status: 3 }),
       reset: jest.fn().mockResolvedValue(undefined),
     },
     AdsConsentStatus: {
@@ -366,7 +403,11 @@ jest.mock('react-native-google-mobile-ads', () => {
         show: jest.fn(),
         addAdEventListener: jest.fn((event, cb) => {
           if (!cb) return;
-          if (event === 'LOADED' || event === 'loaded' || event === 'RewardedAdEventType.LOADED') {
+          if (
+            event === 'LOADED' ||
+            event === 'loaded' ||
+            event === 'RewardedAdEventType.LOADED'
+          ) {
             cb();
           }
           if (event === 'EARNED_REWARD' || event === 'earned_reward') {
@@ -395,7 +436,9 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 }));
 
 jest.mock('react-native-fs', () => ({
-  downloadFile: jest.fn(() => ({ promise: Promise.resolve({ statusCode: 200 }) })),
+  downloadFile: jest.fn(() => ({
+    promise: Promise.resolve({ statusCode: 200 }),
+  })),
   readFile: jest.fn().mockResolvedValue(''),
   exists: jest.fn().mockResolvedValue(false),
   unlink: jest.fn().mockResolvedValue(undefined),
@@ -425,7 +468,9 @@ jest.mock('@notifee/react-native', () => ({
   onBackgroundEvent: jest.fn(),
   displayNotification: jest.fn().mockResolvedValue(undefined),
   cancelAllNotifications: jest.fn().mockResolvedValue(undefined),
-  getNotificationSettings: jest.fn().mockResolvedValue({ authorizationStatus: 1 }),
+  getNotificationSettings: jest
+    .fn()
+    .mockResolvedValue({ authorizationStatus: 1 }),
   requestPermission: jest.fn().mockResolvedValue({ authorizationStatus: 1 }),
   setNotificationCategories: jest.fn(),
   createChannel: jest.fn().mockResolvedValue('channel'),
@@ -437,7 +482,9 @@ jest.mock('@notifee/react-native', () => ({
     onBackgroundEvent: jest.fn(),
     displayNotification: jest.fn().mockResolvedValue(undefined),
     cancelAllNotifications: jest.fn().mockResolvedValue(undefined),
-    getNotificationSettings: jest.fn().mockResolvedValue({ authorizationStatus: 1 }),
+    getNotificationSettings: jest
+      .fn()
+      .mockResolvedValue({ authorizationStatus: 1 }),
     requestPermission: jest.fn().mockResolvedValue({ authorizationStatus: 1 }),
     setNotificationCategories: jest.fn(),
     createChannel: jest.fn().mockResolvedValue('channel'),
@@ -497,9 +544,12 @@ jest.mock('react-native-libsodium', () => {
     crypto_generichash: (len: number) => makeBytes(len, 17),
     randombytes_buf: (len: number) => makeBytes(len, 21),
     crypto_aead_xchacha20poly1305_ietf_NPUBBYTES: 24,
-    crypto_aead_xchacha20poly1305_ietf_encrypt: (message: Uint8Array) => Uint8Array.from(message),
-    crypto_aead_xchacha20poly1305_ietf_decrypt: (_secret: any, cipher: Uint8Array) =>
-      Uint8Array.from(cipher),
+    crypto_aead_xchacha20poly1305_ietf_encrypt: (message: Uint8Array) =>
+      Uint8Array.from(message),
+    crypto_aead_xchacha20poly1305_ietf_decrypt: (
+      _secret: any,
+      cipher: Uint8Array,
+    ) => Uint8Array.from(cipher),
     crypto_pwhash_SALTBYTES: 16,
     crypto_pwhash_OPSLIMIT_INTERACTIVE: 2,
     crypto_pwhash_MEMLIMIT_INTERACTIVE: 67108864,
@@ -515,11 +565,13 @@ jest.mock('react-native-libsodium', () => {
 jest.mock('react-native-keychain', () => {
   const keychainStore = new Map<string, any>();
   return {
-    setGenericPassword: jest.fn(async (username: string, password: string, options?: any) => {
-      const key = options?.service || 'default';
-      keychainStore.set(key, { username, password });
-      return true;
-    }),
+    setGenericPassword: jest.fn(
+      async (username: string, password: string, options?: any) => {
+        const key = options?.service || 'default';
+        keychainStore.set(key, { username, password });
+        return true;
+      },
+    ),
     getGenericPassword: jest.fn(async (options?: any) => {
       const key = options?.service || 'default';
       const data = keychainStore.get(key);
@@ -535,10 +587,12 @@ jest.mock('react-native-keychain', () => {
       keychainStore.delete(key);
       return true;
     }),
-    setInternetCredentials: jest.fn(async (server: string, username: string, password: string) => {
-      keychainStore.set(`internet:${server}`, { username, password });
-      return true;
-    }),
+    setInternetCredentials: jest.fn(
+      async (server: string, username: string, password: string) => {
+        keychainStore.set(`internet:${server}`, { username, password });
+        return true;
+      },
+    ),
     getInternetCredentials: jest.fn(async (server: string) => {
       const data = keychainStore.get(`internet:${server}`);
       if (!data) return false;
@@ -629,7 +683,9 @@ jest.mock('react-native-nitro-sound', () => {
     removePlayBackListener: jest.fn(),
   };
 
-  const MockAudioRecorderPlayer = jest.fn().mockImplementation(() => mockInstance);
+  const MockAudioRecorderPlayer = jest
+    .fn()
+    .mockImplementation(() => mockInstance);
 
   return {
     __esModule: true,
@@ -654,7 +710,12 @@ jest.mock('react-native-nfc-manager', () => ({
 
 jest.mock('react-native-localize', () => ({
   getLocales: jest.fn(() => [
-    { countryCode: 'US', languageTag: 'en-US', languageCode: 'en', isRTL: false },
+    {
+      countryCode: 'US',
+      languageTag: 'en-US',
+      languageCode: 'en',
+      isRTL: false,
+    },
   ]),
   getNumberFormatSettings: jest.fn(() => ({
     decimalSeparator: '.',
@@ -852,7 +913,9 @@ jest.mock('react-native-iap', () => ({
   getAvailablePurchases: jest.fn().mockResolvedValue([]),
   requestPurchase: jest.fn().mockResolvedValue({}),
   finishTransaction: jest.fn().mockResolvedValue(undefined),
-  flushFailedPurchasesCachedAsPendingAndroid: jest.fn().mockResolvedValue(undefined),
+  flushFailedPurchasesCachedAsPendingAndroid: jest
+    .fn()
+    .mockResolvedValue(undefined),
   purchaseUpdatedListener: jest.fn(() => ({ remove: jest.fn() })),
   purchaseErrorListener: jest.fn(() => ({ remove: jest.fn() })),
   ProductType: {

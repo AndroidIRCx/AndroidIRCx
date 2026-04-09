@@ -36,18 +36,39 @@ interface IRCServiceCommandInterface {
   addRawMessage: (text: string, category: string, timestamp?: number) => void;
   emit: (event: string, ...args: any[]) => void;
   extractNick: (prefix: string) => string;
-  parseCTCP: (message: string) => { isCTCP: boolean; command?: string; args?: string };
+  parseCTCP: (message: string) => {
+    isCTCP: boolean;
+    command?: string;
+    args?: string;
+  };
   getNetworkName: () => string;
   currentNick: string;
   getUserManagementService: () => any;
-  getProtectionTabContext: (target: string, from: string, isChannel: boolean) => any;
-  handleProtectionBlock: (kind: string, nick: string, username?: string, hostname?: string, channel?: string | null) => void;
-  extractMaskFromNotice: (text: string) => { nick: string; username?: string; hostname?: string } | null;
+  getProtectionTabContext: (
+    target: string,
+    from: string,
+    isChannel: boolean,
+  ) => any;
+  handleProtectionBlock: (
+    kind: string,
+    nick: string,
+    username?: string,
+    hostname?: string,
+    channel?: string | null,
+  ) => void;
+  extractMaskFromNotice: (
+    text: string,
+  ) => { nick: string; username?: string; hostname?: string } | null;
   runBlacklistAction: (entry: any, context: any) => void;
   logRaw: (message: string) => void;
   handleServerError: (errorText: string) => void;
   decodeIfBase64Like: (value: string) => string;
-  handleBatchStart: (refTag: string, type: string, params: string[], timestamp: number) => void;
+  handleBatchStart: (
+    refTag: string,
+    type: string,
+    params: string[],
+    timestamp: number,
+  ) => void;
   handleBatchEnd: (refTag: string, timestamp: number) => void;
   handleCAPCommand: (params: string[]) => void;
   channelTopics: Map<string, any>;
@@ -70,7 +91,8 @@ export class IRCCommandHandlers {
   private createContext(): CommandHandlerContext {
     const svc = this.service;
     return {
-      addMessage: (msg: any, batchTag?: string) => svc.addMessage(msg, batchTag),
+      addMessage: (msg: any, batchTag?: string) =>
+        svc.addMessage(msg, batchTag),
       addRawMessage: (text: string, category: string, timestamp?: number) =>
         svc.addRawMessage(text, category, timestamp),
       emit: (event: string, ...args: any[]) => svc.emit(event, ...args),
@@ -79,30 +101,54 @@ export class IRCCommandHandlers {
       getNetworkName: () => svc.getNetworkName(),
       getCurrentNick: () => svc.currentNick,
       getUserManagementService: () => svc.getUserManagementService(),
-      getProtectionTabContext: (target: string, from: string, isChannel: boolean) =>
-        svc.getProtectionTabContext(target, from, isChannel),
-      handleProtectionBlock: (kind: string, nick: string, username?: string, hostname?: string, channel?: string | null) =>
-        svc.handleProtectionBlock(kind, nick, username, hostname, channel),
+      getProtectionTabContext: (
+        target: string,
+        from: string,
+        isChannel: boolean,
+      ) => svc.getProtectionTabContext(target, from, isChannel),
+      handleProtectionBlock: (
+        kind: string,
+        nick: string,
+        username?: string,
+        hostname?: string,
+        channel?: string | null,
+      ) => svc.handleProtectionBlock(kind, nick, username, hostname, channel),
       extractMaskFromNotice: (text: string) => svc.extractMaskFromNotice(text),
-      runBlacklistAction: (entry: any, context: any) => svc.runBlacklistAction(entry, context),
+      runBlacklistAction: (entry: any, context: any) =>
+        svc.runBlacklistAction(entry, context),
       logRaw: (message: string) => svc.logRaw(message),
-      handleServerError: (errorText: string) => (svc as any).handleServerError(errorText),
-      decodeIfBase64Like: (value: string) => (svc as any).decodeIfBase64Like?.(value) ?? value,
-      handleBatchStart: (refTag: string, type: string, params: string[], timestamp: number) =>
-        (svc as any).handleBatchStart(refTag, type, params, timestamp),
+      handleServerError: (errorText: string) =>
+        (svc as any).handleServerError(errorText),
+      decodeIfBase64Like: (value: string) =>
+        (svc as any).decodeIfBase64Like?.(value) ?? value,
+      handleBatchStart: (
+        refTag: string,
+        type: string,
+        params: string[],
+        timestamp: number,
+      ) => (svc as any).handleBatchStart(refTag, type, params, timestamp),
       handleBatchEnd: (refTag: string, timestamp: number) =>
         (svc as any).handleBatchEnd(refTag, timestamp),
-      handleCAPCommand: (params: string[]) => (svc as any).handleCAPCommand(params),
-      getChannelTopicInfo: (channel: string) => (svc as any).channelTopics?.get(channel) || {},
-      setChannelTopicInfo: (channel: string, info: any) => (svc as any).channelTopics?.set(channel, info),
-      maybeEmitChannelIntro: (channel: string, timestamp: number) => (svc as any).maybeEmitChannelIntro(channel, timestamp),
+      handleCAPCommand: (params: string[]) =>
+        (svc as any).handleCAPCommand(params),
+      getChannelTopicInfo: (channel: string) =>
+        (svc as any).channelTopics?.get(channel) || {},
+      setChannelTopicInfo: (channel: string, info: any) =>
+        (svc as any).channelTopics?.set(channel, info),
+      maybeEmitChannelIntro: (channel: string, timestamp: number) =>
+        (svc as any).maybeEmitChannelIntro(channel, timestamp),
       handleChannelModeChange: (channel: string, modeParams: string[]) =>
         (svc as any).handleChannelModeChange(channel, modeParams),
-      updateSelfUserModes: (modeString: string) => (svc as any).updateSelfUserModes(modeString),
-      getChannelUsers: (channel: string) => (svc as any).channelUsers?.get(channel),
-      updateChannelUserList: (channel: string) => (svc as any).updateChannelUserList(channel),
+      updateSelfUserModes: (modeString: string) =>
+        (svc as any).updateSelfUserModes(modeString),
+      getChannelUsers: (channel: string) =>
+        (svc as any).channelUsers?.get(channel),
+      updateChannelUserList: (channel: string) =>
+        (svc as any).updateChannelUserList(channel),
       getAllChannelUsers: () => (svc as any).channelUsers,
-      setCurrentNick: (nick: string) => { (svc as any).currentNick = nick; },
+      setCurrentNick: (nick: string) => {
+        (svc as any).currentNick = nick;
+      },
       hasUser: (channel: string, nick: string) => {
         const users = (svc as any).channelUsers?.get(channel);
         return users ? users.has(nick.toLowerCase()) : false;
@@ -123,16 +169,28 @@ export class IRCCommandHandlers {
         }
         return users;
       },
-      runBlacklistCheckForJoin: (nick: string, username?: string, hostname?: string, channel?: string) => {
+      runBlacklistCheckForJoin: (
+        nick: string,
+        username?: string,
+        hostname?: string,
+        channel?: string,
+      ) => {
         const network = (svc as any).getNetworkName();
         const userMgmtService = (svc as any).getUserManagementService();
-        
+
         // Skip blacklist action if user is protected
-        if (userMgmtService.isUserProtected(nick, username, hostname, network)) {
+        if (
+          userMgmtService.isUserProtected(nick, username, hostname, network)
+        ) {
           return;
         }
-        
-        const entry = userMgmtService.findMatchingBlacklistEntry(nick, username, hostname, network);
+
+        const entry = userMgmtService.findMatchingBlacklistEntry(
+          nick,
+          username,
+          hostname,
+          network,
+        );
         if (entry) {
           (svc as any).runBlacklistAction(entry, {
             nick,
@@ -143,13 +201,23 @@ export class IRCCommandHandlers {
           });
         }
       },
-      runAutoModeCheckForJoin: (nick: string, username?: string, hostname?: string, channel?: string) => {
+      runAutoModeCheckForJoin: (
+        nick: string,
+        username?: string,
+        hostname?: string,
+        channel?: string,
+      ) => {
         if (!channel) return;
         const network = (svc as any).getNetworkName();
         const userMgmtService = (svc as any).getUserManagementService();
-        const channelUsers = (svc as any).channelUsers as Map<string, Map<string, { modes: string[] }>>;
-        const retryTimers: Map<string, ReturnType<typeof setTimeout>> = (svc as any)._autoModeRetryTimers
-          || new Map<string, ReturnType<typeof setTimeout>>();
+        const channelUsers = (svc as any).channelUsers as Map<
+          string,
+          Map<string, { modes: string[] }>
+        >;
+        const retryTimers: Map<string, ReturnType<typeof setTimeout>> = (
+          svc as any
+        )._autoModeRetryTimers ||
+        new Map<string, ReturnType<typeof setTimeout>>();
         (svc as any)._autoModeRetryTimers = retryTimers;
 
         const retryKey = `${network}:${channel}:${nick.toLowerCase()}`;
@@ -163,15 +231,29 @@ export class IRCCommandHandlers {
           const targetUser = usersInChannel?.get(nick.toLowerCase());
           const targetModes = targetUser?.modes || [];
 
-          const hasOp = myModes.includes('o') || myModes.includes('q') || myModes.includes('a');
+          const hasOp =
+            myModes.includes('o') ||
+            myModes.includes('q') ||
+            myModes.includes('a');
           const hasHalfop = hasOp || myModes.includes('h');
           // Voice users cannot usually grant +v; require halfop/op-level grant privileges.
           const hasVoiceGrant = hasHalfop;
 
           // Check autoop list
-          const autoOpEntry = userMgmtService.findMatchingUserListEntry('autoop', nick, username, hostname, network, channel);
+          const autoOpEntry = userMgmtService.findMatchingUserListEntry(
+            'autoop',
+            nick,
+            username,
+            hostname,
+            network,
+            channel,
+          );
           if (autoOpEntry) {
-            if (targetModes.includes('o') || targetModes.includes('q') || targetModes.includes('a')) {
+            if (
+              targetModes.includes('o') ||
+              targetModes.includes('q') ||
+              targetModes.includes('a')
+            ) {
               return;
             }
             if (hasOp) {
@@ -181,9 +263,21 @@ export class IRCCommandHandlers {
           }
 
           // Check autohalfop list
-          const autoHalfopEntry = userMgmtService.findMatchingUserListEntry('autohalfop', nick, username, hostname, network, channel);
+          const autoHalfopEntry = userMgmtService.findMatchingUserListEntry(
+            'autohalfop',
+            nick,
+            username,
+            hostname,
+            network,
+            channel,
+          );
           if (autoHalfopEntry) {
-            if (targetModes.includes('h') || targetModes.includes('o') || targetModes.includes('q') || targetModes.includes('a')) {
+            if (
+              targetModes.includes('h') ||
+              targetModes.includes('o') ||
+              targetModes.includes('q') ||
+              targetModes.includes('a')
+            ) {
               return;
             }
             if (hasOp) {
@@ -193,9 +287,22 @@ export class IRCCommandHandlers {
           }
 
           // Check autovoice list
-          const autoVoiceEntry = userMgmtService.findMatchingUserListEntry('autovoice', nick, username, hostname, network, channel);
+          const autoVoiceEntry = userMgmtService.findMatchingUserListEntry(
+            'autovoice',
+            nick,
+            username,
+            hostname,
+            network,
+            channel,
+          );
           if (autoVoiceEntry) {
-            if (targetModes.includes('v') || targetModes.includes('h') || targetModes.includes('o') || targetModes.includes('q') || targetModes.includes('a')) {
+            if (
+              targetModes.includes('v') ||
+              targetModes.includes('h') ||
+              targetModes.includes('o') ||
+              targetModes.includes('q') ||
+              targetModes.includes('a')
+            ) {
               return;
             }
             if (hasVoiceGrant) {
@@ -206,8 +313,15 @@ export class IRCCommandHandlers {
 
           // If list entry exists but we don't have privileges yet, retry once shortly.
           // This helps when our op/halfop arrives after JOIN burst.
-          const hasAnyAutoModeEntry = Boolean(autoOpEntry || autoHalfopEntry || autoVoiceEntry);
-          if (retriesRemaining > 0 && hasAnyAutoModeEntry && (svc as any).isConnected === true && !retryTimers.has(retryKey)) {
+          const hasAnyAutoModeEntry = Boolean(
+            autoOpEntry || autoHalfopEntry || autoVoiceEntry,
+          );
+          if (
+            retriesRemaining > 0 &&
+            hasAnyAutoModeEntry &&
+            (svc as any).isConnected === true &&
+            !retryTimers.has(retryKey)
+          ) {
             const retryTimer = setTimeout(() => {
               retryTimers.delete(retryKey);
               // User might have left before retry
@@ -224,32 +338,74 @@ export class IRCCommandHandlers {
         attemptAutoMode(3);
       },
       isExtendedJoinEnabled: () => Boolean((svc as any).extendedJoin),
-      emitJoinedChannel: (channel: string) => (svc as any).emit('joinedChannel', channel),
-      addPendingChannelIntro: (channel: string) => (svc as any).pendingChannelIntro?.add(channel),
-      emitPart: (channel: string, nick: string) => (svc as any).emit('part', channel, nick),
-      emitConnection: (connected: boolean) => (svc as any).emitConnection(connected),
-      handleKillDisconnect: (reason: string) => (svc as any).handleKillDisconnect(reason),
+      emitJoinedChannel: (channel: string) =>
+        (svc as any).emit('joinedChannel', channel),
+      addPendingChannelIntro: (channel: string) =>
+        (svc as any).pendingChannelIntro?.add(channel),
+      emitPart: (channel: string, nick: string) =>
+        (svc as any).emit('part', channel, nick),
+      emitConnection: (connected: boolean) =>
+        (svc as any).emitConnection(connected),
+      handleKillDisconnect: (reason: string) =>
+        (svc as any).handleKillDisconnect(reason),
       sendSASLCredentials: () => (svc as any).sendSASLCredentials(),
-      setSaslAuthenticating: (value: boolean) => { (svc as any).saslAuthenticating = value; },
+      setSaslAuthenticating: (value: boolean) => {
+        (svc as any).saslAuthenticating = value;
+      },
       getSaslMechanism: () => (svc as any).saslMechanism,
       getSaslState: () => (svc as any).saslState,
-      handleScramServerFirst: (message: string) => (svc as any).handleScramServerFirst(message),
-      handleScramServerFinal: (message: string) => (svc as any).handleScramServerFinal(message),
+      handleScramServerFirst: (message: string) =>
+        (svc as any).handleScramServerFirst(message),
+      handleScramServerFinal: (message: string) =>
+        (svc as any).handleScramServerFinal(message),
       sendRaw: (command: string) => (svc as any).sendRaw(command),
-      handleCTCPRequest: (from: string, target: string, command: string, args?: string) =>
-        (svc as any).handleCTCPRequest(from, target, command, args),
-      isUserIgnored: (nick: string, username?: string, hostname?: string, network?: string) =>
-        (svc as any).getUserManagementService().isUserIgnored(nick, username, hostname, network),
-      isUserProtected: (nick: string, username?: string, hostname?: string, network?: string) =>
-        (svc as any).getUserManagementService().isUserProtected(nick, username, hostname, network),
+      handleCTCPRequest: (
+        from: string,
+        target: string,
+        command: string,
+        args?: string,
+      ) => (svc as any).handleCTCPRequest(from, target, command, args),
+      isUserIgnored: (
+        nick: string,
+        username?: string,
+        hostname?: string,
+        network?: string,
+      ) =>
+        (svc as any)
+          .getUserManagementService()
+          .isUserIgnored(nick, username, hostname, network),
+      isUserProtected: (
+        nick: string,
+        username?: string,
+        hostname?: string,
+        network?: string,
+      ) =>
+        (svc as any)
+          .getUserManagementService()
+          .isUserProtected(nick, username, hostname, network),
       evaluateProtectionDecision: (message: any, context: any) => {
-        const protectionService = require('../ProtectionService').protectionService;
+        const protectionService =
+          require('../ProtectionService').protectionService;
         return protectionService.evaluateIncomingMessage(message, context);
       },
-      handleMultilineMessage: (from: string, target: string, text: string, concatTag: string | undefined, otherTags: any) =>
-        (svc as any).handleMultilineMessage(from, target, text, concatTag, otherTags),
-      getEncryptedDMService: () => require('../EncryptedDMService').encryptedDMService,
-      getChannelEncryptionService: () => require('../ChannelEncryptionService').channelEncryptionService,
+      handleMultilineMessage: (
+        from: string,
+        target: string,
+        text: string,
+        concatTag: string | undefined,
+        otherTags: any,
+      ) =>
+        (svc as any).handleMultilineMessage(
+          from,
+          target,
+          text,
+          concatTag,
+          otherTags,
+        ),
+      getEncryptedDMService: () =>
+        require('../EncryptedDMService').encryptedDMService,
+      getChannelEncryptionService: () =>
+        require('../ChannelEncryptionService').channelEncryptionService,
     };
   }
 
@@ -266,7 +422,7 @@ export class IRCCommandHandlers {
     for (const [command, handler] of userStateCommandHandlers) {
       this.handlers.set(command, handler);
     }
-for (const [command, handler] of readMarkerCommandHandlers) {
+    for (const [command, handler] of readMarkerCommandHandlers) {
       this.handlers.set(command, handler);
     }
     for (const [command, handler] of batchCommandHandlers) {
@@ -326,7 +482,7 @@ for (const [command, handler] of readMarkerCommandHandlers) {
       typingTag?: string;
       multilineConcatTag?: string;
       intentTag?: string;
-    }
+    },
   ): boolean {
     const handler = this.handlers.get(command.toUpperCase());
     if (handler) {
@@ -335,7 +491,11 @@ for (const [command, handler] of readMarkerCommandHandlers) {
     }
     // Default: display unhandled commands as raw
     const fullMessage = `${prefix ? `:${prefix} ` : ''}${command} ${params.join(' ')}`;
-    this.ctx.addRawMessage(`*** RAW Command: ${fullMessage}`, 'server', timestamp);
+    this.ctx.addRawMessage(
+      `*** RAW Command: ${fullMessage}`,
+      'server',
+      timestamp,
+    );
     return false;
   }
 }

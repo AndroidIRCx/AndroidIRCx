@@ -14,8 +14,9 @@ jest.mock('../../src/i18n/transifex', () => ({
     }
 
     return Object.entries(params).reduce(
-      (result, [paramKey, value]) => result.replace(`{${paramKey}}`, String(value)),
-      key
+      (result, [paramKey, value]) =>
+        result.replace(`{${paramKey}}`, String(value)),
+      key,
     );
   },
 }));
@@ -61,7 +62,8 @@ jest.mock('../../src/screens/NetworkSettingsScreen', () => ({
               nick: 'nick',
               servers: [],
             })
-          }>
+          }
+        >
           Save Network
         </Text>
         <Text onPress={onCancel}>Cancel Network Settings</Text>
@@ -75,7 +77,9 @@ jest.mock('../../src/screens/ServerSettingsScreen', () => ({
     const { Text } = require('react-native');
     return (
       <>
-        <Text>Mock Server Settings {networkId}:{serverId ?? 'new'}</Text>
+        <Text>
+          Mock Server Settings {networkId}:{serverId ?? 'new'}
+        </Text>
         <Text
           onPress={() =>
             onSave({
@@ -84,7 +88,8 @@ jest.mock('../../src/screens/ServerSettingsScreen', () => ({
               port: 6697,
               ssl: true,
             })
-          }>
+          }
+        >
           Save Server
         </Text>
         <Text onPress={onCancel}>Cancel Server Settings</Text>
@@ -96,7 +101,9 @@ jest.mock('../../src/screens/ServerSettingsScreen', () => ({
 jest.mock('../../src/screens/ConnectionProfilesScreen', () => ({
   ConnectionProfilesScreen: ({ visible, onClose }: any) => {
     const { Text } = require('react-native');
-    return visible ? <Text onPress={onClose}>Mock Connection Profiles</Text> : null;
+    return visible ? (
+      <Text onPress={onClose}>Mock Connection Profiles</Text>
+    ) : null;
   },
 }));
 
@@ -108,7 +115,9 @@ jest.mock('../../src/services/IrcDatabaseImportService', () => ({
 }));
 
 const { settingsService } = require('../../src/services/SettingsService');
-const { ircDatabaseImportService } = require('../../src/services/IrcDatabaseImportService');
+const {
+  ircDatabaseImportService,
+} = require('../../src/services/IrcDatabaseImportService');
 
 describe('NetworksListScreen', () => {
   beforeEach(() => {
@@ -120,15 +129,36 @@ describe('NetworksListScreen', () => {
         name: 'Freenode',
         nick: 'tester',
         servers: [
-          { id: 'srv-1', hostname: 'irc.one.net', port: 6667, ssl: false, favorite: false },
-          { id: 'srv-2', name: 'SSL Server', hostname: 'irc.two.net', port: 6697, ssl: true, favorite: true },
+          {
+            id: 'srv-1',
+            hostname: 'irc.one.net',
+            port: 6667,
+            ssl: false,
+            favorite: false,
+          },
+          {
+            id: 'srv-2',
+            name: 'SSL Server',
+            hostname: 'irc.two.net',
+            port: 6697,
+            ssl: true,
+            favorite: true,
+          },
         ],
       },
       {
         id: 'net-2',
         name: 'Libera',
         nick: 'tester2',
-        servers: [{ id: 'srv-3', hostname: 'irc.libera.net', port: 6697, ssl: true, favorite: false }],
+        servers: [
+          {
+            id: 'srv-3',
+            hostname: 'irc.libera.net',
+            port: 6697,
+            ssl: true,
+            favorite: false,
+          },
+        ],
       },
     ]);
     settingsService.addNetwork.mockResolvedValue(undefined);
@@ -152,7 +182,7 @@ describe('NetworksListScreen', () => {
 
   it('loads and renders networks with servers', async () => {
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     expect(await findByText('Networks')).toBeTruthy();
@@ -165,7 +195,10 @@ describe('NetworksListScreen', () => {
     const onSelectNetwork = jest.fn();
     const onClose = jest.fn();
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={onSelectNetwork} onClose={onClose} />
+      <NetworksListScreen
+        onSelectNetwork={onSelectNetwork}
+        onClose={onClose}
+      />,
     );
 
     fireEvent.press(await findByText('Freenode'));
@@ -173,7 +206,7 @@ describe('NetworksListScreen', () => {
     await waitFor(() => {
       expect(onSelectNetwork).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'net-1', name: 'Freenode' }),
-        undefined
+        undefined,
       );
     });
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -183,7 +216,10 @@ describe('NetworksListScreen', () => {
     const onSelectNetwork = jest.fn();
     const onClose = jest.fn();
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={onSelectNetwork} onClose={onClose} />
+      <NetworksListScreen
+        onSelectNetwork={onSelectNetwork}
+        onClose={onClose}
+      />,
     );
 
     fireEvent.press(await findByText(/SSL Server/));
@@ -191,7 +227,7 @@ describe('NetworksListScreen', () => {
     await waitFor(() => {
       expect(onSelectNetwork).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'net-1' }),
-        'srv-2'
+        'srv-2',
       );
     });
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -199,7 +235,7 @@ describe('NetworksListScreen', () => {
 
   it('opens connection profiles modal', async () => {
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Identity Profiles'));
@@ -209,22 +245,30 @@ describe('NetworksListScreen', () => {
 
   it('opens IRC Database info modal', async () => {
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Reload from IRC Database'));
 
     expect(await findByText('Reload Networks from IRC Database')).toBeTruthy();
     expect(await findByText('Update from IRC Database')).toBeTruthy();
-    expect(await findByText('AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.')).toBeTruthy();
-    expect(await findByText('https://irc.dbase.in.rs/privacy-policy')).toBeTruthy();
-    expect(await findByText('https://irc.dbase.in.rs/terms-of-service')).toBeTruthy();
+    expect(
+      await findByText(
+        'AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.',
+      ),
+    ).toBeTruthy();
+    expect(
+      await findByText('https://irc.dbase.in.rs/privacy-policy'),
+    ).toBeTruthy();
+    expect(
+      await findByText('https://irc.dbase.in.rs/terms-of-service'),
+    ).toBeTruthy();
     expect(ircDatabaseImportService.loadCatalog).not.toHaveBeenCalled();
   });
 
   it('closes IRC Database info modal on cancel', async () => {
     const { findByText, queryByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Reload from IRC Database'));
@@ -239,14 +283,16 @@ describe('NetworksListScreen', () => {
 
   it('imports networks from IRC Database and refreshes list', async () => {
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Reload from IRC Database'));
     fireEvent.press(await findByText('Update from IRC Database'));
 
     await waitFor(() => {
-      expect(ircDatabaseImportService.importFromIrcDatabase).toHaveBeenCalledTimes(1);
+      expect(
+        ircDatabaseImportService.importFromIrcDatabase,
+      ).toHaveBeenCalledTimes(1);
     });
     await waitFor(() => {
       expect(settingsService.loadNetworks).toHaveBeenCalledTimes(2);
@@ -255,14 +301,16 @@ describe('NetworksListScreen', () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Import completed',
-      expect.stringContaining('Imported: 2 networks (3 servers)')
+      expect.stringContaining('Imported: 2 networks (3 servers)'),
     );
   });
 
   it('shows import error alert when IRC Database import fails', async () => {
-    ircDatabaseImportService.importFromIrcDatabase.mockRejectedValueOnce(new Error('Network down'));
+    ircDatabaseImportService.importFromIrcDatabase.mockRejectedValueOnce(
+      new Error('Network down'),
+    );
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Reload from IRC Database'));
@@ -271,7 +319,7 @@ describe('NetworksListScreen', () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Import failed',
-        expect.stringContaining('Network down')
+        expect.stringContaining('Network down'),
       );
     });
   });
@@ -282,11 +330,11 @@ describe('NetworksListScreen', () => {
       () =>
         new Promise(resolve => {
           resolveImport = resolve;
-        })
+        }),
     );
 
     const { findByText, queryByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Reload from IRC Database'));
@@ -295,7 +343,9 @@ describe('NetworksListScreen', () => {
 
     fireEvent.press(await findByText('Reload from IRC Database'));
     await waitFor(() => {
-      expect(ircDatabaseImportService.importFromIrcDatabase).toHaveBeenCalledTimes(1);
+      expect(
+        ircDatabaseImportService.importFromIrcDatabase,
+      ).toHaveBeenCalledTimes(1);
     });
 
     await act(async () => {
@@ -327,7 +377,7 @@ describe('NetworksListScreen', () => {
     });
 
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Reload from IRC Database'));
@@ -336,14 +386,14 @@ describe('NetworksListScreen', () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Import partially completed',
-        expect.stringContaining('Failed to save: 1')
+        expect.stringContaining('Failed to save: 1'),
       );
     });
   });
 
   it('opens add network flow and saves a new network', async () => {
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('+'));
@@ -353,7 +403,7 @@ describe('NetworksListScreen', () => {
 
     await waitFor(() => {
       expect(settingsService.addNetwork).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'new-net', name: 'Saved Net' })
+        expect.objectContaining({ id: 'new-net', name: 'Saved Net' }),
       );
     });
   });
@@ -361,20 +411,23 @@ describe('NetworksListScreen', () => {
   it('shows error when saving a new network fails', async () => {
     settingsService.addNetwork.mockRejectedValueOnce(new Error('save failed'));
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('+'));
     fireEvent.press(await findByText('Save Network'));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to save network');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to save network',
+      );
     });
   });
 
   it('opens add server flow and saves a server', async () => {
     const { findAllByText, findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     const addServerButtons = await findAllByText('+ Add Server');
@@ -386,15 +439,20 @@ describe('NetworksListScreen', () => {
     await waitFor(() => {
       expect(settingsService.addServerToNetwork).toHaveBeenCalledWith(
         'net-1',
-        expect.objectContaining({ id: 'saved-server', hostname: 'irc.saved.net' })
+        expect.objectContaining({
+          id: 'saved-server',
+          hostname: 'irc.saved.net',
+        }),
       );
     });
   });
 
   it('shows error when saving a server fails', async () => {
-    settingsService.addServerToNetwork.mockRejectedValueOnce(new Error('server save failed'));
+    settingsService.addServerToNetwork.mockRejectedValueOnce(
+      new Error('server save failed'),
+    );
     const { findAllByText, findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     const addServerButtons = await findAllByText('+ Add Server');
@@ -402,13 +460,16 @@ describe('NetworksListScreen', () => {
     fireEvent.press(await findByText('Save Server'));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to save server');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to save server',
+      );
     });
   });
 
   it('opens edit network flow and saves changes', async () => {
     const { findAllByText, findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     const editButtons = await findAllByText('Edit');
@@ -420,21 +481,21 @@ describe('NetworksListScreen', () => {
     await waitFor(() => {
       expect(settingsService.updateNetwork).toHaveBeenCalledWith(
         'net-1',
-        expect.objectContaining({ id: 'net-1', name: 'Updated Net' })
+        expect.objectContaining({ id: 'net-1', name: 'Updated Net' }),
       );
     });
   });
 
   it('deletes a server after confirmation', async () => {
     const { findAllByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     const deleteButtons = await findAllByText('Delete');
     fireEvent.press(deleteButtons[0]);
 
     const dialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Delete Server'
+      call => call[0] === 'Delete Server',
     );
     expect(dialog).toBeTruthy();
 
@@ -442,12 +503,15 @@ describe('NetworksListScreen', () => {
       await dialog[2][1].onPress();
     });
 
-    expect(settingsService.deleteServerFromNetwork).toHaveBeenCalledWith('net-1', 'srv-1');
+    expect(settingsService.deleteServerFromNetwork).toHaveBeenCalledWith(
+      'net-1',
+      'srv-1',
+    );
   });
 
   it('prevents deleting the only server in a network', async () => {
     const { findAllByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     const deleteButtons = await findAllByText('Delete');
@@ -457,7 +521,7 @@ describe('NetworksListScreen', () => {
 
   it('closes network and server settings modals on cancel', async () => {
     const { findAllByText, findByText, queryByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('+'));
@@ -478,7 +542,7 @@ describe('NetworksListScreen', () => {
 
   it('closes the identity profiles modal', async () => {
     const { findByText, queryByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Identity Profiles'));
@@ -504,7 +568,7 @@ describe('NetworksListScreen', () => {
     });
 
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Reload from IRC Database'));
@@ -513,17 +577,18 @@ describe('NetworksListScreen', () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'No new networks imported',
-        'No new networks were imported from IRC Database. Existing entries are unchanged.'
+        'No new networks were imported from IRC Database. Existing entries are unchanged.',
       );
     });
   });
 
   it('opens IRC Database footer links and shows alert when a link cannot be opened', async () => {
-    const openURLSpy = jest.spyOn(Linking, 'openURL')
+    const openURLSpy = jest
+      .spyOn(Linking, 'openURL')
       .mockResolvedValueOnce(true as never)
       .mockRejectedValueOnce(new Error('blocked'));
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Reload from IRC Database'));
@@ -531,8 +596,14 @@ describe('NetworksListScreen', () => {
     fireEvent.press(await findByText('https://irc.dbase.in.rs/privacy-policy'));
 
     await waitFor(() => {
-      expect(openURLSpy).toHaveBeenNthCalledWith(1, 'https://irc.dbase.in.rs/register');
-      expect(openURLSpy).toHaveBeenNthCalledWith(2, 'https://irc.dbase.in.rs/privacy-policy');
+      expect(openURLSpy).toHaveBeenNthCalledWith(
+        1,
+        'https://irc.dbase.in.rs/register',
+      );
+      expect(openURLSpy).toHaveBeenNthCalledWith(
+        2,
+        'https://irc.dbase.in.rs/privacy-policy',
+      );
       expect(Alert.alert).toHaveBeenCalledWith('Error', 'Unable to open link');
     });
   });
@@ -540,7 +611,7 @@ describe('NetworksListScreen', () => {
   it('closes from header button', async () => {
     const onClose = jest.fn();
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={onClose} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={onClose} />,
     );
 
     fireEvent.press(await findByText('Close'));
@@ -554,11 +625,11 @@ describe('NetworksListScreen', () => {
       () =>
         new Promise(resolve => {
           resolveLoad = resolve;
-        })
+        }),
     );
 
     const { findByText } = render(
-      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />
+      <NetworksListScreen onSelectNetwork={jest.fn()} onClose={jest.fn()} />,
     );
 
     expect(await findByText('Loading...')).toBeTruthy();
@@ -569,7 +640,9 @@ describe('NetworksListScreen', () => {
           id: 'net-1',
           name: 'Freenode',
           nick: 'tester',
-          servers: [{ id: 'srv-1', hostname: 'irc.one.net', port: 6667, ssl: false }],
+          servers: [
+            { id: 'srv-1', hostname: 'irc.one.net', port: 6667, ssl: false },
+          ],
         },
       ]);
     });

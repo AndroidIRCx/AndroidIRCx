@@ -62,7 +62,12 @@ describe('StatsNumerics', () => {
     handle261(ctx, 'server', ['nick', ':trace details'], 304);
     handle262(ctx, 'server', ['nick', ':End of TRACE'], 305);
     handle263(ctx, 'server', ['nick', 'WHO', ':Please wait'], 306);
-    handle364(ctx, 'server', ['nick', '*.example', 'irc.example.org', ':0 server info'], 307);
+    handle364(
+      ctx,
+      'server',
+      ['nick', '*.example', 'irc.example.org', ':0 server info'],
+      307,
+    );
     handle365(ctx, 'server', ['nick', '*.example', ':End of LINKS'], 308);
     handle392(ctx, 'server', ['nick', ':Users start'], 309);
     handle393(ctx, 'server', ['nick', ':alice tty1'], 310);
@@ -71,27 +76,30 @@ describe('StatsNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** [211] stats line', rawCategory: 'server' })
+      expect.objectContaining({
+        text: '*** [211] stats line',
+        rawCategory: 'server',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** l: End of STATS report' })
+      expect.objectContaining({ text: '*** l: End of STATS report' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** Server Up 2 days' })
+      expect.objectContaining({ text: '*** Server Up 2 days' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** Highest connection count 42' })
+      expect.objectContaining({ text: '*** Highest connection count 42' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       5,
-      expect.objectContaining({ text: '*** Trace Log: trace details' })
+      expect.objectContaining({ text: '*** Trace Log: trace details' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       6,
-      expect.objectContaining({ text: '*** End of TRACE' })
+      expect.objectContaining({ text: '*** End of TRACE' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(7, {
       type: 'error',
@@ -100,27 +108,29 @@ describe('StatsNumerics', () => {
     });
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       8,
-      expect.objectContaining({ text: '*** *.example -> irc.example.org 0 server info' })
+      expect.objectContaining({
+        text: '*** *.example -> irc.example.org 0 server info',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       9,
-      expect.objectContaining({ text: '*** *.example: End of LINKS' })
+      expect.objectContaining({ text: '*** *.example: End of LINKS' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       10,
-      expect.objectContaining({ text: '*** Users start' })
+      expect.objectContaining({ text: '*** Users start' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       11,
-      expect.objectContaining({ text: '*** alice tty1' })
+      expect.objectContaining({ text: '*** alice tty1' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       12,
-      expect.objectContaining({ text: '*** End of users' })
+      expect.objectContaining({ text: '*** End of users' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       13,
-      expect.objectContaining({ text: '*** Nobody logged in' })
+      expect.objectContaining({ text: '*** Nobody logged in' }),
     );
   });
 

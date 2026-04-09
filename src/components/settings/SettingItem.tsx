@@ -4,7 +4,10 @@
  */
 
 import React from 'react';
-import { SettingItem as SettingItemType, SettingIcon } from '../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../types/settings';
 import { SettingSwitch } from './SettingSwitch';
 import { SettingButton } from './SettingButton';
 import { SettingInput } from './SettingInput';
@@ -60,7 +63,7 @@ export const SettingItem: React.FC<SettingItemProps> = ({
         icon={icon}
         colors={colors}
         styles={styles}
-        onValueChange={(value) => {
+        onValueChange={value => {
           item.onValueChange?.(value);
           onValueChange?.(item.id, value);
         }}
@@ -92,7 +95,7 @@ export const SettingItem: React.FC<SettingItemProps> = ({
         icon={icon}
         colors={colors}
         styles={styles}
-        onValueChange={(value) => {
+        onValueChange={value => {
           item.onValueChange?.(value);
           onValueChange?.(item.id, value);
         }}

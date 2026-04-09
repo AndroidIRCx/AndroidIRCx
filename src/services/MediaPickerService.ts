@@ -38,21 +38,23 @@ try {
 
 // Check if DocumentPicker is available
 const isDocumentPickerAvailable = () => {
-  return pickFunction && typeof pickFunction === 'function' && DocumentPickerTypes;
+  return (
+    pickFunction && typeof pickFunction === 'function' && DocumentPickerTypes
+  );
 };
 
 export type MediaType = 'image' | 'video' | 'voice' | 'gif' | 'file';
 
 export interface MediaPickResult {
   success: boolean;
-  uri?: string;            // Local file URI
-  type?: MediaType;        // Media type
-  mimeType?: string;       // MIME type (e.g., 'image/jpeg')
-  fileName?: string;       // Original file name
-  size?: number;           // File size in bytes
-  duration?: number;       // Duration for audio/video (seconds)
-  width?: number;          // Image/video width
-  height?: number;         // Image/video height
+  uri?: string; // Local file URI
+  type?: MediaType; // Media type
+  mimeType?: string; // MIME type (e.g., 'image/jpeg')
+  fileName?: string; // Original file name
+  size?: number; // File size in bytes
+  duration?: number; // Duration for audio/video (seconds)
+  width?: number; // Image/video width
+  height?: number; // Image/video height
   error?: string;
 }
 
@@ -69,7 +71,8 @@ class MediaPickerService {
       if (!isDocumentPickerAvailable()) {
         return {
           success: false,
-          error: 'Document picker is not available. Please ensure @react-native-documents/picker is properly installed and linked.',
+          error:
+            'Document picker is not available. Please ensure @react-native-documents/picker is properly installed and linked.',
         };
       }
 
@@ -78,7 +81,7 @@ class MediaPickerService {
         type: [DocumentPickerTypes.images],
         allowMultiSelection: false,
       });
-      
+
       // Handle array response (pick can return array)
       const pickedFile = Array.isArray(result) ? result[0] : result;
 
@@ -90,20 +93,28 @@ class MediaPickerService {
       let localFilePath: string;
       if (pickedFile.uri.startsWith('content://')) {
         // Copy content URI to local file in cache directory
-        const fileName = pickedFile.name || `photo_${Date.now()}.${this.getFileExtension(pickedFile.type || 'image/jpeg')}`;
+        const fileName =
+          pickedFile.name ||
+          `photo_${Date.now()}.${this.getFileExtension(pickedFile.type || 'image/jpeg')}`;
         localFilePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
 
         try {
           // Use RNFS to copy file from content URI to local path
           await RNFS.copyFile(pickedFile.uri, localFilePath);
         } catch (copyError) {
-          console.warn('[MediaPickerService] Could not copy content URI, trying readFile/writeFile:', copyError);
+          console.warn(
+            '[MediaPickerService] Could not copy content URI, trying readFile/writeFile:',
+            copyError,
+          );
           try {
             // Alternative method: read file content and write to local file
             const fileContent = await RNFS.readFile(pickedFile.uri, 'base64');
             await RNFS.writeFile(localFilePath, fileContent, 'base64');
           } catch (readWriteError) {
-            console.warn('[MediaPickerService] Could not read/write file, trying downloadFile:', readWriteError);
+            console.warn(
+              '[MediaPickerService] Could not read/write file, trying downloadFile:',
+              readWriteError,
+            );
             // Last resort: try to treat content URI as URL
             const downloadResult = await RNFS.downloadFile({
               fromUrl: pickedFile.uri,
@@ -111,7 +122,9 @@ class MediaPickerService {
             }).promise;
 
             if (downloadResult.statusCode !== 200) {
-              throw new Error(`Download failed with status ${downloadResult.statusCode}`);
+              throw new Error(
+                `Download failed with status ${downloadResult.statusCode}`,
+              );
             }
           }
         }
@@ -126,19 +139,34 @@ class MediaPickerService {
         fileInfo = await this.getFileInfo(localFilePath);
       } catch (err) {
         console.warn('[MediaPickerService] Could not get file info:', err);
-        fileInfo = { size: pickedFile.size || 0, isFile: true, name: pickedFile.name || 'unknown' };
+        fileInfo = {
+          size: pickedFile.size || 0,
+          isFile: true,
+          name: pickedFile.name || 'unknown',
+        };
       }
 
       // Normalize URI - ensure it has file:// prefix if it's a file path
       let normalizedUri = localFilePath;
-      if (localFilePath && !localFilePath.startsWith('file://') && !localFilePath.startsWith('content://') && !localFilePath.startsWith('http')) {
-        normalizedUri = Platform.OS === 'android' ? `file://${localFilePath}` : `file://${localFilePath}`;
+      if (
+        localFilePath &&
+        !localFilePath.startsWith('file://') &&
+        !localFilePath.startsWith('content://') &&
+        !localFilePath.startsWith('http')
+      ) {
+        normalizedUri =
+          Platform.OS === 'android'
+            ? `file://${localFilePath}`
+            : `file://${localFilePath}`;
       }
 
       return {
         success: true,
         uri: normalizedUri,
-        type: this.determineMediaType(pickedFile.type || '', pickedFile.name || ''),
+        type: this.determineMediaType(
+          pickedFile.type || '',
+          pickedFile.name || '',
+        ),
         mimeType: pickedFile.type || 'image/jpeg',
         fileName: pickedFile.name,
         size: pickedFile.size || fileInfo.size,
@@ -146,18 +174,30 @@ class MediaPickerService {
     } catch (error: any) {
       // Check if user cancelled
       try {
-        if (error && DocumentPicker && DocumentPicker.isCancel && DocumentPicker.isCancel(error)) {
+        if (
+          error &&
+          DocumentPicker &&
+          DocumentPicker.isCancel &&
+          DocumentPicker.isCancel(error)
+        ) {
           return { success: false, error: 'User cancelled' };
         }
         // Also check for common cancel error messages
-        if (error?.message && (error.message.includes('cancel') || error.message.includes('User cancelled'))) {
+        if (
+          error?.message &&
+          (error.message.includes('cancel') ||
+            error.message.includes('User cancelled'))
+        ) {
           return { success: false, error: 'User cancelled' };
         }
       } catch (checkError) {
         // DocumentPicker.isCancel might not be available or error format is unexpected
-        console.warn('[MediaPickerService] Error checking cancel status:', checkError);
+        console.warn(
+          '[MediaPickerService] Error checking cancel status:',
+          checkError,
+        );
       }
-      
+
       console.error('[MediaPickerService] Pick image error:', error);
       return {
         success: false,
@@ -178,9 +218,9 @@ class MediaPickerService {
       // Just verify it's granted
       const hasPermission = await this.requestCameraPermission();
       if (!hasPermission) {
-        return { 
-          success: false, 
-          error: 'Camera permission denied' 
+        return {
+          success: false,
+          error: 'Camera permission denied',
         };
       }
 
@@ -188,7 +228,8 @@ class MediaPickerService {
       // Camera capture is handled by CameraScreen component via MediaUploadModal
       return {
         success: false,
-        error: 'Camera capture should be handled by CameraScreen component. Please use MediaUploadModal.',
+        error:
+          'Camera capture should be handled by CameraScreen component. Please use MediaUploadModal.',
       };
     } catch (error: any) {
       console.error('[MediaPickerService] Capture photo error:', error);
@@ -208,7 +249,8 @@ class MediaPickerService {
       if (!isDocumentPickerAvailable()) {
         return {
           success: false,
-          error: 'Document picker is not available. Please ensure @react-native-documents/picker is properly installed and linked.',
+          error:
+            'Document picker is not available. Please ensure @react-native-documents/picker is properly installed and linked.',
         };
       }
 
@@ -216,10 +258,10 @@ class MediaPickerService {
         type: [DocumentPickerTypes.video],
         allowMultiSelection: false,
       });
-      
+
       // Handle array response (pick can return array)
       const pickedFile = Array.isArray(result) ? result[0] : result;
-      
+
       if (!pickedFile) {
         return { success: false, error: 'No file selected' };
       }
@@ -228,20 +270,28 @@ class MediaPickerService {
       let localFilePath: string;
       if (pickedFile.uri.startsWith('content://')) {
         // Copy content URI to local file in cache directory
-        const fileName = pickedFile.name || `video_${Date.now()}.${this.getFileExtension(pickedFile.type || 'video/mp4')}`;
+        const fileName =
+          pickedFile.name ||
+          `video_${Date.now()}.${this.getFileExtension(pickedFile.type || 'video/mp4')}`;
         localFilePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
 
         try {
           // Use RNFS to copy file from content URI to local path
           await RNFS.copyFile(pickedFile.uri, localFilePath);
         } catch (copyError) {
-          console.warn('[MediaPickerService] Could not copy content URI, trying readFile/writeFile:', copyError);
+          console.warn(
+            '[MediaPickerService] Could not copy content URI, trying readFile/writeFile:',
+            copyError,
+          );
           try {
             // Alternative method: read file content and write to local file
             const fileContent = await RNFS.readFile(pickedFile.uri, 'base64');
             await RNFS.writeFile(localFilePath, fileContent, 'base64');
           } catch (readWriteError) {
-            console.warn('[MediaPickerService] Could not read/write file, trying downloadFile:', readWriteError);
+            console.warn(
+              '[MediaPickerService] Could not read/write file, trying downloadFile:',
+              readWriteError,
+            );
             // Last resort: try to treat content URI as URL
             const downloadResult = await RNFS.downloadFile({
               fromUrl: pickedFile.uri,
@@ -249,7 +299,9 @@ class MediaPickerService {
             }).promise;
 
             if (downloadResult.statusCode !== 200) {
-              throw new Error(`Download failed with status ${downloadResult.statusCode}`);
+              throw new Error(
+                `Download failed with status ${downloadResult.statusCode}`,
+              );
             }
           }
         }
@@ -264,13 +316,25 @@ class MediaPickerService {
         fileInfo = await this.getFileInfo(localFilePath);
       } catch (err) {
         console.warn('[MediaPickerService] Could not get file info:', err);
-        fileInfo = { size: pickedFile.size || 0, isFile: true, name: pickedFile.name || 'unknown' };
+        fileInfo = {
+          size: pickedFile.size || 0,
+          isFile: true,
+          name: pickedFile.name || 'unknown',
+        };
       }
 
       // Normalize URI
       let normalizedUri = localFilePath;
-      if (localFilePath && !localFilePath.startsWith('file://') && !localFilePath.startsWith('content://') && !localFilePath.startsWith('http')) {
-        normalizedUri = Platform.OS === 'android' ? `file://${localFilePath}` : `file://${localFilePath}`;
+      if (
+        localFilePath &&
+        !localFilePath.startsWith('file://') &&
+        !localFilePath.startsWith('content://') &&
+        !localFilePath.startsWith('http')
+      ) {
+        normalizedUri =
+          Platform.OS === 'android'
+            ? `file://${localFilePath}`
+            : `file://${localFilePath}`;
       }
 
       return {
@@ -290,14 +354,21 @@ class MediaPickerService {
           return { success: false, error: 'User cancelled' };
         }
         // Also check for common cancel error messages
-        if (error?.message && (error.message.includes('cancel') || error.message.includes('User cancelled'))) {
+        if (
+          error?.message &&
+          (error.message.includes('cancel') ||
+            error.message.includes('User cancelled'))
+        ) {
           return { success: false, error: 'User cancelled' };
         }
       } catch (checkError) {
         // DocumentPicker.isCancel might not be available or error format is unexpected
-        console.warn('[MediaPickerService] Error checking cancel status:', checkError);
+        console.warn(
+          '[MediaPickerService] Error checking cancel status:',
+          checkError,
+        );
       }
-      
+
       console.error('[MediaPickerService] Pick video error:', error);
       return {
         success: false,
@@ -316,24 +387,25 @@ class MediaPickerService {
       // Just verify they're granted
       const hasCameraPermission = await this.requestCameraPermission();
       if (!hasCameraPermission) {
-        return { 
-          success: false, 
-          error: 'Camera permission denied' 
+        return {
+          success: false,
+          error: 'Camera permission denied',
         };
       }
 
       const hasMicPermission = await this.requestMicrophonePermission();
       if (!hasMicPermission) {
-        return { 
-          success: false, 
-          error: 'Microphone permission denied' 
+        return {
+          success: false,
+          error: 'Microphone permission denied',
         };
       }
 
       // TODO: Implement video recording screen
       return {
         success: false,
-        error: 'Video recording feature is not yet implemented. Please use "Video Library" option to select an existing video.',
+        error:
+          'Video recording feature is not yet implemented. Please use "Video Library" option to select an existing video.',
       };
     } catch (error: any) {
       console.error('[MediaPickerService] Record video error:', error);
@@ -382,7 +454,8 @@ class MediaPickerService {
       if (!isDocumentPickerAvailable()) {
         return {
           success: false,
-          error: 'Document picker is not available. Please ensure @react-native-documents/picker is properly installed and linked.',
+          error:
+            'Document picker is not available. Please ensure @react-native-documents/picker is properly installed and linked.',
         };
       }
 
@@ -390,10 +463,10 @@ class MediaPickerService {
         type: [DocumentPickerTypes.allFiles],
         allowMultiSelection: false,
       });
-      
+
       // Handle array response (pick can return array)
       const pickedFile = Array.isArray(result) ? result[0] : result;
-      
+
       if (!pickedFile) {
         return { success: false, error: 'No file selected' };
       }
@@ -402,20 +475,28 @@ class MediaPickerService {
       let localFilePath: string;
       if (pickedFile.uri.startsWith('content://')) {
         // Copy content URI to local file in cache directory
-        const fileName = pickedFile.name || `file_${Date.now()}.${this.getFileExtension(pickedFile.type || 'application/octet-stream')}`;
+        const fileName =
+          pickedFile.name ||
+          `file_${Date.now()}.${this.getFileExtension(pickedFile.type || 'application/octet-stream')}`;
         localFilePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
 
         try {
           // Use RNFS to copy file from content URI to local path
           await RNFS.copyFile(pickedFile.uri, localFilePath);
         } catch (copyError) {
-          console.warn('[MediaPickerService] Could not copy content URI, trying readFile/writeFile:', copyError);
+          console.warn(
+            '[MediaPickerService] Could not copy content URI, trying readFile/writeFile:',
+            copyError,
+          );
           try {
             // Alternative method: read file content and write to local file
             const fileContent = await RNFS.readFile(pickedFile.uri, 'base64');
             await RNFS.writeFile(localFilePath, fileContent, 'base64');
           } catch (readWriteError) {
-            console.warn('[MediaPickerService] Could not read/write file, trying downloadFile:', readWriteError);
+            console.warn(
+              '[MediaPickerService] Could not read/write file, trying downloadFile:',
+              readWriteError,
+            );
             // Last resort: try to treat content URI as URL
             const downloadResult = await RNFS.downloadFile({
               fromUrl: pickedFile.uri,
@@ -423,7 +504,9 @@ class MediaPickerService {
             }).promise;
 
             if (downloadResult.statusCode !== 200) {
-              throw new Error(`Download failed with status ${downloadResult.statusCode}`);
+              throw new Error(
+                `Download failed with status ${downloadResult.statusCode}`,
+              );
             }
           }
         }
@@ -438,19 +521,34 @@ class MediaPickerService {
         fileInfo = await this.getFileInfo(localFilePath);
       } catch (err) {
         console.warn('[MediaPickerService] Could not get file info:', err);
-        fileInfo = { size: pickedFile.size || 0, isFile: true, name: pickedFile.name || 'unknown' };
+        fileInfo = {
+          size: pickedFile.size || 0,
+          isFile: true,
+          name: pickedFile.name || 'unknown',
+        };
       }
 
       // Normalize URI
       let normalizedUri = localFilePath;
-      if (localFilePath && !localFilePath.startsWith('file://') && !localFilePath.startsWith('content://') && !localFilePath.startsWith('http')) {
-        normalizedUri = Platform.OS === 'android' ? `file://${localFilePath}` : `file://${localFilePath}`;
+      if (
+        localFilePath &&
+        !localFilePath.startsWith('file://') &&
+        !localFilePath.startsWith('content://') &&
+        !localFilePath.startsWith('http')
+      ) {
+        normalizedUri =
+          Platform.OS === 'android'
+            ? `file://${localFilePath}`
+            : `file://${localFilePath}`;
       }
 
       return {
         success: true,
         uri: normalizedUri,
-        type: this.determineMediaType(pickedFile.type || '', pickedFile.name || ''),
+        type: this.determineMediaType(
+          pickedFile.type || '',
+          pickedFile.name || '',
+        ),
         mimeType: pickedFile.type || 'application/octet-stream',
         fileName: pickedFile.name,
         size: pickedFile.size || fileInfo.size,
@@ -462,14 +560,21 @@ class MediaPickerService {
           return { success: false, error: 'User cancelled' };
         }
         // Also check for common cancel error messages
-        if (error?.message && (error.message.includes('cancel') || error.message.includes('User cancelled'))) {
+        if (
+          error?.message &&
+          (error.message.includes('cancel') ||
+            error.message.includes('User cancelled'))
+        ) {
           return { success: false, error: 'User cancelled' };
         }
       } catch (checkError) {
         // DocumentPicker.isCancel might not be available or error format is unexpected
-        console.warn('[MediaPickerService] Error checking cancel status:', checkError);
+        console.warn(
+          '[MediaPickerService] Error checking cancel status:',
+          checkError,
+        );
       }
-      
+
       console.error('[MediaPickerService] Pick file error:', error);
       return {
         success: false,
@@ -482,7 +587,7 @@ class MediaPickerService {
    * Get file extension from MIME type
    */
   private getFileExtension(mimeType: string): string {
-    const mimeToExt: {[key: string]: string} = {
+    const mimeToExt: { [key: string]: string } = {
       'image/jpeg': 'jpg',
       'image/jpg': 'jpg',
       'image/png': 'png',
@@ -502,7 +607,8 @@ class MediaPickerService {
       'audio/aac': 'aac',
       'application/pdf': 'pdf',
       'application/msword': 'doc',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        'docx',
       'text/plain': 'txt',
       'application/zip': 'zip',
     };
@@ -537,7 +643,9 @@ class MediaPickerService {
           };
         } catch {
           // Content URIs might not be accessible via RNFS
-          console.warn('[MediaPickerService] Cannot stat content URI, returning basic info');
+          console.warn(
+            '[MediaPickerService] Cannot stat content URI, returning basic info',
+          );
           return {
             size: 0,
             isFile: true,
@@ -566,7 +674,10 @@ class MediaPickerService {
             mtime: stat.mtime ? new Date(stat.mtime) : undefined,
           };
         } catch (retryError) {
-          console.error('[MediaPickerService] Get file info error (retry):', retryError);
+          console.error(
+            '[MediaPickerService] Get file info error (retry):',
+            retryError,
+          );
         }
       }
       return {
@@ -627,13 +738,13 @@ class MediaPickerService {
       if (Platform.OS === 'android') {
         // Check current permission status using PermissionsAndroid
         const hasPermission = await PermissionsAndroid.check(
-          PermissionsAndroid.PERMISSIONS.CAMERA
+          PermissionsAndroid.PERMISSIONS.CAMERA,
         );
-        
+
         if (hasPermission) {
           return true;
         }
-        
+
         // Request permission if not granted
         const cameraPermission = await Camera.requestCameraPermission();
         return cameraPermission === 'granted';
@@ -653,13 +764,13 @@ class MediaPickerService {
       if (Platform.OS === 'android') {
         // Check current permission status using PermissionsAndroid
         const hasPermission = await PermissionsAndroid.check(
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
         );
-        
+
         if (hasPermission) {
           return true;
         }
-        
+
         // Request permission if not granted
         const micPermission = await Camera.requestMicrophonePermission();
         return micPermission === 'granted';
@@ -686,7 +797,10 @@ class MediaPickerService {
   /**
    * Validate file before processing
    */
-  async validateFile(uri: string, maxSizeBytes: number = 50 * 1024 * 1024): Promise<{
+  async validateFile(
+    uri: string,
+    maxSizeBytes: number = 50 * 1024 * 1024,
+  ): Promise<{
     valid: boolean;
     error?: string;
   }> {

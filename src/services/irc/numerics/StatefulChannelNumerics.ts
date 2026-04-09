@@ -52,7 +52,10 @@ export const handle331: NumericHandler = (ctx, prefix, params, timestamp) => {
   if (!channel) return;
 
   const existing = ctx.getChannelTopicInfo(channel) || {};
-  ctx.setChannelTopicInfo(channel, { ...existing, topic: t('No topic is set.') });
+  ctx.setChannelTopicInfo(channel, {
+    ...existing,
+    topic: t('No topic is set.'),
+  });
   ctx.maybeEmitChannelIntro(channel, timestamp);
 };
 
@@ -92,7 +95,11 @@ export const handle352: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoServer = params[4] || '';
   const whoNick = params[5] || '';
   const whoFlags = params[6] || '';
-  const whoRealParts = params.slice(7).join(' ').replace(/^:/, '').split(' ', 2);
+  const whoRealParts = params
+    .slice(7)
+    .join(' ')
+    .replace(/^:/, '')
+    .split(' ', 2);
   const whoReal = whoRealParts.slice(1).join(' ') || '';
 
   const awayStatus = whoFlags.includes('G') ? t(' (away)') : '';
@@ -107,16 +114,19 @@ export const handle352: NumericHandler = (ctx, prefix, params, timestamp) => {
 
   ctx.addMessage({
     type: 'raw',
-    text: t('*** WHO {channel}: {nick} ({user}@{host}) [{server}]{away}{op} - {real}', {
-      channel: whoChannel,
-      nick: whoNick,
-      user: whoUser,
-      host: whoHost,
-      server: whoServer,
-      away: awayStatus,
-      op: opStatus,
-      real: whoReal,
-    }),
+    text: t(
+      '*** WHO {channel}: {nick} ({user}@{host}) [{server}]{away}{op} - {real}',
+      {
+        channel: whoChannel,
+        nick: whoNick,
+        user: whoUser,
+        host: whoHost,
+        server: whoServer,
+        away: awayStatus,
+        op: opStatus,
+        real: whoReal,
+      },
+    ),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -154,7 +164,10 @@ export const handle366: NumericHandler = (ctx, prefix, params, timestamp) => {
   ctx.emitUserListChange(endChannel, Array.from(usersMap.values()));
   ctx.maybeEmitChannelIntro(endChannel, timestamp);
 
-  if (ctx.hasCapability('chathistory') || ctx.hasCapability('draft/chathistory')) {
+  if (
+    ctx.hasCapability('chathistory') ||
+    ctx.hasCapability('draft/chathistory')
+  ) {
     ctx.requestChatHistory(endChannel, 50);
   }
 };

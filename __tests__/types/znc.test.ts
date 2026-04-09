@@ -54,33 +54,69 @@ describe('types/znc', () => {
     expect(isZncAccountActive(makeAccount({ status: 'active' }))).toBe(true);
     expect(isZncAccountActive(makeAccount({ status: 'grace' }))).toBe(true);
     expect(isZncAccountActive(makeAccount({ status: 'expired' }))).toBe(false);
-    expect(isZncAccountActive(makeAccount({ status: 'cancelled' }))).toBe(false);
+    expect(isZncAccountActive(makeAccount({ status: 'cancelled' }))).toBe(
+      false,
+    );
     expect(isZncAccountActive(makeAccount({ status: 'pending' }))).toBe(false);
   });
 
   it('should validate account readiness', () => {
-    expect(isZncAccountReady(makeAccount({ status: 'active', provisioningStatus: 'ready' }))).toBe(true);
-    expect(isZncAccountReady(makeAccount({ status: 'grace', provisioningStatus: 'ready' }))).toBe(true);
-    expect(isZncAccountReady(makeAccount({ status: 'active', provisioningStatus: 'provisioning' }))).toBe(false);
-    expect(isZncAccountReady(makeAccount({ status: 'expired', provisioningStatus: 'ready' }))).toBe(false);
+    expect(
+      isZncAccountReady(
+        makeAccount({ status: 'active', provisioningStatus: 'ready' }),
+      ),
+    ).toBe(true);
+    expect(
+      isZncAccountReady(
+        makeAccount({ status: 'grace', provisioningStatus: 'ready' }),
+      ),
+    ).toBe(true);
+    expect(
+      isZncAccountReady(
+        makeAccount({ status: 'active', provisioningStatus: 'provisioning' }),
+      ),
+    ).toBe(false);
+    expect(
+      isZncAccountReady(
+        makeAccount({ status: 'expired', provisioningStatus: 'ready' }),
+      ),
+    ).toBe(false);
   });
 
   it('should validate account credentials', () => {
-    expect(hasZncCredentials(makeAccount({ zncUsername: 'u', zncPassword: 'p' }))).toBe(true);
-    expect(hasZncCredentials(makeAccount({ zncUsername: '', zncPassword: 'p' }))).toBe(false);
-    expect(hasZncCredentials(makeAccount({ zncUsername: 'u', zncPassword: null }))).toBe(false);
+    expect(
+      hasZncCredentials(makeAccount({ zncUsername: 'u', zncPassword: 'p' })),
+    ).toBe(true);
+    expect(
+      hasZncCredentials(makeAccount({ zncUsername: '', zncPassword: 'p' })),
+    ).toBe(false);
+    expect(
+      hasZncCredentials(makeAccount({ zncUsername: 'u', zncPassword: null })),
+    ).toBe(false);
   });
 
   it('should format expiry labels for key scenarios', () => {
     expect(formatZncExpiry(null)).toBe('Unknown');
-    expect(formatZncExpiry(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString())).toBe('Expired');
+    expect(
+      formatZncExpiry(
+        new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      ),
+    ).toBe('Expired');
     expect(formatZncExpiry(new Date().toISOString())).toBe('Expires today');
-    expect(formatZncExpiry(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())).toBe('Expires tomorrow');
-    expect(formatZncExpiry(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString())).toBe('Expires in 3 days');
+    expect(
+      formatZncExpiry(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()),
+    ).toBe('Expires tomorrow');
+    expect(
+      formatZncExpiry(
+        new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      ),
+    ).toBe('Expires in 3 days');
   });
 
   it('should format far-future dates as locale date and invalid input as fallback', () => {
-    const farFuture = formatZncExpiry(new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString());
+    const farFuture = formatZncExpiry(
+      new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+    );
     expect(typeof farFuture).toBe('string');
     expect(farFuture).not.toBe('Expires in 20 days');
 
@@ -89,7 +125,9 @@ describe('types/znc', () => {
   });
 
   it('should return Invalid date when Date construction throws (catch branch)', () => {
-    expect(formatZncExpiry(Symbol('bad-input') as unknown as string)).toBe('Invalid date');
+    expect(formatZncExpiry(Symbol('bad-input') as unknown as string)).toBe(
+      'Invalid date',
+    );
   });
 
   it('should generate deterministic server IDs', () => {

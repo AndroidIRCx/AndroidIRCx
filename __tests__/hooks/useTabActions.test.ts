@@ -46,7 +46,7 @@ jest.mock('../../src/stores/uiStore', () => ({
 }));
 
 jest.mock('../../src/utils/tabUtils', () => ({
-  sortTabsGrouped: jest.fn().mockImplementation((tabs) => tabs),
+  sortTabsGrouped: jest.fn().mockImplementation(tabs => tabs),
 }));
 
 describe('useTabActions', () => {
@@ -78,14 +78,22 @@ describe('useTabActions', () => {
     jest.clearAllMocks();
 
     // Set default mock implementations
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [] });
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [],
+    });
     require('../../src/stores/uiStore').useUIStore.getState.mockReturnValue({
       setChannelName: jest.fn(),
       setShowChannelModal: jest.fn(),
     });
-    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue(null);
-    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue('Leaving');
-    require('../../src/utils/tabUtils').sortTabsGrouped.mockImplementation((tabs) => tabs);
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue(
+      null,
+    );
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(
+      'Leaving',
+    );
+    require('../../src/utils/tabUtils').sortTabsGrouped.mockImplementation(
+      tabs => tabs,
+    );
 
     // Mock the IRC service with required methods
     const mockIRCService = {
@@ -113,7 +121,9 @@ describe('useTabActions', () => {
       name: '#test-channel',
     };
 
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [mockTab] });
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [mockTab],
+    });
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
@@ -132,15 +142,17 @@ describe('useTabActions', () => {
       name: '#test-channel',
       hasActivity: true,
     };
-    
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [mockTab] });
+
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [mockTab],
+    });
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
     result.current.handleTabPress('test-tab');
 
     expect(mockSetTabs).toHaveBeenCalledWith(
-      expect.any(Function) // Will be a function that updates the tab's hasActivity property
+      expect.any(Function), // Will be a function that updates the tab's hasActivity property
     );
 
     // Test the updater function
@@ -156,21 +168,27 @@ describe('useTabActions', () => {
       type: 'channel',
       name: '#test-channel',
     };
-    
+
     const mockIRCService = {
       getChannelUsers: jest.fn().mockReturnValue([]),
       requestChannelUsers: jest.fn(),
     };
-    
+
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [mockTab] });
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [mockTab],
+    });
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
     result.current.handleTabPress('test-tab');
 
-    expect(mockIRCService.getChannelUsers).toHaveBeenCalledWith('#test-channel');
-    expect(mockIRCService.requestChannelUsers).toHaveBeenCalledWith('#test-channel');
+    expect(mockIRCService.getChannelUsers).toHaveBeenCalledWith(
+      '#test-channel',
+    );
+    expect(mockIRCService.requestChannelUsers).toHaveBeenCalledWith(
+      '#test-channel',
+    );
   });
 
   it('should not fetch users for non-channel tabs when pressed', () => {
@@ -180,14 +198,16 @@ describe('useTabActions', () => {
       type: 'server',
       name: 'test-network',
     };
-    
+
     const mockIRCService = {
       getChannelUsers: jest.fn(),
       requestChannelUsers: jest.fn(),
     };
-    
+
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [mockTab] });
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [mockTab],
+    });
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
@@ -201,63 +221,99 @@ describe('useTabActions', () => {
     const mockIRCService = {
       joinChannel: jest.fn(),
     };
-    
+
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
     result.current.handleJoinChannel();
 
-    expect(mockIRCService.joinChannel).toHaveBeenCalledWith('#test-channel', undefined);
-    expect(require('../../src/stores/uiStore').useUIStore.getState().setChannelName).toHaveBeenCalledWith('');
-    expect(require('../../src/stores/uiStore').useUIStore.getState().setShowChannelModal).toHaveBeenCalledWith(false);
+    expect(mockIRCService.joinChannel).toHaveBeenCalledWith(
+      '#test-channel',
+      undefined,
+    );
+    expect(
+      require('../../src/stores/uiStore').useUIStore.getState().setChannelName,
+    ).toHaveBeenCalledWith('');
+    expect(
+      require('../../src/stores/uiStore').useUIStore.getState()
+        .setShowChannelModal,
+    ).toHaveBeenCalledWith(false);
   });
 
   it('should handle joining a specific channel', () => {
     const mockIRCService = {
       joinChannel: jest.fn(),
     };
-    
+
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
     result.current.handleJoinChannel('#specific-channel');
 
-    expect(mockIRCService.joinChannel).toHaveBeenCalledWith('#specific-channel', undefined);
+    expect(mockIRCService.joinChannel).toHaveBeenCalledWith(
+      '#specific-channel',
+      undefined,
+    );
   });
 
   it('should handle joining a channel with a key', () => {
     const mockIRCService = {
       joinChannel: jest.fn(),
     };
-    
+
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
     result.current.handleJoinChannel('#secret-channel', 'password');
 
-    expect(mockIRCService.joinChannel).toHaveBeenCalledWith('#secret-channel', 'password');
+    expect(mockIRCService.joinChannel).toHaveBeenCalledWith(
+      '#secret-channel',
+      'password',
+    );
   });
 
   it('should close all channels and queries for a network', async () => {
     const mockTabs = [
-      { id: 'server-tab', networkId: 'test-network', type: 'server', name: 'test-network' },
-      { id: 'channel-tab', networkId: 'test-network', type: 'channel', name: '#test' },
-      { id: 'query-tab', networkId: 'test-network', type: 'query', name: 'user' },
-      { id: 'other-tab', networkId: 'other-network', type: 'channel', name: '#other' },
+      {
+        id: 'server-tab',
+        networkId: 'test-network',
+        type: 'server',
+        name: 'test-network',
+      },
+      {
+        id: 'channel-tab',
+        networkId: 'test-network',
+        type: 'channel',
+        name: '#test',
+      },
+      {
+        id: 'query-tab',
+        networkId: 'test-network',
+        type: 'query',
+        name: 'user',
+      },
+      {
+        id: 'other-tab',
+        networkId: 'other-network',
+        type: 'channel',
+        name: '#other',
+      },
     ];
-    
+
     mockTabsRef.current = mockTabs;
 
     const mockIRCService = {
       partChannel: jest.fn(),
     };
-    
-    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue({
-      ircService: mockIRCService
-    });
+
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue(
+      {
+        ircService: mockIRCService,
+      },
+    );
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
@@ -268,53 +324,77 @@ describe('useTabActions', () => {
       expect.arrayContaining([
         expect.objectContaining({ id: 'server-tab' }),
         expect.objectContaining({ id: 'other-tab' }),
-      ])
+      ]),
     );
   });
 
   it('should save tabs after closing channels', async () => {
     const mockTabs = [
-      { id: 'server-tab', networkId: 'test-network', type: 'server', name: 'test-network' },
-      { id: 'channel-tab', networkId: 'test-network', type: 'channel', name: '#test' },
+      {
+        id: 'server-tab',
+        networkId: 'test-network',
+        type: 'server',
+        name: 'test-network',
+      },
+      {
+        id: 'channel-tab',
+        networkId: 'test-network',
+        type: 'channel',
+        name: '#test',
+      },
     ];
-    
+
     mockTabsRef.current = mockTabs;
 
     const mockIRCService = {
       partChannel: jest.fn(),
     };
-    
-    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue({
-      ircService: mockIRCService
-    });
+
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue(
+      {
+        ircService: mockIRCService,
+      },
+    );
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
     await result.current.closeAllChannelsAndQueries('test-network');
 
-    expect(require('../../src/services/TabService').tabService.saveTabs).toHaveBeenCalledWith(
+    expect(
+      require('../../src/services/TabService').tabService.saveTabs,
+    ).toHaveBeenCalledWith(
       'test-network',
-      expect.arrayContaining([
-        expect.objectContaining({ id: 'server-tab' })
-      ])
+      expect.arrayContaining([expect.objectContaining({ id: 'server-tab' })]),
     );
   });
 
   it('should switch to server tab if active tab was closed', async () => {
     const mockTabs = [
-      { id: 'server-tab', networkId: 'test-network', type: 'server', name: 'test-network' },
-      { id: 'channel-tab', networkId: 'test-network', type: 'channel', name: '#test' },
+      {
+        id: 'server-tab',
+        networkId: 'test-network',
+        type: 'server',
+        name: 'test-network',
+      },
+      {
+        id: 'channel-tab',
+        networkId: 'test-network',
+        type: 'channel',
+        name: '#test',
+      },
     ];
-    
+
     mockTabsRef.current = mockTabs;
 
     const mockIRCService = {
       partChannel: jest.fn(),
     };
-    
-    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue({
-      ircService: mockIRCService
-    });
+
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue(
+      {
+        ircService: mockIRCService,
+      },
+    );
 
     const propsWithActiveChannel = {
       ...defaultProps,
@@ -331,20 +411,37 @@ describe('useTabActions', () => {
 
   it('should not switch active tab if the active tab was not closed', async () => {
     const mockTabs = [
-      { id: 'server-tab', networkId: 'test-network', type: 'server', name: 'test-network' },
-      { id: 'channel-tab', networkId: 'test-network', type: 'channel', name: '#test' },
-      { id: 'other-tab', networkId: 'other-network', type: 'channel', name: '#other' },
+      {
+        id: 'server-tab',
+        networkId: 'test-network',
+        type: 'server',
+        name: 'test-network',
+      },
+      {
+        id: 'channel-tab',
+        networkId: 'test-network',
+        type: 'channel',
+        name: '#test',
+      },
+      {
+        id: 'other-tab',
+        networkId: 'other-network',
+        type: 'channel',
+        name: '#other',
+      },
     ];
-    
+
     mockTabsRef.current = mockTabs;
 
     const mockIRCService = {
       partChannel: jest.fn(),
     };
-    
-    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue({
-      ircService: mockIRCService
-    });
+
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue(
+      {
+        ircService: mockIRCService,
+      },
+    );
 
     const propsWithActiveOther = {
       ...defaultProps,
@@ -377,20 +474,32 @@ describe('useTabActions', () => {
 
   it('should not switch active tab when closed tab had no remaining server tab', async () => {
     const mockTabs = [
-      { id: 'channel-tab', networkId: 'test-network', type: 'channel', name: '#test' },
-      { id: 'query-tab', networkId: 'test-network', type: 'query', name: 'alice' },
+      {
+        id: 'channel-tab',
+        networkId: 'test-network',
+        type: 'channel',
+        name: '#test',
+      },
+      {
+        id: 'query-tab',
+        networkId: 'test-network',
+        type: 'query',
+        name: 'alice',
+      },
     ];
     mockTabsRef.current = mockTabs as any;
 
     const mockIRCService = {
       partChannel: jest.fn(),
     };
-    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue({
-      ircService: mockIRCService,
-    });
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue(
+      {
+        ircService: mockIRCService,
+      },
+    );
 
     const { result } = renderHook(() =>
-      useTabActions({ ...defaultProps, activeTabId: 'channel-tab' as any })
+      useTabActions({ ...defaultProps, activeTabId: 'channel-tab' as any }),
     );
     await result.current.closeAllChannelsAndQueries('test-network');
 
@@ -411,9 +520,14 @@ describe('useTabActions', () => {
 
   it('should handle no matching tabs gracefully', async () => {
     const mockTabs = [
-      { id: 'other-tab', networkId: 'other-network', type: 'channel', name: '#other' },
+      {
+        id: 'other-tab',
+        networkId: 'other-network',
+        type: 'channel',
+        name: '#other',
+      },
     ];
-    
+
     mockTabsRef.current = mockTabs;
 
     const { result } = renderHook(() => useTabActions(defaultProps));
@@ -421,7 +535,10 @@ describe('useTabActions', () => {
     await result.current.closeAllChannelsAndQueries('test-network');
 
     // Should not call partChannel since no matching tabs exist
-    expect(require('../../src/services/ConnectionManager').connectionManager.getConnection).not.toHaveBeenCalled();
+    expect(
+      require('../../src/services/ConnectionManager').connectionManager
+        .getConnection,
+    ).not.toHaveBeenCalled();
   });
 
   it('should set active connection when tab is pressed', () => {
@@ -431,14 +548,19 @@ describe('useTabActions', () => {
       type: 'channel',
       name: '#test-channel',
     };
-    
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [mockTab] });
+
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [mockTab],
+    });
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
     result.current.handleTabPress('test-tab');
 
-    expect(require('../../src/services/ConnectionManager').connectionManager.setActiveConnection).toHaveBeenCalledWith('test-network');
+    expect(
+      require('../../src/services/ConnectionManager').connectionManager
+        .setActiveConnection,
+    ).toHaveBeenCalledWith('test-network');
   });
 
   it('should use connection-specific IRC service if available', () => {
@@ -448,22 +570,28 @@ describe('useTabActions', () => {
       type: 'channel',
       name: '#test-channel',
     };
-    
+
     const mockConnectionService = {
       getChannelUsers: jest.fn().mockReturnValue([]),
       requestChannelUsers: jest.fn(),
     };
-    
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [mockTab] });
-    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue({
-      ircService: mockConnectionService
+
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [mockTab],
     });
+    require('../../src/services/ConnectionManager').connectionManager.getConnection.mockReturnValue(
+      {
+        ircService: mockConnectionService,
+      },
+    );
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 
     result.current.handleTabPress('test-tab');
 
-    expect(mockConnectionService.getChannelUsers).toHaveBeenCalledWith('#test-channel');
+    expect(mockConnectionService.getChannelUsers).toHaveBeenCalledWith(
+      '#test-channel',
+    );
   });
 
   it('should store channel users when channel user list is available', () => {
@@ -480,7 +608,9 @@ describe('useTabActions', () => {
     };
 
     mockGetActiveIRCService.mockReturnValue(mockIRCService);
-    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({ tabs: [mockTab] });
+    require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
+      tabs: [mockTab],
+    });
 
     const { result } = renderHook(() => useTabActions(defaultProps));
 

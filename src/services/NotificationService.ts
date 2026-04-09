@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * NotificationService
- * 
+ *
  * Cross-platform notification service for AndroidIRCX.
  * Handles local notifications for mentions, private messages, and channel messages.
  * Uses react-native-notifications for cross-platform support.
@@ -11,7 +11,11 @@
 
 import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import notifee, { AndroidImportance, AndroidCategory, EventType } from '@notifee/react-native';
+import notifee, {
+  AndroidImportance,
+  AndroidCategory,
+  EventType,
+} from '@notifee/react-native';
 import { tx } from '../i18n/transifex';
 
 /** Android notification channel IDs for category-based grouping */
@@ -61,7 +65,9 @@ class NotificationService {
     channelPreferences: new Map(),
     networkPreferences: new Map(),
   };
-  private callActionListener: ((action: CallNotificationAction) => void | Promise<void>) | null = null;
+  private callActionListener:
+    | ((action: CallNotificationAction) => void | Promise<void>)
+    | null = null;
 
   /**
    * Check if notification permission is granted
@@ -74,14 +80,20 @@ class NotificationService {
         if (Platform.Version >= 33) {
           try {
             const hasPermission = await PermissionsAndroid.check(
-              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
             );
-            console.log('NotificationService: Android permission check (POST_NOTIFICATIONS):', hasPermission);
+            console.log(
+              'NotificationService: Android permission check (POST_NOTIFICATIONS):',
+              hasPermission,
+            );
             if (hasPermission) {
               return true;
             }
           } catch (error) {
-            console.warn('NotificationService: Error checking Android permission:', error);
+            console.warn(
+              'NotificationService: Error checking Android permission:',
+              error,
+            );
           }
         }
         // For older Android versions or as fallback, check notifee settings
@@ -89,10 +101,16 @@ class NotificationService {
         try {
           const settings = await notifee.getNotificationSettings();
           const notifeeGranted = settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
-          console.log('NotificationService: Notifee permission check:', notifeeGranted);
+          console.log(
+            'NotificationService: Notifee permission check:',
+            notifeeGranted,
+          );
           return notifeeGranted;
         } catch (error) {
-          console.warn('NotificationService: Error checking notifee permission:', error);
+          console.warn(
+            'NotificationService: Error checking notifee permission:',
+            error,
+          );
         }
         // If both checks fail, return false
         return false;
@@ -117,14 +135,19 @@ class NotificationService {
       // If permission is granted but notifications are disabled, don't auto-enable
       // User must manually enable them. But if permission was revoked, disable notifications.
       if (this.preferences.enabled && !hasPermission) {
-        console.warn('NotificationService: Permission revoked, disabling notifications.');
+        console.warn(
+          'NotificationService: Permission revoked, disabling notifications.',
+        );
         this.preferences.enabled = false;
         await this.savePreferences();
       }
       // If permission is granted, notifications can be enabled (but don't auto-enable)
       // This allows user to enable notifications even if they were previously disabled
     } catch (error) {
-      console.error('NotificationService: Error refreshing permission status:', error);
+      console.error(
+        'NotificationService: Error refreshing permission status:',
+        error,
+      );
     }
   }
 
@@ -139,32 +162,47 @@ class NotificationService {
         if (Platform.Version >= 33) {
           try {
             const granted = await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+              PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
             );
             const isGranted = granted === PermissionsAndroid.RESULTS.GRANTED;
-            console.log('NotificationService: Android permission request (POST_NOTIFICATIONS):', isGranted);
+            console.log(
+              'NotificationService: Android permission request (POST_NOTIFICATIONS):',
+              isGranted,
+            );
             if (isGranted) {
               return true;
             }
           } catch (error) {
-            console.warn('NotificationService: Error requesting Android permission:', error);
+            console.warn(
+              'NotificationService: Error requesting Android permission:',
+              error,
+            );
           }
         }
         // Also try notifee requestPermission as fallback or for older Android versions
         try {
           const settings = await notifee.requestPermission();
           const notifeeGranted = settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
-          console.log('NotificationService: Notifee permission request:', notifeeGranted);
+          console.log(
+            'NotificationService: Notifee permission request:',
+            notifeeGranted,
+          );
           return notifeeGranted;
         } catch (error) {
-          console.warn('NotificationService: Error requesting notifee permission:', error);
+          console.warn(
+            'NotificationService: Error requesting notifee permission:',
+            error,
+          );
         }
         return false;
       } else {
         // iOS - use notifee
         const settings = await notifee.requestPermission();
         const granted = settings.authorizationStatus === 1; // AuthorizationStatus.AUTHORIZED = 1
-        console.log('NotificationService: Permission request result:', granted ? 'granted' : 'denied');
+        console.log(
+          'NotificationService: Permission request result:',
+          granted ? 'granted' : 'denied',
+        );
         return granted;
       }
     } catch (error) {
@@ -182,22 +220,36 @@ class NotificationService {
       const translator = (tx as any)?.t;
       return typeof translator === 'function' ? translator(key, params) : key;
     };
-    
+
     // Initialize Notifee
     try {
       // Set up foreground event listener
       notifee.onForegroundEvent(({ type, detail }) => {
         switch (type) {
           case EventType.DISMISSED:
-            console.log('NotificationService: User dismissed notification', detail.notification);
+            console.log(
+              'NotificationService: User dismissed notification',
+              detail.notification,
+            );
             break;
           case EventType.PRESS:
-            console.log('NotificationService: User pressed notification', detail.notification);
-            this.handleCallNotificationAction(CALL_NOTIFICATION_ACTIONS.DEFAULT);
+            console.log(
+              'NotificationService: User pressed notification',
+              detail.notification,
+            );
+            this.handleCallNotificationAction(
+              CALL_NOTIFICATION_ACTIONS.DEFAULT,
+            );
             break;
           case EventType.ACTION_PRESS:
-            console.log('NotificationService: User pressed notification action', detail.pressAction);
-            this.handleCallNotificationAction((detail.pressAction?.id as CallNotificationAction) || CALL_NOTIFICATION_ACTIONS.DEFAULT);
+            console.log(
+              'NotificationService: User pressed notification action',
+              detail.pressAction,
+            );
+            this.handleCallNotificationAction(
+              (detail.pressAction?.id as CallNotificationAction) ||
+                CALL_NOTIFICATION_ACTIONS.DEFAULT,
+            );
             break;
         }
       });
@@ -205,12 +257,36 @@ class NotificationService {
       // Create Android notification channels for category-based grouping
       // Required for Android 8.0 (Oreo) and above
       const channelDefs = [
-        { id: NOTIFICATION_CHANNELS.PRIVATE_MESSAGES, name: t('Private Messages'), importance: AndroidImportance.HIGH },
-        { id: NOTIFICATION_CHANNELS.CHANNEL_MESSAGES, name: t('Channel Messages'), importance: AndroidImportance.DEFAULT },
-        { id: NOTIFICATION_CHANNELS.NOTICES, name: t('Notices'), importance: AndroidImportance.LOW },
-        { id: NOTIFICATION_CHANNELS.SERVER, name: t('Server'), importance: AndroidImportance.LOW },
-        { id: NOTIFICATION_CHANNELS.DCC_TRANSFERS, name: t('DCC Transfers'), importance: AndroidImportance.HIGH },
-        { id: NOTIFICATION_CHANNELS.CALLS, name: t('Calls'), importance: AndroidImportance.HIGH },
+        {
+          id: NOTIFICATION_CHANNELS.PRIVATE_MESSAGES,
+          name: t('Private Messages'),
+          importance: AndroidImportance.HIGH,
+        },
+        {
+          id: NOTIFICATION_CHANNELS.CHANNEL_MESSAGES,
+          name: t('Channel Messages'),
+          importance: AndroidImportance.DEFAULT,
+        },
+        {
+          id: NOTIFICATION_CHANNELS.NOTICES,
+          name: t('Notices'),
+          importance: AndroidImportance.LOW,
+        },
+        {
+          id: NOTIFICATION_CHANNELS.SERVER,
+          name: t('Server'),
+          importance: AndroidImportance.LOW,
+        },
+        {
+          id: NOTIFICATION_CHANNELS.DCC_TRANSFERS,
+          name: t('DCC Transfers'),
+          importance: AndroidImportance.HIGH,
+        },
+        {
+          id: NOTIFICATION_CHANNELS.CALLS,
+          name: t('Calls'),
+          importance: AndroidImportance.HIGH,
+        },
       ];
       for (const def of channelDefs) {
         await notifee.createChannel(def);
@@ -223,18 +299,25 @@ class NotificationService {
       // However, if permission is granted, keep notifications enabled even if they were previously disabled
       const hasPermission = await this.checkPermission();
       if (this.preferences.enabled && !hasPermission) {
-        console.warn('NotificationService: Notifications enabled but permission not granted. Disabling notifications.');
+        console.warn(
+          'NotificationService: Notifications enabled but permission not granted. Disabling notifications.',
+        );
         this.preferences.enabled = false;
         await this.savePreferences();
       } else if (!this.preferences.enabled && hasPermission) {
         // Permission is granted but notifications are disabled - this is fine, user can enable them manually
         // Don't auto-enable, just log that permission is available
-        console.log('NotificationService: Permission granted, notifications can be enabled by user.');
+        console.log(
+          'NotificationService: Permission granted, notifications can be enabled by user.',
+        );
       }
 
       console.log('NotificationService: Initialized with Notifee');
     } catch (error) {
-      console.error('NotificationService: Error initializing notifications:', error);
+      console.error(
+        'NotificationService: Error initializing notifications:',
+        error,
+      );
       // Continue without notifications if initialization fails
     }
   }
@@ -250,12 +333,12 @@ class NotificationService {
         // Restore Maps from arrays
         if (parsed.channelPreferences) {
           this.preferences.channelPreferences = new Map(
-            Object.entries(parsed.channelPreferences)
+            Object.entries(parsed.channelPreferences),
           );
         }
         if (parsed.networkPreferences) {
           this.preferences.networkPreferences = new Map(
-            Object.entries(parsed.networkPreferences)
+            Object.entries(parsed.networkPreferences),
           );
         }
         // Copy other preferences
@@ -279,8 +362,12 @@ class NotificationService {
       // Convert Maps to objects for JSON serialization
       const data = {
         ...this.preferences,
-        channelPreferences: Object.fromEntries(this.preferences.channelPreferences),
-        networkPreferences: Object.fromEntries(this.preferences.networkPreferences),
+        channelPreferences: Object.fromEntries(
+          this.preferences.channelPreferences,
+        ),
+        networkPreferences: Object.fromEntries(
+          this.preferences.networkPreferences,
+        ),
       };
       await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
@@ -298,18 +385,26 @@ class NotificationService {
   /**
    * Update global notification preferences
    */
-  async updatePreferences(prefs: Partial<NotificationPreferences>): Promise<void> {
+  async updatePreferences(
+    prefs: Partial<NotificationPreferences>,
+  ): Promise<void> {
     // If enabling notifications, verify permission is still granted before updating
     if (prefs.enabled === true && !this.preferences.enabled) {
-      console.log('NotificationService: Enabling notifications, verifying permission...');
+      console.log(
+        'NotificationService: Enabling notifications, verifying permission...',
+      );
       const hasPermission = await this.checkPermission();
       if (!hasPermission) {
-        console.warn('NotificationService: Cannot enable notifications - permission not granted');
+        console.warn(
+          'NotificationService: Cannot enable notifications - permission not granted',
+        );
         throw new Error('Notification permission not granted');
       }
-      console.log('NotificationService: Permission verified, enabling notifications');
+      console.log(
+        'NotificationService: Permission verified, enabling notifications',
+      );
     }
-    
+
     this.preferences = { ...this.preferences, ...prefs };
     await this.savePreferences();
   }
@@ -330,9 +425,11 @@ class NotificationService {
    */
   async updateChannelPreferences(
     channel: string,
-    prefs: Partial<NotificationPreferences>
+    prefs: Partial<NotificationPreferences>,
   ): Promise<void> {
-    const current = this.preferences.channelPreferences.get(channel) || { ...this.preferences };
+    const current = this.preferences.channelPreferences.get(channel) || {
+      ...this.preferences,
+    };
     this.preferences.channelPreferences.set(channel, { ...current, ...prefs });
     await this.savePreferences();
   }
@@ -348,11 +445,16 @@ class NotificationService {
   /**
    * List all per-channel preferences
    */
-  listChannelPreferences(): Array<{ channel: string; prefs: NotificationPreferences }> {
-    return Array.from(this.preferences.channelPreferences.entries()).map(([channel, prefs]) => ({
-      channel,
-      prefs: { ...this.preferences, ...prefs },
-    }));
+  listChannelPreferences(): Array<{
+    channel: string;
+    prefs: NotificationPreferences;
+  }> {
+    return Array.from(this.preferences.channelPreferences.entries()).map(
+      ([channel, prefs]) => ({
+        channel,
+        prefs: { ...this.preferences, ...prefs },
+      }),
+    );
   }
 
   /**
@@ -371,9 +473,11 @@ class NotificationService {
    */
   async updateNetworkPreferences(
     network: string,
-    prefs: Partial<NotificationPreferences>
+    prefs: Partial<NotificationPreferences>,
   ): Promise<void> {
-    const current = this.preferences.networkPreferences.get(network) || { ...this.preferences };
+    const current = this.preferences.networkPreferences.get(network) || {
+      ...this.preferences,
+    };
     this.preferences.networkPreferences.set(network, { ...current, ...prefs });
     await this.savePreferences();
   }
@@ -383,7 +487,12 @@ class NotificationService {
    */
   private resolveChannelId(channel?: string, messageType?: string): string {
     if (messageType === 'notice') return NOTIFICATION_CHANNELS.NOTICES;
-    if (messageType === 'error' || messageType === 'system' || messageType === 'monitor') return NOTIFICATION_CHANNELS.SERVER;
+    if (
+      messageType === 'error' ||
+      messageType === 'system' ||
+      messageType === 'monitor'
+    )
+      return NOTIFICATION_CHANNELS.SERVER;
     if (!channel || channel === '*') return NOTIFICATION_CHANNELS.SERVER;
     if (/^[#&+!]/.test(channel)) return NOTIFICATION_CHANNELS.CHANNEL_MESSAGES;
     return NOTIFICATION_CHANNELS.PRIVATE_MESSAGES;
@@ -397,12 +506,14 @@ class NotificationService {
     body: string,
     channel: string,
     network?: string,
-    messageType?: string
+    messageType?: string,
   ): Promise<void> {
     // Check if permission is granted before showing notification
     const hasPermission = await this.checkPermission();
     if (!hasPermission) {
-      console.warn('NotificationService: Notification permission not granted, skipping notification');
+      console.warn(
+        'NotificationService: Notification permission not granted, skipping notification',
+      );
       return;
     }
 
@@ -430,11 +541,11 @@ class NotificationService {
           // sound: 'default', // Requires sound file in res/raw
           // vibrate: true,
         },
-      ios: {
-        sound: 'default',
-      }
-    });
-      
+        ios: {
+          sound: 'default',
+        },
+      });
+
       console.log(`NotificationService: Notification sent - ${title}: ${body}`);
     } catch (error) {
       console.error('NotificationService: Error showing notification:', error);
@@ -449,17 +560,18 @@ class NotificationService {
   async showMessageNotification(
     message: { from?: string; text: string; channel?: string; type?: string },
     currentNick: string,
-    network?: string
+    network?: string,
   ): Promise<void> {
     const t = (key: string, params?: Record<string, unknown>) => {
       const translator = (tx as any)?.t;
       return typeof translator === 'function' ? translator(key, params) : key;
     };
     const channel = message.channel || t('Unknown');
-    const isChannel = channel.startsWith('#') || 
-                     channel.startsWith('&') || 
-                     channel.startsWith('+') || 
-                     channel.startsWith('!');
+    const isChannel =
+      channel.startsWith('#') ||
+      channel.startsWith('&') ||
+      channel.startsWith('+') ||
+      channel.startsWith('!');
 
     let title: string;
     let body: string;
@@ -471,7 +583,10 @@ class NotificationService {
     } else {
       // Channel message
       title = `${channel}`;
-      body = t('{from}: {text}', { from: message.from || t('Unknown'), text: message.text || '' });
+      body = t('{from}: {text}', {
+        from: message.from || t('Unknown'),
+        text: message.text || '',
+      });
     }
 
     await this.showNotification(title, body, channel, network, message.type);
@@ -489,7 +604,10 @@ class NotificationService {
       return;
     }
 
-    const title = options.mediaType === 'video' ? 'Video call in progress' : 'Audio call in progress';
+    const title =
+      options.mediaType === 'video'
+        ? 'Video call in progress'
+        : 'Audio call in progress';
     const bodyParts = [
       options.peerNick,
       options.statusText,
@@ -543,17 +661,22 @@ class NotificationService {
     try {
       await notifee.cancelNotification(ONGOING_CALL_NOTIFICATION_ID);
     } catch (error) {
-      console.error('NotificationService: Error cancelling ongoing call notification:', error);
+      console.error(
+        'NotificationService: Error cancelling ongoing call notification:',
+        error,
+      );
     }
   }
 
   setCallNotificationActionListener(
-    listener: ((action: CallNotificationAction) => void | Promise<void>) | null
+    listener: ((action: CallNotificationAction) => void | Promise<void>) | null,
   ): void {
     this.callActionListener = listener;
   }
 
-  async handleCallNotificationAction(action: CallNotificationAction): Promise<void> {
+  async handleCallNotificationAction(
+    action: CallNotificationAction,
+  ): Promise<void> {
     if (!this.callActionListener) {
       await AsyncStorage.setItem(PENDING_CALL_ACTION_KEY, action);
       return;
@@ -562,7 +685,10 @@ class NotificationService {
       await this.callActionListener(action);
       await AsyncStorage.removeItem(PENDING_CALL_ACTION_KEY);
     } catch (error) {
-      console.error('NotificationService: Error handling call notification action:', error);
+      console.error(
+        'NotificationService: Error handling call notification action:',
+        error,
+      );
     }
   }
 
@@ -575,7 +701,10 @@ class NotificationService {
       await AsyncStorage.removeItem(PENDING_CALL_ACTION_KEY);
       return value as CallNotificationAction;
     } catch (error) {
-      console.error('NotificationService: Error consuming pending call action:', error);
+      console.error(
+        'NotificationService: Error consuming pending call action:',
+        error,
+      );
       return null;
     }
   }
@@ -586,9 +715,15 @@ class NotificationService {
   cancelNotification(notificationId: string): void {
     try {
       notifee.cancelNotification(notificationId);
-      console.log('NotificationService: Cancelled notification', notificationId);
+      console.log(
+        'NotificationService: Cancelled notification',
+        notificationId,
+      );
     } catch (error) {
-      console.error('NotificationService: Error cancelling notification:', error);
+      console.error(
+        'NotificationService: Error cancelling notification:',
+        error,
+      );
     }
   }
 
@@ -600,7 +735,10 @@ class NotificationService {
       notifee.cancelAllNotifications();
       console.log('NotificationService: Cancelled all notifications');
     } catch (error) {
-      console.error('NotificationService: Error cancelling all notifications:', error);
+      console.error(
+        'NotificationService: Error cancelling all notifications:',
+        error,
+      );
     }
   }
 
@@ -632,7 +770,7 @@ class NotificationService {
   shouldNotify(
     message: { from?: string; text: string; channel?: string; type?: string },
     currentNick: string,
-    network?: string
+    network?: string,
   ): boolean {
     // Get preferences (check channel/network specific first)
     let prefs: NotificationPreferences;
@@ -659,10 +797,11 @@ class NotificationService {
     }
 
     const channel = message.channel || 'unknown';
-    const isChannel = channel.startsWith('#') || 
-                     channel.startsWith('&') || 
-                     channel.startsWith('+') || 
-                     channel.startsWith('!');
+    const isChannel =
+      channel.startsWith('#') ||
+      channel.startsWith('&') ||
+      channel.startsWith('+') ||
+      channel.startsWith('!');
 
     // Check private messages
     if (!isChannel) {
@@ -691,4 +830,3 @@ class NotificationService {
 }
 
 export const notificationService = new NotificationService();
-

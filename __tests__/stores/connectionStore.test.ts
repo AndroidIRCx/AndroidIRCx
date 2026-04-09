@@ -9,7 +9,8 @@ import { useConnectionStore } from '../../src/stores/connectionStore';
 
 // Mock Zustand persist middleware
 jest.mock('zustand/middleware', () => ({
-  persist: (config: any) => (set: any, get: any, api: any) => config(set, get, api),
+  persist: (config: any) => (set: any, get: any, api: any) =>
+    config(set, get, api),
   createJSONStorage: () => ({
     getItem: jest.fn(),
     setItem: jest.fn(),
@@ -26,7 +27,7 @@ describe('connectionStore', () => {
   describe('initial state', () => {
     it('should have correct initial state', () => {
       const state = useConnectionStore.getState();
-      
+
       expect(state.isConnected).toBe(false);
       expect(state.networkName).toBe('default');
       expect(state.selectedNetworkName).toBeNull();
@@ -64,7 +65,9 @@ describe('connectionStore', () => {
   describe('setSelectedNetworkName', () => {
     it('should set selected network name', () => {
       useConnectionStore.getState().setSelectedNetworkName('Libera.Chat');
-      expect(useConnectionStore.getState().selectedNetworkName).toBe('Libera.Chat');
+      expect(useConnectionStore.getState().selectedNetworkName).toBe(
+        'Libera.Chat',
+      );
     });
 
     it('should set to null', () => {
@@ -175,7 +178,7 @@ describe('connectionStore', () => {
       const before = useConnectionStore.getState();
       useConnectionStore.getState().updateConnectionState({});
       const after = useConnectionStore.getState();
-      
+
       expect(after.isConnected).toBe(before.isConnected);
       expect(after.networkName).toBe(before.networkName);
     });
@@ -208,7 +211,7 @@ describe('connectionStore', () => {
     it('should work when called multiple times', () => {
       useConnectionStore.getState().reset();
       useConnectionStore.getState().reset();
-      
+
       const state = useConnectionStore.getState();
       expect(state.isConnected).toBe(false);
       expect(state.networkName).toBe('default');
@@ -224,7 +227,7 @@ describe('connectionStore', () => {
 
     it('should have all required actions', () => {
       const state = useConnectionStore.getState();
-      
+
       expect(typeof state.setIsConnected).toBe('function');
       expect(typeof state.setNetworkName).toBe('function');
       expect(typeof state.setSelectedNetworkName).toBe('function');

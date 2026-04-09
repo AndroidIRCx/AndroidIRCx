@@ -33,7 +33,18 @@ describe('OperCommands', () => {
 
   describe('operCommands map', () => {
     it('registers all operator commands', () => {
-      ['OPER', 'REHASH', 'SQUIT', 'KILL', 'CONNECT', 'DIE', 'WALLOPS', 'LOCOPS', 'GLOBOPS', 'ADCHAT'].forEach(cmd => {
+      [
+        'OPER',
+        'REHASH',
+        'SQUIT',
+        'KILL',
+        'CONNECT',
+        'DIE',
+        'WALLOPS',
+        'LOCOPS',
+        'GLOBOPS',
+        'ADCHAT',
+      ].forEach(cmd => {
         expect(operCommands.has(cmd)).toBe(true);
       });
     });
@@ -48,7 +59,7 @@ describe('OperCommands', () => {
     it('adds notice message after oper attempt', () => {
       handleOPER(ctx, ['myoper', 'secret123'], '#channel');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -56,7 +67,7 @@ describe('OperCommands', () => {
       handleOPER(ctx, ['onlynick'], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -64,7 +75,7 @@ describe('OperCommands', () => {
       handleOPER(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -78,7 +89,7 @@ describe('OperCommands', () => {
     it('adds notice message', () => {
       handleREHASH(ctx, [], '#channel');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
   });
@@ -91,13 +102,15 @@ describe('OperCommands', () => {
 
     it('sends SQUIT with server and message', () => {
       handleSQUIT(ctx, ['irc.server.net', 'Maintenance', 'now'], '#channel');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('SQUIT irc.server.net :Maintenance now');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'SQUIT irc.server.net :Maintenance now',
+      );
     });
 
     it('adds notice after SQUIT', () => {
       handleSQUIT(ctx, ['irc.server.net'], '#channel');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -105,7 +118,7 @@ describe('OperCommands', () => {
       handleSQUIT(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -113,13 +126,15 @@ describe('OperCommands', () => {
   describe('handleKILL', () => {
     it('sends KILL with nick and reason', () => {
       handleKILL(ctx, ['baduser', 'Spamming', 'channels'], '#channel');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('KILL baduser :Spamming channels');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'KILL baduser :Spamming channels',
+      );
     });
 
     it('adds notice after KILL', () => {
       handleKILL(ctx, ['baduser', 'reason'], '#channel');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -127,7 +142,7 @@ describe('OperCommands', () => {
       handleKILL(ctx, ['baduser'], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -140,18 +155,22 @@ describe('OperCommands', () => {
   describe('handleCONNECT', () => {
     it('sends CONNECT with server and port', () => {
       handleCONNECT(ctx, ['irc.other.net', '6667'], '#channel');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('CONNECT irc.other.net 6667');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'CONNECT irc.other.net 6667',
+      );
     });
 
     it('sends CONNECT with server, port and remote', () => {
       handleCONNECT(ctx, ['irc.other.net', '6667', 'irc.hub.net'], '#channel');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('CONNECT irc.other.net 6667 irc.hub.net');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'CONNECT irc.other.net 6667 irc.hub.net',
+      );
     });
 
     it('adds notice after CONNECT', () => {
       handleCONNECT(ctx, ['irc.other.net', '6667'], '#channel');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -159,7 +178,7 @@ describe('OperCommands', () => {
       handleCONNECT(ctx, ['irc.other.net'], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -178,7 +197,7 @@ describe('OperCommands', () => {
     it('adds notice message', () => {
       handleDIE(ctx, [], '#channel');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
   });
@@ -186,14 +205,16 @@ describe('OperCommands', () => {
   describe('handleWALLOPS', () => {
     it('sends WALLOPS with message', () => {
       handleWALLOPS(ctx, ['Hello', 'all', 'operators'], '#channel');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('WALLOPS :Hello all operators');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'WALLOPS :Hello all operators',
+      );
     });
 
     it('adds error when no message', () => {
       handleWALLOPS(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -208,7 +229,7 @@ describe('OperCommands', () => {
       handleLOCOPS(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -216,14 +237,16 @@ describe('OperCommands', () => {
   describe('handleGLOBOPS', () => {
     it('sends GLOBOPS with message', () => {
       handleGLOBOPS(ctx, ['Global', 'ops', 'message'], '#channel');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('GLOBOPS :Global ops message');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'GLOBOPS :Global ops message',
+      );
     });
 
     it('adds error when no message', () => {
       handleGLOBOPS(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -231,14 +254,16 @@ describe('OperCommands', () => {
   describe('handleADCHAT', () => {
     it('sends ADCHAT with message', () => {
       handleADCHAT(ctx, ['Admin', 'chat', 'message'], '#channel');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('ADCHAT :Admin chat message');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'ADCHAT :Admin chat message',
+      );
     });
 
     it('adds error when no message', () => {
       handleADCHAT(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });

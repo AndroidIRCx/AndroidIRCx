@@ -57,16 +57,26 @@ jest.mock('react-native-iap', () => ({
         type: 'subs',
         displayPrice: '$3.99',
         subscriptionOfferDetails: [
-          { basePlanId: 'monthly', offerToken: 'monthly-offer', pricingPhases: { pricingPhaseList: [{ formattedPrice: '$3.99' }] } },
-          { basePlanId: 'yearly', offerToken: 'yearly-offer', pricingPhases: { pricingPhaseList: [{ formattedPrice: '$39.99' }] } },
+          {
+            basePlanId: 'monthly',
+            offerToken: 'monthly-offer',
+            pricingPhases: { pricingPhaseList: [{ formattedPrice: '$3.99' }] },
+          },
+          {
+            basePlanId: 'yearly',
+            offerToken: 'yearly-offer',
+            pricingPhases: { pricingPhaseList: [{ formattedPrice: '$39.99' }] },
+          },
         ],
       },
-    ])
+    ]),
   ),
   requestPurchase: jest.fn(() => Promise.resolve(undefined)),
-  getAvailablePurchases: jest.fn(() => Promise.resolve([
-    { productId: 'privacy_relay', purchaseToken: 'restored-token' },
-  ])),
+  getAvailablePurchases: jest.fn(() =>
+    Promise.resolve([
+      { productId: 'privacy_relay', purchaseToken: 'restored-token' },
+    ]),
+  ),
   purchaseUpdatedListener: jest.fn((cb: any) => {
     purchaseUpdatedCallback = cb;
     return mockPurchaseUpdateSubscription;
@@ -122,9 +132,17 @@ describe('PrivacyRelayScreen', () => {
     });
     mockPrivacyRelayService.activateSubscription.mockResolvedValue(undefined);
     mockPrivacyRelayService.restoreFromPurchaseTokens.mockResolvedValue(1);
-    mockPrivacyRelayService.registerPurchaseWithBackend.mockResolvedValue(undefined);
+    mockPrivacyRelayService.registerPurchaseWithBackend.mockResolvedValue(
+      undefined,
+    );
     mockPrivacyRelayService.fetchTurnCredentials.mockResolvedValue({
-      iceServers: [{ urls: ['turn:turn.dbase.in.rs:3478?transport=udp'], username: 'u', credential: 'c' }],
+      iceServers: [
+        {
+          urls: ['turn:turn.dbase.in.rs:3478?transport=udp'],
+          username: 'u',
+          credential: 'c',
+        },
+      ],
       ttl: 3600,
       relay: true,
       username: 'u',
@@ -133,9 +151,15 @@ describe('PrivacyRelayScreen', () => {
       callId: 'test-call-1',
       fetchedAt: '2026-03-02T00:00:00.000Z',
     });
-    mockMediaSettingsService.hasAutoEnabledNicklistCallActionsFromRelay.mockResolvedValue(false);
-    mockMediaSettingsService.setCallNicklistCallActionsEnabled.mockResolvedValue(undefined);
-    mockMediaSettingsService.markNicklistCallActionsAutoEnabledFromRelay.mockResolvedValue(undefined);
+    mockMediaSettingsService.hasAutoEnabledNicklistCallActionsFromRelay.mockResolvedValue(
+      false,
+    );
+    mockMediaSettingsService.setCallNicklistCallActionsEnabled.mockResolvedValue(
+      undefined,
+    );
+    mockMediaSettingsService.markNicklistCallActionsAutoEnabledFromRelay.mockResolvedValue(
+      undefined,
+    );
   });
 
   afterEach(() => {
@@ -144,7 +168,7 @@ describe('PrivacyRelayScreen', () => {
 
   it('renders relay info and handles restore flow', async () => {
     const { findByText, getByText } = render(
-      <PrivacyRelayScreen visible onClose={jest.fn()} />
+      <PrivacyRelayScreen visible onClose={jest.fn()} />,
     );
 
     expect(await findByText('Privacy Relay')).toBeTruthy();
@@ -154,23 +178,35 @@ describe('PrivacyRelayScreen', () => {
     fireEvent.press(getByText('Restore Purchases'));
 
     await waitFor(() => {
-      expect(mockPrivacyRelayService.restoreFromPurchaseTokens).toHaveBeenCalled();
+      expect(
+        mockPrivacyRelayService.restoreFromPurchaseTokens,
+      ).toHaveBeenCalled();
     });
     await waitFor(() => {
-      expect(mockPrivacyRelayService.registerPurchaseWithBackend).toHaveBeenCalledWith('restored-token', null);
-      expect(mockPrivacyRelayService.fetchTurnCredentials).toHaveBeenCalledWith('restored-token');
+      expect(
+        mockPrivacyRelayService.registerPurchaseWithBackend,
+      ).toHaveBeenCalledWith('restored-token', null);
+      expect(mockPrivacyRelayService.fetchTurnCredentials).toHaveBeenCalledWith(
+        'restored-token',
+      );
     });
     await waitFor(() => {
-      expect(mockMediaSettingsService.setCallNicklistCallActionsEnabled).toHaveBeenCalledWith(true);
-      expect(mockMediaSettingsService.markNicklistCallActionsAutoEnabledFromRelay).toHaveBeenCalled();
+      expect(
+        mockMediaSettingsService.setCallNicklistCallActionsEnabled,
+      ).toHaveBeenCalledWith(true);
+      expect(
+        mockMediaSettingsService.markNicklistCallActionsAutoEnabledFromRelay,
+      ).toHaveBeenCalled();
     });
   });
 
   it('shows store init failure and supports closing', async () => {
-    mockPrivacyRelayService.initialize.mockRejectedValueOnce(new Error('store down'));
+    mockPrivacyRelayService.initialize.mockRejectedValueOnce(
+      new Error('store down'),
+    );
     const onClose = jest.fn();
     const { findByText } = render(
-      <PrivacyRelayScreen visible onClose={onClose} />
+      <PrivacyRelayScreen visible onClose={onClose} />,
     );
 
     await waitFor(() => {
@@ -183,25 +219,32 @@ describe('PrivacyRelayScreen', () => {
 
   it('handles restore with no matching purchases and restore failures', async () => {
     const RNIap = require('react-native-iap');
-    RNIap.getAvailablePurchases.mockResolvedValueOnce([{ productId: 'other_product', purchaseToken: 'other' }]);
+    RNIap.getAvailablePurchases.mockResolvedValueOnce([
+      { productId: 'other_product', purchaseToken: 'other' },
+    ]);
     mockPrivacyRelayService.restoreFromPurchaseTokens.mockResolvedValueOnce(0);
 
     const { findByText } = render(
-      <PrivacyRelayScreen visible onClose={jest.fn()} />
+      <PrivacyRelayScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Restore Purchases'));
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Restore complete',
-        'No Privacy Relay subscriptions were found to restore.'
+        'No Privacy Relay subscriptions were found to restore.',
       );
     });
 
-    mockPrivacyRelayService.restoreFromPurchaseTokens.mockRejectedValueOnce(new Error('restore broken'));
+    mockPrivacyRelayService.restoreFromPurchaseTokens.mockRejectedValueOnce(
+      new Error('restore broken'),
+    );
     fireEvent.press(await findByText('Restore Purchases'));
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Restore failed', 'restore broken');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Restore failed',
+        'restore broken',
+      );
     });
   });
 
@@ -222,21 +265,29 @@ describe('PrivacyRelayScreen', () => {
     });
 
     const { findByText } = render(
-      <PrivacyRelayScreen visible onClose={jest.fn()} />
+      <PrivacyRelayScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Test Relay Credentials'));
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Relay ready', 'TURN credentials were fetched successfully.');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Relay ready',
+        'TURN credentials were fetched successfully.',
+      );
     });
     await waitFor(async () => {
       expect(await findByText('Last backend test')).toBeTruthy();
     });
 
-    mockPrivacyRelayService.fetchTurnCredentials.mockRejectedValueOnce(new Error('turn failed'));
+    mockPrivacyRelayService.fetchTurnCredentials.mockRejectedValueOnce(
+      new Error('turn failed'),
+    );
     fireEvent.press(await findByText('Test Relay Credentials'));
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Relay test failed', 'turn failed');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Relay test failed',
+        'turn failed',
+      );
     });
   });
 
@@ -258,11 +309,13 @@ describe('PrivacyRelayScreen', () => {
       expect(RNIap.finishTransaction).toHaveBeenCalled();
       expect(Alert.alert).toHaveBeenCalledWith(
         'Privacy Relay enabled',
-        'Relay routing is now available for eligible calls.'
+        'Relay routing is now available for eligible calls.',
       );
     });
 
-    mockPrivacyRelayService.fetchTurnCredentials.mockRejectedValueOnce(new Error('backend failed'));
+    mockPrivacyRelayService.fetchTurnCredentials.mockRejectedValueOnce(
+      new Error('backend failed'),
+    );
     await purchaseUpdatedCallback?.({
       productId: 'privacy_relay',
       purchaseToken: 'purchase-token-2',
@@ -270,7 +323,10 @@ describe('PrivacyRelayScreen', () => {
     });
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Purchase Failed', 'backend failed');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Purchase Failed',
+        'backend failed',
+      );
     });
   });
 
@@ -292,7 +348,7 @@ describe('PrivacyRelayScreen', () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Purchase Failed',
-        'Missing purchase token for Privacy Relay subscription.'
+        'Missing purchase token for Privacy Relay subscription.',
       );
     });
 
@@ -301,7 +357,10 @@ describe('PrivacyRelayScreen', () => {
       message: 'billing failed',
       productId: 'privacy_relay',
     });
-    expect(Alert.alert).toHaveBeenCalledWith('Purchase Failed', 'billing failed');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Purchase Failed',
+      'billing failed',
+    );
 
     purchaseErrorCallback?.({
       code: 'user-cancelled',

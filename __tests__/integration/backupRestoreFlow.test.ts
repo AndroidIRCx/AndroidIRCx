@@ -32,7 +32,7 @@ jest.mock('../../src/services/IRCService', () => ({
     sendRaw: jest.fn(),
     emit: jest.fn(),
   },
-  ChannelUser: {}
+  ChannelUser: {},
 }));
 
 jest.mock('../../src/services/UserManagementService', () => ({
@@ -54,7 +54,7 @@ jest.mock('../../src/services/SettingsService', () => ({
     dccAcceptExts: [],
     dccRejectExts: [],
     dccDontSendExts: [],
-  }
+  },
 }));
 
 jest.mock('../../src/services/EncryptedDMService', () => ({
@@ -185,17 +185,17 @@ jest.mock('../../src/utils/tabUtils', () => ({
   serverTabId: jest.fn().mockReturnValue('server-test-network'),
   channelTabId: jest.fn().mockReturnValue('channel-test-network-#test'),
   queryTabId: jest.fn().mockReturnValue('query-test-network-nickname'),
-  makeServerTab: jest.fn().mockReturnValue({ 
-    id: 'server-test-network', 
-    type: 'server', 
-    name: 'test-network', 
-    networkId: 'test-network' 
+  makeServerTab: jest.fn().mockReturnValue({
+    id: 'server-test-network',
+    type: 'server',
+    name: 'test-network',
+    networkId: 'test-network',
   }),
-  sortTabsGrouped: jest.fn().mockImplementation((tabs) => tabs),
+  sortTabsGrouped: jest.fn().mockImplementation(tabs => tabs),
 }));
 
 jest.mock('../../src/i18n/transifex', () => ({
-  useT: jest.fn().mockReturnValue((str) => str),
+  useT: jest.fn().mockReturnValue(str => str),
 }));
 
 jest.mock('../../src/services/STSService', () => ({
@@ -214,7 +214,7 @@ global.Alert = mockAlert;
 describe('backupRestoreFlow Integration Test', () => {
   const mockParams = {
     processBatchedMessages: jest.fn(),
-    safeSetState: jest.fn().mockImplementation((fn) => fn()),
+    safeSetState: jest.fn().mockImplementation(fn => fn()),
     safeAlert: mockAlert.alert,
     setIsConnected: jest.fn(),
     setActiveConnectionId: jest.fn(),
@@ -238,12 +238,20 @@ describe('backupRestoreFlow Integration Test', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Set default mock implementations
-    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue('server');
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([]);
-    require('../../src/services/IRCService').ircService.getNetworkName.mockReturnValue('test-network');
-    require('../../src/services/IRCService').ircService.getCurrentNick.mockReturnValue('testuser');
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(
+      'server',
+    );
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      [],
+    );
+    require('../../src/services/IRCService').ircService.getNetworkName.mockReturnValue(
+      'test-network',
+    );
+    require('../../src/services/IRCService').ircService.getCurrentNick.mockReturnValue(
+      'testuser',
+    );
     require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
       tabs: [],
       setTabs: jest.fn(),
@@ -258,7 +266,9 @@ describe('backupRestoreFlow Integration Test', () => {
       networks: [],
       tabs: [],
     });
-    require('../../src/services/DataBackupService').dataBackupService.createBackup.mockImplementation(mockCreateBackup);
+    require('../../src/services/DataBackupService').dataBackupService.createBackup.mockImplementation(
+      mockCreateBackup,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -269,7 +279,8 @@ describe('backupRestoreFlow Integration Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate creating a backup
-    const backup = await require('../../src/services/DataBackupService').dataBackupService.createBackup();
+    const backup =
+      await require('../../src/services/DataBackupService').dataBackupService.createBackup();
 
     // Verify that the backup was created successfully
     expect(mockCreateBackup).toHaveBeenCalled();
@@ -281,7 +292,9 @@ describe('backupRestoreFlow Integration Test', () => {
 
   it('should handle restoring from a backup', async () => {
     const mockRestoreBackup = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/DataBackupService').dataBackupService.restoreBackup.mockImplementation(mockRestoreBackup);
+    require('../../src/services/DataBackupService').dataBackupService.restoreBackup.mockImplementation(
+      mockRestoreBackup,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -295,12 +308,26 @@ describe('backupRestoreFlow Integration Test', () => {
     const mockBackup = {
       metadata: { version: '1.0', timestamp: Date.now() },
       settings: { theme: 'dark', notifications: true },
-      networks: [{ name: 'Freenode', servers: [{ hostname: 'chat.freenode.net', port: 6667 }] }],
-      tabs: [{ id: 'server-freenode', type: 'server', name: 'Freenode', networkId: 'Freenode' }],
+      networks: [
+        {
+          name: 'Freenode',
+          servers: [{ hostname: 'chat.freenode.net', port: 6667 }],
+        },
+      ],
+      tabs: [
+        {
+          id: 'server-freenode',
+          type: 'server',
+          name: 'Freenode',
+          networkId: 'Freenode',
+        },
+      ],
     };
 
     // Simulate restoring from backup
-    await require('../../src/services/DataBackupService').dataBackupService.restoreBackup(mockBackup);
+    await require('../../src/services/DataBackupService').dataBackupService.restoreBackup(
+      mockBackup,
+    );
 
     // Verify that the restore function was called with the backup data
     expect(mockRestoreBackup).toHaveBeenCalledWith(mockBackup);
@@ -308,7 +335,9 @@ describe('backupRestoreFlow Integration Test', () => {
 
   it('should validate backup before restoration', () => {
     const mockValidateBackup = jest.fn().mockReturnValue(true);
-    require('../../src/services/DataBackupService').dataBackupService.validateBackup.mockImplementation(mockValidateBackup);
+    require('../../src/services/DataBackupService').dataBackupService.validateBackup.mockImplementation(
+      mockValidateBackup,
+    );
 
     const mockBackup = {
       metadata: { version: '1.0', timestamp: Date.now() },
@@ -318,7 +347,10 @@ describe('backupRestoreFlow Integration Test', () => {
     };
 
     // Validate the backup
-    const isValid = require('../../src/services/DataBackupService').dataBackupService.validateBackup(mockBackup);
+    const isValid =
+      require('../../src/services/DataBackupService').dataBackupService.validateBackup(
+        mockBackup,
+      );
 
     // Verify that the backup was validated
     expect(mockValidateBackup).toHaveBeenCalledWith(mockBackup);
@@ -327,7 +359,9 @@ describe('backupRestoreFlow Integration Test', () => {
 
   it('should handle invalid backup gracefully', () => {
     const mockValidateBackup = jest.fn().mockReturnValue(false);
-    require('../../src/services/DataBackupService').dataBackupService.validateBackup.mockImplementation(mockValidateBackup);
+    require('../../src/services/DataBackupService').dataBackupService.validateBackup.mockImplementation(
+      mockValidateBackup,
+    );
 
     const mockBackup = {
       metadata: { version: '1.0', timestamp: Date.now() },
@@ -337,7 +371,10 @@ describe('backupRestoreFlow Integration Test', () => {
     };
 
     // Validate the invalid backup
-    const isValid = require('../../src/services/DataBackupService').dataBackupService.validateBackup(mockBackup);
+    const isValid =
+      require('../../src/services/DataBackupService').dataBackupService.validateBackup(
+        mockBackup,
+      );
 
     // Verify that the invalid backup was detected
     expect(mockValidateBackup).toHaveBeenCalledWith(mockBackup);
@@ -352,7 +389,9 @@ describe('backupRestoreFlow Integration Test', () => {
       networksCount: 5,
       tabsCount: 20,
     });
-    require('../../src/services/DataBackupService').dataBackupService.getBackupMetadata.mockImplementation(mockGetBackupMetadata);
+    require('../../src/services/DataBackupService').dataBackupService.getBackupMetadata.mockImplementation(
+      mockGetBackupMetadata,
+    );
 
     const mockBackup = {
       metadata: { version: '1.0', timestamp: Date.now() },
@@ -362,7 +401,10 @@ describe('backupRestoreFlow Integration Test', () => {
     };
 
     // Get backup metadata
-    const metadata = require('../../src/services/DataBackupService').dataBackupService.getBackupMetadata(mockBackup);
+    const metadata =
+      require('../../src/services/DataBackupService').dataBackupService.getBackupMetadata(
+        mockBackup,
+      );
 
     // Verify that metadata was retrieved
     expect(mockGetBackupMetadata).toHaveBeenCalledWith(mockBackup);
@@ -376,18 +418,25 @@ describe('backupRestoreFlow Integration Test', () => {
   it('should handle settings backup and restore', async () => {
     const mockSaveSettings = jest.fn().mockResolvedValue(undefined);
     const mockLoadSettings = jest.fn().mockResolvedValue({});
-    require('../../src/services/SettingsService').settingsService.saveSettings.mockImplementation(mockSaveSettings);
-    require('../../src/services/SettingsService').settingsService.loadSettings.mockImplementation(mockLoadSettings);
+    require('../../src/services/SettingsService').settingsService.saveSettings.mockImplementation(
+      mockSaveSettings,
+    );
+    require('../../src/services/SettingsService').settingsService.loadSettings.mockImplementation(
+      mockLoadSettings,
+    );
 
     // Simulate backing up settings
-    const settings = await require('../../src/services/SettingsService').settingsService.loadSettings();
-    
+    const settings =
+      await require('../../src/services/SettingsService').settingsService.loadSettings();
+
     // Verify that settings were loaded
     expect(mockLoadSettings).toHaveBeenCalled();
 
     // Simulate restoring settings
-    await require('../../src/services/SettingsService').settingsService.saveSettings(settings);
-    
+    await require('../../src/services/SettingsService').settingsService.saveSettings(
+      settings,
+    );
+
     // Verify that settings were saved
     expect(mockSaveSettings).toHaveBeenCalledWith(settings);
   });
@@ -395,18 +444,25 @@ describe('backupRestoreFlow Integration Test', () => {
   it('should handle network configurations backup and restore', async () => {
     const mockSaveNetworks = jest.fn().mockResolvedValue(undefined);
     const mockLoadNetworks = jest.fn().mockResolvedValue([]);
-    require('../../src/services/SettingsService').settingsService.saveNetworks.mockImplementation(mockSaveNetworks);
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockImplementation(mockLoadNetworks);
+    require('../../src/services/SettingsService').settingsService.saveNetworks.mockImplementation(
+      mockSaveNetworks,
+    );
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockImplementation(
+      mockLoadNetworks,
+    );
 
     // Simulate backing up networks
-    const networks = await require('../../src/services/SettingsService').settingsService.loadNetworks();
-    
+    const networks =
+      await require('../../src/services/SettingsService').settingsService.loadNetworks();
+
     // Verify that networks were loaded
     expect(mockLoadNetworks).toHaveBeenCalled();
 
     // Simulate restoring networks
-    await require('../../src/services/SettingsService').settingsService.saveNetworks(networks);
-    
+    await require('../../src/services/SettingsService').settingsService.saveNetworks(
+      networks,
+    );
+
     // Verify that networks were saved
     expect(mockSaveNetworks).toHaveBeenCalledWith(networks);
   });
@@ -414,18 +470,28 @@ describe('backupRestoreFlow Integration Test', () => {
   it('should handle tabs backup and restore', async () => {
     const mockSaveTabs = jest.fn().mockResolvedValue(undefined);
     const mockGetTabs = jest.fn().mockResolvedValue([]);
-    require('../../src/services/TabService').tabService.saveTabs.mockImplementation(mockSaveTabs);
-    require('../../src/services/TabService').tabService.getTabs.mockImplementation(mockGetTabs);
+    require('../../src/services/TabService').tabService.saveTabs.mockImplementation(
+      mockSaveTabs,
+    );
+    require('../../src/services/TabService').tabService.getTabs.mockImplementation(
+      mockGetTabs,
+    );
 
     // Simulate backing up tabs for a network
-    const tabs = await require('../../src/services/TabService').tabService.getTabs('test-network');
-    
+    const tabs =
+      await require('../../src/services/TabService').tabService.getTabs(
+        'test-network',
+      );
+
     // Verify that tabs were loaded
     expect(mockGetTabs).toHaveBeenCalledWith('test-network');
 
     // Simulate restoring tabs
-    await require('../../src/services/TabService').tabService.saveTabs('test-network', tabs);
-    
+    await require('../../src/services/TabService').tabService.saveTabs(
+      'test-network',
+      tabs,
+    );
+
     // Verify that tabs were saved
     expect(mockSaveTabs).toHaveBeenCalledWith('test-network', tabs);
   });
@@ -433,25 +499,37 @@ describe('backupRestoreFlow Integration Test', () => {
   it('should handle message history backup and restore', async () => {
     const mockLoadMessages = jest.fn().mockResolvedValue([]);
     const mockDeleteMessages = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages.mockImplementation(mockLoadMessages);
-    require('../../src/services/MessageHistoryService').messageHistoryService.deleteMessages.mockImplementation(mockDeleteMessages);
+    require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages.mockImplementation(
+      mockLoadMessages,
+    );
+    require('../../src/services/MessageHistoryService').messageHistoryService.deleteMessages.mockImplementation(
+      mockDeleteMessages,
+    );
 
     // Simulate backing up message history
-    await require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages('test-network', 'server');
-    
+    await require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages(
+      'test-network',
+      'server',
+    );
+
     // Verify that messages were loaded
     expect(mockLoadMessages).toHaveBeenCalledWith('test-network', 'server');
 
     // Simulate clearing message history (part of restore process)
-    await require('../../src/services/MessageHistoryService').messageHistoryService.deleteMessages('test-network', 'server');
-    
+    await require('../../src/services/MessageHistoryService').messageHistoryService.deleteMessages(
+      'test-network',
+      'server',
+    );
+
     // Verify that messages were deleted
     expect(mockDeleteMessages).toHaveBeenCalledWith('test-network', 'server');
   });
 
   it('should clear caches after backup/restore', async () => {
     const mockClearCache = jest.fn();
-    require('../../src/services/StorageCache').storageCache.clear.mockImplementation(mockClearCache);
+    require('../../src/services/StorageCache').storageCache.clear.mockImplementation(
+      mockClearCache,
+    );
 
     // Simulate clearing cache after backup/restore
     require('../../src/services/StorageCache').storageCache.clear();

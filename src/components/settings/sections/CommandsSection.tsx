@@ -4,11 +4,28 @@
  */
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Alert, Modal, View, Text, TouchableOpacity, ScrollView, Switch, TextInput } from 'react-native';
+import {
+  Alert,
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Switch,
+  TextInput,
+} from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
-import { commandService, CommandAlias, CommandHistoryEntry, CustomCommand } from '../../../services/CommandService';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
+import {
+  commandService,
+  CommandAlias,
+  CommandHistoryEntry,
+  CustomCommand,
+} from '../../../services/CommandService';
 
 interface CommandsSectionProps {
   colors: {
@@ -51,15 +68,17 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
 }) => {
   const t = useT();
   const tags = 'screen:settings,file:CommandsSection.tsx,feature:settings';
-  
+
   const [commandAliases, setCommandAliases] = useState<CommandAlias[]>([]);
   const [customCommands, setCustomCommands] = useState<CustomCommand[]>([]);
-  const [commandHistory, setCommandHistory] = useState<CommandHistoryEntry[]>([]);
+  const [commandHistory, setCommandHistory] = useState<CommandHistoryEntry[]>(
+    [],
+  );
   const [newAliasName, setNewAliasName] = useState('');
   const [newAliasCommand, setNewAliasCommand] = useState('');
   const [newCmdName, setNewCmdName] = useState('');
   const [newCmdCommand, setNewCmdCommand] = useState('');
-  
+
   // Submenu state for CommandsSection items
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
   const [submenuRefreshKey, setSubmenuRefreshKey] = useState(0);
@@ -72,7 +91,7 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
       setCommandHistory(commandService.getHistory(20)); // Last 20 commands
     };
     loadData();
-    
+
     // Refresh when submenu closes (in case data changed)
     if (showSubmenu === null) {
       loadData();
@@ -86,9 +105,17 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
         title: t('Command History', { _tags: tags }),
         description: `${commandHistory.length} commands in history`,
         type: 'submenu',
-        searchKeywords: ['command', 'history', 'past', 'previous', 'log', 'recent', 'old'],
+        searchKeywords: [
+          'command',
+          'history',
+          'past',
+          'previous',
+          'log',
+          'recent',
+          'old',
+        ],
         submenuItems: [
-          ...commandHistory.map((entry) => ({
+          ...commandHistory.map(entry => ({
             id: `history-${entry.id}`,
             title: entry.command,
             description: `${new Date(entry.timestamp).toLocaleString()}${entry.channel ? ` · ${entry.channel}` : ''}`,
@@ -108,7 +135,7 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                       setSubmenuRefreshKey(prev => prev + 1);
                     },
                   },
-                ]
+                ],
               );
             },
           })),
@@ -120,7 +147,9 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
             onPress: () => {
               Alert.alert(
                 t('Clear Command History', { _tags: tags }),
-                t('Are you sure you want to delete all command history?', { _tags: tags }),
+                t('Are you sure you want to delete all command history?', {
+                  _tags: tags,
+                }),
                 [
                   { text: 'Cancel', style: 'cancel' },
                   {
@@ -132,7 +161,7 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                       setSubmenuRefreshKey(prev => prev + 1);
                     },
                   },
-                ]
+                ],
               );
             },
           },
@@ -143,7 +172,14 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
         title: t('Command Aliases', { _tags: tags }),
         description: `${commandAliases.length} aliases configured`,
         type: 'submenu',
-        searchKeywords: ['command', 'aliases', 'shortcut', 'macro', 'abbreviation', 'quick'],
+        searchKeywords: [
+          'command',
+          'aliases',
+          'shortcut',
+          'macro',
+          'abbreviation',
+          'quick',
+        ],
         submenuItems: [
           {
             id: 'alias-name-input',
@@ -177,7 +213,10 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
               const aliasName = newAliasName.trim().replace(/^\//, '');
               const aliasCmd = newAliasCommand.trim();
               if (!aliasName || !aliasCmd) {
-                Alert.alert(t('Error', { _tags: tags }), t('Alias name and command are required', { _tags: tags }));
+                Alert.alert(
+                  t('Error', { _tags: tags }),
+                  t('Alias name and command are required', { _tags: tags }),
+                );
                 return;
               }
               await commandService.addAlias({
@@ -201,13 +240,17 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                 `Alias: /${alias.alias}`,
                 `Command: ${alias.command}\nDescription: ${alias.description || 'No description'}`,
                 [
-                  { text: 'Delete', style: 'destructive', onPress: async () => {
-                    await commandService.removeAlias(alias.alias);
-                    setCommandAliases(commandService.getAliases());
-                    setSubmenuRefreshKey(prev => prev + 1);
-                  }},
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                      await commandService.removeAlias(alias.alias);
+                      setCommandAliases(commandService.getAliases());
+                      setSubmenuRefreshKey(prev => prev + 1);
+                    },
+                  },
                   { text: 'OK' },
-                ]
+                ],
               );
             },
           })),
@@ -218,7 +261,14 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
         title: t('Custom Commands', { _tags: tags }),
         description: `${customCommands.length} custom commands`,
         type: 'submenu',
-        searchKeywords: ['custom', 'command', 'template', 'placeholder', 'parameter', 'variable'],
+        searchKeywords: [
+          'custom',
+          'command',
+          'template',
+          'placeholder',
+          'parameter',
+          'variable',
+        ],
         submenuItems: [
           {
             id: 'custom-name-input',
@@ -234,10 +284,14 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
           {
             id: 'custom-command-input',
             title: t('Command Template', { _tags: tags }),
-            description: t('Use {param1}, {channel}, {nick} placeholders', { _tags: tags }),
+            description: t('Use {param1}, {channel}, {nick} placeholders', {
+              _tags: tags,
+            }),
             type: 'input',
             value: newCmdCommand,
-            placeholder: t('e.g. /msg {channel} Hello {param1}', { _tags: tags }),
+            placeholder: t('e.g. /msg {channel} Hello {param1}', {
+              _tags: tags,
+            }),
             onValueChange: (value: string | boolean) => {
               setNewCmdCommand(value as string);
               setSubmenuRefreshKey(prev => prev + 1);
@@ -252,7 +306,10 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
               const cmdName = newCmdName.trim().replace(/^\//, '');
               const cmdString = newCmdCommand.trim();
               if (!cmdName || !cmdString) {
-                Alert.alert(t('Error', { _tags: tags }), t('Command name and template are required', { _tags: tags }));
+                Alert.alert(
+                  t('Error', { _tags: tags }),
+                  t('Command name and template are required', { _tags: tags }),
+                );
                 return;
               }
               const paramMatches = cmdString.match(/\{(\w+)\}/g);
@@ -281,13 +338,17 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                 `Custom Command: /${cmd.name}`,
                 `Command: ${cmd.command}\nDescription: ${cmd.description || 'No description'}\nParameters: ${cmd.parameters?.join(', ') || 'None'}`,
                 [
-                  { text: 'Delete', style: 'destructive', onPress: async () => {
-                    await commandService.removeCustomCommand(cmd.name);
-                    setCustomCommands(commandService.getCustomCommands());
-                    setSubmenuRefreshKey(prev => prev + 1);
-                  }},
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                      await commandService.removeCustomCommand(cmd.name);
+                      setCustomCommands(commandService.getCustomCommands());
+                      setSubmenuRefreshKey(prev => prev + 1);
+                    },
+                  },
                   { text: 'OK' },
-                ]
+                ],
               );
             },
           })),
@@ -310,8 +371,10 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}
@@ -319,7 +382,7 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
             icon={itemIcon}
             colors={colors}
             styles={styles}
-            onPress={(itemId) => {
+            onPress={itemId => {
               if (item.type === 'submenu') {
                 setShowSubmenu(itemId);
               }
@@ -327,42 +390,52 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
           />
         );
       })}
-      
+
       {/* Submenu Modal */}
       <Modal
         visible={showSubmenu !== null}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowSubmenu(null)}>
+        onRequestClose={() => setShowSubmenu(null)}
+      >
         <View style={styles.submenuOverlay}>
           <View style={styles.submenuContainer}>
             <View style={styles.submenuHeader}>
               <Text style={styles.submenuTitle}>
-                {sectionData.find((item) => item.id === showSubmenu)?.title || t('Options', { _tags: tags })}
+                {sectionData.find(item => item.id === showSubmenu)?.title ||
+                  t('Options', { _tags: tags })}
               </Text>
-              <TouchableOpacity onPress={() => {
-                setShowSubmenu(null);
-              }}>
-                <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowSubmenu(null);
+                }}
+              >
+                <Text style={styles.closeButtonText}>
+                  {t('Close', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
             <ScrollView key={`submenu-${showSubmenu}-${submenuRefreshKey}`}>
               {sectionData
-                .find((item) => item.id === showSubmenu)
-                ?.submenuItems?.map((subItem) => {
+                .find(item => item.id === showSubmenu)
+                ?.submenuItems?.map(subItem => {
                   if (subItem.type === 'switch') {
                     return (
                       <View key={subItem.id} style={styles.submenuItem}>
                         <View style={styles.submenuItemContent}>
-                          <Text style={styles.submenuItemText}>{subItem.title}</Text>
+                          <Text style={styles.submenuItemText}>
+                            {subItem.title}
+                          </Text>
                           {subItem.description && (
-                            <Text style={styles.submenuItemDescription}>{subItem.description}</Text>
+                            <Text style={styles.submenuItemDescription}>
+                              {subItem.description}
+                            </Text>
                           )}
                         </View>
                         <Switch
                           key={`${subItem.id}-${submenuRefreshKey}`}
                           value={subItem.value as boolean}
-                          onValueChange={async (value) => {
+                          onValueChange={async value => {
                             try {
                               await subItem.onValueChange?.(value);
                               setSubmenuRefreshKey(prev => prev + 1);
@@ -379,19 +452,27 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                     return (
                       <View key={subItem.id} style={styles.submenuItem}>
                         <View style={styles.submenuItemContent}>
-                          <Text style={styles.submenuItemText}>{subItem.title}</Text>
+                          <Text style={styles.submenuItemText}>
+                            {subItem.title}
+                          </Text>
                           {subItem.description && (
-                            <Text style={styles.submenuItemDescription}>{subItem.description}</Text>
+                            <Text style={styles.submenuItemDescription}>
+                              {subItem.description}
+                            </Text>
                           )}
                           <TextInput
                             key={`${subItem.id}-${submenuRefreshKey}`}
                             style={[
                               styles.submenuInput,
                               subItem.disabled && styles.disabledInput,
-                              { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                              {
+                                backgroundColor: colors.surface,
+                                color: colors.text,
+                                borderColor: colors.border,
+                              },
                             ]}
                             value={subItem.value as string}
-                            onChangeText={async (text) => {
+                            onChangeText={async text => {
                               try {
                                 await subItem.onValueChange?.(text);
                                 setSubmenuRefreshKey(prev => prev + 1);
@@ -415,7 +496,10 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                       style={styles.submenuItem}
                       onPress={() => {
                         subItem.onPress?.();
-                        if (subItem.type !== 'switch' && subItem.type !== 'input') {
+                        if (
+                          subItem.type !== 'switch' &&
+                          subItem.type !== 'input'
+                        ) {
                           setShowSubmenu(null);
                           // Refresh data after action
                           setCommandAliases(commandService.getAliases());
@@ -424,13 +508,24 @@ export const CommandsSection: React.FC<CommandsSectionProps> = ({
                           setSubmenuRefreshKey(prev => prev + 1);
                         }
                       }}
-                      disabled={subItem.disabled}>
+                      disabled={subItem.disabled}
+                    >
                       <View style={styles.submenuItemContent}>
-                        <Text style={[styles.submenuItemText, subItem.disabled && styles.disabledText]}>
+                        <Text
+                          style={[
+                            styles.submenuItemText,
+                            subItem.disabled && styles.disabledText,
+                          ]}
+                        >
                           {subItem.title}
                         </Text>
                         {subItem.description && (
-                          <Text style={[styles.submenuItemDescription, subItem.disabled && styles.disabledText]}>
+                          <Text
+                            style={[
+                              styles.submenuItemDescription,
+                              subItem.disabled && styles.disabledText,
+                            ]}
+                          >
                             {subItem.description}
                           </Text>
                         )}

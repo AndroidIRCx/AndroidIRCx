@@ -89,14 +89,14 @@ export const DARK_THEME: Theme = {
     userListBackground: '#1A1A1A',
     userListText: '#E0E0E0',
     userListBorder: '#2A2A2A',
-    userOwner: '#9C27B0',     // ~ purple
-    userAdmin: '#F44336',     // & red
-    userOp: '#FF9800',        // @ orange
-    userHalfop: '#2196F3',    // % blue
-    userVoice: '#4CAF50',     // + green
+    userOwner: '#9C27B0', // ~ purple
+    userAdmin: '#F44336', // & red
+    userOp: '#FF9800', // @ orange
+    userHalfop: '#2196F3', // % blue
+    userVoice: '#4CAF50', // + green
     userNormal: '#E0E0E0',
     highlightBackground: 'rgba(33, 150, 243, 0.2)',
-    highlightText: '#FFEB3B',       // Yellow text for mentions
-    selectionBackground: 'rgba(33, 150, 243, 0.12)'
+    highlightText: '#FFEB3B', // Yellow text for mentions
+    selectionBackground: 'rgba(33, 150, 243, 0.12)',
   },
 };

@@ -33,14 +33,18 @@ describe('AuthenticateCommandHandlers', () => {
   it('handles server ready marker (+)', () => {
     const ctx = createCtx();
     handleAUTHENTICATE(ctx as any, 'server', ['+'], Date.now());
-    expect(ctx.logRaw).toHaveBeenCalledWith('IRCService: Server ready for SASL authentication data');
+    expect(ctx.logRaw).toHaveBeenCalledWith(
+      'IRCService: Server ready for SASL authentication data',
+    );
     expect(ctx.sendSASLCredentials).toHaveBeenCalledTimes(1);
   });
 
   it('handles abort marker (*)', () => {
     const ctx = createCtx();
     handleAUTHENTICATE(ctx as any, 'server', ['*'], Date.now());
-    expect(ctx.logRaw).toHaveBeenCalledWith('IRCService: SASL authentication aborted by server');
+    expect(ctx.logRaw).toHaveBeenCalledWith(
+      'IRCService: SASL authentication aborted by server',
+    );
     expect(ctx.setSaslAuthenticating).toHaveBeenCalledWith(false);
   });
 
@@ -51,7 +55,9 @@ describe('AuthenticateCommandHandlers', () => {
 
     handleAUTHENTICATE(ctx as any, 'server', ['sf-message'], Date.now());
 
-    expect(ctx.logRaw).toHaveBeenCalledWith('IRCService: Received SCRAM server-first-message');
+    expect(ctx.logRaw).toHaveBeenCalledWith(
+      'IRCService: Received SCRAM server-first-message',
+    );
     expect(ctx.handleScramServerFirst).toHaveBeenCalledWith('sf-message');
     expect(ctx.handleScramServerFinal).not.toHaveBeenCalled();
   });
@@ -63,7 +69,9 @@ describe('AuthenticateCommandHandlers', () => {
 
     handleAUTHENTICATE(ctx as any, 'server', ['sf-final'], Date.now());
 
-    expect(ctx.logRaw).toHaveBeenCalledWith('IRCService: Received SCRAM server-final-message');
+    expect(ctx.logRaw).toHaveBeenCalledWith(
+      'IRCService: Received SCRAM server-final-message',
+    );
     expect(ctx.handleScramServerFinal).toHaveBeenCalledWith('sf-final');
   });
 
@@ -74,7 +82,9 @@ describe('AuthenticateCommandHandlers', () => {
 
     handleAUTHENTICATE(ctx as any, 'server', ['weird'], Date.now());
 
-    expect(ctx.logRaw).toHaveBeenCalledWith('IRCService: Unexpected SCRAM message in state idle: weird');
+    expect(ctx.logRaw).toHaveBeenCalledWith(
+      'IRCService: Unexpected SCRAM message in state idle: weird',
+    );
     expect(ctx.setSaslAuthenticating).not.toHaveBeenCalled();
   });
 
@@ -82,13 +92,22 @@ describe('AuthenticateCommandHandlers', () => {
     const ctx = createCtx();
     ctx.getSaslMechanism.mockReturnValue('PLAIN');
 
-    handleAUTHENTICATE(ctx as any, 'server', ['AUTHENTICATION_FAILED'], Date.now());
+    handleAUTHENTICATE(
+      ctx as any,
+      'server',
+      ['AUTHENTICATION_FAILED'],
+      Date.now(),
+    );
 
-    expect(ctx.logRaw).toHaveBeenCalledWith('IRCService: SASL authentication error: AUTHENTICATION_FAILED');
+    expect(ctx.logRaw).toHaveBeenCalledWith(
+      'IRCService: SASL authentication error: AUTHENTICATION_FAILED',
+    );
     expect(ctx.setSaslAuthenticating).toHaveBeenCalledWith(false);
   });
 
   it('registers AUTHENTICATE handler', () => {
-    expect(authenticateCommandHandlers.get('AUTHENTICATE')).toBe(handleAUTHENTICATE);
+    expect(authenticateCommandHandlers.get('AUTHENTICATE')).toBe(
+      handleAUTHENTICATE,
+    );
   });
 });

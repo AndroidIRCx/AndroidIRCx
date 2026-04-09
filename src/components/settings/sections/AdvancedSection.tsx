@@ -5,7 +5,10 @@
 
 import React, { useMemo } from 'react';
 import { SettingItem } from '../SettingItem';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
 
 interface AdvancedSectionProps {
   colors: {
@@ -53,8 +56,10 @@ export const AdvancedSection: React.FC<AdvancedSectionProps> = ({
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}

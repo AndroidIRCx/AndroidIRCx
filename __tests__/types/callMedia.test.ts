@@ -36,7 +36,9 @@ describe('types/callMedia', () => {
       relayEnabled: true,
       shouldFetchTurnCredentials: true,
       iceTransportPolicy: 'relay',
-      iceServers: [{ urls: ['turn:example.org'], username: 'u', credential: 'p' }],
+      iceServers: [
+        { urls: ['turn:example.org'], username: 'u', credential: 'p' },
+      ],
       selectedVideoPreset: preset,
     };
 

@@ -23,7 +23,11 @@ jest.mock('../../src/services/ConnectionManager', () => ({
 jest.mock('../../src/services/SettingsService', () => ({
   settingsService: {
     loadNetworks: jest.fn().mockResolvedValue([]),
-    getSetting: jest.fn().mockImplementation((_key: string, defaultValue: any) => Promise.resolve(defaultValue)),
+    getSetting: jest
+      .fn()
+      .mockImplementation((_key: string, defaultValue: any) =>
+        Promise.resolve(defaultValue),
+      ),
   },
   DEFAULT_PART_MESSAGE: 'Leaving',
 }));
@@ -120,8 +124,8 @@ const mockUIStore = {
 
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: Object.assign(
-    jest.fn((selector) => selector(mockUIStore)),
-    { getState: jest.fn(() => mockUIStore) }
+    jest.fn(selector => selector(mockUIStore)),
+    { getState: jest.fn(() => mockUIStore) },
   ),
 }));
 
@@ -176,7 +180,7 @@ describe('useTabContextMenu', () => {
     jest.clearAllMocks();
     // Reset UI store mocks
     Object.values(mockUIStore).forEach((fn: any) => fn.mockClear?.());
-    
+
     (connectionManager.getConnection as jest.Mock).mockReturnValue({
       ircService: {
         getConnectionStatus: jest.fn().mockReturnValue(true),
@@ -221,7 +225,7 @@ describe('useTabContextMenu', () => {
 
   it('should handle server tab long press for disconnected server', async () => {
     (connectionManager.getConnection as jest.Mock).mockReturnValue(null);
-    
+
     const { result } = renderHook(() => useTabContextMenu(defaultParams));
 
     const serverTab = {
@@ -237,7 +241,9 @@ describe('useTabContextMenu', () => {
       await result.current.handleTabLongPress(serverTab);
     });
 
-    expect(mockT).toHaveBeenCalledWith('Connect {network}', { network: 'freenode' });
+    expect(mockT).toHaveBeenCalledWith('Connect {network}', {
+      network: 'freenode',
+    });
   });
 
   it('should handle channel tab long press', async () => {
@@ -257,8 +263,14 @@ describe('useTabContextMenu', () => {
       await result.current.handleTabLongPress(channelTab);
     });
 
-    expect(channelNotesService.isBookmarked).toHaveBeenCalledWith('freenode', '#test');
-    expect(channelFavoritesService.isFavorite).toHaveBeenCalledWith('freenode', '#test');
+    expect(channelNotesService.isBookmarked).toHaveBeenCalledWith(
+      'freenode',
+      '#test',
+    );
+    expect(channelFavoritesService.isFavorite).toHaveBeenCalledWith(
+      'freenode',
+      '#test',
+    );
   });
 
   it('should handle query tab long press', async () => {
@@ -282,8 +294,12 @@ describe('useTabContextMenu', () => {
   });
 
   it('should handle channel with encryption enabled', async () => {
-    const { channelEncryptionService } = require('../../src/services/ChannelEncryptionService');
-    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(true);
+    const {
+      channelEncryptionService,
+    } = require('../../src/services/ChannelEncryptionService');
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValue(
+      true,
+    );
 
     const { result } = renderHook(() => useTabContextMenu(defaultParams));
 
@@ -348,8 +364,12 @@ describe('useTabContextMenu', () => {
     await act(async () => {
       await result.current.handleTabLongPress(serverTab);
     });
-    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
-    const connectOption = options.find((o: any) => String(o.text).includes('Connect {network}'));
+    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
+    const connectOption = options.find((o: any) =>
+      String(o.text).includes('Connect {network}'),
+    );
     expect(connectOption).toBeDefined();
 
     await act(async () => {
@@ -374,11 +394,19 @@ describe('useTabContextMenu', () => {
     await act(async () => {
       await result.current.handleTabLongPress(serverTab);
     });
-    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
+    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
     await act(async () => {
-      await options.find((o: any) => String(o.text).includes('Disconnect')).onPress();
-      await options.find((o: any) => String(o.text).includes('Browse Channels')).onPress();
-      await options.find((o: any) => String(o.text).includes('Close All Channels + PVTS')).onPress();
+      await options
+        .find((o: any) => String(o.text).includes('Disconnect'))
+        .onPress();
+      await options
+        .find((o: any) => String(o.text).includes('Browse Channels'))
+        .onPress();
+      await options
+        .find((o: any) => String(o.text).includes('Close All Channels + PVTS'))
+        .onPress();
     });
     expect(connectionManager.disconnect).toHaveBeenCalledWith('freenode');
     expect(mockUIStore.setShowChannelList).toHaveBeenCalledWith(true);
@@ -396,7 +424,7 @@ describe('useTabContextMenu', () => {
       useTabContextMenu({
         ...defaultParams,
         getActiveIRCService: jest.fn().mockReturnValue(activeIRC),
-      })
+      }),
     );
     const channelTab = {
       id: 'channel-1',
@@ -407,13 +435,19 @@ describe('useTabContextMenu', () => {
       unreadCount: 0,
       sendEncrypted: false,
     };
-    (channelNotesService.getLog as jest.Mock).mockResolvedValue([{ timestamp: 2 }, { timestamp: 1 }]);
+    (channelNotesService.getLog as jest.Mock).mockResolvedValue([
+      { timestamp: 2 },
+      { timestamp: 1 },
+    ]);
 
     await act(async () => {
       await result.current.handleTabLongPress(channelTab);
     });
-    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
-    const byText = (label: string) => options.find((o: any) => String(o.text).includes(label));
+    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
+    const byText = (label: string) =>
+      options.find((o: any) => String(o.text).includes(label));
 
     await act(async () => {
       await byText('Leave Channel').onPress();
@@ -434,8 +468,10 @@ describe('useTabContextMenu', () => {
     const { result } = renderHook(() =>
       useTabContextMenu({
         ...defaultParams,
-        getActiveUserManagementService: jest.fn().mockReturnValue({ ignoreUser }),
-      })
+        getActiveUserManagementService: jest
+          .fn()
+          .mockReturnValue({ ignoreUser }),
+      }),
     );
     const queryTab = {
       id: 'query-1',
@@ -450,8 +486,11 @@ describe('useTabContextMenu', () => {
     await act(async () => {
       await result.current.handleTabLongPress(queryTab);
     });
-    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
-    const byText = (label: string) => options.find((o: any) => String(o.text).includes(label));
+    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
+    const byText = (label: string) =>
+      options.find((o: any) => String(o.text).includes(label));
 
     await act(async () => {
       byText('WHOIS').onPress();
@@ -496,14 +535,23 @@ describe('useTabContextMenu', () => {
       await result.current.handleTabLongPress(serverTab);
     });
 
-    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
-    const view = options.find((o: any) => String(o.text).includes('View Certificate Fingerprint'));
-    const share = options.find((o: any) => String(o.text).includes('Share Cert with NickServ'));
+    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
+    const view = options.find((o: any) =>
+      String(o.text).includes('View Certificate Fingerprint'),
+    );
+    const share = options.find((o: any) =>
+      String(o.text).includes('Share Cert with NickServ'),
+    );
 
     await act(async () => {
       await view.onPress();
     });
-    const viewAlertButtons = mockSafeAlert.mock.calls.find((c: any[]) => String(c[0]).includes('Certificate Fingerprint'))?.[2] || [];
+    const viewAlertButtons =
+      mockSafeAlert.mock.calls.find((c: any[]) =>
+        String(c[0]).includes('Certificate Fingerprint'),
+      )?.[2] || [];
     viewAlertButtons[0]?.onPress?.();
     viewAlertButtons[1]?.onPress?.();
     expect(Clipboard.setString).toHaveBeenCalled();
@@ -511,12 +559,17 @@ describe('useTabContextMenu', () => {
     await act(async () => {
       await share.onPress();
     });
-    expect(sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG NickServ :CERT ADD'));
+    expect(sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('PRIVMSG NickServ :CERT ADD'),
+    );
   });
 
   it('connects server tab when disconnected and saved config exists', async () => {
     (connectionManager.getConnection as jest.Mock).mockReturnValue(null);
-    mockGetNetworkConfigForId.mockResolvedValueOnce({ id: 'freenode', name: 'freenode' });
+    mockGetNetworkConfigForId.mockResolvedValueOnce({
+      id: 'freenode',
+      name: 'freenode',
+    });
     const { result } = renderHook(() => useTabContextMenu(defaultParams));
     const serverTab = {
       id: 'server-freenode',
@@ -530,8 +583,12 @@ describe('useTabContextMenu', () => {
     await act(async () => {
       await result.current.handleTabLongPress(serverTab);
     });
-    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
-    const connectOption = options.find((o: any) => String(o.text).includes('Connect {network}'));
+    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
+    const connectOption = options.find((o: any) =>
+      String(o.text).includes('Connect {network}'),
+    );
     await act(async () => {
       await connectOption.onPress();
     });
@@ -556,8 +613,12 @@ describe('useTabContextMenu', () => {
     await act(async () => {
       await result.current.handleTabLongPress(serverTab);
     });
-    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
-    const closeServer = options.find((o: any) => String(o.text).includes('Close Server Tab'));
+    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
+    const closeServer = options.find((o: any) =>
+      String(o.text).includes('Close Server Tab'),
+    );
     await act(async () => {
       await closeServer.onPress();
     });
@@ -576,7 +637,10 @@ describe('useTabContextMenu', () => {
         isServerOper: jest.fn().mockReturnValue(true),
       },
     });
-    (Alert as any).prompt = jest.fn((_title: string, _msg: string, buttons: any[]) => buttons[1]?.onPress?.('u'));
+    (Alert as any).prompt = jest.fn(
+      (_title: string, _msg: string, buttons: any[]) =>
+        buttons[1]?.onPress?.('u'),
+    );
 
     const { result } = renderHook(() => useTabContextMenu(defaultParams));
     const serverTab = {
@@ -591,14 +655,21 @@ describe('useTabContextMenu', () => {
     await act(async () => {
       await result.current.handleTabLongPress(serverTab);
     });
-    const rootOptions = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
+    const rootOptions = (
+      mockUIStore.setTabOptions as jest.Mock
+    ).mock.calls.slice(-1)[0][0];
     await act(async () => {
-      rootOptions.find((o: any) => String(o.text).includes('IRCop Commands')).onPress();
+      rootOptions
+        .find((o: any) => String(o.text).includes('IRCop Commands'))
+        .onPress();
     });
-    const operOptions = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
+    const operOptions = (
+      mockUIStore.setTabOptions as jest.Mock
+    ).mock.calls.slice(-1)[0][0];
     operOptions.find((o: any) => o.text === 'STATS').onPress();
     operOptions.find((o: any) => o.text === 'REHASH').onPress();
-    const rehashButtons = mockSafeAlert.mock.calls.find((c: any[]) => c[0] === 'REHASH')?.[2] || [];
+    const rehashButtons =
+      mockSafeAlert.mock.calls.find((c: any[]) => c[0] === 'REHASH')?.[2] || [];
     rehashButtons[1]?.onPress?.();
     expect(sendCommand).toHaveBeenCalledWith('STATS u');
     expect(sendCommand).toHaveBeenCalledWith('REHASH');
@@ -619,25 +690,36 @@ describe('useTabContextMenu', () => {
       addMessage: jest.fn(),
       isServerOper: jest.fn().mockReturnValue(false),
     };
-    (connectionManager.getConnection as jest.Mock).mockReturnValue({ ircService: connIrc });
-    const { encryptedDMService } = require('../../src/services/EncryptedDMService');
-    const { channelEncryptionSettingsService } = require('../../src/services/ChannelEncryptionSettingsService');
-    const { tabService } = require('../../src/services/TabService');
-    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
-      if (key === 'closePrivateMessage') return Promise.resolve(true);
-      if (key === 'ircServices') return Promise.resolve(['nickserv']);
-      if (key === 'closePrivateMessageText') return Promise.resolve('Bye');
-      return Promise.resolve(defaultValue);
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: connIrc,
     });
+    const {
+      encryptedDMService,
+    } = require('../../src/services/EncryptedDMService');
+    const {
+      channelEncryptionSettingsService,
+    } = require('../../src/services/ChannelEncryptionSettingsService');
+    const { tabService } = require('../../src/services/TabService');
+    (settingsService.getSetting as jest.Mock).mockImplementation(
+      (key: string, defaultValue: any) => {
+        if (key === 'closePrivateMessage') return Promise.resolve(true);
+        if (key === 'ircServices') return Promise.resolve(['nickserv']);
+        if (key === 'closePrivateMessageText') return Promise.resolve('Bye');
+        return Promise.resolve(defaultValue);
+      },
+    );
     encryptedDMService.exportBundle.mockRejectedValueOnce(new Error('no key'));
-    encryptedDMService.isEncryptedForNetwork.mockResolvedValueOnce(false).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    encryptedDMService.isEncryptedForNetwork
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
     channelEncryptionSettingsService.getAlwaysEncrypt.mockResolvedValue(false);
 
     const { result } = renderHook(() =>
       useTabContextMenu({
         ...defaultParams,
         getActiveIRCService: jest.fn().mockReturnValue(activeIRC),
-      })
+      }),
     );
     const queryTab = {
       id: 'query-1',
@@ -652,8 +734,11 @@ describe('useTabContextMenu', () => {
     await act(async () => {
       await result.current.handleTabLongPress(queryTab);
     });
-    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
-    const byText = (label: string) => options.find((o: any) => String(o.text).includes(label));
+    const options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
+    const byText = (label: string) =>
+      options.find((o: any) => String(o.text).includes(label));
 
     await act(async () => {
       await byText('Close Query').onPress();
@@ -665,7 +750,9 @@ describe('useTabContextMenu', () => {
 
     expect(tabService.removeTab).toHaveBeenCalledWith('freenode', 'query-1');
     expect(activeIRC.sendRaw).toHaveBeenCalledWith('PRIVMSG OtherUser :Bye');
-    expect(connIrc.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
+    expect(connIrc.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'error' }),
+    );
     expect(connIrc.sendRaw).toHaveBeenCalledWith('PRIVMSG OtherUser :!enc-req');
     expect(connIrc.sendCommand).toHaveBeenCalledWith('WHOWAS OtherUser');
   });
@@ -686,22 +773,40 @@ describe('useTabContextMenu', () => {
       addMessage: jest.fn(),
       isServerOper: jest.fn().mockReturnValue(false),
     };
-    (connectionManager.getConnection as jest.Mock).mockReturnValue({ ircService: connIrc });
-    const { channelEncryptionService } = require('../../src/services/ChannelEncryptionService');
-    const { channelEncryptionSettingsService } = require('../../src/services/ChannelEncryptionSettingsService');
-    const { serviceCommandProvider } = require('../../src/services/ServiceCommandProvider');
+    (connectionManager.getConnection as jest.Mock).mockReturnValue({
+      ircService: connIrc,
+    });
+    const {
+      channelEncryptionService,
+    } = require('../../src/services/ChannelEncryptionService');
+    const {
+      channelEncryptionSettingsService,
+    } = require('../../src/services/ChannelEncryptionSettingsService');
+    const {
+      serviceCommandProvider,
+    } = require('../../src/services/ServiceCommandProvider');
     (Alert as any).alert = jest.fn();
-    (Alert as any).prompt = jest.fn((_title: string, _msg: string, buttons: any[]) => buttons[1]?.onPress?.('Alice'));
+    (Alert as any).prompt = jest.fn(
+      (_title: string, _msg: string, buttons: any[]) =>
+        buttons[1]?.onPress?.('Alice'),
+    );
     channelEncryptionSettingsService.getAlwaysEncrypt.mockResolvedValue(false);
-    channelEncryptionSettingsService.toggleAlwaysEncrypt.mockResolvedValue(true);
-    channelEncryptionService.hasChannelKey.mockResolvedValueOnce(false).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
-    serviceCommandProvider.getServiceCommands.mockReturnValue([{ service: 'ChanServ' }]);
+    channelEncryptionSettingsService.toggleAlwaysEncrypt.mockResolvedValue(
+      true,
+    );
+    channelEncryptionService.hasChannelKey
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    serviceCommandProvider.getServiceCommands.mockReturnValue([
+      { service: 'ChanServ' },
+    ]);
 
     const { result } = renderHook(() =>
       useTabContextMenu({
         ...defaultParams,
         getActiveIRCService: jest.fn().mockReturnValue(activeIRC),
-      })
+      }),
     );
     const channelTab = {
       id: 'channel-1',
@@ -713,12 +818,17 @@ describe('useTabContextMenu', () => {
       sendEncrypted: false,
     };
 
-    (channelFavoritesService.isFavorite as jest.Mock).mockResolvedValueOnce(false);
+    (channelFavoritesService.isFavorite as jest.Mock).mockResolvedValueOnce(
+      false,
+    );
     await act(async () => {
       await result.current.handleTabLongPress(channelTab);
     });
-    let options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
-    const byText = (label: string) => options.find((o: any) => String(o.text).includes(label));
+    let options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
+    const byText = (label: string) =>
+      options.find((o: any) => String(o.text).includes(label));
 
     await act(async () => {
       await byText('Always Encrypt').onPress();
@@ -728,25 +838,45 @@ describe('useTabContextMenu', () => {
     });
     expect((Alert as any).alert).toHaveBeenCalled();
     expect(connIrc.sendCommand).toHaveBeenCalledWith('/chankey request Alice');
-    expect(channelFavoritesService.addFavorite).toHaveBeenCalledWith('freenode', '#test');
+    expect(channelFavoritesService.addFavorite).toHaveBeenCalledWith(
+      'freenode',
+      '#test',
+    );
 
-    const serviceOptions = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
+    const serviceOptions = (
+      mockUIStore.setTabOptions as jest.Mock
+    ).mock.calls.slice(-1)[0][0];
     serviceOptions.find((o: any) => String(o.text).includes('INFO')).onPress();
-    expect(connIrc.sendRaw).toHaveBeenCalledWith('PRIVMSG ChanServ :INFO #test');
+    expect(connIrc.sendRaw).toHaveBeenCalledWith(
+      'PRIVMSG ChanServ :INFO #test',
+    );
 
-    (channelFavoritesService.isFavorite as jest.Mock).mockResolvedValueOnce(true);
+    (channelFavoritesService.isFavorite as jest.Mock).mockResolvedValueOnce(
+      true,
+    );
     channelEncryptionService.hasChannelKey.mockReset();
     channelEncryptionService.hasChannelKey.mockResolvedValue(true);
     await act(async () => {
       await result.current.handleTabLongPress(channelTab);
     });
-    options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(-1)[0][0];
-    expect(options.some((o: any) => String(o.text).includes('Share Encryption Key'))).toBe(true);
+    options = (mockUIStore.setTabOptions as jest.Mock).mock.calls.slice(
+      -1,
+    )[0][0];
+    expect(
+      options.some((o: any) => String(o.text).includes('Share Encryption Key')),
+    ).toBe(true);
     await act(async () => {
-      await options.find((o: any) => String(o.text).includes('Share Encryption Key')).onPress();
-      await options.find((o: any) => String(o.text).includes('Remove from Favorites')).onPress();
+      await options
+        .find((o: any) => String(o.text).includes('Share Encryption Key'))
+        .onPress();
+      await options
+        .find((o: any) => String(o.text).includes('Remove from Favorites'))
+        .onPress();
     });
     expect(connIrc.sendCommand).toHaveBeenCalledWith('/chankey share Alice');
-    expect(channelFavoritesService.removeFavorite).toHaveBeenCalledWith('freenode', '#test');
+    expect(channelFavoritesService.removeFavorite).toHaveBeenCalledWith(
+      'freenode',
+      '#test',
+    );
   });
 });

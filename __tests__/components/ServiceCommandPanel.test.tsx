@@ -37,7 +37,14 @@ const sampleCommands = [
       example: 'REGISTER pass test@example.com',
       minLevel: 'user',
       requiresAuth: false,
-      parameters: [{ name: 'password', type: 'string', required: true, description: 'Password' }],
+      parameters: [
+        {
+          name: 'password',
+          type: 'string',
+          required: true,
+          description: 'Password',
+        },
+      ],
       completion: { suggestAlias: 'nsregister' },
     },
   },
@@ -73,7 +80,7 @@ describe('ServiceCommandPanel', () => {
         onClose={jest.fn()}
         networkId="net-1"
         colors={colors}
-      />
+      />,
     );
 
     expect(getByText('IRC Service Commands')).toBeTruthy();
@@ -92,7 +99,7 @@ describe('ServiceCommandPanel', () => {
         onClose={jest.fn()}
         networkId="net-1"
         colors={colors}
-      />
+      />,
     );
 
     const searchInput = getByPlaceholderText('Search commands...');
@@ -116,7 +123,7 @@ describe('ServiceCommandPanel', () => {
         networkId="net-1"
         colors={colors}
         onExecuteCommand={onExecuteCommand}
-      />
+      />,
     );
 
     fireEvent.press(getByText('REGISTER'));
@@ -138,7 +145,7 @@ describe('ServiceCommandPanel', () => {
         onClose={jest.fn()}
         networkId="net-1"
         colors={colors}
-      />
+      />,
     );
 
     expect(getByText('No service commands available')).toBeTruthy();

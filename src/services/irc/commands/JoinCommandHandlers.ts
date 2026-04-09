@@ -24,7 +24,11 @@ export const handleJOIN: CommandHandler = (ctx, prefix, params, timestamp) => {
   if (ctx.isExtendedJoinEnabled() && params.length >= 2) {
     account = params[1];
     if (account && account !== '*') {
-      joinText = t('{nick} ({account}) joined {channel}', { nick, account, channel });
+      joinText = t('{nick} ({account}) joined {channel}', {
+        nick,
+        account,
+        channel,
+      });
     } else {
       account = undefined;
     }

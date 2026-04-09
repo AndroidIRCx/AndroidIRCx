@@ -13,7 +13,10 @@ interface UseAutoConnectFavoriteProps {
   autoConnectFavoriteServer: boolean;
   initialDataLoaded: boolean;
   selectedNetworkName: string;
-  handleConnect: (network?: IRCNetworkConfig, serverId?: string) => Promise<void>;
+  handleConnect: (
+    network?: IRCNetworkConfig,
+    serverId?: string,
+  ) => Promise<void>;
   autoConnectAttemptedRef: React.MutableRefObject<Set<string>>;
 }
 
@@ -54,7 +57,9 @@ export function useAutoConnectFavorite({
         }
 
         const startupTargets = networks.filter(n => n.connectOnStartup);
-        const favoriteTargets = networks.filter(n => (n.servers || []).some(s => s.favorite));
+        const favoriteTargets = networks.filter(n =>
+          (n.servers || []).some(s => s.favorite),
+        );
         // Merge startup and favorite targets, avoiding duplicates
         const targetIds = new Set<string>();
         let targets: IRCNetworkConfig[] = [];
@@ -74,7 +79,9 @@ export function useAutoConnectFavorite({
         }
 
         // Quick Connect Network is always included first
-        const quickConnectNetworkId = await settingsService.getSetting<string | null>('quickConnectNetworkId', null);
+        const quickConnectNetworkId = await settingsService.getSetting<
+          string | null
+        >('quickConnectNetworkId', null);
         if (quickConnectNetworkId) {
           const quickNet = networks.find(n => n.id === quickConnectNetworkId);
           if (quickNet && !targets.some(t => t.id === quickNet.id)) {
@@ -86,7 +93,9 @@ export function useAutoConnectFavorite({
         }
 
         if (targets.length === 0 && selectedNetworkNameRef.current) {
-          const selected = networks.find(n => n.name === selectedNetworkNameRef.current);
+          const selected = networks.find(
+            n => n.name === selectedNetworkNameRef.current,
+          );
           if (selected) {
             targets = [selected];
           }
@@ -108,10 +117,12 @@ export function useAutoConnectFavorite({
         debugLogger.debug(
           'autoConnect',
           `Connecting to ${toConnect.length} networks`,
-          toConnect.map(t => t.name).join(', ')
+          toConnect.map(t => t.name).join(', '),
         );
         // Fire all connections in parallel so state changes from one don't block others
-        await Promise.all(toConnect.map(target => handleConnectRef.current(target)));
+        await Promise.all(
+          toConnect.map(target => handleConnectRef.current(target)),
+        );
       } catch (err) {
         console.error('Auto-connect favorite server failed', err);
       }

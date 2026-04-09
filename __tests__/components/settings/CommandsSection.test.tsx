@@ -21,11 +21,15 @@ jest.mock('react-native', () => {
     Platform: {
       OS: 'android',
     },
-    View: ({ children, ...props }: any) => React.createElement('View', props, children),
-    Text: ({ children, ...props }: any) => React.createElement('Text', props, children),
+    View: ({ children, ...props }: any) =>
+      React.createElement('View', props, children),
+    Text: ({ children, ...props }: any) =>
+      React.createElement('Text', props, children),
     TextInput: (props: any) => React.createElement('TextInput', props),
-    TouchableOpacity: ({ children, ...props }: any) => React.createElement('TouchableOpacity', props, children),
-    ScrollView: ({ children, ...props }: any) => React.createElement('ScrollView', props, children),
+    TouchableOpacity: ({ children, ...props }: any) =>
+      React.createElement('TouchableOpacity', props, children),
+    ScrollView: ({ children, ...props }: any) =>
+      React.createElement('ScrollView', props, children),
     FlatList: (props: any) => React.createElement('FlatList', props),
     StyleSheet: {
       create: (styles: any) => styles,
@@ -65,8 +69,12 @@ describe.skip('CommandsSection', () => {
     (commandService.addAlias as jest.Mock).mockResolvedValue(undefined);
     (commandService.removeAlias as jest.Mock).mockResolvedValue(undefined);
     (commandService.addCustomCommand as jest.Mock).mockResolvedValue(undefined);
-    (commandService.removeCustomCommand as jest.Mock).mockResolvedValue(undefined);
-    (commandService.deleteHistoryEntry as jest.Mock).mockResolvedValue(undefined);
+    (commandService.removeCustomCommand as jest.Mock).mockResolvedValue(
+      undefined,
+    );
+    (commandService.deleteHistoryEntry as jest.Mock).mockResolvedValue(
+      undefined,
+    );
     (commandService.clearHistory as jest.Mock).mockResolvedValue(undefined);
   });
 
@@ -76,7 +84,7 @@ describe.skip('CommandsSection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     expect(getByText(/Command History/i)).toBeTruthy();
@@ -88,7 +96,7 @@ describe.skip('CommandsSection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     expect(getByText(/Command Aliases/i)).toBeTruthy();
@@ -100,7 +108,7 @@ describe.skip('CommandsSection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     expect(getByText(/Custom Commands/i)).toBeTruthy();
@@ -122,7 +130,7 @@ describe.skip('CommandsSection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     expect(getByText('/join #test')).toBeTruthy();
@@ -143,7 +151,7 @@ describe.skip('CommandsSection', () => {
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     expect(getByText('/j')).toBeTruthy();
@@ -158,14 +166,16 @@ describe.skip('CommandsSection', () => {
         parameters: ['channel'],
       },
     ];
-    (commandService.getCustomCommands as jest.Mock).mockReturnValue(mockCommands);
+    (commandService.getCustomCommands as jest.Mock).mockReturnValue(
+      mockCommands,
+    );
 
     const { getByText } = render(
       <CommandsSection
         colors={mockColors}
         styles={mockStyles}
         settingIcons={mockSettingIcons}
-      />
+      />,
     );
 
     expect(getByText('/greet')).toBeTruthy();

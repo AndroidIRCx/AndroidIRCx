@@ -21,7 +21,9 @@ describe('PrivacyRelayService', () => {
 
     expect(privacyRelayService.hasActiveSubscription()).toBe(true);
     expect(privacyRelayService.getSubscription()?.basePlanId).toBe('monthly');
-    expect(privacyRelayService.getRelayAccessState().relayServer.host).toBe('turn.dbase.in.rs');
+    expect(privacyRelayService.getRelayAccessState().relayServer.host).toBe(
+      'turn.dbase.in.rs',
+    );
   });
 
   it('restores from purchase token list', async () => {
@@ -30,7 +32,9 @@ describe('PrivacyRelayService', () => {
     ]);
 
     expect(restored).toBe(1);
-    expect(privacyRelayService.getSubscription()?.purchaseToken).toBe('restored-token');
+    expect(privacyRelayService.getSubscription()?.purchaseToken).toBe(
+      'restored-token',
+    );
     expect(privacyRelayService.getSubscription()?.basePlanId).toBe('yearly');
   });
 
@@ -59,15 +63,23 @@ describe('PrivacyRelayService', () => {
         }),
       });
 
-    const subscription = await privacyRelayService.registerPurchaseWithBackend('relay-token', 'yearly');
-    const credentials = await privacyRelayService.fetchTurnCredentials('relay-token', {
-      deviceId: 'test-device-1',
-      callId: 'test-call-1',
-    });
+    const subscription = await privacyRelayService.registerPurchaseWithBackend(
+      'relay-token',
+      'yearly',
+    );
+    const credentials = await privacyRelayService.fetchTurnCredentials(
+      'relay-token',
+      {
+        deviceId: 'test-device-1',
+        callId: 'test-call-1',
+      },
+    );
 
     expect(subscription.basePlanId).toBe('yearly');
     expect(credentials.username).toBe('1772481583:test-device-1');
-    expect(credentials.iceServers[0].urls).toContain('turn:turn.dbase.in.rs:3478?transport=udp');
+    expect(credentials.iceServers[0].urls).toContain(
+      'turn:turn.dbase.in.rs:3478?transport=udp',
+    );
   });
 
   it('notifies listeners immediately and supports unsubscribe', async () => {
@@ -81,7 +93,7 @@ describe('PrivacyRelayService', () => {
       basePlanId: 'monthly',
     });
     expect(listener).toHaveBeenLastCalledWith(
-      expect.objectContaining({ purchaseToken: 'listener-token' })
+      expect.objectContaining({ purchaseToken: 'listener-token' }),
     );
 
     unsubscribe();
@@ -105,7 +117,10 @@ describe('PrivacyRelayService', () => {
       }),
     });
 
-    const subscription = await privacyRelayService.registerPurchaseWithBackend('nested-token', 'monthly');
+    const subscription = await privacyRelayService.registerPurchaseWithBackend(
+      'nested-token',
+      'monthly',
+    );
 
     expect(subscription.status).toBe('inactive');
     expect(subscription.basePlanId).toBe('yearly');
@@ -127,14 +142,19 @@ describe('PrivacyRelayService', () => {
       }),
     });
 
-    const credentials = await privacyRelayService.fetchTurnCredentials('relay-token', {
-      deviceId: 'test-device',
-      callId: 'test-call',
-    });
+    const credentials = await privacyRelayService.fetchTurnCredentials(
+      'relay-token',
+      {
+        deviceId: 'test-device',
+        callId: 'test-call',
+      },
+    );
 
     expect(credentials.ttl).toBe(0);
     expect(credentials.relay).toBe(true);
-    expect(credentials.iceServers[0].urls).toEqual(['turn:turn.dbase.in.rs:3478?transport=udp']);
+    expect(credentials.iceServers[0].urls).toEqual([
+      'turn:turn.dbase.in.rs:3478?transport=udp',
+    ]);
   });
 
   it('fetchTurnCredentials throws when backend returns no valid TURN entries', async () => {
@@ -156,7 +176,9 @@ describe('PrivacyRelayService', () => {
       privacyRelayService.fetchTurnCredentials('relay-token', {
         deviceId: 'test-device',
         callId: 'test-call',
-      })
-    ).rejects.toThrow('Privacy Relay backend did not return valid TURN credentials.');
+      }),
+    ).rejects.toThrow(
+      'Privacy Relay backend did not return valid TURN credentials.',
+    );
   });
 });

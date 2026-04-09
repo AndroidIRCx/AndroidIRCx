@@ -130,13 +130,20 @@ export class IRCNumericHandlers {
       isServerOper: () => svc.isServerOper,
 
       // State mutators
-      setRegistered: (value: boolean) => { svc.registered = value; },
-      setServerOper: (value: boolean) => { svc.isServerOper = value; },
-      updateSelfUserModes: (modes: string) => { (svc as any).updateSelfUserModes(modes); },
+      setRegistered: (value: boolean) => {
+        svc.registered = value;
+      },
+      setServerOper: (value: boolean) => {
+        svc.isServerOper = value;
+      },
+      updateSelfUserModes: (modes: string) => {
+        (svc as any).updateSelfUserModes(modes);
+      },
 
       // Messaging
       addMessage: (msg: any) => svc.addMessage(msg),
-      addRawMessage: (text: string, category: string) => svc.addRawMessage(text, category),
+      addRawMessage: (text: string, category: string) =>
+        svc.addRawMessage(text, category),
 
       // Events
       emit: (event: string, ...args: any[]) => svc.emit(event, ...args),
@@ -148,14 +155,22 @@ export class IRCNumericHandlers {
 
       // Channel/User management
       getChannelUsers: (channel: string) => svc.channelUsers.get(channel),
-      setChannelUsers: (channel: string, users: Map<string, any>) => { svc.channelUsers.set(channel, users); },
-      emitUserListChange: (channel: string, users: any[]) => svc.emitUserListChange(channel, users),
-      parseUserWithPrefixes: (userStr: string) => svc.parseUserWithPrefixes(userStr),
+      setChannelUsers: (channel: string, users: Map<string, any>) => {
+        svc.channelUsers.set(channel, users);
+      },
+      emitUserListChange: (channel: string, users: any[]) =>
+        svc.emitUserListChange(channel, users),
+      parseUserWithPrefixes: (userStr: string) =>
+        svc.parseUserWithPrefixes(userStr),
       requestChatHistory: (target: string, limit?: number, before?: string) =>
         svc.requestChatHistory(target, limit, before),
-      getChannelTopicInfo: (channel: string) => svc.channelTopics.get(channel) || {},
-      setChannelTopicInfo: (channel: string, info: any) => { svc.channelTopics.set(channel, info); },
-      maybeEmitChannelIntro: (channel: string, timestamp: number) => svc.maybeEmitChannelIntro(channel, timestamp),
+      getChannelTopicInfo: (channel: string) =>
+        svc.channelTopics.get(channel) || {},
+      setChannelTopicInfo: (channel: string, info: any) => {
+        svc.channelTopics.set(channel, info);
+      },
+      maybeEmitChannelIntro: (channel: string, timestamp: number) =>
+        svc.maybeEmitChannelIntro(channel, timestamp),
       removeUserFromChannel: (channel: string, nick: string) => {
         const users = svc.channelUsers.get(channel);
         if (users) users.delete(nick);
@@ -163,41 +178,67 @@ export class IRCNumericHandlers {
 
       // WHOIS state
       getWhoisTarget: () => svc.whoisTarget,
-      setWhoisTarget: (nick: string | null) => { svc.whoisTarget = nick; },
+      setWhoisTarget: (nick: string | null) => {
+        svc.whoisTarget = nick;
+      },
       getWhoisData: () => svc.whoisData,
 
       // WHOWAS state
       getWhowasTarget: () => svc.lastWhowasTarget,
-      setWhowasTarget: (nick: string | null) => { svc.lastWhowasTarget = nick; },
+      setWhowasTarget: (nick: string | null) => {
+        svc.lastWhowasTarget = nick;
+      },
       getWhowasAt: () => svc.lastWhowasAt,
-      setWhowasAt: (time: number) => { svc.lastWhowasAt = time; },
+      setWhowasAt: (time: number) => {
+        svc.lastWhowasAt = time;
+      },
 
       // Silent mode
       isSilentModeNick: (nick: string) => svc.silentModeNicks.has(nick),
       isSilentWhoNick: (nick: string) => svc.silentWhoNicks.has(nick),
       getSilentWhoCallback: (nick: string) => svc.silentWhoCallbacks.get(nick),
-      removeSilentModeNick: (nick: string) => { svc.silentModeNicks.delete(nick); },
-      removeSilentWhoNick: (nick: string) => { svc.silentWhoNicks.delete(nick); },
-      removeSilentWhoCallback: (nick: string) => { svc.silentWhoCallbacks.delete(nick); },
+      removeSilentModeNick: (nick: string) => {
+        svc.silentModeNicks.delete(nick);
+      },
+      removeSilentWhoNick: (nick: string) => {
+        svc.silentWhoNicks.delete(nick);
+      },
+      removeSilentWhoCallback: (nick: string) => {
+        svc.silentWhoCallbacks.delete(nick);
+      },
 
       // Channel list
       getChannelListBuffer: () => svc.channelListBuffer,
-      clearChannelListBuffer: () => { svc.channelListBuffer.length = 0; },
-      addToChannelListBuffer: (entry: any) => { svc.channelListBuffer.push(entry); },
+      clearChannelListBuffer: () => {
+        svc.channelListBuffer.length = 0;
+      },
+      addToChannelListBuffer: (entry: any) => {
+        svc.channelListBuffer.push(entry);
+      },
 
       // Links list
       getLinksBuffer: () => svc.linksBuffer,
-      clearLinksBuffer: () => { svc.linksBuffer.length = 0; },
-      addToLinksBuffer: (entry: any) => { svc.linksBuffer.push(entry); },
+      clearLinksBuffer: () => {
+        svc.linksBuffer.length = 0;
+      },
+      addToLinksBuffer: (entry: any) => {
+        svc.linksBuffer.push(entry);
+      },
 
       // Stats buffer
       getStatsBuffer: () => svc.statsBuffer,
-      clearStatsBuffer: () => { svc.statsBuffer.length = 0; },
-      addToStatsBuffer: (line: string) => { svc.statsBuffer.push(line); },
+      clearStatsBuffer: () => {
+        svc.statsBuffer.length = 0;
+      },
+      addToStatsBuffer: (line: string) => {
+        svc.statsBuffer.push(line);
+      },
 
       // Ban list
       getBanListBuffer: () => svc.banListBuffer,
-      clearBanListBuffer: (channel: string) => { svc.banListBuffer.delete(channel); },
+      clearBanListBuffer: (channel: string) => {
+        svc.banListBuffer.delete(channel);
+      },
       addToBanListBuffer: (channel: string, entry: any) => {
         const list = svc.banListBuffer.get(channel) || [];
         list.push(entry);
@@ -207,8 +248,12 @@ export class IRCNumericHandlers {
       // Invite/Except list
       getInviteListBuffer: () => svc.inviteListBuffer,
       getExceptListBuffer: () => svc.exceptListBuffer,
-      clearInviteListBuffer: (channel: string) => { svc.inviteListBuffer.delete(channel); },
-      clearExceptListBuffer: (channel: string) => { svc.exceptListBuffer.delete(channel); },
+      clearInviteListBuffer: (channel: string) => {
+        svc.inviteListBuffer.delete(channel);
+      },
+      clearExceptListBuffer: (channel: string) => {
+        svc.exceptListBuffer.delete(channel);
+      },
       addToInviteListBuffer: (channel: string, entry: any) => {
         const list = svc.inviteListBuffer.get(channel) || [];
         list.push(entry);
@@ -222,7 +267,9 @@ export class IRCNumericHandlers {
 
       // Names buffer
       getNamesBuffer: () => svc.namesBuffer,
-      clearNamesBuffer: (channel: string) => { svc.namesBuffer.delete(channel); },
+      clearNamesBuffer: (channel: string) => {
+        svc.namesBuffer.delete(channel);
+      },
       addToNamesBuffer: (channel: string, names: string[]) => {
         let buffer = svc.namesBuffer.get(channel);
         if (!buffer) {
@@ -234,23 +281,33 @@ export class IRCNumericHandlers {
 
       // SASL state
       getSaslMechanism: () => svc.saslMechanism,
-      setSaslMechanism: (mechanism: string | null) => { svc.saslMechanism = mechanism; },
+      setSaslMechanism: (mechanism: string | null) => {
+        svc.saslMechanism = mechanism;
+      },
       getSaslState: () => svc.saslState,
-      setSaslState: (state: string) => { svc.saslState = state; },
+      setSaslState: (state: string) => {
+        svc.saslState = state;
+      },
 
       // Monitor
       getMonitoredNicks: () => svc.monitoredNicks,
 
       // SASL state
       getSaslAuthenticating: () => svc.saslAuthenticating,
-      setSaslAuthenticating: (value: boolean) => { svc.saslAuthenticating = value; },
+      setSaslAuthenticating: (value: boolean) => {
+        svc.saslAuthenticating = value;
+      },
       endCAPNegotiation: () => svc.endCAPNegotiation(),
 
       // Nick state
       getAltNick: () => svc.altNick,
       getNickChangeAttempts: () => svc.nickChangeAttempts,
-      incrementNickChangeAttempts: () => { svc.nickChangeAttempts++; },
-      setCurrentNick: (nick: string) => { svc.currentNick = nick; },
+      incrementNickChangeAttempts: () => {
+        svc.nickChangeAttempts++;
+      },
+      setCurrentNick: (nick: string) => {
+        svc.currentNick = nick;
+      },
 
       // User management service
       getUserManagementService: () => svc.getUserManagementService(),
@@ -350,7 +407,12 @@ export class IRCNumericHandlers {
    * Handles a numeric reply
    * @returns true if the handler was found and executed, false otherwise
    */
-  public handle(numeric: number, prefix: string, params: string[], timestamp: number): boolean {
+  public handle(
+    numeric: number,
+    prefix: string,
+    params: string[],
+    timestamp: number,
+  ): boolean {
     const handler = this.handlers.get(numeric);
     if (handler) {
       handler(this.ctx, prefix, params, timestamp);

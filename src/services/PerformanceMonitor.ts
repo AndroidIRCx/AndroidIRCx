@@ -128,7 +128,8 @@ class PerformanceMonitor {
     if (!this.enabled || this.metrics.appReadyTime) return;
 
     this.metrics.appReadyTime = Date.now();
-    this.metrics.totalStartupTime = this.metrics.appReadyTime - this.metrics.appStartTime;
+    this.metrics.totalStartupTime =
+      this.metrics.appReadyTime - this.metrics.appStartTime;
 
     console.log(`✅ App ready in ${this.metrics.totalStartupTime}ms`);
   }
@@ -140,7 +141,8 @@ class PerformanceMonitor {
     if (!this.enabled || this.metrics.firstRenderTime) return;
 
     this.metrics.firstRenderTime = Date.now();
-    const timeToFirstRender = this.metrics.firstRenderTime - this.metrics.appStartTime;
+    const timeToFirstRender =
+      this.metrics.firstRenderTime - this.metrics.appStartTime;
 
     console.log(`🎨 First render in ${timeToFirstRender}ms`);
   }
@@ -152,7 +154,8 @@ class PerformanceMonitor {
     if (!this.enabled || this.metrics.initialDataLoadTime) return;
 
     this.metrics.initialDataLoadTime = Date.now();
-    const dataLoadTime = this.metrics.initialDataLoadTime - this.metrics.appStartTime;
+    const dataLoadTime =
+      this.metrics.initialDataLoadTime - this.metrics.appStartTime;
 
     console.log(`📊 Initial data loaded in ${dataLoadTime}ms`);
   }
@@ -236,22 +239,26 @@ class PerformanceMonitor {
 
     // Startup time recommendations
     if (this.metrics.totalStartupTime && this.metrics.totalStartupTime > 3000) {
-      recommendations.push('App startup time > 3s. Consider lazy loading or code splitting.');
+      recommendations.push(
+        'App startup time > 3s. Consider lazy loading or code splitting.',
+      );
     }
 
     // Render performance recommendations
     const slowRenderPercentage =
-      (this.metrics.renderMetrics.slowRenders / Math.max(1, this.metrics.renderMetrics.totalRenders)) * 100;
+      (this.metrics.renderMetrics.slowRenders /
+        Math.max(1, this.metrics.renderMetrics.totalRenders)) *
+      100;
 
     if (slowRenderPercentage > 10) {
       recommendations.push(
-        `${slowRenderPercentage.toFixed(1)}% of renders are slow (>16ms). Consider optimizing components with React.memo or useMemo.`
+        `${slowRenderPercentage.toFixed(1)}% of renders are slow (>16ms). Consider optimizing components with React.memo or useMemo.`,
       );
     }
 
     if (this.metrics.renderMetrics.maxRenderTime > 100) {
       recommendations.push(
-        `Maximum render time is ${this.metrics.renderMetrics.maxRenderTime}ms. This may cause UI jank.`
+        `Maximum render time is ${this.metrics.renderMetrics.maxRenderTime}ms. This may cause UI jank.`,
       );
     }
 
@@ -263,7 +270,9 @@ class PerformanceMonitor {
         100;
 
       if (usagePercentage > 80) {
-        recommendations.push(`JS heap usage is ${usagePercentage.toFixed(1)}%. Risk of memory pressure.`);
+        recommendations.push(
+          `JS heap usage is ${usagePercentage.toFixed(1)}%. Risk of memory pressure.`,
+        );
       }
     }
 
@@ -288,8 +297,12 @@ class PerformanceMonitor {
     console.log('\n📊 Performance Report:');
     console.log('====================');
     console.log(`Startup Time: ${report.summary.startupTime}ms`);
-    console.log(`Average Render Time: ${report.summary.averageRenderTime.toFixed(2)}ms`);
-    console.log(`Slow Renders: ${report.summary.slowRenderPercentage.toFixed(1)}%`);
+    console.log(
+      `Average Render Time: ${report.summary.averageRenderTime.toFixed(2)}ms`,
+    );
+    console.log(
+      `Slow Renders: ${report.summary.slowRenderPercentage.toFixed(1)}%`,
+    );
     console.log(`Total Custom Marks: ${report.summary.totalMarks}`);
 
     if (report.recommendations.length > 0) {
@@ -343,14 +356,18 @@ class PerformanceMonitor {
    * Get marks by name prefix
    */
   getMarksByPrefix(prefix: string): PerformanceMark[] {
-    return this.metrics.customMarks.filter(mark => mark.name.startsWith(prefix));
+    return this.metrics.customMarks.filter(mark =>
+      mark.name.startsWith(prefix),
+    );
   }
 
   /**
    * Get average duration for marks with specific name
    */
   getAverageDuration(name: string): number {
-    const marks = this.metrics.customMarks.filter(mark => mark.name === name && mark.duration !== undefined);
+    const marks = this.metrics.customMarks.filter(
+      mark => mark.name === name && mark.duration !== undefined,
+    );
 
     if (marks.length === 0) return 0;
 

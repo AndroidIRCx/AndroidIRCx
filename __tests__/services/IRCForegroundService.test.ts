@@ -40,7 +40,9 @@ jest.mock('../../src/i18n/transifex', () => ({
 
 // Import after mocks
 const { Platform } = require('react-native');
-const { ircForegroundService } = require('../../src/services/IRCForegroundService');
+const {
+  ircForegroundService,
+} = require('../../src/services/IRCForegroundService');
 
 describe('IRCForegroundService', () => {
   beforeEach(() => {
@@ -53,9 +55,17 @@ describe('IRCForegroundService', () => {
 
   describe('start', () => {
     it('should start service on Android', async () => {
-      await ircForegroundService.start('Libera.Chat', 'Test Title', 'Test Text');
+      await ircForegroundService.start(
+        'Libera.Chat',
+        'Test Title',
+        'Test Text',
+      );
 
-      expect(mockStartService).toHaveBeenCalledWith('Libera.Chat', 'Test Title', 'Test Text');
+      expect(mockStartService).toHaveBeenCalledWith(
+        'Libera.Chat',
+        'Test Title',
+        'Test Text',
+      );
       expect(ircForegroundService.isServiceRunning()).toBe(true);
     });
 
@@ -65,7 +75,7 @@ describe('IRCForegroundService', () => {
       expect(mockStartService).toHaveBeenCalledWith(
         'Freenode',
         'IRC Connected',
-        'Maintaining connection to Freenode'
+        'Maintaining connection to Freenode',
       );
     });
 
@@ -90,7 +100,9 @@ describe('IRCForegroundService', () => {
     it('should throw error if native module fails', async () => {
       mockStartService.mockRejectedValueOnce(new Error('Native module error'));
 
-      await expect(ircForegroundService.start('Libera.Chat')).rejects.toThrow('Native module error');
+      await expect(ircForegroundService.start('Libera.Chat')).rejects.toThrow(
+        'Native module error',
+      );
       expect(ircForegroundService.isServiceRunning()).toBe(false);
     });
   });
@@ -137,7 +149,10 @@ describe('IRCForegroundService', () => {
       await ircForegroundService.start('Libera.Chat');
       await ircForegroundService.updateNotification('New Title', 'New Text');
 
-      expect(mockUpdateNotification).toHaveBeenCalledWith('New Title', 'New Text');
+      expect(mockUpdateNotification).toHaveBeenCalledWith(
+        'New Title',
+        'New Text',
+      );
     });
 
     it('should not update on iOS', async () => {
@@ -160,7 +175,9 @@ describe('IRCForegroundService', () => {
       mockUpdateNotification.mockRejectedValueOnce(new Error('Update error'));
 
       // Should not throw
-      await expect(ircForegroundService.updateNotification('Title', 'Text')).resolves.not.toThrow();
+      await expect(
+        ircForegroundService.updateNotification('Title', 'Text'),
+      ).resolves.not.toThrow();
     });
   });
 

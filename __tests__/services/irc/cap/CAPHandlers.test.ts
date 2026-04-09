@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { CAPHandlers, type CAPHandlerContext } from '../../../../src/services/irc/cap/CAPHandlers';
+import {
+  CAPHandlers,
+  type CAPHandlerContext,
+} from '../../../../src/services/irc/cap/CAPHandlers';
 
 describe('CAPHandlers', () => {
   let ctx: CAPHandlerContext;
@@ -15,7 +18,10 @@ describe('CAPHandlers', () => {
       capAvailable: new Set<string>(),
       capEnabledSet: new Set<string>(),
       capRequested: new Set<string>(),
-      config: { host: 'irc.example.org', sasl: { account: 'alice', password: 'secret' } },
+      config: {
+        host: 'irc.example.org',
+        sasl: { account: 'alice', password: 'secret' },
+      },
       getCapLSReceived: jest.fn().mockReturnValue(false),
       setCapLSReceived: jest.fn(),
       setUserhostInNames: jest.fn(),
@@ -42,7 +48,10 @@ describe('CAPHandlers', () => {
     expect(ctx.capAvailable.has('multi-prefix')).toBe(true);
     expect(ctx.capAvailable.has('sasl')).toBe(true);
     expect(ctx.setCapLSReceived).toHaveBeenCalledWith(true);
-    expect(ctx.emit).toHaveBeenCalledWith('capabilities', expect.arrayContaining(['multi-prefix', 'sasl']));
+    expect(ctx.emit).toHaveBeenCalledWith(
+      'capabilities',
+      expect.arrayContaining(['multi-prefix', 'sasl']),
+    );
     expect(ctx.requestCapabilities).toHaveBeenCalled();
   });
 
@@ -56,12 +65,19 @@ describe('CAPHandlers', () => {
   });
 
   it('handles CAP ACK and schedules SASL start when sasl is enabled', () => {
-    handlers.handleCAPCommand(['ACK', ':sasl userhost-in-names extended-join sts=duration=60']);
+    handlers.handleCAPCommand([
+      'ACK',
+      ':sasl userhost-in-names extended-join sts=duration=60',
+    ]);
 
     expect(ctx.capEnabledSet.has('sasl')).toBe(true);
     expect(ctx.setUserhostInNames).toHaveBeenCalledWith(true);
     expect(ctx.setExtendedJoin).toHaveBeenCalledWith(true);
-    expect(ctx.emit).toHaveBeenCalledWith('sts-policy', 'irc.example.org', 'duration');
+    expect(ctx.emit).toHaveBeenCalledWith(
+      'sts-policy',
+      'irc.example.org',
+      'duration',
+    );
 
     jest.advanceTimersByTime(51);
     expect(ctx.startSASL).toHaveBeenCalled();
@@ -103,7 +119,10 @@ describe('CAPHandlers', () => {
     expect(ctx.capAvailable.has('sasl')).toBe(true);
     expect(ctx.capRequested.has('sasl')).toBe(true);
     expect(ctx.sendRaw).toHaveBeenCalledWith('CAP REQ :sasl');
-    expect(ctx.emit).toHaveBeenCalledWith('capabilities', expect.arrayContaining(['sasl', 'draft/chathistory']));
+    expect(ctx.emit).toHaveBeenCalledWith(
+      'capabilities',
+      expect.arrayContaining(['sasl', 'draft/chathistory']),
+    );
   });
 
   it('handles CAP DEL by removing available and enabled capabilities', () => {

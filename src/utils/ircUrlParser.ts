@@ -148,7 +148,9 @@ export function parseIRCUrl(url: string): ParsedIRCUrl {
   if (remaining.startsWith('[')) {
     const closeBracket = remaining.indexOf(']');
     if (closeBracket === -1) {
-      return invalidResult('Invalid IPv6 address format. Missing closing bracket.');
+      return invalidResult(
+        'Invalid IPv6 address format. Missing closing bracket.',
+      );
     }
 
     server = remaining.substring(1, closeBracket);
@@ -220,7 +222,7 @@ export function parseIRCUrl(url: string): ParsedIRCUrl {
  * @returns Matching network config or null
  */
 export async function findMatchingNetwork(
-  parsedUrl: ParsedIRCUrl
+  parsedUrl: ParsedIRCUrl,
 ): Promise<IRCNetworkConfig | null> {
   if (!parsedUrl.isValid) {
     return null;
@@ -275,7 +277,7 @@ export async function findMatchingNetwork(
  */
 export function createTempNetworkFromUrl(
   parsedUrl: ParsedIRCUrl,
-  defaultProfile?: IdentityProfile
+  defaultProfile?: IdentityProfile,
 ): IRCNetworkConfig {
   const timestamp = Date.now();
   const networkId = `temp_${timestamp}_${parsedUrl.server}`;
@@ -287,7 +289,8 @@ export function createTempNetworkFromUrl(
     name: parsedUrl.server,
     nick: parsedUrl.nick || defaultProfile?.nick || 'AndroidIRCX',
     altNick: parsedUrl.altNick || defaultProfile?.altNick || 'AndroidIRCX_',
-    realname: parsedUrl.realname || defaultProfile?.realname || 'AndroidIRCX User',
+    realname:
+      parsedUrl.realname || defaultProfile?.realname || 'AndroidIRCX User',
     ident: parsedUrl.ident || defaultProfile?.ident || 'androidircx',
     servers: [
       {

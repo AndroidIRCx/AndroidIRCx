@@ -42,10 +42,14 @@ describe('QuitCommandHandlers', () => {
 
       expect(ctx.addMessage).toHaveBeenCalledTimes(2);
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'quit', channel: '#general', from: 'Quitter' })
+        expect.objectContaining({
+          type: 'quit',
+          channel: '#general',
+          from: 'Quitter',
+        }),
       );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'quit', channel: '#random' })
+        expect.objectContaining({ type: 'quit', channel: '#random' }),
       );
     });
 
@@ -73,7 +77,11 @@ describe('QuitCommandHandlers', () => {
 
       expect(ctx.addMessage).toHaveBeenCalledTimes(1);
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'quit', from: 'Quitter', reason: 'Goodbye!' })
+        expect.objectContaining({
+          type: 'quit',
+          from: 'Quitter',
+          reason: 'Goodbye!',
+        }),
       );
     });
 
@@ -81,7 +89,7 @@ describe('QuitCommandHandlers', () => {
       handleQUIT(ctx, 'Quitter!user@host', [], Date.now());
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ reason: undefined })
+        expect.objectContaining({ reason: undefined }),
       );
     });
 
@@ -92,7 +100,7 @@ describe('QuitCommandHandlers', () => {
         expect.objectContaining({
           username: 'theuser',
           hostname: 'host.example.com',
-        })
+        }),
       );
     });
 
@@ -101,7 +109,7 @@ describe('QuitCommandHandlers', () => {
       handleQUIT(ctx, 'Quitter!user@host', ['bye'], ts);
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ timestamp: ts })
+        expect.objectContaining({ timestamp: ts }),
       );
     });
 
@@ -109,7 +117,7 @@ describe('QuitCommandHandlers', () => {
       handleQUIT(ctx, 'MyNick!user@host', ['bye'], Date.now());
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ from: 'MyNick' })
+        expect.objectContaining({ from: 'MyNick' }),
       );
     });
 
@@ -126,7 +134,7 @@ describe('QuitCommandHandlers', () => {
       handleQUIT(ctx, 'Quitter!user@host', ['bye'], Date.now());
 
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ command: 'QUIT' })
+        expect.objectContaining({ command: 'QUIT' }),
       );
     });
 

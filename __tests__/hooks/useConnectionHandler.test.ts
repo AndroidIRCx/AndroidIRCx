@@ -16,11 +16,19 @@ const mockStorage: Map<string, string> = new Map();
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    setItem: jest.fn(async (key: string, value: string) => { mockStorage.set(key, value); }),
+    setItem: jest.fn(async (key: string, value: string) => {
+      mockStorage.set(key, value);
+    }),
     getItem: jest.fn(async (key: string) => mockStorage.get(key) || null),
-    removeItem: jest.fn(async (key: string) => { mockStorage.delete(key); }),
-    multiGet: jest.fn(async (keys: string[]) => keys.map(k => [k, mockStorage.get(k) || null])),
-    multiSet: jest.fn(async (pairs: [string, string][]) => { pairs.forEach(([k, v]) => mockStorage.set(k, v)); }),
+    removeItem: jest.fn(async (key: string) => {
+      mockStorage.delete(key);
+    }),
+    multiGet: jest.fn(async (keys: string[]) =>
+      keys.map(k => [k, mockStorage.get(k) || null]),
+    ),
+    multiSet: jest.fn(async (pairs: [string, string][]) => {
+      pairs.forEach(([k, v]) => mockStorage.set(k, v));
+    }),
     getAllKeys: jest.fn(async () => Array.from(mockStorage.keys())),
   },
 }));
@@ -41,7 +49,9 @@ jest.mock('../../src/services/SettingsService', () => ({
     name: 'irc.dbase.in.rs',
   },
 }));
-const mockSettingsService = jest.requireMock<any>('../../src/services/SettingsService').settingsService;
+const mockSettingsService = jest.requireMock<any>(
+  '../../src/services/SettingsService',
+).settingsService;
 
 jest.mock('../../src/services/IdentityProfilesService', () => ({
   identityProfilesService: {
@@ -49,7 +59,9 @@ jest.mock('../../src/services/IdentityProfilesService', () => ({
     getDefaultProfile: jest.fn(),
   },
 }));
-const mockIdentityProfilesService = jest.requireMock<any>('../../src/services/IdentityProfilesService').identityProfilesService;
+const mockIdentityProfilesService = jest.requireMock<any>(
+  '../../src/services/IdentityProfilesService',
+).identityProfilesService;
 
 jest.mock('../../src/services/ConnectionManager', () => ({
   connectionManager: {
@@ -59,28 +71,36 @@ jest.mock('../../src/services/ConnectionManager', () => ({
     onConnectionCreated: jest.fn(() => jest.fn()), // returns unsubscribe
   },
 }));
-const mockConnectionManager = jest.requireMock<any>('../../src/services/ConnectionManager').connectionManager;
+const mockConnectionManager = jest.requireMock<any>(
+  '../../src/services/ConnectionManager',
+).connectionManager;
 
 jest.mock('../../src/services/ScriptingService', () => ({
   scriptingService: {
     handleConnect: jest.fn(),
   },
 }));
-const mockScriptingService = jest.requireMock<any>('../../src/services/ScriptingService').scriptingService;
+const mockScriptingService = jest.requireMock<any>(
+  '../../src/services/ScriptingService',
+).scriptingService;
 
 jest.mock('../../src/services/TabService', () => ({
   tabService: {
     getTabs: jest.fn(),
   },
 }));
-const mockTabService = jest.requireMock<any>('../../src/services/TabService').tabService;
+const mockTabService = jest.requireMock<any>(
+  '../../src/services/TabService',
+).tabService;
 
 jest.mock('../../src/services/MessageHistoryService', () => ({
   messageHistoryService: {
     loadMessages: jest.fn(),
   },
 }));
-const mockMessageHistoryService = jest.requireMock<any>('../../src/services/MessageHistoryService').messageHistoryService;
+const mockMessageHistoryService = jest.requireMock<any>(
+  '../../src/services/MessageHistoryService',
+).messageHistoryService;
 
 jest.mock('../../src/services/AutoReconnectService', () => ({
   autoReconnectService: {
@@ -89,14 +109,18 @@ jest.mock('../../src/services/AutoReconnectService', () => ({
     setConfig: jest.fn(),
   },
 }));
-const mockAutoReconnectService = jest.requireMock<any>('../../src/services/AutoReconnectService').autoReconnectService;
+const mockAutoReconnectService = jest.requireMock<any>(
+  '../../src/services/AutoReconnectService',
+).autoReconnectService;
 
 jest.mock('../../src/services/ChannelFavoritesService', () => ({
   channelFavoritesService: {
     getFavorites: jest.fn(),
   },
 }));
-const mockChannelFavoritesService = jest.requireMock<any>('../../src/services/ChannelFavoritesService').channelFavoritesService;
+const mockChannelFavoritesService = jest.requireMock<any>(
+  '../../src/services/ChannelFavoritesService',
+).channelFavoritesService;
 
 jest.mock('../../src/services/Logger', () => ({
   logger: {
@@ -113,7 +137,9 @@ jest.mock('../../src/services/ErrorReportingService', () => ({
     report: jest.fn(),
   },
 }));
-const mockErrorReportingService = jest.requireMock<any>('../../src/services/ErrorReportingService').errorReportingService;
+const mockErrorReportingService = jest.requireMock<any>(
+  '../../src/services/ErrorReportingService',
+).errorReportingService;
 
 const mockSetShowNetworksList = jest.fn();
 jest.mock('../../src/stores/uiStore', () => ({
@@ -189,9 +215,11 @@ function createMockParams(overrides: Partial<any> = {}) {
     t: jest.fn((key: string, params?: any) => {
       if (params) {
         let result = key;
-        Object.keys(params).filter(k => k !== '_tags').forEach(k => {
-          result = result.replace(`{${k}}`, String(params[k]));
-        });
+        Object.keys(params)
+          .filter(k => k !== '_tags')
+          .forEach(k => {
+            result = result.replace(`{${k}}`, String(params[k]));
+          });
         return result;
       }
       return key;
@@ -205,15 +233,19 @@ function createMockParams(overrides: Partial<any> = {}) {
 
 function setupDefaultMocks() {
   mockSettingsService.loadNetworks.mockResolvedValue([defaultNetwork]);
-  mockSettingsService.getSetting.mockImplementation(async (key: string, defaultVal: any) => {
-    if (key === 'globalProxy') return { enabled: false };
-    if (key === 'quickConnectNetworkId') return null;
-    if (key === 'autoJoinFavorites') return true;
-    return defaultVal;
-  });
+  mockSettingsService.getSetting.mockImplementation(
+    async (key: string, defaultVal: any) => {
+      if (key === 'globalProxy') return { enabled: false };
+      if (key === 'quickConnectNetworkId') return null;
+      if (key === 'autoJoinFavorites') return true;
+      return defaultVal;
+    },
+  );
   mockSettingsService.createDefaultNetwork.mockResolvedValue(defaultNetwork);
   mockIdentityProfilesService.list.mockResolvedValue([defaultIdentityProfile]);
-  mockIdentityProfilesService.getDefaultProfile.mockResolvedValue(defaultIdentityProfile);
+  mockIdentityProfilesService.getDefaultProfile.mockResolvedValue(
+    defaultIdentityProfile,
+  );
   mockConnectionManager.connect.mockResolvedValue('DBase');
   mockTabService.getTabs.mockResolvedValue([]);
   mockMessageHistoryService.loadMessages.mockResolvedValue([]);
@@ -275,14 +307,23 @@ describe('useConnectionHandler', () => {
       });
 
       it('should use quickConnectNetworkId when configured', async () => {
-        const quickNetwork = { ...defaultNetwork, id: 'quick-net', name: 'QuickNet' };
-        mockSettingsService.loadNetworks.mockResolvedValue([defaultNetwork, quickNetwork]);
-        mockSettingsService.getSetting.mockImplementation(async (key: string, defaultVal: any) => {
-          if (key === 'quickConnectNetworkId') return 'quick-net';
-          if (key === 'globalProxy') return { enabled: false };
-          if (key === 'autoJoinFavorites') return true;
-          return defaultVal;
-        });
+        const quickNetwork = {
+          ...defaultNetwork,
+          id: 'quick-net',
+          name: 'QuickNet',
+        };
+        mockSettingsService.loadNetworks.mockResolvedValue([
+          defaultNetwork,
+          quickNetwork,
+        ]);
+        mockSettingsService.getSetting.mockImplementation(
+          async (key: string, defaultVal: any) => {
+            if (key === 'quickConnectNetworkId') return 'quick-net';
+            if (key === 'globalProxy') return { enabled: false };
+            if (key === 'autoJoinFavorites') return true;
+            return defaultVal;
+          },
+        );
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -296,7 +337,10 @@ describe('useConnectionHandler', () => {
 
       it('should prefer DBase network as fallback', async () => {
         const otherNetwork = { ...defaultNetwork, id: 'other', name: 'Other' };
-        mockSettingsService.loadNetworks.mockResolvedValue([otherNetwork, defaultNetwork]);
+        mockSettingsService.loadNetworks.mockResolvedValue([
+          otherNetwork,
+          defaultNetwork,
+        ]);
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -310,8 +354,15 @@ describe('useConnectionHandler', () => {
 
       it('should fallback to DBase without servers, then network with servers, then first', async () => {
         const dbaseNoServers = { ...defaultNetwork, servers: [] };
-        const otherWithServers = { ...defaultNetwork, id: 'other', name: 'Other' };
-        mockSettingsService.loadNetworks.mockResolvedValue([dbaseNoServers, otherWithServers]);
+        const otherWithServers = {
+          ...defaultNetwork,
+          id: 'other',
+          name: 'Other',
+        };
+        mockSettingsService.loadNetworks.mockResolvedValue([
+          dbaseNoServers,
+          otherWithServers,
+        ]);
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -326,7 +377,12 @@ describe('useConnectionHandler', () => {
       });
 
       it('should fallback to first network with servers when no DBase', async () => {
-        const net1 = { ...defaultNetwork, id: 'n1', name: 'Freenode', servers: [] };
+        const net1 = {
+          ...defaultNetwork,
+          id: 'n1',
+          name: 'Freenode',
+          servers: [],
+        };
         const net2 = { ...defaultNetwork, id: 'n2', name: 'Libera' };
         mockSettingsService.loadNetworks.mockResolvedValue([net1, net2]);
 
@@ -341,8 +397,18 @@ describe('useConnectionHandler', () => {
       });
 
       it('should fallback to first network when none have servers', async () => {
-        const net1 = { ...defaultNetwork, id: 'n1', name: 'First', servers: [] };
-        const net2 = { ...defaultNetwork, id: 'n2', name: 'Second', servers: [] };
+        const net1 = {
+          ...defaultNetwork,
+          id: 'n1',
+          name: 'First',
+          servers: [],
+        };
+        const net2 = {
+          ...defaultNetwork,
+          id: 'n2',
+          name: 'Second',
+          servers: [],
+        };
         mockSettingsService.loadNetworks.mockResolvedValue([net1, net2]);
 
         const params = createMockParams();
@@ -372,7 +438,10 @@ describe('useConnectionHandler', () => {
       });
 
       it('should use network identity fields when network has no profile ID', async () => {
-        const networkNoProfile = { ...defaultNetwork, identityProfileId: undefined };
+        const networkNoProfile = {
+          ...defaultNetwork,
+          identityProfileId: undefined,
+        };
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
 
@@ -382,7 +451,9 @@ describe('useConnectionHandler', () => {
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
         expect(connectCall[2].nick).toBe(networkNoProfile.nick);
-        expect(mockIdentityProfilesService.getDefaultProfile).not.toHaveBeenCalled();
+        expect(
+          mockIdentityProfilesService.getDefaultProfile,
+        ).not.toHaveBeenCalled();
       });
 
       it('should fallback to network identity when profile ID not found', async () => {
@@ -396,7 +467,9 @@ describe('useConnectionHandler', () => {
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
         expect(connectCall[2].nick).toBe(defaultNetwork.nick);
-        expect(mockIdentityProfilesService.getDefaultProfile).not.toHaveBeenCalled();
+        expect(
+          mockIdentityProfilesService.getDefaultProfile,
+        ).not.toHaveBeenCalled();
       });
 
       it('should apply SASL from identity profile', async () => {
@@ -415,7 +488,10 @@ describe('useConnectionHandler', () => {
         });
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
-        expect(connectCall[2].sasl).toEqual({ account: 'sasluser', password: 'saslpass' });
+        expect(connectCall[2].sasl).toEqual({
+          account: 'sasluser',
+          password: 'saslpass',
+        });
       });
 
       it('should apply nickserv and oper from identity profile', async () => {
@@ -449,9 +525,14 @@ describe('useConnectionHandler', () => {
         const { result } = renderHook(() => useConnectionHandler(params));
 
         await act(async () => {
-          await result.current.handleConnect(defaultNetwork, undefined, undefined, {
-            identity: { nick: 'OverrideNick' },
-          });
+          await result.current.handleConnect(
+            defaultNetwork,
+            undefined,
+            undefined,
+            {
+              identity: { nick: 'OverrideNick' },
+            },
+          );
         });
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
@@ -463,9 +544,14 @@ describe('useConnectionHandler', () => {
         const { result } = renderHook(() => useConnectionHandler(params));
 
         await act(async () => {
-          await result.current.handleConnect(defaultNetwork, undefined, undefined, {
-            identity: { altNick: 'AltOverride' },
-          });
+          await result.current.handleConnect(
+            defaultNetwork,
+            undefined,
+            undefined,
+            {
+              identity: { altNick: 'AltOverride' },
+            },
+          );
         });
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
@@ -477,9 +563,14 @@ describe('useConnectionHandler', () => {
         const { result } = renderHook(() => useConnectionHandler(params));
 
         await act(async () => {
-          await result.current.handleConnect(defaultNetwork, undefined, undefined, {
-            identity: { ident: 'customident' },
-          });
+          await result.current.handleConnect(
+            defaultNetwork,
+            undefined,
+            undefined,
+            {
+              identity: { ident: 'customident' },
+            },
+          );
         });
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
@@ -491,9 +582,14 @@ describe('useConnectionHandler', () => {
         const { result } = renderHook(() => useConnectionHandler(params));
 
         await act(async () => {
-          await result.current.handleConnect(defaultNetwork, undefined, undefined, {
-            identity: { name: 'Custom Name' },
-          });
+          await result.current.handleConnect(
+            defaultNetwork,
+            undefined,
+            undefined,
+            {
+              identity: { name: 'Custom Name' },
+            },
+          );
         });
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
@@ -505,9 +601,14 @@ describe('useConnectionHandler', () => {
         const { result } = renderHook(() => useConnectionHandler(params));
 
         await act(async () => {
-          await result.current.handleConnect(defaultNetwork, undefined, undefined, {
-            identity: { email: 'test@example.com' },
-          });
+          await result.current.handleConnect(
+            defaultNetwork,
+            undefined,
+            undefined,
+            {
+              identity: { email: 'test@example.com' },
+            },
+          );
         });
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
@@ -519,9 +620,14 @@ describe('useConnectionHandler', () => {
         const { result } = renderHook(() => useConnectionHandler(params));
 
         await act(async () => {
-          await result.current.handleConnect(defaultNetwork, undefined, undefined, {
-            identity: { name: 'Custom Name', email: 'test@example.com' },
-          });
+          await result.current.handleConnect(
+            defaultNetwork,
+            undefined,
+            undefined,
+            {
+              identity: { name: 'Custom Name', email: 'test@example.com' },
+            },
+          );
         });
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
@@ -547,10 +653,19 @@ describe('useConnectionHandler', () => {
           ...defaultNetwork,
           servers: [
             { ...defaultNetwork.servers[0], id: 'srv-1', favorite: false },
-            { id: 'srv-fav', hostname: 'fav.example.com', port: 6697, ssl: true, rejectUnauthorized: true, favorite: true },
+            {
+              id: 'srv-fav',
+              hostname: 'fav.example.com',
+              port: 6697,
+              ssl: true,
+              rejectUnauthorized: true,
+              favorite: true,
+            },
           ],
         };
-        const params = createMockParams({ autoConnectFavoriteServerRef: { current: true } });
+        const params = createMockParams({
+          autoConnectFavoriteServerRef: { current: true },
+        });
         const { result } = renderHook(() => useConnectionHandler(params));
 
         await act(async () => {
@@ -567,7 +682,13 @@ describe('useConnectionHandler', () => {
           defaultServerId: 'srv-2',
           servers: [
             defaultNetwork.servers[0],
-            { id: 'srv-2', hostname: 'default.example.com', port: 6697, ssl: true, rejectUnauthorized: true },
+            {
+              id: 'srv-2',
+              hostname: 'default.example.com',
+              port: 6697,
+              ssl: true,
+              rejectUnauthorized: true,
+            },
           ],
         };
         const params = createMockParams();
@@ -598,7 +719,14 @@ describe('useConnectionHandler', () => {
         const networkNoServers = {
           ...defaultNetwork,
           servers: [
-            { id: 'srv-1', hostname: 'irc.example.com', port: 6697, ssl: true, rejectUnauthorized: true, name: 'test' },
+            {
+              id: 'srv-1',
+              hostname: 'irc.example.com',
+              port: 6697,
+              ssl: true,
+              rejectUnauthorized: true,
+              name: 'test',
+            },
           ],
         };
         const params = createMockParams();
@@ -664,7 +792,9 @@ describe('useConnectionHandler', () => {
 
         // Get the alert buttons and press Configure
         const alertButtons = params.safeAlert.mock.calls[0][2];
-        const configureButton = alertButtons.find((b: any) => b.text === 'Configure');
+        const configureButton = alertButtons.find(
+          (b: any) => b.text === 'Configure',
+        );
         configureButton?.onPress?.();
 
         expect(mockSetShowNetworksList).toHaveBeenCalledWith(true);
@@ -707,7 +837,11 @@ describe('useConnectionHandler', () => {
       it('should include proxy config', async () => {
         const networkWithProxy = {
           ...defaultNetwork,
-          proxy: { type: 'socks5' as const, host: 'proxy.example.com', port: 1080 },
+          proxy: {
+            type: 'socks5' as const,
+            host: 'proxy.example.com',
+            port: 1080,
+          },
         };
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -717,15 +851,27 @@ describe('useConnectionHandler', () => {
         });
 
         const config = mockConnectionManager.connect.mock.calls[0][2];
-        expect(config.proxy).toEqual({ type: 'socks5', host: 'proxy.example.com', port: 1080 });
+        expect(config.proxy).toEqual({
+          type: 'socks5',
+          host: 'proxy.example.com',
+          port: 1080,
+        });
       });
 
       it('should use global proxy when network has no proxy', async () => {
-        mockSettingsService.getSetting.mockImplementation(async (key: string, defaultVal: any) => {
-          if (key === 'globalProxy') return { enabled: true, type: 'http', host: 'global.proxy', port: 8080 };
-          if (key === 'autoJoinFavorites') return true;
-          return defaultVal;
-        });
+        mockSettingsService.getSetting.mockImplementation(
+          async (key: string, defaultVal: any) => {
+            if (key === 'globalProxy')
+              return {
+                enabled: true,
+                type: 'http',
+                host: 'global.proxy',
+                port: 8080,
+              };
+            if (key === 'autoJoinFavorites') return true;
+            return defaultVal;
+          },
+        );
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -735,7 +881,12 @@ describe('useConnectionHandler', () => {
         });
 
         const config = mockConnectionManager.connect.mock.calls[0][2];
-        expect(config.proxy).toEqual({ enabled: true, type: 'http', host: 'global.proxy', port: 8080 });
+        expect(config.proxy).toEqual({
+          enabled: true,
+          type: 'http',
+          host: 'global.proxy',
+          port: 8080,
+        });
       });
 
       it('should include client certificate', async () => {
@@ -801,7 +952,9 @@ describe('useConnectionHandler', () => {
           await result.current.handleConnect(defaultNetwork);
         });
 
-        expect(mockScriptingService.handleConnect).toHaveBeenCalledWith('DBase');
+        expect(mockScriptingService.handleConnect).toHaveBeenCalledWith(
+          'DBase',
+        );
       });
 
       it('should append server message with connection info', async () => {
@@ -822,7 +975,13 @@ describe('useConnectionHandler', () => {
     describe('tab loading', () => {
       it('should load and set tabs after connection', async () => {
         mockTabService.getTabs.mockResolvedValue([
-          { id: 'channel::DBase::#general', name: '#general', type: 'channel', networkId: 'DBase', messages: [] },
+          {
+            id: 'channel::DBase::#general',
+            name: '#general',
+            type: 'channel',
+            networkId: 'DBase',
+            messages: [],
+          },
         ]);
 
         const params = createMockParams();
@@ -839,7 +998,13 @@ describe('useConnectionHandler', () => {
 
       it('should add server tab if not present in loaded tabs', async () => {
         mockTabService.getTabs.mockResolvedValue([
-          { id: 'channel::DBase::#general', name: '#general', type: 'channel', networkId: 'DBase', messages: [] },
+          {
+            id: 'channel::DBase::#general',
+            name: '#general',
+            type: 'channel',
+            networkId: 'DBase',
+            messages: [],
+          },
         ]);
 
         const params = createMockParams();
@@ -855,7 +1020,13 @@ describe('useConnectionHandler', () => {
 
       it('should normalize tab networkIds', async () => {
         mockTabService.getTabs.mockResolvedValue([
-          { id: 'channel::DBase::#general', name: '#general', type: 'channel', networkId: '', messages: [] },
+          {
+            id: 'channel::DBase::#general',
+            name: '#general',
+            type: 'channel',
+            networkId: '',
+            messages: [],
+          },
         ]);
 
         const params = createMockParams();
@@ -872,7 +1043,9 @@ describe('useConnectionHandler', () => {
         const historyMessages = [
           { id: 'msg-1', text: 'Welcome', timestamp: Date.now() },
         ];
-        mockMessageHistoryService.loadMessages.mockResolvedValue(historyMessages);
+        mockMessageHistoryService.loadMessages.mockResolvedValue(
+          historyMessages,
+        );
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -881,11 +1054,16 @@ describe('useConnectionHandler', () => {
           await result.current.handleConnect(defaultNetwork);
         });
 
-        expect(mockMessageHistoryService.loadMessages).toHaveBeenCalledWith('DBase', 'server');
+        expect(mockMessageHistoryService.loadMessages).toHaveBeenCalledWith(
+          'DBase',
+          'server',
+        );
       });
 
       it('should handle server tab history load failure gracefully', async () => {
-        mockMessageHistoryService.loadMessages.mockRejectedValue(new Error('Load failed'));
+        mockMessageHistoryService.loadMessages.mockRejectedValue(
+          new Error('Load failed'),
+        );
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -903,7 +1081,12 @@ describe('useConnectionHandler', () => {
         const params = createMockParams({
           tabsRef: {
             current: [
-              { id: 'server::DBase', type: 'server', networkId: 'DBase', messages: [] },
+              {
+                id: 'server::DBase',
+                type: 'server',
+                networkId: 'DBase',
+                messages: [],
+              },
             ],
           },
         });
@@ -922,7 +1105,11 @@ describe('useConnectionHandler', () => {
         const { result } = renderHook(() => useConnectionHandler(params));
 
         await act(async () => {
-          await result.current.handleConnect(defaultNetwork, undefined, 'custom-id');
+          await result.current.handleConnect(
+            defaultNetwork,
+            undefined,
+            'custom-id',
+          );
         });
 
         const connectCall = mockConnectionManager.connect.mock.calls[0];
@@ -939,7 +1126,9 @@ describe('useConnectionHandler', () => {
           await result.current.handleConnect(defaultNetwork);
         });
 
-        expect(mockAutoReconnectService.saveConnectionState).toHaveBeenCalledWith(
+        expect(
+          mockAutoReconnectService.saveConnectionState,
+        ).toHaveBeenCalledWith(
           'DBase',
           expect.any(Object),
           expect.any(Array),
@@ -960,7 +1149,8 @@ describe('useConnectionHandler', () => {
           await result.current.handleConnect(defaultNetwork);
         });
 
-        const saveCall = mockAutoReconnectService.saveConnectionState.mock.calls[0];
+        const saveCall =
+          mockAutoReconnectService.saveConnectionState.mock.calls[0];
         expect(saveCall[2]).toContain('#fav1');
         expect(saveCall[2]).toContain('#fav2');
       });
@@ -978,7 +1168,8 @@ describe('useConnectionHandler', () => {
           await result.current.handleConnect(networkWithAutoJoin);
         });
 
-        const saveCall = mockAutoReconnectService.saveConnectionState.mock.calls[0];
+        const saveCall =
+          mockAutoReconnectService.saveConnectionState.mock.calls[0];
         expect(saveCall[2]).toContain('#auto1');
         expect(saveCall[2]).toContain('#auto2');
       });
@@ -999,17 +1190,20 @@ describe('useConnectionHandler', () => {
           await result.current.handleConnect(networkWithAutoJoin);
         });
 
-        const saveCall = mockAutoReconnectService.saveConnectionState.mock.calls[0];
+        const saveCall =
+          mockAutoReconnectService.saveConnectionState.mock.calls[0];
         const channels = saveCall[2] as string[];
         expect(channels.filter(c => c === '#shared')).toHaveLength(1);
       });
 
       it('should skip favorites when autoJoinFavorites is disabled', async () => {
-        mockSettingsService.getSetting.mockImplementation(async (key: string, defaultVal: any) => {
-          if (key === 'autoJoinFavorites') return false;
-          if (key === 'globalProxy') return { enabled: false };
-          return defaultVal;
-        });
+        mockSettingsService.getSetting.mockImplementation(
+          async (key: string, defaultVal: any) => {
+            if (key === 'autoJoinFavorites') return false;
+            if (key === 'globalProxy') return { enabled: false };
+            return defaultVal;
+          },
+        );
         mockChannelFavoritesService.getFavorites.mockReturnValue([
           { name: '#fav1' },
         ]);
@@ -1023,7 +1217,8 @@ describe('useConnectionHandler', () => {
 
         // getFavorites should not be called when autoJoinFavorites is false
         // Actually, the code still calls getFavorites but returns [] since it checks the setting
-        const saveCall = mockAutoReconnectService.saveConnectionState.mock.calls[0];
+        const saveCall =
+          mockAutoReconnectService.saveConnectionState.mock.calls[0];
         expect(saveCall[2]).not.toContain('#fav1');
       });
 
@@ -1037,20 +1232,26 @@ describe('useConnectionHandler', () => {
           await result.current.handleConnect(defaultNetwork);
         });
 
-        expect(mockAutoReconnectService.setConfig).toHaveBeenCalledWith('DBase', {
-          enabled: true,
-          maxAttempts: 10,
-          initialDelay: 1000,
-          maxDelay: 60000,
-          backoffMultiplier: 2,
-          rejoinChannels: true,
-          smartReconnect: true,
-          minReconnectInterval: 5000,
-        });
+        expect(mockAutoReconnectService.setConfig).toHaveBeenCalledWith(
+          'DBase',
+          {
+            enabled: true,
+            maxAttempts: 10,
+            initialDelay: 1000,
+            maxDelay: 60000,
+            backoffMultiplier: 2,
+            rejoinChannels: true,
+            smartReconnect: true,
+            minReconnectInterval: 5000,
+          },
+        );
       });
 
       it('should NOT overwrite existing auto-reconnect config', async () => {
-        mockAutoReconnectService.getConfig.mockReturnValue({ enabled: true, maxAttempts: 5 });
+        mockAutoReconnectService.getConfig.mockReturnValue({
+          enabled: true,
+          maxAttempts: 5,
+        });
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -1065,7 +1266,9 @@ describe('useConnectionHandler', () => {
 
     describe('connection error handling', () => {
       it('should show alert on connection failure', async () => {
-        mockConnectionManager.connect.mockRejectedValue(new Error('Connection refused'));
+        mockConnectionManager.connect.mockRejectedValue(
+          new Error('Connection refused'),
+        );
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -1082,7 +1285,9 @@ describe('useConnectionHandler', () => {
       });
 
       it('should log error on connection failure', async () => {
-        mockConnectionManager.connect.mockRejectedValue(new Error('Connection refused'));
+        mockConnectionManager.connect.mockRejectedValue(
+          new Error('Connection refused'),
+        );
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -1118,7 +1323,9 @@ describe('useConnectionHandler', () => {
       });
 
       it('should append failure message to server tab', async () => {
-        mockConnectionManager.connect.mockRejectedValue(new Error('Connection refused'));
+        mockConnectionManager.connect.mockRejectedValue(
+          new Error('Connection refused'),
+        );
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -1159,7 +1366,9 @@ describe('useConnectionHandler', () => {
         });
 
         const alertButtons = params.safeAlert.mock.calls[0][2];
-        const openNetworksButton = alertButtons.find((b: any) => b.text === 'Open Networks');
+        const openNetworksButton = alertButtons.find(
+          (b: any) => b.text === 'Open Networks',
+        );
         expect(openNetworksButton).toBeDefined();
 
         // Press Open Networks
@@ -1242,7 +1451,10 @@ describe('useConnectionHandler', () => {
 
         await act(async () => {
           await result.current.handleServerConnect(
-            { address: 'new.server.com', switches: { newWindowNoConnect: true } },
+            {
+              address: 'new.server.com',
+              switches: { newWindowNoConnect: true },
+            },
             mockActiveIRCService,
           );
         });
@@ -1272,10 +1484,18 @@ describe('useConnectionHandler', () => {
           ...defaultNetwork,
           servers: [
             defaultNetwork.servers[0],
-            { id: 'srv-2', hostname: 'second.server.com', port: 6667, ssl: false, rejectUnauthorized: false },
+            {
+              id: 'srv-2',
+              hostname: 'second.server.com',
+              port: 6667,
+              ssl: false,
+              rejectUnauthorized: false,
+            },
           ],
         };
-        mockSettingsService.loadNetworks.mockResolvedValue([multiServerNetwork]);
+        mockSettingsService.loadNetworks.mockResolvedValue([
+          multiServerNetwork,
+        ]);
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -1405,7 +1625,12 @@ describe('useConnectionHandler', () => {
 
         await act(async () => {
           await result.current.handleServerConnect(
-            { address: 'irc.example.com', port: 7000, switches: { ssl: true }, password: 'newpass' },
+            {
+              address: 'irc.example.com',
+              port: 7000,
+              switches: { ssl: true },
+              password: 'newpass',
+            },
             mockActiveIRCService,
           );
         });
@@ -1423,7 +1648,12 @@ describe('useConnectionHandler', () => {
           await result.current.handleServerConnect(
             {
               address: 'new.server.com',
-              identity: { nick: 'CustomNick', altNick: 'CustomAlt', name: 'Custom Name', email: 'test@test.com' },
+              identity: {
+                nick: 'CustomNick',
+                altNick: 'CustomAlt',
+                name: 'Custom Name',
+                email: 'test@test.com',
+              },
             },
             mockActiveIRCService,
           );
@@ -1480,7 +1710,10 @@ describe('useConnectionHandler', () => {
 
         await act(async () => {
           await result.current.handleServerConnect(
-            { address: 'new.server.com', switches: { newWindowNoConnect: true } },
+            {
+              address: 'new.server.com',
+              switches: { newWindowNoConnect: true },
+            },
             mockActiveIRCService,
           );
         });
@@ -1496,7 +1729,9 @@ describe('useConnectionHandler', () => {
       it('should join channels immediately when already registered', async () => {
         mockActiveIRCService.isRegistered.mockReturnValue(true);
         const mockIrcService = { ...mockActiveIRCService };
-        mockConnectionManager.getActiveConnection.mockReturnValue({ ircService: mockIrcService });
+        mockConnectionManager.getActiveConnection.mockReturnValue({
+          ircService: mockIrcService,
+        });
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -1527,7 +1762,9 @@ describe('useConnectionHandler', () => {
           }),
           joinChannel: jest.fn(),
         };
-        mockConnectionManager.getActiveConnection.mockReturnValue({ ircService: mockIrcService });
+        mockConnectionManager.getActiveConnection.mockReturnValue({
+          ircService: mockIrcService,
+        });
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -1544,20 +1781,27 @@ describe('useConnectionHandler', () => {
           await new Promise(resolve => setTimeout(resolve, 10));
         });
 
-        expect(mockIrcService.on).toHaveBeenCalledWith('registered', expect.any(Function));
+        expect(mockIrcService.on).toHaveBeenCalledWith(
+          'registered',
+          expect.any(Function),
+        );
       });
 
       it('should use newConnectionId when available', async () => {
         // Simulate onConnectionCreated callback
-        mockConnectionManager.onConnectionCreated.mockImplementation((cb: Function) => {
-          cb('new-connection-id');
-          return jest.fn();
-        });
+        mockConnectionManager.onConnectionCreated.mockImplementation(
+          (cb: Function) => {
+            cb('new-connection-id');
+            return jest.fn();
+          },
+        );
         const mockNewIrcService = {
           ...mockActiveIRCService,
           joinChannel: jest.fn(),
         };
-        mockConnectionManager.getConnection.mockReturnValue({ ircService: mockNewIrcService });
+        mockConnectionManager.getConnection.mockReturnValue({
+          ircService: mockNewIrcService,
+        });
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -1572,7 +1816,9 @@ describe('useConnectionHandler', () => {
           );
         });
 
-        expect(mockConnectionManager.getConnection).toHaveBeenCalledWith('new-connection-id');
+        expect(mockConnectionManager.getConnection).toHaveBeenCalledWith(
+          'new-connection-id',
+        );
       });
     });
 
@@ -1596,7 +1842,9 @@ describe('useConnectionHandler', () => {
       });
 
       it('should show error message on exception', async () => {
-        mockSettingsService.loadNetworks.mockRejectedValue(new Error('Network load failed'));
+        mockSettingsService.loadNetworks.mockRejectedValue(
+          new Error('Network load failed'),
+        );
 
         const params = createMockParams();
         const { result } = renderHook(() => useConnectionHandler(params));
@@ -1647,7 +1895,9 @@ describe('useConnectionHandler', () => {
 
     it('should return stable handleConnect reference', () => {
       const params = createMockParams();
-      const { result, rerender } = renderHook(() => useConnectionHandler(params));
+      const { result, rerender } = renderHook(() =>
+        useConnectionHandler(params),
+      );
 
       const firstRef = result.current.handleConnect;
       rerender();

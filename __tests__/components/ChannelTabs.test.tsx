@@ -26,7 +26,8 @@ jest.mock('../../src/hooks/useTheme', () => ({
 jest.mock('../../src/services/ChannelEncryptionSettingsService', () => ({
   channelEncryptionSettingsService: {
     getAlwaysEncrypt: (...args: unknown[]) => mockGetAlwaysEncrypt(...args),
-    onAlwaysEncryptChange: (...args: unknown[]) => mockOnAlwaysEncryptChange(...args),
+    onAlwaysEncryptChange: (...args: unknown[]) =>
+      mockOnAlwaysEncryptChange(...args),
   },
 }));
 
@@ -49,11 +50,15 @@ describe('ChannelTabs', () => {
     settingChangeHandlers = {};
     mockGetAlwaysEncrypt.mockResolvedValue(false);
     mockOnAlwaysEncryptChange.mockImplementation(() => () => {});
-    mockGetSetting.mockImplementation((key: string, def: any) => Promise.resolve(def));
-    mockOnSettingChange.mockImplementation((key: string, handler: (value: boolean) => void) => {
-      settingChangeHandlers[key] = handler;
-      return () => {};
-    });
+    mockGetSetting.mockImplementation((key: string, def: any) =>
+      Promise.resolve(def),
+    );
+    mockOnSettingChange.mockImplementation(
+      (key: string, handler: (value: boolean) => void) => {
+        settingChangeHandlers[key] = handler;
+        return () => {};
+      },
+    );
   });
 
   it('renders tabs and handles press/long press', async () => {
@@ -61,8 +66,21 @@ describe('ChannelTabs', () => {
     const onTabLongPress = jest.fn();
 
     const tabs = [
-      { id: '1', name: '#general', type: 'channel', networkId: 'n1', isEncrypted: false },
-      { id: '2', name: 'alice', type: 'query', networkId: 'n1', isEncrypted: true, hasActivity: true },
+      {
+        id: '1',
+        name: '#general',
+        type: 'channel',
+        networkId: 'n1',
+        isEncrypted: false,
+      },
+      {
+        id: '2',
+        name: 'alice',
+        type: 'query',
+        networkId: 'n1',
+        isEncrypted: true,
+        hasActivity: true,
+      },
     ] as any;
 
     const { getByText } = render(
@@ -71,7 +89,7 @@ describe('ChannelTabs', () => {
         activeTabId="1"
         onTabPress={onTabPress}
         onTabLongPress={onTabLongPress}
-      />
+      />,
     );
 
     await act(async () => {});
@@ -88,7 +106,15 @@ describe('ChannelTabs', () => {
   it('shows always-encrypt indicator when enabled', async () => {
     mockGetAlwaysEncrypt.mockResolvedValueOnce(true);
 
-    const tabs = [{ id: '1', name: '#general', type: 'channel', networkId: 'n1', isEncrypted: false }] as any;
+    const tabs = [
+      {
+        id: '1',
+        name: '#general',
+        type: 'channel',
+        networkId: 'n1',
+        isEncrypted: false,
+      },
+    ] as any;
 
     const { getByText } = render(
       <ChannelTabs
@@ -96,7 +122,7 @@ describe('ChannelTabs', () => {
         activeTabId="1"
         onTabPress={jest.fn()}
         onTabLongPress={jest.fn()}
-      />
+      />,
     );
 
     await act(async () => {});
@@ -106,7 +132,8 @@ describe('ChannelTabs', () => {
   it('switches tab on scroll when enabled', async () => {
     mockGetSetting.mockImplementation((key: string) => {
       if (key === 'channelListScrollSwitchTabs') return Promise.resolve(true);
-      if (key === 'channelListScrollSwitchTabsInverse') return Promise.resolve(false);
+      if (key === 'channelListScrollSwitchTabsInverse')
+        return Promise.resolve(false);
       return Promise.resolve(false);
     });
 
@@ -117,29 +144,41 @@ describe('ChannelTabs', () => {
     ] as any;
 
     const { UNSAFE_getByType } = render(
-      <ChannelTabs tabs={tabs} activeTabId="1" onTabPress={onTabPress} onTabLongPress={jest.fn()} />
+      <ChannelTabs
+        tabs={tabs}
+        activeTabId="1"
+        onTabPress={onTabPress}
+        onTabLongPress={jest.fn()}
+      />,
     );
 
     await act(async () => {});
 
     const scroll = UNSAFE_getByType(ScrollView);
-    fireEvent.scroll(scroll, { nativeEvent: { contentOffset: { x: 40, y: 0 } } });
+    fireEvent.scroll(scroll, {
+      nativeEvent: { contentOffset: { x: 40, y: 0 } },
+    });
 
     expect(onTabPress).toHaveBeenCalledWith('2');
   });
 
   it('supports inverse scroll switching and always-encrypt change updates', async () => {
-    let changeHandler: ((channel: string, network: string) => Promise<void>) | undefined;
+    let changeHandler:
+      | ((channel: string, network: string) => Promise<void>)
+      | undefined;
 
     mockGetSetting.mockImplementation((key: string) => {
       if (key === 'channelListScrollSwitchTabs') return Promise.resolve(true);
-      if (key === 'channelListScrollSwitchTabsInverse') return Promise.resolve(true);
+      if (key === 'channelListScrollSwitchTabsInverse')
+        return Promise.resolve(true);
       return Promise.resolve(false);
     });
-    mockOnAlwaysEncryptChange.mockImplementation((handler: typeof changeHandler) => {
-      changeHandler = handler as any;
-      return () => {};
-    });
+    mockOnAlwaysEncryptChange.mockImplementation(
+      (handler: typeof changeHandler) => {
+        changeHandler = handler as any;
+        return () => {};
+      },
+    );
     mockGetAlwaysEncrypt
       .mockResolvedValueOnce(false)
       .mockResolvedValueOnce(false)
@@ -147,12 +186,30 @@ describe('ChannelTabs', () => {
 
     const onTabPress = jest.fn();
     const tabs = [
-      { id: '1', name: '#a', type: 'channel', networkId: 'n1', isEncrypted: false },
-      { id: '2', name: '#b', type: 'channel', networkId: 'n1', isEncrypted: false },
+      {
+        id: '1',
+        name: '#a',
+        type: 'channel',
+        networkId: 'n1',
+        isEncrypted: false,
+      },
+      {
+        id: '2',
+        name: '#b',
+        type: 'channel',
+        networkId: 'n1',
+        isEncrypted: false,
+      },
     ] as any;
 
     const { UNSAFE_getByType, getAllByText } = render(
-      <ChannelTabs tabs={tabs} activeTabId="2" onTabPress={onTabPress} onTabLongPress={jest.fn()} position="left" />
+      <ChannelTabs
+        tabs={tabs}
+        activeTabId="2"
+        onTabPress={onTabPress}
+        onTabLongPress={jest.fn()}
+        position="left"
+      />,
     );
 
     await act(async () => {});
@@ -164,13 +221,23 @@ describe('ChannelTabs', () => {
     expect(getAllByText('🔐')).toHaveLength(1);
 
     const scroll = UNSAFE_getByType(ScrollView);
-    fireEvent.scroll(scroll, { nativeEvent: { contentOffset: { x: 0, y: 40 } } });
+    fireEvent.scroll(scroll, {
+      nativeEvent: { contentOffset: { x: 0, y: 40 } },
+    });
 
     expect(onTabPress).toHaveBeenCalledWith('1');
   });
 
   it('skips encryption icons when indicators are disabled', async () => {
-    const tabs = [{ id: '1', name: 'alice', type: 'query', networkId: 'n1', isEncrypted: true }] as any;
+    const tabs = [
+      {
+        id: '1',
+        name: 'alice',
+        type: 'query',
+        networkId: 'n1',
+        isEncrypted: true,
+      },
+    ] as any;
 
     const { queryByText } = render(
       <ChannelTabs
@@ -179,7 +246,7 @@ describe('ChannelTabs', () => {
         onTabPress={jest.fn()}
         onTabLongPress={jest.fn()}
         showEncryptionIndicators={false}
-      />
+      />,
     );
 
     await act(async () => {});
@@ -195,7 +262,12 @@ describe('ChannelTabs', () => {
     ] as any;
 
     const { UNSAFE_getByType } = render(
-      <ChannelTabs tabs={tabs} activeTabId="1" onTabPress={onTabPress} onTabLongPress={jest.fn()} />
+      <ChannelTabs
+        tabs={tabs}
+        activeTabId="1"
+        onTabPress={onTabPress}
+        onTabLongPress={jest.fn()}
+      />,
     );
 
     await act(async () => {});
@@ -206,12 +278,16 @@ describe('ChannelTabs', () => {
       settingChangeHandlers.channelListScrollSwitchTabs?.(true);
       settingChangeHandlers.channelListScrollSwitchTabsInverse?.(false);
     });
-    fireEvent.scroll(scroll, { nativeEvent: { contentOffset: { x: 50, y: 0 } } });
+    fireEvent.scroll(scroll, {
+      nativeEvent: { contentOffset: { x: 50, y: 0 } },
+    });
 
     await act(async () => {
       settingChangeHandlers.channelListScrollSwitchTabsInverse?.(true);
     });
-    fireEvent.scroll(scroll, { nativeEvent: { contentOffset: { x: 0, y: 0 } } });
+    fireEvent.scroll(scroll, {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
 
     expect(onTabPress).toHaveBeenCalledWith('2');
   });

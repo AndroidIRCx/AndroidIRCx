@@ -58,7 +58,8 @@ jest.mock('../../src/components/CameraScreen', () => ({
     const React = require('react');
     const { TouchableOpacity, Text } = require('react-native');
     React.useEffect(() => {
-      if (visible && mockCameraScreenControl.autoTake) onPhotoTaken('/tmp/cam.jpg');
+      if (visible && mockCameraScreenControl.autoTake)
+        onPhotoTaken('/tmp/cam.jpg');
     }, [visible, onPhotoTaken]);
     if (!visible) return null;
     return (
@@ -74,7 +75,8 @@ jest.mock('../../src/components/VideoRecorderScreen', () => ({
     const React = require('react');
     const { TouchableOpacity, Text } = require('react-native');
     React.useEffect(() => {
-      if (visible && mockVideoRecorderControl.autoRecord) onVideoRecorded('/tmp/video.mp4', 6);
+      if (visible && mockVideoRecorderControl.autoRecord)
+        onVideoRecorded('/tmp/video.mp4', 6);
     }, [visible, onVideoRecorded]);
     if (!visible) return null;
     return (
@@ -149,7 +151,7 @@ describe('MediaUploadModal', () => {
 
     await waitFor(() => {
       expect(baseProps.onMediaSelected).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, uri: '/tmp/a.jpg' })
+        expect.objectContaining({ success: true, uri: '/tmp/a.jpg' }),
       );
       expect(baseProps.onClose).toHaveBeenCalled();
     });
@@ -161,7 +163,7 @@ describe('MediaUploadModal', () => {
 
     await waitFor(() => {
       expect(baseProps.onMediaSelected).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, uri: '/tmp/c.bin' })
+        expect.objectContaining({ success: true, uri: '/tmp/c.bin' }),
       );
     });
   });
@@ -204,7 +206,7 @@ describe('MediaUploadModal', () => {
           success: true,
           type: 'voice',
           mimeType: 'audio/m4a',
-        })
+        }),
       );
     });
   });
@@ -216,7 +218,7 @@ describe('MediaUploadModal', () => {
     await waitFor(() => {
       expect(mockPicker.getFileInfo).toHaveBeenCalledWith('/tmp/cam.jpg');
       expect(baseProps.onMediaSelected).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'image', size: 1234 })
+        expect.objectContaining({ type: 'image', size: 1234 }),
       );
     });
   });
@@ -228,7 +230,11 @@ describe('MediaUploadModal', () => {
 
     await waitFor(() => {
       expect(baseProps.onMediaSelected).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, type: 'image', uri: '/tmp/cam.jpg' })
+        expect.objectContaining({
+          success: true,
+          type: 'image',
+          uri: '/tmp/cam.jpg',
+        }),
       );
     });
   });
@@ -239,7 +245,7 @@ describe('MediaUploadModal', () => {
 
     await waitFor(() => {
       expect(baseProps.onMediaSelected).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'video', duration: 6 })
+        expect.objectContaining({ type: 'video', duration: 6 }),
       );
     });
   });
@@ -251,7 +257,12 @@ describe('MediaUploadModal', () => {
 
     await waitFor(() => {
       expect(baseProps.onMediaSelected).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, type: 'video', uri: '/tmp/video.mp4', duration: 6 })
+        expect.objectContaining({
+          success: true,
+          type: 'video',
+          uri: '/tmp/video.mp4',
+          duration: 6,
+        }),
       );
     });
   });
@@ -297,7 +308,10 @@ describe('MediaUploadModal', () => {
   });
 
   it('does not notify when picker returns success without uri', async () => {
-    mockPicker.pickFile.mockResolvedValueOnce({ success: true, uri: undefined } as any);
+    mockPicker.pickFile.mockResolvedValueOnce({
+      success: true,
+      uri: undefined,
+    } as any);
     const { getByText } = render(<MediaUploadModal {...baseProps} />);
     fireEvent.press(getByText('File Picker'));
 
@@ -308,7 +322,9 @@ describe('MediaUploadModal', () => {
   });
 
   it('handles camera permission check exception', async () => {
-    (PermissionsAndroid.check as jest.Mock).mockRejectedValueOnce(new Error('perm check failed'));
+    (PermissionsAndroid.check as jest.Mock).mockRejectedValueOnce(
+      new Error('perm check failed'),
+    );
     const { getByText } = render(<MediaUploadModal {...baseProps} />);
     fireEvent.press(getByText('Take Photo'));
 
@@ -342,7 +358,9 @@ describe('MediaUploadModal', () => {
   });
 
   it('handles record video permission exception', async () => {
-    (PermissionsAndroid.check as jest.Mock).mockRejectedValueOnce(new Error('video perm fail'));
+    (PermissionsAndroid.check as jest.Mock).mockRejectedValueOnce(
+      new Error('video perm fail'),
+    );
     const { getByText } = render(<MediaUploadModal {...baseProps} />);
     fireEvent.press(getByText('Record Video'));
 
@@ -353,7 +371,9 @@ describe('MediaUploadModal', () => {
 
   it('shows alert when voice permission request throws', async () => {
     (PermissionsAndroid.check as jest.Mock).mockResolvedValueOnce(false);
-    (PermissionsAndroid.request as jest.Mock).mockRejectedValueOnce(new Error('mic perm fail'));
+    (PermissionsAndroid.request as jest.Mock).mockRejectedValueOnce(
+      new Error('mic perm fail'),
+    );
 
     const { getByText } = render(<MediaUploadModal {...baseProps} />);
     fireEvent.press(getByText('Voice Message'));
@@ -361,7 +381,7 @@ describe('MediaUploadModal', () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Error',
-        'Failed to request microphone permission. Please check app settings.'
+        'Failed to request microphone permission. Please check app settings.',
       );
     });
   });
@@ -374,7 +394,7 @@ describe('MediaUploadModal', () => {
 
     await waitFor(() => {
       expect(baseProps.onMediaSelected).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'image', uri: '/tmp/cam.jpg' })
+        expect.objectContaining({ type: 'image', uri: '/tmp/cam.jpg' }),
       );
     });
     expect(PermissionsAndroid.check).not.toHaveBeenCalled();
@@ -382,7 +402,9 @@ describe('MediaUploadModal', () => {
 
   it('handles voice recorder cancel callback path', async () => {
     mockVoiceRecorderControl.mode = 'idle';
-    const { getByText, getByTestId } = render(<MediaUploadModal {...baseProps} />);
+    const { getByText, getByTestId } = render(
+      <MediaUploadModal {...baseProps} />,
+    );
     fireEvent.press(getByText('Voice Message'));
     await waitFor(() => {
       expect(getByTestId('voice-cancel')).toBeTruthy();
@@ -396,14 +418,16 @@ describe('MediaUploadModal', () => {
 
   it('handles onRequestClose for nested voice modal', async () => {
     mockVoiceRecorderControl.mode = 'idle';
-    const { getByText, UNSAFE_getByProps } = render(<MediaUploadModal {...baseProps} />);
+    const { getByText, UNSAFE_getByProps } = render(
+      <MediaUploadModal {...baseProps} />,
+    );
     fireEvent.press(getByText('Voice Message'));
     const voiceModal = await waitFor(() =>
       UNSAFE_getByProps({
         visible: true,
         transparent: true,
         animationType: 'slide',
-      })
+      }),
     );
     fireEvent(voiceModal, 'requestClose');
 
@@ -414,7 +438,9 @@ describe('MediaUploadModal', () => {
 
   it('handles camera screen close callback path', async () => {
     mockCameraScreenControl.autoTake = false;
-    const { getByText, getByTestId } = render(<MediaUploadModal {...baseProps} />);
+    const { getByText, getByTestId } = render(
+      <MediaUploadModal {...baseProps} />,
+    );
     fireEvent.press(getByText('Take Photo'));
     await waitFor(() => {
       expect(getByTestId('camera-close')).toBeTruthy();
@@ -428,7 +454,9 @@ describe('MediaUploadModal', () => {
 
   it('handles video screen close callback path', async () => {
     mockVideoRecorderControl.autoRecord = false;
-    const { getByText, getByTestId } = render(<MediaUploadModal {...baseProps} />);
+    const { getByText, getByTestId } = render(
+      <MediaUploadModal {...baseProps} />,
+    );
     fireEvent.press(getByText('Record Video'));
     await waitFor(() => {
       expect(getByTestId('video-close')).toBeTruthy();

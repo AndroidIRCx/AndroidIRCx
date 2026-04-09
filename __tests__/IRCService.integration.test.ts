@@ -3,8 +3,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { IRCService, IRCConnectionConfig, IRCMessage } from '../src/services/IRCService';
-import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE } from '../src/services/SettingsService';
+import {
+  IRCService,
+  IRCConnectionConfig,
+  IRCMessage,
+} from '../src/services/IRCService';
+import {
+  DEFAULT_PART_MESSAGE,
+  DEFAULT_QUIT_MESSAGE,
+} from '../src/services/SettingsService';
 import { FakeSocket } from '../test-support/FakeSocket';
 
 jest.mock('react-native-tcp-socket', () => {
@@ -68,8 +75,14 @@ describe('IRCService connectivity & basic flow', () => {
     irc.disconnect();
     irc.sendMessage('#chan', '/quit');
 
-    expect(socket.writes.some(w => w.includes(`PART #chan :${DEFAULT_PART_MESSAGE}`))).toBe(true);
-    expect(socket.writes.some(w => w.includes(`QUIT :${DEFAULT_QUIT_MESSAGE}`))).toBe(true);
+    expect(
+      socket.writes.some(w =>
+        w.includes(`PART #chan :${DEFAULT_PART_MESSAGE}`),
+      ),
+    ).toBe(true);
+    expect(
+      socket.writes.some(w => w.includes(`QUIT :${DEFAULT_QUIT_MESSAGE}`)),
+    ).toBe(true);
   });
 
   it('updates user list on JOIN/PART/QUIT and emits messages with hide flags off', () => {
@@ -94,18 +107,26 @@ describe('IRCService connectivity & basic flow', () => {
   });
 
   it('handles CAP LS/ACK/NAK negotiation', () => {
-    (irc as any).config = { ...connectConfig, sasl: { account: 'acc', password: 'pw' } };
+    (irc as any).config = {
+      ...connectConfig,
+      sasl: { account: 'acc', password: 'pw' },
+    };
     (irc as any).capNegotiating = true;
     (irc as any)._sendRegistration = jest.fn();
 
-    (irc as any).handleCAPCommand(['LS', 'server-time sasl multi-prefix message-tags']);
+    (irc as any).handleCAPCommand([
+      'LS',
+      'server-time sasl multi-prefix message-tags',
+    ]);
     expect((irc as any).capAvailable.has('server-time')).toBe(true);
     expect(socket.writes.find(w => w.startsWith('CAP REQ :'))).toBeTruthy();
 
     (irc as any).handleCAPCommand(['ACK', 'server-time sasl']);
     jest.runAllTimers();
     expect((irc as any).capEnabledSet.has('sasl')).toBe(true);
-    expect(socket.writes.find(w => w.startsWith('AUTHENTICATE PLAIN'))).toBeTruthy();
+    expect(
+      socket.writes.find(w => w.startsWith('AUTHENTICATE PLAIN')),
+    ).toBeTruthy();
 
     // Once SASL auth begins, a subsequent ACK without SASL should end CAP
     (irc as any).capNegotiating = true;
@@ -123,7 +144,9 @@ describe('IRCService connectivity & basic flow', () => {
     (irc as any).currentNick = 'tester';
     const timestampIso = '2024-01-02T03:04:05.678Z';
 
-    (irc as any).handleIRCMessage(`@time=${timestampIso} :alice!user@host PRIVMSG #room :hello world`);
+    (irc as any).handleIRCMessage(
+      `@time=${timestampIso} :alice!user@host PRIVMSG #room :hello world`,
+    );
 
     const msg = messages.find(m => m.type === 'message');
     expect(msg?.text).toBe('hello world');

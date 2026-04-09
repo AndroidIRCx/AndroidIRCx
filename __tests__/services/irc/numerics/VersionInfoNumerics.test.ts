@@ -45,13 +45,18 @@ describe('VersionInfoNumerics', () => {
   });
 
   it('formats version info for 351', () => {
-    handle351(ctx, 'server', ['nick', 'ircd-1.0', 'irc.example.org', ':build info'], 400);
+    handle351(
+      ctx,
+      'server',
+      ['nick', 'ircd-1.0', 'irc.example.org', ':build info'],
+      400,
+    );
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         text: '*** Version: ircd-1.0 on irc.example.org build info',
         rawCategory: 'server',
-      })
+      }),
     );
   });
 
@@ -61,11 +66,11 @@ describe('VersionInfoNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** some info' })
+      expect.objectContaining({ text: '*** some info' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** End of INFO' })
+      expect.objectContaining({ text: '*** End of INFO' }),
     );
   });
 
@@ -74,26 +79,33 @@ describe('VersionInfoNumerics', () => {
 
     expect(ctx.updateSelfUserModes).toHaveBeenCalledWith('+o');
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: '*** You are now an IRC operator' })
+      expect.objectContaining({ text: '*** You are now an IRC operator' }),
     );
   });
 
   it('formats rehash, service, and time numerics', () => {
     handle382(ctx, 'server', ['nick', 'ircd.conf', ':Reloading config'], 404);
     handle383(ctx, 'server', ['nick', ':You are service'], 405);
-    handle391(ctx, 'server', ['nick', 'irc.example.org', ':2026-03-23T12:00:00Z'], 406);
+    handle391(
+      ctx,
+      'server',
+      ['nick', 'irc.example.org', ':2026-03-23T12:00:00Z'],
+      406,
+    );
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** ircd.conf: Reloading config' })
+      expect.objectContaining({ text: '*** ircd.conf: Reloading config' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** You are service' })
+      expect.objectContaining({ text: '*** You are service' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** Time on irc.example.org: 2026-03-23T12:00:00Z' })
+      expect.objectContaining({
+        text: '*** Time on irc.example.org: 2026-03-23T12:00:00Z',
+      }),
     );
   });
 });

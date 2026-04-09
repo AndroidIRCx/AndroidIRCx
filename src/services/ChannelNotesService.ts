@@ -72,7 +72,10 @@ class ChannelNotesService {
     } else {
       this.bookmarks.delete(key);
     }
-    await AsyncStorage.setItem(this.BOOKMARKS_KEY, JSON.stringify(Array.from(this.bookmarks)));
+    await AsyncStorage.setItem(
+      this.BOOKMARKS_KEY,
+      JSON.stringify(Array.from(this.bookmarks)),
+    );
   }
 
   async isBookmarked(network: string, channel: string): Promise<boolean> {

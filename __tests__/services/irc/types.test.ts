@@ -10,5 +10,3 @@ describe('types', () => {
     expect(moduleUnderTest).toBeDefined();
   });
 });
-
-

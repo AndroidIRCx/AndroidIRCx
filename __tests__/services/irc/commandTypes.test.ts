@@ -10,5 +10,3 @@ describe('commandTypes', () => {
     expect(moduleUnderTest).toBeDefined();
   });
 });
-
-

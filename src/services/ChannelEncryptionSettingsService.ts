@@ -13,7 +13,9 @@ type EncryptionSetting = {
 const SETTINGS_PREFIX = 'encstg:alwaysenc:';
 
 class ChannelEncryptionSettingsService {
-  private listeners: Array<(channel: string, network: string, value: boolean) => void> = [];
+  private listeners: Array<
+    (channel: string, network: string, value: boolean) => void
+  > = [];
 
   private canonicalizeNetwork(network: string): string {
     const normalized = (network || '').trim();
@@ -38,7 +40,10 @@ class ChannelEncryptionSettingsService {
       const parsed = JSON.parse(stored) as EncryptionSetting;
       return parsed.alwaysEncrypt || false;
     } catch (error) {
-      console.error('[ChannelEncryptionSettingsService] Failed to get alwaysEncrypt:', error);
+      console.error(
+        '[ChannelEncryptionSettingsService] Failed to get alwaysEncrypt:',
+        error,
+      );
       return false;
     }
   }
@@ -46,7 +51,11 @@ class ChannelEncryptionSettingsService {
   /**
    * Set the "always encrypt" setting for a channel
    */
-  async setAlwaysEncrypt(channel: string, network: string, value: boolean): Promise<void> {
+  async setAlwaysEncrypt(
+    channel: string,
+    network: string,
+    value: boolean,
+  ): Promise<void> {
     try {
       const storageKey = this.getStorageKey(channel, network);
       const setting: EncryptionSetting = {
@@ -58,7 +67,10 @@ class ChannelEncryptionSettingsService {
       // Notify listeners
       this.listeners.forEach(listener => listener(channel, network, value));
     } catch (error) {
-      console.error('[ChannelEncryptionSettingsService] Failed to set alwaysEncrypt:', error);
+      console.error(
+        '[ChannelEncryptionSettingsService] Failed to set alwaysEncrypt:',
+        error,
+      );
       throw error;
     }
   }
@@ -74,7 +86,10 @@ class ChannelEncryptionSettingsService {
       // Notify listeners with false value
       this.listeners.forEach(listener => listener(channel, network, false));
     } catch (error) {
-      console.error('[ChannelEncryptionSettingsService] Failed to remove alwaysEncrypt:', error);
+      console.error(
+        '[ChannelEncryptionSettingsService] Failed to remove alwaysEncrypt:',
+        error,
+      );
       throw error;
     }
   }
@@ -82,7 +97,10 @@ class ChannelEncryptionSettingsService {
   /**
    * Toggle the "always encrypt" setting for a channel
    */
-  async toggleAlwaysEncrypt(channel: string, network: string): Promise<boolean> {
+  async toggleAlwaysEncrypt(
+    channel: string,
+    network: string,
+  ): Promise<boolean> {
     const current = await this.getAlwaysEncrypt(channel, network);
     const newValue = !current;
     await this.setAlwaysEncrypt(channel, network, newValue);
@@ -93,7 +111,9 @@ class ChannelEncryptionSettingsService {
    * Register a listener for changes to "always encrypt" settings
    * @returns A function to unsubscribe the listener
    */
-  onAlwaysEncryptChange(callback: (channel: string, network: string, value: boolean) => void): () => void {
+  onAlwaysEncryptChange(
+    callback: (channel: string, network: string, value: boolean) => void,
+  ): () => void {
     this.listeners.push(callback);
     return () => {
       this.listeners = this.listeners.filter(listener => listener !== callback);
@@ -103,10 +123,14 @@ class ChannelEncryptionSettingsService {
   /**
    * Get all channels/networks with "always encrypt" enabled
    */
-  async getAllAlwaysEncryptChannels(): Promise<Array<{ channel: string; network: string }>> {
+  async getAllAlwaysEncryptChannels(): Promise<
+    Array<{ channel: string; network: string }>
+  > {
     try {
       const allKeys = await AsyncStorage.getAllKeys();
-      const settingKeys = allKeys.filter(key => key.startsWith(SETTINGS_PREFIX));
+      const settingKeys = allKeys.filter(key =>
+        key.startsWith(SETTINGS_PREFIX),
+      );
       const results: Array<{ channel: string; network: string }> = [];
 
       for (const key of settingKeys) {
@@ -129,11 +153,15 @@ class ChannelEncryptionSettingsService {
 
       return results;
     } catch (error) {
-      console.error('[ChannelEncryptionSettingsService] Failed to get all alwaysEncrypt channels:', error);
+      console.error(
+        '[ChannelEncryptionSettingsService] Failed to get all alwaysEncrypt channels:',
+        error,
+      );
       return [];
     }
   }
 }
 
-export const channelEncryptionSettingsService = new ChannelEncryptionSettingsService();
+export const channelEncryptionSettingsService =
+  new ChannelEncryptionSettingsService();
 export default channelEncryptionSettingsService;

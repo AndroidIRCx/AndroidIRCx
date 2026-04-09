@@ -38,7 +38,11 @@ describe('PartCommandHandlers', () => {
     it('adds part message for other user', () => {
       handlePART(ctx, 'Parting!user@host', ['#general', 'Goodbye'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'part', channel: '#general', from: 'Parting' })
+        expect.objectContaining({
+          type: 'part',
+          channel: '#general',
+          from: 'Parting',
+        }),
       );
     });
 
@@ -53,7 +57,7 @@ describe('PartCommandHandlers', () => {
       ctx.extractNick = jest.fn().mockReturnValue('Parting');
       handlePART(ctx, 'Parting!user@host', ['#general', 'bye'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice', channel: undefined })
+        expect.objectContaining({ type: 'notice', channel: undefined }),
       );
     });
 
@@ -77,30 +81,38 @@ describe('PartCommandHandlers', () => {
     });
 
     it('includes reason when provided', () => {
-      handlePART(ctx, 'Parting!user@host', ['#general', 'Leaving for good'], Date.now());
+      handlePART(
+        ctx,
+        'Parting!user@host',
+        ['#general', 'Leaving for good'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ reason: 'Leaving for good' })
+        expect.objectContaining({ reason: 'Leaving for good' }),
       );
     });
 
     it('sets reason to undefined when no message', () => {
       handlePART(ctx, 'Parting!user@host', ['#general', ''], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ reason: undefined })
+        expect.objectContaining({ reason: undefined }),
       );
     });
 
     it('includes username and hostname from prefix', () => {
       handlePART(ctx, 'Parting!user123@example.host', ['#general'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ username: 'user123', hostname: 'example.host' })
+        expect.objectContaining({
+          username: 'user123',
+          hostname: 'example.host',
+        }),
       );
     });
 
     it('includes PART command metadata', () => {
       handlePART(ctx, 'Parting!user@host', ['#general'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ command: 'PART', target: '#general' })
+        expect.objectContaining({ command: 'PART', target: '#general' }),
       );
     });
 

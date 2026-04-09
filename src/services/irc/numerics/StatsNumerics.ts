@@ -37,7 +37,8 @@ const createNumericStatsHandler = (numeric: number): NumericHandler => {
 /** 219 RPL_ENDOFSTATS */
 export const handle219: NumericHandler = (ctx, prefix, params, timestamp) => {
   const query = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('End of STATS report');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('End of STATS report');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {label}: {message}', { label: query, message }),
@@ -107,7 +108,8 @@ export const handle261: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 262 RPL_TRACEEND */
 export const handle262: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const traceEnd = params.slice(1).join(' ').replace(/^:/, '') || t('End of TRACE');
+  const traceEnd =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of TRACE');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message: traceEnd }),
@@ -120,7 +122,9 @@ export const handle262: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 263 RPL_TRYAGAIN - Try again */
 export const handle263: NumericHandler = (ctx, prefix, params, timestamp) => {
   const cmd = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('Please wait a while and try again');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') ||
+    t('Please wait a while and try again');
   ctx.addMessage({
     type: 'error',
     text: t('*** {command}: {message}', { command: cmd, message }),
@@ -147,7 +151,11 @@ export const handle364: NumericHandler = (ctx, prefix, params, timestamp) => {
   const linkInfo = params.slice(3).join(' ').replace(/^:/, '') || '';
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {mask} -> {server} {info}', { mask: linkMask, server: linkServer, info: linkInfo }),
+    text: t('*** {mask} -> {server} {info}', {
+      mask: linkMask,
+      server: linkServer,
+      info: linkInfo,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -157,7 +165,8 @@ export const handle364: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 365 RPL_ENDOFLINKS - End of links */
 export const handle365: NumericHandler = (ctx, prefix, params, timestamp) => {
   const linkMask = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('End of LINKS');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('End of LINKS');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {mask}: {message}', { mask: linkMask, message }),
@@ -169,7 +178,8 @@ export const handle365: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 392 RPL_USERSSTART - Users start */
 export const handle392: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('Users start');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('Users start');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -193,7 +203,8 @@ export const handle393: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 394 RPL_ENDOFUSERS - End of users */
 export const handle394: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of users');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of users');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -205,7 +216,8 @@ export const handle394: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 395 RPL_NOUSERS - No users */
 export const handle395: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('Nobody logged in');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('Nobody logged in');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),

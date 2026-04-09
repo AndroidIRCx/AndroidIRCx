@@ -11,7 +11,8 @@ const mockFormatFingerprint = jest.fn();
 
 jest.mock('../../src/services/CertificateManagerService', () => ({
   certificateManager: {
-    extractFingerprintFromPem: (...args: unknown[]) => mockExtractFingerprintFromPem(...args),
+    extractFingerprintFromPem: (...args: unknown[]) =>
+      mockExtractFingerprintFromPem(...args),
     formatFingerprint: (...args: unknown[]) => mockFormatFingerprint(...args),
   },
 }));
@@ -47,7 +48,10 @@ describe('CommandService', () => {
   });
 
   it('processes /quote by sending raw command', async () => {
-    const result = await service.processCommand('/quote MODE #chan +m', '#chan');
+    const result = await service.processCommand(
+      '/quote MODE #chan +m',
+      '#chan',
+    );
 
     expect(result).toBeNull();
     expect(sendRaw).toHaveBeenCalledWith('MODE #chan +m');
@@ -75,7 +79,9 @@ describe('CommandService', () => {
     const result = await service.processCommand('/certfp');
 
     expect(result).toBeNull();
-    expect(localMessage).toHaveBeenCalledWith(expect.stringContaining('No certificate configured'));
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('No certificate configured'),
+    );
   });
 
   it('handles /certfp with certificate and prints formatted fingerprint', async () => {
@@ -88,7 +94,9 @@ describe('CommandService', () => {
     expect(result).toBeNull();
     expect(mockExtractFingerprintFromPem).toHaveBeenCalled();
     expect(mockFormatFingerprint).toHaveBeenCalled();
-    expect(localMessage).toHaveBeenCalledWith(expect.stringContaining('AA:BB:CC'));
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('AA:BB:CC'),
+    );
   });
 
   it('handles /certadd and sends fingerprint to default NickServ', async () => {
@@ -100,11 +108,16 @@ describe('CommandService', () => {
 
     expect(result).toBeNull();
     expect(sendRaw).toHaveBeenCalledWith('PRIVMSG NickServ :CERT ADD AA:BB:CC');
-    expect(localMessage).toHaveBeenCalledWith(expect.stringContaining('sent to NickServ'));
+    expect(localMessage).toHaveBeenCalledWith(
+      expect.stringContaining('sent to NickServ'),
+    );
   });
 
   it('handles /hop by PART then delayed JOIN', async () => {
-    const result = await service.processCommand('/hop #android testing', '#ignored');
+    const result = await service.processCommand(
+      '/hop #android testing',
+      '#ignored',
+    );
 
     expect(result).toBeNull();
     expect(sendRaw).toHaveBeenNthCalledWith(1, 'PART #android :testing');
@@ -114,7 +127,10 @@ describe('CommandService', () => {
   });
 
   it('handles /ban with switches, kick and timed unban', async () => {
-    const result = await service.processCommand('/ban -ku #android badUser 2 flood', '#android');
+    const result = await service.processCommand(
+      '/ban -ku #android badUser 2 flood',
+      '#android',
+    );
 
     expect(result).toBeNull();
     expect(sendRaw).toHaveBeenCalledWith('MODE #android +b *!*@badUser');
@@ -137,7 +153,9 @@ describe('CommandService', () => {
 
     await service.clearHistory();
     expect(service.getHistory()).toEqual([]);
-    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('@AndroidIRCX:commandHistory');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith(
+      '@AndroidIRCX:commandHistory',
+    );
   });
 
   it('normalizes legacy history entries without ids during initialize', async () => {
@@ -158,7 +176,7 @@ describe('CommandService', () => {
     expect(history[0].id).toBeTruthy();
     expect(AsyncStorage.setItem).toHaveBeenCalledWith(
       '@AndroidIRCX:commandHistory',
-      expect.any(String)
+      expect.any(String),
     );
   });
 });

@@ -112,7 +112,11 @@ describe('StorageCache', () => {
       });
 
       // Should use multiGet
-      expect(AsyncStorage.multiGet).toHaveBeenCalledWith(['key1', 'key2', 'key3']);
+      expect(AsyncStorage.multiGet).toHaveBeenCalledWith([
+        'key1',
+        'key2',
+        'key3',
+      ]);
     });
 
     it('should return cached items without storage access', async () => {
@@ -199,7 +203,10 @@ describe('StorageCache', () => {
 
       expect(cache.has('key1')).toBe(false);
       expect(cache.has('key2')).toBe(false);
-      expect((AsyncStorage as any).removeMany).toHaveBeenCalledWith(['key1', 'key2']);
+      expect((AsyncStorage as any).removeMany).toHaveBeenCalledWith([
+        'key1',
+        'key2',
+      ]);
     });
   });
 
@@ -282,23 +289,21 @@ describe('StorageCache', () => {
       await cache.progressiveLoad(
         [
           ['critical1', 'critical2'], // Group 0 (high priority)
-          ['normal1', 'normal2'],     // Group 1 (normal priority)
+          ['normal1', 'normal2'], // Group 1 (normal priority)
         ],
-        onGroupLoaded
+        onGroupLoaded,
       );
 
       // Should call callback for each group in order
       expect(onGroupLoaded).toHaveBeenCalledTimes(2);
-      expect(onGroupLoaded).toHaveBeenNthCalledWith(
-        1,
-        0,
-        { critical1: 'value1', critical2: 'value2' }
-      );
-      expect(onGroupLoaded).toHaveBeenNthCalledWith(
-        2,
-        1,
-        { normal1: 'value3', normal2: 'value4' }
-      );
+      expect(onGroupLoaded).toHaveBeenNthCalledWith(1, 0, {
+        critical1: 'value1',
+        critical2: 'value2',
+      });
+      expect(onGroupLoaded).toHaveBeenNthCalledWith(2, 1, {
+        normal1: 'value3',
+        normal2: 'value4',
+      });
     });
   });
 

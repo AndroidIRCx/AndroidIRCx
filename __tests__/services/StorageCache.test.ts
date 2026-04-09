@@ -36,23 +36,23 @@ describe('StorageCache', () => {
     it('should return cached value without hitting AsyncStorage', async () => {
       await storageCache.setItem('key3', 'cached');
       const getItemSpy = jest.spyOn(AsyncStorage, 'getItem');
-      
+
       const result = await storageCache.getItem('key3');
-      
+
       expect(result).toBe('cached');
       expect(getItemSpy).not.toHaveBeenCalled();
     });
 
     it('should handle expired cache entries with TTL', async () => {
       await storageCache.setItem('key4', 'value4');
-      
+
       // Get with very short TTL
       const result = await storageCache.getItem('key4', { ttl: 1 });
       expect(result).toBe('value4');
-      
+
       // Wait for expiration
       await new Promise(resolve => setTimeout(resolve, 10));
-      
+
       // Should return null after expiration
       const expired = await storageCache.getItem('key4', { ttl: 1 });
       expect(expired).toBeNull();
@@ -80,21 +80,21 @@ describe('StorageCache', () => {
     it('should queue write to AsyncStorage', async () => {
       const multiSetSpy = jest.spyOn(AsyncStorage, 'multiSet');
       await storageCache.setItem('key1', 'value1');
-      
+
       // Write is debounced, so it shouldn't happen immediately
       expect(multiSetSpy).not.toHaveBeenCalled();
-      
+
       // Wait for debounce
       await new Promise(resolve => setTimeout(resolve, 2100));
-      
+
       expect(multiSetSpy).toHaveBeenCalled();
     });
 
     it('should handle complex objects', async () => {
-      const complex = { 
-        nested: { array: [1, 2, 3] }, 
+      const complex = {
+        nested: { array: [1, 2, 3] },
         date: new Date().toISOString(),
-        nullValue: null
+        nullValue: null,
       };
       await storageCache.setItem('complex', complex);
       const result = await storageCache.getItem('complex');
@@ -106,15 +106,17 @@ describe('StorageCache', () => {
     it('should remove item from cache and storage', async () => {
       await storageCache.setItem('key1', 'value1');
       await storageCache.removeItem('key1');
-      
+
       expect(storageCache.has('key1')).toBe(false);
-      
+
       const fromStorage = await AsyncStorage.getItem('key1');
       expect(fromStorage).toBeNull();
     });
 
     it('should handle removing non-existent key', async () => {
-      await expect(storageCache.removeItem('non-existent')).resolves.not.toThrow();
+      await expect(
+        storageCache.removeItem('non-existent'),
+      ).resolves.not.toThrow();
     });
   });
 
@@ -137,9 +139,9 @@ describe('StorageCache', () => {
       await storageCache.setItem('a', 'value-a');
       await storageCache.setItem('b', 'value-b');
       await storageCache.setItem('c', 'value-c');
-      
+
       const results = await storageCache.getBatch(['a', 'b', 'c', 'd']);
-      
+
       expect(results).toEqual({
         a: 'value-a',
         b: 'value-b',
@@ -157,9 +159,9 @@ describe('StorageCache', () => {
     it('should handle invalid JSON in batch gracefully', async () => {
       await AsyncStorage.setItem('valid', JSON.stringify({ data: true }));
       await AsyncStorage.setItem('invalid', 'not json');
-      
+
       const results = await storageCache.getBatch(['valid', 'invalid']);
-      
+
       expect(results.valid).toEqual({ data: true });
       expect(results.invalid).toBeNull();
     });
@@ -171,7 +173,7 @@ describe('StorageCache', () => {
         { key: 'batch1', value: 'val1' },
         { key: 'batch2', value: 'val2' },
       ]);
-      
+
       expect(storageCache.has('batch1')).toBe(true);
       expect(storageCache.has('batch2')).toBe(true);
     });
@@ -181,9 +183,9 @@ describe('StorageCache', () => {
     it('should remove multiple items', async () => {
       await storageCache.setItem('r1', 'v1');
       await storageCache.setItem('r2', 'v2');
-      
+
       await storageCache.removeBatch(['r1', 'r2']);
-      
+
       expect(storageCache.has('r1')).toBe(false);
       expect(storageCache.has('r2')).toBe(false);
     });
@@ -193,16 +195,16 @@ describe('StorageCache', () => {
     it('should clear cache without clearing storage', async () => {
       await storageCache.setItem('key1', 'value1');
       await storageCache.clear(false);
-      
+
       expect(storageCache.has('key1')).toBe(false);
     });
 
     it('should clear cache and storage when specified', async () => {
       await storageCache.setItem('key1', 'value1');
       await storageCache.flush();
-      
+
       await storageCache.clear(true);
-      
+
       const fromStorage = await AsyncStorage.getItem('key1');
       expect(fromStorage).toBeNull();
     });
@@ -211,22 +213,22 @@ describe('StorageCache', () => {
   describe('lazyLoad', () => {
     it('should return cached data immediately', async () => {
       await storageCache.setItem('lazy1', 'immediate');
-      
+
       const callback = jest.fn();
       const result = storageCache.lazyLoad('lazy1', callback);
-      
+
       expect(result).toBe('immediate');
       expect(callback).not.toHaveBeenCalled();
     });
 
-    it('should return null and load in background', (done) => {
+    it('should return null and load in background', done => {
       AsyncStorage.setItem('bg-key', JSON.stringify('background-value'));
-      
-      const callback = jest.fn((data) => {
+
+      const callback = jest.fn(data => {
         expect(data).toBe('background-value');
         done();
       });
-      
+
       const result = storageCache.lazyLoad('bg-key', callback);
       expect(result).toBeNull();
     });
@@ -236,14 +238,14 @@ describe('StorageCache', () => {
     it('should load groups in order', async () => {
       await storageCache.setItem('g1a', 'v1a');
       await storageCache.setItem('g2a', 'v2a');
-      
+
       const onGroupLoaded = jest.fn();
-      
+
       const results = await storageCache.progressiveLoad(
         [['g1a'], ['g2a']],
-        onGroupLoaded
+        onGroupLoaded,
       );
-      
+
       expect(results).toEqual({ g1a: 'v1a', g2a: 'v2a' });
       expect(onGroupLoaded).toHaveBeenCalledTimes(2);
     });
@@ -255,13 +257,13 @@ describe('StorageCache', () => {
       await storageCache.setItem('stat2', 'v2');
       await storageCache.getItem('stat1');
       await storageCache.getItem('stat1');
-      
+
       const stats = storageCache.getStats();
-      
+
       expect(stats.size).toBe(2);
       expect(stats.maxSize).toBe(100);
       expect(stats.entries).toHaveLength(2);
-      
+
       // stat1 should have higher hits
       const stat1 = stats.entries.find(e => e.key === 'stat1');
       expect(stat1?.hits).toBe(2);
@@ -272,11 +274,11 @@ describe('StorageCache', () => {
     it('should warm up cache with specified keys', async () => {
       await AsyncStorage.setItem('prefetch1', JSON.stringify('p1'));
       await AsyncStorage.setItem('prefetch2', JSON.stringify('p2'));
-      
+
       expect(storageCache.has('prefetch1')).toBe(false);
-      
+
       await storageCache.prefetch(['prefetch1', 'prefetch2']);
-      
+
       expect(storageCache.has('prefetch1')).toBe(true);
       expect(storageCache.has('prefetch2')).toBe(true);
     });
@@ -293,10 +295,10 @@ describe('StorageCache', () => {
   describe('flush', () => {
     it('should immediately write pending changes', async () => {
       const multiSetSpy = jest.spyOn(AsyncStorage, 'multiSet');
-      
+
       await storageCache.setItem('flush1', 'v1');
       await storageCache.flush();
-      
+
       expect(multiSetSpy).toHaveBeenCalled();
     });
   });
@@ -304,21 +306,21 @@ describe('StorageCache', () => {
   describe('LRU eviction', () => {
     it('should evict oldest items when cache is full', async () => {
       const cache = new StorageCache(3);
-      
+
       await cache.setItem('a', '1');
       await new Promise(r => setTimeout(r, 10));
       await cache.setItem('b', '2');
       await new Promise(r => setTimeout(r, 10));
       await cache.setItem('c', '3');
       await new Promise(r => setTimeout(r, 10));
-      
+
       // Access 'a' to make it recently used
       await cache.getItem('a');
       await new Promise(r => setTimeout(r, 10));
-      
+
       // Add new item, should evict 'b' (oldest)
       await cache.setItem('d', '4');
-      
+
       expect(cache.has('a')).toBe(true);
       expect(cache.has('b')).toBe(false); // Evicted
       expect(cache.has('c')).toBe(true);
@@ -348,11 +350,11 @@ describe('StorageCache', () => {
 
     it('should update hit count correctly', async () => {
       await storageCache.setItem('hits', 'value');
-      
+
       await storageCache.getItem('hits');
       await storageCache.getItem('hits');
       await storageCache.getItem('hits');
-      
+
       const stats = storageCache.getStats();
       const entry = stats.entries.find(e => e.key === 'hits');
       expect(entry?.hits).toBe(3);

@@ -54,26 +54,37 @@ describe('ExtendedNumerics', () => {
   });
 
   it('formats watch and WHOWAS related numerics', () => {
-    handle609(ctx, 'server', ['nick', 'oldNick', 'newNick', 'user', 'host'], 500);
+    handle609(
+      ctx,
+      'server',
+      ['nick', 'oldNick', 'newNick', 'user', 'host'],
+      500,
+    );
     handle610(ctx, 'server', ['nick', 'alice', ':seen yesterday'], 501);
     handle619(ctx, 'server', ['nick', 'alice', ':End of WHOWAS'], 502);
     extendedHandlers.get(611)?.(ctx, 'server', ['nick', ':service info'], 503);
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** oldNick changed nick to newNick (user@host)', rawCategory: 'user' })
+      expect.objectContaining({
+        text: '*** oldNick changed nick to newNick (user@host)',
+        rawCategory: 'user',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** WHOWAS alice: seen yesterday' })
+      expect.objectContaining({ text: '*** WHOWAS alice: seen yesterday' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** alice: End of WHOWAS' })
+      expect.objectContaining({ text: '*** alice: End of WHOWAS' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** [611] service info', rawCategory: 'server' })
+      expect.objectContaining({
+        text: '*** [611] service info',
+        rawCategory: 'server',
+      }),
     );
   });
 
@@ -83,31 +94,36 @@ describe('ExtendedNumerics', () => {
     handle710(ctx, 'server', ['nick', '#chat', ':has knocked'], 506);
     handle720(ctx, 'server', ['nick', ':Operator MOTD'], 507);
     handle729(ctx, 'server', ['nick', '#chat', '+nt'], 508);
-    extendedHandlers.get(700)?.(ctx, 'server', ['nick', ':generic extended'], 509);
+    extendedHandlers.get(700)?.(
+      ctx,
+      'server',
+      ['nick', ':generic extended'],
+      509,
+    );
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** alice is now online' })
+      expect.objectContaining({ text: '*** alice is now online' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** alice is now offline' })
+      expect.objectContaining({ text: '*** alice is now offline' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** #chat: has knocked' })
+      expect.objectContaining({ text: '*** #chat: has knocked' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** Operator MOTD' })
+      expect.objectContaining({ text: '*** Operator MOTD' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       5,
-      expect.objectContaining({ text: '*** #chat modes: +nt' })
+      expect.objectContaining({ text: '*** #chat modes: +nt' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       6,
-      expect.objectContaining({ text: '*** [700] generic extended' })
+      expect.objectContaining({ text: '*** [700] generic extended' }),
     );
   });
 

@@ -57,15 +57,23 @@ class KillSwitchService {
 
       // 1. Close all channels and private messages, then disconnect all connections
       try {
-        logger.warn('killswitch', '[1/6] Closing all channels and private messages...');
-        
+        logger.warn(
+          'killswitch',
+          '[1/6] Closing all channels and private messages...',
+        );
+
         // Get all tabs from store
         const tabs = useTabStore.getState().tabs;
-        const partMessage = await settingsService.getSetting('partMessage', DEFAULT_PART_MESSAGE);
-        
+        const partMessage = await settingsService.getSetting(
+          'partMessage',
+          DEFAULT_PART_MESSAGE,
+        );
+
         // Get all channels and queries (across all networks)
-        const channelsAndQueries = tabs.filter(tab => tab.type === 'channel' || tab.type === 'query');
-        
+        const channelsAndQueries = tabs.filter(
+          tab => tab.type === 'channel' || tab.type === 'query',
+        );
+
         // Group by network for efficient parting
         const tabsByNetwork = new Map<string, typeof channelsAndQueries>();
         channelsAndQueries.forEach(tab => {
@@ -75,36 +83,47 @@ class KillSwitchService {
           }
           tabsByNetwork.get(networkId)!.push(tab);
         });
-        
+
         // Part from all channels for each network (like closeAllChannelsAndQueries)
         for (const [networkId, networkTabs] of tabsByNetwork.entries()) {
           const conn = connectionManager.getConnection(networkId);
           const ircService = conn?.ircService;
-          
+
           if (ircService && ircService.getConnectionStatus()) {
             for (const tab of networkTabs) {
               try {
                 if (tab.type === 'channel') {
                   ircService.partChannel(tab.name, partMessage);
-                  logger.warn('killswitch', `Parted from channel: ${tab.name} on ${networkId}`);
+                  logger.warn(
+                    'killswitch',
+                    `Parted from channel: ${tab.name} on ${networkId}`,
+                  );
                 }
                 // Queries don't need parting, they're just closed
               } catch (error) {
-                logger.error('killswitch', `Failed to part from ${tab.name}: ${String(error)}`);
+                logger.error(
+                  'killswitch',
+                  `Failed to part from ${tab.name}: ${String(error)}`,
+                );
               }
             }
           }
         }
-        
+
         // Remove all channels and queries from tabs (keep server tabs for now)
-        const remainingTabs = tabs.filter(tab => tab.type !== 'channel' && tab.type !== 'query');
+        const remainingTabs = tabs.filter(
+          tab => tab.type !== 'channel' && tab.type !== 'query',
+        );
         useTabStore.getState().setTabs(remainingTabs);
-        
-        logger.warn('killswitch', `✓ Closed ${channelsAndQueries.length} channels and private messages`);
-        
+
+        logger.warn(
+          'killswitch',
+          `✓ Closed ${channelsAndQueries.length} channels and private messages`,
+        );
+
         // Small delay to ensure PART commands are sent
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         logger.warn('killswitch', '[2/6] Disconnecting all connections...');
         // Disconnect all connections
         connectionManager.disconnectAll('Kill switch activated');
@@ -122,8 +141,11 @@ class KillSwitchService {
       try {
         logger.warn('killswitch', '[3/6] Deleting secure storage...');
         const secretKeys = await secureStorageService.getAllSecretKeys();
-        logger.warn('killswitch', `Found ${secretKeys.length} secure keys to delete`);
-        
+        logger.warn(
+          'killswitch',
+          `Found ${secretKeys.length} secure keys to delete`,
+        );
+
         for (const key of secretKeys) {
           try {
             await secureStorageService.removeSecret(key);
@@ -131,10 +153,10 @@ class KillSwitchService {
             // Continue even if individual key fails
           }
         }
-        
+
         // Also clear the index
         await AsyncStorage.removeItem('@AndroidIRCX:keychain_index');
-        
+
         result.deletedItems.secureStorage = true;
         logger.warn('killswitch', '✓ Secure storage cleared');
       } catch (error) {
@@ -147,18 +169,21 @@ class KillSwitchService {
       try {
         logger.warn('killswitch', '[4/6] Clearing ALL AsyncStorage...');
         const keys = await AsyncStorage.getAllKeys();
-        logger.warn('killswitch', `Found ${keys.length} storage keys to delete`);
-        
+        logger.warn(
+          'killswitch',
+          `Found ${keys.length} storage keys to delete`,
+        );
+
         // Delete EVERYTHING - no exceptions
         await AsyncStorage.removeMany(keys);
-        
+
         // Also try to clear everything as a fallback
         try {
           await AsyncStorage.clear();
         } catch {
           // Some platforms might not support clear()
         }
-        
+
         result.deletedItems.asyncStorage = true;
         logger.warn('killswitch', '✓ AsyncStorage completely cleared');
       } catch (error) {
@@ -171,7 +196,7 @@ class KillSwitchService {
       // 5. Delete all file system data
       try {
         logger.warn('killswitch', '[5/6] Deleting file system data...');
-        
+
         // Delete cache directory
         try {
           const cacheDir = RNFS.CachesDirectoryPath;
@@ -204,12 +229,14 @@ class KillSwitchService {
               try {
                 // Keep only essential system files if any, but delete everything else
                 // Delete all AndroidIRCX related files
-                if (file.name.includes('AndroidIRCX') || 
-                    file.name.includes('irc') ||
-                    file.name.includes('cert') ||
-                    file.name.includes('key') ||
-                    file.name.includes('log') ||
-                    file.name.includes('backup')) {
+                if (
+                  file.name.includes('AndroidIRCX') ||
+                  file.name.includes('irc') ||
+                  file.name.includes('cert') ||
+                  file.name.includes('key') ||
+                  file.name.includes('log') ||
+                  file.name.includes('backup')
+                ) {
                   await RNFS.unlink(file.path);
                 }
               } catch {
@@ -218,7 +245,10 @@ class KillSwitchService {
             }
           }
         } catch (error) {
-          logger.error('killswitch', `Document directory deletion error: ${String(error)}`);
+          logger.error(
+            'killswitch',
+            `Document directory deletion error: ${String(error)}`,
+          );
         }
 
         // Delete temporary directory
@@ -236,7 +266,10 @@ class KillSwitchService {
             }
           }
         } catch (error) {
-          logger.error('killswitch', `Temp directory deletion error: ${String(error)}`);
+          logger.error(
+            'killswitch',
+            `Temp directory deletion error: ${String(error)}`,
+          );
         }
 
         result.deletedItems.fileSystem = true;
@@ -261,8 +294,14 @@ class KillSwitchService {
       }
 
       logger.warn('killswitch', '========================================');
-      logger.warn('killswitch', `KILL SWITCH COMPLETED. Success: ${result.success}`);
-      logger.warn('killswitch', `Deleted: ${JSON.stringify(result.deletedItems)}`);
+      logger.warn(
+        'killswitch',
+        `KILL SWITCH COMPLETED. Success: ${result.success}`,
+      );
+      logger.warn(
+        'killswitch',
+        `Deleted: ${JSON.stringify(result.deletedItems)}`,
+      );
       if (result.errors.length > 0) {
         logger.error('killswitch', `Errors: ${JSON.stringify(result.errors)}`);
       }
@@ -277,7 +316,10 @@ class KillSwitchService {
         }, 1000);
       } else {
         // iOS doesn't support programmatic exit, but we've done all cleanup
-        logger.warn('killswitch', 'iOS: App cleanup complete. User can close app manually.');
+        logger.warn(
+          'killswitch',
+          'iOS: App cleanup complete. User can close app manually.',
+        );
       }
 
       return result;
@@ -302,10 +344,12 @@ class KillSwitchService {
     }
 
     // Show warnings if enabled
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       Alert.alert(
         t('Kill Switch - Delete All Data'),
-        t('WARNING: This will PERMANENTLY delete ALL app data including:\n\n• All messages and history\n• All networks and connections\n• All certificates and keys\n• All logs and cache\n• All settings and preferences\n• EVERYTHING\n\nThis action CANNOT be undone!\n\nType "DELETE ALL" to confirm.'),
+        t(
+          'WARNING: This will PERMANENTLY delete ALL app data including:\n\n• All messages and history\n• All networks and connections\n• All certificates and keys\n• All logs and cache\n• All settings and preferences\n• EVERYTHING\n\nThis action CANNOT be undone!\n\nType "DELETE ALL" to confirm.',
+        ),
         [
           {
             text: t('Cancel'),
@@ -319,7 +363,9 @@ class KillSwitchService {
               // Show final confirmation
               Alert.alert(
                 t('Final Confirmation'),
-                t('Are you ABSOLUTELY SURE? This will delete EVERYTHING and cannot be undone.'),
+                t(
+                  'Are you ABSOLUTELY SURE? This will delete EVERYTHING and cannot be undone.',
+                ),
                 [
                   {
                     text: t('Cancel'),
@@ -332,9 +378,13 @@ class KillSwitchService {
                     onPress: async () => {
                       const result = await this.activateKillSwitch();
                       Alert.alert(
-                        result.success ? t('Kill Switch Activated') : t('Kill Switch Error'),
                         result.success
-                          ? t('All data has been deleted. The app will now close.')
+                          ? t('Kill Switch Activated')
+                          : t('Kill Switch Error'),
+                        result.success
+                          ? t(
+                              'All data has been deleted. The app will now close.',
+                            )
                           : `${t('Some errors occurred:')}\n${result.errors.join('\n')}`,
                         [
                           {
@@ -344,15 +394,15 @@ class KillSwitchService {
                               resolve(true);
                             },
                           },
-                        ]
+                        ],
                       );
                     },
                   },
-                ]
+                ],
               );
             },
           },
-        ]
+        ],
       );
     });
   }

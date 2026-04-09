@@ -25,15 +25,22 @@ export const useServerTabNameSync = (params: UseServerTabNameSyncParams) => {
       const store = useTabStore.getState();
       const currentTabs = store.tabs;
 
-      const needsUpdate = currentTabs.some(tab =>
-        tab.type === 'server' && tab.networkId === networkName && tab.name !== networkName
+      const needsUpdate = currentTabs.some(
+        tab =>
+          tab.type === 'server' &&
+          tab.networkId === networkName &&
+          tab.name !== networkName,
       );
 
       if (needsUpdate) {
         // Only call updateTab for the specific tabs that need updating
         // This avoids creating new array references
-        currentTabs.forEach((tab) => {
-          if (tab.type === 'server' && tab.networkId === networkName && tab.name !== networkName) {
+        currentTabs.forEach(tab => {
+          if (
+            tab.type === 'server' &&
+            tab.networkId === networkName &&
+            tab.name !== networkName
+          ) {
             store.updateTab(tab.id, { name: networkName });
           }
         });

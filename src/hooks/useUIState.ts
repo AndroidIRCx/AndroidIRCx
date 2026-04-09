@@ -21,7 +21,9 @@ export function useUIState() {
   // Connection state
   const isConnected = useConnectionStore(state => state.isConnected);
   const networkName = useConnectionStore(state => state.networkName);
-  const activeConnectionId = useConnectionStore(state => state.activeConnectionId);
+  const activeConnectionId = useConnectionStore(
+    state => state.activeConnectionId,
+  );
   const primaryNetworkId = useConnectionStore(state => state.primaryNetworkId);
   const ping = useConnectionStore(state => state.ping);
 
@@ -33,12 +35,16 @@ export function useUIState() {
   const showFirstRunSetup = useUIStore(state => state.showFirstRunSetup);
   const isCheckingFirstRun = useUIStore(state => state.isCheckingFirstRun);
   const showRawCommands = useUIStore(state => state.showRawCommands);
-  const rawCategoryVisibility = useUIStore(state => state.rawCategoryVisibility);
+  const rawCategoryVisibility = useUIStore(
+    state => state.rawCategoryVisibility,
+  );
   const showTypingIndicators = useUIStore(state => state.showTypingIndicators);
   const hideJoinMessages = useUIStore(state => state.hideJoinMessages);
   const hidePartMessages = useUIStore(state => state.hidePartMessages);
   const hideQuitMessages = useUIStore(state => state.hideQuitMessages);
-  const hideIrcServiceListenerMessages = useUIStore(state => state.hideIrcServiceListenerMessages);
+  const hideIrcServiceListenerMessages = useUIStore(
+    state => state.hideIrcServiceListenerMessages,
+  );
 
   // Message state
   const typingUsers = useMessageStore(state => state.typingUsers);
@@ -46,12 +52,16 @@ export function useUIState() {
   // App lock and banner states from UI store
   const appLockEnabled = useUIStore(state => state.appLockEnabled);
   const appLockUseBiometric = useUIStore(state => state.appLockUseBiometric);
-  const appLockAutoBiometricPrompt = useUIStore(state => state.appLockAutoBiometricPrompt);
+  const appLockAutoBiometricPrompt = useUIStore(
+    state => state.appLockAutoBiometricPrompt,
+  );
   const appLockUsePin = useUIStore(state => state.appLockUsePin);
   const appLockOnLaunch = useUIStore(state => state.appLockOnLaunch);
   const appLockOnBackground = useUIStore(state => state.appLockOnBackground);
   const appLocked = useUIStore(state => state.appLocked);
-  const appUnlockModalVisible = useUIStore(state => state.appUnlockModalVisible);
+  const appUnlockModalVisible = useUIStore(
+    state => state.appUnlockModalVisible,
+  );
   const appPinEntry = useUIStore(state => state.appPinEntry);
   const appPinError = useUIStore(state => state.appPinError);
   const bannerVisible = useUIStore(state => state.bannerVisible);
@@ -70,12 +80,18 @@ export function useUIState() {
   const userListsInitialTab = useUIStore(state => state.userListsInitialTab);
   const showWHOIS = useUIStore(state => state.showWHOIS);
   const whoisNick = useUIStore(state => state.whoisNick);
-  const showQueryEncryptionMenu = useUIStore(state => state.showQueryEncryptionMenu);
+  const showQueryEncryptionMenu = useUIStore(
+    state => state.showQueryEncryptionMenu,
+  );
   const showChannelList = useUIStore(state => state.showChannelList);
   const showUserList = useUIStore(state => state.showUserList);
   const showChannelSettings = useUIStore(state => state.showChannelSettings);
-  const channelSettingsTarget = useUIStore(state => state.channelSettingsTarget);
-  const channelSettingsNetwork = useUIStore(state => state.channelSettingsNetwork);
+  const channelSettingsTarget = useUIStore(
+    state => state.channelSettingsTarget,
+  );
+  const channelSettingsNetwork = useUIStore(
+    state => state.channelSettingsNetwork,
+  );
   const showOptionsMenu = useUIStore(state => state.showOptionsMenu);
   const showRenameModal = useUIStore(state => state.showRenameModal);
   const renameTargetTabId = useUIStore(state => state.renameTargetTabId);
@@ -90,7 +106,9 @@ export function useUIState() {
   const channelLogEntries = useUIStore(state => state.channelLogEntries);
   const prefillMessage = useUIStore(state => state.prefillMessage);
   const showDccTransfers = useUIStore(state => state.showDccTransfers);
-  const dccTransfersMinimized = useUIStore(state => state.dccTransfersMinimized);
+  const dccTransfersMinimized = useUIStore(
+    state => state.dccTransfersMinimized,
+  );
   const showDccSendModal = useUIStore(state => state.showDccSendModal);
   const dccSendTarget = useUIStore(state => state.dccSendTarget);
   const dccSendPath = useUIStore(state => state.dccSendPath);
@@ -98,8 +116,12 @@ export function useUIState() {
   const showHelpCommands = useUIStore(state => state.showHelpCommands);
   const showHelpEncryption = useUIStore(state => state.showHelpEncryption);
   const showHelpMedia = useUIStore(state => state.showHelpMedia);
-  const showHelpChannelManagement = useUIStore(state => state.showHelpChannelManagement);
-  const showHelpTroubleshooting = useUIStore(state => state.showHelpTroubleshooting);
+  const showHelpChannelManagement = useUIStore(
+    state => state.showHelpChannelManagement,
+  );
+  const showHelpTroubleshooting = useUIStore(
+    state => state.showHelpTroubleshooting,
+  );
 
   return {
     // Connection state

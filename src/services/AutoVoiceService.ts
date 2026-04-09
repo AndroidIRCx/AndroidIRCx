@@ -25,7 +25,9 @@ export class AutoVoiceService {
    * Initialize auto-voice service
    */
   initialize(): void {
-    this.ircService.on('joinedChannel', (channel: string) => this.handleJoin(channel));
+    this.ircService.on('joinedChannel', (channel: string) =>
+      this.handleJoin(channel),
+    );
   }
 
   /**
@@ -47,7 +49,10 @@ export class AutoVoiceService {
 
     if (config.forAll) {
       shouldRequestVoice = true;
-    } else if (config.forOperators && (userModes.has('o') || userModes.has('h'))) {
+    } else if (
+      config.forOperators &&
+      (userModes.has('o') || userModes.has('h'))
+    ) {
       shouldRequestVoice = true;
     } else if (config.forIRCOps && (userModes.has('a') || userModes.has('q'))) {
       shouldRequestVoice = true;
@@ -110,4 +115,3 @@ export class AutoVoiceService {
 
 const { ircService } = require('./IRCService');
 export const autoVoiceService = new AutoVoiceService(ircService);
-

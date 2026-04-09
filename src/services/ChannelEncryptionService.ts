@@ -68,7 +68,10 @@ class ChannelEncryptionService {
   }
 
   // Generate a new symmetric key for a channel
-  async generateChannelKey(channel: string, network: string): Promise<ChannelKey> {
+  async generateChannelKey(
+    channel: string,
+    network: string,
+  ): Promise<ChannelKey> {
     await this.ensureReady();
     const key = sodium.randombytes_buf(32); // 256-bit symmetric key
     const canonicalNetwork = this.canonicalizeNetwork(network);
@@ -86,14 +89,25 @@ class ChannelEncryptionService {
   // Store a channel key
   async storeChannelKey(channelKey: ChannelKey): Promise<void> {
     channelKey.network = this.canonicalizeNetwork(channelKey.network);
-    const storageKey = this.getStorageKey(channelKey.channel, channelKey.network);
-    await secureStorageService.setSecret(storageKey, JSON.stringify(channelKey));
+    const storageKey = this.getStorageKey(
+      channelKey.channel,
+      channelKey.network,
+    );
+    await secureStorageService.setSecret(
+      storageKey,
+      JSON.stringify(channelKey),
+    );
     // Notify listeners
-    this.keyListeners.forEach(listener => listener(channelKey.channel, channelKey.network));
+    this.keyListeners.forEach(listener =>
+      listener(channelKey.channel, channelKey.network),
+    );
   }
 
   // Get channel key
-  async getChannelKey(channel: string, network: string): Promise<ChannelKey | null> {
+  async getChannelKey(
+    channel: string,
+    network: string,
+  ): Promise<ChannelKey | null> {
     const storageKey = this.getStorageKey(channel, network);
     const stored = await secureStorageService.getSecret(storageKey);
     if (!stored) return null;
@@ -117,13 +131,19 @@ class ChannelEncryptionService {
   }
 
   // Encrypt a message for a channel
-  async encryptMessage(plaintext: string, channel: string, network: string): Promise<EncryptedChannelMsg> {
+  async encryptMessage(
+    plaintext: string,
+    channel: string,
+    network: string,
+  ): Promise<EncryptedChannelMsg> {
     await this.ensureReady();
     const channelKey = await this.getChannelKey(channel, network);
     if (!channelKey) throw new Error('no channel key');
 
     const key = this.fromB64(channelKey.key);
-    const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+    const nonce = sodium.randombytes_buf(
+      sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    );
     const aad = this.buildMessageAAD(channel, network);
     const cipher = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       this.fromString(plaintext),
@@ -141,7 +161,11 @@ class ChannelEncryptionService {
   }
 
   // Decrypt a channel message
-  async decryptMessage(msg: EncryptedChannelMsg, channel: string, network: string): Promise<string> {
+  async decryptMessage(
+    msg: EncryptedChannelMsg,
+    channel: string,
+    network: string,
+  ): Promise<string> {
     await this.ensureReady();
     if (msg.v !== 1) throw new Error('version');
 
@@ -180,7 +204,10 @@ class ChannelEncryptionService {
   }
 
   // Import a channel key from JSON
-  async importChannelKey(keyData: string, networkOverride?: string): Promise<ChannelKey> {
+  async importChannelKey(
+    keyData: string,
+    networkOverride?: string,
+  ): Promise<ChannelKey> {
     const channelKey = JSON.parse(keyData) as ChannelKey;
     if (channelKey.v !== 1) throw new Error('invalid version');
     // IMPORTANT: network names are client-local labels. When importing a key
@@ -193,7 +220,9 @@ class ChannelEncryptionService {
   }
 
   // Listen for channel key changes
-  onChannelKeyChange(callback: (channel: string, network: string) => void): () => void {
+  onChannelKeyChange(
+    callback: (channel: string, network: string) => void,
+  ): () => void {
     this.keyListeners.push(callback);
     return () => {
       const index = this.keyListeners.indexOf(callback);

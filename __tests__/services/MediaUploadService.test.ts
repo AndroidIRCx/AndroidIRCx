@@ -55,15 +55,18 @@ describe('MediaUploadService', () => {
         status: 'pending',
         upload_token: 'token-123',
         expires: Math.floor(Date.now() / 1000) + 300,
-      })
+      }),
     );
     mockHttpPut.putFile.mockResolvedValue(
-      JSON.stringify({ size: 1000, sha256: 'abc123', status: 'ready' })
+      JSON.stringify({ size: 1000, sha256: 'abc123', status: 'ready' }),
     );
   });
 
   it('requests upload token successfully', async () => {
-    const token = await mediaUploadService.requestUploadToken('image', 'image/png');
+    const token = await mediaUploadService.requestUploadToken(
+      'image',
+      'image/png',
+    );
 
     expect(token.id).toBe('media-1');
     expect(token.status).toBe('pending');
@@ -74,7 +77,7 @@ describe('MediaUploadService', () => {
     mockHttpPost.postRequest.mockResolvedValueOnce('<html>error</html>');
 
     await expect(mediaUploadService.requestUploadToken('file')).rejects.toThrow(
-      'Received HTML response instead of JSON'
+      'Received HTML response instead of JSON',
     );
   });
 
@@ -98,21 +101,22 @@ describe('MediaUploadService', () => {
       isFile: () => true,
     });
 
-    const result = await mediaUploadService.uploadMedia('/mock/large.bin', 'file');
+    const result = await mediaUploadService.uploadMedia(
+      '/mock/large.bin',
+      'file',
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('File too large');
   });
 
   it('returns invalid upload status when token status is not pending', async () => {
-    jest
-      .spyOn(mediaUploadService, 'requestUploadToken')
-      .mockResolvedValueOnce({
-        id: 'media-2',
-        status: 'ready',
-        upload_token: 'tok',
-        expires: Math.floor(Date.now() / 1000) + 60,
-      });
+    jest.spyOn(mediaUploadService, 'requestUploadToken').mockResolvedValueOnce({
+      id: 'media-2',
+      status: 'ready',
+      upload_token: 'tok',
+      expires: Math.floor(Date.now() / 1000) + 60,
+    });
 
     const result = await mediaUploadService.uploadMedia('/mock/file', 'image');
 
@@ -133,7 +137,11 @@ describe('MediaUploadService', () => {
       status: 'ready',
     });
 
-    const result = await mediaUploadService.uploadMedia('/mock/file', 'image', 'image/jpeg');
+    const result = await mediaUploadService.uploadMedia(
+      '/mock/file',
+      'image',
+      'image/jpeg',
+    );
 
     expect(result).toEqual({
       success: true,
@@ -172,8 +180,8 @@ describe('MediaUploadService', () => {
         '/mock/file',
         'media-expired',
         'token',
-        Math.floor(Date.now() / 1000) - 1
-      )
+        Math.floor(Date.now() / 1000) - 1,
+      ),
     ).rejects.toThrow('Upload token expired');
   });
 
@@ -185,14 +193,14 @@ describe('MediaUploadService', () => {
       'media-live',
       'token-live',
       Math.floor(Date.now() / 1000) + 300,
-      onProgress
+      onProgress,
     );
 
     expect(mockRNFS.readFile).toHaveBeenCalledWith('/mock/file', 'utf8');
     expect(mockRNFS.writeFile).toHaveBeenCalled();
     expect(mockHttpPut.putFile).toHaveBeenCalled();
     expect(onProgress).toHaveBeenCalledWith(
-      expect.objectContaining({ bytesUploaded: 0, percentage: 0 })
+      expect.objectContaining({ bytesUploaded: 0, percentage: 0 }),
     );
     expect(result).toEqual({ size: 1000, sha256: 'abc123', status: 'ready' });
   });
@@ -218,7 +226,9 @@ describe('MediaUploadService', () => {
 
   it('returns final retry error when attempts exhausted', async () => {
     (mediaUploadService as any).retryCount = 2;
-    jest.spyOn(mediaUploadService, 'requestUploadToken').mockRejectedValue(new Error('network down'));
+    jest
+      .spyOn(mediaUploadService, 'requestUploadToken')
+      .mockRejectedValue(new Error('network down'));
 
     const result = await mediaUploadService.uploadMedia('/mock/file', 'image');
     expect(result.success).toBe(false);

@@ -9,7 +9,10 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { SendMessageHandler, SendMessageHandlerRegistry } from '../sendMessageTypes';
+import type {
+  SendMessageHandler,
+  SendMessageHandlerRegistry,
+} from '../sendMessageTypes';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 

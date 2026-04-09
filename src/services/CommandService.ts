@@ -73,7 +73,9 @@ export class CommandService {
       const aliasesData = await AsyncStorage.getItem(this.ALIASES_STORAGE_KEY);
       if (aliasesData) {
         const aliases = JSON.parse(aliasesData);
-        this.aliases = new Map(aliases.map((a: CommandAlias) => [a.alias.toLowerCase(), a]));
+        this.aliases = new Map(
+          aliases.map((a: CommandAlias) => [a.alias.toLowerCase(), a]),
+        );
       }
     } catch (error) {
       console.error('Failed to load command aliases:', error);
@@ -81,10 +83,14 @@ export class CommandService {
 
     // Load custom commands
     try {
-      const commandsData = await AsyncStorage.getItem(this.CUSTOM_COMMANDS_STORAGE_KEY);
+      const commandsData = await AsyncStorage.getItem(
+        this.CUSTOM_COMMANDS_STORAGE_KEY,
+      );
       if (commandsData) {
         const commands = JSON.parse(commandsData);
-        this.customCommands = new Map(commands.map((c: CustomCommand) => [c.name.toLowerCase(), c]));
+        this.customCommands = new Map(
+          commands.map((c: CustomCommand) => [c.name.toLowerCase(), c]),
+        );
       }
     } catch (error) {
       console.error('Failed to load custom commands:', error);
@@ -126,53 +132,221 @@ export class CommandService {
       { alias: 'ekr', command: '/requestkey', description: 'Request DM key' },
       { alias: 'ekm', command: '/encmsg', description: 'Send encrypted DM' },
       // Encrypted channel helpers
-      { alias: 'ckh', command: '/chankey help', description: 'Channel key help' },
-      { alias: 'ckg', command: '/chankey generate', description: 'Generate channel key' },
-      { alias: 'cks', command: '/chankey share', description: 'Share channel key' },
-      { alias: 'ckr', command: '/chankey request', description: 'Request channel key' },
-      { alias: 'ckd', command: '/chankey remove', description: 'Delete channel key' },
-      { alias: 'cke', command: '/chankey send', description: 'Send encrypted channel message' },
+      {
+        alias: 'ckh',
+        command: '/chankey help',
+        description: 'Channel key help',
+      },
+      {
+        alias: 'ckg',
+        command: '/chankey generate',
+        description: 'Generate channel key',
+      },
+      {
+        alias: 'cks',
+        command: '/chankey share',
+        description: 'Share channel key',
+      },
+      {
+        alias: 'ckr',
+        command: '/chankey request',
+        description: 'Request channel key',
+      },
+      {
+        alias: 'ckd',
+        command: '/chankey remove',
+        description: 'Delete channel key',
+      },
+      {
+        alias: 'cke',
+        command: '/chankey send',
+        description: 'Send encrypted channel message',
+      },
       // ZNC quality-of-life
-      { alias: 'zncver', command: '/znc version', description: 'ZNC: show version' },
-      { alias: 'zncm', command: '/znc listmods', description: 'ZNC: list loaded modules' },
-      { alias: 'zncma', command: '/znc listavailmods', description: 'ZNC: list available modules' },
-      { alias: 'zncnet', command: '/znc listnetworks', description: 'ZNC: list networks' },
-      { alias: 'zncch', command: '/znc listchans', description: 'ZNC: list channels' },
-      { alias: 'zncsrv', command: '/znc listservers', description: 'ZNC: list servers' },
-      { alias: 'zncplay', command: '/znc playbuffer {channel}', description: 'ZNC: play buffer for channel/query', },
-      { alias: 'zncclear', command: '/znc clearbuffer {channel}', description: 'ZNC: clear buffer for channel/query', },
+      {
+        alias: 'zncver',
+        command: '/znc version',
+        description: 'ZNC: show version',
+      },
+      {
+        alias: 'zncm',
+        command: '/znc listmods',
+        description: 'ZNC: list loaded modules',
+      },
+      {
+        alias: 'zncma',
+        command: '/znc listavailmods',
+        description: 'ZNC: list available modules',
+      },
+      {
+        alias: 'zncnet',
+        command: '/znc listnetworks',
+        description: 'ZNC: list networks',
+      },
+      {
+        alias: 'zncch',
+        command: '/znc listchans',
+        description: 'ZNC: list channels',
+      },
+      {
+        alias: 'zncsrv',
+        command: '/znc listservers',
+        description: 'ZNC: list servers',
+      },
+      {
+        alias: 'zncplay',
+        command: '/znc playbuffer {channel}',
+        description: 'ZNC: play buffer for channel/query',
+      },
+      {
+        alias: 'zncclear',
+        command: '/znc clearbuffer {channel}',
+        description: 'ZNC: clear buffer for channel/query',
+      },
       // Clone detector
-      { alias: 'dc', command: '/clones {channel}', description: 'Detect clones in channel' },
-      { alias: 'zncrehash', command: '/znc rehash', description: 'ZNC: reload config/modules' },
-      { alias: 'zncsave', command: '/znc saveconfig', description: 'ZNC: save current config' },
-      { alias: 'zncjump', command: '/znc jump', description: 'ZNC: jump to next server' },
-      { alias: 'zncconn', command: '/znc connect', description: 'ZNC: reconnect upstream' },
+      {
+        alias: 'dc',
+        command: '/clones {channel}',
+        description: 'Detect clones in channel',
+      },
+      {
+        alias: 'zncrehash',
+        command: '/znc rehash',
+        description: 'ZNC: reload config/modules',
+      },
+      {
+        alias: 'zncsave',
+        command: '/znc saveconfig',
+        description: 'ZNC: save current config',
+      },
+      {
+        alias: 'zncjump',
+        command: '/znc jump',
+        description: 'ZNC: jump to next server',
+      },
+      {
+        alias: 'zncconn',
+        command: '/znc connect',
+        description: 'ZNC: reconnect upstream',
+      },
       // IRCop / services helpers (Atheme, UnrealIRCd defaults)
-      { alias: 'oper', command: '/oper {nick} {password}', description: 'IRCop: OPER in' },
-      { alias: 'kill', command: '/quote KILL {nick} :{reason}', description: 'IRCop: kill user' },
-      { alias: 'gline', command: '/quote GLINE {mask} :{reason}', description: 'IRCop: gline user' },
-      { alias: 'shun', command: '/quote SHUN {mask} :{reason}', description: 'IRCop: shun user' },
-      { alias: 'rehash', command: '/quote REHASH', description: 'IRCop: rehash server' },
-      { alias: 'locops', command: '/quote LOCOPS {message}', description: 'IRCop: LOCOPS message' },
-      { alias: 'wallops', command: '/quote WALLOPS {message}', description: 'IRCop: WALLOPS message' },
-      { alias: 'jupe', command: '/quote JUPE {server} :{reason}', description: 'IRCop: jupe a server' },
-      { alias: 'samode', command: '/quote SAMODE {target} {modes}', description: 'IRCop: force mode' },
-      { alias: 'sapart', command: '/quote SAPART {nick} {channel}', description: 'IRCop: force part' },
-      { alias: 'sajoin', command: '/quote SAJOIN {nick} {channel}', description: 'IRCop: force join' },
-      { alias: 'squit', command: '/quote SQUIT {server} :{reason}', description: 'IRCop: disconnect server' },
+      {
+        alias: 'oper',
+        command: '/oper {nick} {password}',
+        description: 'IRCop: OPER in',
+      },
+      {
+        alias: 'kill',
+        command: '/quote KILL {nick} :{reason}',
+        description: 'IRCop: kill user',
+      },
+      {
+        alias: 'gline',
+        command: '/quote GLINE {mask} :{reason}',
+        description: 'IRCop: gline user',
+      },
+      {
+        alias: 'shun',
+        command: '/quote SHUN {mask} :{reason}',
+        description: 'IRCop: shun user',
+      },
+      {
+        alias: 'rehash',
+        command: '/quote REHASH',
+        description: 'IRCop: rehash server',
+      },
+      {
+        alias: 'locops',
+        command: '/quote LOCOPS {message}',
+        description: 'IRCop: LOCOPS message',
+      },
+      {
+        alias: 'wallops',
+        command: '/quote WALLOPS {message}',
+        description: 'IRCop: WALLOPS message',
+      },
+      {
+        alias: 'jupe',
+        command: '/quote JUPE {server} :{reason}',
+        description: 'IRCop: jupe a server',
+      },
+      {
+        alias: 'samode',
+        command: '/quote SAMODE {target} {modes}',
+        description: 'IRCop: force mode',
+      },
+      {
+        alias: 'sapart',
+        command: '/quote SAPART {nick} {channel}',
+        description: 'IRCop: force part',
+      },
+      {
+        alias: 'sajoin',
+        command: '/quote SAJOIN {nick} {channel}',
+        description: 'IRCop: force join',
+      },
+      {
+        alias: 'squit',
+        command: '/quote SQUIT {server} :{reason}',
+        description: 'IRCop: disconnect server',
+      },
       // Atheme services quickies
-      { alias: 'nsid', command: '/msg NickServ IDENTIFY {password}', description: 'NickServ identify' },
-      { alias: 'nsreg', command: '/msg NickServ REGISTER {password} {email}', description: 'NickServ register' },
-      { alias: 'nsghost', command: '/msg NickServ GHOST {nick} {password}', description: 'NickServ ghost' },
-      { alias: 'nsrecover', command: '/msg NickServ RECOVER {nick} {password}', description: 'NickServ recover' },
-      { alias: 'csop', command: '/msg ChanServ OP {channel} {nick}', description: 'ChanServ op user' },
-      { alias: 'csdeop', command: '/msg ChanServ DEOP {channel} {nick}', description: 'ChanServ deop user' },
-      { alias: 'cvoice', command: '/msg ChanServ VOICE {channel} {nick}', description: 'ChanServ voice user' },
-      { alias: 'csdevoice', command: '/msg ChanServ DEVOICE {channel} {nick}', description: 'ChanServ devoice user' },
-      { alias: 'csregister', command: '/msg ChanServ REGISTER {channel} {password}', description: 'ChanServ register channel' },
-      { alias: 'cspass', command: '/msg ChanServ SET {channel} PASSWORD {password}', description: 'ChanServ set password' },
+      {
+        alias: 'nsid',
+        command: '/msg NickServ IDENTIFY {password}',
+        description: 'NickServ identify',
+      },
+      {
+        alias: 'nsreg',
+        command: '/msg NickServ REGISTER {password} {email}',
+        description: 'NickServ register',
+      },
+      {
+        alias: 'nsghost',
+        command: '/msg NickServ GHOST {nick} {password}',
+        description: 'NickServ ghost',
+      },
+      {
+        alias: 'nsrecover',
+        command: '/msg NickServ RECOVER {nick} {password}',
+        description: 'NickServ recover',
+      },
+      {
+        alias: 'csop',
+        command: '/msg ChanServ OP {channel} {nick}',
+        description: 'ChanServ op user',
+      },
+      {
+        alias: 'csdeop',
+        command: '/msg ChanServ DEOP {channel} {nick}',
+        description: 'ChanServ deop user',
+      },
+      {
+        alias: 'cvoice',
+        command: '/msg ChanServ VOICE {channel} {nick}',
+        description: 'ChanServ voice user',
+      },
+      {
+        alias: 'csdevoice',
+        command: '/msg ChanServ DEVOICE {channel} {nick}',
+        description: 'ChanServ devoice user',
+      },
+      {
+        alias: 'csregister',
+        command: '/msg ChanServ REGISTER {channel} {password}',
+        description: 'ChanServ register channel',
+      },
+      {
+        alias: 'cspass',
+        command: '/msg ChanServ SET {channel} PASSWORD {password}',
+        description: 'ChanServ set password',
+      },
       // IRCv3 account registration
-      { alias: 'register', command: '/register {email} {password}', description: 'IRCv3 account registration' },
+      {
+        alias: 'register',
+        command: '/register {email} {password}',
+        description: 'IRCv3 account registration',
+      },
     ];
 
     defaultAliases.forEach(alias => {
@@ -185,7 +359,10 @@ export class CommandService {
   /**
    * Process a command string (handles aliases, custom commands, /quote)
    */
-  async processCommand(input: string, channel?: string): Promise<string | null> {
+  async processCommand(
+    input: string,
+    channel?: string,
+  ): Promise<string | null> {
     if (!input.startsWith('/')) {
       return input; // Not a command, return original message
     }
@@ -221,7 +398,11 @@ export class CommandService {
     if (commandName === 'hop') {
       const provided = args[0];
       const looksLikeChannel = (value?: string) =>
-        !!value && (value.startsWith('#') || value.startsWith('&') || value.startsWith('+') || value.startsWith('!'));
+        !!value &&
+        (value.startsWith('#') ||
+          value.startsWith('&') ||
+          value.startsWith('+') ||
+          value.startsWith('!'));
       const targetChannel = looksLikeChannel(provided) ? provided : channel;
       const reasonArgs = looksLikeChannel(provided) ? args.slice(1) : args;
 
@@ -249,8 +430,17 @@ export class CommandService {
       const aliasCommand = alias.command;
       if (aliasCommand.startsWith('/')) {
         const currentNick = this.ircService?.getCurrentNick();
-        const resolved = this.resolveAliasTemplate(aliasCommand, args, channel, currentNick);
-        const newInput = resolved.command + (resolved.remainingArgs.length > 0 ? ' ' + resolved.remainingArgs.join(' ') : '');
+        const resolved = this.resolveAliasTemplate(
+          aliasCommand,
+          args,
+          channel,
+          currentNick,
+        );
+        const newInput =
+          resolved.command +
+          (resolved.remainingArgs.length > 0
+            ? ' ' + resolved.remainingArgs.join(' ')
+            : '');
         if (newInput.trim().toLowerCase() === trimmed.toLowerCase()) {
           return trimmed;
         }
@@ -271,7 +461,11 @@ export class CommandService {
   /**
    * Execute a custom command
    */
-  private executeCustomCommand(command: CustomCommand, args: string[], channel?: string): string | null {
+  private executeCustomCommand(
+    command: CustomCommand,
+    args: string[],
+    channel?: string,
+  ): string | null {
     let commandString = command.command;
 
     // Replace placeholders
@@ -312,7 +506,7 @@ export class CommandService {
     template: string,
     args: string[],
     channel?: string,
-    currentNick?: string
+    currentNick?: string,
   ): { command: string; remainingArgs: string[] } {
     const placeholders = Array.from(template.matchAll(/\{([^}]+)\}/g));
     let argIndex = 0;
@@ -479,7 +673,10 @@ export class CommandService {
   private async saveAliases(): Promise<void> {
     try {
       const aliases = Array.from(this.aliases.values());
-      await AsyncStorage.setItem(this.ALIASES_STORAGE_KEY, JSON.stringify(aliases));
+      await AsyncStorage.setItem(
+        this.ALIASES_STORAGE_KEY,
+        JSON.stringify(aliases),
+      );
     } catch (error) {
       console.error('Failed to save command aliases:', error);
     }
@@ -491,7 +688,10 @@ export class CommandService {
   private async saveCustomCommands(): Promise<void> {
     try {
       const commands = Array.from(this.customCommands.values());
-      await AsyncStorage.setItem(this.CUSTOM_COMMANDS_STORAGE_KEY, JSON.stringify(commands));
+      await AsyncStorage.setItem(
+        this.CUSTOM_COMMANDS_STORAGE_KEY,
+        JSON.stringify(commands),
+      );
     } catch (error) {
       console.error('Failed to save custom commands:', error);
     }
@@ -502,7 +702,10 @@ export class CommandService {
    */
   private async saveHistory(): Promise<void> {
     try {
-      await AsyncStorage.setItem(this.HISTORY_STORAGE_KEY, JSON.stringify(this.commandHistory));
+      await AsyncStorage.setItem(
+        this.HISTORY_STORAGE_KEY,
+        JSON.stringify(this.commandHistory),
+      );
     } catch (error) {
       console.error('Failed to save command history:', error);
     }
@@ -516,19 +719,20 @@ export class CommandService {
     if (!currentNetworkCert) {
       this.onLocalMessage?.(
         '*** Error: No certificate configured for this network.\n' +
-        '*** Configure one in Network Settings (SASL EXTERNAL section).'
+          '*** Configure one in Network Settings (SASL EXTERNAL section).',
       );
       return null;
     }
 
     try {
-      const fingerprint = certificateManager.extractFingerprintFromPem(currentNetworkCert);
+      const fingerprint =
+        certificateManager.extractFingerprintFromPem(currentNetworkCert);
       if (!fingerprint) {
         throw new Error('Invalid certificate fingerprint');
       }
       const formatted = certificateManager.formatFingerprint(
         fingerprint,
-        FingerprintFormat.COLON_SEPARATED_UPPER
+        FingerprintFormat.COLON_SEPARATED_UPPER,
       );
 
       const message =
@@ -545,7 +749,7 @@ export class CommandService {
       console.error('Failed to extract fingerprint:', error);
       this.onLocalMessage?.(
         '*** Error: Failed to extract certificate fingerprint.\n' +
-        '*** The certificate may be invalid or corrupted.'
+          '*** The certificate may be invalid or corrupted.',
       );
     }
 
@@ -561,7 +765,7 @@ export class CommandService {
     if (!currentNetworkCert) {
       this.onLocalMessage?.(
         '*** Error: No certificate configured for this network.\n' +
-        '*** Configure one in Network Settings (SASL EXTERNAL section).'
+          '*** Configure one in Network Settings (SASL EXTERNAL section).',
       );
       return null;
     }
@@ -569,13 +773,14 @@ export class CommandService {
     const service = args[0] || 'NickServ';
 
     try {
-      const fingerprint = certificateManager.extractFingerprintFromPem(currentNetworkCert);
+      const fingerprint =
+        certificateManager.extractFingerprintFromPem(currentNetworkCert);
       if (!fingerprint) {
         throw new Error('Invalid certificate fingerprint');
       }
       const formatted = certificateManager.formatFingerprint(
         fingerprint,
-        FingerprintFormat.COLON_SEPARATED_UPPER
+        FingerprintFormat.COLON_SEPARATED_UPPER,
       );
       const command = `PRIVMSG ${service} :CERT ADD ${formatted}`;
 
@@ -585,7 +790,7 @@ export class CommandService {
       console.error('Failed to send fingerprint:', error);
       this.onLocalMessage?.(
         '*** Error: Failed to send certificate fingerprint.\n' +
-        '*** The certificate may be invalid or corrupted.'
+          '*** The certificate may be invalid or corrupted.',
       );
     }
 
@@ -595,7 +800,9 @@ export class CommandService {
   /**
    * Ensure every history entry has an id (for older persisted data)
    */
-  private normalizeHistory(entries: CommandHistoryEntry[]): CommandHistoryEntry[] {
+  private normalizeHistory(
+    entries: CommandHistoryEntry[],
+  ): CommandHistoryEntry[] {
     return entries.map((entry, index) => ({
       id: entry.id || `${entry.timestamp || Date.now()}-${index}`,
       command: entry.command,
@@ -609,23 +816,34 @@ export class CommandService {
    */
   private handleBanCommand(args: string[], channel?: string): string | null {
     if (!channel) {
-      this.onLocalMessage?.('*** Error: No channel specified. Usage: /ban [-kruNbeIq] [#channel] <nickname|address> [type] [kick message]');
+      this.onLocalMessage?.(
+        '*** Error: No channel specified. Usage: /ban [-kruNbeIq] [#channel] <nickname|address> [type] [kick message]',
+      );
       return null;
     }
 
     // Parse command arguments
-    const { switches, targetChannel, target, message } = this.parseBanCommand(args, channel);
+    const { switches, targetChannel, target, message } = this.parseBanCommand(
+      args,
+      channel,
+    );
 
     // Validate channel
     if (!targetChannel) {
-      this.onLocalMessage?.('*** Error: No channel specified. Usage: /ban [-kruNbeIq] [#channel] <nickname|address> [type] [kick message]');
+      this.onLocalMessage?.(
+        '*** Error: No channel specified. Usage: /ban [-kruNbeIq] [#channel] <nickname|address> [type] [kick message]',
+      );
       return null;
     }
 
     // Determine ban mask
     let banMask = target;
     // If target doesn't look like a mask, try to resolve it to a user's hostmask
-    if (!target.includes('!') && !target.includes('@') && !target.includes('*')) {
+    if (
+      !target.includes('!') &&
+      !target.includes('@') &&
+      !target.includes('*')
+    ) {
       // In a real implementation, we would look up the user's hostmask
       // For now, we'll use a generic mask
       banMask = `*!*@${target}`;
@@ -654,7 +872,9 @@ export class CommandService {
     // Kick user
     if (switches.k) {
       const kickMessage = message || 'Banned';
-      this.ircService?.sendRaw(`KICK ${targetChannel} ${target} :${kickMessage}`);
+      this.ircService?.sendRaw(
+        `KICK ${targetChannel} ${target} :${kickMessage}`,
+      );
     }
 
     // Schedule unban
@@ -670,18 +890,37 @@ export class CommandService {
   /**
    * Parse /ban command arguments
    */
-  private parseBanCommand(args: string[], defaultChannel: string): {
-    switches: { k: boolean; r: boolean; u: number; b: boolean; e: boolean; I: boolean; q: boolean };
+  private parseBanCommand(
+    args: string[],
+    defaultChannel: string,
+  ): {
+    switches: {
+      k: boolean;
+      r: boolean;
+      u: number;
+      b: boolean;
+      e: boolean;
+      I: boolean;
+      q: boolean;
+    };
     targetChannel: string | null;
     target: string;
     banType: number;
     message: string;
   } {
-    const switches: { k: boolean; r: boolean; u: number; b: boolean; e: boolean; I: boolean; q: boolean } = {
+    const switches: {
+      k: boolean;
+      r: boolean;
+      u: number;
+      b: boolean;
+      e: boolean;
+      I: boolean;
+      q: boolean;
+    } = {
       k: false, // kick
       r: false, // reason (not a real switch, but for internal use)
-      u: 0,     // unban after N seconds
-      b: true,  // ban
+      u: 0, // unban after N seconds
+      b: true, // ban
       e: false, // except
       I: false, // invite
       q: false, // quiet

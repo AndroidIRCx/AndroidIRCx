@@ -60,7 +60,7 @@ export const MessageSearchBar: React.FC<MessageSearchBarProps> = ({
       setSearchTerm(term);
       onSearch({ searchTerm: term, messageTypes });
     },
-    [messageTypes, onSearch]
+    [messageTypes, onSearch],
   );
 
   const toggleMessageType = useCallback(
@@ -69,7 +69,7 @@ export const MessageSearchBar: React.FC<MessageSearchBarProps> = ({
       setMessageTypes(newTypes);
       onSearch({ searchTerm, messageTypes: newTypes });
     },
-    [messageTypes, searchTerm, onSearch]
+    [messageTypes, searchTerm, onSearch],
   );
 
   const clearSearch = useCallback(() => {
@@ -85,7 +85,12 @@ export const MessageSearchBar: React.FC<MessageSearchBarProps> = ({
     <View style={styles.container}>
       {/* Search Input Row */}
       <View style={styles.searchRow}>
-        <Icon name="search" size={16} color={colors.textSecondary} style={styles.searchIcon} />
+        <Icon
+          name="search"
+          size={16}
+          color={colors.textSecondary}
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.searchInput}
           placeholder={t('Search messages...', { _tags: tags })}
@@ -96,13 +101,26 @@ export const MessageSearchBar: React.FC<MessageSearchBarProps> = ({
         />
         {searchTerm.length > 0 && (
           <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
-            <Icon name="times-circle" size={16} color={colors.textSecondary} solid />
+            <Icon
+              name="times-circle"
+              size={16}
+              color={colors.textSecondary}
+              solid
+            />
           </TouchableOpacity>
         )}
         <TouchableOpacity
           onPress={() => setShowFilters(!showFilters)}
-          style={[styles.filterButton, showFilters && styles.filterButtonActive]}>
-          <Icon name="filter" size={16} color={showFilters ? colors.primary : colors.textSecondary} />
+          style={[
+            styles.filterButton,
+            showFilters && styles.filterButtonActive,
+          ]}
+        >
+          <Icon
+            name="filter"
+            size={16}
+            color={showFilters ? colors.primary : colors.textSecondary}
+          />
         </TouchableOpacity>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
           <Icon name="times" size={18} color={colors.text} />
@@ -115,7 +133,10 @@ export const MessageSearchBar: React.FC<MessageSearchBarProps> = ({
           <Text style={styles.resultCountText}>
             {resultCount === 0
               ? t('No results found', { _tags: tags })
-              : t('{count} result(s) found', { _tags: tags, count: resultCount.toString() })}
+              : t('{count} result(s) found', {
+                  _tags: tags,
+                  count: resultCount.toString(),
+                })}
           </Text>
         </View>
       )}
@@ -123,14 +144,24 @@ export const MessageSearchBar: React.FC<MessageSearchBarProps> = ({
       {/* Filters */}
       {showFilters && (
         <View style={styles.filtersContainer}>
-          <Text style={styles.filtersTitle}>{t('Message Types:', { _tags: tags })}</Text>
+          <Text style={styles.filtersTitle}>
+            {t('Message Types:', { _tags: tags })}
+          </Text>
           <View style={styles.filtersGrid}>
             {Object.entries(messageTypes).map(([type, enabled]) => (
               <TouchableOpacity
                 key={type}
                 style={[styles.filterChip, enabled && styles.filterChipActive]}
-                onPress={() => toggleMessageType(type as keyof typeof messageTypes)}>
-                <Text style={[styles.filterChipText, enabled && styles.filterChipTextActive]}>
+                onPress={() =>
+                  toggleMessageType(type as keyof typeof messageTypes)
+                }
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    enabled && styles.filterChipTextActive,
+                  ]}
+                >
                   {t(type, { _tags: tags })}
                 </Text>
               </TouchableOpacity>

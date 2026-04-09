@@ -1,15 +1,15 @@
 {
   "1080": {
-    "string": ""
+    "string": "1080"
   },
   "6697": {
     "string": ""
   },
   "App lock disabled": {
-    "string": ""
+    "string": "Blocco app disabilitato"
   },
   "Enable app lock first.": {
-    "string": ""
+    "string": "Attiva prima il blocco app."
   },
   "Cancel": {
     "string": "Annulla"
@@ -24,91 +24,91 @@
     "string": "Cronologia messaggi"
   },
   "Backup Ready": {
-    "string": ""
+    "string": "Backup Pronto"
   },
   "Success": {
     "string": ""
   },
   "Backup data copied to clipboard": {
-    "string": ""
+    "string": "Dati backup copiati negli appunti"
   },
   "Failed to copy to clipboard": {
-    "string": ""
+    "string": "Impossibile copiare negli appunti"
   },
   "Backup saved to:\n{path}": {
-    "string": ""
+    "string": "Backup salvato in:\n{path}"
   },
   "OK": {
     "string": "OK"
   },
   "Failed to save backup file": {
-    "string": ""
+    "string": "Impossibile salvare il file di backup"
   },
   "Restore": {
-    "string": ""
+    "string": "Ripristina"
   },
   "Backup restored. Restart app to ensure all data reloads.": {
-    "string": ""
+    "string": "Backup ripristinato. Riavvia l'app per assicurarti che tutti i dati vengano ricaricati."
   },
   "Invalid backup data": {
-    "string": ""
+    "string": "Dati di backup non validi"
   },
   "Backup & Restore": {
-    "string": ""
+    "string": "Backup & Ripristino"
   },
   "Close": {
     "string": "Chiudi"
   },
   "Copy to Clipboard": {
-    "string": ""
+    "string": "Copia negli Appunti"
   },
   "Save to File": {
-    "string": ""
+    "string": "Salva nel File"
   },
   "Export Complete": {
-    "string": ""
+    "string": "Esportazione completata"
   },
   "Exported {count} characters in {format} format.\n\n(In production, this would be saved to a file)": {
-    "string": ""
+    "string": "Esportati {count} caratteri nel formato {format}.\n\n(In produzione, questi dati verrebbero salvati in un file)"
   },
   "Export Error": {
-    "string": ""
+    "string": "Errore di esportazione"
   },
   "Failed to export history": {
-    "string": ""
+    "string": "Impossibile esportare la cronologia"
   },
   "Clear Message History": {
-    "string": ""
+    "string": "Cancella cronologia messaggi"
   },
   "Are you sure you want to clear all message history? This cannot be undone.": {
-    "string": ""
+    "string": "Sei sicuro di voler cancellare tutta la cronologia dei messaggi? Questa operazione non può essere annullata."
   },
   "Clear": {
-    "string": ""
+    "string": "Cancella"
   },
   "Message history cleared": {
-    "string": ""
+    "string": "Cronologia messaggi cancellata"
   },
   "Settings backup generated (excludes logs and message history).": {
     "string": "Backup delle impostazioni generato (Cronologia messaggi e Logs sono esclusi)."
   },
   "Full backup generated (includes all data).": {
-    "string": ""
+    "string": "Generato Backup completo (include tutti i dati)."
   },
   "Backup Error": {
-    "string": ""
+    "string": "Errore di backup"
   },
   "Failed to create backup": {
-    "string": ""
+    "string": "Impossibile creare il backup"
   },
   "Restore Complete": {
-    "string": ""
+    "string": "Ripristino completato"
   },
   "Restore Error": {
-    "string": ""
+    "string": "Errore di ripristino"
   },
   "Use fingerprint/biometric to unlock": {
-    "string": ""
+    "string": "Usa l'impronta digitale/dati biometrici per sbloccare"
   },
   "Enter PIN to unlock": {
     "string": "Inserisci il PIN per sbloccare"
@@ -117,28 +117,28 @@
     "string": "Il PIN deve contenere almeno 4 cifre."
   },
   "PINs do not match.": {
-    "string": ""
+    "string": "I codici PIN non corrispondono."
   },
   "Biometrics unavailable": {
-    "string": ""
+    "string": "Dati biometrici non disponibili"
   },
   "Enable a fingerprint/biometric on your device first.": {
-    "string": ""
+    "string": "Attiva prima il riconoscimento delle impronte digitali o la funzione biometrica sul tuo dispositivo."
   },
   "Unlock passwords": {
-    "string": ""
+    "string": "Sbloccare le password"
   },
   "Authentication failed": {
     "string": "Autenticazione fallita"
   },
   "Unable to unlock passwords.": {
-    "string": ""
+    "string": "Impossibile sbloccare le password."
   },
   "Biometric setup failed": {
-    "string": ""
+    "string": "Impostazione biometrica non riuscita"
   },
   "Unable to enable biometric lock for passwords.": {
-    "string": ""
+    "string": "Impossibile abilitare il blocco biometrico per le password."
   },
   "Enable a method": {
     "string": "Abilita un metodo"
@@ -147,7 +147,7 @@
     "string": ""
   },
   "Unable to enable biometric app lock.": {
-    "string": ""
+    "string": "Impossibile attivare il blocco biometrico dell'applicazione."
   },
   "Appearance": {
     "string": "Aspetto"
@@ -186,7 +186,7 @@
     "string": "Posizione delle Tab"
   },
   "Tabs at {position}": {
-    "string": ""
+    "string": "Schede a {position}"
   },
   "Select tab position:": {
     "string": "Seleziona la posizione della Tab"
@@ -258,7 +258,7 @@
     "string": "Scegli quali messaggi raw visualizzare"
   },
   "Notice Routing": {
-    "string": ""
+    "string": "Inoltro delle notifiche"
   },
   "Show notices in the active tab": {
     "string": "Mostra i Notices nella scheda attiva"
@@ -288,28 +288,28 @@
     "string": "Mostra il Timestamps"
   },
   "Display message timestamps": {
-    "string": ""
+    "string": "Visualizza i timestamp dei messaggi"
   },
   "Info": {
     "string": "Info"
   },
   "Timestamp display setting coming soon": {
-    "string": ""
+    "string": "Impostazioni per la visualizzazione di data e ora in arrivo"
   },
   "Timestamp Display": {
-    "string": ""
+    "string": "Visualizzazione della data e dell'ora"
   },
   "Show timestamps: {mode}": {
-    "string": ""
+    "string": "Mostra data e ora: {mode}"
   },
   "Select when to show timestamps:": {
-    "string": ""
+    "string": "Seleziona quando visualizzare data e ora:"
   },
   "Always": {
-    "string": ""
+    "string": "Sempre"
   },
   "Only for first message in a group": {
-    "string": ""
+    "string": "Solo per il primo messaggio in un gruppo"
   },
   "Never": {
     "string": "Mai"
@@ -330,118 +330,118 @@
     "string": "24-ore"
   },
   "Show Encryption Indicators": {
-    "string": ""
+    "string": "Mostra gli indicatori di crittografia"
   },
   "Lock icons visible on tabs/messages": {
-    "string": ""
+    "string": "Icone di blocco visibili nelle schede/nei messaggi"
   },
   "Hide lock icons": {
     "string": ""
   },
   "Messages": {
-    "string": ""
+    "string": "Messaggi"
   },
   "Part Message": {
-    "string": ""
+    "string": "Messaggio di uscita"
   },
   "Message to send when leaving a channel.": {
-    "string": ""
+    "string": "Messaggio da inviare quando lasci un canale."
   },
   "Quit Message": {
-    "string": ""
+    "string": "Messaggio di Quit"
   },
   "Message to send when disconnecting.": {
-    "string": ""
+    "string": "Messaggio da inviare quando ti disconnetti."
   },
   "Send Message on Query Close": {
-    "string": ""
+    "string": "Invia messaggio alla chiusura della Query"
   },
   "Send a message when you close a private message window.": {
-    "string": ""
+    "string": "Invia un messaggio quando chiudi una finestra di messaggio privato."
   },
   "Query Close Message": {
-    "string": ""
+    "string": "Chiudi messaggio di Query"
   },
   "The message to send.": {
-    "string": ""
+    "string": "Il messaggio da inviare."
   },
   "Enter message...": {
-    "string": ""
+    "string": "Inserisci il messaggio..."
   },
   "Notifications": {
-    "string": ""
+    "string": "Notifiche"
   },
   "Enable Notifications": {
-    "string": ""
+    "string": "Attiva le notifiche"
   },
   "Receive notifications for messages": {
-    "string": ""
+    "string": "Ricevi notifiche per i messaggi"
   },
   "Notify on Mentions": {
-    "string": ""
+    "string": "Notifica quando menzionato"
   },
   "Get notified when someone mentions your nickname": {
-    "string": ""
+    "string": "Ricevi una notifica quando qualcuno menziona il tuo nickname"
   },
   "Notify on Private Messages": {
-    "string": ""
+    "string": "Notifiche sui messaggi privati"
   },
   "Get notified for private messages": {
-    "string": ""
+    "string": "Ricevi una notifica per i messaggi privati"
   },
   "Notify on All Messages": {
-    "string": ""
+    "string": "Notifica per tutti i messaggi"
   },
   "Get notified for all channel messages": {
-    "string": ""
+    "string": "Ricevi una notifica per tutti i messaggi del canale"
   },
   "Do Not Disturb": {
-    "string": ""
+    "string": "Non disturbare"
   },
   "Disable all notifications": {
-    "string": ""
+    "string": "Disattiva tutte le notifiche"
   },
   "Per-Channel Settings": {
     "string": "Impostazioni per canale"
   },
   "Configure notifications for specific channels": {
-    "string": ""
+    "string": "Configura le notifiche per canali specifici"
   },
   "Highlighting": {
-    "string": ""
+    "string": "Highlighting - In Evidenza"
   },
   "Add Highlight Word": {
-    "string": ""
+    "string": "Aggiungi parola in evidenza"
   },
   "Messages containing these words will be highlighted.": {
-    "string": ""
+    "string": "I messaggi che contengono queste parole verranno evidenziati."
   },
   "Enter a word to highlight...": {
-    "string": ""
+    "string": "Inserisci una parola da evidenziare..."
   },
   "Remove Highlight Word": {
-    "string": ""
+    "string": "Rimuovi parola in evidenza"
   },
   "Are you sure you want to remove \"{word}\"?": {
-    "string": ""
+    "string": "Sei sicuro di voler rimuovere \"{word}\"?"
   },
   "Remove": {
-    "string": ""
+    "string": "Rimuovi"
   },
   "Connection & Network": {
     "string": "Connessione & Network"
   },
   "Auto-Connect to Favorite Server": {
-    "string": ""
+    "string": "Connessione automatica al Server Preferito"
   },
   "When opening a network, prefer the server marked as favorite.": {
     "string": ""
   },
   "Auto-Reconnect": {
-    "string": ""
+    "string": "Riconnnessione automatica"
   },
   "{attempts} attempts, {mode}": {
-    "string": ""
+    "string": "{attempts} tentativi, {mode}"
   },
   "rejoin channels": {
     "string": ""
@@ -450,22 +450,22 @@
     "string": ""
   },
   "Automatically reconnect on disconnect": {
-    "string": ""
+    "string": "Riconnetti automaticamente quando disconnesso"
   },
   "Enable Auto-Reconnect": {
-    "string": ""
+    "string": "Abilita riconnessione automatica"
   },
   "Rejoin Channels After Reconnect": {
-    "string": ""
+    "string": "Rientra nei canali dopo la riconnessione"
   },
   "Automatically rejoin channels you were in": {
-    "string": ""
+    "string": "Rientra automaticamente nei canali in cui eri"
   },
   "Smart Reconnection": {
-    "string": ""
+    "string": "Riconnnessione intelligente"
   },
   "Avoid flood by spacing reconnection attempts": {
-    "string": ""
+    "string": "Evita i flood distanziando i tentativi di riconnessione."
   },
   "Min Port": {
     "string": ""
@@ -474,67 +474,67 @@
     "string": ""
   },
   "No PIN is set.": {
-    "string": ""
+    "string": "Nessun PIN impostato."
   },
   "Incorrect PIN.": {
-    "string": ""
+    "string": "PIN errato."
   },
   "Message Spacing": {
-    "string": ""
+    "string": "Spaziatura dei messaggi"
   },
   "Message Padding": {
-    "string": ""
+    "string": "Riempimento del messaggio"
   },
   "Navigation Bar Offset (Android)": {
-    "string": ""
+    "string": "Offset della barra di navigazione (Android)"
   },
   "Sort Tabs Alphabetically": {
-    "string": ""
+    "string": "Ordina le schede alfabeticamente"
   },
   "Display & UI": {
-    "string": ""
+    "string": "Display & Interfaccia utente"
   },
   "Show Raw Commands": {
-    "string": ""
+    "string": "Mostra comandi Raw"
   },
   "Display raw IRC protocol messages": {
-    "string": ""
+    "string": "Visualizza i messaggi Raw del protocollo IRC"
   },
   "Hide Join Messages": {
-    "string": ""
+    "string": "Nascondi messaggi di ingresso"
   },
   "Do not show join events in channels.": {
-    "string": ""
+    "string": "Non mostrare gli eventi di join nei canali."
   },
   "Hide Part Messages": {
-    "string": ""
+    "string": "Nascondi messaggi di uscita"
   },
   "Do not show part/leave events in channels.": {
-    "string": ""
+    "string": "Non mostrare gli eventi di part/leave nei canali"
   },
   "Hide Quit Messages": {
-    "string": ""
+    "string": "Nascondi messaggi di Quit"
   },
   "Do not show quit events in channels.": {
-    "string": ""
+    "string": "Non mostrare gli eventi di Disconnessione"
   },
   "Hide IRCService Listener Messages": {
-    "string": ""
+    "string": "Nascondi i messaggi di ascolto dell'IRCService"
   },
   "Suppress \"*** IRCService: Message listener registered...\" raw logs.": {
     "string": ""
   },
   "Max Reconnection Attempts": {
-    "string": ""
+    "string": "Tentativi massimi di riconnessione"
   },
   "Initial Delay (ms)": {
-    "string": ""
+    "string": "Ritardo iniziale (ms)"
   },
   "Max Delay (ms)": {
-    "string": ""
+    "string": "Ritardo massimo (ms)"
   },
   "Connection Quality": {
-    "string": ""
+    "string": "Qualità della connessione"
   },
   "Rate Limiting": {
     "string": ""
@@ -789,19 +789,19 @@
     "string": ""
   },
   "Command History": {
-    "string": ""
+    "string": "Cronologia comandi"
   },
   "Clear All History": {
-    "string": ""
+    "string": "Cancella tutta la cronologia"
   },
   "Delete every command entry": {
     "string": ""
   },
   "Clear Command History": {
-    "string": ""
+    "string": "Cancella la cronologia dei comandi"
   },
   "Are you sure you want to delete all command history?": {
-    "string": ""
+    "string": "Sei sicuro di voler cancellare tutta la cronologia dei comandi?"
   },
   "Command Aliases": {
     "string": ""
@@ -885,10 +885,10 @@
     "string": ""
   },
   "Delete all stored message history": {
-    "string": ""
+    "string": "Elimina tutta la cronologia dei messaggi salvati"
   },
   "This will permanently delete all stored messages. Continue?": {
-    "string": ""
+    "string": "Questa operazione cancellerà definitivamente tutti i messaggi salvati. Vuoi continuare?"
   },
   "Storage Usage": {
     "string": ""
@@ -1167,37 +1167,37 @@
     "string": ""
   },
   "DCC Transfer Complete": {
-    "string": ""
+    "string": "Trasferimento DCC completato"
   },
   "{filename} received ({bytes} bytes).": {
     "string": ""
   },
   "DCC Transfer Failed": {
-    "string": ""
+    "string": "Trasferimento DCC fallito"
   },
   "Transfer failed.": {
-    "string": ""
+    "string": "Trasferimento fallito."
   },
   "No Network": {
-    "string": ""
+    "string": "Nessun Network"
   },
   "No network available. Please configure a network first.": {
-    "string": ""
+    "string": "Nessun Network disponibile. Prima configura un network."
   },
   "Configure": {
-    "string": ""
+    "string": "Configura"
   },
   "No Server Configured": {
-    "string": ""
+    "string": "Nessun Server configurato"
   },
   "No server configured for \"{networkName}\". Would you like to configure one?": {
-    "string": ""
+    "string": "Nessun server configurato per \"{networkName}\". Vuoi configurarne uno?"
   },
   "No server configured for \"{networkName}\"": {
-    "string": ""
+    "string": "Nessun server configurato per \"{networkName}\""
   },
   "Connection failed": {
-    "string": ""
+    "string": "Connessione fallita"
   },
   "{message}\n\nTried: {hostInfo}\nCheck host/port, SSL, and network reachability.": {
     "string": ""
@@ -1209,25 +1209,25 @@
     "string": "Per prima cosa, connettiti a un server"
   },
   "Exit Application": {
-    "string": ""
+    "string": "Esci dall'applicazione"
   },
   "Are you sure you want to exit? This will disconnect from the server.": {
-    "string": ""
+    "string": "Sei sicuro di voler uscire? Verrai disconnesso dal server."
   },
   "Exit": {
-    "string": ""
+    "string": "Esci"
   },
   "Disconnected": {
-    "string": ""
+    "string": "Disconnesso"
   },
   "You can now close the app from the app switcher.": {
-    "string": ""
+    "string": "Ora puoi chiudere l'applicazione dal selettore delle app."
   },
   "Network Not Found": {
-    "string": ""
+    "string": "Network non trovato"
   },
   "Cannot find saved configuration for \"{networkId}\". Please configure it first.": {
-    "string": ""
+    "string": "Impossibile trovare la configurazione salvata per \"{networkId}\". Deve essere configurata prima."
   },
   "DCC Send Error": {
     "string": ""
@@ -1236,49 +1236,49 @@
     "string": ""
   },
   "Download complete": {
-    "string": ""
+    "string": "Download completato"
   },
   "Saved to {path}": {
-    "string": ""
+    "string": "Salvato in {path}"
   },
   "Download failed": {
-    "string": ""
+    "string": "Download fallito"
   },
   "Unable to download file": {
-    "string": ""
+    "string": "Impossibile scaricare il file"
   },
   "...": {
-    "string": ""
+    "string": "..."
   },
   "Download": {
     "string": ""
   },
   "Networks & Servers": {
-    "string": ""
+    "string": "Networks & Servers"
   },
   "IRC network configurations and server settings": {
     "string": "Configurazioni IRC Network e impostazioni del server"
   },
   "App Settings": {
-    "string": ""
+    "string": "Impostazioni applicazione"
   },
   "General app preferences and configurations": {
-    "string": ""
+    "string": "Configurazioni e Preferenze generali dell'appllicazione"
   },
   "Encryption Keys": {
-    "string": ""
+    "string": "Chiavi di crittografia"
   },
   "Channel encryption keys and DM bundles": {
     "string": ""
   },
   "Identity & Connection Profiles": {
-    "string": ""
+    "string": "Identità & Profili di connessione"
   },
   "User identity profiles and connection templates": {
-    "string": ""
+    "string": "Profili di identità utente e modelli di connessione"
   },
   "Favorite channels and auto-join settings": {
-    "string": ""
+    "string": "Canali Preferiti e Impostazioni di accesso automatico"
   },
   "Channel Notes & Bookmarks": {
     "string": "Note canale & Segnalibro"
@@ -1287,91 +1287,91 @@
     "string": "Note dei canali, Segnalibro, e alias utente"
   },
   "Highlights & Notifications": {
-    "string": ""
+    "string": "Highlights & Notifiche"
   },
   "Highlight words and notification preferences": {
     "string": ""
   },
   "Open Tabs": {
-    "string": ""
+    "string": "Schede aperte"
   },
   "Currently open channel and query tabs": {
-    "string": ""
+    "string": "Schede canale e query attualmente aperte"
   },
   "Saved message history for all tabs": {
     "string": ""
   },
   "Activity Logs": {
-    "string": ""
+    "string": "Logs di attività"
   },
   "Channel activity logs and join/part history": {
-    "string": ""
+    "string": "Logs delle attività del canale e cronologia de join/part"
   },
   "No Options Selected": {
-    "string": ""
+    "string": "Nessuna opzione selezionata"
   },
   "Please select at least one backup option": {
-    "string": ""
+    "string": "Seleziona almeno una opzione di backup"
   },
   "Generated backup with {count} items:\n{names}": {
     "string": ""
   },
   "Failed to generate backup": {
-    "string": ""
+    "string": "Impossibile generare il backup"
   },
   "Please paste backup data first": {
-    "string": ""
+    "string": "Inserisci prima i dati di backup"
   },
   "Confirm Restore": {
-    "string": ""
+    "string": "Conferma il ripristino"
   },
   "This will overwrite existing data. Are you sure?": {
-    "string": ""
+    "string": "Questa operazione sovrascriverà i dati esistenti. Sei sicuro?"
   },
   "Failed to restore backup": {
-    "string": ""
+    "string": "Impossibile ripristinare il backup"
   },
   "Storage Statistics": {
-    "string": ""
+    "string": "Statistiche di archiviazione"
   },
   "{count} items ~{size} KB": {
     "string": ""
   },
   "Quick Presets": {
-    "string": ""
+    "string": "Impostazioni rapide"
   },
   "All Data": {
-    "string": ""
+    "string": "Tutti i dati"
   },
   "Settings Only": {
-    "string": ""
+    "string": "Solo impostazioni"
   },
   "Minimal": {
-    "string": ""
+    "string": "Minimale"
   },
   "Clear All": {
-    "string": ""
+    "string": "Cancella tutto"
   },
   "Select Data to Backup ({count} selected)": {
-    "string": ""
+    "string": "Seleziona i dati da sottoporre a backup ({count} selezionati)"
   },
   "Generate Backup": {
-    "string": ""
+    "string": "Crea un backup"
   },
   "Restore from Backup": {
-    "string": ""
+    "string": "Ripristina da backup"
   },
   "Backup Data": {
-    "string": ""
+    "string": "Backup dei dati"
   },
   "Copy this JSON to save your backup, or save it to a file.": {
-    "string": ""
+    "string": "Copia questo JSON per salvare il tuo backup, oppure salvalo in un file."
   },
   "Paste your backup JSON here to restore your data.": {
-    "string": ""
+    "string": "Incolla qui il tuo file JSON di backup per ripristinare i tuoi dati."
   },
   "Backup JSON appears here...": {
-    "string": ""
+    "string": "Il JSON di backup appare qui..."
   },
   "Failed to load networks and profiles": {
     "string": ""
@@ -1509,7 +1509,7 @@
     "string": ""
   },
   "Tap to connect": {
-    "string": ""
+    "string": "Tocca per connetterti"
   },
   "Copied {count} message": {
     "string": ""
@@ -1518,7 +1518,7 @@
     "string": ""
   },
   "No messages yet": {
-    "string": ""
+    "string": "Non ci sono ancora messaggi"
   },
   "{count} selected": {
     "string": ""
@@ -5271,10 +5271,10 @@
     "string": ""
   },
   "⚠️ Delete All My Data": {
-    "string": ""
+    "string": "⚠️ Elimina tutti i miei dati"
   },
   "THIS CANNOT BE UNDONE!\n\nThis will permanently delete:\n• All messages\n• All settings\n• All networks\n• All identity profiles\n• Consent preferences\n• Cached data\n\nThe app will restart after deletion. Are you absolutely sure?": {
-    "string": ""
+    "string": "QUESTA AZIONE È IRREVERSIBILE!\n\nVerranno eliminati definitivamente:\n• Tutti i messaggi\n• Tutte le impostazioni\n• Tutti i network\n• Tutti i profili di identità\n• Le preferenze relative al consenso\n• I dati memorizzati nella cache\n\nL'app si riavvierà dopo l'eliminazione. Sei assolutamente sicuro?"
   },
   "DELETE EVERYTHING": {
     "string": ""
@@ -5283,7 +5283,7 @@
     "string": ""
   },
   "Are you really sure? This will delete ALL your data permanently.": {
-    "string": ""
+    "string": "Sei davvero sicuro? Questa operazione cancellerà definitivamente TUTTI i tuoi dati."
   },
   "Yes, Delete Everything": {
     "string": ""
@@ -5292,7 +5292,7 @@
     "string": ""
   },
   "All your data has been permanently deleted:\n\n{deletedList}\n\nThe app will restart and show the first-run setup again.": {
-    "string": ""
+    "string": "Tutti i tuoi dati sono stati cancellati definitivamente:\n\n{deletedList}\n\nL'applicazione si riavvierà e verrà visualizzata nuovamente la procedura di configurazione iniziale."
   },
   "Partial Deletion": {
     "string": ""
@@ -5346,7 +5346,7 @@
     "string": ""
   },
   "Delete All My Data": {
-    "string": ""
+    "string": "Elimina tutti i miei dati"
   },
   "Permanently erase all your data (cannot be undone)": {
     "string": ""
@@ -5391,7 +5391,7 @@
     "string": ""
   },
   "Note: Data already sent to Google (AdMob, Crashlytics) cannot be deleted via this app, but will be automatically deleted per their retention policies (14-90 days).": {
-    "string": ""
+    "string": "Nota: I dati già inviati a Google (AdMob, Crashlytics) non possono essere cancellati tramite questa applicazione, ma verranno automaticamente eliminati in base alle relative politiche di conservazione dei dati (14-90 giorni)."
   },
   "Your Privacy Rights": {
     "string": ""
@@ -6309,10 +6309,10 @@
     "string": ""
   },
   "WARNING: This will PERMANENTLY delete ALL app data including:\n\n• All messages and history\n• All networks and connections\n• All certificates and keys\n• All logs and cache\n• All settings and preferences\n• EVERYTHING\n\nThis action CANNOT be undone!\n\nType \"DELETE ALL\" to confirm.": {
-    "string": ""
+    "string": "ATTENZIONE: questa operazione cancellerà DEFINITIVAMENTE TUTTI i dati dell'appplicazione, inclusi:\n\n• Tutti i messaggi e la cronologia\n• Tutti i network e le connessioni\n• Tutti i certificati e le chiavi\n• Tutti i logs e la cache\n• Tutte le impostazioni e le preferenze\n• TUTTO\n\nQuesta azione NON PUÒ essere annullata!\n\nDigita “DELETE ALL” per confermare."
   },
   "Delete All": {
-    "string": ""
+    "string": "Elimina tutto"
   },
   "Are you ABSOLUTELY SURE? This will delete EVERYTHING and cannot be undone.": {
     "string": ""
@@ -6324,7 +6324,7 @@
     "string": ""
   },
   "All data has been deleted. The app will now close.": {
-    "string": ""
+    "string": "Tutti i dati sono stati cancellati. L'applicazione ora verrà chiusa."
   },
   "Auto-Voice": {
     "string": ""
@@ -7950,58 +7950,58 @@
     "string": ""
   },
   "Backup Encrypted": {
-    "string": ""
+    "string": "Backup crittografato"
   },
   "Your backup has been encrypted. Keep your password safe - you will need it to restore this backup.": {
-    "string": ""
+    "string": "Il backup è stato crittografato. Conserva la password in un luogo sicuro: ti servirà per ripristinare il backup."
   },
   "Encryption Failed": {
-    "string": ""
+    "string": "Crittografia non riuscita"
   },
   "Failed to encrypt backup": {
-    "string": ""
+    "string": "Impossibile crittografare il backup"
   },
   "Generated backup with {count} items.": {
-    "string": ""
+    "string": "Backup generato con {count} elementi."
   },
   "Please enter the password": {
-    "string": ""
+    "string": "Inserisci la password"
   },
   "Decryption Failed": {
-    "string": ""
+    "string": "Decrittografia non riuscita"
   },
   "Wrong password or corrupted data. Please check your password and try again.": {
-    "string": ""
+    "string": "Password errata o dati danneggiati. Controlla la password e riprova."
   },
   "Sensitive Data Detected": {
-    "string": ""
+    "string": "Rilevati dati sensibili"
   },
   "This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup.": {
-    "string": ""
+    "string": "Questo backup potrebbe contenere dati sensibili quali password dei server, token di autenticazione e chiavi di crittografia. Tali dati saranno archiviati in chiaro, a meno che non si scelga di crittografare il backup."
   },
   "Do you want to encrypt this backup?": {
-    "string": ""
+    "string": "Vuoi crittografare questo backup?"
   },
   "Enter encryption password (optional)": {
-    "string": ""
+    "string": "Inserisci la password di crittografia (facoltativo)"
   },
   "Export Unencrypted": {
-    "string": ""
+    "string": "Esporta senza crittografia"
   },
   "Encrypt & Export": {
-    "string": ""
+    "string": "Crittografa ed esporta"
   },
   "Encrypted Backup": {
-    "string": ""
+    "string": "Backup crittografato"
   },
   "This backup is encrypted. Please enter the password to decrypt and restore it.": {
-    "string": ""
+    "string": "Questo backup è crittografato. Inserisci la password per decrittografarlo e ripristinarlo."
   },
   "Enter decryption password": {
-    "string": ""
+    "string": "Inserisci la password di decrittografia"
   },
   "Decrypt & Restore": {
-    "string": ""
+    "string": "Decrittografa e ripristina"
   },
   "Topic Preview": {
     "string": ""
@@ -8556,7 +8556,7 @@
     "string": ""
   },
   "Remove from Favorites": {
-    "string": ""
+    "string": "Rimuovi dai Preferiti"
   },
   "Add to Favorites": {
     "string": "Aggiungi ai Preferiti"
@@ -12372,22 +12372,22 @@
     "string": ""
   },
   "No file selected": {
-    "string": ""
+    "string": "Nessun file selezionato"
   },
   "Selected file is empty": {
-    "string": ""
+    "string": "Il file selezionato è vuoto"
   },
   "Selected file is not a valid JSON backup": {
-    "string": ""
+    "string": "Il file selezionato non è un backup JSON valido"
   },
   "Backup loaded from file": {
-    "string": ""
+    "string": "Backup caricato da file"
   },
   "Failed to load backup file": {
-    "string": ""
+    "string": "Impossibile caricare il file di backup"
   },
   "Load from File": {
-    "string": ""
+    "string": "Carica da file"
   },
   "Mask:": {
     "string": ""
@@ -12795,88 +12795,88 @@
     "string": ""
   },
   "Generating backup...": {
-    "string": ""
+    "string": "Creazione del backup..."
   },
   "Saving backup file...": {
-    "string": ""
+    "string": "Salvataggio del file di backup..."
   },
   "Loading backup file...": {
-    "string": ""
+    "string": "Caricamento del file di backup in corso..."
   },
   "Restoring backup...": {
-    "string": ""
+    "string": "Ripristino del backup..."
   },
   "Decrypting backup...": {
-    "string": ""
+    "string": "Decrittografia del backup..."
   },
   "selected backup file": {
-    "string": ""
+    "string": "file di backup selezionato"
   },
   "Backup Loaded": {
-    "string": ""
+    "string": "Backup caricato"
   },
   "Backup file loaded successfully. Please wait during restore and do not close the app.": {
-    "string": ""
+    "string": "Il file di backup è stato caricato correttamente. Attendi il completamento del ripristino e non chiudere l'applicazione."
   },
   "Please paste backup data or load a backup file first": {
-    "string": ""
+    "string": "Inserisci i dati di backup o carica prima un file di backup"
   },
   "Restarting after backup restore": {
-    "string": ""
+    "string": "Riavvio dopo il ripristino del backup"
   },
   "Restart Required": {
-    "string": ""
+    "string": "Richiesta di riavvio"
   },
   "Please close and reopen the app manually to complete restore.": {
-    "string": ""
+    "string": "Chiudi e riapri l'applicazione manualmente per completare il ripristino."
   },
   "Loaded from file. JSON preview is hidden for large backups. You can restore now.": {
-    "string": ""
+    "string": "Caricato dal file. L'anteprima JSON è nascosta per i backup di grandi dimensioni. È possibile eseguire il ripristino ora."
   },
   "Loaded Backup File": {
-    "string": ""
+    "string": "File di backup caricato"
   },
   "File: {name}": {
-    "string": ""
+    "string": "File: {name}"
   },
   "Size: {size} MB": {
-    "string": ""
+    "string": "Dimensione: {size} MB"
   },
   "Items: {count}": {
-    "string": ""
+    "string": "Elementi: {count}"
   },
   "Please wait while restoring. Do not close the app.": {
-    "string": ""
+    "string": "Attendi il completamento del ripristino. Non chiudere l'applicazione."
   },
   "Switch to Manual JSON Paste": {
     "string": ""
   },
   "Backup restored successfully. Please restart the app to reload all restored data.": {
-    "string": ""
+    "string": "Il backup è stato ripristinato correttamente. Riavvia l'applicazione per ricaricare tutti i dati ripristinati."
   },
   "Exit to Restart App": {
-    "string": ""
+    "string": "Esci per riavviare l'applicazione"
   },
   "Please wait... Do not close the app while this operation is in progress.": {
-    "string": ""
+    "string": "Attendi... Non chiudere l'applicazione mentre l'operazione è in corso."
   },
   "Saving...": {
-    "string": ""
+    "string": "Salvataggio in corso..."
   },
   "Unavailable": {
-    "string": ""
+    "string": "Non disponibile"
   },
   "Syncing subscription with backend...": {
-    "string": ""
+    "string": "Sincronizzazione dell'abbonamento con il backend..."
   },
   "Fetching TURN credentials from backend...": {
-    "string": ""
+    "string": "Recupero delle credenziali TURN dal backend..."
   },
   "TURN credentials loaded. TTL: {ttl}s": {
-    "string": ""
+    "string": "Credenziali TURN caricate. TTL: {ttl}s"
   },
   "Failed to load Privacy Relay subscription.": {
-    "string": ""
+    "string": "Impossibile caricare l'abbonamento a Privacy Relay."
   },
   "Privacy Relay enabled": {
     "string": ""
@@ -12885,7 +12885,7 @@
     "string": ""
   },
   "Failed to complete subscription.": {
-    "string": ""
+    "string": "Impossibile completare l'iscrizione."
   },
   "Unable to start subscription purchase.": {
     "string": "Impossibile avviare l'acquisto dell'abbonamento."
@@ -12903,76 +12903,76 @@
     "string": "Impossibile ripristinare gli acquisti."
   },
   "No subscription": {
-    "string": ""
+    "string": "Nessun abbonamento"
   },
   "Buy or restore Privacy Relay first.": {
-    "string": ""
+    "string": "Acquista o ripristina prima Privacy Relay."
   },
   "Relay ready": {
     "string": ""
   },
   "TURN credentials were fetched successfully.": {
-    "string": ""
+    "string": "Le credenziali TURN sono state recuperate correttamente."
   },
   "Relay test failed": {
     "string": ""
   },
   "Unable to fetch TURN credentials.": {
-    "string": ""
+    "string": "Impossibile recuperare le credenziali TURN."
   },
   "Monthly relay access using turn.dbase.in.rs": {
-    "string": ""
+    "string": "Accesso mensile tramite relay utilizzando turn.dbase.in.rs"
   },
   "Yearly relay access using turn.dbase.in.rs": {
-    "string": ""
+    "string": "Accesso a staffetta annuale tramite turn.dbase.in.rs"
   },
   "Active": {
-    "string": ""
+    "string": "Attivo"
   },
   "Subscribe": {
-    "string": ""
+    "string": "Iscriviti"
   },
   "Privacy Relay": {
     "string": ""
   },
   "Subscription active": {
-    "string": ""
+    "string": "Abbonamento attivo"
   },
   "Subscription inactive": {
-    "string": ""
+    "string": "Abbonamento inattivo"
   },
   "Relay routing can be offered for calls that need TURN fallback.": {
     "string": ""
   },
   "Direct P2P remains default. TURN relay is only offered to subscribed users.": {
-    "string": ""
+    "string": "Il P2P diretto rimane l'impostazione predefinita. Il relay TURN è disponibile solo per gli utenti abbonati."
   },
   "TURN setup": {
-    "string": ""
+    "string": "Configurazione di TURN"
   },
   "Credentials are not embedded in the app. They must be issued by your backend per session.": {
-    "string": ""
+    "string": "Le credenziali non sono integrate nell'applicazione. Devono essere emesse dal backend per ogni sessione."
   },
   "Monthly": {
-    "string": ""
+    "string": "Mensile"
   },
   "Yearly": {
-    "string": ""
+    "string": "Annuale"
   },
   "Test Relay Credentials": {
-    "string": ""
+    "string": "Verifica delle credenziali del Relay"
   },
   "Last backend test": {
-    "string": ""
+    "string": "Ultimo test del backend"
   },
   "Copying backup data...": {
-    "string": ""
+    "string": "Copiando i dati di backup..."
   },
   "No backup data to save": {
-    "string": ""
+    "string": "Non ci sono dati di backup da salvare"
   },
   "Privacy Relay for Calls": {
-    "string": ""
+    "string": "Relay di privacy per le chiamate"
   },
   "Manage TURN relay access on turn.dbase.in.rs for calls that cannot stay direct P2P": {
     "string": ""
@@ -12981,102 +12981,102 @@
     "string": ""
   },
   "Calls": {
-    "string": ""
+    "string": "Chiamate"
   },
   "Query": {
-    "string": ""
+    "string": "Query"
   },
   "Failed to load options": {
-    "string": ""
+    "string": "Impossibile caricare le opzioni"
   },
   "DBase (Optional Default)": {
-    "string": ""
+    "string": "DBase (Opzioni di Default)"
   },
   "Use the built-in DBase network now. You can still change or remove it later.": {
-    "string": ""
+    "string": "Utilizza subito il network DBase integrato. Potrai comunque modificarlo o rimuoverlo in un secondo momento."
   },
   "Choose Another Server Later": {
-    "string": ""
+    "string": "Scegli un altro server in un secondo momento"
   },
   "Finish setup now and open Choose Network later to add or reload networks from the API list.": {
     "string": "Completa ora la configurazione, e poi apri Scegli Networks per aggiungere o ricaricare i networks dall'elenco API."
   },
   "Your identity is saved. Open Choose Network to add a server or reload the approved API network list.": {
-    "string": ""
+    "string": "La tua identità è stata salvata. Apri “Scegli network” per aggiungere un server o ricaricare l'elenco delle reti API approvate."
   },
   "Open Choose Network": {
-    "string": ""
+    "string": "Apri Scegli Network"
   },
   "No new networks imported": {
-    "string": ""
+    "string": "Nessun nuovo Network importato"
   },
   "No new networks were imported from IRC Database. Existing entries are unchanged.": {
-    "string": ""
+    "string": "Non sono stati importati nuovi network dal database IRC. Le voci esistenti rimangono invariate."
   },
   "Import partially completed": {
-    "string": ""
+    "string": "Importazione parzialmente completata"
   },
   "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Failed to save: {failed}. Skipped unchanged: {skipped}.": {
     "string": ""
   },
   "Import completed": {
-    "string": ""
+    "string": "Importazione completata"
   },
   "Imported: {importedNetworks} networks ({importedServers} servers). Merged: {mergedNetworks} networks (+{mergedServers} servers). Skipped unchanged: {skipped}.": {
-    "string": ""
+    "string": "Importato: {importedNetworks} networks ({importedServers} servers). Unito: {mergedNetworks} networks (+{mergedServers} servers). Saltato senza modifiche: {skipped}."
   },
   "Import failed": {
-    "string": ""
+    "string": "Importazione fallita"
   },
   "Unable to load data from IRC Database: {error}": {
-    "string": ""
+    "string": "Impossibile caricare i dati dal database IRC: {error}"
   },
   "Unable to open link": {
-    "string": ""
+    "string": "Impossibile aprire il link"
   },
   "Reload from IRC Database": {
-    "string": ""
+    "string": "Ricarica dal database IRC"
   },
   "You can add your own networks here, or reload the approved network list from the IRC Database API. Existing networks are kept; missing servers are added.": {
-    "string": ""
+    "string": "Qui puoi aggiungere i tuoi network o ricaricare l'elenco dei network approvati dall'API del database IRC. I network esistenti vengono mantenuti; i server mancanti vengono aggiunti."
   },
   "Reload Networks from IRC Database": {
-    "string": ""
+    "string": "Ricarica i Network dal database IRC"
   },
   "IRC Database contains networks that explicitly opted in to be publicly discoverable in IRC clients.": {
-    "string": ""
+    "string": "Il database IRC contiene i network che hanno espressamente acconsentito ad essere visibili pubblicamente nei client IRC."
   },
   "Reload means update: matching networks are skipped, and only missing servers are added to existing networks.": {
-    "string": ""
+    "string": "Il ricaricamento equivale a un aggiornamento: i network corrispondenti vengono ignorati e ai gruppi esistenti vengono aggiunti solo i server mancanti."
   },
   "AndroidIRCX reloads approved presets from IRC Database. Imported entries are added to your local Networks list. Your default DBase setup remains unchanged.": {
     "string": "AndroidIRCX ricarica i preset approvati dal database IRC. Le voci importate vengono aggiunte all'elenco dei Network locali. La configurazione DBase predefinita rimane invariata."
   },
   "If your network is not listed and you want inclusion in AndroidIRCX:": {
-    "string": ""
+    "string": "Se il tuo Network non è presente nell'elenco e desideri che venga incluso in AndroidIRCX:"
   },
   "By submitting your network, you accept:": {
-    "string": ""
+    "string": "Inviando il tuo network, accetti:"
   },
   "Submission means your network permits IRCDBase bot discovery actions such as /list, /lusers, and joining the most active channel.": {
     "string": ""
   },
   "Nickname collection via /names is optional and can be disabled in your IRC Database network settings.": {
-    "string": ""
+    "string": "La raccolta dei nickname tramite /names è facoltativa e può essere disattivata nelle impostazioni di rete del tuo database IRC."
   },
   "Update from IRC Database": {
-    "string": ""
+    "string": "Aggiornamento dal database IRC"
   },
   "Enable Category Debug Logging": {
     "string": ""
   },
   "Enable optional debug logs by category in development builds": {
-    "string": ""
+    "string": "Abilita i log di debug opzionali per categoria nelle build di sviluppo"
   },
   "Requires console logging to be enabled": {
     "string": ""
   },
   "Unexpected syntax check failure.": {
-    "string": ""
+    "string": "Errore imprevisto nel controllo della sintassi."
   }
 }

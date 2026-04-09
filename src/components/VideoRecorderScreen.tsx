@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * VideoRecorderScreen - Full-screen camera for recording videos
- * 
+ *
  * Uses react-native-vision-camera to record videos with audio
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,12 @@ import {
   Modal,
   Platform,
 } from 'react-native';
-import { Camera, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useMicrophonePermission,
+} from 'react-native-vision-camera';
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
@@ -42,8 +47,14 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
   const recordingPathRef = useRef<string | null>(null);
 
   const device = useCameraDevice('back');
-  const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } = useCameraPermission();
-  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } = useMicrophonePermission();
+  const {
+    hasPermission: hasCameraPermission,
+    requestPermission: requestCameraPermission,
+  } = useCameraPermission();
+  const {
+    hasPermission: hasMicPermission,
+    requestPermission: requestMicPermission,
+  } = useMicrophonePermission();
 
   const startRecording = async () => {
     if (!cameraRef.current || !device || isRecording) {
@@ -61,37 +72,51 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
       const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
       recordingPathRef.current = filePath;
 
+      // Start duration timer before recording begins so cleanup paths can always clear it.
+      durationIntervalRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+
       // Start recording
       await cameraRef.current.startRecording({
         fileType: 'mp4',
-        onRecordingFinished: async (video) => {
+        onRecordingFinished: async video => {
           try {
             setIsRecording(false);
-            
+
             // Stop duration timer if still running
             if (durationIntervalRef.current) {
               clearInterval(durationIntervalRef.current);
               durationIntervalRef.current = null;
             }
-            
+
             // Copy video file to cache directory
             let videoPath = video.path;
             if (!videoPath.startsWith('file://')) {
               videoPath = `file://${videoPath}`;
             }
-            
+
             // Remove file:// prefix for RNFS operations
             const normalizedVideoPath = videoPath.replace('file://', '');
-            const videoData = await RNFS.readFile(normalizedVideoPath, 'base64');
+            const videoData = await RNFS.readFile(
+              normalizedVideoPath,
+              'base64',
+            );
             await RNFS.writeFile(filePath, videoData, 'base64');
 
             // Calculate duration (use recorded duration)
             const duration = recordingDuration;
 
             // Return file URI with file:// prefix
-            const fileUri = Platform.OS === 'android' ? `file://${filePath}` : filePath;
+            const fileUri =
+              Platform.OS === 'android' ? `file://${filePath}` : filePath;
 
-            console.log('[VideoRecorderScreen] Video saved:', fileUri, 'Duration:', duration);
+            console.log(
+              '[VideoRecorderScreen] Video saved:',
+              fileUri,
+              'Duration:',
+              duration,
+            );
 
             // Notify parent
             onVideoRecorded(fileUri, duration);
@@ -102,18 +127,20 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
             setIsRecording(false);
           }
         },
-        onRecordingError: (recordingError) => {
-          console.error('[VideoRecorderScreen] Recording error:', recordingError);
+        onRecordingError: recordingError => {
+          console.error(
+            '[VideoRecorderScreen] Recording error:',
+            recordingError,
+          );
           setError(recordingError.message || t('Recording failed'));
           setIsRecording(false);
         },
       });
-
-      // Start duration timer
-      durationIntervalRef.current = setInterval(() => {
-        setRecordingDuration((prev) => prev + 1);
-      }, 1000);
     } catch (err: any) {
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = null;
+      }
       console.error('[VideoRecorderScreen] Start recording error:', err);
       setError(err.message || t('Failed to start recording'));
       setIsRecording(false);
@@ -131,10 +158,10 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
         clearInterval(durationIntervalRef.current);
         durationIntervalRef.current = null;
       }
-      
+
       // Stop recording (onRecordingFinished callback will handle file saving)
       await cameraRef.current.stopRecording();
-      
+
       // Note: setIsRecording(false) will be called in onRecordingFinished callback
     } catch (err: any) {
       console.error('[VideoRecorderScreen] Stop recording error:', err);
@@ -152,11 +179,22 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
   const handleRequestPermissions = async () => {
     const cameraGranted = await requestCameraPermission();
     const micGranted = await requestMicPermission();
-    
+
     if (!cameraGranted || !micGranted) {
-      setError(t('Camera and microphone permissions are required to record videos'));
+      setError(
+        t('Camera and microphone permissions are required to record videos'),
+      );
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   if (!visible) {
     return null;
@@ -169,23 +207,38 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
         transparent={true}
         animationType="slide"
         onRequestClose={onClose}
-        statusBarTranslucent={false}>
+        statusBarTranslucent={false}
+      >
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           <View style={styles.permissionContainer}>
             <Text style={[styles.permissionTitle, { color: colors.text }]}>
               {t('Permissions Required')}
             </Text>
-            <Text style={[styles.permissionMessage, { color: colors.textSecondary }]}>
-              {t('This app needs access to your camera and microphone to record videos.')}
+            <Text
+              style={[
+                styles.permissionMessage,
+                { color: colors.textSecondary },
+              ]}
+            >
+              {t(
+                'This app needs access to your camera and microphone to record videos.',
+              )}
             </Text>
             <TouchableOpacity
-              style={[styles.permissionButton, { backgroundColor: colors.accent }]}
-              onPress={handleRequestPermissions}>
-              <Text style={styles.permissionButtonText}>{t('Grant Permissions')}</Text>
+              style={[
+                styles.permissionButton,
+                { backgroundColor: colors.accent },
+              ]}
+              onPress={handleRequestPermissions}
+            >
+              <Text style={styles.permissionButtonText}>
+                {t('Grant Permissions')}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.cancelButton, { borderColor: colors.border }]}
-              onPress={onClose}>
+              onPress={onClose}
+            >
               <Text style={[styles.cancelButtonText, { color: colors.text }]}>
                 {t('Cancel')}
               </Text>
@@ -203,7 +256,8 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
         transparent={true}
         animationType="slide"
         onRequestClose={onClose}
-        statusBarTranslucent={false}>
+        statusBarTranslucent={false}
+      >
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           <View style={styles.errorContainer}>
             <Text style={[styles.errorText, { color: colors.error }]}>
@@ -211,7 +265,8 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
             </Text>
             <TouchableOpacity
               style={[styles.cancelButton, { borderColor: colors.border }]}
-              onPress={onClose}>
+              onPress={onClose}
+            >
               <Text style={[styles.cancelButtonText, { color: colors.text }]}>
                 {t('Close')}
               </Text>
@@ -228,7 +283,8 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
       transparent={false}
       animationType="slide"
       onRequestClose={onClose}
-      statusBarTranslucent={false}>
+      statusBarTranslucent={false}
+    >
       <View style={styles.container}>
         <Camera
           ref={cameraRef}
@@ -246,21 +302,31 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
             <TouchableOpacity
               style={styles.closeButton}
               onPress={onClose}
-              disabled={isRecording}>
+              disabled={isRecording}
+            >
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
             {isRecording && (
               <View style={styles.recordingIndicator}>
                 <View style={styles.recordingDot} />
-                <Text style={styles.recordingText}>{formatDuration(recordingDuration)}</Text>
+                <Text style={styles.recordingText}>
+                  {formatDuration(recordingDuration)}
+                </Text>
               </View>
             )}
           </View>
 
           {/* Error message */}
           {error && (
-            <View style={[styles.errorBanner, { backgroundColor: colors.error + '20' }]}>
-              <Text style={[styles.errorBannerText, { color: colors.error }]}>{error}</Text>
+            <View
+              style={[
+                styles.errorBanner,
+                { backgroundColor: colors.error + '20' },
+              ]}
+            >
+              <Text style={[styles.errorBannerText, { color: colors.error }]}>
+                {error}
+              </Text>
             </View>
           )}
 
@@ -271,10 +337,13 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
               <TouchableOpacity
                 style={[
                   styles.recordButton,
-                  { backgroundColor: isRecording ? colors.error : colors.accent },
+                  {
+                    backgroundColor: isRecording ? colors.error : colors.accent,
+                  },
                 ]}
                 onPress={isRecording ? stopRecording : startRecording}
-                disabled={false}>
+                disabled={false}
+              >
                 {isRecording ? (
                   <View style={styles.stopIcon} />
                 ) : (

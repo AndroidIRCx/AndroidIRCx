@@ -56,7 +56,6 @@ const MIR_CONTROL = {
   strikethrough: String.fromCharCode(IRC_FORMAT_CODES.STRIKETHROUGH),
 };
 
-
 interface MessageInputProps {
   placeholder?: string;
   onSubmit: (message: string) => void;
@@ -96,7 +95,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   // Media upload state
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
   const [showMediaPreviewModal, setShowMediaPreviewModal] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<MediaPickResult | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<MediaPickResult | null>(
+    null,
+  );
   const [showAttachmentButton, setShowAttachmentButton] = useState(false);
   const [showColorPickerButton, setShowColorPickerButton] = useState(true);
   const [showColorPickerModal, setShowColorPickerModal] = useState(false);
@@ -107,7 +108,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [nickCompleteSeparator1, setNickCompleteSeparator1] = useState('');
   const [nickCompleteSeparator2, setNickCompleteSeparator2] = useState('');
   const [nickCompleteStyleId, setNickCompleteStyleId] = useState('');
-  const [pendingNickReplacements, setPendingNickReplacements] = useState<PendingNickReplacement[]>([]);
+  const [pendingNickReplacements, setPendingNickReplacements] = useState<
+    PendingNickReplacement[]
+  >([]);
 
   // Typing indicator state
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -115,21 +118,40 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const lastActivityRef = useRef(0);
 
   // Enter key behavior state
-  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>('send');
+  const [enterKeyBehavior, setEnterKeyBehavior] = useState<'send' | 'newline'>(
+    'send',
+  );
 
   // Load send button setting and subscribe to changes
   useEffect(() => {
     const loadSendButtonSetting = async () => {
       const enabled = await settingsService.getSetting('showSendButton', true);
       setShowSendButton(enabled);
-      const showColors = await settingsService.getSetting('showColorPickerButton', true);
+      const showColors = await settingsService.getSetting(
+        'showColorPickerButton',
+        true,
+      );
       setShowColorPickerButton(showColors);
-      const enterBehavior = await settingsService.getSetting<'send' | 'newline'>('enterKeyBehavior', 'send');
+      const enterBehavior = await settingsService.getSetting<
+        'send' | 'newline'
+      >('enterKeyBehavior', 'send');
       setEnterKeyBehavior(enterBehavior === 'newline' ? 'newline' : 'send');
-      const nickEnabled = await settingsService.getSetting('nickCompleteEnabled', false);
-      const sep1 = await settingsService.getSetting('nickCompleteSeparator1', '');
-      const sep2 = await settingsService.getSetting('nickCompleteSeparator2', '');
-      const styleId = await settingsService.getSetting('nickCompleteStyleId', '');
+      const nickEnabled = await settingsService.getSetting(
+        'nickCompleteEnabled',
+        false,
+      );
+      const sep1 = await settingsService.getSetting(
+        'nickCompleteSeparator1',
+        '',
+      );
+      const sep2 = await settingsService.getSetting(
+        'nickCompleteSeparator2',
+        '',
+      );
+      const styleId = await settingsService.getSetting(
+        'nickCompleteStyleId',
+        '',
+      );
       setNickCompleteEnabled(nickEnabled);
       setNickCompleteSeparator1(sep1);
       setNickCompleteSeparator2(sep2);
@@ -138,27 +160,47 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     loadSendButtonSetting();
 
     // Subscribe to setting changes
-    const unsubscribe = settingsService.onSettingChange<boolean>('showSendButton', (value) => {
-      setShowSendButton(value);
-    });
-    const unsubscribeColors = settingsService.onSettingChange<boolean>('showColorPickerButton', (value) => {
-      setShowColorPickerButton(Boolean(value));
-    });
-    const unsubscribeEnterBehavior = settingsService.onSettingChange<'send' | 'newline'>('enterKeyBehavior', (value) => {
+    const unsubscribe = settingsService.onSettingChange<boolean>(
+      'showSendButton',
+      value => {
+        setShowSendButton(value);
+      },
+    );
+    const unsubscribeColors = settingsService.onSettingChange<boolean>(
+      'showColorPickerButton',
+      value => {
+        setShowColorPickerButton(Boolean(value));
+      },
+    );
+    const unsubscribeEnterBehavior = settingsService.onSettingChange<
+      'send' | 'newline'
+    >('enterKeyBehavior', value => {
       setEnterKeyBehavior(value);
     });
-    const unsubscribeNickEnabled = settingsService.onSettingChange<boolean>('nickCompleteEnabled', (value) => {
-      setNickCompleteEnabled(Boolean(value));
-    });
-    const unsubscribeSep1 = settingsService.onSettingChange<string>('nickCompleteSeparator1', (value) => {
-      setNickCompleteSeparator1(String(value ?? ''));
-    });
-    const unsubscribeSep2 = settingsService.onSettingChange<string>('nickCompleteSeparator2', (value) => {
-      setNickCompleteSeparator2(String(value ?? ''));
-    });
-    const unsubscribeStyle = settingsService.onSettingChange<string>('nickCompleteStyleId', (value) => {
-      setNickCompleteStyleId(String(value ?? ''));
-    });
+    const unsubscribeNickEnabled = settingsService.onSettingChange<boolean>(
+      'nickCompleteEnabled',
+      value => {
+        setNickCompleteEnabled(Boolean(value));
+      },
+    );
+    const unsubscribeSep1 = settingsService.onSettingChange<string>(
+      'nickCompleteSeparator1',
+      value => {
+        setNickCompleteSeparator1(String(value ?? ''));
+      },
+    );
+    const unsubscribeSep2 = settingsService.onSettingChange<string>(
+      'nickCompleteSeparator2',
+      value => {
+        setNickCompleteSeparator2(String(value ?? ''));
+      },
+    );
+    const unsubscribeStyle = settingsService.onSettingChange<string>(
+      'nickCompleteStyleId',
+      value => {
+        setNickCompleteStyleId(String(value ?? ''));
+      },
+    );
 
     return () => {
       unsubscribe();
@@ -175,69 +217,83 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     selectionRef.current = selection;
   }, [selection]);
 
-  const setSelectionSafely = useCallback((next: { start: number; end: number }) => {
-    suppressNextSelectionChangeRef.current = true;
-    setSelection(next);
-  }, []);
+  const setSelectionSafely = useCallback(
+    (next: { start: number; end: number }) => {
+      suppressNextSelectionChangeRef.current = true;
+      setSelection(next);
+    },
+    [],
+  );
 
   const sanitizeStyleString = useCallback((style: string) => {
     const normalized = repairMojibake(style);
-    const allowedControls = new Set([0x02, 0x03, 0x0F, 0x16, 0x1D, 0x1F, 0x1E, 0x08]);
-    return Array.from(normalized).filter((char) => {
-      const code = char.charCodeAt(0);
-      if (code >= 32 && code !== 127) return true;
-      return allowedControls.has(code);
-    }).join('');
+    const allowedControls = new Set([
+      0x02, 0x03, 0x0f, 0x16, 0x1d, 0x1f, 0x1e, 0x08,
+    ]);
+    return Array.from(normalized)
+      .filter(char => {
+        const code = char.charCodeAt(0);
+        if (code >= 32 && code !== 127) return true;
+        return allowedControls.has(code);
+      })
+      .join('');
   }, []);
 
-  const normalizeNickStyle = useCallback((style: string) => (
-    sanitizeStyleString(style)
-      .replace(/(\x08)(on|off)$/i, '$1')
-      .replace(/\s+(on|off)$/i, '')
-  ), [sanitizeStyleString]);
+  const normalizeNickStyle = useCallback(
+    (style: string) =>
+      sanitizeStyleString(style)
+        .replace(/(\x08)(on|off)$/i, '$1')
+        .replace(/\s+(on|off)$/i, ''),
+    [sanitizeStyleString],
+  );
 
-  const replaceBackspacePlaceholder = useCallback((template: string, value: string) => {
-    const idx = template.indexOf('\x08');
-    if (idx === -1) return template;
-    const before = template.slice(0, idx);
-    const after = template.slice(idx + 1).replace(/\x08/g, '');
-    return `${before}${value}${after}`;
-  }, []);
+  const replaceBackspacePlaceholder = useCallback(
+    (template: string, value: string) => {
+      const idx = template.indexOf('\x08');
+      if (idx === -1) return template;
+      const before = template.slice(0, idx);
+      const after = template.slice(idx + 1).replace(/\x08/g, '');
+      return `${before}${value}${after}`;
+    },
+    [],
+  );
 
-  const buildNickCompletionParts = useCallback((nick: string) => {
-    if (!nickCompleteEnabled) {
-      return { display: nick, styled: nick };
-    }
-
-    if (nickCompleteStyleId) {
-      const normalizedStyle = normalizeNickStyle(nickCompleteStyleId);
-      if (/<nick>/i.test(normalizedStyle)) {
-        const styled = normalizedStyle.replace(/<nick>/gi, nick);
-        // Show plain nick while typing; apply styled version only on submit.
-        return { display: nick, styled };
+  const buildNickCompletionParts = useCallback(
+    (nick: string) => {
+      if (!nickCompleteEnabled) {
+        return { display: nick, styled: nick };
       }
-      if (normalizedStyle.includes('\x08')) {
-        const styled = replaceBackspacePlaceholder(normalizedStyle, nick);
-        // Show plain nick while typing; apply styled version only on submit.
-        return { display: nick, styled };
+
+      if (nickCompleteStyleId) {
+        const normalizedStyle = normalizeNickStyle(nickCompleteStyleId);
+        if (/<nick>/i.test(normalizedStyle)) {
+          const styled = normalizedStyle.replace(/<nick>/gi, nick);
+          // Show plain nick while typing; apply styled version only on submit.
+          return { display: nick, styled };
+        }
+        if (normalizedStyle.includes('\x08')) {
+          const styled = replaceBackspacePlaceholder(normalizedStyle, nick);
+          // Show plain nick while typing; apply styled version only on submit.
+          return { display: nick, styled };
+        }
       }
-    }
 
-    const sep1 = nickCompleteSeparator1 || '';
-    const sep2 = nickCompleteSeparator2 || '';
-    const combined = `${sep1}${nick}${sep2}`;
-    const base = combined.trim().length > 0 ? combined : nick;
-    // Show plain nick while typing; apply separators/styling only on submit.
-    return { display: nick, styled: base };
-  }, [
-    nickCompleteEnabled,
-    nickCompleteSeparator1,
-    nickCompleteSeparator2,
-    nickCompleteStyleId,
-    normalizeNickStyle,
-    replaceBackspacePlaceholder,
-  ]);
-
+      const sep1 = nickCompleteSeparator1 || '';
+      const sep2 = nickCompleteSeparator2 || '';
+      const combined = `${sep1}${nick}${sep2}`;
+      const base = combined.trim().length > 0 ? combined : nick;
+      // Show plain nick while typing; apply separators/styling only on submit.
+      return { display: nick, styled: base };
+    },
+    [
+      nickCompleteEnabled,
+      nickCompleteSeparator1,
+      nickCompleteSeparator2,
+      nickCompleteStyleId,
+      normalizeNickStyle,
+      replaceBackspacePlaceholder,
+    ],
+  );
 
   // Check if attachment button should be shown
   useEffect(() => {
@@ -258,19 +314,29 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           effectiveTabId = `query::${network}::${tabName}`;
         } else {
           // Server/notice tabs don't support media
-          console.log('[MessageInput] Server/notice tab, hiding attachment button');
+          console.log(
+            '[MessageInput] Server/notice tab, hiding attachment button',
+          );
           setShowAttachmentButton(false);
           return;
         }
       }
 
       if (!effectiveTabId) {
-        console.log('[MessageInput] No tabId available, hiding attachment button');
+        console.log(
+          '[MessageInput] No tabId available, hiding attachment button',
+        );
         setShowAttachmentButton(false);
         return;
       }
 
-      console.log('[MessageInput] Checking attachment button visibility:', { network, tabId, effectiveTabId, tabType, tabName });
+      console.log('[MessageInput] Checking attachment button visibility:', {
+        network,
+        tabId,
+        effectiveTabId,
+        tabType,
+        tabName,
+      });
 
       // Check if media feature is enabled
       const mediaEnabled = await mediaSettingsService.isMediaEnabled();
@@ -281,7 +347,10 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       }
 
       // Check if tab has E2E encryption
-      const hasEncryption = await mediaEncryptionService.hasEncryptionKey(network, effectiveTabId);
+      const hasEncryption = await mediaEncryptionService.hasEncryptionKey(
+        network,
+        effectiveTabId,
+      );
       console.log('[MessageInput] Has encryption:', hasEncryption);
       setShowAttachmentButton(hasEncryption);
     };
@@ -289,36 +358,46 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     checkAttachmentButton();
   }, [network, tabId, tabType, tabName]);
 
-  const sendTypingIndicator = useCallback((status: 'active' | 'paused' | 'done') => {
-    if (!tabName || tabType === 'server' || disabled) return;
+  const sendTypingIndicator = useCallback(
+    (status: 'active' | 'paused' | 'done') => {
+      if (!tabName || tabType === 'server' || disabled) return;
 
-    const activeNetworkId = connectionManager.getActiveNetworkId();
-    if (!activeNetworkId) return;
+      const activeNetworkId = connectionManager.getActiveNetworkId();
+      if (!activeNetworkId) return;
 
-    const connection = connectionManager.getConnection(activeNetworkId);
-    if (!connection?.ircService) return;
+      const connection = connectionManager.getConnection(activeNetworkId);
+      if (!connection?.ircService) return;
 
-    // Only send typing indicator if server supports it (has typing capability)
-    connection.ircService.sendTypingIndicator(tabName, status);
-  }, [disabled, tabName, tabType]);
+      // Only send typing indicator if server supports it (has typing capability)
+      connection.ircService.sendTypingIndicator(tabName, status);
+    },
+    [disabled, tabName, tabType],
+  );
 
-  const applyPendingNickReplacements = useCallback((value: string) => {
-    if (pendingNickReplacements.length === 0) return value;
-    let next = value;
-    pendingNickReplacements.forEach((replacement) => {
-      let start = replacement.start;
-      if (start < 0 || start + replacement.display.length > next.length ||
-        next.slice(start, start + replacement.display.length) !== replacement.display) {
-        start = next.indexOf(replacement.display);
-      }
-      if (start === -1) {
-        return;
-      }
-      const end = start + replacement.display.length;
-      next = `${next.slice(0, start)}${replacement.styled}${next.slice(end)}`;
-    });
-    return next;
-  }, [pendingNickReplacements]);
+  const applyPendingNickReplacements = useCallback(
+    (value: string) => {
+      if (pendingNickReplacements.length === 0) return value;
+      let next = value;
+      pendingNickReplacements.forEach(replacement => {
+        let start = replacement.start;
+        if (
+          start < 0 ||
+          start + replacement.display.length > next.length ||
+          next.slice(start, start + replacement.display.length) !==
+            replacement.display
+        ) {
+          start = next.indexOf(replacement.display);
+        }
+        if (start === -1) {
+          return;
+        }
+        const end = start + replacement.display.length;
+        next = `${next.slice(0, start)}${replacement.styled}${next.slice(end)}`;
+      });
+      return next;
+    },
+    [pendingNickReplacements],
+  );
 
   const handleSubmit = () => {
     if (message.trim() && !disabled) {
@@ -331,7 +410,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       }
 
       const trimmedMessage = message.trim();
-      const withNickStyles = trimmedMessage.startsWith('/') ? message : applyPendingNickReplacements(message);
+      const withNickStyles = trimmedMessage.startsWith('/')
+        ? message
+        : applyPendingNickReplacements(message);
       onSubmit(withNickStyles.trim());
       setMessage('');
       setSuggestions([]);
@@ -386,24 +467,28 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setShowMediaPreviewModal(false);
   };
 
-  const applyControlCode = useCallback((openCode: string, closeCode?: string) => {
-    const { start, end } = selectionRef.current;
-    const before = message.slice(0, start);
-    const selected = message.slice(start, end);
-    const after = message.slice(end);
-    if (start !== end) {
-      const closing = closeCode ?? openCode;
-      const nextValue = `${before}${openCode}${selected}${closing}${after}`;
-      const nextCursor = before.length + openCode.length + selected.length + closing.length;
+  const applyControlCode = useCallback(
+    (openCode: string, closeCode?: string) => {
+      const { start, end } = selectionRef.current;
+      const before = message.slice(0, start);
+      const selected = message.slice(start, end);
+      const after = message.slice(end);
+      if (start !== end) {
+        const closing = closeCode ?? openCode;
+        const nextValue = `${before}${openCode}${selected}${closing}${after}`;
+        const nextCursor =
+          before.length + openCode.length + selected.length + closing.length;
+        setMessage(nextValue);
+        setSelectionSafely({ start: nextCursor, end: nextCursor });
+        return;
+      }
+      const nextValue = `${before}${openCode}${after}`;
+      const nextCursor = start + openCode.length;
       setMessage(nextValue);
       setSelectionSafely({ start: nextCursor, end: nextCursor });
-      return;
-    }
-    const nextValue = `${before}${openCode}${after}`;
-    const nextCursor = start + openCode.length;
-    setMessage(nextValue);
-    setSelectionSafely({ start: nextCursor, end: nextCursor });
-  }, [message, setSelectionSafely]);
+    },
+    [message, setSelectionSafely],
+  );
 
   const handleInsertColor = (code: string) => {
     applyControlCode(code, MIR_CONTROL.color);
@@ -449,7 +534,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const handleChangeText = (text: string) => {
     setMessage(text);
     if (pendingNickReplacements.length > 0) {
-      setPendingNickReplacements(prev => prev.filter(item => text.includes(item.display)));
+      setPendingNickReplacements(prev =>
+        prev.filter(item => text.includes(item.display)),
+      );
     }
     const now = Date.now();
     if (now - lastActivityRef.current > 3000) {
@@ -543,7 +630,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       { cmd: 'trace', desc: t('Trace route to server') },
       { cmd: 'squery', desc: t('Query IRC services') },
       { cmd: 'reconnect', desc: t('Reconnect to server') },
-      { cmd: 'server', desc: t('Connect to server: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]') },
+      {
+        cmd: 'server',
+        desc: t(
+          'Connect to server: /server [-m] [-e] [-t] <address> [port] [password] [-l method pass] [-i nick anick email name] [-jn #channel pass] [-sar]',
+        ),
+      },
       { cmd: 'disconnect', desc: t('Disconnect from server') },
       { cmd: 'anick', desc: t('Set alternate nickname') },
       { cmd: 'ajinvite', desc: t('Auto-join on invite toggle') },
@@ -596,22 +688,24 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       .slice(0, 6);
 
     // Aliases
-    const aliasMatches: Array<MessageInputSuggestion & { score: number }> = commandService.getAliases()
-      .map(alias => {
-        const aliasText = `/${alias.alias}`;
-        return {
-          text: aliasText,
-          description: alias.description,
-          source: 'alias' as const,
-          score: scoreAliasForContext(alias.command),
-        };
-      })
-      .filter(item => item.text.toLowerCase().startsWith(typedLower))
-      .sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score;
-        return a.text.localeCompare(b.text);
-      })
-      .slice(0, 6);
+    const aliasMatches: Array<MessageInputSuggestion & { score: number }> =
+      commandService
+        .getAliases()
+        .map(alias => {
+          const aliasText = `/${alias.alias}`;
+          return {
+            text: aliasText,
+            description: alias.description,
+            source: 'alias' as const,
+            score: scoreAliasForContext(alias.command),
+          };
+        })
+        .filter(item => item.text.toLowerCase().startsWith(typedLower))
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return a.text.localeCompare(b.text);
+        })
+        .slice(0, 6);
 
     // History
     const history = commandService.getHistory(30).map(entry => entry.command);
@@ -626,15 +720,19 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     // Channel suggestions (open channel tabs for this network)
     let channelMatches: MessageInputSuggestion[] = [];
     const lastSpaceIndex = text.lastIndexOf(' ');
-    const rawToken = lastSpaceIndex === -1 ? text : text.slice(lastSpaceIndex + 1);
+    const rawToken =
+      lastSpaceIndex === -1 ? text : text.slice(lastSpaceIndex + 1);
     const token = rawToken.startsWith('@') ? rawToken.slice(1) : rawToken;
     const isCommandToken = rawToken.startsWith('/') && lastSpaceIndex === -1;
     if (!isCommandToken && token.length >= 2) {
       const networkId = network || connectionManager.getActiveNetworkId();
-      const conn = networkId ? connectionManager.getConnection(networkId) : null;
+      const conn = networkId
+        ? connectionManager.getConnection(networkId)
+        : null;
       const nickSet = new Map<string, string>();
       if (conn?.ircService && tabType === 'channel' && tabName) {
-        conn.ircService.getChannelUsers(tabName)
+        conn.ircService
+          .getChannelUsers(tabName)
           .map((user: any) => user.nick)
           .filter(Boolean)
           .forEach((nick: string) => {
@@ -663,7 +761,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
     // Channel completion: for tokens like "#And" (use open channel tabs on current network)
     // This enables typing e.g. "/csop #And" and selecting "#AndroidIRCx".
-    if (!isCommandToken && rawToken.length >= 2 && (rawToken.startsWith('#') || rawToken.startsWith('&'))) {
+    if (
+      !isCommandToken &&
+      rawToken.length >= 2 &&
+      (rawToken.startsWith('#') || rawToken.startsWith('&'))
+    ) {
       const networkId = network || connectionManager.getActiveNetworkId();
       if (networkId) {
         const tabs = useTabStore.getState().getTabsByNetwork(networkId);
@@ -690,23 +792,43 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     if (text.startsWith('/') && serviceCommands.isDetected) {
       const query = text.slice(1).toLowerCase();
       // Only suggest service commands for specific prefixes
-      if (query.startsWith('ns') || query.startsWith('cs') || query.startsWith('hs') || 
-          query.startsWith('os') || query.startsWith('ms') || query.startsWith('bs') ||
-          query.startsWith('msg ') || query.startsWith('/msg ')) {
+      if (
+        query.startsWith('ns') ||
+        query.startsWith('cs') ||
+        query.startsWith('hs') ||
+        query.startsWith('os') ||
+        query.startsWith('ms') ||
+        query.startsWith('bs') ||
+        query.startsWith('msg ') ||
+        query.startsWith('/msg ')
+      ) {
         const serviceSuggestions = serviceCommands.getSuggestions(query);
-        serviceMatches = serviceSuggestions.map(s => ({
-          text: s.isAlias ? s.text : `/msg ${s.serviceNick} ${s.text}`,
-          description: s.description,
-          source: 'service' as const,
-        })).slice(0, 4);
+        serviceMatches = serviceSuggestions
+          .map(s => ({
+            text: s.isAlias ? s.text : `/msg ${s.serviceNick} ${s.text}`,
+            description: s.description,
+            source: 'service' as const,
+          }))
+          .slice(0, 4);
       }
     }
 
     // Merge: commands first, then aliases, then service commands, then history, then channel, then nick - dedupe by text
     const merged: MessageInputSuggestion[] = [];
-    [...commandMatches, ...aliasMatches, ...serviceMatches, ...historyMatches, ...channelMatches, ...nickMatches].forEach(item => {
+    [
+      ...commandMatches,
+      ...aliasMatches,
+      ...serviceMatches,
+      ...historyMatches,
+      ...channelMatches,
+      ...nickMatches,
+    ].forEach(item => {
       if (!merged.some(m => m.text.toLowerCase() === item.text.toLowerCase())) {
-        merged.push({ text: item.text, description: (item as any).description, source: item.source });
+        merged.push({
+          text: item.text,
+          description: (item as any).description,
+          source: item.source,
+        });
       }
     });
 
@@ -741,7 +863,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                     style={styles.attachmentButton}
                     onPress={handleAttachmentPress}
                     disabled={disabled}
-                    accessibilityLabel={t('Attach media')}>
+                    accessibilityLabel={t('Attach media')}
+                  >
                     <Text style={styles.attachmentIcon}>📎</Text>
                   </TouchableOpacity>
                 )}
@@ -750,8 +873,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                     style={styles.colorButton}
                     onPress={() => setShowColorPickerModal(true)}
                     disabled={disabled}
-                    accessibilityLabel={t('Open color picker')}>
-                    <Icon name="palette" size={16} color={colors.textSecondary} solid />
+                    accessibilityLabel={t('Open color picker')}
+                  >
+                    <Icon
+                      name="palette"
+                      size={16}
+                      color={colors.textSecondary}
+                      solid
+                    />
                   </TouchableOpacity>
                 )}
               </ScrollView>
@@ -762,7 +891,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                     style={styles.attachmentButton}
                     onPress={handleAttachmentPress}
                     disabled={disabled}
-                    accessibilityLabel={t('Attach media')}>
+                    accessibilityLabel={t('Attach media')}
+                  >
                     <Text style={styles.attachmentIcon}>📎</Text>
                   </TouchableOpacity>
                 )}
@@ -771,8 +901,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                     style={styles.colorButton}
                     onPress={() => setShowColorPickerModal(true)}
                     disabled={disabled}
-                    accessibilityLabel={t('Open color picker')}>
-                    <Icon name="palette" size={16} color={colors.textSecondary} solid />
+                    accessibilityLabel={t('Open color picker')}
+                  >
+                    <Icon
+                      name="palette"
+                      size={16}
+                      color={colors.textSecondary}
+                      solid
+                    />
                   </TouchableOpacity>
                 )}
               </>
@@ -786,9 +922,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           onChangeText={handleChangeText}
           placeholder={placeholder || t('Enter a message')}
           placeholderTextColor={colors.inputPlaceholder}
-          onSubmitEditing={enterKeyBehavior === 'send' ? handleSubmit : undefined}
+          onSubmitEditing={
+            enterKeyBehavior === 'send' ? handleSubmit : undefined
+          }
           onKeyPress={handleKeyPress}
-          onSelectionChange={(event) => {
+          onSelectionChange={event => {
             if (suppressNextSelectionChangeRef.current) {
               suppressNextSelectionChangeRef.current = false;
               return;
@@ -809,18 +947,28 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             style={styles.sendButton}
             onPress={handleSubmit}
             disabled={disabled || !message.trim()}
-            accessibilityLabel={t('Send message')}>
+            accessibilityLabel={t('Send message')}
+          >
             <Icon
               name="arrow-up"
               size={18}
-              color={message.trim() && !disabled ? colors.primary : colors.textSecondary}
+              color={
+                message.trim() && !disabled
+                  ? colors.primary
+                  : colors.textSecondary
+              }
               solid
             />
           </TouchableOpacity>
         )}
       </View>
       {suggestions.length > 0 && (
-        <View style={[styles.suggestionsContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+        <View
+          style={[
+            styles.suggestionsContainer,
+            { borderColor: colors.border, backgroundColor: colors.surface },
+          ]}
+        >
           {suggestions.map(suggestion => (
             <TouchableOpacity
               key={suggestion.text}
@@ -828,10 +976,18 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 let nextMessage = '';
                 if (suggestion.source === 'nick') {
                   const lastSpaceIndex = message.lastIndexOf(' ');
-                  const before = lastSpaceIndex === -1 ? '' : message.slice(0, lastSpaceIndex + 1);
-                  const rawToken = lastSpaceIndex === -1 ? message : message.slice(lastSpaceIndex + 1);
+                  const before =
+                    lastSpaceIndex === -1
+                      ? ''
+                      : message.slice(0, lastSpaceIndex + 1);
+                  const rawToken =
+                    lastSpaceIndex === -1
+                      ? message
+                      : message.slice(lastSpaceIndex + 1);
                   const prefix = rawToken.startsWith('@') ? '@' : '';
-                  const { display, styled } = buildNickCompletionParts(suggestion.text);
+                  const { display, styled } = buildNickCompletionParts(
+                    suggestion.text,
+                  );
                   const displayWithPrefix = `${prefix}${display}`;
                   const styledWithPrefix = `${prefix}${styled}`;
                   const displayToken = displayWithPrefix.endsWith(' ')
@@ -844,27 +1000,43 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                     const delta = displayToken.length - rawToken.length;
                     setPendingNickReplacements(prev => {
                       const next = prev
-                        .filter(item => item.end <= insertStart || item.start >= insertStart + rawToken.length)
-                        .map(item => (
+                        .filter(
+                          item =>
+                            item.end <= insertStart ||
+                            item.start >= insertStart + rawToken.length,
+                        )
+                        .map(item =>
                           item.start >= insertStart + rawToken.length
-                            ? { ...item, start: item.start + delta, end: item.end + delta }
-                            : item
-                        ));
-                      return [...next, {
-                        start: insertStart,
-                        end: insertEnd,
-                        display: displayWithPrefix,
-                        styled: styledWithPrefix,
-                      }];
+                            ? {
+                                ...item,
+                                start: item.start + delta,
+                                end: item.end + delta,
+                              }
+                            : item,
+                        );
+                      return [
+                        ...next,
+                        {
+                          start: insertStart,
+                          end: insertEnd,
+                          display: displayWithPrefix,
+                          styled: styledWithPrefix,
+                        },
+                      ];
                     });
                   }
                 } else if (suggestion.source === 'channel') {
                   const lastSpaceIndex = message.lastIndexOf(' ');
-                  const before = lastSpaceIndex === -1 ? '' : message.slice(0, lastSpaceIndex + 1);
+                  const before =
+                    lastSpaceIndex === -1
+                      ? ''
+                      : message.slice(0, lastSpaceIndex + 1);
                   // Replace only the current token (e.g. "#And") and keep the rest
                   nextMessage = `${before}${suggestion.text} `;
                 } else {
-                  nextMessage = suggestion.text + (suggestion.text.endsWith(' ') ? '' : ' ');
+                  nextMessage =
+                    suggestion.text +
+                    (suggestion.text.endsWith(' ') ? '' : ' ');
                 }
                 setMessage(nextMessage);
                 const cursorPos = nextMessage.length;
@@ -876,8 +1048,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({
               <Text style={[styles.suggestionText, { color: colors.text }]}>
                 {suggestion.text}
                 {suggestion.description ? ` — ${suggestion.description}` : ''}
-                {!suggestion.description && suggestion.source === 'alias' ? ` — ${t('alias')}` : ''}
-                {!suggestion.description && suggestion.source === 'history' ? ` — ${t('recent')}` : ''}
+                {!suggestion.description && suggestion.source === 'alias'
+                  ? ` — ${t('alias')}`
+                  : ''}
+                {!suggestion.description && suggestion.source === 'history'
+                  ? ` — ${t('recent')}`
+                  : ''}
               </Text>
             </TouchableOpacity>
           ))}
@@ -903,25 +1079,33 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 style={styles.formatAction}
                 onPress={() => applyControlCode(MIR_CONTROL.bold)}
               >
-                <Text style={[styles.formatActionText, styles.formatBold]}>B</Text>
+                <Text style={[styles.formatActionText, styles.formatBold]}>
+                  B
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.formatAction}
                 onPress={() => applyControlCode(MIR_CONTROL.italic)}
               >
-                <Text style={[styles.formatActionText, styles.formatItalic]}>I</Text>
+                <Text style={[styles.formatActionText, styles.formatItalic]}>
+                  I
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.formatAction}
                 onPress={() => applyControlCode(MIR_CONTROL.underline)}
               >
-                <Text style={[styles.formatActionText, styles.formatUnderline]}>U</Text>
+                <Text style={[styles.formatActionText, styles.formatUnderline]}>
+                  U
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.formatAction}
                 onPress={() => applyControlCode(MIR_CONTROL.strikethrough)}
               >
-                <Text style={[styles.formatActionText, styles.formatStrike]}>S</Text>
+                <Text style={[styles.formatActionText, styles.formatStrike]}>
+                  S
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.formatAction}
@@ -968,144 +1152,145 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   );
 };
 
-const createStyles = (colors: any, bottomInset: number = 0) => StyleSheet.create({
-  container: {
-    backgroundColor: colors.background,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    paddingBottom: Math.max(8, bottomInset),
-    ...Platform.select({
-      android: {
-        elevation: 4,
-      },
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-      },
-    }),
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.inputBackground,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  toolbarContainer: {
-    marginRight: 8,
-  },
-  toolbarContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  attachmentButton: {
-    marginRight: 8,
-    padding: 4,
-  },
-  attachmentIcon: {
-    fontSize: 20,
-    opacity: 0.7,
-  },
-  colorButton: {
-    marginRight: 4,
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  sendButton: {
-    marginLeft: 8,
-    padding: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 16,
-    width: 32,
-    height: 32,
-  },
-  input: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.inputText,
-    paddingVertical: 4,
-    minHeight: 20,
-    maxHeight: 120,
-  },
-  suggestionsContainer: {
-    marginTop: 6,
-    borderWidth: 1,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  suggestionRow: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-  },
-  suggestionText: {
-    fontSize: 13,
-  },
-  colorModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  colorModalCard: {
-    width: '92%',
-    maxWidth: 420,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-  },
-  colorModalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  colorModalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  colorModalClose: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  formatActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  formatAction: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  formatActionText: {
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  formatBold: {
-    fontWeight: '800',
-  },
-  formatItalic: {
-    fontStyle: 'italic',
-  },
-  formatUnderline: {
-    textDecorationLine: 'underline',
-  },
-  formatStrike: {
-    textDecorationLine: 'line-through',
-  },
-});
+const createStyles = (colors: any, bottomInset: number = 0) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.background,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      paddingBottom: Math.max(8, bottomInset),
+      ...Platform.select({
+        android: {
+          elevation: 4,
+        },
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3.84,
+        },
+      }),
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.inputBackground,
+      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+    toolbarContainer: {
+      marginRight: 8,
+    },
+    toolbarContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    attachmentButton: {
+      marginRight: 8,
+      padding: 4,
+    },
+    attachmentIcon: {
+      fontSize: 20,
+      opacity: 0.7,
+    },
+    colorButton: {
+      marginRight: 4,
+      padding: 6,
+      borderRadius: 8,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    sendButton: {
+      marginLeft: 8,
+      padding: 6,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 16,
+      width: 32,
+      height: 32,
+    },
+    input: {
+      flex: 1,
+      fontSize: 14,
+      color: colors.inputText,
+      paddingVertical: 4,
+      minHeight: 20,
+      maxHeight: 120,
+    },
+    suggestionsContainer: {
+      marginTop: 6,
+      borderWidth: 1,
+      borderRadius: 8,
+      overflow: 'hidden',
+    },
+    suggestionRow: {
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+    },
+    suggestionText: {
+      fontSize: 13,
+    },
+    colorModalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    colorModalCard: {
+      width: '92%',
+      maxWidth: 420,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 16,
+    },
+    colorModalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    colorModalTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    colorModalClose: {
+      color: colors.primary,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    formatActionsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    formatAction: {
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    formatActionText: {
+      color: colors.text,
+      fontWeight: '600',
+      fontSize: 14,
+    },
+    formatBold: {
+      fontWeight: '800',
+    },
+    formatItalic: {
+      fontStyle: 'italic',
+    },
+    formatUnderline: {
+      textDecorationLine: 'underline',
+    },
+    formatStrike: {
+      textDecorationLine: 'line-through',
+    },
+  });

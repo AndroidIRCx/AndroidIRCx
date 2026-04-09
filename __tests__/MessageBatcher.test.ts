@@ -71,7 +71,7 @@ describe('MessageBatcher', () => {
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(
-        new Map([['tab1', [expect.objectContaining({ text: 'Hello' })]]])
+        new Map([['tab1', [expect.objectContaining({ text: 'Hello' })]]]),
       );
       expect(batcher.getQueueSize()).toBe(0);
     });
@@ -105,10 +105,15 @@ describe('MessageBatcher', () => {
       // Should have flushed both messages
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(
-        new Map([['tab1', expect.arrayContaining([
-          expect.objectContaining({ text: 'Hello' }),
-          expect.objectContaining({ text: 'World' })
-        ])]])
+        new Map([
+          [
+            'tab1',
+            expect.arrayContaining([
+              expect.objectContaining({ text: 'Hello' }),
+              expect.objectContaining({ text: 'World' }),
+            ]),
+          ],
+        ]),
       );
       expect(batcher.getQueueSize()).toBe(0);
     });
@@ -138,7 +143,7 @@ describe('MessageBatcher', () => {
       batcher.setFlushCallback(callback);
 
       const messages = Array.from({ length: 60 }, (_, i) =>
-        createMessage(`msg${i}`, `Message ${i}`)
+        createMessage(`msg${i}`, `Message ${i}`),
       );
 
       batcher.addMessages('tab1', messages);
@@ -163,7 +168,7 @@ describe('MessageBatcher', () => {
         new Map([
           ['tab1', [expect.objectContaining({ text: 'Hello' })]],
           ['tab2', [expect.objectContaining({ text: 'World' })]],
-        ])
+        ]),
       );
       expect(batcher.getQueueSize()).toBe(0);
     });

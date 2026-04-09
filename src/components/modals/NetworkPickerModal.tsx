@@ -19,7 +19,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { settingsService, IRCNetworkConfig } from '../../services/SettingsService';
+import {
+  settingsService,
+  IRCNetworkConfig,
+} from '../../services/SettingsService';
 import { useTheme } from '../../hooks/useTheme';
 import { useT } from '../../i18n/transifex';
 
@@ -73,7 +76,9 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
 
   const getNetworkIcon = (network: IRCNetworkConfig) => {
     // Check if network has ZNC server configured
-    const hasZnc = network.servers?.some((s: any) => s.connectionType === 'znc');
+    const hasZnc = network.servers?.some(
+      (s: any) => s.connectionType === 'znc',
+    );
     if (hasZnc) {
       return { name: 'server', color: '#4CAF50' };
     }
@@ -140,7 +145,15 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
           <Text style={[styles.headerTitle, { color: colors.text }]}>
             {title || t('Select Network')}
           </Text>
@@ -155,7 +168,9 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
         <View style={[styles.infoBanner, { backgroundColor: colors.surface }]}>
           <Icon name="info-circle" size={16} color={colors.primary} />
           <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-            {t('Select a network to add your ZNC server to. The ZNC will be automatically configured.')}
+            {t(
+              'Select a network to add your ZNC server to. The ZNC will be automatically configured.',
+            )}
           </Text>
         </View>
 
@@ -180,7 +195,12 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
         )}
 
         {/* Create New Network Button */}
-        <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+        <View
+          style={[
+            styles.footer,
+            { backgroundColor: colors.surface, borderTopColor: colors.border },
+          ]}
+        >
           <TouchableOpacity
             style={[styles.createButton, { backgroundColor: colors.primary }]}
             onPress={onCreateNew}

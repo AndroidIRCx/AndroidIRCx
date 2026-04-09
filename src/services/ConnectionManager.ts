@@ -58,7 +58,9 @@ class ConnectionManager {
    * @param callback - Callback function called when a new connection is created
    * @returns Cleanup function to remove listener
    */
-  public onConnectionCreated(callback: (networkId: string) => void): () => void {
+  public onConnectionCreated(
+    callback: (networkId: string) => void,
+  ): () => void {
     this.connectionCreatedCallbacks.push(callback);
     return () => {
       const index = this.connectionCreatedCallbacks.indexOf(callback);
@@ -76,7 +78,10 @@ class ConnectionManager {
       try {
         callback(networkId);
       } catch (error) {
-        console.error('ConnectionManager: Error in connection-created callback:', error);
+        console.error(
+          'ConnectionManager: Error in connection-created callback:',
+          error,
+        );
       }
     });
   }
@@ -86,12 +91,15 @@ class ConnectionManager {
       return;
     }
     const activeConnections = Array.from(this.connections.values()).filter(
-      ctx => ctx.ircService.getConnectionStatus()
+      ctx => ctx.ircService.getConnectionStatus(),
     );
     const count = activeConnections.length;
     if (count === 0) {
       ircForegroundService.stop().catch(err => {
-        console.error('ConnectionManager: Failed to stop foreground service:', err);
+        console.error(
+          'ConnectionManager: Failed to stop foreground service:',
+          err,
+        );
       });
       return;
     }
@@ -103,15 +111,25 @@ class ConnectionManager {
       suffix = ` (${trimmed.join(', ')}${uniqueNames.length > 3 ? ` +${uniqueNames.length - 3}` : ''})`;
     }
     const title = t('IRC Connected');
-    const text = count <= 1
-      ? t('Connected to {networkName}', { networkName: uniqueNames[0] || t('IRC server') })
-      : t('Connected to {count} servers{suffix}', { count, suffix });
+    const text =
+      count <= 1
+        ? t('Connected to {networkName}', {
+            networkName: uniqueNames[0] || t('IRC server'),
+          })
+        : t('Connected to {count} servers{suffix}', { count, suffix });
     ircForegroundService.updateNotification(title, text).catch(err => {
-      console.error('ConnectionManager: Failed to update foreground notification:', err);
+      console.error(
+        'ConnectionManager: Failed to update foreground notification:',
+        err,
+      );
     });
   }
 
-  public async connect(networkId: string, networkConfig: IRCNetworkConfig, connectionConfig: IRCConnectionConfig): Promise<string> {
+  public async connect(
+    networkId: string,
+    networkConfig: IRCNetworkConfig,
+    connectionConfig: IRCConnectionConfig,
+  ): Promise<string> {
     let finalId = networkId;
     const existing = this.connections.get(finalId);
     if (existing) {
@@ -122,9 +140,13 @@ class ConnectionManager {
           suffix++;
         }
         finalId = `${networkId} (${suffix})`;
-        console.log(`ConnectionManager: Connection to ${networkId} already exists and is active, using id ${finalId}`);
+        console.log(
+          `ConnectionManager: Connection to ${networkId} already exists and is active, using id ${finalId}`,
+        );
       } else {
-        console.log(`ConnectionManager: Reusing disconnected connection slot for ${networkId}`);
+        console.log(
+          `ConnectionManager: Reusing disconnected connection slot for ${networkId}`,
+        );
         this.disconnect(finalId);
       }
     }
@@ -132,22 +154,46 @@ class ConnectionManager {
     console.log(`ConnectionManager: Creating new connection for ${finalId}`);
     console.log('ConnectionManager: Checking service imports...');
     console.log('IRCService:', typeof IRCService, IRCService);
-    console.log('ChannelManagementService:', typeof ChannelManagementService, ChannelManagementService);
-    console.log('UserManagementService:', typeof UserManagementService, UserManagementService);
-    console.log('ChannelListService:', typeof ChannelListService, ChannelListService);
-    console.log('AutoRejoinService:', typeof AutoRejoinService, AutoRejoinService);
+    console.log(
+      'ChannelManagementService:',
+      typeof ChannelManagementService,
+      ChannelManagementService,
+    );
+    console.log(
+      'UserManagementService:',
+      typeof UserManagementService,
+      UserManagementService,
+    );
+    console.log(
+      'ChannelListService:',
+      typeof ChannelListService,
+      ChannelListService,
+    );
+    console.log(
+      'AutoRejoinService:',
+      typeof AutoRejoinService,
+      AutoRejoinService,
+    );
     console.log('AutoVoiceService:', typeof AutoVoiceService, AutoVoiceService);
-    console.log('ConnectionQualityService:', typeof ConnectionQualityService, ConnectionQualityService);
+    console.log(
+      'ConnectionQualityService:',
+      typeof ConnectionQualityService,
+      ConnectionQualityService,
+    );
     console.log('BouncerService:', typeof BouncerService, BouncerService);
     console.log('STSService:', typeof STSService, STSService);
     console.log('CommandService:', typeof CommandService, CommandService);
 
     const ircService = new IRCService();
-    ircService.setNetworkId(finalId);  // Set networkId FIRST so all messages have correct network!
+    ircService.setNetworkId(finalId); // Set networkId FIRST so all messages have correct network!
     const manualWhoisDoubleNick = networkConfig.whoisUseDoubleNick === true;
-    const autoDetectWhoisDoubleNick = networkConfig.whoisAutoDetectDoubleNick !== false;
+    const autoDetectWhoisDoubleNick =
+      networkConfig.whoisAutoDetectDoubleNick !== false;
     ircService.setWhoisUseDoubleNick(manualWhoisDoubleNick);
-    ircService.addRawMessage(t('*** Creating new connection for {networkId}', { networkId: finalId }), 'connection');
+    ircService.addRawMessage(
+      t('*** Creating new connection for {networkId}', { networkId: finalId }),
+      'connection',
+    );
     const channelManagementService = new ChannelManagementService(ircService);
     const userManagementService = new UserManagementService();
     userManagementService.setIRCService(ircService);
@@ -171,13 +217,15 @@ class ConnectionManager {
     const cleanupFunctions: Array<() => void> = [];
 
     // Warn if TLS verification is disabled on any configured server
-    const insecureServers = networkConfig.servers.filter(s => s.rejectUnauthorized === false);
+    const insecureServers = networkConfig.servers.filter(
+      s => s.rejectUnauthorized === false,
+    );
     if (insecureServers.length > 0) {
       ircService.addRawMessage(
         t(
-          '*** Warning: TLS certificate verification is disabled for this server. Enable "Reject unauthorized certificates" unless you trust this self-signed/expired cert.'
+          '*** Warning: TLS certificate verification is disabled for this server. Enable "Reject unauthorized certificates" unless you trust this self-signed/expired cert.',
         ),
-        'connection'
+        'connection',
       );
     }
 
@@ -187,9 +235,15 @@ class ConnectionManager {
       const motdEndCleanup = ircService.on('motdEnd', () => {
         try {
           ircService.sendRaw(`PRIVMSG NickServ :IDENTIFY ${nickservPassword}`);
-          ircService.addRawMessage(t('*** Sending NickServ IDENTIFY...'), 'auth');
+          ircService.addRawMessage(
+            t('*** Sending NickServ IDENTIFY...'),
+            'auth',
+          );
         } catch (error) {
-          console.error(`ConnectionManager: Failed to send NickServ IDENTIFY for ${finalId}:`, error);
+          console.error(
+            `ConnectionManager: Failed to send NickServ IDENTIFY for ${finalId}:`,
+            error,
+          );
         }
       });
       // Store cleanup function if one was returned
@@ -216,7 +270,9 @@ class ConnectionManager {
             ircService.sendRaw(`OPER ${operUser} ${profile.operPassword}`);
           }
 
-          const commands = (profile.onConnectCommands || []).filter(cmd => !!cmd && cmd.trim().length > 0);
+          const commands = (profile.onConnectCommands || []).filter(
+            cmd => !!cmd && cmd.trim().length > 0,
+          );
           if (commands.length > 0) {
             const commandTarget =
               ircService.getCurrentNick?.() ||
@@ -229,7 +285,9 @@ class ConnectionManager {
 
               // Explicit raw commands keep raw semantics.
               if (/^\/(?:quote|raw)\s+/i.test(trimmed)) {
-                const normalizedRaw = trimmed.replace(/^\/(?:quote|raw)\s+/i, '').trim();
+                const normalizedRaw = trimmed
+                  .replace(/^\/(?:quote|raw)\s+/i, '')
+                  .trim();
                 if (normalizedRaw) {
                   ircService.sendRaw(normalizedRaw);
                 }
@@ -247,12 +305,18 @@ class ConnectionManager {
               ircService.sendRaw(trimmed);
             });
             ircService.addRawMessage(
-              t('*** Executed {count} on-connect command(s) from identity profile', { count: commands.length }),
-              'connection'
+              t(
+                '*** Executed {count} on-connect command(s) from identity profile',
+                { count: commands.length },
+              ),
+              'connection',
             );
           }
         } catch (error) {
-          console.error(`ConnectionManager: Failed to run identity on-connect commands for ${finalId}:`, error);
+          console.error(
+            `ConnectionManager: Failed to run identity on-connect commands for ${finalId}:`,
+            error,
+          );
         }
       });
       if (motdCommandsCleanup && typeof motdCommandsCleanup === 'function') {
@@ -295,7 +359,10 @@ class ConnectionManager {
 
     // Initialize services
     console.log(`ConnectionManager: Initializing services for ${finalId}`);
-    ircService.addRawMessage(t('*** Initializing services for {networkId}', { networkId: finalId }), 'connection');
+    ircService.addRawMessage(
+      t('*** Initializing services for {networkId}', { networkId: finalId }),
+      'connection',
+    );
     await userManagementService.initialize();
     notifyService.initialize?.();
     channelManagementService.initialize();
@@ -305,77 +372,104 @@ class ConnectionManager {
     bouncerService.initialize();
     commandService.initialize();
     // Initialize service detection
-    console.log(`ConnectionManager: Initializing service detection for ${finalId}`);
+    console.log(
+      `ConnectionManager: Initializing service detection for ${finalId}`,
+    );
     serviceDetectionService.initializeNetwork(finalId);
-    
-    // Subscribe to service detection events
-      const detectionCleanup = serviceDetectionService.onDetection((detectedNetworkId, result) => {
-        if (detectedNetworkId === finalId) {
-        if (autoDetectWhoisDoubleNick && !manualWhoisDoubleNick) {
-          const undernetDetected = result.serviceType === 'undernet';
-          ircService.setWhoisUseDoubleNick(undernetDetected);
-        }
 
-        console.log(`ConnectionManager: Service detected for ${finalId}:`, result);
-        ircService.addRawMessage(
-          t('*** Detected services: {serviceType} (confidence: {confidence}%)', {
-            serviceType: result.serviceType,
-            confidence: Math.round(result.confidence * 100),
-          }),
-          'server'
-        );
-        
-        // Trigger auto-authentication when services are detected
-        if (!autoAuthService.isAuthenticated()) {
-          autoAuthService.authenticate().then(authResult => {
-            if (authResult.success) {
-              console.log(`ConnectionManager: Auto-authenticated using ${authResult.method}`);
-            } else if (authResult.error) {
-              console.log(`ConnectionManager: Auto-auth not attempted: ${authResult.error}`);
-            }
-          }).catch(error => {
-            console.error(`ConnectionManager: Auto-auth error:`, error);
-          });
+    // Subscribe to service detection events
+    const detectionCleanup = serviceDetectionService.onDetection(
+      (detectedNetworkId, result) => {
+        if (detectedNetworkId === finalId) {
+          if (autoDetectWhoisDoubleNick && !manualWhoisDoubleNick) {
+            const undernetDetected = result.serviceType === 'undernet';
+            ircService.setWhoisUseDoubleNick(undernetDetected);
+          }
+
+          console.log(
+            `ConnectionManager: Service detected for ${finalId}:`,
+            result,
+          );
+          ircService.addRawMessage(
+            t(
+              '*** Detected services: {serviceType} (confidence: {confidence}%)',
+              {
+                serviceType: result.serviceType,
+                confidence: Math.round(result.confidence * 100),
+              },
+            ),
+            'server',
+          );
+
+          // Trigger auto-authentication when services are detected
+          if (!autoAuthService.isAuthenticated()) {
+            autoAuthService
+              .authenticate()
+              .then(authResult => {
+                if (authResult.success) {
+                  console.log(
+                    `ConnectionManager: Auto-authenticated using ${authResult.method}`,
+                  );
+                } else if (authResult.error) {
+                  console.log(
+                    `ConnectionManager: Auto-auth not attempted: ${authResult.error}`,
+                  );
+                }
+              })
+              .catch(error => {
+                console.error(`ConnectionManager: Auto-auth error:`, error);
+              });
+          }
         }
-      }
-    });
+      },
+    );
     context.serviceDetectionCleanup = detectionCleanup;
 
     // Set up 005 ISUPPORT handling for service detection
-    const isupportCleanup = ircService.on('rawMessage', (data: { prefix: string; command: string; params: string[] }) => {
-      if (data.command === '005') {
-        // RPL_ISUPPORT: Parse tokens for service detection
-        const tokens = data.params.slice(1, -1); // Skip nick and trailing
-        serviceDetectionService.processISupport(finalId, tokens);
-        
-        // Look for NETWORK token
-        for (const token of tokens) {
-          if (token.startsWith('NETWORK=')) {
-            const networkName = token.slice(8);
-            serviceDetectionService.processNetworkName(finalId, networkName);
+    const isupportCleanup = ircService.on(
+      'rawMessage',
+      (data: { prefix: string; command: string; params: string[] }) => {
+        if (data.command === '005') {
+          // RPL_ISUPPORT: Parse tokens for service detection
+          const tokens = data.params.slice(1, -1); // Skip nick and trailing
+          serviceDetectionService.processISupport(finalId, tokens);
+
+          // Look for NETWORK token
+          for (const token of tokens) {
+            if (token.startsWith('NETWORK=')) {
+              const networkName = token.slice(8);
+              serviceDetectionService.processNetworkName(finalId, networkName);
+            }
           }
         }
-      }
-    });
+      },
+    );
     cleanupFunctions.push(isupportCleanup);
 
     // Handle welcome message (001) for network name detection
-    const welcomeCleanup = ircService.on('welcome', (data: { networkName?: string }) => {
-      if (data.networkName) {
-        serviceDetectionService.processNetworkName(finalId, data.networkName);
-      }
-    });
+    const welcomeCleanup = ircService.on(
+      'welcome',
+      (data: { networkName?: string }) => {
+        if (data.networkName) {
+          serviceDetectionService.processNetworkName(finalId, data.networkName);
+        }
+      },
+    );
     cleanupFunctions.push(welcomeCleanup);
 
     // Handle SASL authentication events
     const saslSuccessCleanup = ircService.on('sasl-success', () => {
-      console.log(`ConnectionManager: SASL authentication successful for ${finalId}`);
+      console.log(
+        `ConnectionManager: SASL authentication successful for ${finalId}`,
+      );
       autoAuthService.updateSaslStatus(ircService.isSaslAvailable(), true);
     });
     cleanupFunctions.push(saslSuccessCleanup);
 
     const saslFailCleanup = ircService.on('sasl-fail', () => {
-      console.log(`ConnectionManager: SASL authentication failed for ${finalId}`);
+      console.log(
+        `ConnectionManager: SASL authentication failed for ${finalId}`,
+      );
       // Trigger fallback authentication if SASL fails
       if (!autoAuthService.isAuthenticated()) {
         autoAuthService.authenticate().catch(error => {
@@ -389,16 +483,23 @@ class ConnectionManager {
     this.setActiveConnection(finalId);
 
     // Register with AutoReconnectService for automatic reconnection
-    console.log(`ConnectionManager: Registering ${finalId} with AutoReconnectService`);
+    console.log(
+      `ConnectionManager: Registering ${finalId} with AutoReconnectService`,
+    );
     autoReconnectService.registerConnection(finalId, ircService);
 
     console.log(`ConnectionManager: Connecting to IRC server for ${finalId}`);
-    ircService.addRawMessage(t('*** Connecting to IRC server for {networkId}', { networkId: finalId }), 'connection');
+    ircService.addRawMessage(
+      t('*** Connecting to IRC server for {networkId}', { networkId: finalId }),
+      'connection',
+    );
     await ircService.connect(connectionConfig);
 
     // Emit event to notify listeners that a new connection was created
     // This allows useConnectionLifecycle to re-attach event listeners to the new IRCService instance
-    console.log(`ConnectionManager: Emitting connection-created event for ${finalId}`);
+    console.log(
+      `ConnectionManager: Emitting connection-created event for ${finalId}`,
+    );
     this.emitConnectionCreated(finalId);
     this.updateForegroundConnectionSummary();
 
@@ -411,16 +512,24 @@ class ConnectionManager {
       console.log(`ConnectionManager: Cleaning up resources for ${networkId}`);
 
       // Unregister from AutoReconnectService
-      console.log(`ConnectionManager: Unregistering ${networkId} from AutoReconnectService`);
+      console.log(
+        `ConnectionManager: Unregistering ${networkId} from AutoReconnectService`,
+      );
       autoReconnectService.unregisterConnection(networkId);
 
       // Clean up services that have destroy methods
       try {
-        if (connection.autoRejoinService && typeof connection.autoRejoinService.destroy === 'function') {
+        if (
+          connection.autoRejoinService &&
+          typeof connection.autoRejoinService.destroy === 'function'
+        ) {
           connection.autoRejoinService.destroy();
         }
       } catch (error) {
-        console.error(`ConnectionManager: Error destroying autoRejoinService for ${networkId}:`, error);
+        console.error(
+          `ConnectionManager: Error destroying autoRejoinService for ${networkId}:`,
+          error,
+        );
       }
 
       // Clean up all event listeners and resources
@@ -429,11 +538,17 @@ class ConnectionManager {
           try {
             cleanup();
           } catch (error) {
-            console.error(`ConnectionManager: Error during cleanup for ${networkId}:`, error);
+            console.error(
+              `ConnectionManager: Error during cleanup for ${networkId}:`,
+              error,
+            );
           }
         });
       } catch (error) {
-        console.error(`ConnectionManager: Error running cleanup functions for ${networkId}:`, error);
+        console.error(
+          `ConnectionManager: Error running cleanup functions for ${networkId}:`,
+          error,
+        );
       }
 
       // Clean up service detection
@@ -441,19 +556,25 @@ class ConnectionManager {
         try {
           connection.serviceDetectionCleanup();
         } catch (error) {
-          console.error(`ConnectionManager: Error cleaning up service detection for ${networkId}:`, error);
+          console.error(
+            `ConnectionManager: Error cleaning up service detection for ${networkId}:`,
+            error,
+          );
         }
       }
-      
+
       // Clean up auto-auth service
       if (connection.autoAuthService) {
         try {
           connection.autoAuthService.destroy();
         } catch (error) {
-          console.error(`ConnectionManager: Error cleaning up auto-auth for ${networkId}:`, error);
+          console.error(
+            `ConnectionManager: Error cleaning up auto-auth for ${networkId}:`,
+            error,
+          );
         }
       }
-      
+
       serviceDetectionService.cleanupNetwork(networkId);
       serviceCommandProvider.clearCache(networkId);
 
@@ -504,7 +625,7 @@ class ConnectionManager {
     console.log('ConnectionManager: Disconnecting all connections');
     // Create array copy to avoid modifying collection while iterating
     const networkIds = Array.from(this.connections.keys());
-    networkIds.forEach((networkId) => {
+    networkIds.forEach(networkId => {
       this.disconnect(networkId, message);
     });
   }

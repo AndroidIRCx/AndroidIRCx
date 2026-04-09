@@ -74,35 +74,45 @@ describe('RegistrationNumerics', () => {
     expect(ctx.setCurrentNick).not.toHaveBeenCalled();
     expect(ctx.sendCommand).not.toHaveBeenCalled();
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: '*** Welcome to the IRC Network' })
+      expect.objectContaining({ text: '*** Welcome to the IRC Network' }),
     );
   });
 
   it('formats host and server info numerics', () => {
     handle002(ctx, 'server', ['nick', ':Your host is irc.example.org'], 102);
-    handle004(ctx, 'server', ['nick', 'irc.example.org', '1.0', 'iwso', 'mnt'], 103);
-    handle010(ctx, 'server', ['nick', 'irc2.example.org', '6697', ':Try this instead'], 104);
+    handle004(
+      ctx,
+      'server',
+      ['nick', 'irc.example.org', '1.0', 'iwso', 'mnt'],
+      103,
+    );
+    handle010(
+      ctx,
+      'server',
+      ['nick', 'irc2.example.org', '6697', ':Try this instead'],
+      104,
+    );
     handle042(ctx, 'server', ['nick', ':UID123'], 105);
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** Your host is irc.example.org' })
+      expect.objectContaining({ text: '*** Your host is irc.example.org' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
         text: '*** Server: irc.example.org | Version: 1.0 | User modes: iwso | Channel modes: mnt',
-      })
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
       expect.objectContaining({
         text: '*** Server redirect: irc2.example.org:6697 - Try this instead',
-      })
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** Your unique ID: UID123' })
+      expect.objectContaining({ text: '*** Your unique ID: UID123' }),
     );
   });
 
@@ -110,18 +120,33 @@ describe('RegistrationNumerics', () => {
     handle005(
       ctx,
       'server',
-      ['nick', 'CHANTYPES=#&', 'PREFIX=(ov)@+', 'NAMESX', ':are supported by this server'],
-      106
+      [
+        'nick',
+        'CHANTYPES=#&',
+        'PREFIX=(ov)@+',
+        'NAMESX',
+        ':are supported by this server',
+      ],
+      106,
     );
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         text: '*** Server supports: CHANTYPES=#& PREFIX=(ov)@+ NAMESX',
-      })
+      }),
     );
-    expect(ctx.logRaw).toHaveBeenNthCalledWith(1, 'IRCService: Server capability CHANTYPES=#&');
-    expect(ctx.logRaw).toHaveBeenNthCalledWith(2, 'IRCService: Server capability PREFIX=(ov)@+');
-    expect(ctx.logRaw).toHaveBeenNthCalledWith(3, 'IRCService: Server capability NAMESX');
+    expect(ctx.logRaw).toHaveBeenNthCalledWith(
+      1,
+      'IRCService: Server capability CHANTYPES=#&',
+    );
+    expect(ctx.logRaw).toHaveBeenNthCalledWith(
+      2,
+      'IRCService: Server capability PREFIX=(ov)@+',
+    );
+    expect(ctx.logRaw).toHaveBeenNthCalledWith(
+      3,
+      'IRCService: Server capability NAMESX',
+    );
   });
 
   it('suppresses snomask output for silent mode nicks', () => {

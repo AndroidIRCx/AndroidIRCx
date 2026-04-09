@@ -34,13 +34,18 @@ describe('BatchCommandHandlers', () => {
   });
 
   it('starts a batch when the id has a plus prefix', () => {
-    handleBATCH(ctx as any, 'server', ['+abc', 'draft/chathistory', 'target', '123'], 1234);
+    handleBATCH(
+      ctx as any,
+      'server',
+      ['+abc', 'draft/chathistory', 'target', '123'],
+      1234,
+    );
 
     expect(ctx.handleBatchStart).toHaveBeenCalledWith(
       'abc',
       'draft/chathistory',
       ['target', '123'],
-      1234
+      1234,
     );
     expect(ctx.handleBatchEnd).not.toHaveBeenCalled();
   });

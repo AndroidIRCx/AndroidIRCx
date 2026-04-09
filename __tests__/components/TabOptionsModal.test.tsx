@@ -14,7 +14,12 @@ jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 
 const mockStyles = {
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { backgroundColor: '#fff', padding: 20, margin: 20, borderRadius: 8 },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    margin: 20,
+    borderRadius: 8,
+  },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
   modalButton: { padding: 12, marginVertical: 4 },
   modalButtonCancel: { backgroundColor: '#ffcccc' },
@@ -51,12 +56,16 @@ describe('TabOptionsModal', () => {
   });
 
   it('should not render when not visible', () => {
-    const { queryByText } = render(<TabOptionsModal {...defaultProps} visible={false} />);
+    const { queryByText } = render(
+      <TabOptionsModal {...defaultProps} visible={false} />,
+    );
     expect(queryByText('Tab Options')).toBeNull();
   });
 
   it('should display default title when title is empty', () => {
-    const { getByText } = render(<TabOptionsModal {...defaultProps} title="" />);
+    const { getByText } = render(
+      <TabOptionsModal {...defaultProps} title="" />,
+    );
     expect(getByText('Options')).toBeTruthy();
   });
 
@@ -93,7 +102,7 @@ describe('TabOptionsModal', () => {
       { text: 'Settings', onPress: jest.fn(), icon: 'cog' },
     ];
     const { getByText } = render(
-      <TabOptionsModal {...defaultProps} options={optionsWithIcons} />
+      <TabOptionsModal {...defaultProps} options={optionsWithIcons} />,
     );
     expect(getByText('Close')).toBeTruthy();
     expect(getByText('Settings')).toBeTruthy();
@@ -101,11 +110,16 @@ describe('TabOptionsModal', () => {
 
   it('should render icon colors for destructive and regular options', () => {
     const optionsWithIcons = [
-      { text: 'Delete', onPress: jest.fn(), icon: 'delete', style: 'destructive' as const },
+      {
+        text: 'Delete',
+        onPress: jest.fn(),
+        icon: 'delete',
+        style: 'destructive' as const,
+      },
       { text: 'Rename', onPress: jest.fn(), icon: 'pencil' },
     ];
     const { UNSAFE_getAllByType } = render(
-      <TabOptionsModal {...defaultProps} options={optionsWithIcons} />
+      <TabOptionsModal {...defaultProps} options={optionsWithIcons} />,
     );
 
     const icons = UNSAFE_getAllByType('Icon');
@@ -115,11 +129,20 @@ describe('TabOptionsModal', () => {
 
   it('should fall back to default icon colors when colors are omitted', () => {
     const optionsWithIcons = [
-      { text: 'Delete', onPress: jest.fn(), icon: 'delete', style: 'destructive' as const },
+      {
+        text: 'Delete',
+        onPress: jest.fn(),
+        icon: 'delete',
+        style: 'destructive' as const,
+      },
       { text: 'Rename', onPress: jest.fn(), icon: 'pencil' },
     ];
     const { UNSAFE_getAllByType } = render(
-      <TabOptionsModal {...defaultProps} options={optionsWithIcons} colors={undefined} />
+      <TabOptionsModal
+        {...defaultProps}
+        options={optionsWithIcons}
+        colors={undefined}
+      />,
     );
 
     const icons = UNSAFE_getAllByType('Icon');
@@ -129,7 +152,7 @@ describe('TabOptionsModal', () => {
 
   it('should handle empty options array', () => {
     const { getByText } = render(
-      <TabOptionsModal {...defaultProps} options={[]} />
+      <TabOptionsModal {...defaultProps} options={[]} />,
     );
     expect(getByText('Tab Options')).toBeTruthy();
   });
@@ -137,7 +160,7 @@ describe('TabOptionsModal', () => {
   it('should handle single option', () => {
     const singleOption = [{ text: 'Only Option', onPress: jest.fn() }];
     const { getByText } = render(
-      <TabOptionsModal {...defaultProps} options={singleOption} />
+      <TabOptionsModal {...defaultProps} options={singleOption} />,
     );
     expect(getByText('Only Option')).toBeTruthy();
   });
@@ -148,7 +171,7 @@ describe('TabOptionsModal', () => {
       onPress: jest.fn(),
     }));
     const { getByText } = render(
-      <TabOptionsModal {...defaultProps} options={manyOptions} />
+      <TabOptionsModal {...defaultProps} options={manyOptions} />,
     );
     manyOptions.forEach(opt => {
       expect(getByText(opt.text)).toBeTruthy();
@@ -156,11 +179,9 @@ describe('TabOptionsModal', () => {
   });
 
   it('should handle option without onPress', () => {
-    const optionsWithoutOnPress = [
-      { text: 'No Action' },
-    ];
+    const optionsWithoutOnPress = [{ text: 'No Action' }];
     const { getByText } = render(
-      <TabOptionsModal {...defaultProps} options={optionsWithoutOnPress} />
+      <TabOptionsModal {...defaultProps} options={optionsWithoutOnPress} />,
     );
     fireEvent.press(getByText('No Action'));
     expect(defaultProps.onClose).toHaveBeenCalled();
@@ -172,7 +193,7 @@ describe('TabOptionsModal', () => {
       destructive: '#FF0000',
     };
     const { getByText } = render(
-      <TabOptionsModal {...defaultProps} colors={customColors} />
+      <TabOptionsModal {...defaultProps} colors={customColors} />,
     );
     expect(getByText('Close Tab')).toBeTruthy();
   });
@@ -183,7 +204,7 @@ describe('TabOptionsModal', () => {
       { text: 'Action', onPress: jest.fn() },
     ];
     const { getAllByText } = render(
-      <TabOptionsModal {...defaultProps} options={duplicateOptions} />
+      <TabOptionsModal {...defaultProps} options={duplicateOptions} />,
     );
     expect(getAllByText('Action')).toHaveLength(2);
   });

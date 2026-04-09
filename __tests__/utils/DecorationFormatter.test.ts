@@ -5,7 +5,10 @@
  * Tests for DecorationFormatter - 100% coverage target
  */
 
-import { applyDecoration, DecorationSettings } from '../../src/utils/DecorationFormatter';
+import {
+  applyDecoration,
+  DecorationSettings,
+} from '../../src/utils/DecorationFormatter';
 
 describe('DecorationFormatter', () => {
   describe('applyDecoration', () => {

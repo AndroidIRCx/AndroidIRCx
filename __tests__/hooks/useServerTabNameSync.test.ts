@@ -47,7 +47,7 @@ describe('useServerTabNameSync', () => {
   it('should handle network name changes', () => {
     const { rerender } = renderHook(
       ({ networkName }) => useServerTabNameSync({ networkName }),
-      { initialProps: { networkName: 'freenode' } }
+      { initialProps: { networkName: 'freenode' } },
     );
 
     // Should not throw on rerender with same value
@@ -64,7 +64,7 @@ describe('useServerTabNameSync', () => {
   it('should handle transition from empty to valid network', () => {
     const { rerender } = renderHook(
       ({ networkName }) => useServerTabNameSync({ networkName }),
-      { initialProps: { networkName: '' } }
+      { initialProps: { networkName: '' } },
     );
 
     expect(() => {
@@ -75,7 +75,7 @@ describe('useServerTabNameSync', () => {
   it('should handle transition from valid to empty network', () => {
     const { rerender } = renderHook(
       ({ networkName }) => useServerTabNameSync({ networkName }),
-      { initialProps: { networkName: 'freenode' } }
+      { initialProps: { networkName: 'freenode' } },
     );
 
     expect(() => {
@@ -96,7 +96,7 @@ describe('useServerTabNameSync', () => {
 
     const { rerender } = renderHook(
       ({ networkName }) => useServerTabNameSync({ networkName }),
-      { initialProps: { networkName: 'freenode' } }
+      { initialProps: { networkName: 'freenode' } },
     );
 
     rerender({ networkName: 'dalnet' });
@@ -113,7 +113,7 @@ describe('useServerTabNameSync', () => {
 
     const { rerender } = renderHook(
       ({ networkName }) => useServerTabNameSync({ networkName }),
-      { initialProps: { networkName: 'freenode' } }
+      { initialProps: { networkName: 'freenode' } },
     );
 
     rerender({ networkName: 'dalnet' });
@@ -124,7 +124,7 @@ describe('useServerTabNameSync', () => {
   it('should not touch store when rerendered with the same network name', () => {
     const { rerender } = renderHook(
       ({ networkName }) => useServerTabNameSync({ networkName }),
-      { initialProps: { networkName: 'dalnet' } }
+      { initialProps: { networkName: 'dalnet' } },
     );
 
     rerender({ networkName: 'dalnet' });
@@ -136,7 +136,7 @@ describe('useServerTabNameSync', () => {
   it('should ignore Not connected during updates', () => {
     const { rerender } = renderHook(
       ({ networkName }) => useServerTabNameSync({ networkName }),
-      { initialProps: { networkName: 'freenode' } }
+      { initialProps: { networkName: 'freenode' } },
     );
 
     rerender({ networkName: 'Not connected' });

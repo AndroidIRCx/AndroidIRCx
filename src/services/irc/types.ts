@@ -26,7 +26,9 @@ export interface NumericHandlerContext {
   updateSelfUserModes: (modes: string) => void;
 
   // Messaging
-  addMessage: (message: Partial<IRCMessage> & { type: string; timestamp: number }) => void;
+  addMessage: (
+    message: Partial<IRCMessage> & { type: string; timestamp: number },
+  ) => void;
   addRawMessage: (text: string, category: string) => void;
 
   // Events
@@ -66,7 +68,9 @@ export interface NumericHandlerContext {
   // Silent mode (for suppressing output)
   isSilentModeNick: (nick: string) => boolean;
   isSilentWhoNick: (nick: string) => boolean;
-  getSilentWhoCallback: (nick: string) => ((user: string, host: string) => void) | undefined;
+  getSilentWhoCallback: (
+    nick: string,
+  ) => ((user: string, host: string) => void) | undefined;
   removeSilentModeNick: (nick: string) => void;
   removeSilentWhoNick: (nick: string) => void;
   removeSilentWhoCallback: (nick: string) => void;
@@ -143,7 +147,7 @@ export type NumericHandler = (
   ctx: NumericHandlerContext,
   prefix: string,
   params: string[],
-  timestamp: number
+  timestamp: number,
 ) => void;
 
 /**

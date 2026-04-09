@@ -47,9 +47,27 @@ describe('InfoCommands', () => {
   describe('infoCommands map', () => {
     it('registers all info commands', () => {
       [
-        'LUSERS', 'VERSION', 'TIME', 'ADMIN', 'LINKS', 'STATS', 'MOTD',
-        'PING', 'TRACE', 'INFO', 'RULES', 'SERVLIST', 'ISON', 'USERHOST',
-        'USERIP', 'USERS', 'WATCH', 'KNOCK', 'SQUERY', 'LIST', 'NAMES',
+        'LUSERS',
+        'VERSION',
+        'TIME',
+        'ADMIN',
+        'LINKS',
+        'STATS',
+        'MOTD',
+        'PING',
+        'TRACE',
+        'INFO',
+        'RULES',
+        'SERVLIST',
+        'ISON',
+        'USERHOST',
+        'USERIP',
+        'USERS',
+        'WATCH',
+        'KNOCK',
+        'SQUERY',
+        'LIST',
+        'NAMES',
       ].forEach(cmd => {
         expect(infoCommands.has(cmd)).toBe(true);
       });
@@ -215,7 +233,7 @@ describe('InfoCommands', () => {
       handleISON(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -230,7 +248,7 @@ describe('InfoCommands', () => {
       handleUSERHOST(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -245,7 +263,7 @@ describe('InfoCommands', () => {
       handleUSERIP(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -272,7 +290,7 @@ describe('InfoCommands', () => {
       handleWATCH(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -282,20 +300,22 @@ describe('InfoCommands', () => {
       handleKNOCK(ctx, ['#secret'], '#channel');
       expect(ctx.sendCommand).toHaveBeenCalledWith('KNOCK #secret');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
     it('sends KNOCK with channel and message', () => {
       handleKNOCK(ctx, ['#secret', 'Please', 'let', 'me', 'in'], '#channel');
-      expect(ctx.sendCommand).toHaveBeenCalledWith('KNOCK #secret :Please let me in');
+      expect(ctx.sendCommand).toHaveBeenCalledWith(
+        'KNOCK #secret :Please let me in',
+      );
     });
 
     it('adds error when no args', () => {
       handleKNOCK(ctx, [], '#channel');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -303,9 +323,11 @@ describe('InfoCommands', () => {
   describe('handleSQUERY', () => {
     it('sends PRIVMSG to service and adds sent message', () => {
       handleSQUERY(ctx, ['NickServ', 'IDENTIFY', 'password'], '#channel');
-      expect(ctx.sendRaw).toHaveBeenCalledWith('PRIVMSG NickServ :IDENTIFY password');
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'PRIVMSG NickServ :IDENTIFY password',
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice', channel: 'NickServ' })
+        expect.objectContaining({ type: 'notice', channel: 'NickServ' }),
       );
     });
 
@@ -313,7 +335,7 @@ describe('InfoCommands', () => {
       handleSQUERY(ctx, ['NickServ'], '#channel');
       expect(ctx.sendRaw).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -328,7 +350,7 @@ describe('InfoCommands', () => {
       handleLIST(ctx, [], '#channel');
       expect(ctx.sendCommand).toHaveBeenCalledWith('LIST');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -353,7 +375,7 @@ describe('InfoCommands', () => {
       handleNAMES(ctx, [], 'somenick');
       expect(ctx.sendCommand).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 

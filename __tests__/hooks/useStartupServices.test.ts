@@ -205,7 +205,9 @@ jest.mock('../../src/services/MessageHistoryBatching', () => ({
 
 jest.mock('../../src/services/SettingsService', () => ({
   settingsService: {
-    getSetting: jest.fn().mockImplementation((key, defaultValue) => Promise.resolve(defaultValue)),
+    getSetting: jest
+      .fn()
+      .mockImplementation((key, defaultValue) => Promise.resolve(defaultValue)),
     setSetting: jest.fn().mockResolvedValue(undefined),
   },
   NEW_FEATURE_DEFAULTS: {
@@ -302,7 +304,10 @@ describe('useStartupServices', () => {
 
     renderHook(() => useStartupServices());
 
-    expect(errSpy).toHaveBeenCalledWith('Error initializing theme service:', expect.any(Error));
+    expect(errSpy).toHaveBeenCalledWith(
+      'Error initializing theme service:',
+      expect.any(Error),
+    );
     errSpy.mockRestore();
   });
 
@@ -386,14 +391,15 @@ describe('useStartupServices', () => {
 
   it('should cleanup background service on unmount', () => {
     const { unmount } = renderHook(() => useStartupServices());
-    
+
     unmount();
 
     expect(backgroundService.cleanup).toHaveBeenCalled();
   });
 
   it('handles bootsplash fallback hide paths', async () => {
-    const scripting = require('../../src/services/ScriptingService').scriptingService;
+    const scripting =
+      require('../../src/services/ScriptingService').scriptingService;
     (scripting.initialize as jest.Mock).mockResolvedValueOnce(undefined);
     const hideMock = RNBootSplash.hide as jest.Mock;
     hideMock
@@ -417,7 +423,8 @@ describe('useStartupServices', () => {
 
   it('handles bootsplash final fallback hide path when all hide attempts fail', async () => {
     const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const scripting = require('../../src/services/ScriptingService').scriptingService;
+    const scripting =
+      require('../../src/services/ScriptingService').scriptingService;
     (scripting.initialize as jest.Mock).mockResolvedValueOnce(undefined);
     const hideMock = RNBootSplash.hide as jest.Mock;
     hideMock
@@ -462,15 +469,29 @@ describe('useStartupServices', () => {
       await Promise.resolve();
     });
 
-    expect(setSettingMock).toHaveBeenCalledWith('spamPmKeywords', ['spam', 'virus']);
-    expect(setSettingMock).toHaveBeenCalledWith('dccAcceptExts', ['zip', 'txt']);
-    expect(setSettingMock).toHaveBeenCalledWith('dccRejectExts', ['exe', 'dll']);
-    expect(setSettingMock).toHaveBeenCalledWith('dccDontSendExts', ['bat', 'cmd']);
+    expect(setSettingMock).toHaveBeenCalledWith('spamPmKeywords', [
+      'spam',
+      'virus',
+    ]);
+    expect(setSettingMock).toHaveBeenCalledWith('dccAcceptExts', [
+      'zip',
+      'txt',
+    ]);
+    expect(setSettingMock).toHaveBeenCalledWith('dccRejectExts', [
+      'exe',
+      'dll',
+    ]);
+    expect(setSettingMock).toHaveBeenCalledWith('dccDontSendExts', [
+      'bat',
+      'cmd',
+    ]);
   });
 
   it('logs errors while seeding default spam and dcc lists', async () => {
     const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    (settingsService.getSetting as jest.Mock).mockRejectedValueOnce(new Error('seed fail'));
+    (settingsService.getSetting as jest.Mock).mockRejectedValueOnce(
+      new Error('seed fail'),
+    );
 
     renderHook(() => useStartupServices());
     await act(async () => {
@@ -478,7 +499,10 @@ describe('useStartupServices', () => {
       await Promise.resolve();
     });
 
-    expect(errSpy).toHaveBeenCalledWith('Error seeding default spam/DCC lists:', expect.any(Error));
+    expect(errSpy).toHaveBeenCalledWith(
+      'Error seeding default spam/DCC lists:',
+      expect.any(Error),
+    );
     errSpy.mockRestore();
   });
 
@@ -503,7 +527,7 @@ describe('useStartupServices', () => {
     renderHook(() => useStartupServices());
     expect(DeviceEventEmitter.addListener).not.toHaveBeenCalledWith(
       'IRCForegroundServiceDisconnectQuit',
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 });

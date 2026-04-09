@@ -46,7 +46,7 @@ describe('NetworkPickerModal', () => {
         onClose={jest.fn()}
         onSelectNetwork={onSelectNetwork}
         onCreateNew={jest.fn()}
-      />
+      />,
     );
 
     await waitFor(() => {
@@ -57,7 +57,7 @@ describe('NetworkPickerModal', () => {
 
     fireEvent.press(getByText('DBase'));
     expect(onSelectNetwork).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'DBase' })
+      expect.objectContaining({ name: 'DBase' }),
     );
     expect(getByText('Recommended')).toBeTruthy();
   });
@@ -74,7 +74,7 @@ describe('NetworkPickerModal', () => {
         onClose={onClose}
         onSelectNetwork={jest.fn()}
         onCreateNew={onCreateNew}
-      />
+      />,
     );
 
     await waitFor(() => {

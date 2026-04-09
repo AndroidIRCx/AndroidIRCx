@@ -29,24 +29,52 @@ export interface UseSettingsSecurityReturn {
 }
 
 export const useSettingsSecurity = (): UseSettingsSecurityReturn => {
-  const [killSwitchEnabledOnHeader, setKillSwitchEnabledOnHeaderState] = useState(false);
-  const [killSwitchEnabledOnLockScreen, setKillSwitchEnabledOnLockScreenState] = useState(false);
-  const [killSwitchShowWarnings, setKillSwitchShowWarningsState] = useState(true);
-  const [killSwitchCustomName, setKillSwitchCustomNameState] = useState('Meow Meow');
+  const [killSwitchEnabledOnHeader, setKillSwitchEnabledOnHeaderState] =
+    useState(false);
+  const [killSwitchEnabledOnLockScreen, setKillSwitchEnabledOnLockScreenState] =
+    useState(false);
+  const [killSwitchShowWarnings, setKillSwitchShowWarningsState] =
+    useState(true);
+  const [killSwitchCustomName, setKillSwitchCustomNameState] =
+    useState('Meow Meow');
   const [killSwitchCustomIcon, setKillSwitchCustomIconState] = useState('cat');
-  const [killSwitchCustomColor, setKillSwitchCustomColorState] = useState('#f44336');
-  const [quickConnectNetworkId, setQuickConnectNetworkIdState] = useState<string | null>(null);
+  const [killSwitchCustomColor, setKillSwitchCustomColorState] =
+    useState('#f44336');
+  const [quickConnectNetworkId, setQuickConnectNetworkIdState] = useState<
+    string | null
+  >(null);
 
   // Load settings
   useEffect(() => {
     const loadSettings = async () => {
-      const headerKillSwitch = await settingsService.getSetting('killSwitchEnabledOnHeader', false);
-      const lockScreenKillSwitch = await settingsService.getSetting('killSwitchEnabledOnLockScreen', false);
-      const showWarnings = await settingsService.getSetting('killSwitchShowWarnings', true);
-      const customName = await settingsService.getSetting('killSwitchCustomName', 'Meow Meow');
-      const customIcon = await settingsService.getSetting('killSwitchCustomIcon', 'cat');
-      const customColor = await settingsService.getSetting('killSwitchCustomColor', '#f44336');
-      const quickConnectNetId = await settingsService.getSetting<string | null>('quickConnectNetworkId', null);
+      const headerKillSwitch = await settingsService.getSetting(
+        'killSwitchEnabledOnHeader',
+        false,
+      );
+      const lockScreenKillSwitch = await settingsService.getSetting(
+        'killSwitchEnabledOnLockScreen',
+        false,
+      );
+      const showWarnings = await settingsService.getSetting(
+        'killSwitchShowWarnings',
+        true,
+      );
+      const customName = await settingsService.getSetting(
+        'killSwitchCustomName',
+        'Meow Meow',
+      );
+      const customIcon = await settingsService.getSetting(
+        'killSwitchCustomIcon',
+        'cat',
+      );
+      const customColor = await settingsService.getSetting(
+        'killSwitchCustomColor',
+        '#f44336',
+      );
+      const quickConnectNetId = await settingsService.getSetting<string | null>(
+        'quickConnectNetworkId',
+        null,
+      );
 
       setKillSwitchEnabledOnHeaderState(headerKillSwitch);
       setKillSwitchEnabledOnLockScreenState(lockScreenKillSwitch);
@@ -59,24 +87,42 @@ export const useSettingsSecurity = (): UseSettingsSecurityReturn => {
     loadSettings();
 
     // Subscribe to changes
-    const unsubscribeCustomName = settingsService.onSettingChange<string>('killSwitchCustomName', (value) => {
-      setKillSwitchCustomNameState(value);
-    });
-    const unsubscribeCustomIcon = settingsService.onSettingChange<string>('killSwitchCustomIcon', (value) => {
-      setKillSwitchCustomIconState(value);
-    });
-    const unsubscribeCustomColor = settingsService.onSettingChange<string>('killSwitchCustomColor', (value) => {
-      setKillSwitchCustomColorState(value);
-    });
-    const unsubscribeHeader = settingsService.onSettingChange<boolean>('killSwitchEnabledOnHeader', (value) => {
-      setKillSwitchEnabledOnHeaderState(value);
-    });
-    const unsubscribeLockScreen = settingsService.onSettingChange<boolean>('killSwitchEnabledOnLockScreen', (value) => {
-      setKillSwitchEnabledOnLockScreenState(value);
-    });
-    const unsubscribeWarnings = settingsService.onSettingChange<boolean>('killSwitchShowWarnings', (value) => {
-      setKillSwitchShowWarningsState(value);
-    });
+    const unsubscribeCustomName = settingsService.onSettingChange<string>(
+      'killSwitchCustomName',
+      value => {
+        setKillSwitchCustomNameState(value);
+      },
+    );
+    const unsubscribeCustomIcon = settingsService.onSettingChange<string>(
+      'killSwitchCustomIcon',
+      value => {
+        setKillSwitchCustomIconState(value);
+      },
+    );
+    const unsubscribeCustomColor = settingsService.onSettingChange<string>(
+      'killSwitchCustomColor',
+      value => {
+        setKillSwitchCustomColorState(value);
+      },
+    );
+    const unsubscribeHeader = settingsService.onSettingChange<boolean>(
+      'killSwitchEnabledOnHeader',
+      value => {
+        setKillSwitchEnabledOnHeaderState(value);
+      },
+    );
+    const unsubscribeLockScreen = settingsService.onSettingChange<boolean>(
+      'killSwitchEnabledOnLockScreen',
+      value => {
+        setKillSwitchEnabledOnLockScreenState(value);
+      },
+    );
+    const unsubscribeWarnings = settingsService.onSettingChange<boolean>(
+      'killSwitchShowWarnings',
+      value => {
+        setKillSwitchShowWarningsState(value);
+      },
+    );
 
     return () => {
       unsubscribeCustomName();
@@ -93,10 +139,13 @@ export const useSettingsSecurity = (): UseSettingsSecurityReturn => {
     setKillSwitchEnabledOnHeaderState(value);
   }, []);
 
-  const setKillSwitchEnabledOnLockScreen = useCallback(async (value: boolean) => {
-    await settingsService.setSetting('killSwitchEnabledOnLockScreen', value);
-    setKillSwitchEnabledOnLockScreenState(value);
-  }, []);
+  const setKillSwitchEnabledOnLockScreen = useCallback(
+    async (value: boolean) => {
+      await settingsService.setSetting('killSwitchEnabledOnLockScreen', value);
+      setKillSwitchEnabledOnLockScreenState(value);
+    },
+    [],
+  );
 
   const setKillSwitchShowWarnings = useCallback(async (value: boolean) => {
     await settingsService.setSetting('killSwitchShowWarnings', value);
@@ -118,10 +167,13 @@ export const useSettingsSecurity = (): UseSettingsSecurityReturn => {
     setKillSwitchCustomColorState(color);
   }, []);
 
-  const setQuickConnectNetworkId = useCallback(async (networkId: string | null) => {
-    await settingsService.setSetting('quickConnectNetworkId', networkId);
-    setQuickConnectNetworkIdState(networkId);
-  }, []);
+  const setQuickConnectNetworkId = useCallback(
+    async (networkId: string | null) => {
+      await settingsService.setSetting('quickConnectNetworkId', networkId);
+      setQuickConnectNetworkIdState(networkId);
+    },
+    [],
+  );
 
   return {
     killSwitchEnabledOnHeader,

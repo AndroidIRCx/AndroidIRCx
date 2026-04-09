@@ -13,10 +13,7 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'cobertura', 'html'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   forceExit: false,
-  testMatch: [
-    '**/__tests__/**/*.test.{ts,tsx}',
-    '**/__tests__/**/*.{ts,tsx}',
-  ],
+  testMatch: ['**/__tests__/**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   transformIgnorePatterns: [
     // Allow ESM React Native dependencies to be transformed for Jest

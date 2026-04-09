@@ -14,8 +14,12 @@ jest.mock('react-native-libsodium', () => ({
   default: {
     ready: Promise.resolve(),
     randombytes_buf: jest.fn().mockReturnValue(new Uint8Array(32)),
-    crypto_aead_xchacha20poly1305_ietf_encrypt: jest.fn().mockReturnValue(new Uint8Array([1, 2, 3])),
-    crypto_aead_xchacha20poly1305_ietf_decrypt: jest.fn().mockReturnValue(new Uint8Array([72, 101, 108, 108, 111])),
+    crypto_aead_xchacha20poly1305_ietf_encrypt: jest
+      .fn()
+      .mockReturnValue(new Uint8Array([1, 2, 3])),
+    crypto_aead_xchacha20poly1305_ietf_decrypt: jest
+      .fn()
+      .mockReturnValue(new Uint8Array([72, 101, 108, 108, 111])),
     crypto_aead_xchacha20poly1305_ietf_NPUBBYTES: 24,
     to_base64: jest.fn().mockReturnValue('bW9ja2tleQ=='),
     from_base64: jest.fn().mockReturnValue(new Uint8Array(32)),
@@ -39,7 +43,10 @@ describe('ChannelEncryptionService', () => {
 
   describe('generateChannelKey', () => {
     it('should generate a new channel key', async () => {
-      const key = await channelEncryptionService.generateChannelKey('#general', 'freenode');
+      const key = await channelEncryptionService.generateChannelKey(
+        '#general',
+        'freenode',
+      );
 
       expect(key.v).toBe(1);
       expect(key.channel).toBe('#general');
@@ -49,7 +56,10 @@ describe('ChannelEncryptionService', () => {
     });
 
     it('should canonicalize network name', async () => {
-      const key = await channelEncryptionService.generateChannelKey('#general', 'freenode (2)');
+      const key = await channelEncryptionService.generateChannelKey(
+        '#general',
+        'freenode (2)',
+      );
 
       expect(key.network).toBe('freenode');
     });
@@ -81,9 +91,14 @@ describe('ChannelEncryptionService', () => {
       };
 
       await channelEncryptionService.storeChannelKey(channelKey);
-      
-      (secureStorageService.getSecret as jest.Mock).mockResolvedValueOnce(JSON.stringify(channelKey));
-      const retrieved = await channelEncryptionService.getChannelKey('#general', 'freenode');
+
+      (secureStorageService.getSecret as jest.Mock).mockResolvedValueOnce(
+        JSON.stringify(channelKey),
+      );
+      const retrieved = await channelEncryptionService.getChannelKey(
+        '#general',
+        'freenode',
+      );
 
       expect(retrieved).toMatchObject({
         channel: '#general',
@@ -92,7 +107,10 @@ describe('ChannelEncryptionService', () => {
     });
 
     it('should return null for non-existent key', async () => {
-      const result = await channelEncryptionService.getChannelKey('#nonexistent', 'freenode');
+      const result = await channelEncryptionService.getChannelKey(
+        '#nonexistent',
+        'freenode',
+      );
       expect(result).toBeNull();
     });
 
@@ -122,15 +140,23 @@ describe('ChannelEncryptionService', () => {
         key: 'testkey123',
         createdAt: Date.now(),
       };
-      (secureStorageService.getSecret as jest.Mock).mockResolvedValueOnce(JSON.stringify(channelKey));
+      (secureStorageService.getSecret as jest.Mock).mockResolvedValueOnce(
+        JSON.stringify(channelKey),
+      );
 
-      const result = await channelEncryptionService.hasChannelKey('#general', 'freenode');
+      const result = await channelEncryptionService.hasChannelKey(
+        '#general',
+        'freenode',
+      );
 
       expect(result).toBe(true);
     });
 
     it('should return false if key does not exist', async () => {
-      const result = await channelEncryptionService.hasChannelKey('#nonexistent', 'freenode');
+      const result = await channelEncryptionService.hasChannelKey(
+        '#nonexistent',
+        'freenode',
+      );
       expect(result).toBe(false);
     });
   });
@@ -161,9 +187,14 @@ describe('ChannelEncryptionService', () => {
         key: 'testkey123',
         createdAt: Date.now(),
       };
-      (secureStorageService.getSecret as jest.Mock).mockResolvedValueOnce(JSON.stringify(channelKey));
+      (secureStorageService.getSecret as jest.Mock).mockResolvedValueOnce(
+        JSON.stringify(channelKey),
+      );
 
-      const exported = await channelEncryptionService.exportChannelKey('#general', 'freenode');
+      const exported = await channelEncryptionService.exportChannelKey(
+        '#general',
+        'freenode',
+      );
 
       expect(JSON.parse(exported)).toMatchObject({
         channel: '#general',
@@ -175,7 +206,7 @@ describe('ChannelEncryptionService', () => {
       (secureStorageService.getSecret as jest.Mock).mockResolvedValueOnce(null);
 
       await expect(
-        channelEncryptionService.exportChannelKey('#general', 'freenode')
+        channelEncryptionService.exportChannelKey('#general', 'freenode'),
       ).rejects.toThrow('no channel key');
     });
   });
@@ -205,7 +236,10 @@ describe('ChannelEncryptionService', () => {
         createdAt: Date.now(),
       });
 
-      const imported = await channelEncryptionService.importChannelKey(keyData, 'my-network');
+      const imported = await channelEncryptionService.importChannelKey(
+        keyData,
+        'my-network',
+      );
 
       expect(imported.network).toBe('my-network');
     });
@@ -219,7 +253,7 @@ describe('ChannelEncryptionService', () => {
       });
 
       await expect(
-        channelEncryptionService.importChannelKey(keyData)
+        channelEncryptionService.importChannelKey(keyData),
       ).rejects.toThrow('invalid version');
     });
   });
@@ -230,16 +264,20 @@ describe('ChannelEncryptionService', () => {
       const cleanup = channelEncryptionService.onChannelKeyChange(listener);
 
       expect(typeof cleanup).toBe('function');
-      expect((channelEncryptionService as any).keyListeners).toContain(listener);
+      expect((channelEncryptionService as any).keyListeners).toContain(
+        listener,
+      );
 
       cleanup();
-      expect((channelEncryptionService as any).keyListeners).not.toContain(listener);
+      expect((channelEncryptionService as any).keyListeners).not.toContain(
+        listener,
+      );
     });
 
     it('should notify all listeners when key changes', async () => {
       const listener1 = jest.fn();
       const listener2 = jest.fn();
-      
+
       channelEncryptionService.onChannelKeyChange(listener1);
       channelEncryptionService.onChannelKeyChange(listener2);
 
@@ -254,7 +292,7 @@ describe('ChannelEncryptionService', () => {
     it('should remove numbered suffix from network name', async () => {
       // First generate a key with canonical name
       await channelEncryptionService.generateChannelKey('#general', 'freenode');
-      
+
       // Then mock the storage to return it when looking up with suffix
       const channelKey = {
         v: 1,
@@ -263,15 +301,20 @@ describe('ChannelEncryptionService', () => {
         key: 'testkey123',
         createdAt: Date.now(),
       };
-      (secureStorageService.getSecret as jest.Mock).mockImplementation((key: string) => {
-        if (key.includes('freenode:')) {
-          return Promise.resolve(JSON.stringify(channelKey));
-        }
-        return Promise.resolve(null);
-      });
+      (secureStorageService.getSecret as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key.includes('freenode:')) {
+            return Promise.resolve(JSON.stringify(channelKey));
+          }
+          return Promise.resolve(null);
+        },
+      );
 
       // Should find key regardless of numbered suffix
-      const result = await channelEncryptionService.getChannelKey('#general', 'freenode (3)');
+      const result = await channelEncryptionService.getChannelKey(
+        '#general',
+        'freenode (3)',
+      );
 
       expect(result).toMatchObject({ network: 'freenode' });
     });
@@ -284,9 +327,14 @@ describe('ChannelEncryptionService', () => {
         key: 'testkey123',
         createdAt: Date.now(),
       };
-      (secureStorageService.getSecret as jest.Mock).mockResolvedValueOnce(JSON.stringify(channelKey));
+      (secureStorageService.getSecret as jest.Mock).mockResolvedValueOnce(
+        JSON.stringify(channelKey),
+      );
 
-      const result = await channelEncryptionService.getChannelKey('#general', '');
+      const result = await channelEncryptionService.getChannelKey(
+        '#general',
+        '',
+      );
 
       expect(result?.network).toBe('');
     });

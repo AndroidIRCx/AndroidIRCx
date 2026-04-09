@@ -13,7 +13,10 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useSettingsAppearance } from '../../src/hooks/useSettingsAppearance';
 
 const mockTheme = { id: 'dark', name: 'Dark', colors: { primary: '#000' } };
-const mockThemes = [mockTheme, { id: 'light', name: 'Light', colors: { primary: '#fff' } }];
+const mockThemes = [
+  mockTheme,
+  { id: 'light', name: 'Light', colors: { primary: '#fff' } },
+];
 let themeChangeCallback: ((theme: any) => void) | null = null;
 
 jest.mock('../../src/services/ThemeService', () => ({
@@ -22,7 +25,9 @@ jest.mock('../../src/services/ThemeService', () => ({
     getAvailableThemes: jest.fn(() => mockThemes),
     onThemeChange: jest.fn((cb: any) => {
       themeChangeCallback = cb;
-      return jest.fn(() => { themeChangeCallback = null; });
+      return jest.fn(() => {
+        themeChangeCallback = null;
+      });
     }),
   },
 }));
@@ -53,7 +58,10 @@ jest.mock('../../src/i18n/config', () => ({
 import { settingsService } from '../../src/services/SettingsService';
 import { layoutService } from '../../src/services/LayoutService';
 
-const flushPromises = () => act(async () => { await new Promise(r => setTimeout(r, 0)); });
+const flushPromises = () =>
+  act(async () => {
+    await new Promise(r => setTimeout(r, 0));
+  });
 
 describe('useSettingsAppearance', () => {
   beforeEach(() => {
@@ -81,7 +89,10 @@ describe('useSettingsAppearance', () => {
 
     await flushPromises();
 
-    expect(settingsService.getSetting).toHaveBeenCalledWith('appLanguage', 'system');
+    expect(settingsService.getSetting).toHaveBeenCalledWith(
+      'appLanguage',
+      'system',
+    );
     expect(layoutService.initialize).toHaveBeenCalled();
   });
 
@@ -96,7 +107,11 @@ describe('useSettingsAppearance', () => {
   it('should update theme when themeService emits change', () => {
     const { result } = renderHook(() => useSettingsAppearance());
 
-    const newTheme = { id: 'light', name: 'Light', colors: { primary: '#fff' } };
+    const newTheme = {
+      id: 'light',
+      name: 'Light',
+      colors: { primary: '#fff' },
+    };
 
     act(() => {
       if (themeChangeCallback) {
@@ -150,7 +165,10 @@ describe('useSettingsAppearance', () => {
       await result.current.setAppLanguage('sr');
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('appLanguage', 'sr');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'appLanguage',
+      'sr',
+    );
     expect(result.current.appLanguage).toBe('sr');
   });
 
@@ -163,7 +181,9 @@ describe('useSettingsAppearance', () => {
       await result.current.updateLayoutConfig({ viewMode: 'compact' as any });
     });
 
-    expect(layoutService.setConfig).toHaveBeenCalledWith({ viewMode: 'compact' });
+    expect(layoutService.setConfig).toHaveBeenCalledWith({
+      viewMode: 'compact',
+    });
     expect(layoutService.getConfig).toHaveBeenCalled();
   });
 

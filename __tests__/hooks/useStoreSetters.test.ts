@@ -49,7 +49,7 @@ describe('useStoreSetters', () => {
   describe('connection store setters', () => {
     it('should set active tab id', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setActiveTabId('tab-123');
       });
@@ -59,7 +59,7 @@ describe('useStoreSetters', () => {
 
     it('should set isConnected', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setIsConnected(true);
       });
@@ -69,7 +69,7 @@ describe('useStoreSetters', () => {
 
     it('should set networkName', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setNetworkName('Freenode');
       });
@@ -79,7 +79,7 @@ describe('useStoreSetters', () => {
 
     it('should set primaryNetworkId', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setPrimaryNetworkId('net-1');
       });
@@ -89,7 +89,7 @@ describe('useStoreSetters', () => {
 
     it('should set activeConnectionId', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setActiveConnectionId('conn-1');
       });
@@ -99,7 +99,7 @@ describe('useStoreSetters', () => {
 
     it('should set ping', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setPing(42);
       });
@@ -110,10 +110,24 @@ describe('useStoreSetters', () => {
     it('should set tabs with array', () => {
       const { result } = renderHook(() => useStoreSetters());
       const tabs: ChannelTab[] = [
-        { id: 'tab1', networkId: 'net1', channel: '#general', label: 'General', messages: [], hasActivity: false },
-        { id: 'tab2', networkId: 'net1', channel: '#random', label: 'Random', messages: [], hasActivity: false },
+        {
+          id: 'tab1',
+          networkId: 'net1',
+          channel: '#general',
+          label: 'General',
+          messages: [],
+          hasActivity: false,
+        },
+        {
+          id: 'tab2',
+          networkId: 'net1',
+          channel: '#random',
+          label: 'Random',
+          messages: [],
+          hasActivity: false,
+        },
       ];
-      
+
       act(() => {
         result.current.setTabs(tabs);
       });
@@ -124,17 +138,31 @@ describe('useStoreSetters', () => {
     it('should set tabs with function updater', () => {
       const { result } = renderHook(() => useStoreSetters());
       const initialTabs: ChannelTab[] = [
-        { id: 'tab1', networkId: 'net1', channel: '#general', label: 'General', messages: [], hasActivity: false },
+        {
+          id: 'tab1',
+          networkId: 'net1',
+          channel: '#general',
+          label: 'General',
+          messages: [],
+          hasActivity: false,
+        },
       ];
-      
+
       act(() => {
         result.current.setTabs(initialTabs);
       });
 
       act(() => {
-        result.current.setTabs((prev) => [
+        result.current.setTabs(prev => [
           ...prev,
-          { id: 'tab2', networkId: 'net1', channel: '#random', label: 'Random', messages: [], hasActivity: false },
+          {
+            id: 'tab2',
+            networkId: 'net1',
+            channel: '#random',
+            label: 'Random',
+            messages: [],
+            hasActivity: false,
+          },
         ]);
       });
 
@@ -144,9 +172,16 @@ describe('useStoreSetters', () => {
     it('should not update tabs if reference is same', () => {
       const { result } = renderHook(() => useStoreSetters());
       const tabs: ChannelTab[] = [
-        { id: 'tab1', networkId: 'net1', channel: '#general', label: 'General', messages: [], hasActivity: false },
+        {
+          id: 'tab1',
+          networkId: 'net1',
+          channel: '#general',
+          label: 'General',
+          messages: [],
+          hasActivity: false,
+        },
       ];
-      
+
       act(() => {
         result.current.setTabs(tabs);
       });
@@ -165,7 +200,7 @@ describe('useStoreSetters', () => {
   describe('UI store setters - first run', () => {
     it('should set showFirstRunSetup', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowFirstRunSetup(true);
       });
@@ -175,7 +210,7 @@ describe('useStoreSetters', () => {
 
     it('should set isCheckingFirstRun', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setIsCheckingFirstRun(false);
       });
@@ -187,7 +222,7 @@ describe('useStoreSetters', () => {
   describe('UI store setters - message display', () => {
     it('should set showRawCommands', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowRawCommands(false);
       });
@@ -205,7 +240,7 @@ describe('useStoreSetters', () => {
         error: true,
         other: false,
       };
-      
+
       act(() => {
         result.current.setRawCategoryVisibility(visibility);
       });
@@ -215,7 +250,7 @@ describe('useStoreSetters', () => {
 
     it('should set showTypingIndicators', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowTypingIndicators(false);
       });
@@ -225,7 +260,7 @@ describe('useStoreSetters', () => {
 
     it('should set hideJoinMessages', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setHideJoinMessages(true);
       });
@@ -235,7 +270,7 @@ describe('useStoreSetters', () => {
 
     it('should set hidePartMessages', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setHidePartMessages(true);
       });
@@ -245,7 +280,7 @@ describe('useStoreSetters', () => {
 
     it('should set hideQuitMessages', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setHideQuitMessages(true);
       });
@@ -255,7 +290,7 @@ describe('useStoreSetters', () => {
 
     it('should set hideIrcServiceListenerMessages', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setHideIrcServiceListenerMessages(false);
       });
@@ -268,7 +303,7 @@ describe('useStoreSetters', () => {
     it('should set typing user', () => {
       const { result } = renderHook(() => useStoreSetters());
       const status = { status: 'active' as const, timestamp: Date.now() };
-      
+
       act(() => {
         result.current.setTypingUser('net1', '#channel', 'nick1', status);
       });
@@ -280,7 +315,7 @@ describe('useStoreSetters', () => {
     it('should remove typing user', () => {
       const { result } = renderHook(() => useStoreSetters());
       const status = { status: 'active' as const, timestamp: Date.now() };
-      
+
       act(() => {
         result.current.setTypingUser('net1', '#channel', 'nick1', status);
         result.current.removeTypingUser('net1', '#channel', 'nick1');
@@ -292,7 +327,7 @@ describe('useStoreSetters', () => {
     it('should clear typing for target', () => {
       const { result } = renderHook(() => useStoreSetters());
       const status = { status: 'active' as const, timestamp: Date.now() };
-      
+
       act(() => {
         result.current.setTypingUser('net1', '#channel', 'nick1', status);
         result.current.clearTypingForTarget('net1', '#channel');
@@ -303,8 +338,11 @@ describe('useStoreSetters', () => {
 
     it('should cleanup stale typing', () => {
       const { result } = renderHook(() => useStoreSetters());
-      const oldStatus = { status: 'active' as const, timestamp: Date.now() - 20000 };
-      
+      const oldStatus = {
+        status: 'active' as const,
+        timestamp: Date.now() - 20000,
+      };
+
       act(() => {
         result.current.setTypingUser('net1', '#channel', 'nick1', oldStatus);
         result.current.cleanupStaleTyping();
@@ -317,7 +355,7 @@ describe('useStoreSetters', () => {
   describe('app lock setters', () => {
     it('should set appLockEnabled', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAppLockEnabled(true);
       });
@@ -327,7 +365,7 @@ describe('useStoreSetters', () => {
 
     it('should set appLockUseBiometric', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAppLockUseBiometric(true);
       });
@@ -337,7 +375,7 @@ describe('useStoreSetters', () => {
 
     it('should set appLockUsePin', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAppLockUsePin(true);
       });
@@ -347,7 +385,7 @@ describe('useStoreSetters', () => {
 
     it('should set appLockOnLaunch', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAppLockOnLaunch(false);
       });
@@ -357,7 +395,7 @@ describe('useStoreSetters', () => {
 
     it('should set appLockOnBackground', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAppLockOnBackground(false);
       });
@@ -367,7 +405,7 @@ describe('useStoreSetters', () => {
 
     it('should set appLocked', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAppLocked(true);
       });
@@ -377,7 +415,7 @@ describe('useStoreSetters', () => {
 
     it('should set appUnlockModalVisible', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAppUnlockModalVisible(true);
       });
@@ -387,7 +425,7 @@ describe('useStoreSetters', () => {
 
     it('should set appPinEntry', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAppPinEntry('1234');
       });
@@ -397,7 +435,7 @@ describe('useStoreSetters', () => {
 
     it('should set appPinError', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAppPinError('Invalid PIN');
       });
@@ -409,7 +447,7 @@ describe('useStoreSetters', () => {
   describe('banner/ad setters', () => {
     it('should set bannerVisible', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setBannerVisible(true);
       });
@@ -419,7 +457,7 @@ describe('useStoreSetters', () => {
 
     it('should set scriptingTimeMs', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setScriptingTimeMs(5000);
       });
@@ -429,7 +467,7 @@ describe('useStoreSetters', () => {
 
     it('should set adFreeTimeMs', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setAdFreeTimeMs(10000);
       });
@@ -441,7 +479,7 @@ describe('useStoreSetters', () => {
   describe('modal setters', () => {
     it('should set channelName', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setChannelName('#general');
       });
@@ -451,7 +489,7 @@ describe('useStoreSetters', () => {
 
     it('should set channelNoteValue', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setChannelNoteValue('This is a note');
       });
@@ -461,7 +499,7 @@ describe('useStoreSetters', () => {
 
     it('should set renameValue', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setRenameValue('New Name');
       });
@@ -471,7 +509,7 @@ describe('useStoreSetters', () => {
 
     it('should set dccSendPath', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setDccSendPath('/path/to/file.txt');
       });
@@ -481,7 +519,7 @@ describe('useStoreSetters', () => {
 
     it('should set showOptionsMenu', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowOptionsMenu(true);
       });
@@ -491,7 +529,7 @@ describe('useStoreSetters', () => {
 
     it('should set showSettings', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowSettings(true);
       });
@@ -503,7 +541,7 @@ describe('useStoreSetters', () => {
   describe('help screen setters', () => {
     it('should set showHelpConnection', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowHelpConnection(true);
       });
@@ -513,7 +551,7 @@ describe('useStoreSetters', () => {
 
     it('should set showHelpCommands', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowHelpCommands(true);
       });
@@ -523,7 +561,7 @@ describe('useStoreSetters', () => {
 
     it('should set showHelpEncryption', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowHelpEncryption(true);
       });
@@ -533,7 +571,7 @@ describe('useStoreSetters', () => {
 
     it('should set showHelpMedia', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowHelpMedia(true);
       });
@@ -543,7 +581,7 @@ describe('useStoreSetters', () => {
 
     it('should set showHelpChannelManagement', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowHelpChannelManagement(true);
       });
@@ -553,7 +591,7 @@ describe('useStoreSetters', () => {
 
     it('should set showHelpTroubleshooting', () => {
       const { result } = renderHook(() => useStoreSetters());
-      
+
       act(() => {
         result.current.setShowHelpTroubleshooting(true);
       });
@@ -565,17 +603,25 @@ describe('useStoreSetters', () => {
   describe('setter stability', () => {
     it('should return stable references across re-renders', () => {
       const { result, rerender } = renderHook(() => useStoreSetters());
-      
+
       const firstRenderSetters = result.current;
       rerender();
       const secondRenderSetters = result.current;
 
       // All setters should be the same reference (wrapped in useCallback with empty deps)
-      expect(secondRenderSetters.setIsConnected).toBe(firstRenderSetters.setIsConnected);
-      expect(secondRenderSetters.setNetworkName).toBe(firstRenderSetters.setNetworkName);
+      expect(secondRenderSetters.setIsConnected).toBe(
+        firstRenderSetters.setIsConnected,
+      );
+      expect(secondRenderSetters.setNetworkName).toBe(
+        firstRenderSetters.setNetworkName,
+      );
       expect(secondRenderSetters.setTabs).toBe(firstRenderSetters.setTabs);
-      expect(secondRenderSetters.setShowSettings).toBe(firstRenderSetters.setShowSettings);
-      expect(secondRenderSetters.setAppLocked).toBe(firstRenderSetters.setAppLocked);
+      expect(secondRenderSetters.setShowSettings).toBe(
+        firstRenderSetters.setShowSettings,
+      );
+      expect(secondRenderSetters.setAppLocked).toBe(
+        firstRenderSetters.setAppLocked,
+      );
     });
   });
 });

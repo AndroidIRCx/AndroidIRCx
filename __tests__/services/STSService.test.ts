@@ -37,7 +37,9 @@ describe('STSService', () => {
     });
 
     it('should parse STS with preload', () => {
-      const result = stsService.parseCapValue('duration=31536000,port=6697,preload');
+      const result = stsService.parseCapValue(
+        'duration=31536000,port=6697,preload',
+      );
 
       expect(result).toEqual({
         duration: '31536000',
@@ -61,7 +63,9 @@ describe('STSService', () => {
     });
 
     it('should handle whitespace', () => {
-      const result = stsService.parseCapValue('duration = 31536000 , port = 6697');
+      const result = stsService.parseCapValue(
+        'duration = 31536000 , port = 6697',
+      );
 
       expect(result).toEqual({
         duration: '31536000',
@@ -78,7 +82,10 @@ describe('STSService', () => {
 
   describe('Save Policy', () => {
     it('should save a new policy', () => {
-      const result = stsService.savePolicy('irc.example.com', 'duration=31536000,port=6697');
+      const result = stsService.savePolicy(
+        'irc.example.com',
+        'duration=31536000,port=6697',
+      );
 
       expect(result).toBe(true);
       const policy = stsService.getPolicy('irc.example.com');
@@ -133,14 +140,21 @@ describe('STSService', () => {
     });
 
     it('should return false for invalid port', () => {
-      const result = stsService.savePolicy('irc.example.com', 'duration=3600,port=abc');
+      const result = stsService.savePolicy(
+        'irc.example.com',
+        'duration=3600,port=abc',
+      );
 
       expect(result).toBe(false);
     });
 
     it('should return false for out of range port', () => {
-      expect(stsService.savePolicy('irc.example.com', 'duration=3600,port=0')).toBe(false);
-      expect(stsService.savePolicy('irc.example.com', 'duration=3600,port=70000')).toBe(false);
+      expect(
+        stsService.savePolicy('irc.example.com', 'duration=3600,port=0'),
+      ).toBe(false);
+      expect(
+        stsService.savePolicy('irc.example.com', 'duration=3600,port=70000'),
+      ).toBe(false);
     });
 
     it('should store hostname in lowercase', () => {
@@ -277,8 +291,14 @@ describe('STSService', () => {
   describe('Clear All Policies', () => {
     it('should clear internal policies map', async () => {
       // Add policies directly to the internal map
-      (stsService as any).policies.set('irc1.example.com', { hostname: 'irc1.example.com', duration: 3600 });
-      (stsService as any).policies.set('irc2.example.com', { hostname: 'irc2.example.com', duration: 7200 });
+      (stsService as any).policies.set('irc1.example.com', {
+        hostname: 'irc1.example.com',
+        duration: 3600,
+      });
+      (stsService as any).policies.set('irc2.example.com', {
+        hostname: 'irc2.example.com',
+        duration: 7200,
+      });
 
       expect((stsService as any).policies.size).toBe(2);
 
@@ -296,10 +316,7 @@ describe('STSService', () => {
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const { setItem } = require('@react-native-async-storage/async-storage');
-      expect(setItem).toHaveBeenCalledWith(
-        'STS_POLICIES',
-        expect.any(String)
-      );
+      expect(setItem).toHaveBeenCalledWith('STS_POLICIES', expect.any(String));
     });
 
     it('should load policies from storage', async () => {

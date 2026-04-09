@@ -43,7 +43,12 @@ export class BatchLabelManager {
 
   constructor(private ctx: BatchLabelContext) {}
 
-  handleBatchStart(refTag: string, type: string, params: string[], timestamp: number): void {
+  handleBatchStart(
+    refTag: string,
+    type: string,
+    params: string[],
+    timestamp: number,
+  ): void {
     this.activeBatches.set(refTag, {
       type,
       params,
@@ -59,7 +64,11 @@ export class BatchLabelManager {
     this.activeBatches.delete(refTag);
   }
 
-  private processBatch(refTag: string, batch: BatchState, timestamp: number): void {
+  private processBatch(
+    refTag: string,
+    batch: BatchState,
+    timestamp: number,
+  ): void {
     const { type, params, messages } = batch;
 
     switch (type) {
@@ -92,7 +101,11 @@ export class BatchLabelManager {
         break;
       }
       case 'chathistory':
-        this.ctx.emit('chathistory-end', { refTag, messages: messages.length, params });
+        this.ctx.emit('chathistory-end', {
+          refTag,
+          messages: messages.length,
+          params,
+        });
         break;
       case 'history':
         // IRCv3 event-playback batch type
@@ -112,8 +125,10 @@ export class BatchLabelManager {
         break;
       case 'cap-notify':
         this.ctx.addRawMessage(
-          t('*** Capability changes ({count} updates)', { count: messages.length }),
-          'server'
+          t('*** Capability changes ({count} updates)', {
+            count: messages.length,
+          }),
+          'server',
         );
         break;
       default:
@@ -123,7 +138,7 @@ export class BatchLabelManager {
             ref: refTag,
             count: messages.length,
           }),
-          'server'
+          'server',
         );
         break;
     }
@@ -144,7 +159,10 @@ export class BatchLabelManager {
     return `androidircx-${Date.now()}-${this.labelCounter}`;
   }
 
-  sendRawWithLabel(command: string, callback?: (response: any) => void): string {
+  sendRawWithLabel(
+    command: string,
+    callback?: (response: any) => void,
+  ): string {
     if (!this.ctx.hasCapability('labeled-response')) {
       this.ctx.sendRaw(command);
       return '';
@@ -159,7 +177,9 @@ export class BatchLabelManager {
 
     setTimeout(() => {
       if (this.pendingLabels.has(label)) {
-        this.ctx.logRaw(`IRCService: Label timeout for ${label} (command: ${command})`);
+        this.ctx.logRaw(
+          `IRCService: Label timeout for ${label} (command: ${command})`,
+        );
         this.pendingLabels.delete(label);
         if (callback) {
           callback({ error: 'timeout', label, command });
@@ -168,18 +188,24 @@ export class BatchLabelManager {
     }, this.LABEL_TIMEOUT);
 
     this.ctx.sendRaw(`@label=${label} ${command}`);
-    this.ctx.logRaw(`IRCService: Sent labeled command: ${command} (label: ${label})`);
+    this.ctx.logRaw(
+      `IRCService: Sent labeled command: ${command} (label: ${label})`,
+    );
     return label;
   }
 
   handleLabeledResponse(label: string, response: any): void {
     const pending = this.pendingLabels.get(label);
     if (!pending) {
-      this.ctx.logRaw(`IRCService: Received response for unknown label: ${label}`);
+      this.ctx.logRaw(
+        `IRCService: Received response for unknown label: ${label}`,
+      );
       return;
     }
 
-    this.ctx.logRaw(`IRCService: Matched labeled response: ${label} (command: ${pending.command})`);
+    this.ctx.logRaw(
+      `IRCService: Matched labeled response: ${label} (command: ${pending.command})`,
+    );
 
     if (pending.callback) {
       pending.callback(response);
@@ -195,7 +221,11 @@ export class BatchLabelManager {
       this.ctx.logRaw(`IRCService: Cleaning up ${count} pending labels`);
       this.pendingLabels.forEach((pending, label) => {
         if (pending.callback) {
-          pending.callback({ error: 'disconnected', label, command: pending.command });
+          pending.callback({
+            error: 'disconnected',
+            label,
+            command: pending.command,
+          });
         }
       });
       this.pendingLabels.clear();

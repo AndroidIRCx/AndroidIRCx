@@ -23,18 +23,25 @@ export const handleERROR: CommandHandler = (ctx, prefix, params, timestamp) => {
   ctx.handleServerError(errorText);
 };
 
-export const handleWALLOPS: CommandHandler = (ctx, prefix, params, timestamp) => {
+export const handleWALLOPS: CommandHandler = (
+  ctx,
+  prefix,
+  params,
+  timestamp,
+) => {
   const wallopsText = params[0] || '';
   const wallopsFrom = ctx.extractNick(prefix);
   const wallopsNetwork = ctx.getNetworkName();
   const wallopsMask = ctx.extractMaskFromNotice(wallopsText);
   if (wallopsMask) {
-    const blacklistEntry = ctx.getUserManagementService().findMatchingBlacklistEntry(
-      wallopsMask.nick,
-      wallopsMask.username,
-      wallopsMask.hostname,
-      wallopsNetwork
-    );
+    const blacklistEntry = ctx
+      .getUserManagementService()
+      .findMatchingBlacklistEntry(
+        wallopsMask.nick,
+        wallopsMask.username,
+        wallopsMask.hostname,
+        wallopsNetwork,
+      );
     if (blacklistEntry) {
       ctx.runBlacklistAction(blacklistEntry, {
         nick: wallopsMask.nick,
@@ -55,7 +62,12 @@ export const handleWALLOPS: CommandHandler = (ctx, prefix, params, timestamp) =>
   });
 };
 
-export const handleREGISTER: CommandHandler = (ctx, _prefix, params, timestamp) => {
+export const handleREGISTER: CommandHandler = (
+  ctx,
+  _prefix,
+  params,
+  timestamp,
+) => {
   // REGISTER SUCCESS <account> <message>
   // REGISTER VERIFICATION_REQUIRED <account> <message>
   const subcommand = (params[0] || '').toUpperCase();
@@ -65,7 +77,10 @@ export const handleREGISTER: CommandHandler = (ctx, _prefix, params, timestamp) 
   if (subcommand === 'SUCCESS') {
     ctx.addMessage({
       type: 'raw',
-      text: t('*** Account {account} registered successfully: {message}', { account, message }),
+      text: t('*** Account {account} registered successfully: {message}', {
+        account,
+        message,
+      }),
       timestamp,
       isRaw: true,
       rawCategory: 'server',
@@ -74,7 +89,10 @@ export const handleREGISTER: CommandHandler = (ctx, _prefix, params, timestamp) 
   } else if (subcommand === 'VERIFICATION_REQUIRED') {
     ctx.addMessage({
       type: 'raw',
-      text: t('*** Account {account} requires verification: {message}', { account, message }),
+      text: t('*** Account {account} requires verification: {message}', {
+        account,
+        message,
+      }),
       timestamp,
       isRaw: true,
       rawCategory: 'server',
@@ -84,7 +102,7 @@ export const handleREGISTER: CommandHandler = (ctx, _prefix, params, timestamp) 
     ctx.addRawMessage(
       t('*** REGISTER response: {params}', { params: params.join(' ') }),
       'server',
-      timestamp
+      timestamp,
     );
   }
 };

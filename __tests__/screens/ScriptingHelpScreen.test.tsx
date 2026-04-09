@@ -25,7 +25,7 @@ jest.mock('../../src/i18n/transifex', () => ({
 describe('ScriptingHelpScreen', () => {
   it('renders nothing when not visible', () => {
     const { queryByText } = render(
-      <ScriptingHelpScreen visible={false} onClose={jest.fn()} />
+      <ScriptingHelpScreen visible={false} onClose={jest.fn()} />,
     );
 
     expect(queryByText('Scripting Help')).toBeNull();
@@ -33,7 +33,7 @@ describe('ScriptingHelpScreen', () => {
 
   it('renders help sections when visible', () => {
     const { getByText } = render(
-      <ScriptingHelpScreen visible onClose={jest.fn()} />
+      <ScriptingHelpScreen visible onClose={jest.fn()} />,
     );
 
     expect(getByText('Scripting Help')).toBeTruthy();
@@ -49,7 +49,7 @@ describe('ScriptingHelpScreen', () => {
   it('calls onClose when close link is pressed', () => {
     const onClose = jest.fn();
     const { getByText } = render(
-      <ScriptingHelpScreen visible onClose={onClose} />
+      <ScriptingHelpScreen visible onClose={onClose} />,
     );
 
     fireEvent.press(getByText('Close'));

@@ -31,8 +31,12 @@ export const useAppLockActions = (params: UseAppLockActionsParams) => {
   const handleLockButtonPress = useCallback(() => {
     if (!appLockEnabled) {
       safeAlert(
-        t('App lock disabled', { _tags: 'screen:app,file:App.tsx,feature:lock' }),
-        t('Enable app lock first.', { _tags: 'screen:app,file:App.tsx,feature:lock' })
+        t('App lock disabled', {
+          _tags: 'screen:app,file:App.tsx,feature:lock',
+        }),
+        t('Enable app lock first.', {
+          _tags: 'screen:app,file:App.tsx,feature:lock',
+        }),
       );
       return;
     }

@@ -12,9 +12,13 @@ const mockStorage: Map<string, string> = new Map();
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    setItem: jest.fn(async (key: string, value: string) => { mockStorage.set(key, value); }),
+    setItem: jest.fn(async (key: string, value: string) => {
+      mockStorage.set(key, value);
+    }),
     getItem: jest.fn(async (key: string) => mockStorage.get(key) || null),
-    removeItem: jest.fn(async (key: string) => { mockStorage.delete(key); }),
+    removeItem: jest.fn(async (key: string) => {
+      mockStorage.delete(key);
+    }),
   },
 }));
 
@@ -35,11 +39,15 @@ jest.mock('../../src/services/LayoutService', () => ({
     initialize: jest.fn(async () => {}),
     onConfigChange: jest.fn((cb: Function) => {
       configChangeCallback = cb;
-      return () => { configChangeCallback = null; };
+      return () => {
+        configChangeCallback = null;
+      };
     }),
   },
 }));
-const mockLayoutService = jest.requireMock<any>('../../src/services/LayoutService').layoutService;
+const mockLayoutService = jest.requireMock<any>(
+  '../../src/services/LayoutService',
+).layoutService;
 
 describe('useLayoutConfig', () => {
   beforeEach(() => {
@@ -50,7 +58,9 @@ describe('useLayoutConfig', () => {
     mockLayoutService.initialize.mockResolvedValue(undefined);
     mockLayoutService.onConfigChange.mockImplementation((cb: Function) => {
       configChangeCallback = cb;
-      return () => { configChangeCallback = null; };
+      return () => {
+        configChangeCallback = null;
+      };
     });
   });
 
@@ -75,7 +85,11 @@ describe('useLayoutConfig', () => {
   it('should update config when onConfigChange fires', async () => {
     const { result } = renderHook(() => useLayoutConfig());
 
-    const newConfig = { tabPosition: 'bottom', userListPosition: 'left', showUserList: false };
+    const newConfig = {
+      tabPosition: 'bottom',
+      userListPosition: 'left',
+      showUserList: false,
+    };
 
     await act(async () => {
       configChangeCallback?.(newConfig);
@@ -109,9 +123,9 @@ describe('useLayoutConfig', () => {
     let resolveInit!: () => void;
     mockLayoutService.initialize.mockImplementationOnce(
       () =>
-        new Promise<void>((resolve) => {
+        new Promise<void>(resolve => {
           resolveInit = resolve;
-        })
+        }),
     );
 
     const afterChangeConfig = {
@@ -138,9 +152,9 @@ describe('useLayoutConfig', () => {
     const afterInitConfig = { ...defaultConfig, tabPosition: 'right' };
     mockLayoutService.initialize.mockImplementationOnce(
       () =>
-        new Promise<void>((resolve) => {
+        new Promise<void>(resolve => {
           resolveInit = resolve;
-        })
+        }),
     );
     mockLayoutService.getConfig
       .mockReturnValueOnce(defaultConfig)

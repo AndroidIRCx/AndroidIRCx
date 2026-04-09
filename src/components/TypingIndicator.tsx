@@ -9,10 +9,15 @@ import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 
 interface TypingIndicatorProps {
-  typingUsers: Map<string, { status: 'active' | 'paused' | 'done'; timestamp: number }>;
+  typingUsers: Map<
+    string,
+    { status: 'active' | 'paused' | 'done'; timestamp: number }
+  >;
 }
 
-export const TypingIndicator: React.FC<TypingIndicatorProps> = ({ typingUsers }) => {
+export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
+  typingUsers,
+}) => {
   const { colors } = useTheme();
   const t = useT();
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -23,21 +28,17 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({ typingUsers })
     .map(([nick]) => nick);
 
   useEffect(() => {
-    if (activeTypers.length > 0) {
-      // Fade in
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      // Fade out
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    }
+    const animation = Animated.timing(fadeAnim, {
+      toValue: activeTypers.length > 0 ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true,
+    });
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
   }, [activeTypers.length, fadeAnim]);
 
   if (activeTypers.length === 0) {
@@ -75,7 +76,7 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({ typingUsers })
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
           opacity: fadeAnim,
-        }
+        },
       ]}
     >
       <View style={styles.dotsContainer}>

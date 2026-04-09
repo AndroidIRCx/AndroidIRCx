@@ -65,24 +65,37 @@ describe('EncryptionCommands', () => {
     handleSHAREKEY(ctx, ['munZe'], '#dbase');
     await flushPromises();
 
-    expect(ctx.sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG munZe :!enc-offer '));
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'system', channel: 'munZe' }));
+    expect(ctx.sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('PRIVMSG munZe :!enc-offer '),
+    );
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'system', channel: 'munZe' }),
+    );
 
     handleSHAREKEY(ctx, [], '#dbase');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', text: 'Usage: /sharekey <nick>' }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Usage: /sharekey <nick>',
+      }),
+    );
   });
 
   it('handles SHAREKEY export error', async () => {
     const { ctx, encryptedDMService } = createContext();
-    encryptedDMService.exportBundle.mockRejectedValueOnce(new Error('export failed'));
+    encryptedDMService.exportBundle.mockRejectedValueOnce(
+      new Error('export failed'),
+    );
 
     handleSHAREKEY(ctx, ['munZe'], '#dbase');
     await flushPromises();
 
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('Failed to share encryption key'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Failed to share encryption key'),
+      }),
+    );
   });
 
   it('handles REQUESTKEY success and usage error', () => {
@@ -90,10 +103,17 @@ describe('EncryptionCommands', () => {
 
     handleREQUESTKEY(ctx, ['munZe'], '#dbase');
     expect(ctx.sendRaw).toHaveBeenCalledWith('PRIVMSG munZe :!enc-req');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'system', channel: 'munZe' }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'system', channel: 'munZe' }),
+    );
 
     handleREQUESTKEY(ctx, [], '#dbase');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', text: 'Usage: /requestkey <nick>' }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Usage: /requestkey <nick>',
+      }),
+    );
   });
 
   it('handles ENCMSG success, failure and usage error', async () => {
@@ -102,33 +122,52 @@ describe('EncryptionCommands', () => {
     handleENCMSG(ctx, ['munZe', 'hello', 'there'], '#dbase');
     await flushPromises();
 
-    expect(encryptedDMService.encryptForNetwork).toHaveBeenCalledWith('hello there', 'DBase', 'munZe');
-    expect(ctx.sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG munZe :!enc-msg '));
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'message',
-      channel: 'munZe',
-      from: 'AndroidIRCX',
-      status: 'sent',
-    }));
+    expect(encryptedDMService.encryptForNetwork).toHaveBeenCalledWith(
+      'hello there',
+      'DBase',
+      'munZe',
+    );
+    expect(ctx.sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('PRIVMSG munZe :!enc-msg '),
+    );
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'message',
+        channel: 'munZe',
+        from: 'AndroidIRCX',
+        status: 'sent',
+      }),
+    );
 
-    encryptedDMService.encryptForNetwork.mockRejectedValueOnce(new Error('no key'));
+    encryptedDMService.encryptForNetwork.mockRejectedValueOnce(
+      new Error('no key'),
+    );
     handleENCMSG(ctx, ['munZe', 'again'], '#dbase');
     await flushPromises();
 
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('Encrypted send failed'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Encrypted send failed'),
+      }),
+    );
 
     handleENCMSG(ctx, ['munZe'], '#dbase');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', text: 'Usage: /encmsg <nick> <message>' }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Usage: /encmsg <nick> <message>',
+      }),
+    );
   });
 
   it('handles ENC help output', () => {
     const { ctx } = createContext();
     handleENC(ctx, [], '#dbase');
 
-    const noticeCalls = (ctx.addMessage as jest.Mock).mock.calls.filter(([msg]) => msg.type === 'notice');
+    const noticeCalls = (ctx.addMessage as jest.Mock).mock.calls.filter(
+      ([msg]) => msg.type === 'notice',
+    );
     expect(noticeCalls.length).toBe(5);
     expect(noticeCalls[0][0].text).toContain('DM encryption');
   });
@@ -137,134 +176,211 @@ describe('EncryptionCommands', () => {
     const { ctx } = createContext();
 
     handleCHANKEY(ctx, [], '#dbase');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: 'Usage: /chankey <generate|share|request|remove|send|help> [args]',
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Usage: /chankey <generate|share|request|remove|send|help> [args]',
+      }),
+    );
 
     handleCHANKEY(ctx, ['help'], '#dbase');
-    const noticeCalls = (ctx.addMessage as jest.Mock).mock.calls.filter(([msg]) => msg.type === 'notice');
+    const noticeCalls = (ctx.addMessage as jest.Mock).mock.calls.filter(
+      ([msg]) => msg.type === 'notice',
+    );
     expect(noticeCalls.length).toBeGreaterThanOrEqual(6);
 
     handleCHANKEY(ctx, ['unknown'], '#dbase');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: 'Usage: /chankey <generate|share|request|remove|send|help> [args]',
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Usage: /chankey <generate|share|request|remove|send|help> [args]',
+      }),
+    );
   });
 
   it('handles CHANKEY generate success, validation and failure', async () => {
     const { ctx, channelEncryptionService } = createContext();
 
     handleCHANKEY(ctx, ['generate'], 'munZe');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('only be generated in a channel'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('only be generated in a channel'),
+      }),
+    );
 
     handleCHANKEY(ctx, ['generate'], '#dbase');
     await flushPromises();
-    expect(channelEncryptionService.generateChannelKey).toHaveBeenCalledWith('#dbase', 'DBase');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'notice' }));
+    expect(channelEncryptionService.generateChannelKey).toHaveBeenCalledWith(
+      '#dbase',
+      'DBase',
+    );
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'notice' }),
+    );
 
-    channelEncryptionService.generateChannelKey.mockRejectedValueOnce(new Error('gen fail'));
+    channelEncryptionService.generateChannelKey.mockRejectedValueOnce(
+      new Error('gen fail'),
+    );
     handleCHANKEY(ctx, ['generate'], '#dbase');
     await flushPromises();
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', text: expect.stringContaining('gen fail') }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('gen fail'),
+      }),
+    );
   });
 
   it('handles CHANKEY send success and errors', async () => {
     const { ctx, channelEncryptionService } = createContext();
 
     handleCHANKEY(ctx, ['send'], '#dbase');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', text: 'Usage: /chankey send <message>' }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Usage: /chankey send <message>',
+      }),
+    );
 
     handleCHANKEY(ctx, ['send', 'hello'], 'munZe');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('must be used from a channel'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('must be used from a channel'),
+      }),
+    );
 
     handleCHANKEY(ctx, ['send', 'hello', 'channel'], '#dbase');
     await flushPromises();
-    expect(channelEncryptionService.encryptMessage).toHaveBeenCalledWith('hello channel', '#dbase', 'DBase');
-    expect(ctx.sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG #dbase :!chanenc-msg '));
+    expect(channelEncryptionService.encryptMessage).toHaveBeenCalledWith(
+      'hello channel',
+      '#dbase',
+      'DBase',
+    );
+    expect(ctx.sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('PRIVMSG #dbase :!chanenc-msg '),
+    );
 
-    channelEncryptionService.encryptMessage.mockRejectedValueOnce(new Error('no channel key'));
+    channelEncryptionService.encryptMessage.mockRejectedValueOnce(
+      new Error('no channel key'),
+    );
     handleCHANKEY(ctx, ['send', 'again'], '#dbase');
     await flushPromises();
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('Missing channel key'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Missing channel key'),
+      }),
+    );
 
-    channelEncryptionService.encryptMessage.mockRejectedValueOnce(new Error('broken payload'));
+    channelEncryptionService.encryptMessage.mockRejectedValueOnce(
+      new Error('broken payload'),
+    );
     handleCHANKEY(ctx, ['send', 'third'], '#dbase');
     await flushPromises();
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('broken payload'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('broken payload'),
+      }),
+    );
   });
 
   it('handles CHANKEY share success and errors', async () => {
     const { ctx, channelEncryptionService } = createContext();
 
     handleCHANKEY(ctx, ['share'], '#dbase');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', text: 'Usage: /chankey share <nick>' }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Usage: /chankey share <nick>',
+      }),
+    );
 
     handleCHANKEY(ctx, ['share', 'munZe'], 'munZe');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('only be shared from a channel'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('only be shared from a channel'),
+      }),
+    );
 
     handleCHANKEY(ctx, ['share', 'munZe'], '#dbase');
     await flushPromises();
-    expect(channelEncryptionService.exportChannelKey).toHaveBeenCalledWith('#dbase', 'DBase');
-    expect(ctx.sendRaw).toHaveBeenCalledWith('PRIVMSG munZe :!chanenc-key chan-key');
+    expect(channelEncryptionService.exportChannelKey).toHaveBeenCalledWith(
+      '#dbase',
+      'DBase',
+    );
+    expect(ctx.sendRaw).toHaveBeenCalledWith(
+      'PRIVMSG munZe :!chanenc-key chan-key',
+    );
 
-    channelEncryptionService.exportChannelKey.mockRejectedValueOnce(new Error('no key'));
+    channelEncryptionService.exportChannelKey.mockRejectedValueOnce(
+      new Error('no key'),
+    );
     handleCHANKEY(ctx, ['share', 'munZe'], '#dbase');
     await flushPromises();
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('Failed to share channel key'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('Failed to share channel key'),
+      }),
+    );
   });
 
   it('handles CHANKEY request and remove branches', async () => {
     const { ctx, channelEncryptionService } = createContext();
 
     handleCHANKEY(ctx, ['request'], '#dbase');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', text: 'Usage: /chankey request <nick>' }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: 'Usage: /chankey request <nick>',
+      }),
+    );
 
     handleCHANKEY(ctx, ['request', 'munZe'], 'munZe');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('must be done from a channel'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('must be done from a channel'),
+      }),
+    );
 
     handleCHANKEY(ctx, ['request', 'munZe'], '#dbase');
-    expect(ctx.sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG munZe :Please share the channel key for #dbase'));
+    expect(ctx.sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'PRIVMSG munZe :Please share the channel key for #dbase',
+      ),
+    );
 
     handleCHANKEY(ctx, ['remove'], 'munZe');
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('only be removed from a channel'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('only be removed from a channel'),
+      }),
+    );
 
     handleCHANKEY(ctx, ['remove'], '#dbase');
     await flushPromises();
-    expect(channelEncryptionService.removeChannelKey).toHaveBeenCalledWith('#dbase', 'DBase');
+    expect(channelEncryptionService.removeChannelKey).toHaveBeenCalledWith(
+      '#dbase',
+      'DBase',
+    );
 
-    channelEncryptionService.removeChannelKey.mockRejectedValueOnce(new Error('remove fail'));
+    channelEncryptionService.removeChannelKey.mockRejectedValueOnce(
+      new Error('remove fail'),
+    );
     handleCHANKEY(ctx, ['remove'], '#dbase');
     await flushPromises();
-    expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'error',
-      text: expect.stringContaining('remove fail'),
-    }));
+    expect(ctx.addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'error',
+        text: expect.stringContaining('remove fail'),
+      }),
+    );
   });
 
   it('registers encryption command aliases', () => {

@@ -80,8 +80,18 @@ describe('ErrorNumerics', () => {
 
   it('formats simple and multi-target channel errors', () => {
     handle409(ctx, 'server', ['nick', ':No origin specified'], 201);
-    handle441(ctx, 'server', ['nick', 'alice', '#chat', ':They are not here'], 202);
-    handle443(ctx, 'server', ['nick', 'alice', '#chat', ':already joined'], 203);
+    handle441(
+      ctx,
+      'server',
+      ['nick', 'alice', '#chat', ':They are not here'],
+      202,
+    );
+    handle443(
+      ctx,
+      'server',
+      ['nick', 'alice', '#chat', ':already joined'],
+      203,
+    );
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(1, {
       type: 'error',
@@ -101,7 +111,12 @@ describe('ErrorNumerics', () => {
   });
 
   it('tries alternative nick when nickname is in use and attempts remain', () => {
-    handle433(ctx, 'server', ['nick', 'TakenNick', ':Nickname is already in use'], 204);
+    handle433(
+      ctx,
+      'server',
+      ['nick', 'TakenNick', ':Nickname is already in use'],
+      204,
+    );
 
     expect(ctx.addMessage).toHaveBeenCalledWith({
       type: 'error',
@@ -109,10 +124,15 @@ describe('ErrorNumerics', () => {
       timestamp: 204,
     });
     expect(ctx.incrementNickChangeAttempts).toHaveBeenCalled();
-    expect(ctx.logRaw).toHaveBeenCalledWith('IRCService: Trying altnick: AltNick');
+    expect(ctx.logRaw).toHaveBeenCalledWith(
+      'IRCService: Trying altnick: AltNick',
+    );
     expect(ctx.sendRaw).toHaveBeenCalledWith('NICK AltNick');
     expect(ctx.setCurrentNick).toHaveBeenCalledWith('AltNick');
-    expect(ctx.addRawMessage).toHaveBeenCalledWith('*** Trying alternative nickname: AltNick', 'auth');
+    expect(ctx.addRawMessage).toHaveBeenCalledWith(
+      '*** Trying alternative nickname: AltNick',
+      'auth',
+    );
   });
 
   it('falls back to randomized nick when no alt nick is available', () => {
@@ -121,10 +141,15 @@ describe('ErrorNumerics', () => {
 
     handle433(ctx, 'server', ['nick'], 205);
 
-    expect(ctx.logRaw).toHaveBeenCalledWith('IRCService: Trying fallback nick: CurrentNick123');
+    expect(ctx.logRaw).toHaveBeenCalledWith(
+      'IRCService: Trying fallback nick: CurrentNick123',
+    );
     expect(ctx.sendRaw).toHaveBeenCalledWith('NICK CurrentNick123');
     expect(ctx.setCurrentNick).toHaveBeenCalledWith('CurrentNick123');
-    expect(ctx.addRawMessage).toHaveBeenCalledWith('*** Trying fallback nickname: CurrentNick123', 'auth');
+    expect(ctx.addRawMessage).toHaveBeenCalledWith(
+      '*** Trying fallback nickname: CurrentNick123',
+      'auth',
+    );
   });
 
   it('disconnects and logs connection-blocked errors', () => {
@@ -137,7 +162,7 @@ describe('ErrorNumerics', () => {
     });
     expect(ctx.addRawMessage).toHaveBeenCalledWith(
       '*** Connection blocked: :Banned from this server',
-      'connection'
+      'connection',
     );
     expect(ctx.disconnect).toHaveBeenCalledWith(':Banned from this server');
   });

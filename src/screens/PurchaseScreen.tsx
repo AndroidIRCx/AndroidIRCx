@@ -21,7 +21,7 @@ import {
   PRODUCT_REMOVE_ADS,
   PRODUCT_PRO_UNLIMITED,
   PRODUCT_SUPPORTER_PRO,
-  PRODUCT_CATALOG
+  PRODUCT_CATALOG,
 } from '../services/InAppPurchaseService';
 import { useT } from '../i18n/transifex';
 import * as RNIap from 'react-native-iap';
@@ -38,11 +38,21 @@ type ProductListItem = {
   price?: string | number | null;
 };
 
-const skuList = [PRODUCT_REMOVE_ADS, PRODUCT_PRO_UNLIMITED, PRODUCT_SUPPORTER_PRO];
+const skuList = [
+  PRODUCT_REMOVE_ADS,
+  PRODUCT_PRO_UNLIMITED,
+  PRODUCT_SUPPORTER_PRO,
+];
 const getPurchaseReceipt = (purchase: Purchase): string =>
-  purchase.purchaseToken || ((purchase as Purchase & { transactionReceipt?: string }).transactionReceipt ?? '');
+  purchase.purchaseToken ||
+  ((purchase as Purchase & { transactionReceipt?: string })
+    .transactionReceipt ??
+    '');
 
-export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose }) => {
+export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
+  visible,
+  onClose,
+}) => {
   const t = useT();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -59,15 +69,12 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
     tRef.current = t;
   }, [t]);
 
-  const translate = useCallback(
-    (key: string) => tRef.current(key),
-    []
-  );
+  const translate = useCallback((key: string) => tRef.current(key), []);
 
   const withTimeout = async <T,>(
     promise: Promise<T>,
     timeoutMs: number,
-    label: string
+    label: string,
   ): Promise<T> => {
     let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
     const timeout = new Promise<never>((_, reject) => {
@@ -86,40 +93,43 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
   };
 
   // Initialize IAP and fetch products
-  const restorePurchases = useCallback(async (showFeedback: boolean = false) => {
-    try {
-      setRestoring(true);
-      console.log('Restoring purchases...');
-      const purchases = await RNIap.getAvailablePurchases();
-      console.log('Available purchases:', purchases);
+  const restorePurchases = useCallback(
+    async (showFeedback: boolean = false) => {
+      try {
+        setRestoring(true);
+        console.log('Restoring purchases...');
+        const purchases = await RNIap.getAvailablePurchases();
+        console.log('Available purchases:', purchases);
 
-      for (const purchase of purchases) {
-        if (skuList.includes(purchase.productId)) {
-          await inAppPurchaseService.processPurchase(
-            purchase.productId,
-            getPurchaseReceipt(purchase)
+        for (const purchase of purchases) {
+          if (skuList.includes(purchase.productId)) {
+            await inAppPurchaseService.processPurchase(
+              purchase.productId,
+              getPurchaseReceipt(purchase),
+            );
+          }
+        }
+
+        if (showFeedback) {
+          Alert.alert(
+            translate('Restore complete'),
+            translate('Your purchases have been restored.'),
           );
         }
+      } catch (error) {
+        console.error('Error restoring purchases:', error);
+        if (showFeedback) {
+          Alert.alert(
+            translate('Restore failed'),
+            translate('Please try again later.'),
+          );
+        }
+      } finally {
+        setRestoring(false);
       }
-
-      if (showFeedback) {
-        Alert.alert(
-          translate('Restore complete'),
-          translate('Your purchases have been restored.')
-        );
-      }
-    } catch (error) {
-      console.error('Error restoring purchases:', error);
-      if (showFeedback) {
-        Alert.alert(
-          translate('Restore failed'),
-          translate('Please try again later.')
-        );
-      }
-    } finally {
-      setRestoring(false);
-    }
-  }, [translate]);
+    },
+    [translate],
+  );
 
   useEffect(() => {
     let purchaseUpdateSubscription: any;
@@ -130,7 +140,8 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
         // Initialize connection to Google Play
         await RNIap.initConnection();
         if (Platform.OS === 'android') {
-          const flushPending = (RNIap as any).flushFailedPurchasesCachedAsPendingAndroid;
+          const flushPending = (RNIap as any)
+            .flushFailedPurchasesCachedAsPendingAndroid;
           if (typeof flushPending === 'function') {
             await flushPending();
           }
@@ -138,9 +149,10 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
         console.log('IAP connection initialized');
 
         // Get products from Google Play
-        const availableProducts = (await RNIap.fetchProducts({ skus: skuList, type: 'in-app' })) ?? [];
+        const availableProducts =
+          (await RNIap.fetchProducts({ skus: skuList, type: 'in-app' })) ?? [];
         const inAppProducts = availableProducts.filter(
-          (product): product is Product => product.type === 'in-app'
+          (product): product is Product => product.type === 'in-app',
         );
         console.log('Available products:', inAppProducts);
         setProducts(inAppProducts);
@@ -164,34 +176,36 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
                 await withTimeout(
                   RNIap.finishTransaction({ purchase, isConsumable: false }),
                   10000,
-                  'finishTransaction'
+                  'finishTransaction',
                 );
 
                 // Process the purchase in our service
                 await inAppPurchaseService.processPurchase(
                   purchase.productId,
-                  receipt
+                  receipt,
                 );
 
                 setPurchasing(null);
                 Alert.alert(
                   translate('Purchase Successful'),
                   translate('Thank you for your purchase!'),
-                  [{ text: 'OK' }]
+                  [{ text: 'OK' }],
                 );
               } catch (error) {
                 console.error('Error finishing transaction:', error);
                 setPurchasing(null);
                 Alert.alert(
                   translate('Purchase Failed'),
-                  translate('Please try again later.')
+                  translate('Please try again later.'),
                 );
               }
             } else {
-              console.warn('Purchase missing receipt/token, skipping processing');
+              console.warn(
+                'Purchase missing receipt/token, skipping processing',
+              );
               setPurchasing(null);
             }
-          }
+          },
         );
 
         // Listen for purchase errors
@@ -202,17 +216,17 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
             if (String(error.code) !== 'E_USER_CANCELLED') {
               Alert.alert(
                 translate('Purchase Failed'),
-                error.message || translate('Please try again later.')
+                error.message || translate('Please try again later.'),
               );
             }
-          }
+          },
         );
       } catch (error) {
         console.error('Error initializing IAP:', error);
         setLoading(false);
         Alert.alert(
           translate('Error'),
-          translate('Failed to load products. Please try again later.')
+          translate('Failed to load products. Please try again later.'),
         );
       }
     };
@@ -237,8 +251,12 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
   useEffect(() => {
     const updatePurchaseState = () => {
       setHasRemoveAds(inAppPurchaseService.hasPurchased(PRODUCT_REMOVE_ADS));
-      setHasProUnlimited(inAppPurchaseService.hasPurchased(PRODUCT_PRO_UNLIMITED));
-      setHasSupporterPro(inAppPurchaseService.hasPurchased(PRODUCT_SUPPORTER_PRO));
+      setHasProUnlimited(
+        inAppPurchaseService.hasPurchased(PRODUCT_PRO_UNLIMITED),
+      );
+      setHasSupporterPro(
+        inAppPurchaseService.hasPurchased(PRODUCT_SUPPORTER_PRO),
+      );
     };
 
     updatePurchaseState();
@@ -293,7 +311,7 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
       if (String(error.code) !== 'E_USER_CANCELLED') {
         Alert.alert(
           t('Purchase Failed'),
-          error.message || t('Please try again later.')
+          error.message || t('Please try again later.'),
         );
       }
     }
@@ -316,14 +334,16 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
   const renderProductCard = (
     productId: string,
     isPurchased: boolean,
-    isRecommended: boolean = false
+    isRecommended: boolean = false,
   ) => {
     const product = PRODUCT_CATALOG[productId];
     const price = getProductPrice(productId);
     const isPurchasing = purchasing === productId;
 
     return (
-      <View style={[styles.productCard, isRecommended && styles.recommendedCard]}>
+      <View
+        style={[styles.productCard, isRecommended && styles.recommendedCard]}
+      >
         {isRecommended && (
           <View style={styles.recommendedBadge}>
             <Text style={styles.recommendedText}>RECOMMENDED</Text>
@@ -382,7 +402,10 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
           <Text style={styles.subtitle}>
             Choose the plan that's right for you
           </Text>
@@ -401,24 +424,28 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
           )}
 
           <TouchableOpacity
-            style={[styles.restoreButton, (restoring || loading) && styles.restoreButtonDisabled]}
-          onPress={() => restorePurchases(true)}
-          disabled={restoring || loading}
-        >
-          {restoring ? (
-            <ActivityIndicator color={colors.buttonPrimaryText} />
-          ) : (
-            <Text style={styles.restoreButtonText}>{t('Restore purchases')}</Text>
-          )}
+            style={[
+              styles.restoreButton,
+              (restoring || loading) && styles.restoreButtonDisabled,
+            ]}
+            onPress={() => restorePurchases(true)}
+            disabled={restoring || loading}
+          >
+            {restoring ? (
+              <ActivityIndicator color={colors.buttonPrimaryText} />
+            ) : (
+              <Text style={styles.restoreButtonText}>
+                {t('Restore purchases')}
+              </Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.infoSection}>
             <Text style={styles.infoTitle}>Why Premium?</Text>
             <Text style={styles.infoText}>
-              • One-time purchase, lifetime access{'\n'}
-              • Support open-source development{'\n'}
-              • No subscriptions or recurring fees{'\n'}
-              • All features unlocked forever
+              • One-time purchase, lifetime access{'\n'}• Support open-source
+              development{'\n'}• No subscriptions or recurring fees{'\n'}• All
+              features unlocked forever
             </Text>
           </View>
 
@@ -427,7 +454,8 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
               Purchases are processed securely through Google Play.
             </Text>
             <Text style={styles.footerText}>
-              You can restore purchases on any device with the same Google account.
+              You can restore purchases on any device with the same Google
+              account.
             </Text>
           </View>
         </ScrollView>
@@ -436,186 +464,187 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({ visible, onClose
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  closeButton: {
-    padding: 8,
-  },
-  closeButtonText: {
-    fontSize: 24,
-    color: colors.text,
-    fontWeight: '300',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  productCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    position: 'relative',
-  },
-  recommendedCard: {
-    borderColor: colors.accent,
-    borderWidth: 2,
-  },
-  recommendedBadge: {
-    position: 'absolute',
-    top: -12,
-    right: 16,
-    backgroundColor: colors.accent,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  recommendedText: {
-    color: colors.onAccent,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  productHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  productTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  productPrice: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.accent,
-  },
-  productDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 16,
-  },
-  featuresContainer: {
-    marginBottom: 16,
-  },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  featureIcon: {
-    fontSize: 16,
-    color: colors.success,
-    marginRight: 8,
-    width: 20,
-  },
-  featureText: {
-    fontSize: 14,
-    color: colors.text,
-    flex: 1,
-  },
-  purchaseButton: {
-    backgroundColor: colors.buttonPrimary,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-  },
-  recommendedButton: {
-    backgroundColor: colors.accent,
-  },
-  purchasedButton: {
-    backgroundColor: colors.success,
-  },
-  purchaseButtonText: {
-    color: colors.buttonPrimaryText,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  restoreButton: {
-    backgroundColor: colors.buttonPrimary,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-    minHeight: 44,
-  },
-  restoreButtonDisabled: {
-    opacity: 0.7,
-  },
-  restoreButtonText: {
-    color: colors.buttonPrimaryText,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  infoSection: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 12,
-  },
-  infoText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 22,
-  },
-  footer: {
-    paddingTop: 16,
-    paddingBottom: 32,
-  },
-  footerText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  loadingContainer: {
-    paddingVertical: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    headerTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    closeButton: {
+      padding: 8,
+    },
+    closeButtonText: {
+      fontSize: 24,
+      color: colors.text,
+      fontWeight: '300',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: 20,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginBottom: 24,
+      textAlign: 'center',
+    },
+    productCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 20,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      position: 'relative',
+    },
+    recommendedCard: {
+      borderColor: colors.accent,
+      borderWidth: 2,
+    },
+    recommendedBadge: {
+      position: 'absolute',
+      top: -12,
+      right: 16,
+      backgroundColor: colors.accent,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    recommendedText: {
+      color: colors.onAccent,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    productHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    productTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    productPrice: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.accent,
+    },
+    productDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 16,
+    },
+    featuresContainer: {
+      marginBottom: 16,
+    },
+    featureRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    featureIcon: {
+      fontSize: 16,
+      color: colors.success,
+      marginRight: 8,
+      width: 20,
+    },
+    featureText: {
+      fontSize: 14,
+      color: colors.text,
+      flex: 1,
+    },
+    purchaseButton: {
+      backgroundColor: colors.buttonPrimary,
+      paddingVertical: 14,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 48,
+    },
+    recommendedButton: {
+      backgroundColor: colors.accent,
+    },
+    purchasedButton: {
+      backgroundColor: colors.success,
+    },
+    purchaseButtonText: {
+      color: colors.buttonPrimaryText,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    restoreButton: {
+      backgroundColor: colors.buttonPrimary,
+      paddingVertical: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+      marginBottom: 8,
+      minHeight: 44,
+    },
+    restoreButtonDisabled: {
+      opacity: 0.7,
+    },
+    restoreButtonText: {
+      color: colors.buttonPrimaryText,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    infoSection: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 20,
+      marginTop: 8,
+      marginBottom: 24,
+    },
+    infoTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    infoText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 22,
+    },
+    footer: {
+      paddingTop: 16,
+      paddingBottom: 32,
+    },
+    footerText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    loadingContainer: {
+      paddingVertical: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    loadingText: {
+      marginTop: 16,
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+  });

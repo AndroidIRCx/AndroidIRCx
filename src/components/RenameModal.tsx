@@ -33,8 +33,13 @@ export const RenameModal: React.FC<RenameModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
-      <TouchableOpacity style={styles.modalOverlay} onPress={onClose} activeOpacity={1}>
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        onPress={onClose}
+        activeOpacity={1}
+      >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Rename Server Tab</Text>
           <TextInput
@@ -49,13 +54,19 @@ export const RenameModal: React.FC<RenameModalProps> = ({
           <View style={styles.modalButtons}>
             <TouchableOpacity
               style={[styles.modalButton, styles.modalButtonCancel]}
-              onPress={onClose}>
+              onPress={onClose}
+            >
               <Text style={styles.modalButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalButton, styles.modalButtonJoin]}
-              onPress={handleRename}>
-              <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Rename</Text>
+              onPress={handleRename}
+            >
+              <Text
+                style={[styles.modalButtonText, styles.modalButtonTextPrimary]}
+              >
+                Rename
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

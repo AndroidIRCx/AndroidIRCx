@@ -15,7 +15,9 @@ import {
   isPrivacyRelayActive,
 } from '../types/privacyRelay';
 
-type PrivacyRelayListener = (subscription: PrivacyRelaySubscription | null) => void;
+type PrivacyRelayListener = (
+  subscription: PrivacyRelaySubscription | null,
+) => void;
 
 const API_BASE_URL = 'https://androidircx.com/api';
 const DEVICE_ID_STORAGE_KEY = '@AndroidIRCX:privacyRelayDeviceId';
@@ -44,14 +46,17 @@ class PrivacyRelayService {
     return deviceId;
   }
 
-  private async apiCall<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
+  private async apiCall<T>(
+    endpoint: string,
+    body: Record<string, unknown>,
+  ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     console.log('[PrivacyRelay] API request start:', endpoint, body);
 
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     try {
-      const response = await Promise.race([
+      const response = (await Promise.race([
         fetch(url, {
           method: 'POST',
           headers: {
@@ -61,16 +66,25 @@ class PrivacyRelayService {
         }),
         new Promise<Response>((_, reject) => {
           timeoutId = setTimeout(() => {
-            reject(new Error(`Privacy Relay backend request timed out after ${API_TIMEOUT_MS}ms.`));
+            reject(
+              new Error(
+                `Privacy Relay backend request timed out after ${API_TIMEOUT_MS}ms.`,
+              ),
+            );
           }, API_TIMEOUT_MS);
         }),
-      ]) as Response;
+      ])) as Response;
 
-      console.log('[PrivacyRelay] API response status:', endpoint, response.status);
+      console.log(
+        '[PrivacyRelay] API response status:',
+        endpoint,
+        response.status,
+      );
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => '');
-        let message = errorText || `Request failed with status ${response.status}`;
+        let message =
+          errorText || `Request failed with status ${response.status}`;
 
         try {
           const parsed = JSON.parse(errorText);
@@ -84,11 +98,15 @@ class PrivacyRelayService {
         throw new Error(message);
       }
 
-      const data = await response.json() as T;
+      const data = (await response.json()) as T;
       console.log('[PrivacyRelay] API response ok:', endpoint, data);
       return data;
     } catch (error: any) {
-      console.log('[PrivacyRelay] API request failed:', endpoint, error?.message || String(error));
+      console.log(
+        '[PrivacyRelay] API request failed:',
+        endpoint,
+        error?.message || String(error),
+      );
       throw error;
     } finally {
       if (timeoutId) {
@@ -111,7 +129,10 @@ class PrivacyRelayService {
       const raw = await AsyncStorage.getItem(PRIVACY_RELAY_STORAGE_KEY);
       this.subscription = raw ? JSON.parse(raw) : null;
     } catch (error) {
-      logger.error('privacy-relay', `Failed to load subscription: ${String(error)}`);
+      logger.error(
+        'privacy-relay',
+        `Failed to load subscription: ${String(error)}`,
+      );
       this.subscription = null;
     }
   }
@@ -119,12 +140,18 @@ class PrivacyRelayService {
   private async save(): Promise<void> {
     try {
       if (this.subscription) {
-        await AsyncStorage.setItem(PRIVACY_RELAY_STORAGE_KEY, JSON.stringify(this.subscription));
+        await AsyncStorage.setItem(
+          PRIVACY_RELAY_STORAGE_KEY,
+          JSON.stringify(this.subscription),
+        );
       } else {
         await AsyncStorage.removeItem(PRIVACY_RELAY_STORAGE_KEY);
       }
     } catch (error) {
-      logger.error('privacy-relay', `Failed to save subscription: ${String(error)}`);
+      logger.error(
+        'privacy-relay',
+        `Failed to save subscription: ${String(error)}`,
+      );
     }
   }
 
@@ -162,7 +189,9 @@ class PrivacyRelayService {
     };
   }
 
-  async activateSubscription(input: ActivatePrivacyRelayInput): Promise<PrivacyRelaySubscription> {
+  async activateSubscription(
+    input: ActivatePrivacyRelayInput,
+  ): Promise<PrivacyRelaySubscription> {
     const now = new Date().toISOString();
     this.subscription = {
       productId: PRIVACY_RELAY_PRODUCT_ID,
@@ -176,11 +205,16 @@ class PrivacyRelayService {
 
     await this.save();
     this.notify();
-    logger.info('privacy-relay', `Activated Privacy Relay base plan: ${this.subscription.basePlanId || 'unknown'}`);
+    logger.info(
+      'privacy-relay',
+      `Activated Privacy Relay base plan: ${this.subscription.basePlanId || 'unknown'}`,
+    );
     return this.getSubscription() as PrivacyRelaySubscription;
   }
 
-  async deactivateSubscription(status: PrivacyRelaySubscription['status'] = 'inactive'): Promise<void> {
+  async deactivateSubscription(
+    status: PrivacyRelaySubscription['status'] = 'inactive',
+  ): Promise<void> {
     if (!this.subscription) {
       return;
     }
@@ -201,7 +235,10 @@ class PrivacyRelayService {
   }
 
   async restoreFromPurchaseTokens(
-    purchases: Array<{ purchaseToken?: string | null; basePlanId?: string | null }>
+    purchases: Array<{
+      purchaseToken?: string | null;
+      basePlanId?: string | null;
+    }>,
   ): Promise<number> {
     const match = purchases.find(p => Boolean(p.purchaseToken));
     if (!match?.purchaseToken) {
@@ -218,7 +255,7 @@ class PrivacyRelayService {
 
   async registerPurchaseWithBackend(
     purchaseToken: string,
-    fallbackBasePlanId?: string | null
+    fallbackBasePlanId?: string | null,
   ): Promise<PrivacyRelaySubscription> {
     console.log('[PrivacyRelay] Registering purchase with backend');
     const response = await this.apiCall<{
@@ -243,13 +280,21 @@ class PrivacyRelayService {
 
     console.log('[PrivacyRelay] Backend registration parsed:', {
       status,
-      basePlanId: nested.base_plan_id ?? response.base_plan_id ?? fallbackBasePlanId ?? null,
+      basePlanId:
+        nested.base_plan_id ??
+        response.base_plan_id ??
+        fallbackBasePlanId ??
+        null,
       expiresAt: nested.expires_at ?? response.expires_at ?? null,
     });
 
     return await this.activateSubscription({
       purchaseToken,
-      basePlanId: nested.base_plan_id ?? response.base_plan_id ?? fallbackBasePlanId ?? null,
+      basePlanId:
+        nested.base_plan_id ??
+        response.base_plan_id ??
+        fallbackBasePlanId ??
+        null,
       expiresAt: nested.expires_at ?? response.expires_at ?? null,
       status,
     });
@@ -257,11 +302,14 @@ class PrivacyRelayService {
 
   async fetchTurnCredentials(
     purchaseToken: string,
-    options?: { deviceId?: string; callId?: string }
+    options?: { deviceId?: string; callId?: string },
   ): Promise<PrivacyRelayTurnCredentials> {
-    const deviceId = options?.deviceId || await this.getOrCreateDeviceId();
+    const deviceId = options?.deviceId || (await this.getOrCreateDeviceId());
     const callId = options?.callId || `relay-call-${Date.now()}`;
-    console.log('[PrivacyRelay] Fetching TURN credentials', { deviceId, callId });
+    console.log('[PrivacyRelay] Fetching TURN credentials', {
+      deviceId,
+      callId,
+    });
     const response = await this.apiCall<{
       ice_servers?: Array<{
         urls?: string[] | string;
@@ -277,7 +325,7 @@ class PrivacyRelayService {
     });
 
     const parsedIceServers = (response.ice_servers || [])
-      .map((server) => {
+      .map(server => {
         const urls = Array.isArray(server.urls)
           ? server.urls
           : server.urls
@@ -291,12 +339,18 @@ class PrivacyRelayService {
         };
       })
       .filter(
-        (server): server is { urls: string[]; username: string; credential: string } =>
-          server.urls.length > 0 && Boolean(server.username) && Boolean(server.credential)
+        (
+          server,
+        ): server is { urls: string[]; username: string; credential: string } =>
+          server.urls.length > 0 &&
+          Boolean(server.username) &&
+          Boolean(server.credential),
       );
 
     if (parsedIceServers.length === 0) {
-      throw new Error('Privacy Relay backend did not return valid TURN credentials.');
+      throw new Error(
+        'Privacy Relay backend did not return valid TURN credentials.',
+      );
     }
 
     const primaryIceServer = parsedIceServers[0];

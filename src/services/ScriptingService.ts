@@ -12,7 +12,10 @@ import { tx } from '../i18n/transifex';
 import { useTabStore } from '../stores/tabStore';
 import { highlightService } from './HighlightService';
 import { channelNotesService } from './ChannelNotesService';
-import { messageHistoryService, type MessageHistoryStats } from './MessageHistoryService';
+import {
+  messageHistoryService,
+  type MessageHistoryStats,
+} from './MessageHistoryService';
 import { themeService } from './ThemeService';
 import { connectionQualityService } from './ConnectionQualityService';
 import { settingsService } from './SettingsService';
@@ -44,16 +47,58 @@ interface ScriptHooks {
   onMessage?: (message: IRCMessage) => void;
   onNotice?: (message: IRCMessage) => void;
   onJoin?: (channel: string, nick: string, message: IRCMessage) => void;
-  onPart?: (channel: string, nick: string, reason: string, message: IRCMessage) => void;
+  onPart?: (
+    channel: string,
+    nick: string,
+    reason: string,
+    message: IRCMessage,
+  ) => void;
   onQuit?: (nick: string, reason: string, message: IRCMessage) => void;
-  onNickChange?: (oldNick: string, newNick: string, message: IRCMessage) => void;
-  onKick?: (channel: string, kickedNick: string, kickerNick: string, reason: string, message: IRCMessage) => void;
-  onMode?: (channel: string, setterNick: string, mode: string, target: string | undefined, message: IRCMessage) => void;
-  onTopic?: (channel: string, topic: string, setterNick: string, message: IRCMessage) => void;
-  onInvite?: (channel: string, inviterNick: string, message: IRCMessage) => void;
-  onCTCP?: (type: string, from: string, text: string, message: IRCMessage) => void;
-  onRaw?: (line: string, direction: 'in' | 'out', message?: IRCMessage) => HookResult;
-  onCommand?: (text: string, ctx: { channel?: string; networkId?: string }) => HookResult;
+  onNickChange?: (
+    oldNick: string,
+    newNick: string,
+    message: IRCMessage,
+  ) => void;
+  onKick?: (
+    channel: string,
+    kickedNick: string,
+    kickerNick: string,
+    reason: string,
+    message: IRCMessage,
+  ) => void;
+  onMode?: (
+    channel: string,
+    setterNick: string,
+    mode: string,
+    target: string | undefined,
+    message: IRCMessage,
+  ) => void;
+  onTopic?: (
+    channel: string,
+    topic: string,
+    setterNick: string,
+    message: IRCMessage,
+  ) => void;
+  onInvite?: (
+    channel: string,
+    inviterNick: string,
+    message: IRCMessage,
+  ) => void;
+  onCTCP?: (
+    type: string,
+    from: string,
+    text: string,
+    message: IRCMessage,
+  ) => void;
+  onRaw?: (
+    line: string,
+    direction: 'in' | 'out',
+    message?: IRCMessage,
+  ) => HookResult;
+  onCommand?: (
+    text: string,
+    ctx: { channel?: string; networkId?: string },
+  ) => HookResult;
   onTimer?: (name: string) => void;
 }
 
@@ -103,14 +148,21 @@ class ScriptingService {
         return;
       }
       const parsed: ScriptConfig[] = JSON.parse(raw);
-      this.scripts = parsed.map(s => this.compile(s)).filter(Boolean) as CompiledScript[];
+      this.scripts = parsed
+        .map(s => this.compile(s))
+        .filter(Boolean) as CompiledScript[];
     } catch (error) {
-      logger.error('scripting', t('Failed to load scripts: {error}', { error: String(error) }));
+      logger.error(
+        'scripting',
+        t('Failed to load scripts: {error}', { error: String(error) }),
+      );
     }
   }
 
   async save() {
-    const plain: ScriptConfig[] = this.scripts.map(({ hooks: _hooks, ...rest }) => rest);
+    const plain: ScriptConfig[] = this.scripts.map(
+      ({ hooks: _hooks, ...rest }) => rest,
+    );
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(plain));
   }
 
@@ -126,7 +178,10 @@ class ScriptingService {
   }
 
   private async saveSettings() {
-    await AsyncStorage.setItem(STORAGE_SETTINGS_KEY, JSON.stringify(this.settings));
+    await AsyncStorage.setItem(
+      STORAGE_SETTINGS_KEY,
+      JSON.stringify(this.settings),
+    );
   }
 
   async setLoggingEnabled(enabled: boolean) {
@@ -150,12 +205,19 @@ class ScriptingService {
   }
 
   private async persistLog() {
-    await AsyncStorage.setItem(STORAGE_LOG_KEY, JSON.stringify(this.log.slice(-this.logLimit)));
+    await AsyncStorage.setItem(
+      STORAGE_LOG_KEY,
+      JSON.stringify(this.log.slice(-this.logLimit)),
+    );
   }
 
   private addLog(entry: Omit<ScriptLogEntry, 'id' | 'ts'>) {
     if (!this.settings.loggingEnabled) return;
-    const full: ScriptLogEntry = { ...entry, id: `log-${Date.now()}-${Math.random()}`, ts: Date.now() };
+    const full: ScriptLogEntry = {
+      ...entry,
+      id: `log-${Date.now()}-${Math.random()}`,
+      ts: Date.now(),
+    };
     this.log.push(full);
     if (this.log.length > this.logLimit) {
       this.log = this.log.slice(-this.logLimit);
@@ -176,13 +238,16 @@ class ScriptingService {
     try {
       // Syntax check only; do not execute hooks
       // eslint-disable-next-line no-new-func
-      const factory = new Function('api', `
+      const factory = new Function(
+        'api',
+        `
         "use strict";
         const exports = {};
         const module = { exports };
         ${code}
         return module.exports || exports;
-      `);
+      `,
+      );
       if (factory) {
         return { ok: true, message: t('No syntax errors detected.') };
       }
@@ -223,7 +288,7 @@ class ScriptingService {
     // Check if user has available time when enabling a script
     if (enabled && !adRewardService.hasAvailableTime()) {
       const msg = t(
-        'Cannot enable script: No scripting time available. Please watch an ad to gain 1 hour of scripting time.'
+        'Cannot enable script: No scripting time available. Please watch an ad to gain 1 hour of scripting time.',
       );
       logger.warn('scripting', msg);
       this.addLog({ level: 'warn', message: msg, scriptId: id });
@@ -247,8 +312,12 @@ class ScriptingService {
   async installBuiltIns(scripts: ScriptConfig[]) {
     // Replace any existing built-ins with fresh versions
     const builtInIds = new Set(scripts.map(s => s.id));
-    const existingBuiltIns = this.scripts.filter(s => s.builtIn && builtInIds.has(s.id));
-    this.scripts = this.scripts.filter(s => !(s.builtIn && builtInIds.has(s.id)));
+    const existingBuiltIns = this.scripts.filter(
+      s => s.builtIn && builtInIds.has(s.id),
+    );
+    this.scripts = this.scripts.filter(
+      s => !(s.builtIn && builtInIds.has(s.id)),
+    );
     scripts.forEach(s => {
       const existing = existingBuiltIns.find(prev => prev.id === s.id);
       const merged: ScriptConfig = {
@@ -524,7 +593,9 @@ class ScriptingService {
         id: 'builtin-highlight-tracker',
         name: t('Highlight Tracker'),
         enabled: false,
-        description: t('Tracks when your highlight words are mentioned and logs them.'),
+        description: t(
+          'Tracks when your highlight words are mentioned and logs them.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -542,7 +613,9 @@ class ScriptingService {
         id: 'builtin-user-notes-manager',
         name: t('User Notes Manager'),
         enabled: false,
-        description: t('Automatically saves notes about users based on their messages.'),
+        description: t(
+          'Automatically saves notes about users based on their messages.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -585,7 +658,9 @@ class ScriptingService {
         id: 'builtin-smart-welcome',
         name: t('Smart Welcome'),
         enabled: false,
-        description: t('Welcomes users with personalized messages based on user notes.'),
+        description: t(
+          'Welcomes users with personalized messages based on user notes.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -606,7 +681,9 @@ class ScriptingService {
         id: 'builtin-message-history-search',
         name: t('Message History Search'),
         enabled: false,
-        description: t('Searches message history when you mention /search in a channel.'),
+        description: t(
+          'Searches message history when you mention /search in a channel.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -635,7 +712,9 @@ class ScriptingService {
         id: 'builtin-channel-bookmark-manager',
         name: t('Channel Bookmark Manager'),
         enabled: false,
-        description: t('Automatically bookmarks channels you frequently visit.'),
+        description: t(
+          'Automatically bookmarks channels you frequently visit.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -680,7 +759,9 @@ class ScriptingService {
         id: 'builtin-auto-highlight-add',
         name: t('Auto Highlight Add'),
         enabled: false,
-        description: t('Automatically adds your nick to highlight words when mentioned.'),
+        description: t(
+          'Automatically adds your nick to highlight words when mentioned.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -789,7 +870,9 @@ class ScriptingService {
         id: 'builtin-message-stats',
         name: t('Message Statistics'),
         enabled: false,
-        description: t('Tracks message statistics and shows them periodically.'),
+        description: t(
+          'Tracks message statistics and shows them periodically.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -814,7 +897,9 @@ class ScriptingService {
         id: 'builtin-theme-aware-logger',
         name: t('Theme-Aware Logger'),
         enabled: false,
-        description: t('Logs theme information and adapts behavior based on theme.'),
+        description: t(
+          'Logs theme information and adapts behavior based on theme.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -831,7 +916,9 @@ class ScriptingService {
         id: 'builtin-channel-user-tracker',
         name: t('Channel User Tracker'),
         enabled: false,
-        description: t('Tracks user activity in channels and logs user counts.'),
+        description: t(
+          'Tracks user activity in channels and logs user counts.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -849,7 +936,9 @@ class ScriptingService {
         id: 'builtin-smart-ctcp-handler',
         name: t('Smart CTCP Handler'),
         enabled: false,
-        description: t('Enhanced CTCP handler with logging and custom responses.'),
+        description: t(
+          'Enhanced CTCP handler with logging and custom responses.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -871,7 +960,9 @@ class ScriptingService {
         id: 'builtin-channel-mode-protector',
         name: t('Channel Mode Protector'),
         enabled: false,
-        description: t('Monitors channel mode changes and logs important ones.'),
+        description: t(
+          'Monitors channel mode changes and logs important ones.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -895,7 +986,9 @@ class ScriptingService {
         id: 'builtin-multi-network-monitor',
         name: t('Multi-Network Monitor'),
         enabled: false,
-        description: t('Monitors all connected networks and logs their status.'),
+        description: t(
+          'Monitors all connected networks and logs their status.',
+        ),
         builtIn: true,
         code: `
           module.exports = {
@@ -1047,13 +1140,16 @@ class ScriptingService {
     try {
       const api = this.makeApi(script);
       // eslint-disable-next-line no-new-func
-      const factory = new Function('api', `
+      const factory = new Function(
+        'api',
+        `
         "use strict";
         const exports = {};
         const module = { exports };
         ${script.code}
         return module.exports || exports;
-      `);
+      `,
+      );
       const hooks = factory(api) as Partial<ScriptHooks>;
       safeScript.hooks = hooks;
     } catch (error) {
@@ -1081,7 +1177,8 @@ class ScriptingService {
     const trimmed = nick.trim();
     if (trimmed.length === 0 || trimmed.length > 50) return null;
     // Basic IRC nick validation
-    if (!/^[a-zA-Z_\[\]\\`^{}|][a-zA-Z0-9_\[\]\\`^{}|-]*$/.test(trimmed)) return null;
+    if (!/^[a-zA-Z_\[\]\\`^{}|][a-zA-Z0-9_\[\]\\`^{}|-]*$/.test(trimmed))
+      return null;
     return trimmed;
   }
 
@@ -1098,22 +1195,38 @@ class ScriptingService {
       log: (msg: string) => {
         if (typeof msg !== 'string') return;
         logger.info('script', msg);
-        this.addLog({ level: 'info', message: String(msg).substring(0, 500), scriptId: script.id });
+        this.addLog({
+          level: 'info',
+          message: String(msg).substring(0, 500),
+          scriptId: script.id,
+        });
       },
       warn: (msg: string) => {
         if (typeof msg !== 'string') return;
         logger.warn('script', msg);
-        this.addLog({ level: 'warn', message: String(msg).substring(0, 500), scriptId: script.id });
+        this.addLog({
+          level: 'warn',
+          message: String(msg).substring(0, 500),
+          scriptId: script.id,
+        });
       },
       error: (msg: string) => {
         if (typeof msg !== 'string') return;
         logger.error('script', msg);
-        this.addLog({ level: 'error', message: String(msg).substring(0, 500), scriptId: script.id });
+        this.addLog({
+          level: 'error',
+          message: String(msg).substring(0, 500),
+          scriptId: script.id,
+        });
       },
 
       // User info - use getter to get current nick at execution time
       get userNick() {
-        return connectionManager.getActiveConnection()?.ircService.getCurrentNick() || '';
+        return (
+          connectionManager
+            .getActiveConnection()
+            ?.ircService.getCurrentNick() || ''
+        );
       },
 
       // App version (from app.json) for CTCP VERSION etc.
@@ -1146,9 +1259,16 @@ class ScriptingService {
         const net = this.validateNetworkId(networkId);
         if (!net) return;
         const conn = connectionManager.getConnection(net);
-        conn?.ircService.sendCommand(`NOTICE ${tgt} :${text.substring(0, 500)}`);
+        conn?.ircService.sendCommand(
+          `NOTICE ${tgt} :${text.substring(0, 500)}`,
+        );
       },
-      sendCTCP: (target: string, type: string, params?: string, networkId?: string) => {
+      sendCTCP: (
+        target: string,
+        type: string,
+        params?: string,
+        networkId?: string,
+      ) => {
         const tgt = this.sanitizeNick(target);
         if (!tgt || typeof type !== 'string') return;
         const net = this.validateNetworkId(networkId);
@@ -1195,12 +1315,14 @@ class ScriptingService {
       },
       getActiveTab: () => {
         const tab = useTabStore.getState().getActiveTab();
-        return tab ? {
-          id: tab.id,
-          name: tab.name,
-          type: tab.type,
-          networkId: tab.networkId,
-        } : null;
+        return tab
+          ? {
+              id: tab.id,
+              name: tab.name,
+              type: tab.type,
+              networkId: tab.networkId,
+            }
+          : null;
       },
       switchToTab: (tabId: string) => {
         if (typeof tabId !== 'string') return;
@@ -1232,7 +1354,7 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         if (!conn) return null;
         try {
-          return await conn.userManagementService.getUserNote(n, net) || null;
+          return (await conn.userManagementService.getUserNote(n, net)) || null;
         } catch {
           return null;
         }
@@ -1245,9 +1367,17 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         if (!conn) return;
         try {
-          await conn.userManagementService.addUserNote(n, note.substring(0, 1000), net);
+          await conn.userManagementService.addUserNote(
+            n,
+            note.substring(0, 1000),
+            net,
+          );
         } catch (e) {
-          this.addLog({ level: 'error', message: `Failed to set user note: ${e}`, scriptId: script.id });
+          this.addLog({
+            level: 'error',
+            message: `Failed to set user note: ${e}`,
+            scriptId: script.id,
+          });
         }
       },
       getUserAlias: async (nick: string, networkId?: string) => {
@@ -1258,7 +1388,9 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         if (!conn) return null;
         try {
-          return await conn.userManagementService.getUserAlias(n, net) || null;
+          return (
+            (await conn.userManagementService.getUserAlias(n, net)) || null
+          );
         } catch {
           return null;
         }
@@ -1271,9 +1403,17 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         if (!conn) return;
         try {
-          await conn.userManagementService.addUserAlias(n, alias.substring(0, 50), net);
+          await conn.userManagementService.addUserAlias(
+            n,
+            alias.substring(0, 50),
+            net,
+          );
         } catch (e) {
-          this.addLog({ level: 'error', message: `Failed to set user alias: ${e}`, scriptId: script.id });
+          this.addLog({
+            level: 'error',
+            message: `Failed to set user alias: ${e}`,
+            scriptId: script.id,
+          });
         }
       },
       isIgnored: (nick: string, networkId?: string) => {
@@ -1284,7 +1424,12 @@ class ScriptingService {
         const conn = connectionManager.getConnection(net);
         if (!conn) return false;
         try {
-          return conn.userManagementService.isUserIgnored(n, undefined, undefined, net);
+          return conn.userManagementService.isUserIgnored(
+            n,
+            undefined,
+            undefined,
+            net,
+          );
         } catch {
           return false;
         }
@@ -1297,12 +1442,16 @@ class ScriptingService {
         const net = this.validateNetworkId(networkId);
         if (!net) return null;
         try {
-          return await channelNotesService.getNote(net, chan) || null;
+          return (await channelNotesService.getNote(net, chan)) || null;
         } catch {
           return null;
         }
       },
-      setChannelNote: async (channel: string, note: string, networkId?: string) => {
+      setChannelNote: async (
+        channel: string,
+        note: string,
+        networkId?: string,
+      ) => {
         const chan = this.sanitizeChannel(channel);
         if (!chan || typeof note !== 'string' || note.length > 2000) return;
         const net = this.validateNetworkId(networkId);
@@ -1310,7 +1459,11 @@ class ScriptingService {
         try {
           await channelNotesService.setNote(net, chan, note.substring(0, 2000));
         } catch (e) {
-          this.addLog({ level: 'error', message: `Failed to set channel note: ${e}`, scriptId: script.id });
+          this.addLog({
+            level: 'error',
+            message: `Failed to set channel note: ${e}`,
+            scriptId: script.id,
+          });
         }
       },
       isChannelBookmarked: async (channel: string, networkId?: string) => {
@@ -1334,7 +1487,11 @@ class ScriptingService {
         try {
           await highlightService.addHighlightWord(word.substring(0, 100));
         } catch (e) {
-          this.addLog({ level: 'error', message: `Failed to add highlight word: ${e}`, scriptId: script.id });
+          this.addLog({
+            level: 'error',
+            message: `Failed to add highlight word: ${e}`,
+            scriptId: script.id,
+          });
         }
       },
       removeHighlightWord: async (word: string) => {
@@ -1342,7 +1499,11 @@ class ScriptingService {
         try {
           await highlightService.removeHighlightWord(word);
         } catch (e) {
-          this.addLog({ level: 'error', message: `Failed to remove highlight word: ${e}`, scriptId: script.id });
+          this.addLog({
+            level: 'error',
+            message: `Failed to remove highlight word: ${e}`,
+            scriptId: script.id,
+          });
         }
       },
       isHighlighted: (text: string) => {
@@ -1380,7 +1541,9 @@ class ScriptingService {
         const net = this.validateNetworkId(networkId);
         if (!net) return null;
         try {
-          const messages = await messageHistoryService.searchMessages({ network: net });
+          const messages = await messageHistoryService.searchMessages({
+            network: net,
+          });
           const stats: MessageHistoryStats = {
             totalMessages: messages.length,
             channelCount: 0,
@@ -1389,11 +1552,17 @@ class ScriptingService {
             oldestMessage: messages[0]?.timestamp,
             newestMessage: messages[messages.length - 1]?.timestamp,
           };
-          messages.forEach((message) => {
+          messages.forEach(message => {
             const channel = message.channel || 'server';
-            stats.messagesByChannel.set(channel, (stats.messagesByChannel.get(channel) || 0) + 1);
+            stats.messagesByChannel.set(
+              channel,
+              (stats.messagesByChannel.get(channel) || 0) + 1,
+            );
             if (message.from) {
-              stats.messagesByUser.set(message.from, (stats.messagesByUser.get(message.from) || 0) + 1);
+              stats.messagesByUser.set(
+                message.from,
+                (stats.messagesByUser.get(message.from) || 0) + 1,
+              );
             }
           });
           stats.channelCount = stats.messagesByChannel.size;
@@ -1407,7 +1576,13 @@ class ScriptingService {
       getSetting: async (key: string) => {
         if (typeof key !== 'string') return null;
         // Only allow safe settings to be read
-        const safeKeys = ['nick', 'username', 'realname', 'partMessage', 'quitMessage'];
+        const safeKeys = [
+          'nick',
+          'username',
+          'realname',
+          'partMessage',
+          'quitMessage',
+        ];
         if (!safeKeys.includes(key)) return null;
         try {
           return await settingsService.getSetting(key, null);
@@ -1421,17 +1596,23 @@ class ScriptingService {
         try {
           const theme = themeService.getCurrentTheme();
           const background = theme.colors.background.replace('#', '');
-          const normalizedHex = background.length === 3
-            ? background.split('').map((char) => char + char).join('')
-            : background;
-          const rgb = normalizedHex.length >= 6
-            ? {
-                r: parseInt(normalizedHex.slice(0, 2), 16),
-                g: parseInt(normalizedHex.slice(2, 4), 16),
-                b: parseInt(normalizedHex.slice(4, 6), 16),
-              }
-            : { r: 0, g: 0, b: 0 };
-          const luminance = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
+          const normalizedHex =
+            background.length === 3
+              ? background
+                  .split('')
+                  .map(char => char + char)
+                  .join('')
+              : background;
+          const rgb =
+            normalizedHex.length >= 6
+              ? {
+                  r: parseInt(normalizedHex.slice(0, 2), 16),
+                  g: parseInt(normalizedHex.slice(2, 4), 16),
+                  b: parseInt(normalizedHex.slice(4, 6), 16),
+                }
+              : { r: 0, g: 0, b: 0 };
+          const luminance =
+            (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
           return {
             name: theme.name,
             isDark: luminance < 0.5,
@@ -1454,24 +1635,38 @@ class ScriptingService {
 
       // Timers
       setTimer: (name: string, delay: number, repeat: boolean = false) => {
-        if (typeof name !== 'string' || typeof delay !== 'number' || delay < 0 || delay > 3600000) return;
+        if (
+          typeof name !== 'string' ||
+          typeof delay !== 'number' ||
+          delay < 0 ||
+          delay > 3600000
+        )
+          return;
         const timerId = `${script.id}:${name}`;
         if (this.timers.has(timerId)) {
           clearTimeout(this.timers.get(timerId)!);
         }
-        const timer = setTimeout(() => {
-          this.runHook('onTimer', (_hooks) => {
-            const scriptHook = this.scripts.find(s => s.id === script.id)?.hooks;
-            scriptHook?.onTimer?.(name);
-          });
-          if (repeat) {
-            this.timers.set(timerId, setTimeout(() => {
-              this.makeApi(script).setTimer(name, delay, repeat);
-            }, delay));
-          } else {
-            this.timers.delete(timerId);
-          }
-        }, Math.min(delay, 3600000)); // Max 1 hour
+        const timer = setTimeout(
+          () => {
+            this.runHook('onTimer', _hooks => {
+              const scriptHook = this.scripts.find(
+                s => s.id === script.id,
+              )?.hooks;
+              scriptHook?.onTimer?.(name);
+            });
+            if (repeat) {
+              this.timers.set(
+                timerId,
+                setTimeout(() => {
+                  this.makeApi(script).setTimer(name, delay, repeat);
+                }, delay),
+              );
+            } else {
+              this.timers.delete(timerId);
+            }
+          },
+          Math.min(delay, 3600000),
+        ); // Max 1 hour
         this.timers.set(timerId, timer);
       },
       clearTimer: (name: string) => {
@@ -1516,7 +1711,11 @@ class ScriptingService {
           const storageKey = `@AndroidIRCX:script:${script.id}:${key}`;
           await AsyncStorage.setItem(storageKey, JSON.stringify(value));
         } catch (e) {
-          this.addLog({ level: 'error', message: `Failed to set storage: ${e}`, scriptId: script.id });
+          this.addLog({
+            level: 'error',
+            message: `Failed to set storage: ${e}`,
+            scriptId: script.id,
+          });
         }
       },
       removeStorage: async (key: string) => {
@@ -1525,67 +1724,95 @@ class ScriptingService {
           const storageKey = `@AndroidIRCX:script:${script.id}:${key}`;
           await AsyncStorage.removeItem(storageKey);
         } catch (e) {
-          this.addLog({ level: 'error', message: `Failed to remove storage: ${e}`, scriptId: script.id });
+          this.addLog({
+            level: 'error',
+            message: `Failed to remove storage: ${e}`,
+            scriptId: script.id,
+          });
         }
       },
 
       // Utility functions
       now: () => Date.now(),
       sleep: (ms: number) => {
-        return new Promise(resolve => setTimeout(resolve, Math.min(Math.max(0, ms), 10000)));
+        return new Promise(resolve =>
+          setTimeout(resolve, Math.min(Math.max(0, ms), 10000)),
+        );
       },
     };
   }
 
   handleConnect(networkId: string) {
-    this.runHook('onConnect', (h) => h.onConnect?.(networkId));
+    this.runHook('onConnect', h => h.onConnect?.(networkId));
   }
 
   handleMessage(message: IRCMessage) {
     // Handle regular messages
     if (message.type === 'message') {
-      this.runHook('onMessage', (h) => h.onMessage?.(message));
+      this.runHook('onMessage', h => h.onMessage?.(message));
     } else if (message.type === 'notice') {
-      this.runHook('onNotice', (h) => h.onNotice?.(message));
+      this.runHook('onNotice', h => h.onNotice?.(message));
     } else if (message.type === 'join' && message.channel && message.from) {
-      this.runHook('onJoin', (h) => h.onJoin?.(message.channel!, message.from!, message));
+      this.runHook('onJoin', h =>
+        h.onJoin?.(message.channel!, message.from!, message),
+      );
     } else if (message.type === 'part' && message.channel && message.from) {
       const reason = message.text || '';
-      this.runHook('onPart', (h) => h.onPart?.(message.channel!, message.from!, reason, message));
+      this.runHook('onPart', h =>
+        h.onPart?.(message.channel!, message.from!, reason, message),
+      );
     } else if (message.type === 'quit' && message.from) {
       const reason = message.text || '';
-      this.runHook('onQuit', (h) => h.onQuit?.(message.from!, reason, message));
+      this.runHook('onQuit', h => h.onQuit?.(message.from!, reason, message));
     } else if (message.type === 'nick' && message.from && message.text) {
       const oldNick = message.from;
       const newNick = message.text.replace(/^:/, '').trim();
-      this.runHook('onNickChange', (h) => h.onNickChange?.(oldNick, newNick, message));
+      this.runHook('onNickChange', h =>
+        h.onNickChange?.(oldNick, newNick, message),
+      );
     } else if (message.type === 'mode' && message.channel && message.from) {
       // Parse mode change: +o nick or -v nick, etc.
       const modeText = message.text || '';
       const parts = modeText.split(' ');
       const mode = parts[0] || '';
       const target = parts[1] || undefined;
-      this.runHook('onMode', (h) => h.onMode?.(message.channel!, message.from!, mode, target, message));
+      this.runHook('onMode', h =>
+        h.onMode?.(message.channel!, message.from!, mode, target, message),
+      );
     } else if (message.type === 'topic' && message.channel) {
       const topic = message.text || '';
       const setterNick = message.from || '';
-      this.runHook('onTopic', (h) => h.onTopic?.(message.channel!, topic, setterNick, message));
+      this.runHook('onTopic', h =>
+        h.onTopic?.(message.channel!, topic, setterNick, message),
+      );
     } else if (message.type === 'invite' && message.channel && message.from) {
-      this.runHook('onInvite', (h) => h.onInvite?.(message.channel!, message.from!, message));
+      this.runHook('onInvite', h =>
+        h.onInvite?.(message.channel!, message.from!, message),
+      );
     }
-    
+
     // Handle CTCP in message text
-    if (message.text && message.text.startsWith('\x01') && message.text.endsWith('\x01')) {
+    if (
+      message.text &&
+      message.text.startsWith('\x01') &&
+      message.text.endsWith('\x01')
+    ) {
       const ctcpContent = message.text.slice(1, -1);
       const spaceIndex = ctcpContent.indexOf(' ');
-      const ctcpType = spaceIndex > 0 ? ctcpContent.substring(0, spaceIndex).toUpperCase() : ctcpContent.toUpperCase();
-      const ctcpText = spaceIndex > 0 ? ctcpContent.substring(spaceIndex + 1) : '';
-      this.runHook('onCTCP', (h) => h.onCTCP?.(ctcpType, message.from || '', ctcpText, message));
+      const ctcpType =
+        spaceIndex > 0
+          ? ctcpContent.substring(0, spaceIndex).toUpperCase()
+          : ctcpContent.toUpperCase();
+      const ctcpText =
+        spaceIndex > 0 ? ctcpContent.substring(spaceIndex + 1) : '';
+      this.runHook('onCTCP', h =>
+        h.onCTCP?.(ctcpType, message.from || '', ctcpText, message),
+      );
     }
   }
-  
+
   handleDisconnect(networkId: string, reason?: string) {
-    this.runHook('onDisconnect', (h) => h.onDisconnect?.(networkId, reason));
+    this.runHook('onDisconnect', h => h.onDisconnect?.(networkId, reason));
     // Clear all timers for this network
     this.timers.forEach((timer, timerId) => {
       if (timerId.startsWith(networkId + ':')) {
@@ -1594,10 +1821,14 @@ class ScriptingService {
       }
     });
   }
-  
-  handleRaw(line: string, direction: 'in' | 'out', message?: IRCMessage): string | null {
+
+  handleRaw(
+    line: string,
+    direction: 'in' | 'out',
+    message?: IRCMessage,
+  ): string | null {
     let current = line;
-    this.runHook('onRaw', (h) => {
+    this.runHook('onRaw', h => {
       const result = h.onRaw?.(current, direction, message);
       if (typeof result === 'string') {
         current = result;
@@ -1612,9 +1843,12 @@ class ScriptingService {
     return current || null;
   }
 
-  processOutgoingCommand(text: string, ctx: { channel?: string; networkId?: string }): string | null {
+  processOutgoingCommand(
+    text: string,
+    ctx: { channel?: string; networkId?: string },
+  ): string | null {
     let current = text;
-    this.runHook('onCommand', (h) => {
+    this.runHook('onCommand', h => {
       const result = h.onCommand?.(current, ctx);
       if (typeof result === 'string') {
         current = result;
@@ -1644,14 +1878,19 @@ class ScriptingService {
       if (!adRewardService.hasAvailableTime() && hasEnabledScripts) {
         this.scripts = this.scripts.map(s => ({ ...s, enabled: false }));
         this.save();
-        const msg = t('All scripts disabled: Scripting time expired. Watch an ad to continue.');
+        const msg = t(
+          'All scripts disabled: Scripting time expired. Watch an ad to continue.',
+        );
         logger.warn('scripting', msg);
         this.addLog({ level: 'warn', message: msg });
       }
     }
   }
 
-  private runHook(hook: keyof ScriptHooks, runner: (hooks: ScriptHooks) => void) {
+  private runHook(
+    hook: keyof ScriptHooks,
+    runner: (hooks: ScriptHooks) => void,
+  ) {
     // Check if user has available time before running hooks
     if (!adRewardService.hasAvailableTime()) {
       this.updateUsageTracking(); // This will disable all scripts
@@ -1712,7 +1951,13 @@ class ScriptingService {
           script.hooks.onNickChange?.('tester', 'tester2', sampleMsg);
           break;
         case 'onKick':
-          script.hooks.onKick?.('#test', 'victim', 'kicker', 'Reason', sampleMsg);
+          script.hooks.onKick?.(
+            '#test',
+            'victim',
+            'kicker',
+            'Reason',
+            sampleMsg,
+          );
           break;
         case 'onMode':
           script.hooks.onMode?.('#test', 'op', '+o', 'user', sampleMsg);
@@ -1730,7 +1975,10 @@ class ScriptingService {
           script.hooks.onRaw?.('PRIVMSG #test :hello', 'in', sampleMsg);
           break;
         case 'onCommand':
-          script.hooks.onCommand?.('/echo hi', { channel: '#test', networkId: 'sampleNet' });
+          script.hooks.onCommand?.('/echo hi', {
+            channel: '#test',
+            networkId: 'sampleNet',
+          });
           break;
         case 'onTimer':
           script.hooks.onTimer?.('testTimer');

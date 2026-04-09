@@ -10,7 +10,9 @@ jest.unmock('../../src/services/AdRewardService');
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    getItem: jest.fn(async (key: string) => (mockStorage.has(key) ? mockStorage.get(key)! : null)),
+    getItem: jest.fn(async (key: string) =>
+      mockStorage.has(key) ? mockStorage.get(key)! : null,
+    ),
     setItem: jest.fn(async (key: string, value: string) => {
       mockStorage.set(key, value);
     }),
@@ -54,7 +56,11 @@ jest.mock('../../src/services/InAppPurchaseService', () => ({
 }));
 
 import { adRewardService } from '../../src/services/AdRewardService';
-import { AdEventType, RewardedAdEventType, RewardedAd } from 'react-native-google-mobile-ads';
+import {
+  AdEventType,
+  RewardedAdEventType,
+  RewardedAd,
+} from 'react-native-google-mobile-ads';
 
 describe('AdRewardService', () => {
   beforeEach(() => {
@@ -86,7 +92,9 @@ describe('AdRewardService', () => {
 
   it('returns manualLoadAd status branches', async () => {
     (adRewardService as any).adsDisabled = true;
-    await expect(adRewardService.manualLoadAd()).resolves.toEqual(expect.objectContaining({ success: false }));
+    await expect(adRewardService.manualLoadAd()).resolves.toEqual(
+      expect.objectContaining({ success: false }),
+    );
 
     (adRewardService as any).adsDisabled = false;
     (adRewardService as any).cooldownEndTime = Date.now() + 5000;
@@ -96,15 +104,23 @@ describe('AdRewardService', () => {
 
     (adRewardService as any).cooldownEndTime = 0;
     (adRewardService as any).adLoaded = true;
-    await expect(adRewardService.manualLoadAd()).resolves.toEqual(expect.objectContaining({ success: true }));
+    await expect(adRewardService.manualLoadAd()).resolves.toEqual(
+      expect.objectContaining({ success: true }),
+    );
 
     (adRewardService as any).adLoaded = false;
     (adRewardService as any).adLoading = true;
-    await expect(adRewardService.manualLoadAd()).resolves.toEqual(expect.objectContaining({ success: false }));
+    await expect(adRewardService.manualLoadAd()).resolves.toEqual(
+      expect.objectContaining({ success: false }),
+    );
 
     (adRewardService as any).adLoading = false;
-    const loadSpy = jest.spyOn(adRewardService as any, 'loadAd').mockImplementation(() => undefined);
-    await expect(adRewardService.manualLoadAd()).resolves.toEqual(expect.objectContaining({ success: true }));
+    const loadSpy = jest
+      .spyOn(adRewardService as any, 'loadAd')
+      .mockImplementation(() => undefined);
+    await expect(adRewardService.manualLoadAd()).resolves.toEqual(
+      expect.objectContaining({ success: true }),
+    );
     expect(loadSpy).toHaveBeenCalled();
     loadSpy.mockRestore();
   });
@@ -164,10 +180,12 @@ describe('AdRewardService', () => {
 
   it('initializes, grants initial/version bonuses and starts first ad load timer', async () => {
     const handlers: Record<string, Function> = {};
-    mockRewardedAd.addAdEventListener.mockImplementation((type: string, cb: Function) => {
-      handlers[type] = cb;
-      return jest.fn();
-    });
+    mockRewardedAd.addAdEventListener.mockImplementation(
+      (type: string, cb: Function) => {
+        handlers[type] = cb;
+        return jest.fn();
+      },
+    );
 
     await adRewardService.initialize();
     expect((adRewardService as any).initialized).toBe(true);
@@ -178,7 +196,10 @@ describe('AdRewardService', () => {
 
     handlers[RewardedAdEventType.LOADED]?.();
     expect((adRewardService as any).adLoaded).toBe(true);
-    handlers[RewardedAdEventType.EARNED_REWARD]?.({ amount: 60, type: 'minutes' });
+    handlers[RewardedAdEventType.EARNED_REWARD]?.({
+      amount: 60,
+      type: 'minutes',
+    });
     jest.advanceTimersByTime(2001);
     expect(mockRewardedAd.load).toHaveBeenCalledTimes(2);
   });
@@ -192,10 +213,12 @@ describe('AdRewardService', () => {
     expect((adRewardService as any).adLoading).toBe(false);
 
     const handlers: Record<string, Function> = {};
-    mockRewardedAd.addAdEventListener.mockImplementation((type: string, cb: Function) => {
-      handlers[type] = cb;
-      return jest.fn();
-    });
+    mockRewardedAd.addAdEventListener.mockImplementation(
+      (type: string, cb: Function) => {
+        handlers[type] = cb;
+        return jest.fn();
+      },
+    );
     (adRewardService as any).setupRewardedAd();
     handlers[AdEventType.ERROR]?.({ code: 'x', message: 'm' });
     expect((adRewardService as any).adLoading).toBe(false);
@@ -203,8 +226,12 @@ describe('AdRewardService', () => {
   });
 
   it('handleLoadError covers null-activity, internal-error and fallback/cooldown branches', () => {
-    const setupSpy = jest.spyOn(adRewardService as any, 'setupRewardedAd').mockImplementation(() => undefined);
-    const loadSpy = jest.spyOn(adRewardService as any, 'loadAd').mockImplementation(() => undefined);
+    const setupSpy = jest
+      .spyOn(adRewardService as any, 'setupRewardedAd')
+      .mockImplementation(() => undefined);
+    const loadSpy = jest
+      .spyOn(adRewardService as any, 'loadAd')
+      .mockImplementation(() => undefined);
 
     (adRewardService as any).adsDisabled = false;
     (adRewardService as any).consecutiveFailures = 0;
@@ -212,12 +239,18 @@ describe('AdRewardService', () => {
     (adRewardService as any).retryCount = 0;
     (adRewardService as any).currentAdUnitIndex = 0;
 
-    (adRewardService as any).lastError = { code: 'googleMobileAds/null-activity', message: 'na' };
+    (adRewardService as any).lastError = {
+      code: 'googleMobileAds/null-activity',
+      message: 'na',
+    };
     (adRewardService as any).handleLoadError();
     jest.advanceTimersByTime(5001);
     expect(loadSpy).toHaveBeenCalled();
 
-    (adRewardService as any).lastError = { code: 'googleMobileAds/internal-error', message: 'ie' };
+    (adRewardService as any).lastError = {
+      code: 'googleMobileAds/internal-error',
+      message: 'ie',
+    };
     (adRewardService as any).handleLoadError();
     expect((adRewardService as any).isInCooldown()).toBe(true);
     jest.advanceTimersByTime(120001);
@@ -259,12 +292,20 @@ describe('AdRewardService', () => {
   it('setupRewardedAd handles createForAdRequest failure and cleanup listeners', () => {
     const unsubscribeA = jest.fn();
     const unsubscribeB = jest.fn();
-    (adRewardService as any).adEventUnsubscribers = [unsubscribeA, unsubscribeB];
-    (adRewardService as any).initialLoadTimeoutId = setTimeout(() => undefined, 1000);
+    (adRewardService as any).adEventUnsubscribers = [
+      unsubscribeA,
+      unsubscribeB,
+    ];
+    (adRewardService as any).initialLoadTimeoutId = setTimeout(
+      () => undefined,
+      1000,
+    );
 
-    const createSpy = jest.spyOn(RewardedAd, 'createForAdRequest').mockImplementationOnce(() => {
-      throw new Error('create fail');
-    });
+    const createSpy = jest
+      .spyOn(RewardedAd, 'createForAdRequest')
+      .mockImplementationOnce(() => {
+        throw new Error('create fail');
+      });
 
     expect(() => (adRewardService as any).setupRewardedAd()).not.toThrow();
     expect(unsubscribeA).toHaveBeenCalled();

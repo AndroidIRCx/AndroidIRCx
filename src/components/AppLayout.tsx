@@ -9,7 +9,14 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Platform, View, useWindowDimensions, TouchableOpacity, PanResponder, type ViewStyle } from 'react-native';
+import {
+  Platform,
+  View,
+  useWindowDimensions,
+  TouchableOpacity,
+  PanResponder,
+  type ViewStyle,
+} from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ChannelTabs } from './ChannelTabs';
 import { MessageArea } from './MessageArea';
@@ -57,8 +64,16 @@ interface AppLayoutProps {
   showSearchButton: boolean;
   safeAreaInsets: { top: number; bottom: number };
   keyboardAvoidingEnabled: boolean;
-  keyboardBehaviorIOS: 'padding' | 'height' | 'position' | 'translate-with-padding';
-  keyboardBehaviorAndroid: 'padding' | 'height' | 'position' | 'translate-with-padding';
+  keyboardBehaviorIOS:
+    | 'padding'
+    | 'height'
+    | 'position'
+    | 'translate-with-padding';
+  keyboardBehaviorAndroid:
+    | 'padding'
+    | 'height'
+    | 'position'
+    | 'translate-with-padding';
   keyboardVerticalOffset: number;
   useAndroidBottomSafeArea: boolean;
   styles: any;
@@ -129,27 +144,34 @@ export function AppLayout({
   const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
-  const isSideTabs = layoutConfig.tabPosition === 'left' || layoutConfig.tabPosition === 'right';
+  const isSideTabs =
+    layoutConfig.tabPosition === 'left' || layoutConfig.tabPosition === 'right';
   const showSideTabs = isSideTabs && sideTabsVisible;
 
   // Message search state
   const [searchVisible, setSearchVisible] = useState(false);
-  const [bannerPosition, setBannerPosition] = useState<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>('input_above');
+  const [bannerPosition, setBannerPosition] = useState<
+    'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'
+  >('input_above');
   const [nicklistTongueEnabled, setNicklistTongueEnabled] = useState(true);
   const [nicklistTongueSizePx, setNicklistTongueSizePx] = useState(56);
-  const [swipeBehavior, setSwipeBehavior] = useState<'off' | 'switch-tabs' | 'show-panels'>('off');
+  const [swipeBehavior, setSwipeBehavior] = useState<
+    'off' | 'switch-tabs' | 'show-panels'
+  >('off');
   const [swipeInverse, setSwipeInverse] = useState(false);
   const setShowUserList = useUIStore(state => state.setShowUserList);
 
   useEffect(() => {
     let isMounted = true;
     settingsService.getSetting('bannerPosition', 'input_above').then(value => {
-      if (isMounted) setBannerPosition(value as 'input_above' | 'input_below' | 'tabs_above' | 'tabs_below');
+      if (isMounted)
+        setBannerPosition(
+          value as 'input_above' | 'input_below' | 'tabs_above' | 'tabs_below',
+        );
     });
-    const unsubscribe = settingsService.onSettingChange<'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'>(
-      'bannerPosition',
-      value => setBannerPosition(value)
-    );
+    const unsubscribe = settingsService.onSettingChange<
+      'input_above' | 'input_below' | 'tabs_above' | 'tabs_below'
+    >('bannerPosition', value => setBannerPosition(value));
     return () => {
       isMounted = false;
       unsubscribe();
@@ -159,8 +181,14 @@ export function AppLayout({
   useEffect(() => {
     let mounted = true;
     const loadTongueSettings = async () => {
-      const enabled = await settingsService.getSetting('nicklistTongueEnabled', true);
-      const sizePx = await settingsService.getSetting('nicklistTongueSizePx', 56);
+      const enabled = await settingsService.getSetting(
+        'nicklistTongueEnabled',
+        true,
+      );
+      const sizePx = await settingsService.getSetting(
+        'nicklistTongueSizePx',
+        56,
+      );
       if (mounted) {
         setNicklistTongueEnabled(Boolean(enabled));
         setNicklistTongueSizePx(Math.max(24, Math.floor(Number(sizePx) || 56)));
@@ -168,12 +196,18 @@ export function AppLayout({
     };
     loadTongueSettings();
 
-    const unsubEnabled = settingsService.onSettingChange<boolean>('nicklistTongueEnabled', (value) => {
-      setNicklistTongueEnabled(Boolean(value));
-    });
-    const unsubSize = settingsService.onSettingChange<number>('nicklistTongueSizePx', (value) => {
-      setNicklistTongueSizePx(Math.max(24, Math.floor(Number(value) || 56)));
-    });
+    const unsubEnabled = settingsService.onSettingChange<boolean>(
+      'nicklistTongueEnabled',
+      value => {
+        setNicklistTongueEnabled(Boolean(value));
+      },
+    );
+    const unsubSize = settingsService.onSettingChange<number>(
+      'nicklistTongueSizePx',
+      value => {
+        setNicklistTongueSizePx(Math.max(24, Math.floor(Number(value) || 56)));
+      },
+    );
     return () => {
       mounted = false;
       unsubEnabled();
@@ -184,75 +218,110 @@ export function AppLayout({
   useEffect(() => {
     let mounted = true;
     settingsService.getSetting('swipeBehavior', 'off').then(value => {
-      if (mounted) setSwipeBehavior(value as 'off' | 'switch-tabs' | 'show-panels');
+      if (mounted)
+        setSwipeBehavior(value as 'off' | 'switch-tabs' | 'show-panels');
     });
-    settingsService.getSetting('channelListScrollSwitchTabsInverse', false).then(value => {
-      if (mounted) setSwipeInverse(Boolean(value));
-    });
-    const unsub = settingsService.onSettingChange<string>('swipeBehavior', value => {
-      setSwipeBehavior(value as 'off' | 'switch-tabs' | 'show-panels');
-    });
-    const unsubInverse = settingsService.onSettingChange<boolean>('channelListScrollSwitchTabsInverse', value => {
-      setSwipeInverse(Boolean(value));
-    });
-    return () => { mounted = false; unsub(); unsubInverse(); };
+    settingsService
+      .getSetting('channelListScrollSwitchTabsInverse', false)
+      .then(value => {
+        if (mounted) setSwipeInverse(Boolean(value));
+      });
+    const unsub = settingsService.onSettingChange<string>(
+      'swipeBehavior',
+      value => {
+        setSwipeBehavior(value as 'off' | 'switch-tabs' | 'show-panels');
+      },
+    );
+    const unsubInverse = settingsService.onSettingChange<boolean>(
+      'channelListScrollSwitchTabsInverse',
+      value => {
+        setSwipeInverse(Boolean(value));
+      },
+    );
+    return () => {
+      mounted = false;
+      unsub();
+      unsubInverse();
+    };
   }, []);
 
-  const swipePanResponder = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => false,
-    onMoveShouldSetPanResponder: (_, gesture) => {
-      if (swipeBehavior === 'off') return false;
-      return Math.abs(gesture.dx) > 30 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 2;
-    },
-    onPanResponderRelease: (_, gesture) => {
-      if (Math.abs(gesture.dx) < 50) return;
+  const swipePanResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gesture) => {
+          if (swipeBehavior === 'off') return false;
+          return (
+            Math.abs(gesture.dx) > 30 &&
+            Math.abs(gesture.dx) > Math.abs(gesture.dy) * 2
+          );
+        },
+        onPanResponderRelease: (_, gesture) => {
+          if (Math.abs(gesture.dx) < 50) return;
 
-      if (swipeBehavior === 'switch-tabs') {
-        const idx = tabs.findIndex(t => t.id === activeTabId);
-        if (idx === -1 || tabs.length === 0) return;
-        // Normal: dx > 0 = right swipe = previous tab
-        // Inverse: dx > 0 = right swipe = next tab
-        const goRight = swipeInverse ? gesture.dx < 0 : gesture.dx > 0;
-        if (goRight) {
-          handleTabPress(tabs[(idx - 1 + tabs.length) % tabs.length].id);
-        } else {
-          handleTabPress(tabs[(idx + 1) % tabs.length].id);
-        }
-      } else if (swipeBehavior === 'show-panels') {
-        const isSideTabs = layoutConfig.tabPosition === 'left' || layoutConfig.tabPosition === 'right';
-        
-        // Apply inverse if enabled
-        const isRightSwipe = swipeInverse ? gesture.dx < 0 : gesture.dx > 0;
-        const isLeftSwipe = swipeInverse ? gesture.dx > 0 : gesture.dx < 0;
-        
-        if (isSideTabs) {
-          // Tabs on left/right
-          if (isRightSwipe) {
-            // Swipe right → toggle tabs
-            onToggleSideTabs();
-          } else if (isLeftSwipe && activeTab?.type === 'channel') {
-            // Swipe left → toggle nicklist
-            setShowUserList(!showUserList);
-          }
-        } else {
-          // Tabs on top/bottom
-          if (isRightSwipe) {
-            // Swipe right → previous tab
+          if (swipeBehavior === 'switch-tabs') {
             const idx = tabs.findIndex(t => t.id === activeTabId);
-            if (idx !== -1 && tabs.length > 0) {
+            if (idx === -1 || tabs.length === 0) return;
+            // Normal: dx > 0 = right swipe = previous tab
+            // Inverse: dx > 0 = right swipe = next tab
+            const goRight = swipeInverse ? gesture.dx < 0 : gesture.dx > 0;
+            if (goRight) {
               handleTabPress(tabs[(idx - 1 + tabs.length) % tabs.length].id);
-            }
-          } else if (isLeftSwipe) {
-            // Swipe left → next tab
-            const idx = tabs.findIndex(t => t.id === activeTabId);
-            if (idx !== -1 && tabs.length > 0) {
+            } else {
               handleTabPress(tabs[(idx + 1) % tabs.length].id);
             }
+          } else if (swipeBehavior === 'show-panels') {
+            const isSideTabs =
+              layoutConfig.tabPosition === 'left' ||
+              layoutConfig.tabPosition === 'right';
+
+            // Apply inverse if enabled
+            const isRightSwipe = swipeInverse ? gesture.dx < 0 : gesture.dx > 0;
+            const isLeftSwipe = swipeInverse ? gesture.dx > 0 : gesture.dx < 0;
+
+            if (isSideTabs) {
+              // Tabs on left/right
+              if (isRightSwipe) {
+                // Swipe right → toggle tabs
+                onToggleSideTabs();
+              } else if (isLeftSwipe && activeTab?.type === 'channel') {
+                // Swipe left → toggle nicklist
+                setShowUserList(!showUserList);
+              }
+            } else {
+              // Tabs on top/bottom
+              if (isRightSwipe) {
+                // Swipe right → previous tab
+                const idx = tabs.findIndex(t => t.id === activeTabId);
+                if (idx !== -1 && tabs.length > 0) {
+                  handleTabPress(
+                    tabs[(idx - 1 + tabs.length) % tabs.length].id,
+                  );
+                }
+              } else if (isLeftSwipe) {
+                // Swipe left → next tab
+                const idx = tabs.findIndex(t => t.id === activeTabId);
+                if (idx !== -1 && tabs.length > 0) {
+                  handleTabPress(tabs[(idx + 1) % tabs.length].id);
+                }
+              }
+            }
           }
-        }
-      }
-    },
-  }), [swipeBehavior, swipeInverse, tabs, activeTabId, handleTabPress, onToggleSideTabs, activeTab, showUserList, setShowUserList, layoutConfig.tabPosition]);
+        },
+      }),
+    [
+      swipeBehavior,
+      swipeInverse,
+      tabs,
+      activeTabId,
+      handleTabPress,
+      onToggleSideTabs,
+      activeTab,
+      showUserList,
+      setShowUserList,
+      layoutConfig.tabPosition,
+    ],
+  );
 
   const renderUserList = (position: 'left' | 'right' | 'top' | 'bottom') => {
     if (!activeTab || activeTab.type !== 'channel' || !showUserList) {
@@ -280,7 +349,8 @@ export function AppLayout({
 
   const tonguePanResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => shouldShowNicklistTongue,
-    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 6 || Math.abs(gesture.dy) > 6,
+    onMoveShouldSetPanResponder: (_, gesture) =>
+      Math.abs(gesture.dx) > 6 || Math.abs(gesture.dy) > 6,
     onPanResponderRelease: (_, gesture) => {
       const threshold = 24;
       const pos = layoutConfig.userListPosition;
@@ -380,23 +450,29 @@ export function AppLayout({
     ];
   })();
 
-  const keyboardBehavior = Platform.OS === 'ios' ? keyboardBehaviorIOS : keyboardBehaviorAndroid;
-  const keyboardEnabled = keyboardAvoidingEnabled && !(Platform.OS === 'android' && isLandscape);
-  const bottomInset = Platform.OS === 'android' && !useAndroidBottomSafeArea
-    ? 0
-    : safeAreaInsets.bottom;
+  const keyboardBehavior =
+    Platform.OS === 'ios' ? keyboardBehaviorIOS : keyboardBehaviorAndroid;
+  const keyboardEnabled =
+    keyboardAvoidingEnabled && !(Platform.OS === 'android' && isLandscape);
+  const bottomInset =
+    Platform.OS === 'android' && !useAndroidBottomSafeArea
+      ? 0
+      : safeAreaInsets.bottom;
   const bannerNode = (
-    <View style={[
-      styles.bannerAdContainer,
-      !bannerVisible && styles.bannerAdHidden
-    ]}>
+    <View
+      style={[
+        styles.bannerAdContainer,
+        !bannerVisible && styles.bannerAdHidden,
+      ]}
+    >
       <BannerAd
         unitId={bannerAdService.getBannerAdUnitId()}
         size={BannerAdSize.BANNER}
         requestOptions={{
-          requestNonPersonalizedAdsOnly: !bannerAdService.canShowPersonalizedAds(),
+          requestNonPersonalizedAdsOnly:
+            !bannerAdService.canShowPersonalizedAds(),
         }}
-        onAdFailedToLoad={(error) => {
+        onAdFailedToLoad={error => {
           console.error('Banner ad failed to load:', error);
         }}
       />
@@ -412,7 +488,9 @@ export function AppLayout({
     >
       {bannerPosition === 'tabs_above' && bannerNode}
       <HeaderBar
-        networkName={isConnected ? networkName : (selectedNetworkName || networkName)}
+        networkName={
+          isConnected ? networkName : selectedNetworkName || networkName
+        }
         ping={ping}
         isConnected={isConnected}
         onDropdownPress={handleDropdownPress}
@@ -424,7 +502,9 @@ export function AppLayout({
         lockState={appLocked ? 'locked' : 'unlocked'}
         onLockPress={handleLockButtonPress}
         showEncryptionButton={activeTab?.type === 'query'}
-        onEncryptionPress={() => useUIStore.getState().setShowQueryEncryptionMenu(true)}
+        onEncryptionPress={() =>
+          useUIStore.getState().setShowQueryEncryptionMenu(true)
+        }
         showKillSwitchButton={showKillSwitchButton}
         onKillSwitchPress={onKillSwitchPress}
         showSideTabsToggle={showSideTabsToggle}
@@ -444,11 +524,7 @@ export function AppLayout({
           position="top"
         />
       )}
-      <View
-        style={[
-          styles.contentArea,
-          showSideTabs && styles.contentAreaRow,
-        ]}>
+      <View style={[styles.contentArea, showSideTabs && styles.contentAreaRow]}>
         {layoutConfig.tabPosition === 'left' && showSideTabs && (
           <ChannelTabs
             tabs={tabs}
@@ -462,12 +538,20 @@ export function AppLayout({
         <View
           style={[
             styles.messageAndUser,
-            (layoutConfig.userListPosition === 'left' || layoutConfig.userListPosition === 'right') && styles.messageAndUserRow,
-            (layoutConfig.userListPosition === 'top' || layoutConfig.userListPosition === 'bottom') && styles.messageAndUserColumn,
-          ]}>
+            (layoutConfig.userListPosition === 'left' ||
+              layoutConfig.userListPosition === 'right') &&
+              styles.messageAndUserRow,
+            (layoutConfig.userListPosition === 'top' ||
+              layoutConfig.userListPosition === 'bottom') &&
+              styles.messageAndUserColumn,
+          ]}
+        >
           {layoutConfig.userListPosition === 'top' && renderUserList('top')}
           {layoutConfig.userListPosition === 'left' && renderUserList('left')}
-          <View {...swipePanResponder.panHandlers} style={styles.messageAreaContainer}>
+          <View
+            {...swipePanResponder.panHandlers}
+            style={styles.messageAreaContainer}
+          >
             <MessageArea
               messages={activeMessages}
               channelUsers={activeUsers}
@@ -477,7 +561,9 @@ export function AppLayout({
               hidePartMessages={hidePartMessages}
               hideQuitMessages={hideQuitMessages}
               hideIrcServiceListenerMessages={hideIrcServiceListenerMessages}
-              channel={activeTab?.type === 'channel' ? activeTab.name : undefined}
+              channel={
+                activeTab?.type === 'channel' ? activeTab.name : undefined
+              }
               network={activeTab?.networkId}
               tabId={activeTab?.id}
               bottomInset={bottomInset}
@@ -496,7 +582,8 @@ export function AppLayout({
             )}
           </View>
           {layoutConfig.userListPosition === 'right' && renderUserList('right')}
-          {layoutConfig.userListPosition === 'bottom' && renderUserList('bottom')}
+          {layoutConfig.userListPosition === 'bottom' &&
+            renderUserList('bottom')}
         </View>
         {layoutConfig.tabPosition === 'right' && showSideTabs && (
           <ChannelTabs
@@ -509,9 +596,15 @@ export function AppLayout({
           />
         )}
       </View>
-      {activeTab && showTypingIndicators && typingUsers.get(activeTab.networkId)?.get(activeTab.name) && (
-        <TypingIndicator typingUsers={typingUsers.get(activeTab.networkId)!.get(activeTab.name)!} />
-      )}
+      {activeTab &&
+        showTypingIndicators &&
+        typingUsers.get(activeTab.networkId)?.get(activeTab.name) && (
+          <TypingIndicator
+            typingUsers={
+              typingUsers.get(activeTab.networkId)!.get(activeTab.name)!
+            }
+          />
+        )}
       {layoutConfig.tabPosition === 'bottom' && (
         <ChannelTabs
           tabs={tabs}

@@ -9,7 +9,10 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { SendMessageHandler, SendMessageHandlerRegistry } from '../sendMessageTypes';
+import type {
+  SendMessageHandler,
+  SendMessageHandlerRegistry,
+} from '../sendMessageTypes';
 import { settingsService, DEFAULT_QUIT_MESSAGE } from '../../SettingsService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
@@ -19,23 +22,39 @@ export const handleAWAY: SendMessageHandler = (ctx, args) => {
   const awayMessage = args.join(' ');
   if (awayMessage) {
     ctx.sendRaw(`AWAY :${awayMessage}`);
-    ctx.addMessage({ type: 'notice', text: t('*** You are now away: {message}', { message: awayMessage }), timestamp: Date.now() });
+    ctx.addMessage({
+      type: 'notice',
+      text: t('*** You are now away: {message}', { message: awayMessage }),
+      timestamp: Date.now(),
+    });
   } else {
     ctx.sendRaw('AWAY');
-    ctx.addMessage({ type: 'notice', text: t('*** You are no longer away'), timestamp: Date.now() });
+    ctx.addMessage({
+      type: 'notice',
+      text: t('*** You are no longer away'),
+      timestamp: Date.now(),
+    });
   }
 };
 
-export const handleBACK: SendMessageHandler = (ctx) => {
+export const handleBACK: SendMessageHandler = ctx => {
   // /back - Remove away status (alias for /away)
   ctx.sendRaw('AWAY');
-  ctx.addMessage({ type: 'notice', text: t('*** You are no longer away'), timestamp: Date.now() });
+  ctx.addMessage({
+    type: 'notice',
+    text: t('*** You are no longer away'),
+    timestamp: Date.now(),
+  });
 };
 
-export const handleRECONNECT: SendMessageHandler = (ctx) => {
+export const handleRECONNECT: SendMessageHandler = ctx => {
   // /reconnect - Reconnect to current server
   ctx.emit('reconnect', ctx.getNetworkName());
-  ctx.addMessage({ type: 'notice', text: t('*** Reconnecting to server...'), timestamp: Date.now() });
+  ctx.addMessage({
+    type: 'notice',
+    text: t('*** Reconnecting to server...'),
+    timestamp: Date.now(),
+  });
 };
 
 export const handleDISCONNECT: SendMessageHandler = async (ctx, args) => {
@@ -45,7 +64,10 @@ export const handleDISCONNECT: SendMessageHandler = async (ctx, args) => {
   if (userArgs) {
     ctx.sendRaw(`QUIT :${userArgs}`);
   } else {
-    const quitMsg = await settingsService.getSetting('quitMessage', DEFAULT_QUIT_MESSAGE);
+    const quitMsg = await settingsService.getSetting(
+      'quitMessage',
+      DEFAULT_QUIT_MESSAGE,
+    );
     ctx.sendRaw(`QUIT :${quitMsg}`);
   }
 };

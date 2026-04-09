@@ -29,10 +29,16 @@ export const handle600: NumericHandler = (ctx, prefix, params, timestamp) => {
   const nick = params[1] || '';
   const user = params[2] || '';
   const host = params[3] || '';
-  const message = params.slice(5).join(' ').replace(/^:/, '') || t('logged online');
+  const message =
+    params.slice(5).join(' ').replace(/^:/, '') || t('logged online');
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} ({user}@{host}) {message}', { nick, user, host, message }),
+    text: t('*** {nick} ({user}@{host}) {message}', {
+      nick,
+      user,
+      host,
+      message,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'user',
@@ -44,10 +50,16 @@ export const handle601: NumericHandler = (ctx, prefix, params, timestamp) => {
   const nick = params[1] || '';
   const user = params[2] || '';
   const host = params[3] || '';
-  const message = params.slice(5).join(' ').replace(/^:/, '') || t('logged offline');
+  const message =
+    params.slice(5).join(' ').replace(/^:/, '') || t('logged offline');
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} ({user}@{host}) {message}', { nick, user, host, message }),
+    text: t('*** {nick} ({user}@{host}) {message}', {
+      nick,
+      user,
+      host,
+      message,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'user',
@@ -57,7 +69,8 @@ export const handle601: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 602 RPL_WATCHON - Added to watch list */
 export const handle602: NumericHandler = (ctx, prefix, params, timestamp) => {
   const nick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('added to watch list');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('added to watch list');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick, message }),
@@ -70,7 +83,8 @@ export const handle602: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 603 RPL_WATCHOFF - Removed from watch list */
 export const handle603: NumericHandler = (ctx, prefix, params, timestamp) => {
   const nick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('removed from watch list');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('removed from watch list');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick, message }),
@@ -88,7 +102,12 @@ export const handle604: NumericHandler = (ctx, prefix, params, timestamp) => {
   const message = params.slice(5).join(' ').replace(/^:/, '') || t('is online');
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} ({user}@{host}) {message}', { nick, user, host, message }),
+    text: t('*** {nick} ({user}@{host}) {message}', {
+      nick,
+      user,
+      host,
+      message,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'user',
@@ -100,10 +119,16 @@ export const handle605: NumericHandler = (ctx, prefix, params, timestamp) => {
   const nick = params[1] || '';
   const user = params[2] || '';
   const host = params[3] || '';
-  const message = params.slice(5).join(' ').replace(/^:/, '') || t('is offline');
+  const message =
+    params.slice(5).join(' ').replace(/^:/, '') || t('is offline');
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} ({user}@{host}) {message}', { nick, user, host, message }),
+    text: t('*** {nick} ({user}@{host}) {message}', {
+      nick,
+      user,
+      host,
+      message,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'user',
@@ -125,7 +150,8 @@ export const handle606: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 607 RPL_ENDOFWATCHLIST - End of watch list */
 export const handle607: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of WATCH list');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of WATCH list');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -137,7 +163,8 @@ export const handle607: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 608 RPL_WATCHCLEAR - Watch list cleared */
 export const handle608: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('Watch list cleared');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('Watch list cleared');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -185,7 +212,8 @@ export const handle732: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 733 RPL_ENDOFMONLIST - End of MONITOR list */
 export const handle733: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of MONITOR list');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of MONITOR list');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -199,10 +227,15 @@ export const handle733: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle734: NumericHandler = (ctx, prefix, params, timestamp) => {
   const limit = params[1] || '';
   const nicks = params[2] || '';
-  const message = params.slice(3).join(' ').replace(/^:/, '') || t('Monitor list is full');
+  const message =
+    params.slice(3).join(' ').replace(/^:/, '') || t('Monitor list is full');
   ctx.addMessage({
     type: 'error',
-    text: t('{message} (limit: {limit}, tried: {nicks})', { message, limit, nicks }),
+    text: t('{message} (limit: {limit}, tried: {nicks})', {
+      message,
+      limit,
+      nicks,
+    }),
     timestamp,
   });
 };

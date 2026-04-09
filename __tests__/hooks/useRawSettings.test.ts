@@ -37,8 +37,8 @@ const mockUIStore = {
 
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: Object.assign(
-    jest.fn((selector) => selector(mockUIStore)),
-    { getState: jest.fn(() => mockUIStore) }
+    jest.fn(selector => selector(mockUIStore)),
+    { getState: jest.fn(() => mockUIStore) },
   ),
 }));
 
@@ -55,7 +55,9 @@ describe('useRawSettings', () => {
 
   it('should return all setting functions', () => {
     const { result } = renderHook(() =>
-      useRawSettings({ setShowEncryptionIndicators: mockSetShowEncryptionIndicators })
+      useRawSettings({
+        setShowEncryptionIndicators: mockSetShowEncryptionIndicators,
+      }),
     );
 
     expect(result.current.persistentSetShowRawCommands).toBeDefined();
@@ -65,7 +67,9 @@ describe('useRawSettings', () => {
 
   it('should persist show raw commands setting', async () => {
     const { result } = renderHook(() =>
-      useRawSettings({ setShowEncryptionIndicators: mockSetShowEncryptionIndicators })
+      useRawSettings({
+        setShowEncryptionIndicators: mockSetShowEncryptionIndicators,
+      }),
     );
 
     await act(async () => {
@@ -73,12 +77,17 @@ describe('useRawSettings', () => {
     });
 
     expect(mockSetShowRawCommands).toHaveBeenCalledWith(true);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('showRawCommands', true);
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'showRawCommands',
+      true,
+    );
   });
 
   it('should not persist raw category visibility when raw commands are disabled', async () => {
     const { result } = renderHook(() =>
-      useRawSettings({ setShowEncryptionIndicators: mockSetShowEncryptionIndicators })
+      useRawSettings({
+        setShowEncryptionIndicators: mockSetShowEncryptionIndicators,
+      }),
     );
 
     await act(async () => {
@@ -88,7 +97,10 @@ describe('useRawSettings', () => {
     expect(mockSetShowRawCommands).toHaveBeenCalledWith(false);
     expect(mockSetRawCategoryVisibility).not.toHaveBeenCalled();
     expect(settingsService.setSetting).toHaveBeenCalledTimes(1);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('showRawCommands', false);
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'showRawCommands',
+      false,
+    );
   });
 
   it('should normalize current store raw visibility when enabling raw commands', async () => {
@@ -96,7 +108,8 @@ describe('useRawSettings', () => {
       connection: false,
       server: false,
     };
-    const defaults = (getDefaultRawCategoryVisibility as jest.Mock).mock.results[0]?.value || {
+    const defaults = (getDefaultRawCategoryVisibility as jest.Mock).mock
+      .results[0]?.value || {
       connection: true,
       messaging: true,
       channel: true,
@@ -105,7 +118,9 @@ describe('useRawSettings', () => {
     };
 
     const { result } = renderHook(() =>
-      useRawSettings({ setShowEncryptionIndicators: mockSetShowEncryptionIndicators })
+      useRawSettings({
+        setShowEncryptionIndicators: mockSetShowEncryptionIndicators,
+      }),
     );
 
     await act(async () => {
@@ -123,13 +138,15 @@ describe('useRawSettings', () => {
         connection: false,
         server: false,
         messaging: true,
-      })
+      }),
     );
   });
 
   it('should normalize and persist raw category visibility', async () => {
     const { result } = renderHook(() =>
-      useRawSettings({ setShowEncryptionIndicators: mockSetShowEncryptionIndicators })
+      useRawSettings({
+        setShowEncryptionIndicators: mockSetShowEncryptionIndicators,
+      }),
     );
 
     const visibility = { connection: false, messaging: true };
@@ -141,13 +158,15 @@ describe('useRawSettings', () => {
     expect(mockSetRawCategoryVisibility).toHaveBeenCalled();
     expect(settingsService.setSetting).toHaveBeenCalledWith(
       'rawCategoryVisibility',
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
   it('should persist show encryption indicators setting', async () => {
     const { result } = renderHook(() =>
-      useRawSettings({ setShowEncryptionIndicators: mockSetShowEncryptionIndicators })
+      useRawSettings({
+        setShowEncryptionIndicators: mockSetShowEncryptionIndicators,
+      }),
     );
 
     await act(async () => {
@@ -155,17 +174,24 @@ describe('useRawSettings', () => {
     });
 
     expect(mockSetShowEncryptionIndicators).toHaveBeenCalledWith(true);
-    expect(settingsService.setSetting).toHaveBeenCalledWith('showEncryptionIndicators', true);
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'showEncryptionIndicators',
+      true,
+    );
   });
 
   it('should normalize partial visibility settings', async () => {
     const { result } = renderHook(() =>
-      useRawSettings({ setShowEncryptionIndicators: mockSetShowEncryptionIndicators })
+      useRawSettings({
+        setShowEncryptionIndicators: mockSetShowEncryptionIndicators,
+      }),
     );
 
     // Set with partial visibility
     await act(async () => {
-      await result.current.persistentSetRawCategoryVisibility({ connection: false });
+      await result.current.persistentSetRawCategoryVisibility({
+        connection: false,
+      });
     });
 
     // Should merge with defaults

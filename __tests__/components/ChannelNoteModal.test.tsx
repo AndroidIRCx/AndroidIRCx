@@ -11,10 +11,24 @@ import { ChannelNoteModal } from '../../src/components/ChannelNoteModal';
 
 const mockStyles = {
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { backgroundColor: '#fff', padding: 20, margin: 20, borderRadius: 8 },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    margin: 20,
+    borderRadius: 8,
+  },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
-  modalInput: { borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 4 },
-  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 8,
+    borderRadius: 4,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 16,
+  },
   modalButton: { padding: 12, marginLeft: 8 },
   modalButtonCancel: { backgroundColor: '#ccc' },
   modalButtonJoin: { backgroundColor: '#007AFF' },
@@ -43,13 +57,15 @@ describe('ChannelNoteModal', () => {
   });
 
   it('should not render when not visible', () => {
-    const { queryByText } = render(<ChannelNoteModal {...defaultProps} visible={false} />);
+    const { queryByText } = render(
+      <ChannelNoteModal {...defaultProps} visible={false} />,
+    );
     expect(queryByText('Channel Note (#test)')).toBeNull();
   });
 
   it('should display channel name in title', () => {
     const { getByText } = render(
-      <ChannelNoteModal {...defaultProps} channelName="#android" />
+      <ChannelNoteModal {...defaultProps} channelName="#android" />,
     );
     expect(getByText('Channel Note (#android)')).toBeTruthy();
   });
@@ -68,21 +84,27 @@ describe('ChannelNoteModal', () => {
   });
 
   it('should call onChangeValue when text is entered', () => {
-    const { getByPlaceholderText } = render(<ChannelNoteModal {...defaultProps} />);
+    const { getByPlaceholderText } = render(
+      <ChannelNoteModal {...defaultProps} />,
+    );
     const input = getByPlaceholderText('Enter a note for this channel');
     fireEvent.changeText(input, 'This is a test note');
-    expect(defaultProps.onChangeValue).toHaveBeenCalledWith('This is a test note');
+    expect(defaultProps.onChangeValue).toHaveBeenCalledWith(
+      'This is a test note',
+    );
   });
 
   it('should display current value in input', () => {
     const { getByDisplayValue } = render(
-      <ChannelNoteModal {...defaultProps} value="Current note" />
+      <ChannelNoteModal {...defaultProps} value="Current note" />,
     );
     expect(getByDisplayValue('Current note')).toBeTruthy();
   });
 
   it('should have multiline input', () => {
-    const { getByPlaceholderText } = render(<ChannelNoteModal {...defaultProps} />);
+    const { getByPlaceholderText } = render(
+      <ChannelNoteModal {...defaultProps} />,
+    );
     const input = getByPlaceholderText('Enter a note for this channel');
     expect(input.props.multiline).toBe(true);
   });
@@ -96,7 +118,7 @@ describe('ChannelNoteModal', () => {
 
   it('should handle empty note', () => {
     const { getByText, getByPlaceholderText } = render(
-      <ChannelNoteModal {...defaultProps} value="" />
+      <ChannelNoteModal {...defaultProps} value="" />,
     );
     expect(getByPlaceholderText('Enter a note for this channel')).toBeTruthy();
     fireEvent.press(getByText('Save'));
@@ -106,7 +128,7 @@ describe('ChannelNoteModal', () => {
   it('should handle long notes', () => {
     const longNote = 'A'.repeat(1000);
     const { getByDisplayValue } = render(
-      <ChannelNoteModal {...defaultProps} value={longNote} />
+      <ChannelNoteModal {...defaultProps} value={longNote} />,
     );
     expect(getByDisplayValue(longNote)).toBeTruthy();
   });
@@ -114,7 +136,7 @@ describe('ChannelNoteModal', () => {
   it('should handle special characters in note', () => {
     const specialNote = 'Note with émojis 🎉 and special chars: <>&"\'';
     const { getByDisplayValue } = render(
-      <ChannelNoteModal {...defaultProps} value={specialNote} />
+      <ChannelNoteModal {...defaultProps} value={specialNote} />,
     );
     expect(getByDisplayValue(specialNote)).toBeTruthy();
   });

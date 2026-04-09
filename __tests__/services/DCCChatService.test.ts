@@ -44,13 +44,17 @@ describe('DCCChatService', () => {
 
   describe('Parse DCC Chat Invite', () => {
     it('should parse valid DCC CHAT invite', () => {
-      const result = dccChatService.parseDccChatInvite('\x01DCC CHAT chat 2130706433 12345\x01');
+      const result = dccChatService.parseDccChatInvite(
+        '\x01DCC CHAT chat 2130706433 12345\x01',
+      );
 
       expect(result).toEqual({ host: '127.0.0.1', port: 12345 });
     });
 
     it('should parse DCC CHAT with IP address as string', () => {
-      const result = dccChatService.parseDccChatInvite('\x01DCC CHAT chat 192.168.1.1 54321\x01');
+      const result = dccChatService.parseDccChatInvite(
+        '\x01DCC CHAT chat 192.168.1.1 54321\x01',
+      );
 
       expect(result).not.toBeNull();
       expect(result?.port).toBe(54321);
@@ -72,19 +76,28 @@ describe('DCCChatService', () => {
     });
 
     it('should return null for invalid port', () => {
-      const result = dccChatService.parseDccChatInvite('\x01DCC CHAT chat 127.0.0.1 invalid\x01');
+      const result = dccChatService.parseDccChatInvite(
+        '\x01DCC CHAT chat 127.0.0.1 invalid\x01',
+      );
       expect(result).toBeNull();
     });
 
     it('should handle CTCP markers', () => {
-      const result = dccChatService.parseDccChatInvite('\x01DCC CHAT chat 127.0.0.1 12345\x01');
+      const result = dccChatService.parseDccChatInvite(
+        '\x01DCC CHAT chat 127.0.0.1 12345\x01',
+      );
       expect(result).not.toBeNull();
     });
   });
 
   describe('Handle Incoming Invite', () => {
     it('should create incoming session', () => {
-      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const session = dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
 
       expect(session.id).toBeDefined();
       expect(session.peerNick).toBe('John');
@@ -100,12 +113,19 @@ describe('DCCChatService', () => {
       const listener = jest.fn();
       dccChatService.onSessionUpdate(listener);
 
-      dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        peerNick: 'John',
-        status: 'pending',
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          peerNick: 'John',
+          status: 'pending',
+        }),
+      );
     });
 
     it('acceptInvite should connect, attach handlers and append connect/system message', async () => {
@@ -118,12 +138,19 @@ describe('DCCChatService', () => {
           return socketWithEvents;
         }),
       };
-      (TcpSocket.createConnection as jest.Mock).mockImplementation((_opts: any, onConnect: Function) => {
-        onConnect();
-        return socketWithEvents;
-      });
+      (TcpSocket.createConnection as jest.Mock).mockImplementation(
+        (_opts: any, onConnect: Function) => {
+          onConnect();
+          return socketWithEvents;
+        },
+      );
 
-      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const session = dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
       const updateListener = jest.fn();
       const messageListener = jest.fn();
       dccChatService.onSessionUpdate(updateListener);
@@ -135,11 +162,13 @@ describe('DCCChatService', () => {
       });
 
       // connected state reached
-      expect(updateListener).toHaveBeenCalledWith(expect.objectContaining({ status: 'connected' }));
+      expect(updateListener).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'connected' }),
+      );
       expect(messageListener).toHaveBeenCalledWith(
         session.id,
         expect.objectContaining({ text: '*** DCC CHAT connected' }),
-        expect.any(Object)
+        expect.any(Object),
       );
 
       // incoming data message path
@@ -147,14 +176,18 @@ describe('DCCChatService', () => {
       expect(messageListener).toHaveBeenCalledWith(
         session.id,
         expect.objectContaining({ text: 'hello' }),
-        expect.any(Object)
+        expect.any(Object),
       );
 
       // error/close handlers mutate status and cleanup socket map
       listeners.error?.(new Error('socket-fail'));
-      expect(updateListener).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
+      expect(updateListener).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'failed' }),
+      );
       listeners.close?.();
-      expect(updateListener).toHaveBeenCalledWith(expect.objectContaining({ status: 'closed' }));
+      expect(updateListener).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'closed' }),
+      );
       expect((dccChatService as any).sockets.has(session.id)).toBe(false);
     });
   });
@@ -170,7 +203,12 @@ describe('DCCChatService', () => {
       const unsubscribe = dccChatService.onSessionUpdate(listener);
 
       unsubscribe();
-      dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
 
       expect(listener).not.toHaveBeenCalled();
     });
@@ -183,7 +221,12 @@ describe('DCCChatService', () => {
 
   describe('Send Message', () => {
     it('should send message through socket', () => {
-      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const session = dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
       (session as any).status = 'connected';
       (dccChatService as any).sockets.set(session.id, mockSocket);
 
@@ -193,7 +236,12 @@ describe('DCCChatService', () => {
     });
 
     it('should not send if no socket', () => {
-      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const session = dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
       (session as any).status = 'connected';
 
       dccChatService.sendMessage(session.id, 'Hello');
@@ -202,7 +250,12 @@ describe('DCCChatService', () => {
     });
 
     it('should not send if not connected', () => {
-      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const session = dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
       (dccChatService as any).sockets.set(session.id, mockSocket);
 
       dccChatService.sendMessage(session.id, 'Hello');
@@ -224,18 +277,28 @@ describe('DCCChatService', () => {
       const mockServerLocal = {
         listen: jest.fn((_opts: any, cb: Function) => cb()),
         close: jest.fn(),
-        address: jest.fn().mockReturnValue({ port: 45678, address: '127.0.0.1' }),
+        address: jest
+          .fn()
+          .mockReturnValue({ port: 45678, address: '127.0.0.1' }),
       };
-      (TcpSocket.createServer as jest.Mock).mockImplementation((cb: Function) => {
-        onServerConnection = cb;
-        return mockServerLocal as any;
-      });
+      (TcpSocket.createServer as jest.Mock).mockImplementation(
+        (cb: Function) => {
+          onServerConnection = cb;
+          return mockServerLocal as any;
+        },
+      );
 
       const irc = { sendRaw: jest.fn(), getCurrentNick: jest.fn(() => 'me') };
-      const session = await dccChatService.initiateChat(irc as any, 'Jane', 'freenode');
+      const session = await dccChatService.initiateChat(
+        irc as any,
+        'Jane',
+        'freenode',
+      );
 
       expect(session.direction).toBe('outgoing');
-      expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('\x01DCC CHAT chat'));
+      expect(irc.sendRaw).toHaveBeenCalledWith(
+        expect.stringContaining('\x01DCC CHAT chat'),
+      );
 
       onServerConnection?.(acceptedSocket);
       expect((dccChatService as any).sockets.has(session.id)).toBe(true);
@@ -248,7 +311,12 @@ describe('DCCChatService', () => {
 
   describe('Close Session', () => {
     it('should close socket and server', () => {
-      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const session = dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
       (dccChatService as any).sockets.set(session.id, mockSocket);
       (dccChatService as any).servers.set(session.id, mockServer);
 
@@ -259,7 +327,12 @@ describe('DCCChatService', () => {
     });
 
     it('should update session status to closed', () => {
-      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const session = dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
 
       const listener = jest.fn();
       dccChatService.onSessionUpdate(listener);
@@ -271,7 +344,12 @@ describe('DCCChatService', () => {
     });
 
     it('should clean up maps', () => {
-      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const session = dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
       (dccChatService as any).sockets.set(session.id, mockSocket);
 
       dccChatService.closeSession(session.id);
@@ -312,14 +390,29 @@ describe('DCCChatService', () => {
 
   describe('ID Generation', () => {
     it('should generate unique IDs', () => {
-      const session1 = dccChatService.handleIncomingInvite('John1', 'freenode', '127.0.0.1', 12345);
-      const session2 = dccChatService.handleIncomingInvite('John2', 'freenode', '127.0.0.1', 12346);
+      const session1 = dccChatService.handleIncomingInvite(
+        'John1',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
+      const session2 = dccChatService.handleIncomingInvite(
+        'John2',
+        'freenode',
+        '127.0.0.1',
+        12346,
+      );
 
       expect(session1.id).not.toBe(session2.id);
     });
 
     it('should prefix IDs correctly', () => {
-      const session = dccChatService.handleIncomingInvite('John', 'freenode', '127.0.0.1', 12345);
+      const session = dccChatService.handleIncomingInvite(
+        'John',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
 
       expect(session.id.startsWith('dcc-')).toBe(true);
     });
@@ -327,8 +420,18 @@ describe('DCCChatService', () => {
     it('should wrap counter at 1 million', () => {
       (dccChatService as any).idCounter = 999999;
 
-      const session1 = dccChatService.handleIncomingInvite('John1', 'freenode', '127.0.0.1', 12345);
-      const session2 = dccChatService.handleIncomingInvite('John2', 'freenode', '127.0.0.1', 12346);
+      const session1 = dccChatService.handleIncomingInvite(
+        'John1',
+        'freenode',
+        '127.0.0.1',
+        12345,
+      );
+      const session2 = dccChatService.handleIncomingInvite(
+        'John2',
+        'freenode',
+        '127.0.0.1',
+        12346,
+      );
 
       expect(session1.id).not.toBe(session2.id);
       expect((dccChatService as any).idCounter).toBe(1);

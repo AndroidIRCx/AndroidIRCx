@@ -55,7 +55,7 @@ jest.mock('../../../src/components/settings/SettingItem', () => {
             if (item.type === 'submenu') onPress?.(item.id);
           },
         },
-        React.createElement(Text, null, item.title || item.id)
+        React.createElement(Text, null, item.title || item.id),
       );
     },
   };
@@ -79,11 +79,14 @@ jest.mock('../../../src/services/LayoutService', () => ({
   layoutService: {
     setMessageSpacing: (...args: any[]) => mockSetMessageSpacing(...args),
     setMessagePadding: (...args: any[]) => mockSetMessagePadding(...args),
-    setNavigationBarOffset: (...args: any[]) => mockSetNavigationBarOffset(...args),
+    setNavigationBarOffset: (...args: any[]) =>
+      mockSetNavigationBarOffset(...args),
     setTimestampDisplay: (...args: any[]) => mockSetTimestampDisplay(...args),
-    setMessageGroupingEnabled: (...args: any[]) => mockSetMessageGroupingEnabled(...args),
+    setMessageGroupingEnabled: (...args: any[]) =>
+      mockSetMessageGroupingEnabled(...args),
     setMessageTextAlign: (...args: any[]) => mockSetMessageTextAlign(...args),
-    setMessageTextDirection: (...args: any[]) => mockSetMessageTextDirection(...args),
+    setMessageTextDirection: (...args: any[]) =>
+      mockSetMessageTextDirection(...args),
     setTimestampFormat: (...args: any[]) => mockSetTimestampFormat(...args),
   },
 }));
@@ -100,7 +103,10 @@ jest.mock('../../../src/services/SettingsService', () => ({
 }));
 
 jest.mock('../../../src/services/IRCService', () => ({
-  RAW_MESSAGE_CATEGORIES: [{ id: 'join', label: 'Join' }, { id: 'notice', label: 'Notice' }],
+  RAW_MESSAGE_CATEGORIES: [
+    { id: 'join', label: 'Join' },
+    { id: 'notice', label: 'Notice' },
+  ],
   getDefaultRawCategoryVisibility: () => ({ join: true, notice: true }),
 }));
 
@@ -174,14 +180,19 @@ describe('DisplayUI + Commands sections', () => {
         settingIcons={{}}
         showRawCommands={false}
         rawCategoryVisibility={{ join: true, notice: false } as any}
-      />
+      />,
     );
-    await waitFor(() => expect(mockCapturedItems.has('display-tab-sort')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('display-tab-sort')).toBe(true),
+    );
 
     await mockCapturedItems.get('display-tab-sort').onValueChange(false);
     await mockCapturedItems.get('display-confirm-links').onValueChange(false);
     expect(mockSetSetting).toHaveBeenCalledWith('tabSortAlphabetical', false);
-    expect(mockSetSetting).toHaveBeenCalledWith('confirmBeforeOpeningLinks', false);
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'confirmBeforeOpeningLinks',
+      false,
+    );
   });
 
   it('DisplayUISection forwards raw/encryption/typing and submenu callbacks', async () => {
@@ -203,18 +214,27 @@ describe('DisplayUI + Commands sections', () => {
         onShowEncryptionIndicatorsChange={onShowEncryptionIndicatorsChange}
         showTypingIndicators={true}
         onShowTypingIndicatorsChange={onShowTypingIndicatorsChange}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('display-raw')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('display-raw')).toBe(true),
+    );
 
     mockCapturedItems.get('display-raw').onValueChange(true);
     expect(onShowRawCommandsChange).toHaveBeenCalledWith(true);
     expect(onRawCategoryVisibilityChange).toHaveBeenCalled();
 
-    await mockCapturedItems.get('display-encryption-icons').onValueChange(false);
-    await mockCapturedItems.get('display-typing-indicators').onValueChange(false);
-    expect(mockSetSetting).toHaveBeenCalledWith('showEncryptionIndicators', false);
+    await mockCapturedItems
+      .get('display-encryption-icons')
+      .onValueChange(false);
+    await mockCapturedItems
+      .get('display-typing-indicators')
+      .onValueChange(false);
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'showEncryptionIndicators',
+      false,
+    );
     expect(mockSetSetting).toHaveBeenCalledWith('showTypingIndicators', false);
     expect(onShowEncryptionIndicatorsChange).toHaveBeenCalledWith(false);
     expect(onShowTypingIndicatorsChange).toHaveBeenCalledWith(false);
@@ -280,9 +300,11 @@ describe('DisplayUI + Commands sections', () => {
         settingIcons={{}}
         showRawCommands={true}
         rawCategoryVisibility={{ join: true, notice: false } as any}
-      />
+      />,
     );
-    await waitFor(() => expect(mockCapturedItems.has('display-banner-position')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('display-banner-position')).toBe(true),
+    );
 
     await mockCapturedItems
       .get('message-text-align')
@@ -342,7 +364,9 @@ describe('DisplayUI + Commands sections', () => {
       .get('display-enter-key-behavior')
       .submenuItems.find((x: any) => x.id === 'enter-newline')
       .onPress();
-    await mockCapturedItems.get('display-color-picker-button').onValueChange(false);
+    await mockCapturedItems
+      .get('display-color-picker-button')
+      .onValueChange(false);
     expect(mockSetSetting).toHaveBeenCalledWith('showSendButton', false);
     expect(mockSetSetting).toHaveBeenCalledWith('enterKeyBehavior', 'send');
     expect(mockSetSetting).toHaveBeenCalledWith('enterKeyBehavior', 'newline');
@@ -360,62 +384,118 @@ describe('DisplayUI + Commands sections', () => {
       .get('display-banner-position')
       .submenuItems.find((x: any) => x.id === 'banner-pos-tabs-below')
       .onPress();
-    expect(mockSetSetting).toHaveBeenCalledWith('bannerPosition', 'input_below');
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'bannerPosition',
+      'input_below',
+    );
     expect(mockSetSetting).toHaveBeenCalledWith('bannerPosition', 'tabs_above');
     expect(mockSetSetting).toHaveBeenCalledWith('bannerPosition', 'tabs_below');
 
-    await mockCapturedItems.get('display-keyboard-avoiding').onValueChange(false);
+    await mockCapturedItems
+      .get('display-keyboard-avoiding')
+      .onValueChange(false);
     await mockCapturedItems
       .get('display-keyboard-behavior-ios')
       .submenuItems.find((x: any) => x.id === 'keyboard-behavior-ios-position')
       .onPress();
     await mockCapturedItems
       .get('display-keyboard-behavior-android')
-      .submenuItems.find((x: any) => x.id === 'keyboard-behavior-android-translate-with-padding')
+      .submenuItems.find(
+        (x: any) => x.id === 'keyboard-behavior-android-translate-with-padding',
+      )
       .onPress();
-    await mockCapturedItems.get('display-keyboard-offset').onValueChange('42px');
-    await mockCapturedItems.get('display-android-bottom-safe-area').onValueChange(false);
-    expect(mockSetSetting).toHaveBeenCalledWith('keyboardAvoidingEnabled', false);
-    expect(mockSetSetting).toHaveBeenCalledWith('keyboardBehaviorIOS', 'position');
-    expect(mockSetSetting).toHaveBeenCalledWith('keyboardBehaviorAndroid', 'translate-with-padding');
+    await mockCapturedItems
+      .get('display-keyboard-offset')
+      .onValueChange('42px');
+    await mockCapturedItems
+      .get('display-android-bottom-safe-area')
+      .onValueChange(false);
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'keyboardAvoidingEnabled',
+      false,
+    );
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'keyboardBehaviorIOS',
+      'position',
+    );
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'keyboardBehaviorAndroid',
+      'translate-with-padding',
+    );
     expect(mockSetSetting).toHaveBeenCalledWith('keyboardVerticalOffset', 42);
-    expect(mockSetSetting).toHaveBeenCalledWith('useAndroidBottomSafeArea', false);
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      'useAndroidBottomSafeArea',
+      false,
+    );
   });
 
   it('CommandsSection renders and handles alias add validation path', async () => {
-    render(<CommandsSection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('commands-aliases')).toBe(true));
+    render(
+      <CommandsSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('commands-aliases')).toBe(true),
+    );
 
     const getAliasSubmenu = () => mockCapturedItems.get('commands-aliases');
 
-    getAliasSubmenu().submenuItems.find((x: any) => x.id === 'alias-name-input').onValueChange('j');
+    getAliasSubmenu()
+      .submenuItems.find((x: any) => x.id === 'alias-name-input')
+      .onValueChange('j');
     await waitFor(() => {
-      const nameValue = getAliasSubmenu().submenuItems.find((x: any) => x.id === 'alias-name-input')?.value;
+      const nameValue = getAliasSubmenu().submenuItems.find(
+        (x: any) => x.id === 'alias-name-input',
+      )?.value;
       expect(nameValue).toBe('j');
     });
 
-    getAliasSubmenu().submenuItems.find((x: any) => x.id === 'alias-command-input').onValueChange('/join #test');
+    getAliasSubmenu()
+      .submenuItems.find((x: any) => x.id === 'alias-command-input')
+      .onValueChange('/join #test');
     await waitFor(() => {
-      const commandValue = getAliasSubmenu().submenuItems.find((x: any) => x.id === 'alias-command-input')?.value;
+      const commandValue = getAliasSubmenu().submenuItems.find(
+        (x: any) => x.id === 'alias-command-input',
+      )?.value;
       expect(commandValue).toBe('/join #test');
     });
 
-    await getAliasSubmenu().submenuItems.find((x: any) => x.id === 'alias-add').onPress();
+    await getAliasSubmenu()
+      .submenuItems.find((x: any) => x.id === 'alias-add')
+      .onPress();
     expect(mockAddAlias).toHaveBeenCalledWith(
-      expect.objectContaining({ alias: 'j', command: '/join #test' })
+      expect.objectContaining({ alias: 'j', command: '/join #test' }),
     );
   });
 
   it('CommandsSection validates alias input and custom command parameter extraction', async () => {
-    render(<CommandsSection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('commands-aliases')).toBe(true));
+    render(
+      <CommandsSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('commands-aliases')).toBe(true),
+    );
 
     const aliasSubmenu = mockCapturedItems.get('commands-aliases');
-    await aliasSubmenu.submenuItems.find((x: any) => x.id === 'alias-add').onPress();
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Alias name and command are required');
+    await aliasSubmenu.submenuItems
+      .find((x: any) => x.id === 'alias-add')
+      .onPress();
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Alias name and command are required',
+    );
 
     const customSubmenu = mockCapturedItems.get('commands-custom');
-    customSubmenu.submenuItems.find((x: any) => x.id === 'custom-name-input').onValueChange('greet');
+    customSubmenu.submenuItems
+      .find((x: any) => x.id === 'custom-name-input')
+      .onValueChange('greet');
     customSubmenu.submenuItems
       .find((x: any) => x.id === 'custom-command-input')
       .onValueChange('/msg {channel} hello {param1} {param1}');
@@ -424,7 +504,7 @@ describe('DisplayUI + Commands sections', () => {
       expect(
         mockCapturedItems
           .get('commands-custom')
-          .submenuItems.find((x: any) => x.id === 'custom-name-input')?.value
+          .submenuItems.find((x: any) => x.id === 'custom-name-input')?.value,
       ).toBe('greet');
     });
 
@@ -438,7 +518,7 @@ describe('DisplayUI + Commands sections', () => {
         name: 'greet',
         command: '/msg {channel} hello {param1} {param1}',
         parameters: ['channel', 'param1'],
-      })
+      }),
     );
   });
 
@@ -450,36 +530,59 @@ describe('DisplayUI + Commands sections', () => {
       { alias: 'j', command: '/join {channel}', description: 'join fast' },
     ]);
     mockGetCustomCommands.mockReturnValue([
-      { name: 'wave', command: '/msg {channel} hi', description: 'wave', parameters: ['channel'] },
+      {
+        name: 'wave',
+        command: '/msg {channel} hi',
+        description: 'wave',
+        parameters: ['channel'],
+      },
     ]);
 
-    render(<CommandsSection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('commands-history')).toBe(true));
+    render(
+      <CommandsSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('commands-history')).toBe(true),
+    );
 
     const historyMenu = mockCapturedItems.get('commands-history');
     historyMenu.submenuItems.find((x: any) => x.id === 'history-h1').onPress();
     let args = (Alert.alert as jest.Mock).mock.calls.pop();
-    let deleteButton = args?.[2]?.find((b: any) => String(b.text).includes('Delete'));
+    let deleteButton = args?.[2]?.find((b: any) =>
+      String(b.text).includes('Delete'),
+    );
     await deleteButton?.onPress?.();
     expect(mockDeleteHistoryEntry).toHaveBeenCalledWith('h1');
 
-    historyMenu.submenuItems.find((x: any) => x.id === 'history-clear').onPress();
+    historyMenu.submenuItems
+      .find((x: any) => x.id === 'history-clear')
+      .onPress();
     args = (Alert.alert as jest.Mock).mock.calls.pop();
-    const deleteAll = args?.[2]?.find((b: any) => String(b.text).includes('Delete All'));
+    const deleteAll = args?.[2]?.find((b: any) =>
+      String(b.text).includes('Delete All'),
+    );
     await deleteAll?.onPress?.();
     expect(mockClearHistory).toHaveBeenCalled();
 
     const aliasMenu = mockCapturedItems.get('commands-aliases');
     aliasMenu.submenuItems.find((x: any) => x.id === 'alias-j').onPress();
     args = (Alert.alert as jest.Mock).mock.calls.pop();
-    deleteButton = args?.[2]?.find((b: any) => String(b.text).includes('Delete'));
+    deleteButton = args?.[2]?.find((b: any) =>
+      String(b.text).includes('Delete'),
+    );
     await deleteButton?.onPress?.();
     expect(mockRemoveAlias).toHaveBeenCalledWith('j');
 
     const customMenu = mockCapturedItems.get('commands-custom');
     customMenu.submenuItems.find((x: any) => x.id === 'cmd-wave').onPress();
     args = (Alert.alert as jest.Mock).mock.calls.pop();
-    deleteButton = args?.[2]?.find((b: any) => String(b.text).includes('Delete'));
+    deleteButton = args?.[2]?.find((b: any) =>
+      String(b.text).includes('Delete'),
+    );
     await deleteButton?.onPress?.();
     expect(mockRemoveCustomCommand).toHaveBeenCalledWith('wave');
   });

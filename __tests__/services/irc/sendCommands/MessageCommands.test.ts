@@ -27,7 +27,9 @@ describe('MessageCommands', () => {
       emit: jest.fn(),
       getCurrentNick: jest.fn().mockReturnValue('MyNick'),
       getNetworkName: jest.fn().mockReturnValue('TestNet'),
-      encodeCTCP: jest.fn((cmd: string, text: string) => `\x01${cmd} ${text}\x01`),
+      encodeCTCP: jest.fn(
+        (cmd: string, text: string) => `\x01${cmd} ${text}\x01`,
+      ),
     };
   });
 
@@ -62,7 +64,7 @@ describe('MessageCommands', () => {
           from: 'MyNick',
           text: 'Hello world',
           status: 'sent',
-        })
+        }),
       );
     });
 
@@ -70,7 +72,7 @@ describe('MessageCommands', () => {
       handleMSG(ctx, ['#channel'], '#other');
       expect(ctx.sendRaw).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -83,13 +85,15 @@ describe('MessageCommands', () => {
   describe('handleME', () => {
     it('sends ACTION CTCP and adds sent message', () => {
       handleME(ctx, ['is', 'dancing'], '#channel');
-      expect(ctx.sendRaw).toHaveBeenCalledWith('PRIVMSG #channel :\x01ACTION is dancing\x01');
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'PRIVMSG #channel :\x01ACTION is dancing\x01',
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'message',
           channel: '#channel',
           from: 'MyNick',
-        })
+        }),
       );
     });
 
@@ -103,7 +107,9 @@ describe('MessageCommands', () => {
   describe('handleNOTICE', () => {
     it('sends NOTICE and adds sent message', () => {
       handleNOTICE(ctx, ['#channel', 'Server', 'going', 'down'], '#other');
-      expect(ctx.sendRaw).toHaveBeenCalledWith('NOTICE #channel :Server going down');
+      expect(ctx.sendRaw).toHaveBeenCalledWith(
+        'NOTICE #channel :Server going down',
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'notice',
@@ -111,7 +117,7 @@ describe('MessageCommands', () => {
           from: 'MyNick',
           text: 'Server going down',
           status: 'sent',
-        })
+        }),
       );
     });
 
@@ -119,7 +125,7 @@ describe('MessageCommands', () => {
       handleNOTICE(ctx, ['#channel'], '#other');
       expect(ctx.sendRaw).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
 
@@ -132,9 +138,13 @@ describe('MessageCommands', () => {
   describe('handleAMSG', () => {
     it('emits amsg event and adds notice', () => {
       handleAMSG(ctx, ['Hello', 'everyone'], '#channel');
-      expect(ctx.emit).toHaveBeenCalledWith('amsg', 'Hello everyone', 'TestNet');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'amsg',
+        'Hello everyone',
+        'TestNet',
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -142,7 +152,7 @@ describe('MessageCommands', () => {
       handleAMSG(ctx, [], '#channel');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -152,7 +162,7 @@ describe('MessageCommands', () => {
       handleAME(ctx, ['waves', 'hello'], '#channel');
       expect(ctx.emit).toHaveBeenCalledWith('ame', 'waves hello', 'TestNet');
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -160,7 +170,7 @@ describe('MessageCommands', () => {
       handleAME(ctx, [], '#channel');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });
@@ -168,9 +178,13 @@ describe('MessageCommands', () => {
   describe('handleANOTICE', () => {
     it('emits anotice event and adds notice', () => {
       handleANOTICE(ctx, ['Server', 'restart', 'soon'], '#channel');
-      expect(ctx.emit).toHaveBeenCalledWith('anotice', 'Server restart soon', 'TestNet');
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'anotice',
+        'Server restart soon',
+        'TestNet',
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'notice' })
+        expect.objectContaining({ type: 'notice' }),
       );
     });
 
@@ -178,7 +192,7 @@ describe('MessageCommands', () => {
       handleANOTICE(ctx, [], '#channel');
       expect(ctx.emit).not.toHaveBeenCalled();
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'error' })
+        expect.objectContaining({ type: 'error' }),
       );
     });
   });

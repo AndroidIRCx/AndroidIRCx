@@ -33,7 +33,8 @@ const mockUIStore = {
 
 jest.mock('../../../src/i18n/transifex', () => ({
   useT: () => (key: string, params?: Record<string, any>) => {
-    if (params?.count !== undefined) return `${key}`.replace('{count}', String(params.count));
+    if (params?.count !== undefined)
+      return `${key}`.replace('{count}', String(params.count));
     return key;
   },
 }));
@@ -49,8 +50,11 @@ jest.mock('../../../src/components/settings/SettingItem', () => {
       }
       return React.createElement(
         TouchableOpacity,
-        { testID: `setting-${item.id}`, onPress: item.onPress || (() => item.onValueChange?.(!item.value)) },
-        React.createElement(Text, null, item.title || item.id)
+        {
+          testID: `setting-${item.id}`,
+          onPress: item.onPress || (() => item.onValueChange?.(!item.value)),
+        },
+        React.createElement(Text, null, item.title || item.id),
       );
     },
   };
@@ -71,13 +75,15 @@ jest.mock('../../../src/hooks/useSettingsNotifications', () => ({
     backgroundEnabled: true,
     batteryOptEnabledStatus: true,
     setBackgroundEnabled: (...args: any[]) => mockSetBackgroundEnabled(...args),
-    handleBatteryOptimization: (...args: any[]) => mockHandleBatteryOptimization(...args),
+    handleBatteryOptimization: (...args: any[]) =>
+      mockHandleBatteryOptimization(...args),
   }),
 }));
 
 jest.mock('../../../src/services/BackgroundService', () => ({
   backgroundService: {
-    isBatteryOptimizationEnabled: (...args: any[]) => mockIsBatteryOptimizationEnabled(...args),
+    isBatteryOptimizationEnabled: (...args: any[]) =>
+      mockIsBatteryOptimizationEnabled(...args),
   },
 }));
 
@@ -93,7 +99,8 @@ jest.mock('../../../src/hooks/useSettingsPremium', () => ({
     adCooldown: false,
     cooldownSeconds: 0,
     showingAd: false,
-    setWatchAdButtonEnabledForPremium: (...args: any[]) => mockSetWatchAdButtonEnabledForPremium(...args),
+    setWatchAdButtonEnabledForPremium: (...args: any[]) =>
+      mockSetWatchAdButtonEnabledForPremium(...args),
     handleWatchAd: (...args: any[]) => mockHandleWatchAd(...args),
   }),
 }));
@@ -150,7 +157,13 @@ describe('Settings Sections Basic', () => {
     const onShowAbout = jest.fn();
     const onShowCredits = jest.fn();
     const { getByTestId } = render(
-      <AboutSection colors={colors} styles={styles as any} settingIcons={{}} onShowAbout={onShowAbout} onShowCredits={onShowCredits} />
+      <AboutSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        onShowAbout={onShowAbout}
+        onShowCredits={onShowCredits}
+      />,
     );
     fireEvent.press(getByTestId('setting-about-app'));
     fireEvent.press(getByTestId('setting-credits'));
@@ -159,7 +172,13 @@ describe('Settings Sections Basic', () => {
   });
 
   it('AdvancedSection returns null while empty', () => {
-    const { toJSON } = render(<AdvancedSection colors={colors} styles={styles as any} settingIcons={{}} />);
+    const { toJSON } = render(
+      <AdvancedSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
     expect(toJSON()).toBeNull();
   });
 
@@ -169,7 +188,12 @@ describe('Settings Sections Basic', () => {
     const onShowPrivacyAds = jest.fn();
     const { getByTestId } = render(
       <>
-        <PremiumSection colors={colors} styles={styles as any} settingIcons={{}} onShowPurchaseScreen={onShowPurchaseScreen} />
+        <PremiumSection
+          colors={colors}
+          styles={styles as any}
+          settingIcons={{}}
+          onShowPurchaseScreen={onShowPurchaseScreen}
+        />
         <PrivacyLegalSection
           colors={colors}
           styles={styles as any}
@@ -177,7 +201,7 @@ describe('Settings Sections Basic', () => {
           onShowDataPrivacy={onShowDataPrivacy}
           onShowPrivacyAds={onShowPrivacyAds}
         />
-      </>
+      </>,
     );
     fireEvent.press(getByTestId('setting-premium-upgrade'));
     fireEvent.press(getByTestId('setting-my-data-privacy'));
@@ -188,8 +212,16 @@ describe('Settings Sections Basic', () => {
   });
 
   it('MessageHistorySection saves input/switch updates', async () => {
-    render(<MessageHistorySection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('messages-hide-join')).toBe(true));
+    render(
+      <MessageHistorySection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('messages-hide-join')).toBe(true),
+    );
 
     await mockCapturedItems.get('messages-hide-join').onValueChange(true);
     await mockCapturedItems.get('messages-part').onValueChange('bye');
@@ -200,8 +232,16 @@ describe('Settings Sections Basic', () => {
 
   it('BackgroundBatterySection toggles and refreshes battery status', async () => {
     jest.useFakeTimers();
-    render(<BackgroundBatterySection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('background-battery-settings')).toBe(true));
+    render(
+      <BackgroundBatterySection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('background-battery-settings')).toBe(true),
+    );
 
     await mockCapturedItems.get('background-keep-alive').onValueChange(false);
     await mockCapturedItems.get('background-battery-settings').onPress();
@@ -223,7 +263,7 @@ describe('Settings Sections Basic', () => {
         settingIcons={{}}
         onShowScripting={onShowScripting}
         onShowScriptingHelp={onShowScriptingHelp}
-      />
+      />,
     );
 
     await mockCapturedItems.get('watch-ad-button-premium').onValueChange(true);

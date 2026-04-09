@@ -14,13 +14,13 @@ export interface UseSettingsAppearanceReturn {
   availableThemes: Theme[];
   showThemeEditor: boolean;
   editingTheme: Theme | undefined;
-  
+
   // Layout
   layoutConfig: LayoutConfig | null;
-  
+
   // Language
   appLanguage: string;
-  
+
   // Actions
   setShowThemeEditor: (show: boolean) => void;
   setEditingTheme: (theme: Theme | undefined) => void;
@@ -30,17 +30,26 @@ export interface UseSettingsAppearanceReturn {
 }
 
 export const useSettingsAppearance = (): UseSettingsAppearanceReturn => {
-  const [currentTheme, setCurrentTheme] = useState<Theme>(themeService.getCurrentTheme());
-  const [availableThemes, setAvailableThemes] = useState<Theme[]>(themeService.getAvailableThemes());
+  const [currentTheme, setCurrentTheme] = useState<Theme>(
+    themeService.getCurrentTheme(),
+  );
+  const [availableThemes, setAvailableThemes] = useState<Theme[]>(
+    themeService.getAvailableThemes(),
+  );
   const [showThemeEditor, setShowThemeEditor] = useState(false);
-  const [editingTheme, setEditingTheme] = useState<Theme | undefined>(undefined);
+  const [editingTheme, setEditingTheme] = useState<Theme | undefined>(
+    undefined,
+  );
   const [layoutConfig, setLayoutConfig] = useState<LayoutConfig | null>(null);
   const [appLanguage, setAppLanguageState] = useState<string>('system');
 
   // Load initial state
   useEffect(() => {
     const loadSettings = async () => {
-      const lang = await settingsService.getSetting<string>('appLanguage', 'system');
+      const lang = await settingsService.getSetting<string>(
+        'appLanguage',
+        'system',
+      );
       setAppLanguageState(lang);
 
       await layoutService.initialize();
@@ -52,7 +61,7 @@ export const useSettingsAppearance = (): UseSettingsAppearanceReturn => {
 
   // Listen for theme changes
   useEffect(() => {
-    const unsubscribe = themeService.onThemeChange((theme) => {
+    const unsubscribe = themeService.onThemeChange(theme => {
       setCurrentTheme(theme);
       setAvailableThemes(themeService.getAvailableThemes());
     });
@@ -69,10 +78,13 @@ export const useSettingsAppearance = (): UseSettingsAppearanceReturn => {
     setAppLanguageState(lang);
   }, []);
 
-  const updateLayoutConfig = useCallback(async (config: Partial<LayoutConfig>) => {
-    await layoutService.setConfig(config);
-    setLayoutConfig(layoutService.getConfig());
-  }, []);
+  const updateLayoutConfig = useCallback(
+    async (config: Partial<LayoutConfig>) => {
+      await layoutService.setConfig(config);
+      setLayoutConfig(layoutService.getConfig());
+    },
+    [],
+  );
 
   return {
     currentTheme,

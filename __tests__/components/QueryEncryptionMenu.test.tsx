@@ -63,7 +63,8 @@ jest.mock('../../src/i18n/transifex', () => ({
 jest.mock('../../src/services/ConnectionManager', () => ({
   connectionManager: {
     getConnection: (...args: unknown[]) => mockGetConnection(...args),
-    getActiveConnection: (...args: unknown[]) => mockGetActiveConnection(...args),
+    getActiveConnection: (...args: unknown[]) =>
+      mockGetActiveConnection(...args),
   },
 }));
 
@@ -80,17 +81,26 @@ jest.mock('../../src/services/EncryptedDMService', () => ({
   encryptedDMService: {
     exportBundle: (...args: unknown[]) => mockExportBundle(...args),
     awaitBundleForNick: (...args: unknown[]) => mockAwaitBundleForNick(...args),
-    getVerificationStatus: (...args: unknown[]) => mockGetVerificationStatus(...args),
-    getVerificationStatusForNetwork: (...args: unknown[]) => mockGetVerificationStatus(...args),
+    getVerificationStatus: (...args: unknown[]) =>
+      mockGetVerificationStatus(...args),
+    getVerificationStatusForNetwork: (...args: unknown[]) =>
+      mockGetVerificationStatus(...args),
     getSelfFingerprint: (...args: unknown[]) => mockGetSelfFingerprint(...args),
-    formatFingerprintForDisplay: (...args: unknown[]) => mockFormatFingerprintForDisplay(...args),
-    exportBundlePayload: (...args: unknown[]) => mockExportBundlePayload(...args),
-    exportFingerprintPayload: (...args: unknown[]) => mockExportFingerprintPayload(...args),
-    parseExternalPayload: (...args: unknown[]) => mockParseExternalPayload(...args),
+    formatFingerprintForDisplay: (...args: unknown[]) =>
+      mockFormatFingerprintForDisplay(...args),
+    exportBundlePayload: (...args: unknown[]) =>
+      mockExportBundlePayload(...args),
+    exportFingerprintPayload: (...args: unknown[]) =>
+      mockExportFingerprintPayload(...args),
+    parseExternalPayload: (...args: unknown[]) =>
+      mockParseExternalPayload(...args),
     verifyBundle: (...args: unknown[]) => mockVerifyBundle(...args),
-    acceptExternalBundleForNetwork: (...args: unknown[]) => mockAcceptExternalBundleForNetwork(...args),
-    getBundleFingerprintForNetwork: (...args: unknown[]) => mockGetBundleFingerprintForNetwork(...args),
-    setVerifiedForNetwork: (...args: unknown[]) => mockSetVerifiedForNetwork(...args),
+    acceptExternalBundleForNetwork: (...args: unknown[]) =>
+      mockAcceptExternalBundleForNetwork(...args),
+    getBundleFingerprintForNetwork: (...args: unknown[]) =>
+      mockGetBundleFingerprintForNetwork(...args),
+    setVerifiedForNetwork: (...args: unknown[]) =>
+      mockSetVerifiedForNetwork(...args),
   },
 }));
 
@@ -110,13 +120,16 @@ jest.mock('react-native-vision-camera', () => ({
   useCameraDevice: () => ({ id: 'cam-1' }),
   useCameraPermission: () => ({
     hasPermission: mockHasCameraPermission,
-    requestPermission: (...args: unknown[]) => mockRequestCameraPermission(...args),
+    requestPermission: (...args: unknown[]) =>
+      mockRequestCameraPermission(...args),
   }),
   useCodeScanner: () => ({}),
 }));
 
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
-jest.mock('react-native-share', () => ({ open: (...args: unknown[]) => mockShareOpen(...args) }));
+jest.mock('react-native-share', () => ({
+  open: (...args: unknown[]) => mockShareOpen(...args),
+}));
 jest.mock('react-native-fs', () => ({
   CachesDirectoryPath: '/cache',
   writeFile: (...args: unknown[]) => mockWriteFile(...args),
@@ -135,13 +148,16 @@ jest.mock('react-native-nfc-manager', () => ({
   start: (...args: unknown[]) => mockNfcStart(...args),
   requestTechnology: (...args: unknown[]) => mockNfcRequestTechnology(...args),
   writeNdefMessage: (...args: unknown[]) => mockNfcWriteNdefMessage(...args),
-  cancelTechnologyRequest: (...args: unknown[]) => mockNfcCancelTechnologyRequest(...args),
+  cancelTechnologyRequest: (...args: unknown[]) =>
+    mockNfcCancelTechnologyRequest(...args),
   getTag: (...args: unknown[]) => mockNfcGetTag(...args),
   NfcTech: { Ndef: 'ndef' },
   Ndef: {
     encodeMessage: (...args: unknown[]) => mockNdefEncodeMessage(...args),
     textRecord: (...args: unknown[]) => mockNdefTextRecord(...args),
-    text: { decodePayload: (...args: unknown[]) => mockNdefDecodePayload(...args) },
+    text: {
+      decodePayload: (...args: unknown[]) => mockNdefDecodePayload(...args),
+    },
   },
 }));
 
@@ -163,17 +179,29 @@ describe('QueryEncryptionMenu', () => {
     mockGetConnection.mockReturnValue({ ircService: irc });
     mockGetActiveConnection.mockReturnValue({ ircService: irc });
 
-    mockGetSetting.mockImplementation((key: string, def: any) => Promise.resolve(def));
+    mockGetSetting.mockImplementation((key: string, def: any) =>
+      Promise.resolve(def),
+    );
     mockOnSettingChange.mockImplementation(() => () => {});
 
     mockExportBundle.mockResolvedValue({ pub: 'bundle' });
     mockAwaitBundleForNick.mockResolvedValue(undefined);
-    mockGetVerificationStatus.mockResolvedValue({ verified: false, fingerprint: null });
+    mockGetVerificationStatus.mockResolvedValue({
+      verified: false,
+      fingerprint: null,
+    });
     mockGetSelfFingerprint.mockResolvedValue('aabb');
-    mockFormatFingerprintForDisplay.mockImplementation((f: string) => f.toUpperCase());
+    mockFormatFingerprintForDisplay.mockImplementation((f: string) =>
+      f.toUpperCase(),
+    );
     mockExportBundlePayload.mockResolvedValue('payload-bundle');
     mockExportFingerprintPayload.mockResolvedValue('payload-fingerprint');
-    mockParseExternalPayload.mockReturnValue({ type: 'encdm-bundle', fingerprint: 'f1', bundle: { pub: 'x' }, nick: 'alice' });
+    mockParseExternalPayload.mockReturnValue({
+      type: 'encdm-bundle',
+      fingerprint: 'f1',
+      bundle: { pub: 'x' },
+      nick: 'alice',
+    });
     mockVerifyBundle.mockReturnValue(undefined);
     mockAcceptExternalBundleForNetwork.mockResolvedValue(undefined);
     mockGetBundleFingerprintForNetwork.mockResolvedValue(null);
@@ -199,7 +227,12 @@ describe('QueryEncryptionMenu', () => {
   it('renders menu and closes', () => {
     const onClose = jest.fn();
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={onClose} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={onClose}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     expect(getByText('E2E Encryption - alice')).toBeTruthy();
@@ -209,14 +242,21 @@ describe('QueryEncryptionMenu', () => {
 
   it('shares dm key and sends request', async () => {
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Share DM Key'));
     fireEvent.press(getByText('Request DM Key (36s)'));
 
     await waitFor(() => {
-      expect(sendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG alice :!enc-offer'));
+      expect(sendRaw).toHaveBeenCalledWith(
+        expect.stringContaining('PRIVMSG alice :!enc-offer'),
+      );
       expect(sendRaw).toHaveBeenCalledWith('PRIVMSG alice :!enc-req');
     });
     expect(mockAwaitBundleForNick).toHaveBeenCalledWith('alice', 36000);
@@ -224,7 +264,12 @@ describe('QueryEncryptionMenu', () => {
 
   it('handles verify action with missing fingerprint', async () => {
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Verify DM Key'));
@@ -235,10 +280,18 @@ describe('QueryEncryptionMenu', () => {
   });
 
   it('handles verify action with fingerprint and copy callback', async () => {
-    mockGetVerificationStatus.mockResolvedValue({ verified: false, fingerprint: 'ff00' });
+    mockGetVerificationStatus.mockResolvedValue({
+      verified: false,
+      fingerprint: 'ff00',
+    });
 
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Verify DM Key'));
@@ -247,7 +300,7 @@ describe('QueryEncryptionMenu', () => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Verify DM Key',
         expect.stringContaining('Compare fingerprints out-of-band'),
-        expect.any(Array)
+        expect.any(Array),
       );
     });
 
@@ -259,13 +312,24 @@ describe('QueryEncryptionMenu', () => {
     await markVerified.onPress();
     copy.onPress();
 
-    expect(mockSetVerifiedForNetwork).toHaveBeenCalledWith('net-1', 'alice', true);
-    expect(mockSetString).toHaveBeenCalledWith(expect.stringContaining('alice'));
+    expect(mockSetVerifiedForNetwork).toHaveBeenCalledWith(
+      'net-1',
+      'alice',
+      true,
+    );
+    expect(mockSetString).toHaveBeenCalledWith(
+      expect.stringContaining('alice'),
+    );
   });
 
   it('shows share bundle QR and copies payload', async () => {
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Share Key Bundle QR'));
@@ -277,15 +341,26 @@ describe('QueryEncryptionMenu', () => {
 
   it('shares key file and cleans temp file', async () => {
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Share Key File'));
 
     await waitFor(() => {
-      expect(mockWriteFile).toHaveBeenCalledWith('/cache/androidircx-key-me.json', 'payload-bundle', 'utf8');
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        '/cache/androidircx-key-me.json',
+        'payload-bundle',
+        'utf8',
+      );
       expect(mockShareOpen).toHaveBeenCalledWith(
-        expect.objectContaining({ url: 'file:///cache/androidircx-key-me.json' })
+        expect.objectContaining({
+          url: 'file:///cache/androidircx-key-me.json',
+        }),
       );
       expect(mockUnlink).toHaveBeenCalledWith('/cache/androidircx-key-me.json');
     });
@@ -293,7 +368,12 @@ describe('QueryEncryptionMenu', () => {
 
   it('imports key file and feeds payload parser', async () => {
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Import Key File'));
@@ -301,14 +381,21 @@ describe('QueryEncryptionMenu', () => {
     await waitFor(() => {
       expect(mockPick).toHaveBeenCalled();
       expect(mockReadFile).toHaveBeenCalledWith('/tmp/key.json', 'utf8');
-      expect(mockParseExternalPayload).toHaveBeenCalledWith('{"type":"encdm-bundle"}');
+      expect(mockParseExternalPayload).toHaveBeenCalledWith(
+        '{"type":"encdm-bundle"}',
+      );
     });
   });
 
   it('shows nfc unsupported feedback', async () => {
     mockNfcIsSupported.mockResolvedValue(false);
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Share via NFC'));
@@ -326,13 +413,27 @@ describe('QueryEncryptionMenu', () => {
     });
 
     render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     await waitFor(() => {
-      expect(mockGetSetting).toHaveBeenCalledWith('securityAllowQrVerification', true);
-      expect(mockGetSetting).toHaveBeenCalledWith('securityAllowFileExchange', true);
-      expect(mockGetSetting).toHaveBeenCalledWith('securityAllowNfcExchange', true);
+      expect(mockGetSetting).toHaveBeenCalledWith(
+        'securityAllowQrVerification',
+        true,
+      );
+      expect(mockGetSetting).toHaveBeenCalledWith(
+        'securityAllowFileExchange',
+        true,
+      );
+      expect(mockGetSetting).toHaveBeenCalledWith(
+        'securityAllowNfcExchange',
+        true,
+      );
     });
   });
 
@@ -345,7 +446,12 @@ describe('QueryEncryptionMenu', () => {
     });
 
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Import Key File'));
@@ -354,7 +460,7 @@ describe('QueryEncryptionMenu', () => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Mismatched Nick',
         expect.stringContaining('selected alice'),
-        expect.any(Array)
+        expect.any(Array),
       );
     });
   });
@@ -362,10 +468,17 @@ describe('QueryEncryptionMenu', () => {
   it('handles import file cancellation gracefully', async () => {
     const err = { code: 'OPERATION_CANCELED' };
     mockPick.mockRejectedValue(err);
-    mockIsErrorWithCode.mockImplementation((e: any) => e?.code === 'OPERATION_CANCELED');
+    mockIsErrorWithCode.mockImplementation(
+      (e: any) => e?.code === 'OPERATION_CANCELED',
+    );
 
     const { getByText, queryByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Import Key File'));
@@ -381,7 +494,12 @@ describe('QueryEncryptionMenu', () => {
     mockIsErrorWithCode.mockReturnValue(false);
 
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Import Key File'));
@@ -393,7 +511,12 @@ describe('QueryEncryptionMenu', () => {
 
   it('runs nfc share success path', async () => {
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Share via NFC'));
@@ -413,7 +536,12 @@ describe('QueryEncryptionMenu', () => {
   it('handles receive nfc with missing payload', async () => {
     mockNfcGetTag.mockResolvedValue({ ndefMessage: [] });
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Receive via NFC'));
@@ -427,7 +555,12 @@ describe('QueryEncryptionMenu', () => {
     mockHasCameraPermission = false;
     mockRequestCameraPermission.mockResolvedValue('denied');
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Scan QR Code'));
@@ -440,7 +573,12 @@ describe('QueryEncryptionMenu', () => {
   it('shows verify load error feedback', async () => {
     mockGetVerificationStatus.mockRejectedValue(new Error('verify-fail'));
     const { getByText } = render(
-      <QueryEncryptionMenu visible onClose={jest.fn()} nick="alice" network="net-1" />
+      <QueryEncryptionMenu
+        visible
+        onClose={jest.fn()}
+        nick="alice"
+        network="net-1"
+      />,
     );
 
     fireEvent.press(getByText('Verify DM Key'));

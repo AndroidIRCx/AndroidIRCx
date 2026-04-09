@@ -22,7 +22,9 @@ jest.mock('../../src/services/InAppPurchaseService', () => ({
     isSupporter: jest.fn(() => false),
     addListener: jest.fn((cb: any) => {
       purchaseListener = cb;
-      return jest.fn(() => { purchaseListener = null; });
+      return jest.fn(() => {
+        purchaseListener = null;
+      });
     }),
   },
 }));
@@ -37,7 +39,9 @@ jest.mock('../../src/services/AdRewardService', () => ({
       adUnitType: 'Primary',
     })),
     showRewardedAd: jest.fn().mockResolvedValue(true),
-    manualLoadAd: jest.fn().mockResolvedValue({ success: true, messageKey: 'Loading...' }),
+    manualLoadAd: jest
+      .fn()
+      .mockResolvedValue({ success: true, messageKey: 'Loading...' }),
   },
 }));
 
@@ -63,7 +67,9 @@ describe('useSettingsPremium', () => {
     jest.clearAllMocks();
     purchaseListener = null;
     (inAppPurchaseService.hasNoAds as jest.Mock).mockReturnValue(false);
-    (inAppPurchaseService.hasUnlimitedScripting as jest.Mock).mockReturnValue(false);
+    (inAppPurchaseService.hasUnlimitedScripting as jest.Mock).mockReturnValue(
+      false,
+    );
     (inAppPurchaseService.isSupporter as jest.Mock).mockReturnValue(false);
     (adRewardService.getAdStatus as jest.Mock).mockReturnValue({
       ready: false,
@@ -73,7 +79,10 @@ describe('useSettingsPremium', () => {
       adUnitType: 'Primary',
     });
     (adRewardService.showRewardedAd as jest.Mock).mockResolvedValue(true);
-    (adRewardService.manualLoadAd as jest.Mock).mockResolvedValue({ success: true, messageKey: 'Loading...' });
+    (adRewardService.manualLoadAd as jest.Mock).mockResolvedValue({
+      success: true,
+      messageKey: 'Loading...',
+    });
     (settingsService.getSetting as jest.Mock).mockResolvedValue(false);
     (settingsService.setSetting as jest.Mock).mockResolvedValue(undefined);
   });
@@ -138,15 +147,16 @@ describe('useSettingsPremium', () => {
 
     renderHook(() => useSettingsPremium());
 
-    const initialCalls = (adRewardService.getAdStatus as jest.Mock).mock.calls.length;
+    const initialCalls = (adRewardService.getAdStatus as jest.Mock).mock.calls
+      .length;
 
     act(() => {
       jest.advanceTimersByTime(3000);
     });
 
-    expect((adRewardService.getAdStatus as jest.Mock).mock.calls.length).toBeGreaterThanOrEqual(
-      initialCalls + 3
-    );
+    expect(
+      (adRewardService.getAdStatus as jest.Mock).mock.calls.length,
+    ).toBeGreaterThanOrEqual(initialCalls + 3);
 
     jest.useRealTimers();
   });
@@ -198,7 +208,10 @@ describe('useSettingsPremium', () => {
       await result.current.setWatchAdButtonEnabledForPremium(true);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('watchAdButtonEnabledForPremium', true);
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'watchAdButtonEnabledForPremium',
+      true,
+    );
     expect(result.current.watchAdButtonEnabledForPremium).toBe(true);
   });
 
@@ -235,7 +248,10 @@ describe('useSettingsPremium', () => {
       await result.current.handleWatchAd();
     });
 
-    expect(alertSpy).toHaveBeenCalledWith('Ad Failed', 'Could not show the ad. Please try again.');
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Ad Failed',
+      'Could not show the ad. Please try again.',
+    );
     alertSpy.mockRestore();
   });
 
@@ -249,7 +265,9 @@ describe('useSettingsPremium', () => {
       cooldownSeconds: 0,
       adUnitType: 'Primary',
     });
-    (adRewardService.showRewardedAd as jest.Mock).mockRejectedValue(new Error('boom'));
+    (adRewardService.showRewardedAd as jest.Mock).mockRejectedValue(
+      new Error('boom'),
+    );
 
     jest.useFakeTimers();
     const { result } = renderHook(() => useSettingsPremium());

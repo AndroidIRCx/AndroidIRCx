@@ -44,7 +44,10 @@ type MediaInfo = {
   mimeType?: string;
 };
 
-const detectMediaType = async (filePath: string, mimeType?: string): Promise<'image' | 'video' | 'audio' | 'file'> => {
+const detectMediaType = async (
+  filePath: string,
+  mimeType?: string,
+): Promise<'image' | 'video' | 'audio' | 'file'> => {
   try {
     if (mimeType) {
       if (mimeType.startsWith('image/')) {
@@ -60,7 +63,9 @@ const detectMediaType = async (filePath: string, mimeType?: string): Promise<'im
 
     const extension = filePath.split('.').pop()?.toLowerCase();
 
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(extension || '')) {
+    if (
+      ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(extension || '')
+    ) {
       return 'image';
     }
 
@@ -90,7 +95,10 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
   // Check if tabId is available before proceeding
   const [state, setState] = useState<MediaState>(() => {
     if (!tabId) {
-      console.log('[MediaMessageDisplay] No tabId provided for media:', mediaId);
+      console.log(
+        '[MediaMessageDisplay] No tabId provided for media:',
+        mediaId,
+      );
       return 'error'; // Set to error state if no tabId is available
     }
     return 'loading';
@@ -103,7 +111,8 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
 
   useEffect(() => {
     const checkEncryptionIndicator = async () => {
-      const shouldShow = await mediaSettingsService.shouldShowEncryptionIndicator();
+      const shouldShow =
+        await mediaSettingsService.shouldShowEncryptionIndicator();
       setShowEncryptionIndicator(shouldShow);
     };
 
@@ -114,7 +123,9 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
     try {
       // Check if tabId is available before attempting to download
       if (!tabId) {
-        throw new Error('No tabId provided for decryption - cannot decrypt media');
+        throw new Error(
+          'No tabId provided for decryption - cannot decrypt media',
+        );
       }
 
       setState('loading');
@@ -126,9 +137,9 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
         network,
         tabId,
         3, // max retries
-        (progressInfo) => {
+        progressInfo => {
           setProgress(Math.round(progressInfo.percentage));
-        }
+        },
       );
 
       if (!result.success || !result.uri) {
@@ -137,14 +148,17 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
 
       // Detect media type and display
       const type = await detectMediaType(result.uri, result.mimeType);
-      
+
       // Ensure URI has file:// prefix for React Native Image component
       // On Android, Image component can handle file:// URIs
       let finalUri = result.uri;
-      if (!finalUri.startsWith('file://') && !finalUri.startsWith('content://')) {
+      if (
+        !finalUri.startsWith('file://') &&
+        !finalUri.startsWith('content://')
+      ) {
         finalUri = `file://${finalUri}`;
       }
-      
+
       // Verify file exists
       const fileExists = await RNFS.exists(finalUri.replace('file://', ''));
       console.log('[MediaMessageDisplay] Setting media info:', {
@@ -154,11 +168,11 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
         originalUri: result.uri,
         fileExists,
       });
-      
+
       if (!fileExists) {
         throw new Error(`Media file does not exist: ${finalUri}`);
       }
-      
+
       setMediaInfo({
         type,
         uri: finalUri,
@@ -179,7 +193,7 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
   }, [loadMedia, retryCount]);
 
   const handleRetry = () => {
-    setRetryCount((prev) => prev + 1);
+    setRetryCount(prev => prev + 1);
   };
 
   const renderMedia = () => {
@@ -225,7 +239,11 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
       case 'file':
         return (
           <TouchableOpacity
-            style={[styles.mediaContainer, styles.fileContainer, { backgroundColor: colors.surfaceVariant }]}
+            style={[
+              styles.mediaContainer,
+              styles.fileContainer,
+              { backgroundColor: colors.surfaceVariant },
+            ]}
             onPress={async () => {
               try {
                 // Use react-native-share to open file
@@ -236,10 +254,14 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
               } catch (shareError: any) {
                 // Share dialog was cancelled or failed
                 if (shareError.message !== 'User did not share') {
-                  console.error('[MediaMessageDisplay] Error opening file:', shareError);
+                  console.error(
+                    '[MediaMessageDisplay] Error opening file:',
+                    shareError,
+                  );
                 }
               }
-            }}>
+            }}
+          >
             <Text style={[styles.fileIcon, { color: colors.text }]}>📄</Text>
             <Text style={[styles.fileLabel, { color: colors.text }]}>
               {t('File')}
@@ -261,7 +283,9 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
       {showEncryptionIndicator && (state === 'ready' || state === 'cached') && (
         <View style={styles.encryptionBadge}>
           <Text style={styles.encryptionIcon}>🔒</Text>
-          <Text style={[styles.encryptionText, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.encryptionText, { color: colors.textSecondary }]}
+          >
             {t('Encrypted')}
           </Text>
         </View>
@@ -269,7 +293,12 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
 
       {/* Loading state */}
       {state === 'loading' && (
-        <View style={[styles.stateContainer, { backgroundColor: colors.surfaceVariant }]}>
+        <View
+          style={[
+            styles.stateContainer,
+            { backgroundColor: colors.surfaceVariant },
+          ]}
+        >
           <ActivityIndicator size="small" color={colors.accent} />
           <Text style={[styles.stateText, { color: colors.text }]}>
             {progress > 0 && progress < 100
@@ -281,11 +310,18 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
 
       {/* Error state */}
       {state === 'error' && (
-        <View style={[styles.stateContainer, { backgroundColor: colors.error + '20' }]}>
+        <View
+          style={[
+            styles.stateContainer,
+            { backgroundColor: colors.error + '20' },
+          ]}
+        >
           <Text style={[styles.errorIcon, { color: colors.error }]}>⚠️</Text>
           {error?.includes('No tabId provided for decryption') ? (
             <Text style={[styles.errorText, { color: colors.error }]}>
-              {t('Cannot decrypt media: insufficient context. This may happen if the message is viewed outside its original channel or if encryption keys are not available.')}
+              {t(
+                'Cannot decrypt media: insufficient context. This may happen if the message is viewed outside its original channel or if encryption keys are not available.',
+              )}
             </Text>
           ) : (
             <>
@@ -294,7 +330,8 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
               </Text>
               <TouchableOpacity
                 style={[styles.retryButton, { backgroundColor: colors.accent }]}
-                onPress={handleRetry}>
+                onPress={handleRetry}
+              >
                 <Text style={styles.retryButtonText}>{t('Retry')}</Text>
               </TouchableOpacity>
             </>
@@ -307,9 +344,7 @@ export const MediaMessageDisplay: React.FC<MediaMessageDisplayProps> = ({
 
       {/* Caption */}
       {caption && (state === 'ready' || state === 'cached') && (
-        <Text style={[styles.caption, { color: colors.text }]}>
-          {caption}
-        </Text>
+        <Text style={[styles.caption, { color: colors.text }]}>{caption}</Text>
       )}
     </View>
   );

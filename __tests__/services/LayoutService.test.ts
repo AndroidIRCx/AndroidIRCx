@@ -59,7 +59,10 @@ describe('LayoutService', () => {
         fontSize: 'large',
       };
 
-      await AsyncStorage.setItem('@AndroidIRCX:layoutConfig', JSON.stringify(savedConfig));
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:layoutConfig',
+        JSON.stringify(savedConfig),
+      );
       await layoutService.initialize();
 
       const config = layoutService.getConfig();
@@ -78,7 +81,10 @@ describe('LayoutService', () => {
         compactMode: true,
       };
 
-      await AsyncStorage.setItem('@AndroidIRCX:layoutConfig', JSON.stringify(oldConfig));
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:layoutConfig',
+        JSON.stringify(oldConfig),
+      );
       await layoutService.initialize();
 
       const config = layoutService.getConfig();
@@ -90,7 +96,10 @@ describe('LayoutService', () => {
         showTimestamps: false,
       };
 
-      await AsyncStorage.setItem('@AndroidIRCX:layoutConfig', JSON.stringify(oldConfig));
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:layoutConfig',
+        JSON.stringify(oldConfig),
+      );
       await layoutService.initialize();
 
       const config = layoutService.getConfig();
@@ -102,7 +111,10 @@ describe('LayoutService', () => {
         tabPosition: 'bottom',
       };
 
-      await AsyncStorage.setItem('@AndroidIRCX:layoutConfig', JSON.stringify(oldConfig));
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:layoutConfig',
+        JSON.stringify(oldConfig),
+      );
       await layoutService.initialize();
 
       const config = layoutService.getConfig();
@@ -116,7 +128,7 @@ describe('LayoutService', () => {
           fontSize: 'xlarge',
           compactMode: false,
           messageGroupingEnabled: undefined,
-        })
+        }),
       );
 
       await layoutService.initialize();
@@ -134,7 +146,7 @@ describe('LayoutService', () => {
         '@AndroidIRCX:layoutConfig',
         JSON.stringify({
           userListPosition: 'left',
-        })
+        }),
       );
 
       await layoutService.initialize();
@@ -148,9 +160,9 @@ describe('LayoutService', () => {
       let resolveGetItem!: (value: string | null) => void;
       (AsyncStorage.getItem as jest.Mock).mockImplementationOnce(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             resolveGetItem = resolve;
-          })
+          }),
       );
 
       const initA = layoutService.initialize();
@@ -200,7 +212,7 @@ describe('LayoutService', () => {
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         '@AndroidIRCX:layoutConfig',
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -235,7 +247,12 @@ describe('LayoutService', () => {
     });
 
     it('should support all tab positions', async () => {
-      const positions: Array<'top' | 'bottom' | 'left' | 'right'> = ['top', 'bottom', 'left', 'right'];
+      const positions: Array<'top' | 'bottom' | 'left' | 'right'> = [
+        'top',
+        'bottom',
+        'left',
+        'right',
+      ];
 
       for (const position of positions) {
         await layoutService.setTabPosition(position);
@@ -255,7 +272,12 @@ describe('LayoutService', () => {
     });
 
     it('should support all user list positions', async () => {
-      const positions: Array<'left' | 'right' | 'top' | 'bottom'> = ['left', 'right', 'top', 'bottom'];
+      const positions: Array<'left' | 'right' | 'top' | 'bottom'> = [
+        'left',
+        'right',
+        'top',
+        'bottom',
+      ];
 
       for (const position of positions) {
         await layoutService.setUserListPosition(position);
@@ -337,7 +359,12 @@ describe('LayoutService', () => {
     });
 
     it('should support all font sizes', async () => {
-      const sizes: Array<'small' | 'medium' | 'large' | 'custom'> = ['small', 'medium', 'large', 'custom'];
+      const sizes: Array<'small' | 'medium' | 'large' | 'custom'> = [
+        'small',
+        'medium',
+        'large',
+        'custom',
+      ];
 
       for (const size of sizes) {
         await layoutService.setFontSize(size);
@@ -403,7 +430,11 @@ describe('LayoutService', () => {
     });
 
     it('should support all timestamp display options', async () => {
-      const options: Array<'always' | 'grouped' | 'never'> = ['always', 'grouped', 'never'];
+      const options: Array<'always' | 'grouped' | 'never'> = [
+        'always',
+        'grouped',
+        'never',
+      ];
 
       for (const option of options) {
         await layoutService.setTimestampDisplay(option);
@@ -540,7 +571,9 @@ describe('LayoutService', () => {
       layoutService.onConfigChange(errorListener);
       layoutService.onConfigChange(goodListener);
 
-      await expect(layoutService.setConfig({ tabPosition: 'bottom' })).resolves.not.toThrow();
+      await expect(
+        layoutService.setConfig({ tabPosition: 'bottom' }),
+      ).resolves.not.toThrow();
 
       expect(errorListener).toHaveBeenCalled();
       expect(goodListener).toHaveBeenCalled();
@@ -562,9 +595,13 @@ describe('LayoutService', () => {
     });
 
     it('should handle storage errors gracefully', async () => {
-      (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
+      (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Storage error'),
+      );
 
-      await expect(layoutService.setConfig({ tabPosition: 'bottom' })).resolves.not.toThrow();
+      await expect(
+        layoutService.setConfig({ tabPosition: 'bottom' }),
+      ).resolves.not.toThrow();
     });
 
     it('should preserve unrelated config when updating', async () => {

@@ -41,7 +41,13 @@ describe('Types - settings', () => {
 
   describe('SettingItemType', () => {
     it('should accept all valid setting item types', () => {
-      const types: SettingItemType[] = ['switch', 'button', 'input', 'submenu', 'custom'];
+      const types: SettingItemType[] = [
+        'switch',
+        'button',
+        'input',
+        'submenu',
+        'custom',
+      ];
 
       types.forEach(type => {
         const item: SettingItem = {
@@ -56,7 +62,11 @@ describe('Types - settings', () => {
 
   describe('SettingKeyboardType', () => {
     it('should accept all valid keyboard types', () => {
-      const types: SettingKeyboardType[] = ['default', 'numeric', 'email-address'];
+      const types: SettingKeyboardType[] = [
+        'default',
+        'numeric',
+        'email-address',
+      ];
 
       types.forEach(keyboardType => {
         const item: SettingItem = {
@@ -264,7 +274,10 @@ describe('Types - settings', () => {
         'app-language': undefined,
       };
 
-      expect(iconMap['display-theme']).toEqual({ name: 'palette', solid: true });
+      expect(iconMap['display-theme']).toEqual({
+        name: 'palette',
+        solid: true,
+      });
       expect(iconMap['app-language']).toBeUndefined();
     });
   });

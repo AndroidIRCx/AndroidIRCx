@@ -73,7 +73,7 @@ describe('HeaderBar', () => {
 
   it('shows connect hint and calls connect when disconnected', () => {
     const { getByText } = render(
-      <HeaderBar {...baseProps} isConnected={false} />
+      <HeaderBar {...baseProps} isConnected={false} />,
     );
 
     fireEvent.press(getByText('Libera'));
@@ -121,11 +121,7 @@ describe('HeaderBar', () => {
 
   it('supports hidden side tabs icon state and locked icon variant', () => {
     const { getByText } = render(
-      <HeaderBar
-        {...baseProps}
-        sideTabsVisible={false}
-        lockState="locked"
-      />
+      <HeaderBar {...baseProps} sideTabsVisible={false} lockState="locked" />,
     );
 
     fireEvent.press(getByText('='));

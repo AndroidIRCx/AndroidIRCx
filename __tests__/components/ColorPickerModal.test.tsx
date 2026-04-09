@@ -49,7 +49,9 @@ describe('ColorPickerModal', () => {
   });
 
   it('should render with default title when title not provided', () => {
-    const { getByText } = render(<ColorPickerModal {...defaultProps} title={undefined} />);
+    const { getByText } = render(
+      <ColorPickerModal {...defaultProps} title={undefined} />,
+    );
     expect(getByText('mIRC Colors')).toBeTruthy();
   });
 
@@ -96,7 +98,9 @@ describe('ColorPickerModal', () => {
   });
 
   it('should have visible prop set to true', () => {
-    const { UNSAFE_getByType } = render(<ColorPickerModal {...defaultProps} visible={true} />);
+    const { UNSAFE_getByType } = render(
+      <ColorPickerModal {...defaultProps} visible={true} />,
+    );
     const modal = UNSAFE_getByType('Modal');
     expect(modal.props.visible).toBe(true);
   });
@@ -108,7 +112,9 @@ describe('ColorPickerModal', () => {
   });
 
   it('should apply surface background color to card', () => {
-    const { UNSAFE_getAllByType } = render(<ColorPickerModal {...defaultProps} />);
+    const { UNSAFE_getAllByType } = render(
+      <ColorPickerModal {...defaultProps} />,
+    );
     const views = UNSAFE_getAllByType('View');
     // Card should have surface background
     expect(views.length).toBeGreaterThan(0);

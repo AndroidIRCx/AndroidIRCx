@@ -54,12 +54,12 @@ export function useBannerAds() {
     store.setScriptingTimeMs(adRewardService.getRemainingTime());
 
     // Listen to AdRewardService for scripting time changes
-    const unsubscribeScripting = adRewardService.addListener((remainingMs) => {
+    const unsubscribeScripting = adRewardService.addListener(remainingMs => {
       useUIStore.getState().setScriptingTimeMs(remainingMs);
     });
 
     // Listen to BannerAdService for banner visibility changes
-    const unsubscribeBanner = bannerAdService.addListener((visible) => {
+    const unsubscribeBanner = bannerAdService.addListener(visible => {
       useUIStore.getState().setBannerVisible(visible);
     });
 

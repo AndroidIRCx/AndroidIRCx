@@ -67,7 +67,8 @@ export interface CommandSuggestion {
  * Manages access to service commands and provides command completion
  */
 export class ServiceCommandProvider {
-  private commandCache: Map<string, Map<string, CommandSearchResult>> = new Map();
+  private commandCache: Map<string, Map<string, CommandSearchResult>> =
+    new Map();
   private aliasCache: Map<string, Map<string, string>> = new Map(); // networkId -> alias -> full command
 
   /**
@@ -83,11 +84,15 @@ export class ServiceCommandProvider {
   /**
    * Get commands for a specific service
    */
-  public getServiceCommands(networkId: string, serviceName: string): ServiceCommand[] {
+  public getServiceCommands(
+    networkId: string,
+    serviceName: string,
+  ): ServiceCommand[] {
     const config = serviceDetectionService.getServiceConfig(networkId);
     if (!config?.services) return [];
 
-    const service = config.services[serviceName as keyof typeof config.services];
+    const service =
+      config.services[serviceName as keyof typeof config.services];
     if (!service?.enabled) return [];
 
     return service.commands || [];
@@ -96,7 +101,10 @@ export class ServiceCommandProvider {
   /**
    * Find a command by name or alias
    */
-  public findCommand(networkId: string, query: string): CommandSearchResult | undefined {
+  public findCommand(
+    networkId: string,
+    query: string,
+  ): CommandSearchResult | undefined {
     const cache = this.getCommandCache(networkId);
     const lowerQuery = query.toLowerCase();
 
@@ -128,7 +136,7 @@ export class ServiceCommandProvider {
   public getSuggestions(
     networkId: string,
     query: string,
-    context: CompletionContext
+    context: CompletionContext,
   ): CommandSuggestion[] {
     const config = serviceDetectionService.getServiceConfig(networkId);
     if (!config) return [];
@@ -147,7 +155,10 @@ export class ServiceCommandProvider {
         }
 
         // Check if command is available in current context
-        if (command.completion?.context && command.completion.context.length > 0) {
+        if (
+          command.completion?.context &&
+          command.completion.context.length > 0
+        ) {
           const currentContext = context.currentChannel ? 'channel' : 'global';
           if (!command.completion.context.includes(currentContext as any)) {
             continue;
@@ -156,8 +167,9 @@ export class ServiceCommandProvider {
 
         // Check if command matches query
         const commandName = command.name.toLowerCase();
-        const matchesQuery = commandName.startsWith(lowerQuery) || 
-                            lowerQuery.includes(commandName);
+        const matchesQuery =
+          commandName.startsWith(lowerQuery) ||
+          lowerQuery.includes(commandName);
 
         if (!matchesQuery && lowerQuery.length > 0) {
           continue;
@@ -204,7 +216,7 @@ export class ServiceCommandProvider {
   public buildCommand(
     networkId: string,
     commandName: string,
-    args: string[]
+    args: string[],
   ): CommandExecutionResult {
     const result = this.findCommand(networkId, commandName);
 
@@ -302,15 +314,18 @@ export class ServiceCommandProvider {
   /**
    * Get command help text
    */
-  public getCommandHelp(networkId: string, commandName: string): string | undefined {
+  public getCommandHelp(
+    networkId: string,
+    commandName: string,
+  ): string | undefined {
     const result = this.findCommand(networkId, commandName);
     if (!result) return undefined;
 
     const { command, serviceNick } = result;
-    
+
     let help = `\x02${serviceNick} ${command.name}\x02 - ${command.description}\n`;
     help += `\x02Usage:\x02 ${command.usage}\n`;
-    
+
     if (command.example) {
       help += `\x02Example:\x02 ${command.example}\n`;
     }
@@ -333,11 +348,17 @@ export class ServiceCommandProvider {
   /**
    * Get all available safe aliases for a network
    */
-  public getSafeAliases(networkId: string): Array<{ alias: string; command: string; description: string }> {
+  public getSafeAliases(
+    networkId: string,
+  ): Array<{ alias: string; command: string; description: string }> {
     const config = serviceDetectionService.getServiceConfig(networkId);
     if (!config) return [];
 
-    const aliases: Array<{ alias: string; command: string; description: string }> = [];
+    const aliases: Array<{
+      alias: string;
+      command: string;
+      description: string;
+    }> = [];
 
     for (const service of Object.values(config.services)) {
       if (!service?.enabled) continue;
@@ -359,11 +380,13 @@ export class ServiceCommandProvider {
   /**
    * Get IRCd-specific information (modes, commands)
    */
-  public getIRCdInfo(networkId: string): {
-    userModes: string[];
-    channelModes: string[];
-    operCommands: string[];
-  } | undefined {
+  public getIRCdInfo(networkId: string):
+    | {
+        userModes: string[];
+        channelModes: string[];
+        operCommands: string[];
+      }
+    | undefined {
     const result = serviceDetectionService.getDetectionResult(networkId);
     if (!result) return undefined;
 
@@ -372,7 +395,9 @@ export class ServiceCommandProvider {
 
     return {
       userModes: config.ircd.userModes.map(m => `${m.mode}=${m.description}`),
-      channelModes: config.ircd.channelModes.map(m => `${m.mode}=${m.description}`),
+      channelModes: config.ircd.channelModes.map(
+        m => `${m.mode}=${m.description}`,
+      ),
       operCommands: config.ircd.commands
         .filter(c => c.operOnly)
         .map(c => c.name),
@@ -449,7 +474,7 @@ export class ServiceCommandProvider {
         if (command.completion?.suggestAlias) {
           cache.set(
             command.completion.suggestAlias.toLowerCase(),
-            command.name.toLowerCase()
+            command.name.toLowerCase(),
           );
         }
       }
@@ -458,7 +483,10 @@ export class ServiceCommandProvider {
     this.aliasCache.set(networkId, cache);
   }
 
-  private buildCommandList(networkId: string, config: ServiceConfig): CommandSearchResult[] {
+  private buildCommandList(
+    networkId: string,
+    config: ServiceConfig,
+  ): CommandSearchResult[] {
     const results: CommandSearchResult[] = [];
 
     for (const [serviceName, service] of Object.entries(config.services)) {
@@ -477,8 +505,18 @@ export class ServiceCommandProvider {
     return results;
   }
 
-  private hasPermission(required: AccessLevel, userLevel: AccessLevel): boolean {
-    const levels: AccessLevel[] = ['user', 'op', 'halfop', 'admin', 'founder', 'oper'];
+  private hasPermission(
+    required: AccessLevel,
+    userLevel: AccessLevel,
+  ): boolean {
+    const levels: AccessLevel[] = [
+      'user',
+      'op',
+      'halfop',
+      'admin',
+      'founder',
+      'oper',
+    ];
     const requiredIdx = levels.indexOf(required);
     const userIdx = levels.indexOf(userLevel);
     return userIdx >= requiredIdx;
@@ -487,14 +525,29 @@ export class ServiceCommandProvider {
   private isServiceNick(nick: string): boolean {
     const lowerNick = nick.toLowerCase();
     const serviceNicks = [
-      'nickserv', 'chanserv', 'hostserv', 'operserv',
-      'botserv', 'memoserv', 'groupserv', 'x', 'q',
-      'ns', 'cs', 'hs', 'os', 'bs', 'ms', 'gs',
+      'nickserv',
+      'chanserv',
+      'hostserv',
+      'operserv',
+      'botserv',
+      'memoserv',
+      'groupserv',
+      'x',
+      'q',
+      'ns',
+      'cs',
+      'hs',
+      'os',
+      'bs',
+      'ms',
+      'gs',
     ];
     return serviceNicks.includes(lowerNick);
   }
 
-  private matchSafeAlias(alias: string): { serviceNick: string; commandName: string } | undefined {
+  private matchSafeAlias(
+    alias: string,
+  ): { serviceNick: string; commandName: string } | undefined {
     const lowerAlias = alias.toLowerCase();
 
     // NickServ aliases

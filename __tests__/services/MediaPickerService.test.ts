@@ -19,7 +19,9 @@ jest.mock('react-native-fs', () => ({
   copyFile: jest.fn(),
   readFile: jest.fn(),
   writeFile: jest.fn().mockResolvedValue(undefined),
-  downloadFile: jest.fn(() => ({ promise: Promise.resolve({ statusCode: 200 }) })),
+  downloadFile: jest.fn(() => ({
+    promise: Promise.resolve({ statusCode: 200 }),
+  })),
   stat: jest.fn(),
 }));
 
@@ -114,7 +116,10 @@ describe('MediaPickerService', () => {
     const result = await mediaPickerService.pickImage();
 
     expect(mockRNFS.copyFile).toHaveBeenCalled();
-    expect(mockRNFS.readFile).toHaveBeenCalledWith('content://media/123', 'base64');
+    expect(mockRNFS.readFile).toHaveBeenCalledWith(
+      'content://media/123',
+      'base64',
+    );
     expect(mockRNFS.writeFile).toHaveBeenCalled();
     expect(result.success).toBe(true);
     expect(result.uri).toContain('file:///mock/cache/from-content.png');
@@ -230,7 +235,9 @@ describe('MediaPickerService', () => {
       type: 'image/jpeg',
       size: 99,
     });
-    jest.spyOn(mediaPickerService, 'getFileInfo').mockRejectedValueOnce(new Error('info fail'));
+    jest
+      .spyOn(mediaPickerService, 'getFileInfo')
+      .mockRejectedValueOnce(new Error('info fail'));
 
     const result = await mediaPickerService.pickImage();
     expect(result.success).toBe(true);
@@ -246,7 +253,9 @@ describe('MediaPickerService', () => {
     });
     mockRNFS.copyFile.mockRejectedValueOnce(new Error('copy failed'));
     mockRNFS.readFile.mockRejectedValueOnce(new Error('read failed'));
-    mockRNFS.downloadFile.mockReturnValueOnce({ promise: Promise.resolve({ statusCode: 500 }) });
+    mockRNFS.downloadFile.mockReturnValueOnce({
+      promise: Promise.resolve({ statusCode: 500 }),
+    });
 
     const result = await mediaPickerService.pickImage();
 
@@ -267,7 +276,9 @@ describe('MediaPickerService', () => {
       type: 'video/mp4',
       size: 777,
     });
-    jest.spyOn(mediaPickerService, 'getFileInfo').mockRejectedValueOnce(new Error('stat failed'));
+    jest
+      .spyOn(mediaPickerService, 'getFileInfo')
+      .mockRejectedValueOnce(new Error('stat failed'));
 
     const result = await mediaPickerService.pickVideo();
 
@@ -350,7 +361,9 @@ describe('MediaPickerService', () => {
       type: 'text/plain',
       size: 123,
     });
-    jest.spyOn(mediaPickerService, 'getFileInfo').mockRejectedValueOnce(new Error('info fail'));
+    jest
+      .spyOn(mediaPickerService, 'getFileInfo')
+      .mockRejectedValueOnce(new Error('info fail'));
 
     const result = await mediaPickerService.pickFile();
     expect(result.success).toBe(true);
@@ -360,22 +373,32 @@ describe('MediaPickerService', () => {
   it('returns not implemented capture message when camera permission is granted', async () => {
     const result = await mediaPickerService.capturePhoto();
     expect(result.success).toBe(false);
-    expect(result.error).toContain('Camera capture should be handled by CameraScreen');
+    expect(result.error).toContain(
+      'Camera capture should be handled by CameraScreen',
+    );
   });
 
   it('returns camera denied for recordVideo when camera permission is denied', async () => {
     mockPermissions.check.mockResolvedValueOnce(false);
     mockCamera.requestCameraPermission.mockResolvedValueOnce('denied');
     const result = await mediaPickerService.recordVideo();
-    expect(result).toEqual({ success: false, error: 'Camera permission denied' });
+    expect(result).toEqual({
+      success: false,
+      error: 'Camera permission denied',
+    });
   });
 
   it('returns mic denied for recordVideo when camera is granted but mic is denied', async () => {
-    mockPermissions.check.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    mockPermissions.check
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false);
     mockCamera.requestMicrophonePermission.mockResolvedValueOnce('denied');
 
     const result = await mediaPickerService.recordVideo();
-    expect(result).toEqual({ success: false, error: 'Microphone permission denied' });
+    expect(result).toEqual({
+      success: false,
+      error: 'Microphone permission denied',
+    });
   });
 
   it('returns not implemented for recordVoice when mic permission granted', async () => {
@@ -385,7 +408,9 @@ describe('MediaPickerService', () => {
   });
 
   it('returns false when camera lookup throws', async () => {
-    mockCamera.getAvailableCameraDevices.mockRejectedValueOnce(new Error('camera unavailable'));
+    mockCamera.getAvailableCameraDevices.mockRejectedValueOnce(
+      new Error('camera unavailable'),
+    );
     await expect(mediaPickerService.isCameraAvailable()).resolves.toBe(false);
   });
 
@@ -417,7 +442,9 @@ describe('MediaPickerService', () => {
         mtime: new Date(),
       });
 
-    const info = await mediaPickerService.getFileInfo('file:///tmp/original.bin');
+    const info = await mediaPickerService.getFileInfo(
+      'file:///tmp/original.bin',
+    );
 
     expect(info.size).toBe(55);
     expect(info.isFile).toBe(true);
@@ -440,7 +467,9 @@ describe('MediaPickerService', () => {
   });
 
   it('returns cannot access file when validateFile throws', async () => {
-    jest.spyOn(mediaPickerService, 'getFileInfo').mockRejectedValueOnce(new Error('broken'));
+    jest
+      .spyOn(mediaPickerService, 'getFileInfo')
+      .mockRejectedValueOnce(new Error('broken'));
     const result = await mediaPickerService.validateFile('/tmp/bad.bin');
     expect(result).toEqual({ valid: false, error: 'Cannot access file' });
   });
@@ -480,7 +509,9 @@ describe('MediaPickerService', () => {
     });
     mockRNFS.copyFile.mockRejectedValueOnce(new Error('copy fail'));
     mockRNFS.readFile.mockRejectedValueOnce(new Error('read fail'));
-    mockRNFS.downloadFile.mockReturnValueOnce({ promise: Promise.resolve({ statusCode: 500 }) });
+    mockRNFS.downloadFile.mockReturnValueOnce({
+      promise: Promise.resolve({ statusCode: 500 }),
+    });
 
     const result = await mediaPickerService.pickVideo();
 
@@ -512,7 +543,9 @@ describe('MediaPickerService', () => {
     });
     mockRNFS.copyFile.mockRejectedValueOnce(new Error('copy fail'));
     mockRNFS.readFile.mockRejectedValueOnce(new Error('read fail'));
-    mockRNFS.downloadFile.mockReturnValueOnce({ promise: Promise.resolve({ statusCode: 500 }) });
+    mockRNFS.downloadFile.mockReturnValueOnce({
+      promise: Promise.resolve({ statusCode: 500 }),
+    });
 
     const result = await mediaPickerService.pickFile();
 
@@ -521,13 +554,17 @@ describe('MediaPickerService', () => {
   });
 
   it('returns failed capture message when internal permission method throws', async () => {
-    jest.spyOn(mediaPickerService as any, 'requestCameraPermission').mockRejectedValueOnce(new Error('perm crash'));
+    jest
+      .spyOn(mediaPickerService as any, 'requestCameraPermission')
+      .mockRejectedValueOnce(new Error('perm crash'));
     const result = await mediaPickerService.capturePhoto();
     expect(result).toEqual({ success: false, error: 'perm crash' });
   });
 
   it('returns failed record video message when internal permission method throws', async () => {
-    jest.spyOn(mediaPickerService as any, 'requestCameraPermission').mockRejectedValueOnce(new Error('video crash'));
+    jest
+      .spyOn(mediaPickerService as any, 'requestCameraPermission')
+      .mockRejectedValueOnce(new Error('video crash'));
     const result = await mediaPickerService.recordVideo();
     expect(result).toEqual({ success: false, error: 'video crash' });
   });
@@ -551,12 +588,16 @@ describe('MediaPickerService', () => {
 
   it('returns false from private camera permission helper on check error', async () => {
     mockPermissions.check.mockRejectedValueOnce(new Error('camera check fail'));
-    await expect((mediaPickerService as any).requestCameraPermission()).resolves.toBe(false);
+    await expect(
+      (mediaPickerService as any).requestCameraPermission(),
+    ).resolves.toBe(false);
   });
 
   it('returns false from private microphone permission helper on check error', async () => {
     mockPermissions.check.mockRejectedValueOnce(new Error('mic check fail'));
-    await expect((mediaPickerService as any).requestMicrophonePermission()).resolves.toBe(false);
+    await expect(
+      (mediaPickerService as any).requestMicrophonePermission(),
+    ).resolves.toBe(false);
   });
 
   it('returns valid true for acceptable file in validateFile', async () => {
@@ -565,7 +606,9 @@ describe('MediaPickerService', () => {
       isFile: true,
       name: 'ok.bin',
     });
-    await expect(mediaPickerService.validateFile('/tmp/ok.bin')).resolves.toEqual({ valid: true });
+    await expect(
+      mediaPickerService.validateFile('/tmp/ok.bin'),
+    ).resolves.toEqual({ valid: true });
   });
 
   it('covers additional extension media-type branches', () => {
@@ -586,13 +629,22 @@ describe('MediaPickerService without DocumentPicker', () => {
     const svc = mod.mediaPickerService;
 
     await expect(svc.pickImage()).resolves.toEqual(
-      expect.objectContaining({ success: false, error: expect.stringContaining('Document picker is not available') })
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining('Document picker is not available'),
+      }),
     );
     await expect(svc.pickVideo()).resolves.toEqual(
-      expect.objectContaining({ success: false, error: expect.stringContaining('Document picker is not available') })
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining('Document picker is not available'),
+      }),
     );
     await expect(svc.pickFile()).resolves.toEqual(
-      expect.objectContaining({ success: false, error: expect.stringContaining('Document picker is not available') })
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining('Document picker is not available'),
+      }),
     );
   });
 });

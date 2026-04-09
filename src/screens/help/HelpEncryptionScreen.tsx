@@ -29,17 +29,25 @@ export const HelpEncryptionScreen: React.FC<HelpEncryptionScreenProps> = ({
   const t = useT();
 
   return (
-    <HelpScreenBase visible={visible} onClose={onClose} title={t('Encryption Guide')}>
+    <HelpScreenBase
+      visible={visible}
+      onClose={onClose}
+      title={t('Encryption Guide')}
+    >
       <HelpSection title={t('What is E2EE?')}>
         <HelpParagraph>
-          {t('End-to-End Encryption ensures that only you and the recipient can read messages.\\nEven the IRC server cannot decrypt them.')}
+          {t(
+            'End-to-End Encryption ensures that only you and the recipient can read messages.\\nEven the IRC server cannot decrypt them.',
+          )}
         </HelpParagraph>
       </HelpSection>
 
       <HelpSection title={t('DM (Direct Message) Encryption')}>
         <HelpSubsection title={t('Step 1: Generate Keys')}>
           <HelpParagraph>
-            {t('Encryption keys are automatically generated when you install AndroidIRCX.')}
+            {t(
+              'Encryption keys are automatically generated when you install AndroidIRCX.',
+            )}
           </HelpParagraph>
         </HelpSubsection>
 
@@ -48,10 +56,12 @@ export const HelpEncryptionScreen: React.FC<HelpEncryptionScreenProps> = ({
           <HelpBullet>{t('Open private chat: /query Nick')}</HelpBullet>
           <HelpBullet>{t('Share your key: /sharekey Nick')}</HelpBullet>
           <HelpBullet>{t('Wait for them to share their key')}</HelpBullet>
-          <HelpBullet>{t('Messages are now automatically encrypted 🔒')}</HelpBullet>
+          <HelpBullet>
+            {t('Messages are now automatically encrypted 🔒')}
+          </HelpBullet>
         </HelpSubsection>
 
-        <HelpSubsection title={t('Request Someone\'s Key')}>
+        <HelpSubsection title={t("Request Someone's Key")}>
           <HelpCode>/requestkey Nick</HelpCode>
         </HelpSubsection>
       </HelpSection>
@@ -72,7 +82,7 @@ export const HelpEncryptionScreen: React.FC<HelpEncryptionScreenProps> = ({
         </HelpSubsection>
 
         <HelpSubsection title={t('Revoke Access')}>
-          <HelpParagraph>{t('Remove someone\'s access:')}</HelpParagraph>
+          <HelpParagraph>{t("Remove someone's access:")}</HelpParagraph>
           <HelpCode>/chankey revoke Nick</HelpCode>
         </HelpSubsection>
       </HelpSection>
@@ -80,40 +90,54 @@ export const HelpEncryptionScreen: React.FC<HelpEncryptionScreenProps> = ({
       <HelpSection title={t('Security Best Practices')}>
         <HelpSuccessBox>
           {t(
-            '✅ Verify key fingerprints out-of-band (phone call)\n✅ Rotate channel keys periodically\n✅ Only share keys with trusted users\n✅ Keep your device secure with PIN/biometric lock'
+            '✅ Verify key fingerprints out-of-band (phone call)\n✅ Rotate channel keys periodically\n✅ Only share keys with trusted users\n✅ Keep your device secure with PIN/biometric lock',
           )}
         </HelpSuccessBox>
 
         <HelpWarningBox>
           {t(
-            "❌ Don't share keys over unencrypted channels\n❌ Don't share keys publicly\n❌ Don't ignore key verification warnings\n❌ Don't leave encrypted channels unattended"
+            "❌ Don't share keys over unencrypted channels\n❌ Don't share keys publicly\n❌ Don't ignore key verification warnings\n❌ Don't leave encrypted channels unattended",
           )}
         </HelpWarningBox>
       </HelpSection>
 
       <HelpSection title={t('Troubleshooting')}>
         <HelpSubsection title={t('Messages appear as gibberish')}>
-          <HelpParagraph>{t('The sender hasn\'t shared their encryption key with you yet.')}</HelpParagraph>
+          <HelpParagraph>
+            {t("The sender hasn't shared their encryption key with you yet.")}
+          </HelpParagraph>
           <HelpParagraph>{t('Solution:')}</HelpParagraph>
           <HelpCode>/requestkey TheirNick</HelpCode>
         </HelpSubsection>
 
-        <HelpSubsection title={t('Can\'t decrypt old messages')}>
+        <HelpSubsection title={t("Can't decrypt old messages")}>
           <HelpParagraph>
-            {t('You joined the channel after messages were sent, or key was rotated.')}
+            {t(
+              'You joined the channel after messages were sent, or key was rotated.',
+            )}
           </HelpParagraph>
-          <HelpParagraph>{t('Solution: Ask channel operator to reshare the key.')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Solution: Ask channel operator to reshare the key.')}
+          </HelpParagraph>
         </HelpSubsection>
 
         <HelpSubsection title={t('Lock icon not showing')}>
-          <HelpParagraph>{t('Encryption may be disabled or keys not exchanged.')}</HelpParagraph>
-          <HelpParagraph>{t('Solution: Check Settings → Display & UI → Show Encryption Indicators')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Encryption may be disabled or keys not exchanged.')}
+          </HelpParagraph>
+          <HelpParagraph>
+            {t(
+              'Solution: Check Settings → Display & UI → Show Encryption Indicators',
+            )}
+          </HelpParagraph>
         </HelpSubsection>
       </HelpSection>
 
       <HelpSection title={t('Key Management')}>
         <HelpInfoBox>
-          {t('View and manage your keys in:\nSettings → Security → Manage Encryption Keys')}
+          {t(
+            'View and manage your keys in:\nSettings → Security → Manage Encryption Keys',
+          )}
         </HelpInfoBox>
       </HelpSection>
     </HelpScreenBase>

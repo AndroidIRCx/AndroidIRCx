@@ -71,7 +71,12 @@ export class ConnectionQualityService {
     warningThreshold: 1000,
   };
 
-  private messageQueue: Array<{ message: string; timestamp: number; resolve: () => void; reject: (error: Error) => void }> = [];
+  private messageQueue: Array<{
+    message: string;
+    timestamp: number;
+    resolve: () => void;
+    reject: (error: Error) => void;
+  }> = [];
   private messageHistory: Array<{ timestamp: number }> = [];
   private burstHistory: Array<{ timestamp: number }> = [];
   private isProcessingQueue: boolean = false;
@@ -96,8 +101,11 @@ export class ConnectionQualityService {
     lagStatus: 'good',
   };
 
-  private statisticsListeners: Array<(stats: ConnectionStatistics) => void> = [];
-  private lagListeners: Array<(lag: number, status: 'good' | 'warning' | 'timeout') => void> = [];
+  private statisticsListeners: Array<(stats: ConnectionStatistics) => void> =
+    [];
+  private lagListeners: Array<
+    (lag: number, status: 'good' | 'warning' | 'timeout') => void
+  > = [];
   private lagCheckMethod: 'ctcp' | 'server' = 'server';
 
   private readonly STATS_STORAGE_KEY = '@AndroidIRCX:connectionQualityConfig';
@@ -119,20 +127,35 @@ export class ConnectionQualityService {
       const stored = await AsyncStorage.getItem(this.STATS_STORAGE_KEY);
       if (stored) {
         const data = JSON.parse(stored);
-        if (data.rateLimit) this.rateLimitConfig = { ...this.rateLimitConfig, ...data.rateLimit };
-        if (data.floodProtection) this.floodProtectionConfig = { ...this.floodProtectionConfig, ...data.floodProtection };
-        if (data.lagMonitoring) this.lagMonitoringConfig = { ...this.lagMonitoringConfig, ...data.lagMonitoring };
+        if (data.rateLimit)
+          this.rateLimitConfig = { ...this.rateLimitConfig, ...data.rateLimit };
+        if (data.floodProtection)
+          this.floodProtectionConfig = {
+            ...this.floodProtectionConfig,
+            ...data.floodProtection,
+          };
+        if (data.lagMonitoring)
+          this.lagMonitoringConfig = {
+            ...this.lagMonitoringConfig,
+            ...data.lagMonitoring,
+          };
       }
-      this.lagCheckMethod = await settingsService.getSetting('lagCheckMethod', 'server');
-      settingsService.onSettingChange('lagCheckMethod', (value: 'ctcp' | 'server') => {
-        this.lagCheckMethod = value;
-      });
+      this.lagCheckMethod = await settingsService.getSetting(
+        'lagCheckMethod',
+        'server',
+      );
+      settingsService.onSettingChange(
+        'lagCheckMethod',
+        (value: 'ctcp' | 'server') => {
+          this.lagCheckMethod = value;
+        },
+      );
     } catch (error) {
       console.error('Failed to load connection quality config:', error);
     }
 
     // Listen for connection changes
-    this.ircService?.onConnectionChange((connected) => {
+    this.ircService?.onConnectionChange(connected => {
       if (connected) {
         this.onConnected();
       } else {
@@ -141,7 +164,7 @@ export class ConnectionQualityService {
     });
 
     // Listen for incoming messages to track statistics
-    this.ircService?.onMessage((message) => {
+    this.ircService?.onMessage(message => {
       this.trackMessageReceived(message.text);
     });
 
@@ -245,7 +268,9 @@ export class ConnectionQualityService {
     const oneSecondAgo = now - 1000;
 
     // Remove old messages from history
-    this.messageHistory = this.messageHistory.filter(m => m.timestamp > oneSecondAgo);
+    this.messageHistory = this.messageHistory.filter(
+      m => m.timestamp > oneSecondAgo,
+    );
 
     // Check messages per second
     if (this.messageHistory.length >= this.rateLimitConfig.messagesPerSecond) {
@@ -254,7 +279,9 @@ export class ConnectionQualityService {
 
     // Check burst limit
     const burstWindowStart = now - this.rateLimitConfig.burstWindow;
-    this.burstHistory = this.burstHistory.filter(m => m.timestamp > burstWindowStart);
+    this.burstHistory = this.burstHistory.filter(
+      m => m.timestamp > burstWindowStart,
+    );
 
     if (this.burstHistory.length >= this.rateLimitConfig.burstLimit) {
       return false;
@@ -273,7 +300,9 @@ export class ConnectionQualityService {
     const windowStart = now - this.floodProtectionConfig.windowSize;
 
     // Count messages in window
-    const messagesInWindow = this.messageHistory.filter(m => m.timestamp > windowStart).length;
+    const messagesInWindow = this.messageHistory.filter(
+      m => m.timestamp > windowStart,
+    ).length;
 
     return messagesInWindow < this.floodProtectionConfig.maxMessagesPerWindow;
   }
@@ -353,7 +382,11 @@ export class ConnectionQualityService {
 
     if (this.lagCheckMethod === 'ctcp') {
       // Send CTCP PING
-      this.ircService?.sendCTCPRequest(this.ircService.getCurrentNick(), 'PING', timestamp.toString());
+      this.ircService?.sendCTCPRequest(
+        this.ircService.getCurrentNick(),
+        'PING',
+        timestamp.toString(),
+      );
     } else {
       // Send server PING
       this.ircService?.sendRaw(`PING :${timestamp}`);
@@ -441,7 +474,9 @@ export class ConnectionQualityService {
   /**
    * Set flood protection config
    */
-  async setFloodProtectionConfig(config: Partial<FloodProtectionConfig>): Promise<void> {
+  async setFloodProtectionConfig(
+    config: Partial<FloodProtectionConfig>,
+  ): Promise<void> {
     this.floodProtectionConfig = { ...this.floodProtectionConfig, ...config };
     await this.saveConfig();
   }
@@ -456,12 +491,17 @@ export class ConnectionQualityService {
   /**
    * Set lag monitoring config
    */
-  async setLagMonitoringConfig(config: Partial<LagMonitoringConfig>): Promise<void> {
+  async setLagMonitoringConfig(
+    config: Partial<LagMonitoringConfig>,
+  ): Promise<void> {
     this.lagMonitoringConfig = { ...this.lagMonitoringConfig, ...config };
     await this.saveConfig();
 
     // Restart monitoring if enabled
-    if (this.lagMonitoringConfig.enabled && (this.ircService as any)?.isConnected) {
+    if (
+      this.lagMonitoringConfig.enabled &&
+      (this.ircService as any)?.isConnected
+    ) {
       this.startLagMonitoring();
     } else {
       this.stopLagMonitoring();
@@ -471,17 +511,23 @@ export class ConnectionQualityService {
   /**
    * Listen for statistics updates
    */
-  onStatisticsUpdate(callback: (stats: ConnectionStatistics) => void): () => void {
+  onStatisticsUpdate(
+    callback: (stats: ConnectionStatistics) => void,
+  ): () => void {
     this.statisticsListeners.push(callback);
     return () => {
-      this.statisticsListeners = this.statisticsListeners.filter(cb => cb !== callback);
+      this.statisticsListeners = this.statisticsListeners.filter(
+        cb => cb !== callback,
+      );
     };
   }
 
   /**
    * Listen for lag updates
    */
-  onLagUpdate(callback: (lag: number, status: 'good' | 'warning' | 'timeout') => void): () => void {
+  onLagUpdate(
+    callback: (lag: number, status: 'good' | 'warning' | 'timeout') => void,
+  ): () => void {
     this.lagListeners.push(callback);
     return () => {
       this.lagListeners = this.lagListeners.filter(cb => cb !== callback);
@@ -505,7 +551,10 @@ export class ConnectionQualityService {
   /**
    * Notify lag listeners
    */
-  private notifyLagListeners(lag: number, status: 'good' | 'warning' | 'timeout'): void {
+  private notifyLagListeners(
+    lag: number,
+    status: 'good' | 'warning' | 'timeout',
+  ): void {
     this.lagListeners.forEach(callback => {
       try {
         callback(lag, status);

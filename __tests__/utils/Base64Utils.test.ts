@@ -50,7 +50,9 @@ describe('Base64Utils', () => {
 
     it('should return original for Base64 decoding to mostly non-printable', () => {
       // Base64 of binary data that's not mostly printable
-      const binaryData = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07]).toString('base64');
+      const binaryData = Buffer.from([
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+      ]).toString('base64');
       expect(decodeIfBase64Like(binaryData)).toBe(binaryData);
     });
 
@@ -77,7 +79,9 @@ describe('Base64Utils', () => {
 
     it('should return original for binary-looking Base64', () => {
       // Random binary data that won't be mostly printable
-      const binary = Buffer.from([255, 254, 253, 252, 251, 250, 249, 248]).toString('base64');
+      const binary = Buffer.from([
+        255, 254, 253, 252, 251, 250, 249, 248,
+      ]).toString('base64');
       expect(decodeIfBase64Like(binary)).toBe(binary);
     });
 

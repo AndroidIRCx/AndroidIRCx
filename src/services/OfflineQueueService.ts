@@ -39,7 +39,10 @@ class OfflineQueueService {
 
   private async saveQueue() {
     try {
-      await AsyncStorage.setItem(OFFLINE_QUEUE_STORAGE_KEY, JSON.stringify(this.queue));
+      await AsyncStorage.setItem(
+        OFFLINE_QUEUE_STORAGE_KEY,
+        JSON.stringify(this.queue),
+      );
     } catch (error) {
       console.error('Failed to save offline message queue:', error);
     }
@@ -75,7 +78,9 @@ class OfflineQueueService {
 
     for (const message of processingQueue) {
       try {
-        const connection = connectionManager.getConnection(message.network) || connectionManager.getActiveConnection();
+        const connection =
+          connectionManager.getConnection(message.network) ||
+          connectionManager.getActiveConnection();
         const svc = connection?.ircService || ircService;
         if (!svc.getConnectionStatus()) {
           this.queue.unshift(message);

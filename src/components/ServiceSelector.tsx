@@ -101,13 +101,18 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
     setSelectedValue(value);
   }, [value]);
 
-  const handleSelect = useCallback((newValue: IRCServiceType | 'auto') => {
-    setSelectedValue(newValue);
-    onChange(newValue);
-    setModalVisible(false);
-  }, [onChange]);
+  const handleSelect = useCallback(
+    (newValue: IRCServiceType | 'auto') => {
+      setSelectedValue(newValue);
+      onChange(newValue);
+      setModalVisible(false);
+    },
+    [onChange],
+  );
 
-  const currentOption = SERVICE_OPTIONS.find(opt => opt.value === selectedValue);
+  const currentOption = SERVICE_OPTIONS.find(
+    opt => opt.value === selectedValue,
+  );
 
   const getDisplayLabel = () => {
     if (selectedValue === 'auto' && detectedType) {
@@ -125,7 +130,8 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
           disabled && styles.disabled,
         ]}
         onPress={() => !disabled && setModalVisible(true)}
-        disabled={disabled}>
+        disabled={disabled}
+      >
         <View style={styles.iconContainer}>
           <Icon
             name="server"
@@ -150,20 +156,18 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
         visible={modalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setModalVisible(false)}>
+        onRequestClose={() => setModalVisible(false)}
+      >
         <View
-          style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+        >
           <View
-            style={[
-              styles.modalContent,
-              { backgroundColor: colors.surface },
-            ]}>
+            style={[styles.modalContent, { backgroundColor: colors.surface }]}
+          >
             {/* Header */}
             <View
-              style={[
-                styles.modalHeader,
-                { borderBottomColor: colors.border },
-              ]}>
+              style={[styles.modalHeader, { borderBottomColor: colors.border }]}
+            >
               <Text style={[styles.modalTitle, { color: colors.text }]}>
                 {t('Select IRC Service')}
               </Text>
@@ -186,7 +190,8 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
                       backgroundColor: colors.background,
                     },
                   ]}
-                  onPress={() => handleSelect(option.value)}>
+                  onPress={() => handleSelect(option.value)}
+                >
                   <Icon
                     name={option.icon}
                     size={24}
@@ -205,14 +210,16 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
                         selectedValue === option.value && {
                           fontWeight: '600',
                         },
-                      ]}>
+                      ]}
+                    >
                       {option.label}
                     </Text>
                     <Text
                       style={[
                         styles.optionDescription,
                         { color: colors.textSecondary },
-                      ]}>
+                      ]}
+                    >
                       {option.description}
                     </Text>
                   </View>
@@ -229,13 +236,12 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
                 style={[
                   styles.detectedBanner,
                   { backgroundColor: colors.background },
-                ]}>
+                ]}
+              >
                 <Icon name="radar" size={16} color={colors.primary} />
                 <Text
-                  style={[
-                    styles.detectedText,
-                    { color: colors.textSecondary },
-                  ]}>
+                  style={[styles.detectedText, { color: colors.textSecondary }]}
+                >
                   {t('Detected: {service}', { service: detectedType })}
                 </Text>
               </View>

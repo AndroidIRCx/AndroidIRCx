@@ -98,10 +98,12 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handleNOTIFY(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
 
     it('should add nick to notify list', async () => {
@@ -114,12 +116,14 @@ describe('UserListCommands', () => {
           network: 'TestNetwork',
           channels: undefined,
           protected: false,
-        })
+        }),
       );
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'notice',
-        text: expect.stringContaining('Added'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notice',
+          text: expect.stringContaining('Added'),
+        }),
+      );
     });
 
     it('should show error when user already in list', async () => {
@@ -128,10 +132,12 @@ describe('UserListCommands', () => {
       await handleNOTIFY(ctx, ['Friend']);
 
       expect(addUserListEntryMock).not.toHaveBeenCalled();
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('already'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('already'),
+        }),
+      );
     });
 
     it('should support full mask format', async () => {
@@ -140,7 +146,7 @@ describe('UserListCommands', () => {
       expect(addUserListEntryMock).toHaveBeenCalledWith(
         'notify',
         'Friend!user@host.com',
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -149,23 +155,36 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handleUNNOTIFY(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+        }),
+      );
     });
 
     it('should remove nick from notify list', async () => {
       getUserListEntriesMock.mockReturnValue([
-        { mask: 'Friend!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
+        {
+          mask: 'Friend!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
       ]);
 
       await handleUNNOTIFY(ctx, ['Friend']);
 
-      expect(removeUserListEntryMock).toHaveBeenCalledWith('notify', 'Friend!*@*', 'TestNetwork');
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'notice',
-        text: expect.stringContaining('Removed'),
-      }));
+      expect(removeUserListEntryMock).toHaveBeenCalledWith(
+        'notify',
+        'Friend!*@*',
+        'TestNetwork',
+      );
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notice',
+          text: expect.stringContaining('Removed'),
+        }),
+      );
     });
 
     it('should show error when user not in list', async () => {
@@ -174,10 +193,12 @@ describe('UserListCommands', () => {
       await handleUNNOTIFY(ctx, ['Unknown']);
 
       expect(removeUserListEntryMock).not.toHaveBeenCalled();
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('not in'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('not in'),
+        }),
+      );
     });
   });
 
@@ -185,10 +206,12 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handleAUTOOP(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
 
     it('should add nick to autoop list without channel', async () => {
@@ -200,7 +223,7 @@ describe('UserListCommands', () => {
         expect.objectContaining({
           network: 'TestNetwork',
           channels: undefined,
-        })
+        }),
       );
     });
 
@@ -212,7 +235,7 @@ describe('UserListCommands', () => {
         'TrustedUser!*@*',
         expect.objectContaining({
           channels: ['#general'],
-        })
+        }),
       );
     });
   });
@@ -221,20 +244,31 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handleUNAUTOOP(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
 
     it('should remove nick from autoop list', async () => {
       getUserListEntriesMock.mockReturnValue([
-        { mask: 'TrustedUser!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
+        {
+          mask: 'TrustedUser!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
       ]);
 
       await handleUNAUTOOP(ctx, ['TrustedUser']);
 
-      expect(removeUserListEntryMock).toHaveBeenCalledWith('autoop', 'TrustedUser!*@*', 'TestNetwork');
+      expect(removeUserListEntryMock).toHaveBeenCalledWith(
+        'autoop',
+        'TrustedUser!*@*',
+        'TestNetwork',
+      );
     });
   });
 
@@ -242,10 +276,12 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handleAUTOVOICE(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
 
     it('should add nick to autovoice list', async () => {
@@ -254,7 +290,7 @@ describe('UserListCommands', () => {
       expect(addUserListEntryMock).toHaveBeenCalledWith(
         'autovoice',
         'Speaker!*@*',
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -266,7 +302,7 @@ describe('UserListCommands', () => {
         'Speaker!*@*',
         expect.objectContaining({
           channels: ['#lobby'],
-        })
+        }),
       );
     });
   });
@@ -275,20 +311,31 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handleUNAUTOVOICE(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
 
     it('should remove nick from autovoice list', async () => {
       getUserListEntriesMock.mockReturnValue([
-        { mask: 'Speaker!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
+        {
+          mask: 'Speaker!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
       ]);
 
       await handleUNAUTOVOICE(ctx, ['Speaker']);
 
-      expect(removeUserListEntryMock).toHaveBeenCalledWith('autovoice', expect.any(String), 'TestNetwork');
+      expect(removeUserListEntryMock).toHaveBeenCalledWith(
+        'autovoice',
+        expect.any(String),
+        'TestNetwork',
+      );
     });
   });
 
@@ -296,10 +343,12 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handleAUTOHALFOP(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
 
     it('should add nick to autohalfop list', async () => {
@@ -308,7 +357,7 @@ describe('UserListCommands', () => {
       expect(addUserListEntryMock).toHaveBeenCalledWith(
         'autohalfop',
         'Moderator!*@*',
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -317,20 +366,31 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handleUNAUTOHALFOP(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
 
     it('should remove nick from autohalfop list', async () => {
       getUserListEntriesMock.mockReturnValue([
-        { mask: 'Moderator!*@*', network: 'TestNetwork', protected: false, addedAt: Date.now() },
+        {
+          mask: 'Moderator!*@*',
+          network: 'TestNetwork',
+          protected: false,
+          addedAt: Date.now(),
+        },
       ]);
 
       await handleUNAUTOHALFOP(ctx, ['Moderator']);
 
-      expect(removeUserListEntryMock).toHaveBeenCalledWith('autohalfop', expect.any(String), 'TestNetwork');
+      expect(removeUserListEntryMock).toHaveBeenCalledWith(
+        'autohalfop',
+        expect.any(String),
+        'TestNetwork',
+      );
     });
   });
 
@@ -338,10 +398,12 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handlePROTECT(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('Usage'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('Usage'),
+        }),
+      );
     });
 
     it('should add nick to protected list', async () => {
@@ -356,24 +418,31 @@ describe('UserListCommands', () => {
           network: 'TestNetwork',
           protected: true,
           reason: 'Protected user',
-        })
+        }),
       );
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'notice',
-        text: expect.stringContaining('protected'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notice',
+          text: expect.stringContaining('protected'),
+        }),
+      );
     });
 
     it('should show error when user already protected', async () => {
-      findMatchingUserListEntryMock.mockReturnValue({ mask: 'VIPUser!*@*', protected: true });
+      findMatchingUserListEntryMock.mockReturnValue({
+        mask: 'VIPUser!*@*',
+        protected: true,
+      });
 
       await handlePROTECT(ctx, ['VIPUser']);
 
       expect(addUserListEntryMock).not.toHaveBeenCalled();
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-        text: expect.stringContaining('already protected'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          text: expect.stringContaining('already protected'),
+        }),
+      );
     });
 
     it('should add with channel when specified', async () => {
@@ -386,7 +455,7 @@ describe('UserListCommands', () => {
         'VIPUser!*@*',
         expect.objectContaining({
           channels: ['#admin'],
-        })
+        }),
       );
     });
   });
@@ -395,19 +464,30 @@ describe('UserListCommands', () => {
     it('should show error when no nick provided', async () => {
       await handleUNPROTECT(ctx, []);
 
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'error',
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+        }),
+      );
     });
 
     it('should remove nick from protected list', async () => {
       getUserListEntriesMock.mockReturnValue([
-        { mask: 'VIPUser!*@*', network: 'TestNetwork', protected: true, addedAt: Date.now() },
+        {
+          mask: 'VIPUser!*@*',
+          network: 'TestNetwork',
+          protected: true,
+          addedAt: Date.now(),
+        },
       ]);
 
       await handleUNPROTECT(ctx, ['VIPUser']);
 
-      expect(removeUserListEntryMock).toHaveBeenCalledWith('other', expect.any(String), 'TestNetwork');
+      expect(removeUserListEntryMock).toHaveBeenCalledWith(
+        'other',
+        expect.any(String),
+        'TestNetwork',
+      );
     });
   });
 
@@ -417,10 +497,12 @@ describe('UserListCommands', () => {
 
       expect(mockSetUserListsInitialTab).toHaveBeenCalledWith('notify');
       expect(mockSetShowUserLists).toHaveBeenCalledWith(true);
-      expect(addMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'notice',
-        text: expect.stringContaining('Opening'),
-      }));
+      expect(addMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notice',
+          text: expect.stringContaining('Opening'),
+        }),
+      );
     });
 
     it('should open a requested valid tab', () => {
@@ -444,7 +526,7 @@ describe('UserListCommands', () => {
       expect(addUserListEntryMock).toHaveBeenCalledWith(
         'notify',
         'Custom!user@host.com',
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -454,7 +536,7 @@ describe('UserListCommands', () => {
       expect(addUserListEntryMock).toHaveBeenCalledWith(
         'notify',
         'SimpleNick!*@*',
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });

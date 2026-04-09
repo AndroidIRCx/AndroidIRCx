@@ -29,13 +29,15 @@ describe('KickBanReasonsScreen', () => {
     (banService.initialize as jest.Mock).mockResolvedValue(undefined);
     (banService.getPredefinedReasons as jest.Mock).mockReturnValue(mockReasons);
     (banService.setPredefinedReasons as jest.Mock).mockResolvedValue(undefined);
-    (banService.resetToDefaultReasons as jest.Mock).mockResolvedValue(undefined);
+    (banService.resetToDefaultReasons as jest.Mock).mockResolvedValue(
+      undefined,
+    );
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
   });
 
   it('loads and renders predefined reasons', async () => {
     const { findByText, getByText } = render(
-      <KickBanReasonsScreen navigation={{}} route={{}} />
+      <KickBanReasonsScreen navigation={{}} route={{}} />,
     );
 
     expect(await findByText('Predefined Kick/Ban Reasons')).toBeTruthy();
@@ -47,34 +49,42 @@ describe('KickBanReasonsScreen', () => {
 
   it('shows validation alert when adding empty reason', async () => {
     const { getByText } = render(
-      <KickBanReasonsScreen navigation={{}} route={{}} />
+      <KickBanReasonsScreen navigation={{}} route={{}} />,
     );
 
     await waitFor(() => expect(getByText('Add Reason')).toBeTruthy());
     fireEvent.press(getByText('Add Reason'));
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Please enter a reason to add.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Please enter a reason to add.',
+    );
   });
 
   it('adds a new reason', async () => {
     const { getByPlaceholderText, getByText } = render(
-      <KickBanReasonsScreen navigation={{}} route={{}} />
+      <KickBanReasonsScreen navigation={{}} route={{}} />,
     );
 
     await waitFor(() => expect(getByText('Add Reason')).toBeTruthy());
-    fireEvent.changeText(getByPlaceholderText('Enter new reason...'), 'Caps abuse');
+    fireEvent.changeText(
+      getByPlaceholderText('Enter new reason...'),
+      'Caps abuse',
+    );
     fireEvent.press(getByText('Add Reason'));
 
     await waitFor(() => {
       expect(banService.setPredefinedReasons).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.objectContaining({ text: 'Caps abuse' })])
+        expect.arrayContaining([
+          expect.objectContaining({ text: 'Caps abuse' }),
+        ]),
       );
     });
   });
 
   it('enters and cancels edit mode', async () => {
     const { getAllByText, getByDisplayValue, queryByDisplayValue } = render(
-      <KickBanReasonsScreen navigation={{}} route={{}} />
+      <KickBanReasonsScreen navigation={{}} route={{}} />,
     );
 
     await waitFor(() => expect(getAllByText('Edit').length).toBeGreaterThan(0));
@@ -87,7 +97,7 @@ describe('KickBanReasonsScreen', () => {
 
   it('saves edited reason', async () => {
     const { getAllByText, getByDisplayValue } = render(
-      <KickBanReasonsScreen navigation={{}} route={{}} />
+      <KickBanReasonsScreen navigation={{}} route={{}} />,
     );
 
     await waitFor(() => expect(getAllByText('Edit').length).toBeGreaterThan(0));
@@ -105,7 +115,7 @@ describe('KickBanReasonsScreen', () => {
 
   it('moves a reason down', async () => {
     const { getAllByText } = render(
-      <KickBanReasonsScreen navigation={{}} route={{}} />
+      <KickBanReasonsScreen navigation={{}} route={{}} />,
     );
 
     await waitFor(() => expect(getAllByText('↓').length).toBeGreaterThan(0));
@@ -121,14 +131,16 @@ describe('KickBanReasonsScreen', () => {
 
   it('opens delete confirmation and executes delete action', async () => {
     const { getAllByText } = render(
-      <KickBanReasonsScreen navigation={{}} route={{}} />
+      <KickBanReasonsScreen navigation={{}} route={{}} />,
     );
 
-    await waitFor(() => expect(getAllByText('Delete').length).toBeGreaterThan(0));
+    await waitFor(() =>
+      expect(getAllByText('Delete').length).toBeGreaterThan(0),
+    );
     fireEvent.press(getAllByText('Delete')[0]);
 
     const deleteCall = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Delete Reason'
+      call => call[0] === 'Delete Reason',
     );
     expect(deleteCall).toBeTruthy();
 
@@ -144,17 +156,19 @@ describe('KickBanReasonsScreen', () => {
 
   it('opens reset confirmation and resets to defaults', async () => {
     const resetReasons = [{ id: 'd1', text: 'Default reason' }];
-    (banService.getPredefinedReasons as jest.Mock).mockReturnValue(resetReasons);
+    (banService.getPredefinedReasons as jest.Mock).mockReturnValue(
+      resetReasons,
+    );
 
     const { getByText } = render(
-      <KickBanReasonsScreen navigation={{}} route={{}} />
+      <KickBanReasonsScreen navigation={{}} route={{}} />,
     );
 
     await waitFor(() => expect(getByText('Reset to Defaults')).toBeTruthy());
     fireEvent.press(getByText('Reset to Defaults'));
 
     const resetCall = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Reset to Defaults'
+      call => call[0] === 'Reset to Defaults',
     );
     expect(resetCall).toBeTruthy();
 

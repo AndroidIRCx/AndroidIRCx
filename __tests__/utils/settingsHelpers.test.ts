@@ -22,10 +22,22 @@ import { SettingsSection, SettingItem } from '../../src/types/settings';
 describe('settingsHelpers', () => {
   describe('getSectionIcon', () => {
     it('should return correct icon for known sections', () => {
-      expect(getSectionIcon('appearance')).toEqual({ name: 'palette', solid: true });
-      expect(getSectionIcon('notifications')).toEqual({ name: 'bell', solid: true });
-      expect(getSectionIcon('security')).toEqual({ name: 'shield-alt', solid: true });
-      expect(getSectionIcon('about')).toEqual({ name: 'info-circle', solid: true });
+      expect(getSectionIcon('appearance')).toEqual({
+        name: 'palette',
+        solid: true,
+      });
+      expect(getSectionIcon('notifications')).toEqual({
+        name: 'bell',
+        solid: true,
+      });
+      expect(getSectionIcon('security')).toEqual({
+        name: 'shield-alt',
+        solid: true,
+      });
+      expect(getSectionIcon('about')).toEqual({
+        name: 'info-circle',
+        solid: true,
+      });
     });
 
     it('should return null for unknown sections', () => {
@@ -374,7 +386,10 @@ describe('settingsHelpers', () => {
     });
 
     it('should apply overrides', () => {
-      const result = buildGlobalProxyConfig(mockInputs, { enabled: false, port: '8080' });
+      const result = buildGlobalProxyConfig(mockInputs, {
+        enabled: false,
+        port: '8080',
+      });
       expect(result.enabled).toBe(false);
       expect(result.port).toBe(8080);
     });
@@ -424,9 +439,15 @@ describe('settingsHelpers', () => {
     });
 
     it('should reject out-of-range ports', () => {
-      expect(buildGlobalProxyConfig({ ...mockInputs, port: '0' }).port).toBeUndefined();
-      expect(buildGlobalProxyConfig({ ...mockInputs, port: '65536' }).port).toBeUndefined();
-      expect(buildGlobalProxyConfig({ ...mockInputs, port: '-1' }).port).toBeUndefined();
+      expect(
+        buildGlobalProxyConfig({ ...mockInputs, port: '0' }).port,
+      ).toBeUndefined();
+      expect(
+        buildGlobalProxyConfig({ ...mockInputs, port: '65536' }).port,
+      ).toBeUndefined();
+      expect(
+        buildGlobalProxyConfig({ ...mockInputs, port: '-1' }).port,
+      ).toBeUndefined();
     });
 
     it('should allow max valid port 65535', () => {

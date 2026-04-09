@@ -19,8 +19,12 @@ export function useConnectionManager() {
   // This prevents infinite re-render loops
   const isConnected = useConnectionStore(state => state.isConnected);
   const networkName = useConnectionStore(state => state.networkName);
-  const selectedNetworkName = useConnectionStore(state => state.selectedNetworkName);
-  const activeConnectionId = useConnectionStore(state => state.activeConnectionId);
+  const selectedNetworkName = useConnectionStore(
+    state => state.selectedNetworkName,
+  );
+  const activeConnectionId = useConnectionStore(
+    state => state.activeConnectionId,
+  );
   const primaryNetworkId = useConnectionStore(state => state.primaryNetworkId);
   const ping = useConnectionStore(state => state.ping);
 
@@ -38,7 +42,7 @@ export function useConnectionManager() {
         const networkId = await connectionManager.connect(
           network.name,
           network,
-          config
+          config,
         );
 
         const store = useConnectionStore.getState();
@@ -57,7 +61,7 @@ export function useConnectionManager() {
         throw error;
       }
     },
-    [] // No dependencies - use store directly
+    [], // No dependencies - use store directly
   );
 
   /**
@@ -96,7 +100,7 @@ export function useConnectionManager() {
         throw error;
       }
     },
-    [] // No dependencies - use store directly
+    [], // No dependencies - use store directly
   );
 
   /**
@@ -114,7 +118,7 @@ export function useConnectionManager() {
         store.setIsConnected(connection.ircService.getConnectionStatus());
       }
     },
-    [] // No dependencies - use store directly
+    [], // No dependencies - use store directly
   );
 
   /**
@@ -145,12 +149,9 @@ export function useConnectionManager() {
   /**
    * Update ping for active connection
    */
-  const updatePing = useCallback(
-    (newPing: number) => {
-      useConnectionStore.getState().setPing(newPing);
-    },
-    []
-  );
+  const updatePing = useCallback((newPing: number) => {
+    useConnectionStore.getState().setPing(newPing);
+  }, []);
 
   /**
    * Sync state with ConnectionManager on mount
@@ -166,7 +167,10 @@ export function useConnectionManager() {
         store.setNetworkName(activeId);
       }
 
-      store.setIsConnected(connections.length > 0 && connections.some(c => c.ircService.getConnectionStatus()));
+      store.setIsConnected(
+        connections.length > 0 &&
+          connections.some(c => c.ircService.getConnectionStatus()),
+      );
     };
 
     syncState();

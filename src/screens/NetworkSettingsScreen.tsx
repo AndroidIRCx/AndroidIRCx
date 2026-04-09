@@ -49,7 +49,9 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const [autoJoinChannels, setAutoJoinChannels] = useState('');
   const [saslAccount, setSaslAccount] = useState('');
   const [saslPassword, setSaslPassword] = useState('');
-  const [saslMechanism, setSaslMechanism] = useState<'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS' | 'EXTERNAL'>('PLAIN');
+  const [saslMechanism, setSaslMechanism] = useState<
+    'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS' | 'EXTERNAL'
+  >('PLAIN');
   const [clientCert, setClientCert] = useState('');
   const [clientKey, setClientKey] = useState('');
   const [proxyEnabled, setProxyEnabled] = useState(false);
@@ -92,15 +94,20 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
         setSaslMechanism(network.sasl?.mechanism || 'PLAIN');
         setClientCert(network.clientCert || '');
         setClientKey(network.clientKey || '');
-        setProxyEnabled(network.proxy ? network.proxy.enabled !== false : false);
+        setProxyEnabled(
+          network.proxy ? network.proxy.enabled !== false : false,
+        );
         setProxyType(network.proxy?.type || 'tor');
-        setProxyHost(network.proxy?.host || (network.proxy?.type === 'tor' ? '127.0.0.1' : ''));
+        setProxyHost(
+          network.proxy?.host ||
+            (network.proxy?.type === 'tor' ? '127.0.0.1' : ''),
+        );
         setProxyPort(
           network.proxy?.port
             ? String(network.proxy.port)
             : network.proxy?.type === 'tor'
               ? '9050'
-              : ''
+              : '',
         );
         setProxyUsername(network.proxy?.username || '');
         setProxyPassword(network.proxy?.password || '');
@@ -140,7 +147,9 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
     setShowCertGenerator(false);
     Alert.alert(
       t('Success'),
-      t('Certificate generated and applied! Don\'t forget to add the fingerprint to NickServ.')
+      t(
+        "Certificate generated and applied! Don't forget to add the fingerprint to NickServ.",
+      ),
     );
   };
 
@@ -148,7 +157,10 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
     setClientCert(cert.pemCert);
     setClientKey(cert.pemKey);
     setShowCertSelector(false);
-    Alert.alert(t('Success'), t('Certificate applied to network configuration'));
+    Alert.alert(
+      t('Success'),
+      t('Certificate applied to network configuration'),
+    );
   };
 
   const handleViewFingerprint = () => {
@@ -157,7 +169,12 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
       return;
     }
     if (!certFingerprint) {
-      Alert.alert(t('Error'), t('Invalid certificate format. Please configure a valid PEM certificate.'));
+      Alert.alert(
+        t('Error'),
+        t(
+          'Invalid certificate format. Please configure a valid PEM certificate.',
+        ),
+      );
       return;
     }
     setShowCertFingerprint(true);
@@ -166,13 +183,20 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   const handleSave = async () => {
     if (saving) return;
     if (!name.trim() || !nick.trim() || !realname.trim()) {
-      Alert.alert(t('Error'), t('Please fill in all required fields (Name, Nick, Realname)'));
+      Alert.alert(
+        t('Error'),
+        t('Please fill in all required fields (Name, Nick, Realname)'),
+      );
       return;
     }
 
-    const existingNetwork = networkId ? await settingsService.getNetwork(networkId) : null;
-    const computedProxyHost = proxyHost.trim() || (proxyType === 'tor' ? '127.0.0.1' : '');
-    const computedProxyPort = proxyPort.trim() || (proxyType === 'tor' ? '9050' : '');
+    const existingNetwork = networkId
+      ? await settingsService.getNetwork(networkId)
+      : null;
+    const computedProxyHost =
+      proxyHost.trim() || (proxyType === 'tor' ? '127.0.0.1' : '');
+    const computedProxyPort =
+      proxyPort.trim() || (proxyType === 'tor' ? '9050' : '');
     const network: IRCNetworkConfig = {
       id: networkId || `network-${Date.now()}`,
       name: name.trim(),
@@ -185,17 +209,25 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
         .split(',')
         .map(c => c.trim())
         .filter(c => c.length > 0),
-      proxy: proxyEnabled && computedProxyHost && computedProxyPort ? {
-        enabled: true,
-        type: (proxyType || 'tor') as any,
-        host: computedProxyHost,
-        port: parseInt(computedProxyPort, 10),
-        username: proxyUsername.trim() || undefined,
-        password: proxyPassword.trim() || undefined,
-      } : undefined,
-      sasl: saslAccount && saslPassword
-        ? { account: saslAccount.trim(), password: saslPassword.trim(), mechanism: saslMechanism }
-        : undefined,
+      proxy:
+        proxyEnabled && computedProxyHost && computedProxyPort
+          ? {
+              enabled: true,
+              type: (proxyType || 'tor') as any,
+              host: computedProxyHost,
+              port: parseInt(computedProxyPort, 10),
+              username: proxyUsername.trim() || undefined,
+              password: proxyPassword.trim() || undefined,
+            }
+          : undefined,
+      sasl:
+        saslAccount && saslPassword
+          ? {
+              account: saslAccount.trim(),
+              password: saslPassword.trim(),
+              mechanism: saslMechanism,
+            }
+          : undefined,
       clientCert: clientCert.trim() || undefined,
       clientKey: clientKey.trim() || undefined,
       connectOnStartup: false,
@@ -210,21 +242,28 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   };
 
   return (
-    <Modal
-      visible={true}
-      animationType="slide"
-      onRequestClose={onCancel}>
+    <Modal visible={true} animationType="slide" onRequestClose={onCancel}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onCancel} style={styles.cancelButton} disabled={saving}>
+          <TouchableOpacity
+            onPress={onCancel}
+            style={styles.cancelButton}
+            disabled={saving}
+          >
             <Text style={styles.cancelText}>{t('Cancel')}</Text>
           </TouchableOpacity>
           <Text style={styles.title}>{t('Network Settings')}</Text>
-          <TouchableOpacity onPress={handleSave} style={styles.saveButton} disabled={saving}>
+          <TouchableOpacity
+            onPress={handleSave}
+            style={styles.saveButton}
+            disabled={saving}
+          >
             {saving ? (
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <ActivityIndicator size="small" color={colors.onPrimary} />
-                <Text style={[styles.saveText, { marginLeft: 6 }]}>{t('Saving...')}</Text>
+                <Text style={[styles.saveText, { marginLeft: 6 }]}>
+                  {t('Saving...')}
+                </Text>
               </View>
             ) : (
               <Text style={styles.saveText}>{t('Save')}</Text>
@@ -250,7 +289,8 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
             {onShowIdentityProfiles && (
               <TouchableOpacity
                 style={styles.identityProfilesButton}
-                onPress={onShowIdentityProfiles}>
+                onPress={onShowIdentityProfiles}
+              >
                 <Text style={styles.identityProfilesButtonText}>
                   {t('Manage Identity Profiles')}
                 </Text>
@@ -258,270 +298,312 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
             )}
 
             <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('Basic Information')}</Text>
+              <Text style={styles.sectionTitle}>{t('Basic Information')}</Text>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Network Name *')}</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder={t('e.g., dbase.in.rs')}
-              placeholderTextColor={colors.inputPlaceholder}
-            />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Network Name *')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder={t('e.g., dbase.in.rs')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Nickname *')}</Text>
-            <TextInput
-              style={styles.input}
-              value={nick}
-              onChangeText={setNick}
-              placeholder={t('Your IRC nickname')}
-              placeholderTextColor={colors.inputPlaceholder}
-              autoCapitalize="none"
-            />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Nickname *')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={nick}
+                  onChangeText={setNick}
+                  placeholder={t('Your IRC nickname')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  autoCapitalize="none"
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Alternative Nickname')}</Text>
-            <TextInput
-              style={styles.input}
-              value={altNick}
-              onChangeText={setAltNick}
-              placeholder={t('Fallback if primary nick is taken')}
-              placeholderTextColor={colors.inputPlaceholder}
-              autoCapitalize="none"
-            />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Alternative Nickname')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={altNick}
+                  onChangeText={setAltNick}
+                  placeholder={t('Fallback if primary nick is taken')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  autoCapitalize="none"
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Real Name *')}</Text>
-            <TextInput
-              style={styles.input}
-              value={realname}
-              onChangeText={setRealname}
-              placeholder={t('Your real name or description')}
-              placeholderTextColor={colors.inputPlaceholder}
-            />
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Real Name *')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={realname}
+                  onChangeText={setRealname}
+                  placeholder={t('Your real name or description')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Ident / Username')}</Text>
-            <TextInput
-              style={styles.input}
-              value={ident}
-              onChangeText={setIdent}
-              placeholder={t('Username for ident (optional)')}
-              placeholderTextColor={colors.inputPlaceholder}
-              autoCapitalize="none"
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('Auto-Join Channels')}</Text>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Channels (comma-separated)')}</Text>
-            <TextInput
-              style={styles.input}
-              value={autoJoinChannels}
-              onChangeText={setAutoJoinChannels}
-              placeholder={t('#channel1, #channel2')}
-              placeholderTextColor={colors.inputPlaceholder}
-              autoCapitalize="none"
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('SASL Authentication (Optional)')}</Text>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('SASL Mechanism')}</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={saslMechanism}
-                onValueChange={(value) => setSaslMechanism(value)}
-                style={[styles.picker, { color: colors.text }]}
-              >
-                <Picker.Item label={t('PLAIN - Simple username/password')} value="PLAIN" />
-                <Picker.Item label={t('SCRAM-SHA-256 - Secure challenge-response')} value="SCRAM-SHA-256" />
-                <Picker.Item label={t('SCRAM-SHA-256-PLUS - Channel binding (coming soon)')} value="SCRAM-SHA-256-PLUS" />
-              </Picker>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Ident / Username')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={ident}
+                  onChangeText={setIdent}
+                  placeholder={t('Username for ident (optional)')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  autoCapitalize="none"
+                />
+              </View>
             </View>
-          </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('SASL Account')}</Text>
-            <TextInput
-              style={styles.input}
-              value={saslAccount}
-              onChangeText={setSaslAccount}
-              placeholder={t('SASL account name')}
-              placeholderTextColor={colors.inputPlaceholder}
-              autoCapitalize="none"
-            />
-          </View>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('Auto-Join Channels')}</Text>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  {t('Channels (comma-separated)')}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={autoJoinChannels}
+                  onChangeText={setAutoJoinChannels}
+                  placeholder={t('#channel1, #channel2')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('SASL Password')}</Text>
-            <TextInput
-              style={styles.input}
-              value={saslPassword}
-              onChangeText={setSaslPassword}
-              placeholder={t('SASL password')}
-              placeholderTextColor={colors.inputPlaceholder}
-              secureTextEntry
-              autoCapitalize="none"
-            />
-          </View>
-          
-          {saslMechanism === 'SCRAM-SHA-256' && (
-            <Text style={styles.helpText}>
-              {t('SCRAM-SHA-256 provides better security by using challenge-response authentication. Your password is never sent over the network.')}
-            </Text>
-          )}
-          {saslMechanism === 'SCRAM-SHA-256-PLUS' && (
-            <Text style={styles.helpText}>
-              {t('SCRAM-SHA-256-PLUS with channel binding will be available in a future update. For now, SCRAM-SHA-256 is recommended.')}
-            </Text>
-          )}
-        </View>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t('SASL Authentication (Optional)')}
+              </Text>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('Proxy (Optional, per network)')}</Text>
-          <View style={styles.switchRow}>
-            <Text style={styles.label}>{t('Enable proxy (Tor/SOCKS5/HTTP)')}</Text>
-            <Switch
-              value={proxyEnabled}
-              onValueChange={setProxyEnabled}
-              trackColor={{ false: colors.border, true: colors.accent }}
-              thumbColor={proxyEnabled ? colors.onAccent : colors.surfaceVariant}
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Type (socks5, http, tor)')}</Text>
-            <TextInput
-              style={[styles.input, !proxyEnabled && styles.inputDisabled]}
-              value={proxyType}
-              editable={proxyEnabled}
-              onChangeText={setProxyType}
-              placeholder={t('tor')}
-              placeholderTextColor={colors.inputPlaceholder}
-              autoCapitalize="none"
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Host')}</Text>
-            <TextInput
-              style={[styles.input, !proxyEnabled && styles.inputDisabled]}
-              value={proxyHost}
-              editable={proxyEnabled}
-              onChangeText={setProxyHost}
-              placeholder={t('127.0.0.1 (Tor default)')}
-              placeholderTextColor={colors.inputPlaceholder}
-              autoCapitalize="none"
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Port')}</Text>
-            <TextInput
-              style={[styles.input, !proxyEnabled && styles.inputDisabled]}
-              value={proxyPort}
-              editable={proxyEnabled}
-              onChangeText={setProxyPort}
-              placeholder={t('9050 for Tor, 1080 for SOCKS5')}
-              placeholderTextColor={colors.inputPlaceholder}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Username')}</Text>
-            <TextInput
-              style={[styles.input, !proxyEnabled && styles.inputDisabled]}
-              value={proxyUsername}
-              editable={proxyEnabled}
-              onChangeText={setProxyUsername}
-              placeholder={t('optional')}
-              placeholderTextColor={colors.inputPlaceholder}
-              autoCapitalize="none"
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Password')}</Text>
-            <TextInput
-              style={[styles.input, !proxyEnabled && styles.inputDisabled]}
-              value={proxyPassword}
-              editable={proxyEnabled}
-              onChangeText={setProxyPassword}
-              placeholder={t('optional')}
-              placeholderTextColor={colors.inputPlaceholder}
-              secureTextEntry
-              autoCapitalize="none"
-            />
-          </View>
-        </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('SASL Mechanism')}</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={saslMechanism}
+                    onValueChange={value => setSaslMechanism(value)}
+                    style={[styles.picker, { color: colors.text }]}
+                  >
+                    <Picker.Item
+                      label={t('PLAIN - Simple username/password')}
+                      value="PLAIN"
+                    />
+                    <Picker.Item
+                      label={t('SCRAM-SHA-256 - Secure challenge-response')}
+                      value="SCRAM-SHA-256"
+                    />
+                    <Picker.Item
+                      label={t(
+                        'SCRAM-SHA-256-PLUS - Channel binding (coming soon)',
+                      )}
+                      value="SCRAM-SHA-256-PLUS"
+                    />
+                  </Picker>
+                </View>
+              </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('SASL EXTERNAL (Client Certificate)')}</Text>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('SASL Account')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={saslAccount}
+                  onChangeText={setSaslAccount}
+                  placeholder={t('SASL account name')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  autoCapitalize="none"
+                />
+              </View>
 
-          {/* Certificate Management Buttons */}
-          <View style={styles.certButtonsRow}>
-            <TouchableOpacity
-              style={styles.certButton}
-              onPress={() => setShowCertGenerator(true)}>
-              <Text style={styles.certButtonText}>➕ {t('Generate New')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.certButton}
-              onPress={() => setShowCertSelector(true)}>
-              <Text style={styles.certButtonText}>📁 {t('Select Existing')}</Text>
-            </TouchableOpacity>
-          </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('SASL Password')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={saslPassword}
+                  onChangeText={setSaslPassword}
+                  placeholder={t('SASL password')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
 
-          {/* View Fingerprint Button (only if cert is set) */}
-          {clientCert.trim() && (
-            <TouchableOpacity
-              style={[styles.certButton, styles.fingerprintButton]}
-              onPress={handleViewFingerprint}>
-              <Text style={styles.certButtonText}>🔑 {t('View Fingerprint')}</Text>
-            </TouchableOpacity>
-          )}
+              {saslMechanism === 'SCRAM-SHA-256' && (
+                <Text style={styles.helpText}>
+                  {t(
+                    'SCRAM-SHA-256 provides better security by using challenge-response authentication. Your password is never sent over the network.',
+                  )}
+                </Text>
+              )}
+              {saslMechanism === 'SCRAM-SHA-256-PLUS' && (
+                <Text style={styles.helpText}>
+                  {t(
+                    'SCRAM-SHA-256-PLUS with channel binding will be available in a future update. For now, SCRAM-SHA-256 is recommended.',
+                  )}
+                </Text>
+              )}
+            </View>
 
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>{t('or enter manually')}</Text>
-            <View style={styles.dividerLine} />
-          </View>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t('Proxy (Optional, per network)')}
+              </Text>
+              <View style={styles.switchRow}>
+                <Text style={styles.label}>
+                  {t('Enable proxy (Tor/SOCKS5/HTTP)')}
+                </Text>
+                <Switch
+                  value={proxyEnabled}
+                  onValueChange={setProxyEnabled}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor={
+                    proxyEnabled ? colors.onAccent : colors.surfaceVariant
+                  }
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  {t('Type (socks5, http, tor)')}
+                </Text>
+                <TextInput
+                  style={[styles.input, !proxyEnabled && styles.inputDisabled]}
+                  value={proxyType}
+                  editable={proxyEnabled}
+                  onChangeText={setProxyType}
+                  placeholder={t('tor')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  autoCapitalize="none"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Host')}</Text>
+                <TextInput
+                  style={[styles.input, !proxyEnabled && styles.inputDisabled]}
+                  value={proxyHost}
+                  editable={proxyEnabled}
+                  onChangeText={setProxyHost}
+                  placeholder={t('127.0.0.1 (Tor default)')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  autoCapitalize="none"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Port')}</Text>
+                <TextInput
+                  style={[styles.input, !proxyEnabled && styles.inputDisabled]}
+                  value={proxyPort}
+                  editable={proxyEnabled}
+                  onChangeText={setProxyPort}
+                  placeholder={t('9050 for Tor, 1080 for SOCKS5')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Username')}</Text>
+                <TextInput
+                  style={[styles.input, !proxyEnabled && styles.inputDisabled]}
+                  value={proxyUsername}
+                  editable={proxyEnabled}
+                  onChangeText={setProxyUsername}
+                  placeholder={t('optional')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  autoCapitalize="none"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>{t('Password')}</Text>
+                <TextInput
+                  style={[styles.input, !proxyEnabled && styles.inputDisabled]}
+                  value={proxyPassword}
+                  editable={proxyEnabled}
+                  onChangeText={setProxyPassword}
+                  placeholder={t('optional')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Client Certificate (PEM)')}</Text>
-            <TextInput
-              style={[styles.input, styles.multilineInput]}
-              value={clientCert}
-              onChangeText={setClientCert}
-              placeholder={t('-----BEGIN CERTIFICATE-----...')}
-              placeholderTextColor={colors.inputPlaceholder}
-              multiline
-              autoCapitalize="none"
-            />
-          </View>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t('SASL EXTERNAL (Client Certificate)')}
+              </Text>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t('Client Private Key (PEM)')}</Text>
-            <TextInput
-              style={[styles.input, styles.multilineInput]}
-              value={clientKey}
-              onChangeText={setClientKey}
-              placeholder={t('-----BEGIN PRIVATE KEY-----...')}
-              placeholderTextColor={colors.inputPlaceholder}
-              multiline
-              autoCapitalize="none"
-            />
-          </View>
-        </View>
+              {/* Certificate Management Buttons */}
+              <View style={styles.certButtonsRow}>
+                <TouchableOpacity
+                  style={styles.certButton}
+                  onPress={() => setShowCertGenerator(true)}
+                >
+                  <Text style={styles.certButtonText}>
+                    ➕ {t('Generate New')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.certButton}
+                  onPress={() => setShowCertSelector(true)}
+                >
+                  <Text style={styles.certButtonText}>
+                    📁 {t('Select Existing')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* View Fingerprint Button (only if cert is set) */}
+              {clientCert.trim() && (
+                <TouchableOpacity
+                  style={[styles.certButton, styles.fingerprintButton]}
+                  onPress={handleViewFingerprint}
+                >
+                  <Text style={styles.certButtonText}>
+                    🔑 {t('View Fingerprint')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Divider */}
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>{t('or enter manually')}</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  {t('Client Certificate (PEM)')}
+                </Text>
+                <TextInput
+                  style={[styles.input, styles.multilineInput]}
+                  value={clientCert}
+                  onChangeText={setClientCert}
+                  placeholder={t('-----BEGIN CERTIFICATE-----...')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  multiline
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  {t('Client Private Key (PEM)')}
+                </Text>
+                <TextInput
+                  style={[styles.input, styles.multilineInput]}
+                  value={clientKey}
+                  onChangeText={setClientKey}
+                  placeholder={t('-----BEGIN PRIVATE KEY-----...')}
+                  placeholderTextColor={colors.inputPlaceholder}
+                  multiline
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
           </ScrollView>
         )}
       </View>
@@ -552,187 +634,187 @@ export const NetworkSettingsScreen: React.FC<NetworkSettingsScreenProps> = ({
   );
 };
 
-const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: colors.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primaryDark,
-  },
-  identityProfilesButton: {
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: 8,
-    padding: 14,
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    alignItems: 'center',
-  },
-  identityProfilesButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    padding: 8,
-  },
-  cancelText: {
-    color: colors.onPrimary,
-    fontSize: 16,
-  },
-  title: {
-    color: colors.onPrimary,
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  saveButton: {
-    padding: 8,
-  },
-  saveText: {
-    color: colors.onPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-  },
-  section: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 12,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 6,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: 4,
-    padding: 12,
-    fontSize: 14,
-    color: colors.inputText,
-    backgroundColor: colors.inputBackground,
-  },
-  inputDisabled: {
-    opacity: 0.5,
-    backgroundColor: colors.buttonDisabled,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    borderRadius: 4,
-    backgroundColor: colors.inputBackground,
-  },
-  picker: {
-    height: 50,
-  },
-  helpText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
-    marginTop: 8,
-  },
-  multilineInput: {
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 14,
-    color: colors.error,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  retryButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: colors.buttonPrimary,
-    borderRadius: 4,
-  },
-  retryText: {
-    color: colors.buttonPrimaryText,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  certButtonsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  certButton: {
-    flex: 1,
-    backgroundColor: colors.buttonPrimary,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  certButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.buttonPrimaryText,
-  },
-  fingerprintButton: {
-    backgroundColor: colors.accent,
-    marginBottom: 12,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginHorizontal: 12,
-  },
-});
-
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.primary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.primaryDark,
+    },
+    identityProfilesButton: {
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 8,
+      padding: 14,
+      marginHorizontal: 16,
+      marginTop: 16,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      alignItems: 'center',
+    },
+    identityProfilesButtonText: {
+      color: colors.primary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    cancelButton: {
+      padding: 8,
+    },
+    cancelText: {
+      color: colors.onPrimary,
+      fontSize: 16,
+    },
+    title: {
+      color: colors.onPrimary,
+      fontSize: 18,
+      fontWeight: '600',
+    },
+    saveButton: {
+      padding: 8,
+    },
+    saveText: {
+      color: colors.onPrimary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    content: {
+      flex: 1,
+    },
+    section: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    inputGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 6,
+    },
+    switchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      borderRadius: 4,
+      padding: 12,
+      fontSize: 14,
+      color: colors.inputText,
+      backgroundColor: colors.inputBackground,
+    },
+    inputDisabled: {
+      opacity: 0.5,
+      backgroundColor: colors.buttonDisabled,
+    },
+    pickerContainer: {
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      borderRadius: 4,
+      backgroundColor: colors.inputBackground,
+    },
+    picker: {
+      height: 50,
+    },
+    helpText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontStyle: 'italic',
+      marginTop: 8,
+    },
+    multilineInput: {
+      height: 120,
+      textAlignVertical: 'top',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    errorText: {
+      fontSize: 14,
+      color: colors.error,
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    retryButton: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      backgroundColor: colors.buttonPrimary,
+      borderRadius: 4,
+    },
+    retryText: {
+      color: colors.buttonPrimaryText,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    certButtonsRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 12,
+    },
+    certButton: {
+      flex: 1,
+      backgroundColor: colors.buttonPrimary,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    certButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.buttonPrimaryText,
+    },
+    fingerprintButton: {
+      backgroundColor: colors.accent,
+      marginBottom: 12,
+    },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 16,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    dividerText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginHorizontal: 12,
+    },
+  });

@@ -73,7 +73,9 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
   const handleExportData = async () => {
     Alert.alert(
       t('Export My Data'),
-      t('This will create a JSON file with all your data (messages, settings, networks, etc.). You can then share this file via email, cloud storage, etc.'),
+      t(
+        'This will create a JSON file with all your data (messages, settings, networks, etc.). You can then share this file via email, cloud storage, etc.',
+      ),
       [
         { text: t('Cancel'), style: 'cancel' },
         {
@@ -94,40 +96,50 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
                     {
                       text: t('Share'),
                       onPress: async () => {
-                        const shared = await dataPrivacyService.shareExportedData(
-                          result.filePath!
-                        );
+                        const shared =
+                          await dataPrivacyService.shareExportedData(
+                            result.filePath!,
+                          );
                         if (!shared) {
                           Alert.alert(
                             t('Export Complete'),
-                            t('File saved to: {path}', { path: result.filePath })
+                            t('File saved to: {path}', {
+                              path: result.filePath,
+                            }),
                           );
                         }
                       },
                     },
-                  ]
+                  ],
                 );
               } else {
                 Alert.alert(
                   t('Export Failed'),
-                  t('Failed to export data: {error}', { error: result.error || 'Unknown error' })
+                  t('Failed to export data: {error}', {
+                    error: result.error || 'Unknown error',
+                  }),
                 );
               }
             } catch {
-              Alert.alert(t('Error'), t('An error occurred while exporting data.'));
+              Alert.alert(
+                t('Error'),
+                t('An error occurred while exporting data.'),
+              );
             } finally {
               setLoading(false);
             }
           },
         },
-      ]
+      ],
     );
   };
 
   const handleDeleteAllData = () => {
     Alert.alert(
       t('⚠️ Delete All My Data'),
-      t('THIS CANNOT BE UNDONE!\n\nThis will permanently delete:\n• All messages\n• All settings\n• All networks\n• All identity profiles\n• Consent preferences\n• Cached data\n\nThe app will restart after deletion. Are you absolutely sure?'),
+      t(
+        'THIS CANNOT BE UNDONE!\n\nThis will permanently delete:\n• All messages\n• All settings\n• All networks\n• All identity profiles\n• Consent preferences\n• Cached data\n\nThe app will restart after deletion. Are you absolutely sure?',
+      ),
       [
         { text: t('Cancel'), style: 'cancel' },
         {
@@ -137,7 +149,9 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
             // Second confirmation
             Alert.alert(
               t('Final Confirmation'),
-              t('Are you really sure? This will delete ALL your data permanently.'),
+              t(
+                'Are you really sure? This will delete ALL your data permanently.',
+              ),
               [
                 { text: t('Cancel'), style: 'cancel' },
                 {
@@ -145,11 +159,11 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
                   style: 'destructive',
                   onPress: performDataDeletion,
                 },
-              ]
+              ],
             );
           },
         },
-      ]
+      ],
     );
   };
 
@@ -177,19 +191,24 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
 
         Alert.alert(
           t('Data Deleted'),
-          t('All your data has been permanently deleted:\n\n{deletedList}\n\nThe app will restart and show the first-run setup again.', {
-            deletedList,
-          }),
+          t(
+            'All your data has been permanently deleted:\n\n{deletedList}\n\nThe app will restart and show the first-run setup again.',
+            {
+              deletedList,
+            },
+          ),
           [
             {
               text: t('OK'),
               onPress: () => {
-                console.log('[DataPrivacyScreen] Closing after successful deletion');
+                console.log(
+                  '[DataPrivacyScreen] Closing after successful deletion',
+                );
                 onClose();
               },
             },
           ],
-          { cancelable: false }
+          { cancelable: false },
         );
       } else {
         // Partial deletion - some items failed
@@ -205,25 +224,36 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
 
         const errorDetails = result.errors.join('\n');
 
-        console.error('[DataPrivacyScreen] Partial deletion - some items failed');
+        console.error(
+          '[DataPrivacyScreen] Partial deletion - some items failed',
+        );
         console.error('[DataPrivacyScreen] Errors:', result.errors);
 
         Alert.alert(
           t('Partial Deletion'),
-          t('Some data could not be deleted.\n\nDeleted:\n{deletedList}\n\nFailed:\n{failedList}\n\nErrors:\n{errorDetails}\n\nPlease check logs for details.', {
-            deletedList: deletedList || t('None'),
-            failedList: failedList || t('None'),
-            errorDetails,
-          })
+          t(
+            'Some data could not be deleted.\n\nDeleted:\n{deletedList}\n\nFailed:\n{failedList}\n\nErrors:\n{errorDetails}\n\nPlease check logs for details.',
+            {
+              deletedList: deletedList || t('None'),
+              failedList: failedList || t('None'),
+              errorDetails,
+            },
+          ),
         );
       }
     } catch (error) {
-      console.error('[DataPrivacyScreen] Critical error during deletion:', error);
+      console.error(
+        '[DataPrivacyScreen] Critical error during deletion:',
+        error,
+      );
       Alert.alert(
         t('Error'),
-        t('Critical error during data deletion: {error}\n\nPlease check the console logs for details.', {
-          error: String(error),
-        })
+        t(
+          'Critical error during data deletion: {error}\n\nPlease check the console logs for details.',
+          {
+            error: String(error),
+          },
+        ),
       );
     } finally {
       setLoading(false);
@@ -239,8 +269,12 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
       Alert.alert(
         t('Setting Updated'),
         value
-          ? t('Crash reporting has been disabled. New crashes will not be collected.')
-          : t('Crash reporting has been enabled. This helps improve app stability.')
+          ? t(
+              'Crash reporting has been disabled. New crashes will not be collected.',
+            )
+          : t(
+              'Crash reporting has been enabled. This helps improve app stability.',
+            ),
       );
     } catch {
       Alert.alert(t('Error'), t('Failed to update crash reporting setting.'));
@@ -275,24 +309,36 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>{t('Networks')}:</Text>
-                <Text style={styles.summaryValue}>{dataSummary.networksCount}</Text>
+                <Text style={styles.summaryValue}>
+                  {dataSummary.networksCount}
+                </Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>{t('Identity Profiles')}:</Text>
-                <Text style={styles.summaryValue}>{dataSummary.identityProfilesCount}</Text>
+                <Text style={styles.summaryLabel}>
+                  {t('Identity Profiles')}:
+                </Text>
+                <Text style={styles.summaryValue}>
+                  {dataSummary.identityProfilesCount}
+                </Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>{t('Storage Used')}:</Text>
-                <Text style={styles.summaryValue}>{dataSummary.storageSize}</Text>
+                <Text style={styles.summaryValue}>
+                  {dataSummary.storageSize}
+                </Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>{t('Ad Consent')}:</Text>
-                <Text style={styles.summaryValue}>{dataSummary.consentStatus}</Text>
+                <Text style={styles.summaryValue}>
+                  {dataSummary.consentStatus}
+                </Text>
               </View>
             </View>
 
             <Text style={styles.sectionNote}>
-              {t('This shows data stored locally on your device. Third-party services (Google AdMob, Firebase) may have their own data retention policies.')}
+              {t(
+                'This shows data stored locally on your device. Third-party services (Google AdMob, Firebase) may have their own data retention policies.',
+              )}
             </Text>
           </View>
 
@@ -304,27 +350,35 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
             <View style={styles.controlCard}>
               <View style={styles.controlHeader}>
                 <View style={styles.controlTextContainer}>
-                  <Text style={styles.controlTitle}>{t('Crash Reporting')}</Text>
+                  <Text style={styles.controlTitle}>
+                    {t('Crash Reporting')}
+                  </Text>
                   <Text style={styles.controlDescription}>
-                    {t('Send anonymous crash reports to help improve app stability')}
+                    {t(
+                      'Send anonymous crash reports to help improve app stability',
+                    )}
                   </Text>
                 </View>
                 <Switch
                   value={!crashlyticsOptOut}
-                  onValueChange={(value) => handleToggleCrashlytics(!value)}
+                  onValueChange={value => handleToggleCrashlytics(!value)}
                   disabled={loading}
                 />
               </View>
             </View>
 
             <Text style={styles.sectionNote}>
-              {t('When disabled, crash reports will not be collected. This may make it harder to fix bugs you encounter.')}
+              {t(
+                'When disabled, crash reports will not be collected. This may make it harder to fix bugs you encounter.',
+              )}
             </Text>
           </View>
 
           {/* Data Actions Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('YOUR RIGHTS (GDPR/CCPA)')}</Text>
+            <Text style={styles.sectionTitle}>
+              {t('YOUR RIGHTS (GDPR/CCPA)')}
+            </Text>
 
             {/* Export Data Button */}
             <TouchableOpacity
@@ -336,9 +390,16 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
                 <ActivityIndicator color="#fff" />
               ) : (
                 <>
-                  <Icon name="file-download" size={28} color="#fff" style={styles.actionButtonIcon} />
+                  <Icon
+                    name="file-download"
+                    size={28}
+                    color="#fff"
+                    style={styles.actionButtonIcon}
+                  />
                   <View style={styles.actionButtonTextContainer}>
-                    <Text style={styles.actionButtonText}>{t('Export My Data')}</Text>
+                    <Text style={styles.actionButtonText}>
+                      {t('Export My Data')}
+                    </Text>
                     <Text style={styles.actionButtonDescription}>
                       {t('Download all your data in JSON format')}
                     </Text>
@@ -357,12 +418,23 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
                 <ActivityIndicator color="#fff" />
               ) : (
                 <>
-                  <Icon name="trash-alt" size={28} color={colors.error || '#f44336'} solid style={styles.actionButtonIcon} />
+                  <Icon
+                    name="trash-alt"
+                    size={28}
+                    color={colors.error || '#f44336'}
+                    solid
+                    style={styles.actionButtonIcon}
+                  />
                   <View style={styles.actionButtonTextContainer}>
                     <Text style={[styles.actionButtonText, styles.dangerText]}>
                       {t('Delete All My Data')}
                     </Text>
-                    <Text style={[styles.actionButtonDescription, styles.dangerDescriptionText]}>
+                    <Text
+                      style={[
+                        styles.actionButtonDescription,
+                        styles.dangerDescriptionText,
+                      ]}
+                    >
                       {t('Permanently erase all your data (cannot be undone)')}
                     </Text>
                   </View>
@@ -380,13 +452,21 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
                 <ActivityIndicator color="#fff" />
               ) : (
                 <>
-                  <Icon name="skull" size={28} color="#fff" solid style={styles.actionButtonIcon} />
+                  <Icon
+                    name="skull"
+                    size={28}
+                    color="#fff"
+                    solid
+                    style={styles.actionButtonIcon}
+                  />
                   <View style={styles.actionButtonTextContainer}>
                     <Text style={styles.actionButtonText}>
                       {t('🚨 KILL SWITCH 🚨')}
                     </Text>
                     <Text style={styles.actionButtonDescription}>
-                      {t('EMERGENCY: Delete EVERYTHING including certs, logs, secure storage. Keyboard shortcut: Ctrl+Shift+K')}
+                      {t(
+                        'EMERGENCY: Delete EVERYTHING including certs, logs, secure storage. Keyboard shortcut: Ctrl+Shift+K',
+                      )}
                     </Text>
                   </View>
                 </>
@@ -396,49 +476,73 @@ export const DataPrivacyScreen: React.FC<DataPrivacyScreenProps> = ({
 
           {/* Info Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('IMPORTANT INFORMATION')}</Text>
+            <Text style={styles.sectionTitle}>
+              {t('IMPORTANT INFORMATION')}
+            </Text>
 
             <View style={styles.infoCard}>
               <View style={styles.infoTitleRow}>
-                <Icon name="clipboard-list" size={16} color={colors.primary} solid style={styles.infoTitleIcon} />
+                <Icon
+                  name="clipboard-list"
+                  size={16}
+                  color={colors.primary}
+                  solid
+                  style={styles.infoTitleIcon}
+                />
                 <Text style={styles.infoTitle}>{t('What gets exported?')}</Text>
               </View>
               <Text style={styles.infoText}>
-                • {t('All messages (including DMs)')}{'\n'}
-                • {t('Network configurations')}{'\n'}
-                • {t('Identity profiles')}{'\n'}
-                • {t('Settings and preferences')}{'\n'}
-                • {t('Consent status')}
+                • {t('All messages (including DMs)')}
+                {'\n'}• {t('Network configurations')}
+                {'\n'}• {t('Identity profiles')}
+                {'\n'}• {t('Settings and preferences')}
+                {'\n'}• {t('Consent status')}
               </Text>
             </View>
 
             <View style={styles.infoCard}>
               <View style={styles.infoTitleRow}>
-                <Icon name="exclamation-triangle" size={16} color={colors.error || '#f44336'} solid style={styles.infoTitleIcon} />
+                <Icon
+                  name="exclamation-triangle"
+                  size={16}
+                  color={colors.error || '#f44336'}
+                  solid
+                  style={styles.infoTitleIcon}
+                />
                 <Text style={styles.infoTitle}>{t('What gets deleted?')}</Text>
               </View>
               <Text style={styles.infoText}>
-                • {t('All local data (messages, settings, etc.)')}{'\n'}
-                • {t('Consent preferences (will be asked again)')}{'\n'}
-                • {t('Cached files')}
+                • {t('All local data (messages, settings, etc.)')}
+                {'\n'}• {t('Consent preferences (will be asked again)')}
+                {'\n'}• {t('Cached files')}
               </Text>
-              <Text style={[styles.infoText, { marginTop: 8, fontStyle: 'italic' }]}>
-                {t('Note: Data already sent to Google (AdMob, Crashlytics) cannot be deleted via this app, but will be automatically deleted per their retention policies (14-90 days).')}
+              <Text
+                style={[styles.infoText, { marginTop: 8, fontStyle: 'italic' }]}
+              >
+                {t(
+                  'Note: Data already sent to Google (AdMob, Crashlytics) cannot be deleted via this app, but will be automatically deleted per their retention policies (14-90 days).',
+                )}
               </Text>
             </View>
 
             <View style={styles.infoCard}>
               <View style={styles.infoTitleRow}>
-                <Icon name="shield-alt" size={16} color={colors.primary} solid style={styles.infoTitleIcon} />
+                <Icon
+                  name="shield-alt"
+                  size={16}
+                  color={colors.primary}
+                  solid
+                  style={styles.infoTitleIcon}
+                />
                 <Text style={styles.infoTitle}>{t('Your Privacy Rights')}</Text>
               </View>
               <Text style={styles.infoText}>
                 {t('Under GDPR and CCPA, you have the right to:')}
-                {'\n'}• {t('Access your data (Export)')}{'\n'}
-                • {t('Delete your data (Right to be forgotten)')}{'\n'}
-                • {t('Opt-out of data collection')}{'\n'}
-                • {t('Withdraw consent at any time')}{'\n'}
-                • {t('Data portability (Export to another service)')}
+                {'\n'}• {t('Access your data (Export)')}
+                {'\n'}• {t('Delete your data (Right to be forgotten)')}
+                {'\n'}• {t('Opt-out of data collection')}
+                {'\n'}• {t('Withdraw consent at any time')}
+                {'\n'}• {t('Data portability (Export to another service)')}
               </Text>
             </View>
           </View>

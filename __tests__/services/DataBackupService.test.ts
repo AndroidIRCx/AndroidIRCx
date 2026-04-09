@@ -12,13 +12,19 @@ const mockStorage: Record<string, string | null> = {};
 const mockSecureStorage: Record<string, string | null> = {};
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getAllKeys: jest.fn(() => Promise.resolve(Object.keys(mockStorage))),
-  multiGet: jest.fn((keys: string[]) => Promise.resolve(keys.map(k => [k, mockStorage[k] || null]))),
+  multiGet: jest.fn((keys: string[]) =>
+    Promise.resolve(keys.map(k => [k, mockStorage[k] || null])),
+  ),
   multiSet: jest.fn((pairs: [string, string][]) => {
-    pairs.forEach(([key, value]) => { mockStorage[key] = value; });
+    pairs.forEach(([key, value]) => {
+      mockStorage[key] = value;
+    });
     return Promise.resolve();
   }),
   multiRemove: jest.fn((keys: string[]) => {
-    keys.forEach((key) => { delete mockStorage[key]; });
+    keys.forEach(key => {
+      delete mockStorage[key];
+    });
     return Promise.resolve();
   }),
   getItem: jest.fn((key: string) => Promise.resolve(mockStorage[key] || null)),
@@ -32,15 +38,19 @@ jest.mock('../../src/services/SecureStorageService', () => ({
   secureStorageService: {
     getAllSecretKeys: jest.fn(async () => Object.keys(mockSecureStorage)),
     getSecret: jest.fn(async (key: string) =>
-      Object.prototype.hasOwnProperty.call(mockSecureStorage, key) ? mockSecureStorage[key] : null
+      Object.prototype.hasOwnProperty.call(mockSecureStorage, key)
+        ? mockSecureStorage[key]
+        : null,
     ),
-    setSecret: jest.fn(async (key: string, value: string | null | undefined) => {
-      if (value === undefined || value === null || value === '') {
-        delete mockSecureStorage[key];
-      } else {
-        mockSecureStorage[key] = value;
-      }
-    }),
+    setSecret: jest.fn(
+      async (key: string, value: string | null | undefined) => {
+        if (value === undefined || value === null || value === '') {
+          delete mockSecureStorage[key];
+        } else {
+          mockSecureStorage[key] = value;
+        }
+      },
+    ),
     removeSecret: jest.fn(async (key: string) => {
       delete mockSecureStorage[key];
     }),
@@ -85,7 +95,9 @@ describe('DataBackupService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Object.keys(mockStorage).forEach(key => delete mockStorage[key]);
-    Object.keys(mockSecureStorage).forEach(key => delete mockSecureStorage[key]);
+    Object.keys(mockSecureStorage).forEach(
+      key => delete mockSecureStorage[key],
+    );
   });
 
   describe('Export All', () => {
@@ -101,7 +113,9 @@ describe('DataBackupService', () => {
       expect(parsed.createdAt).toBeDefined();
       expect(parsed.data.key1).toBe('value1');
       expect(parsed.data.key2).toBe('value2');
-      expect(parsed.secureData['@AndroidIRCX:secure:net1:server:s1']).toBe('server-pass');
+      expect(parsed.secureData['@AndroidIRCX:secure:net1:server:s1']).toBe(
+        'server-pass',
+      );
     });
 
     it('should handle empty storage', async () => {
@@ -140,7 +154,9 @@ describe('DataBackupService', () => {
       const parsed = JSON.parse(backup);
 
       expect(parsed.data['MESSAGES_freenode_#general']).toBeUndefined();
-      expect(parsed.data['@AndroidIRCX:history:freenode:#general']).toBeUndefined();
+      expect(
+        parsed.data['@AndroidIRCX:history:freenode:#general'],
+      ).toBeUndefined();
       expect(parsed.data.settings).toBe('settings');
     });
 
@@ -176,7 +192,9 @@ describe('DataBackupService', () => {
       const parsed = JSON.parse(backup);
 
       expect(parsed.data.settings).toBe('settings');
-      expect(parsed.secureData['@AndroidIRCX:secure:net1:saslPassword']).toBe('sasl-pass');
+      expect(parsed.secureData['@AndroidIRCX:secure:net1:saslPassword']).toBe(
+        'sasl-pass',
+      );
     });
   });
 
@@ -201,21 +219,29 @@ describe('DataBackupService', () => {
     });
 
     it('should throw on missing data', async () => {
-      await expect(dataBackupService.importAll('{"version":1}')).rejects.toThrow('Invalid backup format');
+      await expect(
+        dataBackupService.importAll('{"version":1}'),
+      ).rejects.toThrow('Invalid backup format');
     });
 
     it('should throw when data is not an object', async () => {
-      await expect(dataBackupService.importAll('{"version":1,"data":"bad"}')).rejects.toThrow('Invalid backup format');
+      await expect(
+        dataBackupService.importAll('{"version":1,"data":"bad"}'),
+      ).rejects.toThrow('Invalid backup format');
     });
 
     it('should throw when secureData is malformed', async () => {
       await expect(
-        dataBackupService.importAll('{"version":1,"data":{},"secureData":"bad"}')
+        dataBackupService.importAll(
+          '{"version":1,"data":{},"secureData":"bad"}',
+        ),
       ).rejects.toThrow('Invalid backup format');
     });
 
     it('should reload services after import', async () => {
-      const { identityProfilesService } = require('../../src/services/IdentityProfilesService');
+      const {
+        identityProfilesService,
+      } = require('../../src/services/IdentityProfilesService');
       const { settingsService } = require('../../src/services/SettingsService');
 
       const backup = JSON.stringify({
@@ -230,8 +256,12 @@ describe('DataBackupService', () => {
     });
 
     it('should handle reload errors gracefully', async () => {
-      const { identityProfilesService } = require('../../src/services/IdentityProfilesService');
-      identityProfilesService.reload.mockRejectedValueOnce(new Error('Reload error'));
+      const {
+        identityProfilesService,
+      } = require('../../src/services/IdentityProfilesService');
+      identityProfilesService.reload.mockRejectedValueOnce(
+        new Error('Reload error'),
+      );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
       const backup = JSON.stringify({ version: 1, data: { key: 'value' } });
@@ -319,14 +349,19 @@ describe('DataBackupService', () => {
 
   describe('Check Sensitive Data', () => {
     it('should detect secure storage keys', () => {
-      const result = dataBackupService.checkForSensitiveData(['@AndroidIRCX:secure:password']);
+      const result = dataBackupService.checkForSensitiveData([
+        '@AndroidIRCX:secure:password',
+      ]);
 
       expect(result.hasSensitive).toBe(true);
       expect(result.sensitiveKeys).toContain('@AndroidIRCX:secure:password');
     });
 
     it('should detect password keys', () => {
-      const result = dataBackupService.checkForSensitiveData(['networkPassword', 'safeKey']);
+      const result = dataBackupService.checkForSensitiveData([
+        'networkPassword',
+        'safeKey',
+      ]);
 
       expect(result.hasSensitive).toBe(true);
       expect(result.sensitiveKeys).toContain('networkPassword');
@@ -352,13 +387,19 @@ describe('DataBackupService', () => {
     });
 
     it('should be case insensitive', () => {
-      const result = dataBackupService.checkForSensitiveData(['PASSWORD', 'TOKEN']);
+      const result = dataBackupService.checkForSensitiveData([
+        'PASSWORD',
+        'TOKEN',
+      ]);
 
       expect(result.hasSensitive).toBe(true);
     });
 
     it('should return no sensitive data for safe keys', () => {
-      const result = dataBackupService.checkForSensitiveData(['safeKey', 'anotherKey']);
+      const result = dataBackupService.checkForSensitiveData([
+        'safeKey',
+        'anotherKey',
+      ]);
 
       expect(result.hasSensitive).toBe(false);
       expect(result.sensitiveKeys).toEqual([]);
@@ -398,8 +439,12 @@ describe('DataBackupService', () => {
       ]);
       const parsed = JSON.parse(backup);
 
-      expect(parsed.secureData['@AndroidIRCX:secure:net1:server:s1']).toBe('server-pass');
-      expect(parsed.secureData['@AndroidIRCX:secure:net1:saslPassword']).toBeUndefined();
+      expect(parsed.secureData['@AndroidIRCX:secure:net1:server:s1']).toBe(
+        'server-pass',
+      );
+      expect(
+        parsed.secureData['@AndroidIRCX:secure:net1:saslPassword'],
+      ).toBeUndefined();
     });
 
     it('should include network auth secrets when networks key is selected', async () => {
@@ -408,20 +453,31 @@ describe('DataBackupService', () => {
       mockSecureStorage['net1:saslPassword'] = 'sasl-pass';
       mockSecureStorage['net1:otherSecret'] = 'ignore-me';
 
-      const backup = await dataBackupService.exportKeys(['@AndroidIRCX:networks']);
+      const backup = await dataBackupService.exportKeys([
+        '@AndroidIRCX:networks',
+      ]);
       const parsed = JSON.parse(backup);
 
       expect(parsed.data['@AndroidIRCX:networks']).toBe('{"networks":[]}');
-      expect(parsed.secureData['@AndroidIRCX:secure:net1:server:s1']).toBe('server-pass');
-      expect(parsed.secureData['@AndroidIRCX:secure:net1:saslPassword']).toBe('sasl-pass');
-      expect(parsed.secureData['@AndroidIRCX:secure:net1:otherSecret']).toBeUndefined();
+      expect(parsed.secureData['@AndroidIRCX:secure:net1:server:s1']).toBe(
+        'server-pass',
+      );
+      expect(parsed.secureData['@AndroidIRCX:secure:net1:saslPassword']).toBe(
+        'sasl-pass',
+      );
+      expect(
+        parsed.secureData['@AndroidIRCX:secure:net1:otherSecret'],
+      ).toBeUndefined();
     });
   });
 
   describe('Encryption', () => {
     it('should encrypt backup', async () => {
       const backup = JSON.stringify({ key: 'value' });
-      const encrypted = await dataBackupService.encryptBackup(backup, 'password');
+      const encrypted = await dataBackupService.encryptBackup(
+        backup,
+        'password',
+      );
       const parsed = JSON.parse(encrypted);
 
       expect(parsed.version).toBe(1);
@@ -437,17 +493,23 @@ describe('DataBackupService', () => {
       });
 
       // Mock successful decryption
-      mockSodium.crypto_secretbox_open_easy.mockReturnValueOnce(new TextEncoder().encode('{"key":"value"}'));
+      mockSodium.crypto_secretbox_open_easy.mockReturnValueOnce(
+        new TextEncoder().encode('{"key":"value"}'),
+      );
 
-      const decrypted = await dataBackupService.decryptBackup(encrypted, 'password');
+      const decrypted = await dataBackupService.decryptBackup(
+        encrypted,
+        'password',
+      );
       expect(decrypted).toBe('{"key":"value"}');
     });
 
     it('should throw on non-encrypted backup', async () => {
       const notEncrypted = JSON.stringify({ key: 'value' });
 
-      await expect(dataBackupService.decryptBackup(notEncrypted, 'password'))
-        .rejects.toThrow('Not an encrypted backup');
+      await expect(
+        dataBackupService.decryptBackup(notEncrypted, 'password'),
+      ).rejects.toThrow('Not an encrypted backup');
     });
 
     it('should throw on decryption failure', async () => {
@@ -459,14 +521,18 @@ describe('DataBackupService', () => {
 
       mockSodium.crypto_secretbox_open_easy.mockReturnValueOnce(null);
 
-      await expect(dataBackupService.decryptBackup(encrypted, 'password'))
-        .rejects.toThrow('Decryption failed');
+      await expect(
+        dataBackupService.decryptBackup(encrypted, 'password'),
+      ).rejects.toThrow('Decryption failed');
     });
   });
 
   describe('Is Encrypted Backup', () => {
     it('should return true for encrypted backup', () => {
-      const encrypted = JSON.stringify({ encrypted: true, data: 'encrypteddata' });
+      const encrypted = JSON.stringify({
+        encrypted: true,
+        data: 'encrypteddata',
+      });
       expect(dataBackupService.isEncryptedBackup(encrypted)).toBe(true);
     });
 

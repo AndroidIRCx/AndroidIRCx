@@ -26,7 +26,9 @@ const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 /** 900 RPL_LOGGEDIN - Logged in to account */
 export const handle900: NumericHandler = (ctx, prefix, params, timestamp) => {
   const account = params[2] || '';
-  const message = params.slice(3).join(' ').replace(/^:/, '') || t('You are now logged in as {account}', { account });
+  const message =
+    params.slice(3).join(' ').replace(/^:/, '') ||
+    t('You are now logged in as {account}', { account });
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -38,7 +40,8 @@ export const handle900: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 901 RPL_LOGGEDOUT - Logged out */
 export const handle901: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('You are now logged out');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('You are now logged out');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -50,7 +53,9 @@ export const handle901: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 902 ERR_NICKLOCKED - Nick locked */
 export const handle902: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const errorMsg = params.slice(1).join(' ').replace(/^:/, '') || t('You must use a nick assigned to you');
+  const errorMsg =
+    params.slice(1).join(' ').replace(/^:/, '') ||
+    t('You must use a nick assigned to you');
   ctx.addMessage({
     type: 'error',
     text: errorMsg,
@@ -86,7 +91,8 @@ export const handle904: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 905 ERR_SASLTOOLONG - SASL message too long */
 export const handle905: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const errorMsg = params.slice(1).join(' ').replace(/^:/, '') || t('SASL message too long');
+  const errorMsg =
+    params.slice(1).join(' ').replace(/^:/, '') || t('SASL message too long');
   ctx.addMessage({
     type: 'error',
     text: errorMsg,
@@ -96,7 +102,9 @@ export const handle905: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 906 ERR_SASLABORTED - SASL authentication aborted */
 export const handle906: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const errorMsg = params.slice(1).join(' ').replace(/^:/, '') || t('SASL authentication aborted');
+  const errorMsg =
+    params.slice(1).join(' ').replace(/^:/, '') ||
+    t('SASL authentication aborted');
   ctx.addMessage({
     type: 'error',
     text: errorMsg,
@@ -108,7 +116,9 @@ export const handle906: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 907 ERR_SASLALREADY - Already authenticated */
 export const handle907: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const errorMsg = params.slice(1).join(' ').replace(/^:/, '') || t('You have already authenticated');
+  const errorMsg =
+    params.slice(1).join(' ').replace(/^:/, '') ||
+    t('You have already authenticated');
   ctx.addMessage({
     type: 'error',
     text: errorMsg,
@@ -119,7 +129,9 @@ export const handle907: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 908 RPL_SASLMECHS - Available SASL mechanisms */
 export const handle908: NumericHandler = (ctx, prefix, params, timestamp) => {
   const mechanisms = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('are available SASL mechanisms');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') ||
+    t('are available SASL mechanisms');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {mechanisms} {message}', { mechanisms, message }),

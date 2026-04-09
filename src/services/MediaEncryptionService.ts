@@ -22,14 +22,14 @@ import { channelEncryptionService } from './ChannelEncryptionService';
 interface EncryptedMediaResult {
   success: boolean;
   encryptedUri?: string; // Path to encrypted file
-  nonce?: string;        // Base64 nonce
+  nonce?: string; // Base64 nonce
   error?: string;
 }
 
 interface DecryptedMediaResult {
   success: boolean;
   decryptedUri?: string; // Path to decrypted file
-  mimeType?: string;     // MIME type of decrypted file
+  mimeType?: string; // MIME type of decrypted file
   error?: string;
 }
 
@@ -74,7 +74,7 @@ class MediaEncryptionService {
     tabType: 'channel' | 'query',
     network: string,
     identifier: string,
-    mediaId?: string
+    mediaId?: string,
   ): string {
     const canonicalNetwork = this.canonicalizeNetwork(network);
     if (mediaId) {
@@ -93,36 +93,61 @@ class MediaEncryptionService {
 
     // Check magic bytes for common image formats
     // JPEG: FF D8 FF
-    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+    if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
       return 'image/jpeg';
     }
 
     // PNG: 89 50 4E 47
-    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+    if (
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47
+    ) {
       return 'image/png';
     }
 
     // GIF: 47 49 46 38
-    if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
+    if (
+      bytes[0] === 0x47 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x38
+    ) {
       return 'image/gif';
     }
 
     // WebP: RIFF...WEBP
-    if (bytes.length >= 12 &&
-        bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
-        bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
+    if (
+      bytes.length >= 12 &&
+      bytes[0] === 0x52 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x46 &&
+      bytes[8] === 0x57 &&
+      bytes[9] === 0x45 &&
+      bytes[10] === 0x42 &&
+      bytes[11] === 0x50
+    ) {
       return 'image/webp';
     }
 
     // MP4: 00 00 00 ?? 66 74 79 70 (ftyp)
-    if (bytes.length >= 8 &&
-        bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+    if (
+      bytes.length >= 8 &&
+      bytes[4] === 0x66 &&
+      bytes[5] === 0x74 &&
+      bytes[6] === 0x79 &&
+      bytes[7] === 0x70
+    ) {
       return 'video/mp4';
     }
 
     // MP3: FF FB or FF F3 or ID3 tag
-    if ((bytes[0] === 0xFF && (bytes[1] === 0xFB || bytes[1] === 0xF3)) ||
-        (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33)) {
+    if (
+      (bytes[0] === 0xff && (bytes[1] === 0xfb || bytes[1] === 0xf3)) ||
+      (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33)
+    ) {
       return 'audio/mpeg';
     }
 
@@ -156,11 +181,16 @@ class MediaEncryptionService {
     try {
       await this.ensureReady();
 
-      console.log('[MediaEncryptionService] Checking encryption key:', { network, tabId });
+      console.log('[MediaEncryptionService] Checking encryption key:', {
+        network,
+        tabId,
+      });
 
       // Check if tabId is provided
       if (!tabId) {
-        console.log('[MediaEncryptionService] No tabId provided, cannot determine encryption key');
+        console.log(
+          '[MediaEncryptionService] No tabId provided, cannot determine encryption key',
+        );
         return false;
       }
 
@@ -169,22 +199,42 @@ class MediaEncryptionService {
       console.log('[MediaEncryptionService] Tab parts:', tabParts);
 
       if (tabParts.length < 3) {
-        console.log('[MediaEncryptionService] Invalid tab ID format (less than 3 parts)');
+        console.log(
+          '[MediaEncryptionService] Invalid tab ID format (less than 3 parts)',
+        );
         return false;
       }
 
       const [tabType, tabNetwork, identifier] = tabParts;
-      console.log('[MediaEncryptionService] Parsed:', { tabType, tabNetwork, identifier });
+      console.log('[MediaEncryptionService] Parsed:', {
+        tabType,
+        tabNetwork,
+        identifier,
+      });
 
       if (tabType === 'channel') {
         // Check if channel has encryption key
-        const hasKey = await channelEncryptionService.hasChannelKey(identifier, network);
-        console.log('[MediaEncryptionService] Channel encryption check:', { channel: identifier, network, hasKey });
+        const hasKey = await channelEncryptionService.hasChannelKey(
+          identifier,
+          network,
+        );
+        console.log('[MediaEncryptionService] Channel encryption check:', {
+          channel: identifier,
+          network,
+          hasKey,
+        });
         return hasKey;
       } else if (tabType === 'query') {
         // Check if DM has encryption (bundle exchange) - use network-aware method
-        const isEncrypted = await encryptedDMService.isEncryptedForNetwork(network, identifier);
-        console.log('[MediaEncryptionService] DM encryption check:', { nick: identifier, network, isEncrypted });
+        const isEncrypted = await encryptedDMService.isEncryptedForNetwork(
+          network,
+          identifier,
+        );
+        console.log('[MediaEncryptionService] DM encryption check:', {
+          nick: identifier,
+          network,
+          isEncrypted,
+        });
         return isEncrypted;
       }
 
@@ -206,7 +256,7 @@ class MediaEncryptionService {
     fileUri: string,
     network: string,
     tabId: string,
-    mediaId?: string
+    mediaId?: string,
   ): Promise<EncryptedMediaResult> {
     try {
       await this.ensureReady();
@@ -214,7 +264,7 @@ class MediaEncryptionService {
       // Normalize file URI - remove file:// prefix for RNFS operations
       let normalizedUri = fileUri;
       let isContentUri = false;
-      
+
       if (fileUri.startsWith('file://')) {
         normalizedUri = fileUri.replace('file://', '');
       } else if (fileUri.startsWith('content://')) {
@@ -226,7 +276,7 @@ class MediaEncryptionService {
       // Check if file exists
       let fileExists = false;
       let actualUri = normalizedUri;
-      
+
       if (isContentUri) {
         // For content URIs, try to read directly (exists check might not work)
         try {
@@ -235,8 +285,14 @@ class MediaEncryptionService {
           fileExists = true;
           actualUri = normalizedUri;
         } catch (err) {
-          console.error('[MediaEncryptionService] Content URI not accessible:', err);
-          return { success: false, error: 'File does not exist or cannot be accessed' };
+          console.error(
+            '[MediaEncryptionService] Content URI not accessible:',
+            err,
+          );
+          return {
+            success: false,
+            error: 'File does not exist or cannot be accessed',
+          };
         }
       } else {
         fileExists = await RNFS.exists(normalizedUri);
@@ -244,10 +300,15 @@ class MediaEncryptionService {
           // Try with original URI (with file:// prefix)
           const originalExists = await RNFS.exists(fileUri);
           if (!originalExists) {
-            console.error('[MediaEncryptionService] File does not exist:', { fileUri, normalizedUri });
+            console.error('[MediaEncryptionService] File does not exist:', {
+              fileUri,
+              normalizedUri,
+            });
             return { success: false, error: 'File does not exist' };
           }
-          actualUri = fileUri.startsWith('file://') ? fileUri.replace('file://', '') : fileUri;
+          actualUri = fileUri.startsWith('file://')
+            ? fileUri.replace('file://', '')
+            : fileUri;
         } else {
           actualUri = normalizedUri;
         }
@@ -257,25 +318,28 @@ class MediaEncryptionService {
       let fileContent: string;
       try {
         fileContent = await RNFS.readFile(actualUri, 'base64');
-        
+
         // Validate that we got content
         if (!fileContent || fileContent.length === 0) {
           return { success: false, error: 'File is empty' };
         }
-        
+
         // Clean base64 string (remove whitespace, newlines, etc.)
         fileContent = fileContent.replace(/\s/g, '');
-        
+
         // Ensure proper base64 padding (add = if needed)
         const padding = fileContent.length % 4;
         if (padding > 0) {
           fileContent += '='.repeat(4 - padding);
         }
-        
+
         // Validate base64 format (basic check)
         if (!/^[A-Za-z0-9+/]*={0,2}$/.test(fileContent)) {
           console.error('[MediaEncryptionService] Invalid base64 format');
-          return { success: false, error: 'Invalid file format: not valid base64' };
+          return {
+            success: false,
+            error: 'Invalid file format: not valid base64',
+          };
         }
       } catch (err: any) {
         console.error('[MediaEncryptionService] Error reading file:', err);
@@ -283,7 +347,7 @@ class MediaEncryptionService {
         const errorMessage = err?.message || err?.toString() || 'Unknown error';
         return { success: false, error: `Cannot read file: ${errorMessage}` };
       }
-      
+
       // Convert base64 string to Uint8Array
       // Use Buffer for base64 decoding as it's more reliable than libsodium's from_base64
       // for large binary files (especially images/videos)
@@ -293,19 +357,38 @@ class MediaEncryptionService {
         // Buffer handles base64 decoding correctly for all file types
         const buffer = Buffer.from(fileContent, 'base64');
         fileBytes = new Uint8Array(buffer);
-        
+
         // Validate that conversion succeeded
         if (!fileBytes || fileBytes.length === 0) {
-          return { success: false, error: 'File conversion failed: empty result' };
+          return {
+            success: false,
+            error: 'File conversion failed: empty result',
+          };
         }
-        
-        console.log('[MediaEncryptionService] File converted successfully, size:', fileBytes.length, 'bytes');
+
+        console.log(
+          '[MediaEncryptionService] File converted successfully, size:',
+          fileBytes.length,
+          'bytes',
+        );
       } catch (err: any) {
         console.error('[MediaEncryptionService] Error converting base64:', err);
-        console.error('[MediaEncryptionService] Base64 string length:', fileContent.length);
-        console.error('[MediaEncryptionService] Base64 preview:', fileContent.substring(0, 50));
-        console.error('[MediaEncryptionService] Base64 last 50 chars:', fileContent.substring(fileContent.length - 50));
-        return { success: false, error: `Invalid file format: ${err.message || 'Cannot decode base64'}` };
+        console.error(
+          '[MediaEncryptionService] Base64 string length:',
+          fileContent.length,
+        );
+        console.error(
+          '[MediaEncryptionService] Base64 preview:',
+          fileContent.substring(0, 50),
+        );
+        console.error(
+          '[MediaEncryptionService] Base64 last 50 chars:',
+          fileContent.substring(fileContent.length - 50),
+        );
+        return {
+          success: false,
+          error: `Invalid file format: ${err.message || 'Cannot decode base64'}`,
+        };
       }
 
       // Check if tabId is provided
@@ -326,12 +409,22 @@ class MediaEncryptionService {
 
       if (tabType === 'channel') {
         // Encrypt with channel key
-        const result = await this.encryptWithChannelKey(fileBytes, identifier, network, mediaId);
+        const result = await this.encryptWithChannelKey(
+          fileBytes,
+          identifier,
+          network,
+          mediaId,
+        );
         encryptedBytes = result.encrypted;
         nonce = result.nonce;
       } else if (tabType === 'query') {
         // Encrypt with DM key
-        const result = await this.encryptWithDMKey(fileBytes, identifier, network, mediaId);
+        const result = await this.encryptWithDMKey(
+          fileBytes,
+          identifier,
+          network,
+          mediaId,
+        );
         encryptedBytes = result.encrypted;
         nonce = result.nonce;
       } else {
@@ -351,30 +444,48 @@ class MediaEncryptionService {
         // Prepend nonce to encrypted data for storage/upload
         // Format: [nonce_bytes (24 bytes)][encrypted_bytes]
         // This ensures binary compatibility and proper nonce extraction
-        const combinedBytes = new Uint8Array(nonce.length + encryptedBytes.length);
+        const combinedBytes = new Uint8Array(
+          nonce.length + encryptedBytes.length,
+        );
         combinedBytes.set(nonce, 0);
         combinedBytes.set(encryptedBytes, nonce.length);
-        
+
         if (!combinedBytes || combinedBytes.length === 0) {
           throw new Error('Encrypted data is empty');
         }
-        
+
         console.log('[MediaEncryptionService] Encryption details:', {
           nonceLength: nonce.length,
           encryptedLength: encryptedBytes.length,
           combinedLength: combinedBytes.length,
         });
-        console.log('[MediaEncryptionService] Nonce preview (first 8 bytes):', Array.from(nonce.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' '));
-        console.log('[MediaEncryptionService] Encrypted preview (first 16 bytes):', Array.from(encryptedBytes.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
-        
+        console.log(
+          '[MediaEncryptionService] Nonce preview (first 8 bytes):',
+          Array.from(nonce.slice(0, 8))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join(' '),
+        );
+        console.log(
+          '[MediaEncryptionService] Encrypted preview (first 16 bytes):',
+          Array.from(encryptedBytes.slice(0, 16))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join(' '),
+        );
+
         // Convert to base64 for storage
         // Write as UTF-8 text (base64 string) to avoid RNFS.writeFile base64 encoding issues
         // Use Buffer-based encoding for file data (more reliable than libsodium for large files)
         const combinedB64 = this.toB64File(combinedBytes);
-        
-        console.log('[MediaEncryptionService] Combined bytes length:', combinedBytes.length);
-        console.log('[MediaEncryptionService] Combined base64 length:', combinedB64.length);
-        
+
+        console.log(
+          '[MediaEncryptionService] Combined bytes length:',
+          combinedBytes.length,
+        );
+        console.log(
+          '[MediaEncryptionService] Combined base64 length:',
+          combinedB64.length,
+        );
+
         // Write file as UTF-8 text (base64 string)
         // We'll read it back as UTF-8 and convert from base64 to binary during upload
         try {
@@ -387,7 +498,10 @@ class MediaEncryptionService {
               errorMsg = writeError;
             } else if (writeError.message) {
               errorMsg = writeError.message;
-            } else if (writeError.toString && typeof writeError.toString === 'function') {
+            } else if (
+              writeError.toString &&
+              typeof writeError.toString === 'function'
+            ) {
               try {
                 errorMsg = writeError.toString();
               } catch {
@@ -397,14 +511,17 @@ class MediaEncryptionService {
           }
           throw new Error(errorMsg);
         }
-        
+
         // Verify file was written
         const outputFileExists = await RNFS.exists(tempPath);
         if (!outputFileExists) {
           throw new Error('File was not created after write operation');
         }
       } catch (writeError: any) {
-        console.error('[MediaEncryptionService] Error writing encrypted file:', writeError);
+        console.error(
+          '[MediaEncryptionService] Error writing encrypted file:',
+          writeError,
+        );
         // Handle RNFS errors that might have null error codes
         let errorMessage = 'Failed to write encrypted file';
         if (writeError) {
@@ -456,14 +573,14 @@ class MediaEncryptionService {
     encryptedUri: string,
     network: string,
     tabId: string,
-    mediaId?: string
+    mediaId?: string,
   ): Promise<DecryptedMediaResult> {
     try {
       await this.ensureReady();
 
       // Check if file exists
-        const encryptedFileExists = await RNFS.exists(encryptedUri);
-        if (!encryptedFileExists) {
+      const encryptedFileExists = await RNFS.exists(encryptedUri);
+      if (!encryptedFileExists) {
         return { success: false, error: 'Encrypted file does not exist' };
       }
 
@@ -471,31 +588,41 @@ class MediaEncryptionService {
       // File is stored as base64 locally, but downloaded as binary from server
       // Server may return multipart form data, so we need to parse it
       const fileContent = await RNFS.readFile(encryptedUri, 'base64');
-      
-      console.log('[MediaEncryptionService] Raw file content length:', fileContent.length);
-      console.log('[MediaEncryptionService] Raw file content preview:', fileContent.substring(0, 100));
-      
+
+      console.log(
+        '[MediaEncryptionService] Raw file content length:',
+        fileContent.length,
+      );
+      console.log(
+        '[MediaEncryptionService] Raw file content preview:',
+        fileContent.substring(0, 100),
+      );
+
       // Clean and pad base64 string
       let cleanContent = fileContent.replace(/\s/g, '');
       const padding = cleanContent.length % 4;
       if (padding > 0) {
         cleanContent += '='.repeat(4 - padding);
       }
-      
+
       // Convert base64 to Uint8Array to check if it's multipart
       const tempBuffer = Buffer.from(cleanContent, 'base64');
       const tempBytes = new Uint8Array(tempBuffer);
-      
+
       // Check if file starts with multipart boundary (--*****)
       const multipartBoundary = '--*****';
-      const fileStart = String.fromCharCode(...tempBytes.slice(0, Math.min(50, tempBytes.length)));
-      
+      const fileStart = String.fromCharCode(
+        ...tempBytes.slice(0, Math.min(50, tempBytes.length)),
+      );
+
       let combinedBytes: Uint8Array;
-      
+
       if (fileStart.startsWith(multipartBoundary)) {
         // Server returned multipart form data - need to extract binary file
-        console.log('[MediaEncryptionService] Detected multipart form data, parsing...');
-        
+        console.log(
+          '[MediaEncryptionService] Detected multipart form data, parsing...',
+        );
+
         // Find the boundary and extract the binary content
         // Multipart format: --boundary\nheaders\n\nbinary_content\n--boundary--
         const boundaryIndex = tempBytes.findIndex((byte, idx) => {
@@ -504,27 +631,36 @@ class MediaEncryptionService {
           const str = String.fromCharCode(...slice);
           return str === multipartBoundary;
         });
-        
+
         if (boundaryIndex === -1) {
           return { success: false, error: 'Could not find multipart boundary' };
         }
-        
+
         // Find the start of binary data (after headers, which end with \r\n\r\n)
         let binaryStart = boundaryIndex + multipartBoundary.length;
         // Skip to end of headers (look for \r\n\r\n or \n\n)
         while (binaryStart < tempBytes.length - 1) {
-          if ((tempBytes[binaryStart] === 0x0D && tempBytes[binaryStart + 1] === 0x0A && 
-               tempBytes[binaryStart + 2] === 0x0D && tempBytes[binaryStart + 3] === 0x0A) ||
-              (tempBytes[binaryStart] === 0x0A && tempBytes[binaryStart + 1] === 0x0A)) {
-            binaryStart += (tempBytes[binaryStart] === 0x0D ? 4 : 2);
+          if (
+            (tempBytes[binaryStart] === 0x0d &&
+              tempBytes[binaryStart + 1] === 0x0a &&
+              tempBytes[binaryStart + 2] === 0x0d &&
+              tempBytes[binaryStart + 3] === 0x0a) ||
+            (tempBytes[binaryStart] === 0x0a &&
+              tempBytes[binaryStart + 1] === 0x0a)
+          ) {
+            binaryStart += tempBytes[binaryStart] === 0x0d ? 4 : 2;
             break;
           }
           binaryStart++;
         }
-        
+
         // Find the end of binary data (next boundary or end of file)
         let binaryEnd = tempBytes.length;
-        for (let i = binaryStart; i < tempBytes.length - multipartBoundary.length; i++) {
+        for (
+          let i = binaryStart;
+          i < tempBytes.length - multipartBoundary.length;
+          i++
+        ) {
           const slice = tempBytes.slice(i, i + multipartBoundary.length);
           const str = String.fromCharCode(...slice);
           if (str === multipartBoundary) {
@@ -532,35 +668,72 @@ class MediaEncryptionService {
             break;
           }
         }
-        
+
         // Extract binary content (skip any trailing \r\n before boundary)
-        while (binaryEnd > binaryStart && (tempBytes[binaryEnd - 1] === 0x0A || tempBytes[binaryEnd - 1] === 0x0D)) {
+        while (
+          binaryEnd > binaryStart &&
+          (tempBytes[binaryEnd - 1] === 0x0a ||
+            tempBytes[binaryEnd - 1] === 0x0d)
+        ) {
           binaryEnd--;
         }
-        
+
         combinedBytes = tempBytes.slice(binaryStart, binaryEnd);
-        console.log('[MediaEncryptionService] Extracted binary from multipart, length:', combinedBytes.length);
+        console.log(
+          '[MediaEncryptionService] Extracted binary from multipart, length:',
+          combinedBytes.length,
+        );
       } else {
         // Direct binary file (no multipart)
         combinedBytes = tempBytes;
-        console.log('[MediaEncryptionService] Direct binary file, length:', combinedBytes.length);
+        console.log(
+          '[MediaEncryptionService] Direct binary file, length:',
+          combinedBytes.length,
+        );
       }
-      
+
       // Extract nonce (first 24 bytes) and encrypted data (rest)
-      const expectedNonceLength = sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
-      
+      const expectedNonceLength =
+        sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+
       if (combinedBytes.length < expectedNonceLength) {
-        console.error('[MediaEncryptionService] File too short! Got:', combinedBytes.length, 'Expected at least:', expectedNonceLength);
-        return { success: false, error: `File too short: got ${combinedBytes.length} bytes, expected at least ${expectedNonceLength} bytes` };
+        console.error(
+          '[MediaEncryptionService] File too short! Got:',
+          combinedBytes.length,
+          'Expected at least:',
+          expectedNonceLength,
+        );
+        return {
+          success: false,
+          error: `File too short: got ${combinedBytes.length} bytes, expected at least ${expectedNonceLength} bytes`,
+        };
       }
-      
+
       const nonceBytes = combinedBytes.slice(0, expectedNonceLength);
       const encryptedBytes = combinedBytes.slice(expectedNonceLength);
-      
-      console.log('[MediaEncryptionService] Extracted nonce length:', nonceBytes.length, 'expected:', expectedNonceLength);
-      console.log('[MediaEncryptionService] Encrypted data length:', encryptedBytes.length);
-      console.log('[MediaEncryptionService] Nonce preview (first 8 bytes):', Array.from(nonceBytes.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' '));
-      console.log('[MediaEncryptionService] Encrypted preview (first 16 bytes):', Array.from(encryptedBytes.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+
+      console.log(
+        '[MediaEncryptionService] Extracted nonce length:',
+        nonceBytes.length,
+        'expected:',
+        expectedNonceLength,
+      );
+      console.log(
+        '[MediaEncryptionService] Encrypted data length:',
+        encryptedBytes.length,
+      );
+      console.log(
+        '[MediaEncryptionService] Nonce preview (first 8 bytes):',
+        Array.from(nonceBytes.slice(0, 8))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join(' '),
+      );
+      console.log(
+        '[MediaEncryptionService] Encrypted preview (first 16 bytes):',
+        Array.from(encryptedBytes.slice(0, 16))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join(' '),
+      );
 
       // Check if tabId is provided
       if (!tabId) {
@@ -575,19 +748,25 @@ class MediaEncryptionService {
 
       const [tabType, , identifier] = tabParts;
 
-      console.log('[MediaEncryptionService] Decrypting with:', { tabType, identifier, network });
+      console.log('[MediaEncryptionService] Decrypting with:', {
+        tabType,
+        identifier,
+        network,
+      });
 
       let decryptedBytes: Uint8Array;
 
       if (tabType === 'channel') {
         // Decrypt with channel key
-        console.log('[MediaEncryptionService] Calling decryptWithChannelKey...');
+        console.log(
+          '[MediaEncryptionService] Calling decryptWithChannelKey...',
+        );
         decryptedBytes = await this.decryptWithChannelKey(
           encryptedBytes,
           nonceBytes,
           identifier,
           network,
-          mediaId
+          mediaId,
         );
       } else if (tabType === 'query') {
         // Decrypt with DM key
@@ -596,7 +775,7 @@ class MediaEncryptionService {
           nonceBytes,
           identifier,
           network,
-          mediaId
+          mediaId,
         );
       } else {
         return { success: false, error: 'Unsupported tab type for decryption' };
@@ -620,14 +799,14 @@ class MediaEncryptionService {
         if (!base64Data || base64Data.length === 0) {
           throw new Error('Decrypted data is empty');
         }
-        
+
         // Wrap RNFS.writeFile in a promise that handles null error codes
         await new Promise<void>((resolve, reject) => {
           // Use a timeout to detect if the promise never resolves/rejects
           const timeout = setTimeout(() => {
             reject(new Error('Write operation timed out'));
           }, 30000); // 30 second timeout
-          
+
           try {
             RNFS.writeFile(tempPath, base64Data, 'base64')
               .then(() => {
@@ -643,7 +822,10 @@ class MediaEncryptionService {
                     errorMsg = err;
                   } else if (err.message) {
                     errorMsg = err.message;
-                  } else if (err.toString && typeof err.toString === 'function') {
+                  } else if (
+                    err.toString &&
+                    typeof err.toString === 'function'
+                  ) {
                     try {
                       errorMsg = err.toString();
                     } catch {
@@ -655,16 +837,20 @@ class MediaEncryptionService {
               });
           } catch (syncError: any) {
             clearTimeout(timeout);
-            reject(new Error(`Synchronous error: ${syncError?.message || 'Unknown error'}`));
+            reject(
+              new Error(
+                `Synchronous error: ${syncError?.message || 'Unknown error'}`,
+              ),
+            );
           }
         });
-        
+
         // Verify file was written
         const outputFileExists = await RNFS.exists(tempPath);
         if (!outputFileExists) {
           throw new Error('File was not created after write operation');
         }
-        
+
         // Verify file size matches decrypted data
         const fileInfo = await RNFS.stat(tempPath);
         if (fileInfo.size !== decryptedBytes.length) {
@@ -673,21 +859,27 @@ class MediaEncryptionService {
             actual: fileInfo.size,
           });
         }
-        
+
         // Verify file starts with correct magic bytes for detected MIME type
         if (mimeType.startsWith('image/')) {
           const outputFileContent = await RNFS.readFile(tempPath, 'base64');
           const fileBytes = Buffer.from(outputFileContent, 'base64');
           const detectedMime = this.detectMimeType(new Uint8Array(fileBytes));
           if (detectedMime !== mimeType) {
-            console.warn('[MediaEncryptionService] MIME type mismatch after write:', {
-              expected: mimeType,
-              detected: detectedMime,
-            });
+            console.warn(
+              '[MediaEncryptionService] MIME type mismatch after write:',
+              {
+                expected: mimeType,
+                detected: detectedMime,
+              },
+            );
           }
         }
       } catch (writeError: any) {
-        console.error('[MediaEncryptionService] Error writing decrypted file:', writeError);
+        console.error(
+          '[MediaEncryptionService] Error writing decrypted file:',
+          writeError,
+        );
         // Handle RNFS errors that might have null error codes
         let errorMessage = 'Failed to write decrypted file';
         if (writeError) {
@@ -702,7 +894,10 @@ class MediaEncryptionService {
         throw new Error(`Failed to save decrypted file: ${errorMessage}`);
       }
 
-      console.log('[MediaEncryptionService] File decrypted successfully, MIME type:', mimeType);
+      console.log(
+        '[MediaEncryptionService] File decrypted successfully, MIME type:',
+        mimeType,
+      );
 
       return {
         success: true,
@@ -736,23 +931,28 @@ class MediaEncryptionService {
     data: Uint8Array,
     channel: string,
     network: string,
-    mediaId?: string
+    mediaId?: string,
   ): Promise<{ encrypted: Uint8Array; nonce: Uint8Array }> {
-    const channelKey = await channelEncryptionService.getChannelKey(channel, network);
+    const channelKey = await channelEncryptionService.getChannelKey(
+      channel,
+      network,
+    );
     if (!channelKey) {
       throw new Error('No channel encryption key found');
     }
 
     const key = this.fromB64(channelKey.key);
-    const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+    const nonce = sodium.randombytes_buf(
+      sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    );
 
     const aad = this.buildMediaAAD('channel', network, channel, mediaId);
     const encrypted = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       data,
       aad,
-      null,   // nsec (not used)
+      null, // nsec (not used)
       nonce,
-      key
+      key,
     );
 
     return { encrypted, nonce };
@@ -766,15 +966,18 @@ class MediaEncryptionService {
     nonce: Uint8Array,
     channel: string,
     network: string,
-    mediaId?: string
+    mediaId?: string,
   ): Promise<Uint8Array> {
-    const channelKey = await channelEncryptionService.getChannelKey(channel, network);
+    const channelKey = await channelEncryptionService.getChannelKey(
+      channel,
+      network,
+    );
     if (!channelKey) {
       throw new Error('No channel encryption key found');
     }
 
     const key = this.fromB64(channelKey.key);
-    
+
     console.log('[MediaEncryptionService] decryptWithChannelKey:', {
       encryptedLength: encrypted.length,
       nonceLength: nonce.length,
@@ -783,18 +986,23 @@ class MediaEncryptionService {
       network,
     });
 
-    const aadWithId = mediaId ? this.buildMediaAAD('channel', network, channel, mediaId) : null;
+    const aadWithId = mediaId
+      ? this.buildMediaAAD('channel', network, channel, mediaId)
+      : null;
     const aad = this.buildMediaAAD('channel', network, channel);
     try {
       const decrypted = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-        null,   // nsec (not used)
+        null, // nsec (not used)
         encrypted,
         aadWithId || aad,
         nonce,
-        key
+        key,
       );
 
-      console.log('[MediaEncryptionService] Decryption successful, decrypted length:', decrypted.length);
+      console.log(
+        '[MediaEncryptionService] Decryption successful, decrypted length:',
+        decrypted.length,
+      );
       return decrypted;
     } catch {
       try {
@@ -803,10 +1011,13 @@ class MediaEncryptionService {
           encrypted,
           aad,
           nonce,
-          key
+          key,
         );
 
-        console.log('[MediaEncryptionService] Decryption successful, decrypted length:', decrypted.length);
+        console.log(
+          '[MediaEncryptionService] Decryption successful, decrypted length:',
+          decrypted.length,
+        );
         return decrypted;
       } catch {
         const decrypted = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
@@ -814,10 +1025,13 @@ class MediaEncryptionService {
           encrypted,
           '',
           nonce,
-          key
+          key,
         );
 
-        console.log('[MediaEncryptionService] Decryption successful, decrypted length:', decrypted.length);
+        console.log(
+          '[MediaEncryptionService] Decryption successful, decrypted length:',
+          decrypted.length,
+        );
         return decrypted;
       }
     }
@@ -830,19 +1044,21 @@ class MediaEncryptionService {
     data: Uint8Array,
     nick: string,
     network: string,
-    mediaId?: string
+    mediaId?: string,
   ): Promise<{ encrypted: Uint8Array; nonce: Uint8Array }> {
     const key = await encryptedDMService.getMessageKeyForNetwork(network, nick);
     const aad = this.buildMediaAAD('query', network, nick, mediaId);
 
-    const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+    const nonce = sodium.randombytes_buf(
+      sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    );
 
     const encrypted = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       data,
       aad,
       null,
       nonce,
-      key
+      key,
     );
 
     return { encrypted, nonce };
@@ -856,10 +1072,12 @@ class MediaEncryptionService {
     nonce: Uint8Array,
     nick: string,
     network: string,
-    mediaId?: string
+    mediaId?: string,
   ): Promise<Uint8Array> {
     const key = await encryptedDMService.getMessageKeyForNetwork(network, nick);
-    const aadWithId = mediaId ? this.buildMediaAAD('query', network, nick, mediaId) : null;
+    const aadWithId = mediaId
+      ? this.buildMediaAAD('query', network, nick, mediaId)
+      : null;
     const aad = this.buildMediaAAD('query', network, nick);
 
     try {
@@ -868,7 +1086,7 @@ class MediaEncryptionService {
         encrypted,
         aadWithId || aad,
         nonce,
-        key
+        key,
       );
     } catch {
       try {
@@ -877,7 +1095,7 @@ class MediaEncryptionService {
           encrypted,
           aad,
           nonce,
-          key
+          key,
         );
       } catch {
         return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
@@ -885,17 +1103,19 @@ class MediaEncryptionService {
           encrypted,
           '',
           nonce,
-          key
+          key,
         );
       }
     }
   }
 
-
   /**
    * Get encryption info for debugging/display
    */
-  async getEncryptionInfo(network: string, tabId: string): Promise<{
+  async getEncryptionInfo(
+    network: string,
+    tabId: string,
+  ): Promise<{
     hasEncryption: boolean;
     type?: 'channel' | 'dm';
     identifier?: string;

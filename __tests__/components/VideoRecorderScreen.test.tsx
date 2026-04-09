@@ -85,7 +85,11 @@ describe('VideoRecorderScreen', () => {
     mockRequestMicPermission.mockResolvedValue(false);
 
     const { getByText } = render(
-      <VideoRecorderScreen visible onClose={jest.fn()} onVideoRecorded={jest.fn()} />
+      <VideoRecorderScreen
+        visible
+        onClose={jest.fn()}
+        onVideoRecorded={jest.fn()}
+      />,
     );
 
     await act(async () => {
@@ -101,10 +105,16 @@ describe('VideoRecorderScreen', () => {
     const onClose = jest.fn();
 
     const { UNSAFE_getAllByType } = render(
-      <VideoRecorderScreen visible onClose={onClose} onVideoRecorded={onVideoRecorded} />
+      <VideoRecorderScreen
+        visible
+        onClose={onClose}
+        onVideoRecorded={onVideoRecorded}
+      />,
     );
 
-    const buttons = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const buttons = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
     const recordButton = buttons[1];
 
     await act(async () => {
@@ -114,13 +124,20 @@ describe('VideoRecorderScreen', () => {
     expect(mockStartRecording).toHaveBeenCalled();
     expect(mockReadFile).toHaveBeenCalledWith('/tmp/rec.mp4', 'base64');
     expect(mockWriteFile).toHaveBeenCalled();
-    expect(onVideoRecorded).toHaveBeenCalledWith(expect.stringContaining('/cache/video_'), expect.any(Number));
+    expect(onVideoRecorded).toHaveBeenCalledWith(
+      expect.stringContaining('/cache/video_'),
+      expect.any(Number),
+    );
     expect(onClose).toHaveBeenCalled();
   });
 
   it('renders null when hidden', () => {
     const { toJSON } = render(
-      <VideoRecorderScreen visible={false} onClose={jest.fn()} onVideoRecorded={jest.fn()} />
+      <VideoRecorderScreen
+        visible={false}
+        onClose={jest.fn()}
+        onVideoRecorded={jest.fn()}
+      />,
     );
     expect(toJSON()).toBeNull();
   });
@@ -130,7 +147,11 @@ describe('VideoRecorderScreen', () => {
     mockDevice = null;
 
     const { getByText } = render(
-      <VideoRecorderScreen visible onClose={onClose} onVideoRecorded={jest.fn()} />
+      <VideoRecorderScreen
+        visible
+        onClose={onClose}
+        onVideoRecorded={jest.fn()}
+      />,
     );
 
     expect(getByText('Camera not available')).toBeTruthy();
@@ -142,10 +163,16 @@ describe('VideoRecorderScreen', () => {
     mockStartRecording.mockRejectedValue(new Error('start failed'));
 
     const { UNSAFE_getAllByType, getByText } = render(
-      <VideoRecorderScreen visible onClose={jest.fn()} onVideoRecorded={jest.fn()} />
+      <VideoRecorderScreen
+        visible
+        onClose={jest.fn()}
+        onVideoRecorded={jest.fn()}
+      />,
     );
 
-    const buttons = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const buttons = UNSAFE_getAllByType(
+      require('react-native').TouchableOpacity,
+    );
     const recordButton = buttons[1];
 
     await act(async () => {

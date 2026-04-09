@@ -35,24 +35,29 @@ describe('CommandSuggestions', () => {
 
   it('should return null when not visible', () => {
     const { UNSAFE_root } = render(
-      <CommandSuggestions {...defaultProps} visible={false} />
+      <CommandSuggestions {...defaultProps} visible={false} />,
     );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
 
   it('should return null when suggestions array is empty', () => {
     const { UNSAFE_root } = render(
-      <CommandSuggestions {...defaultProps} suggestions={[]} />
+      <CommandSuggestions {...defaultProps} suggestions={[]} />,
     );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
 
   it('should render when visible with suggestions', () => {
     const suggestions = [
-      { text: '/msg', label: '/msg', description: 'Send private message', isAlias: false },
+      {
+        text: '/msg',
+        label: '/msg',
+        description: 'Send private message',
+        isAlias: false,
+      },
     ];
     const { getByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     expect(getByText('/msg')).toBeTruthy();
     expect(getByText('Send private message')).toBeTruthy();
@@ -60,12 +65,27 @@ describe('CommandSuggestions', () => {
 
   it('should render multiple suggestions', () => {
     const suggestions = [
-      { text: '/msg', label: '/msg', description: 'Send message', isAlias: false },
-      { text: '/join', label: '/join', description: 'Join channel', isAlias: false },
-      { text: '/part', label: '/part', description: 'Leave channel', isAlias: false },
+      {
+        text: '/msg',
+        label: '/msg',
+        description: 'Send message',
+        isAlias: false,
+      },
+      {
+        text: '/join',
+        label: '/join',
+        description: 'Join channel',
+        isAlias: false,
+      },
+      {
+        text: '/part',
+        label: '/part',
+        description: 'Leave channel',
+        isAlias: false,
+      },
     ];
     const { getByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     expect(getByText('/msg')).toBeTruthy();
     expect(getByText('/join')).toBeTruthy();
@@ -74,10 +94,15 @@ describe('CommandSuggestions', () => {
 
   it('should call onSelect when suggestion is pressed', () => {
     const suggestions = [
-      { text: '/msg', label: '/msg', description: 'Send message', isAlias: false },
+      {
+        text: '/msg',
+        label: '/msg',
+        description: 'Send message',
+        isAlias: false,
+      },
     ];
     const { getByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     fireEvent.press(getByText('/msg'));
     expect(defaultProps.onSelect).toHaveBeenCalledWith(suggestions[0]);
@@ -88,7 +113,7 @@ describe('CommandSuggestions', () => {
       { text: '/m', label: '/m', description: 'Alias for /msg', isAlias: true },
     ];
     const { getByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     expect(getByText('/m')).toBeTruthy();
     expect(getByText('alias')).toBeTruthy();
@@ -96,10 +121,15 @@ describe('CommandSuggestions', () => {
 
   it('should not display alias badge for non-alias suggestions', () => {
     const suggestions = [
-      { text: '/msg', label: '/msg', description: 'Send message', isAlias: false },
+      {
+        text: '/msg',
+        label: '/msg',
+        description: 'Send message',
+        isAlias: false,
+      },
     ];
     const { queryByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     expect(queryByText('alias')).toBeNull();
   });
@@ -110,7 +140,7 @@ describe('CommandSuggestions', () => {
       { text: '/msg', label: '/msg', description: 'Second', isAlias: false },
     ];
     const { getAllByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     expect(getAllByText('/msg')).toHaveLength(2);
   });
@@ -121,7 +151,7 @@ describe('CommandSuggestions', () => {
       { text: '/last', label: '/last', description: 'Last', isAlias: false },
     ];
     const { UNSAFE_root } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     expect(UNSAFE_root).toBeDefined();
   });
@@ -131,7 +161,7 @@ describe('CommandSuggestions', () => {
       { text: '/cmd', label: '/cmd', description: '', isAlias: false },
     ];
     const { getByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     expect(getByText('/cmd')).toBeTruthy();
   });
@@ -146,20 +176,34 @@ describe('CommandSuggestions', () => {
       background: '#000',
     };
     const suggestions = [
-      { text: '/test', label: '/test', description: 'Test command', isAlias: false },
+      {
+        text: '/test',
+        label: '/test',
+        description: 'Test command',
+        isAlias: false,
+      },
     ];
     const { getByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} colors={darkColors} />
+      <CommandSuggestions
+        {...defaultProps}
+        suggestions={suggestions}
+        colors={darkColors}
+      />,
     );
     expect(getByText('/test')).toBeTruthy();
   });
 
   it('should handle long description text', () => {
     const suggestions = [
-      { text: '/long', label: '/long', description: 'A'.repeat(200), isAlias: false },
+      {
+        text: '/long',
+        label: '/long',
+        description: 'A'.repeat(200),
+        isAlias: false,
+      },
     ];
     const { getByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     expect(getByText('/long')).toBeTruthy();
   });
@@ -172,7 +216,7 @@ describe('CommandSuggestions', () => {
       isAlias: i % 2 === 0,
     }));
     const { getByText } = render(
-      <CommandSuggestions {...defaultProps} suggestions={suggestions} />
+      <CommandSuggestions {...defaultProps} suggestions={suggestions} />,
     );
     expect(getByText('/cmd0')).toBeTruthy();
     expect(getByText('/cmd19')).toBeTruthy();

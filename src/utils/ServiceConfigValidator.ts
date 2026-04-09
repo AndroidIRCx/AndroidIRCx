@@ -81,13 +81,26 @@ export function validateServiceConfig(config: unknown): ConfigValidationResult {
     });
   } else {
     const services = c.services as Record<string, unknown>;
-    const validServices = ['nickserv', 'chanserv', 'hostserv', 'operserv', 'botserv', 'memoserv', 'groupserv', 'x', 'q'];
-    
+    const validServices = [
+      'nickserv',
+      'chanserv',
+      'hostserv',
+      'operserv',
+      'botserv',
+      'memoserv',
+      'groupserv',
+      'x',
+      'q',
+    ];
+
     for (const [key, value] of Object.entries(services)) {
       if (!validServices.includes(key)) {
         warnings.push(`Unknown service: ${key}`);
       } else {
-        const serviceValidation = validateServiceDefinition(value, ['services', key]);
+        const serviceValidation = validateServiceDefinition(value, [
+          'services',
+          key,
+        ]);
         errors.push(...serviceValidation.errors);
         warnings.push(...serviceValidation.warnings);
       }
@@ -103,7 +116,7 @@ export function validateServiceConfig(config: unknown): ConfigValidationResult {
     });
   } else {
     const ircd = c.ircd as Record<string, unknown>;
-    
+
     // Validate userModes
     if (!Array.isArray(ircd.userModes)) {
       errors.push({
@@ -147,14 +160,16 @@ export function validateServiceConfig(config: unknown): ConfigValidationResult {
  */
 function validateServiceDefinition(
   def: unknown,
-  path: string[]
+  path: string[],
 ): { errors: ValidationResult[]; warnings: string[] } {
   const errors: ValidationResult[] = [];
   const warnings: string[] = [];
 
   if (typeof def !== 'object' || def === null) {
     return {
-      errors: [{ valid: false, error: 'Service definition must be an object', path }],
+      errors: [
+        { valid: false, error: 'Service definition must be an object', path },
+      ],
       warnings: [],
     };
   }
@@ -163,15 +178,27 @@ function validateServiceDefinition(
 
   // Validate required fields
   if (typeof d.enabled !== 'boolean') {
-    errors.push({ valid: false, error: 'enabled must be a boolean', path: [...path, 'enabled'] });
+    errors.push({
+      valid: false,
+      error: 'enabled must be a boolean',
+      path: [...path, 'enabled'],
+    });
   }
 
   if (typeof d.nick !== 'string' || d.nick.length === 0) {
-    errors.push({ valid: false, error: 'nick must be a non-empty string', path: [...path, 'nick'] });
+    errors.push({
+      valid: false,
+      error: 'nick must be a non-empty string',
+      path: [...path, 'nick'],
+    });
   }
 
   if (!Array.isArray(d.commands)) {
-    errors.push({ valid: false, error: 'commands must be an array', path: [...path, 'commands'] });
+    errors.push({
+      valid: false,
+      error: 'commands must be an array',
+      path: [...path, 'commands'],
+    });
     return { errors, warnings };
   }
 
@@ -182,15 +209,23 @@ function validateServiceDefinition(
   for (let i = 0; i < d.commands.length; i++) {
     const cmd = d.commands[i];
     const cmdPath = [...path, 'commands', i.toString()];
-    
+
     if (!isServiceCommand(cmd)) {
-      errors.push({ valid: false, error: 'Invalid command structure', path: cmdPath });
+      errors.push({
+        valid: false,
+        error: 'Invalid command structure',
+        path: cmdPath,
+      });
       continue;
     }
 
     // Check for duplicate command names
     if (commandNames.has(cmd.name)) {
-      errors.push({ valid: false, error: `Duplicate command name: ${cmd.name}`, path: cmdPath });
+      errors.push({
+        valid: false,
+        error: `Duplicate command name: ${cmd.name}`,
+        path: cmdPath,
+      });
     } else {
       commandNames.add(cmd.name);
     }
@@ -222,7 +257,10 @@ function validateServiceDefinition(
  * @param path Current path for error reporting
  * @returns Validation result
  */
-function validateCommandInternal(cmd: ServiceCommand, path: string[]): { errors: ValidationResult[] } {
+function validateCommandInternal(
+  cmd: ServiceCommand,
+  path: string[],
+): { errors: ValidationResult[] } {
   const errors: ValidationResult[] = [];
 
   // Validate minLevel
@@ -253,7 +291,15 @@ function validateCommandInternal(cmd: ServiceCommand, path: string[]): { errors:
     }
 
     // Validate parameter type
-    const validTypes = ['string', 'number', 'channel', 'nick', 'duration', 'enum', 'boolean'];
+    const validTypes = [
+      'string',
+      'number',
+      'channel',
+      'nick',
+      'duration',
+      'enum',
+      'boolean',
+    ];
     if (!validTypes.includes(param.type)) {
       errors.push({
         valid: false,
@@ -263,7 +309,11 @@ function validateCommandInternal(cmd: ServiceCommand, path: string[]): { errors:
     }
 
     // Validate enumValues for enum type
-    if (param.type === 'enum' && param.enumValues && !Array.isArray(param.enumValues)) {
+    if (
+      param.type === 'enum' &&
+      param.enumValues &&
+      !Array.isArray(param.enumValues)
+    ) {
       errors.push({
         valid: false,
         error: 'enumValues must be an array',
@@ -275,7 +325,7 @@ function validateCommandInternal(cmd: ServiceCommand, path: string[]): { errors:
   // Validate completion config
   if (cmd.completion?.suggestAlias) {
     const alias = cmd.completion.suggestAlias;
-    
+
     // Check format
     if (!/^[a-z][a-z0-9]*$/.test(alias)) {
       errors.push({
@@ -373,10 +423,9 @@ export function findDuplicateCommands(config: ServiceConfig): Array<{
  * @param config Service configuration
  * @returns Map of alias to command info
  */
-export function getAllSuggestAliases(config: ServiceConfig): Map<
-  string,
-  { service: string; command: string }
-> {
+export function getAllSuggestAliases(
+  config: ServiceConfig,
+): Map<string, { service: string; command: string }> {
   const aliases = new Map<string, { service: string; command: string }>();
 
   for (const [serviceName, service] of Object.entries(config.services)) {
@@ -403,10 +452,11 @@ export function getAllSuggestAliases(config: ServiceConfig): Map<
  */
 export function findAliasConflicts(
   config: ServiceConfig,
-  reservedWords: string[]
+  reservedWords: string[],
 ): Array<{ alias: string; command: string; conflict: string }> {
   const aliases = getAllSuggestAliases(config);
-  const conflicts: Array<{ alias: string; command: string; conflict: string }> = [];
+  const conflicts: Array<{ alias: string; command: string; conflict: string }> =
+    [];
   const reservedSet = new Set(reservedWords.map(w => w.toLowerCase()));
 
   for (const [alias, info] of aliases.entries()) {

@@ -76,7 +76,7 @@ export class BouncerService {
     }
 
     // Listen for connection changes
-    this.ircService.onConnectionChange((connected) => {
+    this.ircService.onConnectionChange(connected => {
       if (connected) {
         this.onConnected();
       } else {
@@ -85,7 +85,7 @@ export class BouncerService {
     });
 
     // Listen for messages to detect playback
-    this.ircService.onMessage((message) => {
+    this.ircService.onMessage(message => {
       if (this.shouldHandlePlayback()) {
         this.handleMessage(message);
       }
@@ -93,7 +93,7 @@ export class BouncerService {
 
     // Listen for capabilities
     this.ircService.on('capabilities', (capabilities: string[]) => {
-        this.updateCapabilities(capabilities);
+      this.updateCapabilities(capabilities);
     });
   }
 
@@ -126,9 +126,16 @@ export class BouncerService {
     // We'll detect from server version or CAP capabilities
     setTimeout(() => {
       // Check if ZNC capabilities are available
-      const hasZNCPlayback = this.bouncerInfo.capabilities.includes('znc.in/playback');
-      const hasZNC = this.bouncerInfo.capabilities.some(cap => cap.startsWith('znc.in/'));
-      const hasGenericBnc = this.bouncerInfo.capabilities.some(cap => cap.toLowerCase().includes('bouncer') || cap.toLowerCase().includes('playback'));
+      const hasZNCPlayback =
+        this.bouncerInfo.capabilities.includes('znc.in/playback');
+      const hasZNC = this.bouncerInfo.capabilities.some(cap =>
+        cap.startsWith('znc.in/'),
+      );
+      const hasGenericBnc = this.bouncerInfo.capabilities.some(
+        cap =>
+          cap.toLowerCase().includes('bouncer') ||
+          cap.toLowerCase().includes('playback'),
+      );
 
       if (this.config.type === 'auto') {
         if (hasZNCPlayback || hasZNC) {
@@ -148,20 +155,28 @@ export class BouncerService {
       }
 
       if (this.bouncerInfo.type !== 'unknown') {
-        console.log('BouncerService: Detected bouncer type:', this.bouncerInfo.type);
+        console.log(
+          'BouncerService: Detected bouncer type:',
+          this.bouncerInfo.type,
+        );
         const t = (key: string, params?: Record<string, unknown>) => {
           const translator = (tx as any)?.t;
-          return typeof translator === 'function' ? translator(key, params) : key;
+          return typeof translator === 'function'
+            ? translator(key, params)
+            : key;
         };
-        const hint = this.bouncerInfo.type === 'znc'
-          ? t('Quick aliases: /zncver, /zncm, /zncplay #chan, /zncclear #chan')
-          : undefined;
+        const hint =
+          this.bouncerInfo.type === 'znc'
+            ? t(
+                'Quick aliases: /zncver, /zncm, /zncplay #chan, /zncclear #chan',
+              )
+            : undefined;
         this.ircService.addRawMessage(
           t('*** Detected bouncer type: {type}{hint}', {
             type: this.bouncerInfo.type,
             hint: hint ? ` (${hint})` : '',
           }),
-          'connection'
+          'connection',
         );
       }
     }, 2000); // Wait a bit for CAP negotiation
@@ -177,7 +192,11 @@ export class BouncerService {
 
     if (this.config.type === 'auto') {
       const hasZNC = capabilities.some(cap => cap.startsWith('znc.in/'));
-      const hasGenericBnc = capabilities.some(cap => cap.toLowerCase().includes('bouncer') || cap.toLowerCase().includes('playback'));
+      const hasGenericBnc = capabilities.some(
+        cap =>
+          cap.toLowerCase().includes('bouncer') ||
+          cap.toLowerCase().includes('playback'),
+      );
       if (hasZNCPlayback || hasZNC) {
         this.bouncerInfo.type = 'znc';
       } else if (hasGenericBnc) {
@@ -246,7 +265,10 @@ export class BouncerService {
     const connectionAge = Date.now() - this.playbackStartTime;
 
     // If message is older than connection and we're in playback window
-    if (messageAge > connectionAge && connectionAge < this.config.playbackTimeout * 2) {
+    if (
+      messageAge > connectionAge &&
+      connectionAge < this.config.playbackTimeout * 2
+    ) {
       return true;
     }
 
@@ -284,7 +306,9 @@ export class BouncerService {
     this.isInPlayback = false;
     this.bouncerInfo.playbackActive = false;
 
-    console.log(`BouncerService: Playback ended (${this.playbackMessages.length} messages)`);
+    console.log(
+      `BouncerService: Playback ended (${this.playbackMessages.length} messages)`,
+    );
 
     // Notify listeners
     this.notifyPlaybackListeners(false);
@@ -399,7 +423,9 @@ export class BouncerService {
   onPlaybackChange(callback: (isPlayback: boolean) => void): () => void {
     this.playbackListeners.push(callback);
     return () => {
-      this.playbackListeners = this.playbackListeners.filter(cb => cb !== callback);
+      this.playbackListeners = this.playbackListeners.filter(
+        cb => cb !== callback,
+      );
     };
   }
 

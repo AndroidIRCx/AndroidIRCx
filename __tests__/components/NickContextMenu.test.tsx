@@ -84,8 +84,10 @@ jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: {
     getState: () => ({
       setShowBlacklist: (...args: unknown[]) => mockSetShowBlacklist(...args),
-      setBlacklistTarget: (...args: unknown[]) => mockSetBlacklistTarget(...args),
-      setUserListsInitialTab: (...args: unknown[]) => mockSetUserListsInitialTab(...args),
+      setBlacklistTarget: (...args: unknown[]) =>
+        mockSetBlacklistTarget(...args),
+      setUserListsInitialTab: (...args: unknown[]) =>
+        mockSetUserListsInitialTab(...args),
       setUserListTarget: (...args: unknown[]) => mockSetUserListTarget(...args),
       setShowUserLists: (...args: unknown[]) => mockSetShowUserLists(...args),
     }),
@@ -97,7 +99,7 @@ jest.mock('../../src/i18n/transifex', () => ({
     if (params) {
       return Object.entries(params).reduce(
         (acc, [k, v]) => acc.replace(`{${k}}`, v),
-        key
+        key,
       );
     }
     return key;
@@ -135,13 +137,13 @@ jest.mock('../../src/components/KickBanModal', () => {
                 banType: 2,
               }),
           },
-          React.createElement(Text, null, 'Confirm')
+          React.createElement(Text, null, 'Confirm'),
         ),
         React.createElement(
           TouchableOpacity,
           { testID: 'kick-ban-cancel', onPress: onClose },
-          React.createElement(Text, null, 'Cancel')
-        )
+          React.createElement(Text, null, 'Cancel'),
+        ),
       );
     }),
   };
@@ -183,7 +185,7 @@ describe('NickContextMenu', () => {
     mockGetChannelUsers.mockReturnValue([]);
     mockGetCommands.mockReturnValue([]);
     mockGetSetting.mockImplementation((key: string, defaultValue: any) =>
-      Promise.resolve(defaultValue)
+      Promise.resolve(defaultValue),
     );
     mockGetCallNicklistCallActionsEnabled.mockResolvedValue(false);
     mockGenerateBanMask.mockReturnValue('*!*@test.host');
@@ -204,18 +206,22 @@ describe('NickContextMenu', () => {
 
     it('renders with action message banner', () => {
       const { getByText } = render(
-        <NickContextMenu {...baseProps} actionMessage="User is online" />
+        <NickContextMenu {...baseProps} actionMessage="User is online" />,
       );
       expect(getByText('User is online')).toBeTruthy();
     });
 
     it('does not render when not visible', () => {
-      const { queryByText } = render(<NickContextMenu {...baseProps} visible={false} />);
+      const { queryByText } = render(
+        <NickContextMenu {...baseProps} visible={false} />,
+      );
       expect(queryByText('TestUser')).toBeNull();
     });
 
     it('renders without nick', () => {
-      const { queryByText } = render(<NickContextMenu {...baseProps} nick={undefined} />);
+      const { queryByText } = render(
+        <NickContextMenu {...baseProps} nick={undefined} />,
+      );
       // Component should still render even without nick
       expect(queryByText('Copy nickname')).toBeTruthy();
     });
@@ -225,7 +231,9 @@ describe('NickContextMenu', () => {
   describe('quick actions', () => {
     it('handles WHOIS action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('WHOIS'));
       expect(onAction).toHaveBeenCalledWith('whois');
@@ -233,7 +241,9 @@ describe('NickContextMenu', () => {
 
     it('handles Open Query action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('Open Query'));
       expect(onAction).toHaveBeenCalledWith('query');
@@ -241,7 +251,9 @@ describe('NickContextMenu', () => {
 
     it('handles copy nickname action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('Copy nickname'));
       expect(onAction).toHaveBeenCalledWith('copy');
@@ -257,7 +269,9 @@ describe('NickContextMenu', () => {
           isMonitoring: () => false,
         },
       };
-      const { getByText } = render(<NickContextMenu {...baseProps} connection={connection} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} connection={connection} />,
+      );
       expect(getByText('Monitor Nick')).toBeTruthy();
     });
 
@@ -268,7 +282,9 @@ describe('NickContextMenu', () => {
           isMonitoring: () => true,
         },
       };
-      const { getByText } = render(<NickContextMenu {...baseProps} connection={connection} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} connection={connection} />,
+      );
       expect(getByText('Unmonitor Nick')).toBeTruthy();
     });
 
@@ -281,7 +297,11 @@ describe('NickContextMenu', () => {
         },
       };
       const { getByText } = render(
-        <NickContextMenu {...baseProps} onAction={onAction} connection={connection} />
+        <NickContextMenu
+          {...baseProps}
+          onAction={onAction}
+          connection={connection}
+        />,
       );
 
       fireEvent.press(getByText('Monitor Nick'));
@@ -304,7 +324,9 @@ describe('NickContextMenu', () => {
   // ==================== User List Group ====================
   describe('user list group', () => {
     it('expands user list group on press', () => {
-      const { getByText, queryByText } = render(<NickContextMenu {...baseProps} />);
+      const { getByText, queryByText } = render(
+        <NickContextMenu {...baseProps} />,
+      );
 
       // Initially not expanded
       expect(queryByText('Ignore User')).toBeNull();
@@ -328,7 +350,9 @@ describe('NickContextMenu', () => {
 
     it('handles ignore toggle action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('User list >'));
       fireEvent.press(getByText('Ignore User'));
@@ -337,7 +361,9 @@ describe('NickContextMenu', () => {
 
     it('handles blacklist action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('User list >'));
       fireEvent.press(getByText('Add to Blacklist'));
@@ -360,7 +386,9 @@ describe('NickContextMenu', () => {
 
     it('handles add to notify action', () => {
       const onClose = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onClose={onClose} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onClose={onClose} />,
+      );
 
       fireEvent.press(getByText('User list >'));
       fireEvent.press(getByText('Add to Notify'));
@@ -372,7 +400,9 @@ describe('NickContextMenu', () => {
 
     it('handles add to autoop action', () => {
       const onClose = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onClose={onClose} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onClose={onClose} />,
+      );
 
       fireEvent.press(getByText('User list >'));
       fireEvent.press(getByText('Add to AutoOp'));
@@ -384,7 +414,9 @@ describe('NickContextMenu', () => {
 
     it('handles add to autovoice action', () => {
       const onClose = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onClose={onClose} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onClose={onClose} />,
+      );
 
       fireEvent.press(getByText('User list >'));
       fireEvent.press(getByText('Add to AutoVoice'));
@@ -396,7 +428,9 @@ describe('NickContextMenu', () => {
 
     it('handles add to protected action', () => {
       const onClose = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onClose={onClose} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onClose={onClose} />,
+      );
 
       fireEvent.press(getByText('User list >'));
       fireEvent.press(getByText('Add to Protected'));
@@ -424,7 +458,9 @@ describe('NickContextMenu', () => {
 
     it('handles add/edit note action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('User list >'));
       fireEvent.press(getByText('Add Note'));
@@ -433,7 +469,7 @@ describe('NickContextMenu', () => {
 
     it('shows KILL option for server operators', () => {
       const { getByText } = render(
-        <NickContextMenu {...baseProps} isServerOper={true} />
+        <NickContextMenu {...baseProps} isServerOper={true} />,
       );
 
       fireEvent.press(getByText('User list >'));
@@ -442,7 +478,7 @@ describe('NickContextMenu', () => {
 
     it('does not show KILL option for non-operators', () => {
       const { getByText, queryByText } = render(
-        <NickContextMenu {...baseProps} isServerOper={false} />
+        <NickContextMenu {...baseProps} isServerOper={false} />,
       );
 
       fireEvent.press(getByText('User list >'));
@@ -453,7 +489,9 @@ describe('NickContextMenu', () => {
   // ==================== E2E Encryption Group ====================
   describe('E2E encryption group', () => {
     it('expands E2E group on press', () => {
-      const { getByText, queryByText } = render(<NickContextMenu {...baseProps} />);
+      const { getByText, queryByText } = render(
+        <NickContextMenu {...baseProps} />,
+      );
 
       expect(queryByText('Share DM Key')).toBeNull();
 
@@ -465,7 +503,9 @@ describe('NickContextMenu', () => {
 
     it('handles share DM key action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       fireEvent.press(getByText('Share DM Key'));
@@ -474,7 +514,9 @@ describe('NickContextMenu', () => {
 
     it('handles request DM key action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       fireEvent.press(getByText('Request DM Key (36s)'));
@@ -483,7 +525,9 @@ describe('NickContextMenu', () => {
 
     it('handles verify DM key action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       fireEvent.press(getByText('Verify DM Key'));
@@ -491,7 +535,9 @@ describe('NickContextMenu', () => {
     });
 
     it('shows QR code options when allowed', () => {
-      const { getByText } = render(<NickContextMenu {...baseProps} allowQrVerification={true} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} allowQrVerification={true} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       expect(getByText('Share Key Bundle QR')).toBeTruthy();
@@ -501,7 +547,7 @@ describe('NickContextMenu', () => {
 
     it('hides QR code options when not allowed', () => {
       const { getByText, queryByText } = render(
-        <NickContextMenu {...baseProps} allowQrVerification={false} />
+        <NickContextMenu {...baseProps} allowQrVerification={false} />,
       );
 
       fireEvent.press(getByText('E2E Encryption >'));
@@ -512,7 +558,9 @@ describe('NickContextMenu', () => {
 
     it('handles QR code actions', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       fireEvent.press(getByText('Share Key Bundle QR'));
@@ -526,7 +574,9 @@ describe('NickContextMenu', () => {
     });
 
     it('shows file exchange options when allowed', () => {
-      const { getByText } = render(<NickContextMenu {...baseProps} allowFileExchange={true} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} allowFileExchange={true} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       expect(getByText('Share Key File')).toBeTruthy();
@@ -535,7 +585,7 @@ describe('NickContextMenu', () => {
 
     it('hides file exchange options when not allowed', () => {
       const { getByText, queryByText } = render(
-        <NickContextMenu {...baseProps} allowFileExchange={false} />
+        <NickContextMenu {...baseProps} allowFileExchange={false} />,
       );
 
       fireEvent.press(getByText('E2E Encryption >'));
@@ -545,7 +595,9 @@ describe('NickContextMenu', () => {
 
     it('handles file exchange actions', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       fireEvent.press(getByText('Share Key File'));
@@ -556,7 +608,9 @@ describe('NickContextMenu', () => {
     });
 
     it('shows NFC options when allowed', () => {
-      const { getByText } = render(<NickContextMenu {...baseProps} allowNfcExchange={true} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} allowNfcExchange={true} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       expect(getByText('Share via NFC')).toBeTruthy();
@@ -565,7 +619,7 @@ describe('NickContextMenu', () => {
 
     it('hides NFC options when not allowed', () => {
       const { getByText, queryByText } = render(
-        <NickContextMenu {...baseProps} allowNfcExchange={false} />
+        <NickContextMenu {...baseProps} allowNfcExchange={false} />,
       );
 
       fireEvent.press(getByText('E2E Encryption >'));
@@ -575,7 +629,9 @@ describe('NickContextMenu', () => {
 
     it('handles NFC actions', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       fireEvent.press(getByText('Share via NFC'));
@@ -586,7 +642,9 @@ describe('NickContextMenu', () => {
     });
 
     it('shows channel key options when in a channel', () => {
-      const { getByText } = render(<NickContextMenu {...baseProps} channel="#test-channel" />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} channel="#test-channel" />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       expect(getByText('Share Channel Key')).toBeTruthy();
@@ -594,7 +652,9 @@ describe('NickContextMenu', () => {
     });
 
     it('hides channel key options when not in a channel', () => {
-      const { getByText, queryByText } = render(<NickContextMenu {...baseProps} channel={undefined} />);
+      const { getByText, queryByText } = render(
+        <NickContextMenu {...baseProps} channel={undefined} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       expect(queryByText('Share Channel Key')).toBeNull();
@@ -603,7 +663,9 @@ describe('NickContextMenu', () => {
 
     it('handles channel key actions', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('E2E Encryption >'));
       fireEvent.press(getByText('Share Channel Key'));
@@ -665,7 +727,9 @@ describe('NickContextMenu', () => {
         { nick: 'TestUser', modes: [], host: 'test.com', account: '*' },
       ]);
 
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
       fireEvent.press(getByText('Give Voice'));
       expect(onAction).toHaveBeenCalledWith('give_voice');
@@ -678,7 +742,9 @@ describe('NickContextMenu', () => {
         { nick: 'TestUser', modes: ['v'], host: 'test.com', account: '*' },
       ]);
 
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
       fireEvent.press(getByText('Take Voice'));
       expect(onAction).toHaveBeenCalledWith('take_voice');
@@ -713,7 +779,9 @@ describe('NickContextMenu', () => {
         { nick: 'TestUser', modes: [], host: 'test.com', account: '*' },
       ]);
 
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
       fireEvent.press(getByText('Give Half-Op'));
       expect(onAction).toHaveBeenCalledWith('give_halfop');
@@ -726,7 +794,9 @@ describe('NickContextMenu', () => {
         { nick: 'TestUser', modes: ['h'], host: 'test.com', account: '*' },
       ]);
 
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
       fireEvent.press(getByText('Take Half-Op'));
       expect(onAction).toHaveBeenCalledWith('take_halfop');
@@ -739,7 +809,9 @@ describe('NickContextMenu', () => {
         { nick: 'TestUser', modes: [], host: 'test.com', account: '*' },
       ]);
 
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
       fireEvent.press(getByText('Give Op'));
       expect(onAction).toHaveBeenCalledWith('give_op');
@@ -752,7 +824,9 @@ describe('NickContextMenu', () => {
         { nick: 'TestUser', modes: ['o'], host: 'test.com', account: '*' },
       ]);
 
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
       fireEvent.press(getByText('Take Op'));
       expect(onAction).toHaveBeenCalledWith('take_op');
@@ -785,7 +859,9 @@ describe('NickContextMenu', () => {
         return Promise.resolve(2);
       });
 
-      const { getByText, findByTestId } = render(<NickContextMenu {...baseProps} />);
+      const { getByText, findByTestId } = render(
+        <NickContextMenu {...baseProps} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
 
       await act(async () => {
@@ -817,11 +893,18 @@ describe('NickContextMenu', () => {
 
       const onClose = jest.fn();
       const { getByText } = render(
-        <NickContextMenu {...baseProps} onClose={onClose} connection={connection} />
+        <NickContextMenu
+          {...baseProps}
+          onClose={onClose}
+          connection={connection}
+        />,
       );
 
       await waitFor(() => {
-        expect(mockGetSetting).toHaveBeenCalledWith('confirmBeforeKickBan', expect.anything());
+        expect(mockGetSetting).toHaveBeenCalledWith(
+          'confirmBeforeKickBan',
+          expect.anything(),
+        );
       });
 
       fireEvent.press(getByText('Operator Controls >'));
@@ -831,7 +914,9 @@ describe('NickContextMenu', () => {
       });
 
       await waitFor(() => {
-        expect(mockSendRaw).toHaveBeenCalledWith(expect.stringContaining('KICK'));
+        expect(mockSendRaw).toHaveBeenCalledWith(
+          expect.stringContaining('KICK'),
+        );
       });
     });
 
@@ -841,7 +926,9 @@ describe('NickContextMenu', () => {
         return Promise.resolve(2);
       });
 
-      const { getByText, findByTestId } = render(<NickContextMenu {...baseProps} />);
+      const { getByText, findByTestId } = render(
+        <NickContextMenu {...baseProps} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
 
       await act(async () => {
@@ -858,7 +945,9 @@ describe('NickContextMenu', () => {
         return Promise.resolve(2);
       });
 
-      const { getByText, findByTestId } = render(<NickContextMenu {...baseProps} />);
+      const { getByText, findByTestId } = render(
+        <NickContextMenu {...baseProps} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
 
       await act(async () => {
@@ -875,7 +964,9 @@ describe('NickContextMenu', () => {
         return Promise.resolve(2);
       });
 
-      const { getByText, findByTestId } = render(<NickContextMenu {...baseProps} />);
+      const { getByText, findByTestId } = render(
+        <NickContextMenu {...baseProps} />,
+      );
       fireEvent.press(getByText('Operator Controls >'));
 
       await act(async () => {
@@ -892,11 +983,17 @@ describe('NickContextMenu', () => {
     it('shows service commands when available', () => {
       mockGetCommands.mockReturnValue([
         {
-          command: { name: 'INFO', parameters: [{ name: 'nick', type: 'nick' }] },
+          command: {
+            name: 'INFO',
+            parameters: [{ name: 'nick', type: 'nick' }],
+          },
           serviceNick: 'NickServ',
         },
         {
-          command: { name: 'STATUS', parameters: [{ name: 'user', type: 'nick' }] },
+          command: {
+            name: 'STATUS',
+            parameters: [{ name: 'user', type: 'nick' }],
+          },
           serviceNick: 'NickServ',
         },
       ]);
@@ -908,7 +1005,10 @@ describe('NickContextMenu', () => {
     it('expands service commands on press', () => {
       mockGetCommands.mockReturnValue([
         {
-          command: { name: 'INFO', parameters: [{ name: 'nick', type: 'nick' }] },
+          command: {
+            name: 'INFO',
+            parameters: [{ name: 'nick', type: 'nick' }],
+          },
           serviceNick: 'NickServ',
         },
       ]);
@@ -929,32 +1029,46 @@ describe('NickContextMenu', () => {
 
       mockGetCommands.mockReturnValue([
         {
-          command: { name: 'INFO', parameters: [{ name: 'nick', type: 'nick' }] },
+          command: {
+            name: 'INFO',
+            parameters: [{ name: 'nick', type: 'nick' }],
+          },
           serviceNick: 'NickServ',
         },
       ]);
 
       const { getByText } = render(
-        <NickContextMenu {...baseProps} connection={connection} onClose={onClose} />
+        <NickContextMenu
+          {...baseProps}
+          connection={connection}
+          onClose={onClose}
+        />,
       );
 
       fireEvent.press(getByText('IRC Services >'));
       fireEvent.press(getByText('NickServ INFO'));
 
-      expect(mockSendRaw).toHaveBeenCalledWith('PRIVMSG NickServ :INFO TestUser');
+      expect(mockSendRaw).toHaveBeenCalledWith(
+        'PRIVMSG NickServ :INFO TestUser',
+      );
       expect(onClose).toHaveBeenCalled();
     });
 
     it('shows all commands option', () => {
       mockGetCommands.mockReturnValue([
         {
-          command: { name: 'INFO', parameters: [{ name: 'nick', type: 'nick' }] },
+          command: {
+            name: 'INFO',
+            parameters: [{ name: 'nick', type: 'nick' }],
+          },
           serviceNick: 'NickServ',
         },
       ]);
 
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('IRC Services >'));
       fireEvent.press(getByText('Show All Commands...'));
@@ -966,7 +1080,9 @@ describe('NickContextMenu', () => {
   // ==================== CTCP + DCC Group ====================
   describe('CTCP + DCC group', () => {
     it('expands CTCP group on press', () => {
-      const { getByText, queryByText } = render(<NickContextMenu {...baseProps} />);
+      const { getByText, queryByText } = render(
+        <NickContextMenu {...baseProps} />,
+      );
 
       expect(queryByText('CTCP PING')).toBeNull();
 
@@ -980,7 +1096,9 @@ describe('NickContextMenu', () => {
 
     it('handles CTCP PING action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('CTCP + DCC >'));
       fireEvent.press(getByText('CTCP PING'));
@@ -989,7 +1107,9 @@ describe('NickContextMenu', () => {
 
     it('handles CTCP VERSION action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('CTCP + DCC >'));
       fireEvent.press(getByText('CTCP VERSION'));
@@ -998,7 +1118,9 @@ describe('NickContextMenu', () => {
 
     it('handles CTCP TIME action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('CTCP + DCC >'));
       fireEvent.press(getByText('CTCP TIME'));
@@ -1007,7 +1129,9 @@ describe('NickContextMenu', () => {
 
     it('handles DCC chat action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('CTCP + DCC >'));
       fireEvent.press(getByText('Start DCC Chat'));
@@ -1016,7 +1140,9 @@ describe('NickContextMenu', () => {
 
     it('handles DCC send action', () => {
       const onAction = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onAction={onAction} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onAction={onAction} />,
+      );
 
       fireEvent.press(getByText('CTCP + DCC >'));
       fireEvent.press(getByText('Offer DCC Send'));
@@ -1028,7 +1154,9 @@ describe('NickContextMenu', () => {
   describe('close button', () => {
     it('handles close action', () => {
       const onClose = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onClose={onClose} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onClose={onClose} />,
+      );
 
       fireEvent.press(getByText('Close'));
       expect(onClose).toHaveBeenCalled();
@@ -1040,20 +1168,30 @@ describe('NickContextMenu', () => {
     it('displays user@host when available', () => {
       const connection = {
         ircService: {
-          sendSilentWho: (nick: string, callback: (user: string, host: string) => void) => {
+          sendSilentWho: (
+            nick: string,
+            callback: (user: string, host: string) => void,
+          ) => {
             callback('testuser', 'test.host.com');
           },
           capEnabledSet: new Set(),
         },
       };
 
-      const { getByText } = render(<NickContextMenu {...baseProps} connection={connection} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} connection={connection} />,
+      );
       expect(getByText('testuser@test.host.com')).toBeTruthy();
     });
 
     it('displays account info when available and no user@host', () => {
       mockGetChannelUsers.mockReturnValue([
-        { nick: 'TestUser', modes: [], host: 'test.com', account: 'TestAccount' },
+        {
+          nick: 'TestUser',
+          modes: [],
+          host: 'test.com',
+          account: 'TestAccount',
+        },
       ]);
 
       const { getByText } = render(<NickContextMenu {...baseProps} />);
@@ -1074,7 +1212,7 @@ describe('NickContextMenu', () => {
   describe('KILL modal', () => {
     it('opens KILL reason modal when KILL is pressed', () => {
       const { getByText } = render(
-        <NickContextMenu {...baseProps} isServerOper={true} />
+        <NickContextMenu {...baseProps} isServerOper={true} />,
       );
 
       fireEvent.press(getByText('User list >'));
@@ -1085,7 +1223,9 @@ describe('NickContextMenu', () => {
     });
 
     it('shows error when KILL reason is empty', () => {
-      const { getByText } = render(<NickContextMenu {...baseProps} isServerOper={true} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} isServerOper={true} />,
+      );
 
       fireEvent.press(getByText('User list >'));
       fireEvent.press(getByText('KILL (with reason)'));
@@ -1107,7 +1247,12 @@ describe('NickContextMenu', () => {
       const onClose = jest.fn();
 
       const { getByText, getByPlaceholderText } = render(
-        <NickContextMenu {...baseProps} isServerOper={true} connection={connection} onClose={onClose} />
+        <NickContextMenu
+          {...baseProps}
+          isServerOper={true}
+          connection={connection}
+          onClose={onClose}
+        />,
       );
 
       fireEvent.press(getByText('User list >'));
@@ -1122,7 +1267,7 @@ describe('NickContextMenu', () => {
 
     it('cancels KILL modal', () => {
       const { getByText, queryByText } = render(
-        <NickContextMenu {...baseProps} isServerOper={true} />
+        <NickContextMenu {...baseProps} isServerOper={true} />,
       );
 
       fireEvent.press(getByText('User list >'));
@@ -1139,7 +1284,9 @@ describe('NickContextMenu', () => {
   describe('overlay press', () => {
     it('calls onClose when overlay is pressed', () => {
       const onClose = jest.fn();
-      const { getByText } = render(<NickContextMenu {...baseProps} onClose={onClose} />);
+      const { getByText } = render(
+        <NickContextMenu {...baseProps} onClose={onClose} />,
+      );
 
       // The TouchableOpacity with style contextOverlay handles the close
       // We can trigger it via the Close button which is easier to find
@@ -1167,7 +1314,9 @@ describe('NickContextMenu', () => {
     });
 
     it('resets state when visibility changes', () => {
-      const { rerender, getByText, queryByText } = render(<NickContextMenu {...baseProps} />);
+      const { rerender, getByText, queryByText } = render(
+        <NickContextMenu {...baseProps} />,
+      );
 
       // Expand a group
       fireEvent.press(getByText('E2E Encryption >'));
@@ -1184,7 +1333,11 @@ describe('NickContextMenu', () => {
     it('handles custom ignore action id', () => {
       const onAction = jest.fn();
       const { getByText } = render(
-        <NickContextMenu {...baseProps} onAction={onAction} ignoreActionId="custom_ignore" />
+        <NickContextMenu
+          {...baseProps}
+          onAction={onAction}
+          ignoreActionId="custom_ignore"
+        />,
       );
 
       fireEvent.press(getByText('User list >'));

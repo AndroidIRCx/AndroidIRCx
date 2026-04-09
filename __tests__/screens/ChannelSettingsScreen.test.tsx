@@ -90,7 +90,9 @@ jest.mock('../../src/services/SettingsService', () => ({
 }));
 
 jest.mock('../../src/utils/modeDescriptions', () => ({
-  getChannelModeDescription: jest.fn(() => ({ description: 'mode description' })),
+  getChannelModeDescription: jest.fn(() => ({
+    description: 'mode description',
+  })),
 }));
 
 jest.mock('../../src/utils/IRCFormatter', () => ({
@@ -120,48 +122,84 @@ jest.mock('../../src/components/ColorPickerModal', () => ({
   },
 }));
 
-const { ChannelSettingsScreen } = require('../../src/screens/ChannelSettingsScreen');
+const {
+  ChannelSettingsScreen,
+} = require('../../src/screens/ChannelSettingsScreen');
 
 describe('ChannelSettingsScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
-    jest.spyOn(Alert, 'prompt').mockImplementation((_: any, __: any, buttons?: any) => {
-      buttons?.[1]?.onPress?.('targetNick');
-    });
-    mockChannelManagementService.getChannelInfo.mockReturnValue(mockChannelInfo);
-    mockChannelManagementService.getModeString.mockReturnValue('+insk secret 42');
+    jest
+      .spyOn(Alert, 'prompt')
+      .mockImplementation((_: any, __: any, buttons?: any) => {
+        buttons?.[1]?.onPress?.('targetNick');
+      });
+    mockChannelManagementService.getChannelInfo.mockReturnValue(
+      mockChannelInfo,
+    );
+    mockChannelManagementService.getModeString.mockReturnValue(
+      '+insk secret 42',
+    );
     mockChannelManagementService.onChannelInfoChange.mockReturnValue(jest.fn());
-    mockSettingsService.getSetting.mockImplementation((key: string, fallback: unknown) => {
-      if (key === 'topicStyleId') return Promise.resolve('** <TOPIC>');
-      if (key === 'topicStyles') return Promise.resolve(['** <TOPIC>', '~~ <TOPIC>']);
-      return Promise.resolve(fallback);
-    });
+    mockSettingsService.getSetting.mockImplementation(
+      (key: string, fallback: unknown) => {
+        if (key === 'topicStyleId') return Promise.resolve('** <TOPIC>');
+        if (key === 'topicStyles')
+          return Promise.resolve(['** <TOPIC>', '~~ <TOPIC>']);
+        return Promise.resolve(fallback);
+      },
+    );
     mockSettingsService.setSetting.mockResolvedValue(undefined);
-    mockChannelEncryptionSettingsService.getAlwaysEncrypt.mockResolvedValue(false);
-    mockChannelEncryptionSettingsService.setAlwaysEncrypt.mockResolvedValue(undefined);
+    mockChannelEncryptionSettingsService.getAlwaysEncrypt.mockResolvedValue(
+      false,
+    );
+    mockChannelEncryptionSettingsService.setAlwaysEncrypt.mockResolvedValue(
+      undefined,
+    );
     mockChannelEncryptionService.hasChannelKey.mockResolvedValue(true);
   });
 
   it('loads settings, applies topic style, and handles list management actions', async () => {
-    const { findByDisplayValue, findByPlaceholderText, findAllByText, getByText } =
-      render(
-      <ChannelSettingsScreen channel="#chat" network="net1" visible onClose={jest.fn()} />
-      );
+    const {
+      findByDisplayValue,
+      findByPlaceholderText,
+      findAllByText,
+      getByText,
+    } = render(
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
+    );
 
     expect(await findByDisplayValue('Current topic')).toBeTruthy();
 
     await waitFor(() => {
       expect(mockIrcService.sendCommand).toHaveBeenCalledWith('MODE #chat');
       expect(mockIrcService.sendCommand).toHaveBeenCalledWith('TOPIC #chat');
-      expect(mockChannelManagementService.requestBanList).toHaveBeenCalledWith('#chat');
-      expect(mockChannelManagementService.requestExceptionList).toHaveBeenCalledWith('#chat');
-      expect(mockChannelManagementService.requestInviteList).toHaveBeenCalledWith('#chat');
+      expect(mockChannelManagementService.requestBanList).toHaveBeenCalledWith(
+        '#chat',
+      );
+      expect(
+        mockChannelManagementService.requestExceptionList,
+      ).toHaveBeenCalledWith('#chat');
+      expect(
+        mockChannelManagementService.requestInviteList,
+      ).toHaveBeenCalledWith('#chat');
     });
 
-    fireEvent.changeText(await findByDisplayValue('Current topic'), 'Updated topic');
+    fireEvent.changeText(
+      await findByDisplayValue('Current topic'),
+      'Updated topic',
+    );
     fireEvent.press(getByText('Set Topic'));
-    expect(mockChannelManagementService.setTopic).toHaveBeenCalledWith('#chat', '** Updated topic');
+    expect(mockChannelManagementService.setTopic).toHaveBeenCalledWith(
+      '#chat',
+      '** Updated topic',
+    );
     expect(Alert.alert).toHaveBeenCalledWith('Success', 'Topic updated');
 
     fireEvent.press(getByText('Refresh'));
@@ -169,61 +207,89 @@ describe('ChannelSettingsScreen', () => {
 
     fireEvent.changeText(
       await findByPlaceholderText('Channel key (leave empty to remove)'),
-      'new-key'
+      'new-key',
     );
     fireEvent.press(getByText('Set Key'));
-    expect(mockChannelManagementService.setKey).toHaveBeenCalledWith('#chat', 'new-key');
+    expect(mockChannelManagementService.setKey).toHaveBeenCalledWith(
+      '#chat',
+      'new-key',
+    );
     fireEvent.press((await findAllByText('Remove Key'))[0]);
-    expect(mockChannelManagementService.removeKey).toHaveBeenCalledWith('#chat');
+    expect(mockChannelManagementService.removeKey).toHaveBeenCalledWith(
+      '#chat',
+    );
 
     fireEvent.changeText(
       await findByPlaceholderText('Maximum users (leave empty to remove)'),
-      '50'
+      '50',
     );
     fireEvent.press(getByText('Set Limit'));
-    expect(mockChannelManagementService.setLimit).toHaveBeenCalledWith('#chat', 50);
+    expect(mockChannelManagementService.setLimit).toHaveBeenCalledWith(
+      '#chat',
+      50,
+    );
     fireEvent.changeText(
       await findByPlaceholderText('Maximum users (leave empty to remove)'),
-      ''
+      '',
     );
     fireEvent.press(getByText('Remove Limit'));
-    expect(mockChannelManagementService.removeLimit).toHaveBeenCalledWith('#chat');
+    expect(mockChannelManagementService.removeLimit).toHaveBeenCalledWith(
+      '#chat',
+    );
     fireEvent.changeText(
       await findByPlaceholderText('Maximum users (leave empty to remove)'),
-      'abc'
+      'abc',
     );
     fireEvent.press(getByText('Set Limit'));
     expect(Alert.alert).toHaveBeenCalledWith('Error', 'Invalid limit value');
 
     fireEvent.changeText(
       await findByPlaceholderText('Ban mask (e.g., *!*@host.com)'),
-      '*!*@new.host'
+      '*!*@new.host',
     );
     fireEvent.press((await findAllByText('Add'))[0]);
-    expect(mockChannelManagementService.addBan).toHaveBeenCalledWith('#chat', '*!*@new.host');
-    fireEvent.changeText(await findByPlaceholderText('Ban mask (e.g., *!*@host.com)'), '   ');
+    expect(mockChannelManagementService.addBan).toHaveBeenCalledWith(
+      '#chat',
+      '*!*@new.host',
+    );
+    fireEvent.changeText(
+      await findByPlaceholderText('Ban mask (e.g., *!*@host.com)'),
+      '   ',
+    );
     fireEvent.press((await findAllByText('Add'))[0]);
     expect(mockChannelManagementService.addBan).toHaveBeenCalledTimes(1);
 
     fireEvent.press((await findAllByText('Remove'))[0]);
-    expect(mockChannelManagementService.removeBan).toHaveBeenCalledWith('#chat', '*!*@banned.host');
+    expect(mockChannelManagementService.removeBan).toHaveBeenCalledWith(
+      '#chat',
+      '*!*@banned.host',
+    );
 
-    fireEvent.changeText(await findByPlaceholderText('Exception mask'), '*!*@safe.host');
+    fireEvent.changeText(
+      await findByPlaceholderText('Exception mask'),
+      '*!*@safe.host',
+    );
     fireEvent.press((await findAllByText('Add'))[1]);
-    expect(mockChannelManagementService.addException).toHaveBeenCalledWith('#chat', '*!*@safe.host');
+    expect(mockChannelManagementService.addException).toHaveBeenCalledWith(
+      '#chat',
+      '*!*@safe.host',
+    );
     fireEvent.changeText(await findByPlaceholderText('Exception mask'), '   ');
     fireEvent.press((await findAllByText('Add'))[1]);
     expect(mockChannelManagementService.addException).toHaveBeenCalledTimes(1);
 
     fireEvent.changeText(
       await findByPlaceholderText('Invite mask (e.g., *!*@trusted.host)'),
-      '*!*@invite2.host'
+      '*!*@invite2.host',
     );
     fireEvent.press((await findAllByText('Add'))[2]);
-    expect(mockChannelManagementService.addInvite).toHaveBeenCalledWith('#chat', '*!*@invite2.host');
+    expect(mockChannelManagementService.addInvite).toHaveBeenCalledWith(
+      '#chat',
+      '*!*@invite2.host',
+    );
     fireEvent.changeText(
       await findByPlaceholderText('Invite mask (e.g., *!*@trusted.host)'),
-      '   '
+      '   ',
     );
     fireEvent.press((await findAllByText('Add'))[2]);
     expect(mockChannelManagementService.addInvite).toHaveBeenCalledTimes(1);
@@ -231,14 +297,23 @@ describe('ChannelSettingsScreen', () => {
 
   it('manages topic styles and encryption actions', async () => {
     mockChannelEncryptionService.hasChannelKey.mockResolvedValue(false);
-    const { findByText, findAllByText, findByPlaceholderText, getByText } = render(
-      <ChannelSettingsScreen channel="#chat" network="net1" visible onClose={jest.fn()} />
-    );
+    const { findByText, findAllByText, findByPlaceholderText, getByText } =
+      render(
+        <ChannelSettingsScreen
+          channel="#chat"
+          network="net1"
+          visible
+          onClose={jest.fn()}
+        />,
+      );
 
     await findByText('Manage Topic Styles');
     fireEvent.press(getByText('Manage Topic Styles'));
     fireEvent.press(await findByText('Add style'));
-    fireEvent.changeText(await findByPlaceholderText('Use <TOPIC>'), '## <TOPIC>');
+    fireEvent.changeText(
+      await findByPlaceholderText('Use <TOPIC>'),
+      '## <TOPIC>',
+    );
     fireEvent.press(getByText('Colors'));
     fireEvent.press(await findByText('Insert Color'));
     fireEvent.press(getByText('Save'));
@@ -246,46 +321,65 @@ describe('ChannelSettingsScreen', () => {
     await waitFor(() => {
       expect(mockSettingsService.setSetting).toHaveBeenCalledWith(
         'topicStyles',
-        expect.arrayContaining(['## <TOPIC>\u000304'])
+        expect.arrayContaining(['## <TOPIC>\u000304']),
       );
     });
     fireEvent.press(getByText('Manage Topic Styles'));
     fireEvent.press((await findAllByText('Edit'))[0]);
-    fireEvent.changeText(await findByPlaceholderText('Use <TOPIC>'), 'edited <TOPIC>');
+    fireEvent.changeText(
+      await findByPlaceholderText('Use <TOPIC>'),
+      'edited <TOPIC>',
+    );
     fireEvent.press(getByText('Save'));
     await waitFor(() => {
       expect(mockSettingsService.setSetting).toHaveBeenCalledWith(
         'topicStyles',
-        expect.arrayContaining(['edited <TOPIC>'])
+        expect.arrayContaining(['edited <TOPIC>']),
       );
     });
     fireEvent.press((await findAllByText('Remove'))[0]);
     await waitFor(() => {
       expect(mockSettingsService.setSetting).toHaveBeenLastCalledWith(
         'topicStyles',
-        expect.arrayContaining(['~~ <TOPIC>', '## <TOPIC>\u000304'])
+        expect.arrayContaining(['~~ <TOPIC>', '## <TOPIC>\u000304']),
       );
     });
     fireEvent.press(getByText('Select Topic Style'));
     fireEvent.press(getByText('Clear'));
     await waitFor(() => {
-      expect(mockSettingsService.setSetting).toHaveBeenCalledWith('topicStyleId', '');
+      expect(mockSettingsService.setSetting).toHaveBeenCalledWith(
+        'topicStyleId',
+        '',
+      );
     });
 
     fireEvent.press(getByText('Generate Key'));
-    expect(mockIrcService.sendCommand).toHaveBeenCalledWith('/chankey generate');
+    expect(mockIrcService.sendCommand).toHaveBeenCalledWith(
+      '/chankey generate',
+    );
 
     fireEvent.press(getByText('Request Key from...'));
-    expect(mockIrcService.sendCommand).toHaveBeenCalledWith('/chankey request targetNick');
+    expect(mockIrcService.sendCommand).toHaveBeenCalledWith(
+      '/chankey request targetNick',
+    );
 
     mockChannelEncryptionService.hasChannelKey.mockResolvedValue(true);
     const secondRender = render(
-      <ChannelSettingsScreen channel="#chat" network="net1" visible onClose={jest.fn()} />
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
     );
     fireEvent.press(await secondRender.findByText('Share Key with...'));
-    expect(mockIrcService.sendCommand).toHaveBeenCalledWith('/chankey share targetNick');
+    expect(mockIrcService.sendCommand).toHaveBeenCalledWith(
+      '/chankey share targetNick',
+    );
 
-    fireEvent.press((await secondRender.findAllByText('Remove Key')).at(-1) as any);
+    fireEvent.press(
+      (await secondRender.findAllByText('Remove Key')).at(-1) as any,
+    );
     const removeButtons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2];
     await act(async () => {
       await removeButtons?.[1]?.onPress?.();
@@ -294,19 +388,29 @@ describe('ChannelSettingsScreen', () => {
   });
 
   it('shows empty-style and mode toggle branches', async () => {
-    mockSettingsService.getSetting.mockImplementation((key: string, fallback: unknown) => {
-      if (key === 'topicStyleId') return Promise.resolve('');
-      if (key === 'topicStyles') return Promise.resolve([]);
-      return Promise.resolve(fallback);
-    });
+    mockSettingsService.getSetting.mockImplementation(
+      (key: string, fallback: unknown) => {
+        if (key === 'topicStyleId') return Promise.resolve('');
+        if (key === 'topicStyles') return Promise.resolve([]);
+        return Promise.resolve(fallback);
+      },
+    );
     mockChannelEncryptionService.hasChannelKey.mockResolvedValue(false);
 
     const { findAllByRole, findByText, getByText } = render(
-      <ChannelSettingsScreen channel="#chat" network="net1" visible onClose={jest.fn()} />
+      <ChannelSettingsScreen
+        channel="#chat"
+        network="net1"
+        visible
+        onClose={jest.fn()}
+      />,
     );
 
     fireEvent.press(getByText('Select Topic Style'));
-    expect(Alert.alert).toHaveBeenCalledWith('No styles', 'Add topic styles first.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'No styles',
+      'Add topic styles first.',
+    );
 
     const switches = await findAllByRole('switch');
     expect(switches).toHaveLength(7);
@@ -316,17 +420,23 @@ describe('ChannelSettingsScreen', () => {
     fireEvent(switches[6], 'valueChange', true);
 
     await waitFor(() => {
-      expect(mockChannelManagementService.setChannelMode).toHaveBeenCalledWith('#chat', '-i', undefined);
-      expect(mockChannelManagementService.setChannelMode).toHaveBeenCalledWith('#chat', '+t', undefined);
-      expect(mockChannelEncryptionSettingsService.setAlwaysEncrypt).toHaveBeenCalledWith(
+      expect(mockChannelManagementService.setChannelMode).toHaveBeenCalledWith(
         '#chat',
-        'net1',
-        true
+        '-i',
+        undefined,
       );
+      expect(mockChannelManagementService.setChannelMode).toHaveBeenCalledWith(
+        '#chat',
+        '+t',
+        undefined,
+      );
+      expect(
+        mockChannelEncryptionSettingsService.setAlwaysEncrypt,
+      ).toHaveBeenCalledWith('#chat', 'net1', true);
       expect(Alert.alert).toHaveBeenCalledWith(
         'No Encryption Key',
         'Always-encrypt is now enabled, but no encryption key exists. Generate or request a key to enable encryption.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
     });
 

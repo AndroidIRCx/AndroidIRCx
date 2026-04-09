@@ -36,16 +36,18 @@ describe('DataPrivacyService', () => {
     jest.doMock('@react-native-async-storage/async-storage', () => ({
       __esModule: true,
       default: {
-        getItem: jest.fn(async (key: string) => (mockStorage.has(key) ? mockStorage.get(key)! : null)),
+        getItem: jest.fn(async (key: string) =>
+          mockStorage.has(key) ? mockStorage.get(key)! : null,
+        ),
         setItem: jest.fn(async (key: string, value: string) => {
           mockStorage.set(key, value);
         }),
         getAllKeys: jest.fn(async () => Array.from(mockStorage.keys())),
         multiRemove: jest.fn(async (keys: string[]) => {
-          keys.forEach((k) => mockStorage.delete(k));
+          keys.forEach(k => mockStorage.delete(k));
         }),
         removeMany: jest.fn(async (keys: string[]) => {
-          keys.forEach((k) => mockStorage.delete(k));
+          keys.forEach(k => mockStorage.delete(k));
         }),
       },
     }));
@@ -72,13 +74,22 @@ describe('DataPrivacyService', () => {
 
     jest.doMock('@react-native-firebase/crashlytics', () => ({
       getCrashlytics: jest.fn(() => mockCrashlyticsInstance),
-      setCrashlyticsCollectionEnabled: (...args: any[]) => mockSetCrashlyticsCollectionEnabled(...args),
+      setCrashlyticsCollectionEnabled: (...args: any[]) =>
+        mockSetCrashlyticsCollectionEnabled(...args),
     }));
 
-    jest.doMock('../../src/services/SettingsService', () => ({ settingsService: mockSettingsService }));
-    jest.doMock('../../src/services/MessageHistoryService', () => ({ messageHistoryService: mockMessageHistoryService }));
-    jest.doMock('../../src/services/IdentityProfilesService', () => ({ identityProfilesService: mockIdentityProfilesService }));
-    jest.doMock('../../src/services/ConsentService', () => ({ consentService: mockConsentService }));
+    jest.doMock('../../src/services/SettingsService', () => ({
+      settingsService: mockSettingsService,
+    }));
+    jest.doMock('../../src/services/MessageHistoryService', () => ({
+      messageHistoryService: mockMessageHistoryService,
+    }));
+    jest.doMock('../../src/services/IdentityProfilesService', () => ({
+      identityProfilesService: mockIdentityProfilesService,
+    }));
+    jest.doMock('../../src/services/ConsentService', () => ({
+      consentService: mockConsentService,
+    }));
 
     const serviceModule = require('../../src/services/DataPrivacyService');
     const rnfs = require('react-native-fs');
@@ -95,7 +106,9 @@ describe('DataPrivacyService', () => {
 
     mockSettingsService.loadNetworks.mockResolvedValue([{ id: 'net1' }]);
     mockSettingsService.deleteNetwork.mockResolvedValue(undefined);
-    mockMessageHistoryService.deleteNetworkMessages.mockResolvedValue(undefined);
+    mockMessageHistoryService.deleteNetworkMessages.mockResolvedValue(
+      undefined,
+    );
     mockMessageHistoryService.getMessages.mockResolvedValue([{ id: 'm1' }]);
     mockIdentityProfilesService.list.mockResolvedValue([{ id: 'p1' }]);
     mockIdentityProfilesService.remove.mockResolvedValue(undefined);
@@ -120,22 +133,34 @@ describe('DataPrivacyService', () => {
 
     const ok = await dataPrivacyService.shareExportedData('/docs/export.json');
     expect(ok).toBe(true);
-    expect(mockShareOpen).toHaveBeenCalledWith(expect.objectContaining({
-      url: '/docs/export.json',
-      type: 'application/json',
-    }));
+    expect(mockShareOpen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/docs/export.json',
+        type: 'application/json',
+      }),
+    );
 
     mockShareOpen.mockRejectedValueOnce(new Error('User did not share'));
-    const cancelled = await dataPrivacyService.shareExportedData('/docs/export.json');
+    const cancelled =
+      await dataPrivacyService.shareExportedData('/docs/export.json');
     expect(cancelled).toBe(false);
   });
 
   it('deletes all user data and preserves essential key', async () => {
     const { dataPrivacyService, RNFS } = setupModule();
 
-    mockSettingsService.loadNetworks.mockResolvedValue([{ id: 'net1' }, { id: 'net2' }]);
-    mockIdentityProfilesService.list.mockResolvedValue([{ id: 'p1' }, { id: 'p2' }]);
-    RNFS.readDir.mockResolvedValue([{ path: '/cache/a.tmp', name: 'a.tmp' }, { path: '/cache/b.tmp', name: 'b.tmp' }]);
+    mockSettingsService.loadNetworks.mockResolvedValue([
+      { id: 'net1' },
+      { id: 'net2' },
+    ]);
+    mockIdentityProfilesService.list.mockResolvedValue([
+      { id: 'p1' },
+      { id: 'p2' },
+    ]);
+    RNFS.readDir.mockResolvedValue([
+      { path: '/cache/a.tmp', name: 'a.tmp' },
+      { path: '/cache/b.tmp', name: 'b.tmp' },
+    ]);
 
     const result = await dataPrivacyService.deleteAllUserData();
 
@@ -153,7 +178,10 @@ describe('DataPrivacyService', () => {
     const { dataPrivacyService } = setupModule();
 
     await dataPrivacyService.setCrashlyticsOptOut(true);
-    expect(mockSetCrashlyticsCollectionEnabled).toHaveBeenCalledWith(mockCrashlyticsInstance, false);
+    expect(mockSetCrashlyticsCollectionEnabled).toHaveBeenCalledWith(
+      mockCrashlyticsInstance,
+      false,
+    );
     expect(mockStorage.get('@AndroidIRCX:crashlytics_opt_out')).toBe('true');
 
     const optedOut = await dataPrivacyService.getCrashlyticsOptOut();

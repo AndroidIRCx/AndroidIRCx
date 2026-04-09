@@ -19,7 +19,8 @@ const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 /** 670 RPL_STARTTLS - STARTTLS successful */
 export const handle670: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('STARTTLS successful');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('STARTTLS successful');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -31,7 +32,8 @@ export const handle670: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 691 ERR_STARTTLS - STARTTLS failed */
 export const handle691: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const errorMsg = params.slice(1).join(' ').replace(/^:/, '') || t('STARTTLS failed');
+  const errorMsg =
+    params.slice(1).join(' ').replace(/^:/, '') || t('STARTTLS failed');
   ctx.addMessage({
     type: 'error',
     text: errorMsg,

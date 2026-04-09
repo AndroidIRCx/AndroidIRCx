@@ -11,26 +11,32 @@
 // ============================================================================
 
 /** IRC Service Provider Types */
-export type IRCServiceType = 
-  | 'anope' 
-  | 'atheme' 
-  | 'dalnet' 
-  | 'undernet' 
-  | 'quakenet' 
+export type IRCServiceType =
+  | 'anope'
+  | 'atheme'
+  | 'dalnet'
+  | 'undernet'
+  | 'quakenet'
   | 'generic';
 
 /** IRC Daemon Types */
-export type IRCdType = 
-  | 'unrealircd' 
-  | 'inspircd' 
-  | 'charybdis' 
+export type IRCdType =
+  | 'unrealircd'
+  | 'inspircd'
+  | 'charybdis'
   | 'solanum'
-  | 'hybrid' 
-  | 'ngircd' 
+  | 'hybrid'
+  | 'ngircd'
   | 'unknown';
 
 /** User Access Levels */
-export type AccessLevel = 'user' | 'op' | 'halfop' | 'admin' | 'founder' | 'oper';
+export type AccessLevel =
+  | 'user'
+  | 'op'
+  | 'halfop'
+  | 'admin'
+  | 'founder'
+  | 'oper';
 
 /** Command Context Types */
 export type CommandContext = 'global' | 'channel' | 'query';
@@ -40,41 +46,48 @@ export type CommandContext = 'global' | 'channel' | 'query';
 // ============================================================================
 
 /** Parameter types for service commands */
-export type ParameterType = 
-  | 'string' 
-  | 'number' 
-  | 'channel' 
-  | 'nick' 
-  | 'duration' 
-  | 'enum' 
+export type ParameterType =
+  | 'string'
+  | 'number'
+  | 'channel'
+  | 'nick'
+  | 'duration'
+  | 'enum'
   | 'boolean';
 
 /** Parameter completion configuration */
 export interface ParameterCompletionConfig {
   /** Completion type */
-  type: 'enum' | 'dynamic' | 'password' | 'email' | 'mask' | 'duration' | 'boolean';
-  
+  type:
+    | 'enum'
+    | 'dynamic'
+    | 'password'
+    | 'email'
+    | 'mask'
+    | 'duration'
+    | 'boolean';
+
   /** Fixed values for enum type */
   values?: string[];
-  
+
   /** Dynamic data source */
   source?: 'channels' | 'nicks' | 'bans' | 'networks' | 'custom';
-  
+
   /** Mask password input */
   mask?: boolean;
-  
+
   /** Validate input */
   validate?: boolean;
-  
+
   /** Minimum length for strings */
   minLength?: number;
-  
+
   /** Maximum length */
   maxLength?: number;
-  
+
   /** Regex pattern for validation */
   pattern?: string;
-  
+
   /** Custom value getter */
   getValues?: () => Promise<string[]>;
 }
@@ -83,22 +96,22 @@ export interface ParameterCompletionConfig {
 export interface CommandParameter {
   /** Parameter name */
   name: string;
-  
+
   /** Parameter data type */
   type: ParameterType;
-  
+
   /** Whether parameter is required */
   required: boolean;
-  
+
   /** Parameter description */
   description: string;
-  
+
   /** Description in Serbian */
   descriptionSr?: string;
-  
+
   /** Enum values (for enum type) */
   enumValues?: string[];
-  
+
   /** Completion configuration */
   completion?: ParameterCompletionConfig;
 }
@@ -107,19 +120,19 @@ export interface CommandParameter {
 export interface CommandCompletionConfig {
   /** Suggested alias for quick access (e.g., 'nsregister') */
   suggestAlias?: string;
-  
+
   /** Priority in suggestions (1-100, higher = top) */
   priority?: number;
-  
+
   /** Available contexts */
   context?: CommandContext[];
-  
+
   /** Require confirmation before execute */
   confirmBeforeExecute?: boolean;
-  
+
   /** Auto-execute without waiting for Enter */
   autoExecute?: boolean;
-  
+
   /** Per-parameter completion configs */
   parameterCompletion?: {
     [paramName: string]: ParameterCompletionConfig;
@@ -130,34 +143,34 @@ export interface CommandCompletionConfig {
 export interface ServiceCommand {
   /** Command name (e.g., 'REGISTER') */
   name: string;
-  
+
   /** Service name (e.g., 'NickServ', 'ChanServ') */
   service: string;
-  
+
   /** Command aliases (shortcuts) - DEPRECATED: Use completion.suggestAlias */
   aliases: string[];
-  
+
   /** Command description */
   description: string;
-  
+
   /** Description in Serbian */
   descriptionSr?: string;
-  
+
   /** Usage syntax */
   usage: string;
-  
+
   /** Example usage */
   example: string;
-  
+
   /** Minimum access level required */
   minLevel: AccessLevel;
-  
+
   /** Whether authentication is required */
   requiresAuth: boolean;
-  
+
   /** Command parameters */
   parameters: CommandParameter[];
-  
+
   /** Completion configuration */
   completion?: CommandCompletionConfig;
 }
@@ -170,13 +183,13 @@ export interface ServiceCommand {
 export interface ServiceDefinition {
   /** Whether service is enabled */
   enabled: boolean;
-  
+
   /** Service nick (e.g., 'NickServ', 'X', 'Q') */
   nick: string;
-  
+
   /** Service host (optional) */
   host?: string;
-  
+
   /** Available commands */
   commands: ServiceCommand[];
 }
@@ -185,13 +198,13 @@ export interface ServiceDefinition {
 export interface UserMode {
   /** Mode character (e.g., 'i', 'o', 'x') */
   mode: string;
-  
+
   /** Mode name */
   name: string;
-  
+
   /** Mode description */
   description: string;
-  
+
   /** Whether mode is oper-only */
   operOnly?: boolean;
 }
@@ -200,19 +213,19 @@ export interface UserMode {
 export interface ChannelMode {
   /** Mode character */
   mode: string;
-  
+
   /** Mode type */
   type: 'list' | 'param' | 'set' | 'prefix';
-  
+
   /** Prefix character (for prefix types: ~, &, @, %, +) */
   prefix?: string;
-  
+
   /** Mode name */
   name: string;
-  
+
   /** Mode description */
   description: string;
-  
+
   /** Parameter placeholder (for param types) */
   parameter?: string;
 }
@@ -221,13 +234,13 @@ export interface ChannelMode {
 export interface IRCdCommand {
   /** Command name */
   name: string;
-  
+
   /** Command description */
   description: string;
-  
+
   /** Usage syntax */
   usage: string;
-  
+
   /** Whether command is oper-only */
   operOnly: boolean;
 }
@@ -236,13 +249,13 @@ export interface IRCdCommand {
 export interface ExtendedBan {
   /** Ban prefix (e.g., '~q:', '~n:', '~c:', '~r:') */
   prefix: string;
-  
+
   /** Ban type name */
   type: string;
-  
+
   /** Description */
   description: string;
-  
+
   /** Example usage */
   example: string;
 }
@@ -251,13 +264,13 @@ export interface ExtendedBan {
 export interface IRCdDefinition {
   /** User modes */
   userModes: UserMode[];
-  
+
   /** Channel modes */
   channelModes: ChannelMode[];
-  
+
   /** Server commands */
   commands: IRCdCommand[];
-  
+
   /** Extended bans (optional) */
   extendedBans?: ExtendedBan[];
 }
@@ -281,16 +294,16 @@ export interface ServicesCollection {
 export interface ServiceConfig {
   /** Service type identifier */
   serviceType: IRCServiceType;
-  
+
   /** IRCd type */
   ircdType: IRCdType;
-  
+
   /** Config version */
   version?: string;
-  
+
   /** Service definitions */
   services: ServicesCollection;
-  
+
   /** IRCd definition */
   ircd: IRCdDefinition;
 }
@@ -303,16 +316,16 @@ export interface ServiceConfig {
 export interface DetectionResult {
   /** Detected service type */
   serviceType: IRCServiceType;
-  
+
   /** Detected IRCd type */
   ircdType: IRCdType;
-  
+
   /** Confidence level (0-1) */
   confidence: number;
-  
+
   /** Detection method used */
   method: 'isupport' | 'version' | 'services' | 'network' | 'heuristic';
-  
+
   /** Raw data that led to detection */
   rawData?: Record<string, unknown>;
 }
@@ -325,19 +338,19 @@ export interface DetectionResult {
 export interface CompletionContext {
   /** Current channel */
   currentChannel?: string;
-  
+
   /** Current network */
   currentNetwork?: string;
-  
+
   /** Available channels */
   availableChannels: string[];
-  
+
   /** Available nicks */
   availableNicks: string[];
-  
+
   /** User access level */
   userLevel: AccessLevel;
-  
+
   /** Whether user is authenticated */
   isAuthenticated: boolean;
 }
@@ -346,25 +359,28 @@ export interface CompletionContext {
 export interface DynamicCompletionProvider {
   /** Provider type */
   type: 'channels' | 'nicks' | 'networks' | 'services' | 'custom';
-  
+
   /** Trigger character (e.g., '#', '@', '/') */
   trigger: string;
-  
+
   /** Get suggestions */
-  getSuggestions: (query: string, context: CompletionContext) => Promise<string[]>;
+  getSuggestions: (
+    query: string,
+    context: CompletionContext,
+  ) => Promise<string[]>;
 }
 
 /** Command completion configuration */
 export interface CommandCompletionSystem {
   /** Trigger characters */
   triggers: string[];
-  
+
   /** Available commands */
   commands: ServiceCommand[];
-  
+
   /** Command aliases */
   aliases: Map<string, string>;
-  
+
   /** Dynamic providers */
   dynamicProviders: DynamicCompletionProvider[];
 }
@@ -377,10 +393,10 @@ export interface CommandCompletionSystem {
 export interface ValidationResult {
   /** Whether validation passed */
   valid: boolean;
-  
+
   /** Error message if invalid */
   error?: string;
-  
+
   /** Field path that failed validation */
   path?: string[];
 }
@@ -389,10 +405,10 @@ export interface ValidationResult {
 export interface ConfigValidationResult {
   /** Whether config is valid */
   valid: boolean;
-  
+
   /** List of validation errors */
   errors: ValidationResult[];
-  
+
   /** Warnings (non-critical issues) */
   warnings: string[];
 }
@@ -428,10 +444,25 @@ export function isServiceConfig(obj: unknown): obj is ServiceConfig {
 
 /** Type guard for IRCServiceType */
 export function isIRCServiceType(type: string): type is IRCServiceType {
-  return ['anope', 'atheme', 'dalnet', 'undernet', 'quakenet', 'generic'].includes(type);
+  return [
+    'anope',
+    'atheme',
+    'dalnet',
+    'undernet',
+    'quakenet',
+    'generic',
+  ].includes(type);
 }
 
 /** Type guard for IRCdType */
 export function isIRCdType(type: string): type is IRCdType {
-  return ['unrealircd', 'inspircd', 'charybdis', 'solanum', 'hybrid', 'ngircd', 'unknown'].includes(type);
+  return [
+    'unrealircd',
+    'inspircd',
+    'charybdis',
+    'solanum',
+    'hybrid',
+    'ngircd',
+    'unknown',
+  ].includes(type);
 }

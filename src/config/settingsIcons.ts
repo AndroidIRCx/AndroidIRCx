@@ -139,7 +139,7 @@ export const SETTINGS_ICONS: Record<string, SettingIcon> = {
 
   // About
   'about-app': { name: 'info-circle', solid: false },
-  'credits': { name: 'hands-helping', solid: true },
+  credits: { name: 'hands-helping', solid: true },
 };
 
 /**

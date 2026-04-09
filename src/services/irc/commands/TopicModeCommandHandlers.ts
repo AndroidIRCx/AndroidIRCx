@@ -59,7 +59,9 @@ export const handleMODE: CommandHandler = (ctx, prefix, params, timestamp) => {
     if (combinedModes) {
       ctx.setChannelTopicInfo(modeChannel, {
         ...existing,
-        modes: combinedModes.startsWith('+') ? combinedModes : `+${combinedModes}`,
+        modes: combinedModes.startsWith('+')
+          ? combinedModes
+          : `+${combinedModes}`,
       });
       ctx.maybeEmitChannelIntro(modeChannel, timestamp);
     }
@@ -94,15 +96,32 @@ export const handleMODE: CommandHandler = (ctx, prefix, params, timestamp) => {
         adding = false;
       } else if (adding) {
         switch (char) {
-          case 'o': result += '\x0304o\x0F'; break;
-          case 'v': result += '\x0309v\x0F'; break;
-          case 'h': result += '\x0308h\x0F'; break;
-          case 'q': result += '\x0306q\x0F'; break;
-          case 'a': result += '\x0307a\x0F'; break;
-          case 'b': result += '\x0304b\x0F'; break;
-          case 'e': result += '\x0307e\x0F'; break;
-          case 'I': result += '\x0303I\x0F'; break;
-          default: result += char;
+          case 'o':
+            result += '\x0304o\x0F';
+            break;
+          case 'v':
+            result += '\x0309v\x0F';
+            break;
+          case 'h':
+            result += '\x0308h\x0F';
+            break;
+          case 'q':
+            result += '\x0306q\x0F';
+            break;
+          case 'a':
+            result += '\x0307a\x0F';
+            break;
+          case 'b':
+            result += '\x0304b\x0F';
+            break;
+          case 'e':
+            result += '\x0307e\x0F';
+            break;
+          case 'I':
+            result += '\x0303I\x0F';
+            break;
+          default:
+            result += char;
         }
       } else {
         result += '\x0314' + char + '\x0F';
@@ -112,13 +131,19 @@ export const handleMODE: CommandHandler = (ctx, prefix, params, timestamp) => {
     return result;
   };
 
-  const colorizedModes = modeParams.map((param, idx) =>
-    idx === 0 ? colorizeMode(param) : param
-  ).join(' ');
+  const colorizedModes = modeParams
+    .map((param, idx) => (idx === 0 ? colorizeMode(param) : param))
+    .join(' ');
 
   const modeText = isUserModeChange
-    ? t('Mode {channel} {modes}', { channel: modeChannel, modes: colorizedModes })
-    : t('{nick} sets mode {modes}', { nick: modeNick || 'Server', modes: colorizedModes });
+    ? t('Mode {channel} {modes}', {
+        channel: modeChannel,
+        modes: colorizedModes,
+      })
+    : t('{nick} sets mode {modes}', {
+        nick: modeNick || 'Server',
+        modes: colorizedModes,
+      });
 
   ctx.addMessage({
     type: isUserModeChange ? 'raw' : 'mode',

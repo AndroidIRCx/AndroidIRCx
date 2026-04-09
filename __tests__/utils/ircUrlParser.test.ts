@@ -124,7 +124,9 @@ describe('ircUrlParser', () => {
     });
 
     it('should parse URL with query params', () => {
-      const result = parseIRCUrl('irc://irc.example.com/#general?nick=MyNick&altNick=MyAlt&realname=MyReal&ident=myident');
+      const result = parseIRCUrl(
+        'irc://irc.example.com/#general?nick=MyNick&altNick=MyAlt&realname=MyReal&ident=myident',
+      );
       expect(result.nick).toBe('MyNick');
       expect(result.altNick).toBe('MyAlt');
       expect(result.realname).toBe('MyReal');
@@ -142,7 +144,9 @@ describe('ircUrlParser', () => {
     });
 
     it('should give precedence to query param nick over URL nick', () => {
-      const result = parseIRCUrl('irc://urlnick@irc.example.com/?nick=QueryNick');
+      const result = parseIRCUrl(
+        'irc://urlnick@irc.example.com/?nick=QueryNick',
+      );
       expect(result.nick).toBe('QueryNick');
     });
 
@@ -230,7 +234,9 @@ describe('ircUrlParser', () => {
 
   describe('findMatchingNetwork', () => {
     it('should return null for invalid URL', async () => {
-      const result = await findMatchingNetwork({ isValid: false } as ParsedIRCUrl);
+      const result = await findMatchingNetwork({
+        isValid: false,
+      } as ParsedIRCUrl);
       expect(result).toBeNull();
     });
 

@@ -68,14 +68,17 @@ class MediaDownloadService {
     mediaId: string,
     network: string,
     tabId: string,
-    onProgress?: ProgressCallback
+    onProgress?: ProgressCallback,
   ): Promise<DownloadResult> {
     try {
       await this.initialize();
 
       // Check if tabId is provided before proceeding
       if (!tabId) {
-        console.log('[MediaDownloadService] No tabId provided for media:', mediaId);
+        console.log(
+          '[MediaDownloadService] No tabId provided for media:',
+          mediaId,
+        );
         return {
           success: false,
           error: 'No tabId provided for decryption - cannot decrypt media',
@@ -95,7 +98,10 @@ class MediaDownloadService {
       // Check if download is already in progress for this mediaId
       const existingDownload = this.downloadCache.get(mediaId);
       if (existingDownload) {
-        console.log('[MediaDownloadService] Reusing existing download:', mediaId);
+        console.log(
+          '[MediaDownloadService] Reusing existing download:',
+          mediaId,
+        );
         return await existingDownload;
       }
 
@@ -104,7 +110,7 @@ class MediaDownloadService {
         mediaId,
         network,
         tabId,
-        onProgress
+        onProgress,
       );
       this.downloadCache.set(mediaId, downloadPromise);
 
@@ -131,7 +137,7 @@ class MediaDownloadService {
     mediaId: string,
     network: string,
     tabId: string,
-    onProgress?: ProgressCallback
+    onProgress?: ProgressCallback,
   ): Promise<DownloadResult> {
     const tempPath = `${TEMP_DIR}/encrypted_${mediaId}`;
 
@@ -142,7 +148,7 @@ class MediaDownloadService {
 
       // Use fetch to download binary file directly (avoids multipart issues)
       const response = await fetch(downloadUrl);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Download failed`);
       }
@@ -163,7 +169,7 @@ class MediaDownloadService {
 
       // Write binary file to temp path
       await RNFS.writeFile(tempPath, base64Data, 'base64');
-      
+
       // Report progress if callback provided
       if (onProgress) {
         const contentLength = blob.size;
@@ -179,7 +185,9 @@ class MediaDownloadService {
 
       // Check if tabId is provided before attempting decryption
       if (!tabId) {
-        throw new Error('No tabId provided for decryption - cannot decrypt media');
+        throw new Error(
+          'No tabId provided for decryption - cannot decrypt media',
+        );
       }
 
       // decryptMediaFile now extracts nonce from file, so we only need encryptedUri, network, and tabId
@@ -187,7 +195,7 @@ class MediaDownloadService {
         tempPath,
         network,
         tabId,
-        mediaId
+        mediaId,
       );
 
       if (!decryptResult.success || !decryptResult.decryptedUri) {
@@ -199,7 +207,7 @@ class MediaDownloadService {
       const cacheResult = await mediaCacheService.cacheMedia(
         mediaId,
         decryptResult.decryptedUri,
-        decryptResult.mimeType
+        decryptResult.mimeType,
       );
 
       if (!cacheResult.success) {
@@ -256,11 +264,14 @@ class MediaDownloadService {
     network: string,
     tabId: string,
     maxRetries: number = 3,
-    onProgress?: ProgressCallback
+    onProgress?: ProgressCallback,
   ): Promise<DownloadResult> {
     // Check if tabId is provided before attempting any downloads
     if (!tabId) {
-      console.log('[MediaDownloadService] No tabId provided for media:', mediaId);
+      console.log(
+        '[MediaDownloadService] No tabId provided for media:',
+        mediaId,
+      );
       return {
         success: false,
         error: 'No tabId provided for decryption - cannot decrypt media',
@@ -270,9 +281,16 @@ class MediaDownloadService {
     let lastError: string | undefined;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      console.log(`[MediaDownloadService] Attempt ${attempt}/${maxRetries} for ${mediaId}`);
+      console.log(
+        `[MediaDownloadService] Attempt ${attempt}/${maxRetries} for ${mediaId}`,
+      );
 
-      const result = await this.downloadMedia(mediaId, network, tabId, onProgress);
+      const result = await this.downloadMedia(
+        mediaId,
+        network,
+        tabId,
+        onProgress,
+      );
 
       if (result.success) {
         return result;
@@ -284,7 +302,7 @@ class MediaDownloadService {
       if (attempt < maxRetries) {
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
         console.log(`[MediaDownloadService] Retrying in ${delay}ms...`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
 
@@ -325,13 +343,18 @@ class MediaDownloadService {
       const exists = await RNFS.exists(TEMP_DIR);
       if (exists) {
         const files = await RNFS.readDir(TEMP_DIR);
-        console.log(`[MediaDownloadService] Cleaning up ${files.length} temp files`);
+        console.log(
+          `[MediaDownloadService] Cleaning up ${files.length} temp files`,
+        );
 
         for (const file of files) {
           try {
             await RNFS.unlink(file.path);
           } catch {
-            console.warn('[MediaDownloadService] Failed to delete temp file:', file.path);
+            console.warn(
+              '[MediaDownloadService] Failed to delete temp file:',
+              file.path,
+            );
           }
         }
       }

@@ -23,7 +23,12 @@ import { useTheme } from '../hooks/useTheme';
 import { dataBackupService } from '../services/DataBackupService';
 import Clipboard from '@react-native-clipboard/clipboard';
 import RNFS from 'react-native-fs';
-import { pick, isErrorWithCode, errorCodes, types } from '@react-native-documents/picker';
+import {
+  pick,
+  isErrorWithCode,
+  errorCodes,
+  types,
+} from '@react-native-documents/picker';
 import { useT } from '../i18n/transifex';
 import { connectionManager } from '../services/ConnectionManager';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
@@ -41,30 +46,46 @@ interface BackupOption {
   keyPattern: string | RegExp | ((key: string) => boolean);
 }
 
-const isNetworkKey = (key: string) => key.includes('@AndroidIRCX:networks') || key.includes('NETWORKS');
-const isSettingsKey = (key: string, isExplicitMatch: boolean) => (
+const isNetworkKey = (key: string) =>
+  key.includes('@AndroidIRCX:networks') || key.includes('NETWORKS');
+const isSettingsKey = (key: string, isExplicitMatch: boolean) =>
   key.includes('@AndroidIRCX:settings:') ||
   key === 'SETTINGS' ||
   key === 'FIRST_RUN_COMPLETED' ||
-  isExplicitMatch
-);
-const isEncryptionKey = (key: string) => key.startsWith('chanenc:') || key.startsWith('encdm:') || key.startsWith('encstg:');
-const isProfileKey = (key: string) => key.includes('identityProfiles') || key.includes('connectionProfiles');
+  isExplicitMatch;
+const isEncryptionKey = (key: string) =>
+  key.startsWith('chanenc:') ||
+  key.startsWith('encdm:') ||
+  key.startsWith('encstg:');
+const isProfileKey = (key: string) =>
+  key.includes('identityProfiles') || key.includes('connectionProfiles');
 const isFavoritesKey = (key: string) => key.includes('channelFavorites');
-const isNotesKey = (key: string) => key.includes('channelNotes') || key.includes('channelBookmarks') || key.includes('userAlias');
-const isHighlightsKey = (key: string) => key.includes('HIGHLIGHT') || key.includes('notification');
+const isNotesKey = (key: string) =>
+  key.includes('channelNotes') ||
+  key.includes('channelBookmarks') ||
+  key.includes('userAlias');
+const isHighlightsKey = (key: string) =>
+  key.includes('HIGHLIGHT') || key.includes('notification');
 const isTabsKey = (key: string) => key.startsWith('TABS_');
 const isMessagesKey = (key: string) =>
   key.startsWith('MESSAGES_') || key.startsWith('@AndroidIRCX:history:');
 const isLogsKey = (key: string) => {
   const lowerKey = key.toLowerCase();
-  return key === 'channelLogs' || key.startsWith('channelLogs:') || (lowerKey.includes('log') && !lowerKey.includes('login'));
+  return (
+    key === 'channelLogs' ||
+    key.startsWith('channelLogs:') ||
+    (lowerKey.includes('log') && !lowerKey.includes('login'))
+  );
 };
 
 // Security warning text for sensitive data
-const SENSITIVE_DATA_WARNING = 'This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup.';
+const SENSITIVE_DATA_WARNING =
+  'This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup.';
 
-export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) => {
+export const BackupScreen: React.FC<BackupScreenProps> = ({
+  visible,
+  onClose,
+}) => {
   const t = useT();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -74,16 +95,21 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
     {
       id: 'networks',
       name: t('Networks & Servers', { _tags: tags }),
-      description: t('IRC network configurations and server settings', { _tags: tags }),
+      description: t('IRC network configurations and server settings', {
+        _tags: tags,
+      }),
       enabled: true,
-      keyPattern: (key) => key.includes('@AndroidIRCX:networks') || key.includes('NETWORKS'),
+      keyPattern: key =>
+        key.includes('@AndroidIRCX:networks') || key.includes('NETWORKS'),
     },
     {
       id: 'settings',
       name: t('App Settings', { _tags: tags }),
-      description: t('General app preferences and configurations', { _tags: tags }),
+      description: t('General app preferences and configurations', {
+        _tags: tags,
+      }),
       enabled: true,
-      keyPattern: (key) => {
+      keyPattern: key => {
         const explicitMatch = ![
           isNetworkKey,
           isEncryptionKey,
@@ -108,28 +134,36 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
     {
       id: 'profiles',
       name: t('Identity & Connection Profiles', { _tags: tags }),
-      description: t('User identity profiles and connection templates', { _tags: tags }),
+      description: t('User identity profiles and connection templates', {
+        _tags: tags,
+      }),
       enabled: true,
       keyPattern: isProfileKey,
     },
     {
       id: 'favorites',
       name: t('Channel Favorites', { _tags: tags }),
-      description: t('Favorite channels and auto-join settings', { _tags: tags }),
+      description: t('Favorite channels and auto-join settings', {
+        _tags: tags,
+      }),
       enabled: true,
       keyPattern: isFavoritesKey,
     },
     {
       id: 'notes',
       name: t('Channel Notes & Bookmarks', { _tags: tags }),
-      description: t('Channel notes, bookmarks, and user aliases', { _tags: tags }),
+      description: t('Channel notes, bookmarks, and user aliases', {
+        _tags: tags,
+      }),
       enabled: true,
       keyPattern: isNotesKey,
     },
     {
       id: 'highlights',
       name: t('Highlights & Notifications', { _tags: tags }),
-      description: t('Highlight words and notification preferences', { _tags: tags }),
+      description: t('Highlight words and notification preferences', {
+        _tags: tags,
+      }),
       enabled: true,
       keyPattern: isHighlightsKey,
     },
@@ -150,7 +184,9 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
     {
       id: 'logs',
       name: t('Activity Logs', { _tags: tags }),
-      description: t('Channel activity logs and join/part history', { _tags: tags }),
+      description: t('Channel activity logs and join/part history', {
+        _tags: tags,
+      }),
       enabled: false,
       keyPattern: isLogsKey,
     },
@@ -158,31 +194,46 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
 
   const [backupData, setBackupData] = useState('');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [storageStats, setStorageStats] = useState({ keyCount: 0, totalBytes: 0 });
+  const [storageStats, setStorageStats] = useState({
+    keyCount: 0,
+    totalBytes: 0,
+  });
   const [showEncryptionPrompt, setShowEncryptionPrompt] = useState(false);
   const [encryptionPassword, setEncryptionPassword] = useState('');
   const [pendingBackupData, setPendingBackupData] = useState('');
   const [pendingSelectedKeys, setPendingSelectedKeys] = useState<string[]>([]);
   const [decryptPassword, setDecryptPassword] = useState('');
   const [showDecryptPrompt, setShowDecryptPrompt] = useState(false);
-  const [backupOperation, setBackupOperation] = useState<'idle' | 'generate' | 'save' | 'load' | 'restore' | 'decrypt'>('idle');
-  const [loadedBackupMeta, setLoadedBackupMeta] = useState<{ fileName: string; sizeBytes: number; keyCount?: number } | null>(null);
+  const [backupOperation, setBackupOperation] = useState<
+    'idle' | 'generate' | 'save' | 'load' | 'restore' | 'decrypt'
+  >('idle');
+  const [loadedBackupMeta, setLoadedBackupMeta] = useState<{
+    fileName: string;
+    sizeBytes: number;
+    keyCount?: number;
+  } | null>(null);
   const loadedBackupPayloadRef = useRef('');
   const [showRestartModal, setShowRestartModal] = useState(false);
 
   const backupBusy = backupOperation !== 'idle';
-  const backupOperationLabel = backupOperation === 'generate'
-    ? t('Generating backup...', { _tags: tags })
-    : backupOperation === 'save'
-    ? t('Saving backup file...', { _tags: tags })
-    : backupOperation === 'load'
-    ? t('Loading backup file...', { _tags: tags })
-    : backupOperation === 'restore'
-    ? t('Restoring backup...', { _tags: tags })
-    : backupOperation === 'decrypt'
-    ? t('Decrypting backup...', { _tags: tags })
-    : '';
-  const backupBusyRowStyle: ViewStyle = { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8 };
+  const backupOperationLabel =
+    backupOperation === 'generate'
+      ? t('Generating backup...', { _tags: tags })
+      : backupOperation === 'save'
+        ? t('Saving backup file...', { _tags: tags })
+        : backupOperation === 'load'
+          ? t('Loading backup file...', { _tags: tags })
+          : backupOperation === 'restore'
+            ? t('Restoring backup...', { _tags: tags })
+            : backupOperation === 'decrypt'
+              ? t('Decrypting backup...', { _tags: tags })
+              : '';
+  const backupBusyRowStyle: ViewStyle = {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  };
   const backupBusyLabelStyle = { marginLeft: 8 };
   const encryptionPromptStyle = { marginTop: 12, fontWeight: '600' as const };
   const restoreNoticeStyle = { marginTop: 10 };
@@ -206,14 +257,16 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   };
 
   const toggleOption = (id: string) => {
-    setBackupOptions((prev) =>
-      prev.map((opt) => (opt.id === id ? { ...opt, enabled: !opt.enabled } : opt))
+    setBackupOptions(prev =>
+      prev.map(opt =>
+        opt.id === id ? { ...opt, enabled: !opt.enabled } : opt,
+      ),
     );
   };
 
   const selectPreset = (preset: 'all' | 'settings' | 'minimal' | 'none') => {
-    setBackupOptions((prev) =>
-      prev.map((opt) => {
+    setBackupOptions(prev =>
+      prev.map(opt => {
         switch (preset) {
           case 'all':
             return { ...opt, enabled: true };
@@ -232,7 +285,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
           default:
             return opt;
         }
-      })
+      }),
     );
   };
 
@@ -241,12 +294,12 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
     setBackupOperation('generate');
     try {
       const allKeys = await dataBackupService.getAllKeys();
-      const enabledOptions = backupOptions.filter((opt) => opt.enabled);
+      const enabledOptions = backupOptions.filter(opt => opt.enabled);
 
       if (enabledOptions.length === 0) {
         Alert.alert(
           t('No Options Selected', { _tags: tags }),
-          t('Please select at least one backup option', { _tags: tags })
+          t('Please select at least one backup option', { _tags: tags }),
         );
         return;
       }
@@ -259,8 +312,8 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         selectedKeys = allKeys;
       } else {
         // Filter keys based on enabled options
-        selectedKeys = allKeys.filter((key) =>
-          enabledOptions.some((opt) => {
+        selectedKeys = allKeys.filter(key =>
+          enabledOptions.some(opt => {
             if (typeof opt.keyPattern === 'function') {
               return opt.keyPattern(key);
             } else if (opt.keyPattern instanceof RegExp) {
@@ -268,13 +321,14 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
             } else {
               return key.includes(opt.keyPattern);
             }
-          })
+          }),
         );
         data = await dataBackupService.exportKeys(selectedKeys);
       }
 
       // Check if backup contains sensitive data
-      const { hasSensitive } = dataBackupService.checkForSensitiveData(selectedKeys);
+      const { hasSensitive } =
+        dataBackupService.checkForSensitiveData(selectedKeys);
 
       if (hasSensitive) {
         // Store pending data and show encryption prompt
@@ -288,20 +342,22 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         setBackupData(data);
         setShowPreviewModal(true);
 
-        const enabledNames = enabledOptions.map((opt) => opt.name).join(', ');
+        const enabledNames = enabledOptions.map(opt => opt.name).join(', ');
         Alert.alert(
           t('Backup Ready', { _tags: tags }),
           t('Generated backup with {count} items:\n{names}', {
             count: selectedKeys.length,
             names: enabledNames,
             _tags: tags,
-          })
+          }),
         );
       }
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to generate backup', { _tags: tags })
+        error instanceof Error
+          ? error.message
+          : t('Failed to generate backup', { _tags: tags }),
       );
     } finally {
       setBackupOperation('idle');
@@ -315,16 +371,24 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
 
     if (encrypt && encryptionPassword.trim().length > 0) {
       try {
-        const encryptedData = await dataBackupService.encryptBackup(pendingBackupData, encryptionPassword);
+        const encryptedData = await dataBackupService.encryptBackup(
+          pendingBackupData,
+          encryptionPassword,
+        );
         setBackupData(encryptedData);
         Alert.alert(
           t('Backup Encrypted', { _tags: tags }),
-          t('Your backup has been encrypted. Keep your password safe - you will need it to restore this backup.', { _tags: tags })
+          t(
+            'Your backup has been encrypted. Keep your password safe - you will need it to restore this backup.',
+            { _tags: tags },
+          ),
         );
       } catch (error) {
         Alert.alert(
           t('Encryption Failed', { _tags: tags }),
-          error instanceof Error ? error.message : t('Failed to encrypt backup', { _tags: tags })
+          error instanceof Error
+            ? error.message
+            : t('Failed to encrypt backup', { _tags: tags }),
         );
         setBackupOperation('idle');
         return;
@@ -344,7 +408,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       t('Generated backup with {count} items.', {
         count: pendingSelectedKeys.length,
         _tags: tags,
-      })
+      }),
     );
     setPendingSelectedKeys([]);
     setBackupOperation('idle');
@@ -355,12 +419,14 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       Clipboard.setString(backupData);
       Alert.alert(
         t('Success', { _tags: tags }),
-        t('Backup data copied to clipboard', { _tags: tags })
+        t('Backup data copied to clipboard', { _tags: tags }),
       );
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to copy to clipboard', { _tags: tags })
+        error instanceof Error
+          ? error.message
+          : t('Failed to copy to clipboard', { _tags: tags }),
       );
     }
   };
@@ -377,7 +443,9 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       let savePath: string;
       if (Platform.OS === 'android') {
         const externalDir = RNFS.ExternalDirectoryPath;
-        savePath = externalDir ? `${externalDir}/${filename}` : `${RNFS.DocumentDirectoryPath}/${filename}`;
+        savePath = externalDir
+          ? `${externalDir}/${filename}`
+          : `${RNFS.DocumentDirectoryPath}/${filename}`;
       } else {
         savePath = `${RNFS.DocumentDirectoryPath}/${filename}`;
       }
@@ -386,25 +454,30 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       Alert.alert(
         t('Success', { _tags: tags }),
         t('Backup saved to:\n{path}', { path: savePath, _tags: tags }),
-        [{ text: t('OK', { _tags: tags }) }]
+        [{ text: t('OK', { _tags: tags }) }],
       );
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to save backup file', { _tags: tags })
+        error instanceof Error
+          ? error.message
+          : t('Failed to save backup file', { _tags: tags }),
       );
     } finally {
       setBackupOperation('idle');
     }
   };
 
-  const normalizeFileUri = (uri: string) => (uri.startsWith('file://') ? uri.slice(7) : uri);
+  const normalizeFileUri = (uri: string) =>
+    uri.startsWith('file://') ? uri.slice(7) : uri;
   const getErrorMessage = (error: unknown, fallback: string) => {
     if (error instanceof Error && error.message?.trim()) {
       return error.message;
     }
     if (error && typeof error === 'object') {
-      const maybeMessage = (error as { message?: unknown; description?: unknown }).message;
+      const maybeMessage = (
+        error as { message?: unknown; description?: unknown }
+      ).message;
       if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
         return maybeMessage;
       }
@@ -441,7 +514,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       pickerCopyUri = (result as any)?.fileCopyUri;
       let fileUri = pickerCopyUri ?? result?.uri;
       if (!fileUri) {
-        Alert.alert(t('Error', { _tags: tags }), t('No file selected', { _tags: tags }));
+        Alert.alert(
+          t('Error', { _tags: tags }),
+          t('No file selected', { _tags: tags }),
+        );
         return;
       }
 
@@ -451,7 +527,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
 
       const content = await RNFS.readFile(normalizeFileUri(fileUri), 'utf8');
       if (!content.trim()) {
-        Alert.alert(t('Error', { _tags: tags }), t('Selected file is empty', { _tags: tags }));
+        Alert.alert(
+          t('Error', { _tags: tags }),
+          t('Selected file is empty', { _tags: tags }),
+        );
         return;
       }
 
@@ -460,7 +539,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       } catch {
         Alert.alert(
           t('Error', { _tags: tags }),
-          t('Selected file is not a valid JSON backup', { _tags: tags })
+          t('Selected file is not a valid JSON backup', { _tags: tags }),
         );
         return;
       }
@@ -468,7 +547,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       let keyCount: number | undefined;
       try {
         const parsed = JSON.parse(content);
-        keyCount = parsed?.data && typeof parsed.data === 'object' ? Object.keys(parsed.data).length : undefined;
+        keyCount =
+          parsed?.data && typeof parsed.data === 'object'
+            ? Object.keys(parsed.data).length
+            : undefined;
       } catch {
         // already validated above
       }
@@ -482,16 +564,25 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       });
       Alert.alert(
         t('Backup Loaded', { _tags: tags }),
-        t('Backup file loaded successfully. Please wait during restore and do not close the app.', { _tags: tags })
+        t(
+          'Backup file loaded successfully. Please wait during restore and do not close the app.',
+          { _tags: tags },
+        ),
       );
     } catch (error: any) {
-      if (isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED) {
+      if (
+        isErrorWithCode(error) &&
+        error.code === errorCodes.OPERATION_CANCELED
+      ) {
         return;
       }
 
       Alert.alert(
         t('Error', { _tags: tags }),
-        getErrorMessage(error, t('Failed to load backup file', { _tags: tags }))
+        getErrorMessage(
+          error,
+          t('Failed to load backup file', { _tags: tags }),
+        ),
       );
     } finally {
       await cleanupPickedCopy(pickerCopyUri);
@@ -505,7 +596,9 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
       if (!payload.trim()) {
         Alert.alert(
           t('Error', { _tags: tags }),
-          t('Please paste backup data or load a backup file first', { _tags: tags })
+          t('Please paste backup data or load a backup file first', {
+            _tags: tags,
+          }),
         );
         return;
       }
@@ -520,7 +613,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        getErrorMessage(error, t('Failed to restore backup', { _tags: tags }))
+        getErrorMessage(error, t('Failed to restore backup', { _tags: tags })),
       );
     }
   };
@@ -528,13 +621,19 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
   const handleDecryptAndRestore = async () => {
     if (backupBusy) return;
     if (!decryptPassword.trim()) {
-      Alert.alert(t('Error', { _tags: tags }), t('Please enter the password', { _tags: tags }));
+      Alert.alert(
+        t('Error', { _tags: tags }),
+        t('Please enter the password', { _tags: tags }),
+      );
       return;
     }
 
     setBackupOperation('decrypt');
     try {
-      const decryptedData = await dataBackupService.decryptBackup(getRestorePayload(), decryptPassword);
+      const decryptedData = await dataBackupService.decryptBackup(
+        getRestorePayload(),
+        decryptPassword,
+      );
       setShowDecryptPrompt(false);
       setDecryptPassword('');
       performRestore(decryptedData);
@@ -543,8 +642,11 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
         t('Decryption Failed', { _tags: tags }),
         getErrorMessage(
           error,
-          t('Wrong password or corrupted data. Please check your password and try again.', { _tags: tags })
-        )
+          t(
+            'Wrong password or corrupted data. Please check your password and try again.',
+            { _tags: tags },
+          ),
+        ),
       );
       setBackupOperation('idle');
     }
@@ -575,21 +677,26 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
             } catch (error) {
               Alert.alert(
                 t('Error', { _tags: tags }),
-                getErrorMessage(error, t('Invalid backup data', { _tags: tags }))
+                getErrorMessage(
+                  error,
+                  t('Invalid backup data', { _tags: tags }),
+                ),
               );
             } finally {
               setBackupOperation('idle');
             }
           },
         },
-      ]
+      ],
     );
   };
 
   const handleExitToRestart = async () => {
     try {
       await messageHistoryBatching.flushSync().catch(() => {});
-      connectionManager.disconnectAll(t('Restarting after backup restore', { _tags: tags }));
+      connectionManager.disconnectAll(
+        t('Restarting after backup restore', { _tags: tags }),
+      );
     } catch {
       // no-op
     }
@@ -601,35 +708,54 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
 
     Alert.alert(
       t('Restart Required', { _tags: tags }),
-      t('Please close and reopen the app manually to complete restore.', { _tags: tags })
+      t('Please close and reopen the app manually to complete restore.', {
+        _tags: tags,
+      }),
     );
   };
 
   if (!visible) return null;
 
-  const enabledCount = backupOptions.filter((opt) => opt.enabled).length;
+  const enabledCount = backupOptions.filter(opt => opt.enabled).length;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      onRequestClose={onClose}
+    >
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('Backup & Restore', { _tags: tags })}</Text>
-          <TouchableOpacity disabled={backupBusy} onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+          <Text style={styles.headerTitle}>
+            {t('Backup & Restore', { _tags: tags })}
+          </Text>
+          <TouchableOpacity
+            disabled={backupBusy}
+            onPress={onClose}
+            style={styles.closeButton}
+          >
+            <Text style={styles.closeButtonText}>
+              {t('Close', { _tags: tags })}
+            </Text>
           </TouchableOpacity>
         </View>
         {backupBusy && (
           <View style={backupBusyRowStyle}>
             <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={[styles.statsText, backupBusyLabelStyle]}>{backupOperationLabel}</Text>
+            <Text style={[styles.statsText, backupBusyLabelStyle]}>
+              {backupOperationLabel}
+            </Text>
           </View>
         )}
 
         <ScrollView style={styles.content}>
           {/* Storage Stats */}
           <View style={styles.statsCard}>
-            <Text style={styles.statsTitle}>{t('Storage Statistics', { _tags: tags })}</Text>
+            <Text style={styles.statsTitle}>
+              {t('Storage Statistics', { _tags: tags })}
+            </Text>
             <Text style={styles.statsText}>
               {t('{count} items ~{size} KB', {
                 count: storageStats.keyCount,
@@ -641,19 +767,41 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
 
           {/* Quick Presets */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('Quick Presets', { _tags: tags })}</Text>
+            <Text style={styles.sectionTitle}>
+              {t('Quick Presets', { _tags: tags })}
+            </Text>
             <View style={styles.presetRow}>
-              <TouchableOpacity style={styles.presetButton} onPress={() => selectPreset('all')}>
-                <Text style={styles.presetButtonText}>{t('All Data', { _tags: tags })}</Text>
+              <TouchableOpacity
+                style={styles.presetButton}
+                onPress={() => selectPreset('all')}
+              >
+                <Text style={styles.presetButtonText}>
+                  {t('All Data', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.presetButton} onPress={() => selectPreset('settings')}>
-                <Text style={styles.presetButtonText}>{t('Settings Only', { _tags: tags })}</Text>
+              <TouchableOpacity
+                style={styles.presetButton}
+                onPress={() => selectPreset('settings')}
+              >
+                <Text style={styles.presetButtonText}>
+                  {t('Settings Only', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.presetButton} onPress={() => selectPreset('minimal')}>
-                <Text style={styles.presetButtonText}>{t('Minimal', { _tags: tags })}</Text>
+              <TouchableOpacity
+                style={styles.presetButton}
+                onPress={() => selectPreset('minimal')}
+              >
+                <Text style={styles.presetButtonText}>
+                  {t('Minimal', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.presetButton} onPress={() => selectPreset('none')}>
-                <Text style={styles.presetButtonText}>{t('Clear All', { _tags: tags })}</Text>
+              <TouchableOpacity
+                style={styles.presetButton}
+                onPress={() => selectPreset('none')}
+              >
+                <Text style={styles.presetButtonText}>
+                  {t('Clear All', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -661,23 +809,38 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
           {/* Backup Options */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              {t('Select Data to Backup ({count} selected)', { count: enabledCount, _tags: tags })}
+              {t('Select Data to Backup ({count} selected)', {
+                count: enabledCount,
+                _tags: tags,
+              })}
             </Text>
-            {backupOptions.map((option) => (
+            {backupOptions.map(option => (
               <View key={option.id} style={styles.optionRow}>
                 <View style={styles.optionInfo}>
                   <Text style={styles.optionName}>{option.name}</Text>
-                  <Text style={styles.optionDescription}>{option.description}</Text>
+                  <Text style={styles.optionDescription}>
+                    {option.description}
+                  </Text>
                 </View>
-                <Switch disabled={backupBusy} value={option.enabled} onValueChange={() => toggleOption(option.id)} />
+                <Switch
+                  disabled={backupBusy}
+                  value={option.enabled}
+                  onValueChange={() => toggleOption(option.id)}
+                />
               </View>
             ))}
           </View>
 
           {/* Action Buttons */}
           <View style={styles.section}>
-            <TouchableOpacity style={styles.primaryButton} disabled={backupBusy} onPress={generateBackup}>
-              <Text style={styles.primaryButtonText}>{t('Generate Backup', { _tags: tags })}</Text>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              disabled={backupBusy}
+              onPress={generateBackup}
+            >
+              <Text style={styles.primaryButtonText}>
+                {t('Generate Backup', { _tags: tags })}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.secondaryButton}
@@ -687,8 +850,11 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
                 loadedBackupPayloadRef.current = '';
                 setBackupData('');
                 setShowPreviewModal(true);
-              }}>
-              <Text style={styles.secondaryButtonText}>{t('Restore from Backup', { _tags: tags })}</Text>
+              }}
+            >
+              <Text style={styles.secondaryButtonText}>
+                {t('Restore from Backup', { _tags: tags })}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -698,7 +864,8 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
           visible={showEncryptionPrompt}
           transparent
           animationType="fade"
-          onRequestClose={() => setShowEncryptionPrompt(false)}>
+          onRequestClose={() => setShowEncryptionPrompt(false)}
+        >
           <View style={styles.encryptionModalOverlay}>
             <View style={styles.encryptionModalContent}>
               <Text style={styles.encryptionModalTitle}>
@@ -712,7 +879,9 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
               </Text>
               <TextInput
                 style={styles.encryptionInput}
-                placeholder={t('Enter encryption password (optional)', { _tags: tags })}
+                placeholder={t('Enter encryption password (optional)', {
+                  _tags: tags,
+                })}
                 placeholderTextColor={colors.textSecondary}
                 secureTextEntry
                 value={encryptionPassword}
@@ -720,16 +889,25 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
               />
               <View style={styles.encryptionButtonRow}>
                 <TouchableOpacity
-                  style={[styles.encryptionButton, styles.encryptionButtonSecondary]}
-                  onPress={() => handleEncryptionChoice(false)}>
+                  style={[
+                    styles.encryptionButton,
+                    styles.encryptionButtonSecondary,
+                  ]}
+                  onPress={() => handleEncryptionChoice(false)}
+                >
                   <Text style={styles.encryptionButtonTextSecondary}>
                     {t('Export Unencrypted', { _tags: tags })}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.encryptionButton, !encryptionPassword.trim() && styles.encryptionButtonDisabled]}
+                  style={[
+                    styles.encryptionButton,
+                    !encryptionPassword.trim() &&
+                      styles.encryptionButtonDisabled,
+                  ]}
                   onPress={() => handleEncryptionChoice(true)}
-                  disabled={!encryptionPassword.trim()}>
+                  disabled={!encryptionPassword.trim()}
+                >
                   <Text style={styles.encryptionButtonText}>
                     {t('Encrypt & Export', { _tags: tags })}
                   </Text>
@@ -748,14 +926,18 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
             setShowDecryptPrompt(false);
             setDecryptPassword('');
             setBackupOperation('idle');
-          }}>
+          }}
+        >
           <View style={styles.encryptionModalOverlay}>
             <View style={styles.encryptionModalContent}>
               <Text style={styles.encryptionModalTitle}>
                 {t('Encrypted Backup', { _tags: tags })}
               </Text>
               <Text style={styles.encryptionModalText}>
-                {t('This backup is encrypted. Please enter the password to decrypt and restore it.', { _tags: tags })}
+                {t(
+                  'This backup is encrypted. Please enter the password to decrypt and restore it.',
+                  { _tags: tags },
+                )}
               </Text>
               <TextInput
                 style={styles.encryptionInput}
@@ -767,20 +949,28 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
               />
               <View style={styles.encryptionButtonRow}>
                 <TouchableOpacity
-                  style={[styles.encryptionButton, styles.encryptionButtonSecondary]}
+                  style={[
+                    styles.encryptionButton,
+                    styles.encryptionButtonSecondary,
+                  ]}
                   onPress={() => {
                     setShowDecryptPrompt(false);
                     setDecryptPassword('');
                     setBackupOperation('idle');
-                  }}>
+                  }}
+                >
                   <Text style={styles.encryptionButtonTextSecondary}>
                     {t('Cancel', { _tags: tags })}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.encryptionButton, !decryptPassword.trim() && styles.encryptionButtonDisabled]}
+                  style={[
+                    styles.encryptionButton,
+                    !decryptPassword.trim() && styles.encryptionButtonDisabled,
+                  ]}
                   onPress={handleDecryptAndRestore}
-                  disabled={!decryptPassword.trim()}>
+                  disabled={!decryptPassword.trim()}
+                >
                   <Text style={styles.encryptionButtonText}>
                     {t('Decrypt & Restore', { _tags: tags })}
                   </Text>
@@ -795,7 +985,8 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
           visible={showPreviewModal}
           animationType="slide"
           presentationStyle="fullScreen"
-          onRequestClose={() => setShowPreviewModal(false)}>
+          onRequestClose={() => setShowPreviewModal(false)}
+        >
           <View style={styles.modalFullScreenContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
@@ -803,43 +994,77 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
                   ? t('Backup Data', { _tags: tags })
                   : t('Restore from Backup', { _tags: tags })}
               </Text>
-              <TouchableOpacity onPress={() => setShowPreviewModal(false)} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+              <TouchableOpacity
+                onPress={() => setShowPreviewModal(false)}
+                style={styles.closeButton}
+              >
+                <Text style={styles.closeButtonText}>
+                  {t('Close', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalContentContainer}>
+            <ScrollView
+              style={styles.modalContent}
+              contentContainerStyle={styles.modalContentContainer}
+            >
               <Text style={styles.modalDescription}>
                 {loadedBackupMeta
-                  ? t('Loaded from file. JSON preview is hidden for large backups. You can restore now.', { _tags: tags })
+                  ? t(
+                      'Loaded from file. JSON preview is hidden for large backups. You can restore now.',
+                      { _tags: tags },
+                    )
                   : backupData
-                  ? t('Copy this JSON to save your backup, or save it to a file.', { _tags: tags })
-                  : t('Paste your backup JSON here to restore your data.', { _tags: tags })}
+                    ? t(
+                        'Copy this JSON to save your backup, or save it to a file.',
+                        { _tags: tags },
+                      )
+                    : t('Paste your backup JSON here to restore your data.', {
+                        _tags: tags,
+                      })}
               </Text>
               {loadedBackupMeta ? (
                 <View style={styles.loadedFileCard}>
-                  <Text style={styles.loadedFileTitle}>{t('Loaded Backup File', { _tags: tags })}</Text>
-                  <Text style={styles.loadedFileText}>
-                    {t('File: {name}', { name: loadedBackupMeta.fileName, _tags: tags })}
+                  <Text style={styles.loadedFileTitle}>
+                    {t('Loaded Backup File', { _tags: tags })}
                   </Text>
                   <Text style={styles.loadedFileText}>
-                    {t('Size: {size} MB', { size: (loadedBackupMeta.sizeBytes / 1024 / 1024).toFixed(2), _tags: tags })}
+                    {t('File: {name}', {
+                      name: loadedBackupMeta.fileName,
+                      _tags: tags,
+                    })}
+                  </Text>
+                  <Text style={styles.loadedFileText}>
+                    {t('Size: {size} MB', {
+                      size: (loadedBackupMeta.sizeBytes / 1024 / 1024).toFixed(
+                        2,
+                      ),
+                      _tags: tags,
+                    })}
                   </Text>
                   {loadedBackupMeta.keyCount !== undefined && (
                     <Text style={styles.loadedFileText}>
-                      {t('Items: {count}', { count: loadedBackupMeta.keyCount, _tags: tags })}
+                      {t('Items: {count}', {
+                        count: loadedBackupMeta.keyCount,
+                        _tags: tags,
+                      })}
                     </Text>
                   )}
                   <Text style={[styles.loadedFileText, restoreNoticeStyle]}>
-                    {t('Please wait while restoring. Do not close the app.', { _tags: tags })}
+                    {t('Please wait while restoring. Do not close the app.', {
+                      _tags: tags,
+                    })}
                   </Text>
                   <TouchableOpacity
                     style={styles.secondaryButton}
                     onPress={() => {
                       setLoadedBackupMeta(null);
                       loadedBackupPayloadRef.current = '';
-                    }}>
-                    <Text style={styles.secondaryButtonText}>{t('Switch to Manual JSON Paste', { _tags: tags })}</Text>
+                    }}
+                  >
+                    <Text style={styles.secondaryButtonText}>
+                      {t('Switch to Manual JSON Paste', { _tags: tags })}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -847,46 +1072,65 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
                   style={styles.backupInput}
                   multiline
                   value={backupData}
-                  onChangeText={(text) => {
+                  onChangeText={text => {
                     if (loadedBackupMeta) {
                       setLoadedBackupMeta(null);
                       loadedBackupPayloadRef.current = '';
                     }
                     setBackupData(text);
                   }}
-                  placeholder={t('Backup JSON appears here...', { _tags: tags })}
+                  placeholder={t('Backup JSON appears here...', {
+                    _tags: tags,
+                  })}
                   placeholderTextColor={colors.textSecondary}
                 />
               )}
             </ScrollView>
 
             <View style={styles.modalFooter}>
-              <TouchableOpacity 
-                style={styles.footerButton} 
-                onPress={() => setShowPreviewModal(false)}>
-                <Text style={styles.footerButtonText}>{t('Cancel', { _tags: tags })}</Text>
+              <TouchableOpacity
+                style={styles.footerButton}
+                onPress={() => setShowPreviewModal(false)}
+              >
+                <Text style={styles.footerButtonText}>
+                  {t('Cancel', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.footerButton} onPress={handleLoadFromFile}>
+              <TouchableOpacity
+                style={styles.footerButton}
+                onPress={handleLoadFromFile}
+              >
                 <Text style={[styles.footerButtonText, styles.primaryText]}>
                   {t('Load from File', { _tags: tags })}
                 </Text>
               </TouchableOpacity>
               {!loadedBackupMeta && backupData && (
                 <>
-                  <TouchableOpacity style={styles.footerButton} onPress={handleCopyToClipboard}>
+                  <TouchableOpacity
+                    style={styles.footerButton}
+                    onPress={handleCopyToClipboard}
+                  >
                     <Text style={[styles.footerButtonText, styles.primaryText]}>
                       {t('Copy to Clipboard', { _tags: tags })}
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.footerButton} onPress={handleSaveToFile}>
+                  <TouchableOpacity
+                    style={styles.footerButton}
+                    onPress={handleSaveToFile}
+                  >
                     <Text style={[styles.footerButtonText, styles.primaryText]}>
                       {t('Save to File', { _tags: tags })}
                     </Text>
                   </TouchableOpacity>
                 </>
               )}
-              <TouchableOpacity style={[styles.footerButton, styles.restoreButton]} onPress={handleRestore}>
-                <Text style={[styles.footerButtonText, styles.restoreButtonText]}>
+              <TouchableOpacity
+                style={[styles.footerButton, styles.restoreButton]}
+                onPress={handleRestore}
+              >
+                <Text
+                  style={[styles.footerButtonText, styles.restoreButtonText]}
+                >
                   {t('Restore', { _tags: tags })}
                 </Text>
               </TouchableOpacity>
@@ -898,25 +1142,38 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
           visible={showRestartModal}
           transparent
           animationType="fade"
-          onRequestClose={() => setShowRestartModal(false)}>
+          onRequestClose={() => setShowRestartModal(false)}
+        >
           <View style={styles.encryptionModalOverlay}>
             <View style={styles.encryptionModalContent}>
               <Text style={styles.encryptionModalTitle}>
                 {t('Restore Complete', { _tags: tags })}
               </Text>
               <Text style={styles.encryptionModalText}>
-                {t('Backup restored successfully. Please restart the app to reload all restored data.', { _tags: tags })}
+                {t(
+                  'Backup restored successfully. Please restart the app to reload all restored data.',
+                  { _tags: tags },
+                )}
               </Text>
               <View style={styles.encryptionButtonRow}>
                 <TouchableOpacity
-                  style={[styles.encryptionButton, styles.encryptionButtonSecondary]}
-                  onPress={() => setShowRestartModal(false)}>
-                  <Text style={styles.encryptionButtonTextSecondary}>{t('OK', { _tags: tags })}</Text>
+                  style={[
+                    styles.encryptionButton,
+                    styles.encryptionButtonSecondary,
+                  ]}
+                  onPress={() => setShowRestartModal(false)}
+                >
+                  <Text style={styles.encryptionButtonTextSecondary}>
+                    {t('OK', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.encryptionButton}
-                  onPress={handleExitToRestart}>
-                  <Text style={styles.encryptionButtonText}>{t('Exit to Restart App', { _tags: tags })}</Text>
+                  onPress={handleExitToRestart}
+                >
+                  <Text style={styles.encryptionButtonText}>
+                    {t('Exit to Restart App', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -927,9 +1184,14 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({ visible, onClose }) 
           <View style={styles.blockingLoaderOverlay}>
             <View style={styles.blockingLoaderCard}>
               <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.blockingLoaderTitle}>{backupOperationLabel}</Text>
+              <Text style={styles.blockingLoaderTitle}>
+                {backupOperationLabel}
+              </Text>
               <Text style={styles.blockingLoaderText}>
-                {t('Please wait... Do not close the app while this operation is in progress.', { _tags: tags })}
+                {t(
+                  'Please wait... Do not close the app while this operation is in progress.',
+                  { _tags: tags },
+                )}
               </Text>
             </View>
           </View>

@@ -28,7 +28,11 @@ import { performanceService } from '../services/PerformanceService';
 import { themeService } from '../services/ThemeService';
 import { scriptingService } from '../services/ScriptingService';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
-import { NEW_FEATURE_DEFAULTS, settingsService, DEFAULT_QUIT_MESSAGE } from '../services/SettingsService';
+import {
+  NEW_FEATURE_DEFAULTS,
+  settingsService,
+  DEFAULT_QUIT_MESSAGE,
+} from '../services/SettingsService';
 import { awayService } from '../services/AwayService';
 import { protectionService } from '../services/ProtectionService';
 import { presetImportService } from '../services/PresetImportService';
@@ -63,7 +67,10 @@ export const useStartupServices = () => {
           try {
             await RNBootSplash.hide();
           } catch (finalError) {
-            console.error('Error hiding bootsplash (final fallback):', finalError);
+            console.error(
+              'Error hiding bootsplash (final fallback):',
+              finalError,
+            );
           }
         }
       }
@@ -131,22 +138,30 @@ export const useStartupServices = () => {
   useEffect(() => {
     const seedDefaults = async () => {
       try {
-        const [
-          spamPmKeywords,
-          dccAcceptExts,
-          dccRejectExts,
-          dccDontSendExts,
-        ] = await Promise.all([
-          settingsService.getSetting('spamPmKeywords', NEW_FEATURE_DEFAULTS.spamPmKeywords),
-          settingsService.getSetting('dccAcceptExts', NEW_FEATURE_DEFAULTS.dccAcceptExts),
-          settingsService.getSetting('dccRejectExts', NEW_FEATURE_DEFAULTS.dccRejectExts),
-          settingsService.getSetting('dccDontSendExts', NEW_FEATURE_DEFAULTS.dccDontSendExts),
-        ]);
+        const [spamPmKeywords, dccAcceptExts, dccRejectExts, dccDontSendExts] =
+          await Promise.all([
+            settingsService.getSetting(
+              'spamPmKeywords',
+              NEW_FEATURE_DEFAULTS.spamPmKeywords,
+            ),
+            settingsService.getSetting(
+              'dccAcceptExts',
+              NEW_FEATURE_DEFAULTS.dccAcceptExts,
+            ),
+            settingsService.getSetting(
+              'dccRejectExts',
+              NEW_FEATURE_DEFAULTS.dccRejectExts,
+            ),
+            settingsService.getSetting(
+              'dccDontSendExts',
+              NEW_FEATURE_DEFAULTS.dccDontSendExts,
+            ),
+          ]);
 
         const mergeUnique = (existing: string[], defaults: string[]) => {
           const seen = new Set(existing);
           const merged = [...existing];
-          defaults.forEach((entry) => {
+          defaults.forEach(entry => {
             if (!seen.has(entry)) {
               merged.push(entry);
               seen.add(entry);
@@ -155,22 +170,34 @@ export const useStartupServices = () => {
           return merged;
         };
 
-        const nextSpam = mergeUnique(spamPmKeywords || [], NEW_FEATURE_DEFAULTS.spamPmKeywords);
+        const nextSpam = mergeUnique(
+          spamPmKeywords || [],
+          NEW_FEATURE_DEFAULTS.spamPmKeywords,
+        );
         if (nextSpam.length !== (spamPmKeywords || []).length) {
           await settingsService.setSetting('spamPmKeywords', nextSpam);
         }
 
-        const nextAccept = mergeUnique(dccAcceptExts || [], NEW_FEATURE_DEFAULTS.dccAcceptExts);
+        const nextAccept = mergeUnique(
+          dccAcceptExts || [],
+          NEW_FEATURE_DEFAULTS.dccAcceptExts,
+        );
         if (nextAccept.length !== (dccAcceptExts || []).length) {
           await settingsService.setSetting('dccAcceptExts', nextAccept);
         }
 
-        const nextReject = mergeUnique(dccRejectExts || [], NEW_FEATURE_DEFAULTS.dccRejectExts);
+        const nextReject = mergeUnique(
+          dccRejectExts || [],
+          NEW_FEATURE_DEFAULTS.dccRejectExts,
+        );
         if (nextReject.length !== (dccRejectExts || []).length) {
           await settingsService.setSetting('dccRejectExts', nextReject);
         }
 
-        const nextDontSend = mergeUnique(dccDontSendExts || [], NEW_FEATURE_DEFAULTS.dccDontSendExts);
+        const nextDontSend = mergeUnique(
+          dccDontSendExts || [],
+          NEW_FEATURE_DEFAULTS.dccDontSendExts,
+        );
         if (nextDontSend.length !== (dccDontSendExts || []).length) {
           await settingsService.setSetting('dccDontSendExts', nextDontSend);
         }
@@ -186,7 +213,13 @@ export const useStartupServices = () => {
     protectionService.initialize();
     // Set up protected user check callback
     protectionService.setProtectedCheckCallback(
-      (nick, username, hostname, network) => userManagementService.isUserProtected(nick, username, hostname, network)
+      (nick, username, hostname, network) =>
+        userManagementService.isUserProtected(
+          nick,
+          username,
+          hostname,
+          network,
+        ),
     );
   }, []);
 
@@ -252,22 +285,28 @@ export const useStartupServices = () => {
         try {
           const quitMessage = await settingsService.getSetting(
             'quitMessage',
-            DEFAULT_QUIT_MESSAGE
+            DEFAULT_QUIT_MESSAGE,
           );
           connectionManager.disconnectAll(quitMessage);
           await messageHistoryBatching.flushSync().catch(err => {
-            console.error('Error flushing message history on quit action:', err);
+            console.error(
+              'Error flushing message history on quit action:',
+              err,
+            );
           });
           backgroundService.cleanup();
           await ircForegroundService.stop().catch(err => {
-            console.error('Error stopping foreground service on quit action:', err);
+            console.error(
+              'Error stopping foreground service on quit action:',
+              err,
+            );
           });
         } catch (error) {
           console.error('Error handling foreground disconnect action:', error);
         } finally {
           BackHandler.exitApp();
         }
-      }
+      },
     );
 
     return () => subscription.remove();

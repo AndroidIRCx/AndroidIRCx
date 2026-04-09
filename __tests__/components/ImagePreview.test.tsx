@@ -20,7 +20,7 @@ jest.mock('../../src/i18n/transifex', () => ({
 describe('ImagePreview', () => {
   it('renders thumbnail image and opens/closes modal', () => {
     const { UNSAFE_getAllByType, getByText } = render(
-      <ImagePreview url="https://example.com/pic.jpg" />
+      <ImagePreview url="https://example.com/pic.jpg" />,
     );
 
     const images = UNSAFE_getAllByType(Image);
@@ -35,7 +35,7 @@ describe('ImagePreview', () => {
 
   it('shows error state when thumbnail fails', () => {
     const { UNSAFE_getByType, getByText } = render(
-      <ImagePreview url="https://example.com/broken.jpg" />
+      <ImagePreview url="https://example.com/broken.jpg" />,
     );
 
     const img = UNSAFE_getByType(Image);
@@ -46,7 +46,7 @@ describe('ImagePreview', () => {
 
   it('handles non-thumbnail mode', () => {
     const { UNSAFE_getByType } = render(
-      <ImagePreview url="https://example.com/full.jpg" thumbnail={false} />
+      <ImagePreview url="https://example.com/full.jpg" thumbnail={false} />,
     );
 
     const img = UNSAFE_getByType(Image);
@@ -55,7 +55,7 @@ describe('ImagePreview', () => {
 
   it('shows modal loading text and clears it when modal image loads', () => {
     const { UNSAFE_getAllByType, getByText, queryByText } = render(
-      <ImagePreview url="https://example.com/pic.jpg" />
+      <ImagePreview url="https://example.com/pic.jpg" />,
     );
 
     fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[0]);
@@ -67,7 +67,7 @@ describe('ImagePreview', () => {
 
   it('hides modal loader when modal image errors and supports request-close', () => {
     const { UNSAFE_getAllByType, UNSAFE_getByType, queryByText } = render(
-      <ImagePreview url="https://example.com/pic.jpg" />
+      <ImagePreview url="https://example.com/pic.jpg" />,
     );
 
     fireEvent.press(UNSAFE_getAllByType(TouchableOpacity)[0]);

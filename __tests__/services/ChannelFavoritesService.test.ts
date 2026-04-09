@@ -35,10 +35,16 @@ describe('ChannelFavoritesService', () => {
     it('should load stored favorites on initialize', async () => {
       const storedFavorites = {
         freenode: [
-          { name: '#general', network: 'freenode', autoJoin: true, addedAt: Date.now() },
+          {
+            name: '#general',
+            network: 'freenode',
+            autoJoin: true,
+            addedAt: Date.now(),
+          },
         ],
       };
-      mockStorage['@AndroidIRCX:channelFavorites'] = JSON.stringify(storedFavorites);
+      mockStorage['@AndroidIRCX:channelFavorites'] =
+        JSON.stringify(storedFavorites);
 
       await channelFavoritesService.initialize();
       const favorites = channelFavoritesService.getFavorites('freenode');
@@ -60,7 +66,12 @@ describe('ChannelFavoritesService', () => {
 
   describe('Add Favorite', () => {
     it('should add a new favorite', async () => {
-      await channelFavoritesService.addFavorite('freenode', '#general', 'key123', true);
+      await channelFavoritesService.addFavorite(
+        'freenode',
+        '#general',
+        'key123',
+        true,
+      );
 
       const favorites = channelFavoritesService.getFavorites('freenode');
       expect(favorites).toHaveLength(1);
@@ -71,8 +82,18 @@ describe('ChannelFavoritesService', () => {
     });
 
     it('should update existing favorite', async () => {
-      await channelFavoritesService.addFavorite('freenode', '#general', 'oldKey', false);
-      await channelFavoritesService.addFavorite('freenode', '#general', 'newKey', true);
+      await channelFavoritesService.addFavorite(
+        'freenode',
+        '#general',
+        'oldKey',
+        false,
+      );
+      await channelFavoritesService.addFavorite(
+        'freenode',
+        '#general',
+        'newKey',
+        true,
+      );
 
       const favorites = channelFavoritesService.getFavorites('freenode');
       expect(favorites).toHaveLength(1);
@@ -86,7 +107,7 @@ describe('ChannelFavoritesService', () => {
 
       expect(setItem).toHaveBeenCalledWith(
         '@AndroidIRCX:channelFavorites',
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -108,9 +129,11 @@ describe('ChannelFavoritesService', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Failed to save channel favorites:',
-        expect.any(Error)
+        expect.any(Error),
       );
-      expect(channelFavoritesService.isFavorite('freenode', '#general')).toBe(true);
+      expect(channelFavoritesService.isFavorite('freenode', '#general')).toBe(
+        true,
+      );
       consoleSpy.mockRestore();
     });
   });
@@ -149,18 +172,35 @@ describe('ChannelFavoritesService', () => {
 
   describe('Move Favorite', () => {
     beforeEach(async () => {
-      await channelFavoritesService.addFavorite('freenode', '#general', 'key123', true);
+      await channelFavoritesService.addFavorite(
+        'freenode',
+        '#general',
+        'key123',
+        true,
+      );
     });
 
     it('should move favorite to another network', async () => {
-      await channelFavoritesService.moveFavorite('freenode', '#general', 'dalnet');
+      await channelFavoritesService.moveFavorite(
+        'freenode',
+        '#general',
+        'dalnet',
+      );
 
-      expect(channelFavoritesService.isFavorite('freenode', '#general')).toBe(false);
-      expect(channelFavoritesService.isFavorite('dalnet', '#general')).toBe(true);
+      expect(channelFavoritesService.isFavorite('freenode', '#general')).toBe(
+        false,
+      );
+      expect(channelFavoritesService.isFavorite('dalnet', '#general')).toBe(
+        true,
+      );
     });
 
     it('should preserve key and autoJoin when moving', async () => {
-      await channelFavoritesService.moveFavorite('freenode', '#general', 'dalnet');
+      await channelFavoritesService.moveFavorite(
+        'freenode',
+        '#general',
+        'dalnet',
+      );
 
       const moved = channelFavoritesService.getFavorites('dalnet')[0];
       expect(moved.key).toBe('key123');
@@ -171,16 +211,31 @@ describe('ChannelFavoritesService', () => {
       const listener = jest.fn();
       channelFavoritesService.onFavoritesChange(listener);
 
-      await channelFavoritesService.moveFavorite('freenode', '#general', 'freenode');
+      await channelFavoritesService.moveFavorite(
+        'freenode',
+        '#general',
+        'freenode',
+      );
 
       // Listener should not be called for same network
-      const callsForFreenode = listener.mock.calls.filter(c => c[0] === 'freenode');
+      const callsForFreenode = listener.mock.calls.filter(
+        c => c[0] === 'freenode',
+      );
       expect(callsForFreenode.length).toBe(0);
     });
 
     it('should update existing target favorite', async () => {
-      await channelFavoritesService.addFavorite('dalnet', '#general', 'oldKey', false);
-      await channelFavoritesService.moveFavorite('freenode', '#general', 'dalnet');
+      await channelFavoritesService.addFavorite(
+        'dalnet',
+        '#general',
+        'oldKey',
+        false,
+      );
+      await channelFavoritesService.moveFavorite(
+        'freenode',
+        '#general',
+        'dalnet',
+      );
 
       const favorites = channelFavoritesService.getFavorites('dalnet');
       expect(favorites).toHaveLength(1);
@@ -192,7 +247,11 @@ describe('ChannelFavoritesService', () => {
       const listener = jest.fn();
       channelFavoritesService.onFavoritesChange(listener);
 
-      await channelFavoritesService.moveFavorite('freenode', '#general', 'dalnet');
+      await channelFavoritesService.moveFavorite(
+        'freenode',
+        '#general',
+        'dalnet',
+      );
 
       const sourceCalls = listener.mock.calls.filter(c => c[0] === 'freenode');
       const targetCalls = listener.mock.calls.filter(c => c[0] === 'dalnet');
@@ -204,7 +263,11 @@ describe('ChannelFavoritesService', () => {
       const listener = jest.fn();
       channelFavoritesService.onFavoritesChange(listener);
 
-      await channelFavoritesService.moveFavorite('freenode', '#missing', 'dalnet');
+      await channelFavoritesService.moveFavorite(
+        'freenode',
+        '#missing',
+        'dalnet',
+      );
 
       expect(channelFavoritesService.getFavorites('freenode')).toHaveLength(1);
       expect(channelFavoritesService.getFavorites('dalnet')).toEqual([]);
@@ -215,15 +278,21 @@ describe('ChannelFavoritesService', () => {
   describe('Check Favorite', () => {
     it('should return true for favorited channel', async () => {
       await channelFavoritesService.addFavorite('freenode', '#general');
-      expect(channelFavoritesService.isFavorite('freenode', '#general')).toBe(true);
+      expect(channelFavoritesService.isFavorite('freenode', '#general')).toBe(
+        true,
+      );
     });
 
     it('should return false for non-favorited channel', () => {
-      expect(channelFavoritesService.isFavorite('freenode', '#random')).toBe(false);
+      expect(channelFavoritesService.isFavorite('freenode', '#random')).toBe(
+        false,
+      );
     });
 
     it('should return false for non-existent network', () => {
-      expect(channelFavoritesService.isFavorite('nonexistent', '#general')).toBe(false);
+      expect(
+        channelFavoritesService.isFavorite('nonexistent', '#general'),
+      ).toBe(false);
     });
   });
 
@@ -267,8 +336,18 @@ describe('ChannelFavoritesService', () => {
 
   describe('Auto Join', () => {
     beforeEach(async () => {
-      await channelFavoritesService.addFavorite('freenode', '#general', undefined, false);
-      await channelFavoritesService.addFavorite('freenode', '#random', undefined, true);
+      await channelFavoritesService.addFavorite(
+        'freenode',
+        '#general',
+        undefined,
+        false,
+      );
+      await channelFavoritesService.addFavorite(
+        'freenode',
+        '#random',
+        undefined,
+        true,
+      );
     });
 
     it('should get auto-join channels', () => {
@@ -285,7 +364,11 @@ describe('ChannelFavoritesService', () => {
     });
 
     it('should not change auto-join for non-existent favorite', async () => {
-      await channelFavoritesService.setAutoJoin('freenode', '#nonexistent', true);
+      await channelFavoritesService.setAutoJoin(
+        'freenode',
+        '#nonexistent',
+        true,
+      );
 
       const autoJoin = channelFavoritesService.getAutoJoinChannels('freenode');
       expect(autoJoin).toHaveLength(1);
@@ -303,25 +386,41 @@ describe('ChannelFavoritesService', () => {
 
   describe('Update Key', () => {
     beforeEach(async () => {
-      await channelFavoritesService.addFavorite('freenode', '#general', 'oldKey');
+      await channelFavoritesService.addFavorite(
+        'freenode',
+        '#general',
+        'oldKey',
+      );
     });
 
     it('should update favorite key', async () => {
-      await channelFavoritesService.updateFavoriteKey('freenode', '#general', 'newKey');
+      await channelFavoritesService.updateFavoriteKey(
+        'freenode',
+        '#general',
+        'newKey',
+      );
 
       const favorite = channelFavoritesService.getFavorites('freenode')[0];
       expect(favorite.key).toBe('newKey');
     });
 
     it('should remove key when undefined', async () => {
-      await channelFavoritesService.updateFavoriteKey('freenode', '#general', undefined);
+      await channelFavoritesService.updateFavoriteKey(
+        'freenode',
+        '#general',
+        undefined,
+      );
 
       const favorite = channelFavoritesService.getFavorites('freenode')[0];
       expect(favorite.key).toBeUndefined();
     });
 
     it('should not change non-existent favorite', async () => {
-      await channelFavoritesService.updateFavoriteKey('freenode', '#nonexistent', 'key');
+      await channelFavoritesService.updateFavoriteKey(
+        'freenode',
+        '#nonexistent',
+        'key',
+      );
 
       const favorites = channelFavoritesService.getFavorites('freenode');
       expect(favorites[0].key).toBe('oldKey');
@@ -329,7 +428,11 @@ describe('ChannelFavoritesService', () => {
 
     it('should save to storage when updating key', async () => {
       const { setItem } = require('@react-native-async-storage/async-storage');
-      await channelFavoritesService.updateFavoriteKey('freenode', '#general', 'newKey');
+      await channelFavoritesService.updateFavoriteKey(
+        'freenode',
+        '#general',
+        'newKey',
+      );
 
       expect(setItem).toHaveBeenCalled();
     });

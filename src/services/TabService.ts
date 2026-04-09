@@ -19,7 +19,9 @@ class TabService {
     try {
       const key = `${TABS_STORAGE_KEY_PREFIX}${network}`;
       // Use StorageCache for in-memory caching and faster access
-      const storedTabs = await storageCache.getItem<Omit<ChannelTab, 'messages'>[]>(key, {
+      const storedTabs = await storageCache.getItem<
+        Omit<ChannelTab, 'messages'>[]
+      >(key, {
         ttl: 10 * 60 * 1000, // Cache for 10 minutes
       });
 
@@ -27,11 +29,18 @@ class TabService {
         // Ensure messages are not loaded, only tab structure
         // Filter out any "Not connected" tabs
         return storedTabs
-          .filter(tab => tab.name !== 'Not connected' && tab.networkId !== 'Not connected')
+          .filter(
+            tab =>
+              tab.name !== 'Not connected' && tab.networkId !== 'Not connected',
+          )
           .map(tab => ({
             ...tab,
             networkId: tab.networkId || network,
-            id: tab.id.includes('::') ? tab.id : (tab.type === 'server' ? `server::${network}` : tab.id),
+            id: tab.id.includes('::')
+              ? tab.id
+              : tab.type === 'server'
+                ? `server::${network}`
+                : tab.id,
             messages: [], // Messages loaded separately via MessageHistoryService
           }));
       }
@@ -40,7 +49,15 @@ class TabService {
     }
     // Return default server tab if nothing is stored
     const serverId = `server::${network}`;
-    return [{ id: serverId, name: network, type: 'server', networkId: network, messages: [] }];
+    return [
+      {
+        id: serverId,
+        name: network,
+        type: 'server',
+        networkId: network,
+        messages: [],
+      },
+    ];
   }
 
   public async saveTabs(network: string, tabs: ChannelTab[]): Promise<void> {
@@ -55,7 +72,10 @@ class TabService {
       // Do not save messages, only the tab structure
       // Filter out any "Not connected" tabs before saving
       const tabsToSave = tabs
-        .filter(tab => tab.name !== 'Not connected' && tab.networkId !== 'Not connected')
+        .filter(
+          tab =>
+            tab.name !== 'Not connected' && tab.networkId !== 'Not connected',
+        )
         .map(({ messages: _messages, ...rest }) => rest);
 
       // Use StorageCache for automatic write batching (2s debounce)

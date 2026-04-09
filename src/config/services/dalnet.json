@@ -34,9 +34,7 @@
           "completion": {
             "suggestAlias": "nsid",
             "priority": 95,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         },
         {
@@ -59,9 +57,7 @@
           "completion": {
             "suggestAlias": "nsinfo",
             "priority": 80,
-            "context": [
-              "global"
-            ]
+            "context": ["global"]
           }
         }
       ]
@@ -96,9 +92,7 @@
           "completion": {
             "suggestAlias": "csop",
             "priority": 85,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -127,9 +121,7 @@
           "completion": {
             "suggestAlias": "csdeop",
             "priority": 80,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -158,9 +150,7 @@
           "completion": {
             "suggestAlias": "csvoice",
             "priority": 75,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -189,9 +179,7 @@
           "completion": {
             "suggestAlias": "csdevoice",
             "priority": 70,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -215,11 +203,7 @@
               "type": "enum",
               "required": true,
               "description": "Action",
-              "enumValues": [
-                "ADD",
-                "DEL",
-                "LIST"
-              ]
+              "enumValues": ["ADD", "DEL", "LIST"]
             },
             {
               "name": "nick",
@@ -231,9 +215,7 @@
           "completion": {
             "suggestAlias": "cssop",
             "priority": 60,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -257,11 +239,7 @@
               "type": "enum",
               "required": true,
               "description": "Action",
-              "enumValues": [
-                "ADD",
-                "DEL",
-                "LIST"
-              ]
+              "enumValues": ["ADD", "DEL", "LIST"]
             },
             {
               "name": "nick",
@@ -273,9 +251,7 @@
           "completion": {
             "suggestAlias": "csaop",
             "priority": 58,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -299,11 +275,7 @@
               "type": "enum",
               "required": true,
               "description": "Action",
-              "enumValues": [
-                "ADD",
-                "DEL",
-                "LIST"
-              ]
+              "enumValues": ["ADD", "DEL", "LIST"]
             },
             {
               "name": "nick",
@@ -315,9 +287,7 @@
           "completion": {
             "suggestAlias": "csvop",
             "priority": 56,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -341,11 +311,7 @@
               "type": "enum",
               "required": true,
               "description": "Action",
-              "enumValues": [
-                "ADD",
-                "DEL",
-                "LIST"
-              ]
+              "enumValues": ["ADD", "DEL", "LIST"]
             },
             {
               "name": "mask",
@@ -357,9 +323,7 @@
           "completion": {
             "suggestAlias": "csakick",
             "priority": 50,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         },
         {
@@ -404,9 +368,7 @@
           "completion": {
             "suggestAlias": "csset",
             "priority": 45,
-            "context": [
-              "channel"
-            ]
+            "context": ["channel"]
           }
         }
       ]

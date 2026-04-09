@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * BackgroundService
- * 
+ *
  * Manages background connection state and notifications for AndroidIRCX.
- * 
+ *
  * Features:
  * - Monitors app state (foreground/background)
  * - Keeps IRC connection alive when app is in background
  * - Sends notifications for messages received in background
  * - Handles battery optimization requests (Android)
- * 
+ *
  * Usage:
  * - Initialize with backgroundService.initialize() on app start
  * - Cleanup with backgroundService.cleanup() on app shutdown
@@ -24,7 +24,10 @@ import { IRCService, IRCMessage, ircService } from './IRCService';
 import { notificationService } from './NotificationService';
 import { messageHistoryService } from './MessageHistoryService';
 import { settingsService } from './SettingsService';
-import { BatteryOptEnabled, OpenOptimizationSettings } from "react-native-battery-optimization-check";
+import {
+  BatteryOptEnabled,
+  OpenOptimizationSettings,
+} from 'react-native-battery-optimization-check';
 import { connectionManager } from './ConnectionManager';
 import { tx } from '../i18n/transifex';
 
@@ -57,9 +60,12 @@ class BackgroundService {
     try {
       const showRaw = await settingsService.getSetting('showRawCommands', true);
       this.showRawCommandsEnabled = Boolean(showRaw);
-      this.showRawCommandsUnsub = settingsService.onSettingChange('showRawCommands', (value: boolean) => {
-        this.showRawCommandsEnabled = Boolean(value);
-      });
+      this.showRawCommandsUnsub = settingsService.onSettingChange(
+        'showRawCommands',
+        (value: boolean) => {
+          this.showRawCommandsEnabled = Boolean(value);
+        },
+      );
       this.setupAppStateListener();
       console.log('BackgroundService: Initialized');
     } catch (error) {
@@ -98,23 +104,26 @@ class BackgroundService {
 
     // Listen for state changes
     // Note: In React Native 0.65+, addEventListener returns a subscription object
-    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-      const wasBackground = this.appState.match(/inactive|background/);
-      const isBackground = nextAppState.match(/inactive|background/);
-      const wasActive = this.appState === 'active';
-      const isActive = nextAppState === 'active';
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus) => {
+        const wasBackground = this.appState.match(/inactive|background/);
+        const isBackground = nextAppState.match(/inactive|background/);
+        const wasActive = this.appState === 'active';
+        const isActive = nextAppState === 'active';
 
-      if (wasBackground && isActive) {
-        // App came to foreground
-        this.handleAppForeground();
-      } else if (wasActive && isBackground) {
-        // App went to background
-        this.handleAppBackground();
-      }
+        if (wasBackground && isActive) {
+          // App came to foreground
+          this.handleAppForeground();
+        } else if (wasActive && isBackground) {
+          // App went to background
+          this.handleAppBackground();
+        }
 
-      this.appState = nextAppState;
-      console.log(`BackgroundService: App state changed to ${nextAppState}`);
-    });
+        this.appState = nextAppState;
+        console.log(`BackgroundService: App state changed to ${nextAppState}`);
+      },
+    );
 
     // Store subscription for cleanup
     this.appStateListener = subscription;
@@ -135,7 +144,9 @@ class BackgroundService {
    * Handle app going to background
    */
   private handleAppBackground(): void {
-    console.log('BackgroundService: App went to background, keeping connection alive');
+    console.log(
+      'BackgroundService: App went to background, keeping connection alive',
+    );
     // Connection is already maintained by the socket
     // Ensure every active connection has a listener so notifications fire for all networks
     this.syncMessageListeners();
@@ -159,7 +170,7 @@ class BackgroundService {
     if (connections.length === 0) {
       return [{ id: 'singleton', service: ircService }];
     }
-    return connections.map((ctx) => ({
+    return connections.map(ctx => ({
       id: ctx.networkId,
       service: ctx.ircService,
     }));
@@ -182,7 +193,10 @@ class BackgroundService {
         const isRawMessage = message.type === 'raw' || message.isRaw;
         if (!isRawMessage || this.showRawCommandsEnabled) {
           messageHistoryService.saveMessage(message, networkName).catch(err => {
-            console.error('BackgroundService: Failed to save message history in background:', err);
+            console.error(
+              'BackgroundService: Failed to save message history in background:',
+              err,
+            );
           });
         }
         if (this.shouldNotify(message, service)) {
@@ -202,7 +216,7 @@ class BackgroundService {
   }
 
   private unregisterMessageListener(): void {
-    this.messageListenerCleanups.forEach((cleanup) => cleanup());
+    this.messageListenerCleanups.forEach(cleanup => cleanup());
     this.messageListenerCleanups.clear();
   }
 
@@ -236,11 +250,14 @@ class BackgroundService {
         type: message.type,
       },
       service.getCurrentNick(),
-      service.getNetworkName()
+      service.getNetworkName(),
     );
   }
 
-  private getNotificationChannelKey(message: IRCMessage, service: IRCService): string {
+  private getNotificationChannelKey(
+    message: IRCMessage,
+    service: IRCService,
+  ): string {
     const channelName = message.channel || 'unknown';
     const networkName = message.network || service.getNetworkName();
     return `${networkName}:${channelName}`;
@@ -249,7 +266,10 @@ class BackgroundService {
   /**
    * Handle message received while app is in background
    */
-  private async handleBackgroundMessage(message: IRCMessage, service: IRCService): Promise<void> {
+  private async handleBackgroundMessage(
+    message: IRCMessage,
+    service: IRCService,
+  ): Promise<void> {
     const channelKey = this.getNotificationChannelKey(message, service);
     const now = Date.now();
     const lastTime = this.lastNotificationTime.get(channelKey) || 0;
@@ -272,7 +292,10 @@ class BackgroundService {
   /**
    * Send notification for a message
    */
-  private async sendNotification(message: IRCMessage, service: IRCService): Promise<void> {
+  private async sendNotification(
+    message: IRCMessage,
+    service: IRCService,
+  ): Promise<void> {
     // Use NotificationService to show the notification
     await notificationService.showMessageNotification(
       {
@@ -282,7 +305,7 @@ class BackgroundService {
         type: message.type,
       },
       service.getCurrentNick(),
-      service.getNetworkName()
+      service.getNetworkName(),
     );
   }
 
@@ -292,7 +315,9 @@ class BackgroundService {
   async processNotificationQueue(): Promise<void> {
     const translate = (key: string, params?: Record<string, unknown>) => {
       const rawTranslator = (tx as any)?.t;
-      return typeof rawTranslator === 'function' ? rawTranslator(key, params) : key;
+      return typeof rawTranslator === 'function'
+        ? rawTranslator(key, params)
+        : key;
     };
     for (const [channelKey, messages] of this.notificationQueue.entries()) {
       if (messages.length === 0) continue;
@@ -307,7 +332,13 @@ class BackgroundService {
       });
       const body = lastMessage.text || '';
 
-      await notificationService.showNotification(title, body, channelName, networkName, lastMessage.type);
+      await notificationService.showNotification(
+        title,
+        body,
+        channelName,
+        networkName,
+        lastMessage.type,
+      );
       this.lastNotificationTime.set(channelKey, Date.now());
     }
 
@@ -317,7 +348,9 @@ class BackgroundService {
   /**
    * Update notification configuration (delegates to NotificationService)
    */
-  async updateNotificationConfig(config: Partial<BackgroundNotificationConfig>): Promise<void> {
+  async updateNotificationConfig(
+    config: Partial<BackgroundNotificationConfig>,
+  ): Promise<void> {
     await notificationService.updatePreferences(config);
     console.log('BackgroundService: Notification config updated', config);
   }
@@ -341,7 +374,7 @@ class BackgroundService {
    */
   async updateChannelNotificationConfig(
     channel: string,
-    config: Partial<BackgroundNotificationConfig>
+    config: Partial<BackgroundNotificationConfig>,
   ): Promise<void> {
     await notificationService.updateChannelPreferences(channel, config);
   }
@@ -351,7 +384,7 @@ class BackgroundService {
    */
   async updateNetworkNotificationConfig(
     network: string,
-    config: Partial<BackgroundNotificationConfig>
+    config: Partial<BackgroundNotificationConfig>,
   ): Promise<void> {
     await notificationService.updateNetworkPreferences(network, config);
   }
@@ -362,11 +395,17 @@ class BackgroundService {
   shouldKeepAlive(): boolean {
     const activeConnection = connectionManager.getActiveConnection();
     if (activeConnection) {
-      return this.backgroundConnectionEnabled && activeConnection.ircService.getConnectionStatus();
+      return (
+        this.backgroundConnectionEnabled &&
+        activeConnection.ircService.getConnectionStatus()
+      );
     }
     // Fallback to singleton mode
     const { ircService: fallbackIrcService } = require('./IRCService');
-    return this.backgroundConnectionEnabled && fallbackIrcService.getConnectionStatus();
+    return (
+      this.backgroundConnectionEnabled &&
+      fallbackIrcService.getConnectionStatus()
+    );
   }
 
   /**
@@ -378,13 +417,20 @@ class BackgroundService {
       try {
         listener(enabled);
       } catch (error) {
-        console.error('BackgroundService: Error in background connection listener:', error);
+        console.error(
+          'BackgroundService: Error in background connection listener:',
+          error,
+        );
       }
     });
-    console.log(`BackgroundService: Background connection ${enabled ? 'enabled' : 'disabled'}`);
+    console.log(
+      `BackgroundService: Background connection ${enabled ? 'enabled' : 'disabled'}`,
+    );
   }
 
-  onBackgroundConnectionChange(callback: (enabled: boolean) => void): () => void {
+  onBackgroundConnectionChange(
+    callback: (enabled: boolean) => void,
+  ): () => void {
     this.backgroundConnectionListeners.push(callback);
     return () => {
       const index = this.backgroundConnectionListeners.indexOf(callback);
@@ -406,12 +452,19 @@ class BackgroundService {
    * This allows the user to manually enable or disable battery optimization for the app.
    */
   async openBatteryOptimizationSettings(): Promise<void> {
-    console.log('BackgroundService: Attempting to open battery optimization settings...');
+    console.log(
+      'BackgroundService: Attempting to open battery optimization settings...',
+    );
     try {
       OpenOptimizationSettings();
-      console.log('BackgroundService: Call to OpenOptimizationSettings() completed.');
+      console.log(
+        'BackgroundService: Call to OpenOptimizationSettings() completed.',
+      );
     } catch (error) {
-      console.error('BackgroundService: Error opening battery optimization settings:', error);
+      console.error(
+        'BackgroundService: Error opening battery optimization settings:',
+        error,
+      );
     }
   }
 
@@ -423,7 +476,10 @@ class BackgroundService {
     try {
       return await BatteryOptEnabled();
     } catch (error) {
-      console.error('BackgroundService: Error checking battery optimization status:', error);
+      console.error(
+        'BackgroundService: Error checking battery optimization status:',
+        error,
+      );
       return false;
     }
   }

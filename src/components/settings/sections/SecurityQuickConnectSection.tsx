@@ -4,12 +4,23 @@
  */
 
 import React, { useState } from 'react';
-import { Modal, ScrollView, TouchableOpacity, View, Text, StyleSheet, TextInput } from 'react-native';
+import {
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { SettingItem } from '../SettingItem';
 import { useSettingsSecurity } from '../../../hooks/useSettingsSecurity';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
 
 interface SecurityQuickConnectSectionProps {
   colors: {
@@ -35,13 +46,12 @@ interface SecurityQuickConnectSectionProps {
   settingIcons: Record<string, SettingIcon | undefined>;
 }
 
-export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionProps> = ({
-  colors,
-  styles,
-  settingIcons,
-}) => {
+export const SecurityQuickConnectSection: React.FC<
+  SecurityQuickConnectSectionProps
+> = ({ colors, styles, settingIcons }) => {
   const t = useT();
-  const tags = 'screen:settings,file:SecurityQuickConnectSection.tsx,feature:settings';
+  const tags =
+    'screen:settings,file:SecurityQuickConnectSection.tsx,feature:settings';
   const modalStyles = createModalStyles(colors);
   const colorPickerStyles = createColorPickerStyles(colors);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -92,7 +102,17 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
       description: t('Show kill switch button in header', { _tags: tags }),
       type: 'switch',
       value: killSwitchEnabledOnHeader,
-      searchKeywords: ['kill', 'switch', 'header', 'emergency', 'wipe', 'delete', 'panic', 'button', 'show'],
+      searchKeywords: [
+        'kill',
+        'switch',
+        'header',
+        'emergency',
+        'wipe',
+        'delete',
+        'panic',
+        'button',
+        'show',
+      ],
       onValueChange: async (value: boolean | string) => {
         await setKillSwitchEnabledOnHeader(value as boolean);
       },
@@ -100,10 +120,23 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
     {
       id: 'kill-switch-lockscreen',
       title: t('Kill Switch on Lock Screen', { _tags: tags }),
-      description: t('Show kill switch button on app unlock screen', { _tags: tags }),
+      description: t('Show kill switch button on app unlock screen', {
+        _tags: tags,
+      }),
       type: 'switch',
       value: killSwitchEnabledOnLockScreen,
-      searchKeywords: ['kill', 'switch', 'lock', 'screen', 'unlock', 'emergency', 'wipe', 'delete', 'panic', 'button'],
+      searchKeywords: [
+        'kill',
+        'switch',
+        'lock',
+        'screen',
+        'unlock',
+        'emergency',
+        'wipe',
+        'delete',
+        'panic',
+        'button',
+      ],
       onValueChange: async (value: boolean | string) => {
         await setKillSwitchEnabledOnLockScreen(value as boolean);
       },
@@ -111,10 +144,21 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
     {
       id: 'kill-switch-warnings',
       title: t('Show Kill Switch Warnings', { _tags: tags }),
-      description: t('Show confirmation dialogs before activating kill switch (header only)', { _tags: tags }),
+      description: t(
+        'Show confirmation dialogs before activating kill switch (header only)',
+        { _tags: tags },
+      ),
       type: 'switch',
       value: killSwitchShowWarnings,
-      searchKeywords: ['kill', 'switch', 'warnings', 'confirmation', 'dialog', 'alert', 'show'],
+      searchKeywords: [
+        'kill',
+        'switch',
+        'warnings',
+        'confirmation',
+        'dialog',
+        'alert',
+        'show',
+      ],
       onValueChange: async (value: boolean | string) => {
         await setKillSwitchShowWarnings(value as boolean);
       },
@@ -122,11 +166,22 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
     {
       id: 'kill-switch-custom-name',
       title: t('Kill Switch Custom Name', { _tags: tags }),
-      description: t('Custom name for kill switch button (e.g., "meow meow" for obfuscation)', { _tags: tags }),
+      description: t(
+        'Custom name for kill switch button (e.g., "meow meow" for obfuscation)',
+        { _tags: tags },
+      ),
       type: 'input',
       value: killSwitchCustomName,
       placeholder: t('Enter custom name', { _tags: tags }),
-      searchKeywords: ['kill', 'switch', 'name', 'custom', 'rename', 'obfuscate', 'hide'],
+      searchKeywords: [
+        'kill',
+        'switch',
+        'name',
+        'custom',
+        'rename',
+        'obfuscate',
+        'hide',
+      ],
       onValueChange: async (value: boolean | string) => {
         await setKillSwitchCustomName(value as string);
       },
@@ -134,11 +189,20 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
     {
       id: 'kill-switch-custom-icon',
       title: t('Kill Switch Custom Icon', { _tags: tags }),
-      description: t('FontAwesome5 icon name (e.g., "cat", "heart", "star")', { _tags: tags }),
+      description: t('FontAwesome5 icon name (e.g., "cat", "heart", "star")', {
+        _tags: tags,
+      }),
       type: 'input',
       value: killSwitchCustomIcon,
       placeholder: t('Enter icon name', { _tags: tags }),
-      searchKeywords: ['kill', 'switch', 'icon', 'custom', 'fontawesome', 'change'],
+      searchKeywords: [
+        'kill',
+        'switch',
+        'icon',
+        'custom',
+        'fontawesome',
+        'change',
+      ],
       onValueChange: async (value: boolean | string) => {
         await setKillSwitchCustomIcon(value as string);
       },
@@ -146,9 +210,19 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
     {
       id: 'kill-switch-custom-color',
       title: t('Kill Switch Custom Color', { _tags: tags }),
-      description: t('Tap to choose from preset colors or enter hex code', { _tags: tags }),
+      description: t('Tap to choose from preset colors or enter hex code', {
+        _tags: tags,
+      }),
       type: 'button',
-      searchKeywords: ['kill', 'switch', 'color', 'custom', 'hex', 'change', 'picker'],
+      searchKeywords: [
+        'kill',
+        'switch',
+        'color',
+        'custom',
+        'hex',
+        'change',
+        'picker',
+      ],
       onPress: () => {
         setShowColorPicker(true);
       },
@@ -157,8 +231,10 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}
@@ -175,38 +251,72 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
         visible={showColorPicker}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowColorPicker(false)}>
+        onRequestClose={() => setShowColorPicker(false)}
+      >
         <View style={modalStyles.overlay}>
-          <View style={[modalStyles.container, { backgroundColor: colors.surface }]}>
+          <View
+            style={[modalStyles.container, { backgroundColor: colors.surface }]}
+          >
             <Text style={[modalStyles.title, { color: colors.text }]}>
               {t('Choose Color', { _tags: tags })}
             </Text>
-            <Text style={[modalStyles.description, { color: colors.textSecondary }]}>
-              {t('Current color: {color}', { color: killSwitchCustomColor, _tags: tags })}
+            <Text
+              style={[modalStyles.description, { color: colors.textSecondary }]}
+            >
+              {t('Current color: {color}', {
+                color: killSwitchCustomColor,
+                _tags: tags,
+              })}
             </Text>
 
             {/* Live Preview */}
             <View style={colorPickerStyles.livePreview}>
-              <View style={[colorPickerStyles.previewButton, { borderColor: killSwitchCustomColor }]}>
-                <Icon name={killSwitchCustomIcon} size={20} color={killSwitchCustomColor} solid style={{ marginRight: 8 }} />
-                <Text style={[colorPickerStyles.previewText, { color: killSwitchCustomColor }]}>
+              <View
+                style={[
+                  colorPickerStyles.previewButton,
+                  { borderColor: killSwitchCustomColor },
+                ]}
+              >
+                <Icon
+                  name={killSwitchCustomIcon}
+                  size={20}
+                  color={killSwitchCustomColor}
+                  solid
+                  style={{ marginRight: 8 }}
+                />
+                <Text
+                  style={[
+                    colorPickerStyles.previewText,
+                    { color: killSwitchCustomColor },
+                  ]}
+                >
                   {killSwitchCustomName}
                 </Text>
               </View>
             </View>
 
             {/* Color preview box */}
-            <View style={[colorPickerStyles.colorPreview, { backgroundColor: killSwitchCustomColor }]} />
+            <View
+              style={[
+                colorPickerStyles.colorPreview,
+                { backgroundColor: killSwitchCustomColor },
+              ]}
+            />
 
             {/* Hex Input */}
             <View style={colorPickerStyles.hexInputContainer}>
-              <Text style={[colorPickerStyles.hexLabel, { color: colors.text }]}>
+              <Text
+                style={[colorPickerStyles.hexLabel, { color: colors.text }]}
+              >
                 {t('Hex Color:', { _tags: tags })}
               </Text>
               <TextInput
-                style={[colorPickerStyles.hexInput, { color: colors.text, borderColor: colors.border }]}
+                style={[
+                  colorPickerStyles.hexInput,
+                  { color: colors.text, borderColor: colors.border },
+                ]}
                 value={hexInput || killSwitchCustomColor}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setHexInput(text);
                   // Validate and apply if valid hex color
                   const hexPattern = /^#[0-9A-Fa-f]{6}$/;
@@ -231,11 +341,13 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
                     style={[
                       colorPickerStyles.colorButton,
                       { backgroundColor: color.hex },
-                      killSwitchCustomColor === color.hex && colorPickerStyles.colorButtonSelected,
+                      killSwitchCustomColor === color.hex &&
+                        colorPickerStyles.colorButtonSelected,
                     ]}
                     onPress={async () => {
                       await setKillSwitchCustomColor(color.hex);
-                    }}>
+                    }}
+                  >
                     {killSwitchCustomColor === color.hex && (
                       <Text style={colorPickerStyles.checkmark}>✓</Text>
                     )}
@@ -245,11 +357,15 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
             </ScrollView>
 
             <TouchableOpacity
-              style={[modalStyles.closeButton, { backgroundColor: colors.primary }]}
+              style={[
+                modalStyles.closeButton,
+                { backgroundColor: colors.primary },
+              ]}
               onPress={() => {
                 setShowColorPicker(false);
                 setHexInput(''); // Clear hex input on close
-              }}>
+              }}
+            >
               <Text style={modalStyles.closeButtonText}>
                 {t('Done', { _tags: tags })}
               </Text>
@@ -261,126 +377,128 @@ export const SecurityQuickConnectSection: React.FC<SecurityQuickConnectSectionPr
   );
 };
 
-const createModalStyles = (colors: any) => StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.modalOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    borderRadius: 8,
-    padding: 20,
-    width: '90%',
-    maxWidth: 400,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 14,
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  scroll: {
-    maxHeight: 300,
-    marginBottom: 12,
-  },
-  item: {
-    padding: 12,
-    borderBottomWidth: 1,
-  },
-  itemText: {
-    fontSize: 16,
-  },
-  itemTextSelected: {
-    fontWeight: '600',
-  },
-  closeButton: {
-    padding: 12,
-    borderRadius: 4,
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    color: colors.onPrimary,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-});
+const createModalStyles = (colors: any) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.modalOverlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    container: {
+      borderRadius: 8,
+      padding: 20,
+      width: '90%',
+      maxWidth: 400,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    description: {
+      fontSize: 14,
+      marginBottom: 16,
+      lineHeight: 20,
+    },
+    scroll: {
+      maxHeight: 300,
+      marginBottom: 12,
+    },
+    item: {
+      padding: 12,
+      borderBottomWidth: 1,
+    },
+    itemText: {
+      fontSize: 16,
+    },
+    itemTextSelected: {
+      fontWeight: '600',
+    },
+    closeButton: {
+      padding: 12,
+      borderRadius: 4,
+      alignItems: 'center',
+    },
+    closeButtonText: {
+      color: colors.onPrimary,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+  });
 
-const createColorPickerStyles = (colors: any) => StyleSheet.create({
-  livePreview: {
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingVertical: 12,
-    backgroundColor: colors.background,
-    borderRadius: 8,
-  },
-  previewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderWidth: 2,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-  },
-  previewText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  colorPreview: {
-    width: '100%',
-    height: 50,
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  hexInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    gap: 12,
-  },
-  hexLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  hexInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 10,
-    fontSize: 14,
-    fontFamily: 'monospace',
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    justifyContent: 'space-between',
-  },
-  colorButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 3,
-    borderColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  colorButtonSelected: {
-    borderColor: colors.text,
-  },
-  checkmark: {
-    fontSize: 24,
-    color: colors.onPrimary,
-    fontWeight: 'bold',
-    textShadowColor: colors.background,
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-});
+const createColorPickerStyles = (colors: any) =>
+  StyleSheet.create({
+    livePreview: {
+      alignItems: 'center',
+      marginBottom: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.background,
+      borderRadius: 8,
+    },
+    previewButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderWidth: 2,
+      borderRadius: 20,
+      backgroundColor: colors.surface,
+    },
+    previewText: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    colorPreview: {
+      width: '100%',
+      height: 50,
+      borderRadius: 8,
+      marginBottom: 12,
+      borderWidth: 2,
+      borderColor: colors.border,
+    },
+    hexInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+      gap: 12,
+    },
+    hexLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    hexInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderRadius: 4,
+      padding: 10,
+      fontSize: 14,
+      fontFamily: 'monospace',
+    },
+    colorGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      justifyContent: 'space-between',
+    },
+    colorButton: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      borderWidth: 3,
+      borderColor: 'transparent',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    colorButtonSelected: {
+      borderColor: colors.text,
+    },
+    checkmark: {
+      fontSize: 24,
+      color: colors.onPrimary,
+      fontWeight: 'bold',
+      textShadowColor: colors.background,
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 2,
+    },
+  });

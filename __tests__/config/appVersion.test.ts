@@ -41,7 +41,9 @@ describe('Config - appVersion fallback', () => {
     }));
 
     // Re-import to get the fallback behavior
-    const { APP_VERSION: fallbackVersion } = require('../../src/config/appVersion');
+    const {
+      APP_VERSION: fallbackVersion,
+    } = require('../../src/config/appVersion');
 
     expect(fallbackVersion).toBe('1.0.0');
   });
@@ -49,7 +51,9 @@ describe('Config - appVersion fallback', () => {
   it('should fallback to "1.0.0" when app.json is empty', () => {
     jest.doMock('../../app.json', () => ({}));
 
-    const { APP_VERSION: fallbackVersion } = require('../../src/config/appVersion');
+    const {
+      APP_VERSION: fallbackVersion,
+    } = require('../../src/config/appVersion');
 
     expect(fallbackVersion).toBe('1.0.0');
   });

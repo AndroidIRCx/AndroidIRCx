@@ -31,7 +31,10 @@ class BiometricAuthService {
   }
 
   isAvailable(): boolean {
-    return Boolean(Keychain && (Keychain.getSupportedBiometryType || Keychain.getGenericPassword));
+    return Boolean(
+      Keychain &&
+      (Keychain.getSupportedBiometryType || Keychain.getGenericPassword),
+    );
   }
 
   /**
@@ -92,13 +95,21 @@ class BiometricAuthService {
   async authenticate(
     promptTitle: string,
     promptDescription?: string,
-    scope?: string
+    scope?: string,
   ): Promise<{ success: boolean; errorKey?: string; errorMessage?: string }> {
     if (!Keychain?.getGenericPassword) {
-      return { success: false, errorKey: 'Biometric authentication not available' };
+      return {
+        success: false,
+        errorKey: 'Biometric authentication not available',
+      };
     }
     const service = this.getService(scope);
-    console.log('[BiometricAuthService] Authenticating with scope:', scope, 'service:', service);
+    console.log(
+      '[BiometricAuthService] Authenticating with scope:',
+      scope,
+      'service:',
+      service,
+    );
 
     const options: any = {
       authenticationPrompt: {
@@ -108,7 +119,8 @@ class BiometricAuthService {
     };
     if (Keychain.AUTHENTICATION_TYPE?.DEVICE_PASSCODE_OR_BIOMETRICS) {
       // Allow both biometrics AND device PIN/passcode
-      options.authenticationType = Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS;
+      options.authenticationType =
+        Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS;
       console.log('[BiometricAuthService] Using DEVICE_PASSCODE_OR_BIOMETRICS');
     } else if (Keychain.AUTHENTICATION_TYPE?.BIOMETRICS) {
       options.authenticationType = Keychain.AUTHENTICATION_TYPE.BIOMETRICS;
@@ -123,7 +135,8 @@ class BiometricAuthService {
         return {
           success: false,
           errorKey: 'Authentication unavailable',
-          errorMessage: 'Biometric prompt is only available while the app is active.',
+          errorMessage:
+            'Biometric prompt is only available while the app is active.',
         };
       }
 
@@ -139,7 +152,7 @@ class BiometricAuthService {
         return {
           success: false,
           errorKey: 'Authentication cancelled or credentials not found',
-          errorMessage: undefined // Don't set message here - let caller decide based on context
+          errorMessage: undefined, // Don't set message here - let caller decide based on context
         };
       }
 
@@ -154,11 +167,14 @@ class BiometricAuthService {
         return {
           success: false,
           errorKey: 'User cancelled',
-          errorMessage: undefined // User knows they cancelled, no need for error message
+          errorMessage: undefined, // User knows they cancelled, no need for error message
         };
       }
 
-      if (errorMsg.includes('current activity') || errorMsg.includes('Current activity')) {
+      if (
+        errorMsg.includes('current activity') ||
+        errorMsg.includes('Current activity')
+      ) {
         return {
           success: false,
           errorKey: 'Authentication unavailable',
@@ -170,7 +186,7 @@ class BiometricAuthService {
       return {
         success: false,
         errorKey: 'Authentication failed',
-        errorMessage: errorMsg
+        errorMessage: errorMsg,
       };
     }
   }

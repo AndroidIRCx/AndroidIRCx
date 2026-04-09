@@ -33,11 +33,15 @@ describe('IRCService Command Handlers', () => {
   beforeEach(() => {
     messages = [];
 
-    jest.spyOn(ircService as any, 'addMessage').mockImplementation((msg: any) => {
-      messages.push(msg);
-    });
+    jest
+      .spyOn(ircService as any, 'addMessage')
+      .mockImplementation((msg: any) => {
+        messages.push(msg);
+      });
 
-    emitSpy = jest.spyOn(ircService as any, 'emit').mockImplementation(() => {});
+    emitSpy = jest
+      .spyOn(ircService as any, 'emit')
+      .mockImplementation(() => {});
 
     // Set up basic state
     (ircService as any).currentNick = 'testnick';
@@ -66,9 +70,11 @@ describe('IRCService Command Handlers', () => {
   describe('Utility Commands', () => {
     it('/echo - displays local message', () => {
       sendMessage('#test', '/echo This is a test');
-      expect(messages).toContainEqual(expect.objectContaining({
-        text: expect.stringContaining('This is a test'),
-      }));
+      expect(messages).toContainEqual(
+        expect.objectContaining({
+          text: expect.stringContaining('This is a test'),
+        }),
+      );
     });
 
     it('/clear - clears messages', () => {
@@ -84,7 +90,9 @@ describe('IRCService Command Handlers', () => {
     it('/help - shows help or sends to server', () => {
       sendMessage('#test', '/help');
       // Help can either show locally or send to server
-      expect(messages.length + emitSpy.mock.calls.length).toBeGreaterThanOrEqual(0);
+      expect(
+        messages.length + emitSpy.mock.calls.length,
+      ).toBeGreaterThanOrEqual(0);
     });
 
     it('/dns - shows DNS info', () => {
@@ -103,9 +111,23 @@ describe('IRCService Command Handlers', () => {
       // Set up channelUsers with test data for clone detection
       // Format must include nick property
       const usersMap = new Map([
-        ['user1', { nick: 'user1', host: 'same.host.com', ident: 'user', modes: '' }],
-        ['user2', { nick: 'user2', host: 'same.host.com', ident: 'user', modes: '' }],
-        ['user3', { nick: 'user3', host: 'different.host.com', ident: 'user', modes: '' }],
+        [
+          'user1',
+          { nick: 'user1', host: 'same.host.com', ident: 'user', modes: '' },
+        ],
+        [
+          'user2',
+          { nick: 'user2', host: 'same.host.com', ident: 'user', modes: '' },
+        ],
+        [
+          'user3',
+          {
+            nick: 'user3',
+            host: 'different.host.com',
+            ident: 'user',
+            modes: '',
+          },
+        ],
       ]);
       (ircService as any).channelUsers.set('#test', usersMap);
     });
@@ -132,8 +154,14 @@ describe('IRCService Command Handlers', () => {
     it('clones shows message when no clones found', async () => {
       // Set up with no duplicate hosts
       const usersMap = new Map([
-        ['user1', { nick: 'user1', host: 'host1.com', ident: 'user', modes: '' }],
-        ['user2', { nick: 'user2', host: 'host2.com', ident: 'user', modes: '' }],
+        [
+          'user1',
+          { nick: 'user1', host: 'host1.com', ident: 'user', modes: '' },
+        ],
+        [
+          'user2',
+          { nick: 'user2', host: 'host2.com', ident: 'user', modes: '' },
+        ],
       ]);
       (ircService as any).channelUsers.set('#test', usersMap);
 
@@ -148,7 +176,10 @@ describe('IRCService Command Handlers', () => {
   // ========================================
 
   describe('Ignore Commands', () => {
-    let userManagementServiceMock: { ignoreUser: jest.Mock; unignoreUser: jest.Mock };
+    let userManagementServiceMock: {
+      ignoreUser: jest.Mock;
+      unignoreUser: jest.Mock;
+    };
 
     beforeEach(() => {
       // Mock getUserManagementService - ignore is now handled by UserManagementService
@@ -156,32 +187,47 @@ describe('IRCService Command Handlers', () => {
         ignoreUser: jest.fn().mockResolvedValue(undefined),
         unignoreUser: jest.fn().mockResolvedValue(undefined),
       };
-      jest.spyOn(ircService as any, 'getUserManagementService').mockReturnValue(userManagementServiceMock);
+      jest
+        .spyOn(ircService as any, 'getUserManagementService')
+        .mockReturnValue(userManagementServiceMock);
     });
 
     it('/ignore - calls ignoreUser on UserManagementService', async () => {
       sendMessage('#test', '/ignore annoying');
       await new Promise(resolve => setTimeout(resolve, 10));
-      expect(userManagementServiceMock.ignoreUser).toHaveBeenCalledWith('annoying', undefined, expect.any(String));
+      expect(userManagementServiceMock.ignoreUser).toHaveBeenCalledWith(
+        'annoying',
+        undefined,
+        expect.any(String),
+      );
     });
 
     it('/unignore - calls unignoreUser on UserManagementService', async () => {
       sendMessage('#test', '/unignore annoying');
       await new Promise(resolve => setTimeout(resolve, 10));
-      expect(userManagementServiceMock.unignoreUser).toHaveBeenCalledWith('annoying', expect.any(String));
+      expect(userManagementServiceMock.unignoreUser).toHaveBeenCalledWith(
+        'annoying',
+        expect.any(String),
+      );
     });
 
     it('/ignore without args - shows usage error', () => {
       sendMessage('#test', '/ignore');
-      expect(messages).toContainEqual(expect.objectContaining({
-        type: 'error',
-      }));
+      expect(messages).toContainEqual(
+        expect.objectContaining({
+          type: 'error',
+        }),
+      );
     });
 
     it('/ignore with reason - passes reason to service', async () => {
       sendMessage('#test', '/ignore annoying spamming constantly');
       await new Promise(resolve => setTimeout(resolve, 10));
-      expect(userManagementServiceMock.ignoreUser).toHaveBeenCalledWith('annoying', 'spamming constantly', expect.any(String));
+      expect(userManagementServiceMock.ignoreUser).toHaveBeenCalledWith(
+        'annoying',
+        'spamming constantly',
+        expect.any(String),
+      );
     });
   });
 
@@ -251,7 +297,9 @@ describe('IRCService Command Handlers', () => {
   describe('Error Handling', () => {
     it('unknown command - handles gracefully', () => {
       // Should not throw
-      expect(() => sendMessage('#test', '/unknowncommand arg1 arg2')).not.toThrow();
+      expect(() =>
+        sendMessage('#test', '/unknowncommand arg1 arg2'),
+      ).not.toThrow();
     });
 
     it('empty command - does nothing', () => {
@@ -292,10 +340,18 @@ describe('IRCService Command Handlers', () => {
     let partChannelSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      sendRawSpy = jest.spyOn(ircService as any, 'sendRaw').mockImplementation(() => {});
-      sendCommandSpy = jest.spyOn(ircService as any, 'sendCommand').mockImplementation(() => {});
-      joinChannelSpy = jest.spyOn(ircService as any, 'joinChannel').mockImplementation(() => {});
-      partChannelSpy = jest.spyOn(ircService as any, 'partChannel').mockImplementation(() => {});
+      sendRawSpy = jest
+        .spyOn(ircService as any, 'sendRaw')
+        .mockImplementation(() => {});
+      sendCommandSpy = jest
+        .spyOn(ircService as any, 'sendCommand')
+        .mockImplementation(() => {});
+      joinChannelSpy = jest
+        .spyOn(ircService as any, 'joinChannel')
+        .mockImplementation(() => {});
+      partChannelSpy = jest
+        .spyOn(ircService as any, 'partChannel')
+        .mockImplementation(() => {});
     });
 
     it('/join - joins channel', () => {
@@ -325,7 +381,10 @@ describe('IRCService Command Handlers', () => {
 
     it('/quit - sends quit command', () => {
       sendMessage('#test', '/quit Leaving');
-      expect(emitSpy).toHaveBeenCalledWith('intentional-quit', expect.any(String));
+      expect(emitSpy).toHaveBeenCalledWith(
+        'intentional-quit',
+        expect.any(String),
+      );
       expect(sendRawSpy).toHaveBeenCalledWith('QUIT :Leaving');
     });
 
@@ -348,17 +407,21 @@ describe('IRCService Command Handlers', () => {
     let sendRawSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      sendRawSpy = jest.spyOn(ircService as any, 'sendRaw').mockImplementation(() => {});
+      sendRawSpy = jest
+        .spyOn(ircService as any, 'sendRaw')
+        .mockImplementation(() => {});
     });
 
     it('/msg - sends private message', () => {
       sendMessage('#test', '/msg someone Hello there');
       expect(sendRawSpy).toHaveBeenCalledWith('PRIVMSG someone :Hello there');
-      expect(messages).toContainEqual(expect.objectContaining({
-        type: 'message',
-        channel: 'someone',
-        text: 'Hello there',
-      }));
+      expect(messages).toContainEqual(
+        expect.objectContaining({
+          type: 'message',
+          channel: 'someone',
+          text: 'Hello there',
+        }),
+      );
     });
 
     it('/query - alias for msg', () => {
@@ -368,32 +431,50 @@ describe('IRCService Command Handlers', () => {
 
     it('/me - sends action', () => {
       sendMessage('#test', '/me dances');
-      expect(sendRawSpy).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG #test :'));
+      expect(sendRawSpy).toHaveBeenCalledWith(
+        expect.stringContaining('PRIVMSG #test :'),
+      );
     });
 
     it('/action - alias for me', () => {
       sendMessage('#test', '/action waves');
-      expect(sendRawSpy).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG #test :'));
+      expect(sendRawSpy).toHaveBeenCalledWith(
+        expect.stringContaining('PRIVMSG #test :'),
+      );
     });
 
     it('/notice - sends notice', () => {
       sendMessage('#test', '/notice someone Important message');
-      expect(sendRawSpy).toHaveBeenCalledWith('NOTICE someone :Important message');
+      expect(sendRawSpy).toHaveBeenCalledWith(
+        'NOTICE someone :Important message',
+      );
     });
 
     it('/amsg - emits amsg event', () => {
       sendMessage('#test', '/amsg Hello all channels');
-      expect(emitSpy).toHaveBeenCalledWith('amsg', 'Hello all channels', expect.any(String));
+      expect(emitSpy).toHaveBeenCalledWith(
+        'amsg',
+        'Hello all channels',
+        expect.any(String),
+      );
     });
 
     it('/ame - emits ame event', () => {
       sendMessage('#test', '/ame waves to all');
-      expect(emitSpy).toHaveBeenCalledWith('ame', 'waves to all', expect.any(String));
+      expect(emitSpy).toHaveBeenCalledWith(
+        'ame',
+        'waves to all',
+        expect.any(String),
+      );
     });
 
     it('/anotice - emits anotice event', () => {
       sendMessage('#test', '/anotice Attention everyone');
-      expect(emitSpy).toHaveBeenCalledWith('anotice', 'Attention everyone', expect.any(String));
+      expect(emitSpy).toHaveBeenCalledWith(
+        'anotice',
+        'Attention everyone',
+        expect.any(String),
+      );
     });
   });
 
@@ -405,7 +486,9 @@ describe('IRCService Command Handlers', () => {
     let sendCommandSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      sendCommandSpy = jest.spyOn(ircService as any, 'sendCommand').mockImplementation(() => {});
+      sendCommandSpy = jest
+        .spyOn(ircService as any, 'sendCommand')
+        .mockImplementation(() => {});
     });
 
     it('/mode - sends mode command', () => {
@@ -422,7 +505,9 @@ describe('IRCService Command Handlers', () => {
       // When in channel, first arg is skipped if target is already a channel
       // Implementation: topicText = args.slice(1).join(' ')
       sendMessage('#test', '/topic #test New channel topic');
-      expect(sendCommandSpy).toHaveBeenCalledWith('TOPIC #test :New channel topic');
+      expect(sendCommandSpy).toHaveBeenCalledWith(
+        'TOPIC #test :New channel topic',
+      );
     });
 
     it('/kick - kicks user', () => {
@@ -434,7 +519,9 @@ describe('IRCService Command Handlers', () => {
       // Implementation expects: /kick [channel] <user> [reason]
       // When in channel, args[0] could be channel, args[1] is user, args[2+] is reason
       sendMessage('#test', '/kick #test baduser Being disruptive');
-      expect(sendCommandSpy).toHaveBeenCalledWith('KICK #test baduser :Being disruptive');
+      expect(sendCommandSpy).toHaveBeenCalledWith(
+        'KICK #test baduser :Being disruptive',
+      );
     });
 
     it('/ban - bans user', () => {
@@ -482,7 +569,9 @@ describe('IRCService Command Handlers', () => {
     let sendCommandSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      sendCommandSpy = jest.spyOn(ircService as any, 'sendCommand').mockImplementation(() => {});
+      sendCommandSpy = jest
+        .spyOn(ircService as any, 'sendCommand')
+        .mockImplementation(() => {});
     });
 
     it('/lusers - gets user stats', () => {
@@ -564,7 +653,9 @@ describe('IRCService Command Handlers', () => {
     let sendRawSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      sendRawSpy = jest.spyOn(ircService as any, 'sendRaw').mockImplementation(() => {});
+      sendRawSpy = jest
+        .spyOn(ircService as any, 'sendRaw')
+        .mockImplementation(() => {});
     });
 
     it('/away - sets away with message', () => {
@@ -591,7 +682,9 @@ describe('IRCService Command Handlers', () => {
     let sendRawSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      sendRawSpy = jest.spyOn(ircService as any, 'sendRaw').mockImplementation(() => {});
+      sendRawSpy = jest
+        .spyOn(ircService as any, 'sendRaw')
+        .mockImplementation(() => {});
     });
 
     it('/reconnect - emits reconnect event', () => {
@@ -601,7 +694,10 @@ describe('IRCService Command Handlers', () => {
 
     it('/disconnect - sends quit', () => {
       sendMessage('#test', '/disconnect Goodbye');
-      expect(emitSpy).toHaveBeenCalledWith('intentional-quit', expect.any(String));
+      expect(emitSpy).toHaveBeenCalledWith(
+        'intentional-quit',
+        expect.any(String),
+      );
       expect(sendRawSpy).toHaveBeenCalledWith('QUIT :Goodbye');
     });
   });
@@ -614,7 +710,9 @@ describe('IRCService Command Handlers', () => {
     let sendCommandSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      sendCommandSpy = jest.spyOn(ircService as any, 'sendCommand').mockImplementation(() => {});
+      sendCommandSpy = jest
+        .spyOn(ircService as any, 'sendCommand')
+        .mockImplementation(() => {});
     });
 
     it('/oper - attempts oper login', () => {
@@ -624,7 +722,9 @@ describe('IRCService Command Handlers', () => {
 
     it('/wallops - sends wallops', () => {
       sendMessage('#test', '/wallops Important announcement');
-      expect(sendCommandSpy).toHaveBeenCalledWith('WALLOPS :Important announcement');
+      expect(sendCommandSpy).toHaveBeenCalledWith(
+        'WALLOPS :Important announcement',
+      );
     });
 
     it('/globops - sends globops', () => {
@@ -639,7 +739,9 @@ describe('IRCService Command Handlers', () => {
 
     it('/kill - kills user', () => {
       sendMessage('#test', '/kill baduser Violation of rules');
-      expect(sendCommandSpy).toHaveBeenCalledWith('KILL baduser :Violation of rules');
+      expect(sendCommandSpy).toHaveBeenCalledWith(
+        'KILL baduser :Violation of rules',
+      );
     });
 
     it('/rehash - requests rehash', () => {
@@ -661,7 +763,9 @@ describe('IRCService Command Handlers', () => {
     let sendRawSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      sendRawSpy = jest.spyOn(ircService as any, 'sendRaw').mockImplementation(() => {});
+      sendRawSpy = jest
+        .spyOn(ircService as any, 'sendRaw')
+        .mockImplementation(() => {});
     });
 
     it('/raw - sends raw IRC command', () => {
@@ -685,13 +789,19 @@ describe('IRCService Command Handlers', () => {
     let sendRawSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      sendCommandSpy = jest.spyOn(ircService as any, 'sendCommand').mockImplementation(() => {});
-      sendRawSpy = jest.spyOn(ircService as any, 'sendRaw').mockImplementation(() => {});
+      sendCommandSpy = jest
+        .spyOn(ircService as any, 'sendCommand')
+        .mockImplementation(() => {});
+      sendRawSpy = jest
+        .spyOn(ircService as any, 'sendRaw')
+        .mockImplementation(() => {});
     });
 
     it('/knock - requests invite', () => {
       sendMessage('#test', '/knock #invite-only Please let me in');
-      expect(sendCommandSpy).toHaveBeenCalledWith('KNOCK #invite-only :Please let me in');
+      expect(sendCommandSpy).toHaveBeenCalledWith(
+        'KNOCK #invite-only :Please let me in',
+      );
     });
 
     it('/watch - monitors users', () => {
@@ -716,18 +826,24 @@ describe('IRCService Command Handlers', () => {
 
     it('/timer - sets timer', () => {
       sendMessage('#test', '/timer test 5000 3 /echo Hello');
-      expect(emitSpy).toHaveBeenCalledWith('timer', expect.objectContaining({
-        name: 'test',
-        delay: 5000,
-        repetitions: 3,
-      }));
+      expect(emitSpy).toHaveBeenCalledWith(
+        'timer',
+        expect.objectContaining({
+          name: 'test',
+          delay: 5000,
+          repetitions: 3,
+        }),
+      );
     });
 
     it('/filter - sets message filter', () => {
       sendMessage('#test', '/filter spam');
-      expect(emitSpy).toHaveBeenCalledWith('filter', expect.objectContaining({
-        text: 'spam',
-      }));
+      expect(emitSpy).toHaveBeenCalledWith(
+        'filter',
+        expect.objectContaining({
+          text: 'spam',
+        }),
+      );
     });
 
     it('/window - manages windows', () => {
@@ -744,7 +860,9 @@ describe('IRCService Command Handlers', () => {
     it('/msg without target - shows error', () => {
       sendMessage('#test', '/msg');
       // Should show usage error - not enough args
-      expect(messages.some(m => m.type === 'error' || m.text?.includes('Usage'))).toBe(true);
+      expect(
+        messages.some(m => m.type === 'error' || m.text?.includes('Usage')),
+      ).toBe(true);
     });
 
     it('/kick without target - shows error or handles gracefully', () => {
@@ -755,16 +873,20 @@ describe('IRCService Command Handlers', () => {
 
     it('/oper without credentials - shows error', () => {
       sendMessage('#test', '/oper');
-      expect(messages).toContainEqual(expect.objectContaining({
-        type: 'error',
-      }));
+      expect(messages).toContainEqual(
+        expect.objectContaining({
+          type: 'error',
+        }),
+      );
     });
 
     it('/kill without reason - shows error', () => {
       sendMessage('#test', '/kill user');
-      expect(messages).toContainEqual(expect.objectContaining({
-        type: 'error',
-      }));
+      expect(messages).toContainEqual(
+        expect.objectContaining({
+          type: 'error',
+        }),
+      );
     });
   });
 });

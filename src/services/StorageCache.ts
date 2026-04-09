@@ -49,7 +49,7 @@ class StorageCache {
    */
   async getItem<T = string>(
     key: string,
-    _options: CacheOptions = {}
+    _options: CacheOptions = {},
   ): Promise<T | null> {
     const { ttl = this.DEFAULT_TTL } = _options;
 
@@ -88,7 +88,7 @@ class StorageCache {
    */
   async getBatch<T = any>(
     keys: string[],
-    options: CacheOptions = {}
+    options: CacheOptions = {},
   ): Promise<BatchReadResult<T>> {
     const result: BatchReadResult<T> = {};
     const keysToLoad: string[] = [];
@@ -118,7 +118,10 @@ class StorageCache {
               this.setCache(key, parsed);
               result[key] = parsed;
             } catch (parseError) {
-              console.error(`StorageCache: Parse error for key "${key}":`, parseError);
+              console.error(
+                `StorageCache: Parse error for key "${key}":`,
+                parseError,
+              );
               result[key] = null;
             }
           } else {
@@ -139,7 +142,7 @@ class StorageCache {
   async setItem<T = any>(
     key: string,
     value: T,
-    _options: CacheOptions = {}
+    _options: CacheOptions = {},
   ): Promise<void> {
     // Update cache immediately
     this.setCache(key, value);
@@ -214,7 +217,7 @@ class StorageCache {
   lazyLoad<T = any>(
     key: string,
     callback: (data: T | null) => void,
-    options: CacheOptions = {}
+    options: CacheOptions = {},
   ): T | null {
     // Return cached data immediately if available
     const cached = this.cache.get(key);
@@ -241,7 +244,7 @@ class StorageCache {
    */
   async progressiveLoad<T = any>(
     keyGroups: string[][],
-    onGroupLoaded?: (groupIndex: number, data: BatchReadResult<T>) => void
+    onGroupLoaded?: (groupIndex: number, data: BatchReadResult<T>) => void,
   ): Promise<BatchReadResult<T>> {
     const allResults: BatchReadResult<T> = {};
 
@@ -390,13 +393,16 @@ class StorageCache {
   /**
    * PRIVATE: Cross-version read many keys from AsyncStorage.
    */
-  private async readMany(keys: string[]): Promise<Record<string, string | null>> {
+  private async readMany(
+    keys: string[],
+  ): Promise<Record<string, string | null>> {
     if (typeof this.asyncStorage.getMany === 'function') {
       return await this.asyncStorage.getMany(keys);
     }
 
     if (typeof this.asyncStorage.multiGet === 'function') {
-      const pairs: [string, string | null][] = await this.asyncStorage.multiGet(keys);
+      const pairs: [string, string | null][] =
+        await this.asyncStorage.multiGet(keys);
       const result: Record<string, string | null> = {};
       pairs.forEach(([key, value]) => {
         result[key] = value;
@@ -408,7 +414,7 @@ class StorageCache {
     await Promise.all(
       keys.map(async key => {
         result[key] = await this.asyncStorage.getItem(key);
-      })
+      }),
     );
     return result;
   }
@@ -428,7 +434,9 @@ class StorageCache {
     }
 
     await Promise.all(
-      Object.entries(entries).map(([key, value]) => this.asyncStorage.setItem(key, value))
+      Object.entries(entries).map(([key, value]) =>
+        this.asyncStorage.setItem(key, value),
+      ),
     );
   }
 

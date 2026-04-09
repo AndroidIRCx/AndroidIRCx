@@ -24,7 +24,9 @@ export const SettingInput: React.FC<SettingInputProps> = ({
 }) => {
   const itemIcon = icon;
   const [isFocused, setIsFocused] = useState(false);
-  const [displayValue, setDisplayValue] = useState<string>((item.value as string) || '');
+  const [displayValue, setDisplayValue] = useState<string>(
+    (item.value as string) || '',
+  );
   const descriptionContent = item.descriptionNode ?? item.description;
 
   useEffect(() => {
@@ -47,31 +49,40 @@ export const SettingInput: React.FC<SettingInputProps> = ({
               style={stylesLocal.iconMargin}
             />
           )}
-          <Text style={[styles.settingTitle, item.disabled && styles.disabledText]}>
+          <Text
+            style={[styles.settingTitle, item.disabled && styles.disabledText]}
+          >
             {item.title}
           </Text>
         </View>
-        {descriptionContent && (
-          typeof descriptionContent === 'string' || typeof descriptionContent === 'number'
-            ? (
-              <Text style={[styles.settingDescription, item.disabled && styles.disabledText]}>
-                {descriptionContent}
-              </Text>
-            )
-            : (
-              <View style={stylesLocal.descriptionWrapper}>
-                {descriptionContent}
-              </View>
-            )
-        )}
+        {descriptionContent &&
+          (typeof descriptionContent === 'string' ||
+          typeof descriptionContent === 'number' ? (
+            <Text
+              style={[
+                styles.settingDescription,
+                item.disabled && styles.disabledText,
+              ]}
+            >
+              {descriptionContent}
+            </Text>
+          ) : (
+            <View style={stylesLocal.descriptionWrapper}>
+              {descriptionContent}
+            </View>
+          ))}
         <TextInput
           style={[
             styles.input,
             item.disabled && styles.disabledInput,
-            { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+            {
+              backgroundColor: colors.surface,
+              color: colors.text,
+              borderColor: colors.border,
+            },
           ]}
           value={displayValue}
-          onChangeText={(value) => {
+          onChangeText={value => {
             setDisplayValue(value);
             onValueChange(value);
           }}

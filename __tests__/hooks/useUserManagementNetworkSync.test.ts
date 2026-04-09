@@ -24,7 +24,7 @@ describe('useUserManagementNetworkSync', () => {
       useUserManagementNetworkSync({
         networkName: 'freenode',
         getActiveUserManagementService: mockGetActiveUserManagementService,
-      })
+      }),
     );
 
     expect(mockGetActiveUserManagementService).toHaveBeenCalled();
@@ -36,7 +36,7 @@ describe('useUserManagementNetworkSync', () => {
       useUserManagementNetworkSync({
         networkName: '',
         getActiveUserManagementService: mockGetActiveUserManagementService,
-      })
+      }),
     );
 
     expect(mockSetNetwork).not.toHaveBeenCalled();
@@ -47,7 +47,7 @@ describe('useUserManagementNetworkSync', () => {
       useUserManagementNetworkSync({
         networkName: 'Not connected',
         getActiveUserManagementService: mockGetActiveUserManagementService,
-      })
+      }),
     );
 
     expect(mockSetNetwork).not.toHaveBeenCalled();
@@ -60,7 +60,7 @@ describe('useUserManagementNetworkSync', () => {
           networkName,
           getActiveUserManagementService: mockGetActiveUserManagementService,
         }),
-      { initialProps: { networkName: 'freenode' } }
+      { initialProps: { networkName: 'freenode' } },
     );
 
     expect(mockSetNetwork).toHaveBeenCalledWith('freenode');
@@ -75,7 +75,7 @@ describe('useUserManagementNetworkSync', () => {
       useUserManagementNetworkSync({
         networkName: 'freenode',
         getActiveUserManagementService: () => null as any,
-      })
+      }),
     );
 
     // Should not throw and should handle gracefully

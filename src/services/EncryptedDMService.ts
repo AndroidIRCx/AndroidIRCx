@@ -13,7 +13,12 @@ const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 type Bundle = { v: 1; idPub: string; encPub: string; sig: string };
 type EncPayload = { v: number; from: string; nonce: string; cipher: string };
-type StoredSelf = { idPriv: string; idPub: string; encPriv: string; encPub: string };
+type StoredSelf = {
+  idPriv: string;
+  idPub: string;
+  encPriv: string;
+  encPub: string;
+};
 type PendingKeyRequest = {
   nick: string;
   bundle: Bundle;
@@ -30,7 +35,13 @@ type TrustRecord = {
   lastSeen: number;
 };
 type ExternalPayload =
-  | { v: 1; type: 'encdm-bundle'; nick: string; bundle: Bundle; fingerprint: string }
+  | {
+      v: 1;
+      type: 'encdm-bundle';
+      nick: string;
+      bundle: Bundle;
+      fingerprint: string;
+    }
   | { v: 1; type: 'encdm-fingerprint'; nick: string; fingerprint: string };
 type KeyRequestCallback = (
   nick: string,
@@ -39,7 +50,7 @@ type KeyRequestCallback = (
     reason: 'offer' | 'change' | 'legacy';
     existingFingerprint?: string;
     newFingerprint: string;
-  }
+  },
 ) => void;
 
 // Exported types for UI components
@@ -65,7 +76,11 @@ class EncryptedDMService {
   private ready: Promise<void> = sodium.ready;
   private waiters = new Map<
     string,
-    { resolve: () => void; reject: (e?: any) => void; timer: ReturnType<typeof setTimeout> }
+    {
+      resolve: () => void;
+      reject: (e?: any) => void;
+      timer: ReturnType<typeof setTimeout>;
+    }
   >();
   private textEncoder = new TextEncoder();
   private textDecoder = new TextDecoder();
@@ -164,13 +179,20 @@ class EncryptedDMService {
   parseExternalPayload(raw: string): ExternalPayload {
     const payload = JSON.parse(raw) as ExternalPayload;
     if (!payload || payload.v !== 1) throw new Error(t('Invalid payload'));
-    if (payload.type !== 'encdm-bundle' && payload.type !== 'encdm-fingerprint') {
+    if (
+      payload.type !== 'encdm-bundle' &&
+      payload.type !== 'encdm-fingerprint'
+    ) {
       throw new Error(t('Invalid payload type'));
     }
     return payload;
   }
 
-  async acceptExternalBundle(nick: string, bundle: Bundle, allowReplace: boolean): Promise<void> {
+  async acceptExternalBundle(
+    nick: string,
+    bundle: Bundle,
+    allowReplace: boolean,
+  ): Promise<void> {
     const compare = await this.compareBundle(nick, bundle);
     if (compare.status === 'changed' && !allowReplace) {
       throw new Error(t('Key changed'));
@@ -179,28 +201,39 @@ class EncryptedDMService {
   }
 
   async getTrustRecord(nick: string): Promise<TrustRecord | null> {
-    const stored = await secureStorageService.getSecret(TRUST_PREFIX + nick.toLowerCase());
+    const stored = await secureStorageService.getSecret(
+      TRUST_PREFIX + nick.toLowerCase(),
+    );
     return stored ? (JSON.parse(stored) as TrustRecord) : null;
   }
 
   async setVerified(nick: string, verified: boolean): Promise<void> {
     const record = await this.getTrustRecord(nick);
     if (!record) return;
-    await secureStorageService.setSecret(TRUST_PREFIX + nick.toLowerCase(), JSON.stringify({
-      ...record,
-      verified,
-      lastSeen: Date.now(),
-    }));
+    await secureStorageService.setSecret(
+      TRUST_PREFIX + nick.toLowerCase(),
+      JSON.stringify({
+        ...record,
+        verified,
+        lastSeen: Date.now(),
+      }),
+    );
   }
 
-  async getVerificationStatus(nick: string): Promise<{ fingerprint: string | null; verified: boolean }> {
+  async getVerificationStatus(
+    nick: string,
+  ): Promise<{ fingerprint: string | null; verified: boolean }> {
     const record = await this.getTrustRecord(nick);
-    if (record) return { fingerprint: record.fingerprint, verified: record.verified };
+    if (record)
+      return { fingerprint: record.fingerprint, verified: record.verified };
     const fp = await this.getBundleFingerprint(nick);
     return { fingerprint: fp, verified: false };
   }
 
-  private async compareBundle(nick: string, bundle: Bundle): Promise<{
+  private async compareBundle(
+    nick: string,
+    bundle: Bundle,
+  ): Promise<{
     status: 'new' | 'same' | 'changed';
     existingFingerprint?: string;
     newFingerprint: string;
@@ -239,7 +272,12 @@ class EncryptedDMService {
     const encPubBytes = this.fromB64(self.encPub);
     const idPrivBytes = this.fromB64(self.idPriv);
     const sig = sodium.crypto_sign_detached(encPubBytes, idPrivBytes);
-    return { v: 1, idPub: self.idPub, encPub: self.encPub, sig: this.toB64(sig) };
+    return {
+      v: 1,
+      idPub: self.idPub,
+      encPub: self.encPub,
+      sig: this.toB64(sig),
+    };
   }
 
   verifyBundle(bundle: Bundle): void {
@@ -252,7 +290,10 @@ class EncryptedDMService {
   }
 
   private async storeBundle(nick: string, bundle: Bundle) {
-    await secureStorageService.setSecret(BUNDLE_PREFIX + nick.toLowerCase(), JSON.stringify(bundle));
+    await secureStorageService.setSecret(
+      BUNDLE_PREFIX + nick.toLowerCase(),
+      JSON.stringify(bundle),
+    );
     const fingerprint = await this.bundleFingerprint(bundle);
     const existingTrust = await this.getTrustRecord(nick);
     const now = Date.now();
@@ -263,7 +304,10 @@ class EncryptedDMService {
       firstSeen: existingTrust?.firstSeen ?? now,
       lastSeen: now,
     };
-    await secureStorageService.setSecret(TRUST_PREFIX + nick.toLowerCase(), JSON.stringify(trust));
+    await secureStorageService.setSecret(
+      TRUST_PREFIX + nick.toLowerCase(),
+      JSON.stringify(trust),
+    );
     // Notify listeners that a bundle was stored
     this.bundleListeners.forEach(listener => listener(nick));
   }
@@ -280,7 +324,9 @@ class EncryptedDMService {
   }
 
   async getBundle(nick: string): Promise<Bundle | null> {
-    const stored = await secureStorageService.getSecret(BUNDLE_PREFIX + nick.toLowerCase());
+    const stored = await secureStorageService.getSecret(
+      BUNDLE_PREFIX + nick.toLowerCase(),
+    );
     return stored ? (JSON.parse(stored) as Bundle) : null;
   }
 
@@ -316,14 +362,14 @@ class EncryptedDMService {
             reason: 'legacy',
             existingFingerprint: compare.existingFingerprint,
             newFingerprint: compare.newFingerprint,
-          } as PendingKeyRequest)
+          } as PendingKeyRequest),
         );
         this.keyRequestListeners.forEach(listener =>
           listener(fromNick, bundle, {
             reason: 'legacy',
             existingFingerprint: compare.existingFingerprint,
             newFingerprint: compare.newFingerprint,
-          })
+          }),
         );
         return;
       }
@@ -355,7 +401,7 @@ class EncryptedDMService {
           reason: compare.status === 'changed' ? 'change' : 'offer',
           existingFingerprint: compare.existingFingerprint,
           newFingerprint: compare.newFingerprint,
-        } as PendingKeyRequest)
+        } as PendingKeyRequest),
       );
       // Notify listeners (will show user prompt)
       this.keyRequestListeners.forEach(listener =>
@@ -363,7 +409,7 @@ class EncryptedDMService {
           reason: compare.status === 'changed' ? 'change' : 'offer',
           existingFingerprint: compare.existingFingerprint,
           newFingerprint: compare.newFingerprint,
-        })
+        }),
       );
       return true;
     } catch (e) {
@@ -374,7 +420,9 @@ class EncryptedDMService {
 
   // Accept a key offer and share our key back
   async acceptKeyOffer(nick: string, allowReplace = false): Promise<Bundle> {
-    const pending = await secureStorageService.getSecret(PENDING_PREFIX + nick.toLowerCase());
+    const pending = await secureStorageService.getSecret(
+      PENDING_PREFIX + nick.toLowerCase(),
+    );
     if (!pending) throw new Error(t('No pending offer'));
 
     const request = JSON.parse(pending) as PendingKeyRequest;
@@ -385,18 +433,25 @@ class EncryptedDMService {
     // Store their bundle
     await this.storeBundle(nick, request.bundle);
     // Remove from pending
-    await secureStorageService.removeSecret(PENDING_PREFIX + nick.toLowerCase());
+    await secureStorageService.removeSecret(
+      PENDING_PREFIX + nick.toLowerCase(),
+    );
     // Return our bundle to send back
     return this.exportBundle();
   }
 
   // Reject a key offer
   async rejectKeyOffer(nick: string): Promise<void> {
-    await secureStorageService.removeSecret(PENDING_PREFIX + nick.toLowerCase());
+    await secureStorageService.removeSecret(
+      PENDING_PREFIX + nick.toLowerCase(),
+    );
   }
 
   // Handle acceptance from other user (they accepted our offer and sent their key)
-  async handleKeyAcceptance(fromNick: string, payload: string): Promise<{ status: 'stored' | 'pending' | 'invalid' }> {
+  async handleKeyAcceptance(
+    fromNick: string,
+    payload: string,
+  ): Promise<{ status: 'stored' | 'pending' | 'invalid' }> {
     try {
       const bundle = JSON.parse(payload) as Bundle;
       this.verifyBundle(bundle);
@@ -411,14 +466,14 @@ class EncryptedDMService {
             reason: 'change',
             existingFingerprint: compare.existingFingerprint,
             newFingerprint: compare.newFingerprint,
-          } as PendingKeyRequest)
+          } as PendingKeyRequest),
         );
         this.keyRequestListeners.forEach(listener =>
           listener(fromNick, bundle, {
             reason: 'change',
             existingFingerprint: compare.existingFingerprint,
             newFingerprint: compare.newFingerprint,
-          })
+          }),
         );
         return { status: 'pending' };
       }
@@ -445,15 +500,29 @@ class EncryptedDMService {
   // V2: Network-Aware Methods (new, network+nick storage)
   // ====================================================================
 
-  async getBundleForNetwork(network: string, nick: string): Promise<Bundle | null> {
-    const stored = await secureStorageService.getSecret(this.getBundleKeyV2(network, nick));
+  async getBundleForNetwork(
+    network: string,
+    nick: string,
+  ): Promise<Bundle | null> {
+    const stored = await secureStorageService.getSecret(
+      this.getBundleKeyV2(network, nick),
+    );
     return stored ? (JSON.parse(stored) as Bundle) : null;
   }
 
-  async storeBundleForNetwork(network: string, nick: string, bundle: Bundle): Promise<void> {
+  async storeBundleForNetwork(
+    network: string,
+    nick: string,
+    bundle: Bundle,
+  ): Promise<void> {
     const bundleKey = this.getBundleKeyV2(network, nick);
     const trustKey = this.getTrustKeyV2(network, nick);
-    console.log('[EncryptedDMService] storeBundleForNetwork - network:', network, 'nick:', nick);
+    console.log(
+      '[EncryptedDMService] storeBundleForNetwork - network:',
+      network,
+      'nick:',
+      nick,
+    );
     console.log('[EncryptedDMService] Bundle key:', bundleKey);
     console.log('[EncryptedDMService] Trust key:', trustKey);
 
@@ -474,25 +543,40 @@ class EncryptedDMService {
     this.bundleListeners.forEach(listener => listener(nick));
   }
 
-  async getBundleFingerprintForNetwork(network: string, nick: string): Promise<string | null> {
+  async getBundleFingerprintForNetwork(
+    network: string,
+    nick: string,
+  ): Promise<string | null> {
     const bundle = await this.getBundleForNetwork(network, nick);
     if (!bundle) return null;
     return this.bundleFingerprint(bundle);
   }
 
-  async getTrustRecordForNetwork(network: string, nick: string): Promise<TrustRecord | null> {
-    const stored = await secureStorageService.getSecret(this.getTrustKeyV2(network, nick));
+  async getTrustRecordForNetwork(
+    network: string,
+    nick: string,
+  ): Promise<TrustRecord | null> {
+    const stored = await secureStorageService.getSecret(
+      this.getTrustKeyV2(network, nick),
+    );
     return stored ? (JSON.parse(stored) as TrustRecord) : null;
   }
 
-  async setVerifiedForNetwork(network: string, nick: string, verified: boolean): Promise<void> {
+  async setVerifiedForNetwork(
+    network: string,
+    nick: string,
+    verified: boolean,
+  ): Promise<void> {
     const record = await this.getTrustRecordForNetwork(network, nick);
     if (!record) return;
-    await secureStorageService.setSecret(this.getTrustKeyV2(network, nick), JSON.stringify({
-      ...record,
-      verified,
-      lastSeen: Date.now(),
-    }));
+    await secureStorageService.setSecret(
+      this.getTrustKeyV2(network, nick),
+      JSON.stringify({
+        ...record,
+        verified,
+        lastSeen: Date.now(),
+      }),
+    );
   }
 
   async isEncryptedForNetwork(network: string, nick: string): Promise<boolean> {
@@ -500,7 +584,11 @@ class EncryptedDMService {
     return bundle !== null;
   }
 
-  private async compareBundleForNetwork(network: string, nick: string, bundle: Bundle): Promise<{
+  private async compareBundleForNetwork(
+    network: string,
+    nick: string,
+    bundle: Bundle,
+  ): Promise<{
     status: 'new' | 'same' | 'changed';
     existingFingerprint?: string;
     newFingerprint: string;
@@ -517,7 +605,12 @@ class EncryptedDMService {
     return { status: 'changed', existingFingerprint, newFingerprint };
   }
 
-  async acceptExternalBundleForNetwork(network: string, nick: string, bundle: Bundle, allowReplace: boolean): Promise<void> {
+  async acceptExternalBundleForNetwork(
+    network: string,
+    nick: string,
+    bundle: Bundle,
+    allowReplace: boolean,
+  ): Promise<void> {
     const compare = await this.compareBundleForNetwork(network, nick, bundle);
     if (compare.status === 'changed' && !allowReplace) {
       throw new Error(t('Key changed'));
@@ -525,19 +618,31 @@ class EncryptedDMService {
     await this.storeBundleForNetwork(network, nick, bundle);
   }
 
-  async getVerificationStatusForNetwork(network: string, nick: string): Promise<{ fingerprint: string | null; verified: boolean }> {
+  async getVerificationStatusForNetwork(
+    network: string,
+    nick: string,
+  ): Promise<{ fingerprint: string | null; verified: boolean }> {
     const record = await this.getTrustRecordForNetwork(network, nick);
-    if (record) return { fingerprint: record.fingerprint, verified: record.verified };
+    if (record)
+      return { fingerprint: record.fingerprint, verified: record.verified };
     const fp = await this.getBundleFingerprintForNetwork(network, nick);
     return { fingerprint: fp, verified: false };
   }
 
   // Network-aware online key exchange methods
-  async handleIncomingBundleForNetwork(network: string, fromNick: string, payload: string) {
+  async handleIncomingBundleForNetwork(
+    network: string,
+    fromNick: string,
+    payload: string,
+  ) {
     try {
       const bundle = JSON.parse(payload) as Bundle;
       this.verifyBundle(bundle);
-      const compare = await this.compareBundleForNetwork(network, fromNick, bundle);
+      const compare = await this.compareBundleForNetwork(
+        network,
+        fromNick,
+        bundle,
+      );
       if (compare.status === 'changed') {
         await secureStorageService.setSecret(
           PENDING_PREFIX + network + ':' + fromNick.toLowerCase(),
@@ -549,14 +654,14 @@ class EncryptedDMService {
             reason: 'legacy',
             existingFingerprint: compare.existingFingerprint,
             newFingerprint: compare.newFingerprint,
-          } as PendingKeyRequest & { network: string })
+          } as PendingKeyRequest & { network: string }),
         );
         this.keyRequestListeners.forEach(listener =>
           listener(fromNick, bundle, {
             reason: 'legacy',
             existingFingerprint: compare.existingFingerprint,
             newFingerprint: compare.newFingerprint,
-          })
+          }),
         );
         return;
       }
@@ -572,11 +677,19 @@ class EncryptedDMService {
     }
   }
 
-  async handleKeyOfferForNetwork(network: string, fromNick: string, payload: string): Promise<boolean> {
+  async handleKeyOfferForNetwork(
+    network: string,
+    fromNick: string,
+    payload: string,
+  ): Promise<boolean> {
     try {
       const bundle = JSON.parse(payload) as Bundle;
       this.verifyBundle(bundle);
-      const compare = await this.compareBundleForNetwork(network, fromNick, bundle);
+      const compare = await this.compareBundleForNetwork(
+        network,
+        fromNick,
+        bundle,
+      );
       // Store as pending
       await secureStorageService.setSecret(
         PENDING_PREFIX + network + ':' + fromNick.toLowerCase(),
@@ -588,7 +701,7 @@ class EncryptedDMService {
           reason: compare.status === 'changed' ? 'change' : 'offer',
           existingFingerprint: compare.existingFingerprint,
           newFingerprint: compare.newFingerprint,
-        } as PendingKeyRequest & { network: string })
+        } as PendingKeyRequest & { network: string }),
       );
       // Notify listeners (will show user prompt)
       this.keyRequestListeners.forEach(listener =>
@@ -596,7 +709,7 @@ class EncryptedDMService {
           reason: compare.status === 'changed' ? 'change' : 'offer',
           existingFingerprint: compare.existingFingerprint,
           newFingerprint: compare.newFingerprint,
-        })
+        }),
       );
       return true;
     } catch (e) {
@@ -605,32 +718,54 @@ class EncryptedDMService {
     }
   }
 
-  async acceptKeyOfferForNetwork(network: string, nick: string, allowReplace = false): Promise<Bundle> {
-    const pending = await secureStorageService.getSecret(PENDING_PREFIX + network + ':' + nick.toLowerCase());
+  async acceptKeyOfferForNetwork(
+    network: string,
+    nick: string,
+    allowReplace = false,
+  ): Promise<Bundle> {
+    const pending = await secureStorageService.getSecret(
+      PENDING_PREFIX + network + ':' + nick.toLowerCase(),
+    );
     if (!pending) throw new Error(t('No pending offer'));
 
     const request = JSON.parse(pending) as PendingKeyRequest;
-    const compare = await this.compareBundleForNetwork(network, nick, request.bundle);
+    const compare = await this.compareBundleForNetwork(
+      network,
+      nick,
+      request.bundle,
+    );
     if (compare.status === 'changed' && !allowReplace) {
       throw new Error(t('Key changed'));
     }
     // Store their bundle with network
     await this.storeBundleForNetwork(network, nick, request.bundle);
     // Remove from pending
-    await secureStorageService.removeSecret(PENDING_PREFIX + network + ':' + nick.toLowerCase());
+    await secureStorageService.removeSecret(
+      PENDING_PREFIX + network + ':' + nick.toLowerCase(),
+    );
     // Return our bundle to send back
     return this.exportBundle();
   }
 
   async rejectKeyOfferForNetwork(network: string, nick: string): Promise<void> {
-    await secureStorageService.removeSecret(PENDING_PREFIX + network + ':' + nick.toLowerCase());
+    await secureStorageService.removeSecret(
+      PENDING_PREFIX + network + ':' + nick.toLowerCase(),
+    );
   }
 
-  async handleKeyAcceptanceForNetwork(network: string, fromNick: string, payload: string): Promise<{ status: 'stored' | 'pending' | 'invalid' }> {
+  async handleKeyAcceptanceForNetwork(
+    network: string,
+    fromNick: string,
+    payload: string,
+  ): Promise<{ status: 'stored' | 'pending' | 'invalid' }> {
     try {
       const bundle = JSON.parse(payload) as Bundle;
       this.verifyBundle(bundle);
-      const compare = await this.compareBundleForNetwork(network, fromNick, bundle);
+      const compare = await this.compareBundleForNetwork(
+        network,
+        fromNick,
+        bundle,
+      );
       if (compare.status === 'changed') {
         await secureStorageService.setSecret(
           PENDING_PREFIX + network + ':' + fromNick.toLowerCase(),
@@ -642,14 +777,14 @@ class EncryptedDMService {
             reason: 'change',
             existingFingerprint: compare.existingFingerprint,
             newFingerprint: compare.newFingerprint,
-          } as PendingKeyRequest & { network: string })
+          } as PendingKeyRequest & { network: string }),
         );
         this.keyRequestListeners.forEach(listener =>
           listener(fromNick, bundle, {
             reason: 'change',
             existingFingerprint: compare.existingFingerprint,
             newFingerprint: compare.newFingerprint,
-          })
+          }),
         );
         return { status: 'pending' };
       }
@@ -667,11 +802,17 @@ class EncryptedDMService {
 
   private async deriveKey(theirEncPubB64: string) {
     const self = await this.getOrCreateIdentity();
-    const shared = x25519.getSharedSecret(this.fromB64(self.encPriv), this.fromB64(theirEncPubB64));
+    const shared = x25519.getSharedSecret(
+      this.fromB64(self.encPriv),
+      this.fromB64(theirEncPubB64),
+    );
     return sodium.crypto_generichash(32, '', shared);
   }
 
-  async getMessageKeyForNetwork(network: string, nick: string): Promise<Uint8Array> {
+  async getMessageKeyForNetwork(
+    network: string,
+    nick: string,
+  ): Promise<Uint8Array> {
     await this.ensureReady();
     const bundle = await this.getBundleForNetwork(network, nick);
     if (!bundle) throw new Error(t('No bundle'));
@@ -691,7 +832,9 @@ class EncryptedDMService {
     if (!bundle) throw new Error(t('No bundle'));
     const key = await this.deriveKey(bundle.encPub);
     const aad = this.buildMessageAAD(null, nick);
-    const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+    const nonce = sodium.randombytes_buf(
+      sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    );
     const cipher = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       this.fromString(plaintext),
       aad,
@@ -744,7 +887,9 @@ class EncryptedDMService {
     if (!bundle) throw new Error(t('No bundle'));
     const key = await this.deriveKey(bundle.encPub);
     const aad = this.buildMessageAAD(network, nick);
-    const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+    const nonce = sodium.randombytes_buf(
+      sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    );
     const cipher = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
       this.fromString(plaintext),
       aad,
@@ -761,7 +906,11 @@ class EncryptedDMService {
     };
   }
 
-  async decryptForNetwork(msg: EncPayload, network: string, fromNick: string): Promise<string> {
+  async decryptForNetwork(
+    msg: EncPayload,
+    network: string,
+    fromNick: string,
+  ): Promise<string> {
     await this.ensureReady();
     if (msg.v !== 1) throw new Error(t('Invalid version'));
     const bundle = await this.getBundleForNetwork(network, fromNick);
@@ -794,17 +943,25 @@ class EncryptedDMService {
   // Key Management Methods
   // ====================================================================
 
-  async listAllKeys(): Promise<Array<{
-    network: string;
-    nick: string;
-    fingerprint: string;
-    verified: boolean;
-    firstSeen: number;
-    lastSeen: number;
-  }>> {
+  async listAllKeys(): Promise<
+    Array<{
+      network: string;
+      nick: string;
+      fingerprint: string;
+      verified: boolean;
+      firstSeen: number;
+      lastSeen: number;
+    }>
+  > {
     const allSecrets = await secureStorageService.getAllSecretKeys();
-    console.log('[EncryptedDMService] listAllKeys - Total secrets:', allSecrets.length);
-    console.log('[EncryptedDMService] Bundle keys found:', allSecrets.filter(k => k.includes('encdm:bundle')));
+    console.log(
+      '[EncryptedDMService] listAllKeys - Total secrets:',
+      allSecrets.length,
+    );
+    console.log(
+      '[EncryptedDMService] Bundle keys found:',
+      allSecrets.filter(k => k.includes('encdm:bundle')),
+    );
     const keys: Array<{
       network: string;
       nick: string;
@@ -858,10 +1015,19 @@ class EncryptedDMService {
     await secureStorageService.removeSecret(this.getTrustKeyV2(network, nick));
   }
 
-  async copyBundleToNetwork(fromNetwork: string, toNetwork: string, nick: string): Promise<void> {
+  async copyBundleToNetwork(
+    fromNetwork: string,
+    toNetwork: string,
+    nick: string,
+  ): Promise<void> {
     const bundle = await this.getBundleForNetwork(fromNetwork, nick);
     if (!bundle) {
-      throw new Error(t('No key found for {nick} on {network}', { nick, network: fromNetwork }));
+      throw new Error(
+        t('No key found for {nick} on {network}', {
+          nick,
+          network: fromNetwork,
+        }),
+      );
     }
     const trust = await this.getTrustRecordForNetwork(fromNetwork, nick);
 
@@ -872,12 +1038,16 @@ class EncryptedDMService {
     if (trust) {
       await secureStorageService.setSecret(
         this.getTrustKeyV2(toNetwork, nick),
-        JSON.stringify(trust)
+        JSON.stringify(trust),
       );
     }
   }
 
-  async moveBundleToNetwork(fromNetwork: string, toNetwork: string, nick: string): Promise<void> {
+  async moveBundleToNetwork(
+    fromNetwork: string,
+    toNetwork: string,
+    nick: string,
+  ): Promise<void> {
     await this.copyBundleToNetwork(fromNetwork, toNetwork, nick);
     await this.deleteBundleForNetwork(fromNetwork, nick);
   }
@@ -888,7 +1058,10 @@ class EncryptedDMService {
 
     for (const secretKey of allSecrets) {
       // Match old format keys: "encdm:bundle:nickname" (no network prefix)
-      if (secretKey.startsWith(BUNDLE_PREFIX) && !secretKey.startsWith(BUNDLE_PREFIX_V2)) {
+      if (
+        secretKey.startsWith(BUNDLE_PREFIX) &&
+        !secretKey.startsWith(BUNDLE_PREFIX_V2)
+      ) {
         const nick = secretKey.substring(BUNDLE_PREFIX.length);
 
         try {
@@ -903,7 +1076,7 @@ class EncryptedDMService {
             if (oldTrust) {
               await secureStorageService.setSecret(
                 this.getTrustKeyV2(network, nick),
-                JSON.stringify(oldTrust)
+                JSON.stringify(oldTrust),
               );
             }
 
@@ -942,8 +1115,12 @@ class EncryptedDMService {
           const nick = parts.slice(1).join(':');
 
           try {
-            const bundleData = await secureStorageService.getSecret(this.getBundleKeyV2(network, nick));
-            const trustData = await secureStorageService.getSecret(this.getTrustKeyV2(network, nick));
+            const bundleData = await secureStorageService.getSecret(
+              this.getBundleKeyV2(network, nick),
+            );
+            const trustData = await secureStorageService.getSecret(
+              this.getTrustKeyV2(network, nick),
+            );
 
             if (bundleData) {
               keyData.push({
@@ -977,7 +1154,7 @@ class EncryptedDMService {
       salt,
       sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
       sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-      sodium.crypto_pwhash_ALG_ARGON2ID13
+      sodium.crypto_pwhash_ALG_ARGON2ID13,
     );
 
     // Encrypt backup
@@ -985,11 +1162,13 @@ class EncryptedDMService {
     const encrypted = sodium.crypto_secretbox_easy(
       this.fromString(backupJson),
       nonce,
-      key
+      key,
     );
 
     // Combine salt + nonce + encrypted data
-    const combined = new Uint8Array(salt.length + nonce.length + encrypted.length);
+    const combined = new Uint8Array(
+      salt.length + nonce.length + encrypted.length,
+    );
     combined.set(salt, 0);
     combined.set(nonce, salt.length);
     combined.set(encrypted, salt.length + nonce.length);
@@ -998,7 +1177,10 @@ class EncryptedDMService {
     return this.toB64(combined);
   }
 
-  async importKeyBackup(encryptedBackup: string, password: string): Promise<number> {
+  async importKeyBackup(
+    encryptedBackup: string,
+    password: string,
+  ): Promise<number> {
     await this.ensureReady();
 
     try {
@@ -1023,11 +1205,15 @@ class EncryptedDMService {
         salt,
         sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
         sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-        sodium.crypto_pwhash_ALG_ARGON2ID13
+        sodium.crypto_pwhash_ALG_ARGON2ID13,
       );
 
       // Decrypt backup
-      const decrypted = sodium.crypto_secretbox_open_easy(encrypted, nonce, key);
+      const decrypted = sodium.crypto_secretbox_open_easy(
+        encrypted,
+        nonce,
+        key,
+      );
       const backupJson = this.toString(decrypted);
       const backup = JSON.parse(backupJson) as {
         version: number;
@@ -1053,20 +1239,23 @@ class EncryptedDMService {
           // Store bundle
           await secureStorageService.setSecret(
             this.getBundleKeyV2(network, nick),
-            bundle
+            bundle,
           );
 
           // Store trust record if exists
           if (trust) {
             await secureStorageService.setSecret(
               this.getTrustKeyV2(network, nick),
-              trust
+              trust,
             );
           }
 
           importedCount++;
         } catch (e) {
-          console.warn(`Failed to import key for ${keyEntry.network}:${keyEntry.nick}`, e);
+          console.warn(
+            `Failed to import key for ${keyEntry.network}:${keyEntry.nick}`,
+            e,
+          );
         }
       }
 

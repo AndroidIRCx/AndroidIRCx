@@ -6,7 +6,10 @@
 import React from 'react';
 import { SettingItem } from '../SettingItem';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
 
 interface PrivacyLegalSectionProps {
   colors: {
@@ -46,25 +49,51 @@ export const PrivacyLegalSection: React.FC<PrivacyLegalSectionProps> = ({
     {
       id: 'my-data-privacy',
       title: t('My Data & Privacy', { _tags: tags }),
-      description: t('Export or delete your data (GDPR/CCPA rights)', { _tags: tags }),
+      description: t('Export or delete your data (GDPR/CCPA rights)', {
+        _tags: tags,
+      }),
       type: 'button',
-      searchKeywords: ['data', 'privacy', 'export', 'delete', 'gdpr', 'ccpa', 'rights', 'personal', 'information'],
+      searchKeywords: [
+        'data',
+        'privacy',
+        'export',
+        'delete',
+        'gdpr',
+        'ccpa',
+        'rights',
+        'personal',
+        'information',
+      ],
       onPress: onShowDataPrivacy,
     },
     {
       id: 'privacy-ads',
       title: t('Privacy & Ads', { _tags: tags }),
-      description: t('Manage consent for personalized ads and watch ads for rewards', { _tags: tags }),
+      description: t(
+        'Manage consent for personalized ads and watch ads for rewards',
+        { _tags: tags },
+      ),
       type: 'button',
-      searchKeywords: ['privacy', 'ads', 'consent', 'personalized', 'advertising', 'rewards', 'watch', 'manage'],
+      searchKeywords: [
+        'privacy',
+        'ads',
+        'consent',
+        'personalized',
+        'advertising',
+        'rewards',
+        'watch',
+        'manage',
+      ],
       onPress: onShowPrivacyAds,
     },
   ];
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}

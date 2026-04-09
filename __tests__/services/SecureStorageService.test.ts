@@ -20,18 +20,20 @@ describe('SecureStorageService', () => {
   });
 
   describe('setSecret', () => {
-
     it('should store secret in AsyncStorage as fallback', async () => {
       await secureStorageService.setSecret('test-key', 'secret-value');
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         '@AndroidIRCX:secure:test-key',
-        'secret-value'
+        'secret-value',
       );
     });
 
     it('should retrieve secret from AsyncStorage fallback', async () => {
-      await AsyncStorage.setItem('@AndroidIRCX:secure:test-key', 'secret-value');
+      await AsyncStorage.setItem(
+        '@AndroidIRCX:secure:test-key',
+        'secret-value',
+      );
 
       const result = await secureStorageService.getSecret('test-key');
 
@@ -49,7 +51,9 @@ describe('SecureStorageService', () => {
 
       await secureStorageService.removeSecret('test-key');
 
-      expect(AsyncStorage.removeItem).toHaveBeenCalledWith('@AndroidIRCX:secure:test-key');
+      expect(AsyncStorage.removeItem).toHaveBeenCalledWith(
+        '@AndroidIRCX:secure:test-key',
+      );
     });
 
     it('should list all fallback secret keys', async () => {
@@ -79,7 +83,8 @@ describe('SecureStorageService', () => {
     });
 
     it('should handle special characters in values', async () => {
-      const specialValue = 'value with "quotes" and \'apostrophes\' & symbols <>';
+      const specialValue =
+        'value with "quotes" and \'apostrophes\' & symbols <>';
       await secureStorageService.setSecret('test-key', specialValue);
 
       const result = await secureStorageService.getSecret('test-key');
@@ -122,7 +127,9 @@ describe('SecureStorageService', () => {
     });
 
     it('should handle removing non-existent secret', async () => {
-      await expect(secureStorageService.removeSecret('non-existent')).resolves.not.toThrow();
+      await expect(
+        secureStorageService.removeSecret('non-existent'),
+      ).resolves.not.toThrow();
     });
 
     it('should handle updating existing secret', async () => {

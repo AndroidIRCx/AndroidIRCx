@@ -21,53 +21,75 @@ interface DccTransfersMinimizedIndicatorProps {
   };
 }
 
-export const DccTransfersMinimizedIndicator: React.FC<DccTransfersMinimizedIndicatorProps> = ({
-  visible,
-  transfers,
-  onPress,
-  colors,
-}) => {
+export const DccTransfersMinimizedIndicator: React.FC<
+  DccTransfersMinimizedIndicatorProps
+> = ({ visible, transfers, onPress, colors }) => {
   if (!visible) return null;
 
   // Get active transfers (downloading or sending)
-  const activeTransfers = transfers.filter(t => t.status === 'downloading' || t.status === 'sending');
+  const activeTransfers = transfers.filter(
+    t => t.status === 'downloading' || t.status === 'sending',
+  );
 
   if (activeTransfers.length === 0) return null;
 
   // Calculate overall progress
   const totalSize = activeTransfers.reduce((sum, t) => sum + (t.size || 0), 0);
-  const totalReceived = activeTransfers.reduce((sum, t) => sum + t.bytesReceived, 0);
-  const overallPercent = totalSize > 0 ? Math.floor((totalReceived / totalSize) * 100) : 0;
+  const totalReceived = activeTransfers.reduce(
+    (sum, t) => sum + t.bytesReceived,
+    0,
+  );
+  const overallPercent =
+    totalSize > 0 ? Math.floor((totalReceived / totalSize) * 100) : 0;
 
   // Get first transfer name for display
   const firstName = activeTransfers[0]?.offer.filename || 'File';
-  const displayName = activeTransfers.length > 1
-    ? `${firstName} (+${activeTransfers.length - 1} more)`
-    : firstName;
+  const displayName =
+    activeTransfers.length > 1
+      ? `${firstName} (+${activeTransfers.length - 1} more)`
+      : firstName;
 
   return (
     <TouchableOpacity
       onPress={onPress}
       style={[styles.container, { backgroundColor: colors.primary }]}
-      activeOpacity={0.8}>
+      activeOpacity={0.8}
+    >
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <Text style={styles.icon}>📥</Text>
         </View>
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: colors.onPrimary || colors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.title, { color: colors.onPrimary || colors.text }]}
+            numberOfLines={1}
+          >
             {displayName}
           </Text>
-          <Text style={[styles.subtitle, { color: colors.onPrimary || colors.text }]}>
-            {activeTransfers.length} transfer{activeTransfers.length > 1 ? 's' : ''} - {overallPercent}%
+          <Text
+            style={[
+              styles.subtitle,
+              { color: colors.onPrimary || colors.text },
+            ]}
+          >
+            {activeTransfers.length} transfer
+            {activeTransfers.length > 1 ? 's' : ''} - {overallPercent}%
           </Text>
         </View>
         <View style={styles.progressContainer}>
-          <View style={[styles.progressBar, { backgroundColor: colors.modalOverlay || colors.surface }]}>
+          <View
+            style={[
+              styles.progressBar,
+              { backgroundColor: colors.modalOverlay || colors.surface },
+            ]}
+          >
             <View
               style={[
                 styles.progressFill,
-                { width: `${overallPercent}%`, backgroundColor: colors.onPrimary || colors.text }
+                {
+                  width: `${overallPercent}%`,
+                  backgroundColor: colors.onPrimary || colors.text,
+                },
               ]}
             />
           </View>

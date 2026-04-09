@@ -57,7 +57,7 @@ describe('ProtectionService', () => {
     it('should set the protected check callback', () => {
       const callback = jest.fn().mockReturnValue(false);
       protectionService.setProtectedCheckCallback(callback);
-      
+
       // The callback should be stored (we'll verify it works via evaluateIncomingMessage)
       expect(callback).not.toHaveBeenCalled(); // Not called yet
     });
@@ -83,7 +83,12 @@ describe('ProtectionService', () => {
       });
 
       expect(decision).toBeNull();
-      expect(callback).toHaveBeenCalledWith('protecteduser', undefined, undefined, 'TestNetwork');
+      expect(callback).toHaveBeenCalledWith(
+        'protecteduser',
+        undefined,
+        undefined,
+        'TestNetwork',
+      );
     });
 
     it('should return decision for non-protected users', () => {
@@ -94,7 +99,8 @@ describe('ProtectionService', () => {
       // @ts-ignore
       const originalKeywords = protectionService.settings.spamPmKeywords;
       // @ts-ignore
-      const originalChannelEnabled = protectionService.settings.spamChannelEnabled;
+      const originalChannelEnabled =
+        protectionService.settings.spamChannelEnabled;
       // @ts-ignore
       protectionService.settings.spamPmKeywords = ['*http*'];
       // @ts-ignore
@@ -116,7 +122,7 @@ describe('ProtectionService', () => {
 
       expect(decision).not.toBeNull();
       expect(decision?.block).toBe(true);
-      
+
       // Restore
       // @ts-ignore
       protectionService.settings.spamPmKeywords = originalKeywords;
@@ -141,7 +147,12 @@ describe('ProtectionService', () => {
 
       protectionService.evaluateIncomingMessage(message);
 
-      expect(callback).toHaveBeenCalledWith('protecteduser', 'protected', 'trusted.com', 'TestNetwork');
+      expect(callback).toHaveBeenCalledWith(
+        'protecteduser',
+        'protected',
+        'trusted.com',
+        'TestNetwork',
+      );
     });
 
     it('should still evaluate when no callback is set', () => {
@@ -303,16 +314,24 @@ describe('ProtectionService', () => {
     it('covers quit/text/exclude-token and pm spam mode branches', () => {
       // @ts-ignore
       protectionService.settings.spamNoSpamOnQuits = true;
-      expect(protectionService.evaluateIncomingMessage(buildMessage({ type: 'quit' }))).toBeNull();
+      expect(
+        protectionService.evaluateIncomingMessage(
+          buildMessage({ type: 'quit' }),
+        ),
+      ).toBeNull();
 
       // @ts-ignore
       protectionService.settings.spamNoSpamOnQuits = false;
-      expect(protectionService.evaluateIncomingMessage(buildMessage({ text: '' }))).toBeNull();
+      expect(
+        protectionService.evaluateIncomingMessage(buildMessage({ text: '' })),
+      ).toBeNull();
 
       // @ts-ignore
       protectionService.settings.protExcludeTokens = 'trusted, allow';
       expect(
-        protectionService.evaluateIncomingMessage(buildMessage({ text: 'this has TRUSTED token' }))
+        protectionService.evaluateIncomingMessage(
+          buildMessage({ text: 'this has TRUSTED token' }),
+        ),
       ).toBeNull();
 
       // @ts-ignore
@@ -322,15 +341,26 @@ describe('ProtectionService', () => {
       // @ts-ignore
       protectionService.settings.spamPmKeywords = ['*spam*'];
       const pm = buildMessage({ channel: 'user1', text: 'spam link' });
-      expect(protectionService.shouldBlockMessage(pm, { isQueryOpen: false, isActiveTab: false })).toBe(false);
-      expect(protectionService.shouldBlockMessage(pm, { isQueryOpen: true })).toBe(true);
+      expect(
+        protectionService.shouldBlockMessage(pm, {
+          isQueryOpen: false,
+          isActiveTab: false,
+        }),
+      ).toBe(false);
+      expect(
+        protectionService.shouldBlockMessage(pm, { isQueryOpen: true }),
+      ).toBe(true);
     });
 
     it('covers tsunami, ctcp, dcc, dos and net flood branches', () => {
       // @ts-ignore
       protectionService.settings.protBlockTsunamis = true;
       const tsunamiText = 'A'.repeat(260);
-      expect(protectionService.shouldBlockMessage(buildMessage({ text: tsunamiText }))).toBe(true);
+      expect(
+        protectionService.shouldBlockMessage(
+          buildMessage({ text: tsunamiText }),
+        ),
+      ).toBe(true);
 
       // @ts-ignore
       protectionService.settings.protBlockTsunamis = false;
@@ -343,24 +373,37 @@ describe('ProtectionService', () => {
 
       const ctcp = buildMessage({ text: '\x01VERSION\x01', channel: 'user1' });
       for (let i = 0; i < 4; i++) {
-        const decision = protectionService.evaluateIncomingMessage(ctcp, { isCtcp: true });
+        const decision = protectionService.evaluateIncomingMessage(ctcp, {
+          isCtcp: true,
+        });
         if (i === 3) expect(decision?.block).toBe(true);
       }
 
-      const dcc = buildMessage({ text: 'DCC SEND file', channel: 'user1', from: 'user-dcc' });
+      const dcc = buildMessage({
+        text: 'DCC SEND file',
+        channel: 'user1',
+        from: 'user-dcc',
+      });
       for (let i = 0; i < 3; i++) {
         const decision = protectionService.evaluateIncomingMessage(dcc);
         if (i === 2) expect(decision?.block).toBe(true);
       }
 
-      expect(protectionService.evaluateIncomingMessage(buildMessage({ text: 'x'.repeat(900), from: 'dos-user' }))?.block).toBe(true);
+      expect(
+        protectionService.evaluateIncomingMessage(
+          buildMessage({ text: 'x'.repeat(900), from: 'dos-user' }),
+        )?.block,
+      ).toBe(true);
 
       // @ts-ignore
       protectionService.settings.protTextFloodNet = true;
       const netFloodMsg = buildMessage({ from: 'u-net', channel: '#netflood' });
       let blocked = false;
       for (let i = 0; i < 19; i++) {
-        const decision = protectionService.evaluateIncomingMessage(netFloodMsg, { isChannel: true });
+        const decision = protectionService.evaluateIncomingMessage(
+          netFloodMsg,
+          { isChannel: true },
+        );
         blocked = blocked || !!decision;
       }
       expect(blocked).toBe(true);
@@ -387,12 +430,16 @@ describe('ProtectionService', () => {
       protectionService.settings.spamPmKeywords = ['*http*'];
 
       mockExists.mockResolvedValueOnce(false);
-      protectionService.evaluateIncomingMessage(buildMessage({ text: 'http://x', from: 'log-user' }));
+      protectionService.evaluateIncomingMessage(
+        buildMessage({ text: 'http://x', from: 'log-user' }),
+      );
       await Promise.resolve();
       expect(mockWriteFile).toHaveBeenCalled();
 
       mockExists.mockResolvedValueOnce(true);
-      protectionService.evaluateIncomingMessage(buildMessage({ text: 'http://y', from: 'log-user-2' }));
+      protectionService.evaluateIncomingMessage(
+        buildMessage({ text: 'http://y', from: 'log-user-2' }),
+      );
       await Promise.resolve();
       expect(mockAppendFile).toHaveBeenCalled();
     });

@@ -16,7 +16,10 @@ import { useEffect, useCallback } from 'react';
 import { useUIStore } from '../stores/uiStore';
 import { settingsService } from '../services/SettingsService';
 import { scriptingService } from '../services/ScriptingService';
-import { getDefaultRawCategoryVisibility, RawMessageCategory } from '../services/IRCService';
+import {
+  getDefaultRawCategoryVisibility,
+  RawMessageCategory,
+} from '../services/IRCService';
 
 interface UseUISettingsProps {
   setAutoSwitchPrivate: (value: boolean) => void;
@@ -31,7 +34,6 @@ export function useUISettings({
   setShowEncryptionIndicators,
   setAutoConnectFavoriteServer,
 }: UseUISettingsProps) {
-
   /**
    * Normalize raw category visibility to ensure all categories have a boolean value
    */
@@ -43,21 +45,26 @@ export function useUISettings({
         ...savedValue,
       };
     },
-    []
+    [],
   );
 
   // Effect: Load raw command settings on mount
   useEffect(() => {
     const loadSetting = async () => {
-      const savedValue = await settingsService.getSetting('showRawCommands', true);
+      const savedValue = await settingsService.getSetting(
+        'showRawCommands',
+        true,
+      );
       const savedCategories = await settingsService.getSetting(
         'rawCategoryVisibility',
-        getDefaultRawCategoryVisibility()
+        getDefaultRawCategoryVisibility(),
       );
 
       const store = useUIStore.getState();
       store.setShowRawCommands(savedValue);
-      store.setRawCategoryVisibility(normalizeRawCategoryVisibility(savedCategories));
+      store.setRawCategoryVisibility(
+        normalizeRawCategoryVisibility(savedCategories),
+      );
     };
 
     loadSetting();
@@ -73,67 +80,79 @@ export function useUISettings({
 
       // Load message visibility settings
       store.setHideJoinMessages(
-        await settingsService.getSetting('hideJoinMessages', false)
+        await settingsService.getSetting('hideJoinMessages', false),
       );
       store.setHidePartMessages(
-        await settingsService.getSetting('hidePartMessages', false)
+        await settingsService.getSetting('hidePartMessages', false),
       );
       store.setHideQuitMessages(
-        await settingsService.getSetting('hideQuitMessages', false)
+        await settingsService.getSetting('hideQuitMessages', false),
       );
       store.setHideIrcServiceListenerMessages(
-        await settingsService.getSetting('hideIrcServiceListenerMessages', true)
+        await settingsService.getSetting(
+          'hideIrcServiceListenerMessages',
+          true,
+        ),
       );
       store.setShowTypingIndicators(
-        await settingsService.getSetting('showTypingIndicators', true)
+        await settingsService.getSetting('showTypingIndicators', true),
       );
 
       // Load other UI settings (these aren't in UI store yet, so use setters)
       setAutoSwitchPrivate(
-        await settingsService.getSetting('autoSwitchPrivate', false)
+        await settingsService.getSetting('autoSwitchPrivate', false),
       );
       setTabSortAlphabetical(
-        await settingsService.getSetting('tabSortAlphabetical', true)
+        await settingsService.getSetting('tabSortAlphabetical', true),
       );
       setShowEncryptionIndicators(
-        await settingsService.getSetting('showEncryptionIndicators', true)
+        await settingsService.getSetting('showEncryptionIndicators', true),
       );
       setAutoConnectFavoriteServer(
-        await settingsService.getSetting('autoConnectFavoriteServer', false)
+        await settingsService.getSetting('autoConnectFavoriteServer', false),
       );
     };
 
     loadMessageVisibility();
 
     // Subscribe to setting changes
-    const unsubJoin = settingsService.onSettingChange('hideJoinMessages', (v: boolean) => {
-      useUIStore.getState().setHideJoinMessages(Boolean(v));
-    });
+    const unsubJoin = settingsService.onSettingChange(
+      'hideJoinMessages',
+      (v: boolean) => {
+        useUIStore.getState().setHideJoinMessages(Boolean(v));
+      },
+    );
 
-    const unsubPart = settingsService.onSettingChange('hidePartMessages', (v: boolean) => {
-      useUIStore.getState().setHidePartMessages(Boolean(v));
-    });
+    const unsubPart = settingsService.onSettingChange(
+      'hidePartMessages',
+      (v: boolean) => {
+        useUIStore.getState().setHidePartMessages(Boolean(v));
+      },
+    );
 
-    const unsubQuit = settingsService.onSettingChange('hideQuitMessages', (v: boolean) => {
-      useUIStore.getState().setHideQuitMessages(Boolean(v));
-    });
+    const unsubQuit = settingsService.onSettingChange(
+      'hideQuitMessages',
+      (v: boolean) => {
+        useUIStore.getState().setHideQuitMessages(Boolean(v));
+      },
+    );
 
     const unsubListenerHide = settingsService.onSettingChange(
       'hideIrcServiceListenerMessages',
       (v: boolean) => {
         useUIStore.getState().setHideIrcServiceListenerMessages(Boolean(v));
-      }
+      },
     );
     const unsubTypingIndicators = settingsService.onSettingChange(
       'showTypingIndicators',
       (v: boolean) => {
         useUIStore.getState().setShowTypingIndicators(Boolean(v));
-      }
+      },
     );
 
     const unsubAutoFavorite = settingsService.onSettingChange(
       'autoConnectFavoriteServer',
-      (v: boolean) => setAutoConnectFavoriteServer(Boolean(v))
+      (v: boolean) => setAutoConnectFavoriteServer(Boolean(v)),
     );
 
     return () => {

@@ -14,15 +14,15 @@ const mockTabStore = {
 
 jest.mock('../../src/stores/tabStore', () => ({
   useTabStore: Object.assign(
-    jest.fn((selector) => selector(mockTabStore)),
-    { getState: jest.fn(() => mockTabStore) }
+    jest.fn(selector => selector(mockTabStore)),
+    { getState: jest.fn(() => mockTabStore) },
   ),
 }));
 
 // Mock dependencies
 jest.mock('../../src/services/ScriptingService', () => ({
   scriptingService: {
-    processOutgoingCommand: jest.fn().mockImplementation((cmd) => cmd),
+    processOutgoingCommand: jest.fn().mockImplementation(cmd => cmd),
   },
 }));
 
@@ -84,7 +84,7 @@ jest.mock('../../src/services/SettingsService', () => ({
 }));
 
 jest.mock('../../src/utils/DecorationFormatter', () => ({
-  applyDecoration: jest.fn().mockImplementation((text) => text),
+  applyDecoration: jest.fn().mockImplementation(text => text),
 }));
 
 import { useMessageSending } from '../../src/hooks/useMessageSending';
@@ -107,7 +107,9 @@ describe('useMessageSending', () => {
   const mockSendRaw = jest.fn();
   const mockSendCTCPRequest = jest.fn();
   const mockAddMessage = jest.fn();
-  const mockProcessCommand = jest.fn().mockImplementation((cmd) => Promise.resolve(cmd));
+  const mockProcessCommand = jest
+    .fn()
+    .mockImplementation(cmd => Promise.resolve(cmd));
 
   const createMockParams = (overrides = {}) => ({
     isConnected: true,
@@ -132,19 +134,23 @@ describe('useMessageSending', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTabStore.tabs = [];
-    (scriptingService.processOutgoingCommand as jest.Mock).mockImplementation((cmd: string) => cmd);
-    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
-      const settings: Record<string, any> = {
-        decorEnabled: false,
-        decorUseColors: true,
-        decorBold: false,
-        decorUnderline: false,
-        decorTextStyleId: '',
-        decorColorStyleId: '',
-        decorAdornmentId: '',
-      };
-      return Promise.resolve(settings[key] ?? defaultValue);
-    });
+    (scriptingService.processOutgoingCommand as jest.Mock).mockImplementation(
+      (cmd: string) => cmd,
+    );
+    (settingsService.getSetting as jest.Mock).mockImplementation(
+      (key: string, defaultValue: any) => {
+        const settings: Record<string, any> = {
+          decorEnabled: false,
+          decorUseColors: true,
+          decorBold: false,
+          decorUnderline: false,
+          decorTextStyleId: '',
+          decorColorStyleId: '',
+          decorAdornmentId: '',
+        };
+        return Promise.resolve(settings[key] ?? defaultValue);
+      },
+    );
   });
 
   afterEach(() => {
@@ -221,7 +227,9 @@ describe('useMessageSending', () => {
       },
     ];
 
-    const { result } = renderHook(() => useMessageSending(createMockParams({ isConnected: false })));
+    const { result } = renderHook(() =>
+      useMessageSending(createMockParams({ isConnected: false })),
+    );
 
     await act(async () => {
       await result.current.handleSendMessage('/join #test');
@@ -229,7 +237,7 @@ describe('useMessageSending', () => {
 
     expect(mockSafeAlert).toHaveBeenCalledWith(
       'Not Connected',
-      'Please connect to a server first'
+      'Please connect to a server first',
     );
   });
 
@@ -250,7 +258,11 @@ describe('useMessageSending', () => {
       await result.current.handleSendMessage('/ctcp OtherUser VERSION');
     });
 
-    expect(mockSendCTCPRequest).toHaveBeenCalledWith('OtherUser', 'VERSION', undefined);
+    expect(mockSendCTCPRequest).toHaveBeenCalledWith(
+      'OtherUser',
+      'VERSION',
+      undefined,
+    );
   });
 
   it('should process DCC chat command', async () => {
@@ -284,17 +296,25 @@ describe('useMessageSending', () => {
       },
     ];
 
-    const { result } = renderHook(() => useMessageSending(createMockParams({ isConnected: false })));
+    const { result } = renderHook(() =>
+      useMessageSending(createMockParams({ isConnected: false })),
+    );
 
     await act(async () => {
       await result.current.handleSendMessage('Hello offline');
     });
 
-    expect(offlineQueueService.addMessage).toHaveBeenCalledWith('freenode', '#test', 'Hello offline');
+    expect(offlineQueueService.addMessage).toHaveBeenCalledWith(
+      'freenode',
+      '#test',
+      'Hello offline',
+    );
   });
 
   it('should handle script cancellation', async () => {
-    (scriptingService.processOutgoingCommand as jest.Mock).mockReturnValue(null);
+    (scriptingService.processOutgoingCommand as jest.Mock).mockReturnValue(
+      null,
+    );
     mockTabStore.tabs = [
       {
         id: 'tab-1',
@@ -317,7 +337,13 @@ describe('useMessageSending', () => {
   it('should stop when command service handles slash command internally', async () => {
     mockProcessCommand.mockResolvedValueOnce(null);
     mockTabStore.tabs = [
-      { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode', messages: [] },
+      {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+        messages: [],
+      },
     ];
     const { result } = renderHook(() => useMessageSending(createMockParams()));
     await act(async () => {
@@ -329,29 +355,54 @@ describe('useMessageSending', () => {
 
   it('should report ctcp usage error without target', async () => {
     mockTabStore.tabs = [
-      { id: 'tab-1', name: 'Server', type: 'server', networkId: 'freenode', messages: [] },
+      {
+        id: 'tab-1',
+        name: 'Server',
+        type: 'server',
+        networkId: 'freenode',
+        messages: [],
+      },
     ];
     const { result } = renderHook(() => useMessageSending(createMockParams()));
     await act(async () => {
       await result.current.handleSendMessage('/ctcp');
     });
-    expect(mockAddMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
+    expect(mockAddMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'error' }),
+    );
   });
 
   it('should show alert for ctcp when disconnected', async () => {
     mockTabStore.tabs = [
-      { id: 'tab-1', name: 'OtherUser', type: 'query', networkId: 'freenode', messages: [] },
+      {
+        id: 'tab-1',
+        name: 'OtherUser',
+        type: 'query',
+        networkId: 'freenode',
+        messages: [],
+      },
     ];
-    const { result } = renderHook(() => useMessageSending(createMockParams({ isConnected: false })));
+    const { result } = renderHook(() =>
+      useMessageSending(createMockParams({ isConnected: false })),
+    );
     await act(async () => {
       await result.current.handleSendMessage('/ctcp VERSION');
     });
-    expect(mockSafeAlert).toHaveBeenCalledWith('Not Connected', 'Please connect to a server first');
+    expect(mockSafeAlert).toHaveBeenCalledWith(
+      'Not Connected',
+      'Please connect to a server first',
+    );
   });
 
   it('should process xdcc command', async () => {
     mockTabStore.tabs = [
-      { id: 'tab-1', name: 'BotNick', type: 'query', networkId: 'freenode', messages: [] },
+      {
+        id: 'tab-1',
+        name: 'BotNick',
+        type: 'query',
+        networkId: 'freenode',
+        messages: [],
+      },
     ];
     const { result } = renderHook(() => useMessageSending(createMockParams()));
     await act(async () => {
@@ -362,44 +413,84 @@ describe('useMessageSending', () => {
 
   it('should process dcc send with quoted path and custom port', async () => {
     mockTabStore.tabs = [
-      { id: 'tab-1', name: 'Server', type: 'server', networkId: 'freenode', messages: [] },
+      {
+        id: 'tab-1',
+        name: 'Server',
+        type: 'server',
+        networkId: 'freenode',
+        messages: [],
+      },
     ];
     const { result } = renderHook(() => useMessageSending(createMockParams()));
     await act(async () => {
-      await result.current.handleSendMessage('/dcc send Alice "C:\\\\tmp\\\\file.bin" 9000');
+      await result.current.handleSendMessage(
+        '/dcc send Alice "C:\\\\tmp\\\\file.bin" 9000',
+      );
     });
-    expect(dccFileService.sendFile).toHaveBeenCalledWith(expect.any(Object), 'Alice', 'freenode', 'C:\\\\tmp\\\\file.bin', 9000);
-    expect(mockAddMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'notice' }));
+    expect(dccFileService.sendFile).toHaveBeenCalledWith(
+      expect.any(Object),
+      'Alice',
+      'freenode',
+      'C:\\\\tmp\\\\file.bin',
+      9000,
+    );
+    expect(mockAddMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'notice' }),
+    );
   });
 
   it('should handle dcc send failure', async () => {
-    (dccFileService.sendFile as jest.Mock).mockRejectedValueOnce(new Error('disk'));
+    (dccFileService.sendFile as jest.Mock).mockRejectedValueOnce(
+      new Error('disk'),
+    );
     mockTabStore.tabs = [
-      { id: 'tab-1', name: 'Server', type: 'server', networkId: 'freenode', messages: [] },
+      {
+        id: 'tab-1',
+        name: 'Server',
+        type: 'server',
+        networkId: 'freenode',
+        messages: [],
+      },
     ];
     const { result } = renderHook(() => useMessageSending(createMockParams()));
     await act(async () => {
       await result.current.handleSendMessage('/dcc send Alice /tmp/file.bin');
     });
-    expect(mockAddMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
+    expect(mockAddMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'error' }),
+    );
   });
 
   it('should send message in dcc tab and persist it', async () => {
     mockTabStore.tabs = [
-      { id: 'tab-1', name: 'Alice', type: 'dcc', networkId: 'freenode', messages: [], dccSessionId: 'sess-1' },
+      {
+        id: 'tab-1',
+        name: 'Alice',
+        type: 'dcc',
+        networkId: 'freenode',
+        messages: [],
+        dccSessionId: 'sess-1',
+      },
     ];
     const { result } = renderHook(() => useMessageSending(createMockParams()));
     await act(async () => {
       await result.current.handleSendMessage('hello dcc');
     });
-    expect(dccChatService.sendMessage).toHaveBeenCalledWith('sess-1', 'hello dcc');
+    expect(dccChatService.sendMessage).toHaveBeenCalledWith(
+      'sess-1',
+      'hello dcc',
+    );
     expect(mockSetTabs).toHaveBeenCalled();
     expect(messageHistoryService.saveMessage).toHaveBeenCalled();
   });
 
   it('should send encrypted private message when key exists', async () => {
-    (encryptedDMService.isEncryptedForNetwork as jest.Mock).mockResolvedValueOnce(true);
-    (encryptedDMService.encryptForNetwork as jest.Mock).mockResolvedValueOnce({ c: '1' });
+    (
+      encryptedDMService.isEncryptedForNetwork as jest.Mock
+    ).mockResolvedValueOnce(true);
+    (encryptedDMService.encryptForNetwork as jest.Mock).mockResolvedValueOnce({
+      c: '1',
+    });
     mockTabStore.tabs = [
       {
         id: 'tab-1',
@@ -415,12 +506,16 @@ describe('useMessageSending', () => {
     await act(async () => {
       await result.current.handleSendMessage('secret');
     });
-    expect(mockSendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG Alice :!enc-msg '));
+    expect(mockSendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('PRIVMSG Alice :!enc-msg '),
+    );
     expect(mockSetTabs).toHaveBeenCalled();
   });
 
   it('should fall back to plaintext for query when encryption toggle is incomplete', async () => {
-    (encryptedDMService.isEncryptedForNetwork as jest.Mock).mockResolvedValueOnce(false);
+    (
+      encryptedDMService.isEncryptedForNetwork as jest.Mock
+    ).mockResolvedValueOnce(false);
     mockTabStore.tabs = [
       {
         id: 'tab-1',
@@ -437,12 +532,18 @@ describe('useMessageSending', () => {
       await result.current.handleSendMessage('secret');
     });
     expect(mockSendMessage).toHaveBeenCalledWith('Alice', 'secret');
-    expect(mockSendRaw).not.toHaveBeenCalledWith(expect.stringContaining('!enc-msg'));
+    expect(mockSendRaw).not.toHaveBeenCalledWith(
+      expect.stringContaining('!enc-msg'),
+    );
   });
 
   it('should add error when encrypted private send throws', async () => {
-    (encryptedDMService.isEncryptedForNetwork as jest.Mock).mockResolvedValueOnce(true);
-    (encryptedDMService.encryptForNetwork as jest.Mock).mockRejectedValueOnce(new Error('encrypt fail'));
+    (
+      encryptedDMService.isEncryptedForNetwork as jest.Mock
+    ).mockResolvedValueOnce(true);
+    (encryptedDMService.encryptForNetwork as jest.Mock).mockRejectedValueOnce(
+      new Error('encrypt fail'),
+    );
     mockTabStore.tabs = [
       {
         id: 'tab-1',
@@ -462,8 +563,12 @@ describe('useMessageSending', () => {
   });
 
   it('should send encrypted channel message when channel key exists', async () => {
-    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValueOnce(true);
-    (channelEncryptionService.encryptMessage as jest.Mock).mockResolvedValueOnce({ c: 'x' });
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValueOnce(
+      true,
+    );
+    (
+      channelEncryptionService.encryptMessage as jest.Mock
+    ).mockResolvedValueOnce({ c: 'x' });
     mockTabStore.tabs = [
       {
         id: 'tab-1',
@@ -479,11 +584,15 @@ describe('useMessageSending', () => {
     await act(async () => {
       await result.current.handleSendMessage('chan secret');
     });
-    expect(mockSendRaw).toHaveBeenCalledWith(expect.stringContaining('PRIVMSG #room :!chanenc-msg '));
+    expect(mockSendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('PRIVMSG #room :!chanenc-msg '),
+    );
   });
 
   it('should add channel encryption error when no key exists', async () => {
-    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValueOnce(false);
+    (channelEncryptionService.hasChannelKey as jest.Mock).mockResolvedValueOnce(
+      false,
+    );
     mockTabStore.tabs = [
       {
         id: 'tab-1',
@@ -503,12 +612,21 @@ describe('useMessageSending', () => {
   });
 
   it('should apply decorations when enabled', async () => {
-    (settingsService.getSetting as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
-      if (key === 'decorEnabled') return Promise.resolve(true);
-      return Promise.resolve(defaultValue);
-    });
+    (settingsService.getSetting as jest.Mock).mockImplementation(
+      (key: string, defaultValue: any) => {
+        if (key === 'decorEnabled') return Promise.resolve(true);
+        return Promise.resolve(defaultValue);
+      },
+    );
     mockTabStore.tabs = [
-      { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode', messages: [], sendEncrypted: false },
+      {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+        messages: [],
+        sendEncrypted: false,
+      },
     ];
     const { result } = renderHook(() => useMessageSending(createMockParams()));
     await act(async () => {

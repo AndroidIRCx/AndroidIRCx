@@ -7,7 +7,10 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { SettingItem } from '../SettingItem';
 import { useSettingsNotifications } from '../../../hooks/useSettingsNotifications';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
 import { backgroundService } from '../../../services/BackgroundService';
 
 interface BackgroundBatterySectionProps {
@@ -34,14 +37,13 @@ interface BackgroundBatterySectionProps {
   settingIcons: Record<string, SettingIcon | undefined>;
 }
 
-export const BackgroundBatterySection: React.FC<BackgroundBatterySectionProps> = ({
-  colors,
-  styles,
-  settingIcons,
-}) => {
+export const BackgroundBatterySection: React.FC<
+  BackgroundBatterySectionProps
+> = ({ colors, styles, settingIcons }) => {
   const t = useT();
-  const tags = 'screen:settings,file:BackgroundBatterySection.tsx,feature:settings';
-  
+  const tags =
+    'screen:settings,file:BackgroundBatterySection.tsx,feature:settings';
+
   const {
     backgroundEnabled,
     batteryOptEnabledStatus,
@@ -49,7 +51,9 @@ export const BackgroundBatterySection: React.FC<BackgroundBatterySectionProps> =
     handleBatteryOptimization,
   } = useSettingsNotifications();
 
-  const [localBatteryOptStatus, setLocalBatteryOptStatus] = useState(batteryOptEnabledStatus);
+  const [localBatteryOptStatus, setLocalBatteryOptStatus] = useState(
+    batteryOptEnabledStatus,
+  );
 
   // Sync with hook state
   useEffect(() => {
@@ -61,10 +65,19 @@ export const BackgroundBatterySection: React.FC<BackgroundBatterySectionProps> =
       {
         id: 'background-keep-alive',
         title: t('Keep Connection Alive', { _tags: tags }),
-        description: t('Maintain IRC connection in background', { _tags: tags }),
+        description: t('Maintain IRC connection in background', {
+          _tags: tags,
+        }),
         type: 'switch',
         value: backgroundEnabled,
-        searchKeywords: ['background', 'keep', 'alive', 'connection', 'maintain', 'persistent'],
+        searchKeywords: [
+          'background',
+          'keep',
+          'alive',
+          'connection',
+          'maintain',
+          'persistent',
+        ],
         onValueChange: async (value: string | boolean) => {
           await setBackgroundEnabled(value as boolean);
         },
@@ -77,22 +90,41 @@ export const BackgroundBatterySection: React.FC<BackgroundBatterySectionProps> =
           : 'Battery optimization is disabled (recommended for persistent connection)',
         type: 'button',
         disabled: true,
-        searchKeywords: ['battery', 'optimization', 'status', 'power', 'saving'],
+        searchKeywords: [
+          'battery',
+          'optimization',
+          'status',
+          'power',
+          'saving',
+        ],
       },
       {
         id: 'background-battery-settings',
         title: t('Open Battery Settings', { _tags: tags }),
-        description: t('Configure battery optimization for this app', { _tags: tags }),
+        description: t('Configure battery optimization for this app', {
+          _tags: tags,
+        }),
         type: 'button',
-        searchKeywords: ['battery', 'settings', 'optimization', 'configure', 'power', 'whitelist'],
+        searchKeywords: [
+          'battery',
+          'settings',
+          'optimization',
+          'configure',
+          'power',
+          'whitelist',
+        ],
         onPress: async () => {
           await handleBatteryOptimization();
           setTimeout(async () => {
             try {
-              const isOptimized = await backgroundService.isBatteryOptimizationEnabled();
+              const isOptimized =
+                await backgroundService.isBatteryOptimizationEnabled();
               setLocalBatteryOptStatus(isOptimized);
             } catch (error) {
-              console.error('Failed to refresh battery optimization status:', error);
+              console.error(
+                'Failed to refresh battery optimization status:',
+                error,
+              );
             }
           }, 1000);
         },
@@ -111,8 +143,10 @@ export const BackgroundBatterySection: React.FC<BackgroundBatterySectionProps> =
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}

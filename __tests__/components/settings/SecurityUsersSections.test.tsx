@@ -60,7 +60,7 @@ jest.mock('../../../src/components/settings/SettingItem', () => {
             if (item.type === 'switch') item.onValueChange?.(!item.value);
           },
         },
-        React.createElement(Text, null, item.title || item.id)
+        React.createElement(Text, null, item.title || item.id),
       );
     },
   };
@@ -79,7 +79,8 @@ jest.mock('../../../src/services/SettingsService', () => ({
 
 jest.mock('../../../src/services/BiometricAuthService', () => ({
   biometricAuthService: {
-    hasEnrolledBiometrics: (...args: any[]) => mockHasEnrolledBiometrics(...args),
+    hasEnrolledBiometrics: (...args: any[]) =>
+      mockHasEnrolledBiometrics(...args),
     enableLock: (...args: any[]) => mockEnableLock(...args),
     disableLock: (...args: any[]) => mockDisableLock(...args),
   },
@@ -143,37 +144,70 @@ describe('Security/Users sections', () => {
   });
 
   it('SecurityQuickConnectSection wires switch/input actions', async () => {
-    render(<SecurityQuickConnectSection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('kill-switch-header')).toBe(true));
+    render(
+      <SecurityQuickConnectSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('kill-switch-header')).toBe(true),
+    );
 
     await mockCapturedItems.get('kill-switch-header').onValueChange(true);
-    await mockCapturedItems.get('kill-switch-custom-name').onValueChange('panic');
+    await mockCapturedItems
+      .get('kill-switch-custom-name')
+      .onValueChange('panic');
 
-    expect(mockSecurityHookState.setKillSwitchEnabledOnHeader).toHaveBeenCalledWith(true);
-    expect(mockSecurityHookState.setKillSwitchCustomName).toHaveBeenCalledWith('panic');
+    expect(
+      mockSecurityHookState.setKillSwitchEnabledOnHeader,
+    ).toHaveBeenCalledWith(true);
+    expect(mockSecurityHookState.setKillSwitchCustomName).toHaveBeenCalledWith(
+      'panic',
+    );
   });
 
   it('SecurityQuickConnectSection opens color picker and applies valid hex color', async () => {
-    const { getByTestId, getByPlaceholderText, getByText, queryByText } = render(
-      <SecurityQuickConnectSection colors={colors} styles={styles as any} settingIcons={{}} />
+    const { getByTestId, getByPlaceholderText, getByText, queryByText } =
+      render(
+        <SecurityQuickConnectSection
+          colors={colors}
+          styles={styles as any}
+          settingIcons={{}}
+        />,
+      );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('kill-switch-custom-color')).toBe(true),
     );
-    await waitFor(() => expect(mockCapturedItems.has('kill-switch-custom-color')).toBe(true));
 
     await mockCapturedItems.get('kill-switch-lockscreen').onValueChange(true);
     await mockCapturedItems.get('kill-switch-warnings').onValueChange(false);
-    await mockCapturedItems.get('kill-switch-custom-icon').onValueChange('bolt');
-    expect(mockSecurityHookState.setKillSwitchEnabledOnLockScreen).toHaveBeenCalledWith(true);
-    expect(mockSecurityHookState.setKillSwitchShowWarnings).toHaveBeenCalledWith(false);
-    expect(mockSecurityHookState.setKillSwitchCustomIcon).toHaveBeenCalledWith('bolt');
+    await mockCapturedItems
+      .get('kill-switch-custom-icon')
+      .onValueChange('bolt');
+    expect(
+      mockSecurityHookState.setKillSwitchEnabledOnLockScreen,
+    ).toHaveBeenCalledWith(true);
+    expect(
+      mockSecurityHookState.setKillSwitchShowWarnings,
+    ).toHaveBeenCalledWith(false);
+    expect(mockSecurityHookState.setKillSwitchCustomIcon).toHaveBeenCalledWith(
+      'bolt',
+    );
 
     fireEvent.press(getByTestId('setting-kill-switch-custom-color'));
     await waitFor(() => expect(getByText('Choose Color')).toBeTruthy());
 
     fireEvent.changeText(getByPlaceholderText('#ff0000'), '#123');
-    expect(mockSecurityHookState.setKillSwitchCustomColor).not.toHaveBeenCalledWith('#123');
+    expect(
+      mockSecurityHookState.setKillSwitchCustomColor,
+    ).not.toHaveBeenCalledWith('#123');
 
     fireEvent.changeText(getByPlaceholderText('#ff0000'), '#00ff00');
-    expect(mockSecurityHookState.setKillSwitchCustomColor).toHaveBeenCalledWith('#00ff00');
+    expect(mockSecurityHookState.setKillSwitchCustomColor).toHaveBeenCalledWith(
+      '#00ff00',
+    );
 
     fireEvent.press(getByText('Done'));
     await waitFor(() => expect(queryByText('Choose Color')).toBeNull());
@@ -187,9 +221,11 @@ describe('Security/Users sections', () => {
         styles={styles as any}
         settingIcons={{}}
         onShowKeyManagement={onShowKeyManagement}
-      />
+      />,
     );
-    await waitFor(() => expect(mockCapturedItems.has('security-manage-keys')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('security-manage-keys')).toBe(true),
+    );
 
     act(() => {
       mockCapturedItems.get('security-manage-keys').onPress();
@@ -198,17 +234,30 @@ describe('Security/Users sections', () => {
       await mockCapturedItems.get('security-qr').onValueChange(false);
     });
     expect(onShowKeyManagement).toHaveBeenCalled();
-    expect(mockSettingsSet).toHaveBeenCalledWith('securityAllowQrVerification', false);
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'securityAllowQrVerification',
+      false,
+    );
   });
 
   it('SecuritySection shows alert when enabling biometric lock without enrollment', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert');
     mockHasEnrolledBiometrics.mockResolvedValue(false);
-    render(<SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('security-app-lock-biometric')).toBe(true));
+    render(
+      <SecuritySection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('security-app-lock-biometric')).toBe(true),
+    );
 
     await act(async () => {
-      await mockCapturedItems.get('security-app-lock-biometric').onValueChange(true);
+      await mockCapturedItems
+        .get('security-app-lock-biometric')
+        .onValueChange(true);
     });
     expect(alertSpy).toHaveBeenCalled();
     expect(mockEnableLock).not.toHaveBeenCalled();
@@ -216,8 +265,16 @@ describe('Security/Users sections', () => {
 
   it('SecuritySection blocks app lock enable when no biometric or pin method exists', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert');
-    render(<SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('security-app-lock')).toBe(true));
+    render(
+      <SecuritySection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('security-app-lock')).toBe(true),
+    );
 
     await act(async () => {
       await mockCapturedItems.get('security-app-lock').onValueChange(true);
@@ -227,8 +284,16 @@ describe('Security/Users sections', () => {
   });
 
   it('SecuritySection enables/disables biometric lock and updates app lock state', async () => {
-    const { getByTestId } = render(<SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('security-app-lock-biometric')).toBe(true));
+    const { getByTestId } = render(
+      <SecuritySection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('security-app-lock-biometric')).toBe(true),
+    );
 
     fireEvent.press(getByTestId('setting-security-app-lock-biometric'));
     await waitFor(() => expect(mockEnableLock).toHaveBeenCalledWith('app'));
@@ -237,7 +302,9 @@ describe('Security/Users sections', () => {
     expect(mockSettingsSet).toHaveBeenCalledWith('appLockEnabled', true);
 
     await act(async () => {
-      await mockCapturedItems.get('security-app-lock-biometric').onValueChange(false);
+      await mockCapturedItems
+        .get('security-app-lock-biometric')
+        .onValueChange(false);
     });
     expect(mockDisableLock).toHaveBeenCalledWith('app');
     expect(mockSettingsSet).toHaveBeenCalledWith('appLockUseBiometric', false);
@@ -245,9 +312,15 @@ describe('Security/Users sections', () => {
 
   it('SecuritySection handles app-lock PIN setup and stores pin after confirm', async () => {
     const { getByPlaceholderText, getByText, getByTestId } = render(
-      <SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />
+      <SecuritySection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
     );
-    await waitFor(() => expect(mockCapturedItems.has('security-app-lock-pin')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('security-app-lock-pin')).toBe(true),
+    );
 
     fireEvent.press(getByTestId('setting-security-app-lock-pin'));
     await waitFor(() => expect(getByPlaceholderText('Enter PIN')).toBeTruthy());
@@ -258,17 +331,31 @@ describe('Security/Users sections', () => {
     fireEvent.press(getByText('Confirm'));
 
     await waitFor(() =>
-      expect(mockSetSecret).toHaveBeenCalledWith('@AndroidIRCX:app-lock-pin', '1234')
+      expect(mockSetSecret).toHaveBeenCalledWith(
+        '@AndroidIRCX:app-lock-pin',
+        '1234',
+      ),
     );
-    expect(mockSetSecret).toHaveBeenCalledWith('@AndroidIRCX:app-lock-pin', '1234');
+    expect(mockSetSecret).toHaveBeenCalledWith(
+      '@AndroidIRCX:app-lock-pin',
+      '1234',
+    );
     expect(mockSettingsSet).toHaveBeenCalledWith('appLockUsePin', true);
     expect(mockSettingsSet).toHaveBeenCalledWith('appLockEnabled', true);
   });
 
   it('SecuritySection handles lock-now disabled and enabled flows', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert');
-    render(<SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('security-app-lock-now')).toBe(true));
+    render(
+      <SecuritySection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('security-app-lock-now')).toBe(true),
+    );
 
     await act(async () => {
       await mockCapturedItems.get('security-app-lock-now').onPress();
@@ -281,13 +368,24 @@ describe('Security/Users sections', () => {
       return d;
     });
     mockCapturedItems.clear();
-    render(<SecuritySection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('security-app-lock-now')).toBe(true));
+    render(
+      <SecuritySection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('security-app-lock-now')).toBe(true),
+    );
     await act(async () => {
       await mockCapturedItems.get('security-app-lock-now').onPress();
     });
 
-    expect(mockSettingsSet).toHaveBeenCalledWith('appLockNow', expect.any(Number));
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'appLockNow',
+      expect.any(Number),
+    );
   });
 
   it('UsersServicesSection supports blacklist and add-service flow', async () => {
@@ -299,14 +397,18 @@ describe('Security/Users sections', () => {
         settingIcons={{}}
         currentNetwork="net"
         onShowBlacklist={onShowBlacklist}
-      />
+      />,
     );
 
-    await waitFor(() => expect(mockCapturedItems.has('irc-services-add')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('irc-services-add')).toBe(true),
+    );
     await act(async () => {
       await mockCapturedItems.get('irc-services-add').onValueChange('Q');
     });
-    await waitFor(() => expect(mockCapturedItems.get('irc-services-add')?.value).toBe('Q'));
+    await waitFor(() =>
+      expect(mockCapturedItems.get('irc-services-add')?.value).toBe('Q'),
+    );
     await act(async () => {
       await mockCapturedItems.get('irc-services-add').onPress();
     });
@@ -314,7 +416,10 @@ describe('Security/Users sections', () => {
       mockCapturedItems.get('user-blacklist').onPress();
     });
 
-    expect(mockSettingsSet).toHaveBeenCalledWith('ircServices', expect.arrayContaining(['Q']));
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'ircServices',
+      expect.arrayContaining(['Q']),
+    );
     expect(onShowBlacklist).toHaveBeenCalled();
   });
 
@@ -328,9 +433,11 @@ describe('Security/Users sections', () => {
         settingIcons={{}}
         currentNetwork="net"
         onShowUserLists={onShowUserLists}
-      />
+      />,
     );
-    await waitFor(() => expect(mockCapturedItems.has('user-blacklist')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('user-blacklist')).toBe(true),
+    );
 
     act(() => {
       mockCapturedItems.get('user-blacklist').onPress();
@@ -343,24 +450,37 @@ describe('Security/Users sections', () => {
 
   it('UsersServicesSection deletes note and alias from submenu actions', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert');
-    mockGetUserNotes.mockReturnValue([{ nick: 'alice', network: 'net', note: 'memo' }]);
-    mockGetUserAliases.mockReturnValue([{ nick: 'alice', alias: 'ali', network: 'net' }]);
+    mockGetUserNotes.mockReturnValue([
+      { nick: 'alice', network: 'net', note: 'memo' },
+    ]);
+    mockGetUserAliases.mockReturnValue([
+      { nick: 'alice', alias: 'ali', network: 'net' },
+    ]);
     const { getByTestId, getByText } = render(
-      <UsersServicesSection colors={colors} styles={styles as any} settingIcons={{}} currentNetwork="net" />
+      <UsersServicesSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        currentNetwork="net"
+      />,
     );
     await waitFor(() => expect(mockCapturedItems.has('user-notes')).toBe(true));
 
     fireEvent.press(getByTestId('setting-user-notes'));
     await waitFor(() => expect(getByText('alice (net)')).toBeTruthy());
     fireEvent.press(getByText('alice (net)'));
-    const noteAlertButtons = alertSpy.mock.calls[alertSpy.mock.calls.length - 1][2] as any[];
+    const noteAlertButtons = alertSpy.mock.calls[
+      alertSpy.mock.calls.length - 1
+    ][2] as any[];
     await noteAlertButtons[1].onPress();
     expect(mockRemoveUserNote).toHaveBeenCalledWith('alice', 'net');
 
     fireEvent.press(getByTestId('setting-user-aliases'));
     await waitFor(() => expect(getByText('ali → alice')).toBeTruthy());
     fireEvent.press(getByText('ali → alice'));
-    const aliasAlertButtons = alertSpy.mock.calls[alertSpy.mock.calls.length - 1][2] as any[];
+    const aliasAlertButtons = alertSpy.mock.calls[
+      alertSpy.mock.calls.length - 1
+    ][2] as any[];
     await aliasAlertButtons[1].onPress();
     expect(mockRemoveUserAlias).toHaveBeenCalledWith('alice', 'net');
   });

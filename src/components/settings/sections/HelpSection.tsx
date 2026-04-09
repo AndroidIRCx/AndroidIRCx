@@ -112,7 +112,12 @@ export const HelpSection: React.FC = () => {
           accessibilityHint={item.description}
         >
           <View style={styles.iconContainer}>
-            <FontAwesome5 name={item.icon} size={16} color={colors.primary} solid />
+            <FontAwesome5
+              name={item.icon}
+              size={16}
+              color={colors.primary}
+              solid
+            />
           </View>
           <View style={styles.helpItemContent}>
             <Text style={styles.helpItemTitle}>{item.title}</Text>

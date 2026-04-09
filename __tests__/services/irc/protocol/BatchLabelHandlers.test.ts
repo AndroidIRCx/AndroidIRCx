@@ -5,7 +5,10 @@
  * Tests for BatchLabelHandlers - Wave 3 coverage target
  */
 
-import { BatchLabelManager, BatchLabelContext } from '../../../../src/services/irc/protocol/BatchLabelHandlers';
+import {
+  BatchLabelManager,
+  BatchLabelContext,
+} from '../../../../src/services/irc/protocol/BatchLabelHandlers';
 
 jest.mock('../../../../src/i18n/transifex', () => ({
   tx: {
@@ -47,7 +50,12 @@ describe('BatchLabelManager', () => {
 
   describe('handleBatchStart', () => {
     it('should start a new batch', () => {
-      manager.handleBatchStart('batch-1', 'netsplit', ['server1', 'server2'], Date.now());
+      manager.handleBatchStart(
+        'batch-1',
+        'netsplit',
+        ['server1', 'server2'],
+        Date.now(),
+      );
 
       const batches = manager.getActiveBatches();
       expect(batches.has('batch-1')).toBe(true);
@@ -62,36 +70,67 @@ describe('BatchLabelManager', () => {
   describe('handleBatchEnd', () => {
     it('should process netsplit batch', () => {
       const timestamp = Date.now();
-      manager.handleBatchStart('batch-1', 'netsplit', ['server1', 'server2'], timestamp);
-      manager.addMessageToBatch({ type: 'quit', text: 'user1 quit' } as any, 'batch-1');
-      manager.addMessageToBatch({ type: 'quit', text: 'user2 quit' } as any, 'batch-1');
+      manager.handleBatchStart(
+        'batch-1',
+        'netsplit',
+        ['server1', 'server2'],
+        timestamp,
+      );
+      manager.addMessageToBatch(
+        { type: 'quit', text: 'user1 quit' } as any,
+        'batch-1',
+      );
+      manager.addMessageToBatch(
+        { type: 'quit', text: 'user2 quit' } as any,
+        'batch-1',
+      );
 
       manager.handleBatchEnd('batch-1', timestamp);
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'raw',
-        text: expect.stringContaining('Netsplit'),
-      }));
-      expect(ctx.emit).toHaveBeenCalledWith('batch-end', 'batch-1', 'netsplit', expect.any(Array));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'raw',
+          text: expect.stringContaining('Netsplit'),
+        }),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'batch-end',
+        'batch-1',
+        'netsplit',
+        expect.any(Array),
+      );
     });
 
     it('should process netjoin batch', () => {
       const timestamp = Date.now();
-      manager.handleBatchStart('batch-1', 'netjoin', ['server1', 'server2'], timestamp);
-      manager.addMessageToBatch({ type: 'join', text: 'user1 joined' } as any, 'batch-1');
+      manager.handleBatchStart(
+        'batch-1',
+        'netjoin',
+        ['server1', 'server2'],
+        timestamp,
+      );
+      manager.addMessageToBatch(
+        { type: 'join', text: 'user1 joined' } as any,
+        'batch-1',
+      );
 
       manager.handleBatchEnd('batch-1', timestamp);
 
-      expect(ctx.addMessage).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'raw',
-        text: expect.stringContaining('Netjoin'),
-      }));
+      expect(ctx.addMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'raw',
+          text: expect.stringContaining('Netjoin'),
+        }),
+      );
     });
 
     it('should process chathistory batch', () => {
       const timestamp = Date.now();
       manager.handleBatchStart('batch-1', 'chathistory', ['param1'], timestamp);
-      manager.addMessageToBatch({ type: 'message', text: 'msg1' } as any, 'batch-1');
+      manager.addMessageToBatch(
+        { type: 'message', text: 'msg1' } as any,
+        'batch-1',
+      );
 
       manager.handleBatchEnd('batch-1', timestamp);
 
@@ -117,7 +156,12 @@ describe('BatchLabelManager', () => {
 
     it('should process znc.in/playback batch', () => {
       const timestamp = Date.now();
-      manager.handleBatchStart('batch-1', 'znc.in/playback', ['param1'], timestamp);
+      manager.handleBatchStart(
+        'batch-1',
+        'znc.in/playback',
+        ['param1'],
+        timestamp,
+      );
 
       manager.handleBatchEnd('batch-1', timestamp);
 
@@ -131,30 +175,40 @@ describe('BatchLabelManager', () => {
     it('should process cap-notify batch', () => {
       const timestamp = Date.now();
       manager.handleBatchStart('batch-1', 'cap-notify', [], timestamp);
-      manager.addMessageToBatch({ type: 'cap', text: 'cap changed' } as any, 'batch-1');
+      manager.addMessageToBatch(
+        { type: 'cap', text: 'cap changed' } as any,
+        'batch-1',
+      );
 
       manager.handleBatchEnd('batch-1', timestamp);
 
       expect(ctx.addRawMessage).toHaveBeenCalledWith(
         expect.stringContaining('Capability'),
-        'server'
+        'server',
       );
     });
 
     it('should process unknown batch type', () => {
       const timestamp = Date.now();
-      manager.handleBatchStart('batch-1', 'unknown-type', ['param1'], timestamp);
+      manager.handleBatchStart(
+        'batch-1',
+        'unknown-type',
+        ['param1'],
+        timestamp,
+      );
 
       manager.handleBatchEnd('batch-1', timestamp);
 
       expect(ctx.addRawMessage).toHaveBeenCalledWith(
         expect.stringContaining('BATCH END'),
-        'server'
+        'server',
       );
     });
 
     it('should handle end of non-existent batch gracefully', () => {
-      expect(() => manager.handleBatchEnd('non-existent', Date.now())).not.toThrow();
+      expect(() =>
+        manager.handleBatchEnd('non-existent', Date.now()),
+      ).not.toThrow();
     });
   });
 
@@ -162,7 +216,7 @@ describe('BatchLabelManager', () => {
     it('should add message to existing batch', () => {
       const timestamp = Date.now();
       manager.handleBatchStart('batch-1', 'netsplit', [], timestamp);
-      
+
       const message = { type: 'quit', text: 'user quit' } as any;
       manager.addMessageToBatch(message, 'batch-1');
 
@@ -172,14 +226,16 @@ describe('BatchLabelManager', () => {
 
     it('should not add message if batch does not exist', () => {
       const message = { type: 'quit', text: 'user quit' } as any;
-      
-      expect(() => manager.addMessageToBatch(message, 'non-existent')).not.toThrow();
+
+      expect(() =>
+        manager.addMessageToBatch(message, 'non-existent'),
+      ).not.toThrow();
     });
 
     it('should not add message if batchTag is undefined', () => {
       const timestamp = Date.now();
       manager.handleBatchStart('batch-1', 'netsplit', [], timestamp);
-      
+
       const message = { type: 'quit', text: 'user quit' } as any;
       manager.addMessageToBatch(message, undefined);
 
@@ -194,13 +250,15 @@ describe('BatchLabelManager', () => {
 
       expect(label).toMatch(/^androidircx-\d+-1$/);
       expect(ctx.sendRaw).toHaveBeenCalledWith(
-        expect.stringMatching(/@label=androidircx-\d+-1 PRIVMSG #general :Hello/)
+        expect.stringMatching(
+          /@label=androidircx-\d+-1 PRIVMSG #general :Hello/,
+        ),
       );
     });
 
     it('should send without label when capability not available', () => {
       ctx.hasCapability.mockReturnValue(false);
-      
+
       const label = manager.sendRawWithLabel('PRIVMSG #general :Hello');
 
       expect(label).toBe('');
@@ -221,19 +279,28 @@ describe('BatchLabelManager', () => {
 
       jest.advanceTimersByTime(30001);
 
-      expect(callback).toHaveBeenCalledWith({ error: 'timeout', label: expect.any(String), command: 'PRIVMSG #general :Hello' });
+      expect(callback).toHaveBeenCalledWith({
+        error: 'timeout',
+        label: expect.any(String),
+        command: 'PRIVMSG #general :Hello',
+      });
     });
 
     it('should not timeout if label is resolved', () => {
       const callback = jest.fn();
-      const label = manager.sendRawWithLabel('PRIVMSG #general :Hello', callback);
+      const label = manager.sendRawWithLabel(
+        'PRIVMSG #general :Hello',
+        callback,
+      );
 
       // Resolve the label
       manager.handleLabeledResponse(label, { success: true });
 
       jest.advanceTimersByTime(30001);
 
-      expect(callback).not.toHaveBeenCalledWith(expect.objectContaining({ error: 'timeout' }));
+      expect(callback).not.toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'timeout' }),
+      );
     });
   });
 
@@ -246,7 +313,12 @@ describe('BatchLabelManager', () => {
       manager.handleLabeledResponse(label, response);
 
       expect(callback).toHaveBeenCalledWith(response);
-      expect(ctx.emit).toHaveBeenCalledWith('labeled-response', label, 'WHOIS User1', response);
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'labeled-response',
+        label,
+        'WHOIS User1',
+        response,
+      );
     });
 
     it('should handle response without callback', () => {
@@ -254,13 +326,20 @@ describe('BatchLabelManager', () => {
 
       manager.handleLabeledResponse(label, { success: true });
 
-      expect(ctx.emit).toHaveBeenCalledWith('labeled-response', label, 'WHOIS User1', { success: true });
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'labeled-response',
+        label,
+        'WHOIS User1',
+        { success: true },
+      );
     });
 
     it('should log unknown label', () => {
       manager.handleLabeledResponse('unknown-label', { success: true });
 
-      expect(ctx.logRaw).toHaveBeenCalledWith(expect.stringContaining('unknown label'));
+      expect(ctx.logRaw).toHaveBeenCalledWith(
+        expect.stringContaining('unknown label'),
+      );
     });
   });
 
@@ -273,8 +352,12 @@ describe('BatchLabelManager', () => {
 
       manager.cleanupLabels();
 
-      expect(callback1).toHaveBeenCalledWith(expect.objectContaining({ error: 'disconnected' }));
-      expect(callback2).toHaveBeenCalledWith(expect.objectContaining({ error: 'disconnected' }));
+      expect(callback1).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'disconnected' }),
+      );
+      expect(callback2).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'disconnected' }),
+      );
     });
 
     it('should log number of cleaned up labels', () => {
@@ -283,7 +366,9 @@ describe('BatchLabelManager', () => {
 
       manager.cleanupLabels();
 
-      expect(ctx.logRaw).toHaveBeenCalledWith(expect.stringContaining('Cleaning up 2 pending labels'));
+      expect(ctx.logRaw).toHaveBeenCalledWith(
+        expect.stringContaining('Cleaning up 2 pending labels'),
+      );
     });
 
     it('should not log if no pending labels', () => {

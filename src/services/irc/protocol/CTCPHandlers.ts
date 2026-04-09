@@ -11,12 +11,22 @@
 import { APP_VERSION } from '../../../config/appVersion';
 
 /** Parse a CTCP message: checks for \x01 delimiters and extracts command + args */
-export function parseCTCP(message: string): { isCTCP: boolean; command?: string; args?: string } {
-  if (!message || !message.startsWith('\x01') || !message.endsWith('\x01')) return { isCTCP: false };
+export function parseCTCP(message: string): {
+  isCTCP: boolean;
+  command?: string;
+  args?: string;
+} {
+  if (!message || !message.startsWith('\x01') || !message.endsWith('\x01'))
+    return { isCTCP: false };
   const content = message.slice(1, -1);
   const spaceIndex = content.indexOf(' ');
-  if (spaceIndex === -1) return { isCTCP: true, command: content.toUpperCase() };
-  return { isCTCP: true, command: content.substring(0, spaceIndex).toUpperCase(), args: content.substring(spaceIndex + 1) };
+  if (spaceIndex === -1)
+    return { isCTCP: true, command: content.toUpperCase() };
+  return {
+    isCTCP: true,
+    command: content.substring(0, spaceIndex).toUpperCase(),
+    args: content.substring(spaceIndex + 1),
+  };
 }
 
 /** Encode a CTCP message by wrapping with \x01 delimiters */
@@ -43,7 +53,8 @@ export async function handleCTCPRequest(
   args?: string,
 ): Promise<void> {
   const sendResponse = (cmd: string, responseArgs?: string) => {
-    if (ctx.isConnected()) ctx.sendRaw(`NOTICE ${from} :${encodeCTCP(cmd, responseArgs)}`);
+    if (ctx.isConnected())
+      ctx.sendRaw(`NOTICE ${from} :${encodeCTCP(cmd, responseArgs)}`);
   };
 
   switch (command) {
@@ -85,7 +96,10 @@ export async function handleCTCPRequest(
       });
       break;
     case 'CLIENTINFO':
-      sendResponse('CLIENTINFO', 'ACTION DCC PING TIME VERSION CLIENTINFO USERINFO SOURCE FINGER');
+      sendResponse(
+        'CLIENTINFO',
+        'ACTION DCC PING TIME VERSION CLIENTINFO USERINFO SOURCE FINGER',
+      );
       break;
     case 'USERINFO':
       sendResponse('USERINFO', ctx.getRealname() || 'AndroidIRCX User');

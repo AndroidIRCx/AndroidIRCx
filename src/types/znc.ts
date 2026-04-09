@@ -10,12 +10,21 @@
 /**
  * Status of a ZNC subscription
  */
-export type ZncSubscriptionStatus = 'pending' | 'active' | 'expired' | 'grace' | 'cancelled';
+export type ZncSubscriptionStatus =
+  | 'pending'
+  | 'active'
+  | 'expired'
+  | 'grace'
+  | 'cancelled';
 
 /**
  * ZNC account provisioning status
  */
-export type ZncProvisioningStatus = 'provisioning' | 'ready' | 'error' | 'suspended';
+export type ZncProvisioningStatus =
+  | 'provisioning'
+  | 'ready'
+  | 'error'
+  | 'suspended';
 
 /**
  * A single ZNC account
@@ -166,7 +175,10 @@ export interface ZncServerConfig {
 /**
  * Default ZNC server settings
  */
-export const DEFAULT_ZNC_SERVER: Omit<ZncServerConfig, 'id' | 'username' | 'password' | 'zncAccountId' | 'displayName'> = {
+export const DEFAULT_ZNC_SERVER: Omit<
+  ZncServerConfig,
+  'id' | 'username' | 'password' | 'zncAccountId' | 'displayName'
+> = {
   hostname: 'irc.androidircx.com',
   port: 16786,
   ssl: true,
@@ -224,7 +236,9 @@ export function formatZncExpiry(expiresAt: string | null): string {
   try {
     const date = new Date(expiresAt);
     const now = new Date();
-    const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil(
+      (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     if (diffDays < 0) {
       return 'Expired';

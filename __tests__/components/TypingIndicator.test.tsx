@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import { TypingIndicator } from '../../src/components/TypingIndicator';
 
 // Mock useTheme
@@ -35,13 +35,30 @@ jest.mock('../../src/i18n/transifex', () => ({
 }));
 
 describe('TypingIndicator', () => {
-  const createTypingMap = (entries: Array<[string, { status: 'active' | 'paused' | 'done'; timestamp: number }]>) => {
+  const createTypingMap = (
+    entries: Array<
+      [string, { status: 'active' | 'paused' | 'done'; timestamp: number }]
+    >,
+  ) => {
     return new Map(entries);
   };
 
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+    jest.useRealTimers();
+  });
+
   it('should return null when no typing users', () => {
     const typingUsers = createTypingMap([]);
-    const { UNSAFE_root } = render(<TypingIndicator typingUsers={typingUsers} />);
+    const { UNSAFE_root } = render(
+      <TypingIndicator typingUsers={typingUsers} />,
+    );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
 
@@ -49,7 +66,9 @@ describe('TypingIndicator', () => {
     const typingUsers = createTypingMap([
       ['user1', { status: 'done', timestamp: Date.now() }],
     ]);
-    const { UNSAFE_root } = render(<TypingIndicator typingUsers={typingUsers} />);
+    const { UNSAFE_root } = render(
+      <TypingIndicator typingUsers={typingUsers} />,
+    );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
 
@@ -57,7 +76,9 @@ describe('TypingIndicator', () => {
     const typingUsers = createTypingMap([
       ['user1', { status: 'paused', timestamp: Date.now() }],
     ]);
-    const { UNSAFE_root } = render(<TypingIndicator typingUsers={typingUsers} />);
+    const { UNSAFE_root } = render(
+      <TypingIndicator typingUsers={typingUsers} />,
+    );
     expect(UNSAFE_root.children).toHaveLength(0);
   });
 
@@ -125,7 +146,9 @@ describe('TypingIndicator', () => {
     const typingUsers = createTypingMap([
       ['John', { status: 'active', timestamp: Date.now() }],
     ]);
-    const { UNSAFE_getAllByType } = render(<TypingIndicator typingUsers={typingUsers} />);
+    const { UNSAFE_getAllByType } = render(
+      <TypingIndicator typingUsers={typingUsers} />,
+    );
     const views = UNSAFE_getAllByType('View');
     expect(views.length).toBeGreaterThanOrEqual(1);
   });
@@ -134,7 +157,9 @@ describe('TypingIndicator', () => {
     const typingUsers = createTypingMap([
       ['John', { status: 'active', timestamp: Date.now() }],
     ]);
-    const { UNSAFE_getAllByType } = render(<TypingIndicator typingUsers={typingUsers} />);
+    const { UNSAFE_getAllByType } = render(
+      <TypingIndicator typingUsers={typingUsers} />,
+    );
     // Get all View components (dots container + dots)
     const views = UNSAFE_getAllByType('View');
     expect(views.length).toBeGreaterThanOrEqual(4);
@@ -144,7 +169,9 @@ describe('TypingIndicator', () => {
     const typingUsers = createTypingMap([
       ['John', { status: 'active', timestamp: Date.now() }],
     ]);
-    const { UNSAFE_getAllByType } = render(<TypingIndicator typingUsers={typingUsers} />);
+    const { UNSAFE_getAllByType } = render(
+      <TypingIndicator typingUsers={typingUsers} />,
+    );
     const views = UNSAFE_getAllByType('View');
     // The outermost view should have style applied
     expect(views[0].props.style).toBeDefined();

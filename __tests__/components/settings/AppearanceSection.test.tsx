@@ -64,7 +64,7 @@ jest.mock('../../../src/components/settings/SettingItem', () => {
             if (item.type === 'submenu') onPress?.(item.id);
           },
         },
-        React.createElement(Text, null, item.title || item.id)
+        React.createElement(Text, null, item.title || item.id),
       );
     },
   };
@@ -120,16 +120,19 @@ jest.mock('../../../src/services/ThemeService', () => ({
 jest.mock('../../../src/services/LayoutService', () => ({
   layoutService: {
     setUserListSizePx: (...args: any[]) => mockLayoutSetUserListSizePx(...args),
-    setUserListNickFontSizePx: (...args: any[]) => mockLayoutSetUserListNickFontSizePx(...args),
+    setUserListNickFontSizePx: (...args: any[]) =>
+      mockLayoutSetUserListNickFontSizePx(...args),
     setConfig: (...args: any[]) => mockLayoutSetConfig(...args),
     setFontSize: (...args: any[]) => mockLayoutSetFontSize(...args),
     setFontSizeValue: (...args: any[]) => mockLayoutSetFontSizeValue(...args),
     setTabPosition: (...args: any[]) => mockLayoutSetTabPosition(...args),
-    setUserListPosition: (...args: any[]) => mockLayoutSetUserListPosition(...args),
+    setUserListPosition: (...args: any[]) =>
+      mockLayoutSetUserListPosition(...args),
     setViewMode: (...args: any[]) => mockLayoutSetViewMode(...args),
     setMessageSpacing: (...args: any[]) => mockLayoutSetMessageSpacing(...args),
     setMessagePadding: (...args: any[]) => mockLayoutSetMessagePadding(...args),
-    setNavigationBarOffset: (...args: any[]) => mockLayoutSetNavigationBarOffset(...args),
+    setNavigationBarOffset: (...args: any[]) =>
+      mockLayoutSetNavigationBarOffset(...args),
   },
 }));
 
@@ -201,8 +204,13 @@ describe('AppearanceSection', () => {
           styles={styles as any}
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
-          languageLabels={{ en: 'English', sr: 'Serbian', de: 'German', fr: 'French' }}
-        />
+          languageLabels={{
+            en: 'English',
+            sr: 'Serbian',
+            de: 'German',
+            fr: 'French',
+          }}
+        />,
       );
 
       await waitFor(() => {
@@ -211,16 +219,24 @@ describe('AppearanceSection', () => {
         expect(mockCapturedItems.has('layout-tab-position')).toBe(true);
         expect(mockCapturedItems.has('layout-userlist-position')).toBe(true);
         expect(mockCapturedItems.has('layout-userlist-size')).toBe(true);
-        expect(mockCapturedItems.has('layout-userlist-nick-font-size')).toBe(true);
+        expect(mockCapturedItems.has('layout-userlist-nick-font-size')).toBe(
+          true,
+        );
         expect(mockCapturedItems.has('layout-view-mode')).toBe(true);
         expect(mockCapturedItems.has('layout-font-size')).toBe(true);
         expect(mockCapturedItems.has('header-search-button')).toBe(true);
         expect(mockCapturedItems.has('message-area-search-button')).toBe(true);
         expect(mockCapturedItems.has('layout-message-spacing')).toBe(true);
         expect(mockCapturedItems.has('layout-message-padding')).toBe(true);
-        expect(mockCapturedItems.has('layout-navigation-bar-offset')).toBe(true);
-        expect(mockCapturedItems.has('layout-userlist-reset-defaults')).toBe(true);
-        expect(mockCapturedItems.has('layout-nicklist-tongue-enabled')).toBe(true);
+        expect(mockCapturedItems.has('layout-navigation-bar-offset')).toBe(
+          true,
+        );
+        expect(mockCapturedItems.has('layout-userlist-reset-defaults')).toBe(
+          true,
+        );
+        expect(mockCapturedItems.has('layout-nicklist-tongue-enabled')).toBe(
+          true,
+        );
         expect(mockCapturedItems.has('layout-nicklist-tongue-size')).toBe(true);
       });
     });
@@ -235,10 +251,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       // Select dark theme (no recommended settings)
       await mockCapturedItems
@@ -270,31 +288,43 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       const themeItem = mockCapturedItems.get('display-theme');
-      const specialThemeButton = themeItem.submenuItems.find((x: any) => x.id === 'theme-custom_special');
-      
+      const specialThemeButton = themeItem.submenuItems.find(
+        (x: any) => x.id === 'theme-custom_special',
+      );
+
       expect(specialThemeButton).toBeTruthy();
       await specialThemeButton.onPress();
-      
+
       // Should show alert with options
       expect(Alert.alert).toHaveBeenCalledWith(
         expect.stringContaining('Apply Theme Settings'),
         expect.anything(),
         expect.arrayContaining([
-          expect.objectContaining({ text: expect.stringContaining('Theme Only') }),
-          expect.objectContaining({ text: expect.stringContaining('Apply All') }),
-        ])
+          expect.objectContaining({
+            text: expect.stringContaining('Theme Only'),
+          }),
+          expect.objectContaining({
+            text: expect.stringContaining('Apply All'),
+          }),
+        ]),
       );
 
       // Click "Theme Only"
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const themeAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Apply Theme Settings'));
-      const themeOnlyBtn = themeAlert?.[2]?.find((b: any) => String(b.text).includes('Theme Only'));
+      const themeAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('Apply Theme Settings'),
+      );
+      const themeOnlyBtn = themeAlert?.[2]?.find((b: any) =>
+        String(b.text).includes('Theme Only'),
+      );
       await themeOnlyBtn?.onPress?.();
 
       expect(mockThemeSetTheme).toHaveBeenCalledWith('custom_special');
@@ -322,21 +352,29 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       const themeItem = mockCapturedItems.get('display-theme');
-      const specialThemeButton = themeItem.submenuItems.find((x: any) => x.id === 'theme-custom_special');
-      
+      const specialThemeButton = themeItem.submenuItems.find(
+        (x: any) => x.id === 'theme-custom_special',
+      );
+
       expect(specialThemeButton).toBeTruthy();
       await specialThemeButton.onPress();
-      
+
       // Click "Apply All"
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const themeAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Apply Theme Settings'));
-      const applyAllBtn = themeAlert?.[2]?.find((b: any) => String(b.text).includes('Apply All'));
+      const themeAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('Apply Theme Settings'),
+      );
+      const applyAllBtn = themeAlert?.[2]?.find((b: any) =>
+        String(b.text).includes('Apply All'),
+      );
       await applyAllBtn?.onPress?.();
 
       expect(mockThemeSetTheme).toHaveBeenCalledWith('custom_special');
@@ -354,10 +392,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={onShowThemeEditor}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('display-theme')
@@ -376,10 +416,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={onShowThemeEditor}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('display-theme')
@@ -387,7 +429,7 @@ describe('AppearanceSection', () => {
         .onPress();
 
       expect(onShowThemeEditor).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'custom_ocean', name: 'Ocean' })
+        expect.objectContaining({ id: 'custom_ocean', name: 'Ocean' }),
       );
     });
 
@@ -399,10 +441,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       mockCapturedItems
         .get('display-theme')
@@ -415,13 +459,17 @@ describe('AppearanceSection', () => {
         expect.arrayContaining([
           expect.objectContaining({ style: 'cancel' }),
           expect.objectContaining({ style: 'destructive' }),
-        ])
+        ]),
       );
 
       // Click Cancel
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const deleteAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Delete Theme'));
-      const cancelBtn = deleteAlert?.[2]?.find((b: any) => b.style === 'cancel');
+      const deleteAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('Delete Theme'),
+      );
+      const cancelBtn = deleteAlert?.[2]?.find(
+        (b: any) => b.style === 'cancel',
+      );
       await cancelBtn?.onPress?.();
 
       expect(mockThemeDeleteCustomTheme).not.toHaveBeenCalled();
@@ -435,10 +483,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       mockCapturedItems
         .get('display-theme')
@@ -447,8 +497,12 @@ describe('AppearanceSection', () => {
 
       // Click Delete
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const deleteAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Delete Theme'));
-      const deleteBtn = deleteAlert?.[2]?.find((b: any) => b.style === 'destructive');
+      const deleteAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('Delete Theme'),
+      );
+      const deleteBtn = deleteAlert?.[2]?.find(
+        (b: any) => b.style === 'destructive',
+      );
       await deleteBtn?.onPress?.();
 
       expect(mockThemeDeleteCustomTheme).toHaveBeenCalledWith('custom_ocean');
@@ -465,10 +519,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('display-theme')
@@ -481,14 +537,14 @@ describe('AppearanceSection', () => {
         expect(Alert.alert).toHaveBeenCalledWith(
           expect.stringContaining('Theme Exported'),
           expect.anything(),
-          expect.anything()
+          expect.anything(),
         );
       });
     });
 
     it('handles theme export failure', async () => {
       mockThemeExportCurrentTheme.mockReturnValueOnce(null);
-      
+
       render(
         <AppearanceSection
           colors={colors}
@@ -496,10 +552,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('display-theme')
@@ -508,13 +566,13 @@ describe('AppearanceSection', () => {
 
       expect(Alert.alert).toHaveBeenCalledWith(
         expect.stringContaining('Error'),
-        expect.anything()
+        expect.anything(),
       );
     });
 
     it('handles theme export on Android', async () => {
       Platform.OS = 'android';
-      
+
       render(
         <AppearanceSection
           colors={colors}
@@ -522,10 +580,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('display-theme')
@@ -535,7 +595,7 @@ describe('AppearanceSection', () => {
       expect(mockRNFSWriteFile).toHaveBeenCalledWith(
         expect.stringContaining('/downloads/'),
         expect.anything(),
-        'utf8'
+        'utf8',
       );
     });
 
@@ -543,7 +603,10 @@ describe('AppearanceSection', () => {
       const importedTheme = { id: 'imported', name: 'Imported Theme' };
       mockPick.mockResolvedValueOnce([{ uri: 'file:///path/to/theme.json' }]);
       mockRNFSReadFile.mockResolvedValueOnce('{"name": "Imported Theme"}');
-      mockThemeImportTheme.mockResolvedValueOnce({ success: true, theme: importedTheme });
+      mockThemeImportTheme.mockResolvedValueOnce({
+        success: true,
+        theme: importedTheme,
+      });
 
       render(
         <AppearanceSection
@@ -552,10 +615,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('display-theme')
@@ -566,14 +631,18 @@ describe('AppearanceSection', () => {
         expect(Alert.alert).toHaveBeenCalledWith(
           expect.stringContaining('Theme Imported'),
           expect.stringContaining('Imported Theme'),
-          expect.anything()
+          expect.anything(),
         );
       });
 
       // Click "Use Now"
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const importAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Theme Imported'));
-      const useNowBtn = importAlert?.[2]?.find((b: any) => String(b.text).includes('Use Now'));
+      const importAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('Theme Imported'),
+      );
+      const useNowBtn = importAlert?.[2]?.find((b: any) =>
+        String(b.text).includes('Use Now'),
+      );
       await useNowBtn?.onPress?.();
 
       expect(mockThemeSetTheme).toHaveBeenCalledWith('imported');
@@ -583,7 +652,10 @@ describe('AppearanceSection', () => {
       const importedTheme = { id: 'imported', name: 'Imported Theme' };
       mockPick.mockResolvedValueOnce([{ uri: 'file:///path/to/theme.json' }]);
       mockRNFSReadFile.mockResolvedValueOnce('{"name": "Imported Theme"}');
-      mockThemeImportTheme.mockResolvedValueOnce({ success: true, theme: importedTheme });
+      mockThemeImportTheme.mockResolvedValueOnce({
+        success: true,
+        theme: importedTheme,
+      });
 
       render(
         <AppearanceSection
@@ -592,10 +664,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('display-theme')
@@ -606,13 +680,15 @@ describe('AppearanceSection', () => {
         expect(Alert.alert).toHaveBeenCalledWith(
           expect.stringContaining('Theme Imported'),
           expect.anything(),
-          expect.anything()
+          expect.anything(),
         );
       });
 
       // Click "Later"
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const importAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Theme Imported'));
+      const importAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('Theme Imported'),
+      );
       const laterBtn = importAlert?.[2]?.find((b: any) => b.style === 'cancel');
       await laterBtn?.onPress?.();
 
@@ -622,7 +698,10 @@ describe('AppearanceSection', () => {
     it('handles theme import failure', async () => {
       mockPick.mockResolvedValueOnce([{ uri: 'file:///path/to/theme.json' }]);
       mockRNFSReadFile.mockResolvedValueOnce('invalid json');
-      mockThemeImportTheme.mockResolvedValueOnce({ success: false, error: 'Invalid theme format' });
+      mockThemeImportTheme.mockResolvedValueOnce({
+        success: false,
+        error: 'Invalid theme format',
+      });
 
       render(
         <AppearanceSection
@@ -631,10 +710,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('display-theme')
@@ -644,13 +725,16 @@ describe('AppearanceSection', () => {
       await waitFor(() => {
         expect(Alert.alert).toHaveBeenCalledWith(
           expect.stringContaining('Import Failed'),
-          expect.stringContaining('Invalid theme format')
+          expect.stringContaining('Invalid theme format'),
         );
       });
     });
 
     it('handles theme import cancellation', async () => {
-      const { isErrorWithCode, errorCodes } = require('@react-native-documents/picker');
+      const {
+        isErrorWithCode,
+        errorCodes,
+      } = require('@react-native-documents/picker');
       isErrorWithCode.mockReturnValueOnce(true);
       mockPick.mockRejectedValueOnce({ code: errorCodes.OPERATION_CANCELED });
 
@@ -661,10 +745,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('display-theme')
@@ -673,7 +759,7 @@ describe('AppearanceSection', () => {
 
       // Should not show any alert for cancellation
       const errorAlerts = (Alert.alert as jest.Mock).mock.calls.filter(
-        (c: any[]) => String(c[0]).includes('Error')
+        (c: any[]) => String(c[0]).includes('Error'),
       );
       expect(errorAlerts).toHaveLength(0);
     });
@@ -687,11 +773,18 @@ describe('AppearanceSection', () => {
           styles={styles as any}
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
-          languageLabels={{ en: 'English', sr: 'Serbian', de: 'German', fr: 'French' }}
-        />
+          languageLabels={{
+            en: 'English',
+            sr: 'Serbian',
+            de: 'German',
+            fr: 'French',
+          }}
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('app-language')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('app-language')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('app-language')
@@ -708,11 +801,18 @@ describe('AppearanceSection', () => {
           styles={styles as any}
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
-          languageLabels={{ en: 'English', sr: 'Serbian', de: 'German', fr: 'French' }}
-        />
+          languageLabels={{
+            en: 'English',
+            sr: 'Serbian',
+            de: 'German',
+            fr: 'French',
+          }}
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('app-language')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('app-language')).toBe(true),
+      );
 
       await mockCapturedItems
         .get('app-language')
@@ -739,16 +839,20 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-tab-position')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-tab-position')).toBe(true),
+      );
 
       const positions = ['top', 'bottom', 'left', 'right'];
       for (const position of positions) {
         await mockCapturedItems
           .get('layout-tab-position')
-          .submenuItems.find((x: any) => x.id === `layout-tab-position-${position}`)
+          .submenuItems.find(
+            (x: any) => x.id === `layout-tab-position-${position}`,
+          )
           .onPress();
 
         expect(mockLayoutSetTabPosition).toHaveBeenCalledWith(position);
@@ -765,22 +869,28 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-userlist-position')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-userlist-position')).toBe(true),
+      );
 
       mockCapturedItems.get('layout-userlist-position').onPress();
 
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const positionAlert = alertCalls.find((c: any[]) => String(c[0]).includes('User List Position'));
+      const positionAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('User List Position'),
+      );
       expect(positionAlert).toBeTruthy();
 
       const positions = ['Left', 'Right', 'Top', 'Bottom'];
       for (const position of positions) {
         const btn = positionAlert?.[2]?.find((b: any) => b.text === position);
         await btn?.onPress?.();
-        expect(mockLayoutSetUserListPosition).toHaveBeenCalledWith(position.toLowerCase());
+        expect(mockLayoutSetUserListPosition).toHaveBeenCalledWith(
+          position.toLowerCase(),
+        );
       }
     });
   });
@@ -794,13 +904,15 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-userlist-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-userlist-size')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-userlist-size');
-      
+
       // Valid input
       await inputItem.onValueChange('200');
       expect(mockLayoutSetUserListSizePx).toHaveBeenCalledWith(200);
@@ -814,13 +926,15 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-userlist-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-userlist-size')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-userlist-size');
-      
+
       // Invalid input - not a number - should set error state
       await inputItem.onValueChange('abc');
       // The error is tracked in component state and won't be reflected on the item object
@@ -836,13 +950,15 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-userlist-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-userlist-size')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-userlist-size');
-      
+
       // Invalid input - zero
       await inputItem.onValueChange('0');
       expect(mockLayoutSetUserListSizePx).not.toHaveBeenCalledWith(0);
@@ -860,13 +976,15 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-userlist-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-userlist-size')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-userlist-size');
-      
+
       // Empty input - should not error and should not call service
       await inputItem.onValueChange('');
       // Empty value just clears the error state, no service call
@@ -882,13 +1000,17 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-userlist-nick-font-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-userlist-nick-font-size')).toBe(
+          true,
+        ),
+      );
 
       const inputItem = mockCapturedItems.get('layout-userlist-nick-font-size');
-      
+
       await inputItem.onValueChange('16');
       expect(mockLayoutSetUserListNickFontSizePx).toHaveBeenCalledWith(16);
     });
@@ -901,17 +1023,21 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-userlist-nick-font-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-userlist-nick-font-size')).toBe(
+          true,
+        ),
+      );
 
       const inputItem = mockCapturedItems.get('layout-userlist-nick-font-size');
-      
+
       // Invalid inputs
       await inputItem.onValueChange('invalid');
       await inputItem.onValueChange('0');
-      
+
       expect(mockLayoutSetUserListNickFontSizePx).not.toHaveBeenCalledWith(NaN);
       expect(mockLayoutSetUserListNickFontSizePx).not.toHaveBeenCalledWith(0);
     });
@@ -926,10 +1052,14 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-userlist-reset-defaults')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-userlist-reset-defaults')).toBe(
+          true,
+        ),
+      );
 
       await mockCapturedItems.get('layout-userlist-reset-defaults').onPress();
 
@@ -948,15 +1078,24 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-nicklist-tongue-enabled')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-nicklist-tongue-enabled')).toBe(
+          true,
+        ),
+      );
 
-      const switchItem = mockCapturedItems.get('layout-nicklist-tongue-enabled');
+      const switchItem = mockCapturedItems.get(
+        'layout-nicklist-tongue-enabled',
+      );
       await switchItem.onValueChange(false);
 
-      expect(mockSettingsSet).toHaveBeenCalledWith('nicklistTongueEnabled', false);
+      expect(mockSettingsSet).toHaveBeenCalledWith(
+        'nicklistTongueEnabled',
+        false,
+      );
     });
 
     it('handles tongue size input', async () => {
@@ -967,13 +1106,15 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-nicklist-tongue-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-nicklist-tongue-size')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-nicklist-tongue-size');
-      
+
       // Valid input
       await inputItem.onValueChange('64');
       expect(mockSettingsSet).toHaveBeenCalledWith('nicklistTongueSizePx', 64);
@@ -987,21 +1128,32 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-nicklist-tongue-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-nicklist-tongue-size')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-nicklist-tongue-size');
-      
+
       // Invalid inputs
       await inputItem.onValueChange('invalid');
       await inputItem.onValueChange('0');
       await inputItem.onValueChange('-5');
-      
-      expect(mockSettingsSet).not.toHaveBeenCalledWith('nicklistTongueSizePx', NaN);
-      expect(mockSettingsSet).not.toHaveBeenCalledWith('nicklistTongueSizePx', 0);
-      expect(mockSettingsSet).not.toHaveBeenCalledWith('nicklistTongueSizePx', -5);
+
+      expect(mockSettingsSet).not.toHaveBeenCalledWith(
+        'nicklistTongueSizePx',
+        NaN,
+      );
+      expect(mockSettingsSet).not.toHaveBeenCalledWith(
+        'nicklistTongueSizePx',
+        0,
+      );
+      expect(mockSettingsSet).not.toHaveBeenCalledWith(
+        'nicklistTongueSizePx',
+        -5,
+      );
     });
 
     it('handles empty tongue size input', async () => {
@@ -1012,13 +1164,15 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-nicklist-tongue-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-nicklist-tongue-size')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-nicklist-tongue-size');
-      
+
       // Empty input - should not error
       await inputItem.onValueChange('');
     });
@@ -1033,15 +1187,19 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-view-mode')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-view-mode')).toBe(true),
+      );
 
       mockCapturedItems.get('layout-view-mode').onPress();
 
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const viewModeAlert = alertCalls.find((c: any[]) => String(c[0]).includes('View Mode'));
+      const viewModeAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('View Mode'),
+      );
       expect(viewModeAlert).toBeTruthy();
 
       const modes = ['Compact', 'Comfortable', 'Spacious'];
@@ -1062,10 +1220,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-font-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-font-size')).toBe(true),
+      );
 
       const presets = [
         { id: 'font-size-small', value: 'small' },
@@ -1092,10 +1252,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-font-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-font-size')).toBe(true),
+      );
 
       const sizeInputs = [
         { id: 'font-size-value-small', key: 'small', value: '10' },
@@ -1110,7 +1272,10 @@ describe('AppearanceSection', () => {
           .submenuItems.find((x: any) => x.id === input.id)
           .onValueChange(input.value);
 
-        expect(mockLayoutSetFontSizeValue).toHaveBeenCalledWith(input.key, parseInt(input.value, 10));
+        expect(mockLayoutSetFontSizeValue).toHaveBeenCalledWith(
+          input.key,
+          parseInt(input.value, 10),
+        );
       }
     });
 
@@ -1122,10 +1287,12 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-font-size')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-font-size')).toBe(true),
+      );
 
       // Invalid input should not call setFontSizeValue
       await mockCapturedItems
@@ -1133,7 +1300,10 @@ describe('AppearanceSection', () => {
         .submenuItems.find((x: any) => x.id === 'font-size-value-medium')
         .onValueChange('invalid');
 
-      expect(mockLayoutSetFontSizeValue).not.toHaveBeenCalledWith('medium', NaN);
+      expect(mockLayoutSetFontSizeValue).not.toHaveBeenCalledWith(
+        'medium',
+        NaN,
+      );
     });
   });
 
@@ -1146,15 +1316,20 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('header-search-button')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('header-search-button')).toBe(true),
+      );
 
       const switchItem = mockCapturedItems.get('header-search-button');
       await switchItem.onValueChange(false);
 
-      expect(mockSettingsSet).toHaveBeenCalledWith('showHeaderSearchButton', false);
+      expect(mockSettingsSet).toHaveBeenCalledWith(
+        'showHeaderSearchButton',
+        false,
+      );
     });
 
     it('handles message area search button toggle', async () => {
@@ -1165,15 +1340,20 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('message-area-search-button')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('message-area-search-button')).toBe(true),
+      );
 
       const switchItem = mockCapturedItems.get('message-area-search-button');
       await switchItem.onValueChange(true);
 
-      expect(mockSettingsSet).toHaveBeenCalledWith('showMessageAreaSearchButton', true);
+      expect(mockSettingsSet).toHaveBeenCalledWith(
+        'showMessageAreaSearchButton',
+        true,
+      );
     });
   });
 
@@ -1186,13 +1366,15 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-message-spacing')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-message-spacing')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-message-spacing');
-      
+
       // Valid input within range (0-20)
       await inputItem.onValueChange('12');
       expect(mockLayoutSetMessageSpacing).toHaveBeenCalledWith(12);
@@ -1206,17 +1388,19 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-message-spacing')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-message-spacing')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-message-spacing');
-      
+
       // Out of range values should not be applied
       await inputItem.onValueChange('25');
       await inputItem.onValueChange('-5');
-      
+
       expect(mockLayoutSetMessageSpacing).not.toHaveBeenCalledWith(25);
       expect(mockLayoutSetMessageSpacing).not.toHaveBeenCalledWith(-5);
     });
@@ -1229,13 +1413,15 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-message-padding')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-message-padding')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-message-padding');
-      
+
       // Valid input within range (0-20)
       await inputItem.onValueChange('12');
       expect(mockLayoutSetMessagePadding).toHaveBeenCalledWith(12);
@@ -1249,17 +1435,19 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-message-padding')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-message-padding')).toBe(true),
+      );
 
       const inputItem = mockCapturedItems.get('layout-message-padding');
-      
+
       // Invalid inputs should not be applied
       await inputItem.onValueChange('invalid');
       await inputItem.onValueChange('30');
-      
+
       expect(mockLayoutSetMessagePadding).not.toHaveBeenCalledWith(NaN);
       expect(mockLayoutSetMessagePadding).not.toHaveBeenCalledWith(30);
     });
@@ -1274,13 +1462,17 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-navigation-bar-offset')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-navigation-bar-offset')).toBe(
+          true,
+        ),
+      );
 
       const inputItem = mockCapturedItems.get('layout-navigation-bar-offset');
-      
+
       // Valid input within range (0-100)
       await inputItem.onValueChange('48');
       expect(mockLayoutSetNavigationBarOffset).toHaveBeenCalledWith(48);
@@ -1294,17 +1486,21 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('layout-navigation-bar-offset')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('layout-navigation-bar-offset')).toBe(
+          true,
+        ),
+      );
 
       const inputItem = mockCapturedItems.get('layout-navigation-bar-offset');
-      
+
       // Out of range values should not be applied
       await inputItem.onValueChange('150');
       await inputItem.onValueChange('-10');
-      
+
       expect(mockLayoutSetNavigationBarOffset).not.toHaveBeenCalledWith(150);
       expect(mockLayoutSetNavigationBarOffset).not.toHaveBeenCalledWith(-10);
     });
@@ -1346,41 +1542,73 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       const themeItem = mockCapturedItems.get('display-theme');
-      const themeButton = themeItem.submenuItems.find((x: any) => x.id === 'theme-comprehensive');
-      
+      const themeButton = themeItem.submenuItems.find(
+        (x: any) => x.id === 'theme-comprehensive',
+      );
+
       expect(themeButton).toBeTruthy();
       await themeButton.onPress();
-      
+
       // Click "Apply All"
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const themeAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Apply Theme Settings'));
-      const applyAllBtn = themeAlert?.[2]?.find((b: any) => String(b.text).includes('Apply All'));
+      const themeAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('Apply Theme Settings'),
+      );
+      const applyAllBtn = themeAlert?.[2]?.find((b: any) =>
+        String(b.text).includes('Apply All'),
+      );
       await applyAllBtn?.onPress?.();
 
       // Verify all settings were applied
       expect(mockLayoutSetUserListSizePx).toHaveBeenCalledWith(180);
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ userListNickFontSizePx: 15 }));
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ userListNickFontSizePx: 15 }),
+      );
       expect(mockSettingsSet).toHaveBeenCalledWith('nicklistTongueSizePx', 64);
       expect(mockLayoutSetFontSize).toHaveBeenCalledWith('custom'); // xlarge maps to custom
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ messageSpacing: 6 }));
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ messagePadding: 10 }));
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ navigationBarOffset: 24 }));
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ messageSpacing: 6 }),
+      );
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ messagePadding: 10 }),
+      );
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ navigationBarOffset: 24 }),
+      );
       expect(mockLayoutSetTabPosition).toHaveBeenCalledWith('bottom');
       expect(mockSettingsSet).toHaveBeenCalledWith('noticeRouting', 'active');
       expect(mockSettingsSet).toHaveBeenCalledWith('showTimestamps', true);
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ messageGroupingEnabled: true }));
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ messageTextAlign: 'left' }));
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ messageTextDirection: 'ltr' }));
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ timestampDisplay: 'all' }));
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ timestampFormat: '24h' }));
-      expect(mockSettingsSet).toHaveBeenCalledWith('bannerPosition', 'tabs_below'); // below_header maps to tabs_below
-      expect(mockSettingsSet).toHaveBeenCalledWith('keyboardBehavior', 'persistent');
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ messageGroupingEnabled: true }),
+      );
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ messageTextAlign: 'left' }),
+      );
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ messageTextDirection: 'ltr' }),
+      );
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ timestampDisplay: 'all' }),
+      );
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ timestampFormat: '24h' }),
+      );
+      expect(mockSettingsSet).toHaveBeenCalledWith(
+        'bannerPosition',
+        'tabs_below',
+      ); // below_header maps to tabs_below
+      expect(mockSettingsSet).toHaveBeenCalledWith(
+        'keyboardBehavior',
+        'persistent',
+      );
     });
 
     it('handles banner position variations in theme settings', async () => {
@@ -1413,24 +1641,35 @@ describe('AppearanceSection', () => {
             settingIcons={{}}
             onShowThemeEditor={jest.fn()}
             languageLabels={{ en: 'English' }}
-          />
+          />,
         );
 
-        await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+        await waitFor(() =>
+          expect(mockCapturedItems.has('display-theme')).toBe(true),
+        );
 
         const themeItem = mockCapturedItems.get('display-theme');
-        const bannerButton = themeItem.submenuItems.find((x: any) => x.id === `theme-banner_${testCase.input}`);
-        
+        const bannerButton = themeItem.submenuItems.find(
+          (x: any) => x.id === `theme-banner_${testCase.input}`,
+        );
+
         expect(bannerButton).toBeTruthy();
         await bannerButton.onPress();
-        
+
         // Click "Apply All"
         const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-        const themeAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Apply Theme Settings'));
-        const applyAllBtn = themeAlert?.[2]?.find((b: any) => String(b.text).includes('Apply All'));
+        const themeAlert = alertCalls.find((c: any[]) =>
+          String(c[0]).includes('Apply Theme Settings'),
+        );
+        const applyAllBtn = themeAlert?.[2]?.find((b: any) =>
+          String(b.text).includes('Apply All'),
+        );
         await applyAllBtn?.onPress?.();
 
-        expect(mockSettingsSet).toHaveBeenCalledWith('bannerPosition', testCase.expected);
+        expect(mockSettingsSet).toHaveBeenCalledWith(
+          'bannerPosition',
+          testCase.expected,
+        );
       }
     });
 
@@ -1452,26 +1691,34 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       const themeItem = mockCapturedItems.get('display-theme');
-      const themeButton = themeItem.submenuItems.find((x: any) => x.id === 'theme-banner_unknown_position');
-      
+      const themeButton = themeItem.submenuItems.find(
+        (x: any) => x.id === 'theme-banner_unknown_position',
+      );
+
       expect(themeButton).toBeTruthy();
       await themeButton.onPress();
-      
+
       // Click "Apply All"
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const themeAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Apply Theme Settings'));
-      const applyAllBtn = themeAlert?.[2]?.find((b: any) => String(b.text).includes('Apply All'));
+      const themeAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('Apply Theme Settings'),
+      );
+      const applyAllBtn = themeAlert?.[2]?.find((b: any) =>
+        String(b.text).includes('Apply All'),
+      );
       await applyAllBtn?.onPress?.();
 
       // bannerPosition should not be set for unknown values
       const bannerCalls = mockSettingsSet.mock.calls.filter(
-        (call: any[]) => call[0] === 'bannerPosition'
+        (call: any[]) => call[0] === 'bannerPosition',
       );
       expect(bannerCalls).toHaveLength(0);
     });
@@ -1494,25 +1741,35 @@ describe('AppearanceSection', () => {
           settingIcons={{}}
           onShowThemeEditor={jest.fn()}
           languageLabels={{ en: 'English' }}
-        />
+        />,
       );
 
-      await waitFor(() => expect(mockCapturedItems.has('display-theme')).toBe(true));
+      await waitFor(() =>
+        expect(mockCapturedItems.has('display-theme')).toBe(true),
+      );
 
       const themeItem = mockCapturedItems.get('display-theme');
-      const themeButton = themeItem.submenuItems.find((x: any) => x.id === 'theme-hover_timestamp');
-      
+      const themeButton = themeItem.submenuItems.find(
+        (x: any) => x.id === 'theme-hover_timestamp',
+      );
+
       expect(themeButton).toBeTruthy();
       await themeButton.onPress();
-      
+
       // Click "Apply All"
       const alertCalls = (Alert.alert as jest.Mock).mock.calls;
-      const themeAlert = alertCalls.find((c: any[]) => String(c[0]).includes('Apply Theme Settings'));
-      const applyAllBtn = themeAlert?.[2]?.find((b: any) => String(b.text).includes('Apply All'));
+      const themeAlert = alertCalls.find((c: any[]) =>
+        String(c[0]).includes('Apply Theme Settings'),
+      );
+      const applyAllBtn = themeAlert?.[2]?.find((b: any) =>
+        String(b.text).includes('Apply All'),
+      );
       await applyAllBtn?.onPress?.();
 
       // 'hover' should be mapped to 'grouped'
-      expect(mockLayoutSetConfig).toHaveBeenCalledWith(expect.objectContaining({ timestampDisplay: 'grouped' }));
+      expect(mockLayoutSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({ timestampDisplay: 'grouped' }),
+      );
     });
   });
 });

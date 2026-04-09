@@ -43,7 +43,7 @@ describe('SettingButton', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('Test Button')).toBeTruthy();
@@ -57,7 +57,7 @@ describe('SettingButton', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('›')).toBeTruthy();
@@ -76,7 +76,7 @@ describe('SettingButton', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('Test Button')).toBeTruthy();
@@ -91,7 +91,7 @@ describe('SettingButton', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
 
     expect(root).toBeTruthy();
@@ -107,10 +107,12 @@ describe('SettingButton', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={mockOnPress}
-      />
+      />,
     );
 
-    fireEvent.press(getByText('Test Button').parent?.parent || getByText('Test Button'));
+    fireEvent.press(
+      getByText('Test Button').parent?.parent || getByText('Test Button'),
+    );
 
     expect(mockOnPress).toHaveBeenCalled();
   });
@@ -128,7 +130,7 @@ describe('SettingButton', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('Test Button')).toBeTruthy();
@@ -147,7 +149,7 @@ describe('SettingButton', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
 
     expect(getByTestId('custom-node')).toBeTruthy();
@@ -166,7 +168,7 @@ describe('SettingButton', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('123')).toBeTruthy();

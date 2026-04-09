@@ -28,7 +28,7 @@ describe('ServiceSelector', () => {
         onChange={jest.fn()}
         detectedType="anope"
         colors={colors}
-      />
+      />,
     );
 
     expect(getByText('Auto (anope)')).toBeTruthy();
@@ -42,7 +42,7 @@ describe('ServiceSelector', () => {
         onChange={onChange}
         detectedType={null}
         colors={colors}
-      />
+      />,
     );
 
     fireEvent.press(getByText('IRC Service Type'));
@@ -62,7 +62,7 @@ describe('ServiceSelector', () => {
         detectedType={null}
         colors={colors}
         disabled
-      />
+      />,
     );
 
     fireEvent.press(getByText('IRC Service Type'));
@@ -76,7 +76,7 @@ describe('ServiceSelector', () => {
         onChange={jest.fn()}
         detectedType="anope"
         colors={colors}
-      />
+      />,
     );
 
     expect(getByText('QuakeNet Q')).toBeTruthy();

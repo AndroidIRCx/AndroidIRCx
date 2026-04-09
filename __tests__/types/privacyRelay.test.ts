@@ -16,7 +16,7 @@ describe('privacyRelay types', () => {
     expect(PRIVACY_RELAY_BASE_PLAN_IDS.monthly).toBe('monthly');
     expect(DEFAULT_PRIVACY_RELAY_TURN_SERVER.host).toBe('turn.dbase.in.rs');
     expect(DEFAULT_PRIVACY_RELAY_TURN_SERVER.turnUrls).toContain(
-      'turns:turn.dbase.in.rs:5349?transport=tcp'
+      'turns:turn.dbase.in.rs:5349?transport=tcp',
     );
   });
 
@@ -31,7 +31,7 @@ describe('privacyRelay types', () => {
         expiresAt: null,
         activatedAt: '2026-03-02T00:00:00.000Z',
         lastValidatedAt: null,
-      })
+      }),
     ).toBe(true);
   });
 });

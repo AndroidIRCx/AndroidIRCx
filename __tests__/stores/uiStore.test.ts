@@ -319,20 +319,30 @@ describe('uiStore', () => {
 
     it('should toggle raw category', () => {
       act(() => {
-        useUIStore.getState().toggleRawCategory('connection' as RawMessageCategory);
+        useUIStore
+          .getState()
+          .toggleRawCategory('connection' as RawMessageCategory);
       });
       expect(useUIStore.getState().rawCategoryVisibility.connection).toBe(true);
 
       act(() => {
-        useUIStore.getState().toggleRawCategory('connection' as RawMessageCategory);
+        useUIStore
+          .getState()
+          .toggleRawCategory('connection' as RawMessageCategory);
       });
-      expect(useUIStore.getState().rawCategoryVisibility.connection).toBe(false);
+      expect(useUIStore.getState().rawCategoryVisibility.connection).toBe(
+        false,
+      );
     });
 
     it('should toggle multiple categories independently', () => {
       act(() => {
-        useUIStore.getState().toggleRawCategory('connection' as RawMessageCategory);
-        useUIStore.getState().toggleRawCategory('channel' as RawMessageCategory);
+        useUIStore
+          .getState()
+          .toggleRawCategory('connection' as RawMessageCategory);
+        useUIStore
+          .getState()
+          .toggleRawCategory('channel' as RawMessageCategory);
       });
       const state = useUIStore.getState().rawCategoryVisibility;
       expect(state.connection).toBe(true);
@@ -341,11 +351,15 @@ describe('uiStore', () => {
 
     it('should preserve existing categories when toggling', () => {
       act(() => {
-        useUIStore.getState().toggleRawCategory('connection' as RawMessageCategory);
+        useUIStore
+          .getState()
+          .toggleRawCategory('connection' as RawMessageCategory);
       });
-      
+
       act(() => {
-        useUIStore.getState().toggleRawCategory('channel' as RawMessageCategory);
+        useUIStore
+          .getState()
+          .toggleRawCategory('channel' as RawMessageCategory);
       });
 
       expect(useUIStore.getState().rawCategoryVisibility.connection).toBe(true);
@@ -581,8 +595,20 @@ describe('uiStore', () => {
 
     it('should set channelLogEntries', () => {
       const entries = [
-        { id: '1', type: 'join' as const, nick: 'user1', timestamp: Date.now(), message: 'joined' },
-        { id: '2', type: 'part' as const, nick: 'user2', timestamp: Date.now(), message: 'left' },
+        {
+          id: '1',
+          type: 'join' as const,
+          nick: 'user1',
+          timestamp: Date.now(),
+          message: 'joined',
+        },
+        {
+          id: '2',
+          type: 'part' as const,
+          nick: 'user2',
+          timestamp: Date.now(),
+          message: 'left',
+        },
       ];
       act(() => {
         useUIStore.getState().setChannelLogEntries(entries);
@@ -648,7 +674,11 @@ describe('uiStore', () => {
 
   describe('blacklist actions', () => {
     it('should set blacklistTarget for channel', () => {
-      const target = { type: 'channel' as const, networkId: 'net1', channel: '#spam' };
+      const target = {
+        type: 'channel' as const,
+        networkId: 'net1',
+        channel: '#spam',
+      };
       act(() => {
         useUIStore.getState().setBlacklistTarget(target);
       });
@@ -656,7 +686,11 @@ describe('uiStore', () => {
     });
 
     it('should set blacklistTarget for query', () => {
-      const target = { type: 'query' as const, networkId: 'net1', nick: 'spammer' };
+      const target = {
+        type: 'query' as const,
+        networkId: 'net1',
+        nick: 'spammer',
+      };
       act(() => {
         useUIStore.getState().setBlacklistTarget(target);
       });
@@ -664,7 +698,11 @@ describe('uiStore', () => {
     });
 
     it('should set blacklistTarget for nick', () => {
-      const target = { type: 'nick' as const, networkId: 'net1', nick: 'baduser' };
+      const target = {
+        type: 'nick' as const,
+        networkId: 'net1',
+        nick: 'baduser',
+      };
       act(() => {
         useUIStore.getState().setBlacklistTarget(target);
       });
@@ -673,7 +711,11 @@ describe('uiStore', () => {
 
     it('should clear blacklistTarget', () => {
       act(() => {
-        useUIStore.getState().setBlacklistTarget({ type: 'nick', networkId: 'net1', nick: 'user' });
+        useUIStore.getState().setBlacklistTarget({
+          type: 'nick',
+          networkId: 'net1',
+          nick: 'user',
+        });
         useUIStore.getState().setBlacklistTarget(null);
       });
       expect(useUIStore.getState().blacklistTarget).toBeNull();
@@ -791,7 +833,7 @@ describe('uiStore', () => {
         useUIStore.getState().setShowSettings(true);
         useUIStore.getState().setAppLocked(true);
         useUIStore.getState().setScriptingTimeMs(5000);
-        
+
         // @ts-ignore - resetModalStates exists but isn't in type
         useUIStore.getState().resetModalStates();
       });
@@ -806,7 +848,11 @@ describe('uiStore', () => {
 
     it('should reset blacklistTarget to null', () => {
       act(() => {
-        useUIStore.getState().setBlacklistTarget({ type: 'nick', networkId: 'net1', nick: 'user' });
+        useUIStore.getState().setBlacklistTarget({
+          type: 'nick',
+          networkId: 'net1',
+          nick: 'user',
+        });
         // @ts-ignore
         useUIStore.getState().resetModalStates();
       });

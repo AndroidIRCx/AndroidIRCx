@@ -62,47 +62,50 @@ describe('TraceNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** Trace: link info', rawCategory: 'server' })
+      expect.objectContaining({
+        text: '*** Trace: link info',
+        rawCategory: 'server',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** Trace: Connecting - connecting' })
+      expect.objectContaining({ text: '*** Trace: Connecting - connecting' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** Trace: Handshake - handshake' })
+      expect.objectContaining({ text: '*** Trace: Handshake - handshake' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** Trace: Unknown - unknown' })
+      expect.objectContaining({ text: '*** Trace: Unknown - unknown' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       5,
-      expect.objectContaining({ text: '*** Trace: Operator - oper' })
+      expect.objectContaining({ text: '*** Trace: Operator - oper' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       6,
-      expect.objectContaining({ text: '*** Trace: User - user' })
+      expect.objectContaining({ text: '*** Trace: User - user' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       7,
-      expect.objectContaining({ text: '*** Trace: Server - server' })
+      expect.objectContaining({ text: '*** Trace: Server - server' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       8,
-      expect.objectContaining({ text: '*** Trace: Service - service' })
+      expect.objectContaining({ text: '*** Trace: Service - service' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       9,
-      expect.objectContaining({ text: '*** Trace: new type' })
+      expect.objectContaining({ text: '*** Trace: new type' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       10,
-      expect.objectContaining({ text: '*** Trace: Class - class' })
+      expect.objectContaining({ text: '*** Trace: Class - class' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       11,
-      expect.objectContaining({ text: '*** Trace: reconnect' })
+      expect.objectContaining({ text: '*** Trace: reconnect' }),
     );
   });
 });

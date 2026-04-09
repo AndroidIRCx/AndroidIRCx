@@ -8,7 +8,14 @@ const mockToggleReaction = jest.fn();
 const mockHasUserReacted = jest.fn();
 
 jest.mock('../../src/hooks/useTheme', () => ({
-  useTheme: () => ({ colors: { surfaceVariant: '#111', border: '#222', primary: '#08f', textSecondary: '#666' } }),
+  useTheme: () => ({
+    colors: {
+      surfaceVariant: '#111',
+      border: '#222',
+      primary: '#08f',
+      textSecondary: '#666',
+    },
+  }),
 }));
 
 jest.mock('../../src/services/MessageReactionsService', () => ({
@@ -35,12 +42,18 @@ describe('MessageReactionsComponent', () => {
   });
 
   it('renders reactions and toggles with callback for current user', async () => {
-    mockGetReactions.mockReturnValue({ reactions: [{ emoji: '👍', count: 2 }] });
+    mockGetReactions.mockReturnValue({
+      reactions: [{ emoji: '👍', count: 2 }],
+    });
     mockHasUserReacted.mockReturnValue(true);
 
     const onReactionPress = jest.fn();
     const { getByText } = render(
-      <MessageReactionsComponent messageId="m1" currentUserNick="alice" onReactionPress={onReactionPress} />
+      <MessageReactionsComponent
+        messageId="m1"
+        currentUserNick="alice"
+        onReactionPress={onReactionPress}
+      />,
     );
 
     await act(async () => {
@@ -53,7 +66,9 @@ describe('MessageReactionsComponent', () => {
   });
 
   it('does not toggle when current user is missing', async () => {
-    mockGetReactions.mockReturnValue({ reactions: [{ emoji: '🔥', count: 1 }] });
+    mockGetReactions.mockReturnValue({
+      reactions: [{ emoji: '🔥', count: 1 }],
+    });
 
     const { getByText } = render(<MessageReactionsComponent messageId="m2" />);
 
@@ -65,7 +80,9 @@ describe('MessageReactionsComponent', () => {
   });
 
   it('updates reactions when service emits message-specific changes', () => {
-    mockGetReactions.mockReturnValue({ reactions: [{ emoji: '❤️', count: 1 }] });
+    mockGetReactions.mockReturnValue({
+      reactions: [{ emoji: '❤️', count: 1 }],
+    });
 
     let listener: ((msgId: string, reactions: any) => void) | undefined;
     mockOnReactionsChange.mockImplementation((cb: any) => {
@@ -74,7 +91,7 @@ describe('MessageReactionsComponent', () => {
     });
 
     const { getByText, queryByText } = render(
-      <MessageReactionsComponent messageId="m3" currentUserNick="bob" />
+      <MessageReactionsComponent messageId="m3" currentUserNick="bob" />,
     );
 
     expect(getByText('❤️')).toBeTruthy();

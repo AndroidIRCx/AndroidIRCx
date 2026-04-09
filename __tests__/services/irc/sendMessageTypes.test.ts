@@ -10,5 +10,3 @@ describe('sendMessageTypes', () => {
     expect(moduleUnderTest).toBeDefined();
   });
 });
-
-

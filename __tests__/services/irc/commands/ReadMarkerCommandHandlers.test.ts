@@ -37,8 +37,18 @@ describe('ReadMarkerCommandHandlers', () => {
 
   describe('handleMARKREAD', () => {
     it('emits read-marker-received event with target and nick', () => {
-      handleMARKREAD(ctx, 'nick!user@host', ['#channel', 'timestamp=1234567890'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('read-marker-received', '#channel', 'nick', 1234567890);
+      handleMARKREAD(
+        ctx,
+        'nick!user@host',
+        ['#channel', 'timestamp=1234567890'],
+        Date.now(),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'read-marker-received',
+        '#channel',
+        'nick',
+        1234567890,
+      );
     });
 
     it('uses Date.now() when no timestamp param provided', () => {
@@ -53,47 +63,97 @@ describe('ReadMarkerCommandHandlers', () => {
 
     it('uses Date.now() when no params provided', () => {
       handleMARKREAD(ctx, 'nick!user@host', [], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('read-marker-received', '', 'nick', expect.any(Number));
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'read-marker-received',
+        '',
+        'nick',
+        expect.any(Number),
+      );
     });
 
     it('logs raw message', () => {
-      handleMARKREAD(ctx, 'nick!user@host', ['#channel', 'timestamp=999'], Date.now());
+      handleMARKREAD(
+        ctx,
+        'nick!user@host',
+        ['#channel', 'timestamp=999'],
+        Date.now(),
+      );
       expect(ctx.logRaw).toHaveBeenCalled();
     });
 
     it('parses timestamp from tsParam correctly', () => {
-      handleMARKREAD(ctx, 'nick!user@host', ['#channel', 'timestamp=1700000000'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('read-marker-received', '#channel', 'nick', 1700000000);
+      handleMARKREAD(
+        ctx,
+        'nick!user@host',
+        ['#channel', 'timestamp=1700000000'],
+        Date.now(),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'read-marker-received',
+        '#channel',
+        'nick',
+        1700000000,
+      );
     });
   });
 
   describe('handleREDACT', () => {
     it('emits message-redacted event', () => {
-      handleREDACT(ctx, 'nick!user@host', ['#channel', 'msg-id-123'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('message-redacted', '#channel', 'msg-id-123', 'nick');
+      handleREDACT(
+        ctx,
+        'nick!user@host',
+        ['#channel', 'msg-id-123'],
+        Date.now(),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'message-redacted',
+        '#channel',
+        'msg-id-123',
+        'nick',
+      );
     });
 
     it('adds raw message about deletion', () => {
-      handleREDACT(ctx, 'nick!user@host', ['#channel', 'msg-id-123'], Date.now());
+      handleREDACT(
+        ctx,
+        'nick!user@host',
+        ['#channel', 'msg-id-123'],
+        Date.now(),
+      );
       expect(ctx.addMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'raw',
           channel: '#channel',
           isRaw: true,
           rawCategory: 'user',
-        })
+        }),
       );
     });
 
     it('logs raw message', () => {
-      handleREDACT(ctx, 'nick!user@host', ['#channel', 'msg-id-123'], Date.now());
+      handleREDACT(
+        ctx,
+        'nick!user@host',
+        ['#channel', 'msg-id-123'],
+        Date.now(),
+      );
       expect(ctx.logRaw).toHaveBeenCalled();
     });
 
     it('extracts nick from prefix', () => {
       ctx.extractNick = jest.fn().mockReturnValue('redactor');
-      handleREDACT(ctx, 'redactor!user@host', ['#channel', 'msg123'], Date.now());
-      expect(ctx.emit).toHaveBeenCalledWith('message-redacted', '#channel', 'msg123', 'redactor');
+      handleREDACT(
+        ctx,
+        'redactor!user@host',
+        ['#channel', 'msg123'],
+        Date.now(),
+      );
+      expect(ctx.emit).toHaveBeenCalledWith(
+        'message-redacted',
+        '#channel',
+        'msg123',
+        'redactor',
+      );
     });
 
     it('handles empty params', () => {

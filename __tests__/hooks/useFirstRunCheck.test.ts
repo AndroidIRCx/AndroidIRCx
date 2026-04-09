@@ -12,9 +12,13 @@ const mockStorage: Map<string, string> = new Map();
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    setItem: jest.fn(async (key: string, value: string) => { mockStorage.set(key, value); }),
+    setItem: jest.fn(async (key: string, value: string) => {
+      mockStorage.set(key, value);
+    }),
     getItem: jest.fn(async (key: string) => mockStorage.get(key) || null),
-    removeItem: jest.fn(async (key: string) => { mockStorage.delete(key); }),
+    removeItem: jest.fn(async (key: string) => {
+      mockStorage.delete(key);
+    }),
   },
 }));
 
@@ -23,7 +27,9 @@ jest.mock('../../src/services/SettingsService', () => ({
     isFirstRun: jest.fn(),
   },
 }));
-const mockSettingsService = jest.requireMock<any>('../../src/services/SettingsService').settingsService;
+const mockSettingsService = jest.requireMock<any>(
+  '../../src/services/SettingsService',
+).settingsService;
 
 describe('useFirstRunCheck', () => {
   beforeEach(() => {
@@ -36,7 +42,9 @@ describe('useFirstRunCheck', () => {
     const setShowFirstRunSetup = jest.fn();
     const setIsCheckingFirstRun = jest.fn();
 
-    renderHook(() => useFirstRunCheck({ setShowFirstRunSetup, setIsCheckingFirstRun }));
+    renderHook(() =>
+      useFirstRunCheck({ setShowFirstRunSetup, setIsCheckingFirstRun }),
+    );
 
     await waitFor(() => {
       expect(setShowFirstRunSetup).toHaveBeenCalledWith(true);
@@ -49,7 +57,9 @@ describe('useFirstRunCheck', () => {
     const setShowFirstRunSetup = jest.fn();
     const setIsCheckingFirstRun = jest.fn();
 
-    renderHook(() => useFirstRunCheck({ setShowFirstRunSetup, setIsCheckingFirstRun }));
+    renderHook(() =>
+      useFirstRunCheck({ setShowFirstRunSetup, setIsCheckingFirstRun }),
+    );
 
     await waitFor(() => {
       expect(setShowFirstRunSetup).toHaveBeenCalledWith(false);
@@ -58,11 +68,15 @@ describe('useFirstRunCheck', () => {
   });
 
   it('should handle errors gracefully', async () => {
-    mockSettingsService.isFirstRun.mockRejectedValue(new Error('Storage error'));
+    mockSettingsService.isFirstRun.mockRejectedValue(
+      new Error('Storage error'),
+    );
     const setShowFirstRunSetup = jest.fn();
     const setIsCheckingFirstRun = jest.fn();
 
-    renderHook(() => useFirstRunCheck({ setShowFirstRunSetup, setIsCheckingFirstRun }));
+    renderHook(() =>
+      useFirstRunCheck({ setShowFirstRunSetup, setIsCheckingFirstRun }),
+    );
 
     await waitFor(() => {
       expect(setIsCheckingFirstRun).toHaveBeenCalledWith(false);

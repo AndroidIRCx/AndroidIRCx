@@ -33,7 +33,12 @@ interface LinkMetadata {
   favicon?: string;
 }
 
-const YOUTUBE_HOSTS = ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'];
+const YOUTUBE_HOSTS = [
+  'youtube.com',
+  'www.youtube.com',
+  'm.youtube.com',
+  'youtu.be',
+];
 
 const safeParseUrl = (rawUrl: string): URL | null => {
   try {
@@ -61,7 +66,10 @@ const getYouTubeVideoId = (rawUrl: string): string | null => {
 
   const pathParts = parsed.pathname.split('/').filter(Boolean);
   // Handle /embed/{id} or /shorts/{id}
-  if (pathParts.length >= 2 && (pathParts[0] === 'embed' || pathParts[0] === 'shorts')) {
+  if (
+    pathParts.length >= 2 &&
+    (pathParts[0] === 'embed' || pathParts[0] === 'shorts')
+  ) {
     return pathParts[1];
   }
 
@@ -95,7 +103,9 @@ const resolveImageUrl = (rawUrl: string, pageUrl: string): string => {
   return `${prefix}${path}`;
 };
 
-const formatDisplayParts = (rawUrl: string): { title: string; siteName: string; displayUrl: string } => {
+const formatDisplayParts = (
+  rawUrl: string,
+): { title: string; siteName: string; displayUrl: string } => {
   const parsed = safeParseUrl(rawUrl);
   if (!parsed) {
     return {
@@ -105,13 +115,19 @@ const formatDisplayParts = (rawUrl: string): { title: string; siteName: string; 
     };
   }
   const siteName = parsed.hostname;
-  const path = parsed.pathname && parsed.pathname !== '/' ? parsed.pathname : '';
+  const path =
+    parsed.pathname && parsed.pathname !== '/' ? parsed.pathname : '';
   const title = '';
-  const displayUrl = decodeURIComponent(`${siteName}${path}${parsed.search || ''}`);
+  const displayUrl = decodeURIComponent(
+    `${siteName}${path}${parsed.search || ''}`,
+  );
   return { title, siteName, displayUrl };
 };
-const fetchPageMetadata = async (targetUrl: string, signal?: AbortSignal): Promise<LinkMetadata | undefined> => {
-  return new Promise((resolve) => {
+const fetchPageMetadata = async (
+  targetUrl: string,
+  signal?: AbortSignal,
+): Promise<LinkMetadata | undefined> => {
+  return new Promise(resolve => {
     try {
       const xhr = new XMLHttpRequest();
 
@@ -121,22 +137,51 @@ const fetchPageMetadata = async (targetUrl: string, signal?: AbortSignal): Promi
         try {
           if (xhr.status >= 200 && xhr.status < 300) {
             const html = xhr.responseText;
-            console.log(`[LinkPreview] Fetched HTML for ${targetUrl}, length: ${html.length}`);
+            console.log(
+              `[LinkPreview] Fetched HTML for ${targetUrl}, length: ${html.length}`,
+            );
 
             // Prefer Open Graph
-            const ogTitle = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["'][^>]*>/i) ||
-              html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["'][^>]*>/i);
-            const ogDesc = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["'][^>]*>/i) ||
-              html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:description["'][^>]*>/i);
-            const ogImage = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i) ||
-              html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i);
-            const ogSite = html.match(/<meta[^>]*property=["']og:site_name["'][^>]*content=["']([^"']+)["'][^>]*>/i) ||
-              html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:site_name["'][^>]*>/i);
-            const twitterImage = html.match(/<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+            const ogTitle =
+              html.match(
+                /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+              ) ||
+              html.match(
+                /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["'][^>]*>/i,
+              );
+            const ogDesc =
+              html.match(
+                /<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+              ) ||
+              html.match(
+                /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:description["'][^>]*>/i,
+              );
+            const ogImage =
+              html.match(
+                /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+              ) ||
+              html.match(
+                /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i,
+              );
+            const ogSite =
+              html.match(
+                /<meta[^>]*property=["']og:site_name["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+              ) ||
+              html.match(
+                /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:site_name["'][^>]*>/i,
+              );
+            const twitterImage = html.match(
+              /<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+            );
 
             // Parse favicon from HTML (supports .ico, .png, .svg, etc.)
-            const faviconLink = html.match(/<link[^>]*rel=["'](?:icon|shortcut icon)["'][^>]*href=["']([^"']+)["'][^>]*>/i) ||
-              html.match(/<link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:icon|shortcut icon)["'][^>]*>/i);
+            const faviconLink =
+              html.match(
+                /<link[^>]*rel=["'](?:icon|shortcut icon)["'][^>]*href=["']([^"']+)["'][^>]*>/i,
+              ) ||
+              html.match(
+                /<link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:icon|shortcut icon)["'][^>]*>/i,
+              );
 
             const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
             const title = ogTitle?.[1]?.trim() || titleMatch?.[1]?.trim();
@@ -145,15 +190,26 @@ const fetchPageMetadata = async (targetUrl: string, signal?: AbortSignal): Promi
             const siteName = ogSite?.[1]?.trim();
             const favicon = faviconLink?.[1]?.trim();
 
-            console.log(`[LinkPreview] Parsed metadata:`, { title, description, image, siteName, favicon });
+            console.log(`[LinkPreview] Parsed metadata:`, {
+              title,
+              description,
+              image,
+              siteName,
+              favicon,
+            });
 
             resolve({ title, description, image, siteName, favicon });
           } else {
-            console.log(`[LinkPreview] Fetch failed for ${targetUrl}: ${xhr.status}`);
+            console.log(
+              `[LinkPreview] Fetch failed for ${targetUrl}: ${xhr.status}`,
+            );
             resolve(undefined);
           }
         } catch (parseErr) {
-          console.error(`[LinkPreview] Error parsing metadata for ${targetUrl}:`, parseErr);
+          console.error(
+            `[LinkPreview] Error parsing metadata for ${targetUrl}:`,
+            parseErr,
+          );
           resolve(undefined);
         }
       };
@@ -179,7 +235,10 @@ const fetchPageMetadata = async (targetUrl: string, signal?: AbortSignal): Promi
       xhr.open('GET', targetUrl, true);
       xhr.send();
     } catch (err) {
-      console.error(`[LinkPreview] Error setting up fetch for ${targetUrl}:`, err);
+      console.error(
+        `[LinkPreview] Error setting up fetch for ${targetUrl}:`,
+        err,
+      );
       resolve(undefined);
     }
   });
@@ -193,7 +252,8 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const tags = 'feature:link-preview,file:LinkPreview.tsx,component:LinkPreview';
+  const tags =
+    'feature:link-preview,file:LinkPreview.tsx,component:LinkPreview';
   const [metadata, setMetadata] = useState<LinkMetadata | null>(null);
   const [loading, setLoading] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -312,7 +372,9 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
 
       // Use og:image if available, otherwise use parsed favicon, fallback to /favicon.ico
       const parsed = safeParseUrl(url);
-      const fallbackFaviconUrl = parsed ? `${parsed.origin}/favicon.ico` : undefined;
+      const fallbackFaviconUrl = parsed
+        ? `${parsed.origin}/favicon.ico`
+        : undefined;
 
       // Determine the image to use: og:image > parsed favicon > fallback favicon
       let imageUrl: string | undefined;
@@ -329,7 +391,10 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
 
       const merged: LinkMetadata = {
         ...defaultMetadata,
-        title: pageMetadata?.title || defaultMetadata.title || defaultMetadata.displayUrl,
+        title:
+          pageMetadata?.title ||
+          defaultMetadata.title ||
+          defaultMetadata.displayUrl,
         description: pageMetadata?.description,
         image: imageUrl,
         siteName: pageMetadata?.siteName || defaultMetadata.siteName,
@@ -359,15 +424,19 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
     try {
       setDownloading(true);
       setProgress(0);
-      const fileName = decodeURIComponent(url.split('/').pop()?.split('?')[0] || 'download');
+      const fileName = decodeURIComponent(
+        url.split('/').pop()?.split('?')[0] || 'download',
+      );
       const destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
       const ret = RNFS.downloadFile({
         fromUrl: url,
         toFile: destPath,
         progressDivider: 5,
-        progress: (data) => {
+        progress: data => {
           if (data.contentLength > 0) {
-            const pct = Math.floor((data.bytesWritten / data.contentLength) * 100);
+            const pct = Math.floor(
+              (data.bytesWritten / data.contentLength) * 100,
+            );
             setProgress(pct);
           }
         },
@@ -376,12 +445,12 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
       setProgress(100);
       Alert.alert(
         t('Download complete', { _tags: tags }),
-        t('Saved to {path}', { path: destPath, _tags: tags })
+        t('Saved to {path}', { path: destPath, _tags: tags }),
       );
     } catch (e: any) {
       Alert.alert(
         t('Download failed', { _tags: tags }),
-        e?.message || t('Unable to download file', { _tags: tags })
+        e?.message || t('Unable to download file', { _tags: tags }),
       );
     } finally {
       setDownloading(false);
@@ -392,7 +461,8 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
     <TouchableOpacity
       style={styles.container}
       onPress={handlePress}
-      activeOpacity={0.7}>
+      activeOpacity={0.7}
+    >
       {metadata?.image && !imageError && (
         <Image
           source={{ uri: metadata.image }}
@@ -427,16 +497,24 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
               </Text>
             )}
             {showDownloadButton && (
-              <TouchableOpacity style={styles.downloadButton} onPress={handleDownload} disabled={downloading}>
+              <TouchableOpacity
+                style={styles.downloadButton}
+                onPress={handleDownload}
+                disabled={downloading}
+              >
                 {downloading ? (
                   <View style={styles.downloadRow}>
                     <ActivityIndicator size="small" color={colors.primary} />
                     <Text style={styles.downloadText}>
-                      {progress !== null ? `${progress}%` : t('...', { _tags: tags })}
+                      {progress !== null
+                        ? `${progress}%`
+                        : t('...', { _tags: tags })}
                     </Text>
                   </View>
                 ) : (
-                  <Text style={styles.downloadText}>{t('Download', { _tags: tags })}</Text>
+                  <Text style={styles.downloadText}>
+                    {t('Download', { _tags: tags })}
+                  </Text>
                 )}
               </TouchableOpacity>
             )}
@@ -447,62 +525,62 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: 8,
-    marginVertical: 4,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  image: {
-    width: '100%',
-    height: 150,
-    backgroundColor: colors.surface,
-  },
-  content: {
-    padding: 12,
-  },
-  siteName: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 4,
-    fontWeight: '500',
-  },
-  title: {
-    fontSize: 14,
-    color: colors.text,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  description: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  url: {
-    fontSize: 11,
-    color: colors.primary,
-    marginTop: 4,
-  },
-  downloadButton: {
-    marginTop: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: colors.buttonSecondary,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  downloadText: {
-    color: colors.buttonSecondaryText,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  downloadRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-});
-
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 8,
+      marginVertical: 4,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    image: {
+      width: '100%',
+      height: 150,
+      backgroundColor: colors.surface,
+    },
+    content: {
+      padding: 12,
+    },
+    siteName: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginBottom: 4,
+      fontWeight: '500',
+    },
+    title: {
+      fontSize: 14,
+      color: colors.text,
+      fontWeight: '600',
+      marginBottom: 4,
+    },
+    description: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    url: {
+      fontSize: 11,
+      color: colors.primary,
+      marginTop: 4,
+    },
+    downloadButton: {
+      marginTop: 8,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      backgroundColor: colors.buttonSecondary,
+      borderRadius: 6,
+      alignSelf: 'flex-start',
+    },
+    downloadText: {
+      color: colors.buttonSecondaryText,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    downloadRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+  });

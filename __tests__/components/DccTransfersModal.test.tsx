@@ -1,7 +1,10 @@
 import React from 'react';
 import { Alert } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
-import { DccTransfersModal, DccTransfer } from '../../src/components/DccTransfersModal';
+import {
+  DccTransfersModal,
+  DccTransfer,
+} from '../../src/components/DccTransfersModal';
 
 const mockShareOpen = jest.fn();
 const mockExists = jest.fn();
@@ -49,7 +52,7 @@ describe('DccTransfersModal', () => {
         onAccept={jest.fn()}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
     expect(getByText('No transfers')).toBeTruthy();
@@ -66,7 +69,7 @@ describe('DccTransfersModal', () => {
         onAccept={onAccept}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
@@ -91,7 +94,7 @@ describe('DccTransfersModal', () => {
         onAccept={onAccept}
         onCancel={onCancel}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
@@ -119,19 +122,21 @@ describe('DccTransfersModal', () => {
         onAccept={jest.fn()}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
       fireEvent.press(getByText('Open File'));
     });
 
-    expect(mockExists).toHaveBeenCalledWith('/storage/emulated/0/Download/file.pdf');
+    expect(mockExists).toHaveBeenCalledWith(
+      '/storage/emulated/0/Download/file.pdf',
+    );
     expect(mockShareOpen).toHaveBeenCalledWith(
       expect.objectContaining({
         url: 'file:///storage/emulated/0/Download/file.pdf',
         type: 'application/pdf',
-      })
+      }),
     );
   });
 
@@ -146,7 +151,7 @@ describe('DccTransfersModal', () => {
         onAccept={jest.fn()}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
     expect(queryByText('Open File')).toBeNull();
@@ -163,7 +168,7 @@ describe('DccTransfersModal', () => {
         onAccept={jest.fn()}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
     fireEvent.press(getByText('Minimize'));
@@ -174,11 +179,13 @@ describe('DccTransfersModal', () => {
         visible
         onClose={jest.fn()}
         onMinimize={onMinimize}
-        transfers={[mk({ id: 'c1', status: 'completed', filePath: '/doc/file.txt' })]}
+        transfers={[
+          mk({ id: 'c1', status: 'completed', filePath: '/doc/file.txt' }),
+        ]}
         onAccept={jest.fn()}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
     expect(queryByText('Minimize')).toBeNull();
@@ -201,14 +208,17 @@ describe('DccTransfersModal', () => {
         onAccept={jest.fn()}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
       fireEvent.press(getByText('Open File'));
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'File no longer exists at the saved location');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'File no longer exists at the saved location',
+    );
   });
 
   it('alerts with friendly error for Uri/open failures and ignores share cancelation', async () => {
@@ -227,7 +237,7 @@ describe('DccTransfersModal', () => {
         onAccept={jest.fn()}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
     mockShareOpen.mockRejectedValueOnce(new Error('null object reference Uri'));
@@ -263,7 +273,7 @@ describe('DccTransfersModal', () => {
         onAccept={jest.fn()}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
     mockShareOpen.mockRejectedValueOnce(new Error('generic failure'));
@@ -275,9 +285,12 @@ describe('DccTransfersModal', () => {
       expect.objectContaining({
         url: 'file:///relative/path/file.bin',
         type: 'application/octet-stream',
-      })
+      }),
     );
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not open file: generic failure');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Could not open file: generic failure',
+    );
   });
 
   it('keeps modal content responder active', () => {
@@ -289,10 +302,12 @@ describe('DccTransfersModal', () => {
         onAccept={jest.fn()}
         onCancel={jest.fn()}
         styles={styles}
-      />
+      />,
     );
 
-    const responderView = UNSAFE_root.find((node) => typeof node.props?.onStartShouldSetResponder === 'function');
+    const responderView = UNSAFE_root.find(
+      node => typeof node.props?.onStartShouldSetResponder === 'function',
+    );
     expect(responderView.props.onStartShouldSetResponder()).toBe(true);
   });
 });

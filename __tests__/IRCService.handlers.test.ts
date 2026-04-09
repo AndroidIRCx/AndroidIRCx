@@ -18,16 +18,33 @@
  * - PrivmsgCommandHandlers (PRIVMSG)
  */
 
-import { handleFAIL, handleWARN, handleNOTE, handlePONG, handleINVITE } from '../src/services/irc/commands/StandardCommandHandlers';
+import {
+  handleFAIL,
+  handleWARN,
+  handleNOTE,
+  handlePONG,
+  handleINVITE,
+} from '../src/services/irc/commands/StandardCommandHandlers';
 import { handleNICK } from '../src/services/irc/commands/NickCommandHandlers';
 import { handleKICK } from '../src/services/irc/commands/KickCommandHandlers';
 import { handleKILL } from '../src/services/irc/commands/KillCommandHandlers';
-import { handleTOPIC, handleMODE } from '../src/services/irc/commands/TopicModeCommandHandlers';
-import { handleMARKREAD, handleREDACT } from '../src/services/irc/commands/ReadMarkerCommandHandlers';
+import {
+  handleTOPIC,
+  handleMODE,
+} from '../src/services/irc/commands/TopicModeCommandHandlers';
+import {
+  handleMARKREAD,
+  handleREDACT,
+} from '../src/services/irc/commands/ReadMarkerCommandHandlers';
 import { handleBATCH } from '../src/services/irc/commands/BatchCommandHandlers';
 import { handleNOTICE } from '../src/services/irc/commands/NoticeCommandHandlers';
 import { handlePRIVMSG } from '../src/services/irc/commands/PrivmsgCommandHandlers';
-import { handleACCOUNT, handleAWAY, handleCHGHOST, handleTAGMSG } from '../src/services/irc/commands/UserStateCommandHandlers';
+import {
+  handleACCOUNT,
+  handleAWAY,
+  handleCHGHOST,
+  handleTAGMSG,
+} from '../src/services/irc/commands/UserStateCommandHandlers';
 
 // ========================================
 // HELPER: Create a mock CommandHandlerContext
@@ -39,10 +56,13 @@ function createMockCtx(overrides?: Record<string, any>) {
 
   const ctx: any = {
     addMessage: jest.fn((msg: any) => messages.push(msg)),
-    addRawMessage: jest.fn((text: string, category: string, timestamp?: number) =>
-      rawMessages.push({ text, category, timestamp }),
+    addRawMessage: jest.fn(
+      (text: string, category: string, timestamp?: number) =>
+        rawMessages.push({ text, category, timestamp }),
     ),
-    emit: jest.fn((event: string, ...args: any[]) => emitted.push({ event, args })),
+    emit: jest.fn((event: string, ...args: any[]) =>
+      emitted.push({ event, args }),
+    ),
     extractNick: jest.fn((prefix: string) => prefix.split('!')[0]),
     parseCTCP: jest.fn(() => ({ isCTCP: false })),
     logRaw: jest.fn(),
@@ -54,7 +74,10 @@ function createMockCtx(overrides?: Record<string, any>) {
       isUserIgnored: jest.fn(() => false),
       findMatchingBlacklistEntry: jest.fn(() => null),
     })),
-    getProtectionTabContext: jest.fn(() => ({ isActiveTab: false, isQueryOpen: false })),
+    getProtectionTabContext: jest.fn(() => ({
+      isActiveTab: false,
+      isQueryOpen: false,
+    })),
     handleProtectionBlock: jest.fn(),
     extractMaskFromNotice: jest.fn(() => null),
     runBlacklistAction: jest.fn(),
@@ -79,7 +102,9 @@ function createMockCtx(overrides?: Record<string, any>) {
     isUserIgnored: jest.fn(() => false),
     isUserProtected: jest.fn(() => false),
     evaluateProtectionDecision: jest.fn(() => null),
-    handleMultilineMessage: jest.fn((_f: string, _t: string, text: string) => text),
+    handleMultilineMessage: jest.fn(
+      (_f: string, _t: string, text: string) => text,
+    ),
     getEncryptedDMService: jest.fn(() => ({})),
     getChannelEncryptionService: jest.fn(() => ({})),
     handleKillDisconnect: jest.fn(),
@@ -96,19 +121,32 @@ describe('StandardCommandHandlers', () => {
   describe('FAIL', () => {
     it('creates error message with command, code, and description', () => {
       const { ctx, messages, emitted } = createMockCtx();
-      handleFAIL(ctx, 'server', ['REGISTER', 'ACCOUNT_EXISTS', 'Account already exists'], Date.now());
+      handleFAIL(
+        ctx,
+        'server',
+        ['REGISTER', 'ACCOUNT_EXISTS', 'Account already exists'],
+        Date.now(),
+      );
 
       expect(messages).toHaveLength(1);
       expect(messages[0].type).toBe('error');
       expect(messages[0].text).toContain('REGISTER');
       expect(messages[0].text).toContain('ACCOUNT_EXISTS');
       expect(messages[0].text).toContain('Account already exists');
-      expect(emitted).toContainEqual({ event: 'fail', args: expect.any(Array) });
+      expect(emitted).toContainEqual({
+        event: 'fail',
+        args: expect.any(Array),
+      });
     });
 
     it('handles context params between code and description', () => {
       const { ctx, messages } = createMockCtx();
-      handleFAIL(ctx, 'server', ['CHATHISTORY', 'INVALID_TARGET', '#chan', 'Invalid target'], Date.now());
+      handleFAIL(
+        ctx,
+        'server',
+        ['CHATHISTORY', 'INVALID_TARGET', '#chan', 'Invalid target'],
+        Date.now(),
+      );
 
       expect(messages[0].text).toContain('#chan');
       expect(messages[0].text).toContain('Invalid target');
@@ -125,23 +163,39 @@ describe('StandardCommandHandlers', () => {
   describe('WARN', () => {
     it('creates raw server message', () => {
       const { ctx, messages, emitted } = createMockCtx();
-      handleWARN(ctx, 'server', ['CONNECT', 'SLOW_CONN', 'Connection is slow'], Date.now());
+      handleWARN(
+        ctx,
+        'server',
+        ['CONNECT', 'SLOW_CONN', 'Connection is slow'],
+        Date.now(),
+      );
 
       expect(messages[0].type).toBe('raw');
       expect(messages[0].rawCategory).toBe('server');
       expect(messages[0].text).toContain('SLOW_CONN');
-      expect(emitted).toContainEqual({ event: 'warn', args: expect.any(Array) });
+      expect(emitted).toContainEqual({
+        event: 'warn',
+        args: expect.any(Array),
+      });
     });
   });
 
   describe('NOTE', () => {
     it('creates raw server message', () => {
       const { ctx, messages, emitted } = createMockCtx();
-      handleNOTE(ctx, 'server', ['REGISTER', 'INFO', 'You can register later'], Date.now());
+      handleNOTE(
+        ctx,
+        'server',
+        ['REGISTER', 'INFO', 'You can register later'],
+        Date.now(),
+      );
 
       expect(messages[0].type).toBe('raw');
       expect(messages[0].text).toContain('INFO');
-      expect(emitted).toContainEqual({ event: 'note', args: expect.any(Array) });
+      expect(emitted).toContainEqual({
+        event: 'note',
+        args: expect.any(Array),
+      });
     });
   });
 
@@ -227,7 +281,10 @@ describe('NickCommandHandlers', () => {
     const { ctx, messages } = createMockCtx();
     const users1 = new Map([['bob', { nick: 'bob', modes: [] }]]);
     const users2 = new Map([['bob', { nick: 'bob', modes: [] }]]);
-    const allChannels = new Map([['#chan1', users1], ['#chan2', users2]]);
+    const allChannels = new Map([
+      ['#chan1', users1],
+      ['#chan2', users2],
+    ]);
     ctx.getAllChannelUsers.mockReturnValue(allChannels);
 
     handleNICK(ctx, 'bob!user@host', ['bobby'], Date.now());
@@ -254,7 +311,12 @@ describe('NickCommandHandlers', () => {
 describe('KickCommandHandlers', () => {
   it('emits kick event when self is kicked', () => {
     const { ctx, emitted } = createMockCtx();
-    handleKICK(ctx, 'op!user@host', ['#chan', 'tester', 'Bad behavior'], Date.now());
+    handleKICK(
+      ctx,
+      'op!user@host',
+      ['#chan', 'tester', 'Bad behavior'],
+      Date.now(),
+    );
 
     expect(emitted).toContainEqual({ event: 'kick', args: ['#chan'] });
   });
@@ -304,7 +366,9 @@ describe('KillCommandHandlers', () => {
     const { ctx, messages } = createMockCtx();
     handleKILL(ctx, 'oper!u@h', ['tester', 'You have been killed'], Date.now());
 
-    expect(ctx.handleKillDisconnect).toHaveBeenCalledWith('You have been killed');
+    expect(ctx.handleKillDisconnect).toHaveBeenCalledWith(
+      'You have been killed',
+    );
     const errMsg = messages.find((m: any) => m.type === 'error');
     expect(errMsg).toBeTruthy();
   });
@@ -336,12 +400,21 @@ describe('TopicModeCommandHandlers', () => {
       const { ctx, messages, emitted } = createMockCtx();
       handleTOPIC(ctx, 'admin!u@h', ['#chan', 'New topic!'], Date.now());
 
-      expect(ctx.setChannelTopicInfo).toHaveBeenCalledWith('#chan', expect.objectContaining({
-        topic: 'New topic!',
-        setBy: 'admin',
-      }));
-      expect(ctx.maybeEmitChannelIntro).toHaveBeenCalledWith('#chan', expect.any(Number));
-      expect(emitted).toContainEqual({ event: 'topic', args: ['#chan', 'New topic!', 'admin'] });
+      expect(ctx.setChannelTopicInfo).toHaveBeenCalledWith(
+        '#chan',
+        expect.objectContaining({
+          topic: 'New topic!',
+          setBy: 'admin',
+        }),
+      );
+      expect(ctx.maybeEmitChannelIntro).toHaveBeenCalledWith(
+        '#chan',
+        expect.any(Number),
+      );
+      expect(emitted).toContainEqual({
+        event: 'topic',
+        args: ['#chan', 'New topic!', 'admin'],
+      });
       expect(messages[0].type).toBe('topic');
       expect(messages[0].topic).toBe('New topic!');
     });
@@ -359,8 +432,14 @@ describe('TopicModeCommandHandlers', () => {
       const { ctx, emitted } = createMockCtx();
       handleMODE(ctx, 'op!u@h', ['#chan', '+o', 'alice'], Date.now());
 
-      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('#chan', ['+o', 'alice']);
-      expect(emitted).toContainEqual({ event: 'channelMode', args: ['#chan', '+o', ['alice']] });
+      expect(ctx.handleChannelModeChange).toHaveBeenCalledWith('#chan', [
+        '+o',
+        'alice',
+      ]);
+      expect(emitted).toContainEqual({
+        event: 'channelMode',
+        args: ['#chan', '+o', ['alice']],
+      });
     });
 
     it('handles user mode change', () => {
@@ -395,7 +474,12 @@ describe('ReadMarkerCommandHandlers', () => {
   describe('MARKREAD', () => {
     it('emits read-marker-received with target and timestamp', () => {
       const { ctx, emitted } = createMockCtx();
-      handleMARKREAD(ctx, 'tester!u@h', ['#chan', 'timestamp=1700000000'], Date.now());
+      handleMARKREAD(
+        ctx,
+        'tester!u@h',
+        ['#chan', 'timestamp=1700000000'],
+        Date.now(),
+      );
 
       const event = emitted.find(e => e.event === 'read-marker-received');
       expect(event).toBeTruthy();
@@ -437,7 +521,12 @@ describe('BatchCommandHandlers', () => {
     const { ctx } = createMockCtx();
     handleBATCH(ctx, 'server', ['+ref1', 'chathistory', '#chan'], Date.now());
 
-    expect(ctx.handleBatchStart).toHaveBeenCalledWith('ref1', 'chathistory', ['#chan'], expect.any(Number));
+    expect(ctx.handleBatchStart).toHaveBeenCalledWith(
+      'ref1',
+      'chathistory',
+      ['#chan'],
+      expect.any(Number),
+    );
   });
 
   it('calls handleBatchEnd for - prefix', () => {
@@ -457,9 +546,19 @@ describe('BatchCommandHandlers', () => {
 
   it('passes batch type and extra params correctly', () => {
     const { ctx } = createMockCtx();
-    handleBATCH(ctx, 'server', ['+ns', 'netsplit', 'irc1.net', 'irc2.net'], Date.now());
+    handleBATCH(
+      ctx,
+      'server',
+      ['+ns', 'netsplit', 'irc1.net', 'irc2.net'],
+      Date.now(),
+    );
 
-    expect(ctx.handleBatchStart).toHaveBeenCalledWith('ns', 'netsplit', ['irc1.net', 'irc2.net'], expect.any(Number));
+    expect(ctx.handleBatchStart).toHaveBeenCalledWith(
+      'ns',
+      'netsplit',
+      ['irc1.net', 'irc2.net'],
+      expect.any(Number),
+    );
   });
 });
 
@@ -474,7 +573,10 @@ describe('UserStateCommandHandlers', () => {
 
       expect(messages[0].text).toContain('logged in');
       expect(messages[0].text).toContain('alice_acct');
-      expect(emitted).toContainEqual({ event: 'account', args: ['alice', 'alice_acct'] });
+      expect(emitted).toContainEqual({
+        event: 'account',
+        args: ['alice', 'alice_acct'],
+      });
     });
 
     it('shows logout message for * account', () => {
@@ -509,14 +611,19 @@ describe('UserStateCommandHandlers', () => {
 
       expect(messages[0].text).toContain('changed host');
       expect(messages[0].text).toContain('new.host.com');
-      expect(emitted).toContainEqual({ event: 'chghost', args: ['alice', 'new.host.com'] });
+      expect(emitted).toContainEqual({
+        event: 'chghost',
+        args: ['alice', 'new.host.com'],
+      });
     });
   });
 
   describe('TAGMSG', () => {
     it('handles react tag', () => {
       const { ctx, emitted } = createMockCtx();
-      handleTAGMSG(ctx, 'alice!u@h', ['#chan'], Date.now(), { reactTag: 'msgid123;👍' });
+      handleTAGMSG(ctx, 'alice!u@h', ['#chan'], Date.now(), {
+        reactTag: 'msgid123;👍',
+      });
 
       const reaction = emitted.find(e => e.event === 'reaction-received');
       expect(reaction).toBeTruthy();
@@ -525,7 +632,9 @@ describe('UserStateCommandHandlers', () => {
 
     it('handles typing tag', () => {
       const { ctx, emitted } = createMockCtx();
-      handleTAGMSG(ctx, 'bob!u@h', ['#chan'], Date.now(), { typingTag: 'active' });
+      handleTAGMSG(ctx, 'bob!u@h', ['#chan'], Date.now(), {
+        typingTag: 'active',
+      });
 
       const typing = emitted.find(e => e.event === 'typing-indicator');
       expect(typing).toBeTruthy();
@@ -581,7 +690,11 @@ describe('NoticeCommandHandlers', () => {
   it('handles CTCP PING reply in notice', () => {
     const { ctx, messages } = createMockCtx();
     const ts = Date.now() - 100;
-    ctx.parseCTCP.mockReturnValue({ isCTCP: true, command: 'PING', args: ts.toString() });
+    ctx.parseCTCP.mockReturnValue({
+      isCTCP: true,
+      command: 'PING',
+      args: ts.toString(),
+    });
 
     handleNOTICE(ctx, 'bob!u@h', ['tester', `\x01PING ${ts}\x01`], Date.now());
 
@@ -590,9 +703,18 @@ describe('NoticeCommandHandlers', () => {
 
   it('handles CTCP VERSION reply in notice', () => {
     const { ctx, messages } = createMockCtx();
-    ctx.parseCTCP.mockReturnValue({ isCTCP: true, command: 'VERSION', args: 'mIRC v7.69' });
+    ctx.parseCTCP.mockReturnValue({
+      isCTCP: true,
+      command: 'VERSION',
+      args: 'mIRC v7.69',
+    });
 
-    handleNOTICE(ctx, 'bob!u@h', ['tester', '\x01VERSION mIRC v7.69\x01'], Date.now());
+    handleNOTICE(
+      ctx,
+      'bob!u@h',
+      ['tester', '\x01VERSION mIRC v7.69\x01'],
+      Date.now(),
+    );
 
     expect(messages[0].text).toContain('VERSION');
     expect(messages[0].text).toContain('mIRC v7.69');
@@ -612,7 +734,12 @@ describe('NoticeCommandHandlers', () => {
 
   it('processes server notices without prefix user part', () => {
     const { ctx, messages } = createMockCtx();
-    handleNOTICE(ctx, 'irc.server.com', ['*', 'Looking up your hostname'], Date.now());
+    handleNOTICE(
+      ctx,
+      'irc.server.com',
+      ['*', 'Looking up your hostname'],
+      Date.now(),
+    );
 
     expect(messages[0].type).toBe('notice');
     expect(messages[0].from).toBe('irc.server.com');
@@ -670,15 +797,29 @@ describe('PrivmsgCommandHandlers', () => {
 
     handlePRIVMSG(ctx, 'bob!u@h', ['tester', '\x01VERSION\x01'], Date.now());
 
-    expect(ctx.handleCTCPRequest).toHaveBeenCalledWith('bob', 'tester', 'VERSION', undefined);
+    expect(ctx.handleCTCPRequest).toHaveBeenCalledWith(
+      'bob',
+      'tester',
+      'VERSION',
+      undefined,
+    );
     expect(messages).toHaveLength(0);
   });
 
   it('displays CTCP ACTION as message instead of routing to CTCP handler', () => {
     const { ctx, messages } = createMockCtx();
-    ctx.parseCTCP.mockReturnValue({ isCTCP: true, command: 'ACTION', args: 'does a dance' });
+    ctx.parseCTCP.mockReturnValue({
+      isCTCP: true,
+      command: 'ACTION',
+      args: 'does a dance',
+    });
 
-    handlePRIVMSG(ctx, 'bob!u@h', ['#chan', '\x01ACTION does a dance\x01'], Date.now());
+    handlePRIVMSG(
+      ctx,
+      'bob!u@h',
+      ['#chan', '\x01ACTION does a dance\x01'],
+      Date.now(),
+    );
 
     // ACTION should NOT call handleCTCPRequest - it should display as a message
     expect(ctx.handleCTCPRequest).not.toHaveBeenCalled();
@@ -692,9 +833,18 @@ describe('PrivmsgCommandHandlers', () => {
 
   it('displays CTCP ACTION in query window', () => {
     const { ctx, messages } = createMockCtx();
-    ctx.parseCTCP.mockReturnValue({ isCTCP: true, command: 'ACTION', args: 'waves hello' });
+    ctx.parseCTCP.mockReturnValue({
+      isCTCP: true,
+      command: 'ACTION',
+      args: 'waves hello',
+    });
 
-    handlePRIVMSG(ctx, 'alice!u@h', ['tester', '\x01ACTION waves hello\x01'], Date.now());
+    handlePRIVMSG(
+      ctx,
+      'alice!u@h',
+      ['tester', '\x01ACTION waves hello\x01'],
+      Date.now(),
+    );
 
     // ACTION should NOT call handleCTCPRequest
     expect(ctx.handleCTCPRequest).not.toHaveBeenCalled();
@@ -716,7 +866,12 @@ describe('PrivmsgCommandHandlers', () => {
 
   it('strips ZNC playback timestamps', () => {
     const { ctx, messages } = createMockCtx();
-    handlePRIVMSG(ctx, 'alice!u@h', ['#chan', '[12:34:56] Hello from ZNC'], Date.now());
+    handlePRIVMSG(
+      ctx,
+      'alice!u@h',
+      ['#chan', '[12:34:56] Hello from ZNC'],
+      Date.now(),
+    );
 
     expect(messages[0].text).toBe('Hello from ZNC');
   });
@@ -740,7 +895,12 @@ describe('PrivmsgCommandHandlers', () => {
 
   it('includes username and hostname from prefix', () => {
     const { ctx, messages } = createMockCtx();
-    handlePRIVMSG(ctx, 'alice!auser@some.host.com', ['#chan', 'msg'], Date.now());
+    handlePRIVMSG(
+      ctx,
+      'alice!auser@some.host.com',
+      ['#chan', 'msg'],
+      Date.now(),
+    );
 
     expect(messages[0].username).toBe('auser');
     expect(messages[0].hostname).toBe('some.host.com');
@@ -761,7 +921,13 @@ describe('PrivmsgCommandHandlers', () => {
     });
     handlePRIVMSG(ctx, 'flood!u@h', ['#chan', 'spam spam'], Date.now());
 
-    expect(ctx.handleProtectionBlock).toHaveBeenCalledWith('flood', 'flood', 'u', 'h', '#chan');
+    expect(ctx.handleProtectionBlock).toHaveBeenCalledWith(
+      'flood',
+      'flood',
+      'u',
+      'h',
+      '#chan',
+    );
     expect(messages).toHaveLength(0);
   });
 });

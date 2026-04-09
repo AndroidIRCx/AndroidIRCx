@@ -27,7 +27,9 @@ jest.mock('../../src/services/ConnectionManager', () => ({
   },
 }));
 
-const { userManagementService } = require('../../src/services/UserManagementService');
+const {
+  userManagementService,
+} = require('../../src/services/UserManagementService');
 const { connectionManager } = require('../../src/services/ConnectionManager');
 
 describe('IgnoreListScreen', () => {
@@ -61,7 +63,7 @@ describe('IgnoreListScreen', () => {
 
   it('renders nothing when hidden', () => {
     const { queryByText } = render(
-      <IgnoreListScreen visible={false} onClose={jest.fn()} />
+      <IgnoreListScreen visible={false} onClose={jest.fn()} />,
     );
 
     expect(queryByText('Ignore List')).toBeNull();
@@ -69,7 +71,7 @@ describe('IgnoreListScreen', () => {
 
   it('loads and renders ignored users', async () => {
     const { findByText } = render(
-      <IgnoreListScreen visible onClose={jest.fn()} />
+      <IgnoreListScreen visible onClose={jest.fn()} />,
     );
 
     expect(await findByText('Ignore List')).toBeTruthy();
@@ -80,7 +82,7 @@ describe('IgnoreListScreen', () => {
 
   it('filters entries by search query', async () => {
     const { findByPlaceholderText, findByText, queryByText } = render(
-      <IgnoreListScreen visible onClose={jest.fn()} />
+      <IgnoreListScreen visible onClose={jest.fn()} />,
     );
 
     const input = await findByPlaceholderText('Search by mask or reason...');
@@ -92,17 +94,17 @@ describe('IgnoreListScreen', () => {
 
   it('adds a new ignored user', async () => {
     const { findByText, findByPlaceholderText } = render(
-      <IgnoreListScreen visible onClose={jest.fn()} />
+      <IgnoreListScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('+ Add'));
     fireEvent.changeText(
       await findByPlaceholderText('nick or mask (e.g., *!*@host.com)'),
-      'new!*@*'
+      'new!*@*',
     );
     fireEvent.changeText(
       await findByPlaceholderText('Reason (optional)'),
-      'annoying'
+      'annoying',
     );
 
     fireEvent.press(await findByText('Add'));
@@ -111,23 +113,26 @@ describe('IgnoreListScreen', () => {
       expect(userManagementService.ignoreUser).toHaveBeenCalledWith(
         'new!*@*',
         'annoying',
-        undefined
+        undefined,
       );
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Success', 'User added to ignore list');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Success',
+      'User added to ignore list',
+    );
   });
 
   it('removes an ignored user after confirmation', async () => {
     const { findAllByText } = render(
-      <IgnoreListScreen visible onClose={jest.fn()} />
+      <IgnoreListScreen visible onClose={jest.fn()} />,
     );
 
     const removeButtons = await findAllByText('Remove');
     fireEvent.press(removeButtons[0]);
 
     const removeDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Remove from Ignore List'
+      call => call[0] === 'Remove from Ignore List',
     );
     expect(removeDialog).toBeTruthy();
 
@@ -135,13 +140,19 @@ describe('IgnoreListScreen', () => {
       await removeDialog[2][1].onPress();
     });
 
-    expect(userManagementService.unignoreUser).toHaveBeenCalledWith('bad!*@*', 'net-a');
-    expect(Alert.alert).toHaveBeenCalledWith('Success', 'User removed from ignore list');
+    expect(userManagementService.unignoreUser).toHaveBeenCalledWith(
+      'bad!*@*',
+      'net-a',
+    );
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Success',
+      'User removed from ignore list',
+    );
   });
 
   it('filters by selected network', async () => {
     const { findAllByText, findByText, queryByText } = render(
-      <IgnoreListScreen visible onClose={jest.fn()} />
+      <IgnoreListScreen visible onClose={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('All Networks'));
@@ -155,7 +166,7 @@ describe('IgnoreListScreen', () => {
   it('closes from header button', async () => {
     const onClose = jest.fn();
     const { findAllByText } = render(
-      <IgnoreListScreen visible onClose={onClose} />
+      <IgnoreListScreen visible onClose={onClose} />,
     );
 
     const closeButtons = await findAllByText('Close');

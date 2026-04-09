@@ -5,7 +5,12 @@
 
 import TcpSocket from 'react-native-tcp-socket';
 import type TLSSocket from 'react-native-tcp-socket/lib/types/TLSSocket';
-import { DEFAULT_PART_MESSAGE, DEFAULT_QUIT_MESSAGE, DEFAULT_CTCP_VERSION_MESSAGE, ProxyConfig } from './SettingsService';
+import {
+  DEFAULT_PART_MESSAGE,
+  DEFAULT_QUIT_MESSAGE,
+  DEFAULT_CTCP_VERSION_MESSAGE,
+  ProxyConfig,
+} from './SettingsService';
 import { ircForegroundService } from './IRCForegroundService';
 import { userManagementService, BlacklistEntry } from './UserManagementService';
 import { notifyService } from './NotifyService';
@@ -16,14 +21,18 @@ import { IRCNumericHandlers } from './irc/IRCNumericHandlers';
 import { IRCCommandHandlers } from './irc/IRCCommandHandlers';
 import { CAPHandlers } from './irc/cap/CAPHandlers';
 import { IRCSendMessageHandlers } from './irc/IRCSendMessageHandlers';
-import { parseCTCP, encodeCTCP, handleCTCPRequest as handleCTCPRequestFn } from './irc/protocol/CTCPHandlers';
+import {
+  parseCTCP,
+  encodeCTCP,
+  handleCTCPRequest as handleCTCPRequestFn,
+} from './irc/protocol/CTCPHandlers';
 import { settingsService } from './SettingsService';
 import { BatchLabelManager } from './irc/protocol/BatchLabelHandlers';
 import { MultilineHandler } from './irc/protocol/MultilineHandler';
 import { stsService } from './STSService';
 import { ScramAuthService } from './irc/ScramAuth';
 
-/* eslint-disable no-bitwise, no-control-regex, no-useless-escape, no-return-assign -- IRC protocol parsing and framing intentionally use low-level bitwise and regex patterns. */
+/* eslint-disable no-bitwise, no-control-regex, no-useless-escape -- IRC protocol parsing and framing intentionally use low-level bitwise and regex patterns. */
 // Re-export ChannelTab from types for backward compatibility
 export type { ChannelTab } from '../types';
 
@@ -49,7 +58,7 @@ export interface IRCConnectionConfig {
     account: string;
     password: string;
     mechanism?: 'PLAIN' | 'SCRAM-SHA-256' | 'SCRAM-SHA-256-PLUS' | 'EXTERNAL';
-    force?: boolean;  // Force SASL even if server doesn't advertise capability
+    force?: boolean; // Force SASL even if server doesn't advertise capability
   };
 }
 
@@ -63,11 +72,17 @@ export type RawMessageCategory =
   | 'user'
   | 'debug';
 
-export const RAW_MESSAGE_CATEGORIES: { id: RawMessageCategory; title: string; description: string }[] = [
+export const RAW_MESSAGE_CATEGORIES: {
+  id: RawMessageCategory;
+  title: string;
+  description: string;
+}[] = [
   {
     id: 'connection',
     title: t('Connection'),
-    description: t('Connect/disconnect, proxy, and registration flow messages.'),
+    description: t(
+      'Connect/disconnect, proxy, and registration flow messages.',
+    ),
   },
   {
     id: 'trafficIn',
@@ -87,7 +102,9 @@ export const RAW_MESSAGE_CATEGORIES: { id: RawMessageCategory; title: string; de
   {
     id: 'channel',
     title: t('Channel notices'),
-    description: t('Channel modes, lists, topics, and per-channel system notices.'),
+    description: t(
+      'Channel modes, lists, topics, and per-channel system notices.',
+    ),
   },
   {
     id: 'user',
@@ -106,21 +123,38 @@ export const RAW_MESSAGE_CATEGORIES: { id: RawMessageCategory; title: string; de
   },
 ];
 
-export const getDefaultRawCategoryVisibility = (): Record<RawMessageCategory, boolean> =>
-  ({
-    connection: true,
-    server: true,
-    channel: false, // Hide channel-level raw by default; enable via settings if desired
-    user: true,
-    auth: true,
-    debug: true,
-    trafficIn: false, // Hide full incoming traffic by default to avoid channel message duplication
-    trafficOut: false, // Hide outgoing traffic by default
-  });
+export const getDefaultRawCategoryVisibility = (): Record<
+  RawMessageCategory,
+  boolean
+> => ({
+  connection: true,
+  server: true,
+  channel: false, // Hide channel-level raw by default; enable via settings if desired
+  user: true,
+  auth: true,
+  debug: true,
+  trafficIn: false, // Hide full incoming traffic by default to avoid channel message duplication
+  trafficOut: false, // Hide outgoing traffic by default
+});
 
 export interface IRCMessage {
   id: string;
-  type: 'message' | 'notice' | 'raw' | 'join' | 'part' | 'quit' | 'kick' | 'nick' | 'mode' | 'topic' | 'error' | 'invite' | 'monitor' | 'ctcp' | 'system';
+  type:
+    | 'message'
+    | 'notice'
+    | 'raw'
+    | 'join'
+    | 'part'
+    | 'quit'
+    | 'kick'
+    | 'nick'
+    | 'mode'
+    | 'topic'
+    | 'error'
+    | 'invite'
+    | 'monitor'
+    | 'ctcp'
+    | 'system';
   channel?: string;
   from?: string;
   oldNick?: string;
@@ -194,7 +228,7 @@ export class IRCService {
   private commandHandlers: IRCCommandHandlers | null = null;
   private sendMessageHandlers: IRCSendMessageHandlers | null = null;
   private capHandlers: CAPHandlers | null = null;
-  
+
   // CAP negotiation state
   private capNegotiating: boolean = false;
   private capEnabled: boolean = false;
@@ -208,7 +242,7 @@ export class IRCService {
 
   // UserManagementService instance (set by ConnectionManager, fallback to global singleton)
   private _userManagementService: typeof userManagementService | null = null;
-  
+
   // NotifyService instance
   private _notifyService: typeof notifyService | null = null;
 
@@ -235,7 +269,9 @@ export class IRCService {
   private cloneDetectionActive: boolean = false;
   private cloneDetectionQueue: string[] = [];
   private cloneDetectionResults: Map<string, string[]> = new Map(); // host -> nicks[]
-  private cloneDetectionCallback: ((results: Map<string, string[]>) => void) | null = null;
+  private cloneDetectionCallback:
+    | ((results: Map<string, string[]>) => void)
+    | null = null;
   private cloneDetectionBatchSize: number = 100; // Process 100 users at a time
   private cloneDetectionDelay: number = 100; // ms between batches
 
@@ -256,12 +292,20 @@ export class IRCService {
   // SASL state
   private saslAuthenticating: boolean = false;
   private saslMechanism: string | null = null;
-  private saslState: 'initial' | 'client-first-sent' | 'server-first-received' | 'client-final-sent' | 'complete' = 'initial';
+  private saslState:
+    | 'initial'
+    | 'client-first-sent'
+    | 'server-first-received'
+    | 'client-final-sent'
+    | 'complete' = 'initial';
   private scramAuthService: ScramAuthService | null = null;
 
   // User list tracking
   private channelUsers: Map<string, Map<string, ChannelUser>> = new Map(); // channel -> nick -> user
-  private userListListeners: ((channel: string, users: ChannelUser[]) => void)[] = [];
+  private userListListeners: ((
+    channel: string,
+    users: ChannelUser[],
+  ) => void)[] = [];
   private namesBuffer: Map<string, Set<string>> = new Map(); // channel -> set of nicks being built
   private channelTopics: Map<string, ChannelTopicInfo> = new Map(); // channel -> topic info
   private pendingChannelIntro: Set<string> = new Set();
@@ -270,12 +314,15 @@ export class IRCService {
   private lastWhowasTarget: string | null = null;
   private lastWhowasAt: number = 0;
   private silentWhoNicks: Set<string> = new Set(); // Nicks for which we want silent WHO (no display)
-  private silentWhoCallbacks: Map<string, ((user: string, host: string) => void)> = new Map(); // Callbacks for silent WHO responses
+  private silentWhoCallbacks: Map<
+    string,
+    (user: string, host: string) => void
+  > = new Map(); // Callbacks for silent WHO responses
   private silentModeNicks: Set<string> = new Set(); // Nicks for which we want silent MODE (no display)
 
   public on(event: string, listener: Function) {
     if (!this.eventListeners.has(event)) {
-        this.eventListeners.set(event, []);
+      this.eventListeners.set(event, []);
     }
     this.eventListeners.get(event)!.push(listener);
     return () => {
@@ -295,23 +342,24 @@ export class IRCService {
     }
     const listeners = this.eventListeners.get(event)!;
     listeners.forEach((listener, index) => {
-      const listenerName = typeof listener === 'function' && listener.name
-        ? listener.name
-        : `anonymous#${index}`;
+      const listenerName =
+        typeof listener === 'function' && listener.name
+          ? listener.name
+          : `anonymous#${index}`;
       try {
         const result = listener(...args);
         if (result && typeof (result as Promise<unknown>).then === 'function') {
-          (result as Promise<unknown>).catch((e) => {
+          (result as Promise<unknown>).catch(e => {
             console.error(
               `Error in IRCService async event listener for ${event} (${listenerName}):`,
-              e
+              e,
             );
           });
         }
       } catch (e) {
         console.error(
           `Error in IRCService event listener for ${event} (${listenerName}):`,
-          e
+          e,
         );
       }
     });
@@ -334,7 +382,10 @@ export class IRCService {
     if (this.isLoggingRaw) return;
     this.isLoggingRaw = true;
     try {
-      this.addRawMessage(text.startsWith('***') ? text : `*** ${text}`, 'debug');
+      this.addRawMessage(
+        text.startsWith('***') ? text : `*** ${text}`,
+        'debug',
+      );
     } finally {
       this.isLoggingRaw = false;
     }
@@ -349,7 +400,7 @@ export class IRCService {
       channel?: string;
       network?: string;
       reasonOverride?: string;
-    }
+    },
   ): void {
     if (!context.nick || context.nick === this.currentNick) {
       return;
@@ -361,7 +412,7 @@ export class IRCService {
       entry,
       context.nick,
       context.username,
-      context.hostname
+      context.hostname,
     );
     const toUserMask = (mask: string): string => {
       if (mask.includes('@')) {
@@ -416,7 +467,7 @@ export class IRCService {
     const actionMask =
       entry.action === 'akill'
         ? userMask
-        : (entry.action === 'gline' || entry.action === 'shun')
+        : entry.action === 'gline' || entry.action === 'shun'
           ? hostMask
           : resolvedMask;
     const formatTemplate = (template: string): string => {
@@ -434,7 +485,10 @@ export class IRCService {
         .replace(/\{network\}/g, network || '');
     };
 
-    if (entry.commandTemplate && ['akill', 'gline', 'shun'].includes(entry.action)) {
+    if (
+      entry.commandTemplate &&
+      ['akill', 'gline', 'shun'].includes(entry.action)
+    ) {
       this.sendCommand(formatTemplate(entry.commandTemplate));
       return;
     }
@@ -444,7 +498,11 @@ export class IRCService {
 
     switch (entry.action) {
       case 'ignore':
-        this.getUserManagementService().ignoreUser(resolvedMask, reason, network);
+        this.getUserManagementService().ignoreUser(
+          resolvedMask,
+          reason,
+          network,
+        );
         break;
       case 'ban':
         if (isValidChannel) {
@@ -454,7 +512,9 @@ export class IRCService {
       case 'kick_ban':
         if (isValidChannel) {
           this.sendCommand(`MODE ${context.channel} +b ${resolvedMask}`);
-          this.sendCommand(`KICK ${context.channel} ${context.nick} :${reason}`);
+          this.sendCommand(
+            `KICK ${context.channel} ${context.nick} :${reason}`,
+          );
         }
         break;
       case 'kill':
@@ -464,7 +524,9 @@ export class IRCService {
         this.sendCommand(`PRIVMSG OperServ :KILL ${context.nick} ${reason}`);
         break;
       case 'akill':
-        this.sendCommand(`PRIVMSG OperServ :AKILL ADD +${duration} ${userMask} ${reason}`);
+        this.sendCommand(
+          `PRIVMSG OperServ :AKILL ADD +${duration} ${userMask} ${reason}`,
+        );
         break;
       case 'gline':
         this.sendCommand(`GLINE ${hostMask} ${duration} :${reason}`);
@@ -482,12 +544,16 @@ export class IRCService {
     }
   }
 
-  private extractMaskFromNotice(text: string): { nick: string; username?: string; hostname?: string } | null {
+  private extractMaskFromNotice(
+    text: string,
+  ): { nick: string; username?: string; hostname?: string } | null {
     if (!text) return null;
     const sanitized = text
       .replace(/\x03(\d{1,2}(,\d{1,2})?)?/g, '')
       .replace(/[\x02\x0f\x1f\x16\x1d]/g, '');
-    const connectMatch = sanitized.match(/client connecting:\s*([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)!([^@\s]+)@([^\s]+)/i);
+    const connectMatch = sanitized.match(
+      /client connecting:\s*([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)!([^@\s]+)@([^\s]+)/i,
+    );
     if (connectMatch) {
       return {
         nick: connectMatch[1],
@@ -495,7 +561,9 @@ export class IRCService {
         hostname: connectMatch[3].replace(/[)\],]+$/, ''),
       };
     }
-    const connectParenMatch = sanitized.match(/client connecting:\s*([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)\s*\(([^@\s]+)@([^\s\)]+)\)/i);
+    const connectParenMatch = sanitized.match(
+      /client connecting:\s*([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)\s*\(([^@\s]+)@([^\s\)]+)\)/i,
+    );
     if (connectParenMatch) {
       return {
         nick: connectParenMatch[1],
@@ -503,7 +571,9 @@ export class IRCService {
         hostname: connectParenMatch[3].replace(/[)\],]+$/, ''),
       };
     }
-    const maskMatch = sanitized.match(/([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)!([^@\s]+)@([^\s]+)/);
+    const maskMatch = sanitized.match(
+      /([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)!([^@\s]+)@([^\s]+)/,
+    );
     if (maskMatch) {
       return {
         nick: maskMatch[1],
@@ -511,7 +581,9 @@ export class IRCService {
         hostname: maskMatch[3].replace(/[)\],]+$/, ''),
       };
     }
-    const parenMatch = sanitized.match(/([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)\s*\(([^@\s]+)@([^\s\)]+)\)/);
+    const parenMatch = sanitized.match(
+      /([A-Za-z0-9\-\[\]\\`^{}_|\.\~]+)\s*\(([^@\s]+)@([^\s\)]+)\)/,
+    );
     if (parenMatch) {
       return {
         nick: parenMatch[1],
@@ -537,13 +609,17 @@ export class IRCService {
         this.keepAliveMissedPongs += 1;
         if (this.keepAliveMissedPongs >= this.KEEPALIVE_MAX_MISSED_PONGS) {
           this.addRawMessage(
-            t('*** Keepalive timeout: no PONG received, reconnecting socket...'),
-            'connection'
+            t(
+              '*** Keepalive timeout: no PONG received, reconnecting socket...',
+            ),
+            'connection',
           );
           try {
             this.socket?.destroy();
           } catch (error: any) {
-            this.logRaw(`IRCService: Error destroying stale socket: ${error?.message || error}`);
+            this.logRaw(
+              `IRCService: Error destroying stale socket: ${error?.message || error}`,
+            );
           }
         }
       }
@@ -563,14 +639,14 @@ export class IRCService {
       try {
         let resolved = false;
         const resolveOnce = () => {
-        if (!resolved) {
-          resolved = true;
-          resolve();
-        }
-      };
+          if (!resolved) {
+            resolved = true;
+            resolve();
+          }
+        };
 
-      // Reset manual disconnect flag for new attempts
-      this.manualDisconnect = false;
+        // Reset manual disconnect flag for new attempts
+        this.manualDisconnect = false;
 
         // If no network id set by ConnectionManager, fall back to host for identification
         if (!this.networkId) {
@@ -578,18 +654,24 @@ export class IRCService {
         }
 
         // Check for STS policy before connecting
-        const stsResult = stsService.checkConnection(config.host, config.port, config.tls === true);
+        const stsResult = stsService.checkConnection(
+          config.host,
+          config.port,
+          config.tls === true,
+        );
         if (stsResult.shouldUpgrade) {
-          this.logRaw(`STS: Policy requires upgrade for ${config.host}: ${stsResult.reason}`);
+          this.logRaw(
+            `STS: Policy requires upgrade for ${config.host}: ${stsResult.reason}`,
+          );
           this.logRaw(`STS: Upgrading to TLS on port ${stsResult.targetPort}`);
-          
+
           // Modify config to use TLS
           config = {
             ...config,
             tls: true,
             port: stsResult.targetPort,
           };
-          
+
           // Emit event to inform UI about STS upgrade
           this.emit('sts-upgrade', {
             host: config.host,
@@ -606,14 +688,23 @@ export class IRCService {
 
         this.emit('pre-connect', config);
 
-        this.logRaw('IRCService: Starting connection to', config.host, ':', config.port, 'TLS:', config.tls);
-        
+        this.logRaw(
+          'IRCService: Starting connection to',
+          config.host,
+          ':',
+          config.port,
+          'TLS:',
+          config.tls,
+        );
+
         this.config = config;
         this.registered = false;
         this.buffer = '';
         this.socketTextDecoder =
-          typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8', { fatal: false }) : null;
-        
+          typeof TextDecoder !== 'undefined'
+            ? new TextDecoder('utf-8', { fatal: false })
+            : null;
+
         this.capNegotiating = false;
         this.capEnabled = false;
         this.capAvailable.clear();
@@ -642,7 +733,10 @@ export class IRCService {
             tlsOptions.cert = config.clientCert;
             tlsOptions.key = config.clientKey;
           }
-          this.logRaw('IRCService: TLS enabled, tlsCheckValidity:', tlsOptions.tlsCheckValidity);
+          this.logRaw(
+            'IRCService: TLS enabled, tlsCheckValidity:',
+            tlsOptions.tlsCheckValidity,
+          );
         }
 
         const startConnection = () => {
@@ -652,7 +746,7 @@ export class IRCService {
 
         const sendRegistration = () => {
           this.logRaw('IRCService: Sending IRC registration commands...');
-          
+
           if (config.password) {
             this.sendRaw(`PASS ${config.password}`);
           }
@@ -680,11 +774,15 @@ export class IRCService {
             let dataStr: string;
             if (typeof data === 'string') {
               dataStr = data;
-            } else if (this.socketTextDecoder && data && data.buffer !== undefined) {
+            } else if (
+              this.socketTextDecoder &&
+              data &&
+              data.buffer !== undefined
+            ) {
               try {
                 dataStr = this.socketTextDecoder.decode(
                   data instanceof Uint8Array ? data : new Uint8Array(data),
-                  { stream: true }
+                  { stream: true },
                 );
               } catch {
                 dataStr = data.toString();
@@ -697,7 +795,10 @@ export class IRCService {
           });
 
           this.socket.on('error', (error: any) => {
-            const errorMessage = error?.message || error?.toString() || t('Unknown connection error');
+            const errorMessage =
+              error?.message ||
+              error?.toString() ||
+              t('Unknown connection error');
             const errorCode = error?.code || 'NO_CODE';
             if (!this.manualDisconnect) {
               console.error('IRC Connection Error:', {
@@ -711,19 +812,29 @@ export class IRCService {
                   code: errorCode,
                   message: errorMessage,
                 }),
-                'connection'
+                'connection',
               );
             }
-            
+
             if (!this.manualDisconnect) {
               if (!this.isConnected) {
                 this.addMessage({
                   type: 'error',
-                  text: t('Connection error [{code}]: {message}', { code: errorCode, message: errorMessage }),
+                  text: t('Connection error [{code}]: {message}', {
+                    code: errorCode,
+                    message: errorMessage,
+                  }),
                   timestamp: Date.now(),
                 });
                 this.disconnect();
-                reject(new Error(t('{message} (Code: {code})', { message: errorMessage, code: errorCode })));
+                reject(
+                  new Error(
+                    t('{message} (Code: {code})', {
+                      message: errorMessage,
+                      code: errorCode,
+                    }),
+                  ),
+                );
               } else {
                 this.addMessage({
                   type: 'error',
@@ -756,7 +867,10 @@ export class IRCService {
             // Emit connection change even if isConnected is false (e.g., after KILL)
             // This ensures AutoReconnectService is notified of disconnection
             if (this.isConnected) {
-              this.addRawMessage(t('*** Connection closed by server'), 'connection');
+              this.addRawMessage(
+                t('*** Connection closed by server'),
+                'connection',
+              );
             }
             this.isConnected = false;
             this.registered = false;
@@ -787,7 +901,7 @@ export class IRCService {
               port: config.port,
               tls: tls ? t(' (TLS)') : '',
             }),
-            'connection'
+            'connection',
           );
           if (tls) {
             this.logRaw('IRCService: TLS handshake completed');
@@ -800,54 +914,74 @@ export class IRCService {
         };
 
         if (proxy) {
-          const proxyHost = proxy.host || (proxy.type === 'tor' ? '127.0.0.1' : undefined);
-          const proxyPort = proxy.port || (proxy.type === 'tor' ? 9050 : undefined);
+          const proxyHost =
+            proxy.host || (proxy.type === 'tor' ? '127.0.0.1' : undefined);
+          const proxyPort =
+            proxy.port || (proxy.type === 'tor' ? 9050 : undefined);
           if (!proxyHost || !proxyPort) {
             throw new Error(t('Proxy host/port not set'));
           }
           this.logRaw(
-            `IRCService: Connecting via proxy type=${proxy.type || 'socks5'} host=${proxyHost} port=${proxyPort}`
+            `IRCService: Connecting via proxy type=${proxy.type || 'socks5'} host=${proxyHost} port=${proxyPort}`,
           );
-          this.socket = TcpSocket.createConnection({ host: proxyHost, port: proxyPort }, async () => {
-            try {
-              await this.establishProxyTunnel(proxy, config);
-              if (config.tls) {
-                this.logRaw('IRCService: Upgrading proxy connection to TLS...');
-                this.socket = new TcpSocket.TLSSocket(this.socket, tlsOptions) as TLSSocket;
-                // Wait for TLS handshake to complete before attaching IRC listeners
-                const handleTLSError = (err: any) => {
-                  const msg = err?.message || String(err);
-                  this.addRawMessage(
-                    t('*** TLS error over proxy: {message}', { message: msg }),
-                    'connection'
+          this.socket = TcpSocket.createConnection(
+            { host: proxyHost, port: proxyPort },
+            async () => {
+              try {
+                await this.establishProxyTunnel(proxy, config);
+                if (config.tls) {
+                  this.logRaw(
+                    'IRCService: Upgrading proxy connection to TLS...',
                   );
-                  this.disconnect();
-                  reject(new Error(t('TLS handshake failed: {message}', { message: msg })));
-                };
-                this.socket.once('secureConnect', () => {
-                  this.logRaw('IRCService: TLS handshake completed over proxy connection');
-                  this.socket.removeListener('error', handleTLSError);
+                  this.socket = new TcpSocket.TLSSocket(
+                    this.socket,
+                    tlsOptions,
+                  ) as TLSSocket;
+                  // Wait for TLS handshake to complete before attaching IRC listeners
+                  const handleTLSError = (err: any) => {
+                    const msg = err?.message || String(err);
+                    this.addRawMessage(
+                      t('*** TLS error over proxy: {message}', {
+                        message: msg,
+                      }),
+                      'connection',
+                    );
+                    this.disconnect();
+                    reject(
+                      new Error(
+                        t('TLS handshake failed: {message}', { message: msg }),
+                      ),
+                    );
+                  };
+                  this.socket.once('secureConnect', () => {
+                    this.logRaw(
+                      'IRCService: TLS handshake completed over proxy connection',
+                    );
+                    this.socket.removeListener('error', handleTLSError);
+                    attachCoreListeners();
+                    markConnected(true);
+                  });
+                  this.socket.once('error', handleTLSError);
+                } else {
                   attachCoreListeners();
-                  markConnected(true);
-                });
-                this.socket.once('error', handleTLSError);
-              } else {
-                attachCoreListeners();
-                markConnected(false);
+                  markConnected(false);
+                }
+              } catch (err: any) {
+                const msg = err?.message || String(err);
+                this.addRawMessage(
+                  t('*** Proxy error: {message}', { message: msg }),
+                  'connection',
+                );
+                this.disconnect();
+                reject(err);
               }
-            } catch (err: any) {
-              const msg = err?.message || String(err);
-              this.addRawMessage(t('*** Proxy error: {message}', { message: msg }), 'connection');
-              this.disconnect();
-              reject(err);
-            }
-          });
+            },
+          );
         } else if (config.tls) {
           this.socket = TcpSocket.connectTLS(tlsOptions, () => {
             attachCoreListeners();
             markConnected(true);
           });
-          
         } else {
           this.socket = TcpSocket.createConnection(tlsOptions, () => {
             attachCoreListeners();
@@ -868,7 +1002,9 @@ export class IRCService {
 
         const capTimeout = setTimeout(() => {
           if (this.capNegotiating) {
-            this.logRaw('IRCService: CAP negotiation timeout, ending negotiation and sending registration');
+            this.logRaw(
+              'IRCService: CAP negotiation timeout, ending negotiation and sending registration',
+            );
             this.capNegotiating = false;
             this.sendRaw('CAP END');
             const registrationFn = (this as any)._sendRegistration;
@@ -877,36 +1013,45 @@ export class IRCService {
             }
           }
         }, 5000);
-        
+
         (this as any)._capTimeout = capTimeout;
-        
+
         const registrationTimeout = setTimeout(() => {
           if (!this.registered) {
-            this.addRawMessage(t('*** Waiting for server registration...'), 'connection');
+            this.addRawMessage(
+              t('*** Waiting for server registration...'),
+              'connection',
+            );
           }
         }, 10000);
-        
+
         const checkRegistration = () => {
           if (this.registered) {
             clearTimeout(registrationTimeout);
           }
         };
-        
+
         const registrationCheckInterval = setInterval(checkRegistration, 1000);
-        
+
         setTimeout(() => {
           clearInterval(registrationCheckInterval);
         }, 15000);
-
       } catch (error: any) {
-        const errorMessage = error?.message || error?.toString() || t('Failed to create connection');
+        const errorMessage =
+          error?.message ||
+          error?.toString() ||
+          t('Failed to create connection');
         console.error('IRC Service Error:', error);
         reject(new Error(errorMessage));
       }
     });
   }
 
-  private readFromSocketUntil(socket: any, predicate: (buf: Buffer) => boolean, timeoutMs: number = 5000): Promise<Buffer> {
+  private readFromSocketUntil(
+    socket: any,
+    predicate: (buf: Buffer) => boolean,
+    timeoutMs: number = 5000,
+  ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       let buffer = Buffer.alloc(0);
       const cleanup = () => {
@@ -934,7 +1079,10 @@ export class IRCService {
     });
   }
 
-  private async establishProxyTunnel(proxy: ProxyConfig, config: IRCConnectionConfig): Promise<void> {
+  private async establishProxyTunnel(
+    proxy: ProxyConfig,
+    config: IRCConnectionConfig,
+  ): Promise<void> {
     if (!proxy) return;
     if (proxy.type === 'http') {
       return this.establishHttpTunnel(proxy, config);
@@ -943,24 +1091,38 @@ export class IRCService {
     return this.establishSocks5Tunnel(proxy, config);
   }
 
-  private async establishHttpTunnel(proxy: ProxyConfig, config: IRCConnectionConfig): Promise<void> {
+  private async establishHttpTunnel(
+    proxy: ProxyConfig,
+    config: IRCConnectionConfig,
+  ): Promise<void> {
     const auth =
       proxy.username && proxy.password
         ? `Proxy-Authorization: Basic ${Buffer.from(`${proxy.username}:${proxy.password}`).toString('base64')}\r\n`
         : '';
     const connectReq = `CONNECT ${config.host}:${config.port} HTTP/1.1\r\nHost: ${config.host}:${config.port}\r\n${auth}\r\n`;
-    this.logRaw(`IRCService: HTTP proxy CONNECT -> ${config.host}:${config.port}`);
+    this.logRaw(
+      `IRCService: HTTP proxy CONNECT -> ${config.host}:${config.port}`,
+    );
     this.socket.write(connectReq);
-    const responseBuffer = await this.readFromSocketUntil(this.socket, (buf) => buf.includes(Buffer.from('\r\n\r\n')));
+    const responseBuffer = await this.readFromSocketUntil(this.socket, buf =>
+      buf.includes(Buffer.from('\r\n\r\n')),
+    );
     const response = responseBuffer.toString('utf8');
     const statusLine = response.split('\r\n')[0] || '';
     if (!statusLine.includes('200')) {
-      throw new Error(t('HTTP proxy CONNECT failed: {status}', { status: statusLine.trim() }));
+      throw new Error(
+        t('HTTP proxy CONNECT failed: {status}', { status: statusLine.trim() }),
+      );
     }
-    this.logRaw(`IRCService: HTTP proxy CONNECT tunnel established (${statusLine.trim()})`);
+    this.logRaw(
+      `IRCService: HTTP proxy CONNECT tunnel established (${statusLine.trim()})`,
+    );
   }
 
-  private async establishSocks5Tunnel(proxy: ProxyConfig, config: IRCConnectionConfig): Promise<void> {
+  private async establishSocks5Tunnel(
+    proxy: ProxyConfig,
+    config: IRCConnectionConfig,
+  ): Promise<void> {
     const hostBuf = Buffer.from(config.host, 'utf8');
     const portBuf = Buffer.alloc(2);
     portBuf.writeUInt16BE(config.port, 0);
@@ -969,10 +1131,13 @@ export class IRCService {
     const methods = wantAuth ? [0x00, 0x02] : [0x00];
     const greeting = Buffer.from([0x05, methods.length, ...methods]);
     this.logRaw(
-      `IRCService: SOCKS5 greeting (auth=${wantAuth ? 'username/password' : 'none'}) to ${config.host}:${config.port}`
+      `IRCService: SOCKS5 greeting (auth=${wantAuth ? 'username/password' : 'none'}) to ${config.host}:${config.port}`,
     );
     this.socket.write(greeting);
-    const methodResp = await this.readFromSocketUntil(this.socket, (buf) => buf.length >= 2);
+    const methodResp = await this.readFromSocketUntil(
+      this.socket,
+      buf => buf.length >= 2,
+    );
     if (methodResp[0] !== 0x05) {
       throw new Error(t('SOCKS5 proxy: invalid version'));
     }
@@ -980,9 +1145,17 @@ export class IRCService {
     if (method === 0x02 && wantAuth) {
       const u = Buffer.from(String(proxy.username));
       const p = Buffer.from(String(proxy.password));
-      const authReq = Buffer.concat([Buffer.from([0x01, u.length]), u, Buffer.from([p.length]), p]);
+      const authReq = Buffer.concat([
+        Buffer.from([0x01, u.length]),
+        u,
+        Buffer.from([p.length]),
+        p,
+      ]);
       this.socket.write(authReq);
-      const authResp = await this.readFromSocketUntil(this.socket, (buf) => buf.length >= 2);
+      const authResp = await this.readFromSocketUntil(
+        this.socket,
+        buf => buf.length >= 2,
+      );
       if (authResp[1] !== 0x00) {
         throw new Error(t('SOCKS5 proxy: authentication failed'));
       }
@@ -991,12 +1164,21 @@ export class IRCService {
       throw new Error(t('SOCKS5 proxy: no acceptable auth method'));
     }
 
-    const request = Buffer.concat([Buffer.from([0x05, 0x01, 0x00, 0x03, hostBuf.length]), hostBuf, portBuf]);
+    const request = Buffer.concat([
+      Buffer.from([0x05, 0x01, 0x00, 0x03, hostBuf.length]),
+      hostBuf,
+      portBuf,
+    ]);
     this.socket.write(request);
 
-    const replyHead = await this.readFromSocketUntil(this.socket, (buf) => buf.length >= 5);
+    const replyHead = await this.readFromSocketUntil(
+      this.socket,
+      buf => buf.length >= 5,
+    );
     if (replyHead[1] !== 0x00) {
-      throw new Error(t('SOCKS5 proxy: connect failed (code {code})', { code: replyHead[1] }));
+      throw new Error(
+        t('SOCKS5 proxy: connect failed (code {code})', { code: replyHead[1] }),
+      );
     }
     const atyp = replyHead[3];
     let addrLen = 0;
@@ -1005,7 +1187,7 @@ export class IRCService {
     else if (atyp === 0x04) addrLen = 16;
     const need = 4 + (atyp === 0x03 ? 1 : 0) + addrLen + 2;
     if (replyHead.length < need) {
-      await this.readFromSocketUntil(this.socket, (buf) => buf.length >= need);
+      await this.readFromSocketUntil(this.socket, buf => buf.length >= need);
     }
     this.logRaw('IRCService: SOCKS5 tunnel established');
   }
@@ -1017,14 +1199,18 @@ export class IRCService {
     this.buffer = lines.pop() || '';
 
     if (this.buffer.length > 8192) {
-      this.logRaw(`IRCService: Large partial line buffer detected (${this.buffer.length} chars)`);
+      this.logRaw(
+        `IRCService: Large partial line buffer detected (${this.buffer.length} chars)`,
+      );
     }
 
     for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed) {
         if (line.length > 900) {
-          this.logRaw(`IRCService: Long inbound IRC line (${line.length} chars)`);
+          this.logRaw(
+            `IRCService: Long inbound IRC line (${line.length} chars)`,
+          );
         }
         this.addWireMessage('in', trimmed);
         this.handleIRCMessage(line);
@@ -1041,13 +1227,13 @@ export class IRCService {
     }
     let tags: Map<string, string> = new Map();
     let messageLine = line;
-    
+
     if (line.startsWith('@')) {
       const tagEnd = line.indexOf(' ');
       if (tagEnd > 0) {
         const tagString = line.substring(1, tagEnd);
         messageLine = line.substring(tagEnd + 1);
-        
+
         tagString.split(';').forEach(tagPair => {
           const [key, value] = tagPair.split('=');
           if (key) {
@@ -1068,14 +1254,16 @@ export class IRCService {
             const dotIndex = timeValue.lastIndexOf('.');
             const zIndex = timeValue.lastIndexOf('Z');
             if (dotIndex !== -1 && zIndex !== -1 && zIndex > dotIndex) {
-                const fractional = timeValue.substring(dotIndex + 1, zIndex);
-                if (fractional.length > 3) {
-                    const ms = parseFloat(`0.${fractional}`) * 1000;
-                    const baseTime = Date.parse(timeValue.substring(0, dotIndex) + 'Z');
-                    if (!isNaN(baseTime) && !isNaN(ms)) {
-                        messageTimestamp = baseTime + ms;
-                    }
+              const fractional = timeValue.substring(dotIndex + 1, zIndex);
+              if (fractional.length > 3) {
+                const ms = parseFloat(`0.${fractional}`) * 1000;
+                const baseTime = Date.parse(
+                  timeValue.substring(0, dotIndex) + 'Z',
+                );
+                if (!isNaN(baseTime) && !isNaN(ms)) {
+                  messageTimestamp = baseTime + ms;
                 }
+              }
             }
           }
         } catch (e) {
@@ -1099,8 +1287,14 @@ export class IRCService {
 
     // Message deduplication: skip duplicate msgid values, but never for multiline parts.
     // Some servers reuse the same msgid across all multiline chunks.
-    if (msgidTag && !hasMultilineConcatTag && this.seenMessageIds.has(msgidTag)) {
-      this.logRaw(`IRCService: Skipping duplicate message with msgid: ${msgidTag}`);
+    if (
+      msgidTag &&
+      !hasMultilineConcatTag &&
+      this.seenMessageIds.has(msgidTag)
+    ) {
+      this.logRaw(
+        `IRCService: Skipping duplicate message with msgid: ${msgidTag}`,
+      );
       return;
     }
 
@@ -1118,12 +1312,19 @@ export class IRCService {
 
     // Extract client-only tags (draft)
     const channelContextTag = tags.get('+draft/channel-context') || undefined;
-    const replyTag = tags.get('+draft/reply') || tags.get('+reply') || undefined;
-    const reactTag = tags.get('+draft/react') || tags.get('+react') || undefined;
-    const typingTag = tags.get('typing') || tags.get('draft/typing') || tags.get('+typing') || undefined;
+    const replyTag =
+      tags.get('+draft/reply') || tags.get('+reply') || undefined;
+    const reactTag =
+      tags.get('+draft/react') || tags.get('+react') || undefined;
+    const typingTag =
+      tags.get('typing') ||
+      tags.get('draft/typing') ||
+      tags.get('+typing') ||
+      undefined;
 
     // Extract intent tag (draft/intent)
-    const intentTag = tags.get('+draft/intent') || tags.get('+intent') || undefined;
+    const intentTag =
+      tags.get('+draft/intent') || tags.get('+intent') || undefined;
 
     // Extract multiline concat tag (draft/multiline).
     // Keep empty-string value because it marks the final chunk.
@@ -1205,13 +1406,24 @@ export class IRCService {
 
     // Handle labeled-response (IRCv3.2) - match responses to commands
     if (labelTag) {
-      this.handleLabeledResponse(labelTag, { command, params, prefix, timestamp: messageTimestamp, tags });
+      this.handleLabeledResponse(labelTag, {
+        command,
+        params,
+        prefix,
+        timestamp: messageTimestamp,
+        tags,
+      });
     }
   }
 
-  private handleNumericReply(numeric: number, prefix: string, params: string[], timestamp: number = Date.now()): void {
+  private handleNumericReply(
+    numeric: number,
+    prefix: string,
+    params: string[],
+    timestamp: number = Date.now(),
+  ): void {
     this.emit('numeric', numeric, prefix, params, timestamp);
-    
+
     // Try extracted handlers first (modular architecture)
     if (!this.numericHandlers) {
       this.numericHandlers = new IRCNumericHandlers(this as any);
@@ -1219,7 +1431,7 @@ export class IRCService {
     if (this.numericHandlers.handle(numeric, prefix, params, timestamp)) {
       return; // Handler found and executed
     }
-    
+
     // Fallback to a generic display for numerics not yet mapped
     const rawText = params.slice(1).join(' ').replace(/^:/, '');
     const displayText = rawText || t('Server response');
@@ -1228,7 +1440,7 @@ export class IRCService {
       text: t('[{numeric}] {message}', { numeric, message: displayText }),
       timestamp: timestamp,
       isRaw: true,
-      rawCategory: 'server'
+      rawCategory: 'server',
     });
   }
 
@@ -1243,17 +1455,19 @@ export class IRCService {
     for (let i = 0; i < str.length; i++) {
       bytes.push(str.charCodeAt(i));
     }
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     let output = '';
     for (let i = 0; i < bytes.length; i += 3) {
       const byte1 = bytes[i] || 0;
       const byte2 = bytes[i + 1] || 0;
       const byte3 = bytes[i + 2] || 0;
       const bitmap = (byte1 << 16) | (byte2 << 8) | byte3;
-      output += chars.charAt(bitmap >> 18 & 0x3F) +
-                chars.charAt(bitmap >> 12 & 0x3F) +
-                (i + 1 < bytes.length ? chars.charAt(bitmap >> 6 & 0x3F) : '=') +
-                (i + 2 < bytes.length ? chars.charAt(bitmap & 0x3F) : '=');
+      output +=
+        chars.charAt((bitmap >> 18) & 0x3f) +
+        chars.charAt((bitmap >> 12) & 0x3f) +
+        (i + 1 < bytes.length ? chars.charAt((bitmap >> 6) & 0x3f) : '=') +
+        (i + 2 < bytes.length ? chars.charAt(bitmap & 0x3f) : '=');
     }
     return output;
   }
@@ -1266,7 +1480,9 @@ export class IRCService {
     }
 
     if (this.config?.clientCert && this.config?.clientKey) {
-      this.logRaw('IRCService: Starting SASL EXTERNAL authentication with cert');
+      this.logRaw(
+        'IRCService: Starting SASL EXTERNAL authentication with cert',
+      );
       this.saslMechanism = 'EXTERNAL';
       this.saslAuthenticating = true;
       this.saslState = 'initial';
@@ -1278,45 +1494,52 @@ export class IRCService {
       this.logRaw('IRCService: No SASL config available');
       return;
     }
-    
+
     if (!this.config.sasl.account || !this.config.sasl.password) {
       this.logRaw('IRCService: SASL account or password missing');
       return;
     }
-    
+
     const mechanism = this.config.sasl.mechanism || 'PLAIN';
     this.saslMechanism = mechanism;
     this.saslAuthenticating = true;
     this.saslState = 'initial';
-    
+
     if (mechanism === 'SCRAM-SHA-256' || mechanism === 'SCRAM-SHA-256-PLUS') {
-      this.logRaw(`IRCService: Starting SASL ${mechanism} authentication for account: ${this.config.sasl.account}`);
-      
+      this.logRaw(
+        `IRCService: Starting SASL ${mechanism} authentication for account: ${this.config.sasl.account}`,
+      );
+
       // Initialize SCRAM auth service
       this.scramAuthService = new ScramAuthService();
-      
+
       // For SCRAM-SHA-256-PLUS, we would need TLS exported keying material
       // This is not currently available in react-native-tcp-socket
-      const tlsKeyingMaterial = mechanism === 'SCRAM-SHA-256-PLUS' ? undefined : undefined;
-      
+      const tlsKeyingMaterial =
+        mechanism === 'SCRAM-SHA-256-PLUS' ? undefined : undefined;
+
       await this.scramAuthService.init(mechanism, tlsKeyingMaterial);
       this.sendRaw(`AUTHENTICATE ${mechanism}`);
     } else {
       // PLAIN mechanism (default)
-      this.logRaw(`IRCService: Starting SASL PLAIN authentication for account: ${this.config.sasl.account}`);
+      this.logRaw(
+        `IRCService: Starting SASL PLAIN authentication for account: ${this.config.sasl.account}`,
+      );
       this.sendRaw('AUTHENTICATE PLAIN');
     }
   }
 
   private async sendSASLCredentials(): Promise<void> {
     if (!this.config?.sasl || !this.saslAuthenticating) return;
-    
+
     const mechanism = this.saslMechanism || 'PLAIN';
-    
+
     if (mechanism === 'SCRAM-SHA-256' || mechanism === 'SCRAM-SHA-256-PLUS') {
       // SCRAM authentication - send client-first-message
       if (this.scramAuthService && this.saslState === 'initial') {
-        const clientFirst = this.scramAuthService.buildClientFirst(this.config.sasl.account);
+        const clientFirst = this.scramAuthService.buildClientFirst(
+          this.config.sasl.account,
+        );
         this.saslState = 'client-first-sent';
         this.sendRaw(`AUTHENTICATE ${clientFirst}`);
       }
@@ -1325,7 +1548,7 @@ export class IRCService {
       const { account, password } = this.config.sasl;
       const authString = `${account}\0${account}\0${password}`;
       const authBase64 = this.base64Encode(authString);
-      
+
       if (authBase64.length > 400) {
         const chunks = authBase64.match(/.{1,400}/g) || [];
         chunks.forEach(chunk => {
@@ -1340,26 +1563,32 @@ export class IRCService {
   /**
    * Handle SCRAM server-first-message
    */
-  private async handleScramServerFirst(serverFirstMessage: string): Promise<void> {
+  private async handleScramServerFirst(
+    serverFirstMessage: string,
+  ): Promise<void> {
     if (!this.scramAuthService || !this.config?.sasl) {
       this.logRaw('IRCService: SCRAM not initialized');
       return;
     }
-    
+
     const result = this.scramAuthService.processServerFirst(serverFirstMessage);
     if (!result.success) {
-      this.logRaw(`IRCService: SCRAM server-first-message error: ${result.error}`);
+      this.logRaw(
+        `IRCService: SCRAM server-first-message error: ${result.error}`,
+      );
       this.sendRaw('AUTHENTICATE *');
       this.saslAuthenticating = false;
       this.saslState = 'initial';
       return;
     }
-    
+
     this.saslState = 'server-first-received';
-    
+
     // Build and send client-final-message
     try {
-      const clientFinal = await this.scramAuthService.buildClientFinal(this.config.sasl.password);
+      const clientFinal = await this.scramAuthService.buildClientFinal(
+        this.config.sasl.password,
+      );
       this.saslState = 'client-final-sent';
       this.sendRaw(`AUTHENTICATE ${clientFinal}`);
     } catch (e) {
@@ -1378,16 +1607,18 @@ export class IRCService {
       this.logRaw('IRCService: SCRAM not initialized');
       return;
     }
-    
+
     const result = this.scramAuthService.verifyServerFinal(serverFinalMessage);
     if (!result.success) {
-      this.logRaw(`IRCService: SCRAM server verification failed: ${result.error}`);
+      this.logRaw(
+        `IRCService: SCRAM server verification failed: ${result.error}`,
+      );
       // Server will send 904 ERR_SASLFAIL after this
     } else {
       this.logRaw('IRCService: SCRAM server signature verified');
       // Server will send 903 RPL_SASLSUCCESS after this
     }
-    
+
     this.saslState = 'complete';
   }
 
@@ -1399,9 +1630,15 @@ export class IRCService {
         capRequested: this.capRequested,
         config: this.config,
         getCapLSReceived: () => this.capLSReceived,
-        setCapLSReceived: (value: boolean) => { this.capLSReceived = value; },
-        setUserhostInNames: (value: boolean) => { this.userhostInNames = value; },
-        setExtendedJoin: (value: boolean) => { this.extendedJoin = value; },
+        setCapLSReceived: (value: boolean) => {
+          this.capLSReceived = value;
+        },
+        setUserhostInNames: (value: boolean) => {
+          this.userhostInNames = value;
+        },
+        setExtendedJoin: (value: boolean) => {
+          this.extendedJoin = value;
+        },
         getSaslAuthenticating: () => this.saslAuthenticating,
         emit: this.emit.bind(this),
         logRaw: this.logRaw.bind(this),
@@ -1421,14 +1658,18 @@ export class IRCService {
       errorText.toLowerCase().includes('kill');
 
     if (isKillError) {
-      this.logRaw(`IRCService: KILL-related ERROR received: ${errorText}, disconnecting and triggering auto-reconnect`);
+      this.logRaw(
+        `IRCService: KILL-related ERROR received: ${errorText}, disconnecting and triggering auto-reconnect`,
+      );
       this.isConnected = false;
       this.registered = false;
       if (this.socket) {
         try {
           this.socket.destroy();
         } catch (error: any) {
-          this.logRaw(`IRCService: Socket destroy error during ERROR/KILL (ignored): ${error?.message || error}`);
+          this.logRaw(
+            `IRCService: Socket destroy error during ERROR/KILL (ignored): ${error?.message || error}`,
+          );
         }
         this.socket = null;
       }
@@ -1440,14 +1681,18 @@ export class IRCService {
 
   private handleKillDisconnect(_reason: string): void {
     const currentNick = this.getCurrentNick();
-    this.logRaw(`IRCService: KILL received for ${currentNick}, disconnecting and triggering auto-reconnect`);
+    this.logRaw(
+      `IRCService: KILL received for ${currentNick}, disconnecting and triggering auto-reconnect`,
+    );
     this.isConnected = false;
     this.registered = false;
     if (this.socket) {
       try {
         this.socket.destroy();
       } catch (error: any) {
-        this.logRaw(`IRCService: Socket destroy error during KILL (ignored): ${error?.message || error}`);
+        this.logRaw(
+          `IRCService: Socket destroy error during KILL (ignored): ${error?.message || error}`,
+        );
       }
       this.socket = null;
     }
@@ -1467,38 +1712,73 @@ export class IRCService {
 
   private requestCapabilities(): void {
     const allCapsWeWant = [
-      'server-time', 'account-notify', 'extended-join', 'userhost-in-names',
-      'away-notify', 'chghost', 'message-tags', 'typing', 'draft/typing', 'batch', 'labeled-response',
-      'echo-message', 'multi-prefix', 'invite-notify', 'monitor', 'extended-monitor',
-      'cap-notify', 'account-tag', 'setname', 'standard-replies', 'message-ids',
-      'bot', 'utf8only', 'chathistory', 'draft/chathistory', 'draft/multiline', 'draft/read-marker',
-      'draft/message-redaction', 'event-playback', 'draft/account-registration',
-      'draft/channel-rename', 'sts'
+      'server-time',
+      'account-notify',
+      'extended-join',
+      'userhost-in-names',
+      'away-notify',
+      'chghost',
+      'message-tags',
+      'typing',
+      'draft/typing',
+      'batch',
+      'labeled-response',
+      'echo-message',
+      'multi-prefix',
+      'invite-notify',
+      'monitor',
+      'extended-monitor',
+      'cap-notify',
+      'account-tag',
+      'setname',
+      'standard-replies',
+      'message-ids',
+      'bot',
+      'utf8only',
+      'chathistory',
+      'draft/chathistory',
+      'draft/multiline',
+      'draft/read-marker',
+      'draft/message-redaction',
+      'event-playback',
+      'draft/account-registration',
+      'draft/channel-rename',
+      'sts',
     ];
-    const capsToRequest: string[] = allCapsWeWant.filter(cap => this.capAvailable.has(cap));
-    
+    const capsToRequest: string[] = allCapsWeWant.filter(cap =>
+      this.capAvailable.has(cap),
+    );
+
     // Check SASL availability and add to requested caps
-    const hasSaslConfig = !!this.config?.sasl?.account && !!this.config?.sasl?.password;
+    const hasSaslConfig =
+      !!this.config?.sasl?.account && !!this.config?.sasl?.password;
     const hasCert = !!(this.config?.clientCert && this.config?.clientKey);
     const saslAvailable = this.capAvailable.has('sasl');
     const forceSASL = this.config?.sasl?.force === true;
-    
+
     // Allow SASL if: (1) server advertises it, OR (2) user forces it
-    const shouldUseSASL = (hasSaslConfig || hasCert) && (saslAvailable || forceSASL);
-    
+    const shouldUseSASL =
+      (hasSaslConfig || hasCert) && (saslAvailable || forceSASL);
+
     if (shouldUseSASL) {
       capsToRequest.push('sasl');
       if (forceSASL && !saslAvailable) {
-        this.logRaw('IRCService: Force-enabling SASL (server does not advertise capability)');
+        this.logRaw(
+          'IRCService: Force-enabling SASL (server does not advertise capability)',
+        );
       }
     } else if (hasSaslConfig && !saslAvailable && !forceSASL) {
-      this.logRaw('IRCService: Server does not advertise SASL. NickServ identify will be used after connection');
+      this.logRaw(
+        'IRCService: Server does not advertise SASL. NickServ identify will be used after connection',
+      );
     }
-    
+
     if (capsToRequest.length > 0) {
       capsToRequest.forEach(cap => this.capRequested.add(cap));
       this.sendRaw(`CAP REQ :${capsToRequest.join(' ')}`);
-      this.logRaw(`IRCService: Requesting capabilities: ${capsToRequest.join(' ')}`);
+      this.logRaw(
+        `IRCService: Requesting capabilities: ${capsToRequest.join(' ')}`,
+      );
     } else {
       this.endCAPNegotiation();
     }
@@ -1506,19 +1786,19 @@ export class IRCService {
 
   private endCAPNegotiation(): void {
     if (!this.capNegotiating) return;
-    
+
     this.logRaw('IRCService: Ending CAP negotiation');
     this.capNegotiating = false;
     this.capEnabled = this.capEnabledSet.size > 0;
-    
+
     const capTimeout = (this as any)._capTimeout;
     if (capTimeout) {
       clearTimeout(capTimeout);
       (this as any)._capTimeout = null;
     }
-    
+
     this.sendRaw('CAP END');
-    
+
     const sendRegistration = (this as any)._sendRegistration;
     if (sendRegistration && typeof sendRegistration === 'function') {
       setTimeout(() => sendRegistration(), 50);
@@ -1537,7 +1817,11 @@ export class IRCService {
     return this.selfUserModes.has('o');
   }
 
-  private buildProtectionMask(nick: string, username?: string, hostname?: string): string {
+  private buildProtectionMask(
+    nick: string,
+    username?: string,
+    hostname?: string,
+  ): string {
     const user = username || '*';
     const host = hostname || '*';
     return `${nick}!${user}@${host}`;
@@ -1550,18 +1834,27 @@ export class IRCService {
     return nick;
   }
 
-  private getProtectionTabContext(target: string, fromNick: string, isChannel: boolean): { isActiveTab: boolean; isQueryOpen: boolean } {
+  private getProtectionTabContext(
+    target: string,
+    fromNick: string,
+    isChannel: boolean,
+  ): { isActiveTab: boolean; isQueryOpen: boolean } {
     const tabs = useTabStore.getState().tabs;
     const activeTab = useTabStore.getState().getActiveTab();
     const networkId = this.getNetworkName();
     const tabMatchesTarget = activeTab
       ? activeTab.networkId === networkId &&
         (isChannel
-          ? activeTab.type === 'channel' && activeTab.name.toLowerCase() === target.toLowerCase()
-          : activeTab.type === 'query' && activeTab.name.toLowerCase() === fromNick.toLowerCase())
+          ? activeTab.type === 'channel' &&
+            activeTab.name.toLowerCase() === target.toLowerCase()
+          : activeTab.type === 'query' &&
+            activeTab.name.toLowerCase() === fromNick.toLowerCase())
       : false;
     const isQueryOpen = tabs.some(
-      tab => tab.networkId === networkId && tab.type === 'query' && tab.name.toLowerCase() === fromNick.toLowerCase(),
+      tab =>
+        tab.networkId === networkId &&
+        tab.type === 'query' &&
+        tab.name.toLowerCase() === fromNick.toLowerCase(),
     );
     return { isActiveTab: tabMatchesTarget, isQueryOpen };
   }
@@ -1576,10 +1869,21 @@ export class IRCService {
     const network = this.getNetworkName();
     const ignoreMask = this.buildProtectionMask(fromNick, username, hostname);
     const hostMask = this.buildSilenceMask(fromNick, hostname);
-    if (!this.getUserManagementService().isUserIgnored(fromNick, username, hostname, network)) {
-      this.getUserManagementService().ignoreUser(ignoreMask, `Auto protection: ${decisionKind}`, network).catch(err => {
-        this.logRaw(`IRCService: Failed to auto-ignore ${ignoreMask}: ${err?.message || err}`);
-      });
+    if (
+      !this.getUserManagementService().isUserIgnored(
+        fromNick,
+        username,
+        hostname,
+        network,
+      )
+    ) {
+      this.getUserManagementService()
+        .ignoreUser(ignoreMask, `Auto protection: ${decisionKind}`, network)
+        .catch(err => {
+          this.logRaw(
+            `IRCService: Failed to auto-ignore ${ignoreMask}: ${err?.message || err}`,
+          );
+        });
     }
 
     const actionConfig = protectionService.getActionConfig();
@@ -1592,7 +1896,8 @@ export class IRCService {
       return;
     }
 
-    const reason = actionConfig.protIrcopReason || `Auto protection: ${decisionKind}`;
+    const reason =
+      actionConfig.protIrcopReason || `Auto protection: ${decisionKind}`;
     switch (actionConfig.protIrcopAction) {
       case 'ban':
         if (channel) {
@@ -1605,14 +1910,18 @@ export class IRCService {
         break;
       case 'kline':
         if (actionConfig.protIrcopDuration) {
-          this.sendCommand(`KLINE ${actionConfig.protIrcopDuration} ${hostMask} :${reason}`);
+          this.sendCommand(
+            `KLINE ${actionConfig.protIrcopDuration} ${hostMask} :${reason}`,
+          );
         } else {
           this.sendCommand(`KLINE ${hostMask} :${reason}`);
         }
         break;
       case 'gline':
         if (actionConfig.protIrcopDuration) {
-          this.sendCommand(`GLINE ${hostMask} ${actionConfig.protIrcopDuration} :${reason}`);
+          this.sendCommand(
+            `GLINE ${hostMask} ${actionConfig.protIrcopDuration} :${reason}`,
+          );
         } else {
           this.sendCommand(`GLINE ${hostMask} :${reason}`);
         }
@@ -1635,18 +1944,26 @@ export class IRCService {
   private parseUserWithPrefixes(userStr: string): ChannelUser | null {
     if (!userStr || !userStr.trim()) return null;
     const prefixes = ['~', '&', '@', '%', '+'];
-    const prefixMap: { [key: string]: string } = { '~': 'q', '&': 'a', '@': 'o', '%': 'h', '+': 'v' };
+    const prefixMap: { [key: string]: string } = {
+      '~': 'q',
+      '&': 'a',
+      '@': 'o',
+      '%': 'h',
+      '+': 'v',
+    };
     let nick = userStr;
     const modes: string[] = [];
-    
+
     while (nick.length > 0 && prefixes.includes(nick[0])) {
       const prefix = nick[0];
       const mode = prefixMap[prefix];
       if (mode && !modes.includes(mode)) modes.push(mode);
       nick = nick.substring(1);
     }
-    
-    let account: string | undefined, host: string | undefined, ident: string | undefined;
+
+    let account: string | undefined,
+      host: string | undefined,
+      ident: string | undefined;
     if (this.userhostInNames) {
       const exclamation = nick.indexOf('!');
       const at = nick.indexOf('@');
@@ -1658,21 +1975,25 @@ export class IRCService {
         // Note: we don't set account here - account comes from extended-join or account-notify
       }
     }
-    
+
     if (!nick || !nick.trim()) return null;
-    
+
     return { nick: nick.trim(), modes, account, host, ident };
   }
 
   private updateChannelUserList(channel: string): void {
     const usersMap = this.channelUsers.get(channel);
-    if (usersMap) this.emitUserListChange(channel, Array.from(usersMap.values()));
+    if (usersMap)
+      this.emitUserListChange(channel, Array.from(usersMap.values()));
   }
 
   private buildRoleLine(label: string, count: number, total: number): string {
     const barLength = 30;
-    const percentage = total > 0 ? ((count / total) * 100) : 0;
-    const visualLength = count > 0 && total > 0 ? Math.max(1, Math.round((count / total) * barLength)) : 0;
+    const percentage = total > 0 ? (count / total) * 100 : 0;
+    const visualLength =
+      count > 0 && total > 0
+        ? Math.max(1, Math.round((count / total) * barLength))
+        : 0;
     const bar = visualLength > 0 ? 'l'.repeat(visualLength) : '';
     const paddedLabel = label.padEnd(2, ' ');
     return `  |-------[ +${paddedLabel}: ${bar} ${count} (${percentage.toFixed(1)}%)`;
@@ -1680,7 +2001,12 @@ export class IRCService {
 
   private getChannelUserCounts(channel: string) {
     const usersMap = this.channelUsers.get(channel);
-    let total = 0, ops = 0, voice = 0, halfop = 0, admin = 0, owner = 0;
+    let total = 0,
+      ops = 0,
+      voice = 0,
+      halfop = 0,
+      admin = 0,
+      owner = 0;
     if (usersMap) {
       total = usersMap.size;
       usersMap.forEach(user => {
@@ -1700,9 +2026,7 @@ export class IRCService {
     const topicInfo = this.channelTopics.get(channel);
     if (!topicInfo || !topicInfo.topic) return; // Wait until we have the topic to show intro
 
-    const lines = [
-      t('Topic: {topic}', { topic: topicInfo.topic }),
-    ];
+    const lines = [t('Topic: {topic}', { topic: topicInfo.topic })];
 
     this.addMessage({
       type: 'topic',
@@ -1722,8 +2046,14 @@ export class IRCService {
     if (!modeString) return;
     let adding = true;
     for (const char of modeString) {
-      if (char === '+') { adding = true; continue; }
-      if (char === '-') { adding = false; continue; }
+      if (char === '+') {
+        adding = true;
+        continue;
+      }
+      if (char === '-') {
+        adding = false;
+        continue;
+      }
       if (adding) {
         this.selfUserModes.add(char);
       } else {
@@ -1734,20 +2064,26 @@ export class IRCService {
 
   private handleChannelModeChange(channel: string, modeParams: string[]): void {
     if (modeParams.length === 0) return;
-    
+
     const usersMap = this.channelUsers.get(channel);
     if (!usersMap) return;
     const antiDeop = protectionService.getAntiDeopConfig();
-    
+
     const modeString = modeParams[0] || '';
     let paramIndex = 1;
     let adding = true;
-    
+
     for (let i = 0; i < modeString.length; i++) {
       const char = modeString[i];
-      if (char === '+') { adding = true; continue; }
-      if (char === '-') { adding = false; continue; }
-      
+      if (char === '+') {
+        adding = true;
+        continue;
+      }
+      if (char === '-') {
+        adding = false;
+        continue;
+      }
+
       const userModes = ['o', 'v', 'h', 'a', 'q'];
       if (userModes.includes(char) && paramIndex < modeParams.length) {
         const targetNick = modeParams[paramIndex++];
@@ -1759,12 +2095,27 @@ export class IRCService {
             } else {
               user.modes = user.modes.filter(m => m !== char);
             }
-            const modePriority: { [key: string]: number } = { 'q': 0, 'a': 1, 'o': 2, 'h': 3, 'v': 4 };
-            user.modes.sort((a, b) => (modePriority[a] ?? 99) - (modePriority[b] ?? 99));
+            const modePriority: { [key: string]: number } = {
+              q: 0,
+              a: 1,
+              o: 2,
+              h: 3,
+              v: 4,
+            };
+            user.modes.sort(
+              (a, b) => (modePriority[a] ?? 99) - (modePriority[b] ?? 99),
+            );
           }
-          if (!adding && char === 'o' && antiDeop.protAntiDeopEnabled && targetNick.toLowerCase() === this.currentNick.toLowerCase()) {
+          if (
+            !adding &&
+            char === 'o' &&
+            antiDeop.protAntiDeopEnabled &&
+            targetNick.toLowerCase() === this.currentNick.toLowerCase()
+          ) {
             if (antiDeop.protAntiDeopUseChanserv) {
-              this.sendRaw(`PRIVMSG ChanServ :OP ${channel} ${this.currentNick}`);
+              this.sendRaw(
+                `PRIVMSG ChanServ :OP ${channel} ${this.currentNick}`,
+              );
             } else {
               this.sendCommand(`MODE ${channel} +o ${this.currentNick}`);
             }
@@ -1780,9 +2131,14 @@ export class IRCService {
     return usersMap ? Array.from(usersMap.values()) : [];
   }
 
-  onUserListChange(callback: (channel: string, users: ChannelUser[]) => void): () => void {
+  onUserListChange(
+    callback: (channel: string, users: ChannelUser[]) => void,
+  ): () => void {
     this.userListListeners.push(callback);
-    return () => this.userListListeners = this.userListListeners.filter(cb => cb !== callback);
+    return () =>
+      (this.userListListeners = this.userListListeners.filter(
+        cb => cb !== callback,
+      ));
   }
 
   public sendRaw(message: string): void {
@@ -1793,7 +2149,9 @@ export class IRCService {
         this.emit('send-raw', message);
       } catch (error: any) {
         // Socket may have been closed during write
-        this.logRaw(`IRCService: Unable to send message (socket closed): ${error?.message || error}`);
+        this.logRaw(
+          `IRCService: Unable to send message (socket closed): ${error?.message || error}`,
+        );
         // Mark as disconnected to prevent further write attempts
         this.isConnected = false;
       }
@@ -1806,23 +2164,28 @@ export class IRCService {
    * @param nick The nick to query
    * @param callback Optional callback that receives (username, hostname) when response arrives
    */
-  public sendSilentWho(nick: string, callback?: ((user: string, host: string) => void)): void {
+  public sendSilentWho(
+    nick: string,
+    callback?: (user: string, host: string) => void,
+  ): void {
     if (this.socket && this.isConnected) {
       // Mark this nick as silent WHO target
       this.silentWhoNicks.add(nick.toLowerCase());
-      
+
       // Store callback if provided
       if (callback) {
         this.silentWhoCallbacks.set(nick.toLowerCase(), callback);
       }
-      
+
       // Send WHO without adding to wire messages (silent)
       try {
         this.socket.write(`WHO ${nick}\r\n`);
         // Don't call addWireMessage - this keeps it silent
         this.emit('send-raw', `WHO ${nick}`);
       } catch (error: any) {
-        this.logRaw(`IRCService: Unable to send silent WHO (socket closed): ${error?.message || error}`);
+        this.logRaw(
+          `IRCService: Unable to send silent WHO (socket closed): ${error?.message || error}`,
+        );
         this.silentWhoNicks.delete(nick.toLowerCase());
         this.silentWhoCallbacks.delete(nick.toLowerCase());
       }
@@ -1838,14 +2201,16 @@ export class IRCService {
     if (this.socket && this.isConnected) {
       // Mark this nick as silent MODE target
       this.silentModeNicks.add(nick.toLowerCase());
-      
+
       // Send MODE without adding to wire messages (silent)
       try {
         this.socket.write(`MODE ${nick}\r\n`);
         // Don't call addWireMessage - this keeps it silent
         this.emit('send-raw', `MODE ${nick}`);
       } catch (error: any) {
-        this.logRaw(`IRCService: Unable to send silent MODE (socket closed): ${error?.message || error}`);
+        this.logRaw(
+          `IRCService: Unable to send silent MODE (socket closed): ${error?.message || error}`,
+        );
         this.silentModeNicks.delete(nick.toLowerCase());
       }
     }
@@ -1866,11 +2231,11 @@ export class IRCService {
 
     const userArray = Array.from(users.values());
     const hostMap = new Map<string, string[]>();
-    
+
     // Process users in batches to avoid blocking UI
     for (let i = 0; i < userArray.length; i += this.cloneDetectionBatchSize) {
       const batch = userArray.slice(i, i + this.cloneDetectionBatchSize);
-      
+
       // Process this batch
       batch.forEach(user => {
         if (user.host) {
@@ -1882,7 +2247,9 @@ export class IRCService {
 
       // Yield to event loop between batches
       if (i + this.cloneDetectionBatchSize < userArray.length) {
-        await new Promise(resolve => setTimeout(resolve, this.cloneDetectionDelay));
+        await new Promise(resolve =>
+          setTimeout(resolve, this.cloneDetectionDelay),
+        );
       }
     }
 
@@ -1916,7 +2283,9 @@ export class IRCService {
           this.sendRaw(`QUIT :${message || DEFAULT_QUIT_MESSAGE}`);
         } catch (error: any) {
           // sendRaw already handles errors, but catch here for extra safety
-          this.logRaw(`IRCService: Unable to send QUIT during disconnect: ${error?.message || error}`);
+          this.logRaw(
+            `IRCService: Unable to send QUIT during disconnect: ${error?.message || error}`,
+          );
         }
       }
 
@@ -1925,7 +2294,9 @@ export class IRCService {
       try {
         socketRef.removeAllListeners();
       } catch (error: any) {
-        this.logRaw(`IRCService: Error removing listeners: ${error?.message || error}`);
+        this.logRaw(
+          `IRCService: Error removing listeners: ${error?.message || error}`,
+        );
       }
 
       // Try graceful close with end() before destroy()
@@ -1934,7 +2305,9 @@ export class IRCService {
         socketRef.end();
       } catch (error: any) {
         // Socket may not support end() or already closed
-        this.logRaw(`IRCService: Socket end() error (ignored): ${error?.message || error}`);
+        this.logRaw(
+          `IRCService: Socket end() error (ignored): ${error?.message || error}`,
+        );
       }
 
       // Use a small delay before destroy to allow graceful shutdown
@@ -1944,7 +2317,9 @@ export class IRCService {
           socketRef.destroy();
         } catch (error: any) {
           // Socket may have already been destroyed
-          this.logRaw(`IRCService: Socket destroy error (ignored): ${error?.message || error}`);
+          this.logRaw(
+            `IRCService: Socket destroy error (ignored): ${error?.message || error}`,
+          );
         }
       }, 100);
 
@@ -1956,7 +2331,9 @@ export class IRCService {
     }
     this.channelUsers.clear();
     this.namesBuffer.clear();
-    this.channelUsers.forEach((_, channel) => this.emit('clear-channel', channel));
+    this.channelUsers.forEach((_, channel) =>
+      this.emit('clear-channel', channel),
+    );
     this.selfUserModes.clear();
     this.cleanupLabels(); // Clean up pending labeled-response commands
     this.seenMessageIds.clear(); // Clear message ID cache for deduplication
@@ -2010,7 +2387,7 @@ export class IRCService {
     // Capped at MAX_RECONNECT_DELAY
     const delay = Math.min(
       this.INITIAL_RECONNECT_DELAY * Math.pow(2, this.reconnectAttempts),
-      this.MAX_RECONNECT_DELAY
+      this.MAX_RECONNECT_DELAY,
     );
 
     this.reconnectAttempts++;
@@ -2021,7 +2398,7 @@ export class IRCService {
         suffix: seconds !== 1 ? 's' : '',
         attempt: this.reconnectAttempts,
       }),
-      'connection'
+      'connection',
     );
 
     this.reconnectTimer = setTimeout(() => {
@@ -2037,8 +2414,10 @@ export class IRCService {
         })
         .catch((error: any) => {
           this.addRawMessage(
-            t('*** Reconnection failed: {message}', { message: error?.message || error }),
-            'connection'
+            t('*** Reconnection failed: {message}', {
+              message: error?.message || error,
+            }),
+            'connection',
           );
           // Will trigger another reconnect attempt via the error handler
         });
@@ -2055,7 +2434,7 @@ export class IRCService {
   requestChannelUsers(channel: string): void {
     if (this.isConnected && channel) this.sendRaw(`NAMES ${channel}`);
   }
-  
+
   /**
    * Parse /server command with mIRC-compatible parameters
    * Supports: -demntsar switches, -l/-lname (SASL login), -i (identity), -jn (join channel), -sar (server management)
@@ -2105,21 +2484,41 @@ export class IRCService {
       const switchStr = args[i].substring(1);
       for (const char of switchStr) {
         switch (char) {
-          case 'd': result.switches.disconnectOnly = true; break;
-          case 'e': result.switches.ssl = true; break;
-          case 'm': result.switches.newWindow = true; break;
-          case 'n': result.switches.newWindowNoConnect = true; break;
-          case 't': result.switches.starttls = true; break;
-          case 's': result.management.sort = true; break;
-          case 'a': result.management.add = true; break;
-          case 'r': result.management.remove = true; break;
+          case 'd':
+            result.switches.disconnectOnly = true;
+            break;
+          case 'e':
+            result.switches.ssl = true;
+            break;
+          case 'm':
+            result.switches.newWindow = true;
+            break;
+          case 'n':
+            result.switches.newWindowNoConnect = true;
+            break;
+          case 't':
+            result.switches.starttls = true;
+            break;
+          case 's':
+            result.management.sort = true;
+            break;
+          case 'a':
+            result.management.add = true;
+            break;
+          case 'r':
+            result.management.remove = true;
+            break;
         }
       }
       i++;
     }
 
     // If management mode (-sar), parse management options
-    if (result.management.sort || result.management.add || result.management.remove) {
+    if (
+      result.management.sort ||
+      result.management.add ||
+      result.management.remove
+    ) {
       while (i < len) {
         if (args[i] === '-d' && i + 1 < len) {
           result.managementOptions.description = args[++i];
@@ -2188,7 +2587,11 @@ export class IRCService {
       } else if ((args[i] === '-jn' || args[i] === '-j') && i + 1 < len) {
         const channelPart = args[++i];
         let password = '';
-        if (i + 1 < len && !args[i + 1].startsWith('-') && !args[i + 1].startsWith('#')) {
+        if (
+          i + 1 < len &&
+          !args[i + 1].startsWith('-') &&
+          !args[i + 1].startsWith('#')
+        ) {
           password = args[++i];
         }
         const channelMatch = channelPart.match(/^([#&!+][^\s]+)$/);
@@ -2207,7 +2610,11 @@ export class IRCService {
     return result;
   }
 
-  private parseCTCP(message: string): { isCTCP: boolean; command?: string; args?: string } {
+  private parseCTCP(message: string): {
+    isCTCP: boolean;
+    command?: string;
+    args?: string;
+  } {
     return parseCTCP(message);
   }
 
@@ -2215,7 +2622,12 @@ export class IRCService {
     return encodeCTCP(command, args);
   }
 
-  private async handleCTCPRequest(from: string, target: string, command: string, args?: string): Promise<void> {
+  private async handleCTCPRequest(
+    from: string,
+    target: string,
+    command: string,
+    args?: string,
+  ): Promise<void> {
     await handleCTCPRequestFn(
       {
         sendRaw: (cmd: string) => this.sendRaw(cmd),
@@ -2224,7 +2636,11 @@ export class IRCService {
         getCurrentNick: () => this.currentNick,
         getRealname: () => this.config?.realname || '',
         isConnected: () => this.isConnected,
-        getCtcpVersionMessage: async () => settingsService.getSetting('ctcpVersionMessage', DEFAULT_CTCP_VERSION_MESSAGE),
+        getCtcpVersionMessage: async () =>
+          settingsService.getSetting(
+            'ctcpVersionMessage',
+            DEFAULT_CTCP_VERSION_MESSAGE,
+          ),
       },
       from,
       target,
@@ -2234,7 +2650,8 @@ export class IRCService {
   }
 
   sendCTCPRequest(target: string, command: string, args?: string): void {
-    if (this.isConnected) this.sendRaw(`PRIVMSG ${target} :${this.encodeCTCP(command, args)}`);
+    if (this.isConnected)
+      this.sendRaw(`PRIVMSG ${target} :${this.encodeCTCP(command, args)}`);
   }
 
   monitorNick(nick: string): void {
@@ -2266,16 +2683,23 @@ export class IRCService {
       msgid?: string;
       channelContext?: string;
       replyTo?: string;
-    }
+    },
   ): string | null {
-    return this.multilineHandler.handleMultilineMessage(from, target, text, concatTag, otherTags);
+    return this.multilineHandler.handleMultilineMessage(
+      from,
+      target,
+      text,
+      concatTag,
+      otherTags,
+    );
   }
 
   private getBatchLabelManager(): BatchLabelManager {
     if (!this.batchLabelManager) {
       this.batchLabelManager = new BatchLabelManager({
         addMessage: (msg: any) => this.addMessage(msg),
-        addRawMessage: (text: string, category: string) => this.addRawMessage(text, category as any),
+        addRawMessage: (text: string, category: string) =>
+          this.addRawMessage(text, category as any),
         emit: (event: string, ...args: any[]) => this.emit(event, ...args),
         logRaw: (msg: string) => this.logRaw(msg),
         sendRaw: (cmd: string) => this.sendRaw(cmd),
@@ -2285,8 +2709,18 @@ export class IRCService {
     return this.batchLabelManager;
   }
 
-  private handleBatchStart(refTag: string, type: string, params: string[], timestamp: number): void {
-    this.getBatchLabelManager().handleBatchStart(refTag, type, params, timestamp);
+  private handleBatchStart(
+    refTag: string,
+    type: string,
+    params: string[],
+    timestamp: number,
+  ): void {
+    this.getBatchLabelManager().handleBatchStart(
+      refTag,
+      type,
+      params,
+      timestamp,
+    );
   }
 
   private handleBatchEnd(refTag: string, timestamp: number): void {
@@ -2298,7 +2732,10 @@ export class IRCService {
     this.getBatchLabelManager().addMessageToBatch(message, batchTag);
   }
 
-  sendRawWithLabel(command: string, callback?: (response: any) => void): string {
+  sendRawWithLabel(
+    command: string,
+    callback?: (response: any) => void,
+  ): string {
     return this.getBatchLabelManager().sendRawWithLabel(command, callback);
   }
 
@@ -2312,8 +2749,11 @@ export class IRCService {
 
   partChannel(channel: string, message?: string): void {
     if (this.isConnected) {
-      const partMessage = message && message.trim() ? message : DEFAULT_PART_MESSAGE;
-      this.sendRaw(partMessage ? `PART ${channel} :${partMessage}` : `PART ${channel}`);
+      const partMessage =
+        message && message.trim() ? message : DEFAULT_PART_MESSAGE;
+      this.sendRaw(
+        partMessage ? `PART ${channel} :${partMessage}` : `PART ${channel}`,
+      );
     }
   }
 
@@ -2344,14 +2784,22 @@ export class IRCService {
     }
   }
 
-  requestChatHistory(target: string, limit: number = 100, before?: string): void {
+  requestChatHistory(
+    target: string,
+    limit: number = 100,
+    before?: string,
+  ): void {
     // IRCv3 chathistory capability - request message history
-    const hasChatHistory = this.capEnabledSet.has('chathistory') || this.capEnabledSet.has('draft/chathistory');
+    const hasChatHistory =
+      this.capEnabledSet.has('chathistory') ||
+      this.capEnabledSet.has('draft/chathistory');
     if (this.isConnected && hasChatHistory) {
       // CHATHISTORY LATEST <target> <timestamp|msgid|*> <limit>
       const reference = before || '*';
       this.sendRaw(`CHATHISTORY LATEST ${target} ${reference} ${limit}`);
-      this.logRaw(`IRCService: Requesting chat history for ${target} (limit: ${limit})`);
+      this.logRaw(
+        `IRCService: Requesting chat history for ${target} (limit: ${limit})`,
+      );
     } else if (!hasChatHistory) {
       this.addMessage({
         type: 'error',
@@ -2377,7 +2825,9 @@ export class IRCService {
     if (this.isConnected && this.capEnabledSet.has('draft/message-redaction')) {
       // REDACT <target> <msgid>
       this.sendRaw(`REDACT ${target} ${msgid}`);
-      this.logRaw(`IRCService: Sent redaction for message ${msgid} in ${target}`);
+      this.logRaw(
+        `IRCService: Sent redaction for message ${msgid} in ${target}`,
+      );
       this.emit('message-redacted-sent', target, msgid);
     } else if (!this.capEnabledSet.has('draft/message-redaction')) {
       this.addMessage({
@@ -2388,15 +2838,24 @@ export class IRCService {
     }
   }
 
-  sendMessageWithTags(target: string, message: string, options?: {
-    channelContext?: string;
-    replyTo?: string;
-    typing?: 'active' | 'paused' | 'done';
-  }): void {
+  sendMessageWithTags(
+    target: string,
+    message: string,
+    options?: {
+      channelContext?: string;
+      replyTo?: string;
+      typing?: 'active' | 'paused' | 'done';
+    },
+  ): void {
     // Send message with client-only tags
     if (this.isConnected) {
-      const normalizedMessage = message.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-      if (!normalizedMessage.startsWith('/') && normalizedMessage.includes('\n')) {
+      const normalizedMessage = message
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n');
+      if (
+        !normalizedMessage.startsWith('/') &&
+        normalizedMessage.includes('\n')
+      ) {
         this.sendMultilineMessage(target, normalizedMessage);
         return;
       }
@@ -2434,7 +2893,9 @@ export class IRCService {
     // Send reaction using client-only tag
     if (this.isConnected && msgid) {
       this.sendRaw(`@+draft/react=${msgid};${emoji} TAGMSG ${target}`);
-      this.logRaw(`IRCService: Sent reaction ${emoji} to message ${msgid} in ${target}`);
+      this.logRaw(
+        `IRCService: Sent reaction ${emoji} to message ${msgid} in ${target}`,
+      );
       this.emit('reaction-sent', target, msgid, emoji);
     }
   }
@@ -2463,7 +2924,9 @@ export class IRCService {
       lines.forEach((line, index) => {
         const isLast = index === lines.length - 1;
         const concatTag = isLast ? '' : 'concat'; // Empty string for last part
-        this.sendRaw(`@draft/multiline-concat=${concatTag} PRIVMSG ${target} :${line}`);
+        this.sendRaw(
+          `@draft/multiline-concat=${concatTag} PRIVMSG ${target} :${line}`,
+        );
       });
 
       // Echo the full message locally
@@ -2495,19 +2958,35 @@ export class IRCService {
     }
   }
 
-  sendMessage(target: string, message: string, fromQueue: boolean = false): void {
+  sendMessage(
+    target: string,
+    message: string,
+    fromQueue: boolean = false,
+  ): void {
     if (!this.isConnected && !fromQueue) {
       this.emit('queue-message', this.getNetworkName(), target, message);
-      this.addMessage({ type: 'message', channel: target, from: this.currentNick, text: message, timestamp: Date.now(), status: 'pending' });
+      this.addMessage({
+        type: 'message',
+        channel: target,
+        from: this.currentNick,
+        text: message,
+        timestamp: Date.now(),
+        status: 'pending',
+      });
       return;
     }
 
-    const normalizedMessage = message.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    if (!normalizedMessage.startsWith('/') && normalizedMessage.includes('\n')) {
+    const normalizedMessage = message
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n');
+    if (
+      !normalizedMessage.startsWith('/') &&
+      normalizedMessage.includes('\n')
+    ) {
       this.sendMultilineMessage(target, normalizedMessage);
       return;
     }
-    
+
     if (normalizedMessage.startsWith('/')) {
       const commandText = normalizedMessage.substring(1).trim();
       const parts = commandText.split(' ');
@@ -2523,9 +3002,16 @@ export class IRCService {
       }
       return;
     }
-    
+
     this.sendRaw(`PRIVMSG ${target} :${normalizedMessage}`);
-    this.addMessage({ type: 'message', channel: target, from: this.currentNick, text: normalizedMessage, timestamp: Date.now(), status: 'sent' });
+    this.addMessage({
+      type: 'message',
+      channel: target,
+      from: this.currentNick,
+      text: normalizedMessage,
+      timestamp: Date.now(),
+      status: 'sent',
+    });
   }
 
   sendCommand(command: string): void {
@@ -2582,7 +3068,8 @@ export class IRCService {
     if (typeof socket?.address === 'function') {
       try {
         const info = socket.address();
-        const addr = info && typeof info === 'object' ? info.address : undefined;
+        const addr =
+          info && typeof info === 'object' ? info.address : undefined;
         if (typeof addr === 'string' && addr.length > 0) {
           return addr;
         }
@@ -2595,7 +3082,9 @@ export class IRCService {
 
   onMessage(callback: (message: IRCMessage) => void): () => void {
     this.messageListeners.push(callback);
-    this.logRaw(`IRCService: Message listener registered. Total listeners: ${this.messageListeners.length}`);
+    this.logRaw(
+      `IRCService: Message listener registered. Total listeners: ${this.messageListeners.length}`,
+    );
     // Flush any buffered messages to all listeners so early events (e.g. proxy/tls) are visible
     if (this.pendingMessages.length > 0) {
       const backlog = [...this.pendingMessages];
@@ -2604,7 +3093,10 @@ export class IRCService {
         this.messageListeners.forEach(cb => cb(msg));
       });
     }
-    return () => this.messageListeners = this.messageListeners.filter(cb => cb !== callback);
+    return () =>
+      (this.messageListeners = this.messageListeners.filter(
+        cb => cb !== callback,
+      ));
   }
 
   onConnectionChange(callback: (connected: boolean) => void): () => void {
@@ -2617,21 +3109,36 @@ export class IRCService {
         this.connectionListeners.forEach(cb => cb(state));
       });
     }
-    return () => this.connectionListeners = this.connectionListeners.filter(cb => cb !== callback);
+    return () =>
+      (this.connectionListeners = this.connectionListeners.filter(
+        cb => cb !== callback,
+      ));
   }
 
-  addMessage(message: Omit<IRCMessage, 'id' | 'network'> & { status?: 'pending' | 'sent' }, batchTag?: string): void {
+  addMessage(
+    message: Omit<IRCMessage, 'id' | 'network'> & {
+      status?: 'pending' | 'sent';
+    },
+    batchTag?: string,
+  ): void {
     const fullMessage: IRCMessage = {
       ...message,
       id: `${Date.now()}-${Math.random()}`,
       network: this.getNetworkName(),
-      batchTag
+      batchTag,
     };
 
     // Mark playback messages from history batches
     if (batchTag) {
-      const batch = this.getBatchLabelManager().getActiveBatches().get(batchTag);
-      if (batch && (batch.type === 'chathistory' || batch.type === 'history' || batch.type === 'znc.in/playback')) {
+      const batch = this.getBatchLabelManager()
+        .getActiveBatches()
+        .get(batchTag);
+      if (
+        batch &&
+        (batch.type === 'chathistory' ||
+          batch.type === 'history' ||
+          batch.type === 'znc.in/playback')
+      ) {
         fullMessage.isPlayback = true;
       }
     }
@@ -2644,16 +3151,30 @@ export class IRCService {
     this.emitMessage(fullMessage);
   }
 
-  addRawMessage(text: string, category: RawMessageCategory = 'debug', timestamp: number = Date.now()): void {
-    this.addMessage({ type: 'raw', text, timestamp, isRaw: true, rawCategory: category });
+  addRawMessage(
+    text: string,
+    category: RawMessageCategory = 'debug',
+    timestamp: number = Date.now(),
+  ): void {
+    this.addMessage({
+      type: 'raw',
+      text,
+      timestamp,
+      isRaw: true,
+      rawCategory: category,
+    });
   }
 
-  private addWireMessage(direction: 'in' | 'out', line: string, timestamp: number = Date.now()): void {
+  private addWireMessage(
+    direction: 'in' | 'out',
+    line: string,
+    timestamp: number = Date.now(),
+  ): void {
     const arrow = direction === 'in' ? '<--' : '-->';
     this.addRawMessage(
       t('*** {arrow} {line}', { arrow, line }),
       direction === 'in' ? 'trafficIn' : 'trafficOut',
-      timestamp
+      timestamp,
     );
   }
 
@@ -2674,7 +3195,10 @@ export class IRCService {
       // Buffer until listeners attach; keep bounded
       this.pendingConnectionStates.push(connected);
       if (this.pendingConnectionStates.length > 20) {
-        this.pendingConnectionStates.splice(0, this.pendingConnectionStates.length - 20);
+        this.pendingConnectionStates.splice(
+          0,
+          this.pendingConnectionStates.length - 20,
+        );
       }
       return;
     }
@@ -2687,8 +3211,8 @@ export class IRCService {
       try {
         const { connectionManager } = require('./ConnectionManager');
         const connections = connectionManager?.getAllConnections?.() || [];
-        const activeConnections = connections.filter(
-          (ctx: any) => ctx?.ircService?.getConnectionStatus?.()
+        const activeConnections = connections.filter((ctx: any) =>
+          ctx?.ircService?.getConnectionStatus?.(),
         );
         connectedNames = activeConnections
           .map((ctx: any) => ctx.networkId)
@@ -2713,7 +3237,12 @@ export class IRCService {
       }
       if (connectedCount <= 1) {
         const name = connectedNames[0] || fallbackName;
-        return { title, text: t('Connected to {networkName}', { networkName: name }), networkName: name, connectedCount };
+        return {
+          title,
+          text: t('Connected to {networkName}', { networkName: name }),
+          networkName: name,
+          connectedCount,
+        };
       }
 
       const uniqueNames = Array.from(new Set(connectedNames)).filter(Boolean);
@@ -2728,7 +3257,10 @@ export class IRCService {
       const suffix = namesSummary ? ` (${namesSummary})` : '';
       return {
         title,
-        text: t('Connected to {count} servers{suffix}', { count: connectedCount, suffix }),
+        text: t('Connected to {count} servers{suffix}', {
+          count: connectedCount,
+          suffix,
+        }),
         networkName: uniqueNames[0] || fallbackName,
         connectedCount,
       };
@@ -2738,22 +3270,30 @@ export class IRCService {
       const { title, text, networkName } = buildForegroundNotification();
       if (ircForegroundService.isServiceRunning()) {
         ircForegroundService.updateNotification(title, text).catch(err => {
-          this.logRaw(`IRCService: Failed to update foreground service: ${err.message || err}`);
+          this.logRaw(
+            `IRCService: Failed to update foreground service: ${err.message || err}`,
+          );
         });
       } else {
         ircForegroundService.start(networkName, title, text).catch(err => {
-          this.logRaw(`IRCService: Failed to start foreground service: ${err.message || err}`);
+          this.logRaw(
+            `IRCService: Failed to start foreground service: ${err.message || err}`,
+          );
         });
       }
     } else {
       const { title, text, connectedCount } = buildForegroundNotification();
       if (connectedCount > 0) {
         ircForegroundService.updateNotification(title, text).catch(err => {
-          this.logRaw(`IRCService: Failed to update foreground service: ${err.message || err}`);
+          this.logRaw(
+            `IRCService: Failed to update foreground service: ${err.message || err}`,
+          );
         });
       } else {
         ircForegroundService.stop().catch(err => {
-          this.logRaw(`IRCService: Failed to stop foreground service: ${err.message || err}`);
+          this.logRaw(
+            `IRCService: Failed to stop foreground service: ${err.message || err}`,
+          );
         });
       }
     }
@@ -2774,7 +3314,9 @@ export class IRCService {
    * @returns true if either typing capability is enabled
    */
   hasTypingCapability(): boolean {
-    return this.capEnabledSet.has('typing') || this.capEnabledSet.has('draft/typing');
+    return (
+      this.capEnabledSet.has('typing') || this.capEnabledSet.has('draft/typing')
+    );
   }
 
   /**
@@ -2783,7 +3325,10 @@ export class IRCService {
    * @param status The typing status: 'active', 'paused', or 'done'
    * @returns true if the indicator was sent, false if not supported
    */
-  sendTypingIndicator(target: string, status: 'active' | 'paused' | 'done'): boolean {
+  sendTypingIndicator(
+    target: string,
+    status: 'active' | 'paused' | 'done',
+  ): boolean {
     if (!this.isConnected || !this.hasTypingCapability()) {
       return false;
     }
@@ -2816,7 +3361,11 @@ export class IRCService {
    * Check if SASL PLAIN (account/password) is being used
    */
   isSaslPlain(): boolean {
-    return !!(this.config?.sasl?.account && this.config?.sasl?.password && !this.config?.clientCert);
+    return !!(
+      this.config?.sasl?.account &&
+      this.config?.sasl?.password &&
+      !this.config?.clientCert
+    );
   }
 
   /**

@@ -36,9 +36,9 @@ jest.mock('react-native/Libraries/Lists/FlatList', () => {
           React.createElement(
             React.Fragment,
             { key: keyExtractor ? keyExtractor(item, index) : String(index) },
-            renderItem({ item, index })
-          )
-        )
+            renderItem({ item, index }),
+          ),
+        ),
       );
     },
   };
@@ -53,7 +53,8 @@ const t = (key: string) => key;
 jest.mock('../../../src/services/CertificateManagerService', () => ({
   certificateManager: {
     listCertificates: (...args: unknown[]) => mockListCertificates(...args),
-    validateCertificate: (...args: unknown[]) => mockValidateCertificate(...args),
+    validateCertificate: (...args: unknown[]) =>
+      mockValidateCertificate(...args),
     getCertificate: (...args: unknown[]) => mockGetCertificate(...args),
     deleteCertificate: (...args: unknown[]) => mockDeleteCertificate(...args),
   },
@@ -89,15 +90,28 @@ describe('CertificateSelectorModal', () => {
     jest.clearAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     mockListCertificates.mockResolvedValue([certMeta]);
-    mockValidateCertificate.mockReturnValue({ isExpired: false, daysUntilExpiry: 100 });
-    mockGetCertificate.mockResolvedValue({ ...certMeta, pemCert: 'pem', pemKey: 'key' });
+    mockValidateCertificate.mockReturnValue({
+      isExpired: false,
+      daysUntilExpiry: 100,
+    });
+    mockGetCertificate.mockResolvedValue({
+      ...certMeta,
+      pemCert: 'pem',
+      pemKey: 'key',
+    });
     mockDeleteCertificate.mockResolvedValue(undefined);
   });
 
   it('loads certs and selects valid certificate', async () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
-    const screen = render(<CertificateSelectorModal visible onClose={onClose} onSelect={onSelect} />);
+    const screen = render(
+      <CertificateSelectorModal
+        visible
+        onClose={onClose}
+        onSelect={onSelect}
+      />,
+    );
 
     await flushUi();
     await waitFor(() => expect(screen.queryByText('Work Cert')).toBeTruthy());
@@ -109,14 +123,23 @@ describe('CertificateSelectorModal', () => {
       fireEvent.press((certButton.parent as any)?.parent ?? certButton);
     });
 
-    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'c1' }));
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'c1' }),
+    );
     expect(onClose).toHaveBeenCalled();
   });
 
   it('blocks expired certificate selection', async () => {
-    mockValidateCertificate.mockReturnValue({ isExpired: true, daysUntilExpiry: -1 });
+    mockValidateCertificate.mockReturnValue({
+      isExpired: true,
+      daysUntilExpiry: -1,
+    });
     const screen = render(
-      <CertificateSelectorModal visible onClose={jest.fn()} onSelect={jest.fn()} />
+      <CertificateSelectorModal
+        visible
+        onClose={jest.fn()}
+        onSelect={jest.fn()}
+      />,
     );
 
     await flushUi();
@@ -128,13 +151,17 @@ describe('CertificateSelectorModal', () => {
     expect(Alert.alert).toHaveBeenCalledWith(
       'Certificate Expired',
       'This certificate has expired. Please generate a new one.',
-      [{ text: 'OK' }]
+      [{ text: 'OK' }],
     );
   });
 
   it('deletes certificate through confirmation action', async () => {
     const screen = render(
-      <CertificateSelectorModal visible onClose={jest.fn()} onSelect={jest.fn()} />
+      <CertificateSelectorModal
+        visible
+        onClose={jest.fn()}
+        onSelect={jest.fn()}
+      />,
     );
 
     await flushUi();
@@ -145,7 +172,7 @@ describe('CertificateSelectorModal', () => {
     fireEvent.press((deleteButton.parent as any) ?? deleteButton);
 
     const deleteAction = (Alert.alert as jest.Mock).mock.calls.find(
-      c => c[0] === 'Delete Certificate'
+      c => c[0] === 'Delete Certificate',
     )?.[2]?.[1];
 
     await act(async () => {

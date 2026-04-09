@@ -16,8 +16,24 @@ describe('types/webrtcCall', () => {
   it('supports call lifecycle unions', () => {
     const mediaTypes: CallMediaType[] = ['audio', 'video'];
     const directions: CallDirection[] = ['incoming', 'outgoing'];
-    const phases: CallPhase[] = ['idle', 'incoming', 'outgoing', 'connecting', 'connected', 'ended', 'error'];
-    const signalTypes: WebRTCCallSignalType[] = ['invite', 'accept', 'reject', 'offer', 'answer', 'candidate', 'hangup'];
+    const phases: CallPhase[] = [
+      'idle',
+      'incoming',
+      'outgoing',
+      'connecting',
+      'connected',
+      'ended',
+      'error',
+    ];
+    const signalTypes: WebRTCCallSignalType[] = [
+      'invite',
+      'accept',
+      'reject',
+      'offer',
+      'answer',
+      'candidate',
+      'hangup',
+    ];
 
     expect(mediaTypes).toHaveLength(2);
     expect(directions).toContain('incoming');

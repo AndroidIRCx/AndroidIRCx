@@ -23,7 +23,10 @@ interface ImagePreviewProps {
   thumbnail?: boolean;
 }
 
-export const ImagePreview: React.FC<ImagePreviewProps> = ({ url, thumbnail = true }) => {
+export const ImagePreview: React.FC<ImagePreviewProps> = ({
+  url,
+  thumbnail = true,
+}) => {
   const t = useT();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -67,7 +70,8 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ url, thumbnail = tru
       <TouchableOpacity
         style={styles.container}
         onPress={handlePress}
-        activeOpacity={0.8}>
+        activeOpacity={0.8}
+      >
         {loading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={colors.primary} />
@@ -86,24 +90,29 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ url, thumbnail = tru
         visible={modalVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setModalVisible(false)}>
+        onRequestClose={() => setModalVisible(false)}
+      >
         <View style={styles.modalContainer}>
           <TouchableOpacity
             style={styles.modalClose}
-            onPress={() => setModalVisible(false)}>
+            onPress={() => setModalVisible(false)}
+          >
             <Text style={styles.modalCloseText}>{t('Close')}</Text>
           </TouchableOpacity>
           {modalImageLoading && (
             <View style={styles.modalLoadingContainer}>
               <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.modalLoadingText}>{t('Loading image...')}</Text>
+              <Text style={styles.modalLoadingText}>
+                {t('Loading image...')}
+              </Text>
             </View>
           )}
           <ScrollView
             contentContainerStyle={styles.modalContent}
             maximumZoomScale={3}
             minimumZoomScale={1}
-            centerContent>
+            centerContent
+          >
             <Image
               source={{ uri: url }}
               style={styles.modalImage}
@@ -206,4 +215,3 @@ const createStyles = (colors: any) => {
     },
   });
 };
-

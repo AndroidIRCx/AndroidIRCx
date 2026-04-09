@@ -50,7 +50,10 @@ class BannerAdService {
     logger.info('banner-ad', 'Starting BannerAdService initialization...');
     await this.load();
     this.initialized = true;
-    logger.info('banner-ad', `BannerAdService initialized. Ad-free time: ${this.formatTime(this.adFreeMs)}`);
+    logger.info(
+      'banner-ad',
+      `BannerAdService initialized. Ad-free time: ${this.formatTime(this.adFreeMs)}`,
+    );
   }
 
   private async load() {
@@ -67,9 +70,15 @@ class BannerAdService {
         this.lastUpdated = Date.now();
       }
 
-      logger.info('banner-ad', `Loaded ad-free time: ${this.formatTime(this.adFreeMs)}`);
+      logger.info(
+        'banner-ad',
+        `Loaded ad-free time: ${this.formatTime(this.adFreeMs)}`,
+      );
     } catch (error) {
-      logger.error('banner-ad', `Failed to load ad-free time: ${String(error)}`);
+      logger.error(
+        'banner-ad',
+        `Failed to load ad-free time: ${String(error)}`,
+      );
       this.adFreeMs = 0;
       this.lastUpdated = Date.now();
     }
@@ -82,9 +91,15 @@ class BannerAdService {
         lastUpdated: this.lastUpdated,
       };
       await AsyncStorage.setItem(AD_FREE_TIME_KEY, JSON.stringify(data));
-      logger.info('banner-ad', `Saved ad-free time: ${this.formatTime(this.adFreeMs)}`);
+      logger.info(
+        'banner-ad',
+        `Saved ad-free time: ${this.formatTime(this.adFreeMs)}`,
+      );
     } catch (error) {
-      logger.error('banner-ad', `Failed to save ad-free time: ${String(error)}`);
+      logger.error(
+        'banner-ad',
+        `Failed to save ad-free time: ${String(error)}`,
+      );
     }
   }
 
@@ -112,7 +127,10 @@ class BannerAdService {
       return;
     }
 
-    logger.info('banner-ad', 'Starting banner ad show/hide cycle (show 2min, hide 1min)');
+    logger.info(
+      'banner-ad',
+      'Starting banner ad show/hide cycle (show 2min, hide 1min)',
+    );
 
     // Mark the cycle as running
     this.showHideInterval = {} as NodeJS.Timeout; // Placeholder to indicate cycle is active
@@ -132,7 +150,10 @@ class BannerAdService {
     this.hideTimer = setTimeout(() => {
       this.bannerVisible = showNext;
       this.notifyListeners();
-      logger.info('banner-ad', this.bannerVisible ? 'Banner shown' : 'Banner hidden');
+      logger.info(
+        'banner-ad',
+        this.bannerVisible ? 'Banner shown' : 'Banner hidden',
+      );
 
       // Schedule the opposite action
       const nextDelay = showNext ? BANNER_SHOW_DURATION : BANNER_HIDE_DURATION;
@@ -157,7 +178,10 @@ class BannerAdService {
     if (this.bannerVisible) {
       this.bannerVisible = false;
       this.notifyListeners();
-      logger.info('banner-ad', 'Stopped banner ad show/hide cycle and hid banner');
+      logger.info(
+        'banner-ad',
+        'Stopped banner ad show/hide cycle and hid banner',
+      );
     } else {
       logger.info('banner-ad', 'Stopped banner ad show/hide cycle');
     }
@@ -193,7 +217,10 @@ class BannerAdService {
     if (this.bannerVisible !== visible) {
       this.bannerVisible = visible;
       this.notifyListeners();
-      logger.info('banner-ad', `Banner ${visible ? 'shown' : 'hidden'} manually`);
+      logger.info(
+        'banner-ad',
+        `Banner ${visible ? 'shown' : 'hidden'} manually`,
+      );
     }
   }
 
@@ -226,7 +253,10 @@ class BannerAdService {
     this.lastUpdated = Date.now();
     await this.save();
     this.notifyListeners();
-    logger.info('banner-ad', `Added ${this.formatTime(ms)}. Total ad-free time: ${this.formatTime(this.adFreeMs)}`);
+    logger.info(
+      'banner-ad',
+      `Added ${this.formatTime(ms)}. Total ad-free time: ${this.formatTime(this.adFreeMs)}`,
+    );
   }
 
   /**

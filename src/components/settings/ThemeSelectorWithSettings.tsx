@@ -31,7 +31,11 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
   onThemeChange,
 }) => {
   const { colors } = useTheme();
-  const { theme: currentTheme, setTheme, hasRecommendedSettings } = useThemeWithSettings();
+  const {
+    theme: currentTheme,
+    setTheme,
+    hasRecommendedSettings,
+  } = useThemeWithSettings();
   const [isApplying, setIsApplying] = useState(false);
   const styles = createStyles(colors);
 
@@ -40,11 +44,17 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
     if (!selectedTheme) return;
 
     // Proveri da li tema ima preporučena podešavanja
-    if (selectedTheme.recommendedSettings && Object.keys(selectedTheme.recommendedSettings).length > 0) {
+    if (
+      selectedTheme.recommendedSettings &&
+      Object.keys(selectedTheme.recommendedSettings).length > 0
+    ) {
       // Pitaj korisnika da li želi da primeni preporučena podešavanja
       Alert.alert(
         t('Apply Theme Settings?'),
-        t('The "{{themeName}}" theme has recommended settings. Would you like to apply them for the best experience?', { themeName: selectedTheme.name }),
+        t(
+          'The "{{themeName}}" theme has recommended settings. Would you like to apply them for the best experience?',
+          { themeName: selectedTheme.name },
+        ),
         [
           {
             text: t('Theme Only'),
@@ -68,20 +78,17 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
                 onThemeChange?.(themeId);
                 Alert.alert(
                   t('Settings Applied'),
-                  t('Theme and recommended settings have been applied.')
+                  t('Theme and recommended settings have been applied.'),
                 );
               } catch (error) {
                 console.error('Failed to apply theme settings:', error);
-                Alert.alert(
-                  t('Error'),
-                  t('Failed to apply theme settings.')
-                );
+                Alert.alert(t('Error'), t('Failed to apply theme settings.'));
               } finally {
                 setIsApplying(false);
               }
             },
           },
-        ]
+        ],
       );
     } else {
       // Tema nema preporučena podešavanja, samo primeni temu
@@ -98,8 +105,8 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>{t('Select Theme')}</Text>
-      
-      {themes.map((theme) => (
+
+      {themes.map(theme => (
         <TouchableOpacity
           key={theme.id}
           style={[
@@ -124,7 +131,7 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
               />
             </View>
           </View>
-          
+
           <View style={styles.themeInfo}>
             <Text style={styles.themeName}>{theme.name}</Text>
             {theme.recommendedSettings && (
@@ -133,7 +140,7 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
               </Text>
             )}
           </View>
-          
+
           {currentTheme.id === theme.id && (
             <View style={styles.selectedIndicator}>
               <Text style={styles.selectedText}>✓</Text>
@@ -141,7 +148,7 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
           )}
         </TouchableOpacity>
       ))}
-      
+
       {hasRecommendedSettings && (
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
@@ -153,82 +160,83 @@ export const ThemeSelectorWithSettings: React.FC<ThemeSelectorProps> = ({
   );
 };
 
-const createStyles = (colors: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: colors.background,
-  },
-  header: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: colors.text,
-  },
-  themeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: colors.surfaceVariant,
-  },
-  themeItemActive: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  themePreview: {
-    marginRight: 12,
-  },
-  colorPreview: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  accentPreview: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-  },
-  themeInfo: {
-    flex: 1,
-  },
-  themeName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  hasSettingsBadge: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  selectedIndicator: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  selectedText: {
-    color: colors.onAccent,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  infoBox: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: colors.highlightBackground,
-    borderRadius: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: colors.text,
-  },
-});
+const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+      backgroundColor: colors.background,
+    },
+    header: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 16,
+      color: colors.text,
+    },
+    themeItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 8,
+      backgroundColor: colors.surfaceVariant,
+    },
+    themeItemActive: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+    themePreview: {
+      marginRight: 12,
+    },
+    colorPreview: {
+      width: 48,
+      height: 48,
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    accentPreview: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+    },
+    themeInfo: {
+      flex: 1,
+    },
+    themeName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    hasSettingsBadge: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+    selectedIndicator: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.accent,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    selectedText: {
+      color: colors.onAccent,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    infoBox: {
+      marginTop: 16,
+      padding: 12,
+      backgroundColor: colors.highlightBackground,
+      borderRadius: 8,
+    },
+    infoText: {
+      fontSize: 14,
+      color: colors.text,
+    },
+  });

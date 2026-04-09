@@ -54,7 +54,13 @@ function isPrivateOrLocalIp(ip: string): boolean {
   return false;
 }
 
-type TransferStatus = 'pending' | 'downloading' | 'completed' | 'failed' | 'cancelled' | 'sending';
+type TransferStatus =
+  | 'pending'
+  | 'downloading'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'sending';
 
 export interface DCCSendOffer {
   filename: string;
@@ -84,7 +90,10 @@ class DCCFileService {
   private sockets: Map<string, Socket> = new Map();
   private sendServers: Map<string, Server> = new Map();
   private listeners: TransferListener[] = [];
-  private defaultPortRange: { min: number; max: number } = { min: 5000, max: 65535 };
+  private defaultPortRange: { min: number; max: number } = {
+    min: 5000,
+    max: 65535,
+  };
 
   onTransferUpdate(cb: TransferListener): () => void {
     this.listeners.push(cb);
@@ -105,7 +114,9 @@ class DCCFileService {
     if (!text || !text.startsWith('\x01DCC ')) return null;
     const cleaned = text.replace(/\x01/g, '').trim();
     // Format: DCC SEND <filename> <ip> <port> <size> [token]
-    const match = cleaned.match(/^DCC\s+SEND\s+(.+?)\s+(\S+)\s+(\d+)\s+(\d+)?(?:\s+(\S+))?/);
+    const match = cleaned.match(
+      /^DCC\s+SEND\s+(.+?)\s+(\S+)\s+(\d+)\s+(\d+)?(?:\s+(\S+))?/,
+    );
     if (!match) {
       console.log('[DCCFileService] parseSendOffer no match:', { cleaned });
       return null;
@@ -131,7 +142,11 @@ class DCCFileService {
     };
   }
 
-  handleOffer(peerNick: string, networkId: string, offer: DCCSendOffer): DCCFileTransfer {
+  handleOffer(
+    peerNick: string,
+    networkId: string,
+    offer: DCCSendOffer,
+  ): DCCFileTransfer {
     const transfer: DCCFileTransfer = {
       id: `dccfile-${Date.now()}-${Math.random()}`,
       networkId,
@@ -152,11 +167,20 @@ class DCCFileService {
     if (!transfer) return;
 
     // Security check: Block private/local IP addresses if setting is enabled
-    const blockPrivateIp = await settingsService.getSetting('dccBlockPrivateIp', true);
+    const blockPrivateIp = await settingsService.getSetting(
+      'dccBlockPrivateIp',
+      true,
+    );
     if (blockPrivateIp && isPrivateOrLocalIp(transfer.offer.host)) {
-      console.warn('[DCCFileService] Blocked connection to private/local IP:', transfer.offer.host);
+      console.warn(
+        '[DCCFileService] Blocked connection to private/local IP:',
+        transfer.offer.host,
+      );
       transfer.status = 'failed';
-      transfer.error = t('Connection blocked: Private/local IP address ({host}). This could be an SSRF attack. You can disable this protection in Settings > Connection > DCC if you trust this connection.', { host: transfer.offer.host });
+      transfer.error = t(
+        'Connection blocked: Private/local IP address ({host}). This could be an SSRF attack. You can disable this protection in Settings > Connection > DCC if you trust this connection.',
+        { host: transfer.offer.host },
+      );
       this.transfers.set(transferId, transfer);
       this.emit(transfer);
       return;
@@ -181,17 +205,30 @@ class DCCFileService {
       const RNFS = require('react-native-fs');
       const stat = await RNFS.stat(downloadPath);
       startOffset = stat.size || 0;
-      if (startOffset > 0 && transfer.offer.size && startOffset < transfer.offer.size) {
-        irc.sendRaw(`PRIVMSG ${transfer.peerNick} :\x01DCC RESUME ${transfer.offer.filename} ${transfer.offer.port} ${startOffset}\x01`);
+      if (
+        startOffset > 0 &&
+        transfer.offer.size &&
+        startOffset < transfer.offer.size
+      ) {
+        irc.sendRaw(
+          `PRIVMSG ${transfer.peerNick} :\x01DCC RESUME ${transfer.offer.filename} ${transfer.offer.port} ${startOffset}\x01`,
+        );
       }
     } catch {
       // ignore if file doesn't exist
     }
 
-    const socket = TcpSocket.createConnection({ host: transfer.offer.host, port: transfer.offer.port }, async () => {
-      console.log('[DCCFileService] socket connected:', { id: transferId, host: transfer.offer.host, port: transfer.offer.port });
-      // If resume requested, sender should respond with ACCEPT; we still start reading
-    });
+    const socket = TcpSocket.createConnection(
+      { host: transfer.offer.host, port: transfer.offer.port },
+      async () => {
+        console.log('[DCCFileService] socket connected:', {
+          id: transferId,
+          host: transfer.offer.host,
+          port: transfer.offer.port,
+        });
+        // If resume requested, sender should respond with ACCEPT; we still start reading
+      },
+    );
     this.sockets.set(transferId, socket);
 
     socket.on('data', async (data: any) => {
@@ -215,7 +252,10 @@ class DCCFileService {
     socket.on('error', (err: any) => {
       const transferState = this.transfers.get(transferId);
       if (!transferState) return;
-      console.error('[DCCFileService] socket error:', { id: transferId, error: err?.message || err });
+      console.error('[DCCFileService] socket error:', {
+        id: transferId,
+        error: err?.message || err,
+      });
       transferState.status = 'failed';
       transferState.error = err?.message || t('Transfer failed');
       this.transfers.set(transferId, transferState);
@@ -226,8 +266,14 @@ class DCCFileService {
     socket.on('close', (hadError?: boolean) => {
       const transferState = this.transfers.get(transferId);
       if (!transferState) return;
-      console.log('[DCCFileService] socket closed:', { id: transferId, hadError: !!hadError });
-      if (transferState.status !== 'failed' && transferState.status !== 'cancelled') {
+      console.log('[DCCFileService] socket closed:', {
+        id: transferId,
+        hadError: !!hadError,
+      });
+      if (
+        transferState.status !== 'failed' &&
+        transferState.status !== 'cancelled'
+      ) {
         transferState.status = 'completed';
       }
       this.transfers.set(transferId, transferState);
@@ -238,10 +284,14 @@ class DCCFileService {
 
   async getDefaultDownloadPath(filename: string): Promise<string> {
     const RNFS = require('react-native-fs');
-    const folderSetting = await settingsService.getSetting('dccDownloadFolder', '');
-    const baseFolder = folderSetting && typeof folderSetting === 'string'
-      ? folderSetting.trim()
-      : '';
+    const folderSetting = await settingsService.getSetting(
+      'dccDownloadFolder',
+      '',
+    );
+    const baseFolder =
+      folderSetting && typeof folderSetting === 'string'
+        ? folderSetting.trim()
+        : '';
     const safeName = this.sanitizeFilename(filename || 'download');
     const targetBase = baseFolder || RNFS.DocumentDirectoryPath;
     return `${targetBase}/${safeName}`;
@@ -278,7 +328,13 @@ class DCCFileService {
   }
 
   // Outgoing DCC SEND
-  async sendFile(irc: IRCService, peerNick: string, networkId: string, filePath: string, port?: number) {
+  async sendFile(
+    irc: IRCService,
+    peerNick: string,
+    networkId: string,
+    filePath: string,
+    port?: number,
+  ) {
     const RNFS = require('react-native-fs');
 
     console.log('[DCCFileService] sendFile called with path:', filePath);
@@ -308,12 +364,22 @@ class DCCFileService {
       exists = await RNFS.exists(decodedPath);
     } catch (existsError: any) {
       console.error('[DCCFileService] RNFS.exists error:', existsError);
-      throw new Error(t('Cannot check file: {error}').replace('{error}', existsError?.message || 'Unknown error'));
+      throw new Error(
+        t('Cannot check file: {error}').replace(
+          '{error}',
+          existsError?.message || 'Unknown error',
+        ),
+      );
     }
 
     if (!exists) {
       console.error('[DCCFileService] File does not exist:', decodedPath);
-      throw new Error(t('File not found: {path}').replace('{path}', decodedPath.split('/').pop() || decodedPath));
+      throw new Error(
+        t('File not found: {path}').replace(
+          '{path}',
+          decodedPath.split('/').pop() || decodedPath,
+        ),
+      );
     }
 
     let stat;
@@ -321,7 +387,12 @@ class DCCFileService {
       stat = await RNFS.stat(decodedPath);
     } catch (statError: any) {
       console.error('[DCCFileService] RNFS.stat error:', statError);
-      throw new Error(t('Cannot read file info: {error}').replace('{error}', statError?.message || 'Unknown error'));
+      throw new Error(
+        t('Cannot read file info: {error}').replace(
+          '{error}',
+          statError?.message || 'Unknown error',
+        ),
+      );
     }
 
     const filename = decodedPath.split(/[\\/]/).pop() || 'file';
@@ -345,13 +416,27 @@ class DCCFileService {
     this.transfers.set(transfer.id, transfer);
     this.emit(transfer);
 
-    const chosenPort = port || this.defaultPortRange.min + Math.floor(Math.random() * (this.defaultPortRange.max - this.defaultPortRange.min));
-    const rawHostOverride = await settingsService.getSetting('dccHostOverride', '');
-    const dccHostOverride = typeof rawHostOverride === 'string' ? rawHostOverride.trim() : '';
+    const chosenPort =
+      port ||
+      this.defaultPortRange.min +
+        Math.floor(
+          Math.random() *
+            (this.defaultPortRange.max - this.defaultPortRange.min),
+        );
+    const rawHostOverride = await settingsService.getSetting(
+      'dccHostOverride',
+      '',
+    );
+    const dccHostOverride =
+      typeof rawHostOverride === 'string' ? rawHostOverride.trim() : '';
     if (dccHostOverride && /\s/.test(dccHostOverride)) {
-      console.warn('[DCCFileService] Ignoring DCC host override with whitespace:', dccHostOverride);
+      console.warn(
+        '[DCCFileService] Ignoring DCC host override with whitespace:',
+        dccHostOverride,
+      );
     }
-    const normalizedOverride = dccHostOverride && !/\s/.test(dccHostOverride) ? dccHostOverride : '';
+    const normalizedOverride =
+      dccHostOverride && !/\s/.test(dccHostOverride) ? dccHostOverride : '';
     console.log('[DCCFileService] Starting send server:', {
       id: transfer.id,
       peerNick,
@@ -360,7 +445,9 @@ class DCCFileService {
       hostOverride: normalizedOverride || undefined,
     });
     const server = TcpSocket.createServer(async socket => {
-      console.log('[DCCFileService] Send socket connected:', { id: transfer.id });
+      console.log('[DCCFileService] Send socket connected:', {
+        id: transfer.id,
+      });
       // Stream file
       const chunkSize = 32 * 1024;
       let offset = 0;
@@ -368,7 +455,12 @@ class DCCFileService {
       const maxBytesPerSec = maxKbps > 0 ? maxKbps * 1024 : 0;
       try {
         while (offset < size) {
-          const chunk = await RNFS.read(filePath, Math.min(chunkSize, size - offset), offset, 'base64');
+          const chunk = await RNFS.read(
+            filePath,
+            Math.min(chunkSize, size - offset),
+            offset,
+            'base64',
+          );
           const buf = Buffer.from(chunk, 'base64');
           socket.write(buf);
           offset += buf.length;
@@ -376,7 +468,10 @@ class DCCFileService {
           this.transfers.set(transfer.id, transfer);
           this.emit(transfer);
           if (maxBytesPerSec > 0) {
-            const delayMs = Math.max(Math.ceil((buf.length / maxBytesPerSec) * 1000), 1);
+            const delayMs = Math.max(
+              Math.ceil((buf.length / maxBytesPerSec) * 1000),
+              1,
+            );
             await new Promise(res => setTimeout(res, delayMs));
           } else {
             await new Promise(res => setTimeout(res, 1));
@@ -386,7 +481,10 @@ class DCCFileService {
         this.transfers.set(transfer.id, transfer);
         this.emit(transfer);
       } catch (e: any) {
-        console.error('[DCCFileService] Send socket error:', { id: transfer.id, error: e?.message || e });
+        console.error('[DCCFileService] Send socket error:', {
+          id: transfer.id,
+          error: e?.message || e,
+        });
         transfer.status = 'failed';
         transfer.error = e?.message || t('Send failed');
         this.transfers.set(transfer.id, transfer);
@@ -405,8 +503,15 @@ class DCCFileService {
       const addr = server.address();
       if (typeof addr === 'object' && addr) {
         let hostAddress = normalizedOverride || addr.address || '0.0.0.0';
-        const needsFallback = !normalizedOverride && (hostAddress === '0.0.0.0' || hostAddress === '::' || hostAddress === '::1');
-        const localAddr = typeof irc.getLocalAddress === 'function' ? irc.getLocalAddress() : undefined;
+        const needsFallback =
+          !normalizedOverride &&
+          (hostAddress === '0.0.0.0' ||
+            hostAddress === '::' ||
+            hostAddress === '::1');
+        const localAddr =
+          typeof irc.getLocalAddress === 'function'
+            ? irc.getLocalAddress()
+            : undefined;
         if (needsFallback && localAddr) {
           if (localAddr && localAddr.includes('.') && this.ipToInt(localAddr)) {
             hostAddress = localAddr;
@@ -436,13 +541,17 @@ class DCCFileService {
   private intToIp(ip: string): string {
     const n = parseInt(ip, 10);
     if (isNaN(n)) return ip;
-    return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.');
+    return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join(
+      '.',
+    );
   }
 
   private ipToInt(ip: string): number | null {
     const parts = ip.split('.').map(p => parseInt(p, 10));
     if (parts.length !== 4 || parts.some(isNaN)) return null;
-    return ((parts[0] << 24) >>> 0) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
+    return (
+      ((parts[0] << 24) >>> 0) + (parts[1] << 16) + (parts[2] << 8) + parts[3]
+    );
   }
 
   private sanitizeFilename(name: string): string {
@@ -459,13 +568,13 @@ class DCCFileService {
 
       // Only delete if the file is in app's directories
       // This prevents accidental deletion of user's original files
-      const isInAppDir = filePath && (
-        filePath.includes(RNFS.CachesDirectoryPath) ||
-        filePath.includes(RNFS.DocumentDirectoryPath) ||
-        filePath.includes('/cache/') ||
-        filePath.includes('/Cache/') ||
-        filePath.includes('/files/')
-      );
+      const isInAppDir =
+        filePath &&
+        (filePath.includes(RNFS.CachesDirectoryPath) ||
+          filePath.includes(RNFS.DocumentDirectoryPath) ||
+          filePath.includes('/cache/') ||
+          filePath.includes('/Cache/') ||
+          filePath.includes('/files/'));
 
       if (isInAppDir) {
         const exists = await RNFS.exists(filePath);

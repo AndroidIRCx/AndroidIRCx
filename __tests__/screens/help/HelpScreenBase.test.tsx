@@ -39,7 +39,7 @@ describe('HelpScreenBase', () => {
     const { queryByText } = render(
       <HelpScreenBase visible={false} onClose={jest.fn()} title="Help">
         <HelpParagraph>Hidden body</HelpParagraph>
-      </HelpScreenBase>
+      </HelpScreenBase>,
     );
 
     expect(queryByText('Help')).toBeNull();
@@ -58,7 +58,7 @@ describe('HelpScreenBase', () => {
         <HelpInfoBox>Info text</HelpInfoBox>
         <HelpWarningBox>Warning text</HelpWarningBox>
         <HelpSuccessBox>Success text</HelpSuccessBox>
-      </HelpScreenBase>
+      </HelpScreenBase>,
     );
 
     expect(getByText('Help')).toBeTruthy();
@@ -78,7 +78,7 @@ describe('HelpScreenBase', () => {
     const { getByLabelText } = render(
       <HelpScreenBase visible onClose={onClose} title="Help">
         <HelpParagraph>Body</HelpParagraph>
-      </HelpScreenBase>
+      </HelpScreenBase>,
     );
 
     fireEvent.press(getByLabelText('Close help screen'));

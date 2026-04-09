@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * UserManagementService
- * 
+ *
  * Manages user-related data including WHOIS information, ignore lists, user notes, and aliases.
  * Handles user mode tracking and provides methods to query and manage user information.
  */
@@ -99,15 +99,20 @@ export interface BlacklistEntry {
   protected?: boolean;
 }
 
-export type UserListType = 'notify' | 'autoop' | 'autovoice' | 'autohalfop' | 'other';
+export type UserListType =
+  | 'notify'
+  | 'autoop'
+  | 'autovoice'
+  | 'autohalfop'
+  | 'other';
 
 export interface UserListEntry {
-  mask: string;              // "nick!user@host" or "nick" or "*!*@host"
-  network?: string;          // network ID (undefined = global/all networks)
-  channels?: string[];       // channels this applies to (empty = all channels)
-  protected: boolean;        // exempt from blacklist, flood, auto-ignore
+  mask: string; // "nick!user@host" or "nick" or "*!*@host"
+  network?: string; // network ID (undefined = global/all networks)
+  channels?: string[]; // channels this applies to (empty = all channels)
+  protected: boolean; // exempt from blacklist, flood, auto-ignore
   addedAt: number;
-  reason?: string;           // optional note
+  reason?: string; // optional note
 }
 
 export class UserManagementService {
@@ -126,12 +131,25 @@ export class UserManagementService {
     if (!this.ircService) return;
 
     // Listen for WHOIS/WHOWAS numeric replies
-    this.ircService.on('numeric', (numeric: number, prefix: string, params: string[], _timestamp: number) => {
-      this.handleNumericReply(numeric, prefix, params, _timestamp);
-    });
+    this.ircService.on(
+      'numeric',
+      (
+        numeric: number,
+        prefix: string,
+        params: string[],
+        _timestamp: number,
+      ) => {
+        this.handleNumericReply(numeric, prefix, params, _timestamp);
+      },
+    );
   }
 
-  private handleNumericReply(numeric: number, prefix: string, params: string[], _timestamp: number): void {
+  private handleNumericReply(
+    numeric: number,
+    prefix: string,
+    params: string[],
+    _timestamp: number,
+  ): void {
     const network = this.ircService?.getNetworkName() || this.currentNetwork;
 
     switch (numeric) {
@@ -141,7 +159,10 @@ export class UserManagementService {
         const username = params[2];
         const hostname = params[3];
         const realname = decodeIfBase64Like(params[5] || '');
-        this.updateWHOIS({ nick: whoisNick, username, hostname, realname }, network);
+        this.updateWHOIS(
+          { nick: whoisNick, username, hostname, realname },
+          network,
+        );
         break;
 
       case 312: // RPL_WHOISSERVER
@@ -193,7 +214,15 @@ export class UserManagementService {
         const whowasUser = params[2];
         const whowasHost = params[3];
         const whowasReal = decodeIfBase64Like(params[5] || '');
-        this.updateWHOWAS({ nick: whowasNick, username: whowasUser, hostname: whowasHost, realname: whowasReal }, network);
+        this.updateWHOWAS(
+          {
+            nick: whowasNick,
+            username: whowasUser,
+            hostname: whowasHost,
+            realname: whowasReal,
+          },
+          network,
+        );
         break;
 
       case 369: // RPL_ENDOFWHOWAS
@@ -217,7 +246,7 @@ export class UserManagementService {
     autohalfop: 'autohalfop:',
     other: 'other:',
   };
-  
+
   private whoisCache: Map<string, WHOISInfo> = new Map(); // network:nick -> info
   private whowasCache: Map<string, WHOWASInfo[]> = new Map(); // network:nick -> info[]
   private userNotes: Map<string, UserNote> = new Map(); // network:nick -> note
@@ -231,14 +260,26 @@ export class UserManagementService {
     ['autohalfop', new Map()],
     ['other', new Map()],
   ]);
-  
+
   private whoisListeners: ((info: WHOISInfo) => void)[] = [];
   private whowasListeners: ((info: WHOWASInfo) => void)[] = [];
   // private currentWhoisNick: string | null = null; // No longer needed
   // private currentWhowasNick: string | null = null; // No longer needed
   private currentNetwork: string = '';
-  private pendingWhoisResolvers: Map<string, (value: WHOISInfo | PromiseLike<WHOISInfo>) => void> = new Map(); // key -> resolve function
-  private whoisRequestQueue: Map<string, { nick: string; network: string; resolve: (value: WHOISInfo | PromiseLike<WHOISInfo>) => void; reject: (reason?: any) => void; timeout: NodeJS.Timeout }> = new Map();
+  private pendingWhoisResolvers: Map<
+    string,
+    (value: WHOISInfo | PromiseLike<WHOISInfo>) => void
+  > = new Map(); // key -> resolve function
+  private whoisRequestQueue: Map<
+    string,
+    {
+      nick: string;
+      network: string;
+      resolve: (value: WHOISInfo | PromiseLike<WHOISInfo>) => void;
+      reject: (reason?: any) => void;
+      timeout: NodeJS.Timeout;
+    }
+  > = new Map();
   private WHOIS_TIMEOUT = 20000; // 20 seconds
 
   /**
@@ -248,7 +289,10 @@ export class UserManagementService {
     await this.loadFromStorage();
     console.log('UserManagementService: Initialized');
     if (this.ircService) {
-      this.ircService.addRawMessage(t('*** UserManagementService initialized'), 'debug');
+      this.ircService.addRawMessage(
+        t('*** UserManagementService initialized'),
+        'debug',
+      );
     }
   }
 
@@ -259,31 +303,51 @@ export class UserManagementService {
     try {
       const keys = await AsyncStorage.getAllKeys();
       const userKeys = keys.filter(key => key.startsWith(this.STORAGE_PREFIX));
-      
+
       for (const key of userKeys) {
         const data = await AsyncStorage.getItem(key);
         if (data) {
           const parsed = JSON.parse(data);
-          
+
           if (key.includes(this.NOTES_PREFIX)) {
             const note: UserNote = parsed;
-            this.userNotes.set(note.network ? `${note.network}:${note.nick}` : note.nick, note);
+            this.userNotes.set(
+              note.network ? `${note.network}:${note.nick}` : note.nick,
+              note,
+            );
           } else if (key.includes(this.ALIASES_PREFIX)) {
             const alias: UserAlias = parsed;
-            this.userAliases.set(alias.network ? `${alias.network}:${alias.nick}` : alias.nick, alias);
+            this.userAliases.set(
+              alias.network ? `${alias.network}:${alias.nick}` : alias.nick,
+              alias,
+            );
           } else if (key.includes(this.IGNORE_PREFIX)) {
             const ignored: IgnoredUser = parsed;
-            this.ignoredUsers.set(ignored.network ? `${ignored.network}:${ignored.mask}` : ignored.mask, ignored);
+            this.ignoredUsers.set(
+              ignored.network
+                ? `${ignored.network}:${ignored.mask}`
+                : ignored.mask,
+              ignored,
+            );
           } else if (key.includes(this.BLACKLIST_PREFIX)) {
             const entry: BlacklistEntry = parsed;
-            this.blacklistedUsers.set(entry.network ? `${entry.network}:${entry.mask}` : entry.mask, entry);
+            this.blacklistedUsers.set(
+              entry.network ? `${entry.network}:${entry.mask}` : entry.mask,
+              entry,
+            );
           } else {
             // Check user list types (notify, autoop, autovoice, autohalfop, other)
-            for (const [listType, prefix] of Object.entries(this.USERLIST_PREFIXES)) {
+            for (const [listType, prefix] of Object.entries(
+              this.USERLIST_PREFIXES,
+            )) {
               if (key.includes(prefix)) {
                 const entry: UserListEntry = parsed;
-                const mapKey = entry.network ? `${entry.network}:${entry.mask}` : entry.mask;
-                this.userLists.get(listType as UserListType)!.set(mapKey, entry);
+                const mapKey = entry.network
+                  ? `${entry.network}:${entry.mask}`
+                  : entry.mask;
+                this.userLists
+                  .get(listType as UserListType)!
+                  .set(mapKey, entry);
                 break;
               }
             }
@@ -291,7 +355,10 @@ export class UserManagementService {
         }
       }
     } catch (error) {
-      console.error('UserManagementService: Error loading from storage:', error);
+      console.error(
+        'UserManagementService: Error loading from storage:',
+        error,
+      );
     }
   }
 
@@ -313,7 +380,10 @@ export class UserManagementService {
     try {
       await AsyncStorage.removeItem(key);
     } catch (error) {
-      console.error('UserManagementService: Error removing from storage:', error);
+      console.error(
+        'UserManagementService: Error removing from storage:',
+        error,
+      );
     }
   }
 
@@ -337,9 +407,13 @@ export class UserManagementService {
     return new Promise((resolve, reject) => {
       // If a request is already pending for this nick/network, return its promise
       if (this.whoisRequestQueue.has(key)) {
-        this.whoisRequestQueue.get(key)?.reject(
-          new Error(t('New WHOIS request for same nick, cancelling previous.'))
-        );
+        this.whoisRequestQueue
+          .get(key)
+          ?.reject(
+            new Error(
+              t('New WHOIS request for same nick, cancelling previous.'),
+            ),
+          );
         this.whoisRequestQueue.delete(key);
       }
 
@@ -348,13 +422,20 @@ export class UserManagementService {
         reject(new Error(t('WHOIS request for {nick} timed out.', { nick })));
         // Also remove the WHOIS info from cache if it's still incomplete
         const info = this.whoisCache.get(key);
-        if (info && !info.realname) { // Simple check for incomplete data
+        if (info && !info.realname) {
+          // Simple check for incomplete data
           this.whoisCache.delete(key);
         }
       }, this.WHOIS_TIMEOUT);
 
-      this.whoisRequestQueue.set(key, { nick, network: net, resolve, reject, timeout });
-      
+      this.whoisRequestQueue.set(key, {
+        nick,
+        network: net,
+        resolve,
+        reject,
+        timeout,
+      });
+
       // Send the WHOIS command through IRCService
       this.ircService?.sendCommand(`WHOIS ${nick}`);
     });
@@ -375,7 +456,13 @@ export class UserManagementService {
       if (finalInfo) {
         pending.resolve(finalInfo);
       } else {
-        pending.reject(new Error(t('WHOIS data for {nick} not found after completion signal.', { nick })));
+        pending.reject(
+          new Error(
+            t('WHOIS data for {nick} not found after completion signal.', {
+              nick,
+            }),
+          ),
+        );
       }
     }
   }
@@ -385,7 +472,9 @@ export class UserManagementService {
    */
   requestWHOWAS(nick: string, network?: string, count?: number): void {
     if (!this.ircService) {
-      console.warn('UserManagementService: Cannot send WHOWAS - no IRC service available');
+      console.warn(
+        'UserManagementService: Cannot send WHOWAS - no IRC service available',
+      );
       return;
     }
     // this.currentWhowasNick = nick; // No longer needed
@@ -430,7 +519,7 @@ export class UserManagementService {
 
     const key = net ? `${net}:${nick}` : nick;
     const existing = this.whowasCache.get(key) || [];
-    
+
     const newInfo: WHOWASInfo = {
       ...info,
       nick,
@@ -443,7 +532,7 @@ export class UserManagementService {
     if (existing.length > 10) {
       existing.pop();
     }
-    
+
     this.whowasCache.set(key, existing);
     this.emitWHOWASUpdate(newInfo);
   }
@@ -456,7 +545,9 @@ export class UserManagementService {
     const key = net ? `${net}:${nick}` : nick;
     const whowasData = this.whowasCache.get(key);
 
-    console.log(`UserManagementService: WHOWAS completed for ${nick}${whowasData ? ` (${whowasData.length} entries)` : ' (no data)'}`);
+    console.log(
+      `UserManagementService: WHOWAS completed for ${nick}${whowasData ? ` (${whowasData.length} entries)` : ' (no data)'}`,
+    );
     // WHOWAS doesn't use promises like WHOIS, so no queue to resolve
     // Data is already in cache and listeners have been notified via updateWHOWAS
   }
@@ -482,17 +573,21 @@ export class UserManagementService {
   /**
    * Add user note
    */
-  async addUserNote(nick: string, note: string, network?: string): Promise<void> {
+  async addUserNote(
+    nick: string,
+    note: string,
+    network?: string,
+  ): Promise<void> {
     const net = network || this.currentNetwork;
     const key = net ? `${net}:${nick}` : nick;
-    
+
     const userNote: UserNote = {
       nick,
       note,
       network: net,
       updatedAt: Date.now(),
     };
-    
+
     this.userNotes.set(key, userNote);
     const storageKey = `${this.STORAGE_PREFIX}${this.NOTES_PREFIX}${key}`;
     await this.saveToStorage(storageKey, userNote);
@@ -530,17 +625,21 @@ export class UserManagementService {
   /**
    * Add user alias
    */
-  async addUserAlias(nick: string, alias: string, network?: string): Promise<void> {
+  async addUserAlias(
+    nick: string,
+    alias: string,
+    network?: string,
+  ): Promise<void> {
     const net = network || this.currentNetwork;
     const key = net ? `${net}:${nick}` : nick;
-    
+
     const userAlias: UserAlias = {
       nick,
       alias,
       network: net,
       updatedAt: Date.now(),
     };
-    
+
     this.userAliases.set(key, userAlias);
     const storageKey = `${this.STORAGE_PREFIX}${this.ALIASES_PREFIX}${key}`;
     await this.saveToStorage(storageKey, userAlias);
@@ -591,17 +690,21 @@ export class UserManagementService {
   /**
    * Ignore user
    */
-  async ignoreUser(mask: string, reason?: string, network?: string): Promise<void> {
+  async ignoreUser(
+    mask: string,
+    reason?: string,
+    network?: string,
+  ): Promise<void> {
     const net = network || this.currentNetwork;
     const key = net ? `${net}:${mask}` : mask;
-    
+
     const ignored: IgnoredUser = {
       mask,
       network: net,
       addedAt: Date.now(),
       reason,
     };
-    
+
     this.ignoredUsers.set(key, ignored);
     const storageKey = `${this.STORAGE_PREFIX}${this.IGNORE_PREFIX}${key}`;
     await this.saveToStorage(storageKey, ignored);
@@ -621,27 +724,32 @@ export class UserManagementService {
   /**
    * Check if user is ignored
    */
-  isUserIgnored(nick: string, username?: string, hostname?: string, network?: string): boolean {
+  isUserIgnored(
+    nick: string,
+    username?: string,
+    hostname?: string,
+    network?: string,
+  ): boolean {
     const net = network || this.currentNetwork;
-    
+
     // Check exact nick match
     if (this.ignoredUsers.has(net ? `${net}:${nick}` : nick)) {
       return true;
     }
-    
+
     // Check mask patterns
     for (const [key, ignored] of this.ignoredUsers.entries()) {
       if (net && !key.startsWith(`${net}:`)) continue;
       if (!net && key.includes(':')) continue; // Skip network-specific if no network
-      
+
       const mask = ignored.mask;
-      
+
       // Simple pattern matching
       if (mask.includes('!') && mask.includes('@')) {
         // Full mask: nick!user@host
         const [maskNick, maskUserHost] = mask.split('!');
         const [maskUser, maskHost] = maskUserHost.split('@');
-        
+
         if (maskNick === '*' || maskNick === nick) {
           if (maskUser === '*' || (username && maskUser === username)) {
             if (maskHost === '*' || (hostname && hostname.includes(maskHost))) {
@@ -662,7 +770,7 @@ export class UserManagementService {
         }
       }
     }
-    
+
     return false;
   }
 
@@ -670,7 +778,7 @@ export class UserManagementService {
    * Get all ignored users
    */
   getIgnoredUsers(network?: string | null): IgnoredUser[] {
-    const net = network === null ? undefined : (network || this.currentNetwork);
+    const net = network === null ? undefined : network || this.currentNetwork;
     const ignored: IgnoredUser[] = [];
 
     for (const [_key, user] of this.ignoredUsers.entries()) {
@@ -691,7 +799,7 @@ export class UserManagementService {
     reason?: string,
     network?: string,
     commandTemplate?: string,
-    duration?: string
+    duration?: string,
   ): Promise<void> {
     const net = network || this.currentNetwork;
     const key = net ? `${net}:${mask}` : mask;
@@ -745,7 +853,7 @@ export class UserManagementService {
     nick: string,
     username?: string,
     hostname?: string,
-    network?: string
+    network?: string,
   ): BlacklistEntry | undefined {
     const net = network || this.currentNetwork;
     const entries = Array.from(this.blacklistedUsers.values());
@@ -753,16 +861,22 @@ export class UserManagementService {
       if (!candidates.length) return undefined;
       return candidates.slice().sort((a, b) => b.addedAt - a.addedAt)[0];
     };
-    const networkMatches = entries.filter(entry => entry.network && entry.network === net);
+    const networkMatches = entries.filter(
+      entry => entry.network && entry.network === net,
+    );
     const globalMatches = entries.filter(entry => !entry.network);
 
     const networkHit = pickLatest(
-      networkMatches.filter(entry => this.matchesMaskPattern(nick, username, hostname, entry.mask))
+      networkMatches.filter(entry =>
+        this.matchesMaskPattern(nick, username, hostname, entry.mask),
+      ),
     );
     if (networkHit) return networkHit;
 
     return pickLatest(
-      globalMatches.filter(entry => this.matchesMaskPattern(nick, username, hostname, entry.mask))
+      globalMatches.filter(entry =>
+        this.matchesMaskPattern(nick, username, hostname, entry.mask),
+      ),
     );
   }
 
@@ -773,7 +887,7 @@ export class UserManagementService {
     entry: BlacklistEntry,
     nick: string,
     username?: string,
-    hostname?: string
+    hostname?: string,
   ): string {
     const trimmed = entry.mask.trim();
     if (trimmed.includes('!') || trimmed.includes('@')) {
@@ -793,7 +907,12 @@ export class UserManagementService {
   async addUserListEntry(
     listType: UserListType,
     mask: string,
-    options?: { network?: string; channels?: string[]; protected?: boolean; reason?: string }
+    options?: {
+      network?: string;
+      channels?: string[];
+      protected?: boolean;
+      reason?: string;
+    },
   ): Promise<void> {
     const net = options?.network || this.currentNetwork;
     const key = net ? `${net}:${mask}` : mask;
@@ -815,7 +934,11 @@ export class UserManagementService {
   /**
    * Remove an entry from a user list
    */
-  async removeUserListEntry(listType: UserListType, mask: string, network?: string): Promise<void> {
+  async removeUserListEntry(
+    listType: UserListType,
+    mask: string,
+    network?: string,
+  ): Promise<void> {
     const net = network || this.currentNetwork;
     const key = net ? `${net}:${mask}` : mask;
     this.userLists.get(listType)!.delete(key);
@@ -829,7 +952,12 @@ export class UserManagementService {
   async updateUserListEntry(
     listType: UserListType,
     mask: string,
-    options: { network?: string; channels?: string[]; protected?: boolean; reason?: string }
+    options: {
+      network?: string;
+      channels?: string[];
+      protected?: boolean;
+      reason?: string;
+    },
   ): Promise<void> {
     const net = options.network || this.currentNetwork;
     const key = net ? `${net}:${mask}` : mask;
@@ -852,8 +980,11 @@ export class UserManagementService {
   /**
    * Get all entries for a user list, optionally filtered by network
    */
-  getUserListEntries(listType: UserListType, network?: string): UserListEntry[] {
-    const net = network === null ? undefined : (network || this.currentNetwork);
+  getUserListEntries(
+    listType: UserListType,
+    network?: string,
+  ): UserListEntry[] {
+    const net = network === null ? undefined : network || this.currentNetwork;
     const entries: UserListEntry[] = [];
     for (const entry of this.userLists.get(listType)!.values()) {
       if (!net || entry.network === net || !entry.network) {
@@ -873,7 +1004,7 @@ export class UserManagementService {
     username?: string,
     hostname?: string,
     network?: string,
-    channel?: string
+    channel?: string,
   ): UserListEntry | undefined {
     const net = network || this.currentNetwork;
     const allEntries = Array.from(this.userLists.get(listType)!.values());
@@ -881,7 +1012,9 @@ export class UserManagementService {
     const matchesChannel = (entry: UserListEntry): boolean => {
       if (!entry.channels || entry.channels.length === 0) return true;
       if (!channel) return true;
-      return entry.channels.some(ch => ch.toLowerCase() === channel.toLowerCase());
+      return entry.channels.some(
+        ch => ch.toLowerCase() === channel.toLowerCase(),
+      );
     };
 
     const pickLatest = (candidates: UserListEntry[]) => {
@@ -891,21 +1024,23 @@ export class UserManagementService {
 
     // Network-specific first
     const networkHit = pickLatest(
-      allEntries.filter(e =>
-        e.network === net &&
-        matchesChannel(e) &&
-        this.matchesMaskPattern(nick, username, hostname, e.mask)
-      )
+      allEntries.filter(
+        e =>
+          e.network === net &&
+          matchesChannel(e) &&
+          this.matchesMaskPattern(nick, username, hostname, e.mask),
+      ),
     );
     if (networkHit) return networkHit;
 
     // Global fallback
     return pickLatest(
-      allEntries.filter(e =>
-        !e.network &&
-        matchesChannel(e) &&
-        this.matchesMaskPattern(nick, username, hostname, e.mask)
-      )
+      allEntries.filter(
+        e =>
+          !e.network &&
+          matchesChannel(e) &&
+          this.matchesMaskPattern(nick, username, hostname, e.mask),
+      ),
     );
   }
 
@@ -913,13 +1048,21 @@ export class UserManagementService {
    * Check if a user is protected in ANY list (user lists, ignore, blacklist).
    * Returns true if any matching entry across all lists has protected: true.
    */
-  isUserProtected(nick: string, username?: string, hostname?: string, network?: string): boolean {
+  isUserProtected(
+    nick: string,
+    username?: string,
+    hostname?: string,
+    network?: string,
+  ): boolean {
     const net = network || this.currentNetwork;
 
     // Check all user lists
     for (const listMap of this.userLists.values()) {
       for (const entry of listMap.values()) {
-        if (entry.protected && this.entryMatchesUser(entry, nick, username, hostname, net)) {
+        if (
+          entry.protected &&
+          this.entryMatchesUser(entry, nick, username, hostname, net)
+        ) {
           return true;
         }
       }
@@ -927,14 +1070,20 @@ export class UserManagementService {
 
     // Check ignore list
     for (const entry of this.ignoredUsers.values()) {
-      if (entry.protected && this.entryMatchesUserForNetwork(entry, nick, username, hostname, net)) {
+      if (
+        entry.protected &&
+        this.entryMatchesUserForNetwork(entry, nick, username, hostname, net)
+      ) {
         return true;
       }
     }
 
     // Check blacklist
     for (const entry of this.blacklistedUsers.values()) {
-      if (entry.protected && this.entryMatchesUserForNetwork(entry, nick, username, hostname, net)) {
+      if (
+        entry.protected &&
+        this.entryMatchesUserForNetwork(entry, nick, username, hostname, net)
+      ) {
         return true;
       }
     }
@@ -950,7 +1099,7 @@ export class UserManagementService {
     nick: string,
     username: string | undefined,
     hostname: string | undefined,
-    network: string
+    network: string,
   ): boolean {
     if (entry.network && entry.network !== network) return false;
     return this.matchesMaskPattern(nick, username, hostname, entry.mask);
@@ -964,7 +1113,7 @@ export class UserManagementService {
     nick: string,
     username: string | undefined,
     hostname: string | undefined,
-    network: string
+    network: string,
   ): boolean {
     if (entry.network && entry.network !== network) return false;
     return this.matchesMaskPattern(nick, username, hostname, entry.mask);
@@ -974,11 +1123,14 @@ export class UserManagementService {
     nick: string,
     username: string | undefined,
     hostname: string | undefined,
-    mask: string
+    mask: string,
   ): boolean {
     const trimmed = mask.trim();
     if (!trimmed) return false;
-    const matchPart = (value: string | undefined, pattern: string | undefined): boolean => {
+    const matchPart = (
+      value: string | undefined,
+      pattern: string | undefined,
+    ): boolean => {
       const normalizedPattern = (pattern || '').trim();
       if (!normalizedPattern || normalizedPattern === '*') return true;
       if (!value) return false;
@@ -1047,7 +1199,9 @@ export class UserManagementService {
    */
   clearWHOISCache(network?: string): void {
     if (network) {
-      const keys = Array.from(this.whoisCache.keys()).filter(k => k.startsWith(`${network}:`));
+      const keys = Array.from(this.whoisCache.keys()).filter(k =>
+        k.startsWith(`${network}:`),
+      );
       keys.forEach(k => this.whoisCache.delete(k));
     } else {
       this.whoisCache.clear();
@@ -1059,7 +1213,9 @@ export class UserManagementService {
    */
   clearWHOWASCache(network?: string): void {
     if (network) {
-      const keys = Array.from(this.whowasCache.keys()).filter(k => k.startsWith(`${network}:`));
+      const keys = Array.from(this.whowasCache.keys()).filter(k =>
+        k.startsWith(`${network}:`),
+      );
       keys.forEach(k => this.whowasCache.delete(k));
     } else {
       this.whowasCache.clear();

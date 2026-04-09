@@ -110,7 +110,9 @@ class LayoutService {
           }
           // Migrate old showTimestamps to timestampDisplay
           if (data.showTimestamps !== undefined && !data.timestampDisplay) {
-            this.config.timestampDisplay = data.showTimestamps ? 'grouped' : 'never';
+            this.config.timestampDisplay = data.showTimestamps
+              ? 'grouped'
+              : 'never';
           }
           if (data.messageGroupingEnabled === undefined) {
             // Preserve legacy behavior for existing installs that predate the setting.
@@ -260,7 +262,10 @@ class LayoutService {
   /**
    * Set font size value (8-30px)
    */
-  async setFontSizeValue(size: keyof LayoutConfig['fontSizeValues'], value: number): Promise<void> {
+  async setFontSizeValue(
+    size: keyof LayoutConfig['fontSizeValues'],
+    value: number,
+  ): Promise<void> {
     const nextValue = Math.max(8, Math.min(30, value));
     await this.setConfig({
       fontSizeValues: {
@@ -281,7 +286,9 @@ class LayoutService {
    * Set message spacing
    */
   async setMessageSpacing(spacing: number): Promise<void> {
-    await this.setConfig({ messageSpacing: Math.max(0, Math.min(20, spacing)) });
+    await this.setConfig({
+      messageSpacing: Math.max(0, Math.min(20, spacing)),
+    });
   }
 
   /**
@@ -295,7 +302,9 @@ class LayoutService {
    * Set message padding
    */
   async setMessagePadding(padding: number): Promise<void> {
-    await this.setConfig({ messagePadding: Math.max(0, Math.min(20, padding)) });
+    await this.setConfig({
+      messagePadding: Math.max(0, Math.min(20, padding)),
+    });
   }
 
   /**
@@ -308,7 +317,9 @@ class LayoutService {
   /**
    * Set timestamp display option
    */
-  async setTimestampDisplay(display: 'always' | 'grouped' | 'never'): Promise<void> {
+  async setTimestampDisplay(
+    display: 'always' | 'grouped' | 'never',
+  ): Promise<void> {
     await this.setConfig({ timestampDisplay: display });
   }
 
@@ -336,7 +347,9 @@ class LayoutService {
   /**
    * Set message text alignment
    */
-  async setMessageTextAlign(align: 'left' | 'right' | 'center' | 'justify'): Promise<void> {
+  async setMessageTextAlign(
+    align: 'left' | 'right' | 'center' | 'justify',
+  ): Promise<void> {
     await this.setConfig({ messageTextAlign: align });
   }
 
@@ -350,7 +363,9 @@ class LayoutService {
   /**
    * Set message text direction
    */
-  async setMessageTextDirection(direction: 'auto' | 'ltr' | 'rtl'): Promise<void> {
+  async setMessageTextDirection(
+    direction: 'auto' | 'ltr' | 'rtl',
+  ): Promise<void> {
     await this.setConfig({ messageTextDirection: direction });
   }
 
@@ -393,7 +408,9 @@ class LayoutService {
    * Set navigation bar offset (0-100px)
    */
   async setNavigationBarOffset(offset: number): Promise<void> {
-    await this.setConfig({ navigationBarOffset: Math.max(0, Math.min(100, offset)) });
+    await this.setConfig({
+      navigationBarOffset: Math.max(0, Math.min(100, offset)),
+    });
   }
 
   /**
@@ -433,4 +450,3 @@ class LayoutService {
 }
 
 export const layoutService = new LayoutService();
-

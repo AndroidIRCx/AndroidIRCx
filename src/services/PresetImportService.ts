@@ -26,11 +26,16 @@ class PresetImportService {
   }
 
   private needsReimport(entries: string[]): boolean {
-    return entries.some((entry) => /[ÂÃ�]/.test(entry) || /\s+(on|off)$/i.test(entry));
+    return entries.some(
+      entry => /[ÂÃ�]/.test(entry) || /\s+(on|off)$/i.test(entry),
+    );
   }
 
   private async importAwayPresets(): Promise<void> {
-    const existing = await settingsService.getSetting('awayPresets', [] as string[]);
+    const existing = await settingsService.getSetting(
+      'awayPresets',
+      [] as string[],
+    );
     if (existing.length > 0 && !this.needsReimport(existing)) return;
     const raw = decodeMircPresetBase64(IRCAP_PRESETS_BASE64.awayPresets);
     const parsed = parseGenericPresets(raw).map(entry => entry.raw);
@@ -40,12 +45,20 @@ class PresetImportService {
   }
 
   private async importDecorationPresets(): Promise<void> {
-    const existing = await settingsService.getSetting('decorStyles', [] as string[]);
-    const raw = decodeMircPresetBase64(IRCAP_PRESETS_BASE64.textDecorationPresets);
+    const existing = await settingsService.getSetting(
+      'decorStyles',
+      [] as string[],
+    );
+    const raw = decodeMircPresetBase64(
+      IRCAP_PRESETS_BASE64.textDecorationPresets,
+    );
     const parsed = parseIrcapDecorationEti(raw);
     if (parsed.length > 0) {
       if (existing.length > 0 && !this.needsReimport(existing)) {
-        const merged = [...existing, ...parsed.filter(style => !existing.includes(style))];
+        const merged = [
+          ...existing,
+          ...parsed.filter(style => !existing.includes(style)),
+        ];
         await settingsService.setSetting('decorStyles', merged);
       } else {
         await settingsService.setSetting('decorStyles', parsed);
@@ -54,9 +67,14 @@ class PresetImportService {
   }
 
   private async importNickCompletionPresets(): Promise<void> {
-    const existing = await settingsService.getSetting('nickCompleteStyles', [] as string[]);
+    const existing = await settingsService.getSetting(
+      'nickCompleteStyles',
+      [] as string[],
+    );
     if (existing.length > 0 && !this.needsReimport(existing)) return;
-    const raw = decodeMircPresetBase64(IRCAP_PRESETS_BASE64.nickCompletionPresets);
+    const raw = decodeMircPresetBase64(
+      IRCAP_PRESETS_BASE64.nickCompletionPresets,
+    );
     const parsed = parseNickCompletionPresets(raw).map(entry => entry.raw);
     if (parsed.length > 0) {
       await settingsService.setSetting('nickCompleteStyles', parsed);
@@ -65,7 +83,10 @@ class PresetImportService {
   }
 
   private async importTopicPresets(): Promise<void> {
-    const existing = await settingsService.getSetting('topicStyles', [] as string[]);
+    const existing = await settingsService.getSetting(
+      'topicStyles',
+      [] as string[],
+    );
     if (existing.length > 0 && !this.needsReimport(existing)) return;
     const raw = decodeMircPresetBase64(IRCAP_PRESETS_BASE64.topicPresets);
     const parsed = parseGenericPresets(raw).map(entry => entry.raw);

@@ -14,10 +14,10 @@ export function getActiveTabSafe(
   activeTabId: string,
   activeConnectionId: string | null,
   primaryNetworkId: string | null,
-  networkName: string
+  networkName: string,
 ): ChannelTab {
   // First, try to find the active tab by ID
-  const byId = tabs.find((tab) => tab.id === activeTabId);
+  const byId = tabs.find(tab => tab.id === activeTabId);
   if (byId) return byId;
 
   // Try to find any server tab
@@ -28,11 +28,22 @@ export function getActiveTabSafe(
   if (tabs[0]) return tabs[0];
 
   // Last resort: create temporary tab only if we have a valid network
-  const validNetworkId = activeConnectionId || primaryNetworkId || (networkName !== 'Not connected' && networkName !== '' ? networkName : null);
+  const validNetworkId =
+    activeConnectionId ||
+    primaryNetworkId ||
+    (networkName !== 'Not connected' && networkName !== ''
+      ? networkName
+      : null);
   if (validNetworkId) {
     return makeServerTab(validNetworkId);
   }
 
   // Ultimate fallback: return a minimal safe tab (won't be saved)
-  return { id: 'temp', name: 'IRC', type: 'server' as const, networkId: '', messages: [] };
+  return {
+    id: 'temp',
+    name: 'IRC',
+    type: 'server' as const,
+    networkId: '',
+    messages: [],
+  };
 }

@@ -49,7 +49,10 @@ describe('ThemeSelectorWithSettings', () => {
   it('applies simple theme change when no recommended settings exist', async () => {
     const onThemeChange = jest.fn();
     const { getByText } = render(
-      <ThemeSelectorWithSettings themes={themes} onThemeChange={onThemeChange} />
+      <ThemeSelectorWithSettings
+        themes={themes}
+        onThemeChange={onThemeChange}
+      />,
     );
 
     await act(async () => {
@@ -63,7 +66,10 @@ describe('ThemeSelectorWithSettings', () => {
   it('supports Theme Only path for theme with recommended settings', async () => {
     const onThemeChange = jest.fn();
     const { getByText } = render(
-      <ThemeSelectorWithSettings themes={themes} onThemeChange={onThemeChange} />
+      <ThemeSelectorWithSettings
+        themes={themes}
+        onThemeChange={onThemeChange}
+      />,
     );
 
     fireEvent.press(getByText('Oceanic'));
@@ -81,7 +87,10 @@ describe('ThemeSelectorWithSettings', () => {
   it('supports Apply All path and success notification', async () => {
     const onThemeChange = jest.fn();
     const { getByText } = render(
-      <ThemeSelectorWithSettings themes={themes} onThemeChange={onThemeChange} />
+      <ThemeSelectorWithSettings
+        themes={themes}
+        onThemeChange={onThemeChange}
+      />,
     );
 
     fireEvent.press(getByText('Oceanic'));
@@ -94,12 +103,17 @@ describe('ThemeSelectorWithSettings', () => {
 
     expect(mockSetTheme).toHaveBeenCalledWith('oceanic', true);
     expect(onThemeChange).toHaveBeenCalledWith('oceanic');
-    expect(Alert.alert).toHaveBeenCalledWith('Settings Applied', 'Theme and recommended settings have been applied.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Settings Applied',
+      'Theme and recommended settings have been applied.',
+    );
   });
 
   it('shows error alert when Apply All fails', async () => {
     mockSetTheme.mockRejectedValueOnce(new Error('set theme failed'));
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const { getByText } = render(<ThemeSelectorWithSettings themes={themes} />);
 
@@ -111,12 +125,17 @@ describe('ThemeSelectorWithSettings', () => {
       await applyAllAction.onPress();
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to apply theme settings.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Failed to apply theme settings.',
+    );
     consoleSpy.mockRestore();
   });
 
   it('renders current-theme recommended-settings info box', () => {
     const { getByText } = render(<ThemeSelectorWithSettings themes={themes} />);
-    expect(getByText('Current theme has recommended settings that can be applied.')).toBeTruthy();
+    expect(
+      getByText('Current theme has recommended settings that can be applied.'),
+    ).toBeTruthy();
   });
 });

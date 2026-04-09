@@ -9,7 +9,10 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { SendMessageHandler, SendMessageHandlerRegistry } from '../sendMessageTypes';
+import type {
+  SendMessageHandler,
+  SendMessageHandlerRegistry,
+} from '../sendMessageTypes';
 import { settingsService, DEFAULT_QUIT_MESSAGE } from '../../SettingsService';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
@@ -36,10 +39,7 @@ export const handlePART: SendMessageHandler = (ctx, args, target) => {
       return;
     }
   }
-  ctx.partChannel(
-    args.length > 0 ? args[0] : target,
-    args.slice(1).join(' '),
-  );
+  ctx.partChannel(args.length > 0 ? args[0] : target, args.slice(1).join(' '));
 };
 
 export const handleNICK: SendMessageHandler = (ctx, args) => {
@@ -65,7 +65,10 @@ export const handleQUIT: SendMessageHandler = async (ctx, args) => {
   if (userArgs) {
     ctx.sendRaw(`QUIT :${userArgs}`);
   } else {
-    const quitMsg = await settingsService.getSetting('quitMessage', DEFAULT_QUIT_MESSAGE);
+    const quitMsg = await settingsService.getSetting(
+      'quitMessage',
+      DEFAULT_QUIT_MESSAGE,
+    );
     ctx.sendRaw(`QUIT :${quitMsg}`);
   }
 };
@@ -86,9 +89,7 @@ export const handleTOPIC: SendMessageHandler = (ctx, args, target) => {
         ? args[0]
         : '';
   ctx.sendCommand(
-    topicText
-      ? `TOPIC ${topicChannel} :${topicText}`
-      : `TOPIC ${topicChannel}`,
+    topicText ? `TOPIC ${topicChannel} :${topicText}` : `TOPIC ${topicChannel}`,
   );
 };
 
@@ -118,7 +119,9 @@ export const handleREGISTER: SendMessageHandler = (ctx, args) => {
   if (args.length < 2) {
     ctx.addMessage({
       type: 'error',
-      text: t('Usage: /register <email|*> <password> OR /register <account> <email|*> <password>'),
+      text: t(
+        'Usage: /register <email|*> <password> OR /register <account> <email|*> <password>',
+      ),
       timestamp: Date.now(),
     });
     return;

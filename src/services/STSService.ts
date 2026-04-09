@@ -6,7 +6,7 @@
 /**
  * STS (Strict Transport Security) Service
  * Implements IRCv3 STS specification: https://ircv3.net/specs/extensions/sts
- * 
+ *
  * STS allows IRC servers to instruct clients to use TLS for future connections.
  * When a client receives an STS policy, it must:
  * 1. Immediately upgrade the current connection to TLS (if not already)
@@ -44,7 +44,7 @@ export class STSService {
 
   private async loadPolicies() {
     if (this.loaded) return;
-    
+
     try {
       const stored = await AsyncStorage.getItem(STS_POLICIES_STORAGE_KEY);
       if (stored) {
@@ -69,7 +69,10 @@ export class STSService {
   private async savePolicies() {
     try {
       const data = Object.fromEntries(this.policies);
-      await AsyncStorage.setItem(STS_POLICIES_STORAGE_KEY, JSON.stringify(data));
+      await AsyncStorage.setItem(
+        STS_POLICIES_STORAGE_KEY,
+        JSON.stringify(data),
+      );
     } catch (error) {
       console.error('Failed to save STS policies:', error);
     }
@@ -82,7 +85,7 @@ export class STSService {
    */
   public parseCapValue(capValue: string): { [key: string]: string } | null {
     const result: { [key: string]: string } = {};
-    
+
     const pairs = capValue.split(',');
     for (const pair of pairs) {
       const trimmed = pair.trim();
@@ -90,16 +93,19 @@ export class STSService {
         const [key, value] = trimmed.split('=');
         result[key.trim()] = value.trim();
       } else if (trimmed === 'preload') {
-      result.preload = 'true';
+        result.preload = 'true';
       }
     }
-    
+
     // Validate required fields
     if (!result.duration) {
-      console.error('STS: Missing required "duration" field in cap value:', capValue);
+      console.error(
+        'STS: Missing required "duration" field in cap value:',
+        capValue,
+      );
       return null;
     }
-    
+
     return result;
   }
 
@@ -122,15 +128,15 @@ export class STSService {
    * Check if STS policy requires TLS for a connection
    */
   public checkConnection(
-    hostname: string, 
-    port: number, 
-    currentTls: boolean
+    hostname: string,
+    port: number,
+    currentTls: boolean,
   ): STSConnectionResult {
     this.ensureLoaded();
-    
+
     const policy = this.getPolicy(hostname);
     const defaultTlsPort = 6697;
-    
+
     if (!policy) {
       return {
         shouldUpgrade: false,
@@ -176,7 +182,7 @@ export class STSService {
    */
   public savePolicy(hostname: string, capValue: string): boolean {
     this.ensureLoaded();
-    
+
     const parsed = this.parseCapValue(capValue);
     if (!parsed) {
       console.error(`STS: Failed to parse policy for ${hostname}:`, capValue);
@@ -187,7 +193,10 @@ export class STSService {
     const port = parsed.port ? parseInt(parsed.port, 10) : null;
 
     if (isNaN(duration) || duration < 0) {
-      console.error(`STS: Invalid duration in policy for ${hostname}:`, duration);
+      console.error(
+        `STS: Invalid duration in policy for ${hostname}:`,
+        duration,
+      );
       return false;
     }
 
@@ -239,7 +248,7 @@ export class STSService {
     this.ensureLoaded();
     const now = Date.now();
     const active: STSPolicy[] = [];
-    
+
     for (const [host, policy] of this.policies) {
       if (policy.expiresAt > now) {
         active.push(policy);
@@ -248,12 +257,12 @@ export class STSService {
         this.policies.delete(host);
       }
     }
-    
+
     // Save if we cleaned up any
     if (active.length !== this.policies.size) {
       this.savePolicies();
     }
-    
+
     return active;
   }
 

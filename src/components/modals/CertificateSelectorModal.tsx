@@ -31,12 +31,9 @@ interface CertificateSelectorModalProps {
   defaultCommonName?: string;
 }
 
-export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> = ({
-  visible,
-  onClose,
-  onSelect,
-  defaultCommonName,
-}) => {
+export const CertificateSelectorModal: React.FC<
+  CertificateSelectorModalProps
+> = ({ visible, onClose, onSelect, defaultCommonName }) => {
   const t = useT();
   const [certificates, setCertificates] = useState<CertificateMetadata[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,7 +67,7 @@ export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> =
       Alert.alert(
         t('Certificate Expired'),
         t('This certificate has expired. Please generate a new one.'),
-        [{ text: t('OK') }]
+        [{ text: t('OK') }],
       );
       return;
     }
@@ -94,7 +91,7 @@ export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> =
     Alert.alert(
       t('Delete Certificate'),
       t(
-        'Are you sure you want to delete this certificate? This action cannot be undone. You will need to generate a new certificate and re-add it to IRC services.'
+        'Are you sure you want to delete this certificate? This action cannot be undone. You will need to generate a new certificate and re-add it to IRC services.',
       ),
       [
         { text: t('Cancel'), style: 'cancel' },
@@ -112,7 +109,7 @@ export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> =
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -153,32 +150,42 @@ export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> =
         <TouchableOpacity
           style={styles.certContent}
           onPress={() => handleSelect(item)}
-          activeOpacity={0.7}>
+          activeOpacity={0.7}
+        >
           <View style={styles.certHeader}>
             <Text style={styles.certName}>{item.name}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: status.color + '20' }]}>
-              <View style={[styles.statusDot, { backgroundColor: status.color }]} />
-              <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: status.color + '20' },
+              ]}
+            >
+              <View
+                style={[styles.statusDot, { backgroundColor: status.color }]}
+              />
+              <Text style={[styles.statusText, { color: status.color }]}>
+                {status.label}
+              </Text>
             </View>
           </View>
 
           <Text style={styles.certCommonName}>CN: {item.commonName}</Text>
 
           <View style={styles.certMeta}>
-            <Text style={styles.certMetaText}>
-              🔑 {shortFingerprint}
-            </Text>
+            <Text style={styles.certMetaText}>🔑 {shortFingerprint}</Text>
           </View>
 
           <Text style={styles.certValidity}>
-            {t('Valid:')} {formatDate(item.validFrom)} - {formatDate(item.validTo)}
+            {t('Valid:')} {formatDate(item.validFrom)} -{' '}
+            {formatDate(item.validTo)}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => handleDelete(item)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <Text style={styles.deleteButtonText}>🗑️</Text>
         </TouchableOpacity>
       </View>
@@ -190,10 +197,17 @@ export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> =
       <Text style={styles.emptyEmoji}>🔐</Text>
       <Text style={styles.emptyTitle}>{t('No Certificates')}</Text>
       <Text style={styles.emptyText}>
-        {t('You haven\'t generated any certificates yet. Generate one to get started.')}
+        {t(
+          "You haven't generated any certificates yet. Generate one to get started.",
+        )}
       </Text>
-      <TouchableOpacity style={styles.generateButton} onPress={handleGenerateNew}>
-        <Text style={styles.generateButtonText}>➕ {t('Generate New Certificate')}</Text>
+      <TouchableOpacity
+        style={styles.generateButton}
+        onPress={handleGenerateNew}
+      >
+        <Text style={styles.generateButtonText}>
+          ➕ {t('Generate New Certificate')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -214,16 +228,24 @@ export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> =
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#4A9EFF" />
-              <Text style={styles.loadingText}>{t('Loading certificates...')}</Text>
+              <Text style={styles.loadingText}>
+                {t('Loading certificates...')}
+              </Text>
             </View>
           ) : (
             <>
               {certificates.length > 0 && (
                 <View style={styles.toolbar}>
                   <Text style={styles.toolbarText}>
-                    {certificates.length} {certificates.length === 1 ? t('certificate') : t('certificates')}
+                    {certificates.length}{' '}
+                    {certificates.length === 1
+                      ? t('certificate')
+                      : t('certificates')}
                   </Text>
-                  <TouchableOpacity onPress={handleGenerateNew} style={styles.toolbarButton}>
+                  <TouchableOpacity
+                    onPress={handleGenerateNew}
+                    style={styles.toolbarButton}
+                  >
                     <Text style={styles.toolbarButtonText}>➕ {t('New')}</Text>
                   </TouchableOpacity>
                 </View>
@@ -234,7 +256,9 @@ export const CertificateSelectorModal: React.FC<CertificateSelectorModalProps> =
                 renderItem={renderCertificate}
                 keyExtractor={item => item.id}
                 contentContainerStyle={
-                  certificates.length === 0 ? styles.emptyList : styles.listContent
+                  certificates.length === 0
+                    ? styles.emptyList
+                    : styles.listContent
                 }
                 ListEmptyComponent={renderEmpty}
               />

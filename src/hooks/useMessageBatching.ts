@@ -7,7 +7,11 @@ import { useCallback, useRef, useEffect } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { IRCMessage } from '../services/IRCService';
 import { performanceService } from '../services/PerformanceService';
-import { noticeTabId, notificationsTabId, sortTabsGrouped } from '../utils/tabUtils';
+import {
+  noticeTabId,
+  notificationsTabId,
+  sortTabsGrouped,
+} from '../utils/tabUtils';
 import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
 import { messageHistoryService } from '../services/MessageHistoryService';
@@ -29,7 +33,9 @@ interface NewTabInfo {
 
 interface UseMessageBatchingParams {
   pendingMessagesRef: MutableRefObject<MessageBatchItem[]>;
-  messageBatchTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
+  messageBatchTimeoutRef: MutableRefObject<ReturnType<
+    typeof setTimeout
+  > | null>;
   activeTabId: string | null;
   tabSortAlphabetical: boolean;
   setTabs: Dispatch<SetStateAction<ChannelTab[]>>;
@@ -73,7 +79,7 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
         // Load history from storage
         const history = await messageHistoryService.loadMessages(
           tabInfo.networkId,
-          tabInfo.channelName
+          tabInfo.channelName,
         );
 
         if (history.length === 0) {
@@ -101,9 +107,11 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
             const tab = prevTabs[tabIndex];
             // Filter out any messages from scrollback that are already in tab
             // (based on timestamp to avoid duplicates)
-            const existingTimestamps = new Set(tab.messages.map(m => m.timestamp));
+            const existingTimestamps = new Set(
+              tab.messages.map(m => m.timestamp),
+            );
             const uniqueScrollback = markedScrollback.filter(
-              m => !existingTimestamps.has(m.timestamp)
+              m => !existingTimestamps.has(m.timestamp),
             );
 
             if (uniqueScrollback.length === 0) {
@@ -115,7 +123,9 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
               id: `scrollback-separator-${Date.now()}`,
               type: 'system',
               text: `─── Scrollback (${uniqueScrollback.length} messages) ───`,
-              timestamp: uniqueScrollback[uniqueScrollback.length - 1]?.timestamp || Date.now(),
+              timestamp:
+                uniqueScrollback[uniqueScrollback.length - 1]?.timestamp ||
+                Date.now(),
               channel: tabInfo.channelName,
               isScrollback: true,
             };
@@ -133,12 +143,19 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
               scrollbackLoaded: true,
             };
 
-            debugLogger.debug('messageBatching', `Loaded ${uniqueScrollback.length} scrollback messages`, tabInfo.channelName);
+            debugLogger.debug(
+              'messageBatching',
+              `Loaded ${uniqueScrollback.length} scrollback messages`,
+              tabInfo.channelName,
+            );
             return newTabs;
           });
         }
       } catch (error) {
-        console.error(`Failed to load scrollback for ${tabInfo.channelName}:`, error);
+        console.error(
+          `Failed to load scrollback for ${tabInfo.channelName}:`,
+          error,
+        );
       } finally {
         scrollbackLoadingRef.current.delete(tabInfo.tabId);
       }
@@ -158,7 +175,11 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
 
   const processBatchedMessages = useCallback(() => {
     const batch = pendingMessagesRef.current;
-    debugLogger.debug('messageBatching', 'processBatchedMessages called', batch.length);
+    debugLogger.debug(
+      'messageBatching',
+      'processBatchedMessages called',
+      batch.length,
+    );
     if (batch.length === 0) return;
 
     // Clear the queue
@@ -169,9 +190,13 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
 
     // Track newly created tabs for scrollback loading
     const newlyCreatedTabs: NewTabInfo[] = [];
-    const messagesToPersist: Array<{ message: IRCMessage; network: string }> = [];
+    const messagesToPersist: Array<{ message: IRCMessage; network: string }> =
+      [];
 
-    const shouldPersistMessage = (message: IRCMessage, hasValidNetwork: boolean): boolean => {
+    const shouldPersistMessage = (
+      message: IRCMessage,
+      hasValidNetwork: boolean,
+    ): boolean => {
       if (!hasValidNetwork) return false;
       if (message.isScrollback || message.isPlayback) return false;
       if (message.isRaw || message.type === 'raw') return false;
@@ -180,13 +205,21 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
 
     // Process all messages in a single setTabs call
     setTabs(prevTabs => {
-      debugLogger.debug('messageBatching', 'setTabs called with current tabs', prevTabs.length);
+      debugLogger.debug(
+        'messageBatching',
+        'setTabs called with current tabs',
+        prevTabs.length,
+      );
       let newTabs = prevTabs;
       let tabsModified = false;
 
       for (const { message, context } of batch) {
         if (!context) {
-          debugLogger.warn('messageBatching', 'Skipping message without context', message);
+          debugLogger.warn(
+            'messageBatching',
+            'Skipping message without context',
+            message,
+          );
           continue;
         }
 
@@ -200,7 +233,10 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
 
         if (hasValidNetwork) {
           // Ensure notices tab if needed
-          if (targetTabId === noticeTabId(messageNetwork) && !newTabs.some(t => t.id === targetTabId)) {
+          if (
+            targetTabId === noticeTabId(messageNetwork) &&
+            !newTabs.some(t => t.id === targetTabId)
+          ) {
             if (!tabsModified) newTabs = [...newTabs];
             newTabs.push({
               id: targetTabId,
@@ -211,9 +247,12 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
             });
             tabsModified = true;
           }
-          
+
           // Ensure notifications tab if needed
-          if (targetTabId === notificationsTabId(messageNetwork) && !newTabs.some(t => t.id === targetTabId)) {
+          if (
+            targetTabId === notificationsTabId(messageNetwork) &&
+            !newTabs.some(t => t.id === targetTabId)
+          ) {
             if (!tabsModified) newTabs = [...newTabs];
             newTabs.push({
               id: targetTabId,
@@ -234,14 +273,14 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
               t =>
                 t.type === 'channel' &&
                 t.networkId === messageNetwork &&
-                t.name.toLowerCase() === normalizedName
+                t.name.toLowerCase() === normalizedName,
             );
           } else if (targetTabType === 'query') {
             tabIndex = newTabs.findIndex(
               t =>
                 t.type === 'query' &&
                 t.networkId === messageNetwork &&
-                t.name.toLowerCase() === normalizedName
+                t.name.toLowerCase() === normalizedName,
             );
           }
         }
@@ -285,7 +324,7 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
           // Update existing tab
           if (!tabsModified) newTabs = [...newTabs];
           const tab = newTabs[tabIndex];
-          
+
           // Check for duplicate messages.
           // We only use text/time dedup for local echo reconciliation; otherwise
           // legitimate repeated lines can be incorrectly dropped.
@@ -295,9 +334,12 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
               return m.msgid === message.msgid;
             }
 
-            const existingIsLocalEcho = m.status === 'sent' || m.status === 'pending';
-            const incomingIsLocalEcho = message.status === 'sent' || message.status === 'pending';
-            const isLocalEchoReconciliation = existingIsLocalEcho || incomingIsLocalEcho;
+            const existingIsLocalEcho =
+              m.status === 'sent' || m.status === 'pending';
+            const incomingIsLocalEcho =
+              message.status === 'sent' || message.status === 'pending';
+            const isLocalEchoReconciliation =
+              existingIsLocalEcho || incomingIsLocalEcho;
             if (!isLocalEchoReconciliation) {
               return false;
             }
@@ -305,22 +347,29 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
             // For local echo reconciliation, compare by timestamp + from + text.
             // Allow small timestamp difference for network latency.
             const timeDiff = Math.abs(m.timestamp - message.timestamp);
-            return timeDiff < 8000 &&
-                   m.type === message.type &&
-                   m.from?.toLowerCase() === message.from?.toLowerCase() && 
-                   m.text === message.text;
+            return (
+              timeDiff < 8000 &&
+              m.type === message.type &&
+              m.from?.toLowerCase() === message.from?.toLowerCase() &&
+              m.text === message.text
+            );
           });
-          
+
           if (isDuplicate) {
-            debugLogger.debug('messageBatching', 'Skipping duplicate message', message.text?.substring(0, 50));
+            debugLogger.debug(
+              'messageBatching',
+              'Skipping duplicate message',
+              message.text?.substring(0, 50),
+            );
             continue;
           }
-          
+
           //console.log(`📨 useMessageBatching: Adding message to existing tab ${tab.id} (current: ${tab.messages.length}, batchTag: ${message.batchTag || 'none'}, isPlayback: ${message.isPlayback || false})`);
           const newMessages = [...tab.messages, message];
           const perfConfig = performanceService.getConfig();
           const messagesFinal =
-            perfConfig.enableMessageCleanup && newMessages.length > perfConfig.cleanupThreshold
+            perfConfig.enableMessageCleanup &&
+            newMessages.length > perfConfig.cleanupThreshold
               ? newMessages.slice(-perfConfig.messageLimit)
               : newMessages;
 
@@ -338,10 +387,16 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
       }
 
       if (!tabsModified) {
-        debugLogger.debug('messageBatching', 'No tabs modified, returning previous tabs');
+        debugLogger.debug(
+          'messageBatching',
+          'No tabs modified, returning previous tabs',
+        );
         return prevTabs;
       }
-      const result = newTabs.length === prevTabs.length ? newTabs : sortTabsGrouped(newTabs, tabSortAlphabetical);
+      const result =
+        newTabs.length === prevTabs.length
+          ? newTabs
+          : sortTabsGrouped(newTabs, tabSortAlphabetical);
       if (__DEV__) {
         //console.log('✅ Batch processed, returning', result.length, 'tabs');
       }
@@ -351,7 +406,10 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
     if (messagesToPersist.length > 0) {
       messagesToPersist.forEach(({ message, network }) => {
         messageHistoryService.saveMessage(message, network).catch(err => {
-          console.error('useMessageBatching: Failed to save message history:', err);
+          console.error(
+            'useMessageBatching: Failed to save message history:',
+            err,
+          );
         });
       });
     }
@@ -362,7 +420,14 @@ export const useMessageBatching = (params: UseMessageBatchingParams) => {
       // Trigger scrollback loading
       setTimeout(() => loadScrollbackForNewTabs(), 50);
     }
-  }, [activeTabId, loadScrollbackForNewTabs, messageBatchTimeoutRef, pendingMessagesRef, setTabs, tabSortAlphabetical]);
+  }, [
+    activeTabId,
+    loadScrollbackForNewTabs,
+    messageBatchTimeoutRef,
+    pendingMessagesRef,
+    setTabs,
+    tabSortAlphabetical,
+  ]);
 
   return { processBatchedMessages };
 };

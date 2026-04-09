@@ -55,7 +55,7 @@ jest.mock('../../src/stores/uiStore', () => ({
     (selector: (state: any) => any) => mockUseUIStore(selector),
     {
       getState: () => mockUseUIStore.getState(),
-    }
+    },
   ),
 }));
 
@@ -90,34 +90,91 @@ jest.mock('../../src/i18n/transifex', () => ({
   useT: () => (key: string) => key,
 }));
 
-jest.mock('../../src/screens/FirstRunSetupScreen', () => ({ FirstRunSetupScreen: (p: any) => mockFirstRunSetupScreen(p) }));
-jest.mock('../../src/components/OptionsMenu', () => ({ OptionsMenu: (p: any) => mockOptionsMenu(p) }));
-jest.mock('../../src/components/JoinChannelModal', () => ({ JoinChannelModal: (p: any) => mockJoinChannelModal(p) }));
-jest.mock('../../src/screens/NetworksListScreen', () => ({ NetworksListScreen: (p: any) => mockNetworksListScreen(p) }));
-jest.mock('../../src/screens/SettingsScreen', () => ({ SettingsScreen: (p: any) => mockSettingsScreen(p) }));
-jest.mock('../../src/screens/PurchaseScreen', () => ({ PurchaseScreen: (p: any) => mockPurchaseScreen(p) }));
-jest.mock('../../src/screens/IgnoreListScreen', () => ({ IgnoreListScreen: (p: any) => mockIgnoreListScreen(p) }));
-jest.mock('../../src/screens/BlacklistScreen', () => ({ BlacklistScreen: (p: any) => mockBlacklistScreen(p) }));
-jest.mock('../../src/screens/UserListsScreen', () => ({ UserListsScreen: (p: any) => mockUserListsScreen(p) }));
-jest.mock('../../src/components/WHOISDisplay', () => ({ WHOISDisplay: (p: any) => mockWHOISDisplay(p) }));
-jest.mock('../../src/components/QueryEncryptionMenu', () => ({ QueryEncryptionMenu: (p: any) => mockQueryEncryptionMenu(p) }));
-jest.mock('../../src/screens/ChannelListScreen', () => ({ ChannelListScreen: (p: any) => mockChannelListScreen(p) }));
-jest.mock('../../src/components/ChannelNoteModal', () => ({ ChannelNoteModal: (p: any) => mockChannelNoteModal(p) }));
-jest.mock('../../src/components/ChannelLogModal', () => ({ ChannelLogModal: (p: any) => mockChannelLogModal(p) }));
-jest.mock('../../src/components/RenameModal', () => ({ RenameModal: (p: any) => mockRenameModal(p) }));
-jest.mock('../../src/components/TabOptionsModal', () => ({ TabOptionsModal: (p: any) => mockTabOptionsModal(p) }));
-jest.mock('../../src/screens/ChannelSettingsScreen', () => ({ ChannelSettingsScreen: (p: any) => mockChannelSettingsScreen(p) }));
-jest.mock('../../src/components/DccTransfersModal', () => ({ DccTransfersModal: (p: any) => mockDccTransfersModal(p) }));
-jest.mock('../../src/components/DccTransfersMinimizedIndicator', () => ({ DccTransfersMinimizedIndicator: (p: any) => mockDccTransfersMinimizedIndicator(p) }));
-jest.mock('../../src/components/DccSendModal', () => ({ DccSendModal: (p: any) => mockDccSendModal(p) }));
-jest.mock('../../src/components/AppUnlockModal', () => ({ AppUnlockModal: (p: any) => mockAppUnlockModal(p) }));
-jest.mock('../../src/components/WebRTCCallModal', () => ({ WebRTCCallModal: (p: any) => mockWebRTCCallModal(p) }));
-jest.mock('../../src/screens/help/HelpTroubleshootingScreen', () => ({ HelpTroubleshootingScreen: (p: any) => mockHelpTroubleshootingScreen(p) }));
-jest.mock('../../src/screens/help/HelpConnectionScreen', () => ({ HelpConnectionScreen: (p: any) => mockHelpConnectionScreen(p) }));
-jest.mock('../../src/screens/help/HelpCommandsScreen', () => ({ HelpCommandsScreen: (p: any) => mockHelpCommandsScreen(p) }));
-jest.mock('../../src/screens/help/HelpEncryptionScreen', () => ({ HelpEncryptionScreen: (p: any) => mockHelpEncryptionScreen(p) }));
-jest.mock('../../src/screens/help/HelpMediaScreen', () => ({ HelpMediaScreen: (p: any) => mockHelpMediaScreen(p) }));
-jest.mock('../../src/screens/help/HelpChannelManagementScreen', () => ({ HelpChannelManagementScreen: (p: any) => mockHelpChannelManagementScreen(p) }));
+jest.mock('../../src/screens/FirstRunSetupScreen', () => ({
+  FirstRunSetupScreen: (p: any) => mockFirstRunSetupScreen(p),
+}));
+jest.mock('../../src/components/OptionsMenu', () => ({
+  OptionsMenu: (p: any) => mockOptionsMenu(p),
+}));
+jest.mock('../../src/components/JoinChannelModal', () => ({
+  JoinChannelModal: (p: any) => mockJoinChannelModal(p),
+}));
+jest.mock('../../src/screens/NetworksListScreen', () => ({
+  NetworksListScreen: (p: any) => mockNetworksListScreen(p),
+}));
+jest.mock('../../src/screens/SettingsScreen', () => ({
+  SettingsScreen: (p: any) => mockSettingsScreen(p),
+}));
+jest.mock('../../src/screens/PurchaseScreen', () => ({
+  PurchaseScreen: (p: any) => mockPurchaseScreen(p),
+}));
+jest.mock('../../src/screens/IgnoreListScreen', () => ({
+  IgnoreListScreen: (p: any) => mockIgnoreListScreen(p),
+}));
+jest.mock('../../src/screens/BlacklistScreen', () => ({
+  BlacklistScreen: (p: any) => mockBlacklistScreen(p),
+}));
+jest.mock('../../src/screens/UserListsScreen', () => ({
+  UserListsScreen: (p: any) => mockUserListsScreen(p),
+}));
+jest.mock('../../src/components/WHOISDisplay', () => ({
+  WHOISDisplay: (p: any) => mockWHOISDisplay(p),
+}));
+jest.mock('../../src/components/QueryEncryptionMenu', () => ({
+  QueryEncryptionMenu: (p: any) => mockQueryEncryptionMenu(p),
+}));
+jest.mock('../../src/screens/ChannelListScreen', () => ({
+  ChannelListScreen: (p: any) => mockChannelListScreen(p),
+}));
+jest.mock('../../src/components/ChannelNoteModal', () => ({
+  ChannelNoteModal: (p: any) => mockChannelNoteModal(p),
+}));
+jest.mock('../../src/components/ChannelLogModal', () => ({
+  ChannelLogModal: (p: any) => mockChannelLogModal(p),
+}));
+jest.mock('../../src/components/RenameModal', () => ({
+  RenameModal: (p: any) => mockRenameModal(p),
+}));
+jest.mock('../../src/components/TabOptionsModal', () => ({
+  TabOptionsModal: (p: any) => mockTabOptionsModal(p),
+}));
+jest.mock('../../src/screens/ChannelSettingsScreen', () => ({
+  ChannelSettingsScreen: (p: any) => mockChannelSettingsScreen(p),
+}));
+jest.mock('../../src/components/DccTransfersModal', () => ({
+  DccTransfersModal: (p: any) => mockDccTransfersModal(p),
+}));
+jest.mock('../../src/components/DccTransfersMinimizedIndicator', () => ({
+  DccTransfersMinimizedIndicator: (p: any) =>
+    mockDccTransfersMinimizedIndicator(p),
+}));
+jest.mock('../../src/components/DccSendModal', () => ({
+  DccSendModal: (p: any) => mockDccSendModal(p),
+}));
+jest.mock('../../src/components/AppUnlockModal', () => ({
+  AppUnlockModal: (p: any) => mockAppUnlockModal(p),
+}));
+jest.mock('../../src/components/WebRTCCallModal', () => ({
+  WebRTCCallModal: (p: any) => mockWebRTCCallModal(p),
+}));
+jest.mock('../../src/screens/help/HelpTroubleshootingScreen', () => ({
+  HelpTroubleshootingScreen: (p: any) => mockHelpTroubleshootingScreen(p),
+}));
+jest.mock('../../src/screens/help/HelpConnectionScreen', () => ({
+  HelpConnectionScreen: (p: any) => mockHelpConnectionScreen(p),
+}));
+jest.mock('../../src/screens/help/HelpCommandsScreen', () => ({
+  HelpCommandsScreen: (p: any) => mockHelpCommandsScreen(p),
+}));
+jest.mock('../../src/screens/help/HelpEncryptionScreen', () => ({
+  HelpEncryptionScreen: (p: any) => mockHelpEncryptionScreen(p),
+}));
+jest.mock('../../src/screens/help/HelpMediaScreen', () => ({
+  HelpMediaScreen: (p: any) => mockHelpMediaScreen(p),
+}));
+jest.mock('../../src/screens/help/HelpChannelManagementScreen', () => ({
+  HelpChannelManagementScreen: (p: any) => mockHelpChannelManagementScreen(p),
+}));
 
 const createUIState = (overrides: Record<string, unknown> = {}) => ({
   showFirstRunSetup: false,
@@ -210,7 +267,13 @@ const createUIStoreState = () => ({
 });
 
 const baseProps = {
-  activeTab: { id: 'chan:1', name: '#general', type: 'channel', networkId: 'net-1', messages: [] },
+  activeTab: {
+    id: 'chan:1',
+    name: '#general',
+    type: 'channel',
+    networkId: 'net-1',
+    messages: [],
+  },
   isConnected: true,
   networkName: 'freenode',
   focusedNetworkId: 'net-1',
@@ -247,7 +310,7 @@ describe('AppModals', () => {
 
     const uiStoreState = createUIStoreState();
     mockUseUIStore.mockImplementation((selector: (s: any) => any) =>
-      selector({ showOptionsMenu: false, showSettings: false })
+      selector({ showOptionsMenu: false, showSettings: false }),
     );
     mockUseUIStore.getState = jest.fn(() => uiStoreState);
 
@@ -296,9 +359,15 @@ describe('AppModals', () => {
     const setActiveTabId = jest.fn();
 
     mockUseUIStore.getState = jest.fn(() => uiStoreState);
-    mockUseUIState.mockReturnValue(createUIState({ showWHOIS: true, whoisNick: 'Alice' }));
+    mockUseUIState.mockReturnValue(
+      createUIState({ showWHOIS: true, whoisNick: 'Alice' }),
+    );
     mockGetConnection.mockReturnValue({ ircService: { sendRaw } });
-    mockUseTabStoreGetState.mockReturnValue({ tabs: [], setTabs, setActiveTabId });
+    mockUseTabStoreGetState.mockReturnValue({
+      tabs: [],
+      setTabs,
+      setActiveTabId,
+    });
 
     render(<AppModals {...baseProps} />);
 
@@ -321,7 +390,7 @@ describe('AppModals', () => {
         showDccSendModal: true,
         dccSendTarget: { nick: 'Bob', networkId: 'net-1' },
         dccSendPath: '/tmp/file.txt',
-      })
+      }),
     );
 
     render(<AppModals {...baseProps} />);
@@ -329,7 +398,12 @@ describe('AppModals', () => {
     const props = mockDccSendModal.mock.calls[0][0];
     await props.onSend();
 
-    expect(mockDccSendFile).toHaveBeenCalledWith(expect.anything(), 'Bob', 'net-1', '/tmp/file.txt');
+    expect(mockDccSendFile).toHaveBeenCalledWith(
+      expect.anything(),
+      'Bob',
+      'net-1',
+      '/tmp/file.txt',
+    );
     expect(uiStoreState.setShowDccSendModal).toHaveBeenCalledWith(false);
     expect(uiStoreState.setDccSendPath).toHaveBeenCalledWith('');
 
@@ -354,7 +428,7 @@ describe('AppModals', () => {
         showHelpChannelManagement: true,
         showHelpTroubleshooting: true,
         dccTransfersMinimized: true,
-      })
+      }),
     );
 
     render(<AppModals {...baseProps} />);
@@ -379,7 +453,7 @@ describe('AppModals', () => {
     mockUseUIState.mockReturnValue(
       createUIState({
         showFirstRunSetup: true,
-      })
+      }),
     );
 
     render(<AppModals {...baseProps} />);
@@ -388,7 +462,9 @@ describe('AppModals', () => {
     firstRunProps.onSkip();
     firstRunProps.onComplete({ id: 'net-1' });
 
-    expect(baseProps.handleFirstRunSetupComplete).toHaveBeenCalledWith({ id: 'net-1' });
+    expect(baseProps.handleFirstRunSetupComplete).toHaveBeenCalledWith({
+      id: 'net-1',
+    });
 
     const settingsProps = mockSettingsScreen.mock.calls[0][0];
     settingsProps.onShowBlacklist();
@@ -414,7 +490,7 @@ describe('AppModals', () => {
         showRenameModal: true,
         renameTargetTabId: 'chan:1',
         renameValue: 'new-name',
-      })
+      }),
     );
 
     const setTabs = jest.fn();
@@ -422,7 +498,11 @@ describe('AppModals', () => {
 
     const noteProps = mockChannelNoteModal.mock.calls[0][0];
     await noteProps.onSave();
-    expect(mockChannelNotesSetNote).toHaveBeenCalledWith('net-1', '#general', 'remember this');
+    expect(mockChannelNotesSetNote).toHaveBeenCalledWith(
+      'net-1',
+      '#general',
+      'remember this',
+    );
 
     const logProps = mockChannelLogModal.mock.calls[0][0];
     await logProps.onClearLog();
@@ -447,17 +527,23 @@ describe('AppModals', () => {
     mockUseUIState.mockReturnValue(
       createUIState({
         showDccTransfers: true,
-      })
+      }),
     );
 
-    render(<AppModals {...baseProps} getActiveIRCService={getActiveIRCService} />);
+    render(
+      <AppModals {...baseProps} getActiveIRCService={getActiveIRCService} />,
+    );
 
     const dccProps = mockDccTransfersModal.mock.calls[0][0];
     dccProps.onAccept('tr-1', '/tmp/a.bin');
     dccProps.onCancel('tr-2');
     dccProps.onMinimize();
 
-    expect(mockDccAccept).toHaveBeenCalledWith('tr-1', { id: 'irc' }, '/tmp/a.bin');
+    expect(mockDccAccept).toHaveBeenCalledWith(
+      'tr-1',
+      { id: 'irc' },
+      '/tmp/a.bin',
+    );
     expect(mockDccCancel).toHaveBeenCalledWith('tr-2');
     expect(uiStoreState.setShowDccTransfers).toHaveBeenCalledWith(false);
     expect(uiStoreState.setDccTransfersMinimized).toHaveBeenCalledWith(true);
@@ -469,14 +555,20 @@ describe('AppModals', () => {
     mockUseUIState.mockReturnValue(
       createUIState({
         showQueryEncryptionMenu: true,
-      })
+      }),
     );
 
     render(
       <AppModals
         {...baseProps}
-        activeTab={{ id: 'query:1', name: 'Alice', type: 'query', networkId: 'net-1', messages: [] }}
-      />
+        activeTab={{
+          id: 'query:1',
+          name: 'Alice',
+          type: 'query',
+          networkId: 'net-1',
+          messages: [],
+        }}
+      />,
     );
 
     expect(mockQueryEncryptionMenu).toHaveBeenCalledTimes(1);
@@ -486,12 +578,20 @@ describe('AppModals', () => {
 
     jest.clearAllMocks();
     mockUseUIStore.getState = jest.fn(() => uiStoreState);
-    mockUseUIState.mockReturnValue(createUIState({ showQueryEncryptionMenu: true }));
+    mockUseUIState.mockReturnValue(
+      createUIState({ showQueryEncryptionMenu: true }),
+    );
     render(
       <AppModals
         {...baseProps}
-        activeTab={{ id: 'chan:1', name: '#general', type: 'channel', networkId: 'net-1', messages: [] }}
-      />
+        activeTab={{
+          id: 'chan:1',
+          name: '#general',
+          type: 'channel',
+          networkId: 'net-1',
+          messages: [],
+        }}
+      />,
     );
     expect(mockQueryEncryptionMenu).not.toHaveBeenCalled();
   });
@@ -508,7 +608,7 @@ describe('AppModals', () => {
         appLockUsePin: true,
         appPinEntry: '12',
         appPinError: 'bad',
-      })
+      }),
     );
 
     const setters = createSetters();

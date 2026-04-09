@@ -47,7 +47,7 @@ jest.mock('../../../src/components/settings/SettingItem', () => {
             if (item.type === 'submenu') onPress?.(item.id);
           },
         },
-        React.createElement(Text, null, item.title || item.id)
+        React.createElement(Text, null, item.title || item.id),
       );
     },
   };
@@ -87,12 +87,16 @@ jest.mock('../../../src/hooks/useTheme', () => ({
 
 jest.mock('../../../src/stores/uiStore', () => ({
   useUIStore: () => ({
-    setShowHelpConnection: (...args: any[]) => mockSetShowHelpConnection(...args),
+    setShowHelpConnection: (...args: any[]) =>
+      mockSetShowHelpConnection(...args),
     setShowHelpCommands: (...args: any[]) => mockSetShowHelpCommands(...args),
-    setShowHelpEncryption: (...args: any[]) => mockSetShowHelpEncryption(...args),
+    setShowHelpEncryption: (...args: any[]) =>
+      mockSetShowHelpEncryption(...args),
     setShowHelpMedia: (...args: any[]) => mockSetShowHelpMedia(...args),
-    setShowHelpChannelManagement: (...args: any[]) => mockSetShowHelpChannelManagement(...args),
-    setShowHelpTroubleshooting: (...args: any[]) => mockSetShowHelpTroubleshooting(...args),
+    setShowHelpChannelManagement: (...args: any[]) =>
+      mockSetShowHelpChannelManagement(...args),
+    setShowHelpTroubleshooting: (...args: any[]) =>
+      mockSetShowHelpTroubleshooting(...args),
   }),
 }));
 
@@ -130,7 +134,11 @@ describe('Sections misc', () => {
 
   it('AdvancedSection renders null when empty', () => {
     const { queryByTestId } = render(
-      <AdvancedSection colors={colors} styles={styles as any} settingIcons={{}} />
+      <AdvancedSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
     );
     expect(queryByTestId('setting-any')).toBeNull();
   });
@@ -153,17 +161,31 @@ describe('Sections misc', () => {
   });
 
   it('MessageHistorySection persists input/switch updates', async () => {
-    render(<MessageHistorySection colors={colors} styles={styles as any} settingIcons={{}} />);
-    await waitFor(() => expect(mockCapturedItems.has('messages-part')).toBe(true));
+    render(
+      <MessageHistorySection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockCapturedItems.has('messages-part')).toBe(true),
+    );
 
     await mockCapturedItems.get('messages-part').onValueChange('Parting');
     await mockCapturedItems.get('messages-quit').onValueChange('Bye');
     await mockCapturedItems.get('messages-hide-join').onValueChange(true);
     await mockCapturedItems.get('messages-hide-part').onValueChange(true);
     await mockCapturedItems.get('messages-hide-quit').onValueChange(true);
-    await mockCapturedItems.get('messages-hide-irc-listener').onValueChange(false);
-    await mockCapturedItems.get('messages-close-private-enabled').onValueChange(true);
-    await mockCapturedItems.get('messages-close-private-text').onValueChange('Window closed');
+    await mockCapturedItems
+      .get('messages-hide-irc-listener')
+      .onValueChange(false);
+    await mockCapturedItems
+      .get('messages-close-private-enabled')
+      .onValueChange(true);
+    await mockCapturedItems
+      .get('messages-close-private-text')
+      .onValueChange('Window closed');
     await mockCapturedItems.get('messages-ctcp-version').onValueChange('v2');
 
     expect(mockSettingsSet).toHaveBeenCalledWith('partMessage', 'Parting');
@@ -171,9 +193,15 @@ describe('Sections misc', () => {
     expect(mockSettingsSet).toHaveBeenCalledWith('hideJoinMessages', true);
     expect(mockSettingsSet).toHaveBeenCalledWith('hidePartMessages', true);
     expect(mockSettingsSet).toHaveBeenCalledWith('hideQuitMessages', true);
-    expect(mockSettingsSet).toHaveBeenCalledWith('hideIrcServiceListenerMessages', false);
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'hideIrcServiceListenerMessages',
+      false,
+    );
     expect(mockSettingsSet).toHaveBeenCalledWith('closePrivateMessage', true);
-    expect(mockSettingsSet).toHaveBeenCalledWith('closePrivateMessageText', 'Window closed');
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'closePrivateMessageText',
+      'Window closed',
+    );
     expect(mockSettingsSet).toHaveBeenCalledWith('ctcpVersionMessage', 'v2');
   });
 
@@ -186,23 +214,32 @@ describe('Sections misc', () => {
     ]);
 
     const { getByText } = render(
-      <UsersServicesSection colors={colors} styles={styles as any} settingIcons={{}} currentNetwork="net" />
+      <UsersServicesSection
+        colors={colors}
+        styles={styles as any}
+        settingIcons={{}}
+        currentNetwork="net"
+      />,
     );
-    await waitFor(() => expect(mockCapturedItems.has('irc-service-nickserv')).toBe(true));
+    await waitFor(() =>
+      expect(mockCapturedItems.has('irc-service-nickserv')).toBe(true),
+    );
 
     mockCapturedItems.get('irc-service-nickserv').onPress();
-    const removeSvcButtons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] || [];
+    const removeSvcButtons =
+      (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] || [];
     await removeSvcButtons.find((b: any) => b.text === 'Remove')?.onPress?.();
     expect(mockSettingsSet).toHaveBeenCalledWith(
       'ircServices',
-      expect.not.arrayContaining(['nickserv'])
+      expect.not.arrayContaining(['nickserv']),
     );
 
     await mockCapturedItems
       .get('user-notes')
       .submenuItems.find((x: any) => x.id.startsWith('user-note-'))
       .onPress();
-    const removeNoteButtons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] || [];
+    const removeNoteButtons =
+      (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] || [];
     await removeNoteButtons.find((b: any) => b.text === 'Delete')?.onPress?.();
     expect(mockRemoveUserNote).toHaveBeenCalledWith('alice', 'net');
 
@@ -210,7 +247,8 @@ describe('Sections misc', () => {
       .get('user-aliases')
       .submenuItems.find((x: any) => x.id.startsWith('user-alias-'))
       .onPress();
-    const removeAliasButtons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] || [];
+    const removeAliasButtons =
+      (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] || [];
     await removeAliasButtons.find((b: any) => b.text === 'Delete')?.onPress?.();
     expect(mockRemoveUserAlias).toHaveBeenCalledWith('alice', 'net');
 
@@ -218,4 +256,3 @@ describe('Sections misc', () => {
     expect(Alert.alert).toHaveBeenCalled();
   });
 });
-

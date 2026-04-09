@@ -10,11 +10,14 @@
  */
 
 import { tx } from '../../../i18n/transifex';
-import type { SendMessageHandler, SendMessageHandlerRegistry } from '../sendMessageTypes';
+import type {
+  SendMessageHandler,
+  SendMessageHandlerRegistry,
+} from '../sendMessageTypes';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
-export const handleLUSERS: SendMessageHandler = (ctx) => {
+export const handleLUSERS: SendMessageHandler = ctx => {
   // /lusers - Get user statistics
   ctx.sendCommand('LUSERS');
 };
@@ -104,7 +107,11 @@ export const handleISON: SendMessageHandler = (ctx, args) => {
   if (args.length > 0) {
     ctx.sendCommand(`ISON ${args.join(' ')}`);
   } else {
-    ctx.addMessage({ type: 'error', text: t('Usage: /ison <nick1> [nick2] ...'), timestamp: Date.now() });
+    ctx.addMessage({
+      type: 'error',
+      text: t('Usage: /ison <nick1> [nick2] ...'),
+      timestamp: Date.now(),
+    });
   }
 };
 
@@ -113,7 +120,11 @@ export const handleUSERHOST: SendMessageHandler = (ctx, args) => {
   if (args.length > 0) {
     ctx.sendCommand(`USERHOST ${args.join(' ')}`);
   } else {
-    ctx.addMessage({ type: 'error', text: t('Usage: /userhost <nick1> [nick2] ...'), timestamp: Date.now() });
+    ctx.addMessage({
+      type: 'error',
+      text: t('Usage: /userhost <nick1> [nick2] ...'),
+      timestamp: Date.now(),
+    });
   }
 };
 
@@ -122,7 +133,11 @@ export const handleUSERIP: SendMessageHandler = (ctx, args) => {
   if (args.length > 0) {
     ctx.sendCommand(`USERIP ${args[0]}`);
   } else {
-    ctx.addMessage({ type: 'error', text: t('Usage: /userip <nick>'), timestamp: Date.now() });
+    ctx.addMessage({
+      type: 'error',
+      text: t('Usage: /userip <nick>'),
+      timestamp: Date.now(),
+    });
   }
 };
 
@@ -137,7 +152,11 @@ export const handleWATCH: SendMessageHandler = (ctx, args) => {
   if (args.length > 0) {
     ctx.sendCommand(`WATCH ${args.join(' ')}`);
   } else {
-    ctx.addMessage({ type: 'error', text: t('Usage: /watch +nick1 -nick2 ...'), timestamp: Date.now() });
+    ctx.addMessage({
+      type: 'error',
+      text: t('Usage: /watch +nick1 -nick2 ...'),
+      timestamp: Date.now(),
+    });
   }
 };
 
@@ -146,10 +165,22 @@ export const handleKNOCK: SendMessageHandler = (ctx, args) => {
   if (args.length >= 1) {
     const knockChannel = args[0];
     const knockMessage = args.length > 1 ? args.slice(1).join(' ') : '';
-    ctx.sendCommand(knockMessage ? `KNOCK ${knockChannel} :${knockMessage}` : `KNOCK ${knockChannel}`);
-    ctx.addMessage({ type: 'notice', text: t('*** Knock sent to {channel}', { channel: knockChannel }), timestamp: Date.now() });
+    ctx.sendCommand(
+      knockMessage
+        ? `KNOCK ${knockChannel} :${knockMessage}`
+        : `KNOCK ${knockChannel}`,
+    );
+    ctx.addMessage({
+      type: 'notice',
+      text: t('*** Knock sent to {channel}', { channel: knockChannel }),
+      timestamp: Date.now(),
+    });
   } else {
-    ctx.addMessage({ type: 'error', text: t('Usage: /knock <channel> [message]'), timestamp: Date.now() });
+    ctx.addMessage({
+      type: 'error',
+      text: t('Usage: /knock <channel> [message]'),
+      timestamp: Date.now(),
+    });
   }
 };
 
@@ -159,9 +190,20 @@ export const handleSQUERY: SendMessageHandler = (ctx, args) => {
     const service = args[0];
     const serviceMessage = args.slice(1).join(' ');
     ctx.sendRaw(`PRIVMSG ${service} :${serviceMessage}`);
-    ctx.addMessage({ type: 'notice', channel: service, from: ctx.getCurrentNick(), text: serviceMessage, timestamp: Date.now(), status: 'sent' });
+    ctx.addMessage({
+      type: 'notice',
+      channel: service,
+      from: ctx.getCurrentNick(),
+      text: serviceMessage,
+      timestamp: Date.now(),
+      status: 'sent',
+    });
   } else {
-    ctx.addMessage({ type: 'error', text: t('Usage: /squery <service> <message>'), timestamp: Date.now() });
+    ctx.addMessage({
+      type: 'error',
+      text: t('Usage: /squery <service> <message>'),
+      timestamp: Date.now(),
+    });
   }
 };
 
@@ -169,16 +211,29 @@ export const handleLIST: SendMessageHandler = (ctx, args) => {
   // /list [options] - List channels on server
   const listArgs = args.length > 0 ? args.join(' ') : '';
   ctx.sendCommand(listArgs ? `LIST ${listArgs}` : 'LIST');
-  ctx.addMessage({ type: 'notice', text: t('*** Requesting channel list...'), timestamp: Date.now() });
+  ctx.addMessage({
+    type: 'notice',
+    text: t('*** Requesting channel list...'),
+    timestamp: Date.now(),
+  });
 };
 
 export const handleNAMES: SendMessageHandler = (ctx, args, target) => {
   // /names [channel] - List users in channel
-  const namesChannel = args.length > 0 ? args[0] : (target.startsWith('#') || target.startsWith('&') ? target : '');
+  const namesChannel =
+    args.length > 0
+      ? args[0]
+      : target.startsWith('#') || target.startsWith('&')
+        ? target
+        : '';
   if (namesChannel) {
     ctx.sendCommand(`NAMES ${namesChannel}`);
   } else {
-    ctx.addMessage({ type: 'error', text: t('Usage: /names [channel]'), timestamp: Date.now() });
+    ctx.addMessage({
+      type: 'error',
+      text: t('Usage: /names [channel]'),
+      timestamp: Date.now(),
+    });
   }
 };
 

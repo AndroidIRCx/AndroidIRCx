@@ -54,8 +54,8 @@ const mockStore = {
 // Mock Zustand store
 jest.mock('../../src/stores/tabStore', () => ({
   useTabStore: Object.assign(
-    jest.fn((selector) => selector(mockStore)),
-    { getState: jest.fn(() => mockStore) }
+    jest.fn(selector => selector(mockStore)),
+    { getState: jest.fn(() => mockStore) },
   ),
 }));
 
@@ -176,7 +176,12 @@ describe('useTabManager', () => {
     const networkTabs = [
       { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' },
       { id: 'tab-2', name: 'OtherUser', type: 'query', networkId: 'freenode' },
-      { id: 'server-freenode', name: 'Freenode', type: 'server', networkId: 'freenode' },
+      {
+        id: 'server-freenode',
+        name: 'Freenode',
+        type: 'server',
+        networkId: 'freenode',
+      },
     ];
     mockStore.getTabsByNetwork.mockReturnValue(networkTabs);
 
@@ -186,14 +191,23 @@ describe('useTabManager', () => {
       result.current.closeNetworkTabs('freenode');
     });
 
-    expect(mockStore.removeTabs).toHaveBeenCalledWith(['tab-1', 'tab-2', 'server-freenode']);
+    expect(mockStore.removeTabs).toHaveBeenCalledWith([
+      'tab-1',
+      'tab-2',
+      'server-freenode',
+    ]);
   });
 
   it('should close network tabs excluding server', () => {
     const networkTabs = [
       { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' },
       { id: 'tab-2', name: 'OtherUser', type: 'query', networkId: 'freenode' },
-      { id: 'server-freenode', name: 'Freenode', type: 'server', networkId: 'freenode' },
+      {
+        id: 'server-freenode',
+        name: 'Freenode',
+        type: 'server',
+        networkId: 'freenode',
+      },
     ];
     mockStore.getTabsByNetwork.mockReturnValue(networkTabs);
 
@@ -218,13 +232,15 @@ describe('useTabManager', () => {
         result.current.createServerTab('freenode');
       });
 
-      expect(mockStore.addTab).toHaveBeenCalledWith(expect.objectContaining({
-        id: 'server::freenode',
-        name: 'freenode',
-        type: 'server',
-        networkId: 'freenode',
-        messages: [],
-      }));
+      expect(mockStore.addTab).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'server::freenode',
+          name: 'freenode',
+          type: 'server',
+          networkId: 'freenode',
+          messages: [],
+        }),
+      );
     });
 
     it('should return created server tab', () => {
@@ -235,15 +251,22 @@ describe('useTabManager', () => {
         serverTab = result.current.createServerTab('freenode');
       });
 
-      expect(serverTab).toEqual(expect.objectContaining({
-        id: 'server::freenode',
-        name: 'freenode',
-        type: 'server',
-      }));
+      expect(serverTab).toEqual(
+        expect.objectContaining({
+          id: 'server::freenode',
+          name: 'freenode',
+          type: 'server',
+        }),
+      );
     });
 
     it('should get existing server tab', () => {
-      const existingServerTab = { id: 'server::freenode', name: 'Freenode', type: 'server', networkId: 'freenode' };
+      const existingServerTab = {
+        id: 'server::freenode',
+        name: 'Freenode',
+        type: 'server',
+        networkId: 'freenode',
+      };
       mockStore.tabs = [existingServerTab];
 
       const { result } = renderHook(() => useTabManager());
@@ -272,14 +295,21 @@ describe('useTabManager', () => {
         result.current.ensureServerTab('freenode');
       });
 
-      expect(mockStore.addTab).toHaveBeenCalledWith(expect.objectContaining({
-        id: 'server::freenode',
-        type: 'server',
-      }));
+      expect(mockStore.addTab).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'server::freenode',
+          type: 'server',
+        }),
+      );
     });
 
     it('should ensure server tab returns existing tab if already exists', () => {
-      const existingServerTab = { id: 'server::freenode', name: 'Freenode', type: 'server', networkId: 'freenode' };
+      const existingServerTab = {
+        id: 'server::freenode',
+        name: 'Freenode',
+        type: 'server',
+        networkId: 'freenode',
+      };
       mockStore.tabs = [existingServerTab];
 
       const { result } = renderHook(() => useTabManager());
@@ -450,7 +480,12 @@ describe('useTabManager', () => {
 
   describe('tab closing', () => {
     it('should close a tab', () => {
-      const tabToClose = { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' };
+      const tabToClose = {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+      };
       mockStore.getTabById.mockReturnValue(tabToClose);
       mockStore.activeTabId = 'tab-2';
 
@@ -476,8 +511,18 @@ describe('useTabManager', () => {
     });
 
     it('should switch to server tab when closing active tab', () => {
-      const tabToClose = { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' };
-      const serverTab = { id: 'server-freenode', name: 'Freenode', type: 'server', networkId: 'freenode' };
+      const tabToClose = {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+      };
+      const serverTab = {
+        id: 'server-freenode',
+        name: 'Freenode',
+        type: 'server',
+        networkId: 'freenode',
+      };
       mockStore.getTabById.mockReturnValue(tabToClose);
       mockStore.tabs = [tabToClose, serverTab];
       mockStore.activeTabId = 'tab-1';
@@ -493,8 +538,18 @@ describe('useTabManager', () => {
     });
 
     it('should switch to first tab when closing active tab and no server tab', () => {
-      const tabToClose = { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' };
-      const otherTab = { id: 'tab-2', name: '#other', type: 'channel', networkId: 'freenode' };
+      const tabToClose = {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+      };
+      const otherTab = {
+        id: 'tab-2',
+        name: '#other',
+        type: 'channel',
+        networkId: 'freenode',
+      };
       mockStore.getTabById.mockReturnValue(tabToClose);
       mockStore.tabs = [tabToClose, otherTab];
       mockStore.activeTabId = 'tab-1';
@@ -509,7 +564,12 @@ describe('useTabManager', () => {
     });
 
     it('should clear active tab when closing last tab', () => {
-      const tabToClose = { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' };
+      const tabToClose = {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+      };
       mockStore.getTabById.mockReturnValue(tabToClose);
       mockStore.tabs = [tabToClose];
       mockStore.activeTabId = 'tab-1';
@@ -524,9 +584,17 @@ describe('useTabManager', () => {
     });
 
     it('should not switch tabs when closing non-active tab', () => {
-      const tabToClose = { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' };
+      const tabToClose = {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+      };
       mockStore.getTabById.mockReturnValue(tabToClose);
-      mockStore.tabs = [tabToClose, { id: 'tab-2', name: '#other', type: 'channel', networkId: 'freenode' }];
+      mockStore.tabs = [
+        tabToClose,
+        { id: 'tab-2', name: '#other', type: 'channel', networkId: 'freenode' },
+      ];
       mockStore.activeTabId = 'tab-2';
 
       const { result } = renderHook(() => useTabManager());
@@ -552,7 +620,12 @@ describe('useTabManager', () => {
       mockStore.getTabsByNetwork.mockReturnValue(networkTabs);
       mockStore.tabs = [
         ...networkTabs,
-        { id: 'tab-other', name: '#different', type: 'channel', networkId: 'othernet' },
+        {
+          id: 'tab-other',
+          name: '#different',
+          type: 'channel',
+          networkId: 'othernet',
+        },
       ];
       mockStore.activeTabId = 'tab-1';
 
@@ -644,7 +717,10 @@ describe('useTabManager', () => {
         result.current.addMessages('tab-1', messages as any);
       });
 
-      expect(messageBatcher.addMessages).toHaveBeenCalledWith('tab-1', messages);
+      expect(messageBatcher.addMessages).toHaveBeenCalledWith(
+        'tab-1',
+        messages,
+      );
     });
   });
 
@@ -700,7 +776,9 @@ describe('useTabManager', () => {
         result.current.setTabEncryption('tab-1', true);
       });
 
-      expect(mockStore.updateTab).toHaveBeenCalledWith('tab-1', { isEncrypted: true });
+      expect(mockStore.updateTab).toHaveBeenCalledWith('tab-1', {
+        isEncrypted: true,
+      });
     });
 
     it('should unset tab encryption status', () => {
@@ -710,7 +788,9 @@ describe('useTabManager', () => {
         result.current.setTabEncryption('tab-1', false);
       });
 
-      expect(mockStore.updateTab).toHaveBeenCalledWith('tab-1', { isEncrypted: false });
+      expect(mockStore.updateTab).toHaveBeenCalledWith('tab-1', {
+        isEncrypted: false,
+      });
     });
   });
 
@@ -720,7 +800,12 @@ describe('useTabManager', () => {
 
   describe('tab queries', () => {
     it('should get tab by id', () => {
-      const tab = { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' };
+      const tab = {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+      };
       mockStore.getTabById.mockReturnValue(tab);
 
       const { result } = renderHook(() => useTabManager());
@@ -734,7 +819,12 @@ describe('useTabManager', () => {
     it('should get tabs by network', () => {
       const networkTabs = [
         { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' },
-        { id: 'tab-2', name: '#general', type: 'channel', networkId: 'freenode' },
+        {
+          id: 'tab-2',
+          name: '#general',
+          type: 'channel',
+          networkId: 'freenode',
+        },
       ];
       mockStore.getTabsByNetwork.mockReturnValue(networkTabs);
 
@@ -777,11 +867,15 @@ describe('useTabManager', () => {
       const { result } = renderHook(() => useTabManager());
 
       // activeTab is computed from tabs and activeTabId
-      expect(result.current.activeTab).toEqual(expect.objectContaining({ id: 'tab-1' }));
+      expect(result.current.activeTab).toEqual(
+        expect.objectContaining({ id: 'tab-1' }),
+      );
     });
 
     it('should return undefined when no active tab matches', () => {
-      mockStore.tabs = [{ id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' }];
+      mockStore.tabs = [
+        { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' },
+      ];
       mockStore.activeTabId = 'non-existent';
 
       const { result } = renderHook(() => useTabManager());
@@ -798,7 +892,9 @@ describe('useTabManager', () => {
     it('should set up message batcher flush callback', () => {
       renderHook(() => useTabManager());
 
-      expect(messageBatcher.setFlushCallback).toHaveBeenCalledWith(expect.any(Function));
+      expect(messageBatcher.setFlushCallback).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
     });
 
     it('should flush batcher on unmount', () => {
@@ -818,7 +914,8 @@ describe('useTabManager', () => {
 
       renderHook(() => useTabManager());
 
-      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock.calls[0][0];
+      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock
+        .calls[0][0];
 
       const updates = new Map([['tab-1', [{ id: 'msg-1', text: 'Hello' }]]]);
 
@@ -836,7 +933,8 @@ describe('useTabManager', () => {
 
       renderHook(() => useTabManager());
 
-      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock.calls[0][0];
+      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock
+        .calls[0][0];
 
       const updates = new Map([['tab-1', [{ id: 'msg-1', text: 'Hello' }]]]);
 
@@ -855,7 +953,8 @@ describe('useTabManager', () => {
 
       renderHook(() => useTabManager());
 
-      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock.calls[0][0];
+      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock
+        .calls[0][0];
 
       const updates = new Map([['tab-1', [{ id: 'msg-1', text: 'Hello' }]]]);
 
@@ -869,7 +968,9 @@ describe('useTabManager', () => {
     });
 
     it('should cleanup messages when exceeding threshold', () => {
-      const existingMessages = Array(150).fill(null).map((_, i) => ({ id: `msg-${i}` }));
+      const existingMessages = Array(150)
+        .fill(null)
+        .map((_, i) => ({ id: `msg-${i}` }));
       const tab = { id: 'tab-1', messages: existingMessages };
       mockStore.getTabById.mockReturnValue(tab);
       mockStore.activeTabId = 'tab-1';
@@ -882,10 +983,13 @@ describe('useTabManager', () => {
 
       renderHook(() => useTabManager());
 
-      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock.calls[0][0];
+      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock
+        .calls[0][0];
 
       // Add 100 more messages, bringing total to 250 (over threshold)
-      const newMessages = Array(100).fill(null).map((_, i) => ({ id: `new-msg-${i}` }));
+      const newMessages = Array(100)
+        .fill(null)
+        .map((_, i) => ({ id: `new-msg-${i}` }));
       const updates = new Map([['tab-1', newMessages]]);
 
       act(() => {
@@ -896,7 +1000,9 @@ describe('useTabManager', () => {
     });
 
     it('should not cleanup messages when cleanup is disabled', () => {
-      const existingMessages = Array(150).fill(null).map((_, i) => ({ id: `msg-${i}` }));
+      const existingMessages = Array(150)
+        .fill(null)
+        .map((_, i) => ({ id: `msg-${i}` }));
       const tab = { id: 'tab-1', messages: existingMessages };
       mockStore.getTabById.mockReturnValue(tab);
 
@@ -908,9 +1014,12 @@ describe('useTabManager', () => {
 
       renderHook(() => useTabManager());
 
-      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock.calls[0][0];
+      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock
+        .calls[0][0];
 
-      const newMessages = Array(100).fill(null).map((_, i) => ({ id: `new-msg-${i}` }));
+      const newMessages = Array(100)
+        .fill(null)
+        .map((_, i) => ({ id: `new-msg-${i}` }));
       const updates = new Map([['tab-1', newMessages]]);
 
       act(() => {
@@ -925,9 +1034,12 @@ describe('useTabManager', () => {
 
       renderHook(() => useTabManager());
 
-      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock.calls[0][0];
+      const flushCallback = (messageBatcher.setFlushCallback as jest.Mock).mock
+        .calls[0][0];
 
-      const updates = new Map([['non-existent', [{ id: 'msg-1', text: 'Hello' }]]]);
+      const updates = new Map([
+        ['non-existent', [{ id: 'msg-1', text: 'Hello' }]],
+      ]);
 
       act(() => {
         flushCallback(updates);
@@ -944,9 +1056,16 @@ describe('useTabManager', () => {
 
   describe('edge cases', () => {
     it('should handle closing tab that is not in tabs array', () => {
-      const tabToClose = { id: 'tab-1', name: '#test', type: 'channel', networkId: 'freenode' };
+      const tabToClose = {
+        id: 'tab-1',
+        name: '#test',
+        type: 'channel',
+        networkId: 'freenode',
+      };
       mockStore.getTabById.mockReturnValue(tabToClose);
-      mockStore.tabs = [{ id: 'tab-2', name: '#other', type: 'channel', networkId: 'freenode' }];
+      mockStore.tabs = [
+        { id: 'tab-2', name: '#other', type: 'channel', networkId: 'freenode' },
+      ];
       mockStore.activeTabId = 'tab-1';
 
       const { result } = renderHook(() => useTabManager());
@@ -986,9 +1105,27 @@ describe('useTabManager', () => {
 
       const { result } = renderHook(() => useTabManager());
 
-      const tab1 = { id: 'tab-1', name: '#test1', type: 'channel' as const, networkId: 'freenode', messages: [] };
-      const tab2 = { id: 'tab-2', name: '#test2', type: 'channel' as const, networkId: 'freenode', messages: [] };
-      const tab3 = { id: 'tab-3', name: '#test3', type: 'channel' as const, networkId: 'freenode', messages: [] };
+      const tab1 = {
+        id: 'tab-1',
+        name: '#test1',
+        type: 'channel' as const,
+        networkId: 'freenode',
+        messages: [],
+      };
+      const tab2 = {
+        id: 'tab-2',
+        name: '#test2',
+        type: 'channel' as const,
+        networkId: 'freenode',
+        messages: [],
+      };
+      const tab3 = {
+        id: 'tab-3',
+        name: '#test3',
+        type: 'channel' as const,
+        networkId: 'freenode',
+        messages: [],
+      };
 
       act(() => {
         result.current.openTab(tab1);
@@ -1007,17 +1144,29 @@ describe('useTabManager', () => {
         result.current.createServerTab('');
       });
 
-      expect(mockStore.addTab).toHaveBeenCalledWith(expect.objectContaining({
-        id: 'server::',
-        name: '',
-        type: 'server',
-      }));
+      expect(mockStore.addTab).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'server::',
+          name: '',
+          type: 'server',
+        }),
+      );
     });
 
     it('should handle multiple networks in getServerTab', () => {
       mockStore.tabs = [
-        { id: 'server::freenode', name: 'Freenode', type: 'server', networkId: 'freenode' },
-        { id: 'server::dalnet', name: 'DalNet', type: 'server', networkId: 'dalnet' },
+        {
+          id: 'server::freenode',
+          name: 'Freenode',
+          type: 'server',
+          networkId: 'freenode',
+        },
+        {
+          id: 'server::dalnet',
+          name: 'DalNet',
+          type: 'server',
+          networkId: 'dalnet',
+        },
       ];
 
       const { result } = renderHook(() => useTabManager());

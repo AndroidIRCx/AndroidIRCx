@@ -32,7 +32,8 @@ jest.mock('react-native-video', () => {
   return ({ onError, testID }: any) => (
     <TouchableOpacity
       testID={testID || 'video-mock'}
-      onPress={() => onError?.({ nativeEvent: { error: 'video-error' } })}>
+      onPress={() => onError?.({ nativeEvent: { error: 'video-error' } })}
+    >
       <Text>VideoMock</Text>
     </TouchableOpacity>
   );
@@ -99,7 +100,10 @@ describe('MediaPreviewModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    Object.defineProperty(Platform, 'OS', { value: 'android', configurable: true });
+    Object.defineProperty(Platform, 'OS', {
+      value: 'android',
+      configurable: true,
+    });
     mockRNFS.exists.mockResolvedValue(true);
     mockEnc.hasEncryptionKey.mockResolvedValue(true);
     mockSettings.shouldShowEncryptionIndicator.mockResolvedValue(true);
@@ -113,10 +117,12 @@ describe('MediaPreviewModal', () => {
       success: true,
       encryptedUri: '/tmp/encrypted.bin',
     });
-    mockUpload.uploadFile.mockImplementation(async (_a, _b, _c, _d, onProgress) => {
-      onProgress?.({ bytesUploaded: 50, totalBytes: 100, percentage: 50 });
-      return { size: 1, sha256: 'x', status: 'ready' };
-    });
+    mockUpload.uploadFile.mockImplementation(
+      async (_a, _b, _c, _d, onProgress) => {
+        onProgress?.({ bytesUploaded: 50, totalBytes: 100, percentage: 50 });
+        return { size: 1, sha256: 'x', status: 'ready' };
+      },
+    );
   });
 
   it('renders encryption indicator when enabled', async () => {
@@ -128,20 +134,31 @@ describe('MediaPreviewModal', () => {
   });
 
   it('sends media and emits !enc-media tag with caption', async () => {
-    const { getByText, getByPlaceholderText } = render(<MediaPreviewModal {...baseProps} />);
+    const { getByText, getByPlaceholderText } = render(
+      <MediaPreviewModal {...baseProps} />,
+    );
 
-    fireEvent.changeText(getByPlaceholderText('Add a caption...'), 'caption test');
+    fireEvent.changeText(
+      getByPlaceholderText('Add a caption...'),
+      'caption test',
+    );
     fireEvent.press(getByText('Send'));
 
     await waitFor(() => {
-      expect(mockUpload.requestUploadToken).toHaveBeenCalledWith('image', 'image/jpeg');
+      expect(mockUpload.requestUploadToken).toHaveBeenCalledWith(
+        'image',
+        'image/jpeg',
+      );
       expect(mockEnc.encryptMediaFile).toHaveBeenCalledWith(
         '/tmp/image.jpg',
         'net',
         'channel::net::#chan',
-        'media-123'
+        'media-123',
       );
-      expect(baseProps.onSendComplete).toHaveBeenCalledWith('!enc-media [media-123]', 'caption test');
+      expect(baseProps.onSendComplete).toHaveBeenCalledWith(
+        '!enc-media [media-123]',
+        'caption test',
+      );
       expect(baseProps.onClose).toHaveBeenCalled();
     });
   });
@@ -161,7 +178,9 @@ describe('MediaPreviewModal', () => {
   });
 
   it('returns null when mediaResult is null', () => {
-    const { queryByText } = render(<MediaPreviewModal {...baseProps} mediaResult={null} />);
+    const { queryByText } = render(
+      <MediaPreviewModal {...baseProps} mediaResult={null} />,
+    );
     expect(queryByText('Preview Media')).toBeNull();
   });
 
@@ -186,7 +205,7 @@ describe('MediaPreviewModal', () => {
       <MediaPreviewModal
         {...baseProps}
         mediaResult={{ ...baseProps.mediaResult, uri: undefined } as any}
-      />
+      />,
     );
     fireEvent.press(getByText('Send'));
     await waitFor(() => {
@@ -199,14 +218,14 @@ describe('MediaPreviewModal', () => {
     const { getByText } = render(<MediaPreviewModal {...baseProps} />);
     fireEvent.press(getByText('Send'));
     await waitFor(() => {
-      expect(getByText('File does not exist. Please select the file again.')).toBeTruthy();
+      expect(
+        getByText('File does not exist. Please select the file again.'),
+      ).toBeTruthy();
     });
   });
 
   it('falls back to original uri when normalized path does not exist', async () => {
-    mockRNFS.exists
-      .mockResolvedValueOnce(false)
-      .mockResolvedValueOnce(true);
+    mockRNFS.exists.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
     const { getByText } = render(<MediaPreviewModal {...baseProps} />);
     fireEvent.press(getByText('Send'));
     await waitFor(() => {
@@ -214,7 +233,7 @@ describe('MediaPreviewModal', () => {
         '/tmp/image.jpg',
         'net',
         'channel::net::#chan',
-        'media-123'
+        'media-123',
       );
     });
   });
@@ -229,7 +248,9 @@ describe('MediaPreviewModal', () => {
   });
 
   it('shows token request error message', async () => {
-    mockUpload.requestUploadToken.mockRejectedValueOnce(new Error('token down'));
+    mockUpload.requestUploadToken.mockRejectedValueOnce(
+      new Error('token down'),
+    );
     const { getByText } = render(<MediaPreviewModal {...baseProps} />);
     fireEvent.press(getByText('Send'));
     await waitFor(() => {
@@ -246,7 +267,7 @@ describe('MediaPreviewModal', () => {
           type: 'video',
           mimeType: 'video/mp4',
         }}
-      />
+      />,
     );
     fireEvent.press(getByTestId('video-mock'));
     await waitFor(() => {
@@ -263,7 +284,7 @@ describe('MediaPreviewModal', () => {
           type: 'voice',
           mimeType: 'audio/m4a',
         }}
-      />
+      />,
     );
     expect(getByText('Audio File')).toBeTruthy();
     fireEvent.press(getByTestId('video-mock'));
@@ -282,13 +303,15 @@ describe('MediaPreviewModal', () => {
           mimeType: 'application/octet-stream',
           fileName: undefined,
         }}
-      />
+      />,
     );
     expect(getByText('File')).toBeTruthy();
   });
 
   it('handles image preview error callback', async () => {
-    const { getByText, UNSAFE_getByType } = render(<MediaPreviewModal {...baseProps} />);
+    const { getByText, UNSAFE_getByType } = render(
+      <MediaPreviewModal {...baseProps} />,
+    );
     const image = UNSAFE_getByType(require('react-native').Image);
     fireEvent(image, 'error', { nativeEvent: { error: 'bad image' } });
     await waitFor(() => {
@@ -300,8 +323,14 @@ describe('MediaPreviewModal', () => {
     const { getByText, rerender } = render(
       <MediaPreviewModal
         {...baseProps}
-        mediaResult={{ ...baseProps.mediaResult, size: 512, duration: 2.4, width: 100, height: 200 }}
-      />
+        mediaResult={{
+          ...baseProps.mediaResult,
+          size: 512,
+          duration: 2.4,
+          width: 100,
+          height: 200,
+        }}
+      />,
     );
     expect(getByText('Size: 512 bytes')).toBeTruthy();
     expect(getByText('Duration: 2s')).toBeTruthy();
@@ -311,7 +340,7 @@ describe('MediaPreviewModal', () => {
       <MediaPreviewModal
         {...baseProps}
         mediaResult={{ ...baseProps.mediaResult, size: 2048 }}
-      />
+      />,
     );
     expect(getByText('Size: 2 KB')).toBeTruthy();
 
@@ -319,14 +348,18 @@ describe('MediaPreviewModal', () => {
       <MediaPreviewModal
         {...baseProps}
         mediaResult={{ ...baseProps.mediaResult, size: 2 * 1024 * 1024 }}
-      />
+      />,
     );
     expect(getByText('Size: 2.00 MB')).toBeTruthy();
   });
 
   it('resets transient state when modal becomes hidden', async () => {
-    mockUpload.requestUploadToken.mockRejectedValueOnce(new Error('temp error'));
-    const { getByText, queryByText, rerender } = render(<MediaPreviewModal {...baseProps} />);
+    mockUpload.requestUploadToken.mockRejectedValueOnce(
+      new Error('temp error'),
+    );
+    const { getByText, queryByText, rerender } = render(
+      <MediaPreviewModal {...baseProps} />,
+    );
     fireEvent.press(getByText('Send'));
 
     await waitFor(() => {
@@ -345,7 +378,7 @@ describe('MediaPreviewModal', () => {
       <MediaPreviewModal
         {...baseProps}
         mediaResult={{ ...baseProps.mediaResult, uri: '/tmp/ios-image.jpg' }}
-      />
+      />,
     );
     fireEvent.press(getByText('Send'));
 
@@ -354,7 +387,7 @@ describe('MediaPreviewModal', () => {
         '/tmp/ios-image.jpg',
         'net',
         'channel::net::#chan',
-        'media-123'
+        'media-123',
       );
     });
   });
@@ -364,7 +397,7 @@ describe('MediaPreviewModal', () => {
       <MediaPreviewModal
         {...baseProps}
         mediaResult={{ ...baseProps.mediaResult, uri: 'file:///tmp/image.jpg' }}
-      />
+      />,
     );
     expect(getByText('Preview Media')).toBeTruthy();
   });

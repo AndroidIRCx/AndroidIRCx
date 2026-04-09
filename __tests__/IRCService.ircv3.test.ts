@@ -33,10 +33,13 @@ function createMockCtx() {
 
   const ctx: any = {
     addMessage: jest.fn((msg: any) => messages.push(msg)),
-    addRawMessage: jest.fn((text: string, category: string, timestamp?: number) =>
-      rawMessages.push({ text, category, timestamp }),
+    addRawMessage: jest.fn(
+      (text: string, category: string, timestamp?: number) =>
+        rawMessages.push({ text, category, timestamp }),
     ),
-    emit: jest.fn((event: string, ...args: any[]) => emitted.push({ event, args })),
+    emit: jest.fn((event: string, ...args: any[]) =>
+      emitted.push({ event, args }),
+    ),
     extractNick: jest.fn((prefix: string) => prefix.split('!')[0]),
     logRaw: jest.fn(),
     decodeIfBase64Like: jest.fn((value: string) => value),
@@ -176,7 +179,12 @@ describe('REGISTER Handler (draft/account-registration)', () => {
   it('handles SUCCESS response', () => {
     const { ctx, messages, emitted } = createMockCtx();
 
-    handleREGISTER(ctx, 'server', ['SUCCESS', 'myaccount', 'Account created'], Date.now());
+    handleREGISTER(
+      ctx,
+      'server',
+      ['SUCCESS', 'myaccount', 'Account created'],
+      Date.now(),
+    );
 
     expect(messages).toHaveLength(1);
     expect(messages[0].text).toContain('myaccount');
@@ -189,11 +197,18 @@ describe('REGISTER Handler (draft/account-registration)', () => {
   it('handles VERIFICATION_REQUIRED response', () => {
     const { ctx, messages, emitted } = createMockCtx();
 
-    handleREGISTER(ctx, 'server', ['VERIFICATION_REQUIRED', 'myaccount', 'Check your email'], Date.now());
+    handleREGISTER(
+      ctx,
+      'server',
+      ['VERIFICATION_REQUIRED', 'myaccount', 'Check your email'],
+      Date.now(),
+    );
 
     expect(messages).toHaveLength(1);
     expect(messages[0].text).toContain('requires verification');
-    const event = emitted.find(e => e.event === 'account-verification-required');
+    const event = emitted.find(
+      e => e.event === 'account-verification-required',
+    );
     expect(event).toBeTruthy();
   });
 
@@ -234,11 +249,15 @@ describe('Event-Playback isPlayback flagging', () => {
     // Start a chathistory batch
     (irc as any).handleIRCMessage(':server BATCH +hist chathistory #chan');
     // Message inside batch
-    (irc as any).handleIRCMessage('@batch=hist :nick!u@h PRIVMSG #chan :old message');
+    (irc as any).handleIRCMessage(
+      '@batch=hist :nick!u@h PRIVMSG #chan :old message',
+    );
     // End the batch
     (irc as any).handleIRCMessage(':server BATCH -hist');
 
-    const privmsg = messages.find(m => m.type === 'message' && m.text === 'old message');
+    const privmsg = messages.find(
+      m => m.type === 'message' && m.text === 'old message',
+    );
     expect(privmsg).toBeTruthy();
     expect(privmsg!.isPlayback).toBe(true);
   });
@@ -248,10 +267,14 @@ describe('Event-Playback isPlayback flagging', () => {
     irc.onMessage(msg => messages.push(msg));
 
     (irc as any).handleIRCMessage(':server BATCH +hb history #chan');
-    (irc as any).handleIRCMessage('@batch=hb :nick!u@h PRIVMSG #chan :historical msg');
+    (irc as any).handleIRCMessage(
+      '@batch=hb :nick!u@h PRIVMSG #chan :historical msg',
+    );
     (irc as any).handleIRCMessage(':server BATCH -hb');
 
-    const privmsg = messages.find(m => m.type === 'message' && m.text === 'historical msg');
+    const privmsg = messages.find(
+      m => m.type === 'message' && m.text === 'historical msg',
+    );
     expect(privmsg).toBeTruthy();
     expect(privmsg!.isPlayback).toBe(true);
   });
@@ -264,7 +287,9 @@ describe('Event-Playback isPlayback flagging', () => {
     (irc as any).handleIRCMessage('@batch=zp :nick!u@h PRIVMSG #chan :znc msg');
     (irc as any).handleIRCMessage(':server BATCH -zp');
 
-    const privmsg = messages.find(m => m.type === 'message' && m.text === 'znc msg');
+    const privmsg = messages.find(
+      m => m.type === 'message' && m.text === 'znc msg',
+    );
     expect(privmsg).toBeTruthy();
     expect(privmsg!.isPlayback).toBe(true);
   });
@@ -275,7 +300,9 @@ describe('Event-Playback isPlayback flagging', () => {
 
     (irc as any).handleIRCMessage(':nick!u@h PRIVMSG #chan :live message');
 
-    const privmsg = messages.find(m => m.type === 'message' && m.text === 'live message');
+    const privmsg = messages.find(
+      m => m.type === 'message' && m.text === 'live message',
+    );
     expect(privmsg).toBeTruthy();
     expect(privmsg!.isPlayback).toBeFalsy();
   });
@@ -284,7 +311,9 @@ describe('Event-Playback isPlayback flagging', () => {
     const messages: IRCMessage[] = [];
     irc.onMessage(msg => messages.push(msg));
 
-    (irc as any).handleIRCMessage(':server BATCH +ns netsplit irc1.net irc2.net');
+    (irc as any).handleIRCMessage(
+      ':server BATCH +ns netsplit irc1.net irc2.net',
+    );
     (irc as any).handleIRCMessage('@batch=ns :nick!u@h QUIT :netsplit');
     (irc as any).handleIRCMessage(':server BATCH -ns');
 
@@ -304,7 +333,9 @@ describe('BatchLabelManager chathistory-end event', () => {
     const mockCtx: any = {
       addMessage: jest.fn(),
       addRawMessage: jest.fn(),
-      emit: jest.fn((event: string, ...args: any[]) => emitted.push({ event, args })),
+      emit: jest.fn((event: string, ...args: any[]) =>
+        emitted.push({ event, args }),
+      ),
       logRaw: jest.fn(),
       sendRaw: jest.fn(),
       hasCapability: jest.fn(() => false),
@@ -328,7 +359,9 @@ describe('BatchLabelManager chathistory-end event', () => {
     const mockCtx: any = {
       addMessage: jest.fn(),
       addRawMessage: jest.fn(),
-      emit: jest.fn((event: string, ...args: any[]) => emitted.push({ event, args })),
+      emit: jest.fn((event: string, ...args: any[]) =>
+        emitted.push({ event, args }),
+      ),
       logRaw: jest.fn(),
       sendRaw: jest.fn(),
       hasCapability: jest.fn(() => false),
@@ -349,7 +382,9 @@ describe('BatchLabelManager chathistory-end event', () => {
     const mockCtx: any = {
       addMessage: jest.fn(),
       addRawMessage: jest.fn(),
-      emit: jest.fn((event: string, ...args: any[]) => emitted.push({ event, args })),
+      emit: jest.fn((event: string, ...args: any[]) =>
+        emitted.push({ event, args }),
+      ),
       logRaw: jest.fn(),
       sendRaw: jest.fn(),
       hasCapability: jest.fn(() => false),
@@ -384,7 +419,9 @@ describe('BatchLabelManager chathistory-end event', () => {
     manager.handleBatchEnd('ref4', now);
 
     // chathistory-end should report 2 messages
-    const call = mockCtx.emit.mock.calls.find((c: any[]) => c[0] === 'chathistory-end');
+    const call = mockCtx.emit.mock.calls.find(
+      (c: any[]) => c[0] === 'chathistory-end',
+    );
     expect(call).toBeTruthy();
     expect(call[1].messages).toBe(2);
   });
@@ -426,7 +463,11 @@ describe('/register send command', () => {
 
     irc.sendMessage('#test', '/register user@example.com mypass');
 
-    expect(socket.writes.some(w => w.includes('REGISTER * user@example.com :mypass'))).toBe(true);
+    expect(
+      socket.writes.some(w =>
+        w.includes('REGISTER * user@example.com :mypass'),
+      ),
+    ).toBe(true);
   });
 
   it('sends REGISTER with account, email, and password', () => {
@@ -434,7 +475,11 @@ describe('/register send command', () => {
 
     irc.sendMessage('#test', '/register myaccount user@example.com mypass');
 
-    expect(socket.writes.some(w => w.includes('REGISTER myaccount user@example.com :mypass'))).toBe(true);
+    expect(
+      socket.writes.some(w =>
+        w.includes('REGISTER myaccount user@example.com :mypass'),
+      ),
+    ).toBe(true);
   });
 
   it('sends REGISTER with * for no email', () => {
@@ -442,7 +487,9 @@ describe('/register send command', () => {
 
     irc.sendMessage('#test', '/register * mypass');
 
-    expect(socket.writes.some(w => w.includes('REGISTER * * :mypass'))).toBe(true);
+    expect(socket.writes.some(w => w.includes('REGISTER * * :mypass'))).toBe(
+      true,
+    );
   });
 
   it('shows usage error when too few arguments', () => {
@@ -563,7 +610,9 @@ describe('Intent tag parsing', () => {
       return origHandle(...args);
     });
 
-    (irc as any).handleIRCMessage('@+draft/intent=ACTION :nick!u@h PRIVMSG #test :waves');
+    (irc as any).handleIRCMessage(
+      '@+draft/intent=ACTION :nick!u@h PRIVMSG #test :waves',
+    );
 
     const call = handleSpy.mock.calls[0];
     expect(call).toBeTruthy();
@@ -598,10 +647,19 @@ describe('RENAME via handleIRCMessage (integration)', () => {
     const messages: IRCMessage[] = [];
     irc.onMessage(msg => messages.push(msg));
 
-    (irc as any).handleIRCMessage(':server RENAME #old-chan #new-chan :Channel rebranded');
+    (irc as any).handleIRCMessage(
+      ':server RENAME #old-chan #new-chan :Channel rebranded',
+    );
 
-    expect(emitSpy).toHaveBeenCalledWith('channel-renamed', '#old-chan', '#new-chan', 'Channel rebranded');
-    const renameMsg = messages.find(m => m.text?.includes('#old-chan') && m.text?.includes('#new-chan'));
+    expect(emitSpy).toHaveBeenCalledWith(
+      'channel-renamed',
+      '#old-chan',
+      '#new-chan',
+      'Channel rebranded',
+    );
+    const renameMsg = messages.find(
+      m => m.text?.includes('#old-chan') && m.text?.includes('#new-chan'),
+    );
     expect(renameMsg).toBeTruthy();
   });
 });
@@ -631,9 +689,15 @@ describe('REGISTER via handleIRCMessage (integration)', () => {
     const messages: IRCMessage[] = [];
     irc.onMessage(msg => messages.push(msg));
 
-    (irc as any).handleIRCMessage(':server REGISTER SUCCESS myaccount :Account created successfully');
+    (irc as any).handleIRCMessage(
+      ':server REGISTER SUCCESS myaccount :Account created successfully',
+    );
 
-    expect(emitSpy).toHaveBeenCalledWith('account-registered', 'myaccount', 'Account created successfully');
+    expect(emitSpy).toHaveBeenCalledWith(
+      'account-registered',
+      'myaccount',
+      'Account created successfully',
+    );
   });
 
   it('processes REGISTER VERIFICATION_REQUIRED response', () => {
@@ -641,9 +705,15 @@ describe('REGISTER via handleIRCMessage (integration)', () => {
     const messages: IRCMessage[] = [];
     irc.onMessage(msg => messages.push(msg));
 
-    (irc as any).handleIRCMessage(':server REGISTER VERIFICATION_REQUIRED myaccount :Check your email');
+    (irc as any).handleIRCMessage(
+      ':server REGISTER VERIFICATION_REQUIRED myaccount :Check your email',
+    );
 
-    expect(emitSpy).toHaveBeenCalledWith('account-verification-required', 'myaccount', 'Check your email');
+    expect(emitSpy).toHaveBeenCalledWith(
+      'account-verification-required',
+      'myaccount',
+      'Check your email',
+    );
   });
 });
 
@@ -709,7 +779,9 @@ describe('SETNAME handler deduplication', () => {
   it('SETNAME is only registered once in IRCCommandHandlers', () => {
     // The IRCCommandHandlers uses a Map, so even if registered twice,
     // the last one wins. But we should only have ONE source now.
-    const { userStateCommandHandlers } = require('../src/services/irc/commands/UserStateCommandHandlers');
+    const {
+      userStateCommandHandlers,
+    } = require('../src/services/irc/commands/UserStateCommandHandlers');
     expect(userStateCommandHandlers.has('SETNAME')).toBe(true);
   });
 });

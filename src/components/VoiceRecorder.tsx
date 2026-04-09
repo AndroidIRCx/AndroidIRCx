@@ -51,18 +51,18 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  
+
   const [state, setState] = useState<RecordingState>('idle');
   const [duration, setDuration] = useState(0);
   const [maxDuration, setMaxDuration] = useState(180); // Default 3 minutes
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   const waveformAnimRef = useRef(new Animated.Value(0)).current;
   const waveformAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
   const recorderRef = useRef(AudioRecorderPlayer);
   const stopRequestedRef = useRef(false);
-  
+
   // Load max duration from settings
   useEffect(() => {
     const loadSettings = async () => {
@@ -81,11 +81,13 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
       {
         title: t('Microphone permission'),
-        message: t('This app needs access to your microphone to record voice messages.'),
+        message: t(
+          'This app needs access to your microphone to record voice messages.',
+        ),
         buttonNeutral: t('Ask me later'),
         buttonNegative: t('Cancel'),
         buttonPositive: t('OK'),
-      }
+      },
     );
     return granted === PermissionsAndroid.RESULTS.GRANTED;
   };
@@ -134,14 +136,14 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       const recorder = recorderRef.current;
       recorder.setSubscriptionDuration(0.2);
-      recorder.addRecordBackListener((meta) => {
+      recorder.addRecordBackListener(meta => {
         if (meta?.currentPosition != null) {
           handleRecordProgress(meta.currentPosition);
         }
       });
 
       await recorder.startRecorder(filePath, getAudioSet(), true);
-      
+
       console.log('[VoiceRecorder] Recording started:', filePath);
     } catch (err: any) {
       console.error('[VoiceRecorder] Start recording error:', err);
@@ -206,7 +208,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           duration: 500,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     waveformAnimationRef.current.start();
   }, [waveformAnimRef]);
@@ -255,9 +257,10 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           setError(t('Recording file not found. Please record again.'));
           return;
         }
-        
+
         // Return URI with file:// prefix for Android
-        const fileUri = Platform.OS === 'android' ? `file://${recordingUri}` : recordingUri;
+        const fileUri =
+          Platform.OS === 'android' ? `file://${recordingUri}` : recordingUri;
         onRecordingComplete(fileUri, duration);
       } catch (err: any) {
         console.error('[VoiceRecorder] Send recording error:', err);
@@ -329,7 +332,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           {renderWaveform()}
           <Text style={styles.durationText}>{formatDuration(duration)}</Text>
           <Text style={styles.hintText}>
-            {t('Release to stop recording')} ({formatDuration(maxDuration)} {t('max')})
+            {t('Release to stop recording')} ({formatDuration(maxDuration)}{' '}
+            {t('max')})
           </Text>
         </View>
       )}
@@ -339,7 +343,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         <View style={styles.recordedContainer}>
           <Text style={styles.recordedLabel}>{t('Recording complete')}</Text>
           <Text style={styles.durationText}>{formatDuration(duration)}</Text>
-          
+
           {/* Audio preview player */}
           {recordingUri && (
             <Video
@@ -353,14 +357,14 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           <View style={styles.recordedActions}>
             <TouchableOpacity
               style={[styles.actionButton, styles.playButton]}
-              onPress={playPreview}>
-              <Text style={styles.actionButtonText}>
-                {t('Play')}
-              </Text>
+              onPress={playPreview}
+            >
+              <Text style={styles.actionButtonText}>{t('Play')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, styles.deleteButton]}
-              onPress={deleteRecording}>
+              onPress={deleteRecording}
+            >
               <Text style={styles.actionButtonText}>{t('Delete')}</Text>
             </TouchableOpacity>
           </View>
@@ -370,7 +374,9 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       {/* Idle state */}
       {state === 'idle' && (
         <View style={styles.idleContainer}>
-          <Text style={styles.idleLabel}>{t('Hold to record voice message')}</Text>
+          <Text style={styles.idleLabel}>
+            {t('Hold to record voice message')}
+          </Text>
           <Text style={styles.idleHint}>
             {t('Max duration: {duration} seconds', { duration: maxDuration })}
           </Text>
@@ -383,8 +389,11 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           <TouchableOpacity
             style={[styles.recordButton, { backgroundColor: colors.error }]}
             onPressIn={startRecording}
-            activeOpacity={0.8}>
-            <Text style={styles.recordButtonText}>🎙️ {t('Hold to Record')}</Text>
+            activeOpacity={0.8}
+          >
+            <Text style={styles.recordButtonText}>
+              🎙️ {t('Hold to Record')}
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -392,7 +401,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           <TouchableOpacity
             style={[styles.stopButton, { backgroundColor: colors.error }]}
             onPress={stopRecording}
-            activeOpacity={0.8}>
+            activeOpacity={0.8}
+          >
             <Text style={styles.stopButtonText}>⏹️ {t('Stop Recording')}</Text>
           </TouchableOpacity>
         )}
@@ -401,12 +411,14 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           <>
             <TouchableOpacity
               style={[styles.sendButton, { backgroundColor: colors.primary }]}
-              onPress={sendRecording}>
+              onPress={sendRecording}
+            >
               <Text style={styles.sendButtonText}>✓ {t('Send')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.cancelButton, { borderColor: colors.border }]}
-              onPress={onCancel}>
+              onPress={onCancel}
+            >
               <Text style={[styles.cancelButtonText, { color: colors.text }]}>
                 {t('Cancel')}
               </Text>
@@ -417,7 +429,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         {state === 'idle' && (
           <TouchableOpacity
             style={[styles.cancelButton, { borderColor: colors.border }]}
-            onPress={onCancel}>
+            onPress={onCancel}
+          >
             <Text style={[styles.cancelButtonText, { color: colors.text }]}>
               {t('Cancel')}
             </Text>
@@ -428,154 +441,155 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    minHeight: 300,
-  },
-  errorContainer: {
-    backgroundColor: colors.error + '20' || 'rgba(244, 67, 54, 0.1)',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  recordingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-  },
-  waveformContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 60,
-    marginBottom: 16,
-  },
-  waveformBar: {
-    width: 3,
-    height: 40,
-    backgroundColor: colors.primary,
-    marginHorizontal: 2,
-    borderRadius: 2,
-  },
-  durationText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginVertical: 8,
-  },
-  hintText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 8,
-  },
-  recordedContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-  },
-  recordedLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  audioPlayer: {
-    width: '100%',
-    height: 50,
-    marginVertical: 16,
-  },
-  recordedActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
-  actionButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  playButton: {
-    backgroundColor: colors.primary,
-  },
-  deleteButton: {
-    backgroundColor: colors.error + '20' || 'rgba(244, 67, 54, 0.2)',
-  },
-  actionButtonText: {
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  idleContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-  },
-  idleLabel: {
-    fontSize: 16,
-    color: colors.text,
-    marginBottom: 8,
-  },
-  idleHint: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  controlsContainer: {
-    marginTop: 20,
-    gap: 12,
-  },
-  recordButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  recordButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  stopButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  stopButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  sendButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  sendButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-  },
-  cancelButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      padding: 20,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      minHeight: 300,
+    },
+    errorContainer: {
+      backgroundColor: colors.error + '20' || 'rgba(244, 67, 54, 0.1)',
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 16,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: 14,
+      textAlign: 'center',
+    },
+    recordingContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 20,
+    },
+    waveformContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 60,
+      marginBottom: 16,
+    },
+    waveformBar: {
+      width: 3,
+      height: 40,
+      backgroundColor: colors.primary,
+      marginHorizontal: 2,
+      borderRadius: 2,
+    },
+    durationText: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginVertical: 8,
+    },
+    hintText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 8,
+    },
+    recordedContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 20,
+    },
+    recordedLabel: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    audioPlayer: {
+      width: '100%',
+      height: 50,
+      marginVertical: 16,
+    },
+    recordedActions: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 16,
+    },
+    actionButton: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 8,
+      minWidth: 80,
+      alignItems: 'center',
+    },
+    playButton: {
+      backgroundColor: colors.primary,
+    },
+    deleteButton: {
+      backgroundColor: colors.error + '20' || 'rgba(244, 67, 54, 0.2)',
+    },
+    actionButtonText: {
+      color: colors.text,
+      fontWeight: '600',
+      fontSize: 14,
+    },
+    idleContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 40,
+    },
+    idleLabel: {
+      fontSize: 16,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    idleHint: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    controlsContainer: {
+      marginTop: 20,
+      gap: 12,
+    },
+    recordButton: {
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    recordButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    stopButton: {
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    stopButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    sendButton: {
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    sendButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    cancelButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      borderWidth: 1,
+    },
+    cancelButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });

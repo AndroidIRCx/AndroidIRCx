@@ -34,15 +34,35 @@ const mockLoadTabsFromStorage = jest.fn();
 
 jest.mock('../../src/stores/tabStore', () => ({
   useTabStore: Object.assign(
-    jest.fn((selector) => selector({ tabs: mockTabs, loadTabsFromStorage: mockLoadTabsFromStorage })),
-    { getState: jest.fn(() => ({ tabs: mockTabs, loadTabsFromStorage: mockLoadTabsFromStorage })) }
+    jest.fn(selector =>
+      selector({
+        tabs: mockTabs,
+        loadTabsFromStorage: mockLoadTabsFromStorage,
+      }),
+    ),
+    {
+      getState: jest.fn(() => ({
+        tabs: mockTabs,
+        loadTabsFromStorage: mockLoadTabsFromStorage,
+      })),
+    },
   ),
 }));
 
 jest.mock('../../src/stores/connectionStore', () => ({
   useConnectionStore: Object.assign(
-    jest.fn((selector) => selector({ activeConnectionId: 'freenode', primaryNetworkId: 'freenode' })),
-    { getState: jest.fn(() => ({ activeConnectionId: 'freenode', primaryNetworkId: 'freenode' })) }
+    jest.fn(selector =>
+      selector({
+        activeConnectionId: 'freenode',
+        primaryNetworkId: 'freenode',
+      }),
+    ),
+    {
+      getState: jest.fn(() => ({
+        activeConnectionId: 'freenode',
+        primaryNetworkId: 'freenode',
+      })),
+    },
   ),
 }));
 
@@ -75,12 +95,17 @@ describe('useAppStateEffects', () => {
 
     renderHook(() => useAppStateEffects(defaultProps));
 
-    expect(addEventListenerSpy).toHaveBeenCalledWith('change', expect.any(Function));
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function),
+    );
   });
 
   it('should unsubscribe on unmount', () => {
     const mockRemove = jest.fn();
-    jest.spyOn(AppState, 'addEventListener').mockReturnValue({ remove: mockRemove });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockReturnValue({ remove: mockRemove });
 
     const { unmount } = renderHook(() => useAppStateEffects(defaultProps));
 
@@ -91,10 +116,12 @@ describe('useAppStateEffects', () => {
 
   it('should flush message history when going to background', () => {
     let stateChangeHandler: ((state: string) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler: any) => {
-      stateChangeHandler = handler;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event, handler: any) => {
+        stateChangeHandler = handler;
+        return { remove: jest.fn() };
+      });
 
     renderHook(() => useAppStateEffects(defaultProps));
 
@@ -106,10 +133,12 @@ describe('useAppStateEffects', () => {
 
   it('should flush message history when going to inactive', () => {
     let stateChangeHandler: ((state: string) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler: any) => {
-      stateChangeHandler = handler;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event, handler: any) => {
+        stateChangeHandler = handler;
+        return { remove: jest.fn() };
+      });
 
     renderHook(() => useAppStateEffects(defaultProps));
 
@@ -120,10 +149,12 @@ describe('useAppStateEffects', () => {
 
   it('should refresh notification permissions when becoming active', () => {
     let stateChangeHandler: ((state: string) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler: any) => {
-      stateChangeHandler = handler;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event, handler: any) => {
+        stateChangeHandler = handler;
+        return { remove: jest.fn() };
+      });
 
     renderHook(() => useAppStateEffects(defaultProps));
 
@@ -134,10 +165,12 @@ describe('useAppStateEffects', () => {
 
   it('should update appStateRef on state change', () => {
     let stateChangeHandler: ((state: string) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler: any) => {
-      stateChangeHandler = handler;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event, handler: any) => {
+        stateChangeHandler = handler;
+        return { remove: jest.fn() };
+      });
 
     renderHook(() => useAppStateEffects(defaultProps));
 
@@ -150,10 +183,12 @@ describe('useAppStateEffects', () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
     let stateChangeHandler: ((state: string) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler: any) => {
-      stateChangeHandler = handler;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event, handler: any) => {
+        stateChangeHandler = handler;
+        return { remove: jest.fn() };
+      });
 
     mockPendingAlertRef.current = {
       title: 'Test Alert',
@@ -165,29 +200,37 @@ describe('useAppStateEffects', () => {
 
     stateChangeHandler!('active');
 
-    expect(alertSpy).toHaveBeenCalledWith('Test Alert', 'Test Message', [{ text: 'OK' }]);
+    expect(alertSpy).toHaveBeenCalledWith('Test Alert', 'Test Message', [
+      { text: 'OK' },
+    ]);
     expect(mockPendingAlertRef.current).toBeNull();
     alertSpy.mockRestore();
   });
 
   it('should reload tabs from storage when app becomes active and tabs are empty', async () => {
-    const useTabStore = require('../../src/stores/tabStore').useTabStore as jest.Mock;
+    const useTabStore = require('../../src/stores/tabStore')
+      .useTabStore as jest.Mock;
     useTabStore.getState.mockReturnValue({
       tabs: [],
       loadTabsFromStorage: mockLoadTabsFromStorage,
     });
-    const useConnectionStore = require('../../src/stores/connectionStore').useConnectionStore as jest.Mock;
+    const useConnectionStore = require('../../src/stores/connectionStore')
+      .useConnectionStore as jest.Mock;
     useConnectionStore.getState.mockReturnValue({
       activeConnectionId: 'freenode',
       primaryNetworkId: 'freenode',
     });
-    (tabService.getTabs as jest.Mock).mockResolvedValueOnce([{ id: 'server-freenode' }]);
+    (tabService.getTabs as jest.Mock).mockResolvedValueOnce([
+      { id: 'server-freenode' },
+    ]);
 
     let stateChangeHandler: ((state: string) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler: any) => {
-      stateChangeHandler = handler;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event, handler: any) => {
+        stateChangeHandler = handler;
+        return { remove: jest.fn() };
+      });
 
     renderHook(() => useAppStateEffects(defaultProps));
     await stateChangeHandler!('active');
@@ -197,17 +240,20 @@ describe('useAppStateEffects', () => {
   });
 
   it('should not reload tabs from storage when tabs already exist', async () => {
-    const useTabStore = require('../../src/stores/tabStore').useTabStore as jest.Mock;
+    const useTabStore = require('../../src/stores/tabStore')
+      .useTabStore as jest.Mock;
     useTabStore.getState.mockReturnValue({
       tabs: [{ id: 'existing-tab' }],
       loadTabsFromStorage: mockLoadTabsFromStorage,
     });
 
     let stateChangeHandler: ((state: string) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler: any) => {
-      stateChangeHandler = handler;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event, handler: any) => {
+        stateChangeHandler = handler;
+        return { remove: jest.fn() };
+      });
 
     renderHook(() => useAppStateEffects(defaultProps));
     await stateChangeHandler!('active');
@@ -217,14 +263,20 @@ describe('useAppStateEffects', () => {
   });
 
   it('should log when flushSync fails on background', async () => {
-    (messageHistoryBatching.flushSync as jest.Mock).mockRejectedValueOnce(new Error('flush failed'));
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (messageHistoryBatching.flushSync as jest.Mock).mockRejectedValueOnce(
+      new Error('flush failed'),
+    );
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     let stateChangeHandler: ((state: string) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler: any) => {
-      stateChangeHandler = handler;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event, handler: any) => {
+        stateChangeHandler = handler;
+        return { remove: jest.fn() };
+      });
 
     renderHook(() => useAppStateEffects(defaultProps));
     stateChangeHandler!('background');
@@ -232,20 +284,26 @@ describe('useAppStateEffects', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Error flushing message history on background:',
-      expect.any(Error)
+      expect.any(Error),
     );
     consoleErrorSpy.mockRestore();
   });
 
   it('should log when notification refresh fails on active', async () => {
-    (notificationService.refreshPermissionStatus as jest.Mock).mockRejectedValueOnce(new Error('notif failed'));
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (
+      notificationService.refreshPermissionStatus as jest.Mock
+    ).mockRejectedValueOnce(new Error('notif failed'));
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     let stateChangeHandler: ((state: string) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler: any) => {
-      stateChangeHandler = handler;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event, handler: any) => {
+        stateChangeHandler = handler;
+        return { remove: jest.fn() };
+      });
 
     renderHook(() => useAppStateEffects(defaultProps));
     await stateChangeHandler!('active');
@@ -253,7 +311,7 @@ describe('useAppStateEffects', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Error refreshing notification permission status:',
-      expect.any(Error)
+      expect.any(Error),
     );
     consoleErrorSpy.mockRestore();
   });

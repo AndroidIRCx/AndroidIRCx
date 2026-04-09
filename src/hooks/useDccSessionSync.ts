@@ -20,7 +20,7 @@ export const useDccSessionSync = (params: UseDccSessionSyncParams) => {
   const { isMountedRef, tabSortAlphabetical } = params;
 
   useEffect(() => {
-    const unsubSession = dccChatService.onSessionUpdate((session) => {
+    const unsubSession = dccChatService.onSessionUpdate(session => {
       if (session.status === 'connected') {
         const tabId = `dcc::${session.networkId}::${session.peerNick}`;
 
@@ -33,8 +33,10 @@ export const useDccSessionSync = (params: UseDccSessionSyncParams) => {
         if (existing) {
           tabStore.setTabs(
             currentTabs.map(t =>
-              t.id === tabId ? { ...t, messages: session.messages, dccSessionId: session.id } : t
-            )
+              t.id === tabId
+                ? { ...t, messages: session.messages, dccSessionId: session.id }
+                : t,
+            ),
           );
         } else {
           const newTab: ChannelTab = {
@@ -45,7 +47,9 @@ export const useDccSessionSync = (params: UseDccSessionSyncParams) => {
             messages: session.messages,
             dccSessionId: session.id,
           };
-          tabStore.setTabs(sortTabsGrouped([...currentTabs, newTab], tabSortAlphabetical));
+          tabStore.setTabs(
+            sortTabsGrouped([...currentTabs, newTab], tabSortAlphabetical),
+          );
         }
 
         tabStore.setActiveTabId(tabId);
@@ -63,10 +67,8 @@ export const useDccSessionSync = (params: UseDccSessionSyncParams) => {
       const tabStore = useTabStore.getState();
       tabStore.setTabs(
         tabStore.tabs.map(t =>
-          t.id === tabId
-            ? { ...t, messages: [...t.messages, message] }
-            : t
-        )
+          t.id === tabId ? { ...t, messages: [...t.messages, message] } : t,
+        ),
       );
     });
 

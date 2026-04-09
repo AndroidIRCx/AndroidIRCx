@@ -28,7 +28,11 @@ export const handle351: NumericHandler = (ctx, prefix, params, timestamp) => {
   const comments = params.slice(3).join(' ').replace(/^:/, '') || '';
   ctx.addMessage({
     type: 'raw',
-    text: t('*** Version: {version} on {server} {comments}', { version, server, comments }),
+    text: t('*** Version: {version} on {server} {comments}', {
+      version,
+      server,
+      comments,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -49,7 +53,8 @@ export const handle371: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 374 RPL_ENDOFINFO - End of INFO */
 export const handle374: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('End of INFO');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('End of INFO');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -61,7 +66,9 @@ export const handle374: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 381 RPL_YOUREOPER - You are now an IRC operator */
 export const handle381: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('You are now an IRC operator');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') ||
+    t('You are now an IRC operator');
   ctx.updateSelfUserModes('+o');
   ctx.addMessage({
     type: 'raw',
@@ -87,7 +94,8 @@ export const handle382: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 383 RPL_YOURESERVICE - You are service */
 export const handle383: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('You are service');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') || t('You are service');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),

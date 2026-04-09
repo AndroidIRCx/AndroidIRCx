@@ -87,7 +87,7 @@ const mockOriginalHandler = jest.fn();
 
 global.ErrorUtils = {
   getGlobalHandler: jest.fn(() => mockOriginalHandler),
-  setGlobalHandler: jest.fn((handler) => {
+  setGlobalHandler: jest.fn(handler => {
     mockGlobalErrorHandler.mockImplementation(handler);
   }),
 };
@@ -95,9 +95,11 @@ global.ErrorUtils = {
 describe('useAppInitialization', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Reset mocks to default behavior
-    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(true);
+    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(
+      true,
+    );
   });
 
   it('should render without crashing', () => {
@@ -113,35 +115,62 @@ describe('useAppInitialization', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     // Check that all initialization functions are called
-    expect(require('../../src/services/ConsentService').consentService.initialize).toHaveBeenCalledWith(expect.any(Boolean));
-    expect(require('../../src/services/AdRewardService').adRewardService.initialize).toHaveBeenCalled();
-    expect(require('../../src/services/InAppPurchaseService').inAppPurchaseService.initialize).toHaveBeenCalled();
-    expect(require('../../src/services/BannerAdService').bannerAdService.initialize).toHaveBeenCalled();
-    expect(require('../../src/services/ErrorReportingService').errorReportingService.initialize).toHaveBeenCalled();
-    expect(require('../../src/services/SoundService').soundService.initialize).toHaveBeenCalled();
-    expect(require('../../src/services/PrivacyRelayService').privacyRelayService.initialize).toHaveBeenCalled();
+    expect(
+      require('../../src/services/ConsentService').consentService.initialize,
+    ).toHaveBeenCalledWith(expect.any(Boolean));
+    expect(
+      require('../../src/services/AdRewardService').adRewardService.initialize,
+    ).toHaveBeenCalled();
+    expect(
+      require('../../src/services/InAppPurchaseService').inAppPurchaseService
+        .initialize,
+    ).toHaveBeenCalled();
+    expect(
+      require('../../src/services/BannerAdService').bannerAdService.initialize,
+    ).toHaveBeenCalled();
+    expect(
+      require('../../src/services/ErrorReportingService').errorReportingService
+        .initialize,
+    ).toHaveBeenCalled();
+    expect(
+      require('../../src/services/SoundService').soundService.initialize,
+    ).toHaveBeenCalled();
+    expect(
+      require('../../src/services/PrivacyRelayService').privacyRelayService
+        .initialize,
+    ).toHaveBeenCalled();
   });
 
   it('should handle consent form based on first run status', async () => {
     // Mock first run as false to trigger consent form
-    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(false);
+    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(
+      false,
+    );
 
     renderHook(() => useAppInitialization());
 
     await new Promise(resolve => setTimeout(resolve, 0));
 
-    expect(require('../../src/services/ConsentService').consentService.showConsentFormIfRequired).toHaveBeenCalled();
+    expect(
+      require('../../src/services/ConsentService').consentService
+        .showConsentFormIfRequired,
+    ).toHaveBeenCalled();
   });
 
   it('should skip consent form on first run', async () => {
     // Mock first run as true (default)
-    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(true);
+    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(
+      true,
+    );
 
     renderHook(() => useAppInitialization());
 
     await new Promise(resolve => setTimeout(resolve, 0));
 
-    expect(require('../../src/services/ConsentService').consentService.showConsentFormIfRequired).not.toHaveBeenCalled();
+    expect(
+      require('../../src/services/ConsentService').consentService
+        .showConsentFormIfRequired,
+    ).not.toHaveBeenCalled();
   });
 
   it('should set global error handler', async () => {
@@ -158,7 +187,9 @@ describe('useAppInitialization', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
     unmount();
 
-    expect(global.ErrorUtils.setGlobalHandler).toHaveBeenLastCalledWith(mockOriginalHandler);
+    expect(global.ErrorUtils.setGlobalHandler).toHaveBeenLastCalledWith(
+      mockOriginalHandler,
+    );
   });
 
   it('should report and hide bootsplash for fatal global errors', async () => {
@@ -168,11 +199,16 @@ describe('useAppInitialization', () => {
     const error = new Error('fatal test');
     mockGlobalErrorHandler(error, true);
 
-    expect(require('../../src/services/ErrorReportingService').errorReportingService.report).toHaveBeenCalledWith(
+    expect(
+      require('../../src/services/ErrorReportingService').errorReportingService
+        .report,
+    ).toHaveBeenCalledWith(
       error,
-      expect.objectContaining({ fatal: true, source: 'globalErrorHandler' })
+      expect.objectContaining({ fatal: true, source: 'globalErrorHandler' }),
     );
-    expect(require('react-native-bootsplash').hide).toHaveBeenCalledWith({ fade: false });
+    expect(require('react-native-bootsplash').hide).toHaveBeenCalledWith({
+      fade: false,
+    });
     expect(mockOriginalHandler).toHaveBeenCalledWith(error, true);
   });
 
@@ -183,9 +219,12 @@ describe('useAppInitialization', () => {
     const error = new Error('non fatal test');
     mockGlobalErrorHandler(error, false);
 
-    expect(require('../../src/services/ErrorReportingService').errorReportingService.report).toHaveBeenCalledWith(
+    expect(
+      require('../../src/services/ErrorReportingService').errorReportingService
+        .report,
+    ).toHaveBeenCalledWith(
       error,
-      expect.objectContaining({ fatal: false, source: 'globalErrorHandler' })
+      expect.objectContaining({ fatal: false, source: 'globalErrorHandler' }),
     );
     expect(require('react-native-bootsplash').hide).not.toHaveBeenCalled();
     expect(mockOriginalHandler).toHaveBeenCalledWith(error, false);
@@ -193,7 +232,9 @@ describe('useAppInitialization', () => {
 
   it('should handle errors during initialization gracefully', async () => {
     // Mock an error during consent initialization
-    require('../../src/services/ConsentService').consentService.initialize.mockRejectedValueOnce(new Error('Consent init failed'));
+    require('../../src/services/ConsentService').consentService.initialize.mockRejectedValueOnce(
+      new Error('Consent init failed'),
+    );
 
     expect(() => {
       renderHook(() => useAppInitialization());
@@ -207,7 +248,9 @@ describe('useAppInitialization', () => {
 
     // Check that Firebase app is retrieved and App Check is initialized
     expect(require('@react-native-firebase/app').getApp).toHaveBeenCalled();
-    expect(require('@react-native-firebase/app-check').initializeAppCheck).toHaveBeenCalled();
+    expect(
+      require('@react-native-firebase/app-check').initializeAppCheck,
+    ).toHaveBeenCalled();
   });
 
   it('should skip global error handler setup when ErrorUtils is unavailable', async () => {
@@ -219,15 +262,20 @@ describe('useAppInitialization', () => {
     }).not.toThrow();
 
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(require('../../src/services/ErrorReportingService').errorReportingService.initialize).toHaveBeenCalled();
+    expect(
+      require('../../src/services/ErrorReportingService').errorReportingService
+        .initialize,
+    ).toHaveBeenCalled();
 
     (global as any).ErrorUtils = originalErrorUtils;
   });
 
   it('should handle App Check initialization failure gracefully', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     require('@react-native-firebase/app-check').initializeAppCheck.mockRejectedValueOnce(
-      new Error('app-check failed')
+      new Error('app-check failed'),
     );
 
     expect(() => {
@@ -236,14 +284,19 @@ describe('useAppInitialization', () => {
 
     await new Promise(resolve => setTimeout(resolve, 0));
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('❌ App Check initialization failed:', expect.any(Error));
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '❌ App Check initialization failed:',
+      expect.any(Error),
+    );
     consoleErrorSpy.mockRestore();
   });
 
   it('should handle PrivacyRelay initialization failures gracefully', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     require('../../src/services/PrivacyRelayService').privacyRelayService.initialize.mockRejectedValueOnce(
-      new Error('relay init failed')
+      new Error('relay init failed'),
     );
 
     expect(() => {
@@ -254,13 +307,15 @@ describe('useAppInitialization', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '❌ Failed to initialize PrivacyRelayService:',
-      expect.any(Error)
+      expect.any(Error),
     );
     consoleErrorSpy.mockRestore();
   });
 
   it('should warn when not all ad adapters are ready', async () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
     require('react-native-google-mobile-ads').default.mockReturnValue({
       initialize: jest.fn().mockResolvedValue([{ state: 0 }]),
     });
@@ -268,7 +323,9 @@ describe('useAppInitialization', () => {
     renderHook(() => useAppInitialization());
     await new Promise(resolve => setTimeout(resolve, 0));
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith('⚠️ WARNING: Not all ad adapters are ready!');
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      '⚠️ WARNING: Not all ad adapters are ready!',
+    );
     expect(consoleWarnSpy).toHaveBeenCalledWith('This could be due to:');
     consoleWarnSpy.mockRestore();
   });

@@ -27,7 +27,7 @@ jest.mock('../../../src/i18n/transifex', () => ({
 describe('HelpCommandsScreen', () => {
   it('renders nothing when not visible', () => {
     const { queryByText } = render(
-      <HelpCommandsScreen visible={false} onClose={jest.fn()} />
+      <HelpCommandsScreen visible={false} onClose={jest.fn()} />,
     );
 
     expect(queryByText('IRC Commands Reference')).toBeNull();
@@ -35,7 +35,7 @@ describe('HelpCommandsScreen', () => {
 
   it('renders representative command sections when visible', () => {
     const { getByText } = render(
-      <HelpCommandsScreen visible onClose={jest.fn()} />
+      <HelpCommandsScreen visible onClose={jest.fn()} />,
     );
 
     expect(getByText('IRC Commands Reference')).toBeTruthy();
@@ -43,24 +43,28 @@ describe('HelpCommandsScreen', () => {
     expect(getByText('/join <channel>')).toBeTruthy();
     expect(getByText('Example: /join #DBase')).toBeTruthy();
     expect(getByText('Channel Management')).toBeTruthy();
-    expect(getByText('/ban [options] [#channel] <nick|mask> [type] [kick message]')).toBeTruthy();
+    expect(
+      getByText('/ban [options] [#channel] <nick|mask> [type] [kick message]'),
+    ).toBeTruthy();
     expect(getByText('Encryption Commands')).toBeTruthy();
     expect(getByText('Connection & Status')).toBeTruthy();
     expect(getByText('Services Shortcuts (Aliases)')).toBeTruthy();
     expect(
       getByText(
-        'Tip: You can also use tab completion to auto-complete commands and nicknames in the message input field.'
-      )
+        'Tip: You can also use tab completion to auto-complete commands and nicknames in the message input field.',
+      ),
     ).toBeTruthy();
     expect(
-      getByText('Some commands may require operator privileges or services support on your network.')
+      getByText(
+        'Some commands may require operator privileges or services support on your network.',
+      ),
     ).toBeTruthy();
   });
 
   it('calls onClose when close button is pressed', () => {
     const onClose = jest.fn();
     const { getByLabelText } = render(
-      <HelpCommandsScreen visible onClose={onClose} />
+      <HelpCommandsScreen visible onClose={onClose} />,
     );
 
     fireEvent.press(getByLabelText('Close help screen'));

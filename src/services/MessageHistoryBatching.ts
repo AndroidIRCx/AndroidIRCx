@@ -88,14 +88,21 @@ class MessageHistoryBatching {
 
       // Save each network's messages in batch
       const failedMessages: QueuedMessage[] = [];
-      const savePromises = Array.from(messagesByNetwork.entries()).map(async ([network, messages]) => {
-        try {
-          await messageHistoryService.saveMessages(messages, network);
-        } catch (err) {
-          console.error(`MessageHistoryBatching: Error saving batch for ${network}:`, err);
-          messages.forEach(message => failedMessages.push({ message, network }));
-        }
-      });
+      const savePromises = Array.from(messagesByNetwork.entries()).map(
+        async ([network, messages]) => {
+          try {
+            await messageHistoryService.saveMessages(messages, network);
+          } catch (err) {
+            console.error(
+              `MessageHistoryBatching: Error saving batch for ${network}:`,
+              err,
+            );
+            messages.forEach(message =>
+              failedMessages.push({ message, network }),
+            );
+          }
+        },
+      );
 
       await Promise.all(savePromises);
 
@@ -150,7 +157,7 @@ class MessageHistoryBatching {
     }
     const delay = Math.min(
       this.RETRY_BASE_DELAY_MS * Math.pow(2, this.retryAttempts),
-      this.RETRY_MAX_DELAY_MS
+      this.RETRY_MAX_DELAY_MS,
     );
     this.retryAttempts++;
     this.retryTimeoutId = setTimeout(() => {

@@ -41,7 +41,7 @@ jest.mock('../../src/services/IRCService', () => ({
     joinChannel: jest.fn().mockResolvedValue(undefined),
     partChannel: jest.fn().mockResolvedValue(undefined),
   },
-  ChannelUser: {}
+  ChannelUser: {},
 }));
 
 jest.mock('../../src/services/UserManagementService', () => ({
@@ -65,7 +65,7 @@ jest.mock('../../src/services/SettingsService', () => ({
     dccAcceptExts: [],
     dccRejectExts: [],
     dccDontSendExts: [],
-  }
+  },
 }));
 
 jest.mock('../../src/services/EncryptedDMService', () => ({
@@ -147,7 +147,13 @@ jest.mock('../../src/stores/tabStore', () => ({
   useTabStore: {
     getState: jest.fn().mockReturnValue({
       tabs: [
-        { id: 'server-test-network', type: 'server', name: 'test-network', networkId: 'test-network', messages: [] }
+        {
+          id: 'server-test-network',
+          type: 'server',
+          name: 'test-network',
+          networkId: 'test-network',
+          messages: [],
+        },
       ],
       setTabs: jest.fn(),
       setActiveTabId: jest.fn(),
@@ -192,17 +198,17 @@ jest.mock('../../src/utils/tabUtils', () => ({
   serverTabId: jest.fn().mockReturnValue('server-test-network'),
   channelTabId: jest.fn().mockReturnValue('channel-test-network-#test'),
   queryTabId: jest.fn().mockReturnValue('query-test-network-nickname'),
-  makeServerTab: jest.fn().mockReturnValue({ 
-    id: 'server-test-network', 
-    type: 'server', 
-    name: 'test-network', 
-    networkId: 'test-network' 
+  makeServerTab: jest.fn().mockReturnValue({
+    id: 'server-test-network',
+    type: 'server',
+    name: 'test-network',
+    networkId: 'test-network',
   }),
-  sortTabsGrouped: jest.fn().mockImplementation((tabs) => tabs),
+  sortTabsGrouped: jest.fn().mockImplementation(tabs => tabs),
 }));
 
 jest.mock('../../src/i18n/transifex', () => ({
-  useT: jest.fn().mockReturnValue((str) => str),
+  useT: jest.fn().mockReturnValue(str => str),
 }));
 
 jest.mock('../../src/services/STSService', () => ({
@@ -221,7 +227,7 @@ global.Alert = mockAlert;
 describe('backupData Journey Test', () => {
   const mockParams = {
     processBatchedMessages: jest.fn(),
-    safeSetState: jest.fn().mockImplementation((fn) => fn()),
+    safeSetState: jest.fn().mockImplementation(fn => fn()),
     safeAlert: mockAlert.alert,
     setIsConnected: jest.fn(),
     setActiveConnectionId: jest.fn(),
@@ -234,9 +240,17 @@ describe('backupData Journey Test', () => {
     setMotdSignal: jest.fn(),
     networkName: 'test-network',
     activeTabId: 'server-test-network',
-    tabsRef: { current: [
-      { id: 'server-test-network', type: 'server', name: 'test-network', networkId: 'test-network', messages: [] }
-    ]},
+    tabsRef: {
+      current: [
+        {
+          id: 'server-test-network',
+          type: 'server',
+          name: 'test-network',
+          networkId: 'test-network',
+          messages: [],
+        },
+      ],
+    },
     tabSortAlphabetical: false,
     isConnected: true, // Connected for backup operations
     messageBatchTimeoutRef: { current: null },
@@ -247,16 +261,32 @@ describe('backupData Journey Test', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Set default mock implementations
-    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue('server');
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue([]);
-    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(false);
-    require('../../src/services/IRCService').ircService.getNetworkName.mockReturnValue('test-network');
-    require('../../src/services/IRCService').ircService.getCurrentNick.mockReturnValue('testuser');
+    require('../../src/services/SettingsService').settingsService.getSetting.mockResolvedValue(
+      'server',
+    );
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockResolvedValue(
+      [],
+    );
+    require('../../src/services/SettingsService').settingsService.isFirstRun.mockResolvedValue(
+      false,
+    );
+    require('../../src/services/IRCService').ircService.getNetworkName.mockReturnValue(
+      'test-network',
+    );
+    require('../../src/services/IRCService').ircService.getCurrentNick.mockReturnValue(
+      'testuser',
+    );
     require('../../src/stores/tabStore').useTabStore.getState.mockReturnValue({
       tabs: [
-        { id: 'server-test-network', type: 'server', name: 'test-network', networkId: 'test-network', messages: [] }
+        {
+          id: 'server-test-network',
+          type: 'server',
+          name: 'test-network',
+          networkId: 'test-network',
+          messages: [],
+        },
       ],
       setTabs: jest.fn(),
       setActiveTabId: jest.fn(),
@@ -267,10 +297,24 @@ describe('backupData Journey Test', () => {
     const mockCreateBackup = jest.fn().mockResolvedValue({
       metadata: { version: '1.0', timestamp: Date.now() },
       settings: { theme: 'dark', notifications: true },
-      networks: [{ name: 'Freenode', servers: [{ hostname: 'chat.freenode.net', port: 6667 }] }],
-      tabs: [{ id: 'server-freenode', type: 'server', name: 'Freenode', networkId: 'Freenode' }],
+      networks: [
+        {
+          name: 'Freenode',
+          servers: [{ hostname: 'chat.freenode.net', port: 6667 }],
+        },
+      ],
+      tabs: [
+        {
+          id: 'server-freenode',
+          type: 'server',
+          name: 'Freenode',
+          networkId: 'Freenode',
+        },
+      ],
     });
-    require('../../src/services/DataBackupService').dataBackupService.createBackup.mockImplementation(mockCreateBackup);
+    require('../../src/services/DataBackupService').dataBackupService.createBackup.mockImplementation(
+      mockCreateBackup,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -281,7 +325,8 @@ describe('backupData Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate creating a backup
-    const backup = await require('../../src/services/DataBackupService').dataBackupService.createBackup();
+    const backup =
+      await require('../../src/services/DataBackupService').dataBackupService.createBackup();
 
     // Verify that the backup was created successfully
     expect(mockCreateBackup).toHaveBeenCalled();
@@ -293,7 +338,9 @@ describe('backupData Journey Test', () => {
 
   it('should restore data from a backup', async () => {
     const mockRestoreBackup = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/DataBackupService').dataBackupService.restoreBackup.mockImplementation(mockRestoreBackup);
+    require('../../src/services/DataBackupService').dataBackupService.restoreBackup.mockImplementation(
+      mockRestoreBackup,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -307,12 +354,26 @@ describe('backupData Journey Test', () => {
     const mockBackup = {
       metadata: { version: '1.0', timestamp: Date.now() },
       settings: { theme: 'dark', notifications: true },
-      networks: [{ name: 'Freenode', servers: [{ hostname: 'chat.freenode.net', port: 6667 }] }],
-      tabs: [{ id: 'server-freenode', type: 'server', name: 'Freenode', networkId: 'Freenode' }],
+      networks: [
+        {
+          name: 'Freenode',
+          servers: [{ hostname: 'chat.freenode.net', port: 6667 }],
+        },
+      ],
+      tabs: [
+        {
+          id: 'server-freenode',
+          type: 'server',
+          name: 'Freenode',
+          networkId: 'Freenode',
+        },
+      ],
     };
 
     // Simulate restoring from backup
-    await require('../../src/services/DataBackupService').dataBackupService.restoreBackup(mockBackup);
+    await require('../../src/services/DataBackupService').dataBackupService.restoreBackup(
+      mockBackup,
+    );
 
     // Verify that the restore function was called with the backup data
     expect(mockRestoreBackup).toHaveBeenCalledWith(mockBackup);
@@ -320,7 +381,9 @@ describe('backupData Journey Test', () => {
 
   it('should validate backup before restoration', () => {
     const mockValidateBackup = jest.fn().mockReturnValue(true);
-    require('../../src/services/DataBackupService').dataBackupService.validateBackup.mockImplementation(mockValidateBackup);
+    require('../../src/services/DataBackupService').dataBackupService.validateBackup.mockImplementation(
+      mockValidateBackup,
+    );
 
     const mockBackup = {
       metadata: { version: '1.0', timestamp: Date.now() },
@@ -330,7 +393,10 @@ describe('backupData Journey Test', () => {
     };
 
     // Validate the backup
-    const isValid = require('../../src/services/DataBackupService').dataBackupService.validateBackup(mockBackup);
+    const isValid =
+      require('../../src/services/DataBackupService').dataBackupService.validateBackup(
+        mockBackup,
+      );
 
     // Verify that the backup was validated
     expect(mockValidateBackup).toHaveBeenCalledWith(mockBackup);
@@ -339,7 +405,9 @@ describe('backupData Journey Test', () => {
 
   it('should handle invalid backup gracefully', () => {
     const mockValidateBackup = jest.fn().mockReturnValue(false);
-    require('../../src/services/DataBackupService').dataBackupService.validateBackup.mockImplementation(mockValidateBackup);
+    require('../../src/services/DataBackupService').dataBackupService.validateBackup.mockImplementation(
+      mockValidateBackup,
+    );
 
     const mockBackup = {
       metadata: { version: '1.0', timestamp: Date.now() },
@@ -349,7 +417,10 @@ describe('backupData Journey Test', () => {
     };
 
     // Validate the invalid backup
-    const isValid = require('../../src/services/DataBackupService').dataBackupService.validateBackup(mockBackup);
+    const isValid =
+      require('../../src/services/DataBackupService').dataBackupService.validateBackup(
+        mockBackup,
+      );
 
     // Verify that the invalid backup was detected
     expect(mockValidateBackup).toHaveBeenCalledWith(mockBackup);
@@ -364,7 +435,9 @@ describe('backupData Journey Test', () => {
       networksCount: 5,
       tabsCount: 20,
     });
-    require('../../src/services/DataBackupService').dataBackupService.getBackupMetadata.mockImplementation(mockGetBackupMetadata);
+    require('../../src/services/DataBackupService').dataBackupService.getBackupMetadata.mockImplementation(
+      mockGetBackupMetadata,
+    );
 
     const mockBackup = {
       metadata: { version: '1.0', timestamp: Date.now() },
@@ -374,7 +447,10 @@ describe('backupData Journey Test', () => {
     };
 
     // Get backup metadata
-    const metadata = require('../../src/services/DataBackupService').dataBackupService.getBackupMetadata(mockBackup);
+    const metadata =
+      require('../../src/services/DataBackupService').dataBackupService.getBackupMetadata(
+        mockBackup,
+      );
 
     // Verify that metadata was retrieved
     expect(mockGetBackupMetadata).toHaveBeenCalledWith(mockBackup);
@@ -387,7 +463,9 @@ describe('backupData Journey Test', () => {
 
   it('should backup settings', async () => {
     const mockLoadSettings = jest.fn().mockResolvedValue({});
-    require('../../src/services/SettingsService').settingsService.loadSettings.mockImplementation(mockLoadSettings);
+    require('../../src/services/SettingsService').settingsService.loadSettings.mockImplementation(
+      mockLoadSettings,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -399,14 +477,16 @@ describe('backupData Journey Test', () => {
 
     // Simulate backing up settings
     await require('../../src/services/SettingsService').settingsService.loadSettings();
-    
+
     // Verify that settings were loaded
     expect(mockLoadSettings).toHaveBeenCalled();
   });
 
   it('should backup network configurations', async () => {
     const mockLoadNetworks = jest.fn().mockResolvedValue([]);
-    require('../../src/services/SettingsService').settingsService.loadNetworks.mockImplementation(mockLoadNetworks);
+    require('../../src/services/SettingsService').settingsService.loadNetworks.mockImplementation(
+      mockLoadNetworks,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -418,14 +498,16 @@ describe('backupData Journey Test', () => {
 
     // Simulate backing up networks
     await require('../../src/services/SettingsService').settingsService.loadNetworks();
-    
+
     // Verify that networks were loaded
     expect(mockLoadNetworks).toHaveBeenCalled();
   });
 
   it('should backup tabs', async () => {
     const mockGetTabs = jest.fn().mockResolvedValue([]);
-    require('../../src/services/TabService').tabService.getTabs.mockImplementation(mockGetTabs);
+    require('../../src/services/TabService').tabService.getTabs.mockImplementation(
+      mockGetTabs,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -436,15 +518,19 @@ describe('backupData Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate backing up tabs for a network
-    await require('../../src/services/TabService').tabService.getTabs('test-network');
-    
+    await require('../../src/services/TabService').tabService.getTabs(
+      'test-network',
+    );
+
     // Verify that tabs were loaded
     expect(mockGetTabs).toHaveBeenCalledWith('test-network');
   });
 
   it('should backup message history', async () => {
     const mockLoadMessages = jest.fn().mockResolvedValue([]);
-    require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages.mockImplementation(mockLoadMessages);
+    require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages.mockImplementation(
+      mockLoadMessages,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -455,15 +541,20 @@ describe('backupData Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate backing up message history
-    await require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages('test-network', 'server');
-    
+    await require('../../src/services/MessageHistoryService').messageHistoryService.loadMessages(
+      'test-network',
+      'server',
+    );
+
     // Verify that messages were loaded
     expect(mockLoadMessages).toHaveBeenCalledWith('test-network', 'server');
   });
 
   it('should restore settings', async () => {
     const mockSaveSettings = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveSettings.mockImplementation(mockSaveSettings);
+    require('../../src/services/SettingsService').settingsService.saveSettings.mockImplementation(
+      mockSaveSettings,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -475,15 +566,19 @@ describe('backupData Journey Test', () => {
 
     // Simulate restoring settings
     const settings = { theme: 'light', notifications: false };
-    await require('../../src/services/SettingsService').settingsService.saveSettings(settings);
-    
+    await require('../../src/services/SettingsService').settingsService.saveSettings(
+      settings,
+    );
+
     // Verify that settings were saved
     expect(mockSaveSettings).toHaveBeenCalledWith(settings);
   });
 
   it('should restore network configurations', async () => {
     const mockSaveNetworks = jest.fn().mockResolvedValue(undefined);
-    require('../../src/services/SettingsService').settingsService.saveNetworks.mockImplementation(mockSaveNetworks);
+    require('../../src/services/SettingsService').settingsService.saveNetworks.mockImplementation(
+      mockSaveNetworks,
+    );
 
     const mockSetTabs = jest.fn();
     const paramsWithSetter = {
@@ -494,9 +589,16 @@ describe('backupData Journey Test', () => {
     renderHook(() => useConnectionLifecycle(paramsWithSetter));
 
     // Simulate restoring networks
-    const networks = [{ name: 'Libera.Chat', servers: [{ hostname: 'irc.libera.chat', port: 6697 }] }];
-    await require('../../src/services/SettingsService').settingsService.saveNetworks(networks);
-    
+    const networks = [
+      {
+        name: 'Libera.Chat',
+        servers: [{ hostname: 'irc.libera.chat', port: 6697 }],
+      },
+    ];
+    await require('../../src/services/SettingsService').settingsService.saveNetworks(
+      networks,
+    );
+
     // Verify that networks were saved
     expect(mockSaveNetworks).toHaveBeenCalledWith(networks);
   });

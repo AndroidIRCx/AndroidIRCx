@@ -145,7 +145,10 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{title}</Text>
-          <TouchableOpacity onPress={onClose} accessibilityLabel="Close help screen">
+          <TouchableOpacity
+            onPress={onClose}
+            accessibilityLabel="Close help screen"
+          >
             <Text style={styles.closeButton}>{t('Close')}</Text>
           </TouchableOpacity>
         </View>
@@ -162,10 +165,10 @@ export const HelpScreenBase: React.FC<HelpScreenBaseProps> = ({
 };
 
 // Reusable components for help content
-export const HelpSection: React.FC<{ title: string; children: React.ReactNode }> = ({
-  title,
-  children,
-}) => {
+export const HelpSection: React.FC<{
+  title: string;
+  children: React.ReactNode;
+}> = ({ title, children }) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     section: { marginBottom: 24 },
@@ -185,10 +188,10 @@ export const HelpSection: React.FC<{ title: string; children: React.ReactNode }>
   );
 };
 
-export const HelpSubsection: React.FC<{ title: string; children: React.ReactNode }> = ({
-  title,
-  children,
-}) => {
+export const HelpSubsection: React.FC<{
+  title: string;
+  children: React.ReactNode;
+}> = ({ title, children }) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     sectionSubtitle: {
@@ -208,7 +211,9 @@ export const HelpSubsection: React.FC<{ title: string; children: React.ReactNode
   );
 };
 
-export const HelpParagraph: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const HelpParagraph: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     paragraph: {
@@ -222,7 +227,9 @@ export const HelpParagraph: React.FC<{ children: React.ReactNode }> = ({ childre
   return <Text style={styles.paragraph}>{children}</Text>;
 };
 
-export const HelpBullet: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const HelpBullet: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     bulletPoint: {
@@ -237,7 +244,9 @@ export const HelpBullet: React.FC<{ children: React.ReactNode }> = ({ children }
   return <Text style={styles.bulletPoint}>• {children}</Text>;
 };
 
-export const HelpCode: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const HelpCode: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     codeBlock: {
@@ -262,7 +271,9 @@ export const HelpCode: React.FC<{ children: React.ReactNode }> = ({ children }) 
   );
 };
 
-export const HelpInfoBox: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const HelpInfoBox: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     infoBox: {
@@ -287,7 +298,9 @@ export const HelpInfoBox: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
-export const HelpWarningBox: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const HelpWarningBox: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     warningBox: {
@@ -312,7 +325,9 @@ export const HelpWarningBox: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 };
 
-export const HelpSuccessBox: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const HelpSuccessBox: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     successBox: {

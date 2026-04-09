@@ -31,8 +31,9 @@ jest.mock('../../src/i18n/transifex', () => ({
     }
 
     return Object.entries(params).reduce(
-      (result, [paramKey, value]) => result.replace(`{${paramKey}}`, String(value)),
-      key
+      (result, [paramKey, value]) =>
+        result.replace(`{${paramKey}}`, String(value)),
+      key,
     );
   },
 }));
@@ -62,8 +63,12 @@ jest.mock('react-native-vector-icons/FontAwesome5', () => {
   };
 });
 
-const { dataPrivacyService: mockDataPrivacyService } = require('../../src/services/DataPrivacyService');
-const { killSwitchService: mockKillSwitchService } = require('../../src/services/KillSwitchService');
+const {
+  dataPrivacyService: mockDataPrivacyService,
+} = require('../../src/services/DataPrivacyService');
+const {
+  killSwitchService: mockKillSwitchService,
+} = require('../../src/services/KillSwitchService');
 
 describe('DataPrivacyScreen', () => {
   beforeEach(() => {
@@ -100,27 +105,37 @@ describe('DataPrivacyScreen', () => {
   });
 
   it('does not render content when hidden', () => {
-    const { queryByText } = render(<DataPrivacyScreen visible={false} onClose={jest.fn()} />);
+    const { queryByText } = render(
+      <DataPrivacyScreen visible={false} onClose={jest.fn()} />,
+    );
 
     expect(queryByText('My Data & Privacy')).toBeNull();
   });
 
   it('loads and renders data summary when visible', async () => {
-    const { findByText } = render(<DataPrivacyScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <DataPrivacyScreen visible onClose={jest.fn()} />,
+    );
 
     expect(await findByText('My Data & Privacy')).toBeTruthy();
     expect(await findByText('42 KB')).toBeTruthy();
     expect(await findByText('Accepted')).toBeTruthy();
 
     await waitFor(() => {
-      expect(mockDataPrivacyService.getDataCollectionSummary).toHaveBeenCalledTimes(1);
-      expect(mockDataPrivacyService.getCrashlyticsOptOut).toHaveBeenCalledTimes(1);
+      expect(
+        mockDataPrivacyService.getDataCollectionSummary,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockDataPrivacyService.getCrashlyticsOptOut).toHaveBeenCalledTimes(
+        1,
+      );
     });
   });
 
   it('closes from header button', async () => {
     const onClose = jest.fn();
-    const { findByText } = render(<DataPrivacyScreen visible onClose={onClose} />);
+    const { findByText } = render(
+      <DataPrivacyScreen visible onClose={onClose} />,
+    );
 
     fireEvent.press(await findByText('Close'));
 
@@ -128,12 +143,14 @@ describe('DataPrivacyScreen', () => {
   });
 
   it('exports and shares data after confirmation', async () => {
-    const { findByText } = render(<DataPrivacyScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <DataPrivacyScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Export My Data'));
 
     const exportDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Export My Data'
+      call => call[0] === 'Export My Data',
     );
     expect(exportDialog).toBeTruthy();
 
@@ -146,7 +163,7 @@ describe('DataPrivacyScreen', () => {
     });
 
     const shareDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Export Successful'
+      call => call[0] === 'Export Successful',
     );
     expect(shareDialog).toBeTruthy();
 
@@ -154,17 +171,21 @@ describe('DataPrivacyScreen', () => {
       await shareDialog[2][1].onPress();
     });
 
-    expect(mockDataPrivacyService.shareExportedData).toHaveBeenCalledWith('/tmp/export.json');
+    expect(mockDataPrivacyService.shareExportedData).toHaveBeenCalledWith(
+      '/tmp/export.json',
+    );
   });
 
   it('shows exported file path when share is skipped', async () => {
     mockDataPrivacyService.shareExportedData.mockResolvedValueOnce(false);
-    const { findByText } = render(<DataPrivacyScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <DataPrivacyScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('Export My Data'));
 
     const exportDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Export My Data'
+      call => call[0] === 'Export My Data',
     );
 
     await act(async () => {
@@ -172,7 +193,7 @@ describe('DataPrivacyScreen', () => {
     });
 
     const shareDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Export Successful'
+      call => call[0] === 'Export Successful',
     );
 
     await act(async () => {
@@ -181,7 +202,7 @@ describe('DataPrivacyScreen', () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Export Complete',
-      'File saved to: /tmp/export.json'
+      'File saved to: /tmp/export.json',
     );
   });
 
@@ -191,11 +212,13 @@ describe('DataPrivacyScreen', () => {
       error: 'disk full',
     });
 
-    const { findByText } = render(<DataPrivacyScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <DataPrivacyScreen visible onClose={jest.fn()} />,
+    );
     fireEvent.press(await findByText('Export My Data'));
 
     const exportDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Export My Data'
+      call => call[0] === 'Export My Data',
     );
 
     await act(async () => {
@@ -204,18 +227,20 @@ describe('DataPrivacyScreen', () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Export Failed',
-      'Failed to export data: disk full'
+      'Failed to export data: disk full',
     );
   });
 
   it('handles successful full data deletion and closes after acknowledgement', async () => {
     const onClose = jest.fn();
-    const { findByText } = render(<DataPrivacyScreen visible onClose={onClose} />);
+    const { findByText } = render(
+      <DataPrivacyScreen visible onClose={onClose} />,
+    );
 
     fireEvent.press(await findByText('Delete All My Data'));
 
     const firstConfirm = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === '⚠️ Delete All My Data'
+      call => call[0] === '⚠️ Delete All My Data',
     );
     expect(firstConfirm).toBeTruthy();
 
@@ -224,7 +249,7 @@ describe('DataPrivacyScreen', () => {
     });
 
     const secondConfirm = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Final Confirmation'
+      call => call[0] === 'Final Confirmation',
     );
     expect(secondConfirm).toBeTruthy();
 
@@ -237,7 +262,7 @@ describe('DataPrivacyScreen', () => {
     });
 
     const successDialog = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Data Deleted'
+      call => call[0] === 'Data Deleted',
     );
     expect(successDialog).toBeTruthy();
 
@@ -262,18 +287,20 @@ describe('DataPrivacyScreen', () => {
       errors: ['Settings: failed', 'Consent: failed'],
     });
 
-    const { findByText } = render(<DataPrivacyScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <DataPrivacyScreen visible onClose={jest.fn()} />,
+    );
     fireEvent.press(await findByText('Delete All My Data'));
 
     const firstConfirm = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === '⚠️ Delete All My Data'
+      call => call[0] === '⚠️ Delete All My Data',
     );
     await act(async () => {
       await firstConfirm[2][1].onPress();
     });
 
     const secondConfirm = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Final Confirmation'
+      call => call[0] === 'Final Confirmation',
     );
     await act(async () => {
       await secondConfirm[2][1].onPress();
@@ -282,28 +309,36 @@ describe('DataPrivacyScreen', () => {
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
         'Partial Deletion',
-        expect.stringContaining('Some data could not be deleted.')
+        expect.stringContaining('Some data could not be deleted.'),
       );
     });
   });
 
   it('updates crash reporting preference from the switch', async () => {
-    const { UNSAFE_getByType } = render(<DataPrivacyScreen visible onClose={jest.fn()} />);
-    const switchNode = await waitFor(() => UNSAFE_getByType(require('react-native').Switch));
+    const { UNSAFE_getByType } = render(
+      <DataPrivacyScreen visible onClose={jest.fn()} />,
+    );
+    const switchNode = await waitFor(() =>
+      UNSAFE_getByType(require('react-native').Switch),
+    );
 
     await act(async () => {
       fireEvent(switchNode, 'valueChange', false);
     });
 
-    expect(mockDataPrivacyService.setCrashlyticsOptOut).toHaveBeenCalledWith(true);
+    expect(mockDataPrivacyService.setCrashlyticsOptOut).toHaveBeenCalledWith(
+      true,
+    );
     expect(Alert.alert).toHaveBeenCalledWith(
       'Setting Updated',
-      'Crash reporting has been disabled. New crashes will not be collected.'
+      'Crash reporting has been disabled. New crashes will not be collected.',
     );
   });
 
   it('triggers kill switch confirmation action', async () => {
-    const { findByText } = render(<DataPrivacyScreen visible onClose={jest.fn()} />);
+    const { findByText } = render(
+      <DataPrivacyScreen visible onClose={jest.fn()} />,
+    );
 
     fireEvent.press(await findByText('🚨 KILL SWITCH 🚨'));
 

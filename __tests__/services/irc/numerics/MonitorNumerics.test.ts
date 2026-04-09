@@ -50,26 +50,58 @@ describe('MonitorNumerics', () => {
   });
 
   it('formats user online and offline status numerics', () => {
-    handle600(ctx, 'server', ['nick', 'alice', 'user', 'host', '*', ':logged online'], 600);
-    handle601(ctx, 'server', ['nick', 'alice', 'user', 'host', '*', ':logged offline'], 601);
-    handle604(ctx, 'server', ['nick', 'alice', 'user', 'host', '*', ':is online'], 604);
-    handle605(ctx, 'server', ['nick', 'alice', 'user', 'host', '*', ':is offline'], 605);
+    handle600(
+      ctx,
+      'server',
+      ['nick', 'alice', 'user', 'host', '*', ':logged online'],
+      600,
+    );
+    handle601(
+      ctx,
+      'server',
+      ['nick', 'alice', 'user', 'host', '*', ':logged offline'],
+      601,
+    );
+    handle604(
+      ctx,
+      'server',
+      ['nick', 'alice', 'user', 'host', '*', ':is online'],
+      604,
+    );
+    handle605(
+      ctx,
+      'server',
+      ['nick', 'alice', 'user', 'host', '*', ':is offline'],
+      605,
+    );
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** alice (user@host) logged online', rawCategory: 'user' })
+      expect.objectContaining({
+        text: '*** alice (user@host) logged online',
+        rawCategory: 'user',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** alice (user@host) logged offline', rawCategory: 'user' })
+      expect.objectContaining({
+        text: '*** alice (user@host) logged offline',
+        rawCategory: 'user',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** alice (user@host) is online', rawCategory: 'user' })
+      expect.objectContaining({
+        text: '*** alice (user@host) is online',
+        rawCategory: 'user',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** alice (user@host) is offline', rawCategory: 'user' })
+      expect.objectContaining({
+        text: '*** alice (user@host) is offline',
+        rawCategory: 'user',
+      }),
     );
   });
 
@@ -82,23 +114,29 @@ describe('MonitorNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** alice added to watch list', rawCategory: 'server' })
+      expect.objectContaining({
+        text: '*** alice added to watch list',
+        rawCategory: 'server',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** alice removed from watch list', rawCategory: 'server' })
+      expect.objectContaining({
+        text: '*** alice removed from watch list',
+        rawCategory: 'server',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** Watch: alice watch details' })
+      expect.objectContaining({ text: '*** Watch: alice watch details' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** End of WATCH list' })
+      expect.objectContaining({ text: '*** End of WATCH list' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       5,
-      expect.objectContaining({ text: '*** Watch list cleared' })
+      expect.objectContaining({ text: '*** Watch list cleared' }),
     );
   });
 
@@ -110,19 +148,19 @@ describe('MonitorNumerics', () => {
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** Now online: alice bob' })
+      expect.objectContaining({ text: '*** Now online: alice bob' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** Now offline: carol' })
+      expect.objectContaining({ text: '*** Now offline: carol' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** MONITOR list: alice,bob,carol' })
+      expect.objectContaining({ text: '*** MONITOR list: alice,bob,carol' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** End of MONITOR list' })
+      expect.objectContaining({ text: '*** End of MONITOR list' }),
     );
   });
 

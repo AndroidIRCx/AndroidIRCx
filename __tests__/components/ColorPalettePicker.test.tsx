@@ -21,7 +21,7 @@ describe('ColorPalettePicker', () => {
     const onInsert = jest.fn();
 
     const { getByText, UNSAFE_getAllByType } = render(
-      <ColorPalettePicker colors={colors} onInsert={onInsert} />
+      <ColorPalettePicker colors={colors} onInsert={onInsert} />,
     );
 
     const touchables = UNSAFE_getAllByType(TouchableOpacity);
@@ -36,7 +36,7 @@ describe('ColorPalettePicker', () => {
     const onInsert = jest.fn();
 
     const { getByText, UNSAFE_getAllByType } = render(
-      <ColorPalettePicker colors={colors} onInsert={onInsert} autoInsertOnBg />
+      <ColorPalettePicker colors={colors} onInsert={onInsert} autoInsertOnBg />,
     );
 
     const touchables = UNSAFE_getAllByType(TouchableOpacity);
@@ -62,7 +62,7 @@ describe('ColorPalettePicker', () => {
         outputMode="hex"
         targetMode="single"
         onClear={onClear}
-      />
+      />,
     );
 
     const touchables = UNSAFE_getAllByType(TouchableOpacity);
@@ -77,7 +77,7 @@ describe('ColorPalettePicker', () => {
 
   it('switches between standard and extended tabs', () => {
     const { getByText } = render(
-      <ColorPalettePicker colors={colors} onInsert={jest.fn()} />
+      <ColorPalettePicker colors={colors} onInsert={jest.fn()} />,
     );
 
     fireEvent.press(getByText('Extended'));

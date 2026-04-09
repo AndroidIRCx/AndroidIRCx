@@ -42,12 +42,17 @@ class ConsentService {
 
       // Configure consent request (enable debug mode for testing if needed)
       const consentInfo = await AdsConsent.requestInfoUpdate({
-        debugGeography: debugMode ? AdsConsentDebugGeography.EEA : AdsConsentDebugGeography.DISABLED,
+        debugGeography: debugMode
+          ? AdsConsentDebugGeography.EEA
+          : AdsConsentDebugGeography.DISABLED,
         testDeviceIdentifiers: debugMode ? ['TEST-DEVICE-HASHED-ID'] : [],
         tagForUnderAgeOfConsent: false,
       });
 
-      logger.info('consent', `Consent info updated. UMP Status: ${consentInfo.status}, Manual: ${this.manuallyAccepted}`);
+      logger.info(
+        'consent',
+        `Consent info updated. UMP Status: ${consentInfo.status}, Manual: ${this.manuallyAccepted}`,
+      );
 
       // Use saved manual consent if available, otherwise use UMP status
       if (!this.manuallyAccepted) {
@@ -64,7 +69,10 @@ class ConsentService {
         logger.info('consent', 'Consent required - will show form');
         // Form will be shown by showConsentFormIfRequired()
       } else {
-        logger.info('consent', `Consent not required. Status: ${consentInfo.status}`);
+        logger.info(
+          'consent',
+          `Consent not required. Status: ${consentInfo.status}`,
+        );
       }
 
       this.initialized = true;
@@ -91,8 +99,14 @@ class ConsentService {
         this.consentStatus = AdsConsentStatus.NOT_REQUIRED;
         logger.info('consent', 'Loaded manual consent acceptance');
       } else if (savedStatus) {
-        this.consentStatus = parseInt(savedStatus, 10) as unknown as AdsConsentStatus;
-        logger.info('consent', `Loaded saved consent status: ${this.consentStatus}`);
+        this.consentStatus = parseInt(
+          savedStatus,
+          10,
+        ) as unknown as AdsConsentStatus;
+        logger.info(
+          'consent',
+          `Loaded saved consent status: ${this.consentStatus}`,
+        );
       }
     } catch (error) {
       logger.error('consent', `Failed to load saved consent: ${String(error)}`);
@@ -104,7 +118,10 @@ class ConsentService {
    */
   private async saveConsentStatus(): Promise<void> {
     try {
-      await AsyncStorage.setItem(CONSENT_STATUS_KEY, String(this.consentStatus));
+      await AsyncStorage.setItem(
+        CONSENT_STATUS_KEY,
+        String(this.consentStatus),
+      );
       if (this.manuallyAccepted) {
         await AsyncStorage.setItem(MANUAL_CONSENT_KEY, 'true');
       }
@@ -127,7 +144,10 @@ class ConsentService {
       await AsyncStorage.setItem(STORAGE_KEY, 'true');
       this.notifyListeners();
     } catch (error) {
-      logger.error('consent', `Failed to save manual consent: ${String(error)}`);
+      logger.error(
+        'consent',
+        `Failed to save manual consent: ${String(error)}`,
+      );
       throw error;
     }
   }
@@ -150,7 +170,10 @@ class ConsentService {
         this.consentStatus = formResult.status;
         this.manuallyAccepted = false;
 
-        logger.info('consent', `Consent form completed. Status: ${formResult.status}`);
+        logger.info(
+          'consent',
+          `Consent form completed. Status: ${formResult.status}`,
+        );
 
         // Mark that we've shown the form and save status
         await AsyncStorage.setItem(STORAGE_KEY, 'true');
@@ -180,7 +203,10 @@ class ConsentService {
       // Always request updated consent info first
       const consentInfo = await AdsConsent.requestInfoUpdate();
 
-      logger.info('consent', `Consent info: formAvailable=${consentInfo.isConsentFormAvailable}, manuallyAccepted=${this.manuallyAccepted}`);
+      logger.info(
+        'consent',
+        `Consent info: formAvailable=${consentInfo.isConsentFormAvailable}, manuallyAccepted=${this.manuallyAccepted}`,
+      );
 
       // If user manually accepted (non-EEA/UK), only allow reset
       if (this.manuallyAccepted) {
@@ -190,7 +216,10 @@ class ConsentService {
 
       // If form is not available, user is not in regulated region
       if (!consentInfo.isConsentFormAvailable) {
-        logger.info('consent', 'Consent form not available - user not in regulated region');
+        logger.info(
+          'consent',
+          'Consent form not available - user not in regulated region',
+        );
         throw new Error('MANUAL_CONSENT_ONLY');
       }
 
@@ -198,7 +227,10 @@ class ConsentService {
       this.consentStatus = formResult.status;
       this.manuallyAccepted = false;
 
-      logger.info('consent', `Consent updated. New status: ${formResult.status}`);
+      logger.info(
+        'consent',
+        `Consent updated. New status: ${formResult.status}`,
+      );
       await AsyncStorage.removeItem(MANUAL_CONSENT_KEY);
       await this.saveConsentStatus();
       this.notifyListeners();
@@ -207,7 +239,10 @@ class ConsentService {
 
       // Handle "No available form" error - treat as manual consent only
       if (errorMsg.includes('No available form can be built')) {
-        logger.info('consent', 'No consent form available - treating as manual consent');
+        logger.info(
+          'consent',
+          'No consent form available - treating as manual consent',
+        );
         throw new Error('MANUAL_CONSENT_ONLY');
       }
 
@@ -224,7 +259,11 @@ class ConsentService {
     try {
       logger.info('consent', 'Resetting consent...');
       await AdsConsent.reset();
-      await AsyncStorage.removeMany([STORAGE_KEY, CONSENT_STATUS_KEY, MANUAL_CONSENT_KEY]);
+      await AsyncStorage.removeMany([
+        STORAGE_KEY,
+        CONSENT_STATUS_KEY,
+        MANUAL_CONSENT_KEY,
+      ]);
       this.consentStatus = AdsConsentStatus.UNKNOWN;
       this.manuallyAccepted = false;
       this.notifyListeners();
@@ -324,7 +363,8 @@ class ConsentService {
         status: info.status,
         isConsentFormAvailable: info.isConsentFormAvailable,
         canRequestAds: info.canRequestAds,
-        privacyOptionsRequired: info.privacyOptionsRequirementStatus === 'REQUIRED',
+        privacyOptionsRequired:
+          info.privacyOptionsRequirementStatus === 'REQUIRED',
       };
     } catch (error) {
       logger.error('consent', `Failed to get consent info: ${String(error)}`);

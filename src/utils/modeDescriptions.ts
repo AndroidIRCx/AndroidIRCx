@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Mode Descriptions
- * 
+ *
  * Descriptions for IRC channel and user modes based on UnrealIRCd standards
  * Reference: https://www.unrealircd.org/docs/Channel_modes
  */
@@ -23,25 +23,29 @@ export const USER_MODE_DESCRIPTIONS: Record<string, ModeDescription> = {
     mode: 'q',
     prefix: '~',
     name: 'Owner',
-    description: 'Channel owner - highest privilege level, can manage all channel settings',
+    description:
+      'Channel owner - highest privilege level, can manage all channel settings',
   },
   a: {
     mode: 'a',
     prefix: '&',
     name: 'Admin',
-    description: 'Channel administrator - can manage channel settings and users',
+    description:
+      'Channel administrator - can manage channel settings and users',
   },
   o: {
     mode: 'o',
     prefix: '@',
     name: 'Operator',
-    description: 'Channel operator - can kick/ban users and manage channel modes',
+    description:
+      'Channel operator - can kick/ban users and manage channel modes',
   },
   h: {
     mode: 'h',
     prefix: '%',
     name: 'Half-Operator',
-    description: 'Half-operator - can kick users and manage some channel settings',
+    description:
+      'Half-operator - can kick users and manage some channel settings',
   },
   v: {
     mode: 'v',
@@ -68,17 +72,20 @@ export const CHANNEL_MODE_DESCRIPTIONS: Record<string, ModeDescription> = {
   i: {
     mode: 'i',
     name: 'Invite-Only',
-    description: 'Invite-only - users can only join if invited (+I exception list)',
+    description:
+      'Invite-only - users can only join if invited (+I exception list)',
   },
   t: {
     mode: 't',
     name: 'Topic Protected',
-    description: 'Topic protected - only channel operators can change the topic',
+    description:
+      'Topic protected - only channel operators can change the topic',
   },
   n: {
     mode: 'n',
     name: 'No External Messages',
-    description: 'No external messages - users outside the channel cannot send messages',
+    description:
+      'No external messages - users outside the channel cannot send messages',
   },
   m: {
     mode: 'm',
@@ -108,12 +115,14 @@ export const CHANNEL_MODE_DESCRIPTIONS: Record<string, ModeDescription> = {
   I: {
     mode: 'I',
     name: 'Invite Exception',
-    description: 'Invite exception - masks that can join invite-only channels without invitation',
+    description:
+      'Invite exception - masks that can join invite-only channels without invitation',
   },
   R: {
     mode: 'R',
     name: 'Registered Only',
-    description: 'Registered only - only registered users (with accounts) can join',
+    description:
+      'Registered only - only registered users (with accounts) can join',
   },
   Q: {
     mode: 'Q',
@@ -133,12 +142,14 @@ export const CHANNEL_MODE_DESCRIPTIONS: Record<string, ModeDescription> = {
   N: {
     mode: 'N',
     name: 'No Nick Changes',
-    description: 'No nick changes - prevents users from changing their nickname in the channel',
+    description:
+      'No nick changes - prevents users from changing their nickname in the channel',
   },
   M: {
     mode: 'M',
     name: 'Registered Only Messages',
-    description: 'Registered only messages - only registered users can send messages',
+    description:
+      'Registered only messages - only registered users can send messages',
   },
   S: {
     mode: 'S',
@@ -170,14 +181,18 @@ export const CHANNEL_MODE_DESCRIPTIONS: Record<string, ModeDescription> = {
 /**
  * Get user mode description
  */
-export function getUserModeDescription(mode: string): ModeDescription | undefined {
+export function getUserModeDescription(
+  mode: string,
+): ModeDescription | undefined {
   return USER_MODE_DESCRIPTIONS[mode.toLowerCase()];
 }
 
 /**
  * Get channel mode description
  */
-export function getChannelModeDescription(mode: string): ModeDescription | undefined {
+export function getChannelModeDescription(
+  mode: string,
+): ModeDescription | undefined {
   return CHANNEL_MODE_DESCRIPTIONS[mode];
 }
 
@@ -185,5 +200,7 @@ export function getChannelModeDescription(mode: string): ModeDescription | undef
  * Get all user mode descriptions in priority order
  */
 export function getAllUserModeDescriptions(): ModeDescription[] {
-  return ['q', 'a', 'o', 'h', 'v'].map(mode => USER_MODE_DESCRIPTIONS[mode]).filter(Boolean);
+  return ['q', 'a', 'o', 'h', 'v']
+    .map(mode => USER_MODE_DESCRIPTIONS[mode])
+    .filter(Boolean);
 }

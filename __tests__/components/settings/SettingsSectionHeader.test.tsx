@@ -18,7 +18,11 @@ describe('SettingsSectionHeader', () => {
   };
 
   const mockStyles = {
-    sectionHeader: { padding: 16, flexDirection: 'row', justifyContent: 'space-between' },
+    sectionHeader: {
+      padding: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
     sectionTitleContainer: { flexDirection: 'row', alignItems: 'center' },
     sectionIcon: { marginRight: 8 },
     sectionTitle: { fontSize: 18, fontWeight: 'bold' },
@@ -33,7 +37,7 @@ describe('SettingsSectionHeader', () => {
         onToggle={jest.fn()}
         colors={mockColors}
         styles={mockStyles}
-      />
+      />,
     );
 
     expect(getByText('Test Section')).toBeTruthy();
@@ -47,7 +51,7 @@ describe('SettingsSectionHeader', () => {
         onToggle={jest.fn()}
         colors={mockColors}
         styles={mockStyles}
-      />
+      />,
     );
 
     expect(getByText('-')).toBeTruthy();
@@ -61,7 +65,7 @@ describe('SettingsSectionHeader', () => {
         onToggle={jest.fn()}
         colors={mockColors}
         styles={mockStyles}
-      />
+      />,
     );
 
     expect(getByText('+')).toBeTruthy();
@@ -77,10 +81,12 @@ describe('SettingsSectionHeader', () => {
         onToggle={mockOnToggle}
         colors={mockColors}
         styles={mockStyles}
-      />
+      />,
     );
 
-    fireEvent.press(getByText('Test Section').parent?.parent || getByText('Test Section'));
+    fireEvent.press(
+      getByText('Test Section').parent?.parent || getByText('Test Section'),
+    );
 
     expect(mockOnToggle).toHaveBeenCalled();
   });
@@ -94,7 +100,7 @@ describe('SettingsSectionHeader', () => {
         onToggle={jest.fn()}
         colors={mockColors}
         styles={mockStyles}
-      />
+      />,
     );
 
     expect(getByText('Test Section')).toBeTruthy();
@@ -110,7 +116,7 @@ describe('SettingsSectionHeader', () => {
         disabled={true}
         colors={mockColors}
         styles={mockStyles}
-      />
+      />,
     );
 
     expect(getByText('Test Section')).toBeTruthy();
@@ -129,10 +135,12 @@ describe('SettingsSectionHeader', () => {
         disabled={true}
         colors={mockColors}
         styles={mockStyles}
-      />
+      />,
     );
 
-    fireEvent.press(getByText('Test Section').parent?.parent || getByText('Test Section'));
+    fireEvent.press(
+      getByText('Test Section').parent?.parent || getByText('Test Section'),
+    );
 
     expect(mockOnToggle).not.toHaveBeenCalled();
   });

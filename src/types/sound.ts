@@ -94,7 +94,7 @@ export const SOUND_EVENT_LABELS: Record<SoundEventType, string> = {
 
 /** Event categories for grouping in settings UI */
 export const SOUND_EVENT_CATEGORIES: Record<string, SoundEventType[]> = {
-  'Messages': [
+  Messages: [
     SoundEventType.MENTION,
     SoundEventType.PRIVATE_MESSAGE,
     SoundEventType.NOTICE,
@@ -106,19 +106,13 @@ export const SOUND_EVENT_CATEGORIES: Record<string, SoundEventType[]> = {
     SoundEventType.OP,
     SoundEventType.DEOP,
   ],
-  'Connection': [
+  Connection: [
     SoundEventType.LOGIN,
     SoundEventType.DISCONNECT,
     SoundEventType.FAIL,
   ],
-  'Other': [
-    SoundEventType.CTCP,
-    SoundEventType.RING,
-    SoundEventType.FLOOD,
-  ],
-  'Notify': [
-    SoundEventType.NOTIFY,
-  ],
+  Other: [SoundEventType.CTCP, SoundEventType.RING, SoundEventType.FLOOD],
+  Notify: [SoundEventType.NOTIFY],
 };
 
 /** Built-in sound schemes */
@@ -158,17 +152,21 @@ export const DEFAULT_SOUND_SETTINGS: SoundSettings = {
   playInForeground: true,
   playInBackground: true,
   activeSchemeId: 'classic',
-  events: Object.values(SoundEventType).reduce((acc, eventType) => {
-    acc[eventType] = {
-      enabled: eventType === SoundEventType.MENTION ||
-               eventType === SoundEventType.PRIVATE_MESSAGE ||
-               eventType === SoundEventType.DISCONNECT ||
-               eventType === SoundEventType.LOGIN ||
-               eventType === SoundEventType.RING ||
-               eventType === SoundEventType.NOTIFY,
-      useCustom: false,
-      volume: 1.0,
-    };
-    return acc;
-  }, {} as Record<SoundEventType, SoundEventConfig>),
+  events: Object.values(SoundEventType).reduce(
+    (acc, eventType) => {
+      acc[eventType] = {
+        enabled:
+          eventType === SoundEventType.MENTION ||
+          eventType === SoundEventType.PRIVATE_MESSAGE ||
+          eventType === SoundEventType.DISCONNECT ||
+          eventType === SoundEventType.LOGIN ||
+          eventType === SoundEventType.RING ||
+          eventType === SoundEventType.NOTIFY,
+        useCustom: false,
+        volume: 1.0,
+      };
+      return acc;
+    },
+    {} as Record<SoundEventType, SoundEventConfig>,
+  ),
 };

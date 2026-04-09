@@ -61,7 +61,9 @@ describe('ApplyThemeSettingsButton', () => {
     });
 
     const onApplied = jest.fn();
-    const { getByText } = render(<ApplyThemeSettingsButton onApplied={onApplied} />);
+    const { getByText } = render(
+      <ApplyThemeSettingsButton onApplied={onApplied} />,
+    );
 
     fireEvent.press(getByText('Apply Theme Settings'));
     const firstAlertArgs = (Alert.alert as jest.Mock).mock.calls[0];
@@ -77,7 +79,10 @@ describe('ApplyThemeSettingsButton', () => {
     expect(mockSetSetting).toHaveBeenCalledWith('showTimestamps', true);
     expect(mockSetSetting).toHaveBeenCalledWith('messageSpacing', 2);
     expect(onApplied).toHaveBeenCalled();
-    expect(Alert.alert).toHaveBeenCalledWith('Settings Applied', 'Theme settings have been applied successfully.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Settings Applied',
+      'Theme settings have been applied successfully.',
+    );
   });
 
   it('shows error alert when applying settings fails', async () => {
@@ -88,7 +93,9 @@ describe('ApplyThemeSettingsButton', () => {
     });
     mockSetSetting.mockRejectedValueOnce(new Error('boom'));
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     const { getByText } = render(<ApplyThemeSettingsButton />);
 
     fireEvent.press(getByText('Apply Theme Settings'));
@@ -100,8 +107,14 @@ describe('ApplyThemeSettingsButton', () => {
     });
 
     expect(mockSetSetting).toHaveBeenCalledWith('layoutType', 'custom');
-    expect(mockSetSetting).not.toHaveBeenCalledWith('bannerPosition', expect.anything());
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to apply theme settings. Please try again.');
+    expect(mockSetSetting).not.toHaveBeenCalledWith(
+      'bannerPosition',
+      expect.anything(),
+    );
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Failed to apply theme settings. Please try again.',
+    );
 
     consoleSpy.mockRestore();
   });

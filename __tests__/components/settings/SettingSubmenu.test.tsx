@@ -39,7 +39,7 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     expect(getByText('Test Submenu')).toBeTruthy();
   });
@@ -52,7 +52,7 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     expect(getByText('›')).toBeTruthy();
   });
@@ -66,9 +66,11 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={mockOnPress}
-      />
+      />,
     );
-    fireEvent.press(getByText('Test Submenu').parent?.parent || getByText('Test Submenu'));
+    fireEvent.press(
+      getByText('Test Submenu').parent?.parent || getByText('Test Submenu'),
+    );
     expect(mockOnPress).toHaveBeenCalled();
   });
 
@@ -81,13 +83,16 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     expect(getByText('Select an option')).toBeTruthy();
   });
 
   it('renders with descriptionNode', () => {
-    const item = { ...baseItem, descriptionNode: <Text testID="custom-desc">Custom Description</Text> };
+    const item = {
+      ...baseItem,
+      descriptionNode: <Text testID="custom-desc">Custom Description</Text>,
+    };
     const { getByTestId } = render(
       <SettingSubmenu
         item={item}
@@ -95,7 +100,7 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     expect(getByTestId('custom-desc')).toBeTruthy();
   });
@@ -113,7 +118,7 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     expect(getByTestId('node-desc')).toBeTruthy();
     expect(queryByText('Text description')).toBeNull();
@@ -127,7 +132,7 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     expect(root).toBeTruthy();
   });
@@ -140,7 +145,7 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     expect(getByText('Test Submenu')).toBeTruthy();
   });
@@ -154,7 +159,7 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     expect(getByText('Test Submenu')).toBeTruthy();
   });
@@ -168,7 +173,7 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     expect(getByText('42')).toBeTruthy();
   });
@@ -181,7 +186,7 @@ describe('SettingSubmenu', () => {
         colors={mockColors}
         styles={mockStyles}
         onPress={jest.fn()}
-      />
+      />,
     );
     // Should not have any description text (only title and chevron)
     expect(queryByText('›')).toBeTruthy();

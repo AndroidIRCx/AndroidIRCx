@@ -12,7 +12,9 @@ import { NativeEventEmitter, NativeModules } from 'react-native';
 
 // Ensure the native module exists (react-native-keyevent)
 const { KeyEventModule } = NativeModules;
-const keyEventEmitter = KeyEventModule ? new NativeEventEmitter(KeyEventModule) : null;
+const keyEventEmitter = KeyEventModule
+  ? new NativeEventEmitter(KeyEventModule)
+  : null;
 
 type ShortcutCallback = () => void;
 
@@ -50,7 +52,9 @@ export class KeyboardShortcutService {
     const normalized = this.normalizeKeyCombination(keyCombination);
     if (!this.shortcuts[normalized]) return;
     if (callback) {
-      this.shortcuts[normalized] = this.shortcuts[normalized].filter(cb => cb !== callback);
+      this.shortcuts[normalized] = this.shortcuts[normalized].filter(
+        cb => cb !== callback,
+      );
     } else {
       delete this.shortcuts[normalized];
     }
@@ -80,7 +84,9 @@ export class KeyboardShortcutService {
     if (event.ctrlKey) modifiers.push('ctrl');
     if (event.altKey) modifiers.push('alt');
     if (event.shiftKey) modifiers.push('shift');
-    const combo = [...modifiers, pressedKey?.toLowerCase()].filter(Boolean).join('+');
+    const combo = [...modifiers, pressedKey?.toLowerCase()]
+      .filter(Boolean)
+      .join('+');
     const callbacks = this.shortcuts[combo];
     if (callbacks && callbacks.length > 0) {
       callbacks.forEach(cb => cb());

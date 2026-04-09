@@ -51,54 +51,80 @@ describe('MiscNumerics', () => {
   it('formats representative raw server numerics', () => {
     handle276(ctx, 'server', ['nick', 'alice', ':has client certificate'], 700);
     handle325(ctx, 'server', ['nick', '#ops', 'alice'], 701);
-    handle328(ctx, 'server', ['nick', '#chat', ':https://example.org/chat'], 702);
+    handle328(
+      ctx,
+      'server',
+      ['nick', '#chat', ':https://example.org/chat'],
+      702,
+    );
     handle340(ctx, 'server', ['nick', ':alice=+user@host'], 703);
     handle342(ctx, 'server', ['nick', 'alice'], 704);
     handle345(ctx, 'server', ['nick'], 705);
-    handle350(ctx, 'server', ['nick', 'alice', ':is connected via gateway'], 706);
+    handle350(
+      ctx,
+      'server',
+      ['nick', 'alice', ':is connected via gateway'],
+      706,
+    );
     handle354(ctx, 'server', ['nick', '42', 'alice', 'user', 'host'], 707);
     handle385(ctx, 'server', ['nick'], 708);
-    handle396(ctx, 'server', ['nick', 'hidden.example', ':is now your hidden host'], 709);
+    handle396(
+      ctx,
+      'server',
+      ['nick', 'hidden.example', ':is now your hidden host'],
+      709,
+    );
 
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ text: '*** alice has client certificate', rawCategory: 'server' })
+      expect.objectContaining({
+        text: '*** alice has client certificate',
+        rawCategory: 'server',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ text: '*** alice is the unique operator of #ops' })
+      expect.objectContaining({
+        text: '*** alice is the unique operator of #ops',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       3,
-      expect.objectContaining({ text: '*** #chat URL: https://example.org/chat' })
+      expect.objectContaining({
+        text: '*** #chat URL: https://example.org/chat',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       4,
-      expect.objectContaining({ text: '*** UserIP: alice=+user@host' })
+      expect.objectContaining({ text: '*** UserIP: alice=+user@host' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       5,
-      expect.objectContaining({ text: '*** alice: Summoning user to IRC' })
+      expect.objectContaining({ text: '*** alice: Summoning user to IRC' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       6,
-      expect.objectContaining({ text: '*** End of channel reop list' })
+      expect.objectContaining({ text: '*** End of channel reop list' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       7,
-      expect.objectContaining({ text: '*** alice is connected via gateway' })
+      expect.objectContaining({ text: '*** alice is connected via gateway' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       8,
-      expect.objectContaining({ text: '*** WHO: 42 alice user host' })
+      expect.objectContaining({ text: '*** WHO: 42 alice user host' }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       9,
-      expect.objectContaining({ text: '*** You are no longer an IRC operator' })
+      expect.objectContaining({
+        text: '*** You are no longer an IRC operator',
+      }),
     );
     expect(ctx.addMessage).toHaveBeenNthCalledWith(
       10,
-      expect.objectContaining({ text: '*** hidden.example is now your hidden host' })
+      expect.objectContaining({
+        text: '*** hidden.example is now your hidden host',
+      }),
     );
   });
 

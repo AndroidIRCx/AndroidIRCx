@@ -149,15 +149,22 @@ class ConnectionProfilesService {
       description: t(template.description),
       network: {
         ...template.network,
-        nick: template.network.nick ? t(template.network.nick) : template.network.nick,
-        realname: template.network.realname ? t(template.network.realname) : template.network.realname,
+        nick: template.network.nick
+          ? t(template.network.nick)
+          : template.network.nick,
+        realname: template.network.realname
+          ? t(template.network.realname)
+          : template.network.realname,
       },
     };
   }
 
   private async save(): Promise<void> {
     try {
-      await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.profiles));
+      await AsyncStorage.setItem(
+        this.STORAGE_KEY,
+        JSON.stringify(this.profiles),
+      );
     } catch (error) {
       console.error('Failed to save connection profiles:', error);
     }
@@ -171,7 +178,7 @@ class ConnectionProfilesService {
     network: IRCNetworkConfig,
     description?: string,
     isTemplate: boolean = false,
-    templateCategory?: string
+    templateCategory?: string,
   ): Promise<ConnectionProfile> {
     const profile: ConnectionProfile = {
       id: `profile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -193,7 +200,10 @@ class ConnectionProfilesService {
   /**
    * Create a profile from a template
    */
-  async createFromTemplate(template: ProfileTemplate, name?: string): Promise<ConnectionProfile> {
+  async createFromTemplate(
+    template: ProfileTemplate,
+    name?: string,
+  ): Promise<ConnectionProfile> {
     const network: IRCNetworkConfig = {
       ...template.network,
       id: `network_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -204,14 +214,17 @@ class ConnectionProfilesService {
       network,
       template.description,
       false,
-      template.category
+      template.category,
     );
   }
 
   /**
    * Update a profile
    */
-  async updateProfile(profileId: string, updates: Partial<ConnectionProfile>): Promise<boolean> {
+  async updateProfile(
+    profileId: string,
+    updates: Partial<ConnectionProfile>,
+  ): Promise<boolean> {
     const index = this.profiles.findIndex(p => p.id === profileId);
     if (index === -1) {
       return false;
@@ -281,7 +294,9 @@ class ConnectionProfilesService {
    * Get templates by category
    */
   getTemplatesByCategory(category: string): ProfileTemplate[] {
-    return this.TEMPLATES.filter(template => template.category === category).map(template => this.localizeTemplate(template));
+    return this.TEMPLATES.filter(
+      template => template.category === category,
+    ).map(template => this.localizeTemplate(template));
   }
 
   /**
@@ -319,7 +334,9 @@ class ConnectionProfilesService {
   /**
    * Listen for profile changes
    */
-  onProfilesChange(callback: (profiles: ConnectionProfile[]) => void): () => void {
+  onProfilesChange(
+    callback: (profiles: ConnectionProfile[]) => void,
+  ): () => void {
     this.listeners.push(callback);
     return () => {
       const index = this.listeners.indexOf(callback);
@@ -335,4 +352,3 @@ class ConnectionProfilesService {
 }
 
 export const connectionProfilesService = new ConnectionProfilesService();
-

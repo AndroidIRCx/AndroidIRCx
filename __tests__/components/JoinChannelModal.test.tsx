@@ -11,10 +11,24 @@ import { JoinChannelModal } from '../../src/components/JoinChannelModal';
 
 const mockStyles = {
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { backgroundColor: '#fff', padding: 20, margin: 20, borderRadius: 8 },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    margin: 20,
+    borderRadius: 8,
+  },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
-  modalInput: { borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 4 },
-  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 8,
+    borderRadius: 4,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 16,
+  },
   modalButton: { padding: 12, marginLeft: 8 },
   modalButtonCancel: { backgroundColor: '#ccc' },
   modalButtonJoin: { backgroundColor: '#007AFF' },
@@ -43,7 +57,9 @@ describe('JoinChannelModal', () => {
   });
 
   it('should not render when not visible', () => {
-    const { queryByText } = render(<JoinChannelModal {...defaultProps} visible={false} />);
+    const { queryByText } = render(
+      <JoinChannelModal {...defaultProps} visible={false} />,
+    );
     expect(queryByText('Join Channel')).toBeNull();
   });
 
@@ -55,7 +71,7 @@ describe('JoinChannelModal', () => {
 
   it('should call onJoin when Join is pressed with valid channel name', () => {
     const { getByText } = render(
-      <JoinChannelModal {...defaultProps} channelName="#test" />
+      <JoinChannelModal {...defaultProps} channelName="#test" />,
     );
     fireEvent.press(getByText('Join'));
     expect(defaultProps.onJoin).toHaveBeenCalledWith('#test');
@@ -63,53 +79,65 @@ describe('JoinChannelModal', () => {
 
   it('should trim channel name when joining', () => {
     const { getByText } = render(
-      <JoinChannelModal {...defaultProps} channelName="  #test  " />
+      <JoinChannelModal {...defaultProps} channelName="  #test  " />,
     );
     fireEvent.press(getByText('Join'));
     expect(defaultProps.onJoin).toHaveBeenCalledWith('#test');
   });
 
   it('should not call onJoin when channel name is empty', () => {
-    const { getByText } = render(<JoinChannelModal {...defaultProps} channelName="" />);
+    const { getByText } = render(
+      <JoinChannelModal {...defaultProps} channelName="" />,
+    );
     fireEvent.press(getByText('Join'));
     expect(defaultProps.onJoin).not.toHaveBeenCalled();
   });
 
   it('should not call onJoin when channel name is only whitespace', () => {
-    const { getByText } = render(<JoinChannelModal {...defaultProps} channelName="   " />);
+    const { getByText } = render(
+      <JoinChannelModal {...defaultProps} channelName="   " />,
+    );
     fireEvent.press(getByText('Join'));
     expect(defaultProps.onJoin).not.toHaveBeenCalled();
   });
 
   it('should call onChangeChannelName when text is entered', () => {
-    const { getByPlaceholderText } = render(<JoinChannelModal {...defaultProps} />);
+    const { getByPlaceholderText } = render(
+      <JoinChannelModal {...defaultProps} />,
+    );
     const input = getByPlaceholderText('Enter channel name (e.g., #android)');
     fireEvent.changeText(input, '#newchannel');
-    expect(defaultProps.onChangeChannelName).toHaveBeenCalledWith('#newchannel');
+    expect(defaultProps.onChangeChannelName).toHaveBeenCalledWith(
+      '#newchannel',
+    );
   });
 
   it('should display current channel name in input', () => {
     const { getByDisplayValue } = render(
-      <JoinChannelModal {...defaultProps} channelName="#current" />
+      <JoinChannelModal {...defaultProps} channelName="#current" />,
     );
     expect(getByDisplayValue('#current')).toBeTruthy();
   });
 
   it('should have autoCapitalize set to none', () => {
-    const { getByPlaceholderText } = render(<JoinChannelModal {...defaultProps} />);
+    const { getByPlaceholderText } = render(
+      <JoinChannelModal {...defaultProps} />,
+    );
     const input = getByPlaceholderText('Enter channel name (e.g., #android)');
     expect(input.props.autoCapitalize).toBe('none');
   });
 
   it('should have autoCorrect set to false', () => {
-    const { getByPlaceholderText } = render(<JoinChannelModal {...defaultProps} />);
+    const { getByPlaceholderText } = render(
+      <JoinChannelModal {...defaultProps} />,
+    );
     const input = getByPlaceholderText('Enter channel name (e.g., #android)');
     expect(input.props.autoCorrect).toBe(false);
   });
 
   it('should call onJoin when submit is pressed on input', () => {
     const { getByPlaceholderText } = render(
-      <JoinChannelModal {...defaultProps} channelName="#test" />
+      <JoinChannelModal {...defaultProps} channelName="#test" />,
     );
     const input = getByPlaceholderText('Enter channel name (e.g., #android)');
     fireEvent(input, 'submitEditing');
@@ -118,7 +146,7 @@ describe('JoinChannelModal', () => {
 
   it('should not call onJoin on submit when channel name is whitespace only', () => {
     const { getByPlaceholderText } = render(
-      <JoinChannelModal {...defaultProps} channelName="   " />
+      <JoinChannelModal {...defaultProps} channelName="   " />,
     );
     const input = getByPlaceholderText('Enter channel name (e.g., #android)');
     fireEvent(input, 'submitEditing');
@@ -127,11 +155,11 @@ describe('JoinChannelModal', () => {
 
   it('should disable Join button until trimmed channel name exists', () => {
     const { UNSAFE_root, rerender } = render(
-      <JoinChannelModal {...defaultProps} channelName="   " />
+      <JoinChannelModal {...defaultProps} channelName="   " />,
     );
 
     const getDisabledButtons = () =>
-      UNSAFE_root.findAll((node) => typeof node.props?.disabled !== 'undefined');
+      UNSAFE_root.findAll(node => typeof node.props?.disabled !== 'undefined');
 
     expect(getDisabledButtons()[0].props.disabled).toBe(true);
 
@@ -140,13 +168,17 @@ describe('JoinChannelModal', () => {
   });
 
   it('should not call onJoin when Join is pressed with empty channel name', () => {
-    const { getByText } = render(<JoinChannelModal {...defaultProps} channelName="" />);
+    const { getByText } = render(
+      <JoinChannelModal {...defaultProps} channelName="" />,
+    );
     fireEvent.press(getByText('Join'));
     expect(defaultProps.onJoin).not.toHaveBeenCalled();
   });
 
   it('should call onJoin when Join is pressed with valid channel name', () => {
-    const { getByText } = render(<JoinChannelModal {...defaultProps} channelName="#test" />);
+    const { getByText } = render(
+      <JoinChannelModal {...defaultProps} channelName="#test" />,
+    );
     fireEvent.press(getByText('Join'));
     expect(defaultProps.onJoin).toHaveBeenCalledWith('#test');
   });

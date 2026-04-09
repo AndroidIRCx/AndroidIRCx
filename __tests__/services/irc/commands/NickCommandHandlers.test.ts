@@ -58,7 +58,12 @@ describe('NickCommandHandlers', () => {
 
       expect(ctx.addMessage).toHaveBeenCalledTimes(2);
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'nick', channel: '#general', from: 'OldNick', newNick: 'NewNick' })
+        expect.objectContaining({
+          type: 'nick',
+          channel: '#general',
+          from: 'OldNick',
+          newNick: 'NewNick',
+        }),
       );
     });
 
@@ -88,7 +93,12 @@ describe('NickCommandHandlers', () => {
       handleNICK(ctx, 'OtherUser!user@host', ['NewNick'], Date.now());
       expect(ctx.addMessage).toHaveBeenCalledTimes(1);
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'nick', from: 'OtherUser', oldNick: 'OtherUser', newNick: 'NewNick' })
+        expect.objectContaining({
+          type: 'nick',
+          from: 'OtherUser',
+          oldNick: 'OtherUser',
+          newNick: 'NewNick',
+        }),
       );
     });
 
@@ -110,7 +120,7 @@ describe('NickCommandHandlers', () => {
       const ts = 9876543210;
       handleNICK(ctx, 'OtherUser!user@host', ['NewNick'], ts);
       expect(ctx.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ timestamp: ts })
+        expect.objectContaining({ timestamp: ts }),
       );
     });
   });

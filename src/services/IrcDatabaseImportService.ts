@@ -3,9 +3,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { IRCNetworkConfig, IRCServerConfig, settingsService } from './SettingsService';
+import {
+  IRCNetworkConfig,
+  IRCServerConfig,
+  settingsService,
+} from './SettingsService';
 
-const IRC_DATABASE_PRESETS_URL = 'https://irc.dbase.in.rs/api/irc/server-presets';
+const IRC_DATABASE_PRESETS_URL =
+  'https://irc.dbase.in.rs/api/irc/server-presets';
 const DEFAULT_FETCH_TIMEOUT_MS = 15000;
 const LAST_IMPORT_SETTING_KEY = 'ircDbLastImportAt';
 
@@ -90,7 +95,9 @@ const sanitizeServerIdPart = (value: string): string =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'server';
 
-const buildServerKey = (server: Pick<IRCServerConfig, 'hostname' | 'port' | 'ssl'>): string =>
+const buildServerKey = (
+  server: Pick<IRCServerConfig, 'hostname' | 'port' | 'ssl'>,
+): string =>
   `${server.hostname.trim().toLowerCase()}|${server.port}|${server.ssl ? '1' : '0'}`;
 
 const isValidHostname = (value: string): boolean => {
@@ -115,10 +122,13 @@ const toPort = (value: unknown): number | null => {
 class IrcDatabaseImportService {
   async loadCatalog(
     fetchImpl: typeof fetch = fetch,
-    options?: { timeoutMs?: number }
+    options?: { timeoutMs?: number },
   ): Promise<IrcDatabaseCatalog> {
     const timeoutMs = options?.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
-    const { records, meta } = await this.fetchCatalogRecords(fetchImpl, timeoutMs);
+    const { records, meta } = await this.fetchCatalogRecords(
+      fetchImpl,
+      timeoutMs,
+    );
 
     return {
       meta,
@@ -130,17 +140,26 @@ class IrcDatabaseImportService {
 
   async importFromIrcDatabase(
     fetchImpl: typeof fetch = fetch,
-    options?: { timeoutMs?: number }
+    options?: { timeoutMs?: number },
   ): Promise<IrcDatabaseImportSummary> {
     const timeoutMs = options?.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
-    const { records: apiNetworks } = await this.fetchCatalogRecords(fetchImpl, timeoutMs);
+    const { records: apiNetworks } = await this.fetchCatalogRecords(
+      fetchImpl,
+      timeoutMs,
+    );
 
     const existingNetworks = await settingsService.loadNetworks();
-    const existingNames = new Set(existingNetworks.map(n => normalizeName(n.name)));
+    const existingNames = new Set(
+      existingNetworks.map(n => normalizeName(n.name)),
+    );
     const existingIds = new Set(existingNetworks.map(n => normalizeName(n.id)));
     const usedIds = new Set(existingNetworks.map(n => normalizeName(n.id)));
-    const existingByName = new Map(existingNetworks.map(n => [normalizeName(n.name), n]));
-    const existingById = new Map(existingNetworks.map(n => [normalizeName(n.id), n]));
+    const existingByName = new Map(
+      existingNetworks.map(n => [normalizeName(n.name), n]),
+    );
+    const existingById = new Map(
+      existingNetworks.map(n => [normalizeName(n.id), n]),
+    );
 
     const summary: IrcDatabaseImportSummary = {
       totalApiNetworks: apiNetworks.length,
@@ -166,22 +185,30 @@ class IrcDatabaseImportService {
       const networkNameKey = normalizeName(mapped.network.name);
       const networkIdKey = normalizeName(mapped.network.id);
 
-      const alreadyExists = existingNames.has(networkNameKey) || existingIds.has(networkIdKey);
+      const alreadyExists =
+        existingNames.has(networkNameKey) || existingIds.has(networkIdKey);
       if (alreadyExists) {
-        const existing = existingByName.get(networkNameKey) || existingById.get(networkIdKey);
+        const existing =
+          existingByName.get(networkNameKey) || existingById.get(networkIdKey);
         if (!existing) {
           summary.skippedExistingNetworks += 1;
           continue;
         }
 
-        const mergeResult = this.mergeMissingServers(existing, mapped.network.servers);
+        const mergeResult = this.mergeMissingServers(
+          existing,
+          mapped.network.servers,
+        );
         if (mergeResult.missingServers.length === 0) {
           summary.skippedExistingNetworks += 1;
           continue;
         }
 
         try {
-          const updatedServers = [...(existing.servers || []), ...mergeResult.missingServers];
+          const updatedServers = [
+            ...(existing.servers || []),
+            ...mergeResult.missingServers,
+          ];
           await settingsService.updateNetwork(existing.id, {
             servers: updatedServers,
             defaultServerId: existing.defaultServerId,
@@ -215,7 +242,10 @@ class IrcDatabaseImportService {
     }
 
     try {
-      await settingsService.setSetting(LAST_IMPORT_SETTING_KEY, new Date().toISOString());
+      await settingsService.setSetting(
+        LAST_IMPORT_SETTING_KEY,
+        new Date().toISOString(),
+      );
     } catch {
       // Timestamp write failure should not fail import itself.
     }
@@ -225,8 +255,11 @@ class IrcDatabaseImportService {
 
   private async fetchCatalogRecords(
     fetchImpl: typeof fetch,
-    timeoutMs: number
-  ): Promise<{ records: IrcDatabaseApiNetwork[]; meta: IrcDatabaseCatalogMeta }> {
+    timeoutMs: number,
+  ): Promise<{
+    records: IrcDatabaseApiNetwork[];
+    meta: IrcDatabaseCatalogMeta;
+  }> {
     const collected: IrcDatabaseApiNetwork[] = [];
     let nextUrl: string | null = IRC_DATABASE_PRESETS_URL;
     let pageGuard = 0;
@@ -243,13 +276,19 @@ class IrcDatabaseImportService {
         throw new Error('IRC Database pagination limit reached');
       }
 
-      const response = await this.fetchWithTimeout(fetchImpl, nextUrl, timeoutMs);
+      const response = await this.fetchWithTimeout(
+        fetchImpl,
+        nextUrl,
+        timeoutMs,
+      );
       if (!response.ok) {
         throw new Error(`IRC Database request failed (${response.status})`);
       }
 
       const json = (await response.json()) as IrcDatabaseApiResponse;
-      const pageData = Array.isArray(json?.data) ? (json.data as IrcDatabaseApiNetwork[]) : null;
+      const pageData = Array.isArray(json?.data)
+        ? (json.data as IrcDatabaseApiNetwork[])
+        : null;
       if (!pageData) {
         throw new Error('Invalid IRC Database response format');
       }
@@ -276,7 +315,8 @@ class IrcDatabaseImportService {
 
       const hasMore = Boolean(json?.meta?.pagination?.has_more_pages);
       const nextPageUrlRaw = json?.meta?.pagination?.next_page_url;
-      const nextPageUrl = typeof nextPageUrlRaw === 'string' ? nextPageUrlRaw.trim() : '';
+      const nextPageUrl =
+        typeof nextPageUrlRaw === 'string' ? nextPageUrlRaw.trim() : '';
       nextUrl = hasMore && nextPageUrl ? nextPageUrl : null;
     }
 
@@ -290,7 +330,7 @@ class IrcDatabaseImportService {
   private async fetchWithTimeout(
     fetchImpl: typeof fetch,
     url: string,
-    timeoutMs: number
+    timeoutMs: number,
   ): Promise<Response> {
     const abortController =
       typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -302,7 +342,9 @@ class IrcDatabaseImportService {
           if (abortController) {
             abortController.abort();
           }
-          reject(new Error(`IRC Database request timed out after ${timeoutMs}ms`));
+          reject(
+            new Error(`IRC Database request timed out after ${timeoutMs}ms`),
+          );
         }, timeoutMs);
       });
       const fetchPromise = abortController
@@ -323,9 +365,12 @@ class IrcDatabaseImportService {
 
   private mapNetworkRecord(
     record: IrcDatabaseApiNetwork,
-    usedIds: Set<string>
+    usedIds: Set<string>,
   ): { network: IRCNetworkConfig | null; skippedInvalidServers: number } {
-    const networkName = typeof record?.network_name === 'string' ? record.network_name.trim() : '';
+    const networkName =
+      typeof record?.network_name === 'string'
+        ? record.network_name.trim()
+        : '';
     if (!networkName) {
       return { network: null, skippedInvalidServers: 0 };
     }
@@ -343,7 +388,11 @@ class IrcDatabaseImportService {
     let skippedInvalidServers = 0;
 
     for (const serverRecord of rawServers) {
-      const mapped = this.mapServerRecord(serverRecord, uniqueNetworkId, seenServerKeys);
+      const mapped = this.mapServerRecord(
+        serverRecord,
+        uniqueNetworkId,
+        seenServerKeys,
+      );
       if (!mapped) {
         skippedInvalidServers += 1;
         continue;
@@ -372,9 +421,12 @@ class IrcDatabaseImportService {
 
   private mapCatalogRecord(
     record: IrcDatabaseApiNetwork,
-    index: number
+    index: number,
   ): IrcDatabaseCatalogEntry | null {
-    const name = typeof record?.network_name === 'string' ? record.network_name.trim() : '';
+    const name =
+      typeof record?.network_name === 'string'
+        ? record.network_name.trim()
+        : '';
     if (!name) {
       return null;
     }
@@ -383,7 +435,11 @@ class IrcDatabaseImportService {
       ? (record.server_list as IrcDatabaseApiServer[])
       : [];
     const validScannedTimestamps = rawServers
-      .map(server => (typeof server?.last_scanned_at === 'string' ? server.last_scanned_at.trim() : ''))
+      .map(server =>
+        typeof server?.last_scanned_at === 'string'
+          ? server.last_scanned_at.trim()
+          : '',
+      )
       .filter(Boolean);
     const lastScannedAt = validScannedTimestamps.sort().at(-1) || null;
     const averageUsersRaw = record?.average_users;
@@ -397,13 +453,18 @@ class IrcDatabaseImportService {
     return {
       id: `catalog-${slugify(name)}-${index}`,
       name,
-      averageUsers: Number.isFinite(averageUsers as number) ? (averageUsers as number) : null,
+      averageUsers: Number.isFinite(averageUsers as number)
+        ? (averageUsers as number)
+        : null,
       serverCount: rawServers.length,
       lastScannedAt,
     };
   }
 
-  private buildUniqueNetworkId(networkName: string, usedIds: Set<string>): string {
+  private buildUniqueNetworkId(
+    networkName: string,
+    usedIds: Set<string>,
+  ): string {
     const base = `ircdb-${slugify(networkName)}`;
     let candidate = base;
     let suffix = 2;
@@ -418,9 +479,10 @@ class IrcDatabaseImportService {
   private mapServerRecord(
     record: IrcDatabaseApiServer,
     networkId: string,
-    seenServerKeys: Set<string>
+    seenServerKeys: Set<string>,
   ): IRCServerConfig | null {
-    const hostname = typeof record?.hostname === 'string' ? record.hostname.trim() : '';
+    const hostname =
+      typeof record?.hostname === 'string' ? record.hostname.trim() : '';
     const port = toPort(record?.port);
     if (!isValidHostname(hostname) || port === null) {
       return null;
@@ -446,10 +508,14 @@ class IrcDatabaseImportService {
 
   private mergeMissingServers(
     existingNetwork: IRCNetworkConfig,
-    candidateServers: IRCServerConfig[]
+    candidateServers: IRCServerConfig[],
   ): { missingServers: IRCServerConfig[] } {
-    const existingServerKeys = new Set((existingNetwork.servers || []).map(buildServerKey));
-    const existingServerIds = new Set((existingNetwork.servers || []).map(s => s.id));
+    const existingServerKeys = new Set(
+      (existingNetwork.servers || []).map(buildServerKey),
+    );
+    const existingServerIds = new Set(
+      (existingNetwork.servers || []).map(s => s.id),
+    );
     const missingServers: IRCServerConfig[] = [];
 
     for (const server of candidateServers) {
@@ -460,7 +526,11 @@ class IrcDatabaseImportService {
       existingServerKeys.add(key);
       missingServers.push({
         ...server,
-        id: this.buildUniqueServerId(existingNetwork.id, server, existingServerIds),
+        id: this.buildUniqueServerId(
+          existingNetwork.id,
+          server,
+          existingServerIds,
+        ),
       });
     }
 
@@ -470,7 +540,7 @@ class IrcDatabaseImportService {
   private buildUniqueServerId(
     networkId: string,
     server: Pick<IRCServerConfig, 'hostname' | 'port' | 'ssl'>,
-    existingServerIds: Set<string>
+    existingServerIds: Set<string>,
   ): string {
     const base = `${networkId}-${sanitizeServerIdPart(server.hostname)}-${server.port}${server.ssl ? '-ssl' : ''}`;
     let candidate = base;

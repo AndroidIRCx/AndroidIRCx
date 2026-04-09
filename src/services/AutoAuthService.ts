@@ -9,15 +9,19 @@
 
 import { IRCService } from './IRCService';
 import { serviceDetectionService } from './ServiceDetectionService';
-import {
-  DetectionResult,
-} from '../interfaces/ServiceTypes';
+import { DetectionResult } from '../interfaces/ServiceTypes';
 import { tx } from '../i18n/transifex';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 /** Authentication method types */
-export type AuthMethod = 'sasl_external' | 'sasl_plain' | 'nickserv' | 'quakenet' | 'undernet' | 'none';
+export type AuthMethod =
+  | 'sasl_external'
+  | 'sasl_plain'
+  | 'nickserv'
+  | 'quakenet'
+  | 'undernet'
+  | 'none';
 
 /** Authentication credentials */
 export interface AuthCredentials {
@@ -73,7 +77,7 @@ export interface AutoAuthOptions {
 
 /**
  * Auto Authentication Service
- * 
+ *
  * Handles automatic authentication with IRC services using the best available method:
  * 1. SASL EXTERNAL (certificate-based) - most secure
  * 2. SASL PLAIN (account/password) - secure over TLS
@@ -106,8 +110,10 @@ export class AutoAuthService {
    */
   private setupDetectionListener(): void {
     // Check if we already have detection
-    this.detectionResult = serviceDetectionService.getDetectionResult(this.networkId);
-    
+    this.detectionResult = serviceDetectionService.getDetectionResult(
+      this.networkId,
+    );
+
     // Subscribe to future detection events
     serviceDetectionService.onDetection((networkId, result) => {
       if (networkId === this.networkId) {
@@ -126,7 +132,7 @@ export class AutoAuthService {
   private shouldAuthenticate(): boolean {
     // Don't re-authenticate if already done
     if (this.authCompleted) return false;
-    
+
     // Don't authenticate if already authenticated via SASL
     if (this.saslAuthenticated) return false;
 
@@ -223,7 +229,11 @@ export class AutoAuthService {
     }
 
     // Check for SASL PLAIN
-    if (this.authConfig.saslAccount && this.authConfig.saslPassword && this.saslAvailable) {
+    if (
+      this.authConfig.saslAccount &&
+      this.authConfig.saslPassword &&
+      this.saslAvailable
+    ) {
       return 'sasl_plain';
     }
 
@@ -268,7 +278,7 @@ export class AutoAuthService {
       this.ircService.sendRaw(`PRIVMSG ${serviceNick} :IDENTIFY ${password}`);
       this.ircService.addRawMessage(
         t('*** Sending identify to {service}...', { service: serviceNick }),
-        'auth'
+        'auth',
       );
       this.authCompleted = true;
 
@@ -305,10 +315,12 @@ export class AutoAuthService {
       // Or just: /msg Q auth <pass> if username matches
       const account = this.getAuthAccount();
       const authArgs = account ? `${account} ${password}` : password;
-      this.ircService.sendRaw(`PRIVMSG Q@CServe.quakenet.org :AUTH ${authArgs}`);
+      this.ircService.sendRaw(
+        `PRIVMSG Q@CServe.quakenet.org :AUTH ${authArgs}`,
+      );
       this.ircService.addRawMessage(
         t('*** Authenticating with QuakeNet Q...'),
-        'auth'
+        'auth',
       );
       this.authCompleted = true;
 
@@ -350,10 +362,12 @@ export class AutoAuthService {
           error: 'No account configured',
         };
       }
-      this.ircService.sendRaw(`PRIVMSG X@channels.undernet.org :LOGIN ${account} ${password}`);
+      this.ircService.sendRaw(
+        `PRIVMSG X@channels.undernet.org :LOGIN ${account} ${password}`,
+      );
       this.ircService.addRawMessage(
         t('*** Authenticating with Undernet X...'),
-        'auth'
+        'auth',
       );
       this.authCompleted = true;
 
@@ -379,7 +393,8 @@ export class AutoAuthService {
     const config = serviceDetectionService.getServiceConfig(this.networkId);
     if (!config?.services) return undefined;
 
-    const service = config.services[serviceName as keyof typeof config.services];
+    const service =
+      config.services[serviceName as keyof typeof config.services];
     if (service?.enabled) {
       return service.nick;
     }
@@ -423,7 +438,7 @@ export class AutoAuthService {
   public updateSaslStatus(available: boolean, authenticated: boolean): void {
     this.saslAvailable = available;
     this.saslAuthenticated = authenticated;
-    
+
     // If SASL just authenticated us, mark as completed
     if (authenticated && !this.authCompleted) {
       this.authCompleted = true;
@@ -449,6 +464,8 @@ export class AutoAuthService {
 /**
  * Create AutoAuthService for a connection
  */
-export function createAutoAuthService(options: AutoAuthOptions): AutoAuthService {
+export function createAutoAuthService(
+  options: AutoAuthOptions,
+): AutoAuthService {
   return new AutoAuthService(options);
 }

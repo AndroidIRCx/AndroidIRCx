@@ -38,8 +38,9 @@ jest.mock('../../src/i18n/transifex', () => ({
       return key;
     }
     return Object.entries(params).reduce(
-      (result, [paramKey, value]) => result.replace(`{${paramKey}}`, String(value)),
-      key
+      (result, [paramKey, value]) =>
+        result.replace(`{${paramKey}}`, String(value)),
+      key,
     );
   },
 }));
@@ -69,7 +70,9 @@ jest.mock('../../src/services/ConsentService', () => ({
 }));
 
 const { settingsService } = require('../../src/services/SettingsService');
-const { identityProfilesService } = require('../../src/services/IdentityProfilesService');
+const {
+  identityProfilesService,
+} = require('../../src/services/IdentityProfilesService');
 const { consentService } = require('../../src/services/ConsentService');
 
 describe('FirstRunSetupScreen', () => {
@@ -85,7 +88,9 @@ describe('FirstRunSetupScreen', () => {
     settingsService.getNetwork.mockResolvedValue({
       id: 'DBase',
       name: 'DBase',
-      servers: [{ id: 'srv1', hostname: 'irc.dbase.in.rs', port: 6697, ssl: true }],
+      servers: [
+        { id: 'srv1', hostname: 'irc.dbase.in.rs', port: 6697, ssl: true },
+      ],
       nick: 'OldNick',
       ident: 'oldident',
       realname: 'Old Realname',
@@ -105,7 +110,7 @@ describe('FirstRunSetupScreen', () => {
 
   it('renders welcome step and advances through privacy to identity', async () => {
     const { findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />,
     );
 
     expect(await findByText('Welcome to AndroidIRCX')).toBeTruthy();
@@ -123,7 +128,7 @@ describe('FirstRunSetupScreen', () => {
 
   it('shows validation when required identity fields are missing', async () => {
     const { findByDisplayValue, findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -132,12 +137,15 @@ describe('FirstRunSetupScreen', () => {
 
     fireEvent.changeText(await findByDisplayValue('AndroidIRCX'), '');
     fireEvent.press(await findByText('Next'));
-    expect(Alert.alert).toHaveBeenCalledWith('Required', 'Please enter a nickname');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Required',
+      'Please enter a nickname',
+    );
   });
 
   it('shows validation when real name is missing', async () => {
     const { findByDisplayValue, findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -147,13 +155,16 @@ describe('FirstRunSetupScreen', () => {
     fireEvent.changeText(await findByDisplayValue('AndroidIRCX User'), '   ');
     fireEvent.press(await findByText('Next'));
 
-    expect(Alert.alert).toHaveBeenCalledWith('Required', 'Please enter your real name');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Required',
+      'Please enter your real name',
+    );
   });
 
   it('completes recommended setup and connects now', async () => {
     const onComplete = jest.fn();
     const { findByDisplayValue, findByText } = render(
-      <FirstRunSetupScreen onComplete={onComplete} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={onComplete} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -161,7 +172,10 @@ describe('FirstRunSetupScreen', () => {
     fireEvent.press(await findByText('Next'));
 
     fireEvent.changeText(await findByDisplayValue('AndroidIRCX'), 'Majstor');
-    fireEvent.changeText(await findByDisplayValue('AndroidIRCX User'), 'Velimir');
+    fireEvent.changeText(
+      await findByDisplayValue('AndroidIRCX User'),
+      'Velimir',
+    );
     fireEvent.press(await findByText('Next'));
     fireEvent.press(await findByText('Next'));
     fireEvent.press(await findByText('Complete Setup'));
@@ -172,7 +186,7 @@ describe('FirstRunSetupScreen', () => {
           name: 'Majstor Profile',
           nick: 'Majstor',
           realname: 'Velimir',
-        })
+        }),
       );
       expect(settingsService.updateNetwork).toHaveBeenCalledWith(
         'DBase',
@@ -180,7 +194,7 @@ describe('FirstRunSetupScreen', () => {
           nick: 'Majstor',
           realname: 'Velimir',
           identityProfileId: 'profile-1',
-        })
+        }),
       );
     });
 
@@ -190,14 +204,14 @@ describe('FirstRunSetupScreen', () => {
     expect(onComplete).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'DBase',
-      })
+      }),
     );
   });
 
   it('completes custom network setup and supports connect later', async () => {
     const onSkip = jest.fn();
     const { findByDisplayValue, findByPlaceholderText, findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={onSkip} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={onSkip} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -208,7 +222,10 @@ describe('FirstRunSetupScreen', () => {
     fireEvent.press(await findByText('Custom Server'));
     fireEvent.changeText(await findByDisplayValue('6697'), '7000');
     fireEvent.changeText(await findByPlaceholderText('libera'), 'libera');
-    fireEvent.changeText(await findByPlaceholderText('irc.libera.chat'), 'irc.libera.chat');
+    fireEvent.changeText(
+      await findByPlaceholderText('irc.libera.chat'),
+      'irc.libera.chat',
+    );
     fireEvent.press(await findByText('Next'));
     fireEvent.press(await findByText('#DBase'));
     fireEvent.press(await findByText('Complete Setup'));
@@ -224,7 +241,7 @@ describe('FirstRunSetupScreen', () => {
             }),
           ],
           autoJoinChannels: ['#DBase'],
-        })
+        }),
       );
     });
 
@@ -234,7 +251,7 @@ describe('FirstRunSetupScreen', () => {
 
   it('shows validation when custom network fields are missing', async () => {
     const { findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -246,14 +263,17 @@ describe('FirstRunSetupScreen', () => {
     fireEvent.press(await findByText('Complete Setup'));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Required', 'Please enter network name and server');
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Required',
+        'Please enter network name and server',
+      );
     });
   });
 
   it('allows finishing setup without selecting DBase or a custom server', async () => {
     const onComplete = jest.fn();
     const { findByText } = render(
-      <FirstRunSetupScreen onComplete={onComplete} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={onComplete} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -280,21 +300,29 @@ describe('FirstRunSetupScreen', () => {
       .mockResolvedValueOnce({
         id: 'DBase',
         name: 'DBase',
-        servers: [{ id: 'srv1', hostname: 'irc.dbase.in.rs', port: 6697, ssl: true }],
+        servers: [
+          { id: 'srv1', hostname: 'irc.dbase.in.rs', port: 6697, ssl: true },
+        ],
       });
 
     const onComplete = jest.fn();
     const { findByDisplayValue, findByText } = render(
-      <FirstRunSetupScreen onComplete={onComplete} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={onComplete} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
     fireEvent.press(await findByText('Accept Privacy Terms & Continue'));
     fireEvent.press(await findByText('Next'));
-    fireEvent.changeText(await findByDisplayValue('AndroidIRCX'), 'FallbackNick');
+    fireEvent.changeText(
+      await findByDisplayValue('AndroidIRCX'),
+      'FallbackNick',
+    );
     fireEvent.press(await findByText('Next'));
     fireEvent.press(await findByText('Next'));
-    fireEvent.changeText(await findByDisplayValue('#DBase, #AndroidIRCX'), 'not-a-channel, also-bad');
+    fireEvent.changeText(
+      await findByDisplayValue('#DBase, #AndroidIRCX'),
+      'not-a-channel, also-bad',
+    );
     fireEvent.press(await findByText('Complete Setup'));
 
     await waitFor(() => {
@@ -308,14 +336,16 @@ describe('FirstRunSetupScreen', () => {
     });
 
     fireEvent.press(await findByText('Connect Now'));
-    expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ id: 'DBase' }));
+    expect(onComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'DBase' }),
+    );
   });
 
   it('shows manual privacy agreement and accepts consent when no form is required', async () => {
     consentService.showConsentFormIfRequired.mockResolvedValue(false);
 
     const { findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -324,11 +354,15 @@ describe('FirstRunSetupScreen', () => {
     });
 
     await waitFor(() => {
-      expect((Alert.alert as jest.Mock).mock.calls.some(call => call[0] === 'Privacy Agreement')).toBe(true);
+      expect(
+        (Alert.alert as jest.Mock).mock.calls.some(
+          call => call[0] === 'Privacy Agreement',
+        ),
+      ).toBe(true);
     });
 
     const privacyAgreementCall = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Privacy Agreement'
+      call => call[0] === 'Privacy Agreement',
     );
     expect(privacyAgreementCall).toBeTruthy();
     const alertButtons = privacyAgreementCall?.[2];
@@ -345,7 +379,7 @@ describe('FirstRunSetupScreen', () => {
     consentService.showConsentFormIfRequired.mockResolvedValue(false);
 
     const { findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -357,22 +391,27 @@ describe('FirstRunSetupScreen', () => {
     });
 
     const privacyAgreementCall = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Privacy Agreement'
+      call => call[0] === 'Privacy Agreement',
     );
     expect(privacyAgreementCall).toBeTruthy();
 
-    (Linking.openURL as jest.Mock).mockRejectedValueOnce(new Error('no browser'));
+    (Linking.openURL as jest.Mock).mockRejectedValueOnce(
+      new Error('no browser'),
+    );
     await act(async () => {
       await privacyAgreementCall?.[2]?.[0]?.onPress?.();
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to open privacy policy.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Failed to open privacy policy.',
+    );
   });
 
   it('allows navigating back and skipping from welcome', async () => {
     const onSkip = jest.fn();
     const { findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={onSkip} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={onSkip} />,
     );
 
     fireEvent.press(await findByText('Skip'));
@@ -385,10 +424,12 @@ describe('FirstRunSetupScreen', () => {
   });
 
   it('handles consent and save failures gracefully', async () => {
-    consentService.showConsentFormIfRequired.mockRejectedValueOnce(new Error('ump failed'));
+    consentService.showConsentFormIfRequired.mockRejectedValueOnce(
+      new Error('ump failed'),
+    );
 
     const { findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -397,7 +438,10 @@ describe('FirstRunSetupScreen', () => {
     });
 
     await waitFor(() => {
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Consent error:', expect.any(Error));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Consent error:',
+        expect.any(Error),
+      );
     });
 
     fireEvent.press(await findByText('Next'));
@@ -408,17 +452,25 @@ describe('FirstRunSetupScreen', () => {
     fireEvent.press(await findByText('Complete Setup'));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to save network configuration');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('FirstRunSetup save error:', expect.any(Error));
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Error',
+        'Failed to save network configuration',
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'FirstRunSetup save error:',
+        expect.any(Error),
+      );
     });
   });
 
   it('shows consent save failure from manual accept path', async () => {
     consentService.showConsentFormIfRequired.mockResolvedValue(false);
-    consentService.acceptConsentManually.mockRejectedValueOnce(new Error('save consent failed'));
+    consentService.acceptConsentManually.mockRejectedValueOnce(
+      new Error('save consent failed'),
+    );
 
     const { findByText } = render(
-      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />
+      <FirstRunSetupScreen onComplete={jest.fn()} onSkip={jest.fn()} />,
     );
 
     fireEvent.press(await findByText('Next'));
@@ -427,14 +479,20 @@ describe('FirstRunSetupScreen', () => {
     });
 
     const privacyAgreementCall = (Alert.alert as jest.Mock).mock.calls.find(
-      call => call[0] === 'Privacy Agreement'
+      call => call[0] === 'Privacy Agreement',
     );
 
     await act(async () => {
       await privacyAgreementCall?.[2]?.[1]?.onPress?.();
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to save consent. Please try again.');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to save consent:', expect.any(Error));
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Failed to save consent. Please try again.',
+    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Failed to save consent:',
+      expect.any(Error),
+    );
   });
 });

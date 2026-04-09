@@ -19,14 +19,14 @@ describe('ServiceTypes guards', () => {
         description: 'Register a nickname',
         usage: 'REGISTER <password> <email>',
         parameters: [],
-      })
+      }),
     ).toBe(true);
 
     expect(
       isServiceCommand({
         name: 'REGISTER',
         description: 'missing service and parameters',
-      })
+      }),
     ).toBe(false);
   });
 
@@ -37,14 +37,14 @@ describe('ServiceTypes guards', () => {
         ircdType: 'unrealircd',
         services: {},
         ircd: {},
-      })
+      }),
     ).toBe(true);
 
     expect(
       isServiceConfig({
         serviceType: 'anope',
         services: {},
-      })
+      }),
     ).toBe(false);
   });
 

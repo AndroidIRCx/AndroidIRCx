@@ -49,14 +49,19 @@ describe('SaslNumerics', () => {
   });
 
   it('formats logged-in responses for 900', () => {
-    handle900(ctx, 'server', ['nick', 'account-info', 'alice', ':Welcome back'], 300);
+    handle900(
+      ctx,
+      'server',
+      ['nick', 'account-info', 'alice', ':Welcome back'],
+      300,
+    );
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'raw',
         text: '*** Welcome back',
         rawCategory: 'auth',
-      })
+      }),
     );
   });
 
@@ -64,7 +69,7 @@ describe('SaslNumerics', () => {
     handle900(ctx, 'server', ['nick', 'account-info', 'alice'], 301);
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: '*** You are now logged in as alice' })
+      expect.objectContaining({ text: '*** You are now logged in as alice' }),
     );
   });
 
@@ -72,7 +77,7 @@ describe('SaslNumerics', () => {
     handle901(ctx, 'server', ['nick', 'account', ':Signed out'], 302);
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: '*** Signed out', rawCategory: 'auth' })
+      expect.objectContaining({ text: '*** Signed out', rawCategory: 'auth' }),
     );
   });
 
@@ -93,7 +98,7 @@ describe('SaslNumerics', () => {
     expect(ctx.emit).toHaveBeenCalledWith('sasl-success');
     expect(ctx.endCAPNegotiation).toHaveBeenCalled();
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: '*** SASL authentication successful' })
+      expect.objectContaining({ text: '*** SASL authentication successful' }),
     );
   });
 
@@ -104,7 +109,10 @@ describe('SaslNumerics', () => {
     expect(ctx.emit).toHaveBeenCalledWith('sasl-fail');
     expect(ctx.endCAPNegotiation).toHaveBeenCalled();
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'error', text: 'SASL authentication failed' })
+      expect.objectContaining({
+        type: 'error',
+        text: 'SASL authentication failed',
+      }),
     );
   });
 
@@ -130,19 +138,24 @@ describe('SaslNumerics', () => {
     expect(ctx.setSaslAuthenticating).toHaveBeenCalledWith(false);
     expect(ctx.endCAPNegotiation).toHaveBeenCalled();
     expect(ctx.addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ text: 'SASL authentication aborted' })
+      expect.objectContaining({ text: 'SASL authentication aborted' }),
     );
   });
 
   it('formats available SASL mechanisms for 908', () => {
-    handle908(ctx, 'server', ['nick', 'PLAIN,EXTERNAL', ':available on this server'], 309);
+    handle908(
+      ctx,
+      'server',
+      ['nick', 'PLAIN,EXTERNAL', ':available on this server'],
+      309,
+    );
 
     expect(ctx.addMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'raw',
         text: '*** PLAIN,EXTERNAL available on this server',
         rawCategory: 'auth',
-      })
+      }),
     );
   });
 });

@@ -22,8 +22,8 @@ const mockUIStore = {
 
 jest.mock('../../src/stores/uiStore', () => ({
   useUIStore: Object.assign(
-    jest.fn((selector) => selector(mockUIStore)),
-    { getState: jest.fn(() => mockUIStore) }
+    jest.fn(selector => selector(mockUIStore)),
+    { getState: jest.fn(() => mockUIStore) },
   ),
 }));
 

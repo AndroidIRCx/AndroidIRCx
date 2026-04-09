@@ -51,11 +51,13 @@ describe('CallSignalCodec', () => {
       quality: '720p' as const,
     };
 
-    const chunks = callSignalCodec.encodeChunked(signal, 'transfer-2').map(raw => {
-      const parsed = callSignalCodec.decodeChunk(raw);
-      expect(parsed).not.toBeNull();
-      return parsed as any;
-    });
+    const chunks = callSignalCodec
+      .encodeChunked(signal, 'transfer-2')
+      .map(raw => {
+        const parsed = callSignalCodec.decodeChunk(raw);
+        expect(parsed).not.toBeNull();
+        return parsed as any;
+      });
     expect(chunks.length).toBeGreaterThan(2);
 
     let buffer: any;

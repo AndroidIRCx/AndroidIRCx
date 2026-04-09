@@ -5,7 +5,10 @@
  * Tests for PerformanceService - Wave 6
  */
 
-import { performanceService, PerformanceConfig } from '../../src/services/PerformanceService';
+import {
+  performanceService,
+  PerformanceConfig,
+} from '../../src/services/PerformanceService';
 
 // Mock AsyncStorage
 const mockStorage: Record<string, string> = {};
@@ -167,7 +170,7 @@ describe('PerformanceService', () => {
       await performanceService.setConfig({ maxVisibleMessages: 200 });
       expect(setItem).toHaveBeenCalledWith(
         '@AndroidIRCX:performanceConfig',
-        expect.stringContaining('200')
+        expect.stringContaining('200'),
       );
     });
 
@@ -177,9 +180,11 @@ describe('PerformanceService', () => {
 
       await performanceService.setConfig({ maxVisibleMessages: 300 });
 
-      expect(listener).toHaveBeenCalledWith(expect.objectContaining({
-        maxVisibleMessages: 300,
-      }));
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          maxVisibleMessages: 300,
+        }),
+      );
     });
 
     it('should handle storage errors on save', async () => {

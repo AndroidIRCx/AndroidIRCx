@@ -9,7 +9,10 @@
  * Coordinates user-facing /command handlers extracted from IRCService.sendMessage().
  */
 
-import type { SendMessageContext, SendMessageHandler } from './sendMessageTypes';
+import type {
+  SendMessageContext,
+  SendMessageHandler,
+} from './sendMessageTypes';
 import { basicIRCCommands } from './sendCommands/BasicIRCCommands';
 import { queryCommands } from './sendCommands/QueryCommands';
 import { messageCommands } from './sendCommands/MessageCommands';
@@ -75,15 +78,20 @@ export class IRCSendMessageHandlers {
         }
         svc.emit(event, ...args);
       },
-      encodeCTCP: (command: string, args?: string) => svc.encodeCTCP(command, args),
-      joinChannel: (channel: string, key?: string) => svc.joinChannel(channel, key),
-      partChannel: (channel: string, message?: string) => svc.partChannel(channel, message),
+      encodeCTCP: (command: string, args?: string) =>
+        svc.encodeCTCP(command, args),
+      joinChannel: (channel: string, key?: string) =>
+        svc.joinChannel(channel, key),
+      partChannel: (channel: string, message?: string) =>
+        svc.partChannel(channel, message),
       setRealname: (newRealname: string) => svc.setRealname(newRealname),
       toggleBotMode: (enable: boolean) => svc.toggleBotMode(enable),
       detectClones: (channel: string) => svc.detectClones(channel),
       parseServerCommand: (args: string[]) => svc.parseServerCommand(args),
-      getEncryptedDMService: () => require('../EncryptedDMService').encryptedDMService,
-      getChannelEncryptionService: () => require('../ChannelEncryptionService').channelEncryptionService,
+      getEncryptedDMService: () =>
+        require('../EncryptedDMService').encryptedDMService,
+      getChannelEncryptionService: () =>
+        require('../ChannelEncryptionService').channelEncryptionService,
       getUserManagementService: () => svc.getUserManagementService(),
       hasCapability: (cap: string) => svc.capEnabledSet.has(cap),
     };

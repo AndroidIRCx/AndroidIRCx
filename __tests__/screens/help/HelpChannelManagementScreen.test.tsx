@@ -27,7 +27,7 @@ jest.mock('../../../src/i18n/transifex', () => ({
 describe('HelpChannelManagementScreen', () => {
   it('renders nothing when not visible', () => {
     const { queryByText } = render(
-      <HelpChannelManagementScreen visible={false} onClose={jest.fn()} />
+      <HelpChannelManagementScreen visible={false} onClose={jest.fn()} />,
     );
 
     expect(queryByText('Channel Management Guide')).toBeNull();
@@ -35,7 +35,7 @@ describe('HelpChannelManagementScreen', () => {
 
   it('renders channel management content when visible', () => {
     const { getByText } = render(
-      <HelpChannelManagementScreen visible onClose={jest.fn()} />
+      <HelpChannelManagementScreen visible onClose={jest.fn()} />,
     );
 
     expect(getByText('Channel Management Guide')).toBeTruthy();
@@ -53,7 +53,7 @@ describe('HelpChannelManagementScreen', () => {
   it('calls onClose when close button is pressed', () => {
     const onClose = jest.fn();
     const { getByLabelText } = render(
-      <HelpChannelManagementScreen visible onClose={onClose} />
+      <HelpChannelManagementScreen visible onClose={onClose} />,
     );
 
     fireEvent.press(getByLabelText('Close help screen'));

@@ -27,7 +27,11 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
   const t = useT();
 
   return (
-    <HelpScreenBase visible={visible} onClose={onClose} title={t('IRC Commands Reference')}>
+    <HelpScreenBase
+      visible={visible}
+      onClose={onClose}
+      title={t('IRC Commands Reference')}
+    >
       <HelpSection title={t('Basic Commands')}>
         <HelpSubsection title="/join <channel>">
           <HelpParagraph>{t('Join an IRC channel')}</HelpParagraph>
@@ -65,7 +69,7 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
           <HelpParagraph>{t('Change channel modes')}</HelpParagraph>
           <HelpCode>
             {t(
-              'Examples:\n/mode #channel +m (moderated)\n/mode #channel +o John (give op)\n/mode #channel +b *!*@spam.com (ban)'
+              'Examples:\n/mode #channel +m (moderated)\n/mode #channel +o John (give op)\n/mode #channel +b *!*@spam.com (ban)',
             )}
           </HelpCode>
         </HelpSubsection>
@@ -83,23 +87,25 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         <HelpSubsection title="/ban [options] [#channel] <nick|mask> [type] [kick message]">
           <HelpParagraph>
             {t(
-              'Ban (and optionally kick/quiet) a user. Usually used in a channel tab so the channel is implied.'
+              'Ban (and optionally kick/quiet) a user. Usually used in a channel tab so the channel is implied.',
             )}
           </HelpParagraph>
           <HelpCode>
             {t(
-              'Examples:\n/ban spammer\n/ban -k spammer Stop spamming\n/ban -q spammer\n/ban #channel spammer'
+              'Examples:\n/ban spammer\n/ban -k spammer Stop spamming\n/ban -q spammer\n/ban #channel spammer',
             )}
           </HelpCode>
           <HelpParagraph>
             {t(
-              'Tip: Options are client-side helpers. Common ones are -k (kick), -q (quiet), and -u (auto-unban).'
+              'Tip: Options are client-side helpers. Common ones are -k (kick), -q (quiet), and -u (auto-unban).',
             )}
           </HelpParagraph>
         </HelpSubsection>
 
         <HelpSubsection title="/unban <nick|mask> [channel]">
-          <HelpParagraph>{t('Remove a ban for a user mask in a channel')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Remove a ban for a user mask in a channel')}
+          </HelpParagraph>
           <HelpCode>{t('Example: /unban *!*@spam.com')}</HelpCode>
         </HelpSubsection>
 
@@ -114,7 +120,9 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         </HelpSubsection>
 
         <HelpSubsection title="/hop [channel] [reason]">
-          <HelpParagraph>{t('Quickly part and rejoin a channel')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Quickly part and rejoin a channel')}
+          </HelpParagraph>
           <HelpCode>{t('Example: /hop #DBase brb')}</HelpCode>
         </HelpSubsection>
       </HelpSection>
@@ -133,7 +141,7 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         <HelpSubsection title="/clones [channel]">
           <HelpParagraph>
             {t(
-              'Detect clones (users with same hostname) in a channel. Requires userhost-in-names capability.'
+              'Detect clones (users with same hostname) in a channel. Requires userhost-in-names capability.',
             )}
           </HelpParagraph>
           <HelpCode>{t('Example: /clones #channel')}</HelpCode>
@@ -171,7 +179,11 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
 
         <HelpSubsection title="/chankey <action> [params]">
           <HelpParagraph>{t('Channel encryption management')}</HelpParagraph>
-          <HelpCode>{t('Examples:\n/chankey generate\n/chankey share Nick1,Nick2\n/chankey status')}</HelpCode>
+          <HelpCode>
+            {t(
+              'Examples:\n/chankey generate\n/chankey share Nick1,Nick2\n/chankey status',
+            )}
+          </HelpCode>
         </HelpSubsection>
       </HelpSection>
 
@@ -182,7 +194,9 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         </HelpSubsection>
 
         <HelpSubsection title="/raw <command>">
-          <HelpParagraph>{t('Alias for /quote (send a raw IRC command)')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Alias for /quote (send a raw IRC command)')}
+          </HelpParagraph>
           <HelpCode>{t('Example: /raw NAMES #channel')}</HelpCode>
         </HelpSubsection>
 
@@ -199,26 +213,36 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         <HelpSubsection title="/register <email|*> <password>">
           <HelpParagraph>
             {t(
-              'Register an account using IRCv3 account registration (only if supported by the server).'
+              'Register an account using IRCv3 account registration (only if supported by the server).',
             )}
           </HelpParagraph>
-          <HelpCode>{t('Example: /register user@example.com mypassword')}</HelpCode>
+          <HelpCode>
+            {t('Example: /register user@example.com mypassword')}
+          </HelpCode>
         </HelpSubsection>
 
         <HelpSubsection title="/register <account> <email|*> <password>">
-          <HelpParagraph>{t('Alternative syntax that includes an explicit account name')}</HelpParagraph>
-          <HelpCode>{t('Example: /register MyAccount user@example.com mypassword')}</HelpCode>
+          <HelpParagraph>
+            {t('Alternative syntax that includes an explicit account name')}
+          </HelpParagraph>
+          <HelpCode>
+            {t('Example: /register MyAccount user@example.com mypassword')}
+          </HelpCode>
         </HelpSubsection>
       </HelpSection>
 
       <HelpSection title={t('Connection & Status')}>
         <HelpSubsection title="/away [message]">
-          <HelpParagraph>{t('Set an away message (no message clears away status)')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Set an away message (no message clears away status)')}
+          </HelpParagraph>
           <HelpCode>{t('Example: /away AFK for 10 minutes')}</HelpCode>
         </HelpSubsection>
 
         <HelpSubsection title="/back">
-          <HelpParagraph>{t('Clear away status (same as /away with no message)')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Clear away status (same as /away with no message)')}
+          </HelpParagraph>
           <HelpCode>{t('Example: /back')}</HelpCode>
         </HelpSubsection>
 
@@ -228,16 +252,20 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         </HelpSubsection>
 
         <HelpSubsection title="/disconnect [reason]">
-          <HelpParagraph>{t('Disconnect from server (alias for /quit)')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Disconnect from server (alias for /quit)')}
+          </HelpParagraph>
           <HelpCode>{t('Example: /disconnect brb')}</HelpCode>
         </HelpSubsection>
 
         <HelpSubsection title="/server [-m] [-e] [-t] <address> [port] [password] ...">
-          <HelpParagraph>{t('Connect to a server using mIRC-compatible /server parameters')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Connect to a server using mIRC-compatible /server parameters')}
+          </HelpParagraph>
           <HelpCode>{t('Example: /server irc.libera.chat 6697')}</HelpCode>
           <HelpCode>
             {t(
-              'Tip: In most cases it is easier to add networks/servers via the UI, but /server is useful for quick testing.'
+              'Tip: In most cases it is easier to add networks/servers via the UI, but /server is useful for quick testing.',
             )}
           </HelpCode>
         </HelpSubsection>
@@ -245,7 +273,9 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
 
       <HelpSection title={t('Utility Commands')}>
         <HelpSubsection title="/clear">
-          <HelpParagraph>{t('Clear messages in the current tab')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Clear messages in the current tab')}
+          </HelpParagraph>
           <HelpCode>{t('Example: /clear')}</HelpCode>
         </HelpSubsection>
 
@@ -255,7 +285,9 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         </HelpSubsection>
 
         <HelpSubsection title="/echo <message>">
-          <HelpParagraph>{t('Print a local message (useful for scripts/aliases)')}</HelpParagraph>
+          <HelpParagraph>
+            {t('Print a local message (useful for scripts/aliases)')}
+          </HelpParagraph>
           <HelpCode>{t('Example: /echo hello')}</HelpCode>
         </HelpSubsection>
 
@@ -270,18 +302,30 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         </HelpSubsection>
 
         <HelpSubsection title="/timer <name> <delayMs> <repetitions> <command>">
-          <HelpParagraph>{t('Run a command later, optionally repeated')}</HelpParagraph>
-          <HelpCode>{t('Example: /timer ping1 5000 1 /raw PING :test')}</HelpCode>
+          <HelpParagraph>
+            {t('Run a command later, optionally repeated')}
+          </HelpParagraph>
+          <HelpCode>
+            {t('Example: /timer ping1 5000 1 /raw PING :test')}
+          </HelpCode>
         </HelpSubsection>
 
         <HelpSubsection title="/window [-a] <name>">
-          <HelpParagraph>{t('Open/create a tab or activate an existing tab')}</HelpParagraph>
-          <HelpCode>{t('Examples:\n/window #DBase\n/window -a #DBase')}</HelpCode>
+          <HelpParagraph>
+            {t('Open/create a tab or activate an existing tab')}
+          </HelpParagraph>
+          <HelpCode>
+            {t('Examples:\n/window #DBase\n/window -a #DBase')}
+          </HelpCode>
         </HelpSubsection>
 
         <HelpSubsection title="/filter [-g] <text>">
-          <HelpParagraph>{t('Filter messages by text (use -g for global filter)')}</HelpParagraph>
-          <HelpCode>{t('Examples:\n/filter error\n/filter -g timeout')}</HelpCode>
+          <HelpParagraph>
+            {t('Filter messages by text (use -g for global filter)')}
+          </HelpParagraph>
+          <HelpCode>
+            {t('Examples:\n/filter error\n/filter -g timeout')}
+          </HelpCode>
         </HelpSubsection>
 
         <HelpSubsection title="/ignore <nick|mask> [reason]">
@@ -298,14 +342,14 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
       <HelpSection title={t('Services Shortcuts (Aliases)')}>
         <HelpParagraph>
           {t(
-            'AndroidIRCX includes convenience aliases that expand into common NickServ/ChanServ commands. These depend on services availability on your network.'
+            'AndroidIRCX includes convenience aliases that expand into common NickServ/ChanServ commands. These depend on services availability on your network.',
           )}
         </HelpParagraph>
 
         <HelpSubsection title="NickServ">
           <HelpCode>
             {t(
-              'Examples:\n/nsid mypassword\n/nsreg mypassword user@example.com\n/nsghost YourNick mypassword\n/nsrecover YourNick mypassword'
+              'Examples:\n/nsid mypassword\n/nsreg mypassword user@example.com\n/nsghost YourNick mypassword\n/nsrecover YourNick mypassword',
             )}
           </HelpCode>
         </HelpSubsection>
@@ -313,7 +357,7 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
         <HelpSubsection title="ChanServ">
           <HelpCode>
             {t(
-              'Examples:\n/csop #channel Nick\n/csdeop #channel Nick\n/cvoice #channel Nick\n/csdevoice #channel Nick\n/csregister #channel password\n/cspass #channel newpassword'
+              'Examples:\n/csop #channel Nick\n/csdeop #channel Nick\n/cvoice #channel Nick\n/csdevoice #channel Nick\n/csregister #channel password\n/cspass #channel newpassword',
             )}
           </HelpCode>
         </HelpSubsection>
@@ -321,12 +365,14 @@ export const HelpCommandsScreen: React.FC<HelpCommandsScreenProps> = ({
 
       <HelpInfoBox>
         {t(
-          'Tip: You can also use tab completion to auto-complete commands and nicknames in the message input field.'
+          'Tip: You can also use tab completion to auto-complete commands and nicknames in the message input field.',
         )}
       </HelpInfoBox>
 
       <HelpWarningBox>
-        {t('Some commands may require operator privileges or services support on your network.')}
+        {t(
+          'Some commands may require operator privileges or services support on your network.',
+        )}
       </HelpWarningBox>
     </HelpScreenBase>
   );

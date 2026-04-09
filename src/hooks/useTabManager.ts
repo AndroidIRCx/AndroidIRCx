@@ -34,9 +34,12 @@ export function useTabManager() {
     useTabStore.getState().removeTab(tabId);
   }, []);
 
-  const updateTab = useCallback((tabId: string, updates: Partial<ChannelTab>) => {
-    useTabStore.getState().updateTab(tabId, updates);
-  }, []);
+  const updateTab = useCallback(
+    (tabId: string, updates: Partial<ChannelTab>) => {
+      useTabStore.getState().updateTab(tabId, updates);
+    },
+    [],
+  );
 
   const setTabActivity = useCallback((tabId: string, hasActivity: boolean) => {
     useTabStore.getState().setTabActivity(tabId, hasActivity);
@@ -87,7 +90,7 @@ export function useTabManager() {
 
       return tab.id;
     },
-    [hasTab, addTab, setActiveTabId, setTabActivity]
+    [hasTab, addTab, setActiveTabId, setTabActivity],
   );
 
   /**
@@ -107,7 +110,7 @@ export function useTabManager() {
         if (remainingTabs.length > 0) {
           // Switch to server tab of same network, or first tab
           const serverTab = remainingTabs.find(
-            t => t.networkId === tab.networkId && t.type === 'server'
+            t => t.networkId === tab.networkId && t.type === 'server',
           );
           const nextTab = serverTab || remainingTabs[0];
           setActiveTabId(nextTab.id);
@@ -116,7 +119,7 @@ export function useTabManager() {
         }
       }
     },
-    [tabs, activeTabId, getTabById, removeTab, setActiveTabId]
+    [tabs, activeTabId, getTabById, removeTab, setActiveTabId],
   );
 
   /**
@@ -142,29 +145,23 @@ export function useTabManager() {
         }
       }
     },
-    [tabs, activeTabId, getTabsByNetwork, removeTabs, setActiveTabId]
+    [tabs, activeTabId, getTabsByNetwork, removeTabs, setActiveTabId],
   );
 
   /**
    * Add a message to a tab (batched)
    */
-  const addMessage = useCallback(
-    (tabId: string, message: IRCMessage) => {
-      // Use message batcher for performance
-      messageBatcher.addMessage(tabId, message);
-    },
-    []
-  );
+  const addMessage = useCallback((tabId: string, message: IRCMessage) => {
+    // Use message batcher for performance
+    messageBatcher.addMessage(tabId, message);
+  }, []);
 
   /**
    * Add messages in bulk to a tab
    */
-  const addMessages = useCallback(
-    (tabId: string, messages: IRCMessage[]) => {
-      messageBatcher.addMessages(tabId, messages);
-    },
-    []
-  );
+  const addMessages = useCallback((tabId: string, messages: IRCMessage[]) => {
+    messageBatcher.addMessages(tabId, messages);
+  }, []);
 
   /**
    * Switch to a tab by ID
@@ -176,7 +173,7 @@ export function useTabManager() {
         setTabActivity(tabId, false);
       }
     },
-    [hasTab, setActiveTabId, setTabActivity]
+    [hasTab, setActiveTabId, setTabActivity],
   );
 
   /**
@@ -189,7 +186,7 @@ export function useTabManager() {
         setTabActivity(tabId, true);
       }
     },
-    [activeTabId, setTabActivity]
+    [activeTabId, setTabActivity],
   );
 
   /**
@@ -199,7 +196,7 @@ export function useTabManager() {
     (tabId: string, isEncrypted: boolean) => {
       updateTab(tabId, { isEncrypted });
     },
-    [updateTab]
+    [updateTab],
   );
 
   /**
@@ -209,7 +206,7 @@ export function useTabManager() {
     async (networkId: string) => {
       await loadTabsFromStorage(networkId);
     },
-    [loadTabsFromStorage]
+    [loadTabsFromStorage],
   );
 
   /**
@@ -219,7 +216,7 @@ export function useTabManager() {
     async (networkId: string) => {
       await saveTabsToStorage(networkId);
     },
-    [saveTabsToStorage]
+    [saveTabsToStorage],
   );
 
   /**
@@ -229,7 +226,7 @@ export function useTabManager() {
     (networkId: string) => {
       return tabs.find(t => t.networkId === networkId && t.type === 'server');
     },
-    [tabs]
+    [tabs],
   );
 
   /**
@@ -248,7 +245,7 @@ export function useTabManager() {
       addTab(serverTab);
       return serverTab;
     },
-    [addTab]
+    [addTab],
   );
 
   /**
@@ -259,15 +256,16 @@ export function useTabManager() {
       const existing = getServerTab(networkId);
       return existing || createServerTab(networkId);
     },
-    [getServerTab, createServerTab]
+    [getServerTab, createServerTab],
   );
 
   /**
    * Setup message batcher callback
    */
   useEffect(() => {
-    messageBatcher.setFlushCallback((updates) => {
-      const tabUpdates: Array<{ tabId: string; updates: Partial<ChannelTab> }> = [];
+    messageBatcher.setFlushCallback(updates => {
+      const tabUpdates: Array<{ tabId: string; updates: Partial<ChannelTab> }> =
+        [];
       const store = useTabStore.getState();
       const currentActiveTabId = store.activeTabId;
 
@@ -280,7 +278,8 @@ export function useTabManager() {
           // This respects user settings for message history
           const perfConfig = performanceService.getConfig();
           const messagesFinal =
-            perfConfig.enableMessageCleanup && newMessages.length > perfConfig.cleanupThreshold
+            perfConfig.enableMessageCleanup &&
+            newMessages.length > perfConfig.cleanupThreshold
               ? newMessages.slice(-perfConfig.messageLimit)
               : newMessages;
 
@@ -311,7 +310,9 @@ export function useTabManager() {
 
   // Compute active tab safely - use direct computation instead of calling getActiveTab()
   // which internally uses get() and doesn't work correctly inside a Zustand selector
-  const activeTab = useTabStore(state => state.tabs.find(t => t.id === state.activeTabId));
+  const activeTab = useTabStore(state =>
+    state.tabs.find(t => t.id === state.activeTabId),
+  );
 
   return {
     // State

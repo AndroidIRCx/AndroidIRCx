@@ -8,7 +8,7 @@ describe('BiometricAuthService', () => {
     appState = 'active',
     platform: 'android' | 'ios' = 'android',
     keychainOverrides: Record<string, any> = {},
-    mockMissingKeychain = false
+    mockMissingKeychain = false,
   ) => {
     jest.resetModules();
 
@@ -28,7 +28,9 @@ describe('BiometricAuthService', () => {
     } else {
       jest.doMock('react-native-keychain', () => ({
         getSupportedBiometryType: jest.fn().mockResolvedValue('Fingerprint'),
-        getGenericPassword: jest.fn().mockResolvedValue({ username: 'androidircx', password: 'unlock' }),
+        getGenericPassword: jest
+          .fn()
+          .mockResolvedValue({ username: 'androidircx', password: 'unlock' }),
         setGenericPassword: jest.fn().mockResolvedValue(true),
         resetGenericPassword: jest.fn().mockResolvedValue(true),
         ACCESS_CONTROL: {
@@ -47,7 +49,8 @@ describe('BiometricAuthService', () => {
 
     let biometricAuthService: any;
     jest.isolateModules(() => {
-      biometricAuthService = require('../../src/services/BiometricAuthService').biometricAuthService;
+      biometricAuthService =
+        require('../../src/services/BiometricAuthService').biometricAuthService;
     });
 
     return biometricAuthService;
@@ -76,7 +79,9 @@ describe('BiometricAuthService', () => {
 
   it('returns false for enrolled biometrics when keychain throws', async () => {
     const biometricAuthService = loadService('active', 'android', {
-      getSupportedBiometryType: jest.fn().mockRejectedValue(new Error('failed')),
+      getSupportedBiometryType: jest
+        .fn()
+        .mockRejectedValue(new Error('failed')),
     });
 
     expect(await biometricAuthService.hasEnrolledBiometrics()).toBe(false);
@@ -97,9 +102,11 @@ describe('BiometricAuthService', () => {
     expect(setGenericPassword).toHaveBeenCalledWith(
       'androidircx',
       'unlock',
-      expect.objectContaining({ service: 'androidircx:chat' })
+      expect.objectContaining({ service: 'androidircx:chat' }),
     );
-    expect(resetGenericPassword).toHaveBeenCalledWith({ service: 'androidircx:chat' });
+    expect(resetGenericPassword).toHaveBeenCalledWith({
+      service: 'androidircx:chat',
+    });
   });
 
   it('returns unavailable when app is not active before prompt', async () => {
@@ -109,7 +116,8 @@ describe('BiometricAuthService', () => {
     expect(result).toEqual({
       success: false,
       errorKey: 'Authentication unavailable',
-      errorMessage: 'Biometric prompt is only available while the app is active.',
+      errorMessage:
+        'Biometric prompt is only available while the app is active.',
     });
   });
 
@@ -131,7 +139,9 @@ describe('BiometricAuthService', () => {
       getGenericPassword: jest.fn().mockRejectedValue(new Error('User cancel')),
     });
     const currentActivity = loadService('active', 'android', {
-      getGenericPassword: jest.fn().mockRejectedValue(new Error('Not assigned current activity')),
+      getGenericPassword: jest
+        .fn()
+        .mockRejectedValue(new Error('Not assigned current activity')),
     });
 
     await expect(cancelled.authenticate('Unlock')).resolves.toEqual({
@@ -149,10 +159,14 @@ describe('BiometricAuthService', () => {
   it('returns success for valid authentication and maps generic failure', async () => {
     const ok = loadService('active', 'ios');
     const fail = loadService('active', 'ios', {
-      getGenericPassword: jest.fn().mockRejectedValue(new Error('Bio hardware error')),
+      getGenericPassword: jest
+        .fn()
+        .mockRejectedValue(new Error('Bio hardware error')),
     });
 
-    await expect(ok.authenticate('Unlock', 'Now', 'app')).resolves.toEqual({ success: true });
+    await expect(ok.authenticate('Unlock', 'Now', 'app')).resolves.toEqual({
+      success: true,
+    });
     await expect(fail.authenticate('Unlock')).resolves.toEqual({
       success: false,
       errorKey: 'Authentication failed',

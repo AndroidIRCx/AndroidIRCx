@@ -10,5 +10,3 @@ describe('irc/numerics/index', () => {
     expect(typeof numericsModule).toBe('object');
   });
 });
-
-

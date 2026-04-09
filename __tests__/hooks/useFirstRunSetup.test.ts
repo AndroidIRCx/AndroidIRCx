@@ -12,9 +12,13 @@ const mockStorage: Map<string, string> = new Map();
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
-    setItem: jest.fn(async (key: string, value: string) => { mockStorage.set(key, value); }),
+    setItem: jest.fn(async (key: string, value: string) => {
+      mockStorage.set(key, value);
+    }),
     getItem: jest.fn(async (key: string) => mockStorage.get(key) || null),
-    removeItem: jest.fn(async (key: string) => { mockStorage.delete(key); }),
+    removeItem: jest.fn(async (key: string) => {
+      mockStorage.delete(key);
+    }),
   },
 }));
 
@@ -31,7 +35,9 @@ jest.mock('../../src/stores/uiStore', () => ({
     })),
   },
 }));
-const mockSettingsService = jest.requireMock<any>('../../src/services/SettingsService').settingsService;
+const mockSettingsService = jest.requireMock<any>(
+  '../../src/services/SettingsService',
+).settingsService;
 
 describe('useFirstRunSetup', () => {
   const mockSetShowFirstRunSetup = jest.fn();
@@ -44,22 +50,32 @@ describe('useFirstRunSetup', () => {
   });
 
   it('should return handleFirstRunSetupComplete function', () => {
-    const { result } = renderHook(() => useFirstRunSetup({
-      setShowFirstRunSetup: mockSetShowFirstRunSetup,
-      handleConnect: mockHandleConnect,
-    }));
+    const { result } = renderHook(() =>
+      useFirstRunSetup({
+        setShowFirstRunSetup: mockSetShowFirstRunSetup,
+        handleConnect: mockHandleConnect,
+      }),
+    );
 
     expect(typeof result.current.handleFirstRunSetupComplete).toBe('function');
   });
 
   it('should hide first run setup and connect on completion', async () => {
-    const savedNetwork = { id: 'net-1', name: 'DBase', nick: 'Nick', realname: 'User', servers: [] };
+    const savedNetwork = {
+      id: 'net-1',
+      name: 'DBase',
+      nick: 'Nick',
+      realname: 'User',
+      servers: [],
+    };
     mockSettingsService.loadNetworks.mockResolvedValue([savedNetwork]);
 
-    const { result } = renderHook(() => useFirstRunSetup({
-      setShowFirstRunSetup: mockSetShowFirstRunSetup,
-      handleConnect: mockHandleConnect,
-    }));
+    const { result } = renderHook(() =>
+      useFirstRunSetup({
+        setShowFirstRunSetup: mockSetShowFirstRunSetup,
+        handleConnect: mockHandleConnect,
+      }),
+    );
 
     await act(async () => {
       await result.current.handleFirstRunSetupComplete(savedNetwork);
@@ -72,10 +88,12 @@ describe('useFirstRunSetup', () => {
   it('should not connect when network is not found after reload', async () => {
     mockSettingsService.loadNetworks.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useFirstRunSetup({
-      setShowFirstRunSetup: mockSetShowFirstRunSetup,
-      handleConnect: mockHandleConnect,
-    }));
+    const { result } = renderHook(() =>
+      useFirstRunSetup({
+        setShowFirstRunSetup: mockSetShowFirstRunSetup,
+        handleConnect: mockHandleConnect,
+      }),
+    );
 
     await act(async () => {
       await result.current.handleFirstRunSetupComplete({
@@ -92,10 +110,12 @@ describe('useFirstRunSetup', () => {
   });
 
   it('should open Choose Network when setup finishes without a selected network', async () => {
-    const { result } = renderHook(() => useFirstRunSetup({
-      setShowFirstRunSetup: mockSetShowFirstRunSetup,
-      handleConnect: mockHandleConnect,
-    }));
+    const { result } = renderHook(() =>
+      useFirstRunSetup({
+        setShowFirstRunSetup: mockSetShowFirstRunSetup,
+        handleConnect: mockHandleConnect,
+      }),
+    );
 
     await act(async () => {
       await result.current.handleFirstRunSetupComplete(null);
@@ -107,10 +127,12 @@ describe('useFirstRunSetup', () => {
   });
 
   it('should return stable handleFirstRunSetupComplete reference', () => {
-    const { result, rerender } = renderHook(() => useFirstRunSetup({
-      setShowFirstRunSetup: mockSetShowFirstRunSetup,
-      handleConnect: mockHandleConnect,
-    }));
+    const { result, rerender } = renderHook(() =>
+      useFirstRunSetup({
+        setShowFirstRunSetup: mockSetShowFirstRunSetup,
+        handleConnect: mockHandleConnect,
+      }),
+    );
 
     const first = result.current.handleFirstRunSetupComplete;
     rerender();

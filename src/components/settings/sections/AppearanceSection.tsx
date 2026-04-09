@@ -6,17 +6,37 @@
 /* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { Alert, Modal, View, Text, TouchableOpacity, ScrollView, TextInput, Platform } from 'react-native';
+import {
+  Alert,
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Platform,
+} from 'react-native';
 import { SettingItem } from '../SettingItem';
 import { useSettingsAppearance } from '../../../hooks/useSettingsAppearance';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
-import { themeService, Theme, ThemeRecommendedSettings } from '../../../services/ThemeService';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
+import {
+  themeService,
+  Theme,
+  ThemeRecommendedSettings,
+} from '../../../services/ThemeService';
 import { layoutService, FontSize } from '../../../services/LayoutService';
 import { settingsService } from '../../../services/SettingsService';
 import { applyTransifexLocale } from '../../../i18n/transifex';
 import { SUPPORTED_LOCALES } from '../../../i18n/config';
-import { pick, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
+import {
+  pick,
+  isErrorWithCode,
+  errorCodes,
+} from '@react-native-documents/picker';
 import RNFS from 'react-native-fs';
 
 interface AppearanceSectionProps {
@@ -65,9 +85,10 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     setAppLanguage: setAppLanguageFromHook,
     updateLayoutConfig,
   } = useSettingsAppearance();
-  
+
   const [showHeaderSearchButton, setShowHeaderSearchButton] = useState(true);
-  const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] = useState(true);
+  const [showMessageAreaSearchButton, setShowMessageAreaSearchButton] =
+    useState(true);
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
   const [userListSizeInput, setUserListSizeInput] = useState('150');
   const [userListSizeError, setUserListSizeError] = useState('');
@@ -88,8 +109,14 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   useEffect(() => {
     let mounted = true;
     const loadTongueSettings = async () => {
-      const enabled = await settingsService.getSetting('nicklistTongueEnabled', true);
-      const sizePx = await settingsService.getSetting('nicklistTongueSizePx', 56);
+      const enabled = await settingsService.getSetting(
+        'nicklistTongueEnabled',
+        true,
+      );
+      const sizePx = await settingsService.getSetting(
+        'nicklistTongueSizePx',
+        56,
+      );
       if (mounted) {
         setNicklistTongueEnabled(Boolean(enabled));
         setNicklistTongueSizeInput(String(sizePx ?? 56));
@@ -97,14 +124,20 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       }
     };
     loadTongueSettings();
-    const unsubEnabled = settingsService.onSettingChange<boolean>('nicklistTongueEnabled', (value) => {
-      setNicklistTongueEnabled(Boolean(value));
-    });
-    const unsubSize = settingsService.onSettingChange<number>('nicklistTongueSizePx', (value) => {
-      if (!mounted) return;
-      setNicklistTongueSizeInput(String(value ?? 56));
-      setNicklistTongueSizeError('');
-    });
+    const unsubEnabled = settingsService.onSettingChange<boolean>(
+      'nicklistTongueEnabled',
+      value => {
+        setNicklistTongueEnabled(Boolean(value));
+      },
+    );
+    const unsubSize = settingsService.onSettingChange<number>(
+      'nicklistTongueSizePx',
+      value => {
+        if (!mounted) return;
+        setNicklistTongueSizeInput(String(value ?? 56));
+        setNicklistTongueSizeError('');
+      },
+    );
     return () => {
       mounted = false;
       unsubEnabled();
@@ -114,19 +147,31 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
 
   useEffect(() => {
     const loadSettings = async () => {
-      const enabled = await settingsService.getSetting('showHeaderSearchButton', true);
+      const enabled = await settingsService.getSetting(
+        'showHeaderSearchButton',
+        true,
+      );
       setShowHeaderSearchButton(enabled);
-      const messageAreaEnabled = await settingsService.getSetting('showMessageAreaSearchButton', false);
+      const messageAreaEnabled = await settingsService.getSetting(
+        'showMessageAreaSearchButton',
+        false,
+      );
       setShowMessageAreaSearchButton(messageAreaEnabled);
     };
     loadSettings();
 
-    const unsubscribe = settingsService.onSettingChange<boolean>('showHeaderSearchButton', (value) => {
-      setShowHeaderSearchButton(Boolean(value));
-    });
-    const unsubscribeMessageArea = settingsService.onSettingChange<boolean>('showMessageAreaSearchButton', (value) => {
-      setShowMessageAreaSearchButton(Boolean(value));
-    });
+    const unsubscribe = settingsService.onSettingChange<boolean>(
+      'showHeaderSearchButton',
+      value => {
+        setShowHeaderSearchButton(Boolean(value));
+      },
+    );
+    const unsubscribeMessageArea = settingsService.onSettingChange<boolean>(
+      'showMessageAreaSearchButton',
+      value => {
+        setShowMessageAreaSearchButton(Boolean(value));
+      },
+    );
 
     return () => {
       unsubscribe && unsubscribe();
@@ -135,140 +180,195 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   }, []);
 
   // Apply theme recommended settings
-  const applyThemeSettings = useCallback(async (settings: ThemeRecommendedSettings): Promise<void> => {
-    const normalizedBannerPosition = (() => {
-      const pos = settings.bannerPosition;
-      if (!pos) return undefined;
-      switch (pos) {
-        case 'above_header':
-          return 'tabs_above';
-        case 'below_header':
-          return 'tabs_below';
-        case 'bottom':
-          return 'input_below';
-        case 'input_above':
-        case 'input_below':
-        case 'tabs_above':
-        case 'tabs_below':
-          return pos;
-        default:
-          return undefined;
+  const applyThemeSettings = useCallback(
+    async (settings: ThemeRecommendedSettings): Promise<void> => {
+      const normalizedBannerPosition = (() => {
+        const pos = settings.bannerPosition;
+        if (!pos) return undefined;
+        switch (pos) {
+          case 'above_header':
+            return 'tabs_above';
+          case 'below_header':
+            return 'tabs_below';
+          case 'bottom':
+            return 'input_below';
+          case 'input_above':
+          case 'input_below':
+          case 'tabs_above':
+          case 'tabs_below':
+            return pos;
+          default:
+            return undefined;
+        }
+      })();
+
+      // Apply layout settings
+      if (settings.userListSize !== undefined) {
+        await layoutService.setUserListSizePx(settings.userListSize);
       }
-    })();
+      if (settings.userListNickFontSize !== undefined) {
+        await layoutService.setConfig({
+          userListNickFontSizePx: settings.userListNickFontSize,
+        });
+      }
+      if (settings.nickListTongueSize !== undefined) {
+        await settingsService.setSetting(
+          'nicklistTongueSizePx',
+          settings.nickListTongueSize,
+        );
+      }
+      if (settings.fontSize !== undefined) {
+        const fontSizeMapping: Record<string, FontSize> = {
+          small: 'small',
+          medium: 'medium',
+          large: 'large',
+          xlarge: 'custom',
+        };
+        await layoutService.setFontSize(
+          fontSizeMapping[settings.fontSize] || 'medium',
+        );
+      }
+      if (settings.messageSpacing !== undefined) {
+        await layoutService.setConfig({
+          messageSpacing: settings.messageSpacing,
+        });
+      }
+      if (settings.messagePadding !== undefined) {
+        await layoutService.setConfig({
+          messagePadding: settings.messagePadding,
+        });
+      }
+      if (settings.navigationBarOffset !== undefined) {
+        await layoutService.setConfig({
+          navigationBarOffset: settings.navigationBarOffset,
+        });
+      }
+      if (settings.tabPosition !== undefined) {
+        await layoutService.setTabPosition(settings.tabPosition);
+      }
 
-    // Apply layout settings
-    if (settings.userListSize !== undefined) {
-      await layoutService.setUserListSizePx(settings.userListSize);
-    }
-    if (settings.userListNickFontSize !== undefined) {
-      await layoutService.setConfig({ userListNickFontSizePx: settings.userListNickFontSize });
-    }
-    if (settings.nickListTongueSize !== undefined) {
-      await settingsService.setSetting('nicklistTongueSizePx', settings.nickListTongueSize);
-    }
-    if (settings.fontSize !== undefined) {
-      const fontSizeMapping: Record<string, FontSize> = {
-        'small': 'small',
-        'medium': 'medium',
-        'large': 'large',
-        'xlarge': 'custom',
-      };
-      await layoutService.setFontSize(fontSizeMapping[settings.fontSize] || 'medium');
-    }
-    if (settings.messageSpacing !== undefined) {
-      await layoutService.setConfig({ messageSpacing: settings.messageSpacing });
-    }
-    if (settings.messagePadding !== undefined) {
-      await layoutService.setConfig({ messagePadding: settings.messagePadding });
-    }
-    if (settings.navigationBarOffset !== undefined) {
-      await layoutService.setConfig({ navigationBarOffset: settings.navigationBarOffset });
-    }
-    if (settings.tabPosition !== undefined) {
-      await layoutService.setTabPosition(settings.tabPosition);
-    }
-
-    // Display & UI settings
-    if (settings.noticeRouting !== undefined) {
-      await settingsService.setSetting('noticeRouting', settings.noticeRouting);
-    }
-    if (settings.showTimestamps !== undefined) {
-      await settingsService.setSetting('showTimestamps', settings.showTimestamps);
-    }
-    if (settings.groupMessages !== undefined) {
-      await layoutService.setConfig({ messageGroupingEnabled: settings.groupMessages });
-    }
-    if (settings.messageTextAlignment !== undefined) {
-      await layoutService.setConfig({ messageTextAlign: settings.messageTextAlignment });
-    }
-    if (settings.messageTextDirection !== undefined) {
-      await layoutService.setConfig({ messageTextDirection: settings.messageTextDirection });
-    }
-    if (settings.timestampDisplay !== undefined) {
-      // Map 'hover' to 'grouped' for compatibility
-      const displayValue = settings.timestampDisplay === 'hover' ? 'grouped' : settings.timestampDisplay;
-      await layoutService.setConfig({ timestampDisplay: displayValue });
-    }
-    if (settings.timestampFormat !== undefined) {
-      await layoutService.setConfig({ timestampFormat: settings.timestampFormat });
-    }
-    if (normalizedBannerPosition !== undefined) {
-      await settingsService.setSetting('bannerPosition', normalizedBannerPosition);
-    }
-    if (settings.keyboardBehavior !== undefined) {
-      await settingsService.setSetting('keyboardBehavior', settings.keyboardBehavior);
-    }
-  }, []);
+      // Display & UI settings
+      if (settings.noticeRouting !== undefined) {
+        await settingsService.setSetting(
+          'noticeRouting',
+          settings.noticeRouting,
+        );
+      }
+      if (settings.showTimestamps !== undefined) {
+        await settingsService.setSetting(
+          'showTimestamps',
+          settings.showTimestamps,
+        );
+      }
+      if (settings.groupMessages !== undefined) {
+        await layoutService.setConfig({
+          messageGroupingEnabled: settings.groupMessages,
+        });
+      }
+      if (settings.messageTextAlignment !== undefined) {
+        await layoutService.setConfig({
+          messageTextAlign: settings.messageTextAlignment,
+        });
+      }
+      if (settings.messageTextDirection !== undefined) {
+        await layoutService.setConfig({
+          messageTextDirection: settings.messageTextDirection,
+        });
+      }
+      if (settings.timestampDisplay !== undefined) {
+        // Map 'hover' to 'grouped' for compatibility
+        const displayValue =
+          settings.timestampDisplay === 'hover'
+            ? 'grouped'
+            : settings.timestampDisplay;
+        await layoutService.setConfig({ timestampDisplay: displayValue });
+      }
+      if (settings.timestampFormat !== undefined) {
+        await layoutService.setConfig({
+          timestampFormat: settings.timestampFormat,
+        });
+      }
+      if (normalizedBannerPosition !== undefined) {
+        await settingsService.setSetting(
+          'bannerPosition',
+          normalizedBannerPosition,
+        );
+      }
+      if (settings.keyboardBehavior !== undefined) {
+        await settingsService.setSetting(
+          'keyboardBehavior',
+          settings.keyboardBehavior,
+        );
+      }
+    },
+    [],
+  );
 
   // Handle theme selection with optional settings
-  const handleThemeSelect = useCallback(async (theme: Theme) => {
-    // If theme has recommended settings, ask user
-    if (theme.recommendedSettings && Object.keys(theme.recommendedSettings).length > 0) {
-      Alert.alert(
-        t('Apply Theme Settings?', { _tags: tags }),
-        t('The "{name}" theme has recommended settings for the best experience. Apply them?', { name: theme.name, _tags: tags }),
-        [
-          {
-            text: t('Theme Only', { _tags: tags }),
-            onPress: async () => {
-              await themeService.setTheme(theme.id);
-              refreshThemes();
+  const handleThemeSelect = useCallback(
+    async (theme: Theme) => {
+      // If theme has recommended settings, ask user
+      if (
+        theme.recommendedSettings &&
+        Object.keys(theme.recommendedSettings).length > 0
+      ) {
+        Alert.alert(
+          t('Apply Theme Settings?', { _tags: tags }),
+          t(
+            'The "{name}" theme has recommended settings for the best experience. Apply them?',
+            { name: theme.name, _tags: tags },
+          ),
+          [
+            {
+              text: t('Theme Only', { _tags: tags }),
+              onPress: async () => {
+                await themeService.setTheme(theme.id);
+                refreshThemes();
+              },
             },
-          },
-          {
-            text: t('Apply All', { _tags: tags }),
-            style: 'default',
-            onPress: async () => {
-              await themeService.setTheme(theme.id);
-              await applyThemeSettings(theme.recommendedSettings!);
-              refreshThemes();
-              Alert.alert(
-                t('Settings Applied', { _tags: tags }),
-                t('Theme and recommended settings have been applied.', { _tags: tags })
-              );
+            {
+              text: t('Apply All', { _tags: tags }),
+              style: 'default',
+              onPress: async () => {
+                await themeService.setTheme(theme.id);
+                await applyThemeSettings(theme.recommendedSettings!);
+                refreshThemes();
+                Alert.alert(
+                  t('Settings Applied', { _tags: tags }),
+                  t('Theme and recommended settings have been applied.', {
+                    _tags: tags,
+                  }),
+                );
+              },
             },
-          },
-        ]
-      );
-    } else {
-      // No recommended settings, just apply theme
-      await themeService.setTheme(theme.id);
-      refreshThemes();
-    }
-  }, [applyThemeSettings, refreshThemes, t, tags]);
+          ],
+        );
+      } else {
+        // No recommended settings, just apply theme
+        await themeService.setTheme(theme.id);
+        refreshThemes();
+      }
+    },
+    [applyThemeSettings, refreshThemes, t, tags],
+  );
 
   // Export current theme to JSON file
   const handleExportTheme = useCallback(async () => {
     try {
       const jsonData = themeService.exportCurrentTheme();
       if (!jsonData) {
-        Alert.alert(t('Error', { _tags: tags }), t('Failed to export theme', { _tags: tags }));
+        Alert.alert(
+          t('Error', { _tags: tags }),
+          t('Failed to export theme', { _tags: tags }),
+        );
         return;
       }
 
       const now = new Date();
       const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-      const themeName = currentTheme.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      const themeName = currentTheme.name
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .toLowerCase();
       const filename = `theme_${themeName}_${timestamp}.json`;
 
       let savePath: string;
@@ -283,13 +383,15 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       Alert.alert(
         t('Theme Exported', { _tags: tags }),
         t('Theme saved to:\n{path}', { path: savePath, _tags: tags }),
-        [{ text: t('OK', { _tags: tags }) }]
+        [{ text: t('OK', { _tags: tags }) }],
       );
     } catch (error) {
       console.error('Failed to export theme:', error);
       Alert.alert(
         t('Error', { _tags: tags }),
-        error instanceof Error ? error.message : t('Failed to export theme', { _tags: tags })
+        error instanceof Error
+          ? error.message
+          : t('Failed to export theme', { _tags: tags }),
       );
     }
   }, [currentTheme.name, t, tags]);
@@ -325,10 +427,13 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       if (importResult.success && importResult.theme) {
         Alert.alert(
           t('Theme Imported', { _tags: tags }),
-          t('Successfully imported theme "{name}". Would you like to use it now?', {
-            name: importResult.theme.name,
-            _tags: tags,
-          }),
+          t(
+            'Successfully imported theme "{name}". Would you like to use it now?',
+            {
+              name: importResult.theme.name,
+              _tags: tags,
+            },
+          ),
           [
             { text: t('Later', { _tags: tags }), style: 'cancel' },
             {
@@ -339,13 +444,13 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                 }
               },
             },
-          ]
+          ],
         );
         refreshThemes();
       } else {
         Alert.alert(
           t('Import Failed', { _tags: tags }),
-          importResult.error || t('Failed to import theme', { _tags: tags })
+          importResult.error || t('Failed to import theme', { _tags: tags }),
         );
       }
 
@@ -358,11 +463,17 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         // Ignore cleanup errors
       }
     } catch (error: any) {
-      if (!(isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED)) {
+      if (
+        !(
+          isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED
+        )
+      ) {
         console.error('Failed to import theme:', error);
         Alert.alert(
           t('Error', { _tags: tags }),
-          error instanceof Error ? error.message : t('Failed to import theme', { _tags: tags })
+          error instanceof Error
+            ? error.message
+            : t('Failed to import theme', { _tags: tags }),
         );
       }
     }
@@ -375,7 +486,15 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         title: t('Theme', { _tags: tags }),
         description: currentTheme.name,
         type: 'submenu',
-        searchKeywords: ['theme', 'color', 'dark', 'light', 'custom', 'appearance', 'style'],
+        searchKeywords: [
+          'theme',
+          'color',
+          'dark',
+          'light',
+          'custom',
+          'appearance',
+          'style',
+        ],
         submenuItems: [
           ...availableThemes.map(theme => ({
             id: `theme-${theme.id}`,
@@ -398,40 +517,49 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               onShowThemeEditor(undefined);
             },
           },
-          ...availableThemes.filter(themeItem => themeItem.isCustom).map(theme => ({
-            id: `theme-edit-${theme.id}`,
-            title: t('Edit {name}', { name: theme.name, _tags: tags }),
-            type: 'button' as const,
-            onPress: () => {
-              onShowThemeEditor(theme);
-            },
-          })),
-          ...availableThemes.filter(themeItem => themeItem.isCustom).map(theme => ({
-            id: `theme-delete-${theme.id}`,
-            title: t('Delete {name}', { name: theme.name, _tags: tags }),
-            type: 'button' as const,
-            onPress: () => {
-              Alert.alert(
-                t('Delete Theme', { _tags: tags }),
-                t('Are you sure you want to delete "{name}"?', { name: theme.name, _tags: tags }),
-                [
-                  { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-                  {
-                    text: t('Delete', { _tags: tags }),
-                    style: 'destructive',
-                    onPress: async () => {
-                      await themeService.deleteCustomTheme(theme.id);
-                      refreshThemes();
+          ...availableThemes
+            .filter(themeItem => themeItem.isCustom)
+            .map(theme => ({
+              id: `theme-edit-${theme.id}`,
+              title: t('Edit {name}', { name: theme.name, _tags: tags }),
+              type: 'button' as const,
+              onPress: () => {
+                onShowThemeEditor(theme);
+              },
+            })),
+          ...availableThemes
+            .filter(themeItem => themeItem.isCustom)
+            .map(theme => ({
+              id: `theme-delete-${theme.id}`,
+              title: t('Delete {name}', { name: theme.name, _tags: tags }),
+              type: 'button' as const,
+              onPress: () => {
+                Alert.alert(
+                  t('Delete Theme', { _tags: tags }),
+                  t('Are you sure you want to delete "{name}"?', {
+                    name: theme.name,
+                    _tags: tags,
+                  }),
+                  [
+                    { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+                    {
+                      text: t('Delete', { _tags: tags }),
+                      style: 'destructive',
+                      onPress: async () => {
+                        await themeService.deleteCustomTheme(theme.id);
+                        refreshThemes();
+                      },
                     },
-                  },
-                ]
-              );
-            },
-          })),
+                  ],
+                );
+              },
+            })),
           {
             id: 'theme-export',
             title: t('Export Current Theme', { _tags: tags }),
-            description: t('Save theme to JSON file for sharing', { _tags: tags }),
+            description: t('Save theme to JSON file for sharing', {
+              _tags: tags,
+            }),
             type: 'button' as const,
             onPress: handleExportTheme,
           },
@@ -452,7 +580,13 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             ? t('System Default', { _tags: tags })
             : languageLabels[appLanguage] || appLanguage,
         type: 'submenu',
-        searchKeywords: ['language', 'locale', 'translation', 'i18n', 'internationalization'],
+        searchKeywords: [
+          'language',
+          'locale',
+          'translation',
+          'i18n',
+          'internationalization',
+        ],
         submenuItems: [
           {
             id: 'language-system',
@@ -479,9 +613,21 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       {
         id: 'layout-tab-position',
         title: t('Tab Position', { _tags: tags }),
-        description: t('Tabs at {position}', { position: layoutConfig?.tabPosition || 'top', _tags: tags }),
+        description: t('Tabs at {position}', {
+          position: layoutConfig?.tabPosition || 'top',
+          _tags: tags,
+        }),
         type: 'submenu',
-        searchKeywords: ['tab', 'position', 'layout', 'top', 'bottom', 'left', 'right', 'location'],
+        searchKeywords: [
+          'tab',
+          'position',
+          'layout',
+          'top',
+          'bottom',
+          'left',
+          'right',
+          'location',
+        ],
         submenuItems: [
           {
             id: 'layout-tab-position-top',
@@ -524,9 +670,22 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       {
         id: 'layout-userlist-position',
         title: t('User List Position', { _tags: tags }),
-        description: t('User list at {position}', { position: layoutConfig?.userListPosition || 'right', _tags: tags }),
+        description: t('User list at {position}', {
+          position: layoutConfig?.userListPosition || 'right',
+          _tags: tags,
+        }),
         type: 'button',
-        searchKeywords: ['userlist', 'nicklist', 'position', 'layout', 'left', 'right', 'top', 'bottom', 'users'],
+        searchKeywords: [
+          'userlist',
+          'nicklist',
+          'position',
+          'layout',
+          'left',
+          'right',
+          'top',
+          'bottom',
+          'users',
+        ],
         onPress: () => {
           Alert.alert(
             t('User List Position', { _tags: tags }),
@@ -561,7 +720,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                   updateLayoutConfig({});
                 },
               },
-            ]
+            ],
           );
         },
       },
@@ -573,7 +732,15 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         value: userListSizeInput,
         error: userListSizeError,
         keyboardType: 'numeric',
-        searchKeywords: ['userlist', 'nicklist', 'size', 'width', 'height', 'panel', 'users'],
+        searchKeywords: [
+          'userlist',
+          'nicklist',
+          'size',
+          'width',
+          'height',
+          'panel',
+          'users',
+        ],
         onValueChange: async (value: string | boolean) => {
           const text = String(value);
           setUserListSizeInput(text);
@@ -588,7 +755,9 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             return;
           }
           if (size <= 0) {
-            setUserListSizeError(t('Value must be greater than 0', { _tags: tags }));
+            setUserListSizeError(
+              t('Value must be greater than 0', { _tags: tags }),
+            );
             return;
           }
           setUserListSizeError('');
@@ -604,7 +773,15 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         value: userListNickFontInput,
         error: userListNickFontError,
         keyboardType: 'numeric',
-        searchKeywords: ['userlist', 'nicklist', 'font', 'size', 'nick', 'users', 'text'],
+        searchKeywords: [
+          'userlist',
+          'nicklist',
+          'font',
+          'size',
+          'nick',
+          'users',
+          'text',
+        ],
         onValueChange: async (value: string | boolean) => {
           const text = String(value);
           setUserListNickFontInput(text);
@@ -615,11 +792,15 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           }
           const size = parseInt(trimmed, 10);
           if (isNaN(size)) {
-            setUserListNickFontError(t('Enter a valid number', { _tags: tags }));
+            setUserListNickFontError(
+              t('Enter a valid number', { _tags: tags }),
+            );
             return;
           }
           if (size <= 0) {
-            setUserListNickFontError(t('Value must be greater than 0', { _tags: tags }));
+            setUserListNickFontError(
+              t('Value must be greater than 0', { _tags: tags }),
+            );
             return;
           }
           setUserListNickFontError('');
@@ -630,9 +811,19 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       {
         id: 'layout-userlist-reset-defaults',
         title: t('Reset User List Defaults', { _tags: tags }),
-        description: t('Reset user list size and nick font size to defaults', { _tags: tags }),
+        description: t('Reset user list size and nick font size to defaults', {
+          _tags: tags,
+        }),
         type: 'button',
-        searchKeywords: ['userlist', 'nicklist', 'reset', 'default', 'size', 'font', 'users'],
+        searchKeywords: [
+          'userlist',
+          'nicklist',
+          'reset',
+          'default',
+          'size',
+          'font',
+          'users',
+        ],
         onPress: async () => {
           await layoutService.setUserListSizePx(150);
           await layoutService.setUserListNickFontSizePx(13);
@@ -646,10 +837,21 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       {
         id: 'layout-nicklist-tongue-enabled',
         title: t('Nicklist Tongue Button', { _tags: tags }),
-        description: t('Show a small center handle to open/close the user list', { _tags: tags }),
+        description: t(
+          'Show a small center handle to open/close the user list',
+          { _tags: tags },
+        ),
         type: 'switch',
         value: nicklistTongueEnabled,
-        searchKeywords: ['nicklist', 'userlist', 'handle', 'tongue', 'button', 'slide', 'gesture'],
+        searchKeywords: [
+          'nicklist',
+          'userlist',
+          'handle',
+          'tongue',
+          'button',
+          'slide',
+          'gesture',
+        ],
         onValueChange: async (value: boolean | string) => {
           const enabled = Boolean(value);
           setNicklistTongueEnabled(enabled);
@@ -664,7 +866,14 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         value: nicklistTongueSizeInput,
         error: nicklistTongueSizeError,
         keyboardType: 'numeric',
-        searchKeywords: ['nicklist', 'userlist', 'handle', 'tongue', 'size', 'button'],
+        searchKeywords: [
+          'nicklist',
+          'userlist',
+          'handle',
+          'tongue',
+          'size',
+          'button',
+        ],
         onValueChange: async (value: string | boolean) => {
           const text = String(value);
           setNicklistTongueSizeInput(text);
@@ -675,11 +884,15 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           }
           const size = parseInt(trimmed, 10);
           if (isNaN(size)) {
-            setNicklistTongueSizeError(t('Enter a valid number', { _tags: tags }));
+            setNicklistTongueSizeError(
+              t('Enter a valid number', { _tags: tags }),
+            );
             return;
           }
           if (size <= 0) {
-            setNicklistTongueSizeError(t('Value must be greater than 0', { _tags: tags }));
+            setNicklistTongueSizeError(
+              t('Value must be greater than 0', { _tags: tags }),
+            );
             return;
           }
           setNicklistTongueSizeError('');
@@ -689,9 +902,20 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       {
         id: 'layout-view-mode',
         title: t('View Mode', { _tags: tags }),
-        description: t('Current: {mode}', { mode: layoutConfig?.viewMode || 'comfortable', _tags: tags }),
+        description: t('Current: {mode}', {
+          mode: layoutConfig?.viewMode || 'comfortable',
+          _tags: tags,
+        }),
         type: 'button',
-        searchKeywords: ['view', 'mode', 'compact', 'comfortable', 'spacious', 'density', 'display'],
+        searchKeywords: [
+          'view',
+          'mode',
+          'compact',
+          'comfortable',
+          'spacious',
+          'density',
+          'display',
+        ],
         onPress: () => {
           Alert.alert(
             t('View Mode', { _tags: tags }),
@@ -719,7 +943,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                   updateLayoutConfig({});
                 },
               },
-            ]
+            ],
           );
         },
       },
@@ -728,13 +952,24 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         title: t('Font Size', { _tags: tags }),
         description: t('Current: {size} ({px}px)', {
           size: layoutConfig?.fontSize || 'medium',
-          px: (layoutConfig?.fontSizeValues || { small: 12, medium: 14, large: 16, custom: 18 })[
-            layoutConfig?.fontSize || 'medium'
-          ],
+          px: (layoutConfig?.fontSizeValues || {
+            small: 12,
+            medium: 14,
+            large: 16,
+            custom: 18,
+          })[layoutConfig?.fontSize || 'medium'],
           _tags: tags,
         }),
         type: 'submenu',
-        searchKeywords: ['font', 'size', 'text', 'small', 'medium', 'large', 'custom'],
+        searchKeywords: [
+          'font',
+          'size',
+          'text',
+          'small',
+          'medium',
+          'large',
+          'custom',
+        ],
         submenuItems: [
           {
             id: 'font-size-small',
@@ -857,11 +1092,22 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           : t('Floating search button hidden', { _tags: tags }),
         type: 'switch',
         value: showMessageAreaSearchButton,
-        searchKeywords: ['search', 'message', 'button', 'floating', 'icon', 'appearance', 'ui'],
+        searchKeywords: [
+          'search',
+          'message',
+          'button',
+          'floating',
+          'icon',
+          'appearance',
+          'ui',
+        ],
         onValueChange: async (value: boolean | string) => {
           const enabled = value as boolean;
           setShowMessageAreaSearchButton(enabled);
-          await settingsService.setSetting('showMessageAreaSearchButton', enabled);
+          await settingsService.setSetting(
+            'showMessageAreaSearchButton',
+            enabled,
+          );
         },
       },
       {
@@ -871,7 +1117,14 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         type: 'input',
         value: layoutConfig?.messageSpacing?.toString() || '4',
         keyboardType: 'numeric',
-        searchKeywords: ['message', 'spacing', 'padding', 'gap', 'distance', 'vertical'],
+        searchKeywords: [
+          'message',
+          'spacing',
+          'padding',
+          'gap',
+          'distance',
+          'vertical',
+        ],
         onValueChange: async (value: string | boolean) => {
           const spacing = parseInt(value as string, 10);
           if (!isNaN(spacing) && spacing >= 0 && spacing <= 20) {
@@ -887,7 +1140,14 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         type: 'input',
         value: layoutConfig?.messagePadding?.toString() || '8',
         keyboardType: 'numeric',
-        searchKeywords: ['message', 'padding', 'spacing', 'margin', 'border', 'horizontal'],
+        searchKeywords: [
+          'message',
+          'padding',
+          'spacing',
+          'margin',
+          'border',
+          'horizontal',
+        ],
         onValueChange: async (value: string | boolean) => {
           const padding = parseInt(value as string, 10);
           if (!isNaN(padding) && padding >= 0 && padding <= 20) {
@@ -903,7 +1163,15 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         type: 'input',
         value: layoutConfig?.navigationBarOffset?.toString() || '0',
         keyboardType: 'numeric',
-        searchKeywords: ['navigation', 'bar', 'offset', 'android', 'bottom', 'button', '3-button'],
+        searchKeywords: [
+          'navigation',
+          'bar',
+          'offset',
+          'android',
+          'bottom',
+          'button',
+          '3-button',
+        ],
         onValueChange: async (value: string | boolean) => {
           const offset = parseInt(value as string, 10);
           if (!isNaN(offset) && offset >= 0 && offset <= 100) {
@@ -915,7 +1183,31 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     ];
 
     return items;
-  }, [currentTheme, availableThemes, layoutConfig, appLanguage, languageLabels, t, tags, refreshThemes, setAppLanguageFromHook, updateLayoutConfig, onShowThemeEditor, showHeaderSearchButton, showMessageAreaSearchButton, handleExportTheme, handleImportTheme, handleThemeSelect, userListSizeInput, userListSizeError, userListNickFontInput, userListNickFontError, nicklistTongueEnabled, nicklistTongueSizeInput, nicklistTongueSizeError]);
+  }, [
+    currentTheme,
+    availableThemes,
+    layoutConfig,
+    appLanguage,
+    languageLabels,
+    t,
+    tags,
+    refreshThemes,
+    setAppLanguageFromHook,
+    updateLayoutConfig,
+    onShowThemeEditor,
+    showHeaderSearchButton,
+    showMessageAreaSearchButton,
+    handleExportTheme,
+    handleImportTheme,
+    handleThemeSelect,
+    userListSizeInput,
+    userListSizeError,
+    userListNickFontInput,
+    userListNickFontError,
+    nicklistTongueEnabled,
+    nicklistTongueSizeInput,
+    nicklistTongueSizeError,
+  ]);
 
   const handleSubmenuPress = (itemId: string) => {
     const item = sectionData.find(i => i.id === itemId);
@@ -924,12 +1216,16 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     }
   };
 
-  const currentSubmenuItem = showSubmenu ? sectionData.find(item => item.id === showSubmenu) : null;
+  const currentSubmenuItem = showSubmenu
+    ? sectionData.find(item => item.id === showSubmenu)
+    : null;
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}
@@ -941,29 +1237,80 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           />
         );
       })}
-      
+
       {/* Submenu Modal */}
       <Modal
         visible={showSubmenu !== null}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowSubmenu(null)}>
-        <View style={{ flex: 1, backgroundColor: colors.modalOverlay, justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}>{currentSubmenuItem?.title || t('Options', { _tags: tags })}</Text>
+        onRequestClose={() => setShowSubmenu(null)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: colors.modalOverlay,
+            justifyContent: 'flex-end',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              maxHeight: '80%',
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+              }}
+            >
+              <Text
+                style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}
+              >
+                {currentSubmenuItem?.title || t('Options', { _tags: tags })}
+              </Text>
               <TouchableOpacity onPress={() => setShowSubmenu(null)}>
-                <Text style={{ color: colors.primary, fontSize: 16 }}>{t('Close', { _tags: tags })}</Text>
+                <Text style={{ color: colors.primary, fontSize: 16 }}>
+                  {t('Close', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
             <ScrollView>
-              {currentSubmenuItem?.submenuItems?.map((subItem) => {
+              {currentSubmenuItem?.submenuItems?.map(subItem => {
                 if (subItem.type === 'switch') {
                   return (
-                    <View key={subItem.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+                    <View
+                      key={subItem.id}
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: 16,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                      }}
+                    >
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.text, fontSize: 16 }}>{subItem.title}</Text>
-                        {subItem.description && <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 4 }}>{subItem.description}</Text>}
+                        <Text style={{ color: colors.text, fontSize: 16 }}>
+                          {subItem.title}
+                        </Text>
+                        {subItem.description && (
+                          <Text
+                            style={{
+                              color: colors.textSecondary,
+                              fontSize: 14,
+                              marginTop: 4,
+                            }}
+                          >
+                            {subItem.description}
+                          </Text>
+                        )}
                       </View>
                       <SettingItem
                         item={subItem}
@@ -982,9 +1329,34 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                         setShowSubmenu(null);
                       }}
                       disabled={subItem.disabled}
-                      style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: subItem.disabled ? 0.5 : 1 }}>
-                      <Text style={{ color: subItem.disabled ? colors.textDisabled : colors.text, fontSize: 16 }}>{subItem.title}</Text>
-                      {subItem.description && <Text style={{ color: colors.textSecondary, fontSize: 14, marginTop: 4 }}>{subItem.description}</Text>}
+                      style={{
+                        padding: 16,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                        opacity: subItem.disabled ? 0.5 : 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: subItem.disabled
+                            ? colors.textDisabled
+                            : colors.text,
+                          fontSize: 16,
+                        }}
+                      >
+                        {subItem.title}
+                      </Text>
+                      {subItem.description && (
+                        <Text
+                          style={{
+                            color: colors.textSecondary,
+                            fontSize: 14,
+                            marginTop: 4,
+                          }}
+                        >
+                          {subItem.description}
+                        </Text>
+                      )}
                     </TouchableOpacity>
                   );
                 }
@@ -992,16 +1364,28 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                   return (
                     <View
                       key={subItem.id}
-                      style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                      <Text style={{ color: colors.text, fontSize: 16 }}>{subItem.title}</Text>
+                      style={{
+                        padding: 16,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                      }}
+                    >
+                      <Text style={{ color: colors.text, fontSize: 16 }}>
+                        {subItem.title}
+                      </Text>
                       <TextInput
                         style={[
                           styles.input,
-                          { marginTop: 8, backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                          {
+                            marginTop: 8,
+                            backgroundColor: colors.surface,
+                            color: colors.text,
+                            borderColor: colors.border,
+                          },
                           subItem.disabled && styles.disabledInput,
                         ]}
                         value={subItem.value as string}
-                        onChangeText={(text) => subItem.onValueChange?.(text)}
+                        onChangeText={text => subItem.onValueChange?.(text)}
                         placeholder={subItem.placeholder}
                         placeholderTextColor={colors.textSecondary}
                         keyboardType={subItem.keyboardType || 'default'}

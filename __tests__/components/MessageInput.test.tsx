@@ -14,13 +14,17 @@ jest.mock('../../src/components/MediaUploadModal', () => {
     MediaUploadModal: (p: any) =>
       p.visible
         ? React.createElement(
-          TouchableOpacity,
-          {
-            onPress: () => p.onMediaSelected({ uri: 'file://picked.jpg', type: 'image/jpeg' }),
-            accessibilityLabel: 'Mock pick media',
-          },
-          React.createElement(Text, null, 'Pick media')
-        )
+            TouchableOpacity,
+            {
+              onPress: () =>
+                p.onMediaSelected({
+                  uri: 'file://picked.jpg',
+                  type: 'image/jpeg',
+                }),
+              accessibilityLabel: 'Mock pick media',
+            },
+            React.createElement(Text, null, 'Pick media'),
+          )
         : null,
   };
 });
@@ -31,25 +35,25 @@ jest.mock('../../src/components/MediaPreviewModal', () => {
     MediaPreviewModal: (p: any) =>
       p.visible
         ? React.createElement(
-          View,
-          null,
-          React.createElement(
-            TouchableOpacity,
-            {
-              onPress: () => p.onSendComplete('@media=abc', 'caption'),
-              accessibilityLabel: 'Mock send media',
-            },
-            React.createElement(Text, null, 'Send media')
-          ),
-          React.createElement(
-            TouchableOpacity,
-            {
-              onPress: p.onClose,
-              accessibilityLabel: 'Mock close media preview',
-            },
-            React.createElement(Text, null, 'Close media')
+            View,
+            null,
+            React.createElement(
+              TouchableOpacity,
+              {
+                onPress: () => p.onSendComplete('@media=abc', 'caption'),
+                accessibilityLabel: 'Mock send media',
+              },
+              React.createElement(Text, null, 'Send media'),
+            ),
+            React.createElement(
+              TouchableOpacity,
+              {
+                onPress: p.onClose,
+                accessibilityLabel: 'Mock close media preview',
+              },
+              React.createElement(Text, null, 'Close media'),
+            ),
           )
-        )
         : null,
   };
 });
@@ -64,7 +68,7 @@ jest.mock('../../src/components/ColorPalettePicker', () => {
           onPress: () => p.onInsert('\u000304'),
           accessibilityLabel: 'Mock insert color',
         },
-        React.createElement(Text, null, 'Insert mock color')
+        React.createElement(Text, null, 'Insert mock color'),
       ),
   };
 });
@@ -72,7 +76,10 @@ jest.mock('../../src/components/ColorPalettePicker', () => {
 // ── third-party mocks ──────────────────────────────────────────────────────
 jest.mock('react-native-vector-icons/FontAwesome5', () => {
   const React = require('react');
-  return { __esModule: true, default: () => React.createElement('Text', null, 'Icon') };
+  return {
+    __esModule: true,
+    default: () => React.createElement('Text', null, 'Icon'),
+  };
 });
 
 // ── service mocks ──────────────────────────────────────────────────────────
@@ -138,12 +145,12 @@ jest.mock('../../src/services/MediaPickerService', () => ({
 jest.mock('../../src/utils/IRCFormatter', () => ({
   IRC_FORMAT_CODES: {
     BOLD: 0x02,
-    ITALIC: 0x1D,
-    UNDERLINE: 0x1F,
+    ITALIC: 0x1d,
+    UNDERLINE: 0x1f,
     REVERSE: 0x16,
-    RESET: 0x0F,
+    RESET: 0x0f,
     COLOR: 0x03,
-    STRIKETHROUGH: 0x1E,
+    STRIKETHROUGH: 0x1e,
   },
   stripIRCFormatting: jest.fn((text: string) => text),
 }));
@@ -203,7 +210,7 @@ jest.mock('../../src/stores/tabStore', () => ({
         tabs: [],
         getTabsByNetwork: mockGetTabsByNetwork,
       }),
-    }
+    },
   ),
 }));
 
@@ -219,7 +226,7 @@ const defaultProps = {
 // Flush all pending microtasks and promise callbacks without unmounting the renderer.
 const flushAsync = async () => {
   await act(async () => {
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
   });
 };
 
@@ -277,7 +284,7 @@ describe('MessageInput', () => {
 
   it('renders with a custom placeholder', async () => {
     const { getByPlaceholderText } = render(
-      <MessageInput {...defaultProps} placeholder="Type here..." />
+      <MessageInput {...defaultProps} placeholder="Type here..." />,
     );
     await flushAsync();
     expect(getByPlaceholderText('Type here...')).toBeTruthy();
@@ -291,13 +298,17 @@ describe('MessageInput', () => {
   });
 
   it('renders when disabled=true', async () => {
-    const { toJSON } = render(<MessageInput {...defaultProps} disabled={true} />);
+    const { toJSON } = render(
+      <MessageInput {...defaultProps} disabled={true} />,
+    );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
   });
 
   it('renders when disabled=false', async () => {
-    const { toJSON } = render(<MessageInput {...defaultProps} disabled={false} />);
+    const { toJSON } = render(
+      <MessageInput {...defaultProps} disabled={false} />,
+    );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
   });
@@ -305,7 +316,12 @@ describe('MessageInput', () => {
   // ── tab types ────────────────────────────────────────────────────────────
   it('renders for tabType=channel', async () => {
     const { toJSON } = render(
-      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+      <MessageInput
+        {...defaultProps}
+        tabType="channel"
+        tabName="#general"
+        network="TestNet"
+      />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -313,7 +329,12 @@ describe('MessageInput', () => {
 
   it('renders for tabType=query', async () => {
     const { toJSON } = render(
-      <MessageInput {...defaultProps} tabType="query" tabName="Alice" network="TestNet" />
+      <MessageInput
+        {...defaultProps}
+        tabType="query"
+        tabName="Alice"
+        network="TestNet"
+      />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -321,7 +342,7 @@ describe('MessageInput', () => {
 
   it('renders for tabType=server', async () => {
     const { toJSON } = render(
-      <MessageInput {...defaultProps} tabType="server" network="TestNet" />
+      <MessageInput {...defaultProps} tabType="server" network="TestNet" />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -329,7 +350,7 @@ describe('MessageInput', () => {
 
   it('renders for tabType=notice', async () => {
     const { toJSON } = render(
-      <MessageInput {...defaultProps} tabType="notice" network="TestNet" />
+      <MessageInput {...defaultProps} tabType="notice" network="TestNet" />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -337,7 +358,12 @@ describe('MessageInput', () => {
 
   it('renders for tabType=dcc', async () => {
     const { toJSON } = render(
-      <MessageInput {...defaultProps} tabType="dcc" tabName="Alice" network="TestNet" />
+      <MessageInput
+        {...defaultProps}
+        tabType="dcc"
+        tabName="Alice"
+        network="TestNet"
+      />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -356,7 +382,9 @@ describe('MessageInput', () => {
 
   it('clears message input after submission', async () => {
     const onSubmit = jest.fn();
-    const { getByPlaceholderText } = render(<MessageInput {...defaultProps} onSubmit={onSubmit} />);
+    const { getByPlaceholderText } = render(
+      <MessageInput {...defaultProps} onSubmit={onSubmit} />,
+    );
     await flushAsync();
     const input = getByPlaceholderText('Enter a message');
 
@@ -374,7 +402,9 @@ describe('MessageInput', () => {
 
   it('does not submit when message is empty', async () => {
     const onSubmit = jest.fn();
-    const { getByPlaceholderText } = render(<MessageInput {...defaultProps} onSubmit={onSubmit} />);
+    const { getByPlaceholderText } = render(
+      <MessageInput {...defaultProps} onSubmit={onSubmit} />,
+    );
     await flushAsync();
     const input = getByPlaceholderText('Enter a message');
 
@@ -388,7 +418,7 @@ describe('MessageInput', () => {
   it('does not submit when disabled', async () => {
     const onSubmit = jest.fn();
     const { getByPlaceholderText } = render(
-      <MessageInput {...defaultProps} disabled={true} onSubmit={onSubmit} />
+      <MessageInput {...defaultProps} disabled={true} onSubmit={onSubmit} />,
     );
     await flushAsync();
     const input = getByPlaceholderText('Enter a message');
@@ -459,7 +489,7 @@ describe('MessageInput', () => {
         {...defaultProps}
         prefilledMessage="prefilled text"
         onPrefillUsed={onPrefillUsed}
-      />
+      />,
     );
     await flushAsync();
     const input = comp.getByPlaceholderText('Enter a message');
@@ -474,7 +504,7 @@ describe('MessageInput', () => {
         {...defaultProps}
         prefilledMessage="some message"
         onPrefillUsed={onPrefillUsed}
-      />
+      />,
     );
     await flushAsync();
     expect(onPrefillUsed).toHaveBeenCalled();
@@ -482,7 +512,9 @@ describe('MessageInput', () => {
 
   // ── bottomInset ───────────────────────────────────────────────────────────
   it('accepts bottomInset prop', async () => {
-    const { toJSON } = render(<MessageInput {...defaultProps} bottomInset={20} />);
+    const { toJSON } = render(
+      <MessageInput {...defaultProps} bottomInset={20} />,
+    );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
   });
@@ -503,10 +535,12 @@ describe('MessageInput', () => {
   // ── setting change listeners ──────────────────────────────────────────────
   it('responds to showSendButton setting change without crashing', async () => {
     const listeners = new Map<string, (v: any) => void>();
-    mockOnSettingChange.mockImplementation((key: string, cb: (v: any) => void) => {
-      listeners.set(key, cb);
-      return jest.fn();
-    });
+    mockOnSettingChange.mockImplementation(
+      (key: string, cb: (v: any) => void) => {
+        listeners.set(key, cb);
+        return jest.fn();
+      },
+    );
 
     render(<MessageInput {...defaultProps} />);
     await flushAsync();
@@ -525,7 +559,12 @@ describe('MessageInput', () => {
   // ── command suggestions ───────────────────────────────────────────────────
   it('shows command suggestions when typing a slash command', async () => {
     const { getByPlaceholderText } = render(
-      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+      <MessageInput
+        {...defaultProps}
+        tabType="channel"
+        tabName="#general"
+        network="TestNet"
+      />,
     );
     await flushAsync();
     const input = getByPlaceholderText('Enter a message');
@@ -568,7 +607,7 @@ describe('MessageInput', () => {
         tabName="#general"
         network="TestNet"
         tabId="channel::TestNet::#general"
-      />
+      />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -584,7 +623,7 @@ describe('MessageInput', () => {
         tabName="#general"
         network="TestNet"
         tabId="channel::TestNet::#general"
-      />
+      />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -657,7 +696,12 @@ describe('MessageInput', () => {
 
   it('unmounts cleanly when typing indicator is active', async () => {
     const { getByPlaceholderText, unmount } = render(
-      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+      <MessageInput
+        {...defaultProps}
+        tabType="channel"
+        tabName="#general"
+        network="TestNet"
+      />,
     );
     await flushAsync();
     const input = getByPlaceholderText('Enter a message');
@@ -678,7 +722,7 @@ describe('MessageInput', () => {
         tabName="#general"
         network="TestNet"
         tabId="channel::TestNet::#general"
-      />
+      />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -692,7 +736,7 @@ describe('MessageInput', () => {
         tabName="Alice"
         network="TestNet"
         tabId="query::TestNet::Alice"
-      />
+      />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -701,7 +745,9 @@ describe('MessageInput', () => {
   // ── message submission with IRC commands ──────────────────────────────────
   it('submits IRC slash commands', async () => {
     const onSubmit = jest.fn();
-    const { getByPlaceholderText } = render(<MessageInput {...defaultProps} onSubmit={onSubmit} />);
+    const { getByPlaceholderText } = render(
+      <MessageInput {...defaultProps} onSubmit={onSubmit} />,
+    );
     await flushAsync();
     const input = getByPlaceholderText('Enter a message');
 
@@ -711,14 +757,18 @@ describe('MessageInput', () => {
     // Wait for state update before submitting
     await flushAsync();
     await act(async () => {
-      fireEvent(input, 'submitEditing', { nativeEvent: { text: '/join #test' } });
+      fireEvent(input, 'submitEditing', {
+        nativeEvent: { text: '/join #test' },
+      });
     });
     expect(onSubmit).toHaveBeenCalledWith('/join #test');
   });
 
   it('submits /me action command', async () => {
     const onSubmit = jest.fn();
-    const { getByPlaceholderText } = render(<MessageInput {...defaultProps} onSubmit={onSubmit} />);
+    const { getByPlaceholderText } = render(
+      <MessageInput {...defaultProps} onSubmit={onSubmit} />,
+    );
     await flushAsync();
     const input = getByPlaceholderText('Enter a message');
 
@@ -728,7 +778,9 @@ describe('MessageInput', () => {
     // Wait for state update before submitting
     await flushAsync();
     await act(async () => {
-      fireEvent(input, 'submitEditing', { nativeEvent: { text: '/me waves hello' } });
+      fireEvent(input, 'submitEditing', {
+        nativeEvent: { text: '/me waves hello' },
+      });
     });
     expect(onSubmit).toHaveBeenCalledWith('/me waves hello');
   });
@@ -765,7 +817,12 @@ describe('MessageInput', () => {
       return Promise.resolve(fallback);
     });
     const { toJSON } = render(
-      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+      <MessageInput
+        {...defaultProps}
+        tabType="channel"
+        tabName="#general"
+        network="TestNet"
+      />,
     );
     await flushAsync();
     expect(toJSON()).toBeTruthy();
@@ -792,7 +849,7 @@ describe('MessageInput', () => {
         tabType="channel"
         tabName="#general"
         network="TestNet"
-      />
+      />,
     );
     await flushAsync();
     const input = comp.getByPlaceholderText('Enter a message');
@@ -819,7 +876,12 @@ describe('MessageInput', () => {
     ]);
 
     const comp = render(
-      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+      <MessageInput
+        {...defaultProps}
+        tabType="channel"
+        tabName="#general"
+        network="TestNet"
+      />,
     );
     await flushAsync();
     const input = comp.getByPlaceholderText('Enter a message');
@@ -846,7 +908,12 @@ describe('MessageInput', () => {
     ]);
 
     const comp = render(
-      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+      <MessageInput
+        {...defaultProps}
+        tabType="channel"
+        tabName="#general"
+        network="TestNet"
+      />,
     );
     await flushAsync();
     const input = comp.getByPlaceholderText('Enter a message');
@@ -856,7 +923,9 @@ describe('MessageInput', () => {
     });
 
     await act(async () => {
-      fireEvent.press(comp.getByText('/msg NickServ identify hunter2 — NickServ identify'));
+      fireEvent.press(
+        comp.getByText('/msg NickServ identify hunter2 — NickServ identify'),
+      );
     });
     expect(input.props.value).toBe('/msg NickServ identify hunter2 ');
   });
@@ -870,7 +939,12 @@ describe('MessageInput', () => {
     ]);
 
     const comp = render(
-      <MessageInput {...defaultProps} tabType="channel" tabName="#general" network="TestNet" />
+      <MessageInput
+        {...defaultProps}
+        tabType="channel"
+        tabName="#general"
+        network="TestNet"
+      />,
     );
     await flushAsync();
     const input = comp.getByPlaceholderText('Enter a message');
@@ -912,7 +986,12 @@ describe('MessageInput', () => {
 
     await act(async () => {
       fireEvent(input, 'selectionChange', {
-        nativeEvent: { selection: { start: input.props.value.length, end: input.props.value.length } },
+        nativeEvent: {
+          selection: {
+            start: input.props.value.length,
+            end: input.props.value.length,
+          },
+        },
       });
       fireEvent.press(comp.getByLabelText('Mock insert color'));
     });
@@ -936,7 +1015,7 @@ describe('MessageInput', () => {
         tabName="#general"
         network="TestNet"
         tabId="channel::TestNet::#general"
-      />
+      />,
     );
     await flushAsync();
 

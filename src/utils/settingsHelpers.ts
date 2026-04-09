@@ -21,28 +21,28 @@ export interface SectionIcon {
  */
 export const getSectionIcon = (sectionId: string): SectionIcon | null => {
   const iconMap: Record<string, SectionIcon | null> = {
-    'premium': null, // No icon for Premium as requested
-    'appearance': { name: 'palette', solid: true },
+    premium: null, // No icon for Premium as requested
+    appearance: { name: 'palette', solid: true },
     'znc-subscription': { name: 'server', solid: false },
     'display-ui': { name: 'desktop', solid: false },
     'messages-history': { name: 'history', solid: false },
-    'media': { name: 'image', solid: false },
-    'notifications': { name: 'bell', solid: true },
-    'away': { name: 'clock', solid: false },
-    'protection': { name: 'shield-alt', solid: false },
-    'writing': { name: 'pen-fancy', solid: false },
-    'highlighting': { name: 'highlighter', solid: false },
+    media: { name: 'image', solid: false },
+    notifications: { name: 'bell', solid: true },
+    away: { name: 'clock', solid: false },
+    protection: { name: 'shield-alt', solid: false },
+    writing: { name: 'pen-fancy', solid: false },
+    highlighting: { name: 'highlighter', solid: false },
     'connection-network': { name: 'network-wired', solid: false },
-    'security': { name: 'shield-alt', solid: true },
+    security: { name: 'shield-alt', solid: true },
     'users-services': { name: 'users', solid: false },
-    'commands': { name: 'terminal', solid: false },
-    'performance': { name: 'tachometer-alt', solid: false },
+    commands: { name: 'terminal', solid: false },
+    performance: { name: 'tachometer-alt', solid: false },
     'background-battery': { name: 'battery-full', solid: false },
     'scripting-ads': { name: 'code', solid: false },
     'privacy-legal': { name: 'lock', solid: false },
-    'development': { name: 'tools', solid: false },
-    'about': { name: 'info-circle', solid: true },
-    'help': { name: 'question-circle', solid: false },
+    development: { name: 'tools', solid: false },
+    about: { name: 'info-circle', solid: true },
+    help: { name: 'question-circle', solid: false },
   };
 
   return iconMap[sectionId] || null;
@@ -61,7 +61,7 @@ export const matches = (text: string | undefined, term: string): boolean => {
  */
 export const filterSettings = (
   sections: SettingsSection[],
-  searchTerm: string
+  searchTerm: string,
 ): SettingsSection[] => {
   const term = searchTerm.trim().toLowerCase();
   if (!term) return sections;
@@ -75,13 +75,14 @@ export const filterSettings = (
 
       // Otherwise filter items
       const data = section.data.filter(item => {
-        const selfMatch = matches(item.title, term) || matches(item.description, term);
-        const subMatch = item.submenuItems?.some(sub =>
-          matches(sub.title, term) || matches(sub.description, term)
+        const selfMatch =
+          matches(item.title, term) || matches(item.description, term);
+        const subMatch = item.submenuItems?.some(
+          sub => matches(sub.title, term) || matches(sub.description, term),
         );
         // Also check search keywords
         const keywordMatch = item.searchKeywords?.some(keyword =>
-          matches(keyword, term)
+          matches(keyword, term),
         );
         return selfMatch || subMatch || keywordMatch;
       });
@@ -99,14 +100,14 @@ export const orderSections = (
   sections: SettingsSection[],
   isSupporter: boolean = false,
   hasNoAds: boolean = false,
-  hasScriptingPro: boolean = false
+  hasScriptingPro: boolean = false,
 ): SettingsSection[] => {
   // Check if user has any premium status
   const isPremiumUser = isSupporter || hasNoAds || hasScriptingPro;
 
   // Define section order by ID - Premium at top for non-paying, at bottom for paying
   const sectionOrderForPremium: string[] = [
-    'premium',                    // Premium features first for non-paying users
+    'premium', // Premium features first for non-paying users
     'connection-network',
     'appearance',
     'display-ui',
@@ -151,12 +152,14 @@ export const orderSections = (
     'development',
     'about',
     'help',
-    'premium',                    // Premium at bottom for paying users
+    'premium', // Premium at bottom for paying users
     'znc-subscription',
   ];
 
   // Choose order based on premium status
-  const sectionOrder = isPremiumUser ? sectionOrderForRegular : sectionOrderForPremium;
+  const sectionOrder = isPremiumUser
+    ? sectionOrderForRegular
+    : sectionOrderForPremium;
 
   // Sort sections based on order using section ID
   const ordered = [...sections].sort((a, b) => {
@@ -182,7 +185,7 @@ export const orderSections = (
  */
 export const validateSetting = (
   value: any,
-  type: 'string' | 'number' | 'boolean' | 'array'
+  type: 'string' | 'number' | 'boolean' | 'array',
 ): boolean => {
   switch (type) {
     case 'string':
@@ -203,7 +206,7 @@ export const validateSetting = (
  */
 export const formatSettingDescription = (
   template: string,
-  values: Record<string, string | number | boolean>
+  values: Record<string, string | number | boolean>,
 ): string => {
   let formatted = template;
   Object.entries(values).forEach(([key, value]) => {
@@ -237,17 +240,23 @@ export interface GlobalProxyInputs {
 
 export const buildGlobalProxyConfig = (
   inputs: GlobalProxyInputs,
-  overrides?: Partial<GlobalProxyInputs>
+  overrides?: Partial<GlobalProxyInputs>,
 ): GlobalProxyConfig => {
   const enabled = overrides?.enabled ?? inputs.enabled;
-  const type = ((overrides?.type ?? inputs.type) || 'socks5') as 'socks5' | 'socks4' | 'http';
+  const type = ((overrides?.type ?? inputs.type) || 'socks5') as
+    | 'socks5'
+    | 'socks4'
+    | 'http';
   const host = (overrides?.host ?? inputs.host)?.trim() || undefined;
   const portStr = overrides?.port ?? inputs.port;
-  const username = (overrides?.username ?? inputs.username)?.trim() || undefined;
-  const password = (overrides?.password ?? inputs.password)?.trim() || undefined;
+  const username =
+    (overrides?.username ?? inputs.username)?.trim() || undefined;
+  const password =
+    (overrides?.password ?? inputs.password)?.trim() || undefined;
 
   const port = portStr ? parseInt(portStr, 10) : undefined;
-  const validPort = port && !isNaN(port) && port > 0 && port <= 65535 ? port : undefined;
+  const validPort =
+    port && !isNaN(port) && port > 0 && port <= 65535 ? port : undefined;
 
   return {
     enabled,
@@ -264,7 +273,7 @@ export const buildGlobalProxyConfig = (
  */
 export const toggleSectionExpansion = (
   sectionTitle: string,
-  expandedSections: Set<string>
+  expandedSections: Set<string>,
 ): Set<string> => {
   const newExpandedSections = new Set(expandedSections);
   if (newExpandedSections.has(sectionTitle)) {
@@ -281,18 +290,18 @@ export const toggleSectionExpansion = (
 export const getSettingIcon = (
   item: SettingItem,
   iconMap: Record<string, any>,
-  defaultIcon?: any
+  defaultIcon?: any,
 ): any => {
   // If item has explicit icon, use it
   if (typeof item.icon === 'object' && item.icon) {
     return item.icon;
   }
-  
+
   // Check icon map
   if (iconMap[item.id]) {
     return iconMap[item.id];
   }
-  
+
   // Return default icon if provided
   return defaultIcon;
 };

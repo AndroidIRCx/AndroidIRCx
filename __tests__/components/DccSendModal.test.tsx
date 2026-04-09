@@ -63,10 +63,13 @@ describe('DccSendModal', () => {
         onChangeFilePath={onChangeFilePath}
         onSend={onSend}
         styles={styles}
-      />
+      />,
     );
 
-    fireEvent.changeText(getByPlaceholderText('Or enter file path manually'), '/tmp/manual.zip');
+    fireEvent.changeText(
+      getByPlaceholderText('Or enter file path manually'),
+      '/tmp/manual.zip',
+    );
     await act(async () => {
       fireEvent.press(getByText('Send'));
     });
@@ -86,7 +89,7 @@ describe('DccSendModal', () => {
         onChangeFilePath={jest.fn()}
         onSend={onSend}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
@@ -94,7 +97,10 @@ describe('DccSendModal', () => {
     });
 
     expect(onSend).not.toHaveBeenCalled();
-    expect(Alert.alert).not.toHaveBeenCalledWith('No file selected', 'Please select a file to send');
+    expect(Alert.alert).not.toHaveBeenCalledWith(
+      'No file selected',
+      'Please select a file to send',
+    );
   });
 
   it('handles browse success via fileCopyUri', async () => {
@@ -116,7 +122,7 @@ describe('DccSendModal', () => {
         onChangeFilePath={onChangeFilePath}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
@@ -141,7 +147,7 @@ describe('DccSendModal', () => {
         onChangeFilePath={onChangeFilePath}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
@@ -173,14 +179,17 @@ describe('DccSendModal', () => {
         onChangeFilePath={onChangeFilePath}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
       fireEvent.press(getByText('Browse Files'));
     });
 
-    expect(mockCopyFile).toHaveBeenCalledWith('content://provider/file2', '/doc/copy-target.txt');
+    expect(mockCopyFile).toHaveBeenCalledWith(
+      'content://provider/file2',
+      '/doc/copy-target.txt',
+    );
     expect(onChangeFilePath).toHaveBeenCalledWith('/doc/copy-target.txt');
   });
 
@@ -205,15 +214,22 @@ describe('DccSendModal', () => {
         onChangeFilePath={onChangeFilePath}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
       fireEvent.press(getByText('Browse Files'));
     });
 
-    expect(mockReadFile).toHaveBeenCalledWith('content://provider/file3', 'base64');
-    expect(mockWriteFile).toHaveBeenCalledWith('/doc/fallback.txt', 'YmFzZTY0', 'base64');
+    expect(mockReadFile).toHaveBeenCalledWith(
+      'content://provider/file3',
+      'base64',
+    );
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      '/doc/fallback.txt',
+      'YmFzZTY0',
+      'base64',
+    );
     expect(onChangeFilePath).toHaveBeenCalledWith('/doc/fallback.txt');
   });
 
@@ -236,14 +252,17 @@ describe('DccSendModal', () => {
         onChangeFilePath={jest.fn()}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
       fireEvent.press(getByText('Browse Files'));
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not access the selected file. Please try a different file.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Could not access the selected file. Please try a different file.',
+    );
   });
 
   it('alerts when selected file cannot be verified', async () => {
@@ -265,7 +284,7 @@ describe('DccSendModal', () => {
         onChangeFilePath={onChangeFilePath}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
@@ -273,7 +292,10 @@ describe('DccSendModal', () => {
     });
 
     expect(onChangeFilePath).not.toHaveBeenCalled();
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not access the selected file. Please try again.');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Could not access the selected file. Please try again.',
+    );
   });
 
   it('alerts when file stat verification throws', async () => {
@@ -295,14 +317,17 @@ describe('DccSendModal', () => {
         onChangeFilePath={jest.fn()}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
       fireEvent.press(getByText('Browse Files'));
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not verify file access: stat failed');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Could not verify file access: stat failed',
+    );
   });
 
   it('shows no-file alert when send handler is invoked without a path', async () => {
@@ -315,15 +340,20 @@ describe('DccSendModal', () => {
         onChangeFilePath={jest.fn()}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
-    const disabledSendButton = UNSAFE_root.findAll((node) => node.props?.disabled === true)[0];
+    const disabledSendButton = UNSAFE_root.findAll(
+      node => node.props?.disabled === true,
+    )[0];
     await act(async () => {
       await disabledSendButton.props.onPress();
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith('No file selected', 'Please select a file to send');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'No file selected',
+      'Please select a file to send',
+    );
   });
 
   it('prevents duplicate browse actions while a pick is already in progress', async () => {
@@ -332,7 +362,7 @@ describe('DccSendModal', () => {
       () =>
         new Promise<any[]>(resolve => {
           resolvePick = resolve;
-        })
+        }),
     );
 
     const { getByText } = render(
@@ -344,7 +374,7 @@ describe('DccSendModal', () => {
         onChangeFilePath={jest.fn()}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     fireEvent.press(getByText('Browse Files'));
@@ -370,14 +400,17 @@ describe('DccSendModal', () => {
         onChangeFilePath={jest.fn()}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
       fireEvent.press(getByText('Cancel'));
     });
 
-    expect(warnSpy).toHaveBeenCalledWith('[DccSendModal] Failed to clean up copied file:', expect.any(Error));
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[DccSendModal] Failed to clean up copied file:',
+      expect.any(Error),
+    );
     warnSpy.mockRestore();
   });
 
@@ -394,7 +427,7 @@ describe('DccSendModal', () => {
         onChangeFilePath={jest.fn()}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
 
     await act(async () => {
@@ -413,11 +446,14 @@ describe('DccSendModal', () => {
         onChangeFilePath={jest.fn()}
         onSend={jest.fn().mockResolvedValue(undefined)}
         styles={styles}
-      />
+      />,
     );
     await act(async () => {
       fireEvent.press(getByText('Browse Files'));
     });
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to select file: picker failed');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Failed to select file: picker failed',
+    );
   });
 });

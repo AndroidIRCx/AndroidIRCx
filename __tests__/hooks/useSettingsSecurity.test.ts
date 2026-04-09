@@ -30,19 +30,26 @@ jest.mock('../../src/services/SettingsService', () => ({
     setSetting: jest.fn().mockResolvedValue(undefined),
     onSettingChange: jest.fn((key: string, cb: any) => {
       settingChangeCallbacks[key] = cb;
-      return jest.fn(() => { delete settingChangeCallbacks[key]; });
+      return jest.fn(() => {
+        delete settingChangeCallbacks[key];
+      });
     }),
   },
 }));
 
 import { settingsService } from '../../src/services/SettingsService';
 
-const flushPromises = () => act(async () => { await new Promise(r => setTimeout(r, 0)); });
+const flushPromises = () =>
+  act(async () => {
+    await new Promise(r => setTimeout(r, 0));
+  });
 
 describe('useSettingsSecurity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    Object.keys(settingChangeCallbacks).forEach(k => delete settingChangeCallbacks[k]);
+    Object.keys(settingChangeCallbacks).forEach(
+      k => delete settingChangeCallbacks[k],
+    );
   });
 
   it('should load settings from service', async () => {
@@ -65,12 +72,30 @@ describe('useSettingsSecurity', () => {
     await flushPromises();
 
     expect(settingsService.onSettingChange).toHaveBeenCalledTimes(6);
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('killSwitchCustomName', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('killSwitchCustomIcon', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('killSwitchCustomColor', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('killSwitchEnabledOnHeader', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('killSwitchEnabledOnLockScreen', expect.any(Function));
-    expect(settingsService.onSettingChange).toHaveBeenCalledWith('killSwitchShowWarnings', expect.any(Function));
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'killSwitchCustomName',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'killSwitchCustomIcon',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'killSwitchCustomColor',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'killSwitchEnabledOnHeader',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'killSwitchEnabledOnLockScreen',
+      expect.any(Function),
+    );
+    expect(settingsService.onSettingChange).toHaveBeenCalledWith(
+      'killSwitchShowWarnings',
+      expect.any(Function),
+    );
   });
 
   it('should update state when setting change listener fires', async () => {
@@ -138,7 +163,10 @@ describe('useSettingsSecurity', () => {
       await result.current.setKillSwitchEnabledOnHeader(false);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('killSwitchEnabledOnHeader', false);
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'killSwitchEnabledOnHeader',
+      false,
+    );
     expect(result.current.killSwitchEnabledOnHeader).toBe(false);
   });
 
@@ -151,7 +179,10 @@ describe('useSettingsSecurity', () => {
       await result.current.setKillSwitchEnabledOnLockScreen(true);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('killSwitchEnabledOnLockScreen', true);
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'killSwitchEnabledOnLockScreen',
+      true,
+    );
     expect(result.current.killSwitchEnabledOnLockScreen).toBe(true);
   });
 
@@ -164,7 +195,10 @@ describe('useSettingsSecurity', () => {
       await result.current.setKillSwitchShowWarnings(false);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('killSwitchShowWarnings', false);
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'killSwitchShowWarnings',
+      false,
+    );
     expect(result.current.killSwitchShowWarnings).toBe(false);
   });
 
@@ -177,7 +211,10 @@ describe('useSettingsSecurity', () => {
       await result.current.setKillSwitchCustomName('Emergency');
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('killSwitchCustomName', 'Emergency');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'killSwitchCustomName',
+      'Emergency',
+    );
     expect(result.current.killSwitchCustomName).toBe('Emergency');
   });
 
@@ -190,7 +227,10 @@ describe('useSettingsSecurity', () => {
       await result.current.setKillSwitchCustomIcon('warning');
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('killSwitchCustomIcon', 'warning');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'killSwitchCustomIcon',
+      'warning',
+    );
     expect(result.current.killSwitchCustomIcon).toBe('warning');
   });
 
@@ -203,7 +243,10 @@ describe('useSettingsSecurity', () => {
       await result.current.setKillSwitchCustomColor('#00ff00');
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('killSwitchCustomColor', '#00ff00');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'killSwitchCustomColor',
+      '#00ff00',
+    );
     expect(result.current.killSwitchCustomColor).toBe('#00ff00');
   });
 
@@ -216,7 +259,10 @@ describe('useSettingsSecurity', () => {
       await result.current.setQuickConnectNetworkId('net-2');
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('quickConnectNetworkId', 'net-2');
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'quickConnectNetworkId',
+      'net-2',
+    );
     expect(result.current.quickConnectNetworkId).toBe('net-2');
   });
 
@@ -229,7 +275,10 @@ describe('useSettingsSecurity', () => {
       await result.current.setQuickConnectNetworkId(null);
     });
 
-    expect(settingsService.setSetting).toHaveBeenCalledWith('quickConnectNetworkId', null);
+    expect(settingsService.setSetting).toHaveBeenCalledWith(
+      'quickConnectNetworkId',
+      null,
+    );
     expect(result.current.quickConnectNetworkId).toBeNull();
   });
 

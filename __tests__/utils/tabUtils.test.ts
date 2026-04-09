@@ -134,7 +134,9 @@ describe('tabUtils', () => {
       const result = sortTabsGrouped(mockTabs, true);
 
       // Find net-a channels
-      const netATabs = result.filter(t => t.networkId === 'net-a' && t.type === 'channel');
+      const netATabs = result.filter(
+        t => t.networkId === 'net-a' && t.type === 'channel',
+      );
       expect(netATabs[0].name).toBe('#alpha');
       expect(netATabs[1].name).toBe('#zebra');
     });

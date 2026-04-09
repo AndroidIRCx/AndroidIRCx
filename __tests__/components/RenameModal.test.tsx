@@ -11,10 +11,24 @@ import { RenameModal } from '../../src/components/RenameModal';
 
 const mockStyles = {
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { backgroundColor: '#fff', padding: 20, margin: 20, borderRadius: 8 },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    margin: 20,
+    borderRadius: 8,
+  },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
-  modalInput: { borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 4 },
-  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 8,
+    borderRadius: 4,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 16,
+  },
   modalButton: { padding: 12, marginLeft: 8 },
   modalButtonCancel: { backgroundColor: '#ccc' },
   modalButtonJoin: { backgroundColor: '#007AFF' },
@@ -42,7 +56,9 @@ describe('RenameModal', () => {
   });
 
   it('should not render when not visible', () => {
-    const { queryByText } = render(<RenameModal {...defaultProps} visible={false} />);
+    const { queryByText } = render(
+      <RenameModal {...defaultProps} visible={false} />,
+    );
     expect(queryByText('Rename Server Tab')).toBeNull();
   });
 
@@ -68,7 +84,7 @@ describe('RenameModal', () => {
 
   it('should display current value in input', () => {
     const { getByDisplayValue } = render(
-      <RenameModal {...defaultProps} value="Current Name" />
+      <RenameModal {...defaultProps} value="Current Name" />,
     );
     expect(getByDisplayValue('Current Name')).toBeTruthy();
   });

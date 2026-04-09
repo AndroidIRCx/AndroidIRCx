@@ -16,7 +16,8 @@ import { useUIStore } from '../../../stores/uiStore';
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 /** Returns true if WHOIS messages should be routed to the active tab */
-const isWhoisActiveMode = () => useUIStore.getState().whoisDisplayMode === 'active';
+const isWhoisActiveMode = () =>
+  useUIStore.getState().whoisDisplayMode === 'active';
 
 /** 301 RPL_AWAY - Away message */
 export const handle301: NumericHandler = (ctx, prefix, params, timestamp) => {
@@ -24,7 +25,10 @@ export const handle301: NumericHandler = (ctx, prefix, params, timestamp) => {
   const awayMsg = params.slice(2).join(' ').replace(/^:/, '') || t('is away');
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} is away: {message}', { nick: awayNick, message: awayMsg }),
+    text: t('*** {nick} is away: {message}', {
+      nick: awayNick,
+      message: awayMsg,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -33,7 +37,9 @@ export const handle301: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 305 RPL_UNAWAY - No longer marked as being away */
 export const handle305: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('You are no longer marked as being away');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') ||
+    t('You are no longer marked as being away');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -45,7 +51,9 @@ export const handle305: NumericHandler = (ctx, prefix, params, timestamp) => {
 
 /** 306 RPL_NOWAWAY - Marked as being away */
 export const handle306: NumericHandler = (ctx, prefix, params, timestamp) => {
-  const message = params.slice(1).join(' ').replace(/^:/, '') || t('You have been marked as being away');
+  const message =
+    params.slice(1).join(' ').replace(/^:/, '') ||
+    t('You have been marked as being away');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {message}', { message }),
@@ -58,17 +66,22 @@ export const handle306: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 307 RPL_WHOISREGNICK - Registered nick */
 export const handle307: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('has identified for this nick');
-  
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') ||
+    t('has identified for this nick');
+
   // Update WHOIS cache
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: whoisNick,
-      isRegistered: true,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: whoisNick,
+        isRegistered: true,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
@@ -82,17 +95,21 @@ export const handle307: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 308 RPL_WHOISADMIN - Admin status */
 export const handle308: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is an admin');
-  
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('is an admin');
+
   // Update WHOIS cache
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: whoisNick,
-      isAdmin: true,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: whoisNick,
+        isAdmin: true,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
@@ -106,17 +123,21 @@ export const handle308: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 309 RPL_WHOISSADMIN - Services admin */
 export const handle309: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is a services admin');
-  
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('is a services admin');
+
   // Update WHOIS cache
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: whoisNick,
-      isServicesAdmin: true,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: whoisNick,
+        isServicesAdmin: true,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
@@ -130,17 +151,21 @@ export const handle309: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 310 RPL_WHOISHELPOP - Help operator */
 export const handle310: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is available for help');
-  
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('is available for help');
+
   // Update WHOIS cache
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: whoisNick,
-      isHelpOp: true,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: whoisNick,
+        isHelpOp: true,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
@@ -194,17 +219,21 @@ export const handle312: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 313 RPL_WHOISOPERATOR - IRC Operator */
 export const handle313: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is an IRC operator');
-  
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('is an IRC operator');
+
   // Update WHOIS cache
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: whoisNick,
-      isOper: true,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: whoisNick,
+        isOper: true,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
@@ -215,8 +244,10 @@ export const handle313: NumericHandler = (ctx, prefix, params, timestamp) => {
   });
   if (whoisNick && whoisNick === ctx.getCurrentNick()) {
     ctx.addRawMessage(
-      t('*** You are now an IRC operator. Quick aliases: /oper /kill /gline /rehash /locops /wallops'),
-      'user'
+      t(
+        '*** You are now an IRC operator. Quick aliases: /oper /kill /gline /rehash /locops /wallops',
+      ),
+      'user',
     );
   }
 };
@@ -262,7 +293,10 @@ export const handle317: NumericHandler = (ctx, prefix, params, timestamp) => {
     idleText = t('{seconds} seconds', { seconds: idleSeconds });
   }
 
-  const signonDate = signonTime > 0 ? new Date(signonTime * 1000).toLocaleString() : t('unknown');
+  const signonDate =
+    signonTime > 0
+      ? new Date(signonTime * 1000).toLocaleString()
+      : t('unknown');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} has been idle {idle}, signed on {date}', {
@@ -300,7 +334,10 @@ export const handle319: NumericHandler = (ctx, prefix, params, timestamp) => {
   const channels = channelsStr.split(/\s+/).filter(c => c.length > 0);
   ctx.addMessage({
     type: 'raw',
-    text: t('*** {nick} is on channels: {channels}', { nick: whoisNick, channels: channelsStr }),
+    text: t('*** {nick} is on channels: {channels}', {
+      nick: whoisNick,
+      channels: channelsStr,
+    }),
     timestamp,
     isRaw: true,
     rawCategory: 'server',
@@ -315,17 +352,21 @@ export const handle319: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 320 RPL_WHOISSPECIAL - Special status */
 export const handle320: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is special');
-  
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('is special');
+
   // Update WHOIS cache
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: whoisNick,
-      specialStatus: message,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: whoisNick,
+        specialStatus: message,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
@@ -357,16 +398,19 @@ export const handle330: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle335: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
   const message = params.slice(2).join(' ').replace(/^:/, '') || t('is a bot');
-  
+
   // Update WHOIS cache
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: whoisNick,
-      isBot: true,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: whoisNick,
+        isBot: true,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
@@ -410,16 +454,19 @@ export const handle369: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle378: NumericHandler = (ctx, prefix, params, timestamp) => {
   const targetNick = params[1] || '';
   const hostInfo = params.slice(2).join(' ').replace(/^:/, '') || '';
-  
+
   // Update WHOIS cache with connecting from info
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: targetNick,
-      connectingFrom: hostInfo,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: targetNick,
+        connectingFrom: hostInfo,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} is connecting from {host}', {
@@ -437,16 +484,19 @@ export const handle378: NumericHandler = (ctx, prefix, params, timestamp) => {
 export const handle379: NumericHandler = (ctx, prefix, params, timestamp) => {
   const targetNick = params[1] || '';
   const modes = params.slice(2).join(' ').replace(/^:/, '') || '';
-  
+
   // Update WHOIS cache with modes info
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: targetNick,
-      modes,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: targetNick,
+        modes,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} is using modes {modes}', {
@@ -499,7 +549,8 @@ export const handle304: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 316 RPL_WHOISCHANOP - Channel operator status (deprecated) */
 export const handle316: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is a channel operator');
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') || t('is a channel operator');
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),
@@ -513,18 +564,23 @@ export const handle316: NumericHandler = (ctx, prefix, params, timestamp) => {
 /** 671 RPL_WHOISSECURE - Secure connection (SSL/TLS) */
 export const handle671: NumericHandler = (ctx, prefix, params, timestamp) => {
   const whoisNick = params[1] || '';
-  const message = params.slice(2).join(' ').replace(/^:/, '') || t('is using a secure connection');
-  
+  const message =
+    params.slice(2).join(' ').replace(/^:/, '') ||
+    t('is using a secure connection');
+
   // Update WHOIS cache with secure connection info
   const userMgmt = ctx.getUserManagementService();
   if (userMgmt && userMgmt.updateWHOIS) {
-    userMgmt.updateWHOIS({
-      nick: whoisNick,
-      secure: true,
-      secureMessage: message,
-    }, ctx.getNetworkName());
+    userMgmt.updateWHOIS(
+      {
+        nick: whoisNick,
+        secure: true,
+        secureMessage: message,
+      },
+      ctx.getNetworkName(),
+    );
   }
-  
+
   ctx.addMessage({
     type: 'raw',
     text: t('*** {nick} {message}', { nick: whoisNick, message }),

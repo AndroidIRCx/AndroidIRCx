@@ -5,7 +5,7 @@
 
 /**
  * NotifyService
- * 
+ *
  * Manages the notify list for tracking user online/offline status.
  * Uses MONITOR (IRCv3), WATCH (legacy), or ISON (fallback) depending on server support.
  */
@@ -85,13 +85,15 @@ export class NotifyService extends EventEmitter {
 
     // Primary path: IRCService connection change callbacks
     if (typeof this.ircService.onConnectionChange === 'function') {
-      const offConnectionChange = this.ircService.onConnectionChange((connected: boolean) => {
-        if (connected) {
-          handleConnected();
-        } else {
-          handleDisconnected();
-        }
-      });
+      const offConnectionChange = this.ircService.onConnectionChange(
+        (connected: boolean) => {
+          if (connected) {
+            handleConnected();
+          } else {
+            handleDisconnected();
+          }
+        },
+      );
       if (typeof offConnectionChange === 'function') {
         this.ircUnsubscribers.push(offConnectionChange);
       }
@@ -102,7 +104,10 @@ export class NotifyService extends EventEmitter {
     if (typeof offConnected === 'function') {
       this.ircUnsubscribers.push(offConnected);
     }
-    const offDisconnected = this.ircService.on('disconnected', handleDisconnected);
+    const offDisconnected = this.ircService.on(
+      'disconnected',
+      handleDisconnected,
+    );
     if (typeof offDisconnected === 'function') {
       this.ircUnsubscribers.push(offDisconnected);
     }
@@ -123,9 +128,17 @@ export class NotifyService extends EventEmitter {
     }
 
     // Listen for numeric replies
-    const offNumeric = this.ircService.on('numeric', (numeric: number, prefix: string, params: string[], timestamp: number) => {
-      this.handleNumeric(numeric, params, timestamp);
-    });
+    const offNumeric = this.ircService.on(
+      'numeric',
+      (
+        numeric: number,
+        prefix: string,
+        params: string[],
+        timestamp: number,
+      ) => {
+        this.handleNumeric(numeric, params, timestamp);
+      },
+    );
     if (typeof offNumeric === 'function') {
       this.ircUnsubscribers.push(offNumeric);
     }
@@ -143,12 +156,19 @@ export class NotifyService extends EventEmitter {
     this.ircUnsubscribers = [];
   }
 
-  private handleNumeric(numeric: number, params: string[], timestamp: number): void {
+  private handleNumeric(
+    numeric: number,
+    params: string[],
+    timestamp: number,
+  ): void {
     // Debug: log monitor-related numerics
     if ([600, 601, 604, 605, 730, 731].includes(numeric)) {
-      console.log(`NotifyService: Received numeric ${numeric}, params:`, params);
+      console.log(
+        `NotifyService: Received numeric ${numeric}, params:`,
+        params,
+      );
     }
-    
+
     switch (numeric) {
       case 5: // RPL_ISUPPORT
       case 105: // RPL_REMOTEISUPPORT (some daemons)
@@ -192,7 +212,10 @@ export class NotifyService extends EventEmitter {
       case 730: // RPL_MONONLINE
         {
           const nicksParam = params.slice(1).join(' ').replace(/^:/, '');
-          const nicks = nicksParam.split(',').map(n => n.trim()).filter(Boolean);
+          const nicks = nicksParam
+            .split(',')
+            .map(n => n.trim())
+            .filter(Boolean);
           for (const nickEntry of nicks) {
             // Format can be "nick" or "nick!user@host"
             const [nick, hostPart] = nickEntry.split('!');
@@ -207,7 +230,10 @@ export class NotifyService extends EventEmitter {
       case 731: // RPL_MONOFFLINE
         {
           const nicksParam = params.slice(1).join(' ').replace(/^:/, '');
-          const nicks = nicksParam.split(',').map(n => n.trim()).filter(Boolean);
+          const nicks = nicksParam
+            .split(',')
+            .map(n => n.trim())
+            .filter(Boolean);
           for (const nick of nicks) {
             this.setUserOffline(nick, timestamp);
           }
@@ -229,16 +255,21 @@ export class NotifyService extends EventEmitter {
       // ISON response (303 RPL_ISON)
       case 303:
         {
-          const onlineNicks = params.slice(1).join(' ').replace(/^:/, '').split(' ').filter(Boolean);
+          const onlineNicks = params
+            .slice(1)
+            .join(' ')
+            .replace(/^:/, '')
+            .split(' ')
+            .filter(Boolean);
           // Update status for all queried nicks
           const notifyEntries = this.getNotifyList();
           const onlineSet = new Set(onlineNicks.map(n => n.toLowerCase()));
-          
+
           for (const entry of notifyEntries) {
             const nick = entry.mask.split('!')[0]; // Get nick from mask
             const isOnline = onlineSet.has(nick.toLowerCase());
             const currentStatus = this.notifyStatus.get(nick.toLowerCase());
-            
+
             if (isOnline && !currentStatus?.online) {
               this.setUserOnline(nick, undefined, timestamp);
             } else if (!isOnline && currentStatus?.online) {
@@ -253,8 +284,10 @@ export class NotifyService extends EventEmitter {
   private onConnect(): void {
     // Reset protocol detection
     this.protocol = this.detectProtocol();
-    console.log(`NotifyService: Connected, protocol=${this.protocol}, monitorSupport=${this.serverSupportsMonitor}`);
-    
+    console.log(
+      `NotifyService: Connected, protocol=${this.protocol}, monitorSupport=${this.serverSupportsMonitor}`,
+    );
+
     // Subscribe to notify list
     this.subscribeToNotifyList();
     this.scheduleSubscriptionRetries();
@@ -262,16 +295,19 @@ export class NotifyService extends EventEmitter {
 
   private detectProtocol(): NotifyProtocol {
     // Check for MONITOR support (IRCv3)
-    if (this.serverSupportsMonitor || this.ircService?.hasCapability?.('monitor')) {
+    if (
+      this.serverSupportsMonitor ||
+      this.ircService?.hasCapability?.('monitor')
+    ) {
       return 'monitor';
     }
-    
+
     // Check for WATCH support (older servers)
     // WATCH is usually advertised in ISUPPORT
     if (this.serverSupportsWatch) {
       return 'watch';
     }
-    
+
     // Fallback to ISON
     return 'ison';
   }
@@ -295,9 +331,11 @@ export class NotifyService extends EventEmitter {
 
   private sendMonitorCommand(nicks: string[]): void {
     if (!this.ircService || nicks.length === 0) return;
-    
-    console.log(`NotifyService: Sending MONITOR for ${nicks.length} nicks: ${nicks.join(',')}`);
-    
+
+    console.log(
+      `NotifyService: Sending MONITOR for ${nicks.length} nicks: ${nicks.join(',')}`,
+    );
+
     // MONITOR has a limit per command, split if needed
     const MONITOR_LIMIT = 20;
     for (let i = 0; i < nicks.length; i += MONITOR_LIMIT) {
@@ -308,7 +346,7 @@ export class NotifyService extends EventEmitter {
 
   private sendWatchCommand(nicks: string[]): void {
     if (!this.ircService || nicks.length === 0) return;
-    
+
     // WATCH uses +nick format
     for (const nick of nicks) {
       this.ircService.sendRaw(`WATCH +${nick}`);
@@ -317,13 +355,13 @@ export class NotifyService extends EventEmitter {
 
   private startISONPolling(nicks: string[]): void {
     if (!this.ircService || nicks.length === 0) return;
-    
+
     // Clear existing interval
     this.clearISONInterval();
-    
+
     // Send initial ISON
     this.sendISONCommand(nicks);
-    
+
     // Start polling
     this.isonInterval = setInterval(() => {
       if (this.isConnected) {
@@ -337,7 +375,7 @@ export class NotifyService extends EventEmitter {
 
   private sendISONCommand(nicks: string[]): void {
     if (!this.ircService || nicks.length === 0) return;
-    
+
     // ISON limit is typically around 15 nicks
     const ISON_LIMIT = 15;
     for (let i = 0; i < nicks.length; i += ISON_LIMIT) {
@@ -387,14 +425,17 @@ export class NotifyService extends EventEmitter {
   }
 
   private getNotifyList(): UserListEntry[] {
-    return userManagementService.getUserListEntries('notify', this.currentNetwork);
+    return userManagementService.getUserListEntries(
+      'notify',
+      this.currentNetwork,
+    );
   }
 
   private setUserOnline(nick: string, host?: string, timestamp?: number): void {
     const key = nick.toLowerCase();
     const existing = this.notifyStatus.get(key);
     const wasOffline = !existing?.online;
-    
+
     this.notifyStatus.set(key, {
       online: true,
       host,
@@ -411,7 +452,7 @@ export class NotifyService extends EventEmitter {
     const key = nick.toLowerCase();
     const existing = this.notifyStatus.get(key);
     const wasOnline = existing?.online;
-    
+
     this.notifyStatus.set(key, {
       online: false,
       lastSeen: timestamp || Date.now(),
@@ -428,9 +469,7 @@ export class NotifyService extends EventEmitter {
 
     // Emit as NOTICE from the tracked nick so existing notice routing applies
     // (server/active/notice/private) and nick actions (WHOIS, context menu) work.
-    const message = online
-      ? t('is now online')
-      : t('is now offline');
+    const message = online ? t('is now online') : t('is now offline');
 
     this.ircService.addMessage({
       type: 'notice',
@@ -438,18 +477,18 @@ export class NotifyService extends EventEmitter {
       text: message,
       timestamp: Date.now(),
     });
-    
+
     // Play sound for online notification
     if (online) {
       soundService.playSound(SoundEventType.NOTIFY);
-      
+
       // Show local OS notification
       notificationService.showNotification(
         t('Notify'),
         t('{nick} is now online', { nick }),
         nick,
         this.currentNetwork,
-        'notice'
+        'notice',
       );
     }
   }
@@ -461,8 +500,10 @@ export class NotifyService extends EventEmitter {
    */
   async addNotify(nick: string, network?: string): Promise<void> {
     const net = network || this.currentNetwork;
-    await userManagementService.addUserListEntry('notify', nick, { network: net });
-    
+    await userManagementService.addUserListEntry('notify', nick, {
+      network: net,
+    });
+
     if (this.isConnected && this.protocol) {
       switch (this.protocol) {
         case 'monitor':
@@ -485,7 +526,7 @@ export class NotifyService extends EventEmitter {
   async removeNotify(nick: string, network?: string): Promise<void> {
     const net = network || this.currentNetwork;
     await userManagementService.removeUserListEntry('notify', nick, net);
-    
+
     if (this.isConnected && this.protocol) {
       switch (this.protocol) {
         case 'monitor':
@@ -499,7 +540,7 @@ export class NotifyService extends EventEmitter {
           break;
       }
     }
-    
+
     this.notifyStatus.delete(nick.toLowerCase());
   }
 
@@ -507,7 +548,10 @@ export class NotifyService extends EventEmitter {
    * Get notify list entries
    */
   getNotifyEntries(network?: string): UserListEntry[] {
-    return userManagementService.getUserListEntries('notify', network || this.currentNetwork);
+    return userManagementService.getUserListEntries(
+      'notify',
+      network || this.currentNetwork,
+    );
   }
 
   /**
@@ -530,10 +574,10 @@ export class NotifyService extends EventEmitter {
   async clearAll(network?: string): Promise<void> {
     const net = network || this.currentNetwork;
     const entries = this.getNotifyEntries(net);
-    
+
     if (this.isConnected && this.protocol) {
       const nicks = entries.map(e => e.mask.split('!')[0]).filter(Boolean);
-      
+
       switch (this.protocol) {
         case 'monitor':
           this.ircService?.sendRaw(`MONITOR - ${nicks.join(',')}`);
@@ -547,11 +591,15 @@ export class NotifyService extends EventEmitter {
           break;
       }
     }
-    
+
     for (const entry of entries) {
-      await userManagementService.removeUserListEntry('notify', entry.mask, net);
+      await userManagementService.removeUserListEntry(
+        'notify',
+        entry.mask,
+        net,
+      );
     }
-    
+
     this.notifyStatus.clear();
   }
 

@@ -5,20 +5,59 @@
 
 /* eslint-disable react-native/no-inline-styles -- settings screen uses dynamic local layout styles extensively */
 
-import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
-import { Alert, Modal, View, Text, TextInput, TouchableOpacity, AppState, ScrollView, Switch } from 'react-native';
-import { pick, types, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from 'react';
+import {
+  Alert,
+  Modal,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  AppState,
+  ScrollView,
+  Switch,
+} from 'react-native';
+import {
+  pick,
+  types,
+  isErrorWithCode,
+  errorCodes,
+} from '@react-native-documents/picker';
 import { SettingItem } from '../SettingItem';
 import { useSettingsConnection } from '../../../hooks/useSettingsConnection';
 import { useT } from '../../../i18n/transifex';
-import { SettingItem as SettingItemType, SettingIcon } from '../../../types/settings';
-import { NEW_FEATURE_DEFAULTS, settingsService } from '../../../services/SettingsService';
-import { autoReconnectService, AutoReconnectConfig } from '../../../services/AutoReconnectService';
+import {
+  SettingItem as SettingItemType,
+  SettingIcon,
+} from '../../../types/settings';
+import {
+  NEW_FEATURE_DEFAULTS,
+  settingsService,
+} from '../../../services/SettingsService';
+import {
+  autoReconnectService,
+  AutoReconnectConfig,
+} from '../../../services/AutoReconnectService';
 import { connectionQualityService } from '../../../services/ConnectionQualityService';
 import { autoRejoinService } from '../../../services/AutoRejoinService';
-import { autoVoiceService, AutoVoiceConfig } from '../../../services/AutoVoiceService';
-import { channelFavoritesService, ChannelFavorite } from '../../../services/ChannelFavoritesService';
-import { identityProfilesService, IdentityProfile } from '../../../services/IdentityProfilesService';
+import {
+  autoVoiceService,
+  AutoVoiceConfig,
+} from '../../../services/AutoVoiceService';
+import {
+  channelFavoritesService,
+  ChannelFavorite,
+} from '../../../services/ChannelFavoritesService';
+import {
+  identityProfilesService,
+  IdentityProfile,
+} from '../../../services/IdentityProfilesService';
 import { useSettingsSecurity } from '../../../hooks/useSettingsSecurity';
 import { biometricAuthService } from '../../../services/BiometricAuthService';
 import { secureStorageService } from '../../../services/SecureStorageService';
@@ -76,7 +115,9 @@ type GlobalProxySettings = {
 
 const PIN_STORAGE_KEY = '@AndroidIRCX:pin-lock';
 
-export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> = ({
+export const ConnectionNetworkSection: React.FC<
+  ConnectionNetworkSectionProps
+> = ({
   colors,
   styles,
   settingIcons,
@@ -86,9 +127,10 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   onShowConnectionProfiles,
 }) => {
   const t = useT();
-  const tags = 'screen:settings,file:ConnectionNetworkSection.tsx,feature:settings';
+  const tags =
+    'screen:settings,file:ConnectionNetworkSection.tsx,feature:settings';
   const isMountedRef = useRef(true);
-  
+
   const {
     networks,
     rateLimitConfig,
@@ -101,20 +143,28 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     updateFloodProtectionConfig,
     updateLagMonitoringConfig,
   } = useSettingsConnection();
-  const { quickConnectNetworkId, setQuickConnectNetworkId } = useSettingsSecurity();
+  const { quickConnectNetworkId, setQuickConnectNetworkId } =
+    useSettingsSecurity();
 
   // State for various settings
-  const [autoConnectFavoriteServer, setAutoConnectFavoriteServer] = useState(false);
+  const [autoConnectFavoriteServer, setAutoConnectFavoriteServer] =
+    useState(false);
   const [autoRejoinEnabled, setAutoRejoinEnabled] = useState(false);
-  const [autoVoiceConfig, setAutoVoiceConfig] = useState<AutoVoiceConfig | null>(null);
+  const [autoVoiceConfig, setAutoVoiceConfig] =
+    useState<AutoVoiceConfig | null>(null);
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [allFavorites, setAllFavorites] = useState<ChannelFavorite[]>([]);
-  const [identityProfiles, setIdentityProfiles] = useState<IdentityProfile[]>([]);
-  const [autoJoinFavoritesEnabled, setAutoJoinFavoritesEnabled] = useState(true);
+  const [identityProfiles, setIdentityProfiles] = useState<IdentityProfile[]>(
+    [],
+  );
+  const [autoJoinFavoritesEnabled, setAutoJoinFavoritesEnabled] =
+    useState(true);
   const [dccMinPort, setDccMinPort] = useState(5000);
   const [dccMaxPort, setDccMaxPort] = useState(6000);
   const [dccHostOverride, setDccHostOverride] = useState('');
-  const [dccAutoGetMode, setDccAutoGetMode] = useState<'accept' | 'reject' | 'dont_send'>('accept');
+  const [dccAutoGetMode, setDccAutoGetMode] = useState<
+    'accept' | 'reject' | 'dont_send'
+  >('accept');
   const [dccAcceptExts, setDccAcceptExts] = useState<string[]>([]);
   const [dccRejectExts, setDccRejectExts] = useState<string[]>([]);
   const [dccDontSendExts, setDccDontSendExts] = useState<string[]>([]);
@@ -149,7 +199,8 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       const pickerModule = require('@react-native-documents/picker');
       if (typeof pickerModule.pickDirectory === 'function') {
         const dirResult = await pickerModule.pickDirectory();
-        const dirUri = dirResult?.uri || dirResult?.[0]?.uri || dirResult?.[0]?.fileCopyUri;
+        const dirUri =
+          dirResult?.uri || dirResult?.[0]?.uri || dirResult?.[0]?.fileCopyUri;
         if (dirUri) {
           const folderPath = normalizePickedPath(dirUri);
           setDccDownloadFolder(folderPath);
@@ -164,12 +215,14 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         copyTo: 'cachesDirectory',
       });
       const file = Array.isArray(picked) ? picked[0] : picked;
-      const fileWithCopyUri = file as typeof file & { fileCopyUri?: string | null };
+      const fileWithCopyUri = file as typeof file & {
+        fileCopyUri?: string | null;
+      };
       const fileUri = fileWithCopyUri?.fileCopyUri || file?.uri;
       if (!fileUri) {
         Alert.alert(
           t('Download Folder', { _tags: tags }),
-          t('Folder picker is not supported on this device.', { _tags: tags })
+          t('Folder picker is not supported on this device.', { _tags: tags }),
         );
         return;
       }
@@ -178,51 +231,65 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       if (!folderPath || folderPath === filePath) {
         Alert.alert(
           t('Download Folder', { _tags: tags }),
-          t('Unable to resolve a folder from the selected file.', { _tags: tags })
+          t('Unable to resolve a folder from the selected file.', {
+            _tags: tags,
+          }),
         );
         return;
       }
       setDccDownloadFolder(folderPath);
       await settingsService.setSetting('dccDownloadFolder', folderPath);
     } catch (error: any) {
-      if (isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED) {
+      if (
+        isErrorWithCode(error) &&
+        error.code === errorCodes.OPERATION_CANCELED
+      ) {
         return;
       }
       Alert.alert(
         t('Download Folder', { _tags: tags }),
-        t('Failed to pick a folder. Please try again.', { _tags: tags })
+        t('Failed to pick a folder. Please try again.', { _tags: tags }),
       );
     }
   }, [normalizePickedPath, t, tags]);
-  const [lagCheckMethod, setLagCheckMethod] = useState<'ctcp' | 'server'>('server');
-  const [globalProxyType, setGlobalProxyType] = useState<'socks5' | 'socks4' | 'http' | 'tor'>('socks5');
+  const [lagCheckMethod, setLagCheckMethod] = useState<'ctcp' | 'server'>(
+    'server',
+  );
+  const [globalProxyType, setGlobalProxyType] = useState<
+    'socks5' | 'socks4' | 'http' | 'tor'
+  >('socks5');
   const [globalProxyHost, setGlobalProxyHost] = useState('');
   const [globalProxyPort, setGlobalProxyPort] = useState('');
   const [globalProxyUsername, setGlobalProxyUsername] = useState('');
   const [globalProxyPassword, setGlobalProxyPassword] = useState('');
   const [globalProxyEnabled, setGlobalProxyEnabled] = useState(false);
-  
+
   // Password lock state
   const [biometricLockEnabled, setBiometricLockEnabled] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [passwordsUnlocked, setPasswordsUnlocked] = useState(true);
   const [pinLockEnabled, setPinLockEnabled] = useState(false);
   const [pinModalVisible, setPinModalVisible] = useState(false);
-  const [pinModalMode, setPinModalMode] = useState<'unlock' | 'setup' | 'confirm'>('unlock');
+  const [pinModalMode, setPinModalMode] = useState<
+    'unlock' | 'setup' | 'confirm'
+  >('unlock');
   const [pinEntry, setPinEntry] = useState('');
   const [pinSetupValue, setPinSetupValue] = useState('');
   const [pinError, setPinError] = useState('');
   const pinResolveRef = React.useRef<((ok: boolean) => void) | null>(null);
-  const [whoisAutoDetectDoubleNick, setWhoisAutoDetectDoubleNick] = useState(true);
+  const [whoisAutoDetectDoubleNick, setWhoisAutoDetectDoubleNick] =
+    useState(true);
   const [whoisUseDoubleNick, setWhoisUseDoubleNick] = useState(false);
-  
+
   // Submenu state for ConnectionNetworkSection items
   const [showSubmenu, setShowSubmenu] = useState<string | null>(null);
   const [submenuRefreshKey, setSubmenuRefreshKey] = useState(0);
   const [showProxyTypeModal, setShowProxyTypeModal] = useState(false);
   const [nestedSubmenuStack, setNestedSubmenuStack] = useState<string[]>([]);
   const [showDccExtModal, setShowDccExtModal] = useState(false);
-  const [dccExtModalMode, setDccExtModalMode] = useState<'accept' | 'reject' | 'dont_send'>('accept');
+  const [dccExtModalMode, setDccExtModalMode] = useState<
+    'accept' | 'reject' | 'dont_send'
+  >('accept');
   const [newDccExt, setNewDccExt] = useState('');
   const [showQuickConnectModal, setShowQuickConnectModal] = useState(false);
   const [quickConnectNetworks, setQuickConnectNetworks] = useState(networks);
@@ -230,8 +297,8 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   // Refresh favorites
   const refreshFavorites = useCallback(() => {
     const favoritesMap = channelFavoritesService.getAllFavorites();
-    const flattened = Array.from(favoritesMap.entries()).flatMap(([networkId, favs]) =>
-      favs.map(fav => ({ ...fav, network: networkId }))
+    const flattened = Array.from(favoritesMap.entries()).flatMap(
+      ([networkId, favs]) => favs.map(fav => ({ ...fav, network: networkId })),
     );
     setAllFavorites(flattened);
     setFavoritesCount(flattened.length);
@@ -242,43 +309,94 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     isMountedRef.current = true;
 
     const loadSettings = async () => {
-      const autoConnect = await settingsService.getSetting('autoConnectFavoriteServer', false);
+      const autoConnect = await settingsService.getSetting(
+        'autoConnectFavoriteServer',
+        false,
+      );
       if (!isMountedRef.current) return;
       setAutoConnectFavoriteServer(autoConnect);
-      
-      const autoJoin = await settingsService.getSetting('autoJoinFavorites', true);
+
+      const autoJoin = await settingsService.getSetting(
+        'autoJoinFavorites',
+        true,
+      );
       if (!isMountedRef.current) return;
       setAutoJoinFavoritesEnabled(autoJoin);
-      
-      const lagMethod = await settingsService.getSetting<'server' | 'ctcp'>('lagCheckMethod', 'server');
+
+      const lagMethod = await settingsService.getSetting<'server' | 'ctcp'>(
+        'lagCheckMethod',
+        'server',
+      );
       if (!isMountedRef.current) return;
       setLagCheckMethod(lagMethod);
-      
-      const dccRange = await settingsService.getSetting('dccPortRange', { min: 5000, max: 6000 });
+
+      const dccRange = await settingsService.getSetting('dccPortRange', {
+        min: 5000,
+        max: 6000,
+      });
       if (!isMountedRef.current) return;
       setDccMinPort(dccRange.min || 5000);
       setDccMaxPort(dccRange.max || 6000);
       const dccHost = await settingsService.getSetting('dccHostOverride', '');
       if (!isMountedRef.current) return;
       setDccHostOverride(dccHost);
-      setDccAutoGetMode(await settingsService.getSetting('dccAutoGetMode', 'accept'));
-      setDccAcceptExts(await settingsService.getSetting('dccAcceptExts', NEW_FEATURE_DEFAULTS.dccAcceptExts));
-      setDccRejectExts(await settingsService.getSetting('dccRejectExts', NEW_FEATURE_DEFAULTS.dccRejectExts));
-      setDccDontSendExts(await settingsService.getSetting('dccDontSendExts', NEW_FEATURE_DEFAULTS.dccDontSendExts));
-      setDccAutoChatFrom(await settingsService.getSetting('dccAutoChatFrom', 1));
+      setDccAutoGetMode(
+        await settingsService.getSetting('dccAutoGetMode', 'accept'),
+      );
+      setDccAcceptExts(
+        await settingsService.getSetting(
+          'dccAcceptExts',
+          NEW_FEATURE_DEFAULTS.dccAcceptExts,
+        ),
+      );
+      setDccRejectExts(
+        await settingsService.getSetting(
+          'dccRejectExts',
+          NEW_FEATURE_DEFAULTS.dccRejectExts,
+        ),
+      );
+      setDccDontSendExts(
+        await settingsService.getSetting(
+          'dccDontSendExts',
+          NEW_FEATURE_DEFAULTS.dccDontSendExts,
+        ),
+      );
+      setDccAutoChatFrom(
+        await settingsService.getSetting('dccAutoChatFrom', 1),
+      );
       setDccAutoGetFrom(await settingsService.getSetting('dccAutoGetFrom', 4));
-      setDccServeViewerAuto(await settingsService.getSetting('dccServeViewerAuto', false));
-      setDccCloseQueriesOnChat(await settingsService.getSetting('dccCloseQueriesOnChat', false));
-      setDccRequestOnFail(await settingsService.getSetting('dccRequestOnFail', false));
+      setDccServeViewerAuto(
+        await settingsService.getSetting('dccServeViewerAuto', false),
+      );
+      setDccCloseQueriesOnChat(
+        await settingsService.getSetting('dccCloseQueriesOnChat', false),
+      );
+      setDccRequestOnFail(
+        await settingsService.getSetting('dccRequestOnFail', false),
+      );
       setDccAllowByIp(await settingsService.getSetting('dccAllowByIp', false));
-      setDccBlockPrivateIp(await settingsService.getSetting('dccBlockPrivateIp', true)); // Default to true for security
+      setDccBlockPrivateIp(
+        await settingsService.getSetting('dccBlockPrivateIp', true),
+      ); // Default to true for security
       setDccPassive(await settingsService.getSetting('dccPassive', false));
-      setDccReplyQueueCommands(await settingsService.getSetting('dccReplyQueueCommands', false));
-      setDccSendMaxKbps(String(await settingsService.getSetting('dccSendMaxKbps', 0)));
-      setDccCancelAboveKbps(String(await settingsService.getSetting('dccCancelAboveKbps', 0)));
-      setDccDownloadFolder(await settingsService.getSetting('dccDownloadFolder', ''));
-      
-      const proxy = await settingsService.getSetting<GlobalProxySettings | null>('globalProxy', null);
+      setDccReplyQueueCommands(
+        await settingsService.getSetting('dccReplyQueueCommands', false),
+      );
+      setDccSendMaxKbps(
+        String(await settingsService.getSetting('dccSendMaxKbps', 0)),
+      );
+      setDccCancelAboveKbps(
+        String(await settingsService.getSetting('dccCancelAboveKbps', 0)),
+      );
+      setDccDownloadFolder(
+        await settingsService.getSetting('dccDownloadFolder', ''),
+      );
+
+      const proxy =
+        await settingsService.getSetting<GlobalProxySettings | null>(
+          'globalProxy',
+          null,
+        );
       if (proxy) {
         setGlobalProxyEnabled(Boolean(proxy.enabled));
         setGlobalProxyType(proxy.type || 'socks5');
@@ -287,23 +405,33 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         setGlobalProxyUsername(proxy.username || '');
         setGlobalProxyPassword(proxy.password || '');
       }
-      
-      const biometricLock = await settingsService.getSetting('biometricPasswordLock', false);
+
+      const biometricLock = await settingsService.getSetting(
+        'biometricPasswordLock',
+        false,
+      );
       setBiometricLockEnabled(biometricLock);
-      
-      const pinLock = await settingsService.getSetting('pinPasswordLock', false);
+
+      const pinLock = await settingsService.getSetting(
+        'pinPasswordLock',
+        false,
+      );
       setPinLockEnabled(pinLock);
-      
+
       // Check biometric availability
       const available = await biometricAuthService.isAvailable();
       if (!isMountedRef.current) return;
       setBiometricAvailable(available);
-      
+
       // Load network-specific settings
       if (currentNetwork) {
-        const currentNetworkConfig = networks.find(n => n.id === currentNetwork);
-        const autoDetectWhois = currentNetworkConfig?.whoisAutoDetectDoubleNick !== false;
-        const manualWhoisDoubleNick = currentNetworkConfig?.whoisUseDoubleNick === true;
+        const currentNetworkConfig = networks.find(
+          n => n.id === currentNetwork,
+        );
+        const autoDetectWhois =
+          currentNetworkConfig?.whoisAutoDetectDoubleNick !== false;
+        const manualWhoisDoubleNick =
+          currentNetworkConfig?.whoisUseDoubleNick === true;
         setWhoisAutoDetectDoubleNick(autoDetectWhois);
         setWhoisUseDoubleNick(manualWhoisDoubleNick);
 
@@ -316,15 +444,18 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         const voiceConfig = autoVoiceService.getConfig(currentNetwork);
         setAutoVoiceConfig(voiceConfig || null);
       }
-      
+
       // Load favorites
       refreshFavorites();
-      
+
       // Load identity profiles
-      identityProfilesService.list().then((profiles) => {
-        if (!isMountedRef.current) return;
-        setIdentityProfiles(profiles);
-      }).catch(() => {});
+      identityProfilesService
+        .list()
+        .then(profiles => {
+          if (!isMountedRef.current) return;
+          setIdentityProfiles(profiles);
+        })
+        .catch(() => {});
     };
     loadSettings();
     return () => {
@@ -337,21 +468,34 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
 
   // Re-initialize biometric lock when app returns to foreground
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', async (nextAppState) => {
-      const prevAppState = appStateRef.current;
-      appStateRef.current = nextAppState;
+    const subscription = AppState.addEventListener(
+      'change',
+      async nextAppState => {
+        const prevAppState = appStateRef.current;
+        appStateRef.current = nextAppState;
 
-      // When app returns to foreground (active), re-initialize biometric lock if enabled
-      if (prevAppState !== 'active' && nextAppState === 'active') {
-        const biometricLock = await settingsService.getSetting('biometricPasswordLock', false);
-        const pinLock = await settingsService.getSetting('pinPasswordLock', false);
-        
-        // Lock passwords again when returning to foreground if lock is active
-        if (isMountedRef.current && (biometricLock || pinLock) && passwordsUnlocked) {
-          setPasswordsUnlocked(false);
+        // When app returns to foreground (active), re-initialize biometric lock if enabled
+        if (prevAppState !== 'active' && nextAppState === 'active') {
+          const biometricLock = await settingsService.getSetting(
+            'biometricPasswordLock',
+            false,
+          );
+          const pinLock = await settingsService.getSetting(
+            'pinPasswordLock',
+            false,
+          );
+
+          // Lock passwords again when returning to foreground if lock is active
+          if (
+            isMountedRef.current &&
+            (biometricLock || pinLock) &&
+            passwordsUnlocked
+          ) {
+            setPasswordsUnlocked(false);
+          }
         }
-      }
-    });
+      },
+    );
 
     return () => {
       subscription.remove();
@@ -381,8 +525,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   }, [networks, refreshNetworks]);
 
   const networkLabel = useCallback(
-    (networkId: string) => networks.find(n => n.id === networkId)?.name || networkId,
-    [networks]
+    (networkId: string) =>
+      networks.find(n => n.id === networkId)?.name || networkId,
+    [networks],
   );
 
   const handleFavoriteDelete = useCallback(
@@ -390,24 +535,29 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       await channelFavoritesService.removeFavorite(fav.network, fav.name);
       refreshFavorites();
     },
-    [refreshFavorites]
+    [refreshFavorites],
   );
 
   const handleFavoriteMove = useCallback(
     async (fav: ChannelFavorite, targetNetwork: string) => {
-      await channelFavoritesService.moveFavorite(fav.network, fav.name, targetNetwork);
+      await channelFavoritesService.moveFavorite(
+        fav.network,
+        fav.name,
+        targetNetwork,
+      );
       refreshFavorites();
     },
-    [refreshFavorites]
+    [refreshFavorites],
   );
 
   // Password lock handlers
   const passwordLockActive = biometricLockEnabled || pinLockEnabled;
-  const passwordUnlockDescription = biometricLockEnabled && pinLockEnabled
-    ? t('Use fingerprint/biometric or PIN to unlock', { _tags: tags })
-    : biometricLockEnabled
-    ? t('Use fingerprint/biometric to unlock', { _tags: tags })
-    : t('Enter PIN to unlock', { _tags: tags });
+  const passwordUnlockDescription =
+    biometricLockEnabled && pinLockEnabled
+      ? t('Use fingerprint/biometric or PIN to unlock', { _tags: tags })
+      : biometricLockEnabled
+        ? t('Use fingerprint/biometric to unlock', { _tags: tags })
+        : t('Enter PIN to unlock', { _tags: tags });
 
   const closePinModal = useCallback((ok: boolean) => {
     setPinModalVisible(false);
@@ -425,7 +575,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     setPinSetupValue('');
     setPinError('');
     setPinModalVisible(true);
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>(resolve => {
       pinResolveRef.current = resolve;
     });
   }, []);
@@ -436,7 +586,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     setPinSetupValue('');
     setPinError('');
     setPinModalVisible(true);
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>(resolve => {
       pinResolveRef.current = resolve;
     });
   }, []);
@@ -491,12 +641,12 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       setPasswordsUnlocked(true);
       return true;
     }
-    
+
     // Try biometric first if enabled
     if (biometricLockEnabled && biometricAvailable) {
       const result = await biometricAuthService.authenticate(
         t('Unlock passwords', { _tags: tags }),
-        t('Authenticate to view passwords', { _tags: tags })
+        t('Authenticate to view passwords', { _tags: tags }),
       );
       if (result.success) {
         setPasswordsUnlocked(true);
@@ -507,85 +657,105 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         // Don't show error alert, just fall through to PIN
       } else {
         // Only show error if PIN is not available as fallback
-        const errorMessage = result.errorMessage
-          || (result.errorKey ? t(result.errorKey, { _tags: tags }) : t('Unable to unlock passwords.', { _tags: tags }));
-        Alert.alert(
-          t('Authentication failed', { _tags: tags }),
-          errorMessage
-        );
+        const errorMessage =
+          result.errorMessage ||
+          (result.errorKey
+            ? t(result.errorKey, { _tags: tags })
+            : t('Unable to unlock passwords.', { _tags: tags }));
+        Alert.alert(t('Authentication failed', { _tags: tags }), errorMessage);
         return false;
       }
     }
-    
+
     // Try PIN if enabled (either as primary or fallback)
     if (pinLockEnabled) {
       return await requestPinUnlock();
     }
-    
+
     // If biometric was enabled but unavailable, show error
     if (biometricLockEnabled && !biometricAvailable) {
       Alert.alert(
         t('Biometrics unavailable', { _tags: tags }),
-        t('Enable a fingerprint/biometric on your device first.', { _tags: tags })
+        t('Enable a fingerprint/biometric on your device first.', {
+          _tags: tags,
+        }),
       );
       return false;
     }
-    
+
     setPasswordsUnlocked(true);
     return true;
-  }, [biometricAvailable, biometricLockEnabled, passwordLockActive, pinLockEnabled, requestPinUnlock, t, tags]);
+  }, [
+    biometricAvailable,
+    biometricLockEnabled,
+    passwordLockActive,
+    pinLockEnabled,
+    requestPinUnlock,
+    t,
+    tags,
+  ]);
 
-  const handleBiometricLockToggle = useCallback(async (value: boolean) => {
-    if (value) {
-      if (!biometricAvailable) {
-        Alert.alert(
-          t('Biometrics unavailable', { _tags: tags }),
-          t('Enable a fingerprint/biometric on your device first.', { _tags: tags })
-        );
-        return;
-      }
-      // Allow biometric and PIN to be enabled together - don't disable PIN
-      const enabled = await biometricAuthService.enableLock();
-      if (!enabled) {
-        Alert.alert(
-          t('Biometric setup failed', { _tags: tags }),
-          t('Unable to enable biometric lock for passwords.', { _tags: tags })
-        );
-        return;
-      }
-      await settingsService.setSetting('biometricPasswordLock', true);
-      setBiometricLockEnabled(true);
-      // Lock passwords (both biometric and PIN can be active)
-      setPasswordsUnlocked(false);
-      return;
-    }
-    await biometricAuthService.disableLock();
-    await settingsService.setSetting('biometricPasswordLock', false);
-    setBiometricLockEnabled(false);
-    // Only unlock if PIN is also disabled
-    if (!pinLockEnabled) {
-      setPasswordsUnlocked(true);
-    }
-  }, [biometricAvailable, pinLockEnabled, t, tags]);
-
-  const handlePinLockToggle = useCallback(async (value: boolean) => {
-    if (value) {
-      // Allow PIN and biometric to be enabled together - don't disable biometric
-      const setupSuccess = await requestPinSetup();
-      if (setupSuccess) {
-        // Passwords are now locked by PIN (both biometric and PIN can be active)
+  const handleBiometricLockToggle = useCallback(
+    async (value: boolean) => {
+      if (value) {
+        if (!biometricAvailable) {
+          Alert.alert(
+            t('Biometrics unavailable', { _tags: tags }),
+            t('Enable a fingerprint/biometric on your device first.', {
+              _tags: tags,
+            }),
+          );
+          return;
+        }
+        // Allow biometric and PIN to be enabled together - don't disable PIN
+        const enabled = await biometricAuthService.enableLock();
+        if (!enabled) {
+          Alert.alert(
+            t('Biometric setup failed', { _tags: tags }),
+            t('Unable to enable biometric lock for passwords.', {
+              _tags: tags,
+            }),
+          );
+          return;
+        }
+        await settingsService.setSetting('biometricPasswordLock', true);
+        setBiometricLockEnabled(true);
+        // Lock passwords (both biometric and PIN can be active)
         setPasswordsUnlocked(false);
+        return;
       }
-      return;
-    }
-    await secureStorageService.removeSecret(PIN_STORAGE_KEY);
-    await settingsService.setSetting('pinPasswordLock', false);
-    setPinLockEnabled(false);
-    // Only unlock if biometric is also disabled
-    if (!biometricLockEnabled) {
-      setPasswordsUnlocked(true);
-    }
-  }, [biometricLockEnabled, requestPinSetup]);
+      await biometricAuthService.disableLock();
+      await settingsService.setSetting('biometricPasswordLock', false);
+      setBiometricLockEnabled(false);
+      // Only unlock if PIN is also disabled
+      if (!pinLockEnabled) {
+        setPasswordsUnlocked(true);
+      }
+    },
+    [biometricAvailable, pinLockEnabled, t, tags],
+  );
+
+  const handlePinLockToggle = useCallback(
+    async (value: boolean) => {
+      if (value) {
+        // Allow PIN and biometric to be enabled together - don't disable biometric
+        const setupSuccess = await requestPinSetup();
+        if (setupSuccess) {
+          // Passwords are now locked by PIN (both biometric and PIN can be active)
+          setPasswordsUnlocked(false);
+        }
+        return;
+      }
+      await secureStorageService.removeSecret(PIN_STORAGE_KEY);
+      await settingsService.setSetting('pinPasswordLock', false);
+      setPinLockEnabled(false);
+      // Only unlock if biometric is also disabled
+      if (!biometricLockEnabled) {
+        setPasswordsUnlocked(true);
+      }
+    },
+    [biometricLockEnabled, requestPinSetup],
+  );
 
   const dccAutoModeLabel = useMemo(() => {
     switch (dccAutoGetMode) {
@@ -625,370 +795,413 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
   }, [dccAutoGetFrom, t, tags]);
 
   // DCC submenu items
-  const dccSubmenuItems = useMemo<SettingItemType[]>(() => ([
-    {
-      id: 'dcc-auto-get-mode',
-      title: t('Getting files (auto)', { _tags: tags }),
-      description: t('Mode: {mode}', { mode: dccAutoModeLabel, _tags: tags }),
-      type: 'button',
-      onPress: () => {
-        Alert.alert(
-          t('Auto-Get Mode', { _tags: tags }),
-          t('Select behavior for incoming files', { _tags: tags }),
-          [
-            { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-            {
-              text: t('Accept', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoGetMode('accept');
-                await settingsService.setSetting('dccAutoGetMode', 'accept');
-              },
-            },
-            {
-              text: t('Reject', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoGetMode('reject');
-                await settingsService.setSetting('dccAutoGetMode', 'reject');
-              },
-            },
-            {
-              text: t("Don't send", { _tags: tags }),
-              onPress: async () => {
-                setDccAutoGetMode('dont_send');
-                await settingsService.setSetting('dccAutoGetMode', 'dont_send');
-              },
-            },
-          ]
-        );
-      },
-    },
-    {
-      id: 'dcc-file-filters',
-      title: t('File type filters', { _tags: tags }),
-      description: t('Accept {accept} / Reject {reject} / Block {block}', {
-        accept: dccAcceptExts.length,
-        reject: dccRejectExts.length,
-        block: dccDontSendExts.length,
-        _tags: tags,
-      }),
-      type: 'submenu',
-      submenuItems: [
-        {
-          id: 'dcc-accept-exts',
-          title: t('Accept list', { _tags: tags }),
-          description: t('{count} items', { count: dccAcceptExts.length, _tags: tags }),
-          type: 'button',
-          onPress: () => {
-            setDccExtModalMode('accept');
-            setShowDccExtModal(true);
-          },
-        },
-        {
-          id: 'dcc-reject-exts',
-          title: t('Reject list', { _tags: tags }),
-          description: t('{count} items', { count: dccRejectExts.length, _tags: tags }),
-          type: 'button',
-          onPress: () => {
-            setDccExtModalMode('reject');
-            setShowDccExtModal(true);
-          },
-        },
-        {
-          id: 'dcc-dont-send-exts',
-          title: t("Don't send list", { _tags: tags }),
-          description: t('{count} items', { count: dccDontSendExts.length, _tags: tags }),
-          type: 'button',
-          onPress: () => {
-            setDccExtModalMode('dont_send');
-            setShowDccExtModal(true);
-          },
-        },
-      ],
-    },
-    {
-      id: 'dcc-auto-chat-from',
-      title: t('Auto accept CHAT from', { _tags: tags }),
-      description: dccAutoChatLabel,
-      type: 'button',
-      onPress: () => {
-        Alert.alert(
-          t('Auto Accept Chat', { _tags: tags }),
-          t('Select who can auto-start DCC chat', { _tags: tags }),
-          [
-            { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-            {
-              text: t('1 - Always ask', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoChatFrom(1);
-                await settingsService.setSetting('dccAutoChatFrom', 1);
-              },
-            },
-            {
-              text: t('2 - Friends/Allowlist', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoChatFrom(2);
-                await settingsService.setSetting('dccAutoChatFrom', 2);
-              },
-            },
-            {
-              text: t('3 - Ops', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoChatFrom(3);
-                await settingsService.setSetting('dccAutoChatFrom', 3);
-              },
-            },
-            {
-              text: t('4 - Auto Op & Notify', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoChatFrom(4);
-                await settingsService.setSetting('dccAutoChatFrom', 4);
-              },
-            },
-          ]
-        );
-      },
-    },
-    {
-      id: 'dcc-auto-get-from',
-      title: t('Auto accept gets from', { _tags: tags }),
-      description: dccAutoGetLabel,
-      type: 'button',
-      onPress: () => {
-        Alert.alert(
-          t('Auto Accept Gets', { _tags: tags }),
-          t('Select who can auto-send files', { _tags: tags }),
-          [
-            { text: t('Cancel', { _tags: tags }), style: 'cancel' },
-            {
-              text: t('1 - Always ask', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoGetFrom(1);
-                await settingsService.setSetting('dccAutoGetFrom', 1);
-              },
-            },
-            {
-              text: t('2 - Friends/Allowlist', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoGetFrom(2);
-                await settingsService.setSetting('dccAutoGetFrom', 2);
-              },
-            },
-            {
-              text: t('3 - Ops', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoGetFrom(3);
-                await settingsService.setSetting('dccAutoGetFrom', 3);
-              },
-            },
-            {
-              text: t('4 - Auto Op & Notify', { _tags: tags }),
-              onPress: async () => {
-                setDccAutoGetFrom(4);
-                await settingsService.setSetting('dccAutoGetFrom', 4);
-              },
-            },
-          ]
-        );
-      },
-    },
-    {
-      id: 'dcc-min-port',
-      title: t('Min Port', { _tags: tags }),
-      type: 'input',
-      value: dccMinPort.toString(),
-      keyboardType: 'numeric',
-      onValueChange: async (value: string | boolean) => {
-        const v = parseInt(value as string, 10);
-        if (!isNaN(v)) {
-          setDccMinPort(v);
-          await settingsService.setSetting('dccPortRange', { min: v, max: dccMaxPort });
-        }
-      },
-    },
-    {
-      id: 'dcc-max-port',
-      title: t('Max Port', { _tags: tags }),
-      type: 'input',
-      value: dccMaxPort.toString(),
-      keyboardType: 'numeric',
-      onValueChange: async (value: string | boolean) => {
-        const v = parseInt(value as string, 10);
-        if (!isNaN(v)) {
-          setDccMaxPort(v);
-          await settingsService.setSetting('dccPortRange', { min: dccMinPort, max: v });
-        }
-      },
-    },
-    {
-      id: 'dcc-host-override',
-      title: t('DCC Host/IP Override', { _tags: tags }),
-      description: t('Optional public IP or hostname to include in DCC SEND offers', { _tags: tags }),
-      type: 'input',
-      value: dccHostOverride,
-      searchKeywords: ['dcc', 'ip', 'host', 'address', 'public', 'nat', 'forward', 'override'],
-      onValueChange: async (value: string | boolean) => {
-        const raw = String(value);
-        setDccHostOverride(raw);
-        await settingsService.setSetting('dccHostOverride', raw.trim());
-      },
-    },
-    {
-      id: 'dcc-auto-open-viewer',
-      title: t('Auto-open viewer', { _tags: tags }),
-      type: 'switch',
-      value: dccServeViewerAuto,
-      onValueChange: async (value) => {
-        const next = Boolean(value);
-        setDccServeViewerAuto(next);
-        await settingsService.setSetting('dccServeViewerAuto', next);
-      },
-    },
-    {
-      id: 'dcc-close-queries',
-      title: t('Close queries when chat opens', { _tags: tags }),
-      type: 'switch',
-      value: dccCloseQueriesOnChat,
-      onValueChange: async (value) => {
-        const next = Boolean(value);
-        setDccCloseQueriesOnChat(next);
-        await settingsService.setSetting('dccCloseQueriesOnChat', next);
-      },
-    },
-    {
-      id: 'dcc-request-on-fail',
-      title: t('Request on fail when receiving', { _tags: tags }),
-      type: 'switch',
-      value: dccRequestOnFail,
-      onValueChange: async (value) => {
-        const next = Boolean(value);
-        setDccRequestOnFail(next);
-        await settingsService.setSetting('dccRequestOnFail', next);
-      },
-    },
-    {
-      id: 'dcc-allow-by-ip',
-      title: t('Allow DCC by IP', { _tags: tags }),
-      type: 'switch',
-      value: dccAllowByIp,
-      onValueChange: async (value) => {
-        const next = Boolean(value);
-        setDccAllowByIp(next);
-        await settingsService.setSetting('dccAllowByIp', next);
-      },
-    },
-    {
-      id: 'dcc-block-private-ip',
-      title: t('Block private/local IPs', { _tags: tags }),
-      description: t('Block DCC connections to private (RFC1918) and localhost addresses. This prevents SSRF-like attacks where a malicious user could trick your client into connecting to internal network services.', { _tags: tags }),
-      type: 'switch',
-      value: dccBlockPrivateIp,
-      onValueChange: async (value) => {
-        if (!value) {
-          // Show warning when disabling
+  const dccSubmenuItems = useMemo<SettingItemType[]>(
+    () => [
+      {
+        id: 'dcc-auto-get-mode',
+        title: t('Getting files (auto)', { _tags: tags }),
+        description: t('Mode: {mode}', { mode: dccAutoModeLabel, _tags: tags }),
+        type: 'button',
+        onPress: () => {
           Alert.alert(
-            t('Security Warning', { _tags: tags }),
-            t('Disabling this option allows DCC connections to private network addresses (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). This could allow malicious users to make your device connect to internal network services. Only disable if you understand the risks and need to connect to a local IRC bouncer or similar service.\n\nAre you sure you want to disable this protection?', { _tags: tags }),
+            t('Auto-Get Mode', { _tags: tags }),
+            t('Select behavior for incoming files', { _tags: tags }),
             [
               { text: t('Cancel', { _tags: tags }), style: 'cancel' },
               {
-                text: t('Disable Protection', { _tags: tags }),
-                style: 'destructive',
+                text: t('Accept', { _tags: tags }),
                 onPress: async () => {
-                  setDccBlockPrivateIp(false);
-                  await settingsService.setSetting('dccBlockPrivateIp', false);
+                  setDccAutoGetMode('accept');
+                  await settingsService.setSetting('dccAutoGetMode', 'accept');
                 },
               },
-            ]
+              {
+                text: t('Reject', { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoGetMode('reject');
+                  await settingsService.setSetting('dccAutoGetMode', 'reject');
+                },
+              },
+              {
+                text: t("Don't send", { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoGetMode('dont_send');
+                  await settingsService.setSetting(
+                    'dccAutoGetMode',
+                    'dont_send',
+                  );
+                },
+              },
+            ],
           );
-        } else {
-          setDccBlockPrivateIp(true);
-          await settingsService.setSetting('dccBlockPrivateIp', true);
-        }
+        },
       },
-    },
-    {
-      id: 'dcc-passive',
-      title: t('Passive DCC', { _tags: tags }),
-      type: 'switch',
-      value: dccPassive,
-      onValueChange: async (value) => {
-        const next = Boolean(value);
-        setDccPassive(next);
-        await settingsService.setSetting('dccPassive', next);
+      {
+        id: 'dcc-file-filters',
+        title: t('File type filters', { _tags: tags }),
+        description: t('Accept {accept} / Reject {reject} / Block {block}', {
+          accept: dccAcceptExts.length,
+          reject: dccRejectExts.length,
+          block: dccDontSendExts.length,
+          _tags: tags,
+        }),
+        type: 'submenu',
+        submenuItems: [
+          {
+            id: 'dcc-accept-exts',
+            title: t('Accept list', { _tags: tags }),
+            description: t('{count} items', {
+              count: dccAcceptExts.length,
+              _tags: tags,
+            }),
+            type: 'button',
+            onPress: () => {
+              setDccExtModalMode('accept');
+              setShowDccExtModal(true);
+            },
+          },
+          {
+            id: 'dcc-reject-exts',
+            title: t('Reject list', { _tags: tags }),
+            description: t('{count} items', {
+              count: dccRejectExts.length,
+              _tags: tags,
+            }),
+            type: 'button',
+            onPress: () => {
+              setDccExtModalMode('reject');
+              setShowDccExtModal(true);
+            },
+          },
+          {
+            id: 'dcc-dont-send-exts',
+            title: t("Don't send list", { _tags: tags }),
+            description: t('{count} items', {
+              count: dccDontSendExts.length,
+              _tags: tags,
+            }),
+            type: 'button',
+            onPress: () => {
+              setDccExtModalMode('dont_send');
+              setShowDccExtModal(true);
+            },
+          },
+        ],
       },
-    },
-    {
-      id: 'dcc-reply-queue',
-      title: t('Reply queue commands', { _tags: tags }),
-      type: 'switch',
-      value: dccReplyQueueCommands,
-      onValueChange: async (value) => {
-        const next = Boolean(value);
-        setDccReplyQueueCommands(next);
-        await settingsService.setSetting('dccReplyQueueCommands', next);
+      {
+        id: 'dcc-auto-chat-from',
+        title: t('Auto accept CHAT from', { _tags: tags }),
+        description: dccAutoChatLabel,
+        type: 'button',
+        onPress: () => {
+          Alert.alert(
+            t('Auto Accept Chat', { _tags: tags }),
+            t('Select who can auto-start DCC chat', { _tags: tags }),
+            [
+              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+              {
+                text: t('1 - Always ask', { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoChatFrom(1);
+                  await settingsService.setSetting('dccAutoChatFrom', 1);
+                },
+              },
+              {
+                text: t('2 - Friends/Allowlist', { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoChatFrom(2);
+                  await settingsService.setSetting('dccAutoChatFrom', 2);
+                },
+              },
+              {
+                text: t('3 - Ops', { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoChatFrom(3);
+                  await settingsService.setSetting('dccAutoChatFrom', 3);
+                },
+              },
+              {
+                text: t('4 - Auto Op & Notify', { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoChatFrom(4);
+                  await settingsService.setSetting('dccAutoChatFrom', 4);
+                },
+              },
+            ],
+          );
+        },
       },
-    },
-    {
-      id: 'dcc-send-max-kbps',
-      title: t('Max. speed on sends (KB/s)', { _tags: tags }),
-      type: 'input',
-      value: dccSendMaxKbps,
-      keyboardType: 'numeric',
-      onValueChange: async (value) => {
-        const raw = String(value);
-        setDccSendMaxKbps(raw);
-        const num = parseInt(raw, 10);
-        if (!Number.isNaN(num)) {
-          await settingsService.setSetting('dccSendMaxKbps', num);
-        }
+      {
+        id: 'dcc-auto-get-from',
+        title: t('Auto accept gets from', { _tags: tags }),
+        description: dccAutoGetLabel,
+        type: 'button',
+        onPress: () => {
+          Alert.alert(
+            t('Auto Accept Gets', { _tags: tags }),
+            t('Select who can auto-send files', { _tags: tags }),
+            [
+              { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+              {
+                text: t('1 - Always ask', { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoGetFrom(1);
+                  await settingsService.setSetting('dccAutoGetFrom', 1);
+                },
+              },
+              {
+                text: t('2 - Friends/Allowlist', { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoGetFrom(2);
+                  await settingsService.setSetting('dccAutoGetFrom', 2);
+                },
+              },
+              {
+                text: t('3 - Ops', { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoGetFrom(3);
+                  await settingsService.setSetting('dccAutoGetFrom', 3);
+                },
+              },
+              {
+                text: t('4 - Auto Op & Notify', { _tags: tags }),
+                onPress: async () => {
+                  setDccAutoGetFrom(4);
+                  await settingsService.setSetting('dccAutoGetFrom', 4);
+                },
+              },
+            ],
+          );
+        },
       },
-    },
-    {
-      id: 'dcc-cancel-above-kbps',
-      title: t('Cancel if send speed is above (KB/s)', { _tags: tags }),
-      type: 'input',
-      value: dccCancelAboveKbps,
-      keyboardType: 'numeric',
-      onValueChange: async (value) => {
-        const raw = String(value);
-        setDccCancelAboveKbps(raw);
-        const num = parseInt(raw, 10);
-        if (!Number.isNaN(num)) {
-          await settingsService.setSetting('dccCancelAboveKbps', num);
-        }
+      {
+        id: 'dcc-min-port',
+        title: t('Min Port', { _tags: tags }),
+        type: 'input',
+        value: dccMinPort.toString(),
+        keyboardType: 'numeric',
+        onValueChange: async (value: string | boolean) => {
+          const v = parseInt(value as string, 10);
+          if (!isNaN(v)) {
+            setDccMinPort(v);
+            await settingsService.setSetting('dccPortRange', {
+              min: v,
+              max: dccMaxPort,
+            });
+          }
+        },
       },
-    },
-    {
-      id: 'dcc-download-folder',
-      title: t('Download folder', { _tags: tags }),
-      description: dccDownloadFolder || t('Default app folder', { _tags: tags }),
-      type: 'button',
-      onPress: handlePickDccFolder,
-    },
-  ]), [
-    dccMinPort,
-    dccMaxPort,
-    dccHostOverride,
-    dccAutoModeLabel,
-    dccAcceptExts.length,
-    dccRejectExts.length,
-    dccDontSendExts.length,
-    dccAutoChatLabel,
-    dccAutoGetLabel,
-    dccServeViewerAuto,
-    dccCloseQueriesOnChat,
-    dccRequestOnFail,
-    dccAllowByIp,
-    dccBlockPrivateIp,
-    dccPassive,
-    dccReplyQueueCommands,
-    dccSendMaxKbps,
-    dccCancelAboveKbps,
-    dccDownloadFolder,
-    handlePickDccFolder,
-    t,
-    tags,
-  ]);
+      {
+        id: 'dcc-max-port',
+        title: t('Max Port', { _tags: tags }),
+        type: 'input',
+        value: dccMaxPort.toString(),
+        keyboardType: 'numeric',
+        onValueChange: async (value: string | boolean) => {
+          const v = parseInt(value as string, 10);
+          if (!isNaN(v)) {
+            setDccMaxPort(v);
+            await settingsService.setSetting('dccPortRange', {
+              min: dccMinPort,
+              max: v,
+            });
+          }
+        },
+      },
+      {
+        id: 'dcc-host-override',
+        title: t('DCC Host/IP Override', { _tags: tags }),
+        description: t(
+          'Optional public IP or hostname to include in DCC SEND offers',
+          { _tags: tags },
+        ),
+        type: 'input',
+        value: dccHostOverride,
+        searchKeywords: [
+          'dcc',
+          'ip',
+          'host',
+          'address',
+          'public',
+          'nat',
+          'forward',
+          'override',
+        ],
+        onValueChange: async (value: string | boolean) => {
+          const raw = String(value);
+          setDccHostOverride(raw);
+          await settingsService.setSetting('dccHostOverride', raw.trim());
+        },
+      },
+      {
+        id: 'dcc-auto-open-viewer',
+        title: t('Auto-open viewer', { _tags: tags }),
+        type: 'switch',
+        value: dccServeViewerAuto,
+        onValueChange: async value => {
+          const next = Boolean(value);
+          setDccServeViewerAuto(next);
+          await settingsService.setSetting('dccServeViewerAuto', next);
+        },
+      },
+      {
+        id: 'dcc-close-queries',
+        title: t('Close queries when chat opens', { _tags: tags }),
+        type: 'switch',
+        value: dccCloseQueriesOnChat,
+        onValueChange: async value => {
+          const next = Boolean(value);
+          setDccCloseQueriesOnChat(next);
+          await settingsService.setSetting('dccCloseQueriesOnChat', next);
+        },
+      },
+      {
+        id: 'dcc-request-on-fail',
+        title: t('Request on fail when receiving', { _tags: tags }),
+        type: 'switch',
+        value: dccRequestOnFail,
+        onValueChange: async value => {
+          const next = Boolean(value);
+          setDccRequestOnFail(next);
+          await settingsService.setSetting('dccRequestOnFail', next);
+        },
+      },
+      {
+        id: 'dcc-allow-by-ip',
+        title: t('Allow DCC by IP', { _tags: tags }),
+        type: 'switch',
+        value: dccAllowByIp,
+        onValueChange: async value => {
+          const next = Boolean(value);
+          setDccAllowByIp(next);
+          await settingsService.setSetting('dccAllowByIp', next);
+        },
+      },
+      {
+        id: 'dcc-block-private-ip',
+        title: t('Block private/local IPs', { _tags: tags }),
+        description: t(
+          'Block DCC connections to private (RFC1918) and localhost addresses. This prevents SSRF-like attacks where a malicious user could trick your client into connecting to internal network services.',
+          { _tags: tags },
+        ),
+        type: 'switch',
+        value: dccBlockPrivateIp,
+        onValueChange: async value => {
+          if (!value) {
+            // Show warning when disabling
+            Alert.alert(
+              t('Security Warning', { _tags: tags }),
+              t(
+                'Disabling this option allows DCC connections to private network addresses (10.x.x.x, 192.168.x.x, 172.16-31.x.x, localhost). This could allow malicious users to make your device connect to internal network services. Only disable if you understand the risks and need to connect to a local IRC bouncer or similar service.\n\nAre you sure you want to disable this protection?',
+                { _tags: tags },
+              ),
+              [
+                { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+                {
+                  text: t('Disable Protection', { _tags: tags }),
+                  style: 'destructive',
+                  onPress: async () => {
+                    setDccBlockPrivateIp(false);
+                    await settingsService.setSetting(
+                      'dccBlockPrivateIp',
+                      false,
+                    );
+                  },
+                },
+              ],
+            );
+          } else {
+            setDccBlockPrivateIp(true);
+            await settingsService.setSetting('dccBlockPrivateIp', true);
+          }
+        },
+      },
+      {
+        id: 'dcc-passive',
+        title: t('Passive DCC', { _tags: tags }),
+        type: 'switch',
+        value: dccPassive,
+        onValueChange: async value => {
+          const next = Boolean(value);
+          setDccPassive(next);
+          await settingsService.setSetting('dccPassive', next);
+        },
+      },
+      {
+        id: 'dcc-reply-queue',
+        title: t('Reply queue commands', { _tags: tags }),
+        type: 'switch',
+        value: dccReplyQueueCommands,
+        onValueChange: async value => {
+          const next = Boolean(value);
+          setDccReplyQueueCommands(next);
+          await settingsService.setSetting('dccReplyQueueCommands', next);
+        },
+      },
+      {
+        id: 'dcc-send-max-kbps',
+        title: t('Max. speed on sends (KB/s)', { _tags: tags }),
+        type: 'input',
+        value: dccSendMaxKbps,
+        keyboardType: 'numeric',
+        onValueChange: async value => {
+          const raw = String(value);
+          setDccSendMaxKbps(raw);
+          const num = parseInt(raw, 10);
+          if (!Number.isNaN(num)) {
+            await settingsService.setSetting('dccSendMaxKbps', num);
+          }
+        },
+      },
+      {
+        id: 'dcc-cancel-above-kbps',
+        title: t('Cancel if send speed is above (KB/s)', { _tags: tags }),
+        type: 'input',
+        value: dccCancelAboveKbps,
+        keyboardType: 'numeric',
+        onValueChange: async value => {
+          const raw = String(value);
+          setDccCancelAboveKbps(raw);
+          const num = parseInt(raw, 10);
+          if (!Number.isNaN(num)) {
+            await settingsService.setSetting('dccCancelAboveKbps', num);
+          }
+        },
+      },
+      {
+        id: 'dcc-download-folder',
+        title: t('Download folder', { _tags: tags }),
+        description:
+          dccDownloadFolder || t('Default app folder', { _tags: tags }),
+        type: 'button',
+        onPress: handlePickDccFolder,
+      },
+    ],
+    [
+      dccMinPort,
+      dccMaxPort,
+      dccHostOverride,
+      dccAutoModeLabel,
+      dccAcceptExts.length,
+      dccRejectExts.length,
+      dccDontSendExts.length,
+      dccAutoChatLabel,
+      dccAutoGetLabel,
+      dccServeViewerAuto,
+      dccCloseQueriesOnChat,
+      dccRequestOnFail,
+      dccAllowByIp,
+      dccBlockPrivateIp,
+      dccPassive,
+      dccReplyQueueCommands,
+      dccSendMaxKbps,
+      dccCancelAboveKbps,
+      dccDownloadFolder,
+      handlePickDccFolder,
+      t,
+      tags,
+    ],
+  );
 
   const dccExtList = useMemo(() => {
     switch (dccExtModalMode) {
@@ -1012,45 +1225,57 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
     }
   }, [dccExtModalMode, t, tags]);
 
-  const updateDccExtList = useCallback(async (next: string[]) => {
-    if (dccExtModalMode === 'reject') {
-      setDccRejectExts(next);
-      await settingsService.setSetting('dccRejectExts', next);
-      return;
-    }
-    if (dccExtModalMode === 'dont_send') {
-      setDccDontSendExts(next);
-      await settingsService.setSetting('dccDontSendExts', next);
-      return;
-    }
-    setDccAcceptExts(next);
-    await settingsService.setSetting('dccAcceptExts', next);
-  }, [dccExtModalMode]);
+  const updateDccExtList = useCallback(
+    async (next: string[]) => {
+      if (dccExtModalMode === 'reject') {
+        setDccRejectExts(next);
+        await settingsService.setSetting('dccRejectExts', next);
+        return;
+      }
+      if (dccExtModalMode === 'dont_send') {
+        setDccDontSendExts(next);
+        await settingsService.setSetting('dccDontSendExts', next);
+        return;
+      }
+      setDccAcceptExts(next);
+      await settingsService.setSetting('dccAcceptExts', next);
+    },
+    [dccExtModalMode],
+  );
 
   // Helper to get default auto-reconnect config
-  const getDefaultAutoReconnectConfig = useCallback((): AutoReconnectConfig => ({
-    enabled: false,
-    maxAttempts: 10,
-    initialDelay: 1000,
-    maxDelay: 60000,
-    backoffMultiplier: 2,
-    rejoinChannels: true,
-    smartReconnect: true,
-    minReconnectInterval: 5000,
-  }), []);
+  const getDefaultAutoReconnectConfig = useCallback(
+    (): AutoReconnectConfig => ({
+      enabled: false,
+      maxAttempts: 10,
+      initialDelay: 1000,
+      maxDelay: 60000,
+      backoffMultiplier: 2,
+      rejoinChannels: true,
+      smartReconnect: true,
+      minReconnectInterval: 5000,
+    }),
+    [],
+  );
 
   // Helper to get default auto-voice config
-  const getDefaultAutoVoiceConfig = useCallback((): AutoVoiceConfig => ({
-    enabled: false,
-    forOperators: false,
-    forIRCOps: false,
-    forAll: false,
-  }), []);
+  const getDefaultAutoVoiceConfig = useCallback(
+    (): AutoVoiceConfig => ({
+      enabled: false,
+      forOperators: false,
+      forIRCOps: false,
+      forAll: false,
+    }),
+    [],
+  );
 
   // Get current network's auto-reconnect config
   const currentAutoReconnectConfig = useMemo(() => {
     if (currentNetwork) {
-      return autoReconnectService.getConfig(currentNetwork) || getDefaultAutoReconnectConfig();
+      return (
+        autoReconnectService.getConfig(currentNetwork) ||
+        getDefaultAutoReconnectConfig()
+      );
     }
     return getDefaultAutoReconnectConfig();
   }, [currentNetwork, getDefaultAutoReconnectConfig]);
@@ -1060,17 +1285,37 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       {
         id: 'setup-wizard',
         title: t('Setup Wizard', { _tags: tags }),
-        description: t('Quick setup for identity and network connection', { _tags: tags }),
+        description: t('Quick setup for identity and network connection', {
+          _tags: tags,
+        }),
         type: 'button',
-        searchKeywords: ['setup', 'wizard', 'first', 'run', 'initial', 'configure', 'identity', 'network'],
+        searchKeywords: [
+          'setup',
+          'wizard',
+          'first',
+          'run',
+          'initial',
+          'configure',
+          'identity',
+          'network',
+        ],
         onPress: () => onShowFirstRunSetup?.(),
       },
       {
         id: 'choose-network',
         title: t('Choose Network', { _tags: tags }),
-        description: t('Open Networks list to choose and manage networks', { _tags: tags }),
+        description: t('Open Networks list to choose and manage networks', {
+          _tags: tags,
+        }),
         type: 'button',
-        searchKeywords: ['choose', 'network', 'networks', 'server', 'identity', 'profiles'],
+        searchKeywords: [
+          'choose',
+          'network',
+          'networks',
+          'server',
+          'identity',
+          'profiles',
+        ],
         onPress: () => {
           onShowNetworksList?.();
         },
@@ -1080,25 +1325,47 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         title: t('Quick Connect Network', { _tags: tags }),
         description: quickConnectNetworkId
           ? t('Current: {network}', {
-              network: networks.find(n => n.id === quickConnectNetworkId)?.name || quickConnectNetworkId,
+              network:
+                networks.find(n => n.id === quickConnectNetworkId)?.name ||
+                quickConnectNetworkId,
               _tags: tags,
             })
           : t('Tap header to connect to default network', { _tags: tags }),
         type: 'button',
-        searchKeywords: ['quick', 'connect', 'network', 'default', 'header', 'choose'],
+        searchKeywords: [
+          'quick',
+          'connect',
+          'network',
+          'default',
+          'header',
+          'choose',
+        ],
         onPress: openQuickConnectModal,
       },
       {
         id: 'connection-auto-connect-favorite',
         title: t('Auto-Connect to Favorite Server', { _tags: tags }),
-        description: t('When opening a network, prefer the server marked as favorite.', { _tags: tags }),
+        description: t(
+          'When opening a network, prefer the server marked as favorite.',
+          { _tags: tags },
+        ),
         type: 'switch',
         value: autoConnectFavoriteServer,
-        searchKeywords: ['auto', 'connect', 'favorite', 'server', 'automatic', 'preferred'],
+        searchKeywords: [
+          'auto',
+          'connect',
+          'favorite',
+          'server',
+          'automatic',
+          'preferred',
+        ],
         onValueChange: async (value: string | boolean) => {
           const boolValue = value as boolean;
           setAutoConnectFavoriteServer(boolValue);
-          await settingsService.setSetting('autoConnectFavoriteServer', boolValue);
+          await settingsService.setSetting(
+            'autoConnectFavoriteServer',
+            boolValue,
+          );
         },
       },
       {
@@ -1114,7 +1381,14 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             })
           : t('Automatically reconnect on disconnect', { _tags: tags }),
         type: 'submenu',
-        searchKeywords: ['auto', 'reconnect', 'automatic', 'disconnect', 'retry', 'attempts'],
+        searchKeywords: [
+          'auto',
+          'reconnect',
+          'automatic',
+          'disconnect',
+          'retry',
+          'attempts',
+        ],
         submenuItems: [
           {
             id: 'auto-reconnect-enabled',
@@ -1123,11 +1397,14 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             value: currentAutoReconnectConfig?.enabled || false,
             onValueChange: async (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoReconnectService.getConfig(currentNetwork) || getDefaultAutoReconnectConfig();
+                const config =
+                  autoReconnectService.getConfig(currentNetwork) ||
+                  getDefaultAutoReconnectConfig();
                 config.enabled = value as boolean;
                 await autoReconnectService.setConfig(currentNetwork, config);
                 // Refresh config from service to update UI
-                const updatedConfig = autoReconnectService.getConfig(currentNetwork);
+                const updatedConfig =
+                  autoReconnectService.getConfig(currentNetwork);
                 if (updatedConfig) {
                   await updateAutoReconnectConfig(updatedConfig);
                 }
@@ -1138,17 +1415,22 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           {
             id: 'auto-reconnect-rejoin',
             title: t('Rejoin Channels After Reconnect', { _tags: tags }),
-            description: t('Automatically rejoin channels you were in', { _tags: tags }),
+            description: t('Automatically rejoin channels you were in', {
+              _tags: tags,
+            }),
             type: 'switch',
             value: currentAutoReconnectConfig?.rejoinChannels || false,
             disabled: !currentAutoReconnectConfig?.enabled,
             onValueChange: async (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoReconnectService.getConfig(currentNetwork) || getDefaultAutoReconnectConfig();
+                const config =
+                  autoReconnectService.getConfig(currentNetwork) ||
+                  getDefaultAutoReconnectConfig();
                 config.rejoinChannels = value as boolean;
                 await autoReconnectService.setConfig(currentNetwork, config);
                 // Refresh config from service to update UI
-                const updatedConfig = autoReconnectService.getConfig(currentNetwork);
+                const updatedConfig =
+                  autoReconnectService.getConfig(currentNetwork);
                 if (updatedConfig) {
                   await updateAutoReconnectConfig(updatedConfig);
                 }
@@ -1159,17 +1441,22 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           {
             id: 'auto-reconnect-smart',
             title: t('Smart Reconnection', { _tags: tags }),
-            description: t('Avoid flood by spacing reconnection attempts', { _tags: tags }),
+            description: t('Avoid flood by spacing reconnection attempts', {
+              _tags: tags,
+            }),
             type: 'switch',
             value: currentAutoReconnectConfig?.smartReconnect || false,
             disabled: !currentAutoReconnectConfig?.enabled,
             onValueChange: async (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoReconnectService.getConfig(currentNetwork) || getDefaultAutoReconnectConfig();
+                const config =
+                  autoReconnectService.getConfig(currentNetwork) ||
+                  getDefaultAutoReconnectConfig();
                 config.smartReconnect = value as boolean;
                 await autoReconnectService.setConfig(currentNetwork, config);
                 // Refresh config from service to update UI
-                const updatedConfig = autoReconnectService.getConfig(currentNetwork);
+                const updatedConfig =
+                  autoReconnectService.getConfig(currentNetwork);
                 if (updatedConfig) {
                   await updateAutoReconnectConfig(updatedConfig);
                 }
@@ -1189,12 +1476,15 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             disabled: !currentAutoReconnectConfig?.enabled,
             onValueChange: async (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoReconnectService.getConfig(currentNetwork) || getDefaultAutoReconnectConfig();
+                const config =
+                  autoReconnectService.getConfig(currentNetwork) ||
+                  getDefaultAutoReconnectConfig();
                 const attempts = parseInt(value as string, 10);
                 config.maxAttempts = isNaN(attempts) ? 0 : attempts;
                 await autoReconnectService.setConfig(currentNetwork, config);
                 // Refresh config from service to update UI
-                const updatedConfig = autoReconnectService.getConfig(currentNetwork);
+                const updatedConfig =
+                  autoReconnectService.getConfig(currentNetwork);
                 if (updatedConfig) {
                   await updateAutoReconnectConfig(updatedConfig);
                 }
@@ -1207,17 +1497,21 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             title: t('Initial Delay (ms)', { _tags: tags }),
             description: `First reconnection delay: ${currentAutoReconnectConfig?.initialDelay || 1000}ms`,
             type: 'input',
-            value: currentAutoReconnectConfig?.initialDelay?.toString() || '1000',
+            value:
+              currentAutoReconnectConfig?.initialDelay?.toString() || '1000',
             keyboardType: 'numeric',
             disabled: !currentAutoReconnectConfig?.enabled,
             onValueChange: async (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoReconnectService.getConfig(currentNetwork) || getDefaultAutoReconnectConfig();
+                const config =
+                  autoReconnectService.getConfig(currentNetwork) ||
+                  getDefaultAutoReconnectConfig();
                 const delay = parseInt(value as string, 10);
                 config.initialDelay = isNaN(delay) ? 1000 : delay;
                 await autoReconnectService.setConfig(currentNetwork, config);
                 // Refresh config from service to update UI
-                const updatedConfig = autoReconnectService.getConfig(currentNetwork);
+                const updatedConfig =
+                  autoReconnectService.getConfig(currentNetwork);
                 if (updatedConfig) {
                   await updateAutoReconnectConfig(updatedConfig);
                 }
@@ -1235,12 +1529,15 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             disabled: !currentAutoReconnectConfig?.enabled,
             onValueChange: async (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoReconnectService.getConfig(currentNetwork) || getDefaultAutoReconnectConfig();
+                const config =
+                  autoReconnectService.getConfig(currentNetwork) ||
+                  getDefaultAutoReconnectConfig();
                 const delay = parseInt(value as string, 10);
                 config.maxDelay = isNaN(delay) ? 60000 : delay;
                 await autoReconnectService.setConfig(currentNetwork, config);
                 // Refresh config from service to update UI
-                const updatedConfig = autoReconnectService.getConfig(currentNetwork);
+                const updatedConfig =
+                  autoReconnectService.getConfig(currentNetwork);
                 if (updatedConfig) {
                   await updateAutoReconnectConfig(updatedConfig);
                 }
@@ -1257,7 +1554,16 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           ? `Lag: ${connectionStats.currentLag}ms (${connectionStats.lagStatus}), ${connectionStats.messagesSent} sent, ${connectionStats.messagesReceived} received`
           : 'Rate limiting, flood protection, and lag monitoring',
         type: 'submenu',
-        searchKeywords: ['connection', 'quality', 'lag', 'rate', 'limit', 'flood', 'protection', 'monitoring'],
+        searchKeywords: [
+          'connection',
+          'quality',
+          'lag',
+          'rate',
+          'limit',
+          'flood',
+          'protection',
+          'monitoring',
+        ],
         submenuItems: [
           {
             id: 'quality-rate-limit',
@@ -1288,7 +1594,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 onValueChange: async (value: string | boolean) => {
                   const msgPerSec = parseInt(value as string, 10);
                   if (!isNaN(msgPerSec) && msgPerSec > 0) {
-                    await updateRateLimitConfig({ messagesPerSecond: msgPerSec });
+                    await updateRateLimitConfig({
+                      messagesPerSecond: msgPerSec,
+                    });
                     setSubmenuRefreshKey(prev => prev + 1);
                   }
                 },
@@ -1325,7 +1633,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 type: 'switch',
                 value: floodProtectionConfig?.enabled || false,
                 onValueChange: async (value: string | boolean) => {
-                  await updateFloodProtectionConfig({ enabled: value as boolean });
+                  await updateFloodProtectionConfig({
+                    enabled: value as boolean,
+                  });
                   setSubmenuRefreshKey(prev => prev + 1);
                 },
               },
@@ -1334,13 +1644,17 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 title: t('Max Messages Per Window', { _tags: tags }),
                 description: `Max messages: ${floodProtectionConfig?.maxMessagesPerWindow || 10}`,
                 type: 'input',
-                value: floodProtectionConfig?.maxMessagesPerWindow?.toString() || '10',
+                value:
+                  floodProtectionConfig?.maxMessagesPerWindow?.toString() ||
+                  '10',
                 keyboardType: 'numeric',
                 disabled: !floodProtectionConfig?.enabled,
                 onValueChange: async (value: string | boolean) => {
                   const maxMsgs = parseInt(value as string, 10);
                   if (!isNaN(maxMsgs) && maxMsgs > 0) {
-                    await updateFloodProtectionConfig({ maxMessagesPerWindow: maxMsgs });
+                    await updateFloodProtectionConfig({
+                      maxMessagesPerWindow: maxMsgs,
+                    });
                     setSubmenuRefreshKey(prev => prev + 1);
                   }
                 },
@@ -1377,7 +1691,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 type: 'switch',
                 value: lagMonitoringConfig?.enabled || false,
                 onValueChange: async (value: string | boolean) => {
-                  await updateLagMonitoringConfig({ enabled: value as boolean });
+                  await updateLagMonitoringConfig({
+                    enabled: value as boolean,
+                  });
                   setSubmenuRefreshKey(prev => prev + 1);
                 },
               },
@@ -1396,17 +1712,23 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                         text: 'CTCP Ping',
                         onPress: async () => {
                           setLagCheckMethod('ctcp');
-                          await settingsService.setSetting('lagCheckMethod', 'ctcp');
+                          await settingsService.setSetting(
+                            'lagCheckMethod',
+                            'ctcp',
+                          );
                         },
                       },
                       {
                         text: 'Server Ping',
                         onPress: async () => {
                           setLagCheckMethod('server');
-                          await settingsService.setSetting('lagCheckMethod', 'server');
+                          await settingsService.setSetting(
+                            'lagCheckMethod',
+                            'server',
+                          );
                         },
                       },
-                    ]
+                    ],
                   );
                 },
               },
@@ -1431,13 +1753,16 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 title: t('Warning Threshold (ms)', { _tags: tags }),
                 description: `Warning at: ${lagMonitoringConfig?.warningThreshold || 1000}ms`,
                 type: 'input',
-                value: lagMonitoringConfig?.warningThreshold?.toString() || '1000',
+                value:
+                  lagMonitoringConfig?.warningThreshold?.toString() || '1000',
                 keyboardType: 'numeric',
                 disabled: !lagMonitoringConfig?.enabled,
                 onValueChange: async (value: string | boolean) => {
                   const threshold = parseInt(value as string, 10);
                   if (!isNaN(threshold) && threshold > 0) {
-                    await updateLagMonitoringConfig({ warningThreshold: threshold });
+                    await updateLagMonitoringConfig({
+                      warningThreshold: threshold,
+                    });
                     setSubmenuRefreshKey(prev => prev + 1);
                   }
                 },
@@ -1453,21 +1778,28 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             type: 'button',
             onPress: () => {
               const stats = connectionQualityService.getStatistics();
-              const uptime = Math.floor((Date.now() - stats.connectionStartTime) / 1000);
-              const uptimeStr = uptime < 60 ? `${uptime}s` : uptime < 3600 ? `${Math.floor(uptime / 60)}m` : `${Math.floor(uptime / 3600)}h`;
+              const uptime = Math.floor(
+                (Date.now() - stats.connectionStartTime) / 1000,
+              );
+              const uptimeStr =
+                uptime < 60
+                  ? `${uptime}s`
+                  : uptime < 3600
+                    ? `${Math.floor(uptime / 60)}m`
+                    : `${Math.floor(uptime / 3600)}h`;
               Alert.alert(
                 'Connection Statistics',
                 `Uptime: ${uptimeStr}\n` +
-                `Messages Sent: ${stats.messagesSent}\n` +
-                `Messages Received: ${stats.messagesReceived}\n` +
-                `Bytes Sent: ${(stats.bytesSent / 1024).toFixed(2)} KB\n` +
-                `Bytes Received: ${(stats.bytesReceived / 1024).toFixed(2)} KB\n` +
-                `Current Lag: ${stats.currentLag}ms\n` +
-                `Average Ping: ${stats.averagePing.toFixed(0)}ms\n` +
-                `Min Ping: ${stats.minPing}ms\n` +
-                `Max Ping: ${stats.maxPing}ms\n` +
-                `Lag Status: ${stats.lagStatus}`,
-                [{ text: 'OK' }]
+                  `Messages Sent: ${stats.messagesSent}\n` +
+                  `Messages Received: ${stats.messagesReceived}\n` +
+                  `Bytes Sent: ${(stats.bytesSent / 1024).toFixed(2)} KB\n` +
+                  `Bytes Received: ${(stats.bytesReceived / 1024).toFixed(2)} KB\n` +
+                  `Current Lag: ${stats.currentLag}ms\n` +
+                  `Average Ping: ${stats.averagePing.toFixed(0)}ms\n` +
+                  `Min Ping: ${stats.minPing}ms\n` +
+                  `Max Ping: ${stats.maxPing}ms\n` +
+                  `Lag Status: ${stats.lagStatus}`,
+                [{ text: 'OK' }],
               );
             },
           },
@@ -1478,7 +1810,14 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         title: t('Identity Profiles', { _tags: tags }),
         description: `${identityProfiles.length} saved`,
         type: 'button',
-        searchKeywords: ['identity', 'profiles', 'connection', 'manage', 'nicks', 'networks'],
+        searchKeywords: [
+          'identity',
+          'profiles',
+          'connection',
+          'manage',
+          'nicks',
+          'networks',
+        ],
         onPress: () => onShowConnectionProfiles?.(),
       },
       {
@@ -1488,12 +1827,23 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           ? `${globalProxyType === 'tor' ? 'TOR' : globalProxyType.toUpperCase()} - ${globalProxyHost}:${globalProxyPort}`
           : 'Configure proxy for all connections',
         type: 'submenu',
-        searchKeywords: ['proxy', 'global', 'socks', 'socks5', 'socks4', 'http', 'tor', 'connection'],
+        searchKeywords: [
+          'proxy',
+          'global',
+          'socks',
+          'socks5',
+          'socks4',
+          'http',
+          'tor',
+          'connection',
+        ],
         submenuItems: [
           {
             id: 'proxy-enable',
             title: t('Enable Global Proxy', { _tags: tags }),
-            description: t('Route all IRC connections through a proxy', { _tags: tags }),
+            description: t('Route all IRC connections through a proxy', {
+              _tags: tags,
+            }),
             type: 'switch',
             value: globalProxyEnabled,
             onValueChange: async (value: string | boolean) => {
@@ -1512,9 +1862,8 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           {
             id: 'proxy-type',
             title: t('Proxy Type', { _tags: tags }),
-            description: globalProxyType === 'tor' 
-              ? 'TOR' 
-              : globalProxyType.toUpperCase(),
+            description:
+              globalProxyType === 'tor' ? 'TOR' : globalProxyType.toUpperCase(),
             type: 'button',
             onPress: () => {
               setShowProxyTypeModal(true);
@@ -1564,7 +1913,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           {
             id: 'proxy-username',
             title: t('Proxy Username (optional)', { _tags: tags }),
-            description: t('Leave blank if no authentication required', { _tags: tags }),
+            description: t('Leave blank if no authentication required', {
+              _tags: tags,
+            }),
             type: 'input',
             value: globalProxyUsername,
             placeholder: t('username', { _tags: tags }),
@@ -1584,7 +1935,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           {
             id: 'proxy-password',
             title: t('Proxy Password (optional)', { _tags: tags }),
-            description: t('Leave blank if no authentication required', { _tags: tags }),
+            description: t('Leave blank if no authentication required', {
+              _tags: tags,
+            }),
             type: 'input',
             value: globalProxyPassword,
             placeholder: t('password', { _tags: tags }),
@@ -1608,12 +1961,23 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         id: 'connection-whois-auto-detect',
         title: t('Auto-detect WHOIS idle format', { _tags: tags }),
         description: whoisAutoDetectDoubleNick
-          ? t('Automatically use "/WHOIS nick nick" on networks like Undernet', { _tags: tags })
+          ? t(
+              'Automatically use "/WHOIS nick nick" on networks like Undernet',
+              { _tags: tags },
+            )
           : t('Use manual WHOIS format setting', { _tags: tags }),
         type: 'switch',
         value: whoisAutoDetectDoubleNick,
         disabled: !currentNetwork,
-        searchKeywords: ['whois', 'idle', 'undernet', 'double', 'nick', 'auto', 'detect'],
+        searchKeywords: [
+          'whois',
+          'idle',
+          'undernet',
+          'double',
+          'nick',
+          'auto',
+          'detect',
+        ],
         onValueChange: async (value: string | boolean) => {
           const boolValue = value as boolean;
           if (!currentNetwork) return;
@@ -1629,9 +1993,12 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           if (!boolValue) {
             conn.ircService.setWhoisUseDoubleNick(whoisUseDoubleNick);
           } else {
-            const detection = serviceDetectionService.getDetectionResult(currentNetwork);
+            const detection =
+              serviceDetectionService.getDetectionResult(currentNetwork);
             const undernetDetected = detection?.serviceType === 'undernet';
-            conn.ircService.setWhoisUseDoubleNick(undernetDetected || whoisUseDoubleNick);
+            conn.ircService.setWhoisUseDoubleNick(
+              undernetDetected || whoisUseDoubleNick,
+            );
           }
         },
       },
@@ -1639,12 +2006,23 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         id: 'connection-whois-double-nick',
         title: t('Use /WHOIS nick nick format', { _tags: tags }),
         description: whoisUseDoubleNick
-          ? t('Enabled for this network (better idle results on Undernet-like servers)', { _tags: tags })
+          ? t(
+              'Enabled for this network (better idle results on Undernet-like servers)',
+              { _tags: tags },
+            )
           : t('Disabled (uses standard /WHOIS nick)', { _tags: tags }),
         type: 'switch',
         value: whoisUseDoubleNick,
         disabled: !currentNetwork || whoisAutoDetectDoubleNick,
-        searchKeywords: ['whois', 'idle', 'undernet', 'double', 'nick', 'manual', 'format'],
+        searchKeywords: [
+          'whois',
+          'idle',
+          'undernet',
+          'double',
+          'nick',
+          'manual',
+          'format',
+        ],
         onValueChange: async (value: string | boolean) => {
           const boolValue = value as boolean;
           if (!currentNetwork) return;
@@ -1663,16 +2041,24 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         id: 'connection-biometric-lock',
         title: t('Biometric Lock for Passwords', { _tags: tags }),
         description: biometricAvailable
-          ? (biometricLockEnabled
-              ? (pinLockEnabled
-                  ? 'Fingerprint or PIN required (fallback to PIN if biometric fails)'
-                  : 'Fingerprint required before showing/editing passwords')
-              : 'Require fingerprint before showing/editing passwords (can be used with PIN)')
+          ? biometricLockEnabled
+            ? pinLockEnabled
+              ? 'Fingerprint or PIN required (fallback to PIN if biometric fails)'
+              : 'Fingerprint required before showing/editing passwords'
+            : 'Require fingerprint before showing/editing passwords (can be used with PIN)'
           : 'Biometrics unavailable on this device',
         type: 'switch',
         value: biometricLockEnabled,
         disabled: !biometricAvailable,
-        searchKeywords: ['biometric', 'lock', 'passwords', 'fingerprint', 'face', 'security', 'authentication'],
+        searchKeywords: [
+          'biometric',
+          'lock',
+          'passwords',
+          'fingerprint',
+          'face',
+          'security',
+          'authentication',
+        ],
         onValueChange: (value: string | boolean) => {
           handleBiometricLockToggle(Boolean(value)).catch(() => {});
         },
@@ -1681,35 +2067,58 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         id: 'connection-pin-lock',
         title: t('PIN Lock for Passwords', { _tags: tags }),
         description: pinLockEnabled
-          ? (biometricLockEnabled
-              ? 'PIN required (fallback if biometric fails)'
-              : 'PIN required before showing/editing passwords')
+          ? biometricLockEnabled
+            ? 'PIN required (fallback if biometric fails)'
+            : 'PIN required before showing/editing passwords'
           : 'Require a PIN before showing/editing passwords (can be used with biometric)',
         type: 'switch',
         value: pinLockEnabled,
-        searchKeywords: ['pin', 'lock', 'passwords', 'passcode', 'security', 'number', 'code'],
+        searchKeywords: [
+          'pin',
+          'lock',
+          'passwords',
+          'passcode',
+          'security',
+          'number',
+          'code',
+        ],
         onValueChange: (value: string | boolean) => {
           handlePinLockToggle(Boolean(value)).catch(() => {});
         },
       },
-      ...(passwordLockActive ? [{
-        id: 'connection-unlock-passwords',
-        title: passwordsUnlocked ? 'Passwords Unlocked' : 'Unlock Passwords',
-        description: passwordsUnlocked ? 'Passwords are unlocked for this session' : passwordUnlockDescription,
-        type: 'button' as const,
-        disabled: passwordsUnlocked,
-        onPress: async () => {
-          await unlockPasswords();
-        },
-      }] : []),
+      ...(passwordLockActive
+        ? [
+            {
+              id: 'connection-unlock-passwords',
+              title: passwordsUnlocked
+                ? 'Passwords Unlocked'
+                : 'Unlock Passwords',
+              description: passwordsUnlocked
+                ? 'Passwords are unlocked for this session'
+                : passwordUnlockDescription,
+              type: 'button' as const,
+              disabled: passwordsUnlocked,
+              onPress: async () => {
+                await unlockPasswords();
+              },
+            },
+          ]
+        : []),
       {
         id: 'channel-favorites',
         title: t('Channel Favorites', { _tags: tags }),
-        description: favoritesCount > 0
-          ? (favoritesCount === 1
-            ? t('{count} favorite across networks', { count: favoritesCount, _tags: tags })
-            : t('{count} favorites across networks', { count: favoritesCount, _tags: tags }))
-          : t('Manage favorite channels', { _tags: tags }),
+        description:
+          favoritesCount > 0
+            ? favoritesCount === 1
+              ? t('{count} favorite across networks', {
+                  count: favoritesCount,
+                  _tags: tags,
+                })
+              : t('{count} favorites across networks', {
+                  count: favoritesCount,
+                  _tags: tags,
+                })
+            : t('Manage favorite channels', { _tags: tags }),
         type: 'submenu',
         searchKeywords: ['channel', 'favorites', 'bookmark', 'manage', 'saved'],
         submenuItems: [
@@ -1723,7 +2132,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 } as SettingItemType,
               ]
             : allFavorites.map(fav => {
-                const otherNetworks = networks.filter(n => n.id !== fav.network);
+                const otherNetworks = networks.filter(
+                  n => n.id !== fav.network,
+                );
                 return {
                   id: `favorite-${fav.network}-${fav.name}`,
                   title: fav.name,
@@ -1732,21 +2143,29 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                   submenuItems: [
                     {
                       id: `favorite-info-${fav.network}-${fav.name}`,
-                      title: t('Network: {network}', { network: networkLabel(fav.network), _tags: tags }),
+                      title: t('Network: {network}', {
+                        network: networkLabel(fav.network),
+                        _tags: tags,
+                      }),
                       type: 'button' as const,
                       disabled: true,
                     },
                     ...(otherNetworks.length > 0
                       ? otherNetworks.map(n => ({
                           id: `favorite-move-${fav.network}-${fav.name}-${n.id}`,
-                          title: t('Move to {name}', { name: n.name, _tags: tags }),
+                          title: t('Move to {name}', {
+                            name: n.name,
+                            _tags: tags,
+                          }),
                           type: 'button' as const,
                           onPress: () => handleFavoriteMove(fav, n.id),
                         }))
                       : [
                           {
                             id: `favorite-no-move-${fav.network}-${fav.name}`,
-                            title: t('No other networks available', { _tags: tags }),
+                            title: t('No other networks available', {
+                              _tags: tags,
+                            }),
                             type: 'button' as const,
                             disabled: true,
                           } as SettingItemType,
@@ -1764,13 +2183,16 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                             _tags: tags,
                           }),
                           [
-                            { text: t('Cancel', { _tags: tags }), style: 'cancel' },
+                            {
+                              text: t('Cancel', { _tags: tags }),
+                              style: 'cancel',
+                            },
                             {
                               text: t('Delete', { _tags: tags }),
                               style: 'destructive',
                               onPress: () => handleFavoriteDelete(fav),
                             },
-                          ]
+                          ],
                         ),
                     },
                   ],
@@ -1781,10 +2203,19 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       {
         id: 'channel-auto-join-favorites',
         title: t('Auto-Join Favorites on Connect', { _tags: tags }),
-        description: t('Join favorited channels after connect/identify', { _tags: tags }),
+        description: t('Join favorited channels after connect/identify', {
+          _tags: tags,
+        }),
         type: 'switch',
         value: autoJoinFavoritesEnabled,
-        searchKeywords: ['auto', 'join', 'favorites', 'automatic', 'connect', 'channel'],
+        searchKeywords: [
+          'auto',
+          'join',
+          'favorites',
+          'automatic',
+          'connect',
+          'channel',
+        ],
         onValueChange: async (value: string | boolean) => {
           const boolValue = value as boolean;
           setAutoJoinFavoritesEnabled(boolValue);
@@ -1794,7 +2225,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
       {
         id: 'channel-auto-rejoin',
         title: t('Auto-Rejoin on Kick', { _tags: tags }),
-        description: t('Automatically rejoin channel if kicked', { _tags: tags }),
+        description: t('Automatically rejoin channel if kicked', {
+          _tags: tags,
+        }),
         type: 'switch',
         value: autoRejoinEnabled,
         disabled: !currentNetwork,
@@ -1813,7 +2246,14 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           ? `${autoVoiceConfig.forAll ? 'All users' : ''}${autoVoiceConfig.forOperators ? 'Operators' : ''}${autoVoiceConfig.forIRCOps ? 'IRC Ops' : ''}`
           : 'Automatically request voice when joining channels',
         type: 'submenu',
-        searchKeywords: ['auto', 'voice', 'join', 'automatic', 'channel', 'mode'],
+        searchKeywords: [
+          'auto',
+          'voice',
+          'join',
+          'automatic',
+          'channel',
+          'mode',
+        ],
         submenuItems: [
           {
             id: 'auto-voice-enabled',
@@ -1823,7 +2263,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             disabled: !currentNetwork,
             onValueChange: (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoVoiceService.getConfig(currentNetwork) || getDefaultAutoVoiceConfig();
+                const config =
+                  autoVoiceService.getConfig(currentNetwork) ||
+                  getDefaultAutoVoiceConfig();
                 config.enabled = value as boolean;
                 autoVoiceService.setConfig(currentNetwork, config);
                 setAutoVoiceConfig(config);
@@ -1838,7 +2280,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             disabled: !autoVoiceConfig?.enabled || !currentNetwork,
             onValueChange: (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoVoiceService.getConfig(currentNetwork) || getDefaultAutoVoiceConfig();
+                const config =
+                  autoVoiceService.getConfig(currentNetwork) ||
+                  getDefaultAutoVoiceConfig();
                 config.forAll = value as boolean;
                 autoVoiceService.setConfig(currentNetwork, config);
                 setAutoVoiceConfig(config);
@@ -1853,7 +2297,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             disabled: !autoVoiceConfig?.enabled || !currentNetwork,
             onValueChange: (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoVoiceService.getConfig(currentNetwork) || getDefaultAutoVoiceConfig();
+                const config =
+                  autoVoiceService.getConfig(currentNetwork) ||
+                  getDefaultAutoVoiceConfig();
                 config.forOperators = value as boolean;
                 autoVoiceService.setConfig(currentNetwork, config);
                 setAutoVoiceConfig(config);
@@ -1868,7 +2314,9 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             disabled: !autoVoiceConfig?.enabled || !currentNetwork,
             onValueChange: (value: string | boolean) => {
               if (currentNetwork) {
-                const config = autoVoiceService.getConfig(currentNetwork) || getDefaultAutoVoiceConfig();
+                const config =
+                  autoVoiceService.getConfig(currentNetwork) ||
+                  getDefaultAutoVoiceConfig();
                 config.forIRCOps = value as boolean;
                 autoVoiceService.setConfig(currentNetwork, config);
                 setAutoVoiceConfig(config);
@@ -1882,7 +2330,16 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         title: t('DCC Settings', { _tags: tags }),
         description: `Port range ${dccMinPort}-${dccMaxPort}`,
         type: 'submenu',
-        searchKeywords: ['dcc', 'direct', 'client', 'connection', 'file', 'transfer', 'chat', 'port'],
+        searchKeywords: [
+          'dcc',
+          'direct',
+          'client',
+          'connection',
+          'file',
+          'transfer',
+          'chat',
+          'port',
+        ],
         submenuItems: dccSubmenuItems,
       },
     ];
@@ -1944,8 +2401,10 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
 
   return (
     <>
-      {sectionData.map((item) => {
-        const itemIcon = (typeof item.icon === 'object' ? item.icon : undefined) || settingIcons[item.id];
+      {sectionData.map(item => {
+        const itemIcon =
+          (typeof item.icon === 'object' ? item.icon : undefined) ||
+          settingIcons[item.id];
         return (
           <SettingItem
             key={item.id}
@@ -1953,7 +2412,7 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
             icon={itemIcon}
             colors={colors}
             styles={styles}
-            onPress={(itemId) => {
+            onPress={itemId => {
               if (item.type === 'submenu') {
                 setShowSubmenu(itemId);
                 setNestedSubmenuStack([]); // Reset nested stack when opening new submenu
@@ -1962,43 +2421,60 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           />
         );
       })}
-      
+
       {/* Submenu Modal */}
       <Modal
         visible={showSubmenu !== null}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowSubmenu(null)}>
+        onRequestClose={() => setShowSubmenu(null)}
+      >
         <View style={styles.submenuOverlay}>
           <View style={styles.submenuContainer}>
             <View style={styles.submenuHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+              >
                 {nestedSubmenuStack.length > 0 && (
                   <TouchableOpacity
                     onPress={() => {
                       setNestedSubmenuStack(prev => prev.slice(0, -1));
                     }}
-                    style={{ marginRight: 12, padding: 4 }}>
-                    <Text style={[styles.closeButtonText, { fontSize: 18 }]}>←</Text>
+                    style={{ marginRight: 12, padding: 4 }}
+                  >
+                    <Text style={[styles.closeButtonText, { fontSize: 18 }]}>
+                      ←
+                    </Text>
                   </TouchableOpacity>
                 )}
                 <Text style={styles.submenuTitle}>
                   {(() => {
                     if (nestedSubmenuStack.length > 0) {
                       const nestedItem = sectionData
-                        .find((item) => item.id === showSubmenu)
-                        ?.submenuItems?.find((subItem) => subItem.id === nestedSubmenuStack[nestedSubmenuStack.length - 1]);
+                        .find(item => item.id === showSubmenu)
+                        ?.submenuItems?.find(
+                          subItem =>
+                            subItem.id ===
+                            nestedSubmenuStack[nestedSubmenuStack.length - 1],
+                        );
                       return nestedItem?.title || t('Options', { _tags: tags });
                     }
-                    return sectionData.find((item) => item.id === showSubmenu)?.title || t('Options', { _tags: tags });
+                    return (
+                      sectionData.find(item => item.id === showSubmenu)
+                        ?.title || t('Options', { _tags: tags })
+                    );
                   })()}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => {
-                setShowSubmenu(null);
-                setNestedSubmenuStack([]);
-              }}>
-                <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowSubmenu(null);
+                  setNestedSubmenuStack([]);
+                }}
+              >
+                <Text style={styles.closeButtonText}>
+                  {t('Close', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
             <ScrollView key={`submenu-${showSubmenu}-${submenuRefreshKey}`}>
@@ -2008,28 +2484,38 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 if (nestedSubmenuStack.length > 0) {
                   // We're in a nested submenu
                   const parentItem = sectionData
-                    .find((item) => item.id === showSubmenu)
-                    ?.submenuItems?.find((subItem) => subItem.id === nestedSubmenuStack[nestedSubmenuStack.length - 1]);
+                    .find(item => item.id === showSubmenu)
+                    ?.submenuItems?.find(
+                      subItem =>
+                        subItem.id ===
+                        nestedSubmenuStack[nestedSubmenuStack.length - 1],
+                    );
                   itemsToShow = parentItem?.submenuItems;
                 } else {
                   // We're in the main submenu
-                  itemsToShow = sectionData.find((item) => item.id === showSubmenu)?.submenuItems;
+                  itemsToShow = sectionData.find(
+                    item => item.id === showSubmenu,
+                  )?.submenuItems;
                 }
-                
-                return itemsToShow?.map((subItem) => {
+
+                return itemsToShow?.map(subItem => {
                   if (subItem.type === 'switch') {
                     return (
                       <View key={subItem.id} style={styles.submenuItem}>
                         <View style={styles.submenuItemContent}>
-                          <Text style={styles.submenuItemText}>{subItem.title}</Text>
+                          <Text style={styles.submenuItemText}>
+                            {subItem.title}
+                          </Text>
                           {subItem.description && (
-                            <Text style={styles.submenuItemDescription}>{subItem.description}</Text>
+                            <Text style={styles.submenuItemDescription}>
+                              {subItem.description}
+                            </Text>
                           )}
                         </View>
                         <Switch
                           key={`${subItem.id}-${submenuRefreshKey}`}
                           value={subItem.value as boolean}
-                          onValueChange={async (value) => {
+                          onValueChange={async value => {
                             try {
                               await subItem.onValueChange?.(value);
                               // Force re-render by updating refresh key
@@ -2047,19 +2533,27 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                     return (
                       <View key={subItem.id} style={styles.submenuItem}>
                         <View style={styles.submenuItemContent}>
-                          <Text style={styles.submenuItemText}>{subItem.title}</Text>
+                          <Text style={styles.submenuItemText}>
+                            {subItem.title}
+                          </Text>
                           {subItem.description && (
-                            <Text style={styles.submenuItemDescription}>{subItem.description}</Text>
+                            <Text style={styles.submenuItemDescription}>
+                              {subItem.description}
+                            </Text>
                           )}
                           <TextInput
                             key={`${subItem.id}-${submenuRefreshKey}`}
                             style={[
                               styles.submenuInput,
                               subItem.disabled && styles.disabledInput,
-                              { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                              {
+                                backgroundColor: colors.surface,
+                                color: colors.text,
+                                borderColor: colors.border,
+                              },
                             ]}
                             value={subItem.value as string}
-                            onChangeText={async (text) => {
+                            onChangeText={async text => {
                               try {
                                 await subItem.onValueChange?.(text);
                                 // Force re-render by updating refresh key
@@ -2089,13 +2583,24 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                           // Navigate into nested submenu
                           setNestedSubmenuStack(prev => [...prev, subItem.id]);
                         }}
-                        disabled={subItem.disabled}>
+                        disabled={subItem.disabled}
+                      >
                         <View style={styles.submenuItemContent}>
-                          <Text style={[styles.submenuItemText, subItem.disabled && styles.disabledText]}>
+                          <Text
+                            style={[
+                              styles.submenuItemText,
+                              subItem.disabled && styles.disabledText,
+                            ]}
+                          >
                             {subItem.title}
                           </Text>
                           {subItem.description && (
-                            <Text style={[styles.submenuItemDescription, subItem.disabled && styles.disabledText]}>
+                            <Text
+                              style={[
+                                styles.submenuItemDescription,
+                                subItem.disabled && styles.disabledText,
+                              ]}
+                            >
                               {subItem.description}
                             </Text>
                           )}
@@ -2110,18 +2615,33 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                       style={styles.submenuItem}
                       onPress={() => {
                         subItem.onPress?.();
-                        if (subItem.type !== 'switch' && subItem.type !== 'input' && subItem.type !== 'submenu') {
+                        if (
+                          subItem.type !== 'switch' &&
+                          subItem.type !== 'input' &&
+                          subItem.type !== 'submenu'
+                        ) {
                           setShowSubmenu(null);
                           setNestedSubmenuStack([]);
                         }
                       }}
-                      disabled={subItem.disabled}>
+                      disabled={subItem.disabled}
+                    >
                       <View style={styles.submenuItemContent}>
-                        <Text style={[styles.submenuItemText, subItem.disabled && styles.disabledText]}>
+                        <Text
+                          style={[
+                            styles.submenuItemText,
+                            subItem.disabled && styles.disabledText,
+                          ]}
+                        >
                           {subItem.title}
                         </Text>
                         {subItem.description && (
-                          <Text style={[styles.submenuItemDescription, subItem.disabled && styles.disabledText]}>
+                          <Text
+                            style={[
+                              styles.submenuItemDescription,
+                              subItem.disabled && styles.disabledText,
+                            ]}
+                          >
                             {subItem.description}
                           </Text>
                         )}
@@ -2140,13 +2660,18 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         visible={showQuickConnectModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowQuickConnectModal(false)}>
+        onRequestClose={() => setShowQuickConnectModal(false)}
+      >
         <View style={styles.submenuOverlay}>
           <View style={[styles.submenuContainer, { maxHeight: '80%' }]}>
             <View style={styles.submenuHeader}>
-              <Text style={styles.submenuTitle}>{t('Select Quick Connect Network', { _tags: tags })}</Text>
+              <Text style={styles.submenuTitle}>
+                {t('Select Quick Connect Network', { _tags: tags })}
+              </Text>
               <TouchableOpacity onPress={() => setShowQuickConnectModal(false)}>
-                <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+                <Text style={styles.closeButtonText}>
+                  {t('Close', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
             <ScrollView>
@@ -2155,31 +2680,41 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 onPress={async () => {
                   await setQuickConnectNetworkId(null);
                   setShowQuickConnectModal(false);
-                }}>
+                }}
+              >
                 <View style={styles.submenuItemContent}>
                   <Text
                     style={[
                       styles.submenuItemText,
-                      !quickConnectNetworkId && { color: colors.primary, fontWeight: '600' },
-                    ]}>
+                      !quickConnectNetworkId && {
+                        color: colors.primary,
+                        fontWeight: '600',
+                      },
+                    ]}
+                  >
                     {t('Use Default', { _tags: tags })}
                   </Text>
                 </View>
               </TouchableOpacity>
-              {quickConnectNetworks.map((net) => (
+              {quickConnectNetworks.map(net => (
                 <TouchableOpacity
                   key={net.id}
                   style={styles.submenuItem}
                   onPress={async () => {
                     await setQuickConnectNetworkId(net.id);
                     setShowQuickConnectModal(false);
-                  }}>
+                  }}
+                >
                   <View style={styles.submenuItemContent}>
                     <Text
                       style={[
                         styles.submenuItemText,
-                        quickConnectNetworkId === net.id && { color: colors.primary, fontWeight: '600' },
-                      ]}>
+                        quickConnectNetworkId === net.id && {
+                          color: colors.primary,
+                          fontWeight: '600',
+                        },
+                      ]}
+                    >
                       {net.name}
                     </Text>
                   </View>
@@ -2194,35 +2729,51 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
         visible={showDccExtModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowDccExtModal(false)}>
+        onRequestClose={() => setShowDccExtModal(false)}
+      >
         <View style={styles.submenuOverlay}>
           <View style={styles.submenuContainer}>
             <View style={styles.submenuHeader}>
               <Text style={styles.submenuTitle}>{dccExtTitle}</Text>
               <TouchableOpacity onPress={() => setShowDccExtModal(false)}>
-                <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+                <Text style={styles.closeButtonText}>
+                  {t('Close', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
               <TextInput
                 style={[
                   styles.submenuInput,
-                  { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                  {
+                    backgroundColor: colors.surface,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
                 ]}
                 placeholder={t('Add extension (e.g. *.zip)', { _tags: tags })}
                 placeholderTextColor={colors.textSecondary}
                 value={newDccExt}
                 onChangeText={setNewDccExt}
               />
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                  marginTop: 8,
+                }}
+              >
                 <TouchableOpacity
                   onPress={async () => {
                     const next = newDccExt.trim();
                     if (!next) return;
                     await updateDccExtList([...dccExtList, next]);
                     setNewDccExt('');
-                  }}>
-                  <Text style={styles.closeButtonText}>{t('Add', { _tags: tags })}</Text>
+                  }}
+                >
+                  <Text style={styles.closeButtonText}>
+                    {t('Add', { _tags: tags })}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -2234,10 +2785,13 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                   onPress={async () => {
                     const updated = dccExtList.filter((_, i) => i !== index);
                     await updateDccExtList(updated);
-                  }}>
+                  }}
+                >
                   <View style={styles.submenuItemContent}>
                     <Text style={styles.submenuItemText}>{ext}</Text>
-                    <Text style={styles.submenuItemDescription}>{t('Tap to remove', { _tags: tags })}</Text>
+                    <Text style={styles.submenuItemDescription}>
+                      {t('Tap to remove', { _tags: tags })}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -2245,23 +2799,35 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           </View>
         </View>
       </Modal>
-      
+
       {/* Proxy Type Modal */}
       <Modal
         visible={showProxyTypeModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowProxyTypeModal(false)}>
-        <View style={[styles.submenuOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
-          <View style={[styles.submenuContainer, { width: '80%', maxWidth: 400 }]}>
+        onRequestClose={() => setShowProxyTypeModal(false)}
+      >
+        <View
+          style={[
+            styles.submenuOverlay,
+            { justifyContent: 'center', alignItems: 'center' },
+          ]}
+        >
+          <View
+            style={[styles.submenuContainer, { width: '80%', maxWidth: 400 }]}
+          >
             <View style={styles.submenuHeader}>
-              <Text style={styles.submenuTitle}>{t('Proxy Type', { _tags: tags })}</Text>
+              <Text style={styles.submenuTitle}>
+                {t('Proxy Type', { _tags: tags })}
+              </Text>
               <TouchableOpacity onPress={() => setShowProxyTypeModal(false)}>
-                <Text style={styles.closeButtonText}>{t('Close', { _tags: tags })}</Text>
+                <Text style={styles.closeButtonText}>
+                  {t('Close', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
             <ScrollView>
-              {(['socks5', 'socks4', 'http', 'tor'] as const).map((proxyType) => (
+              {(['socks5', 'socks4', 'http', 'tor'] as const).map(proxyType => (
                 <TouchableOpacity
                   key={proxyType}
                   style={styles.submenuItem}
@@ -2276,16 +2842,27 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                       password: globalProxyPassword,
                     });
                     setShowProxyTypeModal(false);
-                  }}>
+                  }}
+                >
                   <View style={styles.submenuItemContent}>
-                    <Text style={[
-                      styles.submenuItemText,
-                      globalProxyType === proxyType && { fontWeight: 'bold', color: colors.primary }
-                    ]}>
+                    <Text
+                      style={[
+                        styles.submenuItemText,
+                        globalProxyType === proxyType && {
+                          fontWeight: 'bold',
+                          color: colors.primary,
+                        },
+                      ]}
+                    >
                       {proxyType === 'tor' ? 'TOR' : proxyType.toUpperCase()}
                     </Text>
                     {globalProxyType === proxyType && (
-                      <Text style={[styles.submenuItemDescription, { color: colors.primary }]}>
+                      <Text
+                        style={[
+                          styles.submenuItemDescription,
+                          { color: colors.primary },
+                        ]}
+                      >
                         {t('Selected', { _tags: tags })}
                       </Text>
                     )}
@@ -2299,30 +2876,52 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
           </View>
         </View>
       </Modal>
-      
+
       {/* PIN Modal */}
       <Modal
         visible={pinModalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => closePinModal(false)}>
-        <View style={[styles.submenuOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
-          <View style={[styles.submenuContainer, { width: '80%', maxWidth: 400 }]}>
+        onRequestClose={() => closePinModal(false)}
+      >
+        <View
+          style={[
+            styles.submenuOverlay,
+            { justifyContent: 'center', alignItems: 'center' },
+          ]}
+        >
+          <View
+            style={[styles.submenuContainer, { width: '80%', maxWidth: 400 }]}
+          >
             <View style={styles.submenuHeader}>
               <Text style={styles.submenuTitle}>
-                {pinModalMode === 'unlock' ? t('Unlock Passwords', { _tags: tags }) : pinModalMode === 'setup' ? t('Set PIN', { _tags: tags }) : t('Confirm PIN', { _tags: tags })}
+                {pinModalMode === 'unlock'
+                  ? t('Unlock Passwords', { _tags: tags })
+                  : pinModalMode === 'setup'
+                    ? t('Set PIN', { _tags: tags })
+                    : t('Confirm PIN', { _tags: tags })}
               </Text>
               <TouchableOpacity onPress={() => closePinModal(false)}>
-                <Text style={styles.closeButtonText}>{t('Cancel', { _tags: tags })}</Text>
+                <Text style={styles.closeButtonText}>
+                  {t('Cancel', { _tags: tags })}
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={{ padding: 16 }}>
               <TextInput
                 style={[
                   styles.submenuInput,
-                  { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border },
+                  {
+                    backgroundColor: colors.surface,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
                 ]}
-                placeholder={pinModalMode === 'confirm' ? t('Re-enter PIN', { _tags: tags }) : t('Enter PIN', { _tags: tags })}
+                placeholder={
+                  pinModalMode === 'confirm'
+                    ? t('Re-enter PIN', { _tags: tags })
+                    : t('Enter PIN', { _tags: tags })
+                }
                 placeholderTextColor={colors.textSecondary}
                 value={pinEntry}
                 onChangeText={setPinEntry}
@@ -2331,7 +2930,12 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                 autoFocus
               />
               {pinError ? (
-                <Text style={[styles.submenuItemDescription, { color: colors.error, marginTop: 8 }]}>
+                <Text
+                  style={[
+                    styles.submenuItemDescription,
+                    { color: colors.error, marginTop: 8 },
+                  ]}
+                >
                   {pinError}
                 </Text>
               ) : null}
@@ -2343,9 +2947,12 @@ export const ConnectionNetworkSection: React.FC<ConnectionNetworkSectionProps> =
                   marginTop: 16,
                   alignItems: 'center',
                 }}
-                onPress={handlePinSubmit}>
+                onPress={handlePinSubmit}
+              >
                 <Text style={{ color: colors.onPrimary, fontWeight: 'bold' }}>
-                  {pinModalMode === 'confirm' ? t('Confirm', { _tags: tags }) : t('Submit', { _tags: tags })}
+                  {pinModalMode === 'confirm'
+                    ? t('Confirm', { _tags: tags })
+                    : t('Submit', { _tags: tags })}
                 </Text>
               </TouchableOpacity>
             </View>

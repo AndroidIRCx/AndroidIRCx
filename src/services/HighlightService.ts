@@ -17,7 +17,9 @@ class HighlightService {
 
   private async loadHighlightWords() {
     try {
-      const storedWords = await AsyncStorage.getItem(HIGHLIGHT_WORDS_STORAGE_KEY);
+      const storedWords = await AsyncStorage.getItem(
+        HIGHLIGHT_WORDS_STORAGE_KEY,
+      );
       if (storedWords) {
         this.highlightWords = JSON.parse(storedWords);
       }
@@ -28,7 +30,10 @@ class HighlightService {
 
   private async saveHighlightWords() {
     try {
-      await AsyncStorage.setItem(HIGHLIGHT_WORDS_STORAGE_KEY, JSON.stringify(this.highlightWords));
+      await AsyncStorage.setItem(
+        HIGHLIGHT_WORDS_STORAGE_KEY,
+        JSON.stringify(this.highlightWords),
+      );
       this.notifyListeners();
     } catch (error) {
       console.error('Failed to save highlight words:', error);
@@ -76,7 +81,7 @@ class HighlightService {
 
     return false;
   }
-  
+
   public onHighlightWordsChange(callback: () => void): () => void {
     this.listeners.push(callback);
     return () => {

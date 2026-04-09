@@ -38,7 +38,7 @@ describe('CertificateFingerprintModal', () => {
         visible
         onClose={jest.fn()}
         fingerprint="aabbcc"
-      />
+      />,
     );
 
     fireEvent.press(getByText('Copy Fingerprint'));
@@ -58,13 +58,15 @@ describe('CertificateFingerprintModal', () => {
         onClose={onClose}
         fingerprint="ddee"
         onSendToNickServ={onSendToNickServ}
-      />
+      />,
     );
 
     fireEvent.press(getByText('HostServ'));
     fireEvent.press(getByText('Send to {{service}}:HostServ'));
 
-    expect(onSendToNickServ).toHaveBeenCalledWith('/msg HostServ CERT ADD DDEE');
+    expect(onSendToNickServ).toHaveBeenCalledWith(
+      '/msg HostServ CERT ADD DDEE',
+    );
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -75,7 +77,7 @@ describe('CertificateFingerprintModal', () => {
         onClose={jest.fn()}
         fingerprint="ddee"
         showQRCode={false}
-      />
+      />,
     );
 
     expect(queryByText('QR Code')).toBeNull();

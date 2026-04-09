@@ -4,12 +4,7 @@
   "title": "IRC Service Configuration",
   "description": "Configuration schema for IRC services (NickServ, ChanServ, etc.) and IRCd definitions",
   "type": "object",
-  "required": [
-    "serviceType",
-    "ircdType",
-    "services",
-    "ircd"
-  ],
+  "required": ["serviceType", "ircdType", "services", "ircd"],
   "properties": {
     "$schema": {
       "type": "string",
@@ -17,14 +12,7 @@
     },
     "serviceType": {
       "type": "string",
-      "enum": [
-        "anope",
-        "atheme",
-        "dalnet",
-        "undernet",
-        "quakenet",
-        "generic"
-      ],
+      "enum": ["anope", "atheme", "dalnet", "undernet", "quakenet", "generic"],
       "description": "Type of IRC services provider"
     },
     "ircdType": {
@@ -95,11 +83,7 @@
   "definitions": {
     "serviceDefinition": {
       "type": "object",
-      "required": [
-        "enabled",
-        "nick",
-        "commands"
-      ],
+      "required": ["enabled", "nick", "commands"],
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -127,13 +111,7 @@
     },
     "serviceCommand": {
       "type": "object",
-      "required": [
-        "name",
-        "service",
-        "description",
-        "usage",
-        "parameters"
-      ],
+      "required": ["name", "service", "description", "usage", "parameters"],
       "properties": {
         "name": {
           "type": "string",
@@ -174,14 +152,7 @@
         },
         "minLevel": {
           "type": "string",
-          "enum": [
-            "user",
-            "op",
-            "halfop",
-            "admin",
-            "founder",
-            "oper"
-          ],
+          "enum": ["user", "op", "halfop", "admin", "founder", "oper"],
           "default": "user",
           "description": "Minimum access level required"
         },
@@ -206,12 +177,7 @@
     },
     "commandParameter": {
       "type": "object",
-      "required": [
-        "name",
-        "type",
-        "required",
-        "description"
-      ],
+      "required": ["name", "type", "required", "description"],
       "properties": {
         "name": {
           "type": "string",
@@ -279,16 +245,9 @@
           "description": "Available contexts",
           "items": {
             "type": "string",
-            "enum": [
-              "global",
-              "channel",
-              "query"
-            ]
+            "enum": ["global", "channel", "query"]
           },
-          "default": [
-            "global",
-            "channel"
-          ]
+          "default": ["global", "channel"]
         },
         "confirmBeforeExecute": {
           "type": "boolean",
@@ -312,9 +271,7 @@
     },
     "parameterCompletionConfig": {
       "type": "object",
-      "required": [
-        "type"
-      ],
+      "required": ["type"],
       "properties": {
         "type": {
           "type": "string",
@@ -338,13 +295,7 @@
         },
         "source": {
           "type": "string",
-          "enum": [
-            "channels",
-            "nicks",
-            "bans",
-            "networks",
-            "custom"
-          ],
+          "enum": ["channels", "nicks", "bans", "networks", "custom"],
           "description": "Dynamic data source"
         },
         "mask": {
@@ -376,11 +327,7 @@
     },
     "ircdDefinition": {
       "type": "object",
-      "required": [
-        "userModes",
-        "channelModes",
-        "commands"
-      ],
+      "required": ["userModes", "channelModes", "commands"],
       "properties": {
         "userModes": {
           "type": "array",
@@ -415,11 +362,7 @@
     },
     "userMode": {
       "type": "object",
-      "required": [
-        "mode",
-        "name",
-        "description"
-      ],
+      "required": ["mode", "name", "description"],
       "properties": {
         "mode": {
           "type": "string",
@@ -445,12 +388,7 @@
     },
     "channelMode": {
       "type": "object",
-      "required": [
-        "mode",
-        "type",
-        "name",
-        "description"
-      ],
+      "required": ["mode", "type", "name", "description"],
       "properties": {
         "mode": {
           "type": "string",
@@ -460,12 +398,7 @@
         },
         "type": {
           "type": "string",
-          "enum": [
-            "list",
-            "param",
-            "set",
-            "prefix"
-          ],
+          "enum": ["list", "param", "set", "prefix"],
           "description": "Mode type"
         },
         "prefix": {
@@ -491,12 +424,7 @@
     },
     "ircdCommand": {
       "type": "object",
-      "required": [
-        "name",
-        "description",
-        "usage",
-        "operOnly"
-      ],
+      "required": ["name", "description", "usage", "operOnly"],
       "properties": {
         "name": {
           "type": "string",
@@ -520,12 +448,7 @@
     },
     "extendedBan": {
       "type": "object",
-      "required": [
-        "prefix",
-        "type",
-        "description",
-        "example"
-      ],
+      "required": ["prefix", "type", "description", "example"],
       "properties": {
         "prefix": {
           "type": "string",

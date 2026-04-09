@@ -85,9 +85,20 @@ describe('DCCFileService', () => {
   });
 
   it('parses valid DCC SEND offers and private helper conversions', () => {
-    const parsed = dccFileService.parseSendOffer('\x01DCC SEND "file.txt" 2130706433 5000 12\x01');
-    expect(parsed).toEqual(expect.objectContaining({ filename: 'file.txt', host: '127.0.0.1', port: 5000, size: 12 }));
-    expect(dccFileService.parseSendOffer('\x01DCC SEND nope x y z\x01')).toBeNull();
+    const parsed = dccFileService.parseSendOffer(
+      '\x01DCC SEND "file.txt" 2130706433 5000 12\x01',
+    );
+    expect(parsed).toEqual(
+      expect.objectContaining({
+        filename: 'file.txt',
+        host: '127.0.0.1',
+        port: 5000,
+        size: 12,
+      }),
+    );
+    expect(
+      dccFileService.parseSendOffer('\x01DCC SEND nope x y z\x01'),
+    ).toBeNull();
     expect(dccFileService.parseSendOffer(undefined as any)).toBeNull();
     expect((dccFileService as any).intToIp('bad')).toBe('bad');
     expect((dccFileService as any).ipToInt('1.2.3.4')).toBeGreaterThan(0);
@@ -120,20 +131,30 @@ describe('DCCFileService', () => {
     dccFileService.cancel(transfer.id);
     expect(sock.destroy).toHaveBeenCalled();
     expect(server.close).toHaveBeenCalled();
-    expect(dccFileService.list().find(t => t.id === transfer.id)?.status).toBe('cancelled');
+    expect(dccFileService.list().find(t => t.id === transfer.id)?.status).toBe(
+      'cancelled',
+    );
     off();
   });
 
   it('blocks private/local ip in accept when protection enabled', async () => {
-    mockGetSetting.mockImplementation(async (key: string, def: any) => (key === 'dccBlockPrivateIp' ? true : def));
+    mockGetSetting.mockImplementation(async (key: string, def: any) =>
+      key === 'dccBlockPrivateIp' ? true : def,
+    );
     const transfer = dccFileService.handleOffer('nick', 'net1', {
       filename: 'a.txt',
       host: '127.0.0.1',
       port: 5001,
       size: 10,
     });
-    await dccFileService.accept(transfer.id, { sendRaw: jest.fn() } as any, '/documents/a.txt');
-    expect(dccFileService.list().find(t => t.id === transfer.id)?.status).toBe('failed');
+    await dccFileService.accept(
+      transfer.id,
+      { sendRaw: jest.fn() } as any,
+      '/documents/a.txt',
+    );
+    expect(dccFileService.list().find(t => t.id === transfer.id)?.status).toBe(
+      'failed',
+    );
   });
 
   it('accepts transfer, appends chunks, sends ACK, handles error and close', async () => {
@@ -169,7 +190,9 @@ describe('DCCFileService', () => {
     failed.status = 'downloading';
     (dccFileService as any).transfers.set(transfer.id, failed);
     sock.emit('close', false);
-    expect(dccFileService.list().find(t => t.id === transfer.id)?.status).toBe('completed');
+    expect(dccFileService.list().find(t => t.id === transfer.id)?.status).toBe(
+      'completed',
+    );
   });
 
   it('requests resume when partial file exists', async () => {
@@ -189,29 +212,43 @@ describe('DCCFileService', () => {
     });
     const irc = { sendRaw: jest.fn() } as any;
     await dccFileService.accept(transfer.id, irc, '/documents/a.txt');
-    expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('DCC RESUME'));
+    expect(irc.sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('DCC RESUME'),
+    );
   });
 
   it('builds default download path and sendFile input validation errors', async () => {
-    mockGetSetting.mockImplementation(async (key: string, def: any) => (key === 'dccDownloadFolder' ? '/downloads' : def));
-    expect(await dccFileService.getDefaultDownloadPath('bad:name?.txt')).toBe('/downloads/bad_name_.txt');
+    mockGetSetting.mockImplementation(async (key: string, def: any) =>
+      key === 'dccDownloadFolder' ? '/downloads' : def,
+    );
+    expect(await dccFileService.getDefaultDownloadPath('bad:name?.txt')).toBe(
+      '/downloads/bad_name_.txt',
+    );
 
     const irc = { sendRaw: jest.fn() } as any;
-    await expect(dccFileService.sendFile(irc, 'nick', 'net1', '')).rejects.toThrow('No file path provided');
+    await expect(
+      dccFileService.sendFile(irc, 'nick', 'net1', ''),
+    ).rejects.toThrow('No file path provided');
 
     mockFs.exists.mockResolvedValueOnce(false);
-    await expect(dccFileService.sendFile(irc, 'nick', 'net1', '/tmp/missing.txt')).rejects.toThrow('File not found');
+    await expect(
+      dccFileService.sendFile(irc, 'nick', 'net1', '/tmp/missing.txt'),
+    ).rejects.toThrow('File not found');
 
     mockFs.exists.mockImplementationOnce(async () => {
       throw new Error('exists failed');
     });
-    await expect(dccFileService.sendFile(irc, 'nick', 'net1', '/tmp/a.txt')).rejects.toThrow('Cannot check file');
+    await expect(
+      dccFileService.sendFile(irc, 'nick', 'net1', '/tmp/a.txt'),
+    ).rejects.toThrow('Cannot check file');
 
     mockFs.exists.mockResolvedValueOnce(true);
     mockFs.stat.mockImplementationOnce(async () => {
       throw new Error('stat failed');
     });
-    await expect(dccFileService.sendFile(irc, 'nick', 'net1', '/tmp/a.txt')).rejects.toThrow('Cannot read file info');
+    await expect(
+      dccFileService.sendFile(irc, 'nick', 'net1', '/tmp/a.txt'),
+    ).rejects.toThrow('Cannot read file info');
   });
 
   it('sends file through server socket and emits ctcp offer', async () => {
@@ -231,10 +268,21 @@ describe('DCCFileService', () => {
       return createdServer;
     });
 
-    const irc = { sendRaw: jest.fn(), getLocalAddress: jest.fn(() => '192.168.1.10') } as any;
-    const transfer = await dccFileService.sendFile(irc, 'nick', 'net1', '/cache/file.txt', 6000);
+    const irc = {
+      sendRaw: jest.fn(),
+      getLocalAddress: jest.fn(() => '192.168.1.10'),
+    } as any;
+    const transfer = await dccFileService.sendFile(
+      irc,
+      'nick',
+      'net1',
+      '/cache/file.txt',
+      6000,
+    );
     expect(transfer.status).toBe('sending');
-    expect(irc.sendRaw).toHaveBeenCalledWith(expect.stringContaining('DCC SEND'));
+    expect(irc.sendRaw).toHaveBeenCalledWith(
+      expect.stringContaining('DCC SEND'),
+    );
 
     const client = new FakeSocket();
     await createdServer!.connectClient(client);
@@ -247,8 +295,13 @@ describe('DCCFileService', () => {
 
   it('handles sendFile content uri and send stream errors', async () => {
     jest.useRealTimers();
-    const irc = { sendRaw: jest.fn(), getLocalAddress: jest.fn(() => '10.0.0.2') } as any;
-    await expect(dccFileService.sendFile(irc, 'nick', 'net1', 'content://file')).rejects.toThrow('Invalid file path');
+    const irc = {
+      sendRaw: jest.fn(),
+      getLocalAddress: jest.fn(() => '10.0.0.2'),
+    } as any;
+    await expect(
+      dccFileService.sendFile(irc, 'nick', 'net1', 'content://file'),
+    ).rejects.toThrow('Invalid file path');
 
     mockFs.exists.mockResolvedValue(true);
     mockFs.stat.mockResolvedValue({ size: 1 });
@@ -264,7 +317,13 @@ describe('DCCFileService', () => {
       return createdServer;
     });
 
-    const transfer = await dccFileService.sendFile(irc, 'nick', 'net1', '/documents/f.txt', 6001);
+    const transfer = await dccFileService.sendFile(
+      irc,
+      'nick',
+      'net1',
+      '/documents/f.txt',
+      6001,
+    );
     const client = new FakeSocket();
     await createdServer!.connectClient(client);
     await new Promise(res => setTimeout(res, 5));
@@ -290,12 +349,23 @@ describe('DCCFileService', () => {
       return createdServer;
     });
 
-    const irc = { sendRaw: jest.fn(), getLocalAddress: jest.fn(() => '10.0.0.2') } as any;
-    const transfer = await dccFileService.sendFile(irc, 'nick', 'net1', '/documents/f-delay.txt', 6002);
+    const irc = {
+      sendRaw: jest.fn(),
+      getLocalAddress: jest.fn(() => '10.0.0.2'),
+    } as any;
+    const transfer = await dccFileService.sendFile(
+      irc,
+      'nick',
+      'net1',
+      '/documents/f-delay.txt',
+      6002,
+    );
     const client = new FakeSocket();
     await createdServer!.connectClient(client);
     await new Promise(res => setTimeout(res, 5));
-    expect(dccFileService.list().find(t => t.id === transfer.id)?.status).toBe('completed');
+    expect(dccFileService.list().find(t => t.id === transfer.id)?.status).toBe(
+      'completed',
+    );
   });
 
   it('cleans cached files only for app directories', async () => {
@@ -304,7 +374,9 @@ describe('DCCFileService', () => {
     expect(mockFs.unlink).toHaveBeenCalledWith('/cache/x.tmp');
 
     mockFs.unlink.mockClear();
-    await (dccFileService as any).cleanupCachedFile('/sdcard/Download/user.txt');
+    await (dccFileService as any).cleanupCachedFile(
+      '/sdcard/Download/user.txt',
+    );
     expect(mockFs.unlink).not.toHaveBeenCalled();
 
     mockFs.exists.mockRejectedValueOnce(new Error('exists failed'));

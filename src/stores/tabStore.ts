@@ -32,7 +32,9 @@ export interface TabState {
   // Bulk operations
   addTabs: (tabs: ChannelTab[]) => void;
   removeTabs: (tabIds: string[]) => void;
-  updateTabs: (updates: Array<{ tabId: string; updates: Partial<ChannelTab> }>) => void;
+  updateTabs: (
+    updates: Array<{ tabId: string; updates: Partial<ChannelTab> }>,
+  ) => void;
 
   // Selectors
   getTabById: (tabId: string) => ChannelTab | undefined;
@@ -52,10 +54,10 @@ export interface TabState {
 const LAST_ACTIVE_TAB_PREFIX = '@AndroidIRCX:lastActiveTab:';
 
 function resolveActiveTabId(tabs: ChannelTab[], preferredId: string): string {
-  if (preferredId && tabs.some((t) => t.id === preferredId)) {
+  if (preferredId && tabs.some(t => t.id === preferredId)) {
     return preferredId;
   }
-  const serverTab = tabs.find((t) => t.type === 'server');
+  const serverTab = tabs.find(t => t.type === 'server');
   if (serverTab) {
     return serverTab.id;
   }
@@ -68,50 +70,56 @@ export const useTabStore = create<TabState>((set, get) => ({
   activeTabId: '',
 
   // Actions
-  setTabs: (tabs) =>
-    set((state) => ({
+  setTabs: tabs =>
+    set(state => ({
       tabs,
       activeTabId: resolveActiveTabId(tabs, state.activeTabId),
     })),
 
-  setActiveTabId: (id) => {
+  setActiveTabId: id => {
     set({ activeTabId: id });
     const tab = get().tabs.find(t => t.id === id);
     if (tab?.networkId) {
-      AsyncStorage.setItem(`${LAST_ACTIVE_TAB_PREFIX}${tab.networkId}`, id).catch(err => {
+      AsyncStorage.setItem(
+        `${LAST_ACTIVE_TAB_PREFIX}${tab.networkId}`,
+        id,
+      ).catch(err => {
         console.error('Failed to persist last active tab:', err);
       });
     }
   },
 
-  addTab: (tab) =>
-    set((state) => {
+  addTab: tab =>
+    set(state => {
       // Check if tab already exists
-      if (state.tabs.some((t) => t.id === tab.id)) {
+      if (state.tabs.some(t => t.id === tab.id)) {
         return state; // No change
       }
       return { tabs: [...state.tabs, tab] };
     }),
 
-  removeTab: (tabId) =>
-    set((state) => {
-      const nextTabs = state.tabs.filter((t) => t.id !== tabId);
+  removeTab: tabId =>
+    set(state => {
+      const nextTabs = state.tabs.filter(t => t.id !== tabId);
       return {
         tabs: nextTabs,
-        activeTabId: resolveActiveTabId(nextTabs, state.activeTabId === tabId ? '' : state.activeTabId),
+        activeTabId: resolveActiveTabId(
+          nextTabs,
+          state.activeTabId === tabId ? '' : state.activeTabId,
+        ),
       };
     }),
 
   updateTab: (tabId, updates) =>
-    set((state) => ({
-      tabs: state.tabs.map((tab) =>
-        tab.id === tabId ? { ...tab, ...updates } : tab
+    set(state => ({
+      tabs: state.tabs.map(tab =>
+        tab.id === tabId ? { ...tab, ...updates } : tab,
       ),
     })),
 
   addMessageToTab: (tabId, message) =>
-    set((state) => ({
-      tabs: state.tabs.map((tab) => {
+    set(state => ({
+      tabs: state.tabs.map(tab => {
         if (tab.id === tabId) {
           return {
             ...tab,
@@ -123,42 +131,45 @@ export const useTabStore = create<TabState>((set, get) => ({
     })),
 
   setTabActivity: (tabId, hasActivity) =>
-    set((state) => ({
-      tabs: state.tabs.map((tab) =>
-        tab.id === tabId ? { ...tab, hasActivity } : tab
+    set(state => ({
+      tabs: state.tabs.map(tab =>
+        tab.id === tabId ? { ...tab, hasActivity } : tab,
       ),
     })),
 
-  clearTabMessages: (tabId) =>
-    set((state) => ({
-      tabs: state.tabs.map((tab) =>
-        tab.id === tabId ? { ...tab, messages: [] } : tab
+  clearTabMessages: tabId =>
+    set(state => ({
+      tabs: state.tabs.map(tab =>
+        tab.id === tabId ? { ...tab, messages: [] } : tab,
       ),
     })),
 
   // Bulk operations
-  addTabs: (newTabs) =>
-    set((state) => {
-      const existingIds = new Set(state.tabs.map((t) => t.id));
-      const tabsToAdd = newTabs.filter((t) => !existingIds.has(t.id));
+  addTabs: newTabs =>
+    set(state => {
+      const existingIds = new Set(state.tabs.map(t => t.id));
+      const tabsToAdd = newTabs.filter(t => !existingIds.has(t.id));
       return { tabs: [...state.tabs, ...tabsToAdd] };
     }),
 
-  removeTabs: (tabIds) =>
-    set((state) => {
+  removeTabs: tabIds =>
+    set(state => {
       const idsToRemove = new Set(tabIds);
-      const nextTabs = state.tabs.filter((t) => !idsToRemove.has(t.id));
+      const nextTabs = state.tabs.filter(t => !idsToRemove.has(t.id));
       return {
         tabs: nextTabs,
-        activeTabId: resolveActiveTabId(nextTabs, idsToRemove.has(state.activeTabId) ? '' : state.activeTabId),
+        activeTabId: resolveActiveTabId(
+          nextTabs,
+          idsToRemove.has(state.activeTabId) ? '' : state.activeTabId,
+        ),
       };
     }),
 
-  updateTabs: (updates) =>
-    set((state) => {
-      const updateMap = new Map(updates.map((u) => [u.tabId, u.updates]));
+  updateTabs: updates =>
+    set(state => {
+      const updateMap = new Map(updates.map(u => [u.tabId, u.updates]));
       return {
-        tabs: state.tabs.map((tab) => {
+        tabs: state.tabs.map(tab => {
           const update = updateMap.get(tab.id);
           return update ? { ...tab, ...update } : tab;
         }),
@@ -166,45 +177,49 @@ export const useTabStore = create<TabState>((set, get) => ({
     }),
 
   // Selectors
-  getTabById: (tabId) => {
-    return get().tabs.find((t) => t.id === tabId);
+  getTabById: tabId => {
+    return get().tabs.find(t => t.id === tabId);
   },
 
-  getTabsByNetwork: (networkId) => {
-    return get().tabs.filter((t) => t.networkId === networkId);
+  getTabsByNetwork: networkId => {
+    return get().tabs.filter(t => t.networkId === networkId);
   },
 
   getActiveTab: () => {
     const { tabs, activeTabId } = get();
-    return tabs.find((t) => t.id === activeTabId);
+    return tabs.find(t => t.id === activeTabId);
   },
 
   getTabCount: () => get().tabs.length,
 
-  hasTab: (tabId) => get().tabs.some((t) => t.id === tabId),
+  hasTab: tabId => get().tabs.some(t => t.id === tabId),
 
   // Persistence
-  saveTabsToStorage: async (networkId) => {
+  saveTabsToStorage: async networkId => {
     const { tabs } = get();
-    const networkTabs = tabs.filter((t) => t.networkId === networkId);
+    const networkTabs = tabs.filter(t => t.networkId === networkId);
 
     // Use batcher for debounced saves
     tabUpdateBatcher.queueSave(networkId, networkTabs);
   },
 
-  loadTabsFromStorage: async (networkId) => {
+  loadTabsFromStorage: async networkId => {
     try {
       const loadedTabs = await tabService.getTabs(networkId);
-      set((state) => {
+      set(state => {
         // Remove existing tabs for this network
-        const otherTabs = state.tabs.filter((t) => t.networkId !== networkId);
+        const otherTabs = state.tabs.filter(t => t.networkId !== networkId);
         // CRITICAL FIX: Preserve messages from existing tabs when merging
         // Map loaded tabs and merge with existing tabs if they have messages
         const existingTabsMap = new Map(state.tabs.map(t => [t.id, t]));
         const mergedTabs = loadedTabs.map(loadedTab => {
           const existingTab = existingTabsMap.get(loadedTab.id);
           // If existing tab has messages, preserve them
-          if (existingTab && existingTab.messages && existingTab.messages.length > 0) {
+          if (
+            existingTab &&
+            existingTab.messages &&
+            existingTab.messages.length > 0
+          ) {
             return { ...loadedTab, messages: existingTab.messages };
           }
           // Otherwise use loaded tab (which has empty messages array)

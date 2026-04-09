@@ -183,7 +183,9 @@ describe('ConnectionManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Get fresh instance
-    const { connectionManager: cm } = require('../../src/services/ConnectionManager');
+    const {
+      connectionManager: cm,
+    } = require('../../src/services/ConnectionManager');
     connectionManager = cm;
     // Clear any existing connections
     connectionManager.disconnectAll();
@@ -193,9 +195,9 @@ describe('ConnectionManager', () => {
     it('should register callback and return cleanup function', () => {
       const callback = jest.fn();
       const cleanup = connectionManager.onConnectionCreated(callback);
-      
+
       expect(typeof cleanup).toBe('function');
-      
+
       // Cleanup should remove the callback
       cleanup();
     });
@@ -216,7 +218,11 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('test-network', networkConfig, connectionConfig);
+      await connectionManager.connect(
+        'test-network',
+        networkConfig,
+        connectionConfig,
+      );
 
       expect(callback).toHaveBeenCalledWith(expect.any(String));
     });
@@ -227,7 +233,14 @@ describe('ConnectionManager', () => {
       id: 'test-network',
       name: 'TestNetwork',
       nick: 'TestNick',
-      servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+      servers: [
+        {
+          hostname: 'irc.test.com',
+          port: 6667,
+          ssl: false,
+          rejectUnauthorized: true,
+        },
+      ],
     };
     const mockConnectionConfig = {
       host: 'irc.test.com',
@@ -236,40 +249,67 @@ describe('ConnectionManager', () => {
     };
 
     it('should create a new connection', async () => {
-      const id = await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
-      
+      const id = await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+
       expect(id).toBeDefined();
       expect(typeof id).toBe('string');
     });
 
     it('should create unique ID for duplicate connections', async () => {
       mockIRCService.getConnectionStatus.mockReturnValue(true);
-      
-      const id1 = await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
-      const id2 = await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
-      
+
+      const id1 = await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+      const id2 = await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+
       expect(id1).not.toBe(id2);
       expect(id2).toMatch(/test-network \(\d+\)/);
     });
 
     it('should reuse disconnected connection slot', async () => {
       mockIRCService.getConnectionStatus.mockReturnValue(false);
-      
-      const id = await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
+
+      const id = await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
       expect(id).toBe('test-network');
     });
 
     it('should warn about insecure TLS configuration', async () => {
       const insecureConfig = {
         ...mockNetworkConfig,
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: true, rejectUnauthorized: false }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: true,
+            rejectUnauthorized: false,
+          },
+        ],
       };
-      
-      await connectionManager.connect('test-network', insecureConfig, mockConnectionConfig);
-      
+
+      await connectionManager.connect(
+        'test-network',
+        insecureConfig,
+        mockConnectionConfig,
+      );
+
       expect(mockIRCService.addRawMessage).toHaveBeenCalledWith(
         expect.stringContaining('TLS certificate verification is disabled'),
-        'connection'
+        'connection',
       );
     });
 
@@ -278,10 +318,17 @@ describe('ConnectionManager', () => {
         ...mockNetworkConfig,
         nickservPassword: 'secret123',
       };
-      
-      await connectionManager.connect('test-network', configWithPassword, mockConnectionConfig);
-      
-      expect(mockIRCService.on).toHaveBeenCalledWith('motdEnd', expect.any(Function));
+
+      await connectionManager.connect(
+        'test-network',
+        configWithPassword,
+        mockConnectionConfig,
+      );
+
+      expect(mockIRCService.on).toHaveBeenCalledWith(
+        'motdEnd',
+        expect.any(Function),
+      );
     });
 
     it('should set up identity profile commands', async () => {
@@ -289,16 +336,23 @@ describe('ConnectionManager', () => {
         ...mockNetworkConfig,
         identityProfileId: 'profile-1',
       };
-      
+
       mockIdentityProfilesService.get.mockResolvedValue({
         operPassword: 'operPass',
         operUser: 'operUser',
         onConnectCommands: ['/msg NickServ identify pass'],
       });
-      
-      await connectionManager.connect('test-network', configWithProfile, mockConnectionConfig);
-      
-      expect(mockIRCService.on).toHaveBeenCalledWith('motdEnd', expect.any(Function));
+
+      await connectionManager.connect(
+        'test-network',
+        configWithProfile,
+        mockConnectionConfig,
+      );
+
+      expect(mockIRCService.on).toHaveBeenCalledWith(
+        'motdEnd',
+        expect.any(Function),
+      );
     });
 
     it('should normalize /quote and /raw in identity profile on-connect commands', async () => {
@@ -308,13 +362,21 @@ describe('ConnectionManager', () => {
       };
 
       mockIdentityProfilesService.get.mockResolvedValue({
-        onConnectCommands: ['/quote PASS testpass', '/raw WHOIS Nick Nick', 'PRIVMSG NickServ :IDENTIFY x'],
+        onConnectCommands: [
+          '/quote PASS testpass',
+          '/raw WHOIS Nick Nick',
+          'PRIVMSG NickServ :IDENTIFY x',
+        ],
       });
 
-      await connectionManager.connect('test-network', configWithProfile, mockConnectionConfig);
+      await connectionManager.connect(
+        'test-network',
+        configWithProfile,
+        mockConnectionConfig,
+      );
 
       const motdEndHandler = mockIRCService.on.mock.calls.find(
-        (call: [string, Function]) => call[0] === 'motdEnd'
+        (call: [string, Function]) => call[0] === 'motdEnd',
       )?.[1];
       expect(typeof motdEndHandler).toBe('function');
 
@@ -322,7 +384,9 @@ describe('ConnectionManager', () => {
 
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith('PASS testpass');
       expect(mockIRCService.sendRaw).toHaveBeenCalledWith('WHOIS Nick Nick');
-      expect(mockIRCService.sendRaw).toHaveBeenCalledWith('PRIVMSG NickServ :IDENTIFY x');
+      expect(mockIRCService.sendRaw).toHaveBeenCalledWith(
+        'PRIVMSG NickServ :IDENTIFY x',
+      );
     });
 
     it('should route slash commands from identity profile through sendMessage parser', async () => {
@@ -336,28 +400,46 @@ describe('ConnectionManager', () => {
         onConnectCommands: ['/whois AndroidIRcxBridge', '/join #AndroidIRCx'],
       });
 
-      await connectionManager.connect('test-network', configWithProfile, mockConnectionConfig);
+      await connectionManager.connect(
+        'test-network',
+        configWithProfile,
+        mockConnectionConfig,
+      );
 
       const motdEndHandler = mockIRCService.on.mock.calls.find(
-        (call: [string, Function]) => call[0] === 'motdEnd'
+        (call: [string, Function]) => call[0] === 'motdEnd',
       )?.[1];
       expect(typeof motdEndHandler).toBe('function');
 
       await motdEndHandler?.();
 
-      expect(mockIRCService.sendMessage).toHaveBeenCalledWith('TestUser', '/whois AndroidIRcxBridge');
-      expect(mockIRCService.sendMessage).toHaveBeenCalledWith('TestUser', '/join #AndroidIRCx');
+      expect(mockIRCService.sendMessage).toHaveBeenCalledWith(
+        'TestUser',
+        '/whois AndroidIRcxBridge',
+      );
+      expect(mockIRCService.sendMessage).toHaveBeenCalledWith(
+        'TestUser',
+        '/join #AndroidIRCx',
+      );
     });
 
     it('should register with AutoReconnectService', async () => {
-      await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
-      
+      await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+
       expect(mockAutoReconnectService.registerConnection).toHaveBeenCalled();
     });
 
     it('should set the new connection as active', async () => {
-      await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
-      
+      await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+
       expect(connectionManager.getActiveNetworkId()).toBe('test-network');
     });
   });
@@ -368,7 +450,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -376,13 +465,23 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
+      await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
       connectionManager.disconnect('test-network');
-      
-      expect(mockAutoReconnectService.unregisterConnection).toHaveBeenCalledWith('test-network');
+
+      expect(
+        mockAutoReconnectService.unregisterConnection,
+      ).toHaveBeenCalledWith('test-network');
       expect(mockIRCService.disconnect).toHaveBeenCalled();
-      expect(mockServiceDetectionService.cleanupNetwork).toHaveBeenCalledWith('test-network');
-      expect(mockServiceCommandProvider.clearCache).toHaveBeenCalledWith('test-network');
+      expect(mockServiceDetectionService.cleanupNetwork).toHaveBeenCalledWith(
+        'test-network',
+      );
+      expect(mockServiceCommandProvider.clearCache).toHaveBeenCalledWith(
+        'test-network',
+      );
     });
 
     it('should handle non-existent network gracefully', () => {
@@ -394,7 +493,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -402,9 +508,13 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
+      await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
       expect(connectionManager.getActiveNetworkId()).toBe('test-network');
-      
+
       connectionManager.disconnect('test-network');
       expect(connectionManager.getActiveNetworkId()).toBeNull();
     });
@@ -420,7 +530,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -428,9 +545,13 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
+      await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
       const context = connectionManager.getConnection('test-network');
-      
+
       expect(context).toBeDefined();
       expect(context?.networkId).toBe('test-network');
     });
@@ -446,7 +567,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -454,9 +582,13 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
+      await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
       const active = connectionManager.getActiveConnection();
-      
+
       expect(active).toBeDefined();
       expect(active?.networkId).toBe('test-network');
     });
@@ -468,7 +600,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -476,9 +615,17 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('network-1', mockNetworkConfig, mockConnectionConfig);
-      await connectionManager.connect('network-2', mockNetworkConfig, mockConnectionConfig);
-      
+      await connectionManager.connect(
+        'network-1',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+      await connectionManager.connect(
+        'network-2',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+
       connectionManager.setActiveConnection('network-2');
       expect(connectionManager.getActiveNetworkId()).toBe('network-2');
     });
@@ -499,7 +646,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -507,9 +661,17 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('network-1', mockNetworkConfig, mockConnectionConfig);
-      await connectionManager.connect('network-2', mockNetworkConfig, mockConnectionConfig);
-      
+      await connectionManager.connect(
+        'network-1',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+      await connectionManager.connect(
+        'network-2',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+
       const connections = connectionManager.getAllConnections();
       expect(connections).toHaveLength(2);
     });
@@ -525,7 +687,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -533,7 +702,11 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
+      await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
       expect(connectionManager.hasConnection('test-network')).toBe(true);
     });
   });
@@ -544,7 +717,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -552,13 +732,21 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('network-1', mockNetworkConfig, mockConnectionConfig);
-      await connectionManager.connect('network-2', mockNetworkConfig, mockConnectionConfig);
-      
+      await connectionManager.connect(
+        'network-1',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+      await connectionManager.connect(
+        'network-2',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+
       expect(connectionManager.getAllConnections()).toHaveLength(2);
-      
+
       connectionManager.disconnectAll('Test disconnect');
-      
+
       expect(connectionManager.getAllConnections()).toHaveLength(0);
     });
   });
@@ -569,7 +757,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -577,10 +772,14 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('network-1', mockNetworkConfig, mockConnectionConfig);
-      
+      await connectionManager.connect(
+        'network-1',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
+
       connectionManager.clearAll();
-      
+
       expect(connectionManager.getAllConnections()).toHaveLength(0);
       expect(connectionManager.getActiveNetworkId()).toBeNull();
     });
@@ -596,7 +795,14 @@ describe('ConnectionManager', () => {
         id: 'test-network',
         name: 'TestNetwork',
         nick: 'TestNick',
-        servers: [{ hostname: 'irc.test.com', port: 6667, ssl: false, rejectUnauthorized: true }],
+        servers: [
+          {
+            hostname: 'irc.test.com',
+            port: 6667,
+            ssl: false,
+            rejectUnauthorized: true,
+          },
+        ],
       };
       const mockConnectionConfig = {
         host: 'irc.test.com',
@@ -604,7 +810,11 @@ describe('ConnectionManager', () => {
         useTLS: false,
       };
 
-      await connectionManager.connect('test-network', mockNetworkConfig, mockConnectionConfig);
+      await connectionManager.connect(
+        'test-network',
+        mockNetworkConfig,
+        mockConnectionConfig,
+      );
       expect(connectionManager.getActiveNetworkId()).toBe('test-network');
     });
   });

@@ -14,10 +14,16 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { userManagementService as singletonUserManagementService, WHOISInfo } from '../services/UserManagementService';
+import {
+  userManagementService as singletonUserManagementService,
+  WHOISInfo,
+} from '../services/UserManagementService';
 import { ircService } from '../services/IRCService';
 import { connectionManager } from '../services/ConnectionManager';
-import { userActivityService, UserActivity } from '../services/UserActivityService';
+import {
+  userActivityService,
+  UserActivity,
+} from '../services/UserActivityService';
 import { formatIRCTextAsComponent } from '../utils/IRCFormatter';
 import { useT } from '../i18n/transifex';
 import { useTheme } from '../hooks/useTheme';
@@ -49,7 +55,9 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
   const [noteText, setNoteText] = useState('');
   const [showAliasInput, setShowAliasInput] = useState(false);
   const [aliasText, setAliasText] = useState('');
-  const [userService, setUserService] = useState(singletonUserManagementService);
+  const [userService, setUserService] = useState(
+    singletonUserManagementService,
+  );
   const [activity, setActivity] = useState<UserActivity | undefined>();
   const visibleRef = useRef(visible);
 
@@ -61,7 +69,8 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
     const connection = network
       ? connectionManager.getConnection(network)
       : connectionManager.getActiveConnection();
-    const svc = connection?.userManagementService || singletonUserManagementService;
+    const svc =
+      connection?.userManagementService || singletonUserManagementService;
     setUserService(svc);
   }, [network]);
 
@@ -74,9 +83,10 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
   }, [visible, nick, userService]);
 
   const loadWHOIS = async () => {
-    const irc = (network
-      ? connectionManager.getConnection(network)?.ircService
-      : connectionManager.getActiveConnection()?.ircService) || ircService;
+    const irc =
+      (network
+        ? connectionManager.getConnection(network)?.ircService
+        : connectionManager.getActiveConnection()?.ircService) || ircService;
     if (!irc.getConnectionStatus() || !irc.isRegistered()) {
       Alert.alert(t('WHOIS Error'), t('Not connected or not registered yet.'));
       return;
@@ -121,7 +131,7 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
   // const requestWHOIS = () => {
   //   setLoading(true);
   //   userManagementService.requestWHOIS(nick, network);
-  //   
+  //
   //   // Listen for WHOIS updates
   //   const unsubscribe = userManagementService.onWHOISUpdate((info) => {
   //     if (info.nick === nick) {
@@ -163,22 +173,18 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
   };
 
   const handleIgnore = async () => {
-    Alert.alert(
-      t('Ignore User'),
-      t('Ignore {nick}?', { nick }),
-      [
-        { text: t('Cancel'), style: 'cancel' },
-        {
-          text: t('Ignore'),
-          style: 'destructive',
-          onPress: async () => {
-            await userService.ignoreUser(nick, undefined, network);
-            Alert.alert(t('Success'), t('{nick} has been ignored', { nick }));
-            onClose();
-          },
+    Alert.alert(t('Ignore User'), t('Ignore {nick}?', { nick }), [
+      { text: t('Cancel'), style: 'cancel' },
+      {
+        text: t('Ignore'),
+        style: 'destructive',
+        onPress: async () => {
+          await userService.ignoreUser(nick, undefined, network);
+          Alert.alert(t('Success'), t('{nick} has been ignored', { nick }));
+          onClose();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleUnignore = async () => {
@@ -186,11 +192,19 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
     Alert.alert(t('Success'), t('{nick} is no longer ignored', { nick }));
   };
 
-  const isIgnored = userService.isUserIgnored(nick, undefined, undefined, network);
-  const currentNick = ((network
-    ? connectionManager.getConnection(network)?.ircService
-    : connectionManager.getActiveConnection()?.ircService) || ircService).getCurrentNick();
-  const isSelfWhois = !!currentNick && nick.toLowerCase() === currentNick.toLowerCase();
+  const isIgnored = userService.isUserIgnored(
+    nick,
+    undefined,
+    undefined,
+    network,
+  );
+  const currentNick = (
+    (network
+      ? connectionManager.getConnection(network)?.ircService
+      : connectionManager.getActiveConnection()?.ircService) || ircService
+  ).getCurrentNick();
+  const isSelfWhois =
+    !!currentNick && nick.toLowerCase() === currentNick.toLowerCase();
 
   if (!visible) return null;
 
@@ -199,15 +213,23 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           {onNickPress ? (
-            <TouchableOpacity onPress={() => onNickPress(nick)} activeOpacity={0.7}>
-              <Text style={styles.headerTitle}>{t('WHOIS: {nick}', { nick })}</Text>
+            <TouchableOpacity
+              onPress={() => onNickPress(nick)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.headerTitle}>
+                {t('WHOIS: {nick}', { nick })}
+              </Text>
             </TouchableOpacity>
           ) : (
-            <Text style={styles.headerTitle}>{t('WHOIS: {nick}', { nick })}</Text>
+            <Text style={styles.headerTitle}>
+              {t('WHOIS: {nick}', { nick })}
+            </Text>
           )}
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>{t('Close')}</Text>
@@ -217,7 +239,9 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
         <ScrollView style={styles.content}>
           {loading && !whoisInfo && (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>{t('Loading WHOIS information...')}</Text>
+              <Text style={styles.loadingText}>
+                {t('Loading WHOIS information...')}
+              </Text>
             </View>
           )}
 
@@ -229,7 +253,10 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>{t('Real Name:')}</Text>
                     <Text style={styles.infoValue}>
-                      {formatIRCTextAsComponent(whoisInfo.realname, styles.infoValue)}
+                      {formatIRCTextAsComponent(
+                        whoisInfo.realname,
+                        styles.infoValue,
+                      )}
                     </Text>
                   </View>
                 )}
@@ -255,58 +282,97 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                 )}
                 {whoisInfo.connectingFrom && (
                   <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>{t('Connecting from:')}</Text>
-                    <Text style={styles.infoValue}>{whoisInfo.connectingFrom}</Text>
+                    <Text style={styles.infoLabel}>
+                      {t('Connecting from:')}
+                    </Text>
+                    <Text style={styles.infoValue}>
+                      {whoisInfo.connectingFrom}
+                    </Text>
                   </View>
                 )}
               </View>
 
               {/* Privileges / Status */}
-              {(whoisInfo.isOper || whoisInfo.isAdmin || whoisInfo.isServicesAdmin || 
-                whoisInfo.isHelpOp || whoisInfo.isRegistered || whoisInfo.isBot || 
+              {(whoisInfo.isOper ||
+                whoisInfo.isAdmin ||
+                whoisInfo.isServicesAdmin ||
+                whoisInfo.isHelpOp ||
+                whoisInfo.isRegistered ||
+                whoisInfo.isBot ||
                 whoisInfo.specialStatus) && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>{t('Privileges')}</Text>
                   {whoisInfo.isOper && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('IRC Operator:')}</Text>
-                      <Text style={[styles.infoValue, { color: colors.accent }]}>{t('Yes')}</Text>
+                      <Text
+                        style={[styles.infoValue, { color: colors.accent }]}
+                      >
+                        {t('Yes')}
+                      </Text>
                     </View>
                   )}
                   {whoisInfo.isAdmin && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('Admin:')}</Text>
-                      <Text style={[styles.infoValue, { color: colors.secondary }]}>{t('Yes')}</Text>
+                      <Text
+                        style={[styles.infoValue, { color: colors.secondary }]}
+                      >
+                        {t('Yes')}
+                      </Text>
                     </View>
                   )}
                   {whoisInfo.isServicesAdmin && (
                     <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>{t('Services Admin:')}</Text>
-                      <Text style={[styles.infoValue, { color: colors.primaryDark }]}>{t('Yes')}</Text>
+                      <Text style={styles.infoLabel}>
+                        {t('Services Admin:')}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.infoValue,
+                          { color: colors.primaryDark },
+                        ]}
+                      >
+                        {t('Yes')}
+                      </Text>
                     </View>
                   )}
                   {whoisInfo.isHelpOp && (
                     <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>{t('Help Operator:')}</Text>
-                      <Text style={[styles.infoValue, { color: colors.info }]}>{t('Yes')}</Text>
+                      <Text style={styles.infoLabel}>
+                        {t('Help Operator:')}
+                      </Text>
+                      <Text style={[styles.infoValue, { color: colors.info }]}>
+                        {t('Yes')}
+                      </Text>
                     </View>
                   )}
                   {whoisInfo.isRegistered && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('Registered:')}</Text>
-                      <Text style={[styles.infoValue, { color: colors.success }]}>{t('Yes')}</Text>
+                      <Text
+                        style={[styles.infoValue, { color: colors.success }]}
+                      >
+                        {t('Yes')}
+                      </Text>
                     </View>
                   )}
                   {whoisInfo.isBot && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('Bot:')}</Text>
-                      <Text style={[styles.infoValue, { color: colors.warning }]}>{t('Yes')}</Text>
+                      <Text
+                        style={[styles.infoValue, { color: colors.warning }]}
+                      >
+                        {t('Yes')}
+                      </Text>
                     </View>
                   )}
                   {whoisInfo.specialStatus && (
                     <View style={styles.infoRow}>
                       <Text style={styles.infoLabel}>{t('Special:')}</Text>
-                      <Text style={styles.infoValue}>{whoisInfo.specialStatus}</Text>
+                      <Text style={styles.infoValue}>
+                        {whoisInfo.specialStatus}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -321,7 +387,10 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                   </View>
                   {whoisInfo.serverInfo && (
                     <Text style={styles.infoValue}>
-                      {formatIRCTextAsComponent(whoisInfo.serverInfo, styles.infoValue)}
+                      {formatIRCTextAsComponent(
+                        whoisInfo.serverInfo,
+                        styles.infoValue,
+                      )}
                     </Text>
                   )}
                 </View>
@@ -334,9 +403,11 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                     <Text style={styles.infoLabel}>{t('Away:')}</Text>
                     <Text style={styles.infoValue}>
                       {whoisInfo.awayMessage
-                        ? formatIRCTextAsComponent(whoisInfo.awayMessage, styles.infoValue)
-                        : t('User is away')
-                      }
+                        ? formatIRCTextAsComponent(
+                            whoisInfo.awayMessage,
+                            styles.infoValue,
+                          )
+                        : t('User is away')}
                     </Text>
                   </View>
                 </View>
@@ -356,11 +427,15 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
 
               {whoisInfo.idle !== undefined && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>{t('Connection Activity')}</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t('Connection Activity')}
+                  </Text>
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>{t('Idle:')}</Text>
                     <Text style={styles.infoValue}>
-                      {t('{minutes} minutes', { minutes: Math.floor(whoisInfo.idle / 60) })}
+                      {t('{minutes} minutes', {
+                        minutes: Math.floor(whoisInfo.idle / 60),
+                      })}
                     </Text>
                   </View>
                   {whoisInfo.signon && (
@@ -376,9 +451,13 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
 
               {whoisInfo.idle === undefined && !isSelfWhois && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>{t('Connection Activity')}</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t('Connection Activity')}
+                  </Text>
                   <Text style={styles.emptyText}>
-                    {t('Idle time was not provided by this server for this user')}
+                    {t(
+                      'Idle time was not provided by this server for this user',
+                    )}
                   </Text>
                 </View>
               )}
@@ -393,20 +472,30 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                       const prefix = channel.match(/^[~&@%+]+/)?.[0] || '';
                       return (
                         <React.Fragment key={channel}>
-                          {index > 0 && <Text style={styles.channelSeparator}>, </Text>}
+                          {index > 0 && (
+                            <Text style={styles.channelSeparator}>, </Text>
+                          )}
                           {onChannelPress ? (
                             <TouchableOpacity
                               onPress={() => onChannelPress(cleanChannel)}
                               activeOpacity={0.7}
                             >
                               <Text style={styles.channelText}>
-                                {prefix && <Text style={styles.channelPrefix}>{prefix}</Text>}
+                                {prefix && (
+                                  <Text style={styles.channelPrefix}>
+                                    {prefix}
+                                  </Text>
+                                )}
                                 {cleanChannel}
                               </Text>
                             </TouchableOpacity>
                           ) : (
                             <Text style={styles.channelText}>
-                              {prefix && <Text style={styles.channelPrefix}>{prefix}</Text>}
+                              {prefix && (
+                                <Text style={styles.channelPrefix}>
+                                  {prefix}
+                                </Text>
+                              )}
                               {cleanChannel}
                             </Text>
                           )}
@@ -421,7 +510,9 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
 
           {!whoisInfo && !loading && (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('No WHOIS information available')}</Text>
+              <Text style={styles.emptyText}>
+                {t('No WHOIS information available')}
+              </Text>
               <TouchableOpacity style={styles.button} onPress={loadWHOIS}>
                 <Text style={styles.buttonText}>{t('Request WHOIS')}</Text>
               </TouchableOpacity>
@@ -440,7 +531,8 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                 )}
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={() => setShowNoteInput(true)}>
+                  onPress={() => setShowNoteInput(true)}
+                >
                   <Text style={styles.buttonText}>
                     {noteText ? t('Edit Note') : t('Add Note')}
                   </Text>
@@ -462,10 +554,14 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                     onPress={() => {
                       setShowNoteInput(false);
                       loadUserData();
-                    }}>
+                    }}
+                  >
                     <Text style={styles.buttonText}>{t('Cancel')}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.button} onPress={handleSaveNote}>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleSaveNote}
+                  >
                     <Text style={styles.buttonText}>{t('Save')}</Text>
                   </TouchableOpacity>
                 </View>
@@ -485,17 +581,24 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                   })}
                 </Text>
                 <Text style={styles.listItemText}>
-                  {t('Last seen: {time}', { time: new Date(activity.lastSeenAt).toLocaleString() })}
+                  {t('Last seen: {time}', {
+                    time: new Date(activity.lastSeenAt).toLocaleString(),
+                  })}
                 </Text>
                 {activity.text ? (
                   <Text style={styles.listItemText} numberOfLines={2}>
                     {t('Context: ')}
-                    {formatIRCTextAsComponent(activity.text, styles.listItemText)}
+                    {formatIRCTextAsComponent(
+                      activity.text,
+                      styles.listItemText,
+                    )}
                   </Text>
                 ) : null}
               </>
             ) : (
-              <Text style={styles.emptyText}>{t('No recent activity tracked')}</Text>
+              <Text style={styles.emptyText}>
+                {t('No recent activity tracked')}
+              </Text>
             )}
           </View>
 
@@ -511,7 +614,8 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                 )}
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={() => setShowAliasInput(true)}>
+                  onPress={() => setShowAliasInput(true)}
+                >
                   <Text style={styles.buttonText}>
                     {aliasText ? t('Edit Alias') : t('Add Alias')}
                   </Text>
@@ -532,10 +636,14 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
                     onPress={() => {
                       setShowAliasInput(false);
                       loadUserData();
-                    }}>
+                    }}
+                  >
                     <Text style={styles.buttonText}>{t('Cancel')}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.button} onPress={handleSaveAlias}>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleSaveAlias}
+                  >
                     <Text style={styles.buttonText}>{t('Save')}</Text>
                   </TouchableOpacity>
                 </View>
@@ -553,7 +661,8 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
             ) : (
               <TouchableOpacity
                 style={[styles.button, styles.buttonDanger]}
-                onPress={handleIgnore}>
+                onPress={handleIgnore}
+              >
                 <Text style={[styles.buttonText, styles.buttonTextWhite]}>
                   {t('Ignore User')}
                 </Text>
@@ -563,15 +672,18 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
               style={styles.button}
               onPress={() => {
                 // Get the IRC service for the specific network
-                const irc = (network
-                  ? connectionManager.getConnection(network)?.ircService
-                  : connectionManager.getActiveConnection()?.ircService) || ircService;
+                const irc =
+                  (network
+                    ? connectionManager.getConnection(network)?.ircService
+                    : connectionManager.getActiveConnection()?.ircService) ||
+                  ircService;
                 if (irc && irc.getConnectionStatus()) {
                   irc.sendCommand(`WHOWAS ${nick}`);
                 } else {
                   Alert.alert(t('Error'), t('Not connected to server.'));
                 }
-              }}>
+              }}
+            >
               <Text style={styles.buttonText}>{t('WHOWAS (History)')}</Text>
             </TouchableOpacity>
           </View>
@@ -581,160 +693,160 @@ export const WHOISDisplay: React.FC<WHOISDisplayProps> = ({
   );
 };
 
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surfaceVariant,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  closeButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  closeButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  content: {
-    flex: 1,
-  },
-  loadingContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-  },
-  section: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-    flexWrap: 'wrap',
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginRight: 8,
-    minWidth: 80,
-  },
-  infoValue: {
-    fontSize: 14,
-    color: colors.text,
-    flex: 1,
-  },
-  emptyContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    fontStyle: 'italic',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    padding: 12,
-    borderRadius: 4,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonSecondary: {
-    backgroundColor: colors.buttonSecondary,
-  },
-  buttonDanger: {
-    backgroundColor: colors.error,
-  },
-  buttonText: {
-    color: colors.onPrimary,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  buttonTextWhite: {
-    color: colors.onPrimary,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 4,
-    padding: 12,
-    fontSize: 14,
-    color: colors.text,
-    backgroundColor: colors.inputBackground,
-    marginBottom: 8,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  noteText: {
-    fontSize: 14,
-    color: colors.text,
-    marginBottom: 8,
-    padding: 12,
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: 4,
-  },
-  aliasText: {
-    fontSize: 14,
-    color: colors.text,
-    marginBottom: 8,
-    padding: 12,
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: 4,
-    fontStyle: 'italic',
-  },
-  listItemText: {
-    fontSize: 14,
-    color: colors.text,
-    marginBottom: 6,
-  },
-  channelsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-  },
-  channelSeparator: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  channelText: {
-    fontSize: 14,
-    color: colors.primary,
-    textDecorationLine: 'underline',
-  },
-  channelPrefix: {
-    color: colors.textSecondary,
-    textDecorationLine: 'none',
-  },
-});
-
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surface,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.surfaceVariant,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    closeButton: {
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+    },
+    closeButtonText: {
+      color: colors.primary,
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    content: {
+      flex: 1,
+    },
+    loadingContainer: {
+      padding: 20,
+      alignItems: 'center',
+    },
+    loadingText: {
+      color: colors.textSecondary,
+      fontSize: 14,
+    },
+    section: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      marginBottom: 8,
+      flexWrap: 'wrap',
+    },
+    infoLabel: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      fontWeight: '500',
+      marginRight: 8,
+      minWidth: 80,
+    },
+    infoValue: {
+      fontSize: 14,
+      color: colors.text,
+      flex: 1,
+    },
+    emptyContainer: {
+      padding: 20,
+      alignItems: 'center',
+    },
+    emptyText: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      fontStyle: 'italic',
+      marginBottom: 12,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      padding: 12,
+      borderRadius: 4,
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    buttonSecondary: {
+      backgroundColor: colors.buttonSecondary,
+    },
+    buttonDanger: {
+      backgroundColor: colors.error,
+    },
+    buttonText: {
+      color: colors.onPrimary,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    buttonTextWhite: {
+      color: colors.onPrimary,
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 8,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 4,
+      padding: 12,
+      fontSize: 14,
+      color: colors.text,
+      backgroundColor: colors.inputBackground,
+      marginBottom: 8,
+      minHeight: 80,
+      textAlignVertical: 'top',
+    },
+    noteText: {
+      fontSize: 14,
+      color: colors.text,
+      marginBottom: 8,
+      padding: 12,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 4,
+    },
+    aliasText: {
+      fontSize: 14,
+      color: colors.text,
+      marginBottom: 8,
+      padding: 12,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 4,
+      fontStyle: 'italic',
+    },
+    listItemText: {
+      fontSize: 14,
+      color: colors.text,
+      marginBottom: 6,
+    },
+    channelsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+    },
+    channelSeparator: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    channelText: {
+      fontSize: 14,
+      color: colors.primary,
+      textDecorationLine: 'underline',
+    },
+    channelPrefix: {
+      color: colors.textSecondary,
+      textDecorationLine: 'none',
+    },
+  });

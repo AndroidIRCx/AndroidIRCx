@@ -31,7 +31,7 @@ class CertificateManagerService {
    * Generate a new RSA-2048 self-signed X.509 certificate
    */
   async generateCertificate(
-    options: GenerateCertificateOptions
+    options: GenerateCertificateOptions,
   ): Promise<CertificateInfo> {
     const { name, commonName, validityYears = 1 } = options;
 
@@ -134,12 +134,15 @@ class CertificateManagerService {
       await this.saveCertificate(certInfo);
 
       console.log(
-        `CertificateManager: Certificate saved with ID: ${id}, fingerprint: ${fingerprint}`
+        `CertificateManager: Certificate saved with ID: ${id}, fingerprint: ${fingerprint}`,
       );
 
       return certInfo;
     } catch (error) {
-      console.error('CertificateManager: Failed to generate certificate:', error);
+      console.error(
+        'CertificateManager: Failed to generate certificate:',
+        error,
+      );
       throw new Error(`Failed to generate certificate: ${error}`);
     }
   }
@@ -174,7 +177,9 @@ class CertificateManagerService {
    */
   async getCertificate(id: string): Promise<CertificateInfo | null> {
     try {
-      const certJson = await secureStorageService.getSecret(`${CERT_KEY_PREFIX}${id}`);
+      const certJson = await secureStorageService.getSecret(
+        `${CERT_KEY_PREFIX}${id}`,
+      );
       if (!certJson) {
         return null;
       }
@@ -189,7 +194,10 @@ class CertificateManagerService {
         createdAt: new Date(cert.createdAt),
       };
     } catch (error) {
-      console.error(`CertificateManager: Failed to get certificate ${id}:`, error);
+      console.error(
+        `CertificateManager: Failed to get certificate ${id}:`,
+        error,
+      );
       return null;
     }
   }
@@ -202,14 +210,20 @@ class CertificateManagerService {
       // Remove from index
       const index = await this.listCertificates();
       const updatedIndex = index.filter(cert => cert.id !== id);
-      await secureStorageService.setSecret(CERT_INDEX_KEY, JSON.stringify(updatedIndex));
+      await secureStorageService.setSecret(
+        CERT_INDEX_KEY,
+        JSON.stringify(updatedIndex),
+      );
 
       // Remove certificate data
       await secureStorageService.removeSecret(`${CERT_KEY_PREFIX}${id}`);
 
       console.log(`CertificateManager: Certificate ${id} deleted`);
     } catch (error) {
-      console.error(`CertificateManager: Failed to delete certificate ${id}:`, error);
+      console.error(
+        `CertificateManager: Failed to delete certificate ${id}:`,
+        error,
+      );
       throw new Error(`Failed to delete certificate: ${error}`);
     }
   }
@@ -227,9 +241,13 @@ class CertificateManagerService {
       }
 
       // Check for basic PEM structure
-      if (!pemCert.includes('-----BEGIN CERTIFICATE-----') ||
-          !pemCert.includes('-----END CERTIFICATE-----')) {
-        console.warn('CertificateManager: PEM does not contain certificate markers');
+      if (
+        !pemCert.includes('-----BEGIN CERTIFICATE-----') ||
+        !pemCert.includes('-----END CERTIFICATE-----')
+      ) {
+        console.warn(
+          'CertificateManager: PEM does not contain certificate markers',
+        );
         return null;
       }
 
@@ -237,7 +255,9 @@ class CertificateManagerService {
       const cert = forge.pki.certificateFromPem(pemCert);
 
       // Get DER-encoded certificate
-      const derBytes = forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes();
+      const derBytes = forge.asn1
+        .toDer(forge.pki.certificateToAsn1(cert))
+        .getBytes();
 
       // Calculate SHA-256 hash
       const md = forge.md.sha256.create();
@@ -247,7 +267,10 @@ class CertificateManagerService {
       // Convert to hex (lowercase, no colons)
       return digest.toHex();
     } catch (error) {
-      console.error('CertificateManager: Failed to calculate fingerprint:', error);
+      console.error(
+        'CertificateManager: Failed to calculate fingerprint:',
+        error,
+      );
       return null;
     }
   }
@@ -257,7 +280,7 @@ class CertificateManagerService {
    */
   formatFingerprint(
     fingerprint: string,
-    format: FingerprintFormat = FingerprintFormat.COLON_SEPARATED_UPPER
+    format: FingerprintFormat = FingerprintFormat.COLON_SEPARATED_UPPER,
   ): string {
     // Remove any existing colons
     const clean = fingerprint.replace(/:/g, '');
@@ -289,14 +312,18 @@ class CertificateManagerService {
   /**
    * Validate certificate
    */
-  validateCertificate(cert: CertificateInfo | CertificateMetadata): CertificateValidation {
+  validateCertificate(
+    cert: CertificateInfo | CertificateMetadata,
+  ): CertificateValidation {
     const now = new Date();
     const validTo = new Date(cert.validTo);
     const isExpired = now > validTo;
     const isValid = !isExpired && now >= new Date(cert.validFrom);
 
     const msPerDay = 24 * 60 * 60 * 1000;
-    const daysUntilExpiry = Math.floor((validTo.getTime() - now.getTime()) / msPerDay);
+    const daysUntilExpiry = Math.floor(
+      (validTo.getTime() - now.getTime()) / msPerDay,
+    );
 
     return {
       isValid,
@@ -323,7 +350,7 @@ class CertificateManagerService {
     // Save full certificate data
     await secureStorageService.setSecret(
       `${CERT_KEY_PREFIX}${cert.id}`,
-      JSON.stringify(cert)
+      JSON.stringify(cert),
     );
 
     // Update index (metadata only, no private key)

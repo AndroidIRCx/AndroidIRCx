@@ -41,8 +41,12 @@ describe('ServerSettingsScreen', () => {
         },
       ],
     });
-    (settingsService.setDefaultServerForNetwork as jest.Mock).mockResolvedValue(undefined);
-    (settingsService.clearDefaultServerForNetwork as jest.Mock).mockResolvedValue(undefined);
+    (settingsService.setDefaultServerForNetwork as jest.Mock).mockResolvedValue(
+      undefined,
+    );
+    (
+      settingsService.clearDefaultServerForNetwork as jest.Mock
+    ).mockResolvedValue(undefined);
   });
 
   it('renders defaults for a new server', async () => {
@@ -51,7 +55,7 @@ describe('ServerSettingsScreen', () => {
         networkId="net1"
         onSave={jest.fn()}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('Server Settings')).toBeTruthy();
@@ -66,7 +70,7 @@ describe('ServerSettingsScreen', () => {
         serverId="srv1"
         onSave={jest.fn()}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     expect(await findByDisplayValue('Primary')).toBeTruthy();
@@ -87,7 +91,7 @@ describe('ServerSettingsScreen', () => {
         serverId="srv1"
         onSave={jest.fn()}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     expect(await findByText('Server not found')).toBeTruthy();
@@ -100,7 +104,9 @@ describe('ServerSettingsScreen', () => {
 
   it('shows load error when fetching server throws', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-    (settingsService.getNetwork as jest.Mock).mockRejectedValueOnce(new Error('load failed'));
+    (settingsService.getNetwork as jest.Mock).mockRejectedValueOnce(
+      new Error('load failed'),
+    );
 
     const { findByText } = render(
       <ServerSettingsScreen
@@ -108,11 +114,14 @@ describe('ServerSettingsScreen', () => {
         serverId="srv1"
         onSave={jest.fn()}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     expect(await findByText('Failed to load server')).toBeTruthy();
-    expect(errorSpy).toHaveBeenCalledWith('Error loading server:', expect.any(Error));
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Error loading server:',
+      expect.any(Error),
+    );
     errorSpy.mockRestore();
   });
 
@@ -122,12 +131,15 @@ describe('ServerSettingsScreen', () => {
         networkId="net1"
         onSave={jest.fn()}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     fireEvent.press(getByText('Save'));
 
-    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Please enter a hostname');
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Error',
+      'Please enter a hostname',
+    );
   });
 
   it('shows validation alert when port is invalid', async () => {
@@ -136,16 +148,19 @@ describe('ServerSettingsScreen', () => {
         networkId="net1"
         onSave={jest.fn()}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
-    fireEvent.changeText(getByPlaceholderText('irc.example.com'), 'irc.example.com');
+    fireEvent.changeText(
+      getByPlaceholderText('irc.example.com'),
+      'irc.example.com',
+    );
     fireEvent.changeText(getByPlaceholderText('6697'), '99999');
     fireEvent.press(getByText('Save'));
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Error',
-      'Please enter a valid port number (1-65535)'
+      'Please enter a valid port number (1-65535)',
     );
   });
 
@@ -156,13 +171,22 @@ describe('ServerSettingsScreen', () => {
         networkId="net1"
         onSave={onSave}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
-    fireEvent.changeText(getByPlaceholderText('Server display name'), 'EU node');
-    fireEvent.changeText(getByPlaceholderText('irc.example.com'), 'irc.eu.example.com');
+    fireEvent.changeText(
+      getByPlaceholderText('Server display name'),
+      'EU node',
+    );
+    fireEvent.changeText(
+      getByPlaceholderText('irc.example.com'),
+      'irc.eu.example.com',
+    );
     fireEvent.changeText(getByPlaceholderText('6697'), '7000');
-    fireEvent.changeText(getByPlaceholderText('Server connection password'), 'pass123');
+    fireEvent.changeText(
+      getByPlaceholderText('Server connection password'),
+      'pass123',
+    );
     fireEvent.press(getByText('Save'));
 
     await waitFor(() => {
@@ -172,7 +196,7 @@ describe('ServerSettingsScreen', () => {
           hostname: 'irc.eu.example.com',
           port: 7000,
           password: 'pass123',
-        })
+        }),
       );
     });
   });
@@ -185,7 +209,7 @@ describe('ServerSettingsScreen', () => {
         serverId="srv1"
         onSave={onSave}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     await waitFor(() => expect(getByText('Default Server')).toBeTruthy());
@@ -195,7 +219,10 @@ describe('ServerSettingsScreen', () => {
     fireEvent.press(getByText('Save'));
 
     await waitFor(() => {
-      expect(settingsService.setDefaultServerForNetwork).toHaveBeenCalledWith('net1', 'srv1');
+      expect(settingsService.setDefaultServerForNetwork).toHaveBeenCalledWith(
+        'net1',
+        'srv1',
+      );
     });
   });
 
@@ -207,7 +234,7 @@ describe('ServerSettingsScreen', () => {
         serverId="srv1"
         onSave={onSave}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     await waitFor(() => expect(getByText('Default Server')).toBeTruthy());
@@ -217,7 +244,10 @@ describe('ServerSettingsScreen', () => {
     fireEvent.press(getByText('Save'));
 
     await waitFor(() => {
-      expect(settingsService.clearDefaultServerForNetwork).toHaveBeenCalledWith('net1', 'srv1');
+      expect(settingsService.clearDefaultServerForNetwork).toHaveBeenCalledWith(
+        'net1',
+        'srv1',
+      );
     });
   });
 
@@ -228,7 +258,7 @@ describe('ServerSettingsScreen', () => {
         networkId="net1"
         onSave={jest.fn()}
         onCancel={onCancel}
-      />
+      />,
     );
 
     fireEvent.press(getByText('Cancel'));
@@ -241,7 +271,7 @@ describe('ServerSettingsScreen', () => {
     (settingsService.getNetwork as jest.Mock).mockReturnValueOnce(
       new Promise(resolve => {
         resolveNetwork = resolve;
-      })
+      }),
     );
 
     const { getByText } = render(
@@ -250,7 +280,7 @@ describe('ServerSettingsScreen', () => {
         serverId="srv1"
         onSave={jest.fn()}
         onCancel={jest.fn()}
-      />
+      />,
     );
 
     expect(getByText('Loading...')).toBeTruthy();

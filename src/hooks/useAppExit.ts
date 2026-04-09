@@ -6,7 +6,10 @@
 import { useCallback } from 'react';
 import { BackHandler, Platform } from 'react-native';
 import { backgroundService } from '../services/BackgroundService';
-import { settingsService, DEFAULT_QUIT_MESSAGE } from '../services/SettingsService';
+import {
+  settingsService,
+  DEFAULT_QUIT_MESSAGE,
+} from '../services/SettingsService';
 import { messageHistoryBatching } from '../services/MessageHistoryBatching';
 
 interface UseAppExitParams {
@@ -22,11 +25,17 @@ export const useAppExit = (params: UseAppExitParams) => {
   const handleExit = useCallback(async () => {
     safeAlert(
       t('Exit Application', { _tags: 'screen:app,file:App.tsx,feature:exit' }),
-      t('Are you sure you want to exit? This will disconnect from the server.', {
-        _tags: 'screen:app,file:App.tsx,feature:exit',
-      }),
+      t(
+        'Are you sure you want to exit? This will disconnect from the server.',
+        {
+          _tags: 'screen:app,file:App.tsx,feature:exit',
+        },
+      ),
       [
-        { text: t('Cancel', { _tags: 'screen:app,file:App.tsx,feature:exit' }), style: 'cancel' },
+        {
+          text: t('Cancel', { _tags: 'screen:app,file:App.tsx,feature:exit' }),
+          style: 'cancel',
+        },
         {
           text: t('Exit', { _tags: 'screen:app,file:App.tsx,feature:exit' }),
           style: 'destructive',
@@ -35,7 +44,10 @@ export const useAppExit = (params: UseAppExitParams) => {
               // Disconnect gracefully if connected
               if (isConnected) {
                 const activeIRCService = getActiveIRCService();
-                const quitMessage = await settingsService.getSetting('quitMessage', DEFAULT_QUIT_MESSAGE);
+                const quitMessage = await settingsService.getSetting(
+                  'quitMessage',
+                  DEFAULT_QUIT_MESSAGE,
+                );
                 await activeIRCService.disconnect(quitMessage);
                 // Wait a bit for disconnect to complete
                 await new Promise<void>(resolve => setTimeout(resolve, 500));
@@ -52,10 +64,12 @@ export const useAppExit = (params: UseAppExitParams) => {
               } else {
                 // iOS doesn't support programmatic exit, but we can disconnect
                 safeAlert(
-                  t('Disconnected', { _tags: 'screen:app,file:App.tsx,feature:exit' }),
+                  t('Disconnected', {
+                    _tags: 'screen:app,file:App.tsx,feature:exit',
+                  }),
                   t('You can now close the app from the app switcher.', {
                     _tags: 'screen:app,file:App.tsx,feature:exit',
-                  })
+                  }),
                 );
               }
             } catch (error) {
@@ -67,7 +81,7 @@ export const useAppExit = (params: UseAppExitParams) => {
             }
           },
         },
-      ]
+      ],
     );
   }, [getActiveIRCService, isConnected, safeAlert, t]);
 

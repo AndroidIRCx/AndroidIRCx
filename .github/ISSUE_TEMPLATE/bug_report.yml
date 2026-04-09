@@ -1,11 +1,11 @@
 name: Bug Report
 description: Report a bug in AndroidIRCX
-title: "[Bug]: "
-labels: [ "bug" ]
+title: '[Bug]: '
+labels: ['bug']
 body:
   - type: markdown
     attributes:
-      value: "Thanks for taking the time to report a bug. Please fill out the info below."
+      value: 'Thanks for taking the time to report a bug. Please fill out the info below.'
   - type: textarea
     id: description
     attributes:

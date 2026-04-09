@@ -31,142 +31,197 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
   const tabs = useTabStore(state => state.tabs);
   // Use ref to track activeTabId to avoid stale closures in async callbacks
   const activeTabIdRef = useRef<string | null>(activeTabId);
-  
+
   // Keep ref in sync with prop
   useEffect(() => {
     activeTabIdRef.current = activeTabId;
   }, [activeTabId]);
 
   // Force reload history for a specific tab (used when app returns from background)
-  const loadHistoryWithRetry = useCallback(async (networkId: string, channelKey: string) => {
-    const first = await messageHistoryService.loadMessages(networkId, channelKey);
-    if (first.length > 0) {
-      return first;
-    }
-    // Small retry helps when storage write batching lags behind UI state transitions.
-    await new Promise<void>((resolve) => setTimeout(resolve, 250));
-    return messageHistoryService.loadMessages(networkId, channelKey);
-  }, []);
-
-  const forceReloadHistory = useCallback(async (tabId: string) => {
-    const tabStore = useTabStore.getState();
-    // Get fresh tabs state each time to avoid stale data
-    let currentTabs = tabStore.tabs;
-    const tab = currentTabs.find(t => t.id === tabId);
-
-    if (!tab) {
-      debugLogger.debug('lazyMessageHistory', `Tab ${tabId} not found, skipping reload`);
-      return;
-    }
-
-    // Skip if network is invalid
-    if (!tab.networkId || tab.networkId === 'Not connected') {
-      debugLogger.debug('lazyMessageHistory', `Tab ${tabId} has invalid networkId, skipping reload`);
-      return;
-    }
-
-    // CRITICAL FIX: Only reload if tab has no messages
-    // If tab already has messages, don't overwrite them
-    const hasMessages = tab.messages && tab.messages.length > 0;
-    if (hasMessages) {
-      debugLogger.debug('lazyMessageHistory', `Tab ${tabId} already has ${tab.messages.length} messages, skipping force reload`);
-      return;
-    }
-
-    try {
-      // Determine channel key for history lookup
-      const channelKey = tab.type === 'server' ? 'server' : tab.name;
-
-      // Load message history for this tab
-      debugLogger.debug('lazyMessageHistory', `Force reloading history for tab ${tabId}`, `${tab.networkId}/${channelKey}`);
-      const history = await loadHistoryWithRetry(tab.networkId, channelKey);
-
-      // Get fresh tabs state again before updating (in case tabs changed during async operation)
-      currentTabs = tabStore.tabs;
-      const updatedTab = currentTabs.find(t => t.id === tabId);
-      
-      // Only update if tab still exists and doesn't already have messages
-      if (updatedTab) {
-        // Double-check that tab still has no messages before overwriting
-        const stillHasNoMessages = !updatedTab.messages || updatedTab.messages.length === 0;
-        if (stillHasNoMessages) {
-          // Update tab with loaded history
-          tabStore.setTabs(
-            currentTabs.map(t =>
-              t.id === tabId
-                ? { ...t, messages: history }
-                : t
-            )
-          );
-
-          debugLogger.debug('lazyMessageHistory', `Reloaded ${history.length} messages for tab ${tabId}`);
-        } else {
-          debugLogger.debug('lazyMessageHistory', `Tab ${tabId} now has ${updatedTab.messages.length} messages, skipping overwrite`);
-        }
-      } else {
-        debugLogger.debug('lazyMessageHistory', `Tab ${tabId} no longer exists, skipping update`);
+  const loadHistoryWithRetry = useCallback(
+    async (networkId: string, channelKey: string) => {
+      const first = await messageHistoryService.loadMessages(
+        networkId,
+        channelKey,
+      );
+      if (first.length > 0) {
+        return first;
       }
-    } catch (error) {
-      console.error(`Error force reloading message history for tab ${tabId}:`, error);
-    }
-  }, [loadHistoryWithRetry]);
+      // Small retry helps when storage write batching lags behind UI state transitions.
+      await new Promise<void>(resolve => setTimeout(resolve, 250));
+      return messageHistoryService.loadMessages(networkId, channelKey);
+    },
+    [],
+  );
+
+  const forceReloadHistory = useCallback(
+    async (tabId: string) => {
+      const tabStore = useTabStore.getState();
+      // Get fresh tabs state each time to avoid stale data
+      let currentTabs = tabStore.tabs;
+      const tab = currentTabs.find(t => t.id === tabId);
+
+      if (!tab) {
+        debugLogger.debug(
+          'lazyMessageHistory',
+          `Tab ${tabId} not found, skipping reload`,
+        );
+        return;
+      }
+
+      // Skip if network is invalid
+      if (!tab.networkId || tab.networkId === 'Not connected') {
+        debugLogger.debug(
+          'lazyMessageHistory',
+          `Tab ${tabId} has invalid networkId, skipping reload`,
+        );
+        return;
+      }
+
+      // CRITICAL FIX: Only reload if tab has no messages
+      // If tab already has messages, don't overwrite them
+      const hasMessages = tab.messages && tab.messages.length > 0;
+      if (hasMessages) {
+        debugLogger.debug(
+          'lazyMessageHistory',
+          `Tab ${tabId} already has ${tab.messages.length} messages, skipping force reload`,
+        );
+        return;
+      }
+
+      try {
+        // Determine channel key for history lookup
+        const channelKey = tab.type === 'server' ? 'server' : tab.name;
+
+        // Load message history for this tab
+        debugLogger.debug(
+          'lazyMessageHistory',
+          `Force reloading history for tab ${tabId}`,
+          `${tab.networkId}/${channelKey}`,
+        );
+        const history = await loadHistoryWithRetry(tab.networkId, channelKey);
+
+        // Get fresh tabs state again before updating (in case tabs changed during async operation)
+        currentTabs = tabStore.tabs;
+        const updatedTab = currentTabs.find(t => t.id === tabId);
+
+        // Only update if tab still exists and doesn't already have messages
+        if (updatedTab) {
+          // Double-check that tab still has no messages before overwriting
+          const stillHasNoMessages =
+            !updatedTab.messages || updatedTab.messages.length === 0;
+          if (stillHasNoMessages) {
+            // Update tab with loaded history
+            tabStore.setTabs(
+              currentTabs.map(t =>
+                t.id === tabId ? { ...t, messages: history } : t,
+              ),
+            );
+
+            debugLogger.debug(
+              'lazyMessageHistory',
+              `Reloaded ${history.length} messages for tab ${tabId}`,
+            );
+          } else {
+            debugLogger.debug(
+              'lazyMessageHistory',
+              `Tab ${tabId} now has ${updatedTab.messages.length} messages, skipping overwrite`,
+            );
+          }
+        } else {
+          debugLogger.debug(
+            'lazyMessageHistory',
+            `Tab ${tabId} no longer exists, skipping update`,
+          );
+        }
+      } catch (error) {
+        console.error(
+          `Error force reloading message history for tab ${tabId}:`,
+          error,
+        );
+      }
+    },
+    [loadHistoryWithRetry],
+  );
 
   // Monitor app state changes to reload history when returning from background
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', async (nextAppState: AppStateStatus) => {
-      const wasBackground = appStateRef.current.match(/inactive|background/);
-      const isActive = nextAppState === 'active';
+    const subscription = AppState.addEventListener(
+      'change',
+      async (nextAppState: AppStateStatus) => {
+        const wasBackground = appStateRef.current.match(/inactive|background/);
+        const isActive = nextAppState === 'active';
 
-      // When app comes to foreground, reload active tab's history
-      if (wasBackground && isActive) {
-        // Get fresh activeTabId from ref to avoid stale closure
-        const currentActiveTabId = activeTabIdRef.current;
-        if (!currentActiveTabId) {
-          return;
-        }
-        
-        debugLogger.debug('lazyMessageHistory', 'App returned from background, scheduling history reload');
-
-        // CRITICAL FIX: Use InteractionManager to defer heavy operations
-        // This prevents the lock screen from freezing due to blocking the main thread
-        // The reload will happen after all interactions (like modal animations) complete
-        InteractionManager.runAfterInteractions(() => {
-          // Get fresh activeTabId again in case it changed during interactions
-          const freshActiveTabId = activeTabIdRef.current;
-          if (!freshActiveTabId) {
-            debugLogger.debug('lazyMessageHistory', 'No active tab when interactions completed, skipping reload');
+        // When app comes to foreground, reload active tab's history
+        if (wasBackground && isActive) {
+          // Get fresh activeTabId from ref to avoid stale closure
+          const currentActiveTabId = activeTabIdRef.current;
+          if (!currentActiveTabId) {
             return;
           }
-          
-          debugLogger.debug('lazyMessageHistory', 'Interactions complete, reloading active tab history');
-          // CRITICAL FIX: Always clear the loaded flag for active tab to force reload
-          // This ensures that even if tab was marked as loaded before going to background,
-          // it will be reloaded when returning from background
-          loadedTabsRef.current.delete(freshActiveTabId);
-          
-          // Get fresh tab state to check current message count
-          const tabStore = useTabStore.getState();
-          const currentTabs = tabStore.tabs;
-          const activeTab = currentTabs.find(t => t.id === freshActiveTabId);
-          
-          // Only force reload if tab has no messages
-          // If tab already has messages, don't reload (they might be newer than storage)
-          const hasMessages = activeTab?.messages && activeTab.messages.length > 0;
-          if (!hasMessages) {
-            debugLogger.debug('lazyMessageHistory', `Active tab ${freshActiveTabId} has no messages, force reloading`);
-            forceReloadHistory(freshActiveTabId).catch(err => {
-              console.error('useLazyMessageHistory: Error reloading history after interactions:', err);
-            });
-          } else {
-            debugLogger.debug('lazyMessageHistory', `Active tab ${freshActiveTabId} already has ${activeTab.messages.length} messages, skipping reload`);
-            // Mark as loaded since it already has messages
-            loadedTabsRef.current.add(freshActiveTabId);
-          }
-        });
-      }
 
-      appStateRef.current = nextAppState;
-    });
+          debugLogger.debug(
+            'lazyMessageHistory',
+            'App returned from background, scheduling history reload',
+          );
+
+          // CRITICAL FIX: Use InteractionManager to defer heavy operations
+          // This prevents the lock screen from freezing due to blocking the main thread
+          // The reload will happen after all interactions (like modal animations) complete
+          InteractionManager.runAfterInteractions(() => {
+            // Get fresh activeTabId again in case it changed during interactions
+            const freshActiveTabId = activeTabIdRef.current;
+            if (!freshActiveTabId) {
+              debugLogger.debug(
+                'lazyMessageHistory',
+                'No active tab when interactions completed, skipping reload',
+              );
+              return;
+            }
+
+            debugLogger.debug(
+              'lazyMessageHistory',
+              'Interactions complete, reloading active tab history',
+            );
+            // CRITICAL FIX: Always clear the loaded flag for active tab to force reload
+            // This ensures that even if tab was marked as loaded before going to background,
+            // it will be reloaded when returning from background
+            loadedTabsRef.current.delete(freshActiveTabId);
+
+            // Get fresh tab state to check current message count
+            const tabStore = useTabStore.getState();
+            const currentTabs = tabStore.tabs;
+            const activeTab = currentTabs.find(t => t.id === freshActiveTabId);
+
+            // Only force reload if tab has no messages
+            // If tab already has messages, don't reload (they might be newer than storage)
+            const hasMessages =
+              activeTab?.messages && activeTab.messages.length > 0;
+            if (!hasMessages) {
+              debugLogger.debug(
+                'lazyMessageHistory',
+                `Active tab ${freshActiveTabId} has no messages, force reloading`,
+              );
+              forceReloadHistory(freshActiveTabId).catch(err => {
+                console.error(
+                  'useLazyMessageHistory: Error reloading history after interactions:',
+                  err,
+                );
+              });
+            } else {
+              debugLogger.debug(
+                'lazyMessageHistory',
+                `Active tab ${freshActiveTabId} already has ${activeTab.messages.length} messages, skipping reload`,
+              );
+              // Mark as loaded since it already has messages
+              loadedTabsRef.current.add(freshActiveTabId);
+            }
+          });
+        }
+
+        appStateRef.current = nextAppState;
+      },
+    );
 
     return () => {
       subscription.remove();
@@ -205,54 +260,79 @@ export function useLazyMessageHistory(params: UseLazyMessageHistoryParams) {
 
       // If marked as loaded but has no messages, clear the flag to force reload
       if (isMarkedAsLoaded && !hasMessages) {
-        debugLogger.debug('lazyMessageHistory', `Tab ${activeTabId} marked as loaded but has no messages, forcing reload`);
+        debugLogger.debug(
+          'lazyMessageHistory',
+          `Tab ${activeTabId} marked as loaded but has no messages, forcing reload`,
+        );
         loadedTabsRef.current.delete(activeTabId);
       }
 
       try {
         // Determine channel key for history lookup
-        const channelKey = activeTab.type === 'server' ? 'server' : activeTab.name;
+        const channelKey =
+          activeTab.type === 'server' ? 'server' : activeTab.name;
 
         // Load message history for this tab
-        debugLogger.debug('lazyMessageHistory', `Loading history for tab ${activeTabId}`, `${activeTab.networkId}/${channelKey}`);
-        const history = await loadHistoryWithRetry(activeTab.networkId, channelKey);
+        debugLogger.debug(
+          'lazyMessageHistory',
+          `Loading history for tab ${activeTabId}`,
+          `${activeTab.networkId}/${channelKey}`,
+        );
+        const history = await loadHistoryWithRetry(
+          activeTab.networkId,
+          channelKey,
+        );
 
         // Get fresh tabs state again before updating (in case tabs changed during async operation)
         const freshTabs = tabStore.tabs;
         const updatedTab = freshTabs.find(t => t.id === activeTabId);
-        
+
         // Only update if tab still exists
         if (updatedTab) {
           // CRITICAL FIX: Only update if tab has no messages
           // Never overwrite existing messages - they might be newer than what's in storage
-          const hasMessages = updatedTab.messages && updatedTab.messages.length > 0;
+          const hasMessages =
+            updatedTab.messages && updatedTab.messages.length > 0;
           if (!hasMessages) {
             // Update tab with loaded history only if it has no messages
             tabStore.setTabs(
               freshTabs.map(t =>
-                t.id === activeTabId
-                  ? { ...t, messages: history }
-                  : t
-              )
+                t.id === activeTabId ? { ...t, messages: history } : t,
+              ),
             );
 
             // Mark as loaded only if we actually loaded messages
             if (history.length > 0) {
               loadedTabsRef.current.add(activeTabId);
-              debugLogger.debug('lazyMessageHistory', `Loaded ${history.length} messages for tab ${activeTabId}`);
+              debugLogger.debug(
+                'lazyMessageHistory',
+                `Loaded ${history.length} messages for tab ${activeTabId}`,
+              );
             } else {
-              debugLogger.debug('lazyMessageHistory', `No messages found for tab ${activeTabId}, not marking as loaded`);
+              debugLogger.debug(
+                'lazyMessageHistory',
+                `No messages found for tab ${activeTabId}, not marking as loaded`,
+              );
             }
           } else {
             // Tab already has messages, mark as loaded without overwriting
             loadedTabsRef.current.add(activeTabId);
-            debugLogger.debug('lazyMessageHistory', `Tab ${activeTabId} already has ${updatedTab.messages.length} messages, not overwriting`);
+            debugLogger.debug(
+              'lazyMessageHistory',
+              `Tab ${activeTabId} already has ${updatedTab.messages.length} messages, not overwriting`,
+            );
           }
         } else {
-          debugLogger.debug('lazyMessageHistory', `Tab ${activeTabId} no longer exists, skipping update`);
+          debugLogger.debug(
+            'lazyMessageHistory',
+            `Tab ${activeTabId} no longer exists, skipping update`,
+          );
         }
       } catch (error) {
-        console.error(`Error loading message history for tab ${activeTabId}:`, error);
+        console.error(
+          `Error loading message history for tab ${activeTabId}:`,
+          error,
+        );
       }
     };
 
