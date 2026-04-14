@@ -440,9 +440,7 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
           fatal: false,
           extras: { host: serverToUse?.hostname, port: serverToUse?.port },
         });
-        const hostInfo = serverToUse
-          ? `${serverToUse.hostname}:${serverToUse.port}`
-          : 'server';
+        const hostInfo = `${serverToUse.hostname}:${serverToUse.port}`;
         const message = error?.message || 'Failed to connect to IRC server';
         const buttons = [
           {
