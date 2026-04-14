@@ -1,0 +1,3 @@
+New in v1.9.6:
+- Dependency update
+- Italian translations updated

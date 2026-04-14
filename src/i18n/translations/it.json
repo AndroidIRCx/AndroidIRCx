@@ -3,7 +3,7 @@
     "string": "1080"
   },
   "6697": {
-    "string": ""
+    "string": "6697"
   },
   "App lock disabled": {
     "string": "Blocco app disabilitato"
@@ -543,127 +543,127 @@
     "string": ""
   },
   "Messages Per Second": {
-    "string": ""
+    "string": "Messaggi per scondo"
   },
   "Burst Limit": {
     "string": ""
   },
   "Flood Protection": {
-    "string": ""
+    "string": "Protezione Flood"
   },
   "Enable Flood Protection": {
-    "string": ""
+    "string": "Abilita la protezione per Flood"
   },
   "Max Messages Per Window": {
-    "string": ""
+    "string": "Messaggi massimi per finestra"
   },
   "Window Size (ms)": {
     "string": ""
   },
   "Lag Monitoring": {
-    "string": ""
+    "string": "Monitoraggio Lag"
   },
   "Enable Lag Monitoring": {
-    "string": ""
+    "string": "Abilita il monitoraggio Lag"
   },
   "Lag Check Method": {
-    "string": ""
+    "string": "Metodo di verifica del Lag"
   },
   "Select the method to check for lag:": {
-    "string": ""
+    "string": "Seleziona il metodo per verificare la presenza di Lag:"
   },
   "Ping Interval (ms)": {
-    "string": ""
+    "string": "Intervallo di Ping (ms)"
   },
   "Warning Threshold (ms)": {
-    "string": ""
+    "string": "Soglia di allarme (ms)"
   },
   "Connection Statistics": {
-    "string": ""
+    "string": "Statistiche di connessione"
   },
   "Identity Profiles": {
-    "string": ""
+    "string": "Identità Profili"
   },
   "Global Proxy": {
-    "string": ""
+    "string": "Proxy globale"
   },
   "Enable Global Proxy": {
-    "string": ""
+    "string": "Abilita il Proxy globale"
   },
   "Route all IRC connections through a proxy": {
-    "string": ""
+    "string": "Indirizzare tutte le connessioni IRC tramite un proxy"
   },
   "Proxy Type": {
     "string": ""
   },
   "Select proxy protocol": {
-    "string": ""
+    "string": "Seleziona il protocollo proxy"
   },
   "Proxy Host": {
-    "string": ""
+    "string": "Host del proxy"
   },
   "Proxy server hostname or IP": {
     "string": ""
   },
   "proxy.example.com": {
-    "string": ""
+    "string": "proxy.example.com"
   },
   "Proxy Port": {
-    "string": ""
+    "string": "Porta del Proxy"
   },
   "Proxy server port": {
-    "string": ""
+    "string": "Porta del server proxy"
   },
   "Proxy Username (optional)": {
-    "string": ""
+    "string": "Username del Proxy (opzionale)"
   },
   "Leave blank if no authentication required": {
-    "string": ""
+    "string": "Lasciare vuoto se non è richiesta l'autenticazione"
   },
   "username": {
-    "string": ""
+    "string": "username"
   },
   "Proxy Password (optional)": {
-    "string": ""
+    "string": "Password del Proxy (opzionale)"
   },
   "password": {
-    "string": ""
+    "string": "password"
   },
   "Biometric Lock for Passwords": {
-    "string": ""
+    "string": "Blocco biometrico per le password"
   },
   "PIN Lock for Passwords": {
-    "string": ""
+    "string": "Blocco con PIN per le password"
   },
   "Security": {
-    "string": ""
+    "string": "Sicurezza"
   },
   "Allow QR Verification": {
-    "string": ""
+    "string": "Consenti la verifica con codice QR"
   },
   "Allow File Key Exchange": {
-    "string": ""
+    "string": "Consenti lo scambio di chiavi tramite file"
   },
   "Allow NFC Key Exchange": {
-    "string": ""
+    "string": "Abilita lo scambio di chiavi NFC"
   },
   "App Lock": {
-    "string": ""
+    "string": "Blocco applicazione"
   },
   "App Lock with Biometrics": {
-    "string": ""
+    "string": "Blocco applicazione con dati biometrici"
   },
   "App Lock with PIN": {
-    "string": ""
+    "string": "Blocco applicazione con PIN"
   },
   "PIN unlock enabled": {
-    "string": ""
+    "string": "Sblocco tramite PIN abilitato"
   },
   "Use a PIN to unlock": {
-    "string": ""
+    "string": "Usa un PIN per sbloccare"
   },
   "Lock on Launch": {
-    "string": ""
+    "string": "Blocco all'avvio"
   },
   "Locks when app is opened": {
     "string": ""
@@ -675,37 +675,37 @@
     "string": ""
   },
   "Locks after app is backgrounded": {
-    "string": ""
+    "string": "Blocca quando l'applicazione passa in secondo piano"
   },
   "Does not lock on background": {
     "string": ""
   },
   "Lock Now": {
-    "string": ""
+    "string": "Blocca ora"
   },
   "Immediately lock the app": {
-    "string": ""
+    "string": "Blocca l'applicazione immediatamente"
   },
   "Channels": {
-    "string": ""
+    "string": "Canali"
   },
   "{count} favorite across networks": {
-    "string": ""
+    "string": "{count} il preferito su tutti i networks"
   },
   "{count} favorites across networks": {
-    "string": ""
+    "string": "{count} preferiti su tutti i network"
   },
   "Manage favorite channels": {
     "string": "Gestisci i canali preferiti"
   },
   "No favorites yet": {
-    "string": ""
+    "string": "Ancora nessun Preferito"
   },
   "Network: {network}": {
-    "string": ""
+    "string": "Network: {network}"
   },
   "Auto-join": {
-    "string": ""
+    "string": "Auto-join"
   },
   "Key set": {
     "string": ""
@@ -714,79 +714,79 @@
     "string": ""
   },
   "No other networks available": {
-    "string": ""
+    "string": "Nessun altro network disponibile"
   },
   "Delete Favorite": {
-    "string": ""
+    "string": "Elimina Preferito"
   },
   "Remove {name} from {network}?": {
-    "string": ""
+    "string": "Rimuovi {name} da {network}?"
   },
   "Auto-Join Favorites on Connect": {
     "string": ""
   },
   "Join favorited channels after connect/identify": {
-    "string": ""
+    "string": "Entra nei canali aggiunti ai Preferiti dopo aver effettuato l'accesso/l'identificazione"
   },
   "Auto-Rejoin on Kick": {
-    "string": ""
+    "string": "Rientro automatico per Kick"
   },
   "Automatically rejoin channel if kicked": {
-    "string": ""
+    "string": "Rientra automaticamente nei canali quando vieni kickato"
   },
   "Auto-Voice on Join": {
-    "string": ""
+    "string": "Auto-Voice all'ingresso"
   },
   "Enable Auto-Voice": {
-    "string": ""
+    "string": "Abilita Auto-Voice"
   },
   "For All Users": {
-    "string": ""
+    "string": "Per tutti gli utenti"
   },
   "For Operators/Halfops": {
-    "string": ""
+    "string": "Per Operatori/Halfops"
   },
   "For IRC Ops (Admin/Netadmin)": {
-    "string": ""
+    "string": "Per IRC Ops (Admin/Netadmin)"
   },
   "DCC Settings": {
     "string": "Impostazioni DCC"
   },
   "Users & Services": {
-    "string": ""
+    "string": "Utenti & Services"
   },
   "Add Service Nickname": {
-    "string": ""
+    "string": "Aggiungi nickname del servizio"
   },
   "Prevent sending \"close query\" messages to these nicks.": {
     "string": ""
   },
   "Enter a service name (e.g., Q)": {
-    "string": ""
+    "string": "Inserisci un nome per il servizio (esempio: Q)"
   },
   "Ignore List": {
-    "string": ""
+    "string": "Lista ignorati"
   },
   "Manage ignored users": {
-    "string": ""
+    "string": "Gestisci gli utenti ignorati"
   },
   "Ignore list feature coming soon": {
-    "string": ""
+    "string": "Le funzioni della Lista ignorati saranno presto disponibili"
   },
   "User Notes": {
-    "string": ""
+    "string": "Note sull'utente"
   },
   "No notes saved": {
-    "string": ""
+    "string": "Nessuna nota salvata"
   },
   "User Aliases": {
-    "string": ""
+    "string": "Alias dell'utente"
   },
   "No aliases saved": {
-    "string": ""
+    "string": "Nessun alias salvato"
   },
   "Commands": {
-    "string": ""
+    "string": "Comandi"
   },
   "Command History": {
     "string": "Cronologia comandi"
@@ -795,7 +795,7 @@
     "string": "Cancella tutta la cronologia"
   },
   "Delete every command entry": {
-    "string": ""
+    "string": "Elimina tutte le voci di comando"
   },
   "Clear Command History": {
     "string": "Cancella la cronologia dei comandi"
@@ -804,85 +804,85 @@
     "string": "Sei sicuro di voler cancellare tutta la cronologia dei comandi?"
   },
   "Command Aliases": {
-    "string": ""
+    "string": "Aliases dei comandi"
   },
   "Alias Name (without /)": {
-    "string": ""
+    "string": "None dell'Alias (senza /)"
   },
   "e.g. j": {
-    "string": ""
+    "string": "esempio. j"
   },
   "Alias Command": {
-    "string": ""
+    "string": "Alias del comando"
   },
   "Example: /join {channel}": {
-    "string": ""
+    "string": "Esempio: /join {channel}"
   },
   "e.g. /join {channel}": {
-    "string": ""
+    "string": "esempio /join {channel}"
   },
   "Add Alias": {
-    "string": ""
+    "string": "Aggiungi Alias"
   },
   "Create or update alias": {
-    "string": ""
+    "string": "Crea o aggiorna l'alias"
   },
   "Custom Commands": {
-    "string": ""
+    "string": "Comandi personalizzati"
   },
   "Command Name (without /)": {
-    "string": ""
+    "string": "Nome del comando (senza /)"
   },
   "e.g. greet": {
-    "string": ""
+    "string": "esempio greet"
   },
   "Command Template": {
-    "string": ""
+    "string": "Modello di comando"
   },
   "Use {param1}, {channel}, {nick} placeholders": {
     "string": ""
   },
   "e.g. /msg {channel} Hello {param1}": {
-    "string": ""
+    "string": "esempio /msg {channel} Ciao {param1}"
   },
   "Add Custom Command": {
-    "string": ""
+    "string": "Aggiunto comando personalizzato"
   },
   "Save template with placeholders": {
-    "string": ""
+    "string": "Salva il modello con i segnaposto"
   },
   "History Statistics": {
     "string": ""
   },
   "View message history statistics": {
-    "string": ""
+    "string": "Visualizza le statistiche della cronologia dei messaggi"
   },
   "Export History": {
-    "string": ""
+    "string": "Esporta cronologia"
   },
   "Export message history to file": {
-    "string": ""
+    "string": "Esporta la cronologia dei messaggi in un file"
   },
   "Export as JSON": {
-    "string": ""
+    "string": "Esporta come JSON"
   },
   "Export all messages in JSON format": {
-    "string": ""
+    "string": "Esporta tutti i messaggi in formato JSON"
   },
   "Export as TXT": {
-    "string": ""
+    "string": "Esporta come TXT"
   },
   "Export as plain text log": {
-    "string": ""
+    "string": "Esporta come file di log in formato testo semplice"
   },
   "Export as CSV": {
-    "string": ""
+    "string": "Esporta come CSV"
   },
   "Export as spreadsheet-compatible CSV": {
-    "string": ""
+    "string": "Esporta come file CSV compatibile con i fogli di calcolo"
   },
   "Clear History": {
-    "string": ""
+    "string": "Cancella cronologia"
   },
   "Delete all stored message history": {
     "string": "Elimina tutta la cronologia dei messaggi salvati"
@@ -891,124 +891,124 @@
     "string": "Questa operazione cancellerà definitivamente tutti i messaggi salvati. Vuoi continuare?"
   },
   "Storage Usage": {
-    "string": ""
+    "string": "Utilizzo dello spazio di archiviazione"
   },
   "Backup or restore all app data": {
-    "string": ""
+    "string": "Esegui il backup o il ripristino di tutti i dati dell'applicazione"
   },
   "IRC Bouncer": {
-    "string": ""
+    "string": "IRC Bouncer"
   },
   "Bouncer Status": {
-    "string": ""
+    "string": "Status del Bouncer"
   },
   "Bouncer Settings": {
     "string": "Impostazioni Bouncer"
   },
   "Enable Bouncer Support": {
-    "string": ""
+    "string": "Abilita il Supporto Bouncer"
   },
   "Bouncer Type": {
-    "string": ""
+    "string": "Tipo di Bouncer"
   },
   "Select bouncer type:": {
-    "string": ""
+    "string": "Seleziona il tipo di bouncer:"
   },
   "Handle Playback Buffer": {
-    "string": ""
+    "string": "Gestisci il buffer di riproduzione"
   },
   "Process playback messages from bouncer": {
-    "string": ""
+    "string": "Elabora i messaggi di riproduzione provenienti dal Bouncer"
   },
   "Mark Playback Messages": {
-    "string": ""
+    "string": "Contrassegna i messaggi per la riproduzione"
   },
   "Add [Playback] indicator to old messages": {
-    "string": ""
+    "string": "Aggiungi l'indicatore [Playback] per i vecchi messaggi"
   },
   "Skip Old Playback": {
-    "string": ""
+    "string": "Salta vecchi Playback"
   },
   "Playback Timeout (ms)": {
-    "string": ""
+    "string": "Timeout di Playback (ms)"
   },
   "Playback Age Limit (hours)": {
     "string": ""
   },
   "Request Playback (ZNC)": {
-    "string": ""
+    "string": "Richiedi riproduzione (ZNC)"
   },
   "Request playback buffer from ZNC": {
-    "string": ""
+    "string": "Richiedi il buffer di playback da ZNC"
   },
   "Playback requested from ZNC": {
-    "string": ""
+    "string": "Playback richiesto dalla ZNC"
   },
   "Performance": {
-    "string": ""
+    "string": "Prestazioni"
   },
   "Message List Virtualization": {
-    "string": ""
+    "string": "Virtualizzazione della lista messaggi"
   },
   "Use FlatList for better performance with large channels": {
-    "string": ""
+    "string": "Utilizza FlatList per ottenere prestazioni migliori con canali di grandi dimensioni"
   },
   "Lazy Load Old Messages": {
-    "string": ""
+    "string": "Caricamento differito dei vecchi messaggi"
   },
   "Load old messages when scrolling up": {
-    "string": ""
+    "string": "Carica i messaggi precedenti quando si scorre verso l'alto"
   },
   "Render Optimization": {
-    "string": ""
+    "string": "Ottimizzazione del Render"
   },
   "Use React.memo and useMemo for optimized rendering": {
-    "string": ""
+    "string": "Usa React.memo e useMemo per ottimizzare il rendering"
   },
   "Automatic Message Cleanup": {
-    "string": ""
+    "string": "Pulizia automatica dei messaggi"
   },
   "Automatically remove old messages to save memory": {
-    "string": ""
+    "string": "Elimina automaticamente i messaggi vecchi per risparmiare memoria"
   },
   "Message Limit Per Channel": {
-    "string": ""
+    "string": "Limite messaggi per canale"
   },
   "Max Visible Messages": {
-    "string": ""
+    "string": "Numero massimo di messaggi visibili"
   },
   "Message Load Chunk Size": {
     "string": ""
   },
   "Lazy Load Images": {
-    "string": ""
+    "string": "Caricamento differito delle immagini"
   },
   "Only load images when they become visible": {
-    "string": ""
+    "string": "Carica le immagini solo quando diventano visibili"
   },
   "Background & Battery": {
-    "string": ""
+    "string": "Background & Batteria"
   },
   "Keep Connection Alive": {
-    "string": ""
+    "string": "Mantieni attiva la connessione"
   },
   "Maintain IRC connection in background": {
-    "string": ""
+    "string": "Mantieni la connessione IRC in background"
   },
   "Battery Optimization": {
-    "string": ""
+    "string": "Ottimizzazione della batteria"
   },
   "Open Battery Settings": {
     "string": "Apri Impostazioni betteria"
   },
   "Configure battery optimization for this app": {
-    "string": ""
+    "string": "Configura l'ottimizzazione della batteria per questa applicazione"
   },
   "Advanced": {
-    "string": ""
+    "string": "Avanzate"
   },
   "Scripts": {
-    "string": ""
+    "string": "Scripts"
   },
   "Manage IRC scripts and automation": {
     "string": "Gestisci gli script e l'automazione"
@@ -1029,148 +1029,148 @@
     "string": "Informazioni e crediti sull'appllicazione"
   },
   "Enter PIN": {
-    "string": ""
+    "string": "Inserisci il PIN"
   },
   "Set PIN": {
-    "string": ""
+    "string": "Imposta il PIN"
   },
   "Confirm PIN": {
-    "string": ""
+    "string": "Conferma il PIN"
   },
   "Enter your PIN to unlock passwords.": {
-    "string": ""
+    "string": "Inserisci il tuo PIN per sbloccare le password."
   },
   "Create a 4+ digit PIN to protect passwords.": {
-    "string": ""
+    "string": "Crea un PIN di almeno 4 cifre per proteggere le password."
   },
   "Re-enter your PIN to confirm.": {
-    "string": ""
+    "string": "Inserisci nuovamente il tuo PIN per confermarlo."
   },
   "Unlock": {
-    "string": ""
+    "string": "Sblocca"
   },
   "Next": {
-    "string": ""
+    "string": "Prossimo"
   },
   "Save": {
-    "string": ""
+    "string": "Salva"
   },
   "Set App PIN": {
-    "string": ""
+    "string": "Imposta il PIN dell'applicazione"
   },
   "Confirm App PIN": {
-    "string": ""
+    "string": "Conferma il PIN dell'applicazione"
   },
   "Create a 4+ digit PIN to lock the app.": {
-    "string": ""
+    "string": "Crea un PIN di almeno 4 cifre per bloccare l'applicazione."
   },
   "Settings": {
     "string": "Impostazioni"
   },
   "Done": {
-    "string": ""
+    "string": "Fatto"
   },
   "Search settings...": {
     "string": "Cerca nelle impostazioni..."
   },
   "Options": {
-    "string": ""
+    "string": "Opzioni"
   },
   "PIN": {
-    "string": ""
+    "string": "PIN"
   },
   "Backup / Restore": {
-    "string": ""
+    "string": "Backup / Ripristino"
   },
   "Copy this JSON to back up. To restore, paste backup JSON and tap Restore.": {
-    "string": ""
+    "string": "Copia questo file JSON per eseguire il backup. Per ripristinare i dati, incolla il file JSON di backup e tocca Ripristina."
   },
   "Backup JSON appears here": {
-    "string": ""
+    "string": "Il JSON di backup viene visualizzato qui"
   },
   "Per-Channel Notifications": {
-    "string": ""
+    "string": "Notifiche per canale"
   },
   "Add a channel to override global notification settings.": {
     "string": "Aggiungi un canale per sovrascrivere le impostazioni globali delle notifiche."
   },
   "#channel": {
-    "string": ""
+    "string": "#canale"
   },
   "Add": {
-    "string": ""
+    "string": "Aggiungi"
   },
   "All messages": {
-    "string": ""
+    "string": "Tutti i messaggi"
   },
   "Mentions only": {
-    "string": ""
+    "string": "Solo menzioni"
   },
   " • DND": {
-    "string": ""
+    "string": " • DND"
   },
   "All": {
-    "string": ""
+    "string": "Tutto"
   },
   "Mentions": {
-    "string": ""
+    "string": "Menzioni"
   },
   "No channel overrides set.": {
-    "string": ""
+    "string": "Non sono state impostate sovrascritture di canale."
   },
   "Language": {
-    "string": ""
+    "string": "Lingua"
   },
   "System Default": {
-    "string": ""
+    "string": "Impostazioni predefinite di sistema"
   },
   "Use device language": {
-    "string": ""
+    "string": "Usa la lingua del dispositivo"
   },
   "Select Network": {
-    "string": ""
+    "string": "Seleziona Network"
   },
   "Please select a network to migrate keys to": {
-    "string": ""
+    "string": "Seleziona un network su cui trasferire le chiavi"
   },
   "Migration Complete": {
-    "string": ""
+    "string": "Migrazione completata"
   },
   "No old keys found to migrate": {
-    "string": ""
+    "string": "Non sono state trovate vecchie chiavi da migrare"
   },
   "Migration Error": {
-    "string": ""
+    "string": "Errore di migrazione"
   },
   "Failed to migrate keys": {
-    "string": ""
+    "string": "Migrazione delle chiavi non riuscita"
   },
   "Authenticate to view passwords": {
-    "string": ""
+    "string": "Autenticati per visualizzare le password"
   },
   "Manage Encryption Keys": {
-    "string": ""
+    "string": "Gestisci le chiavi di crittografia"
   },
   "Migrate Old Keys": {
-    "string": ""
+    "string": "Migra le vecchie chiavi"
   },
   "Select the network to migrate your old nick-only encryption keys to:": {
-    "string": ""
+    "string": "Seleziona il network su cui trasferire le tue vecchie chiavi di crittografia basate solo sul nickname:"
   },
   "Migrate": {
-    "string": ""
+    "string": "Migrazione"
   },
   "Setup Wizard": {
     "string": "Configurazione guidata"
   },
   "Quick setup for identity and network connection": {
-    "string": ""
+    "string": "Configurazione rapida dell'identità e della connessione al network"
   },
   "DCC Transfer Complete": {
     "string": "Trasferimento DCC completato"
   },
   "{filename} received ({bytes} bytes).": {
-    "string": ""
+    "string": "{filename} ricevuti ({bytes} bytes)."
   },
   "DCC Transfer Failed": {
     "string": "Trasferimento DCC fallito"
@@ -1200,10 +1200,10 @@
     "string": "Connessione fallita"
   },
   "{message}\n\nTried: {hostInfo}\nCheck host/port, SSL, and network reachability.": {
-    "string": ""
+    "string": "{message}\n\nTentativi: {hostInfo}\nVerifica host/porta, SSL e raggiungibilità della rete."
   },
   "Not Connected": {
-    "string": "Non Connesso"
+    "string": "Non sei connesso"
   },
   "Please connect to a server first": {
     "string": "Per prima cosa, connettiti a un server"
@@ -1230,10 +1230,10 @@
     "string": "Impossibile trovare la configurazione salvata per \"{networkId}\". Deve essere configurata prima."
   },
   "DCC Send Error": {
-    "string": ""
+    "string": "DCC Send - Errore"
   },
   "Failed to send file": {
-    "string": ""
+    "string": "Impossibile inviare il file"
   },
   "Download complete": {
     "string": "Download completato"
@@ -1251,7 +1251,7 @@
     "string": "..."
   },
   "Download": {
-    "string": ""
+    "string": "Download"
   },
   "Networks & Servers": {
     "string": "Networks & Servers"
@@ -1269,10 +1269,10 @@
     "string": "Chiavi di crittografia"
   },
   "Channel encryption keys and DM bundles": {
-    "string": ""
+    "string": "Chiavi di crittografia dei canali e pacchetti DM"
   },
   "Identity & Connection Profiles": {
-    "string": "Identità & Profili di connessione"
+    "string": "Profili di connessione & Identità"
   },
   "User identity profiles and connection templates": {
     "string": "Profili di identità utente e modelli di connessione"
@@ -1290,7 +1290,7 @@
     "string": "Highlights & Notifiche"
   },
   "Highlight words and notification preferences": {
-    "string": ""
+    "string": "Highlight delle parole e preferenze relative alle notifiche"
   },
   "Open Tabs": {
     "string": "Schede aperte"
@@ -1299,7 +1299,7 @@
     "string": "Schede canale e query attualmente aperte"
   },
   "Saved message history for all tabs": {
-    "string": ""
+    "string": "Cronologia dei messaggi salvata per tutte le schede"
   },
   "Activity Logs": {
     "string": "Logs di attività"
@@ -1314,7 +1314,7 @@
     "string": "Seleziona almeno una opzione di backup"
   },
   "Generated backup with {count} items:\n{names}": {
-    "string": ""
+    "string": "Backup generato con {count} elementi:\n{names}"
   },
   "Failed to generate backup": {
     "string": "Impossibile generare il backup"
@@ -1335,7 +1335,7 @@
     "string": "Statistiche di archiviazione"
   },
   "{count} items ~{size} KB": {
-    "string": ""
+    "string": "{count} elementi ~{size} KB"
   },
   "Quick Presets": {
     "string": "Impostazioni rapide"
@@ -1374,178 +1374,178 @@
     "string": "Il JSON di backup appare qui..."
   },
   "Failed to load networks and profiles": {
-    "string": ""
+    "string": "Impossibile caricare networks e profili"
   },
   "Failed to update connection type": {
-    "string": ""
+    "string": "Impossibile aggiornare tipo di connessione"
   },
   "Failed to update identity profile": {
-    "string": ""
+    "string": "Impossibile aggiornare l'identità del profilo"
   },
   "Failed to save network changes": {
-    "string": ""
+    "string": "Impossibile salvare le modifiche del network"
   },
   "Failed to save server changes": {
-    "string": ""
+    "string": "Impossibile salvare le modifiche del server"
   },
   "server": {
-    "string": ""
+    "string": "server"
   },
   "servers": {
-    "string": ""
+    "string": "servers"
   },
   "Edit Network Settings": {
-    "string": ""
+    "string": "Modifica impostazioni del Network"
   },
   "Connection Type": {
-    "string": ""
+    "string": "Tipo di connessione"
   },
   "Identity Profile": {
-    "string": ""
+    "string": "Identità profilo"
   },
   "+ Add / Edit Identity": {
-    "string": ""
+    "string": "+ Aggiungi / Modifica identità"
   },
   "Edit": {
-    "string": ""
+    "string": "Modifica"
   },
   "Servers": {
-    "string": ""
+    "string": "Servers"
   },
   "+ Add Server": {
-    "string": ""
+    "string": "+ Aggiungi Server"
   },
   "Nick: {nick}": {
-    "string": ""
+    "string": "Nick: {nick}"
   },
   "Alt Nick: {altNick}": {
-    "string": ""
+    "string": "Nick alternativo: {altNick}"
   },
   "Real Name: {name}": {
-    "string": ""
+    "string": "Nome reale: {name}"
   },
   "Current Profile: {name}": {
-    "string": ""
+    "string": "Profilo corrente: {name}"
   },
   "Connection Profiles": {
-    "string": ""
+    "string": "Profili di connessione"
   },
   "No networks configured yet. Add a network to get started!": {
-    "string": ""
+    "string": "Non è stato ancora configurato alcun network. Aggiungi un network per iniziare!"
   },
   "Edit Identity Profile": {
-    "string": ""
+    "string": "Modifica l'identità del profilo"
   },
   "Profile Name": {
-    "string": ""
+    "string": "Nome profilo"
   },
   "Nick": {
-    "string": ""
+    "string": "Nick"
   },
   "Alt Nick": {
-    "string": ""
+    "string": "Nick alternativo"
   },
   "Real Name": {
-    "string": ""
+    "string": "Nome reale"
   },
   "Ident/Username": {
-    "string": ""
+    "string": "Ident/Username"
   },
   "SASL Account": {
-    "string": ""
+    "string": "Account SASL"
   },
   "SASL Password": {
-    "string": ""
+    "string": "Password SASL"
   },
   "NickServ Password": {
-    "string": ""
+    "string": "Password di NickServ"
   },
   "Oper Username": {
-    "string": ""
+    "string": "Oper Username"
   },
   "Defaults to nick": {
     "string": ""
   },
   "Oper Password": {
-    "string": ""
+    "string": "Oper Password"
   },
   "On-Connect Commands (one per line, runs after MOTD)": {
-    "string": ""
+    "string": "Comandi alla connessione (uno per riga, eseguiti dopo MOTD)"
   },
   "Example on-connect commands": {
-    "string": ""
+    "string": "Esempi di comandi on-connect"
   },
   "Profile name and nick are required": {
-    "string": ""
+    "string": "Il nome del profilo e il nickname sono obbligatori"
   },
   "Failed to save identity profile": {
-    "string": ""
+    "string": "Impossibile salvare l'identità del profilo"
   },
   "DCC Chat Request": {
-    "string": ""
+    "string": "DCC Chat - Richiesta"
   },
   "{from} wants to start a DCC chat. Accept?": {
-    "string": ""
+    "string": "{from} vuole avviare una DCC chat. Accetti?"
   },
   "Decline": {
-    "string": ""
+    "string": "Rifiuta"
   },
   "Accept": {
-    "string": ""
+    "string": "Accetta"
   },
   "DCC SEND Offer": {
-    "string": ""
+    "string": "DCC SEND - Offerta"
   },
   "{from} offers \"{filename}\" ({size} bytes). Accept?": {
-    "string": ""
+    "string": "{from} offre \"{filename}\" ({size} bytes). Accetti?"
   },
   "No Encryption Bundle": {
-    "string": ""
+    "string": "Pacchetto senza crittografia"
   },
   "Always-encrypt is now enabled, but no encryption bundle exists. Share your key with this user to enable encryption.": {
-    "string": ""
+    "string": "La funzionalità Always-encrypt è ora abilitata, ma non esiste alcun pacchetto di crittografia. Condividi la tua chiave con questo utente per abilitare la crittografia."
   },
   "Ping: {ping} ms": {
-    "string": ""
+    "string": "Ping: {ping} ms"
   },
   "Tap to connect": {
     "string": "Tocca per connetterti"
   },
   "Copied {count} message": {
-    "string": ""
+    "string": "Copiato {count} messaggio"
   },
   "Copied {count} messages": {
-    "string": ""
+    "string": "Copiati {count} messaggi"
   },
   "No messages yet": {
     "string": "Non ci sono ancora messaggi"
   },
   "{count} selected": {
-    "string": ""
+    "string": "{count} selezionato"
   },
   "Copy": {
-    "string": ""
+    "string": "Copia"
   },
   "WHOIS": {
-    "string": ""
+    "string": "WHOIS"
   },
   "CTCP PING": {
-    "string": ""
+    "string": "CTCP PING"
   },
   "CTCP VERSION": {
-    "string": ""
+    "string": "CTCP VERSION"
   },
   "CTCP TIME": {
-    "string": ""
+    "string": "CTCP TIME"
   },
   "Start DCC Chat": {
-    "string": ""
+    "string": "Avvia DCC Chat"
   },
   "Unignore User": {
     "string": ""
   },
   "Ignore User": {
-    "string": ""
+    "string": "Ignora utente"
   },
   "Unmonitor Nick": {
     "string": ""
@@ -2949,7 +2949,7 @@
     "string": ""
   },
   "Multi-network support": {
-    "string": ""
+    "string": "Supporto Multi-Network"
   },
   "Full IRCv3 compliance (18 capabilities)": {
     "string": ""
@@ -2958,7 +2958,7 @@
     "string": "Crittografia End-to-end"
   },
   "Real-time typing indicators": {
-    "string": ""
+    "string": "Indicatori di scrittura in tempo reale"
   },
   "Background connections": {
     "string": ""
@@ -4026,7 +4026,7 @@
     "string": ""
   },
   "*** Disconnected from server": {
-    "string": ""
+    "string": "*** Disconnesso dal server"
   },
   "*** Auto-reconnect cancelled": {
     "string": "*** Riconnessione automatica annullata"
@@ -4761,13 +4761,13 @@
     "string": ""
   },
   "Show Typing Indicators": {
-    "string": ""
+    "string": "Mostra gli indicatori di scrittura"
   },
   "Display who is typing in the active tab": {
     "string": ""
   },
   "Hide typing indicators": {
-    "string": ""
+    "string": "Nascondi gli indicatori di scrittura"
   },
   "Show Send Button": {
     "string": ""
@@ -4779,31 +4779,31 @@
     "string": ""
   },
   "Banner Position": {
-    "string": ""
+    "string": "Posizione del Banner"
   },
   "Banner shown below message input": {
-    "string": ""
+    "string": "Banner visualizzato sotto il campo di inserimento del messaggio"
   },
   "Banner shown above header": {
-    "string": ""
+    "string": "Banner visualizzato sopra l'intestazione"
   },
   "Banner shown below header": {
-    "string": ""
+    "string": "Banner visualizzato sotto l'intestazione"
   },
   "Banner shown above message input": {
-    "string": ""
+    "string": "Banner visualizzato sopra il campo di inserimento del messaggio"
   },
   "Above message input": {
-    "string": ""
+    "string": "Sopra il campo di inserimento del messaggio"
   },
   "Below message input": {
-    "string": ""
+    "string": "Sotto il campo di inserimento del messaggio"
   },
   "Above header": {
-    "string": ""
+    "string": "Sopra l'intestazione"
   },
   "Below header": {
-    "string": ""
+    "string": "Sotto l'intestazione"
   },
   "Keyboard Avoiding": {
     "string": ""
@@ -9246,7 +9246,7 @@
     "string": ""
   },
   "help.channel.basics": {
-    "string": ""
+    "string": "help.channel.basics"
   },
   "help.channel.whatIsChannel": {
     "string": ""
@@ -10812,10 +10812,10 @@
     "string": "Guida alla gestione dei canali"
   },
   "Channel Basics": {
-    "string": ""
+    "string": "Nozioni base sui canali"
   },
   "What is a Channel?": {
-    "string": ""
+    "string": "Che cos'è un canale?"
   },
   "IRC channels are group chat rooms where multiple users can communicate.\\nChannel names start with # (e.g., #DBase).": {
     "string": ""
@@ -11553,7 +11553,7 @@
     "string": ""
   },
   "Solution: Check Settings → Display & UI → Show Encryption Indicators": {
-    "string": ""
+    "string": "Soluzione: Controlla Impostazioni → Display & UI → Mostra indicatori di crittografia"
   },
   "Key Management": {
     "string": ""
@@ -11943,7 +11943,7 @@
     "string": ""
   },
   "Go to Settings \u001a Display & UI \u001a Keyboard Avoiding": {
-    "string": ""
+    "string": "Vai in Impostazioni \u001a Schermo Display & Interfaccia utente \u001a Evita tastiera"
   },
   "Android: try Behavior = Height (default) or Padding": {
     "string": ""
