@@ -524,11 +524,7 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
   const renderDecorSummary = useCallback(
     (styleName: string) => {
       const display = decorStyleDisplay(styleName, false);
-      const plain = stripIRCFormatting(display).trim();
-      const fallback = plain.length > 0 ? plain : display;
-      return (
-        formatIRCTextAsComponent(display, styles.settingDescription) || fallback
-      );
+      return formatIRCTextAsComponent(display, styles.settingDescription);
     },
     [decorStyleDisplay, styles.settingDescription],
   );
@@ -536,11 +532,7 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
   const renderNickSummary = useCallback(
     (styleName: string) => {
       const display = nickStyleDisplay(styleName, false);
-      const plain = stripIRCFormatting(display).trim();
-      const fallback = plain.length > 0 ? plain : display;
-      return (
-        formatIRCTextAsComponent(display, styles.settingDescription) || fallback
-      );
+      return formatIRCTextAsComponent(display, styles.settingDescription);
     },
     [nickStyleDisplay, styles.settingDescription],
   );
