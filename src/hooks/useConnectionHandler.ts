@@ -251,19 +251,6 @@ export const useConnectionHandler = (params: UseConnectionHandlerParams) => {
         serverToUse = { ...DEFAULT_SERVER };
       }
 
-      if (!serverToUse) {
-        const networkName = networkToUse?.name || 'DBase';
-        safeAlert(
-          t('Error', { _tags: 'screen:app,file:App.tsx,feature:network' }),
-          t('No server configured for "{networkName}"', {
-            networkName,
-            _tags: 'screen:app,file:App.tsx,feature:network',
-          }),
-        );
-        useUIStore.getState().setShowNetworksList(true);
-        return;
-      }
-
       // Show immediate feedback that connection is in progress
       if (networkToUse?.name && serverToUse?.hostname) {
         appendServerMessage(

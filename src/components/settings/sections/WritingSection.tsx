@@ -1086,7 +1086,7 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
                 {formatIRCTextAsComponent(
                   styleEditorPreview,
                   stylesLocal.editorPreviewText,
-                ) || styleEditorPreview}
+                )}
               </Text>
             </View>
             <View style={stylesLocal.modalRow}>
