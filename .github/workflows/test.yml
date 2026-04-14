@@ -36,8 +36,17 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - name: Install dependencies (retry on registry errors)
+        run: |
+          for i in 1 2 3; do
+            yarn install --frozen-lockfile --network-timeout 120000 && break
+            if [ "$i" -eq 3 ]; then
+              echo "yarn install failed after $i attempts"
+              exit 1
+            fi
+            echo "yarn install failed (attempt $i), retrying in 15s..."
+            sleep 15
+          done
 
       - name: Run Prettier format check
         run: yarn format-check
@@ -66,8 +75,17 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - name: Install dependencies (retry on registry errors)
+        run: |
+          for i in 1 2 3; do
+            yarn install --frozen-lockfile --network-timeout 120000 && break
+            if [ "$i" -eq 3 ]; then
+              echo "yarn install failed after $i attempts"
+              exit 1
+            fi
+            echo "yarn install failed (attempt $i), retrying in 15s..."
+            sleep 15
+          done
 
       - name: Run Jest test suite
         run: yarn test:ci
