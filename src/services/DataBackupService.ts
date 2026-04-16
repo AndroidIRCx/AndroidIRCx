@@ -435,7 +435,11 @@ class DataBackupService {
 
       return JSON.stringify(encryptedPayload);
     } catch (error) {
-      if (error instanceof Error && error.message && error.message !== 'undefined') {
+      if (
+        error instanceof Error &&
+        error.message &&
+        error.message !== 'undefined'
+      ) {
         throw error;
       }
       if (typeof error === 'string' && error.trim()) {
@@ -528,7 +532,11 @@ class DataBackupService {
 
       return decryptedJson;
     } catch (error) {
-      if (error instanceof Error && error.message && error.message !== 'undefined') {
+      if (
+        error instanceof Error &&
+        error.message &&
+        error.message !== 'undefined'
+      ) {
         throw error;
       }
       if (typeof error === 'string' && error.trim()) {

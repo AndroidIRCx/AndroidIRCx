@@ -457,7 +457,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
       } catch (error) {
         Alert.alert(
           t('Encryption Failed', { _tags: tags }),
-          getErrorMessage(error, t('Failed to encrypt backup', { _tags: tags })),
+          getErrorMessage(
+            error,
+            t('Failed to encrypt backup', { _tags: tags }),
+          ),
         );
         setBackupOperation('idle');
         return;
@@ -516,7 +519,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        getErrorMessage(error, t('No backup data available to save', { _tags: tags })),
+        getErrorMessage(
+          error,
+          t('No backup data available to save', { _tags: tags }),
+        ),
       );
       return;
     }
@@ -1110,14 +1116,14 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
                         'Generated backup is large, so inline JSON preview is hidden to keep the app stable. You can still copy, save, or restore it.',
                         { _tags: tags },
                       )
-                  : backupData
-                    ? t(
-                        'Copy this JSON to save your backup, or save it to a file.',
-                        { _tags: tags },
-                      )
-                    : t('Paste your backup JSON here to restore your data.', {
-                        _tags: tags,
-                      })}
+                    : backupData
+                      ? t(
+                          'Copy this JSON to save your backup, or save it to a file.',
+                          { _tags: tags },
+                        )
+                      : t('Paste your backup JSON here to restore your data.', {
+                          _tags: tags,
+                        })}
               </Text>
               {loadedBackupMeta ? (
                 <View style={styles.loadedFileCard}>
@@ -1170,9 +1176,11 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
                   </Text>
                   <Text style={styles.loadedFileText}>
                     {t('Size: {size} MB', {
-                      size: (generatedBackupMeta.sizeBytes / 1024 / 1024).toFixed(
-                        2,
-                      ),
+                      size: (
+                        generatedBackupMeta.sizeBytes /
+                        1024 /
+                        1024
+                      ).toFixed(2),
                       _tags: tags,
                     })}
                   </Text>
