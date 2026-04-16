@@ -95,7 +95,7 @@
     "@types/react": "^19.2.14",
     "@types/react-test-renderer": "^19.1.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
-    "eslint": "^10.2.0",
+    "eslint": "^9.0.0",
     "jest": "^30.3.0",
     "patch-package": "^8.0.1",
     "prettier": "3.8.3",
