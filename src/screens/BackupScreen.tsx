@@ -82,6 +82,15 @@ const isLogsKey = (key: string) => {
 const SENSITIVE_DATA_WARNING =
   'This backup may contain sensitive data such as server passwords, authentication tokens, and encryption keys. This data will be stored in plain text unless you choose to encrypt the backup.';
 
+// Rendering massive JSON inside TextInput can crash low-memory devices.
+const MAX_INLINE_BACKUP_PREVIEW_CHARS = 250000;
+
+interface GeneratedBackupMeta {
+  sizeBytes: number;
+  keyCount?: number;
+  encrypted: boolean;
+}
+
 export const BackupScreen: React.FC<BackupScreenProps> = ({
   visible,
   onClose,
@@ -213,6 +222,9 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
     keyCount?: number;
   } | null>(null);
   const loadedBackupPayloadRef = useRef('');
+  const [generatedBackupMeta, setGeneratedBackupMeta] =
+    useState<GeneratedBackupMeta | null>(null);
+  const generatedBackupPayloadRef = useRef('');
   const [showRestartModal, setShowRestartModal] = useState(false);
 
   const backupBusy = backupOperation !== 'idle';
@@ -249,12 +261,60 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
     setStorageStats(stats);
   };
 
+  const clearGeneratedBackup = () => {
+    setGeneratedBackupMeta(null);
+    generatedBackupPayloadRef.current = '';
+  };
+
+  const ensureValidBackupPayload = (
+    payload: unknown,
+    fallbackMessage: string,
+  ): string => {
+    if (typeof payload !== 'string' || !payload.trim()) {
+      throw new Error(fallbackMessage);
+    }
+    return payload;
+  };
+
+  const setGeneratedBackupOutput = (
+    payload: string,
+    options: { keyCount?: number; encrypted: boolean },
+  ) => {
+    const normalizedPayload = ensureValidBackupPayload(
+      payload,
+      t('Backup generation returned empty data', { _tags: tags }),
+    );
+
+    setLoadedBackupMeta(null);
+    loadedBackupPayloadRef.current = '';
+
+    if (normalizedPayload.length > MAX_INLINE_BACKUP_PREVIEW_CHARS) {
+      generatedBackupPayloadRef.current = normalizedPayload;
+      setGeneratedBackupMeta({
+        sizeBytes: normalizedPayload.length,
+        keyCount: options.keyCount,
+        encrypted: options.encrypted,
+      });
+      setBackupData('');
+      return;
+    }
+
+    clearGeneratedBackup();
+    setBackupData(normalizedPayload);
+  };
+
   const getRestorePayload = (): string => {
     if (loadedBackupMeta) {
       return loadedBackupPayloadRef.current;
     }
+    if (generatedBackupMeta) {
+      return generatedBackupPayloadRef.current;
+    }
     return backupData;
   };
+
+  const getExportPayload = (): string =>
+    generatedBackupMeta ? generatedBackupPayloadRef.current : backupData;
 
   const toggleOption = (id: string) => {
     setBackupOptions(prev =>
@@ -308,7 +368,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
       let data: string;
       let selectedKeys: string[] = [];
       if (includeAll) {
-        data = await dataBackupService.exportAll();
+        data = ensureValidBackupPayload(
+          await dataBackupService.exportAll(),
+          t('Failed to generate backup', { _tags: tags }),
+        );
         selectedKeys = allKeys;
       } else {
         // Filter keys based on enabled options
@@ -323,7 +386,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
             }
           }),
         );
-        data = await dataBackupService.exportKeys(selectedKeys);
+        data = ensureValidBackupPayload(
+          await dataBackupService.exportKeys(selectedKeys),
+          t('Failed to generate backup', { _tags: tags }),
+        );
       }
 
       // Check if backup contains sensitive data
@@ -337,9 +403,10 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
         setShowEncryptionPrompt(true);
       } else {
         // No sensitive data, proceed without encryption prompt
-        setLoadedBackupMeta(null);
-        loadedBackupPayloadRef.current = '';
-        setBackupData(data);
+        setGeneratedBackupOutput(data, {
+          keyCount: selectedKeys.length,
+          encrypted: false,
+        });
         setShowPreviewModal(true);
 
         const enabledNames = enabledOptions.map(opt => opt.name).join(', ');
@@ -355,9 +422,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
     } catch (error) {
       Alert.alert(
         t('Error', { _tags: tags }),
-        error instanceof Error
-          ? error.message
-          : t('Failed to generate backup', { _tags: tags }),
+        getErrorMessage(error, t('Failed to generate backup', { _tags: tags })),
       );
     } finally {
       setBackupOperation('idle');
@@ -371,11 +436,17 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
 
     if (encrypt && encryptionPassword.trim().length > 0) {
       try {
-        const encryptedData = await dataBackupService.encryptBackup(
-          pendingBackupData,
-          encryptionPassword,
+        const encryptedData = ensureValidBackupPayload(
+          await dataBackupService.encryptBackup(
+            pendingBackupData,
+            encryptionPassword,
+          ),
+          t('Failed to encrypt backup', { _tags: tags }),
         );
-        setBackupData(encryptedData);
+        setGeneratedBackupOutput(encryptedData, {
+          keyCount: pendingSelectedKeys.length,
+          encrypted: true,
+        });
         Alert.alert(
           t('Backup Encrypted', { _tags: tags }),
           t(
@@ -386,17 +457,16 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
       } catch (error) {
         Alert.alert(
           t('Encryption Failed', { _tags: tags }),
-          error instanceof Error
-            ? error.message
-            : t('Failed to encrypt backup', { _tags: tags }),
+          getErrorMessage(error, t('Failed to encrypt backup', { _tags: tags })),
         );
         setBackupOperation('idle');
         return;
       }
     } else {
-      setLoadedBackupMeta(null);
-      loadedBackupPayloadRef.current = '';
-      setBackupData(pendingBackupData);
+      setGeneratedBackupOutput(pendingBackupData, {
+        keyCount: pendingSelectedKeys.length,
+        encrypted: false,
+      });
     }
 
     setEncryptionPassword('');
@@ -416,7 +486,11 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
 
   const handleCopyToClipboard = () => {
     try {
-      Clipboard.setString(backupData);
+      const payload = ensureValidBackupPayload(
+        getExportPayload(),
+        t('No backup data available to copy', { _tags: tags }),
+      );
+      Clipboard.setString(payload);
       Alert.alert(
         t('Success', { _tags: tags }),
         t('Backup data copied to clipboard', { _tags: tags }),
@@ -433,7 +507,19 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
 
   const handleSaveToFile = async () => {
     if (backupBusy) return;
-    if (!backupData.trim()) return;
+    let payloadToSave = '';
+    try {
+      payloadToSave = ensureValidBackupPayload(
+        getExportPayload(),
+        t('No backup data available to save', { _tags: tags }),
+      );
+    } catch (error) {
+      Alert.alert(
+        t('Error', { _tags: tags }),
+        getErrorMessage(error, t('No backup data available to save', { _tags: tags })),
+      );
+      return;
+    }
     setBackupOperation('save');
     try {
       const now = new Date();
@@ -450,7 +536,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
         savePath = `${RNFS.DocumentDirectoryPath}/${filename}`;
       }
 
-      await RNFS.writeFile(savePath, backupData, 'utf8');
+      await RNFS.writeFile(savePath, payloadToSave, 'utf8');
       Alert.alert(
         t('Success', { _tags: tags }),
         t('Backup saved to:\n{path}', { path: savePath, _tags: tags }),
@@ -555,6 +641,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
         // already validated above
       }
 
+      clearGeneratedBackup();
       setBackupData('');
       loadedBackupPayloadRef.current = content;
       setLoadedBackupMeta({
@@ -630,9 +717,12 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
 
     setBackupOperation('decrypt');
     try {
-      const decryptedData = await dataBackupService.decryptBackup(
-        getRestorePayload(),
-        decryptPassword,
+      const decryptedData = ensureValidBackupPayload(
+        await dataBackupService.decryptBackup(
+          getRestorePayload(),
+          decryptPassword,
+        ),
+        t('Failed to decrypt backup', { _tags: tags }),
       );
       setShowDecryptPrompt(false);
       setDecryptPassword('');
@@ -848,6 +938,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
               onPress={() => {
                 setLoadedBackupMeta(null);
                 loadedBackupPayloadRef.current = '';
+                clearGeneratedBackup();
                 setBackupData('');
                 setShowPreviewModal(true);
               }}
@@ -990,7 +1081,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
           <View style={styles.modalFullScreenContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {backupData
+                {backupData || generatedBackupMeta
                   ? t('Backup Data', { _tags: tags })
                   : t('Restore from Backup', { _tags: tags })}
               </Text>
@@ -1014,6 +1105,11 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
                       'Loaded from file. JSON preview is hidden for large backups. You can restore now.',
                       { _tags: tags },
                     )
+                  : generatedBackupMeta
+                    ? t(
+                        'Generated backup is large, so inline JSON preview is hidden to keep the app stable. You can still copy, save, or restore it.',
+                        { _tags: tags },
+                      )
                   : backupData
                     ? t(
                         'Copy this JSON to save your backup, or save it to a file.',
@@ -1067,6 +1163,48 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
                     </Text>
                   </TouchableOpacity>
                 </View>
+              ) : generatedBackupMeta ? (
+                <View style={styles.loadedFileCard}>
+                  <Text style={styles.loadedFileTitle}>
+                    {t('Generated Backup', { _tags: tags })}
+                  </Text>
+                  <Text style={styles.loadedFileText}>
+                    {t('Size: {size} MB', {
+                      size: (generatedBackupMeta.sizeBytes / 1024 / 1024).toFixed(
+                        2,
+                      ),
+                      _tags: tags,
+                    })}
+                  </Text>
+                  {generatedBackupMeta.keyCount !== undefined && (
+                    <Text style={styles.loadedFileText}>
+                      {t('Items: {count}', {
+                        count: generatedBackupMeta.keyCount,
+                        _tags: tags,
+                      })}
+                    </Text>
+                  )}
+                  <Text style={styles.loadedFileText}>
+                    {generatedBackupMeta.encrypted
+                      ? t('Encrypted: Yes', { _tags: tags })
+                      : t('Encrypted: No', { _tags: tags })}
+                  </Text>
+                  <Text style={[styles.loadedFileText, restoreNoticeStyle]}>
+                    {t('Please wait while restoring. Do not close the app.', {
+                      _tags: tags,
+                    })}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.secondaryButton}
+                    onPress={() => {
+                      clearGeneratedBackup();
+                    }}
+                  >
+                    <Text style={styles.secondaryButtonText}>
+                      {t('Switch to Manual JSON Paste', { _tags: tags })}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               ) : (
                 <TextInput
                   style={styles.backupInput}
@@ -1076,6 +1214,9 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
                     if (loadedBackupMeta) {
                       setLoadedBackupMeta(null);
                       loadedBackupPayloadRef.current = '';
+                    }
+                    if (generatedBackupMeta) {
+                      clearGeneratedBackup();
                     }
                     setBackupData(text);
                   }}
@@ -1104,7 +1245,7 @@ export const BackupScreen: React.FC<BackupScreenProps> = ({
                   {t('Load from File', { _tags: tags })}
                 </Text>
               </TouchableOpacity>
-              {!loadedBackupMeta && backupData && (
+              {!loadedBackupMeta && !!getExportPayload().trim() && (
                 <>
                   <TouchableOpacity
                     style={styles.footerButton}

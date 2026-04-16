@@ -6,10 +6,10 @@
     "string": "6697"
   },
   "App lock disabled": {
-    "string": "Blocco app disabilitato"
+    "string": "Blocco dell'applicazione disabilitato"
   },
   "Enable app lock first.": {
-    "string": "Attiva prima il blocco app."
+    "string": "Attiva prima il blocco dell'applicazione."
   },
   "Cancel": {
     "string": "Annulla"
@@ -27,7 +27,7 @@
     "string": "Backup Pronto"
   },
   "Success": {
-    "string": ""
+    "string": "Completato con successo"
   },
   "Backup data copied to clipboard": {
     "string": "Dati backup copiati negli appunti"
@@ -144,7 +144,7 @@
     "string": "Abilita un metodo"
   },
   "Turn on biometric or PIN for App Lock first.": {
-    "string": ""
+    "string": "Attiva prima il PIN o il riconoscimento biometrico per il blocco dell'applicazione."
   },
   "Unable to enable biometric app lock.": {
     "string": "Impossibile attivare il blocco biometrico dell'applicazione."
@@ -216,7 +216,7 @@
     "string": "Modalità di visualizzazione:"
   },
   "Current: {mode}": {
-    "string": "Corrente: {mode}"
+    "string": "Attuale: {mode}"
   },
   "Select view mode:": {
     "string": "Seleziona la modalità di visualizzazione:"
@@ -336,7 +336,7 @@
     "string": "Icone di blocco visibili nelle schede/nei messaggi"
   },
   "Hide lock icons": {
-    "string": ""
+    "string": "Nascondi icone di blocco"
   },
   "Messages": {
     "string": "Messaggi"
@@ -429,10 +429,10 @@
     "string": "Rimuovi"
   },
   "Connection & Network": {
-    "string": "Connessione & Network"
+    "string": "Networks e Connessioni"
   },
   "Auto-Connect to Favorite Server": {
-    "string": "Connessione automatica al Server Preferito"
+    "string": "Auto-Connessione al server preferito"
   },
   "When opening a network, prefer the server marked as favorite.": {
     "string": ""
@@ -1212,7 +1212,7 @@
     "string": "Esci dall'applicazione"
   },
   "Are you sure you want to exit? This will disconnect from the server.": {
-    "string": "Sei sicuro di voler uscire? Verrai disconnesso dal server."
+    "string": "Sei sicuro di voler uscire e chiudere l'applicazione? Verrai disconnesso da tutti i servers a cui sei connesso."
   },
   "Exit": {
     "string": "Esci"
@@ -1554,28 +1554,28 @@
     "string": ""
   },
   "Join a channel": {
-    "string": ""
+    "string": "Entra in un canale"
   },
   "Leave a channel": {
-    "string": ""
+    "string": "Esce da un canale"
   },
   "Disconnect from server": {
-    "string": ""
+    "string": "Disconnetti dal server"
   },
   "Change nickname": {
-    "string": ""
+    "string": "Cambia nickname"
   },
   "Send private message": {
-    "string": ""
+    "string": "Invia messaggio privato"
   },
   "Open private chat": {
-    "string": ""
+    "string": "Apri chat privata"
   },
   "User information": {
-    "string": ""
+    "string": "Informazioni utente"
   },
   "Past user information": {
-    "string": ""
+    "string": "Incolla informazioni utente"
   },
   "Change channel/user modes": {
     "string": ""
@@ -1767,13 +1767,13 @@
     "string": ""
   },
   "Channel key removed": {
-    "string": ""
+    "string": "Chiave del canale rimossa"
   },
   "Channel limit set to {limitNum}": {
     "string": ""
   },
   "Channel limit removed": {
-    "string": ""
+    "string": "Limite del canale rimosso"
   },
   "Invalid limit value": {
     "string": ""
@@ -1782,13 +1782,13 @@
     "string": ""
   },
   "Ban removed": {
-    "string": ""
+    "string": "Ban rimosso"
   },
   "Exception added": {
     "string": ""
   },
   "Exception removed": {
-    "string": ""
+    "string": "Eccezione rimossa"
   },
   "No Encryption Key": {
     "string": ""
@@ -1836,13 +1836,13 @@
     "string": ""
   },
   "Remove Encryption Key": {
-    "string": ""
+    "string": "Rimuovi la chiave di crittografia"
   },
   "Are you sure you want to remove the encryption key? You will not be able to decrypt messages until you get the key again.": {
-    "string": ""
+    "string": "Sei sicuro di voler rimuovere la chiave di crittografia? Non potrai decifrare i messaggi finché non recupererai la chiave."
   },
   "Encryption key removed": {
-    "string": ""
+    "string": "Chiave di crittografia rimossa"
   },
   "Channel Settings": {
     "string": "Impostazioni del canale"
@@ -1890,13 +1890,13 @@
     "string": ""
   },
   "Channel key (leave empty to remove)": {
-    "string": ""
+    "string": "Chiave canale (lasciare vuoto per rimuovere)"
   },
   "Set Key": {
     "string": ""
   },
   "Remove Key": {
-    "string": ""
+    "string": "Rimuovi chiave"
   },
   "Key is currently set": {
     "string": ""
@@ -1932,13 +1932,13 @@
     "string": ""
   },
   "Maximum users (leave empty to remove)": {
-    "string": ""
+    "string": "Numero utenti massimo (lasciare vuoto per rimuovere)"
   },
   "Set Limit": {
     "string": ""
   },
   "Remove Limit": {
-    "string": ""
+    "string": "Rimuovi il limite"
   },
   "Current limit: {limit} users": {
     "string": ""
@@ -1971,13 +1971,13 @@
     "string": ""
   },
   "Remove from Ignore List": {
-    "string": ""
+    "string": "Rimuovi dalla lista ignore"
   },
   "Remove {mask}?": {
-    "string": ""
+    "string": "Rimuovi {mask}?"
   },
   "User removed from ignore list": {
-    "string": ""
+    "string": "Utente rimosso dalla lista ignore"
   },
   "+ Add": {
     "string": ""
@@ -2019,10 +2019,10 @@
     "string": ""
   },
   "Please fill in all required fields (Name, Nick, Realname)": {
-    "string": ""
+    "string": "Devi compilare tutti i campi obbligatori (Nome del network, Nickname, Nome reale)."
   },
   "Network Settings": {
-    "string": ""
+    "string": "Impostazioni Network"
   },
   "Loading...": {
     "string": ""
@@ -2031,64 +2031,64 @@
     "string": ""
   },
   "Basic Information": {
-    "string": ""
+    "string": "Informazioni di base"
   },
   "Network Name *": {
-    "string": ""
+    "string": "Nome del Network *"
   },
   "e.g., dbase.in.rs": {
-    "string": ""
+    "string": "Esempio: dbase.in.rs"
   },
   "Nickname *": {
-    "string": ""
+    "string": "Nickname *"
   },
   "Your IRC nickname": {
-    "string": ""
+    "string": "È il tuo nickname su IRC"
   },
   "Alternative Nickname": {
-    "string": ""
+    "string": "Nickname alternativo"
   },
   "Fallback if primary nick is taken": {
-    "string": ""
+    "string": "Nickname di riserva, nel caso in cui il nickname principale sia occupato"
   },
   "Real Name *": {
-    "string": ""
+    "string": "Nome reale *"
   },
   "Your real name or description": {
-    "string": ""
+    "string": "È il tuo nome reale o una breve descrizione"
   },
   "Ident / Username": {
-    "string": ""
+    "string": "Ident / Username"
   },
   "Username for ident (optional)": {
-    "string": ""
+    "string": "Username per l'ident (opzionale)"
   },
   "Auto-Join Channels": {
-    "string": ""
+    "string": "Canali in Auto-Join (ingresso automatico)"
   },
   "Channels (comma-separated)": {
-    "string": ""
+    "string": "Canali (separati da virgola)"
   },
   "#channel1, #channel2": {
-    "string": ""
+    "string": "#canale1, #canale2"
   },
   "SASL PLAIN (Optional)": {
     "string": ""
   },
   "SASL account name": {
-    "string": ""
+    "string": "Nome dell'account SASL"
   },
   "SASL password": {
     "string": ""
   },
   "Proxy (Optional, per network)": {
-    "string": ""
+    "string": "Proxy (Opzionale, per Network)"
   },
   "Enable proxy (Tor/SOCKS5/HTTP)": {
-    "string": ""
+    "string": "Abilita Proxy (Tor/SOCKS5/HTTP)"
   },
   "Type (socks5, http, tor)": {
-    "string": ""
+    "string": "Tipo (socks5, http, tor)"
   },
   "tor": {
     "string": ""
@@ -2100,7 +2100,7 @@
     "string": ""
   },
   "Port": {
-    "string": ""
+    "string": "Porta"
   },
   "9050 for Tor, 1080 for SOCKS5": {
     "string": ""
@@ -2109,16 +2109,16 @@
     "string": ""
   },
   "optional": {
-    "string": ""
+    "string": "opzionale"
   },
   "Password": {
     "string": ""
   },
   "SASL EXTERNAL (Client Certificate)": {
-    "string": ""
+    "string": "SASL EXTERNAL (Certificato del client)"
   },
   "Client Certificate (PEM)": {
-    "string": ""
+    "string": "Certificato client (PEM)"
   },
   "-----BEGIN CERTIFICATE-----...": {
     "string": ""
@@ -2136,10 +2136,10 @@
     "string": ""
   },
   "Delete Network": {
-    "string": ""
+    "string": "Elimina il Network"
   },
   "Are you sure you want to delete \"{networkName}\"?": {
-    "string": ""
+    "string": "Sei sicuro di voler eliminare \"{networkName}\"?"
   },
   "Networks": {
     "string": ""
@@ -2523,7 +2523,7 @@
     "string": "Nessuna chiave DM per {nick}"
   },
   "Verified": {
-    "string": "Verificato"
+    "string": "verificate"
   },
   "Verify DM Key": {
     "string": "Verifica la chiave DM"
@@ -2580,10 +2580,10 @@
     "string": ""
   },
   "Scan to import encryption key": {
-    "string": ""
+    "string": "Scansiona per importare la chiave di crittografia"
   },
   "Scan to verify out-of-band": {
-    "string": ""
+    "string": "Scansiona per verificare l'out-of-band"
   },
   "QR payload copied": {
     "string": ""
@@ -2592,25 +2592,25 @@
     "string": ""
   },
   "Camera unavailable": {
-    "string": ""
+    "string": "Camera non disponibile"
   },
   "Scan a fingerprint QR": {
-    "string": ""
+    "string": "Scansiona un codice QR con impronta digitale"
   },
   "{user} is typing...": {
-    "string": ""
+    "string": "{user} sta scrivendo..."
   },
   "{userA} and {userB} are typing...": {
-    "string": ""
+    "string": "{userA} e {userB} stanno scrivendo..."
   },
   "{userA}, {userB}, and {userC} are typing...": {
-    "string": ""
+    "string": "{userA}, {userB}, e {userC} stanno scrivendo..."
   },
   "{userA}, {userB}, and {count} others are typing...": {
-    "string": ""
+    "string": "{userA}, {userB}, e altri {count} stanno scrivendo..."
   },
   "Copied {nick}": {
-    "string": ""
+    "string": "Copieato {nick}"
   },
   "WHOIS requested for {nick}": {
     "string": ""
@@ -2799,13 +2799,13 @@
     "string": ""
   },
   "Note removed": {
-    "string": ""
+    "string": "Nota rimossa"
   },
   "Alias saved": {
     "string": ""
   },
   "Alias removed": {
-    "string": ""
+    "string": "Alias rimosso"
   },
   "Ignore {nick}?": {
     "string": ""
@@ -2889,7 +2889,7 @@
     "string": ""
   },
   "Context: ": {
-    "string": ""
+    "string": "Contesto:"
   },
   "No recent activity tracked": {
     "string": ""
@@ -2919,7 +2919,7 @@
     "string": ""
   },
   "Choose Your Network": {
-    "string": ""
+    "string": "Scegli il tuo network"
   },
   "All Set!": {
     "string": ""
@@ -3066,7 +3066,7 @@
     "string": ""
   },
   "Are you sure you want to delete the encryption key for {nick} on {network}?\n\nFingerprint: {fingerprint}\n\nThis cannot be undone.": {
-    "string": ""
+    "string": "Sei sicuro di voler eliminare la chiave di crittografia per {nick} su {network}?\n\nFingerprint: {fingerprint}\n\nL'operazione non può essere annullata."
   },
   "Key deleted successfully": {
     "string": ""
@@ -3081,19 +3081,19 @@
     "string": ""
   },
   "Move Key": {
-    "string": ""
+    "string": "Spota la chiave"
   },
   "This will move the key from {fromNetwork} to {toNetwork} and delete it from {fromNetwork}.\n\nContinue?": {
-    "string": ""
+    "string": "Questo sposterà le chiavi da {fromNetwork} a {toNetwork} e le eliminerà da {fromNetwork}.\n\nContinuo?"
   },
   "Move": {
-    "string": ""
+    "string": "Sposta"
   },
   "Key moved to {network}": {
-    "string": ""
+    "string": "Chiave spostata su {network}"
   },
   "Failed to move key": {
-    "string": ""
+    "string": "Impossibile spostare la chiave"
   },
   "Failed to update verification status": {
     "string": ""
@@ -3120,19 +3120,19 @@
     "string": ""
   },
   "No encryption keys found": {
-    "string": ""
+    "string": "Nessuna chiave di crittografia trovata"
   },
   "Exchange keys with users to enable encrypted messaging": {
-    "string": ""
+    "string": "Scambia le chiavi con gli utenti per abilitare la messaggistica crittografata"
   },
   "Authenticating...": {
     "string": ""
   },
   "Loading keys...": {
-    "string": ""
+    "string": "Caricamento chiavi in corso..."
   },
   "Search by nick or network...": {
-    "string": ""
+    "string": "Cerca per nick o network..."
   },
   "List View": {
     "string": ""
@@ -3144,25 +3144,25 @@
     "string": ""
   },
   "Export All Keys": {
-    "string": ""
+    "string": "Esporta tutte le chiavi"
   },
   "Import Keys": {
-    "string": ""
+    "string": "Importa le chiavi"
   },
   "Key Details": {
     "string": ""
   },
   "Network:": {
-    "string": ""
+    "string": "Network:"
   },
   "Nickname:": {
-    "string": ""
+    "string": "Nickname:"
   },
   "Fingerprint:": {
-    "string": ""
+    "string": "Fingerprint:"
   },
   "Status:": {
-    "string": ""
+    "string": "Status:"
   },
   "First Seen:": {
     "string": ""
@@ -3171,40 +3171,40 @@
     "string": ""
   },
   "Mark as Unverified": {
-    "string": ""
+    "string": "Segna come non  verificato"
   },
   "Mark as Verified": {
-    "string": ""
+    "string": "Segna come verificato"
   },
   "Copy to Network...": {
-    "string": ""
+    "string": "Copia nel Network..."
   },
   "Move to Network...": {
-    "string": ""
+    "string": "Sposta nel Network..."
   },
   "Delete Key": {
-    "string": ""
+    "string": "Elimina chiave"
   },
   "Copy Key to Network": {
-    "string": ""
+    "string": "Copia chiave nel Network"
   },
   "Copy key for {nick} to another network": {
-    "string": ""
+    "string": "Copia la chiave per {nick} su un'altra rete"
   },
   "Move Key to Network": {
-    "string": ""
+    "string": "Sposta la chiave nel Network"
   },
   "Move key for {nick} to another network (will delete from {network})": {
-    "string": ""
+    "string": "Sposta la chiave per {nick} su un'altra rete (verrà eliminata da {network})"
   },
   "Create an encrypted backup of all {count} encryption key{suffix}.\nEnter a strong password to protect the backup.": {
     "string": ""
   },
   "Backup password (min 6 characters)": {
-    "string": ""
+    "string": "Backup della password (minimo 6 caratteri)"
   },
   "Export": {
-    "string": ""
+    "string": "Esporta"
   },
   "Paste the encrypted backup data and enter the password used during export.": {
     "string": ""
@@ -3216,19 +3216,19 @@
     "string": ""
   },
   "Import": {
-    "string": ""
+    "string": "Importa"
   },
   "Failed to show ad": {
     "string": ""
   },
   "Unknown": {
-    "string": ""
+    "string": "Sconosciuto"
   },
   "{channel} ({count} new message{suffix})": {
-    "string": ""
+    "string": "{channel} ({count} nuovo messaggio {suffix})"
   },
   "Quick aliases: /zncver, /zncm, /zncplay #chan, /zncclear #chan": {
-    "string": ""
+    "string": "Aliases rapidi: /zncver, /zncm, /zncplay #chan, /zncclear #chan"
   },
   "*** Detected bouncer type: {type}{hint}": {
     "string": ""
@@ -3744,7 +3744,7 @@
     "string": ""
   },
   "*** Trying alternative nickname: {nick}": {
-    "string": ""
+    "string": "*** Sto provando col nickname alternativo: {nick}"
   },
   "*** Trying fallback nickname: {nick}": {
     "string": ""
@@ -3867,10 +3867,10 @@
     "string": ""
   },
   "*** SASL authentication successful": {
-    "string": ""
+    "string": "*** SASL Autenticazione riuscita"
   },
   "SASL authentication failed": {
-    "string": ""
+    "string": "SASL Autenticazione fallita"
   },
   "You are now logged in as {account}": {
     "string": ""
@@ -3885,7 +3885,7 @@
     "string": ""
   },
   "SASL authentication aborted": {
-    "string": ""
+    "string": "SASL Autenticazione annullata"
   },
   "You have already authenticated": {
     "string": ""
@@ -4110,10 +4110,10 @@
     "string": ""
   },
   "Tips: keys must be exchanged first; use /requestkey if not paired.": {
-    "string": ""
+    "string": "Suggerimento: le chiavi devono essere scambiate prima; utilizza /requestkey se non sono abbinate."
   },
   "Usage: /chankey <generate|share|request|remove|send|help> [args]": {
-    "string": ""
+    "string": "Utilizzo: /chankey <<generate|share|request|remove|send|help> [args]"
   },
   "Channel encryption:": {
     "string": ""
@@ -4131,7 +4131,7 @@
     "string": ""
   },
   "/chankey remove           Delete stored key for channel": {
-    "string": ""
+    "string": "/chankey remove           Elimina la chiave memorizzata per il canale"
   },
   "*** Channel key can only be generated in a channel": {
     "string": ""
@@ -4179,13 +4179,13 @@
     "string": ""
   },
   "*** Channel key can only be removed from a channel": {
-    "string": ""
+    "string": "*** La chiave del canale può essere rimossa solo da un canale"
   },
   "*** Channel encryption key removed for {channel}": {
-    "string": ""
+    "string": "*** Chiave di crittografia del canale rimossa per {channel}"
   },
   "*** Failed to remove channel key: {message}": {
-    "string": ""
+    "string": "*** Impossibile rimuovere la chiave del canale: {message}"
   },
   "*** {arrow} {line}": {
     "string": ""
@@ -4539,34 +4539,34 @@
     "string": ""
   },
   "Common Name (CN) is required": {
-    "string": ""
+    "string": "Common Name (CN) è richisto"
   },
   "Validity period must be between 1 and 10 years": {
     "string": ""
   },
   "Failed to generate certificate": {
-    "string": ""
+    "string": "Impossibile generare il certificato"
   },
   "Certificate Generated": {
-    "string": ""
+    "string": "Certificato generato"
   },
   "Generate Certificate": {
-    "string": ""
+    "string": "Genera il certificato"
   },
   "Generate a new RSA-2048 self-signed certificate for IRC SASL EXTERNAL authentication.": {
-    "string": ""
+    "string": "Genera un nuovo certificato RSA-2048 autofirmato (self-signed) per l'autenticazione IRC SASL EXTERNAL."
   },
   "Certificate Name": {
-    "string": ""
+    "string": "Nome del certificato"
   },
   "e.g., My IRC Certificate": {
-    "string": ""
+    "string": "esempio: Mio Certificato IRC"
   },
   "A friendly name for this certificate": {
-    "string": ""
+    "string": "Un nome amichevole per questo certificato"
   },
   "Common Name (CN)": {
-    "string": ""
+    "string": "Common Name (CN)"
   },
   "e.g., nick@irc.network": {
     "string": ""
@@ -4575,28 +4575,28 @@
     "string": ""
   },
   "Validity Period (years)": {
-    "string": ""
+    "string": "Periodo di validità (anni)"
   },
   "Certificate validity: 1-10 years": {
-    "string": ""
+    "string": "Validità del certificato: 1-10 anni"
   },
   "Generating...": {
     "string": ""
   },
   "What is this?": {
-    "string": ""
+    "string": "Cos'è questo?"
   },
   "Client certificates allow you to authenticate to IRC servers using TLS certificates instead of passwords. This is more secure and supported by many modern IRC networks.": {
-    "string": ""
+    "string": "I certificati client consentono di autenticarsi sui server IRC utilizzando certificati TLS anziché le password. Questo metodo è più sicuro ed è supportato da molte reti IRC moderne."
   },
   "Certificate Generated Successfully!": {
-    "string": ""
+    "string": "Certificato generato con successo!"
   },
   "Name:": {
     "string": ""
   },
   "Common Name:": {
-    "string": ""
+    "string": "Common Name:"
   },
   "Valid From:": {
     "string": ""
@@ -4632,7 +4632,7 @@
     "string": ""
   },
   "This certificate has expired. Please generate a new one.": {
-    "string": ""
+    "string": "Questo certificato è scaduto. Generane uno nuovo."
   },
   "Certificate not found": {
     "string": ""
@@ -4644,7 +4644,7 @@
     "string": ""
   },
   "Are you sure you want to delete this certificate? This action cannot be undone. You will need to generate a new certificate and re-add it to IRC services.": {
-    "string": ""
+    "string": "Sei sicuro di voler eliminare questo certificato? Questa azione non può essere annullata. Dovrai generare un nuovo certificato e aggiungerlo nuovamente ai servizi IRC."
   },
   "Certificate deleted": {
     "string": ""
@@ -4668,10 +4668,10 @@
     "string": ""
   },
   "You haven't generated any certificates yet. Generate one to get started.": {
-    "string": ""
+    "string": "Non hai ancora generato alcun certificato. Generane uno per iniziare."
   },
   "Generate New Certificate": {
-    "string": ""
+    "string": "Genera Nuovo Certificato"
   },
   "Select Certificate": {
     "string": ""
@@ -4911,10 +4911,10 @@
     "string": ""
   },
   "Show Encryption Indicator": {
-    "string": ""
+    "string": "Mostra l'indicatore di crittografia"
   },
   "Display 🔒 icon on media thumbnails to indicate encryption": {
-    "string": ""
+    "string": "Visualizza l'icona 🔒 sulle miniature dei contenuti multimediali per indicare la crittografia."
   },
   "Auto-Download Media": {
     "string": ""
@@ -5010,7 +5010,7 @@
     "string": "Guarda l'annuncio (+60 minuti di Scripting e nessun annuncio)"
   },
   "Quick Connect Network": {
-    "string": "Connessione Network rapida"
+    "string": "Connessione rapida al network"
   },
   "Current: {network}": {
     "string": ""
@@ -5061,13 +5061,13 @@
     "string": ""
   },
   "Select Quick Connect Network": {
-    "string": "Seleziona Connessione Network rapida"
+    "string": "Setta connessione rapida al network"
   },
   "Choose which network to connect when tapping the header \"Tap to connect\" button.": {
-    "string": ""
+    "string": "Seleziona il network a cui connetterti toccando il pulsante \"Tocca per connetterti\" nell'intestazione."
   },
   "Use Default": {
-    "string": ""
+    "string": "Usa le impostazioni predefinite"
   },
   "Choose Color": {
     "string": ""
@@ -5223,10 +5223,10 @@
     "string": ""
   },
   "Are you sure you want to delete \"{networkName}\"? This cannot be undone.": {
-    "string": ""
+    "string": "Sei sicuro di voler eliminare \"{networkName}\"? L'operazione non può essere annullata."
   },
   "Failed to delete network": {
-    "string": ""
+    "string": "Impossibile eliminare il network"
   },
   "Cannot Delete Server": {
     "string": ""
@@ -5496,7 +5496,7 @@
     "string": ""
   },
   "#channel1, #channel2, #channel3": {
-    "string": ""
+    "string": "#canale1, #canale2, #canale3"
   },
   "Enter channel names separated by commas. Channels should start with # or &": {
     "string": ""
@@ -5511,7 +5511,7 @@
     "string": ""
   },
   "You can always change these channels later in network settings.": {
-    "string": ""
+    "string": "Puoi sempre modificare questi canali in seguito, nelle impostazioni del network."
   },
   "Search by mask or reason...": {
     "string": ""
@@ -5529,7 +5529,7 @@
     "string": ""
   },
   "Certificate generated and applied! Don't forget to add the fingerprint to NickServ.": {
-    "string": ""
+    "string": "Certificato generato e applicato! Non dimenticare di aggiungere una fingerprint (impronta digitale) a NickServ."
   },
   "Certificate applied to network configuration": {
     "string": ""
@@ -5538,16 +5538,16 @@
     "string": ""
   },
   "Generate New": {
-    "string": ""
+    "string": "Genera Nuovo"
   },
   "Select Existing": {
-    "string": ""
+    "string": "Seleziona esistente"
   },
   "View Fingerprint": {
-    "string": ""
+    "string": "Visualizza impronta digitale (Fingerprint)"
   },
   "or enter manually": {
-    "string": ""
+    "string": "oppure inseriscili manualmente"
   },
   "Privacy Settings Updated": {
     "string": ""
@@ -5868,7 +5868,7 @@
     "string": ""
   },
   "DBase is not connected. Open Networks and connect to DBase to use ZNC.": {
-    "string": "DBase is not connected. Open Networks and connect to DBase to use ZNC.\nDBase non è connesso. Apri Networks e connettiti a DBase per usare la ZNC."
+    "string": "DBase non è connesso. Apri Networks e connettiti a DBase per usare la ZNC."
   },
   "Reconnecting to ZNC...": {
     "string": ""
@@ -6174,19 +6174,19 @@
     "string": ""
   },
   "Remove from Network": {
-    "string": ""
+    "string": "Rimuovi dal Network"
   },
   "Remove ZNC server from {network}? This will not cancel your subscription.": {
     "string": "Rimuovere il server ZNC da {network}? Questa operazione non annullerà l'abbonamento."
   },
   "Removed": {
-    "string": ""
+    "string": "Rimosso"
   },
   "ZNC server removed from network.": {
-    "string": ""
+    "string": "Server ZNC rimosso dal network."
   },
   "Failed to remove from network.": {
-    "string": ""
+    "string": "Impossibile rimuovere dal del network."
   },
   "ZNC Credentials": {
     "string": ""
@@ -6201,7 +6201,7 @@
     "string": ""
   },
   "Account removed from local storage.": {
-    "string": ""
+    "string": "Account rimosso dalla memoria locale."
   },
   "Failed to delete account.": {
     "string": ""
@@ -6960,7 +6960,7 @@
     "string": ""
   },
   "*** Server removed: {server}": {
-    "string": ""
+    "string": "*** Server rimosso: {server}"
   },
   "*** Server connection details updated": {
     "string": ""
@@ -7407,10 +7407,10 @@
     "string": ""
   },
   "Move Left": {
-    "string": ""
+    "string": "Sposta a sinistra"
   },
   "Move Right": {
-    "string": ""
+    "string": "Sposta a destra"
   },
   "Apply": {
     "string": ""
@@ -7749,7 +7749,7 @@
     "string": ""
   },
   "Tap to remove": {
-    "string": ""
+    "string": "Tocca per rimuovere"
   },
   "When open": {
     "string": ""
@@ -8310,7 +8310,7 @@
     "string": ""
   },
   "Choose Network": {
-    "string": ""
+    "string": "Scelta network"
   },
   "DCC Transfers": {
     "string": ""
@@ -8499,16 +8499,16 @@
     "string": ""
   },
   "DEOP (Remove Op)": {
-    "string": ""
+    "string": "DEOP (Rimuove il grado Op)"
   },
   "VOICE (Give Voice)": {
     "string": ""
   },
   "DEVOICE (Remove Voice)": {
-    "string": ""
+    "string": "DEVOICE (Rimuove il grado Voice)"
   },
   "KICK (Remove User)": {
-    "string": ""
+    "string": "KICK (Espelle l'utente)"
   },
   "Kick User": {
     "string": ""
@@ -8526,7 +8526,7 @@
     "string": ""
   },
   "UNBAN (Remove Ban)": {
-    "string": ""
+    "string": "UNBAN (Rimuove un Ban)"
   },
   "Unban User": {
     "string": ""
@@ -8574,13 +8574,13 @@
     "string": ""
   },
   "This will remove all saved messages for {channel}.": {
-    "string": ""
+    "string": "Questo rimuoverà tutti i messaggi salvati per {channel}."
   },
   "Delete message": {
     "string": ""
   },
   "This will remove the selected message from history.": {
-    "string": ""
+    "string": "Questo rimuoverà il messaggio selezionato dalla cronologia."
   },
   "History Viewer": {
     "string": ""
@@ -8940,7 +8940,7 @@
     "string": ""
   },
   "removed from DCC allow list": {
-    "string": ""
+    "string": "rimosso dalla lista di autorizzazione DCC"
   },
   "added to DCC allow list": {
     "string": ""
@@ -8955,7 +8955,7 @@
     "string": ""
   },
   "*** {nick} removed from notify list": {
-    "string": ""
+    "string": "*** {nick} rimosso dalla lista notifiche"
   },
   "*** Traceroute hop {hop}: {host} ({time}ms)": {
     "string": ""
@@ -9168,7 +9168,7 @@
     "string": ""
   },
   "*** Access removed: {data}": {
-    "string": ""
+    "string": "*** Accesso rimosso: {data}"
   },
   "Access list:": {
     "string": ""
@@ -9231,16 +9231,16 @@
     "string": ""
   },
   "SASL Mechanism": {
-    "string": ""
+    "string": "Meccanismo SASL"
   },
   "PLAIN": {
     "string": ""
   },
   "SCRAM-SHA-256": {
-    "string": ""
+    "string": "SCRAM-SHA-256"
   },
   "SCRAM-SHA-256-PLUS (coming soon)": {
-    "string": ""
+    "string": "SCRAM-SHA-256-PLUS (prossimamente)"
   },
   "help.channel.title": {
     "string": ""
@@ -9309,7 +9309,7 @@
     "string": ""
   },
   "help.channel.modes.removeOp": {
-    "string": ""
+    "string": "help.channel.modes.removeOp"
   },
   "help.channel.settings": {
     "string": ""
@@ -9591,10 +9591,10 @@
     "string": ""
   },
   "help.connection.quickStart": {
-    "string": ""
+    "string": "help.connection.quickStart"
   },
   "help.connection.quickStartDesc": {
-    "string": ""
+    "string": "help.connection.quickStartDesc"
   },
   "help.connection.step1": {
     "string": ""
@@ -9696,13 +9696,13 @@
     "string": ""
   },
   "help.connection.quickTips": {
-    "string": ""
+    "string": "help.connection.quickTips"
   },
   "help.connection.quickTip1": {
-    "string": ""
+    "string": "help.connection.quickTip1"
   },
   "help.connection.quickTip2": {
-    "string": ""
+    "string": "help.connection.quickTip2"
   },
   "help.connection.popularNetworks": {
     "string": ""
@@ -10650,10 +10650,10 @@
     "string": ""
   },
   "SASL Authentication (Optional)": {
-    "string": ""
+    "string": "Autenticazione SASL (Opzionale)"
   },
   "PLAIN - Simple username/password": {
-    "string": ""
+    "string": "PLAIN - Semplice username/password"
   },
   "SCRAM-SHA-256 - Secure challenge-response": {
     "string": ""
@@ -10818,7 +10818,7 @@
     "string": "Che cos'è un canale?"
   },
   "IRC channels are group chat rooms where multiple users can communicate.\\nChannel names start with # (e.g., #DBase).": {
-    "string": ""
+    "string": "I canali IRC sono chat di gruppo in cui più utenti possono comunicare. I nomi dei canali iniziano con # (ad esempio, #DBase)."
   },
   "Channel Types": {
     "string": ""
@@ -10869,7 +10869,7 @@
     "string": ""
   },
   "Remove Operator": {
-    "string": ""
+    "string": "Rimuovi Operatore"
   },
   "Moderated (+m)": {
     "string": ""
@@ -11082,7 +11082,7 @@
     "string": ""
   },
   "Remove a ban for a user mask in a channel": {
-    "string": ""
+    "string": "Rimuovere un ban per la maschera utente in un canale"
   },
   "Example: /unban *!*@spam.com": {
     "string": ""
@@ -11331,10 +11331,10 @@
     "string": ""
   },
   "Tap the [+] button in the Networks header to open Network Settings:": {
-    "string": ""
+    "string": "Tocca il pulsante [+] nella sezione Networks per aprire le impostazioni del network:"
   },
   "Network Name: Friendly name (e.g., \"DBase\")": {
-    "string": ""
+    "string": "Nome del Network: nome descrittivo (ad esempio, \"DBase\")"
   },
   "Nickname + Real Name: Required identity fields": {
     "string": ""
@@ -11355,7 +11355,7 @@
     "string": ""
   },
   "Hostname: e.g., irc.dbase.in.rs": {
-    "string": ""
+    "string": "Hostname: esempio: irc.dbase.in.rs"
   },
   "Port: 6697 (SSL) or 6667 (plain)": {
     "string": ""
@@ -11364,7 +11364,7 @@
     "string": ""
   },
   "Server Password / Favorite Server: Optional": {
-    "string": ""
+    "string": "Password del server / Server preferito: Opzionale"
   },
   "Tap [Save]": {
     "string": ""
@@ -11394,7 +11394,7 @@
     "string": ""
   },
   "Open the Networks list again (dropdown → \"Choose Network\")": {
-    "string": ""
+    "string": "Apri nuovamente l'elenco dei network (menu a tendina → \"Scegli network\")"
   },
   "Tap the network name to connect": {
     "string": ""
@@ -11403,7 +11403,7 @@
     "string": ""
   },
   "Quick Connect Tips": {
-    "string": ""
+    "string": "Suggerimenti di connessione rapida"
   },
   "When disconnected, tap the network name in the header to connect": {
     "string": ""
@@ -11760,7 +11760,7 @@
     "string": ""
   },
   "GPS location is removed": {
-    "string": ""
+    "string": "La posizione GPS è stata rimossa"
   },
   "Can't see attachment button": {
     "string": ""
@@ -11853,7 +11853,7 @@
     "string": ""
   },
   "Try disabling \"Verify SSL Certificate\" in network settings": {
-    "string": ""
+    "string": "Prova a disabilitare l'opzione \"Verifica certificato SSL\" nelle impostazioni del network."
   },
   "Update to latest app version": {
     "string": ""
@@ -11898,10 +11898,10 @@
     "string": ""
   },
   "SASL Authentication Failed": {
-    "string": ""
+    "string": "SASL Autenticazione non riuscita"
   },
   "Symptoms: \"SASL authentication failed\"": {
-    "string": ""
+    "string": "Sintomi: \"Autenticazione SASL non riuscita\""
   },
   "Verify SASL username and password": {
     "string": ""
@@ -11952,7 +11952,7 @@
     "string": ""
   },
   "Adjust Keyboard Vertical Offset (e.g., 16-48)": {
-    "string": ""
+    "string": "Regola l'offset verticale della tastiera (ad esempio, 16-48)"
   },
   "Android: toggle \"Android Bottom Safe Area\" for fullscreen vs. inset": {
     "string": ""
@@ -12267,7 +12267,7 @@
     "string": ""
   },
   "Open Networks list to choose and manage networks": {
-    "string": "Apri Lista Networks per scegliere e gestire i networks"
+    "string": "Apri la lista networks per scegliere e gestire i networks"
   },
   "Invert scroll & swipe direction": {
     "string": ""
@@ -12417,7 +12417,7 @@
     "string": ""
   },
   "Channel names start with # (e.g., #DBase).": {
-    "string": ""
+    "string": "I nomi dei canali iniziano con # (esempio: #DBase)."
   },
   "Visit our website: androidircx.com": {
     "string": ""
@@ -12486,13 +12486,13 @@
     "string": ""
   },
   "Remove Entry": {
-    "string": ""
+    "string": "Rimuovere la voce"
   },
   "Entry removed": {
-    "string": ""
+    "string": "Voce rimossa"
   },
   "Failed to remove entry": {
-    "string": ""
+    "string": "Impossibile rimuovere la voce"
   },
   "Channels: {channels}": {
     "string": ""
@@ -12561,7 +12561,7 @@
     "string": ""
   },
   "*** Removed {nick} from {list} list": {
-    "string": ""
+    "string": "*** Rimosso {nick} dalla lista {list}"
   },
   "Usage: /notify <nick>": {
     "string": ""
@@ -12861,7 +12861,7 @@
     "string": "Attendi... Non chiudere l'applicazione mentre l'operazione è in corso."
   },
   "Saving...": {
-    "string": "Salvataggio in corso..."
+    "string": "Salvando..."
   },
   "Unavailable": {
     "string": "Non disponibile"

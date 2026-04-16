@@ -378,44 +378,71 @@ class DataBackupService {
    * Returns a base64-encoded encrypted payload with salt and nonce.
    */
   async encryptBackup(json: string, password: string): Promise<string> {
-    const sodium = await getSodium();
+    if (!json || !json.trim()) {
+      throw new Error(t('Backup payload is empty'));
+    }
+    if (!password || !password.trim()) {
+      throw new Error(t('Encryption password is required'));
+    }
 
-    // Generate a random salt for key derivation
-    const salt = sodium.randombytes_buf(sodium.crypto_pwhash_SALTBYTES);
+    try {
+      const sodium = await getSodium();
 
-    // Derive a key from the password
-    const key = sodium.crypto_pwhash(
-      sodium.crypto_secretbox_KEYBYTES,
-      password,
-      salt,
-      sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
-      sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-      sodium.crypto_pwhash_ALG_DEFAULT,
-    );
+      // Generate a random salt for key derivation
+      const salt = sodium.randombytes_buf(sodium.crypto_pwhash_SALTBYTES);
 
-    // Generate a random nonce
-    const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
+      // Derive a key from the password
+      const key = sodium.crypto_pwhash(
+        sodium.crypto_secretbox_KEYBYTES,
+        password,
+        salt,
+        sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
+        sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
+        sodium.crypto_pwhash_ALG_DEFAULT,
+      );
 
-    // Encrypt the data (avoid TextEncoder to keep RN compatibility)
-    const plaintext = sodium.from_string(json);
-    const ciphertext = sodium.crypto_secretbox_easy(plaintext, nonce, key);
+      // Generate a random nonce
+      const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
 
-    // Combine salt + nonce + ciphertext and encode as base64
-    const combined = new Uint8Array(
-      salt.length + nonce.length + ciphertext.length,
-    );
-    combined.set(salt, 0);
-    combined.set(nonce, salt.length);
-    combined.set(ciphertext, salt.length + nonce.length);
+      // Encrypt the data (avoid TextEncoder to keep RN compatibility)
+      const plaintext = sodium.from_string(json);
+      const ciphertext = sodium.crypto_secretbox_easy(plaintext, nonce, key);
 
-    // Create encrypted payload
-    const encryptedPayload = {
-      version: 1,
-      encrypted: true,
-      data: sodium.to_base64(combined),
-    };
+      // Combine salt + nonce + ciphertext and encode as base64
+      const combined = new Uint8Array(
+        salt.length + nonce.length + ciphertext.length,
+      );
+      combined.set(salt, 0);
+      combined.set(nonce, salt.length);
+      combined.set(ciphertext, salt.length + nonce.length);
 
-    return JSON.stringify(encryptedPayload);
+      const base64Variant = sodium.base64_variants?.ORIGINAL;
+      const encodedData =
+        base64Variant !== undefined
+          ? sodium.to_base64(combined, base64Variant)
+          : sodium.to_base64(combined);
+
+      if (typeof encodedData !== 'string' || !encodedData.trim()) {
+        throw new Error(t('Failed to encode encrypted backup'));
+      }
+
+      // Create encrypted payload
+      const encryptedPayload = {
+        version: 1,
+        encrypted: true,
+        data: encodedData,
+      };
+
+      return JSON.stringify(encryptedPayload);
+    } catch (error) {
+      if (error instanceof Error && error.message && error.message !== 'undefined') {
+        throw error;
+      }
+      if (typeof error === 'string' && error.trim()) {
+        throw new Error(error);
+      }
+      throw new Error(t('Failed to encrypt backup'));
+    }
   }
 
   /**
@@ -426,45 +453,89 @@ class DataBackupService {
     encryptedJson: string,
     password: string,
   ): Promise<string> {
-    const sodium = await getSodium();
-
-    const parsed = JSON.parse(encryptedJson);
-    if (!parsed.encrypted || !parsed.data) {
-      throw new Error(t('Not an encrypted backup'));
+    if (!encryptedJson || !encryptedJson.trim()) {
+      throw new Error(t('Backup payload is empty'));
+    }
+    if (!password || !password.trim()) {
+      throw new Error(t('Decryption password is required'));
     }
 
-    // Decode the combined data
-    const combined = sodium.from_base64(parsed.data);
+    try {
+      const sodium = await getSodium();
 
-    // Extract salt, nonce, and ciphertext
-    const salt = combined.slice(0, sodium.crypto_pwhash_SALTBYTES);
-    const nonce = combined.slice(
-      sodium.crypto_pwhash_SALTBYTES,
-      sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES,
-    );
-    const ciphertext = combined.slice(
-      sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES,
-    );
+      const parsed = JSON.parse(encryptedJson);
+      if (
+        !parsed ||
+        parsed.encrypted !== true ||
+        typeof parsed.data !== 'string' ||
+        !parsed.data.trim()
+      ) {
+        throw new Error(t('Not an encrypted backup'));
+      }
 
-    // Derive the key from password
-    const key = sodium.crypto_pwhash(
-      sodium.crypto_secretbox_KEYBYTES,
-      password,
-      salt,
-      sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
-      sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-      sodium.crypto_pwhash_ALG_DEFAULT,
-    );
+      const base64Variant = sodium.base64_variants?.ORIGINAL;
+      const combined =
+        base64Variant !== undefined
+          ? sodium.from_base64(parsed.data, base64Variant)
+          : sodium.from_base64(parsed.data);
 
-    // Decrypt
-    const plaintext = sodium.crypto_secretbox_open_easy(ciphertext, nonce, key);
-    if (!plaintext) {
-      throw new Error(
-        t('Decryption failed - wrong password or corrupted data'),
+      if (!combined || typeof combined.length !== 'number') {
+        throw new Error(t('Invalid encrypted backup payload'));
+      }
+
+      const minLength =
+        sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES + 1;
+      if (combined.length < minLength) {
+        throw new Error(t('Invalid encrypted backup payload'));
+      }
+
+      // Extract salt, nonce, and ciphertext
+      const salt = combined.slice(0, sodium.crypto_pwhash_SALTBYTES);
+      const nonce = combined.slice(
+        sodium.crypto_pwhash_SALTBYTES,
+        sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES,
       );
-    }
+      const ciphertext = combined.slice(
+        sodium.crypto_pwhash_SALTBYTES + sodium.crypto_secretbox_NONCEBYTES,
+      );
 
-    return sodium.to_string(plaintext);
+      // Derive the key from password
+      const key = sodium.crypto_pwhash(
+        sodium.crypto_secretbox_KEYBYTES,
+        password,
+        salt,
+        sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
+        sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
+        sodium.crypto_pwhash_ALG_DEFAULT,
+      );
+
+      // Decrypt
+      const plaintext = sodium.crypto_secretbox_open_easy(
+        ciphertext,
+        nonce,
+        key,
+      );
+      if (!plaintext || plaintext.length === 0) {
+        throw new Error(
+          t('Decryption failed - wrong password or corrupted data'),
+        );
+      }
+
+      const decryptedJson = sodium.to_string(plaintext);
+      if (typeof decryptedJson !== 'string' || !decryptedJson.trim()) {
+        throw new Error(t('Decryption failed - decrypted payload was empty'));
+      }
+
+      return decryptedJson;
+    } catch (error) {
+      if (error instanceof Error && error.message && error.message !== 'undefined') {
+        throw error;
+      }
+      if (typeof error === 'string' && error.trim()) {
+        throw new Error(error);
+      }
+      throw new Error(t('Failed to decrypt backup'));
+    }
   }
 
   /**

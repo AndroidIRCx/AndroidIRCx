@@ -82,7 +82,9 @@ const mockSodium = {
   crypto_secretbox_open_easy: jest.fn(() => new Uint8Array([1, 2, 3])),
   from_string: jest.fn((_s: string) => new TextEncoder().encode(_s)),
   to_string: jest.fn((a: Uint8Array) => new TextDecoder().decode(a)),
-  from_base64: jest.fn((_s: string) => new Uint8Array([1, 2, 3])),
+  from_base64: jest.fn((_s: string) =>
+    new Uint8Array(16 + 24 + 3).fill(1),
+  ),
   to_base64: jest.fn(() => 'base64encoded'),
   crypto_pwhash_OPSLIMIT_INTERACTIVE: 2,
   crypto_pwhash_MEMLIMIT_INTERACTIVE: 65536,

@@ -1,0 +1,4 @@
+What's new in 1.9.7:
+- Updated dependencies
+- Improved Italian translations
+- Fixed a backup crash caused by out-of-memory errors
