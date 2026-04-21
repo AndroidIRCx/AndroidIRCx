@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+staged_files="$(git diff --cached --name-only --diff-filter=ACMR)"
+if [[ -z "${staged_files}" ]]; then
+  exit 0
+fi
+
+is_allowed_env_file() {
+  local file="$1"
+  case "$file" in
+    *.env.example|*.env.sample|*.env.template|*.env.test|*.env.testing)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+declare -a violations=()
+
+while IFS= read -r file; do
+  [[ -z "$file" ]] && continue
+  lower_file="$(printf '%s' "$file" | tr '[:upper:]' '[:lower:]')"
+
+  if [[ "$lower_file" =~ (^|/)(secrets?)(/|$) ]]; then
+    violations+=("$file: path contains secrets/ directory")
+    continue
+  fi
+
+  if [[ "$lower_file" =~ (^|/)\.env($|[.]) ]] && ! is_allowed_env_file "$lower_file"; then
+    violations+=("$file: .env files are blocked")
+    continue
+  fi
+
+  if [[ "$lower_file" =~ (service[-_]?account.*\.json$|google-services.*\.json$|firebase[-_]?.*\.json$) ]]; then
+    violations+=("$file: service-account/google config JSON is blocked")
+    continue
+  fi
+
+  if [[ "$lower_file" =~ \.(pem|key|p12|pfx|jks|keystore)$ ]]; then
+    violations+=("$file: key/certificate material is blocked")
+    continue
+  fi
+
+  if [[ "$lower_file" =~ (^|/)(id_rsa|id_dsa|id_ecdsa|id_ed25519)(\.pub)?$ ]]; then
+    violations+=("$file: SSH private key filename is blocked")
+    continue
+  fi
+done <<< "$staged_files"
+
+secret_regex='-----BEGIN ([A-Z ]*PRIVATE KEY|OPENSSH PRIVATE KEY|RSA PRIVATE KEY|EC PRIVATE KEY)-----|AIza[0-9A-Za-z_-]{35}|AKIA[0-9A-Z]{16}|ghp_[0-9A-Za-z]{36}|xox[baprs]-[0-9A-Za-z-]{10,}'
+
+while IFS= read -r file; do
+  [[ -z "$file" ]] && continue
+  if ! git cat-file -e ":$file" 2>/dev/null; then
+    continue
+  fi
+
+  added_lines="$(git diff --cached --unified=0 -- "$file" | LC_ALL=C grep -E '^\+[^+]' || true)"
+  if [[ -n "$added_lines" ]] && printf '%s\n' "$added_lines" | LC_ALL=C grep -En -- "$secret_regex" >/dev/null; then
+    violations+=("$file: added content matches secret pattern")
+  fi
+done <<< "$staged_files"
+
+if (( ${#violations[@]} > 0 )); then
+  echo "ERROR: commit blocked by secret guard."
+  echo "Remove or redact sensitive files/content, then commit again."
+  for violation in "${violations[@]}"; do
+    echo " - $violation"
+  done
+  exit 1
+fi
+
+exit 0
