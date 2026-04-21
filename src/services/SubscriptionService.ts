@@ -14,6 +14,11 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logger } from './Logger';
+import {
+  createPlayIntegrityRequestSecurity,
+  withPlayIntegrityBody,
+  withPlayIntegrityHeaders,
+} from './PlayIntegrityRequestSecurity';
 import { settingsService } from './SettingsService';
 import { secureStorageService } from './SecureStorageService';
 import {
@@ -31,7 +36,7 @@ import {
   isZncAccountActive,
 } from '../types/znc';
 
-const API_BASE_URL = 'https://androidircx.com/api';
+const API_BASE_URL = 'https://www.androidircx.com/api';
 const ZNC_PASSWORD_PREFIX = '@AndroidIRCX:zncPassword:';
 const ZNC_TOKEN_PREFIX = '@AndroidIRCX:zncPurchaseToken:';
 
@@ -926,18 +931,27 @@ class SubscriptionService {
     const url = `${API_BASE_URL}${endpoint}`;
     logger.info('znc', `Making API call to ${url}`);
 
+    const playIntegrity = await createPlayIntegrityRequestSecurity(
+      `subscription:${method}:${endpoint}`,
+    );
+
     const options: RequestInit = {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: withPlayIntegrityHeaders(
+        {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        playIntegrity,
+      ),
     };
 
     if (body) {
-      options.body = JSON.stringify(body);
+      const requestBody = withPlayIntegrityBody({ ...body }, playIntegrity);
+      options.body = JSON.stringify(requestBody);
       logger.debug(
         'znc',
-        `API call body keys: ${Object.keys(body).join(', ')}`,
+        `API call body keys: ${Object.keys(requestBody).join(', ')}`,
       );
     }
 

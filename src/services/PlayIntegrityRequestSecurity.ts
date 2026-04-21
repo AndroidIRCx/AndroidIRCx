@@ -45,13 +45,13 @@ function generateNonceBase64(): string {
     .toString('base64')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
-    .replace(/=+$/g, '');
+    .replace(/[=]+$/g, '');
 }
 
 export async function createPlayIntegrityRequestSecurity(
   tag: string,
 ): Promise<PlayIntegrityRequestSecurity | null> {
-  if (Platform.OS !== 'android') {
+  if (Platform?.OS !== 'android') {
     return null;
   }
 

@@ -4,6 +4,7 @@
  */
 
 import { NativeModules, Platform } from 'react-native';
+import { Buffer } from 'buffer';
 
 /**
  * Play Integrity API response structure
@@ -74,12 +75,13 @@ export interface PlayIntegrityToken {
  */
 class PlayIntegrityService {
   private isAvailable: boolean = false;
+  private hasWarnedMissingCrypto = false;
 
   /**
    * Check if Play Integrity API is available on this device
    */
   public async checkAvailability(): Promise<boolean> {
-    if (Platform.OS !== 'android') {
+    if (Platform?.OS !== 'android') {
       return false;
     }
 
@@ -104,7 +106,7 @@ class PlayIntegrityService {
   public async requestIntegrityToken(
     nonce?: string,
   ): Promise<PlayIntegrityToken> {
-    if (Platform.OS !== 'android') {
+    if (Platform?.OS !== 'android') {
       return {
         token: '',
         error: 'Play Integrity API is only available on Android',
@@ -166,10 +168,39 @@ class PlayIntegrityService {
   /**
    * Generate a random nonce for integrity token request
    */
+  private randomBytes(length: number): Uint8Array {
+    const bytes = new Uint8Array(length);
+    const cryptoApi = (globalThis as any)?.crypto;
+
+    if (cryptoApi?.getRandomValues) {
+      cryptoApi.getRandomValues(bytes);
+      return bytes;
+    }
+
+    if (!this.hasWarnedMissingCrypto) {
+      this.hasWarnedMissingCrypto = true;
+      console.warn(
+        'crypto.getRandomValues is unavailable; falling back to Math.random for Play Integrity nonce generation.',
+      );
+    }
+
+    for (let i = 0; i < bytes.length; i += 1) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+
+    return bytes;
+  }
+
+  /**
+   * Generate a random nonce for integrity token request
+   */
   private generateNonce(): string {
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    return btoa(String.fromCharCode(...array));
+    const array = this.randomBytes(16);
+    return Buffer.from(array)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/[=]+$/g, '');
   }
 
   /**

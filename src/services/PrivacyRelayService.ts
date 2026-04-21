@@ -6,6 +6,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logger } from './Logger';
 import {
+  createPlayIntegrityRequestSecurity,
+  withPlayIntegrityBody,
+  withPlayIntegrityHeaders,
+} from './PlayIntegrityRequestSecurity';
+import {
   DEFAULT_PRIVACY_RELAY_TURN_SERVER,
   PRIVACY_RELAY_PRODUCT_ID,
   PRIVACY_RELAY_STORAGE_KEY,
@@ -19,7 +24,7 @@ type PrivacyRelayListener = (
   subscription: PrivacyRelaySubscription | null,
 ) => void;
 
-const API_BASE_URL = 'https://androidircx.com/api';
+const API_BASE_URL = 'https://www.androidircx.com/api';
 const DEVICE_ID_STORAGE_KEY = '@AndroidIRCX:privacyRelayDeviceId';
 const API_TIMEOUT_MS = 15000;
 
@@ -51,6 +56,10 @@ class PrivacyRelayService {
     body: Record<string, unknown>,
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
+    const playIntegrity = await createPlayIntegrityRequestSecurity(
+      `privacy-relay:POST:${endpoint}`,
+    );
+    const requestBody = withPlayIntegrityBody({ ...body }, playIntegrity);
     console.log('[PrivacyRelay] API request start:', endpoint, body);
 
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -59,10 +68,14 @@ class PrivacyRelayService {
       const response = (await Promise.race([
         fetch(url, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
+          headers: withPlayIntegrityHeaders(
+            {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            playIntegrity,
+          ),
+          body: JSON.stringify(requestBody),
         }),
         new Promise<Response>((_, reject) => {
           timeoutId = setTimeout(() => {

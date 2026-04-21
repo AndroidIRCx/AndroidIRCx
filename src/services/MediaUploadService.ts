@@ -19,6 +19,11 @@
 import RNFS from 'react-native-fs';
 import { DeviceEventEmitter, NativeModules } from 'react-native';
 import { Buffer } from 'buffer';
+import {
+  createPlayIntegrityRequestSecurity,
+  withPlayIntegrityBody,
+  withPlayIntegrityHeaders,
+} from './PlayIntegrityRequestSecurity';
 
 // Native modules for reliable HTTP requests
 const { HttpPost, HttpPut } = NativeModules;
@@ -78,10 +83,18 @@ class MediaUploadService {
   ): Promise<UploadTokenResponse> {
     try {
       const url = `${API_BASE_URL}/media/request-upload`;
-      const requestBody = JSON.stringify({
-        type,
-        mime: mimeType,
-      });
+      const playIntegrity = await createPlayIntegrityRequestSecurity(
+        'media-upload:POST:/media/request-upload',
+      );
+      const requestBody = JSON.stringify(
+        withPlayIntegrityBody(
+          {
+            type,
+            mime: mimeType,
+          },
+          playIntegrity,
+        ),
+      );
 
       console.log('[MediaUploadService] Requesting upload token:', {
         url,
@@ -95,8 +108,13 @@ class MediaUploadService {
       }
 
       const responseBody = await HttpPost.postRequest(url, requestBody, {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
+        ...withPlayIntegrityHeaders(
+          {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          playIntegrity,
+        ),
       });
 
       console.log('[MediaUploadService] Raw response body:', responseBody);
@@ -199,13 +217,20 @@ class MediaUploadService {
         throw new Error('HttpPut native module is not available');
       }
 
+      const playIntegrity = await createPlayIntegrityRequestSecurity(
+        `media-upload:PUT:/media/upload/${mediaId}`,
+      );
+
       const responseBody = await HttpPut.putFile(
         uploadUrl,
         tempBinaryPath,
-        {
-          'Content-Type': 'application/octet-stream',
-          Accept: 'application/json',
-        },
+        withPlayIntegrityHeaders(
+          {
+            'Content-Type': 'application/octet-stream',
+            Accept: 'application/json',
+          },
+          playIntegrity,
+        ),
         mediaId,
       );
 

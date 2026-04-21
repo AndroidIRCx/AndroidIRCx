@@ -79,7 +79,7 @@ class PlayIntegrityModule(
     private fun generateNonce(): String {
         val bytes = ByteArray(16)
         ThreadLocalRandom.current().nextBytes(bytes)
-        return Base64.encodeToString(bytes, Base64.NO_WRAP)
+        return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
     }
 
     /**

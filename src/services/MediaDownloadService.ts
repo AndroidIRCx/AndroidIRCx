@@ -16,6 +16,10 @@
 import RNFS from 'react-native-fs';
 import { mediaEncryptionService } from './MediaEncryptionService';
 import { mediaCacheService } from './MediaCacheService';
+import {
+  createPlayIntegrityRequestSecurity,
+  withPlayIntegrityHeaders,
+} from './PlayIntegrityRequestSecurity';
 
 export interface DownloadProgress {
   bytesWritten: number;
@@ -145,9 +149,19 @@ class MediaDownloadService {
       // Step 1: Download encrypted media from API
       console.log('[MediaDownloadService] Downloading:', mediaId);
       const downloadUrl = `${API_BASE_URL}/media/download/${mediaId}`;
+      const playIntegrity = await createPlayIntegrityRequestSecurity(
+        `media-download:GET:/media/download/${mediaId}`,
+      );
+      const integrityHeaders = withPlayIntegrityHeaders({}, playIntegrity);
+      const requestInit =
+        Object.keys(integrityHeaders).length > 0
+          ? { method: 'GET', headers: integrityHeaders }
+          : undefined;
 
       // Use fetch to download binary file directly (avoids multipart issues)
-      const response = await fetch(downloadUrl);
+      const response = requestInit
+        ? await fetch(downloadUrl, requestInit)
+        : await fetch(downloadUrl);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Download failed`);

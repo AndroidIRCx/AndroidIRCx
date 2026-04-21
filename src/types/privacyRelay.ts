@@ -73,7 +73,7 @@ export const DEFAULT_PRIVACY_RELAY_TURN_SERVER: PrivacyRelayTurnServer = {
   tlsPort: 5349,
   realm: 'turn.dbase.in.rs',
   usernameAuthMode: 'ephemeral-api',
-  credentialEndpoint: 'https://androidircx.com/api/webrtc/turn-credentials',
+  credentialEndpoint: 'https://www.androidircx.com/api/webrtc/turn-credentials',
   stunUrls: ['stun:turn.dbase.in.rs:3478'],
   turnUrls: [
     'turn:turn.dbase.in.rs:3478?transport=udp',
