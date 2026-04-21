@@ -4,6 +4,7 @@
  */
 
 import { Platform } from 'react-native';
+import { Buffer } from 'buffer';
 import { logger } from './Logger';
 import { playIntegrityService } from './PlayIntegrityService';
 
@@ -13,10 +14,38 @@ export interface PlayIntegrityRequestSecurity {
   issuedAtEpochSeconds: number;
 }
 
+let warnedMissingCryptoApi = false;
+
+function randomBytes(length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  const cryptoApi = (globalThis as any)?.crypto;
+  if (cryptoApi?.getRandomValues) {
+    cryptoApi.getRandomValues(bytes);
+    return bytes;
+  }
+
+  if (!warnedMissingCryptoApi) {
+    warnedMissingCryptoApi = true;
+    logger.warn(
+      'play-integrity',
+      'crypto.getRandomValues is unavailable; falling back to Math.random for request hash generation.',
+    );
+  }
+
+  for (let i = 0; i < bytes.length; i += 1) {
+    bytes[i] = Math.floor(Math.random() * 256);
+  }
+
+  return bytes;
+}
+
 function generateNonceBase64(): string {
-  const bytes = new Uint8Array(18);
-  crypto.getRandomValues(bytes);
-  return btoa(String.fromCharCode(...bytes));
+  const bytes = randomBytes(18);
+  return Buffer.from(bytes)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
 }
 
 export async function createPlayIntegrityRequestSecurity(
@@ -28,9 +57,8 @@ export async function createPlayIntegrityRequestSecurity(
 
   const requestHash = generateNonceBase64();
   const issuedAtEpochSeconds = Math.floor(Date.now() / 1000);
-  const tokenResult = await playIntegrityService.requestIntegrityToken(
-    requestHash,
-  );
+  const tokenResult =
+    await playIntegrityService.requestIntegrityToken(requestHash);
 
   if (!tokenResult.token) {
     logger.warn(
@@ -80,4 +108,3 @@ export function withPlayIntegrityBody(
     },
   };
 }
-
