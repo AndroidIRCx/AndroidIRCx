@@ -11,6 +11,7 @@
  */
 
 import { ChannelTab } from '../types';
+import { compareStringsCaseInsensitive } from './localeSafe';
 
 /**
  * Generate unique ID for server tab
@@ -73,7 +74,7 @@ export const sortTabsGrouped = (
     if (server) result.push(server);
     const others = tabs.filter(t => t.networkId === net && t.type !== 'server');
     if (sortAlphabetical) {
-      others.sort((a, b) => a.name.localeCompare(b.name));
+      others.sort((a, b) => compareStringsCaseInsensitive(a.name, b.name));
     }
     others.forEach(t => result.push(t));
   });

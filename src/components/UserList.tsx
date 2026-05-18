@@ -62,6 +62,7 @@ import { useUIStore } from '../stores/uiStore';
 import { NickContextMenu } from './NickContextMenu';
 import { useDebounce } from '../hooks/useDebounce';
 import { webRtcCallService } from '../services/WebRTCCallService';
+import { compareStringsCaseInsensitive } from '../utils/localeSafe';
 
 // Note: This function cannot use useT() as it's exported outside the component
 // The translation will be handled where it's called
@@ -380,9 +381,7 @@ export const UserList: React.FC<UserListProps> = ({
 
     // Sort each group alphabetically
     Object.keys(groups).forEach(key => {
-      groups[key].sort((a, b) =>
-        a.nick.toLowerCase().localeCompare(b.nick.toLowerCase()),
-      );
+      groups[key].sort((a, b) => compareStringsCaseInsensitive(a.nick, b.nick));
     });
 
     return groups;
@@ -419,7 +418,7 @@ export const UserList: React.FC<UserListProps> = ({
       }
 
       // Then sort alphabetically by nick
-      return a.nick.toLowerCase().localeCompare(b.nick.toLowerCase());
+      return compareStringsCaseInsensitive(a.nick, b.nick);
     });
   }, [users, shouldSkipSort]);
 

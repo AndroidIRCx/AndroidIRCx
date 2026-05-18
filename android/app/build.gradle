@@ -244,8 +244,8 @@ android {
         applicationId = "com.androidircx"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
-        versionCode = 118
-        versionName = "1.9.15"
+        versionCode = 119
+        versionName = "1.9.16"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 
@@ -301,9 +301,11 @@ android {
         }
         pickFirst '**/libreactnative.so'
         pickFirst '**/libc++_shared.so'
-        pickFirst '**/libhermes.so'
+        pickFirst '**/libhermesvm.so'
+        pickFirst '**/libhermestooling.so'
         pickFirst '**/libjsc.so'
         pickFirst '**/libfbjni.so'
+        pickFirst '**/libjsi.so'
         pickFirst '**/libyoga.so'
         pickFirst '**/libfolly_runtime.so'
         pickFirst '**/libglog.so'

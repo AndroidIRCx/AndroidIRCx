@@ -32,6 +32,7 @@ import { IRC_FORMAT_CODES } from '../utils/IRCFormatter';
 import { repairMojibake } from '../utils/EncodingUtils';
 import { ColorPalettePicker } from './ColorPalettePicker';
 import { useServiceCommands } from '../hooks/useServiceCommands';
+import { compareStringsCaseInsensitive } from '../utils/localeSafe';
 
 type MessageInputSuggestion = {
   text: string;
@@ -703,7 +704,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         .filter(item => item.text.toLowerCase().startsWith(typedLower))
         .sort((a, b) => {
           if (b.score !== a.score) return b.score - a.score;
-          return a.text.localeCompare(b.text);
+          return compareStringsCaseInsensitive(a.text, b.text);
         })
         .slice(0, 6);
 
@@ -754,7 +755,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       const tokenLower = token.toLowerCase();
       nickMatches = Array.from(nickSet.values())
         .filter(nick => nick.toLowerCase().startsWith(tokenLower))
-        .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+        .sort(compareStringsCaseInsensitive)
         .slice(0, 6)
         .map(nick => ({ text: nick, source: 'nick' as const }));
     }
@@ -781,7 +782,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         const rawLower = rawToken.toLowerCase();
         channelMatches = Array.from(chanSet.values())
           .filter(ch => ch.toLowerCase().startsWith(rawLower))
-          .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+          .sort(compareStringsCaseInsensitive)
           .slice(0, 6)
           .map(ch => ({ text: ch, source: 'channel' as const }));
       }

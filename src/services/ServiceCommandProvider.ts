@@ -15,6 +15,7 @@ import {
 } from '../interfaces/ServiceTypes';
 import { serviceDetectionService } from './ServiceDetectionService';
 import { getConfig } from '../config/services';
+import { compareStringsCaseInsensitive } from '../utils/localeSafe';
 
 /** Command search result */
 export interface CommandSearchResult {
@@ -374,7 +375,9 @@ export class ServiceCommandProvider {
       }
     }
 
-    return aliases.sort((a, b) => a.alias.localeCompare(b.alias));
+    return aliases.sort((a, b) =>
+      compareStringsCaseInsensitive(a.alias, b.alias),
+    );
   }
 
   /**

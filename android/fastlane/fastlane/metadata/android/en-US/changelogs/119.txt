@@ -1,0 +1,5 @@
+What's new in 1.9.16:
+- Updated dependencies
+- Reduced Hermes memory pressure by replacing hot timestamp formatting and sorting paths that used Android ICU/Collator
+- Added safer timestamp rendering for message, script, and channel activity lists
+- Added a release artifact check for React Native/Hermes native libraries across supported ABIs

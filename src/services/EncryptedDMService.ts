@@ -8,6 +8,7 @@ import { x25519 } from '@noble/curves/ed25519.js';
 import { TextEncoder, TextDecoder } from 'text-encoding';
 import { secureStorageService } from './SecureStorageService';
 import { tx } from '../i18n/transifex';
+import { compareStringsCaseInsensitive } from '../utils/localeSafe';
 
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
@@ -1004,9 +1005,12 @@ class EncryptedDMService {
 
     // Sort by network, then nick
     return keys.sort((a, b) => {
-      const networkCompare = a.network.localeCompare(b.network);
+      const networkCompare = compareStringsCaseInsensitive(
+        a.network,
+        b.network,
+      );
       if (networkCompare !== 0) return networkCompare;
-      return a.nick.localeCompare(b.nick);
+      return compareStringsCaseInsensitive(a.nick, b.nick);
     });
   }
 

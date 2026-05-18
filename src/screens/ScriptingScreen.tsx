@@ -33,6 +33,7 @@ import { inAppPurchaseService } from '../services/InAppPurchaseService';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
 import Prism from 'prismjs';
+import { formatClockTime } from '../utils/localeSafe';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 
@@ -652,8 +653,7 @@ export const ScriptingScreen: React.FC<Props> = ({
             )}
             {filteredLogs.map(log => (
               <Text key={log.id} style={styles.logLine}>
-                [{new Date(log.ts).toLocaleTimeString()}]{' '}
-                {log.level.toUpperCase()}{' '}
+                [{formatClockTime(log.ts, '24h')}] {log.level.toUpperCase()}{' '}
                 {log.scriptId ? `[${log.scriptId}]` : ''} {log.message}
               </Text>
             ))}

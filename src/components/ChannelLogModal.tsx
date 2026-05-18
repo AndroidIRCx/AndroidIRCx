@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { Modal, TouchableOpacity, View, Text } from 'react-native';
+import { formatLocalDateTime } from '../utils/localeSafe';
 
 interface LogEntry {
   timestamp: number;
@@ -46,7 +47,7 @@ export const ChannelLogModal: React.FC<ChannelLogModalProps> = ({
             ) : (
               logEntries.map((entry, idx) => (
                 <Text key={`log-${idx}`} style={styles.optionText}>
-                  {new Date(entry.timestamp).toLocaleString()} - {entry.text}
+                  {formatLocalDateTime(entry.timestamp)} - {entry.text}
                 </Text>
               ))
             )}

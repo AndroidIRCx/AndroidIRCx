@@ -28,6 +28,10 @@ import { useT } from '../i18n/transifex';
 import { IRCMessage } from '../services/IRCService';
 import { messageHistoryService } from '../services/MessageHistoryService';
 import { formatIRCTextAsComponent } from '../utils/IRCFormatter';
+import {
+  compareStringsCaseInsensitive,
+  formatLocalDateTime,
+} from '../utils/localeSafe';
 
 interface MessageHistoryViewerScreenProps {
   visible: boolean;
@@ -110,9 +114,9 @@ export const MessageHistoryViewerScreen: React.FC<
       const list = await messageHistoryService.listStoredChannels();
       const sorted = [...list].sort((a, b) => {
         if (a.network !== b.network) {
-          return a.network.localeCompare(b.network);
+          return compareStringsCaseInsensitive(a.network, b.network);
         }
-        return a.channel.localeCompare(b.channel);
+        return compareStringsCaseInsensitive(a.channel, b.channel);
       });
       setEntries(sorted);
     } finally {
@@ -326,7 +330,7 @@ export const MessageHistoryViewerScreen: React.FC<
     <View style={styles.messageRow}>
       <View style={styles.messageInfo}>
         <Text style={styles.messageMeta}>
-          {new Date(item.timestamp).toLocaleString()}{' '}
+          {formatLocalDateTime(item.timestamp)}{' '}
           {item.from ? `· ${item.from}` : ''}
         </Text>
         {formatIRCTextAsComponent(item.text, styles.messageText)}

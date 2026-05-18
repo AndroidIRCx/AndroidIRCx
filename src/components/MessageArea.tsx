@@ -93,6 +93,7 @@ import { SoundEventType } from '../types/sound';
 import { useUIStore } from '../stores/uiStore';
 import KickBanModal from './KickBanModal';
 import { debugLogger } from '../services/DebugLogger';
+import { formatClockTime } from '../utils/localeSafe';
 
 interface MessageAreaProps {
   messages: IRCMessage[];
@@ -257,19 +258,7 @@ const MessageItem = React.memo<MessageItemProps>(
 
     const formatTimestamp = useCallback(
       (timestamp: number): string => {
-        const date = new Date(timestamp);
-        if (timestampFormat === '24h') {
-          return date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          });
-        } else {
-          return date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-        }
+        return formatClockTime(timestamp, timestampFormat);
       },
       [timestampFormat],
     );
@@ -2950,18 +2939,7 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     if (!selected.length) return;
 
     const formatTimestamp = (timestamp: number): string => {
-      const date = new Date(timestamp);
-      if (layoutState.timestampFormat === '24h') {
-        return date.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        });
-      }
-      return date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      return formatClockTime(timestamp, layoutState.timestampFormat);
     };
 
     const sorted = [...selected].sort((a, b) => a.timestamp - b.timestamp);

@@ -25,6 +25,7 @@ import {
 } from '../../services/SettingsService';
 import { useTheme } from '../../hooks/useTheme';
 import { useT } from '../../i18n/transifex';
+import { compareStringsCaseInsensitive } from '../../utils/localeSafe';
 
 interface NetworkPickerModalProps {
   visible: boolean;
@@ -58,7 +59,7 @@ export const NetworkPickerModal: React.FC<NetworkPickerModalProps> = ({
       const sorted = [...loadedNetworks].sort((a, b) => {
         if (a.name === recommendedNetworkId) return -1;
         if (b.name === recommendedNetworkId) return 1;
-        return a.name.localeCompare(b.name);
+        return compareStringsCaseInsensitive(a.name, b.name);
       });
       setNetworks(sorted);
     } catch (error) {
