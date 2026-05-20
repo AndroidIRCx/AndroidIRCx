@@ -189,6 +189,18 @@ jest.mock('react-native-share', () => ({
   },
 }));
 
+jest.mock('react-native-vision-camera', () => ({
+  useCameraDevice: jest.fn(() => null),
+  useCameraPermission: jest.fn(() => ({
+    hasPermission: false,
+    requestPermission: jest.fn(),
+  })),
+}));
+
+jest.mock('react-native-vision-camera-barcode-scanner', () => ({
+  CodeScanner: () => null,
+}));
+
 jest.mock('react-native-nfc-manager', () => ({
   __esModule: true,
   default: {

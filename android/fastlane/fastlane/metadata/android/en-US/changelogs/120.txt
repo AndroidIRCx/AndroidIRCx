@@ -1,0 +1,7 @@
+What's new in 1.9.17:
+- Updated dependencies, including the latest camera stack
+- Migrated QR code scanning to the new VisionCamera CodeScanner API
+- Updated photo capture and video recording to the latest VisionCamera output APIs
+- Stabilized Google Play Billing connection handling after the IAP update
+- Restored the required Google Play Billing permission for purchases and restore
+- Improved camera compatibility and security

@@ -16,7 +16,7 @@
  * - react-native-fs for file info
  */
 
-import { Camera } from 'react-native-vision-camera';
+import { getDefaultCameraDevice } from 'react-native-vision-camera';
 import RNFS from 'react-native-fs';
 import { Platform, PermissionsAndroid } from 'react-native';
 
@@ -745,9 +745,10 @@ class MediaPickerService {
           return true;
         }
 
-        // Request permission if not granted
-        const cameraPermission = await Camera.requestCameraPermission();
-        return cameraPermission === 'granted';
+        const cameraPermission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+        );
+        return cameraPermission === PermissionsAndroid.RESULTS.GRANTED;
       }
       return true; // iOS permissions handled in Info.plist
     } catch (error) {
@@ -771,9 +772,10 @@ class MediaPickerService {
           return true;
         }
 
-        // Request permission if not granted
-        const micPermission = await Camera.requestMicrophonePermission();
-        return micPermission === 'granted';
+        const micPermission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+        );
+        return micPermission === PermissionsAndroid.RESULTS.GRANTED;
       }
       return true; // iOS permissions handled in Info.plist
     } catch (error) {
@@ -787,8 +789,13 @@ class MediaPickerService {
    */
   async isCameraAvailable(): Promise<boolean> {
     try {
-      const devices = await Camera.getAvailableCameraDevices();
-      return devices.length > 0;
+      const backDevice = await getDefaultCameraDevice('back');
+      if (backDevice) {
+        return true;
+      }
+
+      const frontDevice = await getDefaultCameraDevice('front');
+      return !!frontDevice;
     } catch {
       return false;
     }

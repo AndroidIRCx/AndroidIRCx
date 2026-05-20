@@ -103,6 +103,7 @@ import { useSettingsSecurity } from '../hooks/useSettingsSecurity';
 import { useSettingsNotifications } from '../hooks/useSettingsNotifications';
 import { useSettingsConnection } from '../hooks/useSettingsConnection';
 import { useSettingsAppearance } from '../hooks/useSettingsAppearance';
+import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
 import { SETTINGS_ICONS } from '../config/settingsIcons';
 import { createStyles } from './SettingsScreen.styles';
 import { useUIStore } from '../stores/uiStore';
@@ -172,6 +173,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const t = useT();
   const { theme, colors } = useTheme();
   const styles = useMemo(() => createStyles(colors, theme), [colors, theme]);
+  const { ensureIapConnection, releaseIapConnection } = useIapConnectionLease();
   const tags = 'screen:settings,file:SettingsScreen.tsx,feature:settings';
   const zncSubscriptionIdConst = 'znc';
   const zncBasePlanId = 'znc-user';
@@ -695,7 +697,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   }, [zncBasePlanId, zncSubscriptionIdConst]);
 
   const initZncIap = useCallback(async () => {
-    await RNIap.initConnection();
+    await ensureIapConnection();
     if (Platform.OS === 'android') {
       const flushPending = (RNIap as any)
         .flushFailedPurchasesCachedAsPendingAndroid;
@@ -704,7 +706,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       }
     }
     await loadZncSubscriptionProduct();
-  }, [loadZncSubscriptionProduct]);
+  }, [ensureIapConnection, loadZncSubscriptionProduct]);
 
   const persistZncConfig = useCallback(
     async (
@@ -959,6 +961,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     t,
     zncSubscriptionIdConst,
   ]);
+
+  useEffect(() => {
+    if (!visible) {
+      releaseIapConnection();
+      return;
+    }
+
+    return () => {
+      releaseIapConnection();
+    };
+  }, [releaseIapConnection, visible]);
 
   // Supporter status now managed by useSettingsPremium hook - no local state needed
 

@@ -11,6 +11,7 @@ let mockMicPermission = true;
 let mockDevice: any = { id: 'back' };
 const mockRequestCameraPermission = jest.fn();
 const mockRequestMicPermission = jest.fn();
+const mockCreateRecorder = jest.fn();
 const mockStartRecording = jest.fn();
 const mockStopRecording = jest.fn();
 
@@ -23,14 +24,12 @@ jest.mock('react-native-fs', () => ({
 jest.mock('react-native-vision-camera', () => {
   const React = require('react');
   return {
-    Camera: React.forwardRef((props: any, ref: any) => {
-      React.useImperativeHandle(ref, () => ({
-        startRecording: (...args: unknown[]) => mockStartRecording(...args),
-        stopRecording: (...args: unknown[]) => mockStopRecording(...args),
-      }));
-      return React.createElement('Camera', props, props.children);
-    }),
+    Camera: (props: any) =>
+      React.createElement('Camera', props, props.children),
     useCameraDevice: () => mockDevice,
+    useVideoOutput: () => ({
+      createRecorder: (...args: unknown[]) => mockCreateRecorder(...args),
+    }),
     useCameraPermission: () => ({
       hasPermission: mockCameraPermission,
       requestPermission: mockRequestCameraPermission,
@@ -72,9 +71,16 @@ describe('VideoRecorderScreen', () => {
     mockReadFile.mockResolvedValue('base64video');
     mockWriteFile.mockResolvedValue(undefined);
     mockStopRecording.mockResolvedValue(undefined);
+    mockCreateRecorder.mockImplementation(async ({ filePath }: any) => ({
+      startRecording: (...args: unknown[]) => mockStartRecording(...args),
+      stopRecording: (...args: unknown[]) => mockStopRecording(...args),
+      filePath,
+    }));
 
-    mockStartRecording.mockImplementation(async (opts: any) => {
-      await opts.onRecordingFinished({ path: '/tmp/rec.mp4' });
+    mockStartRecording.mockImplementation(async (onFinished: any) => {
+      const [{ filePath }] =
+        mockCreateRecorder.mock.calls[mockCreateRecorder.mock.calls.length - 1];
+      await onFinished(filePath, 'stopped');
     });
   });
 
@@ -121,9 +127,12 @@ describe('VideoRecorderScreen', () => {
       fireEvent.press(recordButton);
     });
 
+    expect(mockCreateRecorder).toHaveBeenCalledWith({
+      filePath: expect.stringContaining('/cache/video_'),
+    });
     expect(mockStartRecording).toHaveBeenCalled();
-    expect(mockReadFile).toHaveBeenCalledWith('/tmp/rec.mp4', 'base64');
-    expect(mockWriteFile).toHaveBeenCalled();
+    expect(mockReadFile).not.toHaveBeenCalled();
+    expect(mockWriteFile).not.toHaveBeenCalled();
     expect(onVideoRecorded).toHaveBeenCalledWith(
       expect.stringContaining('/cache/video_'),
       expect.any(Number),

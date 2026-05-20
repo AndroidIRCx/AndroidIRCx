@@ -9,7 +9,7 @@ const mockWriteFile = jest.fn();
 let mockHasPermission = true;
 let mockDevice: any = { id: 'back' };
 const mockRequestPermission = jest.fn();
-const mockTakePhoto = jest.fn();
+const mockCapturePhotoToFile = jest.fn();
 
 jest.mock('react-native-fs', () => ({
   CachesDirectoryPath: '/cache',
@@ -20,13 +20,13 @@ jest.mock('react-native-fs', () => ({
 jest.mock('react-native-vision-camera', () => {
   const React = require('react');
   return {
-    Camera: React.forwardRef((props: any, ref: any) => {
-      React.useImperativeHandle(ref, () => ({
-        takePhoto: (...args: unknown[]) => mockTakePhoto(...args),
-      }));
-      return React.createElement('Camera', props, props.children);
-    }),
+    Camera: (props: any) =>
+      React.createElement('Camera', props, props.children),
     useCameraDevice: () => mockDevice,
+    usePhotoOutput: () => ({
+      capturePhotoToFile: (...args: unknown[]) =>
+        mockCapturePhotoToFile(...args),
+    }),
     useCameraPermission: () => ({
       hasPermission: mockHasPermission,
       requestPermission: mockRequestPermission,
@@ -58,7 +58,7 @@ describe('CameraScreen', () => {
     mockHasPermission = true;
     mockDevice = { id: 'back' };
     mockRequestPermission.mockResolvedValue(true);
-    mockTakePhoto.mockResolvedValue({ path: '/tmp/cam.jpg' });
+    mockCapturePhotoToFile.mockResolvedValue({ filePath: '/tmp/cam.jpg' });
     mockReadFile.mockResolvedValue('base64data');
     mockWriteFile.mockResolvedValue(undefined);
   });
@@ -106,7 +106,10 @@ describe('CameraScreen', () => {
       fireEvent.press(captureButton);
     });
 
-    expect(mockTakePhoto).toHaveBeenCalled();
+    expect(mockCapturePhotoToFile).toHaveBeenCalledWith(
+      { flashMode: 'off' },
+      {},
+    );
     expect(mockReadFile).toHaveBeenCalledWith('/tmp/cam.jpg', 'base64');
     expect(mockWriteFile).toHaveBeenCalled();
     expect(onPhotoTaken).toHaveBeenCalledWith(
@@ -131,7 +134,7 @@ describe('CameraScreen', () => {
   it('shows capture error when takePhoto throws', async () => {
     const onPhotoTaken = jest.fn();
     const onClose = jest.fn();
-    mockTakePhoto.mockRejectedValue(new Error('boom'));
+    mockCapturePhotoToFile.mockRejectedValue(new Error('boom'));
 
     const { UNSAFE_getAllByType, getByText } = render(
       <CameraScreen visible onClose={onClose} onPhotoTaken={onPhotoTaken} />,

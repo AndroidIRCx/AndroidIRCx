@@ -116,14 +116,16 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 }));
 
 jest.mock('react-native-vision-camera', () => ({
-  Camera: () => null,
   useCameraDevice: () => ({ id: 'cam-1' }),
   useCameraPermission: () => ({
     hasPermission: mockHasCameraPermission,
     requestPermission: (...args: unknown[]) =>
       mockRequestCameraPermission(...args),
   }),
-  useCodeScanner: () => ({}),
+}));
+
+jest.mock('react-native-vision-camera-barcode-scanner', () => ({
+  CodeScanner: () => null,
 }));
 
 jest.mock('react-native-qrcode-svg', () => 'QRCode');

@@ -50,6 +50,7 @@ import { secureStorageService } from '../services/SecureStorageService';
 import { NetworkPickerModal } from '../components/modals/NetworkPickerModal';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
+import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
 
 interface ZncSubscriptionScreenProps {
   visible: boolean;
@@ -98,6 +99,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
 
   // Restore state
   const [restoring, setRestoring] = useState(false);
+  const { ensureIapConnection, releaseIapConnection } = useIapConnectionLease();
 
   // Password lock state
   const [biometricLockEnabled, setBiometricLockEnabled] = useState(false);
@@ -179,11 +181,13 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   const cleanupIap = useCallback(() => {
     purchaseUpdateSubscription.current?.remove();
     purchaseErrorSubscription.current?.remove();
-    RNIap.endConnection();
+    purchaseUpdateSubscription.current = null;
+    purchaseErrorSubscription.current = null;
+    releaseIapConnection();
     if (isMountedRef.current) {
       setIapConnected(false);
     }
-  }, []);
+  }, [releaseIapConnection]);
 
   const handlePurchaseError = useCallback(
     (error: PurchaseError) => {
@@ -342,8 +346,8 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
   const initializeIap = useCallback(async () => {
     try {
       console.log('Initializing IAP connection...');
-      const connectionResult = await RNIap.initConnection();
-      console.log('IAP connection result:', connectionResult);
+      await ensureIapConnection();
+      console.log('IAP connection initialized');
       if (!isMountedRef.current) return;
       setIapConnected(true);
 
@@ -484,7 +488,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
         ),
       );
     }
-  }, [handlePurchaseError, handlePurchaseUpdate, t]);
+  }, [ensureIapConnection, handlePurchaseError, handlePurchaseUpdate, t]);
 
   // Initialize IAP and load accounts
   useEffect(() => {
@@ -830,6 +834,8 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     setShowUsernameInput(false);
 
     try {
+      await ensureIapConnection();
+
       // Prepare purchase request based on platform
       let request;
       if (Platform.OS === 'ios') {
@@ -879,6 +885,7 @@ export const ZncSubscriptionScreen: React.FC<ZncSubscriptionScreenProps> = ({
     setRestoring(true);
     try {
       console.log('ZNC Restore: Fetching purchases from store...');
+      await ensureIapConnection();
 
       // Query available purchases and restored purchases and merge unique transactions.
       let purchases: any[] = [];

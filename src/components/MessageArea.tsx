@@ -26,11 +26,13 @@ import {
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import {
-  Camera,
   useCameraDevice,
   useCameraPermission,
-  useCodeScanner,
 } from 'react-native-vision-camera';
+import {
+  Barcode,
+  CodeScanner,
+} from 'react-native-vision-camera-barcode-scanner';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
 import {
@@ -1578,18 +1580,6 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     requestPermission: requestCameraPermission,
   } = useCameraPermission();
   const scanHandledRef = useRef(false);
-  const codeScanner = useCodeScanner({
-    codeTypes: ['qr'],
-    onCodeScanned: codes => {
-      if (!showKeyScan || scanHandledRef.current) return;
-      const code = codes[0]?.value;
-      if (!code) return;
-      scanHandledRef.current = true;
-      setShowKeyScan(false);
-      setScanError('');
-      handleExternalPayload(code);
-    },
-  });
   const selectionBarPan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const selectionBarPanResponder = useRef(
     PanResponder.create({
@@ -2039,6 +2029,29 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
     },
     [activeIrc, contextNick, getNetworkForStorage, t],
   );
+
+  const handleBarcodeScanned = useCallback(
+    (barcodes: Barcode[]) => {
+      if (!showKeyScan || scanHandledRef.current) return;
+      const code = barcodes
+        .map(barcode => barcode.rawValue || barcode.displayValue)
+        .find(Boolean);
+      if (!code) return;
+      scanHandledRef.current = true;
+      setShowKeyScan(false);
+      setScanError('');
+      handleExternalPayload(code);
+    },
+    [handleExternalPayload, showKeyScan],
+  );
+
+  const handleBarcodeScannerError = useCallback(
+    (error: Error) => {
+      setScanError(error.message || t('Failed to scan QR'));
+    },
+    [t],
+  );
+
   const handleNickAction = useCallback(
     async (action: string, actionContext?: NickActionContext) => {
       if (!contextNick) return;
@@ -3552,11 +3565,12 @@ export const MessageArea: React.FC<MessageAreaProps> = ({
                 ) : null}
               </View>
               {device ? (
-                <Camera
+                <CodeScanner
                   style={styles.cameraFlex}
-                  device={device}
                   isActive={isMessageModalVisible('keyScan')}
-                  codeScanner={codeScanner}
+                  barcodeFormats={['qr-code']}
+                  onBarcodeScanned={handleBarcodeScanned}
+                  onError={handleBarcodeScannerError}
                 />
               ) : (
                 <View style={styles.scanFallback}>

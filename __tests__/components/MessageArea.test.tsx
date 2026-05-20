@@ -53,13 +53,14 @@ jest.mock('react-native-qrcode-svg', () => {
   return { __esModule: true, default: () => React.createElement(View) };
 });
 jest.mock('react-native-vision-camera', () => ({
-  Camera: () => null,
   useCameraDevice: jest.fn(() => null),
   useCameraPermission: jest.fn(() => ({
     hasPermission: false,
     requestPermission: jest.fn(),
   })),
-  useCodeScanner: jest.fn(() => ({})),
+}));
+jest.mock('react-native-vision-camera-barcode-scanner', () => ({
+  CodeScanner: () => null,
 }));
 jest.mock('react-native-share', () => ({
   __esModule: true,

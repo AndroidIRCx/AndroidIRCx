@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -31,6 +37,7 @@ import {
 } from '../services/PrivacyRelayService';
 import { mediaSettingsService } from '../services/MediaSettingsService';
 import type { PrivacyRelayTurnCredentials } from '../types/privacyRelay';
+import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
 
 interface PrivacyRelayScreenProps {
   visible: boolean;
@@ -65,12 +72,19 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState(false);
   const [purchasingPlan, setPurchasingPlan] = useState<string | null>(null);
+  const purchasingPlanRef = useRef<string | null>(null);
   const [syncingBackend, setSyncingBackend] = useState(false);
   const [lastCredentialFetch, setLastCredentialFetch] =
     useState<PrivacyRelayTurnCredentials | null>(null);
   const [backendStatus, setBackendStatus] = useState<string | null>(null);
 
   const relayState = privacyRelayService.getRelayAccessState();
+  const { ensureIapConnection, releaseIapConnection } = useIapConnectionLease();
+
+  const setCurrentPurchasingPlan = useCallback((planId: string | null) => {
+    purchasingPlanRef.current = planId;
+    setPurchasingPlan(planId);
+  }, []);
 
   const extractOffers = useCallback(
     (sub: ProductSubscription | null): RelayOffer[] => {
@@ -157,7 +171,7 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
     setLoading(true);
     try {
       await privacyRelayService.initialize();
-      await RNIap.initConnection();
+      await ensureIapConnection();
       const products =
         (await RNIap.fetchProducts({
           skus: [PRIVACY_RELAY_PRODUCT_ID],
@@ -183,7 +197,7 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [extractOffers, syncSubscriptionState, t]);
+  }, [ensureIapConnection, extractOffers, syncSubscriptionState, t]);
 
   useEffect(() => {
     if (!visible) {
@@ -218,7 +232,10 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
             );
           }
 
-          await syncPurchaseWithBackend(purchaseToken, purchasingPlan);
+          await syncPurchaseWithBackend(
+            purchaseToken,
+            purchasingPlanRef.current,
+          );
           Alert.alert(
             t('Privacy Relay enabled'),
             t('Relay routing is now available for eligible calls.'),
@@ -235,7 +252,7 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
               : t('Failed to complete subscription.'),
           );
         } finally {
-          setPurchasingPlan(null);
+          setCurrentPurchasingPlan(null);
         }
       },
     ) as unknown as { remove: () => void };
@@ -250,7 +267,7 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
           message: error.message,
           productId: error.productId,
         });
-        setPurchasingPlan(null);
+        setCurrentPurchasingPlan(null);
         if (error.code !== ErrorCode.UserCancelled) {
           Alert.alert(
             t('Purchase Failed'),
@@ -264,9 +281,16 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
       unsubscribe();
       purchaseUpdateSubscription?.remove();
       purchaseErrorSubscription?.remove();
-      RNIap.endConnection().catch(() => null);
+      releaseIapConnection();
     };
-  }, [initializeStore, purchasingPlan, syncPurchaseWithBackend, t, visible]);
+  }, [
+    initializeStore,
+    releaseIapConnection,
+    setCurrentPurchasingPlan,
+    syncPurchaseWithBackend,
+    t,
+    visible,
+  ]);
 
   const handlePurchase = useCallback(
     async (planId: string) => {
@@ -277,9 +301,11 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
         offerTokenPresent: Boolean(selectedOffer?.offerToken),
         platform: Platform.OS,
       });
-      setPurchasingPlan(planId);
+      setCurrentPurchasingPlan(planId);
 
       try {
+        await ensureIapConnection();
+
         let request: any;
         if (Platform.OS === 'ios') {
           request = {
@@ -314,7 +340,7 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
 
         await RNIap.requestPurchase(request);
       } catch (error: any) {
-        setPurchasingPlan(null);
+        setCurrentPurchasingPlan(null);
         if (error?.code !== ErrorCode.UserCancelled) {
           Alert.alert(
             t('Purchase Failed'),
@@ -323,7 +349,7 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
         }
       }
     },
-    [offers, t],
+    [ensureIapConnection, offers, setCurrentPurchasingPlan, t],
   );
 
   const handleRestore = useCallback(async () => {
@@ -331,6 +357,7 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
     setRestoring(true);
     setBackendStatus(t('Checking existing purchases...'));
     try {
+      await ensureIapConnection();
       const purchases = await RNIap.getAvailablePurchases();
       const relayPurchases = purchases.filter(
         purchase => purchase.productId === PRIVACY_RELAY_PRODUCT_ID,
@@ -378,7 +405,12 @@ export const PrivacyRelayScreen: React.FC<PrivacyRelayScreenProps> = ({
       console.log('[PrivacyRelayScreen] handleRestore finish');
       setRestoring(false);
     }
-  }, [subscription?.basePlanId, syncPurchaseWithBackend, t]);
+  }, [
+    ensureIapConnection,
+    subscription?.basePlanId,
+    syncPurchaseWithBackend,
+    t,
+  ]);
 
   const handleTestCredentials = useCallback(async () => {
     const purchaseToken = privacyRelayService.getSubscription()?.purchaseToken;

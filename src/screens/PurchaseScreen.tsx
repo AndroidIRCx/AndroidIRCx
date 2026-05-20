@@ -26,6 +26,7 @@ import {
 import { useT } from '../i18n/transifex';
 import * as RNIap from 'react-native-iap';
 import type { Product, Purchase, PurchaseError } from 'react-native-iap';
+import { useIapConnectionLease } from '../hooks/useIapConnectionLease';
 
 interface PurchaseScreenProps {
   visible: boolean;
@@ -64,6 +65,7 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
   const [products, setProducts] = useState<ProductListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState(false);
+  const { ensureIapConnection, releaseIapConnection } = useIapConnectionLease();
 
   useEffect(() => {
     tRef.current = t;
@@ -98,6 +100,7 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
       try {
         setRestoring(true);
         console.log('Restoring purchases...');
+        await ensureIapConnection();
         const purchases = await RNIap.getAvailablePurchases();
         console.log('Available purchases:', purchases);
 
@@ -128,7 +131,7 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
         setRestoring(false);
       }
     },
-    [translate],
+    [ensureIapConnection, translate],
   );
 
   useEffect(() => {
@@ -137,8 +140,7 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
 
     const initIAP = async () => {
       try {
-        // Initialize connection to Google Play
-        await RNIap.initConnection();
+        await ensureIapConnection();
         if (Platform.OS === 'android') {
           const flushPending = (RNIap as any)
             .flushFailedPurchasesCachedAsPendingAndroid;
@@ -243,9 +245,15 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
       if (purchaseErrorSubscription) {
         purchaseErrorSubscription.remove();
       }
-      RNIap.endConnection().catch(() => null);
+      releaseIapConnection();
     };
-  }, [restorePurchases, translate, visible]);
+  }, [
+    ensureIapConnection,
+    releaseIapConnection,
+    restorePurchases,
+    translate,
+    visible,
+  ]);
 
   // Update purchase state
   useEffect(() => {
@@ -268,6 +276,8 @@ export const PurchaseScreen: React.FC<PurchaseScreenProps> = ({
     setPurchasing(productId);
 
     try {
+      await ensureIapConnection();
+
       // Trigger Google Play Billing
       const request = Platform.select({
         ios: {

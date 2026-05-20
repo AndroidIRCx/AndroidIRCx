@@ -244,8 +244,8 @@ android {
         applicationId = "com.androidircx"
         minSdkVersion = rootProject.ext.minSdkVersion
         targetSdkVersion = rootProject.ext.targetSdkVersion
-        versionCode = 119
-        versionName = "1.9.16"
+        versionCode = 120
+        versionName = "1.9.17"
 
         buildConfigField "long", "PLAY_INTEGRITY_PROJECT_NUMBER", "1060587657852L"
 

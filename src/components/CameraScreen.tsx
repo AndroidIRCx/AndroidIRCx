@@ -7,7 +7,7 @@
  * Uses react-native-vision-camera to capture photos
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import {
   Camera,
   useCameraDevice,
   useCameraPermission,
+  usePhotoOutput,
 } from 'react-native-vision-camera';
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
@@ -40,15 +41,15 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
   const t = useT();
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const cameraRef = useRef<Camera>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const device = useCameraDevice('back');
+  const photoOutput = usePhotoOutput();
   const { hasPermission, requestPermission } = useCameraPermission();
 
   const handleTakePhoto = async () => {
-    if (!cameraRef.current || !device || isCapturing) {
+    if (!device || isCapturing) {
       return;
     }
 
@@ -56,10 +57,12 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
       setIsCapturing(true);
       setError(null);
 
-      // Take photo
-      const photo = await cameraRef.current.takePhoto({
-        flash: 'off',
-      });
+      const photo = await photoOutput.capturePhotoToFile(
+        {
+          flashMode: 'off',
+        },
+        {},
+      );
 
       // Save photo to cache directory
       const timestamp = Date.now();
@@ -68,7 +71,7 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
 
       // Copy photo file to cache directory
       // The photo path from camera is usually in a temp location
-      let photoPath = photo.path;
+      let photoPath = photo.filePath;
       if (!photoPath.startsWith('file://')) {
         photoPath = `file://${photoPath}`;
       }
@@ -192,11 +195,10 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({
     >
       <View style={styles.container}>
         <Camera
-          ref={cameraRef}
           style={StyleSheet.absoluteFill}
           device={device}
           isActive={visible}
-          photo={true}
+          outputs={[photoOutput]}
         />
 
         {/* Overlay controls */}

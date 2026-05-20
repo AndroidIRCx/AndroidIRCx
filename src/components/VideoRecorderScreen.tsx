@@ -21,7 +21,9 @@ import {
   useCameraDevice,
   useCameraPermission,
   useMicrophonePermission,
+  useVideoOutput,
 } from 'react-native-vision-camera';
+import type { Recorder } from 'react-native-vision-camera';
 import RNFS from 'react-native-fs';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../i18n/transifex';
@@ -39,14 +41,15 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
 }) => {
   const t = useT();
   const { colors } = useTheme();
-  const cameraRef = useRef<Camera>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const recordingPathRef = useRef<string | null>(null);
+  const recordingDurationRef = useRef(0);
+  const recorderRef = useRef<Recorder | null>(null);
 
   const device = useCameraDevice('back');
+  const videoOutput = useVideoOutput({ enableAudio: true, fileType: 'mp4' });
   const {
     hasPermission: hasCameraPermission,
     requestPermission: requestCameraPermission,
@@ -57,7 +60,7 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
   } = useMicrophonePermission();
 
   const startRecording = async () => {
-    if (!cameraRef.current || !device || isRecording) {
+    if (!device || isRecording) {
       return;
     }
 
@@ -65,24 +68,27 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
       setIsRecording(true);
       setError(null);
       setRecordingDuration(0);
+      recordingDurationRef.current = 0;
 
       // Generate file path
       const timestamp = Date.now();
       const fileName = `video_${timestamp}.mp4`;
       const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-      recordingPathRef.current = filePath;
 
       // Start duration timer before recording begins so cleanup paths can always clear it.
       durationIntervalRef.current = setInterval(() => {
-        setRecordingDuration(prev => prev + 1);
+        recordingDurationRef.current += 1;
+        setRecordingDuration(recordingDurationRef.current);
       }, 1000);
 
-      // Start recording
-      await cameraRef.current.startRecording({
-        fileType: 'mp4',
-        onRecordingFinished: async video => {
+      const recorder = await videoOutput.createRecorder({ filePath });
+      recorderRef.current = recorder;
+
+      await recorder.startRecording(
+        async recordedFilePath => {
           try {
             setIsRecording(false);
+            recorderRef.current = null;
 
             // Stop duration timer if still running
             if (durationIntervalRef.current) {
@@ -90,26 +96,17 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
               durationIntervalRef.current = null;
             }
 
-            // Copy video file to cache directory
-            let videoPath = video.path;
+            let videoPath = recordedFilePath;
             if (!videoPath.startsWith('file://')) {
               videoPath = `file://${videoPath}`;
             }
 
-            // Remove file:// prefix for RNFS operations
-            const normalizedVideoPath = videoPath.replace('file://', '');
-            const videoData = await RNFS.readFile(
-              normalizedVideoPath,
-              'base64',
-            );
-            await RNFS.writeFile(filePath, videoData, 'base64');
-
             // Calculate duration (use recorded duration)
-            const duration = recordingDuration;
+            const duration = recordingDurationRef.current;
 
             // Return file URI with file:// prefix
             const fileUri =
-              Platform.OS === 'android' ? `file://${filePath}` : filePath;
+              Platform.OS === 'android' ? videoPath : recordedFilePath;
 
             console.log(
               '[VideoRecorderScreen] Video saved:',
@@ -125,22 +122,29 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
             console.error('[VideoRecorderScreen] Error saving video:', err);
             setError(err.message || t('Failed to save video'));
             setIsRecording(false);
+            recorderRef.current = null;
           }
         },
-        onRecordingError: recordingError => {
+        recordingError => {
           console.error(
             '[VideoRecorderScreen] Recording error:',
             recordingError,
           );
           setError(recordingError.message || t('Recording failed'));
           setIsRecording(false);
+          recorderRef.current = null;
+          if (durationIntervalRef.current) {
+            clearInterval(durationIntervalRef.current);
+            durationIntervalRef.current = null;
+          }
         },
-      });
+      );
     } catch (err: any) {
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
         durationIntervalRef.current = null;
       }
+      recorderRef.current = null;
       console.error('[VideoRecorderScreen] Start recording error:', err);
       setError(err.message || t('Failed to start recording'));
       setIsRecording(false);
@@ -148,7 +152,7 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
   };
 
   const stopRecording = async () => {
-    if (!cameraRef.current || !isRecording) {
+    if (!recorderRef.current || !isRecording) {
       return;
     }
 
@@ -160,13 +164,14 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
       }
 
       // Stop recording (onRecordingFinished callback will handle file saving)
-      await cameraRef.current.stopRecording();
+      await recorderRef.current.stopRecording();
 
       // Note: setIsRecording(false) will be called in onRecordingFinished callback
     } catch (err: any) {
       console.error('[VideoRecorderScreen] Stop recording error:', err);
       setError(err.message || t('Failed to stop recording'));
       setIsRecording(false);
+      recorderRef.current = null;
     }
   };
 
@@ -193,6 +198,7 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
         clearInterval(durationIntervalRef.current);
         durationIntervalRef.current = null;
       }
+      recorderRef.current = null;
     };
   }, []);
 
@@ -287,12 +293,10 @@ export const VideoRecorderScreen: React.FC<VideoRecorderScreenProps> = ({
     >
       <View style={styles.container}>
         <Camera
-          ref={cameraRef}
           style={StyleSheet.absoluteFill}
           device={device}
           isActive={visible}
-          video={true}
-          audio={true}
+          outputs={[videoOutput]}
         />
 
         {/* Overlay controls */}

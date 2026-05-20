@@ -10,7 +10,12 @@ jest.mock('react-native', () => ({
       CAMERA: 'android.permission.CAMERA',
       RECORD_AUDIO: 'android.permission.RECORD_AUDIO',
     },
+    RESULTS: {
+      GRANTED: 'granted',
+      DENIED: 'denied',
+    },
     check: jest.fn(),
+    request: jest.fn(),
   },
 }));
 
@@ -26,11 +31,7 @@ jest.mock('react-native-fs', () => ({
 }));
 
 jest.mock('react-native-vision-camera', () => ({
-  Camera: {
-    requestCameraPermission: jest.fn(),
-    requestMicrophonePermission: jest.fn(),
-    getAvailableCameraDevices: jest.fn(),
-  },
+  getDefaultCameraDevice: jest.fn(),
   useCameraDevice: jest.fn(),
 }));
 
@@ -45,7 +46,7 @@ jest.mock('@react-native-documents/picker', () => ({
 }));
 
 import RNFS from 'react-native-fs';
-import { Camera } from 'react-native-vision-camera';
+import { getDefaultCameraDevice } from 'react-native-vision-camera';
 import { PermissionsAndroid } from 'react-native';
 import { pick, isCancel } from '@react-native-documents/picker';
 import { mediaPickerService } from '../../src/services/MediaPickerService';
@@ -58,14 +59,16 @@ const mockRNFS = RNFS as unknown as {
   stat: jest.Mock;
 };
 
-const mockCamera = Camera as unknown as {
-  requestCameraPermission: jest.Mock;
-  requestMicrophonePermission: jest.Mock;
-  getAvailableCameraDevices: jest.Mock;
-};
+const mockGetDefaultCameraDevice =
+  getDefaultCameraDevice as unknown as jest.Mock;
 
 const mockPermissions = PermissionsAndroid as unknown as {
   check: jest.Mock;
+  request: jest.Mock;
+  RESULTS: {
+    GRANTED: string;
+    DENIED: string;
+  };
 };
 
 const mockPick = pick as unknown as jest.Mock;
@@ -83,9 +86,8 @@ describe('MediaPickerService', () => {
     mockRNFS.copyFile.mockResolvedValue(undefined);
     mockRNFS.readFile.mockResolvedValue('QUJD');
     mockPermissions.check.mockResolvedValue(true);
-    mockCamera.requestCameraPermission.mockResolvedValue('granted');
-    mockCamera.requestMicrophonePermission.mockResolvedValue('granted');
-    mockCamera.getAvailableCameraDevices.mockResolvedValue([{ id: 'back' }]);
+    mockPermissions.request.mockResolvedValue(mockPermissions.RESULTS.GRANTED);
+    mockGetDefaultCameraDevice.mockResolvedValue({ id: 'back' });
   });
 
   it('picks image and normalizes file uri', async () => {
@@ -135,7 +137,9 @@ describe('MediaPickerService', () => {
 
   it('returns permission-denied for capturePhoto when camera denied', async () => {
     mockPermissions.check.mockResolvedValueOnce(false);
-    mockCamera.requestCameraPermission.mockResolvedValueOnce('denied');
+    mockPermissions.request.mockResolvedValueOnce(
+      mockPermissions.RESULTS.DENIED,
+    );
 
     const result = await mediaPickerService.capturePhoto();
 
@@ -152,7 +156,9 @@ describe('MediaPickerService', () => {
 
   it('returns permission-denied for recordVoice when mic denied', async () => {
     mockPermissions.check.mockResolvedValueOnce(false);
-    mockCamera.requestMicrophonePermission.mockResolvedValueOnce('denied');
+    mockPermissions.request.mockResolvedValueOnce(
+      mockPermissions.RESULTS.DENIED,
+    );
 
     const result = await mediaPickerService.recordVoice();
 
@@ -162,7 +168,9 @@ describe('MediaPickerService', () => {
 
   it('reports camera availability', async () => {
     expect(await mediaPickerService.isCameraAvailable()).toBe(true);
-    mockCamera.getAvailableCameraDevices.mockResolvedValueOnce([]);
+    mockGetDefaultCameraDevice
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
     expect(await mediaPickerService.isCameraAvailable()).toBe(false);
   });
 
@@ -380,7 +388,9 @@ describe('MediaPickerService', () => {
 
   it('returns camera denied for recordVideo when camera permission is denied', async () => {
     mockPermissions.check.mockResolvedValueOnce(false);
-    mockCamera.requestCameraPermission.mockResolvedValueOnce('denied');
+    mockPermissions.request.mockResolvedValueOnce(
+      mockPermissions.RESULTS.DENIED,
+    );
     const result = await mediaPickerService.recordVideo();
     expect(result).toEqual({
       success: false,
@@ -392,7 +402,9 @@ describe('MediaPickerService', () => {
     mockPermissions.check
       .mockResolvedValueOnce(true)
       .mockResolvedValueOnce(false);
-    mockCamera.requestMicrophonePermission.mockResolvedValueOnce('denied');
+    mockPermissions.request.mockResolvedValueOnce(
+      mockPermissions.RESULTS.DENIED,
+    );
 
     const result = await mediaPickerService.recordVideo();
     expect(result).toEqual({
@@ -408,7 +420,7 @@ describe('MediaPickerService', () => {
   });
 
   it('returns false when camera lookup throws', async () => {
-    mockCamera.getAvailableCameraDevices.mockRejectedValueOnce(
+    mockGetDefaultCameraDevice.mockRejectedValueOnce(
       new Error('camera unavailable'),
     );
     await expect(mediaPickerService.isCameraAvailable()).resolves.toBe(false);
