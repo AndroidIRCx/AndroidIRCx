@@ -1,0 +1,5 @@
+What's new in v1.9.34:
+- Upgraded Firebase SDK (app, app-check, crashlytics) to 25.1.0 for improved stability and security
+- Refreshed React Native community CLI and platform tooling to 20.2.0
+- Updated Reanimated to 4.5.0 and Worklets to 0.10.0 for smoother animations and threading
+- Pulled in patch releases for Transifex, bootsplash, IAP, keyboard-controller, nitro-modules, google-mobile-ads, and other dependencies

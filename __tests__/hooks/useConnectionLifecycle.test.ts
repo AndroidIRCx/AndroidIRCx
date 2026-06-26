@@ -128,6 +128,13 @@ jest.mock('../../src/services/SoundService', () => ({
 jest.mock('../../src/services/NotificationService', () => ({
   notificationService: {
     shouldNotify: jest.fn().mockReturnValue(true),
+    showMessageNotification: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('../../src/services/BackgroundService', () => ({
+  backgroundService: {
+    isAppInBackground: jest.fn().mockReturnValue(false),
   },
 }));
 

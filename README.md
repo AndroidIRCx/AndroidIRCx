@@ -287,7 +287,7 @@ AndroidIRCX/
 +-- .github/workflows/  CI/CD workflows
 +-- Dockerfile          Docker-based release builds
 +-- App.tsx             Main component
-+-- package.json        v1.9.33, GPL-3.0-or-later
++-- package.json        v1.9.34, GPL-3.0-or-later
 ```
 
 ---

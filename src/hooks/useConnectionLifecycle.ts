@@ -24,6 +24,8 @@ import { dccFileService } from '../services/DCCFileService';
 import { soundService } from '../services/SoundService';
 import { SoundEventType } from '../types/sound';
 import { notificationService } from '../services/NotificationService';
+import { highlightService } from '../services/HighlightService';
+import { backgroundService } from '../services/BackgroundService';
 import { useTabStore } from '../stores/tabStore';
 import { useUIStore } from '../stores/uiStore';
 import { tabService } from '../services/TabService';
@@ -739,13 +741,16 @@ export const useConnectionLifecycle = (
               if (targetTabType === 'query' && message.from) {
                 soundService.playSound(SoundEventType.PRIVATE_MESSAGE);
               }
-              // Mention sound - check if current nick is mentioned in the message
+              // Mention sound - fires on current nick OR any custom highlight word
               else if (targetTabType === 'channel' && currentNick) {
                 const mentionPattern = new RegExp(
                   `\\b${currentNick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
                   'i',
                 );
-                if (mentionPattern.test(message.text)) {
+                if (
+                  mentionPattern.test(message.text) ||
+                  highlightService.isHighlighted(message.text)
+                ) {
                   soundService.playSound(SoundEventType.MENTION);
                 }
               }
@@ -765,6 +770,47 @@ export const useConnectionLifecycle = (
             );
             if (shouldPlayNoticeSound) {
               soundService.playSound(SoundEventType.NOTICE);
+            }
+          }
+          // Foreground system notification: fire when app is visible but the
+          // user is on a different tab. BackgroundService owns the background
+          // path; gate on isAppInBackground() to avoid duplicate notifications.
+          if (
+            !isLocalEcho &&
+            (message.type === 'message' || message.type === 'notice') &&
+            message.text &&
+            !backgroundService.isAppInBackground() &&
+            targetTabId &&
+            targetTabId !== latest.activeTabId
+          ) {
+            const shouldShowNotif = notificationService.shouldNotify(
+              {
+                from: message.from,
+                text: message.text,
+                channel: message.channel,
+                type: message.type,
+              },
+              currentNick,
+              messageNetwork,
+            );
+            if (shouldShowNotif) {
+              notificationService
+                .showMessageNotification(
+                  {
+                    from: message.from,
+                    text: message.text,
+                    channel: message.channel,
+                    type: message.type,
+                  },
+                  currentNick,
+                  messageNetwork,
+                )
+                .catch(err => {
+                  console.error(
+                    'useConnectionLifecycle: Failed to show foreground notification:',
+                    err,
+                  );
+                });
             }
           }
           // CTCP sound (for DCC and other CTCP requests)
