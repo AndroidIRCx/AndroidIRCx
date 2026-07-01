@@ -114,19 +114,32 @@ class IRCForegroundService : Service() {
         val notification = createNotification(title, text)
 
         try {
+            // Enter foreground with the stable two-argument API first. Crashlytics
+            // v1.9.34 showed ForegroundServiceDidNotStartInTimeException from the
+            // native module start path; satisfying the platform deadline before
+            // resolving/applying optional service-type metadata prevents a later
+            // typed-start failure from leaving Android waiting for startForeground().
+            startForeground(NOTIFICATION_ID, notification)
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val manifestType = resolveManifestForegroundServiceType()
                 android.util.Log.d(
                     "IRCForegroundService",
                     "Resolved manifest foregroundServiceType=0x${manifestType.toString(16)}"
                 )
-                startForeground(
-                    NOTIFICATION_ID,
-                    notification,
-                    manifestType
-                )
-            } else {
-                startForeground(NOTIFICATION_ID, notification)
+                try {
+                    startForeground(
+                        NOTIFICATION_ID,
+                        notification,
+                        manifestType
+                    )
+                } catch (typedStartError: Exception) {
+                    android.util.Log.w(
+                        "IRCForegroundService",
+                        "Foreground service already started; continuing without typed update: ${typedStartError.message}",
+                        typedStartError
+                    )
+                }
             }
         } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
             // Android 12+ blocks foreground service start from background

@@ -7834,20 +7834,20 @@ react-native-google-mobile-ads@^16.4.0:
     "@iabtcf/core" "^1.5.6"
     use-deep-compare-effect "^1.8.1"
 
-react-native-iap@15.3.3:
-  version "15.3.3"
-  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-15.3.3.tgz#9945cd46fc80d217b8ad7d7c25c7eb27ff36b79e"
-  integrity sha512-ClEbc/1rET28VBI0UUaWHzFAbzKIEJcJw/WlKBywWFlnGZoV+CkILI7QCvtQRHZfsmRUm7r1Cg1g0XJvzYQntw==
+react-native-iap@15.3.4:
+  version "15.3.4"
+  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-15.3.4.tgz#ab4e8b4772c24bd4e027e7717ee3f12ed8ab0036"
+  integrity sha512-Q5x/4Yxai6L6nPCIyHt2IBn02MpV4aFawTVyBMmULtsc7yPsvgbb3cO1p1XvW5fTv8pYuWnSZOMfgvXAgdRbNg==
 
 react-native-is-edge-to-edge@^1.2.1, react-native-is-edge-to-edge@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.3.1.tgz#feb9a6a8faf0874298947edd556e5af22044e139"
   integrity sha512-NIXU/iT5+ORyCc7p0z2nnlkouYKX425vuU1OEm6bMMtWWR9yvb+Xg5AZmImTKoF9abxCPqrKC3rOZsKzUYgYZA==
 
-react-native-keyboard-controller@1.21.12:
-  version "1.21.12"
-  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.21.12.tgz#88e8da605cce62dd5b708a6a065b5c91d80349e4"
-  integrity sha512-pZJNXS//AhXDD9RvkNBZF5MsHv9qbFpNeHMIZ9ESSUqubNsACU7GyTE4GekIcJ1MBu+r9/TNZQuEfpT9v01HZg==
+react-native-keyboard-controller@1.21.13:
+  version "1.21.13"
+  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.21.13.tgz#4fe57b724e328d7b8577f8b924f2f35dc6afe9f3"
+  integrity sha512-FLr0MucraPyCGykRAcPM8Bv0JT5TcG1juQGMI+GLDuuaoOUKUY3SMUnRhHn7IgSM8KlxpcNQmMPNDmGpOw1OcA==
   dependencies:
     react-native-is-edge-to-edge "^1.2.1"
 
@@ -7885,10 +7885,10 @@ react-native-nitro-image@0.15.1:
   resolved "https://registry.yarnpkg.com/react-native-nitro-image/-/react-native-nitro-image-0.15.1.tgz#afe8aeea82fe763ec5d74467156a4b4a70657042"
   integrity sha512-slrImfUgasAdzylTiNWuTkawE0R4t7LGh+7N2VFa/D9+SxlQbkKYp1J6hA3XkkEnTnUCKaea39ZVg+1xx665MQ==
 
-react-native-nitro-modules@0.35.10:
-  version "0.35.10"
-  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.35.10.tgz#8f8e659ceed8638ab3ede871762e51893513214a"
-  integrity sha512-KsySOAIkbSTjNiX2GvXiNT9P5DMeZd99yvtE/+Lw7RXV7Ztxh9Z+YyAbYkBqadhN5J/KXXuPjhRYgyLOIZgsbQ==
+react-native-nitro-modules@0.36.1:
+  version "0.36.1"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.36.1.tgz#f697d96f772ce17930f15b81ad4b1e42550569ef"
+  integrity sha512-iLhY+ZkocZ9lEAdE07A49MnyL4O0syeH+iEXzk1PiZD1+6DMo+5VQ04XTS/HXdTUIYpblJ3CO52sgdtJb4BPhQ==
 
 react-native-nitro-sound@^0.2.15:
   version "0.2.15"
@@ -7977,10 +7977,10 @@ react-native-webrtc@^124.0.7:
     debug "4.3.4"
     event-target-shim "6.0.2"
 
-react-native-worklets@0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.10.0.tgz#e2e8f8e1ba0eccc4e69f3a4e75894ecab4ba19b0"
-  integrity sha512-JhE6IxDf6iabC0qu3+TAKA4v9RlluXmoIngPQX7/QUByf75lfrsHZ6/dQhyjEWnp1EEQiwzz8Cpew140ZcewDw==
+react-native-worklets@0.10.1:
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.10.1.tgz#7a3038a3b5ec66cab030a00e1568b6599696f5f2"
+  integrity sha512-62mRM19bDpfpdI8HLkEErcdOsrAPDtE9lA/sw+5lLRpzBHNhxaoj9QyY2KjXqUmirelxkX4zuPGTC3VdA0feJA==
   dependencies:
     "@babel/plugin-transform-arrow-functions" "^7.27.1"
     "@babel/plugin-transform-class-properties" "^7.28.6"
