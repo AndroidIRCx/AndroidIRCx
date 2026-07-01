@@ -67,8 +67,7 @@ class NotificationService {
     networkPreferences: new Map(),
   };
   private callActionListener:
-    | ((action: CallNotificationAction) => void | Promise<void>)
-    | null = null;
+    ((action: CallNotificationAction) => void | Promise<void>) | null = null;
 
   /**
    * Check if notification permission is granted

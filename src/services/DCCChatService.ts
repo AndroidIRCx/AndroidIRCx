@@ -13,12 +13,7 @@ import { tx } from '../i18n/transifex';
 const t = (key: string, params?: Record<string, unknown>) => tx.t(key, params);
 
 type DCCSessionStatus =
-  | 'pending'
-  | 'offering'
-  | 'connecting'
-  | 'connected'
-  | 'closed'
-  | 'failed';
+  'pending' | 'offering' | 'connecting' | 'connected' | 'closed' | 'failed';
 type DCCDirection = 'incoming' | 'outgoing';
 
 export interface DCCChatSession {

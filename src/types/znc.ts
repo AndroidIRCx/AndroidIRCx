@@ -11,20 +11,13 @@
  * Status of a ZNC subscription
  */
 export type ZncSubscriptionStatus =
-  | 'pending'
-  | 'active'
-  | 'expired'
-  | 'grace'
-  | 'cancelled';
+  'pending' | 'active' | 'expired' | 'grace' | 'cancelled';
 
 /**
  * ZNC account provisioning status
  */
 export type ZncProvisioningStatus =
-  | 'provisioning'
-  | 'ready'
-  | 'error'
-  | 'suspended';
+  'provisioning' | 'ready' | 'error' | 'suspended';
 
 /**
  * A single ZNC account

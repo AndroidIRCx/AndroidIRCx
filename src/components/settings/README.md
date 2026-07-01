@@ -262,12 +262,8 @@ import { useSettingsAppearance } from '../hooks/useSettingsAppearance';
 
 function MySettingsScreen() {
   const appearanceSettings = useSettingsAppearance();
-  const colors = {
-    /* ... */
-  };
-  const styles = {
-    /* ... */
-  };
+  const colors = {/* ... */};
+  const styles = {/* ... */};
 
   return (
     <AppearanceSection

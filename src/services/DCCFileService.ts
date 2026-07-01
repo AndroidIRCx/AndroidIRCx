@@ -55,12 +55,7 @@ function isPrivateOrLocalIp(ip: string): boolean {
 }
 
 type TransferStatus =
-  | 'pending'
-  | 'downloading'
-  | 'completed'
-  | 'failed'
-  | 'cancelled'
-  | 'sending';
+  'pending' | 'downloading' | 'completed' | 'failed' | 'cancelled' | 'sending';
 
 export interface DCCSendOffer {
   filename: string;

@@ -12,12 +12,7 @@
 
 /** IRC Service Provider Types */
 export type IRCServiceType =
-  | 'anope'
-  | 'atheme'
-  | 'dalnet'
-  | 'undernet'
-  | 'quakenet'
-  | 'generic';
+  'anope' | 'atheme' | 'dalnet' | 'undernet' | 'quakenet' | 'generic';
 
 /** IRC Daemon Types */
 export type IRCdType =
@@ -31,12 +26,7 @@ export type IRCdType =
 
 /** User Access Levels */
 export type AccessLevel =
-  | 'user'
-  | 'op'
-  | 'halfop'
-  | 'admin'
-  | 'founder'
-  | 'oper';
+  'user' | 'op' | 'halfop' | 'admin' | 'founder' | 'oper';
 
 /** Command Context Types */
 export type CommandContext = 'global' | 'channel' | 'query';
@@ -47,25 +37,13 @@ export type CommandContext = 'global' | 'channel' | 'query';
 
 /** Parameter types for service commands */
 export type ParameterType =
-  | 'string'
-  | 'number'
-  | 'channel'
-  | 'nick'
-  | 'duration'
-  | 'enum'
-  | 'boolean';
+  'string' | 'number' | 'channel' | 'nick' | 'duration' | 'enum' | 'boolean';
 
 /** Parameter completion configuration */
 export interface ParameterCompletionConfig {
   /** Completion type */
   type:
-    | 'enum'
-    | 'dynamic'
-    | 'password'
-    | 'email'
-    | 'mask'
-    | 'duration'
-    | 'boolean';
+    'enum' | 'dynamic' | 'password' | 'email' | 'mask' | 'duration' | 'boolean';
 
   /** Fixed values for enum type */
   values?: string[];

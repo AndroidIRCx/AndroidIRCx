@@ -81,12 +81,7 @@ export interface IRCConnectionConfig {
 }
 
 export type ChatHistorySubcommand =
-  | 'LATEST'
-  | 'BEFORE'
-  | 'AFTER'
-  | 'AROUND'
-  | 'BETWEEN'
-  | 'TARGETS';
+  'LATEST' | 'BEFORE' | 'AFTER' | 'AROUND' | 'BETWEEN' | 'TARGETS';
 
 export interface ChatHistoryRequestOptions {
   subcommand?: ChatHistorySubcommand;
@@ -329,8 +324,7 @@ export class IRCService {
   private cloneDetectionQueue: string[] = [];
   private cloneDetectionResults: Map<string, string[]> = new Map(); // host -> nicks[]
   private cloneDetectionCallback:
-    | ((results: Map<string, string[]>) => void)
-    | null = null;
+    ((results: Map<string, string[]>) => void) | null = null;
   private cloneDetectionBatchSize: number = 100; // Process 100 users at a time
   private cloneDetectionDelay: number = 100; // ms between batches
 

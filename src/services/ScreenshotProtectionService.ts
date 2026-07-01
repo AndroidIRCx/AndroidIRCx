@@ -10,8 +10,7 @@ interface ScreenshotProtectionNativeModule {
 }
 
 const getScreenshotProtectionModule = ():
-  | ScreenshotProtectionNativeModule
-  | undefined => {
+  ScreenshotProtectionNativeModule | undefined => {
   if (Platform.OS !== 'android') {
     return undefined;
   }

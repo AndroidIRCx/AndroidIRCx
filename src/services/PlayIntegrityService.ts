@@ -18,9 +18,7 @@ export interface PlayIntegrityReport {
   };
   appIntegrity: {
     appRecognitionVerdict:
-      | 'PLAY_RECOGNIZED'
-      | 'UNRECOGNIZED_VERSION'
-      | 'UNEVALUATED';
+      'PLAY_RECOGNIZED' | 'UNRECOGNIZED_VERSION' | 'UNEVALUATED';
     packageName: string;
     certificateSha256Digest: string[];
     versionCode: string;

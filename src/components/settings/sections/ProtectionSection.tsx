@@ -1005,11 +1005,7 @@ export const ProtectionSection: React.FC<ProtectionSectionProps> = ({
                   style={stylesLocal.modalButton}
                   onPress={async () => {
                     const next = action as
-                      | 'none'
-                      | 'ban'
-                      | 'kill'
-                      | 'kline'
-                      | 'gline';
+                      'none' | 'ban' | 'kill' | 'kline' | 'gline';
                     setProtIrcopAction(next);
                     await settingsService.setSetting('protIrcopAction', next);
                     setShowIrcopActionModal(false);

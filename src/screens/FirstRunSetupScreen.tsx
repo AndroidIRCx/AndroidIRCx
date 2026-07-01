@@ -33,12 +33,7 @@ interface FirstRunSetupScreenProps {
 }
 
 type SetupStep =
-  | 'welcome'
-  | 'privacy'
-  | 'identity'
-  | 'network'
-  | 'channels'
-  | 'complete';
+  'welcome' | 'privacy' | 'identity' | 'network' | 'channels' | 'complete';
 
 export const FirstRunSetupScreen: React.FC<FirstRunSetupScreenProps> = ({
   onComplete,

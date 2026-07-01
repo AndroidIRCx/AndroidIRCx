@@ -66,15 +66,9 @@ interface AppLayoutProps {
   safeAreaInsets: { top: number; bottom: number };
   keyboardAvoidingEnabled: boolean;
   keyboardBehaviorIOS:
-    | 'padding'
-    | 'height'
-    | 'position'
-    | 'translate-with-padding';
+    'padding' | 'height' | 'position' | 'translate-with-padding';
   keyboardBehaviorAndroid:
-    | 'padding'
-    | 'height'
-    | 'position'
-    | 'translate-with-padding';
+    'padding' | 'height' | 'position' | 'translate-with-padding';
   keyboardVerticalOffset: number;
   useAndroidBottomSafeArea: boolean;
   styles: any;
@@ -706,9 +700,9 @@ export function AppLayout({
         showTypingIndicators &&
         typingUsers.get(activeTab.networkId)?.get(activeTab.name) && (
           <TypingIndicator
-            typingUsers={
-              typingUsers.get(activeTab.networkId)!.get(activeTab.name)!
-            }
+            typingUsers={typingUsers
+              .get(activeTab.networkId)!
+              .get(activeTab.name)!}
           />
         )}
       {effectiveLayoutConfig.tabPosition === 'bottom' && (

@@ -168,12 +168,9 @@ export const SoundSettingsScreen: React.FC<SoundSettingsScreenProps> = ({
           );
         }
       } catch (error: any) {
-        if (
-          !(
-            isErrorWithCode(error) &&
-            error.code === errorCodes.OPERATION_CANCELED
-          )
-        ) {
+        if (!(
+          isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED
+        )) {
           console.error('[SoundSettingsScreen] Error picking sound:', error);
           Alert.alert(t('Error'), t('Failed to select sound file.'));
         }

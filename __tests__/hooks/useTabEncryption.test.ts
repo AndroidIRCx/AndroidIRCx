@@ -12,8 +12,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useTabEncryption } from '../../src/hooks/useTabEncryption';
 
 let alwaysEncryptCallback:
-  | ((channel: string, network: string, value: boolean) => void)
-  | null = null;
+  ((channel: string, network: string, value: boolean) => void) | null = null;
 
 jest.mock('../../src/stores/tabStore', () => ({
   useTabStore: {

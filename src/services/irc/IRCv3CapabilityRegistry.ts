@@ -4,17 +4,10 @@
  */
 
 export type IRCv3CapabilityStatus =
-  | 'supported'
-  | 'partial'
-  | 'planned'
-  | 'deferred'
-  | 'deprecated';
+  'supported' | 'partial' | 'planned' | 'deferred' | 'deprecated';
 
 export type IRCv3CapabilityRequestPolicy =
-  | 'always'
-  | 'with-sasl-config'
-  | 'manual'
-  | 'never';
+  'always' | 'with-sasl-config' | 'manual' | 'never';
 
 export interface IRCv3CapabilityDefinition {
   name: string;

@@ -244,9 +244,7 @@ export const buildGlobalProxyConfig = (
 ): GlobalProxyConfig => {
   const enabled = overrides?.enabled ?? inputs.enabled;
   const type = ((overrides?.type ?? inputs.type) || 'socks5') as
-    | 'socks5'
-    | 'socks4'
-    | 'http';
+    'socks5' | 'socks4' | 'http';
   const host = (overrides?.host ?? inputs.host)?.trim() || undefined;
   const portStr = overrides?.port ?? inputs.port;
   const username =

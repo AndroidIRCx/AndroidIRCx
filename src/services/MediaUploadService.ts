@@ -35,12 +35,7 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
 const MAX_UPLOAD_API_RESPONSE_BYTES = 128 * 1024; // API responses should be tiny JSON payloads
 
 export type MediaType =
-  | 'image'
-  | 'video'
-  | 'voice'
-  | 'gif'
-  | 'sticker'
-  | 'file';
+  'image' | 'video' | 'voice' | 'gif' | 'sticker' | 'file';
 
 export interface UploadTokenResponse {
   id: string; // UUID - media identifier

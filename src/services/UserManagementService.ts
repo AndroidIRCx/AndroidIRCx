@@ -100,11 +100,7 @@ export interface BlacklistEntry {
 }
 
 export type UserListType =
-  | 'notify'
-  | 'autoop'
-  | 'autovoice'
-  | 'autohalfop'
-  | 'other';
+  'notify' | 'autoop' | 'autovoice' | 'autohalfop' | 'other';
 
 export interface UserListEntry {
   mask: string; // "nick!user@host" or "nick" or "*!*@host"

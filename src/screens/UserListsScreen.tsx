@@ -28,12 +28,7 @@ import { useTheme } from '../hooks/useTheme';
 import { ThemeColors } from '../services/ThemeService';
 
 type ListTab =
-  | 'notify'
-  | 'ignore'
-  | 'autoop'
-  | 'autovoice'
-  | 'autohalfop'
-  | 'other';
+  'notify' | 'ignore' | 'autoop' | 'autovoice' | 'autohalfop' | 'other';
 
 interface UserListsScreenProps {
   visible: boolean;

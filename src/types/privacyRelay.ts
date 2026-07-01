@@ -6,11 +6,7 @@
  */
 
 export type PrivacyRelaySubscriptionStatus =
-  | 'inactive'
-  | 'active'
-  | 'expired'
-  | 'grace'
-  | 'cancelled';
+  'inactive' | 'active' | 'expired' | 'grace' | 'cancelled';
 
 export interface PrivacyRelaySubscription {
   productId: string;

@@ -164,8 +164,7 @@ describe('ChannelTabs', () => {
 
   it('supports inverse scroll switching and always-encrypt change updates', async () => {
     let changeHandler:
-      | ((channel: string, network: string) => Promise<void>)
-      | undefined;
+      ((channel: string, network: string) => Promise<void>) | undefined;
 
     mockGetSetting.mockImplementation((key: string) => {
       if (key === 'channelListScrollSwitchTabs') return Promise.resolve(true);

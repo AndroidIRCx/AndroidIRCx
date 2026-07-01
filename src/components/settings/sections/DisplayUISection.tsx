@@ -1185,10 +1185,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           onPress: async () => {
             setKeyboardBehaviorIOS(
               option.value as
-                | 'padding'
-                | 'height'
-                | 'position'
-                | 'translate-with-padding',
+                'padding' | 'height' | 'position' | 'translate-with-padding',
             );
             await settingsService.setSetting(
               'keyboardBehaviorIOS',
@@ -1221,10 +1218,7 @@ export const DisplayUISection: React.FC<DisplayUISectionProps> = ({
           onPress: async () => {
             setKeyboardBehaviorAndroid(
               option.value as
-                | 'padding'
-                | 'height'
-                | 'position'
-                | 'translate-with-padding',
+                'padding' | 'height' | 'position' | 'translate-with-padding',
             );
             await settingsService.setSetting(
               'keyboardBehaviorAndroid',

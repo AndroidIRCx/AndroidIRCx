@@ -1,0 +1,5 @@
+What's new in v1.9.35:
+- Fixed an Android foreground-service crash seen in recent Crashlytics reports
+- Improved background IRC connection reliability when Android restarts or updates the service
+- Updated IAP, keyboard-controller, Nitro modules, and Worklets patch releases for stability
+- Fixed the Yarn lock integrity for Nitro modules so GitHub Actions tests install reliably

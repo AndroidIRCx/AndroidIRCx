@@ -10,8 +10,7 @@ import { useDccSessionSync } from '../../src/hooks/useDccSessionSync';
 
 let sessionCallback: ((session: any) => void) | null = null;
 let messageCallback:
-  | ((sessionId: string, message: any, session: any) => void)
-  | null = null;
+  ((sessionId: string, message: any, session: any) => void) | null = null;
 const mockUnsubSession = jest.fn();
 const mockUnsubMsg = jest.fn();
 

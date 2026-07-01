@@ -463,11 +463,9 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         // Ignore cleanup errors
       }
     } catch (error: any) {
-      if (
-        !(
-          isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED
-        )
-      ) {
+      if (!(
+        isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED
+      )) {
         console.error('Failed to import theme:', error);
         Alert.alert(
           t('Error', { _tags: tags }),

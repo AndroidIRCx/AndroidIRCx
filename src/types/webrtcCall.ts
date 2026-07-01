@@ -18,13 +18,7 @@ export type CallPhase =
   | 'error';
 
 export type WebRTCCallSignalType =
-  | 'invite'
-  | 'accept'
-  | 'reject'
-  | 'offer'
-  | 'answer'
-  | 'candidate'
-  | 'hangup';
+  'invite' | 'accept' | 'reject' | 'offer' | 'answer' | 'candidate' | 'hangup';
 
 export interface WebRTCCallSignal {
   type: WebRTCCallSignalType;

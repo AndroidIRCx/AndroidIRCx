@@ -527,17 +527,11 @@ function AppContent() {
       setKeyboardAvoidingEnabled(avoidingEnabled);
       setKeyboardBehaviorIOS(
         behaviorIOS as
-          | 'padding'
-          | 'height'
-          | 'position'
-          | 'translate-with-padding',
+          'padding' | 'height' | 'position' | 'translate-with-padding',
       );
       setKeyboardBehaviorAndroid(
         behaviorAndroid as
-          | 'padding'
-          | 'height'
-          | 'position'
-          | 'translate-with-padding',
+          'padding' | 'height' | 'position' | 'translate-with-padding',
       );
       setKeyboardVerticalOffset(verticalOffset);
       setUseAndroidBottomSafeArea(androidBottomSafeArea);
