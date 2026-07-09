@@ -1,0 +1,4 @@
+What's new in v1.9.36:
+- Fixed a rare crash on the app-lock screen caused by repeated biometric prompts ("window count is over max")
+- Biometric unlock now shows at most one automatic prompt per unlock, while manual retries keep working
+- Improved crash diagnostics

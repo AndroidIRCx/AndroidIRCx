@@ -24,6 +24,13 @@ export function useAppLock() {
   const appStateRef = useRef(AppState.currentState);
   const isMountedRef = useRef(true);
   const biometricAttemptInProgressRef = useRef(false);
+  // Tracks whether an *automatic* biometric prompt has already been shown for the
+  // current foreground/lock episode. Multiple effects (AppState foreground handler
+  // + appLocked effect) can each request an auto-prompt for the same lock; without
+  // this guard each shows a native BiometricPrompt DialogFragment, and those windows
+  // accumulate over a long session until Android throws
+  // "IllegalStateException: window count is over max!!". Reset on background and unlock.
+  const hasAutoPromptedRef = useRef(false);
   const backgroundTimeRef = useRef<number>(0); // Track when app went to background
   const lockScreenFreezeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -165,6 +172,21 @@ export function useAppLock() {
           '[useAppLock] Biometric attempt already in progress, skipping',
         );
         return false;
+      }
+
+      // Auto-prompts (isManualRetry === false) fire at most once per foreground/lock
+      // episode. Several effects can each request an auto-prompt for the same lock;
+      // firing a native BiometricPrompt DialogFragment for each leaks Android windows
+      // and eventually crashes ("window count is over max!!"). Manual retries (user
+      // pressing "Use Biometrics") are always allowed. Reset on background/unlock.
+      if (!isManualRetry) {
+        if (hasAutoPromptedRef.current) {
+          console.log(
+            '[useAppLock] Auto biometric prompt already shown this episode, skipping',
+          );
+          return false;
+        }
+        hasAutoPromptedRef.current = true;
       }
 
       // Check if biometric is available
@@ -425,6 +447,8 @@ export function useAppLock() {
       // Track when app goes to background
       if (prevState === 'active' && nextState !== 'active') {
         backgroundTimeRef.current = Date.now();
+        // New foreground episode starts fresh: allow exactly one auto-prompt next time.
+        hasAutoPromptedRef.current = false;
         console.log('[useAppLock] App went to background, recording time');
 
         // Lock when going to background
@@ -527,6 +551,7 @@ export function useAppLock() {
     if (!appLocked) {
       // Reset flags when app is unlocked
       biometricAttemptInProgressRef.current = false;
+      hasAutoPromptedRef.current = false;
 
       // Clear freeze detection timeout when unlocked
       if (lockScreenFreezeTimeoutRef.current) {

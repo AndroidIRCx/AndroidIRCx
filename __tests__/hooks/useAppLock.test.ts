@@ -695,9 +695,16 @@ describe('useAppLock', () => {
         'Biometric credentials not found. Please disable and re-enable biometric lock in Settings > Security.',
       );
 
+      // Automatic prompts fire at most once per lock episode (window-leak
+      // guard), so a second attempt in the same episode is a manual retry —
+      // exactly what the "Use Biometrics" button does (isManualRetry = true).
+      // Manual retries wait 800ms for the native prompt to reset before firing.
       mockStore.setAppPinError.mockClear();
       await act(async () => {
-        await result.current.attemptBiometricUnlock();
+        const promise = result.current.attemptBiometricUnlock(true);
+        await Promise.resolve();
+        jest.advanceTimersByTime(800);
+        await promise;
       });
       expect(mockStore.setAppPinError).toHaveBeenCalledWith(
         'Biometric authentication failed. Please try again.',

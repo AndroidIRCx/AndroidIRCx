@@ -61,8 +61,10 @@ adb kill-server | Out-Null
 Start-Sleep 2
 adb start-server | Out-Null
 
-# Remove local android artifacts
-Remove-Item -Recurse -Force .\app\build, .\app\.cxx -ErrorAction SilentlyContinue
+# Remove local android artifacts. The barcode scanner patch moves CMake staging
+# under android/build/short-cxx, so clear it before Gradle clean can reconfigure
+# stale native build trees with old prefab paths.
+Remove-Item -Recurse -Force .\app\build, .\app\.cxx, .\build\short-cxx -ErrorAction SilentlyContinue
 
 # Clean BEFORE codegen so codegen-generated files don't race the per-module clean
 # tasks (Windows DefaultDeleter errors with "New files were found" otherwise).
