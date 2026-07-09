@@ -2816,16 +2816,16 @@
     pretty-format "^30.4.1"
     redent "^3.0.0"
 
-"@transifex/cli@^8.0.1":
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/@transifex/cli/-/cli-8.0.1.tgz#69ce520048673fa7fe6e78d9741a33cf61a66d43"
-  integrity sha512-6aikYjmfqoIv9Xfg1b2kRaCOF9PunAnv9v9jhu819mOnMv4wxKJU5tIGWoH7qYuEHHWVxsUKF3JGGB227/IFpA==
+"@transifex/cli@^8.0.2":
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/@transifex/cli/-/cli-8.0.2.tgz#e708965ffb11dea465500c6088d8d4f3ff8a2600"
+  integrity sha512-xnvo+lU2mtlUGkwOKATB1yU9FwcgkcsNizkS6Fm6HzpPtsU02+inE12EANxGiv11BD6L6Da2IPdq0zP/IOG1Tg==
   dependencies:
     "@babel/parser" "^7.23.6"
     "@babel/traverse" "^7.23.7"
     "@colors/colors" "^1.6.0"
     "@oclif/core" "^1.26.2"
-    "@transifex/native" "^8.0.1"
+    "@transifex/native" "^8.0.2"
     "@vue/compiler-sfc" "^3.4.7"
     angular-html-parser "^1.8.0"
     axios "^1.15.0"
@@ -2834,19 +2834,19 @@
     lodash "^4.17.21"
     pug "^3.0.2"
 
-"@transifex/native@^8.0.1":
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/@transifex/native/-/native-8.0.1.tgz#9ef3708a00b457d812929917805d59d17f2d3a79"
-  integrity sha512-I2m/5N+zgUbJjUOEFWdG83IJX7gekIZ4Z+1xDG0HjkP1xHm+NlYEPeE2HbQTVlg0Sowb4R9NlM7bpE+ommvhDQ==
+"@transifex/native@^8.0.2":
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/@transifex/native/-/native-8.0.2.tgz#ad702be3045bc2dbde4fd3fb4906bf14ec416884"
+  integrity sha512-YgM5PnfS4vig3Pd/4WHk+iE47p3qxQDuvpRXioOb8OXj+XVyCG9xzveK5RK9hQyvNDNPzPS/30JnVDwjS5rMXQ==
   dependencies:
     cross-fetch "^4.0.0"
     intl-messageformat "^10.5.14"
     md5 "^2.3.0"
 
-"@transifex/react@^8.0.1":
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/@transifex/react/-/react-8.0.1.tgz#965d80f73bb426a78f655dfe19c01c6da6155306"
-  integrity sha512-bZ/WOXI7n2I9/DrfIBhZc4A0YE8MvgEqN6RNdZz1ln5z9/2w+FdndPbIWXGaBBdAcbLulqvnlylJI3sVTHAsRw==
+"@transifex/react@^8.0.2":
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/@transifex/react/-/react-8.0.2.tgz#cc3be167e9eba4257af9090224f779a64310ad41"
+  integrity sha512-DfrZgCWgJWhD31pq0AkG9ghBQMAlQa/RoC+1omziFXW/UCPXGz+eCaQ7RN+5Y5ZpHPkOaENShVJ65KkYEftlQA==
 
 "@tybys/wasm-util@^0.10.3":
   version "0.10.3"
@@ -2944,10 +2944,17 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*", "@types/node@26.1.0", "@types/node@>=12.12.47", "@types/node@>=13.7.0":
+"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0":
   version "26.1.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-26.1.0.tgz#aa85f0727fc5611347091c478341c63650903439"
   integrity sha512-O0A1G3xPGy4w7AgQdAQYUlQ+BKk2Oovw8eRpofyp5KdBZULnbe+WqaOVNrm705SHphCiG4XHsACrSmPu1f+Kgw==
+  dependencies:
+    undici-types "~8.3.0"
+
+"@types/node@26.1.1":
+  version "26.1.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.1.1.tgz#bad758d601e97d6cf457d204ee76a35fce7bd119"
+  integrity sha512-nxAkRSVkN1Y0JC1W8ky/fTfkGsMmcrRsbx+3XoZE+rMOX71kLYTV7fLXpqud1GpbpP5TuffXFqfX7fH2GgZREw==
   dependencies:
     undici-types "~8.3.0"
 
@@ -7831,20 +7838,20 @@ react-native-google-mobile-ads@^16.4.0:
     "@iabtcf/core" "^1.5.6"
     use-deep-compare-effect "^1.8.1"
 
-react-native-iap@15.3.5:
-  version "15.3.5"
-  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-15.3.5.tgz#b5f27a51c0bedae610c28ed54f455652769bc956"
-  integrity sha512-nZ4RlALTQU240f+Q/t4CZZ+8v4i2GBku95fg44HI64SZhd6sd3Sj9VN5UpOnxazl1kmllq9fglb4lHEh/QP2cw==
+react-native-iap@15.3.6:
+  version "15.3.6"
+  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-15.3.6.tgz#de42c377a76f68f263fa4b2d01f63e5a9dda42a1"
+  integrity sha512-TpOF8XENd7sP00Tcw8ro/6+r0otHWBLh8ODiDnpf872XCOlgHjtDDr1tv8fJ5ERBrCFYrlwahb+c8GaIpDNYfw==
 
 react-native-is-edge-to-edge@^1.2.1, react-native-is-edge-to-edge@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.3.1.tgz#feb9a6a8faf0874298947edd556e5af22044e139"
   integrity sha512-NIXU/iT5+ORyCc7p0z2nnlkouYKX425vuU1OEm6bMMtWWR9yvb+Xg5AZmImTKoF9abxCPqrKC3rOZsKzUYgYZA==
 
-react-native-keyboard-controller@1.21.13:
-  version "1.21.13"
-  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.21.13.tgz#4fe57b724e328d7b8577f8b924f2f35dc6afe9f3"
-  integrity sha512-FLr0MucraPyCGykRAcPM8Bv0JT5TcG1juQGMI+GLDuuaoOUKUY3SMUnRhHn7IgSM8KlxpcNQmMPNDmGpOw1OcA==
+react-native-keyboard-controller@1.22.0:
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.22.0.tgz#b3bf775f55983aa5478561d361ae2881dc4a30c4"
+  integrity sha512-FT8/xmb69o8rlqAxHg808p+m6+wigDLYWATKOnUgOoF2XlE2HV/2uPD6umKUg9sL6EX/uuLzoLMdsJlJGtwO9g==
   dependencies:
     react-native-is-edge-to-edge "^1.2.1"
 
@@ -7903,10 +7910,10 @@ react-native-qrcode-svg@^6.3.21:
     qrcode "^1.5.4"
     text-encoding "^0.7.0"
 
-react-native-reanimated@4.5.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.5.0.tgz#7029849859625a6247c7cf11161d5bef2cb99b12"
-  integrity sha512-+iPfvK34PKKYP/p/4TaBliFkbfvjGDIvXuiiaxvISP5ip7sWegvlacwU/uAV6zNDSSmX0tDyER7PurPMKGDipA==
+react-native-reanimated@4.5.1:
+  version "4.5.1"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-4.5.1.tgz#be81ed3a96bf70baeeccdc24d3350883099b7dd3"
+  integrity sha512-RnMvtDuR+68ig864gAvZCOdZehqhC5rFmMo0kn+ARfgVSTvFeF6IFLBVgMPUu0KwihaapEyW24WRi6nEyy1kSA==
   dependencies:
     react-native-is-edge-to-edge "^1.3.1"
     semver "^7.7.3"
@@ -7974,10 +7981,10 @@ react-native-webrtc@^124.0.7:
     debug "4.3.4"
     event-target-shim "6.0.2"
 
-react-native-worklets@0.10.1:
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.10.1.tgz#7a3038a3b5ec66cab030a00e1568b6599696f5f2"
-  integrity sha512-62mRM19bDpfpdI8HLkEErcdOsrAPDtE9lA/sw+5lLRpzBHNhxaoj9QyY2KjXqUmirelxkX4zuPGTC3VdA0feJA==
+react-native-worklets@0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.10.2.tgz#c59e6314d2da4a69f20d66f58bb964ee2275328a"
+  integrity sha512-LX27ejYI8veeDp59Z3rjo2pYyPa9euzSH8GUlem7cnNqfsDtGum8PQpkbzrqhLsWH0CjdeHR7p3sncCyYbwaVw==
   dependencies:
     "@babel/plugin-transform-arrow-functions" "^7.27.1"
     "@babel/plugin-transform-class-properties" "^7.28.6"
